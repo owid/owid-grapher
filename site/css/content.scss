@@ -276,22 +276,17 @@ code {
  * fix the most common cases with these quickfixes.
  */
 
-.grid .article-block__text + .h2-bold {
-    margin-top: calc(48px - 16px);
-}
-
-.grid .article-block__list + .h2-bold {
-    margin-top: calc(48px - 16px);
-}
-
-.grid .article-block__text + .h3-bold {
-    margin-top: calc(48px - 16px);
-}
-
+.grid .article-block__text + .h2-bold,
+.grid .article-block__list + .h2-bold,
+.grid .article-block__text + .h3-bold,
 .grid .article-block__list + .h3-bold {
+    // take the default margin-top of h2/3 and subtract the default margin of the p element above
     margin-top: calc(48px - 16px);
 }
 
+// Images directly under headings have enough space with just the
+// margin-bottom of the heading.
+.grid .h2-bold + .article-block__image,
 .grid .h3-bold + .article-block__image {
     margin-top: 0px;
 }
