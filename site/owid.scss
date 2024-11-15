@@ -141,12 +141,14 @@ http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-s
 /* Focus indicator
 --------------------------------------------- */
 // Override normalize.css on Firefox
-button:-moz-focusring {
-    outline: 2px dotted $blue-60;
+button:-moz-focusring,
+[type="button"]::-moz-focus-inner {
+    outline: 2px solid $blue-60;
 }
 
-*:focus-visible {
-    outline: 2px dotted $blue-60;
+*:focus-visible,
+[type="button"]:focus-visible {
+    outline: 2px solid $blue-60;
     outline-offset: 2px;
 }
 
