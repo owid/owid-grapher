@@ -223,7 +223,9 @@ function generateGdocRecords(
                 views_7d: pageviews[`/${gdoc.slug}`]?.views_7d ?? 0,
                 excerpt: gdoc.content.excerpt,
                 date: gdoc.publishedAt!.toISOString(),
-                modifiedDate: gdoc.updatedAt!.toISOString(),
+                modifiedDate: (
+                    gdoc.updatedAt ?? gdoc.publishedAt!
+                ).toISOString(),
                 tags: gdoc.tags?.map((t) => t.name),
                 documentType: "gdoc" as const,
                 authors: gdoc.content.authors,
