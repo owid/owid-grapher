@@ -46,6 +46,7 @@ export const ExplorerIndexPage = ({
                                     <img
                                         width="850"
                                         height="600"
+                                        loading="lazy"
                                         src={`${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${explorer.slug}.png`}
                                     />
                                     <h2>{explorer.title}</h2>
