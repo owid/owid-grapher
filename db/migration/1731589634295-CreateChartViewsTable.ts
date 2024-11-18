@@ -9,9 +9,11 @@ export class CreateChartViewsTable1731589634295 implements MigrationInterface {
                 chartConfigId CHAR(36) NOT NULL,
                 parentChartId INT NOT NULL,
                 createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                lastEditedByUserId INT NOT NULL,
                 FOREIGN KEY (chartConfigId) REFERENCES chart_configs(id) ON DELETE RESTRICT ON UPDATE RESTRICT,
-                FOREIGN KEY (parentChartId) REFERENCES charts(id) ON DELETE RESTRICT ON UPDATE RESTRICT
+                FOREIGN KEY (parentChartId) REFERENCES charts(id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+                FOREIGN KEY (lastEditedByUserId) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE RESTRICT
             );
         `)
     }
