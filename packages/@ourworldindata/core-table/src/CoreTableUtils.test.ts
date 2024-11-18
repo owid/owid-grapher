@@ -299,6 +299,14 @@ describe("matrix methods", () => {
 123 345 usa`)
     })
 
+    it("handles missing data for some cells", () => {
+        const rows = parseDelimited(`gdp,pop
+1
+1,2`)
+        expect(Object.keys(rows[0])).toEqual(["gdp", "pop"])
+        expect(rows[0].pop).toEqual("")
+    })
+
     it("can trim an array", () => {
         expect(trimArray([1, "2", "", null, undefined])).toEqual([1, "2"])
         const test = [1, "2", "", null, undefined, 1]

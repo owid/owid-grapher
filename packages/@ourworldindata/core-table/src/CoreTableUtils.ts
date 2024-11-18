@@ -573,6 +573,15 @@ export const parseDelimited = (
     }: Papa.ParseResult<any>): DSVParsedArray<Record<string, any>> => {
         const dsvParsed = data as DSVParsedArray<Record<string, any>>
         dsvParsed.columns = meta.fields || []
+
+        // Some downstream methods expect all rows to have fields for all columns,
+        // even if they are missing in that row. This loop ensures that.
+        for (const row of dsvParsed) {
+            for (const col of dsvParsed.columns) {
+                if (!(col in row)) row[col] = ""
+            }
+        }
+
         return dsvParsed
     }
 
