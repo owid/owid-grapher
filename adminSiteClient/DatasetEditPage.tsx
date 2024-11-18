@@ -374,14 +374,21 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                         </p>
                     ) : (
                         <p>
-                            <strong>
-                                Before archiving, ensure that the corresponding
-                                ETL grapher step has been archived:{" "}
-                                <code>
-                                    grapher/{dataset.namespace}/
-                                    {dataset.version}/{dataset.shortName}
-                                </code>
-                            </strong>
+                            <strong>Before archiving, ensure that:</strong>
+                            <ul>
+                                <li>
+                                    The corresponding ETL grapher step has been
+                                    archived:{" "}
+                                    <code>
+                                        grapher/{dataset.namespace}/
+                                        {dataset.version}/{dataset.shortName}
+                                    </code>
+                                </li>
+                                <li>
+                                    The dataset is not used in any
+                                    indicator-based explorers.
+                                </li>
+                            </ul>
                         </p>
                     )}
                     <button
