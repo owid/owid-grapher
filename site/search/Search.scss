@@ -417,11 +417,10 @@ $reset-button-margin: 16px;
 
 section.search-page__no-results {
     display: none;
-    height: 60vh;
+    height: 70vh;
     text-align: center;
     flex-direction: column;
     justify-content: center;
-    background-color: $gray-10;
 
     h2 {
         margin-bottom: 0;

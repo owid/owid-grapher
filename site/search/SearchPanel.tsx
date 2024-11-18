@@ -766,6 +766,7 @@ export class InstantSearchContainer extends React.Component {
             >
                 <div className="search-panel">
                     <SearchBox
+                        autoFocus
                         placeholder={DEFAULT_SEARCH_PLACEHOLDER}
                         className="searchbox"
                         classNames={{
