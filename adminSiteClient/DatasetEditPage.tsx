@@ -359,37 +359,39 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     <h3>Charts</h3>
                     <ChartList charts={dataset.charts} />
                 </section>
-                {!isBulkImport && (
-                    <section>
-                        <h3>Danger zone</h3>
+                <section>
+                    <h3>Archive</h3>
+                    <p>
+                        Archive this grapher dataset to remove it from the main
+                        list of active datasets.
+                    </p>
+                    {dataset.charts && dataset.charts.length > 0 ? (
                         <p>
-                            Delete this dataset and all indicators it contains.
-                            If there are any charts using this data, you must
-                            delete them individually first.
+                            <strong>
+                                This dataset cannot be archived because it
+                                contains charts.
+                            </strong>
                         </p>
+                    ) : (
                         <p>
-                            Before you archive or delete a dataset, please
-                            ensure that this dataset is not used in ETL via
-                            backporting. At some point this check will be done
-                            automatically, but currently the ETL is not visible
-                            inside the Grapher admin.
+                            <strong>
+                                Before archiving, ensure that the corresponding
+                                ETL grapher step has been archived:{" "}
+                                <code>
+                                    grapher/{dataset.namespace}/
+                                    {dataset.version}/{dataset.shortName}
+                                </code>
+                            </strong>
                         </p>
-                        <div className="card-footer">
-                            <button
-                                className="btn btn-danger mr-3"
-                                onClick={() => this.delete()}
-                            >
-                                Delete dataset
-                            </button>
-                            <button
-                                className="btn btn-outline-danger"
-                                onClick={() => this.archive()}
-                            >
-                                Archive dataset
-                            </button>
-                        </div>
-                    </section>
-                )}
+                    )}
+                    <button
+                        className="btn btn-outline-danger"
+                        onClick={() => this.archive()}
+                        disabled={dataset.charts && dataset.charts.length > 0}
+                    >
+                        Archive dataset
+                    </button>
+                </section>
             </main>
         )
     }
