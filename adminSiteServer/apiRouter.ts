@@ -190,7 +190,6 @@ import {
     deleteGrapherConfigFromR2ByUUID,
     saveGrapherConfigToR2ByUUID,
 } from "./chartConfigR2Helpers.js"
-import { fetchImagesFromDriveAndSyncToS3 } from "../db/model/Image.js"
 import { createMultiDimConfig } from "./multiDim.js"
 import { isMultiDimDataPagePublished } from "../db/model/MultiDimDataPage.js"
 import {
@@ -2999,9 +2998,7 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
         await validateTombstoneRelatedLinkUrl(trx, tombstone.relatedLinkUrl)
         const slug = gdocSlug.replace("/", "")
         const { relatedLinkThumbnail } = tombstone
-        if (relatedLinkThumbnail) {
-            await fetchImagesFromDriveAndSyncToS3(trx, [relatedLinkThumbnail])
-        }
+        // TODO: validate relatedLinkThumbnail?
         await trx
             .table("posts_gdocs_tombstones")
             .insert({ ...tombstone, gdocId: id, slug })
