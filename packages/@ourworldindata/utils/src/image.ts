@@ -29,13 +29,12 @@ export function getSizes(
 
 export function generateSrcSet(
     sizes: number[],
-    filename: ImageMetadata["filename"]
+    id: ImageMetadata["cloudflareId"],
+    absoluteUrl: string = ""
 ): string {
     return sizes
         .map((size) => {
-            const path = `/images/published/${getFilenameWithoutExtension(
-                encodeURIComponent(filename)
-            )}_${size}.png`
+            const path = `${absoluteUrl}/${id}/w=${size}`
             return `${path} ${size}w`
         })
         .join(", ")
@@ -93,7 +92,8 @@ export type SourceProps = {
  */
 export function generateSourceProps(
     smallImage: ImageMetadata | undefined,
-    regularImage: ImageMetadata
+    regularImage: ImageMetadata,
+    absoluteUrl: string = ""
 ): SourceProps[] {
     const props: SourceProps[] = []
     if (smallImage) {
@@ -106,7 +106,11 @@ export function generateSourceProps(
     const regularSizes = getSizes(regularImage.originalWidth)
     props.push({
         media: undefined,
-        srcSet: generateSrcSet(regularSizes, regularImage.filename),
+        srcSet: generateSrcSet(
+            regularSizes,
+            regularImage.filename,
+            absoluteUrl
+        ),
     })
     return props
 }

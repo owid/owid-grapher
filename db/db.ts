@@ -356,12 +356,12 @@ export const getImageMetadataByFilenames = async (
         `-- sql
         SELECT
             id,
-            googleId,
             filename,
             defaultAlt,
             updatedAt,
             originalWidth,
-            originalHeight
+            originalHeight,
+            cloudflareId
         FROM
             images
         WHERE filename IN (?)`,
