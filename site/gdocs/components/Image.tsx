@@ -8,10 +8,7 @@ import {
 } from "@ourworldindata/utils"
 import cx from "classnames"
 import { LIGHTBOX_IMAGE_CLASS } from "../../Lightbox.js"
-import {
-    IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH,
-    IMAGE_HOSTING_R2_CDN_URL,
-} from "../../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
 import { DocumentContext } from "../OwidGdoc.js"
 import { Container } from "./ArticleBlock.js"
 import { useImage } from "../utils.js"
@@ -86,7 +83,6 @@ export default function Image(props: {
         "image--has-outline": hasOutline,
     })
 
-    const { isPreviewing } = useContext(DocumentContext)
     const image = useImage(filename)
     const smallImage = useImage(smallFilename)
     const renderImageError = (name: string) => (
@@ -100,16 +96,10 @@ export default function Image(props: {
     )
 
     if (!image) {
-        if (isPreviewing) {
-            return renderImageError(filename)
-        }
         // Don't render anything if we're not previewing (i.e. a bake) and the image is not found
         return null
     }
     // Here we can fall back to the regular image filename, so don't return null if not found
-    if (isPreviewing && smallFilename && !smallImage) {
-        return renderImageError(smallFilename)
-    }
 
     const alt = props.alt ?? image.defaultAlt
     const maybeLightboxClassName =
@@ -117,67 +107,14 @@ export default function Image(props: {
             ? ""
             : LIGHTBOX_IMAGE_CLASS
 
-    if (isPreviewing) {
-        const makePreviewUrl = (f: string) =>
-            `${IMAGE_HOSTING_R2_CDN_URL}/${IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH}/${encodeURIComponent(f)}`
+    // TODO: SVG
 
-        const PreviewSource = (props: { i?: ImageMetadata; sm?: boolean }) => {
-            const { i, sm } = props
-            if (!i) return null
-
-            return (
-                <source
-                    srcSet={`${makePreviewUrl(i.filename)} ${i.originalWidth}w`}
-                    media={sm ? SMALL_BREAKPOINT_MEDIA_QUERY : undefined}
-                    type={getFilenameMIMEType(i.filename)}
-                    sizes={
-                        containerSizes[containerType] ?? containerSizes.default
-                    }
-                />
-            )
-        }
-        return (
-            <picture className={className}>
-                <PreviewSource i={smallImage} sm />
-                <PreviewSource i={image} />
-                <img
-                    src={makePreviewUrl(image.filename)}
-                    alt={alt}
-                    className={maybeLightboxClassName}
-                    width={image.originalWidth ?? undefined}
-                    height={image.originalHeight ?? undefined}
-                />
-            </picture>
-        )
-    }
-
-    if (filename.endsWith(".svg")) {
-        const pngFilename = `${getFilenameWithoutExtension(filename)}.png`
-        const imgSrc = `${IMAGES_DIRECTORY}${encodeURIComponent(filename)}`
-        return (
-            <div className={className}>
-                <img
-                    src={imgSrc}
-                    alt={alt}
-                    className={maybeLightboxClassName}
-                    width={image.originalWidth ?? undefined}
-                    height={image.originalHeight ?? undefined}
-                />
-                {containerType !== "thumbnail" ? (
-                    <a
-                        className="download-png-link"
-                        href={`${IMAGES_DIRECTORY}${pngFilename}`}
-                        download
-                    >
-                        Download image
-                    </a>
-                ) : null}
-            </div>
-        )
-    }
-
-    const imageSrc = `${IMAGES_DIRECTORY}${encodeURIComponent(filename)}`
-    const sourceProps = generateSourceProps(smallImage, image)
+    const imageSrc = `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(filename)}/small`
+    const sourceProps = generateSourceProps(
+        smallImage,
+        image,
+        CLOUDFLARE_IMAGES_URL
+    )
 
     return (
         <picture className={className}>

@@ -26,9 +26,6 @@
             "path": "./adminSiteServer"
         },
         {
-            "path": "./devTools/updateImageHeights"
-        },
-        {
             "path": "./devTools/svgTester"
         },
         {

@@ -18,7 +18,7 @@ export type ImageMetadata = Pick<
     DbEnrichedImage,
     | "defaultAlt"
     | "filename"
-    | "googleId"
+    | "cloudflareId"
     | "originalHeight"
     | "originalWidth"
     | "updatedAt"

@@ -47,7 +47,6 @@ import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { GdocAbout } from "./GdocAbout.js"
 import { GdocAuthor } from "./GdocAuthor.js"
 import { extractFilenamesFromBlock } from "./gdocUtils.js"
-import { fetchImagesFromDriveAndSyncToS3 } from "../Image.js"
 
 export function gdocFromJSON(
     json: Record<string, any>
@@ -356,9 +355,6 @@ export async function loadGdocFromGdocBase(
     if (contentSource === GdocsContentSource.Gdocs) {
         // TODO: if we get here via fromJSON then we have already done this - optimize that?
         await gdoc.fetchAndEnrichGdoc()
-        // If we're loading from Gdocs, now's also the time to fetch images from gdrive and sync them to S3
-        // In any other case, the images should already be in the DB and S3
-        await fetchImagesFromDriveAndSyncToS3(knex, gdoc.filenames)
     }
 
     await gdoc.loadState(knex)
