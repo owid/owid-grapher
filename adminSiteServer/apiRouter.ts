@@ -106,12 +106,17 @@ import {
     R2GrapherConfigDirectory,
     ChartConfigsTableName,
     Base64String,
+    DbPlainChartView,
+    ChartViewsTableName,
+    DbInsertChartView,
+    DbInsertChartConfig,
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
 import {
     migrateGrapherConfigToLatestVersion,
     getVariableDataRoute,
     getVariableMetadataRoute,
+    defaultGrapherConfig,
 } from "@ourworldindata/grapher"
 import { getDatasetById, setTagsForDataset } from "../db/model/Dataset.js"
 import { getUserById, insertUser, updateUser } from "../db/model/User.js"
@@ -187,8 +192,10 @@ import { createMultiDimConfig } from "./multiDim.js"
 import { isMultiDimDataPagePublished } from "../db/model/MultiDimDataPage.js"
 import {
     retrieveChartConfigFromDbAndSaveToR2,
+    saveNewChartConfigInDbAndR2,
     updateChartConfigInDbAndR2,
 } from "./chartConfigHelpers.js"
+import { CHART_VIEW_PROPS_TO_PERSIST } from "../db/model/ChartView.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -3260,6 +3267,53 @@ postRouteWithRWTransaction(apiRouter, "/tagGraph", async (req, res, trx) => {
     }
     await db.updateTagGraph(trx, tagGraph)
     res.send({ success: true })
+})
+
+postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
+    const { slug, parentChartId } = req.body as Pick<
+        DbPlainChartView,
+        "slug" | "parentChartId"
+    >
+    const config = req.body.config as GrapherInterface
+    if (!slug || !parentChartId || !config) {
+        throw new JsonError("Invalid request", 400)
+    }
+
+    const parentChartConfig = await expectChartById(trx, parentChartId)
+
+    const patchToParentChart = diffGrapherConfigs(config, parentChartConfig)
+
+    const fullConfigIncludingDefaults = mergeGrapherConfigs(
+        defaultGrapherConfig,
+        config
+    )
+    const patchConfigToSave = {
+        ...patchToParentChart,
+
+        // We want to make sure we're explicitly persisting some props like entity selection
+        // always, so they never change when the parent chart changes.
+        // For this, we need to ensure we include the default layer, so that we even
+        // persist these props when they are the same as the default.
+        ...pick(fullConfigIncludingDefaults, CHART_VIEW_PROPS_TO_PERSIST),
+    }
+
+    const { chartConfigId } = await saveNewChartConfigInDbAndR2(
+        trx,
+        undefined,
+        config,
+        patchConfigToSave
+    )
+
+    // insert into chart_views
+    const insertRow: DbInsertChartView = {
+        slug,
+        parentChartId,
+        lastEditedByUserId: res.locals.user.id,
+        chartConfigId: chartConfigId,
+    }
+    await trx.table(ChartViewsTableName).insert<DbInsertChartView>(insertRow)
+
+    return { success: true }
 })
 
 export { apiRouter }
