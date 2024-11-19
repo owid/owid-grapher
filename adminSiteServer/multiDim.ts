@@ -1,11 +1,9 @@
 import { uniq } from "lodash"
-import { uuidv7 } from "uuidv7"
 
 import { migrateGrapherConfigToLatestVersion } from "@ourworldindata/grapher"
 import {
     Base64String,
     ChartConfigsTableName,
-    DbInsertChartConfig,
     DbPlainMultiDimDataPage,
     DbPlainMultiDimXChartConfig,
     DbRawChartConfig,
@@ -17,7 +15,6 @@ import {
     MultiDimDataPagesTableName,
     MultiDimDimensionChoices,
     MultiDimXChartConfigsTableName,
-    serializeChartConfig,
 } from "@ourworldindata/types"
 import {
     mergeGrapherConfigs,
@@ -137,7 +134,9 @@ async function getViewIdToChartConfigIdMap(
         WHERE mddp.slug = ?`,
         [slug]
     )
-    return new Map(rows.map((row) => [row.viewId, row.chartConfigId]))
+    return new Map(
+        rows.map((row) => [row.viewId, row.chartConfigId as Base64String])
+    )
 }
 
 async function saveNewMultiDimViewChartConfig(
@@ -158,7 +157,7 @@ async function saveNewMultiDimViewChartConfig(
 
 async function updateMultiDimViewChartConfig(
     knex: db.KnexReadWriteTransaction,
-    chartConfigId: string,
+    chartConfigId: Base64String,
     patchConfig: GrapherInterface,
     fullConfig: GrapherInterface
 ): Promise<string> {
