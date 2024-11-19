@@ -4,7 +4,7 @@
 #
 #  Manually deploy the staging bakedSite to Cloudflare Pages in preview mode
 #
-#  See /functions/README.md > "Testing on Fondation staging sites vs Cloudfare
+#  See /functions/README.md > "Testing on Fondation staging sites vs Cloudflare
 #  previews" for the rationale behind this script.
 #
 #  USAGE
@@ -21,3 +21,7 @@ PREVIEW_BRANCH=${PREVIEW_BRANCH:-$GIT_BRANCH}
 
 echo "This script has been replaced. Please use the following command from the ops repository:"
 echo "BUILDKITE_BRANCH=$PREVIEW_BRANCH bash templates/owid-site-staging/deploy-content-preview.sh $HOST"
+
+echo ""
+echo "Note: This process has been fully automated on staging servers after pushing commits."
+echo "You can still use this script manually, but it's only useful if you're deploying to a different domain than 'https://$PREVIEW_BRANCH.owid.pages.dev/'"
