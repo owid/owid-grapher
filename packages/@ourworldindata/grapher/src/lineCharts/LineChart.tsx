@@ -307,8 +307,9 @@ class Lines extends React.Component<LinesProps> {
                                 "background-line",
                                 series.seriesName
                             ),
-                            stroke: "#ddd",
+                            stroke: series.color,
                             strokeWidth: 1,
+                            strokeOpacity: 0.3,
                         })}
                     </React.Fragment>
                 ))}
@@ -479,7 +480,6 @@ export class LineChart
         if (!ref) return
 
         const mouse = getRelativeMouse(ref, ev)
-
         const boxPadding = isMobile() ? 44 : 25
 
         // expand the box width, so it's easier to see the tooltip for the first & last timepoints
@@ -550,7 +550,7 @@ export class LineChart
 
     seriesIsBlurred(series: LineChartSeries): boolean {
         return (
-            this.isFocusMode &&
+            this.isFocusModeActive &&
             !this.focusedSeriesNames.includes(series.seriesName)
         )
     }
@@ -716,13 +716,14 @@ export class LineChart
                         const blurred =
                             this.seriesIsBlurred(series) || point === undefined
 
-                        const swatch = blurred
+                        const color = blurred
                             ? BLUR_LINE_COLOR
                             : this.hasColorScale
                               ? darkenColorForLine(
                                     this.getColorScaleColor(point?.colorValue)
                                 )
                               : series.color
+                        const swatch = { color }
 
                         const values = excludeUndefined([
                             point?.y,
@@ -746,7 +747,6 @@ export class LineChart
     defaultRightPadding = 1
 
     @observable hoveredSeriesName?: SeriesName
-
     @observable private hoverTimer?: NodeJS.Timeout
 
     @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {
@@ -767,22 +767,22 @@ export class LineChart
     }
 
     @computed get focusedSeriesNames(): string[] {
-        const { externalLegendFocusBin } = this.manager
+        const { externalLegendHoverBin } = this.manager
         const focusedSeriesNames = excludeUndefined([
             this.props.manager.entityYearHighlight?.entityName,
             this.hoveredSeriesName,
         ])
-        if (externalLegendFocusBin) {
+        if (externalLegendHoverBin) {
             focusedSeriesNames.push(
                 ...this.series
                     .map((s) => s.seriesName)
-                    .filter((name) => externalLegendFocusBin.contains(name))
+                    .filter((name) => externalLegendHoverBin.contains(name))
             )
         }
         return focusedSeriesNames
     }
 
-    @computed get isFocusMode(): boolean {
+    @computed get isFocusModeActive(): boolean {
         return this.focusedSeriesNames.length > 0
     }
 

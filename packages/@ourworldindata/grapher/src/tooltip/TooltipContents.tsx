@@ -236,8 +236,13 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                             annotation,
                             values,
                             notice,
-                            swatch = "transparent",
+                            swatch = {},
                         } = row
+                        const {
+                            color: swatchColor = "transparent",
+                            opacity: swatchOpacity = 1,
+                        } = swatch
+
                         const [_m, seriesName, seriesParenthetical] =
                             name.trim().match(/^(.*?)(\([^()]*\))?$/) ?? []
 
@@ -253,7 +258,10 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                                 <td className="series-color">
                                     <div
                                         className="swatch"
-                                        style={{ backgroundColor: swatch }}
+                                        style={{
+                                            backgroundColor: swatchColor,
+                                            opacity: swatchOpacity,
+                                        }}
                                     />
                                 </td>
                                 <td className="series-name">

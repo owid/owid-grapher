@@ -21,6 +21,8 @@ import { computed, action, observable } from "mobx"
 import { SeriesName } from "@ourworldindata/types"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
+    GRAPHER_AREA_OPACITY_MUTE,
+    GRAPHER_AREA_OPACITY_FOCUS,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
 } from "../core/GrapherConstants"
@@ -59,25 +61,32 @@ import { AxisConfig } from "../axis/AxisConfig.js"
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
     seriesArr: readonly StackedSeries<Time>[]
-    focusedSeriesNames: SeriesName[]
-    hoveredAreaName?: SeriesName
+    focusedSeriesName?: SeriesName
     onAreaMouseEnter?: (seriesName: SeriesName) => void
     onAreaMouseLeave?: () => void
 }
 
 const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
 
-const BLUR_COLOR = "#ddd"
+const AREA_OPACITY = {
+    DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
+    FOCUS: GRAPHER_AREA_OPACITY_FOCUS,
+    MUTE: GRAPHER_AREA_OPACITY_MUTE,
+}
+
+const BORDER_OPACITY = {
+    DEFAULT: 0.7,
+    HOVER: 1,
+    MUTE: 0.3,
+}
+
+const BORDER_WIDTH = {
+    DEFAULT: 0.5,
+    HOVER: 1.5,
+}
 
 @observer
 class Areas extends React.Component<AreasProps> {
-    private seriesIsBlur(series: StackedSeries<Time>): boolean {
-        return (
-            this.props.focusedSeriesNames.length > 0 &&
-            !this.props.focusedSeriesNames.includes(series.seriesName)
-        )
-    }
-
     @bind placePoint(point: StackedPoint<number>): StackedPlacedPoint {
         const { dualAxis } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis
@@ -146,9 +155,13 @@ class Areas extends React.Component<AreasProps> {
             }))
     }
 
+    @computed get isFocusModeActive(): boolean {
+        return this.props.focusedSeriesName !== undefined
+    }
+
     @computed private get areas(): React.ReactElement[] {
         const { placedSeriesArr } = this
-        const { dualAxis, hoveredAreaName } = this.props
+        const { dualAxis, focusedSeriesName } = this.props
         const { verticalAxis } = dualAxis
 
         return placedSeriesArr.map((series, index) => {
@@ -169,11 +182,11 @@ class Areas extends React.Component<AreasProps> {
                 ]
             }
             const points = [...placedPoints, ...reverse(clone(prevPoints))]
-            const opacity = !hoveredAreaName
-                ? GRAPHER_AREA_OPACITY_DEFAULT // normal opacity
-                : hoveredAreaName === series.seriesName
-                  ? GRAPHER_AREA_OPACITY_DEFAULT // hovered
-                  : 0.2 // non-hovered
+            const opacity = !this.isFocusModeActive
+                ? AREA_OPACITY.DEFAULT // normal opacity
+                : focusedSeriesName === series.seriesName
+                  ? AREA_OPACITY.FOCUS // hovered
+                  : AREA_OPACITY.MUTE // non-hovered
 
             return (
                 <path
@@ -182,7 +195,7 @@ class Areas extends React.Component<AreasProps> {
                     key={series.seriesName + "-area"}
                     strokeLinecap="round"
                     d={pointsToPath(points)}
-                    fill={this.seriesIsBlur(series) ? BLUR_COLOR : series.color}
+                    fill={series.color}
                     fillOpacity={opacity}
                     clipPath={this.props.clipPath}
                     onMouseEnter={(): void => {
@@ -198,15 +211,18 @@ class Areas extends React.Component<AreasProps> {
 
     @computed private get borders(): React.ReactElement[] {
         const { placedSeriesArr } = this
-        const { hoveredAreaName } = this.props
+        const { focusedSeriesName } = this.props
 
         return placedSeriesArr.map((placedSeries) => {
-            const opacity =
-                hoveredAreaName === placedSeries.seriesName
-                    ? 1 // hovered
-                    : 0.7 // non-hovered
-            const weight =
-                hoveredAreaName === placedSeries.seriesName ? 1.5 : 0.5
+            const opacity = !this.isFocusModeActive
+                ? BORDER_OPACITY.DEFAULT // normal opacity
+                : focusedSeriesName === placedSeries.seriesName
+                  ? BORDER_OPACITY.HOVER // hovered
+                  : BORDER_OPACITY.MUTE // non-hovered
+            const strokeWidth =
+                focusedSeriesName === placedSeries.seriesName
+                    ? BORDER_WIDTH.HOVER
+                    : BORDER_WIDTH.DEFAULT
 
             return (
                 <path
@@ -217,15 +233,9 @@ class Areas extends React.Component<AreasProps> {
                     key={placedSeries.seriesName + "-border"}
                     strokeLinecap="round"
                     d={pointsToPath(placedSeries.placedPoints)}
-                    stroke={rgb(
-                        this.seriesIsBlur(placedSeries)
-                            ? BLUR_COLOR
-                            : placedSeries.color
-                    )
-                        .darker(0.5)
-                        .toString()}
+                    stroke={rgb(placedSeries.color).darker(0.5).toString()}
                     strokeOpacity={opacity}
-                    strokeWidth={weight}
+                    strokeWidth={strokeWidth}
                     fill="none"
                     clipPath={this.props.clipPath}
                     onMouseEnter={(): void => {
@@ -320,14 +330,21 @@ export class StackedAreaChart
     }>({ fade: "immediate" })
 
     @action.bound private onAreaMouseEnter(seriesName: SeriesName): void {
-        extend(this.tooltipState.target, { series: seriesName })
+        if (this.tooltipState.target) {
+            extend(this.tooltipState.target, { series: seriesName })
+        } else {
+            this.tooltipState.target = {
+                index: 0, // might be incorrect but will be updated immediately by the move event handler
+                series: seriesName,
+            }
+        }
     }
 
     @action.bound private onAreaMouseLeave(): void {
         extend(this.tooltipState.target, { series: undefined })
     }
 
-    @observable hoverSeriesName?: SeriesName
+    @observable lineLegendHoveredSeriesName?: SeriesName
     @observable private hoverTimer?: NodeJS.Timeout
 
     @computed protected get paddingForLegendRight(): number {
@@ -378,39 +395,42 @@ export class StackedAreaChart
 
     @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {
         clearTimeout(this.hoverTimer)
-        this.hoverSeriesName = seriesName
+        this.lineLegendHoveredSeriesName = seriesName
     }
 
     @action.bound onLineLegendMouseLeave(): void {
         clearTimeout(this.hoverTimer)
         this.hoverTimer = setTimeout(() => {
             // wait before clearing selection in case the mouse is moving quickly over neighboring labels
-            this.hoverSeriesName = undefined
+            this.lineLegendHoveredSeriesName = undefined
         }, 200)
     }
 
-    @computed get focusedSeriesNames(): string[] {
-        const { externalLegendFocusBin } = this.manager
-        const externalFocusedSeriesNames = externalLegendFocusBin
-            ? this.rawSeries
-                  .map((s) => s.seriesName)
-                  .filter((name) => externalLegendFocusBin.contains(name))
-            : []
-        return excludeUndefined([
-            this.hoverSeriesName,
-            ...externalFocusedSeriesNames,
-        ])
-    }
-
-    @computed get isFocusMode(): boolean {
-        return this.focusedSeriesNames.length > 0
-    }
-
-    seriesIsBlur(series: StackedSeries<Time>): boolean {
-        return (
-            this.focusedSeriesNames.length > 0 &&
-            !this.focusedSeriesNames.includes(series.seriesName)
+    @computed get facetLegendHoveredSeriesName(): SeriesName | undefined {
+        const { externalLegendHoverBin } = this.manager
+        if (!externalLegendHoverBin) return undefined
+        // stacked area charts can't plot the same entity or column multiple times,
+        // so we just find the first series that matches the hovered legend item
+        const hoveredSeries = this.rawSeries.find((series) =>
+            externalLegendHoverBin.contains(series.seriesName)
         )
+        return hoveredSeries?.seriesName
+    }
+
+    @computed get focusedSeriesName(): SeriesName | undefined {
+        return (
+            // if the chart area is hovered
+            this.tooltipState.target?.series ??
+            // if the line legend is hovered
+            this.lineLegendHoveredSeriesName ??
+            // if the facet legend is hovered
+            this.facetLegendHoveredSeriesName
+        )
+    }
+
+    // used by the line legend component
+    @computed get focusedSeriesNames(): string[] {
+        return this.focusedSeriesName ? [this.focusedSeriesName] : []
     }
 
     @action.bound private onCursorMove(
@@ -464,7 +484,7 @@ export class StackedAreaChart
         if (!this.manager.shouldPinTooltipToBottom) {
             this.dismissTooltip()
         }
-        this.hoverSeriesName = undefined
+        this.lineLegendHoveredSeriesName = undefined
     }
 
     @computed private get activeXVerticalLine():
@@ -480,9 +500,8 @@ export class StackedAreaChart
             <g className="hoverIndicator" style={{ pointerEvents: "none" }}>
                 {series.map((series) => {
                     const point = series.points[hoveredPointIndex]
-                    return this.seriesIsBlur(series) ||
-                        point.fake ||
-                        point.value === 0 ? null : (
+                    if (point.fake || point.value === 0) return null
+                    return (
                         <circle
                             key={series.seriesName}
                             cx={horizontalAxis.place(point.position)}
@@ -567,23 +586,21 @@ export class StackedAreaChart
                         .slice()
                         .reverse()
                         .map((series) => {
-                            const {
-                                seriesName: name,
-                                color: swatch,
-                                points,
-                            } = series
+                            const { seriesName: name, color, points } = series
                             const point = points[hoveredPointIndex]
-                            const blurred = this.seriesIsBlur(series)
                             const focused = name === target.series
                             const values = [
                                 point?.fake ? undefined : point?.value,
                             ]
+                            const opacity = focused
+                                ? AREA_OPACITY.FOCUS
+                                : AREA_OPACITY.DEFAULT
+                            const swatch = { color, opacity }
 
                             return {
                                 name,
                                 swatch,
                                 focused,
-                                blurred,
                                 values,
                             }
                         })}
@@ -650,7 +667,7 @@ export class StackedAreaChart
                 <Areas
                     dualAxis={this.dualAxis}
                     seriesArr={this.series}
-                    focusedSeriesNames={this.focusedSeriesNames}
+                    focusedSeriesName={this.focusedSeriesName}
                 />
             </>
         )
@@ -658,7 +675,6 @@ export class StackedAreaChart
 
     renderInteractive(): React.ReactElement {
         const { bounds, dualAxis, renderUid, series } = this
-        const { target } = this.tooltipState
 
         const clipPath = makeClipPath(renderUid, {
             ...bounds,
@@ -689,8 +705,7 @@ export class StackedAreaChart
                     <Areas
                         dualAxis={dualAxis}
                         seriesArr={series}
-                        focusedSeriesNames={this.focusedSeriesNames}
-                        hoveredAreaName={target?.series}
+                        focusedSeriesName={this.focusedSeriesName}
                         onAreaMouseEnter={this.onAreaMouseEnter}
                         onAreaMouseLeave={this.onAreaMouseLeave}
                     />

@@ -923,13 +923,13 @@ export class StackedDiscreteBarChart
                         rows={item.bars.map((bar) => {
                             const {
                                 seriesName: name,
-                                color: swatch,
+                                color,
                                 point: { value, time, fake: blurred },
                             } = bar
 
                             return {
                                 name,
-                                swatch,
+                                swatch: { color },
                                 blurred,
                                 focused: name === target.seriesName,
                                 values: [!blurred ? value : undefined],

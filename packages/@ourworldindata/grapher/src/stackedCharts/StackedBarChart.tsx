@@ -31,6 +31,8 @@ import {
 import {
     BASE_FONT_SIZE,
     GRAPHER_AREA_OPACITY_DEFAULT,
+    GRAPHER_AREA_OPACITY_FOCUS,
+    GRAPHER_AREA_OPACITY_MUTE,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
     GRAPHER_FONT_SCALE_12,
@@ -77,6 +79,12 @@ interface TickmarkPlacement {
     isHidden: boolean
 }
 
+const BAR_OPACITY = {
+    DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
+    FOCUS: GRAPHER_AREA_OPACITY_FOCUS,
+    MUTE: GRAPHER_AREA_OPACITY_MUTE,
+}
+
 @observer
 class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
     base: React.RefObject<SVGRectElement> = React.createRef()
@@ -99,7 +107,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
     }
 
     @computed get trueOpacity(): number {
-        return this.mouseOver ? 1 : this.props.opacity
+        return this.mouseOver ? BAR_OPACITY.FOCUS : this.props.opacity
     }
 
     @action.bound onBarMouseOver(): void {
@@ -215,7 +223,7 @@ export class StackedBarChart
     // All currently hovered group keys, combining the legend and the main UI
     @computed get hoverKeys(): string[] {
         const { hoverColor, manager } = this
-        const { externalLegendFocusBin } = manager
+        const { externalLegendHoverBin } = manager
 
         const hoverKeys =
             hoverColor === undefined
@@ -225,11 +233,11 @@ export class StackedBarChart
                           .filter((g) => g.color === hoverColor)
                           .map((g) => g.seriesName)
                   )
-        if (externalLegendFocusBin) {
+        if (externalLegendHoverBin) {
             hoverKeys.push(
                 ...this.rawSeries
                     .map((g) => g.seriesName)
-                    .filter((name) => externalLegendFocusBin.contains(name))
+                    .filter((name) => externalLegendHoverBin.contains(name))
             )
         }
 
@@ -404,7 +412,12 @@ export class StackedBarChart
                             const values = [
                                 point?.fake ? undefined : point?.value,
                             ]
-                            const swatch = point?.color ?? seriesColor
+
+                            const color = point?.color ?? seriesColor
+                            const opacity = focused
+                                ? BAR_OPACITY.FOCUS
+                                : BAR_OPACITY.DEFAULT
+                            const swatch = { color, opacity }
 
                             return { name, swatch, blurred, focused, values }
                         }
@@ -501,8 +514,8 @@ export class StackedBarChart
                     )
                     const opacity =
                         isLegendHovered || this.hoverKeys.length === 0
-                            ? GRAPHER_AREA_OPACITY_DEFAULT
-                            : 0.2
+                            ? BAR_OPACITY.DEFAULT
+                            : BAR_OPACITY.MUTE
 
                     return (
                         <g
@@ -517,7 +530,9 @@ export class StackedBarChart
                                     horizontalAxis.place(bar.position) -
                                     this.barWidth / 2
                                 const barOpacity =
-                                    bar === target?.bar ? 1 : opacity
+                                    bar === target?.bar
+                                        ? BAR_OPACITY.FOCUS
+                                        : opacity
 
                                 return (
                                     <StackedBarSegment

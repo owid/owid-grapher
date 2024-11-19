@@ -64,7 +64,10 @@ export interface TooltipTableProps {
 export interface TooltipTableRow {
     name: string
     annotation?: string
-    swatch?: string // css color string for the series's swatch
+    swatch?: {
+        color?: string // css color string for the series's swatch
+        opacity?: number
+    }
     focused?: boolean // highlighted (based on hovered series in chart)
     blurred?: boolean // greyed out (typically due to missing data)
     striped?: boolean // use textured swatch (to show data is extrapolated)
