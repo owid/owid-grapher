@@ -132,8 +132,8 @@ import {
     GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
+    latestGrapherConfigSchema,
 } from "../core/GrapherConstants"
-import { defaultGrapherConfig } from "../schema/defaultGrapherConfig"
 import { loadVariableDataAndMetadata } from "./loadVariable"
 import Cookies from "js-cookie"
 import {
@@ -353,7 +353,7 @@ export class Grapher
         MapChartManager,
         SlopeChartManager
 {
-    @observable.ref $schema = defaultGrapherConfig.$schema
+    @observable.ref $schema = latestGrapherConfigSchema
     @observable.ref type = ChartTypeName.LineChart
     @observable.ref id?: number = undefined
     @observable.ref version = 1
@@ -558,7 +558,7 @@ export class Grapher
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
         // always include the schema, even if it's the default
-        obj.$schema = this.$schema || defaultGrapherConfig.$schema
+        obj.$schema = this.$schema || latestGrapherConfigSchema
 
         // JSON doesn't support Infinity, so we use strings instead.
         if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any

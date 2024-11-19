@@ -11,7 +11,6 @@ import {
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
-    defaultGrapherConfig,
 } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
 import { uuidv7 } from "uuidv7"
@@ -271,7 +270,6 @@ export async function updateAllChartsThatInheritFromIndicator(
 
     for (const chart of inheritingCharts) {
         const fullConfig = mergeGrapherConfigs(
-            defaultGrapherConfig,
             patchConfigETL ?? {},
             patchConfigAdmin ?? {},
             chart.patchConfig

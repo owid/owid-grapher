@@ -1,5 +1,4 @@
 import {
-    defaultGrapherConfig,
     GRAPHER_PAGE_BODY_CLASS,
     LoadingIndicator,
 } from "@ourworldindata/grapher"
@@ -7,7 +6,6 @@ import {
     serializeJSONForHTML,
     SiteFooterContext,
     GrapherInterface,
-    diffGrapherConfigs,
 } from "@ourworldindata/utils"
 import React from "react"
 import {
@@ -89,24 +87,16 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
         />
     ) : undefined
 
-    // We bake the given Grapher configs without defaults
-    const grapherConfigsToBake = grapherConfigs.map((config) =>
-        diffGrapherConfigs(config, defaultGrapherConfig)
-    )
-    const partialGrapherConfigsToBake = partialGrapherConfigs.map((config) =>
-        diffGrapherConfigs(config, defaultGrapherConfig)
-    )
-
     const inlineJs = `const explorerProgram = ${serializeJSONForHTML(
         program.toJson(),
         EMBEDDED_EXPLORER_DELIMITER
     )};
 const grapherConfigs = ${serializeJSONForHTML(
-        grapherConfigsToBake,
+        grapherConfigs,
         EMBEDDED_EXPLORER_GRAPHER_CONFIGS
     )};
 const partialGrapherConfigs = ${serializeJSONForHTML(
-        partialGrapherConfigsToBake,
+        partialGrapherConfigs,
         EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS
     )};
 const urlMigrationSpec = ${

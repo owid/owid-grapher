@@ -80,9 +80,19 @@ export abstract class AbstractChartEditor<
         return mergeGrapherConfigs(parentConfig ?? {}, patchConfig)
     }
 
-    /** live-updating full config */
+    /** live-updating config */
+    @computed get liveConfig(): GrapherInterface {
+        return this.grapher.object
+    }
+
+    @computed get liveConfigWithDefaults(): GrapherInterface {
+        return mergeGrapherConfigs(defaultGrapherConfig, this.liveConfig)
+    }
+
+    /** patch config merged with parent config */
     @computed get fullConfig(): GrapherInterface {
-        return mergeGrapherConfigs(defaultGrapherConfig, this.grapher.object)
+        if (!this.activeParentConfig) return this.liveConfig
+        return mergeGrapherConfigs(this.activeParentConfig, this.liveConfig)
     }
 
     /** parent config currently applied to grapher */
@@ -103,7 +113,7 @@ export abstract class AbstractChartEditor<
     /** patch config of the chart that is written to the db on save */
     @computed get patchConfig(): GrapherInterface {
         return diffGrapherConfigs(
-            this.fullConfig,
+            this.liveConfigWithDefaults,
             this.activeParentConfigWithDefaults ?? defaultGrapherConfig
         )
     }

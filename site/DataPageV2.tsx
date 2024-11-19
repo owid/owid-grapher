@@ -1,5 +1,4 @@
 import {
-    defaultGrapherConfig,
     getVariableDataRoute,
     getVariableMetadataRoute,
     GrapherProgrammaticInterface,
@@ -16,7 +15,6 @@ import {
     GrapherInterface,
     ImageMetadata,
     Url,
-    diffGrapherConfigs,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import React from "react"
@@ -105,12 +103,6 @@ export const DataPageV2 = (props: {
         dataApiUrl: DATA_API_URL,
     }
 
-    // We bake the Grapher config without defaults
-    const grapherConfigToBake = diffGrapherConfigs(
-        grapherConfig,
-        defaultGrapherConfig
-    )
-
     // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
     const minimalTagToSlugMap = pick(
         tagToSlugMap,
@@ -190,7 +182,7 @@ export const DataPageV2 = (props: {
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `window._OWID_GRAPHER_CONFIG = ${serializeJSONForHTML(
-                            grapherConfigToBake
+                            grapherConfig
                         )}`,
                     }}
                 />

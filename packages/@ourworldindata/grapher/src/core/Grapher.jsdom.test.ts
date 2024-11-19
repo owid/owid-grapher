@@ -1,6 +1,5 @@
 #! /usr/bin/env jest
 import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
-import { defaultGrapherConfig } from "../schema/defaultGrapherConfig"
 import {
     ChartTypeName,
     EntitySelectionMode,
@@ -35,6 +34,7 @@ import {
     OwidDistinctColorScheme,
     OwidDistinctLinesColorScheme,
 } from "../color/CustomSchemes"
+import { latestGrapherConfigSchema } from "./GrapherConstants.js"
 
 const TestGrapherConfig = (): {
     table: OwidTable
@@ -77,7 +77,7 @@ it("can get dimension slots", () => {
 
 it("an empty Grapher serializes to an object that includes only the schema", () => {
     expect(new Grapher().toObject()).toEqual({
-        $schema: defaultGrapherConfig.$schema,
+        $schema: latestGrapherConfigSchema,
 
         // TODO: ideally, selectedEntityNames is not serialised for an empty object
         selectedEntityNames: [],
@@ -90,7 +90,7 @@ it("a bad chart type does not crash grapher", () => {
     }
     expect(new Grapher(input).toObject()).toEqual({
         ...input,
-        $schema: defaultGrapherConfig.$schema,
+        $schema: latestGrapherConfigSchema,
 
         // TODO: ideally, selectedEntityNames is not serialised for an empty object
         selectedEntityNames: [],
@@ -99,7 +99,7 @@ it("a bad chart type does not crash grapher", () => {
 
 it("does not preserve defaults in the object (except for the schema)", () => {
     expect(new Grapher({ tab: GrapherTabOption.chart }).toObject()).toEqual({
-        $schema: defaultGrapherConfig.$schema,
+        $schema: latestGrapherConfigSchema,
 
         // TODO: ideally, selectedEntityNames is not serialised for an empty object
         selectedEntityNames: [],
