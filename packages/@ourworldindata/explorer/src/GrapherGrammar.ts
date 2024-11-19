@@ -63,9 +63,14 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
     type: {
         ...StringCellDef,
         keyword: "type",
-        description: `The type of chart to show such as LineChart or ScatterPlot.`,
-        terminalOptions: toTerminalOptions(Object.values(ChartTypeName)),
-        toGrapherObject: (value) => ({ type: value }),
+        description: `The type of chart to show such as LineChart or ScatterPlot. If set to None, then the chart tab is hidden.`,
+        terminalOptions: toTerminalOptions([
+            ...Object.values(ChartTypeName),
+            "None",
+        ]),
+        toGrapherObject: (value) => ({
+            chartTypes: value === "None" ? [] : [value],
+        }),
     },
     grapherId: {
         ...IntegerCellDef,
@@ -92,12 +97,6 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         description: "Which tab to show by default",
         terminalOptions: toTerminalOptions(Object.values(GrapherTabOption)),
         toGrapherObject: (value) => ({ tab: value }),
-    },
-    hasChartTab: {
-        ...BooleanCellDef,
-        keyword: "hasChartTab",
-        description: "Show the chart tab?",
-        toGrapherObject: (value) => ({ hasChartTab: value }),
     },
     xSlug: {
         ...SlugDeclarationCellDef,

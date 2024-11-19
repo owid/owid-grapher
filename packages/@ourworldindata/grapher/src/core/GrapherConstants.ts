@@ -1,4 +1,5 @@
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
+import { ChartTypeName } from "@ourworldindata/types"
 import type { GrapherProgrammaticInterface } from "./Grapher"
 
 export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
@@ -82,7 +83,7 @@ export enum Patterns {
     noDataPatternForMapChart = "noDataPatternForMapChart",
 }
 
-export const grapherInterfaceWithHiddenControlsOnly: GrapherProgrammaticInterface =
+export const grapherInterfaceWithHiddenControls: GrapherProgrammaticInterface =
     {
         hideRelativeToggle: true,
         hideTimeline: true,
@@ -100,9 +101,17 @@ export const grapherInterfaceWithHiddenControlsOnly: GrapherProgrammaticInterfac
         },
     }
 
-export const grapherInterfaceWithHiddenTabsOnly: GrapherProgrammaticInterface =
-    {
-        hasChartTab: false,
-        hasMapTab: false,
-        hasTableTab: false,
-    }
+export const grapherInterfaceWithHiddenTabs: GrapherProgrammaticInterface = {
+    hasMapTab: false,
+    hasTableTab: false,
+    hideChartTabs: true,
+}
+
+/**
+ * Chart type combinations that are currently supported.
+ *
+ * This also determines the order of chart types in the UI.
+ */
+export const validChartTypeCombinations = [
+    [ChartTypeName.LineChart, ChartTypeName.SlopeChart],
+]

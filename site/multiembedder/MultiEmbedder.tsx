@@ -28,6 +28,7 @@ import {
     ExplorerProps,
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
     buildExplorerProps,
+    isEmpty,
 } from "@ourworldindata/explorer"
 import { GRAPHER_PREVIEW_CLASS } from "../SiteConstants.js"
 import {
@@ -210,13 +211,10 @@ class MultiEmbedder {
                 : {}
 
             // make sure the tab of the active pane is visible
-            if (figureConfigAttr) {
-                const activeTab =
-                    queryParams.tab ||
-                    grapherPageConfig.tab ||
-                    GrapherTabOption.chart
+            if (figureConfigAttr && !isEmpty(localConfig)) {
+                const activeTab = queryParams.tab || grapherPageConfig.tab
                 if (activeTab === GrapherTabOption.chart)
-                    localConfig.hasChartTab = true
+                    localConfig.hideChartTabs = false
                 if (activeTab === GrapherTabOption.map)
                     localConfig.hasMapTab = true
                 if (activeTab === GrapherTabOption.table)

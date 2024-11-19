@@ -75,6 +75,8 @@ export {
     ColorSchemeName,
     ChartTypeName,
     GrapherTabOption,
+    GrapherTabName,
+    GrapherTabQueryParam,
     StackMode,
     EntitySelectionMode,
     ScatterPointLabelStrategy,

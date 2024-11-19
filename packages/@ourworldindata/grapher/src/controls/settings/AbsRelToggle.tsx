@@ -9,7 +9,7 @@ const { LineChart, ScatterPlot } = ChartTypeName
 export interface AbsRelToggleManager {
     stackMode?: StackMode
     relativeToggleLabel?: string
-    type: ChartTypeName
+    activeChartType?: ChartTypeName
 }
 
 @observer
@@ -31,10 +31,10 @@ export class AbsRelToggle extends React.Component<{
     }
 
     @computed get tooltip(): string {
-        const { type } = this.manager
-        return type === ScatterPlot
+        const { activeChartType } = this.manager
+        return activeChartType === ScatterPlot
             ? "Show the percentage change per year over the the selected time range."
-            : type === LineChart
+            : activeChartType === LineChart
               ? "Show proportional changes over time or actual values in their original units."
               : "Show values as their share of the total or as actual values in their original units."
     }

@@ -250,12 +250,6 @@
     },
     {
         "type": "boolean",
-        "pointer": "/hasChartTab",
-        "default": true,
-        "editor": "checkbox"
-    },
-    {
-        "type": "boolean",
         "pointer": "/hideLegend",
         "default": false,
         "editor": "checkbox"
@@ -631,20 +625,9 @@
         "editor": "textfield"
     },
     {
-        "type": "string",
-        "pointer": "/type",
-        "default": "LineChart",
-        "editor": "dropdown",
-        "enumOptions": [
-            "LineChart",
-            "ScatterPlot",
-            "StackedArea",
-            "DiscreteBar",
-            "StackedDiscreteBar",
-            "SlopeChart",
-            "StackedBar",
-            "Marimekko"
-        ]
+        "type": "array",
+        "pointer": "/chartTypes",
+        "editor": "primitiveListEditor"
     },
     {
         "type": "boolean",

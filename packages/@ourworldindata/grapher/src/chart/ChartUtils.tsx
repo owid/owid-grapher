@@ -1,6 +1,11 @@
 import React from "react"
 import { Box, getCountryByName } from "@ourworldindata/utils"
-import { SeriesStrategy, EntityName } from "@ourworldindata/types"
+import {
+    SeriesStrategy,
+    EntityName,
+    GrapherTabQueryParam,
+    ChartTypeName,
+} from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartManager } from "./ChartManager"
@@ -119,4 +124,55 @@ export function isTargetOutsideElement(
         // click events on nodes that have since been removed by React)
         document.contains(targetNode)
     )
+}
+
+export function mapQueryParamToChartTypeName(
+    chartTab: string
+): ChartTypeName | undefined {
+    switch (chartTab) {
+        case GrapherTabQueryParam.LineChart:
+            return ChartTypeName.LineChart
+        case GrapherTabQueryParam.SlopeChart:
+            return ChartTypeName.SlopeChart
+        case GrapherTabQueryParam.ScatterPlot:
+            return ChartTypeName.ScatterPlot
+        case GrapherTabQueryParam.StackedArea:
+            return ChartTypeName.StackedArea
+        case GrapherTabQueryParam.StackedBar:
+            return ChartTypeName.StackedBar
+        case GrapherTabQueryParam.DiscreteBar:
+            return ChartTypeName.DiscreteBar
+        case GrapherTabQueryParam.StackedDiscreteBar:
+            return ChartTypeName.StackedDiscreteBar
+        case GrapherTabQueryParam.Marimekko:
+            return ChartTypeName.Marimekko
+        default:
+            return undefined
+    }
+}
+
+export function mapChartTypeNameToQueryParam(
+    chartType: ChartTypeName
+): GrapherTabQueryParam {
+    switch (chartType) {
+        case ChartTypeName.LineChart:
+            return GrapherTabQueryParam.LineChart
+        case ChartTypeName.SlopeChart:
+            return GrapherTabQueryParam.SlopeChart
+        case ChartTypeName.ScatterPlot:
+            return GrapherTabQueryParam.ScatterPlot
+        case ChartTypeName.StackedArea:
+            return GrapherTabQueryParam.StackedArea
+        case ChartTypeName.StackedBar:
+            return GrapherTabQueryParam.StackedBar
+        case ChartTypeName.DiscreteBar:
+            return GrapherTabQueryParam.DiscreteBar
+        case ChartTypeName.StackedDiscreteBar:
+            return GrapherTabQueryParam.StackedDiscreteBar
+        case ChartTypeName.Marimekko:
+            return GrapherTabQueryParam.Marimekko
+        // TODO: remove once stricter typed
+        default:
+            return GrapherTabQueryParam.LineChart
+    }
 }

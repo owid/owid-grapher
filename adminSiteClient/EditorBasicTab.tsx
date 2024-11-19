@@ -147,7 +147,10 @@ class DimensionSlotView<
             () => this.grapher.isReady,
             () => {
                 this.disposers.push(
-                    reaction(() => this.grapher.type, this.updateDefaults),
+                    reaction(
+                        () => this.grapher.validChartTypes,
+                        this.updateDefaults
+                    ),
                     reaction(
                         () => this.grapher.yColumnsFromDimensions.length,
                         this.updateDefaults
@@ -346,6 +349,8 @@ export class EditorBasicTab<
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }> {
+    private chartTypeOptionNone = "None"
+
     @action.bound private updateParentConfig() {
         const { editor } = this.props
         if (isChartEditorInstance(editor)) {
@@ -355,7 +360,9 @@ export class EditorBasicTab<
 
     @action.bound onChartTypeChange(value: string) {
         const { grapher } = this.props.editor
-        grapher.type = value as ChartTypeName
+
+        grapher.chartTypes =
+            value === this.chartTypeOptionNone ? [] : [value as ChartTypeName]
 
         if (grapher.isMarimekko) {
             grapher.hideRelativeToggle = false
@@ -392,38 +399,48 @@ export class EditorBasicTab<
         this.updateParentConfig()
     }
 
-    render() {
-        const { editor } = this.props
-        const { grapher } = editor
-        const chartTypes = Object.keys(ChartTypeName).filter(
+    @computed private get chartTypeOptions(): {
+        value: string
+        label: string
+    }[] {
+        const allChartTypes = Object.keys(ChartTypeName).filter(
             (chartType) => chartType !== ChartTypeName.WorldMap
         )
 
+        const chartTypeOptions = allChartTypes.map((key) => ({
+            value: key,
+            label: startCase(key),
+        }))
+
+        return [
+            ...chartTypeOptions,
+            { value: this.chartTypeOptionNone, label: "No chart tab" },
+        ]
+    }
+
+    render() {
+        const { editor } = this.props
+        const { grapher } = editor
         const isIndicatorChart = isIndicatorChartEditorInstance(editor)
 
         return (
             <div className="EditorBasicTab">
                 {isIndicatorChart && <IndicatorChartInfo editor={editor} />}
 
-                <Section name="Type of chart">
+                <Section name="Tabs">
                     <SelectField
-                        value={grapher.type}
+                        label="Type of chart"
+                        value={grapher.chartType ?? this.chartTypeOptionNone}
                         onValue={this.onChartTypeChange}
-                        options={chartTypes.map((key) => ({
-                            value: key,
-                            label: startCase(key),
-                        }))}
+                        options={this.chartTypeOptions}
                     />
                     <FieldsRow>
                         <Toggle
-                            label="Chart tab"
-                            value={grapher.hasChartTab}
-                            onValue={(value) => (grapher.hasChartTab = value)}
-                        />
-                        <Toggle
                             label="Map tab"
                             value={grapher.hasMapTab}
-                            onValue={(value) => (grapher.hasMapTab = value)}
+                            onValue={(shouldHaveMapTab) =>
+                                (grapher.hasMapTab = shouldHaveMapTab)
+                            }
                         />
                     </FieldsRow>
                 </Section>

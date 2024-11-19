@@ -67,7 +67,7 @@ export interface SettingsMenuManager
     hideTableFilterToggle?: boolean
 
     // chart state
-    type: ChartTypeName
+    activeChartType?: ChartTypeName
     isRelativeMode?: boolean
     selection?: SelectionArray | EntityName[]
     canChangeAddOrHighlightEntities?: boolean
@@ -104,6 +104,10 @@ export class SettingsMenu extends React.Component<{
         return test.showSettingsMenuToggle
     }
 
+    @computed get chartType(): ChartTypeName {
+        return this.manager.activeChartType ?? ChartTypeName.LineChart
+    }
+
     @computed get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
@@ -111,7 +115,7 @@ export class SettingsMenu extends React.Component<{
     @computed get showYScaleToggle(): boolean | undefined {
         if (this.manager.hideYScaleToggle) return false
         if (this.manager.isRelativeMode) return false
-        if ([StackedArea, StackedBar].includes(this.manager.type)) return false // We currently do not have these charts with log scale
+        if ([StackedArea, StackedBar].includes(this.chartType)) return false // We currently do not have these charts with log scale
         return this.manager.yAxis.canChangeScaleType
     }
 
@@ -126,15 +130,15 @@ export class SettingsMenu extends React.Component<{
         return (
             !this.manager.hideFacetYDomainToggle &&
             this.manager.facetStrategy !== FacetStrategy.none &&
-            this.manager.type !== StackedDiscreteBar
+            this.chartType !== StackedDiscreteBar
         )
     }
 
     @computed get showZoomToggle(): boolean {
-        const { type, hideZoomToggle } = this.manager
+        const { hideZoomToggle } = this.manager
         return (
             !hideZoomToggle &&
-            type === ScatterPlot &&
+            this.chartType === ScatterPlot &&
             this.selectionArray.hasSelection
         )
     }
@@ -142,16 +146,16 @@ export class SettingsMenu extends React.Component<{
     @computed get showNoDataAreaToggle(): boolean {
         return (
             !this.manager.hideNoDataAreaToggle &&
-            this.manager.type === Marimekko &&
+            this.chartType === Marimekko &&
             this.manager.xColumnSlug !== undefined
         )
     }
 
     @computed get showAbsRelToggle(): boolean {
-        const { type, canToggleRelativeMode, hasTimeline, xOverrideTime } =
+        const { canToggleRelativeMode, hasTimeline, xOverrideTime } =
             this.manager
         if (!canToggleRelativeMode) return false
-        if (type === ScatterPlot)
+        if (this.chartType === ScatterPlot)
             return xOverrideTime === undefined && !!hasTimeline
         return [
             StackedArea,
@@ -160,7 +164,7 @@ export class SettingsMenu extends React.Component<{
             ScatterPlot,
             LineChart,
             Marimekko,
-        ].includes(type)
+        ].includes(this.chartType)
     }
 
     @computed get showFacetControl(): boolean {
@@ -169,7 +173,6 @@ export class SettingsMenu extends React.Component<{
             availableFacetStrategies,
             hideFacetControl,
             isOnTableTab,
-            type,
         } = this.manager
 
         // if there's no choice to be made, don't display a lone button
@@ -184,7 +187,7 @@ export class SettingsMenu extends React.Component<{
             StackedBar,
             StackedDiscreteBar,
             LineChart,
-        ].includes(type)
+        ].includes(this.chartType)
 
         const hasProjection = filledDimensions.some(
             (dim) => dim.display.isProjection
@@ -261,9 +264,8 @@ export class SettingsMenu extends React.Component<{
         return this.props.manager
     }
 
-    @computed get chartType(): string {
-        const { type } = this.manager
-        return type.replace(/([A-Z])/g, " $1")
+    @computed get chartTypeLabel(): string {
+        return this.chartType.replace(/([A-Z])/g, " $1")
     }
 
     @computed get selectionArray(): SelectionArray {
@@ -390,10 +392,10 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get menuContents(): JSX.Element {
-        const { manager, chartType } = this
+        const { manager, chartTypeLabel } = this
         const { isOnTableTab } = manager
 
-        const menuTitle = `${isOnTableTab ? "Table" : chartType} settings`
+        const menuTitle = `${isOnTableTab ? "Table" : chartTypeLabel} settings`
 
         return (
             <div className={GRAPHER_SETTINGS_CLASS} ref={this.contentRef}>

@@ -36,9 +36,9 @@ import {
     EntityName,
     ChartTypeName,
     FacetStrategy,
-    GrapherTabOption,
     RelatedQuestionsConfig,
     Color,
+    GrapherTabName,
 } from "@ourworldindata/types"
 import { DataTable, DataTableManager } from "../dataTable/DataTable"
 import {
@@ -76,11 +76,11 @@ export interface CaptionedChartManager
     backgroundColor?: string
 
     // state
-    tab?: GrapherTabOption
+    activeTab?: GrapherTabName
     isOnMapTab?: boolean
     isOnTableTab?: boolean
-    type: ChartTypeName
-    typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart?: ChartTypeName
+    activeChartType?: ChartTypeName
+    isLineChartThatTurnedIntoDiscreteBar?: boolean
     showEntitySelectionToggle?: boolean
     isExportingForSocialMedia?: boolean
 
@@ -189,27 +189,33 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return !this.manager.isOnMapTab && hasStrategy
     }
 
-    @computed get chartTypeName(): ChartTypeName {
+    @computed get activeChartType(): ChartTypeName | undefined {
         const { manager } = this
-        return this.manager.isOnMapTab
-            ? ChartTypeName.WorldMap
-            : manager.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart ??
-                  manager.type ??
-                  ChartTypeName.LineChart
+        if (manager.isOnTableTab) return undefined
+        if (manager.isOnMapTab) return ChartTypeName.WorldMap
+        if (manager.isOnChartTab) {
+            return manager.isLineChartThatTurnedIntoDiscreteBar
+                ? ChartTypeName.DiscreteBar
+                : manager.activeChartType
+        }
+        return undefined
     }
 
-    renderChart(): React.ReactElement {
-        const { manager } = this
+    renderChart(): React.ReactElement | void {
+        const { manager, activeChartType, containerElement } = this
+
+        if (!activeChartType) return
+
         const bounds = this.boundsForChartArea
         const ChartClass =
-            ChartComponentClassMap.get(this.chartTypeName) ?? DefaultChartClass
+            ChartComponentClassMap.get(activeChartType) ?? DefaultChartClass
 
         // Todo: make FacetChart a chart type name?
         if (this.isFaceted)
             return (
                 <FacetChart
                     bounds={bounds}
-                    chartTypeName={this.chartTypeName}
+                    chartTypeName={activeChartType}
                     manager={manager}
                 />
             )
@@ -218,7 +224,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             <ChartClass
                 bounds={bounds}
                 manager={manager}
-                containerElement={this.containerElement}
+                containerElement={containerElement}
             />
         )
     }

@@ -6,6 +6,7 @@ import {
     ColorSchemeName,
     FacetAxisDomain,
     FacetStrategy,
+    ChartTypeName,
 } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
 import {
@@ -158,7 +159,10 @@ export class ColorSchemeSelector extends React.Component<{
                             value={grapher.baseColorScheme}
                             onChange={this.onChange}
                             onBlur={this.onBlur}
-                            chartType={this.props.grapher.type}
+                            chartType={
+                                this.props.grapher.chartType ??
+                                ChartTypeName.LineChart
+                            }
                             invertedColorScheme={!!grapher.invertColorScheme}
                             additionalOptions={[
                                 {
@@ -751,7 +755,7 @@ export class EditorCustomizeTab<
                 {grapher.chartInstanceExceptMap.colorScale && (
                     <EditorColorScaleSection
                         scale={grapher.chartInstanceExceptMap.colorScale}
-                        chartType={grapher.type}
+                        chartType={grapher.chartType ?? ChartTypeName.LineChart}
                         showLineChartColors={grapher.isLineChart}
                         features={{
                             visualScaling: true,

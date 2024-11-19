@@ -36,9 +36,12 @@ function bakeCache<T>(cacheKey: any, retriever: () => T): T {
     return result
 }
 
+const hasChartTab = (grapher: GrapherInterface): boolean =>
+    !grapher.chartTypes || grapher.chartTypes.length > 0
+
 const checkShouldShowIndicator = (grapher: GrapherInterface) =>
-    (grapher.hasChartTab ?? true) &&
-    (grapher.type ?? "LineChart") === "LineChart" &&
+    hasChartTab(grapher) &&
+    (grapher.chartTypes?.[0] ?? "LineChart") === "LineChart" &&
     grapher.dimensions?.length === 1
 
 // Find the charts that will be shown on the country profile page (if they have that country)

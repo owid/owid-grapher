@@ -49,7 +49,7 @@ export const Line = (): React.ReactElement => <Grapher {...basics} />
 
 export const SlopeChart = (): React.ReactElement => {
     const model = {
-        type: ChartTypeName.SlopeChart,
+        chartTypes: [ChartTypeName.SlopeChart],
         ...basics,
     }
     return <Grapher {...model} />
@@ -57,7 +57,7 @@ export const SlopeChart = (): React.ReactElement => {
 
 export const ScatterPlot = (): React.ReactElement => {
     const model = {
-        type: ChartTypeName.ScatterPlot,
+        chartTypes: [ChartTypeName.ScatterPlot],
         ...basics,
     }
     return <Grapher {...model} />
@@ -65,7 +65,7 @@ export const ScatterPlot = (): React.ReactElement => {
 
 export const DiscreteBar = (): React.ReactElement => {
     const model = {
-        type: ChartTypeName.DiscreteBar,
+        chartTypes: [ChartTypeName.DiscreteBar],
         ...basics,
     }
     return <Grapher {...model} />
@@ -73,7 +73,7 @@ export const DiscreteBar = (): React.ReactElement => {
 
 export const StackedBar = (): React.ReactElement => {
     const model = {
-        type: ChartTypeName.StackedBar,
+        chartTypes: [ChartTypeName.StackedBar],
         ...basics,
     }
     return <Grapher {...model} />
@@ -81,7 +81,7 @@ export const StackedBar = (): React.ReactElement => {
 
 export const StackedArea = (): React.ReactElement => {
     const model = {
-        type: ChartTypeName.StackedArea,
+        chartTypes: [ChartTypeName.StackedArea],
         ...basics,
     }
     return <Grapher {...model} />
@@ -97,7 +97,6 @@ export const MapFirst = (): React.ReactElement => {
 
 export const BlankGrapher = (): React.ReactElement => {
     const model = {
-        type: ChartTypeName.WorldMap,
         tab: GrapherTabOption.map,
         table: BlankOwidTable(),
         hasMapTab: true,
@@ -115,7 +114,7 @@ export const NoMap = (): React.ReactElement => {
 
 export const Faceting = (): React.ReactElement => {
     const model = {
-        type: ChartTypeName.StackedArea,
+        chartTypes: [ChartTypeName.StackedArea],
         facet: FacetStrategy.entity,
         ...basics,
     }
@@ -161,7 +160,7 @@ class PerfGrapher extends React.Component {
                 <Grapher
                     {...basics}
                     table={this.table}
-                    type={this.chartTypeName}
+                    chartTypes={[this.chartTypeName]}
                     key={key}
                 />
             </div>

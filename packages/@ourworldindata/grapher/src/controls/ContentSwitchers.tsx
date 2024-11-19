@@ -1,20 +1,21 @@
 import React from "react"
-import { computed } from "mobx"
+import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
-import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
+import { ChartTypeName, GrapherTabName } from "@ourworldindata/types"
 import { chartIcons } from "./ChartIcons"
-import { Bounds, capitalize } from "@ourworldindata/utils"
+import { Bounds } from "@ourworldindata/utils"
 import { TabLabel, Tabs } from "../tabs/Tabs.js"
 
 export interface ContentSwitchersManager {
-    availableTabs?: GrapherTabOption[]
-    tab?: GrapherTabOption
+    availableTabs?: GrapherTabName[]
+    activeTab?: GrapherTabName
+    hasMultipleChartTypes?: boolean
+    setTab: (tab: GrapherTabName) => void
     isNarrow?: boolean
     isMedium?: boolean
-    type: ChartTypeName
     isLineChartThatTurnedIntoDiscreteBar?: boolean
 }
 
@@ -43,7 +44,7 @@ export class ContentSwitchers extends React.Component<{
         return this.props.manager
     }
 
-    @computed private get availableTabs(): GrapherTabOption[] {
+    @computed private get availableTabs(): GrapherTabName[] {
         return this.manager.availableTabs || []
     }
 
@@ -55,10 +56,6 @@ export class ContentSwitchers extends React.Component<{
         return !this.manager.isNarrow
     }
 
-    @computed private get chartType(): ChartTypeName {
-        return this.manager.type ?? ChartTypeName.LineChart
-    }
-
     @computed get width(): number {
         return this.availableTabs.reduce((totalWidth, tab) => {
             // keep in sync with ContentSwitcher.scss
@@ -68,7 +65,12 @@ export class ContentSwitchers extends React.Component<{
             let tabWidth = 2 * outerPadding + ICON_WIDTH
 
             if (this.showTabLabels) {
-                const labelWidth = Bounds.forText(capitalize(tab), {
+                const tabLabel = makeTabLabelText(tab, {
+                    hasMultipleChartTypes: this.manager.hasMultipleChartTypes,
+                    isLineChartThatTurnedIntoDiscreteBar:
+                        this.manager.isLineChartThatTurnedIntoDiscreteBar,
+                })
+                const labelWidth = Bounds.forText(tabLabel, {
                     fontSize: TAB_FONT_SIZE,
                 }).width
                 tabWidth += labelWidth + ICON_PADDING
@@ -78,28 +80,18 @@ export class ContentSwitchers extends React.Component<{
         }, 0)
     }
 
-    private tabIcon(tab: GrapherTabOption): React.ReactElement {
-        const { manager } = this
-        switch (tab) {
-            case GrapherTabOption.table:
-                return <FontAwesomeIcon icon={faTable} />
-            case GrapherTabOption.map:
-                return <FontAwesomeIcon icon={faEarthAmericas} />
-            case GrapherTabOption.chart:
-                const chartIcon = manager.isLineChartThatTurnedIntoDiscreteBar
-                    ? chartIcons[ChartTypeName.DiscreteBar]
-                    : chartIcons[this.chartType]
-                return chartIcon
-        }
-    }
-
     @computed private get tabLabels(): TabLabel[] {
         return this.availableTabs.map((tab) => ({
             element: (
-                <span key={tab}>
-                    {this.tabIcon(tab)}
-                    {this.showTabLabels && <span className="label">{tab}</span>}
-                </span>
+                <ContentSwitcherTab
+                    key={tab}
+                    tab={tab}
+                    showLabel={this.showTabLabels}
+                    hasMultipleChartTypes={this.manager.hasMultipleChartTypes}
+                    isLineChartThatTurnedIntoDiscreteBar={
+                        this.manager.isLineChartThatTurnedIntoDiscreteBar
+                    }
+                />
             ),
             buttonProps: {
                 "data-track-note": "chart_click_" + tab,
@@ -108,24 +100,115 @@ export class ContentSwitchers extends React.Component<{
         }))
     }
 
+    @computed private get activeTabIndex(): number {
+        const { activeTab } = this.manager
+        if (!activeTab) return 0
+        const activeIndex = this.availableTabs.indexOf(activeTab)
+        return activeIndex >= 0 ? activeIndex : 0
+    }
+
+    @action.bound setTab(tabIndex: number): void {
+        const newTab = this.availableTabs[tabIndex]
+        this.manager.setTab(newTab)
+    }
+
     render(): React.ReactElement {
-        const { manager, tabLabels } = this
-
-        const activeIndex =
-            (manager.tab && this.availableTabs.indexOf(manager.tab)) ?? 0
-
         return (
             <Tabs
                 variant="slim"
                 extraClassNames={classnames("ContentSwitchers", {
                     iconOnly: !this.showTabLabels,
                 })}
-                labels={tabLabels}
-                activeIndex={activeIndex}
-                setActiveIndex={(index) =>
-                    (manager.tab = this.availableTabs[index])
-                }
+                labels={this.tabLabels}
+                activeIndex={this.activeTabIndex}
+                setActiveIndex={this.setTab}
             />
         )
+    }
+}
+
+function ContentSwitcherTab({
+    tab,
+    showLabel,
+    hasMultipleChartTypes,
+    isLineChartThatTurnedIntoDiscreteBar,
+}: {
+    tab: GrapherTabName
+    showLabel?: boolean
+    hasMultipleChartTypes?: boolean
+    isLineChartThatTurnedIntoDiscreteBar?: boolean
+}): React.ReactElement {
+    return (
+        <span>
+            <TabIcon
+                tab={tab}
+                isLineChartThatTurnedIntoDiscreteBar={
+                    isLineChartThatTurnedIntoDiscreteBar
+                }
+            />
+            {showLabel && (
+                <span className="label">
+                    {makeTabLabelText(tab, {
+                        isLineChartThatTurnedIntoDiscreteBar,
+                        hasMultipleChartTypes,
+                    })}
+                </span>
+            )}
+        </span>
+    )
+}
+
+function TabIcon({
+    tab,
+    isLineChartThatTurnedIntoDiscreteBar,
+}: {
+    tab: GrapherTabName
+    isLineChartThatTurnedIntoDiscreteBar?: boolean
+}): React.ReactElement {
+    switch (tab) {
+        case GrapherTabName.Table:
+            return <FontAwesomeIcon icon={faTable} />
+        case GrapherTabName.WorldMap:
+            return <FontAwesomeIcon icon={faEarthAmericas} />
+        default:
+            const chartIcon = isLineChartThatTurnedIntoDiscreteBar
+                ? chartIcons[ChartTypeName.DiscreteBar]
+                : chartIcons[tab as unknown as ChartTypeName]
+            return chartIcon
+    }
+}
+
+function makeTabLabelText(
+    tab: GrapherTabName,
+    options: {
+        isLineChartThatTurnedIntoDiscreteBar?: boolean
+        hasMultipleChartTypes?: boolean
+    }
+): string {
+    if (tab === GrapherTabName.Table) return "Table"
+    if (tab === GrapherTabName.WorldMap) return "Map"
+    if (!options.hasMultipleChartTypes) return "Chart"
+
+    switch (tab) {
+        case GrapherTabName.LineChart:
+            return options.isLineChartThatTurnedIntoDiscreteBar ? "Bar" : "Line"
+        case GrapherTabName.SlopeChart:
+            return "Slope"
+
+        // chart type labels are preliminary
+        case GrapherTabName.ScatterPlot:
+            return "Scatter"
+        case GrapherTabName.StackedArea:
+            return "Stacked area"
+        case GrapherTabName.StackedBar:
+            return "Stacked bar"
+        case GrapherTabName.DiscreteBar:
+            return "Bar"
+        case GrapherTabName.StackedDiscreteBar:
+            return "Stacked bar"
+        case GrapherTabName.Marimekko:
+            return "Marimekko"
+        default:
+            return "Chart"
     }
 }
