@@ -75,7 +75,7 @@ export const SOCIALS = [
     },
     {
         title: "Bluesky",
-        url: "https://bsky.app/profile/ourworldindata.bsky.social",
+        url: "https://bsky.app/profile/ourworldindata.org",
         icon: faBluesky,
     },
 ]
