@@ -36,9 +36,12 @@ import {
 } from "../db/model/Variable.js"
 import {
     deleteGrapherConfigFromR2ByUUID,
-    saveGrapherConfigToR2ByUUID,
     saveMultiDimConfigToR2,
 } from "./chartConfigR2Helpers.js"
+import {
+    saveNewChartConfigInDbAndR2,
+    updateChartConfigInDbAndR2,
+} from "./chartConfigHelpers.js"
 
 function dimensionsToViewId(dimensions: MultiDimDimensionChoices) {
     return Object.entries(dimensions)
@@ -142,36 +145,11 @@ async function saveNewMultiDimViewChartConfig(
     patchConfig: GrapherInterface,
     fullConfig: GrapherInterface
 ): Promise<string> {
-    const chartConfigId = uuidv7()
-    await db.knexRaw(
+    const { chartConfigId } = await saveNewChartConfigInDbAndR2(
         knex,
-        `-- sql
-            INSERT INTO chart_configs (id, patch, full)
-            VALUES (?, ?, ?)
-        `,
-        [
-            chartConfigId,
-            serializeChartConfig(patchConfig),
-            serializeChartConfig(fullConfig),
-        ]
-    )
-
-    // We need to get the full config and the md5 hash from the database instead of
-    // computing our own md5 hash because MySQL normalizes JSON and our
-    // client computed md5 would be different from the ones computed by and stored in R2
-    const fullConfigMd5 = await db.knexRawFirst<
-        Pick<DbRawChartConfig, "full" | "fullMd5">
-    >(
-        knex,
-        `-- sql
-            select full, fullMd5 from chart_configs where id = ?`,
-        [chartConfigId]
-    )
-
-    await saveGrapherConfigToR2ByUUID(
-        chartConfigId,
-        fullConfigMd5!.full,
-        fullConfigMd5!.fullMd5 as Base64String
+        undefined,
+        patchConfig,
+        fullConfig
     )
 
     console.debug(`Chart config created id=${chartConfigId}`)
@@ -184,30 +162,11 @@ async function updateMultiDimViewChartConfig(
     patchConfig: GrapherInterface,
     fullConfig: GrapherInterface
 ): Promise<string> {
-    await knex<DbInsertChartConfig>(ChartConfigsTableName)
-        .update({
-            patch: serializeChartConfig(patchConfig),
-            full: serializeChartConfig(fullConfig),
-            updatedAt: new Date(), // It's not updated automatically in the DB.
-        })
-        .where({ id: chartConfigId })
-
-    // We need to get the full config and the md5 hash from the database instead of
-    // computing our own md5 hash because MySQL normalizes JSON and our
-    // client computed md5 would be different from the ones computed by and stored in R2
-    const fullConfigMd5 = await db.knexRawFirst<
-        Pick<DbRawChartConfig, "full" | "fullMd5">
-    >(
+    await updateChartConfigInDbAndR2(
         knex,
-        `-- sql
-            select full, fullMd5 from chart_configs where id = ?`,
-        [chartConfigId]
-    )
-
-    await saveGrapherConfigToR2ByUUID(
         chartConfigId,
-        fullConfigMd5!.full,
-        fullConfigMd5!.fullMd5 as Base64String
+        patchConfig,
+        fullConfig
     )
 
     console.debug(`Chart config updated id=${chartConfigId}`)
