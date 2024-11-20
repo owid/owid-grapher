@@ -126,6 +126,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                             <GrapherImage
                                 slug={grapher.slug}
                                 alt={grapher.title}
+                                enablePopulatingUrlParams
                             />
                         )}
                         <p>Interactive visualization requires JavaScript</p>

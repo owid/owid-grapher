@@ -14,11 +14,10 @@ import {
     excludeUndefined,
     isEmpty,
 } from "@ourworldindata/utils"
-import { ChartConfigType } from "@ourworldindata/types"
+import { ChartConfigType, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { useLinkedChart } from "../utils.js"
 import SpanElements from "./SpanElements.js"
 import cx from "classnames"
-import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import InteractionNotice from "../../InteractionNotice.js"
 import GrapherImage from "../../GrapherImage.js"
 

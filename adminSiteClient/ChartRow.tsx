@@ -6,7 +6,10 @@ import { Link } from "./Link.js"
 import { Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
+import {
+    BAKED_GRAPHER_URL,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
+} from "../settings/clientSettings.js"
 import { ChartListItem, showChartType } from "./ChartList.js"
 import { TaggableType, DbChartTagJoin } from "@ourworldindata/utils"
 
@@ -49,7 +52,7 @@ export class ChartRow extends React.Component<{
                     {chart.isPublished ? (
                         <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
                             <img
-                                src={`/grapher/exports/${chart.slug}.svg`}
+                                src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${chart.slug}.png`}
                                 className="chartPreview"
                             />
                         </a>

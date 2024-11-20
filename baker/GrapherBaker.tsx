@@ -15,7 +15,6 @@ import fs from "fs-extra"
 import * as lodash from "lodash"
 import { bakeGrapherToSvgAndPng } from "./GrapherImageBaker.js"
 import {
-    OPTIMIZE_SVG_EXPORTS,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
@@ -328,8 +327,7 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
         await bakeGrapherToSvgAndPng(
             `${bakedSiteDir}/grapher/exports`,
             grapher,
-            variableDataMedadataMap,
-            OPTIMIZE_SVG_EXPORTS
+            variableDataMedadataMap
         )
     }
 }
