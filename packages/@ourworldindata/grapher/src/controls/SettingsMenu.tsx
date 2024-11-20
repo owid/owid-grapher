@@ -51,6 +51,7 @@ const {
     StackedDiscreteBar,
     StackedBar,
     Marimekko,
+    SlopeChart,
 } = GRAPHER_CHART_TYPES
 
 export interface SettingsMenuManager
@@ -170,6 +171,7 @@ export class SettingsMenu extends React.Component<{
             ScatterPlot,
             LineChart,
             Marimekko,
+            SlopeChart,
         ].includes(this.chartType as any)
     }
 
