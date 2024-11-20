@@ -1,5 +1,5 @@
 import React from "react"
-import { Box, getCountryByName } from "@ourworldindata/utils"
+import { areSetsEqual, Box, getCountryByName } from "@ourworldindata/utils"
 import {
     SeriesStrategy,
     EntityName,
@@ -15,6 +15,7 @@ import {
     GRAPHER_SIDE_PANEL_CLASS,
     GRAPHER_TIMELINE_CLASS,
     GRAPHER_SETTINGS_CLASS,
+    validChartTypeCombinations,
 } from "../core/GrapherConstants"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
@@ -174,4 +175,16 @@ export function mapChartTypeNameToQueryParam(
         case GRAPHER_CHART_TYPES.Marimekko:
             return GRAPHER_TAB_QUERY_PARAMS.marimekko
     }
+}
+
+export function findValidChartTypeCombination(
+    chartTypes: GrapherChartType[]
+): GrapherChartType[] | undefined {
+    const chartTypeSet = new Set(chartTypes)
+    for (const validCombination of validChartTypeCombinations) {
+        const validCombinationSet = new Set(validCombination)
+        if (areSetsEqual(chartTypeSet, validCombinationSet))
+            return validCombination
+    }
+    return undefined
 }
