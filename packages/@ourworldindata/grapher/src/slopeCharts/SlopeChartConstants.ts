@@ -48,7 +48,7 @@ export interface LabelledSlopesProps {
     hoverKeys: string[]
     onMouseOver: (slopeProps: SlopeEntryProps) => void
     onMouseLeave: () => void
-    onClick: () => void
+    onClick?: () => void
     isPortrait: boolean
 }
 
