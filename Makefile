@@ -243,7 +243,7 @@ dbtest: node_modules
 	yarn buildTsc
 
 	@echo '==> Running db test script'
-	./db/tests/run-db-tests.sh
+	@. ./.env && ./db/tests/run-db-tests.sh
 
 lint: node_modules
 	@echo '==> Linting'
