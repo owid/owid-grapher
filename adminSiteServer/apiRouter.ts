@@ -3269,17 +3269,12 @@ postRouteWithRWTransaction(apiRouter, "/tagGraph", async (req, res, trx) => {
     res.send({ success: true })
 })
 
-postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
-    const { slug, parentChartId } = req.body as Pick<
-        DbPlainChartView,
-        "slug" | "parentChartId"
-    >
-    const config = req.body.config as GrapherInterface
-    if (!slug || !parentChartId || !config) {
-        throw new JsonError("Invalid request", 400)
-    }
-
-    const parentChartConfig = await expectChartById(trx, parentChartId)
+const createPatchConfigForChartView = async (
+    knex: db.KnexReadonlyTransaction,
+    parentChartId: number,
+    config: GrapherInterface
+) => {
+    const parentChartConfig = await expectChartById(knex, parentChartId)
 
     const patchToParentChart = diffGrapherConfigs(config, parentChartConfig)
 
@@ -3296,11 +3291,29 @@ postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
         // persist these props when they are the same as the default.
         ...pick(fullConfigIncludingDefaults, CHART_VIEW_PROPS_TO_PERSIST),
     }
+    return patchConfigToSave
+}
+
+postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
+    const { slug, parentChartId } = req.body as Pick<
+        DbPlainChartView,
+        "slug" | "parentChartId"
+    >
+    const fullConfig = req.body.config as GrapherInterface
+    if (!slug || !parentChartId || !fullConfig) {
+        throw new JsonError("Invalid request", 400)
+    }
+
+    const patchConfigToSave = await createPatchConfigForChartView(
+        trx,
+        parentChartId,
+        fullConfig
+    )
 
     const { chartConfigId } = await saveNewChartConfigInDbAndR2(
         trx,
         undefined,
-        config,
+        fullConfig,
         patchConfigToSave
     )
 
@@ -3315,5 +3328,51 @@ postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
 
     return { success: true }
 })
+
+putRouteWithRWTransaction(
+    apiRouter,
+    "/chartViews/:id",
+    async (req, res, trx) => {
+        const id = expectInt(req.params.id)
+        const { slug, parentChartId } = req.body as Pick<
+            DbPlainChartView,
+            "slug" | "parentChartId"
+        >
+        const fullConfig = req.body.config as GrapherInterface
+        if (!slug || !parentChartId || !fullConfig) {
+            throw new JsonError("Invalid request", 400)
+        }
+
+        const patchConfigToSave = await createPatchConfigForChartView(
+            trx,
+            parentChartId,
+            fullConfig
+        )
+
+        const chartConfigIdRow: Pick<DbPlainChartView, "chartConfigId"> =
+            await trx(ChartViewsTableName)
+                .select("chartConfigId")
+                .where({ id })
+                .first()
+
+        if (!chartConfigIdRow)
+            throw new JsonError(`No chart view found for id ${id}`, 500)
+
+        await updateChartConfigInDbAndR2(
+            trx,
+            chartConfigIdRow.chartConfigId as Base64String,
+            fullConfig,
+            patchConfigToSave
+        )
+
+        // update chart_views
+        await trx.table(ChartViewsTableName).where({ id }).update({
+            updatedAt: new Date(),
+            lastEditedByUserId: res.locals.user.id,
+        })
+
+        return { success: true }
+    }
+)
 
 export { apiRouter }
