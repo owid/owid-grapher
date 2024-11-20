@@ -49,7 +49,11 @@ export default function GrapherImage(props: {
 
     const defaultSrc = `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png${queryString}`
     return (
-        <picture>
+        <picture
+            // This tells our Cloudflare functions to replace the src with the dynamic thumbnail URL, including URL params like `?time=2020`.
+            // Enabling this option only makes sense if this is the _main_ chart on a _standalone_ grapher/data page - it will pass on the URL params from the page to the thumbnail.
+            data-owid-populate-url-params={props.enablePopulatingUrlParams}
+        >
             <GrapherImageSource defaultSrc={defaultSrc} />
             <img
                 className="GrapherImage"
@@ -60,9 +64,6 @@ export default function GrapherImage(props: {
                 loading="lazy"
                 data-no-lightbox
                 data-no-img-formatting={props.noFormatting}
-                // This tells our Cloudflare functions to replace the src with the dynamic thumbnail URL, including URL params like `?time=2020`.
-                // Enabling this option only makes sense if this is the _main_ chart on a _standalone_ grapher/data page - it will pass on the URL params from the page to the thumbnail.
-                data-owid-populate-url-params={props.enablePopulatingUrlParams}
             />
         </picture>
     )
