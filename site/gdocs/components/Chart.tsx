@@ -13,10 +13,9 @@ import {
     Url,
     merge,
 } from "@ourworldindata/utils"
-import { ChartConfigType } from "@ourworldindata/types"
+import { ChartConfigType, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { renderSpans, useLinkedChart } from "../utils.js"
 import cx from "classnames"
-import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import InteractionNotice from "../../InteractionNotice.js"
 import GrapherImage from "../../GrapherImage.js"
 
