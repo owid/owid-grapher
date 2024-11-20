@@ -66,7 +66,6 @@ import {
     extractDetailsFromSyntax,
     omit,
     isTouchDevice,
-    areSetsEqual,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -138,7 +137,6 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
     latestGrapherConfigSchema,
-    validChartTypeCombinations,
     GRAPHER_SQUARE_SIZE,
 } from "../core/GrapherConstants"
 import { loadVariableDataAndMetadata } from "./loadVariable"
@@ -201,6 +199,7 @@ import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    findValidChartTypeCombination,
     mapChartTypeNameToQueryParam,
     mapQueryParamToChartTypeName,
 } from "../chart/ChartUtils"
@@ -1526,21 +1525,31 @@ export class Grapher
         })
     }
 
+    @computed get hasProjectedData(): boolean {
+        return this.inputTable.numericColumnSlugs.some(
+            (slug) => this.inputTable.get(slug).isProjection
+        )
+    }
+
     @computed get validChartTypes(): GrapherChartType[] {
         const { chartTypes } = this
 
         // all single-chart Graphers are valid
         if (chartTypes.length <= 1) return chartTypes
 
-        const chartTypeSet = new Set(chartTypes)
-        for (const validCombination of validChartTypeCombinations) {
-            const validCombinationSet = new Set(validCombination)
-            if (areSetsEqual(chartTypeSet, validCombinationSet))
-                return validCombination
-        }
+        // find valid combination in a pre-defined list
+        const validChartTypes = findValidChartTypeCombination(chartTypes)
 
         // if the given combination is not valid, then ignore all but the first chart type
-        return chartTypes.slice(0, 1)
+        if (!validChartTypes) return chartTypes.slice(0, 1)
+
+        // projected data is only supported for line charts
+        const isLineChart = validChartTypes[0] === GRAPHER_CHART_TYPES.LineChart
+        if (isLineChart && this.hasProjectedData) {
+            return [GRAPHER_CHART_TYPES.LineChart]
+        }
+
+        return validChartTypes
     }
 
     @computed get validChartTypeSet(): Set<GrapherChartType> {
