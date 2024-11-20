@@ -90,6 +90,9 @@ export class SlopeChart
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
 
+        if (this.isLogScale)
+            table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
+
         // drop all data when the author chose to hide entities with missing data and
         // at least one of the variables has no data for the current entity
         if (
@@ -141,6 +144,10 @@ export class SlopeChart
 
     @computed private get isPortrait(): boolean {
         return !!(this.manager.isNarrow || this.manager.isStaticAndSmall)
+    }
+
+    @computed get isLogScale(): boolean {
+        return this.props.manager.yAxisConfig?.scaleType === ScaleType.log
     }
 
     @computed private get missingDataStrategy(): MissingDataStrategy {
