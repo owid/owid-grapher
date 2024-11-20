@@ -12,6 +12,7 @@ export interface SlopeChartValue {
 export interface SlopeChartSeries extends ChartSeries {
     size: number
     values: SlopeChartValue[]
+    annotation?: string
 }
 
 export const DEFAULT_SLOPE_CHART_COLOR = "#ff7f0e"
