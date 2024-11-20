@@ -3,7 +3,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     intersection,
-    without,
     uniq,
     isEmpty,
     last,
@@ -53,11 +52,7 @@ import {
     SlopeEntryProps,
 } from "./SlopeChartConstants"
 import { OwidTable } from "@ourworldindata/core-table"
-import {
-    autoDetectYColumnSlugs,
-    makeSelectionArray,
-    isElementInteractive,
-} from "../chart/ChartUtils"
+import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { VerticalAxis } from "../axis/Axis"
 import { VerticalAxisComponent } from "../axis/AxisViews"
@@ -94,8 +89,6 @@ export class SlopeChart
     @observable hoverKey?: string
     // currently hovered legend color
     @observable hoverColor?: string
-
-    private hasInteractedWithChart = false
 
     transformTable(table: OwidTable) {
         if (!table.has(this.yColumnSlug)) return table
@@ -169,15 +162,6 @@ export class SlopeChart
         this.hoverKey = undefined
     }
 
-    @action.bound onSlopeClick() {
-        const { hoverKey, isEntitySelectionEnabled } = this
-        if (!isEntitySelectionEnabled || hoverKey === undefined) {
-            return
-        }
-        this.hasInteractedWithChart = true
-        this.selectionArray.toggleSelection(hoverKey)
-    }
-
     // Both legend managers accept a `onLegendMouseOver` property, but define different signatures.
     // The <HorizontalCategoricalColorLegend /> component expects a string,
     // the <VerticalColorLegend /> component expects a ColorScaleBin.
@@ -204,29 +188,6 @@ export class SlopeChart
             manager.addCountryMode !== EntitySelectionMode.Disabled &&
             manager.addCountryMode
         )
-    }
-
-    // When the color legend is clicked, toggle selection fo all associated keys
-    @action.bound onLegendClick() {
-        const { hoverColor, isEntitySelectionEnabled } = this
-        if (!isEntitySelectionEnabled || hoverColor === undefined) return
-
-        this.hasInteractedWithChart = true
-
-        const seriesNamesToToggle = this.series
-            .filter((g) => g.color === hoverColor)
-            .map((g) => g.seriesName)
-        const areAllSeriesActive =
-            intersection(seriesNamesToToggle, this.selectedEntityNames)
-                .length === seriesNamesToToggle.length
-        if (areAllSeriesActive)
-            this.selectionArray.setSelectedEntities(
-                without(this.selectedEntityNames, ...seriesNamesToToggle)
-            )
-        else
-            this.selectionArray.setSelectedEntities(
-                this.selectedEntityNames.concat(seriesNamesToToggle)
-            )
     }
 
     // Colors on the legend for which every matching group is focused
@@ -407,7 +368,6 @@ export class SlopeChart
                     hoverKeys={hoverKeys}
                     onMouseOver={this.onSlopeMouseOver}
                     onMouseLeave={this.onSlopeMouseLeave}
-                    onClick={this.onSlopeClick}
                     isPortrait={this.isPortrait}
                 />
                 {showLegend && legend}
@@ -519,46 +479,8 @@ export class SlopeChart
         return colorByEntity
     }
 
-    // click anywhere inside the Grapher frame to dismiss the current selection
-    @action.bound onGrapherClick(e: Event): void {
-        const target = e.target as HTMLElement
-        const isTargetInteractive = isElementInteractive(target)
-        if (
-            this.isEntitySelectionEnabled &&
-            this.hasInteractedWithChart &&
-            !this.hoverKey &&
-            !this.hoverColor &&
-            !this.manager.isModalOpen &&
-            !isTargetInteractive
-        ) {
-            this.selectionArray.clearSelection()
-        }
-    }
-
-    @computed private get grapherElement() {
-        return this.manager.base?.current
-    }
-
     componentDidMount() {
-        if (this.grapherElement) {
-            // listening to "mousedown" instead of "click" fixes a bug
-            // where the current selection was incorrectly dismissed
-            // when the user drags the slider but releases the drag outside of the timeline
-            this.grapherElement.addEventListener(
-                "mousedown",
-                this.onGrapherClick
-            )
-        }
         exposeInstanceOnWindow(this)
-    }
-
-    componentWillUnmount(): void {
-        if (this.grapherElement) {
-            this.grapherElement.removeEventListener(
-                "mousedown",
-                this.onGrapherClick
-            )
-        }
     }
 
     @computed get series() {
