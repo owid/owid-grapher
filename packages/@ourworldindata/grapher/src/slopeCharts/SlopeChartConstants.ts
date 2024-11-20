@@ -18,6 +18,8 @@ export interface SlopeChartSeries extends ChartSeries {
 export const DEFAULT_SLOPE_CHART_COLOR = "#ff7f0e"
 
 export interface SlopeEntryProps extends ChartSeries {
+    series: SlopeChartSeries
+
     x1: number
     y1: number
     x2: number
