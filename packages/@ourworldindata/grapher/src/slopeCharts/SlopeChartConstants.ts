@@ -3,7 +3,6 @@ import { ChartSeries } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { ScaleType } from "@ourworldindata/types"
 import { Bounds } from "@ourworldindata/utils"
-import { TextWrap } from "@ourworldindata/components"
 
 export interface SlopeChartValue {
     x: number
@@ -18,22 +17,12 @@ export interface SlopeChartSeries extends ChartSeries {
 export const DEFAULT_SLOPE_CHART_COLOR = "#ff7f0e"
 
 export interface SlopeEntryProps extends ChartSeries {
-    isLayerMode: boolean
     x1: number
     y1: number
     x2: number
     y2: number
 
-    hasLeftLabel: boolean
-    leftEntityLabel: TextWrap
-    leftValueLabel: TextWrap
-    leftEntityLabelBounds: Bounds
-
-    hasRightLabel: boolean
-    rightEntityLabel: TextWrap
-    rightEntityLabelBounds: Bounds
-    rightValueLabel: TextWrap
-
+    isLayerMode: boolean
     isHovered: boolean
 }
 
