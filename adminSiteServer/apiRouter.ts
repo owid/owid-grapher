@@ -78,7 +78,6 @@ import {
     VariableAnnotationsResponseRow,
 } from "../adminShared/AdminSessionTypes.js"
 import {
-    Base64String,
     DbPlainDatasetTag,
     GrapherInterface,
     OwidGdocType,
@@ -106,6 +105,7 @@ import {
     MultiDimDataPageConfigRaw,
     R2GrapherConfigDirectory,
     ChartConfigsTableName,
+    Base64String,
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
 import {
@@ -180,12 +180,15 @@ import path from "path"
 import {
     deleteGrapherConfigFromR2,
     deleteGrapherConfigFromR2ByUUID,
-    saveGrapherConfigToR2,
     saveGrapherConfigToR2ByUUID,
 } from "./chartConfigR2Helpers.js"
 import { fetchImagesFromDriveAndSyncToS3 } from "../db/model/Image.js"
 import { createMultiDimConfig } from "./multiDim.js"
 import { isMultiDimDataPagePublished } from "../db/model/MultiDimDataPage.js"
+import {
+    retrieveChartConfigFromDbAndSaveToR2,
+    updateChartConfigInDbAndR2,
+} from "./chartConfigHelpers.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -322,7 +325,11 @@ const saveNewChart = async (
         // new charts inherit by default
         shouldInherit = true,
     }: { config: GrapherInterface; user: DbPlainUser; shouldInherit?: boolean }
-): Promise<{ patchConfig: GrapherInterface; fullConfig: GrapherInterface }> => {
+): Promise<{
+    chartConfigId: Base64String
+    patchConfig: GrapherInterface
+    fullConfig: GrapherInterface
+}> => {
     // grab the parent of the chart if inheritance should be enabled
     const parent = shouldInherit
         ? await getParentByChartConfig(knex, config)
@@ -331,10 +338,11 @@ const saveNewChart = async (
     // compute patch and full configs
     const patchConfig = diffGrapherConfigs(config, parent?.config ?? {})
     const fullConfig = mergeGrapherConfigs(parent?.config ?? {}, patchConfig)
-    const fullConfigStringified = serializeChartConfig(fullConfig)
 
     // insert patch & full configs into the chart_configs table
-    const chartConfigId = uuidv7()
+    // We can't quite use `saveNewChartConfigInDbAndR2` here, because
+    // we need to update the chart id in the config after inserting it.
+    const chartConfigId = uuidv7() as Base64String
     await db.knexRaw(
         knex,
         `-- sql
@@ -344,7 +352,7 @@ const saveNewChart = async (
         [
             chartConfigId,
             serializeChartConfig(patchConfig),
-            fullConfigStringified,
+            serializeChartConfig(fullConfig),
         ]
     )
 
@@ -375,25 +383,9 @@ const saveNewChart = async (
         [chartId, chartId, chartId]
     )
 
-    // We need to get the full config and the md5 hash from the database instead of
-    // computing our own md5 hash because MySQL normalizes JSON and our
-    // client computed md5 would be different from the ones computed by and stored in R2
-    const fullConfigMd5 = await db.knexRawFirst<
-        Pick<DbRawChartConfig, "full" | "fullMd5">
-    >(
-        knex,
-        `-- sql
-            select full, fullMd5 from chart_configs where id = ?`,
-        [chartConfigId]
-    )
+    await retrieveChartConfigFromDbAndSaveToR2(knex, chartConfigId)
 
-    await saveGrapherConfigToR2ByUUID(
-        chartConfigId,
-        fullConfigMd5!.full,
-        fullConfigMd5!.fullMd5 as Base64String
-    )
-
-    return { patchConfig, fullConfig }
+    return { chartConfigId, patchConfig, fullConfig }
 }
 
 const updateExistingChart = async (
@@ -406,7 +398,11 @@ const updateExistingChart = async (
         // if true or false, enable or disable inheritance
         shouldInherit?: boolean
     }
-): Promise<{ patchConfig: GrapherInterface; fullConfig: GrapherInterface }> => {
+): Promise<{
+    chartConfigId: Base64String
+    patchConfig: GrapherInterface
+    fullConfig: GrapherInterface
+}> => {
     const { config, user, chartId } = params
 
     // make sure that the id of the incoming config matches the chart id
@@ -423,36 +419,21 @@ const updateExistingChart = async (
     // compute patch and full configs
     const patchConfig = diffGrapherConfigs(config, parent?.config ?? {})
     const fullConfig = mergeGrapherConfigs(parent?.config ?? {}, patchConfig)
-    const fullConfigStringified = serializeChartConfig(fullConfig)
 
-    const chartConfigId = await db.knexRawFirst<Pick<DbPlainChart, "configId">>(
-        knex,
-        `SELECT configId FROM charts WHERE id = ?`,
-        [chartId]
-    )
+    const chartConfigIdRow = await db.knexRawFirst<
+        Pick<DbPlainChart, "configId">
+    >(knex, `SELECT configId FROM charts WHERE id = ?`, [chartId])
 
-    if (!chartConfigId)
+    if (!chartConfigIdRow)
         throw new JsonError(`No chart config found for id ${chartId}`, 404)
 
     const now = new Date()
 
-    // update configs
-    await db.knexRaw(
+    const { chartConfigId } = await updateChartConfigInDbAndR2(
         knex,
-        `-- sql
-            UPDATE chart_configs
-            SET
-                patch=?,
-                full=?,
-                updatedAt=?
-            WHERE id = ?
-        `,
-        [
-            serializeChartConfig(patchConfig),
-            fullConfigStringified,
-            now,
-            chartConfigId.configId,
-        ]
+        chartConfigIdRow.configId as Base64String,
+        patchConfig,
+        fullConfig
     )
 
     // update charts row
@@ -466,25 +447,7 @@ const updateExistingChart = async (
         [shouldInherit, now, now, user.id, chartId]
     )
 
-    // We need to get the full config and the md5 hash from the database instead of
-    // computing our own md5 hash because MySQL normalizes JSON and our
-    // client computed md5 would be different from the ones computed by and stored in R2
-    const fullConfigMd5 = await db.knexRawFirst<
-        Pick<DbRawChartConfig, "full" | "fullMd5">
-    >(
-        knex,
-        `-- sql
-            select full, fullMd5 from chart_configs where id = ?`,
-        [chartConfigId.configId]
-    )
-
-    await saveGrapherConfigToR2ByUUID(
-        chartConfigId.configId,
-        fullConfigMd5!.full,
-        fullConfigMd5!.fullMd5 as Base64String
-    )
-
-    return { patchConfig, fullConfig }
+    return { chartConfigId, patchConfig, fullConfig }
 }
 
 const saveGrapher = async (
@@ -593,6 +556,7 @@ const saveGrapher = async (
 
     // Execute the actual database update or creation
     let chartId: number
+    let chartConfigId: Base64String
     let patchConfig: GrapherInterface
     let fullConfig: GrapherInterface
     if (existingConfig) {
@@ -603,6 +567,7 @@ const saveGrapher = async (
             chartId,
             shouldInherit,
         })
+        chartConfigId = configs.chartConfigId
         patchConfig = configs.patchConfig
         fullConfig = configs.fullConfig
     } else {
@@ -611,6 +576,7 @@ const saveGrapher = async (
             user,
             shouldInherit,
         })
+        chartConfigId = configs.chartConfigId
         patchConfig = configs.patchConfig
         fullConfig = configs.fullConfig
         chartId = fullConfig.id!
@@ -660,26 +626,10 @@ const saveGrapher = async (
         )
 
     if (fullConfig.isPublished) {
-        // We need to get the full config and the md5 hash from the database instead of
-        // computing our own md5 hash because MySQL normalizes JSON and our
-        // client computed md5 would be different from the ones computed by and stored in R2
-        const fullConfigMd5 = await db.knexRawFirst<
-            Pick<DbRawChartConfig, "full" | "fullMd5">
-        >(
-            knex,
-            `-- sql
-            select cc.full, cc.fullMd5 from chart_configs cc
-            join charts c on c.configId = cc.id
-            where c.id = ?`,
-            [chartId]
-        )
-
-        await saveGrapherConfigToR2(
-            fullConfigMd5!.full,
-            R2GrapherConfigDirectory.publishedGrapherBySlug,
-            `${fullConfig.slug}.json`,
-            fullConfigMd5!.fullMd5 as Base64String
-        )
+        await retrieveChartConfigFromDbAndSaveToR2(knex, chartConfigId, {
+            directory: R2GrapherConfigDirectory.publishedGrapherBySlug,
+            filename: `${fullConfig.slug}.json`,
+        })
     }
 
     if (

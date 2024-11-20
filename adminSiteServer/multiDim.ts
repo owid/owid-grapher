@@ -1,11 +1,9 @@
 import { uniq } from "lodash"
-import { uuidv7 } from "uuidv7"
 
 import { migrateGrapherConfigToLatestVersion } from "@ourworldindata/grapher"
 import {
     Base64String,
     ChartConfigsTableName,
-    DbInsertChartConfig,
     DbPlainMultiDimDataPage,
     DbPlainMultiDimXChartConfig,
     DbRawChartConfig,
@@ -17,7 +15,6 @@ import {
     MultiDimDataPagesTableName,
     MultiDimDimensionChoices,
     MultiDimXChartConfigsTableName,
-    serializeChartConfig,
 } from "@ourworldindata/types"
 import {
     mergeGrapherConfigs,
@@ -36,9 +33,12 @@ import {
 } from "../db/model/Variable.js"
 import {
     deleteGrapherConfigFromR2ByUUID,
-    saveGrapherConfigToR2ByUUID,
     saveMultiDimConfigToR2,
 } from "./chartConfigR2Helpers.js"
+import {
+    saveNewChartConfigInDbAndR2,
+    updateChartConfigInDbAndR2,
+} from "./chartConfigHelpers.js"
 
 function dimensionsToViewId(dimensions: MultiDimDimensionChoices) {
     return Object.entries(dimensions)
@@ -134,84 +134,9 @@ async function getViewIdToChartConfigIdMap(
         WHERE mddp.slug = ?`,
         [slug]
     )
-    return new Map(rows.map((row) => [row.viewId, row.chartConfigId]))
-}
-
-async function saveNewMultiDimViewChartConfig(
-    knex: db.KnexReadWriteTransaction,
-    patchConfig: GrapherInterface,
-    fullConfig: GrapherInterface
-): Promise<string> {
-    const chartConfigId = uuidv7()
-    await db.knexRaw(
-        knex,
-        `-- sql
-            INSERT INTO chart_configs (id, patch, full)
-            VALUES (?, ?, ?)
-        `,
-        [
-            chartConfigId,
-            serializeChartConfig(patchConfig),
-            serializeChartConfig(fullConfig),
-        ]
+    return new Map(
+        rows.map((row) => [row.viewId, row.chartConfigId as Base64String])
     )
-
-    // We need to get the full config and the md5 hash from the database instead of
-    // computing our own md5 hash because MySQL normalizes JSON and our
-    // client computed md5 would be different from the ones computed by and stored in R2
-    const fullConfigMd5 = await db.knexRawFirst<
-        Pick<DbRawChartConfig, "full" | "fullMd5">
-    >(
-        knex,
-        `-- sql
-            select full, fullMd5 from chart_configs where id = ?`,
-        [chartConfigId]
-    )
-
-    await saveGrapherConfigToR2ByUUID(
-        chartConfigId,
-        fullConfigMd5!.full,
-        fullConfigMd5!.fullMd5 as Base64String
-    )
-
-    console.debug(`Chart config created id=${chartConfigId}`)
-    return chartConfigId
-}
-
-async function updateMultiDimViewChartConfig(
-    knex: db.KnexReadWriteTransaction,
-    chartConfigId: string,
-    patchConfig: GrapherInterface,
-    fullConfig: GrapherInterface
-): Promise<string> {
-    await knex<DbInsertChartConfig>(ChartConfigsTableName)
-        .update({
-            patch: serializeChartConfig(patchConfig),
-            full: serializeChartConfig(fullConfig),
-            updatedAt: new Date(), // It's not updated automatically in the DB.
-        })
-        .where({ id: chartConfigId })
-
-    // We need to get the full config and the md5 hash from the database instead of
-    // computing our own md5 hash because MySQL normalizes JSON and our
-    // client computed md5 would be different from the ones computed by and stored in R2
-    const fullConfigMd5 = await db.knexRawFirst<
-        Pick<DbRawChartConfig, "full" | "fullMd5">
-    >(
-        knex,
-        `-- sql
-            select full, fullMd5 from chart_configs where id = ?`,
-        [chartConfigId]
-    )
-
-    await saveGrapherConfigToR2ByUUID(
-        chartConfigId,
-        fullConfigMd5!.full,
-        fullConfigMd5!.fullMd5 as Base64String
-    )
-
-    console.debug(`Chart config updated id=${chartConfigId}`)
-    return chartConfigId
 }
 
 async function saveMultiDimConfig(
@@ -323,19 +248,23 @@ export async function createMultiDimConfig(
             let chartConfigId
             if (existingChartConfigId) {
                 chartConfigId = existingChartConfigId
-                await updateMultiDimViewChartConfig(
+                await updateChartConfigInDbAndR2(
                     knex,
                     chartConfigId,
                     patchGrapherConfig,
                     fullGrapherConfig
                 )
                 reusedChartConfigIds.add(chartConfigId)
+                console.debug(`Chart config updated id=${chartConfigId}`)
             } else {
-                chartConfigId = await saveNewMultiDimViewChartConfig(
+                const result = await saveNewChartConfigInDbAndR2(
                     knex,
+                    undefined,
                     patchGrapherConfig,
                     fullGrapherConfig
                 )
+                chartConfigId = result.chartConfigId
+                console.debug(`Chart config created id=${chartConfigId}`)
             }
             return { ...view, fullConfigId: chartConfigId }
         })
