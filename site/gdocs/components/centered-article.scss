@@ -1003,6 +1003,13 @@ div.raw-html-table__container {
         margin-top: 4px;
     }
 
+    .prominent-link__image--centered,
+    .prominent-link__text--centered {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
     .prominent-link__heading-wrapper {
         display: flex;
         justify-content: space-between;
