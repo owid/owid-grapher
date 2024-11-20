@@ -829,7 +829,7 @@ const getExplorerTitleByUrl = async (
 const renderGrapherThumbnailByResolvedChartSlug = (
     chartSlug: string
 ): string | null => {
-    return `<img src="${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${chartSlug}.svg" />`
+    return `<img src="${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${chartSlug}.png" />`
 }
 
 const renderExplorerDefaultThumbnail = (): string => {
