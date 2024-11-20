@@ -39,7 +39,7 @@ export interface SlopeEntryProps extends ChartSeries {
 
 export interface LabelledSlopesProps {
     manager: ChartManager
-    yColumn: CoreColumn
+    formatColumn: CoreColumn
     bounds: Bounds
     seriesArr: SlopeChartSeries[]
     hoverKey?: string

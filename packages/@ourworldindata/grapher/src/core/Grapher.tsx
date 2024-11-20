@@ -2025,7 +2025,7 @@ export class Grapher
     }
 
     @computed get supportsMultipleYColumns(): boolean {
-        return !(this.isScatter || this.isSlopeChart)
+        return !this.isScatter
     }
 
     @computed private get xDimension(): ChartDimension | undefined {
