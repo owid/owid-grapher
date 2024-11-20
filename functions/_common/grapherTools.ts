@@ -1,4 +1,4 @@
-import { Grapher } from "@ourworldindata/grapher"
+import { generateGrapherImageSrcSet, Grapher } from "@ourworldindata/grapher"
 import {
     GrapherInterface,
     R2GrapherConfigDirectory,
@@ -165,7 +165,26 @@ export function rewriteMetaTags(
     // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
     let origin = ""
 
+    const thumbnailUrl = url.search
+        ? `${url.pathname}.png${url.search}`
+        : undefined
+
     const rewriter = new HTMLRewriter()
+        .on("#grapher-preview-source", {
+            element: (element) => {
+                element.setAttribute(
+                    "srcset",
+                    generateGrapherImageSrcSet(thumbnailUrl)
+                )
+            },
+        })
+        .on("img[data-owid-populate-url-params]", {
+            element: (element) => {
+                if (thumbnailUrl) {
+                    element.setAttribute("src", thumbnailUrl)
+                }
+            },
+        })
         .on('meta[property="og:url"]', {
             // Replace canonical URL, otherwise the preview image will not include the search parameters.
             element: (element) => {

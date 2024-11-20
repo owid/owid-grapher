@@ -23,7 +23,10 @@ import { INTERACTIVE_ICON_SVG } from "../site/InteractionNotice.js"
 import { renderProminentLinks } from "./siteRenderers.js"
 import { RELATED_CHARTS_CLASS_NAME } from "../site/blocks/RelatedCharts.js"
 import { KnexReadonlyTransaction } from "../db/db.js"
-import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
+import {
+    EXPLORER_DYNAMIC_THUMBNAIL_URL,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
+} from "../settings/clientSettings.js"
 
 export const formatWordpressPost = async (
     post: FullPost,
@@ -204,15 +207,16 @@ export const formatWordpressPost = async (
     for (const el of explorerIframes) {
         const $el = cheerioEl(el)
         const src = el.attribs["src"].trim()
-        // const url = Url.fromURL(src)
+        const url = Url.fromURL(src)
         // set a default style if none exists on the existing iframe
         const style = el.attribs["style"] || "width: 100%; height: 600px;"
         const cssClass = el.attribs["class"]
         const $figure = cheerioEl(
             ReactDOMServer.renderToStaticMarkup(
                 <figure data-explorer-src={src} className={cssClass}>
-                    {/* TODO: finish once https://github.com/owid/owid-grapher/pull/4031 is merged */}
-                    {/* <img src={`${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${url.slug}.png`}/> */}
+                    <img
+                        src={`${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${url.slug}.png`}
+                    />
                 </figure>
             )
         )
