@@ -2,10 +2,7 @@ import React from "react"
 import {
     Bounds,
     DEFAULT_BOUNDS,
-    intersection,
-    uniq,
     isEmpty,
-    last,
     sortBy,
     max,
     getRelativeMouse,
@@ -14,7 +11,6 @@ import {
     exposeInstanceOnWindow,
     PointVector,
     clamp,
-    HorizontalAlign,
     difference,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
@@ -22,11 +18,7 @@ import { TextWrap } from "@ourworldindata/components"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import {
-    VerticalColorLegend,
-    VerticalColorLegendManager,
-} from "../verticalColorLegend/VerticalColorLegend"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+import { ColorScaleManager } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     GRAPHER_DARK_TEXT,
@@ -36,32 +28,34 @@ import {
 import {
     ScaleType,
     EntitySelectionMode,
-    Color,
     SeriesName,
     ColorSchemeName,
+    SeriesStrategy,
+    EntityName,
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { select } from "d3-selection"
 import {
-    DEFAULT_SLOPE_CHART_COLOR,
     LabelledSlopesProps,
     SlopeChartSeries,
     SlopeChartValue,
     SlopeEntryProps,
 } from "./SlopeChartConstants"
 import { OwidTable } from "@ourworldindata/core-table"
-import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import {
+    autoDetectSeriesStrategy,
+    autoDetectYColumnSlugs,
+    makeSelectionArray,
+} from "../chart/ChartUtils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { VerticalAxis } from "../axis/Axis"
 import { VerticalAxisComponent } from "../axis/AxisViews"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
-} from "../horizontalColorLegend/HorizontalColorLegends"
-import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { NoDataSection } from "../scatterCharts/NoDataSection"
+import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
+import { ColorScheme } from "../color/ColorScheme"
+import { ColorSchemes } from "../color/ColorSchemes"
 
 export interface SlopeChartManager extends ChartManager {
     isModalOpen?: boolean
@@ -79,16 +73,10 @@ export class SlopeChart
         bounds?: Bounds
         manager: SlopeChartManager
     }>
-    implements
-        ChartInterface,
-        VerticalColorLegendManager,
-        HorizontalColorLegendManager,
-        ColorScaleManager
+    implements ChartInterface, ColorScaleManager
 {
     // currently hovered individual series key
     @observable hoverKey?: string
-    // currently hovered legend color
-    @observable hoverColor?: string
 
     transformTable(table: OwidTable) {
         if (!table.has(this.yColumnSlug)) return table
@@ -125,53 +113,12 @@ export class SlopeChart
         return !!(this.manager.isNarrow || this.manager.isStaticAndSmall)
     }
 
-    @computed private get showHorizontalLegend(): boolean {
-        return !!(this.manager.isSemiNarrow || this.manager.isStaticAndSmall)
-    }
-
-    // used by the <VerticalColorLegend /> component
-    @computed get legendItems() {
-        return this.colorScale.legendBins
-            .filter((bin) => this.colorsInUse.includes(bin.color))
-            .map((bin) => {
-                return {
-                    key: bin.label ?? "",
-                    label: bin.label ?? "",
-                    color: bin.color,
-                }
-            })
-    }
-
-    // used by the <HorizontalCategoricalColorLegend /> component
-    @computed get categoricalLegendData(): CategoricalBin[] {
-        return this.legendItems.map(
-            (legendItem, index) =>
-                new CategoricalBin({
-                    ...legendItem,
-                    index,
-                    value: legendItem.label,
-                })
-        )
-    }
-
     @action.bound onSlopeMouseOver(slopeProps: SlopeEntryProps) {
         this.hoverKey = slopeProps.seriesName
     }
 
     @action.bound onSlopeMouseLeave() {
         this.hoverKey = undefined
-    }
-
-    // Both legend managers accept a `onLegendMouseOver` property, but define different signatures.
-    // The <HorizontalCategoricalColorLegend /> component expects a string,
-    // the <VerticalColorLegend /> component expects a ColorScaleBin.
-    @action.bound onLegendMouseOver(binOrColor: string | ColorScaleBin) {
-        this.hoverColor =
-            typeof binOrColor === "string" ? binOrColor : binOrColor.color
-    }
-
-    @action.bound onLegendMouseLeave() {
-        this.hoverColor = undefined
     }
 
     @computed private get selectionArray() {
@@ -182,125 +129,17 @@ export class SlopeChart
         return this.selectionArray.selectedEntityNames
     }
 
-    @computed get isEntitySelectionEnabled(): boolean {
-        const { manager } = this
-        return !!(
-            manager.addCountryMode !== EntitySelectionMode.Disabled &&
-            manager.addCountryMode
-        )
-    }
-
-    // Colors on the legend for which every matching group is focused
-    @computed get focusColors() {
-        const { colorsInUse } = this
-        return colorsInUse.filter((color) => {
-            const matchingSeriesNames = this.series
-                .filter((g) => g.color === color)
-                .map((g) => g.seriesName)
-            return (
-                intersection(matchingSeriesNames, this.selectedEntityNames)
-                    .length === matchingSeriesNames.length
-            )
-        })
-    }
-
-    @computed get focusKeys() {
-        return this.selectedEntityNames
-    }
-
-    // All currently hovered group keys, combining the legend and the main UI
-    @computed.struct get hoverKeys() {
-        const { hoverColor, hoverKey } = this
-
-        const hoverKeys =
-            hoverColor === undefined
-                ? []
-                : uniq(
-                      this.series
-                          .filter((g) => g.color === hoverColor)
-                          .map((g) => g.seriesName)
-                  )
-
-        if (hoverKey !== undefined) hoverKeys.push(hoverKey)
-
-        return hoverKeys
-    }
-
-    // Colors currently on the chart and not greyed out
-    @computed get activeColors() {
-        const { hoverKeys, focusKeys } = this
-        const activeKeys = hoverKeys.concat(focusKeys)
-
-        if (activeKeys.length === 0)
-            // No hover or focus means they're all active by default
-            return uniq(this.series.map((g) => g.color))
-
-        return uniq(
-            this.series
-                .filter((g) => activeKeys.indexOf(g.seriesName) !== -1)
-                .map((g) => g.color)
-        )
-    }
-
-    // Only show colors on legend that are actually in use
-    @computed private get colorsInUse() {
-        return uniq(this.series.map((series) => series.color))
-    }
-
-    @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.left
-    }
-
-    @computed get verticalColorLegend(): VerticalColorLegend {
-        return new VerticalColorLegend({ manager: this })
-    }
-
-    @computed get horizontalColorLegend(): HorizontalCategoricalColorLegend {
-        return new HorizontalCategoricalColorLegend({ manager: this })
-    }
-
-    @computed get legendHeight(): number {
-        return this.showHorizontalLegend
-            ? this.horizontalColorLegend.height
-            : this.verticalColorLegend.height
-    }
-
-    @computed get legendWidth(): number {
-        return this.showHorizontalLegend
-            ? this.bounds.width
-            : this.verticalColorLegend.width
-    }
-
-    @computed get maxLegendWidth(): number {
-        return this.showHorizontalLegend
-            ? this.bounds.width
-            : this.bounds.width * 0.5
-    }
-
     @computed private get sidebarWidth(): number {
-        // the min width is set to prevent the "No data" title from line breaking
-        return clamp(this.legendWidth, 51, this.maxLegendWidth)
+        return Math.min(120, 0.15 * this.bounds.width)
     }
 
-    // correction is to account for the space taken by the legend
     @computed private get innerBounds() {
-        const { sidebarWidth, showLegend, legendHeight } = this
+        const { sidebarWidth } = this
         let bounds = this.bounds
-        if (showLegend) {
-            bounds = this.showHorizontalLegend
-                ? bounds.padTop(legendHeight + 8)
-                : bounds.padRight(sidebarWidth + 16)
+        if (this.showNoDataSection) {
+            bounds = bounds.padRight(sidebarWidth + 16)
         }
         return bounds
-    }
-
-    // verify the validity of data used to show legend
-    // this is for backwards compatibility with charts that were added without legend
-    // eg: https://ourworldindata.org/grapher/mortality-rate-improvement-by-cohort
-    @computed private get showLegend() {
-        const { colorsInUse } = this
-        const { legendBins } = this.colorScale
-        return legendBins.some((bin) => colorsInUse.includes(bin.color))
     }
 
     @computed
@@ -311,12 +150,16 @@ export class SlopeChart
         )
     }
 
+    @computed private get showNoDataSection(): boolean {
+        return this.selectedEntitiesWithoutData.length > 0
+    }
+
     @computed private get noDataSection(): React.ReactElement {
         const bounds = new Bounds(
-            this.legendX,
-            this.legendY + this.legendHeight + 12,
+            this.bounds.right - this.sidebarWidth,
+            this.bounds.top,
             this.sidebarWidth,
-            this.bounds.height - this.legendHeight - 12
+            this.bounds.height
         )
         return (
             <NoDataSection
@@ -338,21 +181,7 @@ export class SlopeChart
             )
 
         const { manager } = this.props
-        const {
-            series,
-            focusKeys,
-            hoverKeys,
-            innerBounds,
-            showLegend,
-            showHorizontalLegend,
-            selectedEntitiesWithoutData,
-        } = this
-
-        const legend = showHorizontalLegend ? (
-            <HorizontalCategoricalColorLegend manager={this} />
-        ) : (
-            <VerticalColorLegend manager={this} />
-        )
+        const { series, hoverKey, innerBounds } = this
 
         return (
             <g
@@ -364,34 +193,14 @@ export class SlopeChart
                     bounds={innerBounds}
                     yColumn={this.yColumn!}
                     seriesArr={series}
-                    focusKeys={focusKeys}
-                    hoverKeys={hoverKeys}
+                    hoverKey={hoverKey}
                     onMouseOver={this.onSlopeMouseOver}
                     onMouseLeave={this.onSlopeMouseLeave}
                     isPortrait={this.isPortrait}
                 />
-                {showLegend && legend}
-                {/* only show the "No data" section if there is space */}
-                {showLegend &&
-                    !showHorizontalLegend &&
-                    selectedEntitiesWithoutData.length > 0 &&
-                    this.noDataSection}
+                {this.showNoDataSection && this.noDataSection}
             </g>
         )
-    }
-
-    @computed get categoryLegendY(): number {
-        return this.bounds.top
-    }
-
-    @computed get legendY() {
-        return this.bounds.top
-    }
-
-    @computed get legendX(): number {
-        return this.showHorizontalLegend
-            ? this.bounds.left
-            : this.bounds.right - this.sidebarWidth
     }
 
     @computed get failMessage() {
@@ -400,21 +209,7 @@ export class SlopeChart
         return ""
     }
 
-    colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
-
-    @computed get colorScaleConfig() {
-        return this.manager.colorScale
-    }
-
-    @computed get colorScaleColumn() {
-        return (
-            // For faceted charts, we have to get the values of inputTable before it's filtered by
-            // the faceting logic.
-            this.manager.colorScaleColumnOverride ?? this.colorColumn
-        )
-    }
-
-    defaultBaseColorScheme = ColorSchemeName.continents
+    defaultBaseColorScheme = ColorSchemeName.OwidDistinctLines
 
     @computed private get yColumn() {
         return this.transformedTable.get(this.yColumnSlug)
@@ -422,13 +217,6 @@ export class SlopeChart
 
     @computed protected get yColumnSlug() {
         return autoDetectYColumnSlugs(this.manager)[0]
-    }
-
-    @computed private get colorColumn() {
-        // NB: This is tricky. Often it seems we use the Continent variable (123) for colors, but we only have 1 year for that variable, which
-        // would likely get filtered by any time filtering. So we need to jump up to the root table to get the color values we want.
-        // We should probably refactor this as part of a bigger color refactoring.
-        return this.inputTable.get(this.manager.colorColumnSlug)
     }
 
     @computed get transformedTableFromGrapher(): OwidTable {
@@ -456,48 +244,66 @@ export class SlopeChart
         return this.manager.table
     }
 
-    // helper method to directly get the associated color value given an Entity
-    // dimension data saves color a level deeper. eg: { Afghanistan => { 2015: Asia|Color }}
-    // this returns that data in the form { Afghanistan => Asia }
-    @computed private get colorBySeriesName(): Map<
-        SeriesName,
-        Color | undefined
-    > {
-        const { colorScale, colorColumn } = this
-        if (colorColumn.isMissing) return new Map()
-
-        const colorByEntity = new Map<SeriesName, Color | undefined>()
-
-        colorColumn.valueByEntityNameAndOriginalTime.forEach(
-            (timeToColorMap, seriesName) => {
-                const values = Array.from(timeToColorMap.values())
-                const key = last(values)
-                colorByEntity.set(seriesName, colorScale.getColor(key))
-            }
-        )
-
-        return colorByEntity
-    }
-
     componentDidMount() {
         exposeInstanceOnWindow(this)
+    }
+
+    @computed private get colorScheme(): ColorScheme {
+        return (
+            (this.manager.baseColorScheme
+                ? ColorSchemes.get(this.manager.baseColorScheme)
+                : null) ?? ColorSchemes.get(this.defaultBaseColorScheme)
+        )
+    }
+
+    @computed get seriesStrategy(): SeriesStrategy {
+        return autoDetectSeriesStrategy(this.manager, true)
+    }
+
+    @computed private get categoricalColorAssigner(): CategoricalColorAssigner {
+        return new CategoricalColorAssigner({
+            colorScheme: this.colorScheme,
+            invertColorScheme: this.manager.invertColorScheme,
+            colorMap:
+                this.seriesStrategy === SeriesStrategy.entity
+                    ? this.inputTable.entityNameColorIndex
+                    : this.inputTable.columnDisplayNameToColorMap,
+            autoColorMapCache: this.manager.seriesColorMap,
+        })
+    }
+
+    private getColorKey(
+        entityName: EntityName,
+        columnName: string,
+        entityCount: number
+    ): SeriesName {
+        if (this.seriesStrategy === SeriesStrategy.entity) {
+            return entityName
+        }
+        // If only one entity is plotted, we want to use the column colors.
+        // Unlike in `getSeriesName`, we don't care whether the user can select
+        // multiple entities, only whether more than one is plotted.
+        if (entityCount > 1) {
+            return `${entityName} - ${columnName}`
+        } else {
+            return columnName
+        }
     }
 
     @computed get series() {
         const column = this.yColumn
         if (!column) return []
 
-        const { colorBySeriesName } = this
         const { minTime, maxTime } = column
 
-        const table = this.inputTable
-
+        const totalEntityCount =
+            this.transformedTable.availableEntityNames.length
         return column.uniqEntityNames
-            .map((seriesName) => {
+            .map((entityName) => {
                 const values: SlopeChartValue[] = []
 
                 const yValues =
-                    column.valueByEntityNameAndOriginalTime.get(seriesName)! ||
+                    column.valueByEntityNameAndOriginalTime.get(entityName)! ||
                     []
 
                 yValues.forEach((value, time) => {
@@ -512,13 +318,16 @@ export class SlopeChart
                 // sort values by time
                 const sortedValues = sortBy(values, (v) => v.x)
 
-                const color =
-                    table.getColorForEntityName(seriesName) ??
-                    colorBySeriesName.get(seriesName) ??
-                    DEFAULT_SLOPE_CHART_COLOR
+                const color = this.categoricalColorAssigner.assign(
+                    this.getColorKey(
+                        entityName,
+                        column.displayName,
+                        totalEntityCount
+                    )
+                )
 
                 return {
-                    seriesName,
+                    seriesName: entityName,
                     color,
                     values: sortedValues,
                 } as SlopeChartSeries
@@ -532,11 +341,11 @@ class SlopeEntry extends React.Component<SlopeEntryProps> {
     line: SVGElement | null = null
 
     @computed get isInBackground() {
-        const { isLayerMode, isHovered, isFocused } = this.props
+        const { isLayerMode, isHovered } = this.props
 
         if (!isLayerMode) return false
 
-        return !(isHovered || isFocused)
+        return !isHovered
     }
 
     render() {
@@ -554,22 +363,19 @@ class SlopeEntry extends React.Component<SlopeEntryProps> {
             rightEntityLabel,
             leftEntityLabelBounds,
             rightEntityLabelBounds,
-            isFocused,
             isHovered,
-            isMultiHoverMode,
             seriesName,
         } = this.props
         const { isInBackground } = this
 
         const lineColor = isInBackground ? "#e2e2e2" : color
         const labelColor = isInBackground ? "#ccc" : GRAPHER_DARK_TEXT
-        const opacity = isHovered ? 1 : isFocused ? 0.7 : 0.5
-        const lineStrokeWidth =
-            isHovered && !isMultiHoverMode ? 4 : isFocused ? 3 : 2
+        const opacity = isHovered ? 1 : 0.5
+        const lineStrokeWidth = isHovered ? 4 : 2
 
-        const showDots = isFocused || isHovered
-        const showValueLabels = isFocused || isHovered
-        const showLeftEntityLabel = isFocused || (isHovered && isMultiHoverMode)
+        const showDots = isHovered
+        const showValueLabels = isHovered
+        const showLeftEntityLabel = isHovered
 
         const sharedLabelProps = {
             fill: labelColor,
@@ -656,8 +462,7 @@ class SlopeEntry extends React.Component<SlopeEntryProps> {
                         {
                             textProps: {
                                 ...sharedLabelProps,
-                                fontWeight:
-                                    isFocused || isHovered ? "bold" : undefined,
+                                fontWeight: isHovered ? "bold" : undefined,
                             },
                         }
                     )}
@@ -693,35 +498,14 @@ class LabelledSlopes
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed private get focusedSeriesNames() {
-        return intersection(
-            this.props.focusKeys || [],
-            this.data.map((g) => g.seriesName)
-        )
-    }
-
-    @computed private get hoveredSeriesNames() {
-        return intersection(
-            this.props.hoverKeys || [],
-            this.data.map((g) => g.seriesName)
-        )
+    @computed private get hoveredSeriesName() {
+        return this.props.hoverKey
     }
 
     // Layered mode occurs when any entity on the chart is hovered or focused
     // Then, a special "foreground" set of entities is rendered over the background
     @computed private get isLayerMode() {
-        return (
-            this.hoveredSeriesNames.length > 0 ||
-            this.focusedSeriesNames.length > 0 ||
-            // if the user has selected entities that are not in the chart,
-            // we want to move all entities into the background
-            (this.props.focusKeys?.length > 0 &&
-                this.focusedSeriesNames.length === 0)
-        )
-    }
-
-    @computed private get isMultiHoverMode() {
-        return this.hoveredSeriesNames.length > 1
+        return this.hoveredSeriesName !== undefined
     }
 
     @computed get isPortrait(): boolean {
@@ -917,7 +701,6 @@ class LabelledSlopes
                 y2,
                 color: series.color,
                 seriesName: series.seriesName,
-                isFocused: false,
                 isHovered: false,
                 hasLeftLabel: true,
                 hasRightLabel: true,
@@ -928,20 +711,16 @@ class LabelledSlopes
     }
 
     @computed get backgroundGroups() {
-        return this.slopeData.filter(
-            (group) => !(group.isHovered || group.isFocused)
-        )
+        return this.slopeData.filter((group) => !group.isHovered)
     }
 
     @computed get foregroundGroups() {
-        return this.slopeData.filter(
-            (group) => !!(group.isHovered || group.isFocused)
-        )
+        return this.slopeData.filter((group) => !!group.isHovered)
     }
 
     // Get the final slope data with hover focusing and collision detection
     @computed get slopeData(): SlopeEntryProps[] {
-        const { focusedSeriesNames, hoveredSeriesNames } = this
+        const { hoveredSeriesName } = this
 
         let slopeData = this.initialSlopeData
 
@@ -966,14 +745,12 @@ class LabelledSlopes
             )
 
             // used to determine priority for labelling conflicts
-            const isFocused = focusedSeriesNames.includes(slope.seriesName)
-            const isHovered = hoveredSeriesNames.includes(slope.seriesName)
+            const isHovered = hoveredSeriesName === slope.seriesName
 
             return {
                 ...slope,
                 leftEntityLabelBounds,
                 rightEntityLabelBounds,
-                isFocused,
                 isHovered,
             }
         })
@@ -984,10 +761,6 @@ class LabelledSlopes
                 // Hovered slopes always have priority
                 return s1
             else if (!s1.isHovered && s2.isHovered) return s2
-            else if (s1.isFocused && !s2.isFocused)
-                // Focused slopes are next in priority
-                return s1
-            else if (!s1.isFocused && s2.isFocused) return s2
             else if (s1.hasRightLabel && !s2.hasRightLabel)
                 // Slopes which already have one label are prioritized for the other side
                 return s1
@@ -1033,9 +806,7 @@ class LabelledSlopes
         })
 
         // Order by focus/hover for draw order
-        slopeData = sortBy(slopeData, (slope) =>
-            slope.isFocused || slope.isHovered ? 1 : 0
-        )
+        slopeData = sortBy(slopeData, (slope) => (slope.isHovered ? 1 : 0))
 
         return slopeData
     }
@@ -1148,14 +919,13 @@ class LabelledSlopes
     }
 
     renderGroups(groups: SlopeEntryProps[]) {
-        const { isLayerMode, isMultiHoverMode } = this
+        const { isLayerMode } = this
 
         return groups.map((slope) => (
             <SlopeEntry
                 key={slope.seriesName}
                 {...slope}
                 isLayerMode={isLayerMode}
-                isMultiHoverMode={isMultiHoverMode}
             />
         ))
     }
