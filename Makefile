@@ -140,7 +140,7 @@ refresh:
 	./devTools/docker/download-grapher-metadata-mysql.sh
 
 	@echo '==> Updating grapher database'
-	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-grapher-data.sh
+	DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-grapher-data.sh
 
 	@echo '!!! If you use ETL, wipe indicators from your R2 staging with `rclone delete r2:owid-api-staging/[yourname]/ ' \
 	'--fast-list --transfers 32 --checkers 32  --verbose`'
@@ -151,7 +151,7 @@ refresh.pageviews: node_modules
 
 sync-images: sync-images.preflight-check
 	@echo '==> Syncing images to R2'
-	@. ./.env && ./devTools/docker/sync-s3-images.sh
+	./devTools/docker/sync-s3-images.sh
 
 refresh.full: refresh refresh.pageviews sync-images
 	@echo '==> Full refresh completed'
@@ -243,7 +243,7 @@ dbtest: node_modules
 	yarn buildTsc
 
 	@echo '==> Running db test script'
-	@. ./.env && ./db/tests/run-db-tests.sh
+	./db/tests/run-db-tests.sh
 
 lint: node_modules
 	@echo '==> Linting'
