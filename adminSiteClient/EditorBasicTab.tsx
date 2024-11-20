@@ -109,7 +109,7 @@ class DimensionSlotView<
         const { selection } = grapher
         const { availableEntityNames, availableEntityNameSet } = selection
 
-        if (grapher.isScatter || grapher.isSlopeChart || grapher.isMarimekko) {
+        if (grapher.isScatter || grapher.isMarimekko) {
             // chart types that display all entities by default shouldn't select any by default
             selection.clearSelection()
         } else if (
