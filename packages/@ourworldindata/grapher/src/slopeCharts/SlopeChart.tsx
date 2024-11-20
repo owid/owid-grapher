@@ -27,6 +27,7 @@ import {
     Time,
     SeriesStrategy,
     EntityName,
+    PrimitiveType,
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
@@ -613,6 +614,28 @@ export class SlopeChart
         }
     }
 
+    // todo: for now just works with 1 y column
+    @computed private get annotationsMap(): Map<
+        PrimitiveType,
+        Set<PrimitiveType>
+    > {
+        return this.inputTable
+            .getAnnotationColumnForColumn(this.yColumnSlugs[0])
+            ?.getUniqueValuesGroupedBy(this.inputTable.entityNameSlug)
+    }
+
+    private getAnnotationsForSeries(
+        seriesName: SeriesName
+    ): string | undefined {
+        const annotationsMap = this.annotationsMap
+        const annos = annotationsMap?.get(seriesName)
+        return annos
+            ? Array.from(annos.values())
+                  .filter((anno) => anno)
+                  .join(" & ")
+            : undefined
+    }
+
     private getColorKey(
         entityName: EntityName,
         columnName: string,
@@ -671,10 +694,13 @@ export class SlopeChart
                         )
                     )
 
+                    const annotation = this.getAnnotationsForSeries(seriesName)
+
                     return {
                         seriesName,
                         color,
                         values: sortedValues,
+                        annotation,
                     } as SlopeChartSeries
                 })
                 .filter((series) => series.values.length >= 2)
@@ -792,11 +818,12 @@ export class SlopeChart
 
     @computed get labelSeries(): LineLabelSeries[] {
         return this.series.map((series) => {
-            const { seriesName, color, values } = series
+            const { seriesName, color, values, annotation } = series
             return {
                 color,
                 seriesName,
                 label: seriesName,
+                annotation,
                 yValue: values[1].y,
             }
         })
