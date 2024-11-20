@@ -296,10 +296,15 @@ update.chart-entities: itsJustJavascript
 
 reindex: itsJustJavascript
 	@echo '==> Reindexing search in Algolia'
+	@echo '--- Running configureAlgolia...'
 	node --enable-source-maps itsJustJavascript/baker/algolia/configureAlgolia.js
+	@echo '--- Running indexPagesToAlgolia...'
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexPagesToAlgolia.js
+	@echo '--- Running indexChartsToAlgolia...'
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexChartsToAlgolia.js
+	@echo '--- Running indexPostsToAlgolia...'
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorerViewsToAlgolia.js
+	@echo '--- Running indexExplorerViewsAndChartsToAlgolia...'
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorerViewsAndChartsToAlgolia.js
 
 delete-algolia-index: itsJustJavascript
