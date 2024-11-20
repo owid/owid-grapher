@@ -19,7 +19,6 @@ export const DEFAULT_SLOPE_CHART_COLOR = "#ff7f0e"
 
 export interface SlopeEntryProps extends ChartSeries {
     isLayerMode: boolean
-    isMultiHoverMode: boolean
     x1: number
     y1: number
     x2: number
@@ -35,7 +34,6 @@ export interface SlopeEntryProps extends ChartSeries {
     rightEntityLabelBounds: Bounds
     rightValueLabel: TextWrap
 
-    isFocused: boolean
     isHovered: boolean
 }
 
@@ -44,8 +42,7 @@ export interface LabelledSlopesProps {
     yColumn: CoreColumn
     bounds: Bounds
     seriesArr: SlopeChartSeries[]
-    focusKeys: string[]
-    hoverKeys: string[]
+    hoverKey?: string
     onMouseOver: (slopeProps: SlopeEntryProps) => void
     onMouseLeave: () => void
     onClick?: () => void
