@@ -165,23 +165,21 @@ export function rewriteMetaTags(
     // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
     let origin = ""
 
-    const thumbnailUrl = url.search
-        ? `${url.pathname}.png${url.search}`
-        : undefined
+    const thumbnailUrl = `${url.pathname}.png${url.search}`
 
     const rewriter = new HTMLRewriter()
-        .on("#grapher-preview-source", {
-            element: (element) => {
-                element.setAttribute(
-                    "srcset",
-                    generateGrapherImageSrcSet(thumbnailUrl)
-                )
+        .on("picture[data-owid-populate-url-params] source", {
+            element: (source) => {
+                if (thumbnailUrl) {
+                    const srcSet = generateGrapherImageSrcSet(thumbnailUrl)
+                    source.setAttribute("srcset", srcSet)
+                }
             },
         })
-        .on("img[data-owid-populate-url-params]", {
-            element: (element) => {
+        .on("picture[data-owid-populate-url-params] img", {
+            element: (img) => {
                 if (thumbnailUrl) {
-                    element.setAttribute("src", thumbnailUrl)
+                    img.setAttribute("src", thumbnailUrl)
                 }
             },
         })
