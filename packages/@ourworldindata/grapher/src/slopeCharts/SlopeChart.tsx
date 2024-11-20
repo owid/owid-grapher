@@ -12,6 +12,8 @@ import {
     clamp,
     difference,
     makeIdForHumanConsumption,
+    guid,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -53,6 +55,13 @@ import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { LineLabelSeries, LineLegend } from "../lineLegend/LineLegend"
+import {
+    makeTooltipRoundingNotice,
+    Tooltip,
+    TooltipState,
+    TooltipValueRange,
+} from "../tooltip/Tooltip"
+import { TooltipFooterIcon } from "../tooltip/TooltipProps"
 
 export interface SlopeChartManager extends ChartManager {
     isModalOpen?: boolean
@@ -74,6 +83,10 @@ export class SlopeChart
 
     // currently hovered individual series key
     @observable hoverKey?: string
+
+    @observable tooltipState = new TooltipState<{
+        series: SlopeChartSeries
+    }>()
 
     transformTable(table: OwidTable) {
         table = table.filterByEntityNames(
@@ -149,10 +162,14 @@ export class SlopeChart
 
     @action.bound onSlopeMouseOver(slopeProps: SlopeEntryProps) {
         this.hoverKey = slopeProps.seriesName
+        this.tooltipState.target = {
+            series: slopeProps.series,
+        }
     }
 
     @action.bound onSlopeMouseLeave() {
         this.hoverKey = undefined
+        this.tooltipState.target = null
     }
 
     @computed private get selectionArray() {
@@ -269,6 +286,7 @@ export class SlopeChart
                 x2,
                 y2,
                 color: series.color,
+                series: series,
                 seriesName: series.seriesName,
                 isHovered: false,
             } as SlopeEntryProps)
@@ -287,6 +305,11 @@ export class SlopeChart
     @action.bound onMouseMove(
         ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>
     ) {
+        const ref = this.manager.base?.current
+        if (ref) {
+            this.tooltipState.position = getRelativeMouse(ref, ev)
+        }
+
         if (this.base.current) {
             const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
 
@@ -493,6 +516,74 @@ export class SlopeChart
             .attr("stroke-dashoffset", "0%")
     }
 
+    @computed get renderUid(): number {
+        return guid()
+    }
+
+    @computed get tooltip(): React.ReactElement | undefined {
+        const {
+            tooltipState: { target, position, fading },
+        } = this
+
+        const { series } = target || {}
+        if (!series) return
+
+        const { isRelativeMode } = this.manager,
+            timeRange = [this.startTime, this.endTime]
+                .map((t) => this.formatColumn.formatTime(t))
+                .join(" to "),
+            timeLabel = timeRange + (isRelativeMode ? " (relative change)" : "")
+
+        const columns = this.yColumns
+        const allRoundedToSigFigs = columns.every(
+            (column) => column.roundsToSignificantFigures
+        )
+        const anyRoundedToSigFigs = columns.some(
+            (column) => column.roundsToSignificantFigures
+        )
+        const sigFigs = excludeUndefined(
+            columns.map((column) =>
+                column.roundsToSignificantFigures
+                    ? column.numSignificantFigures
+                    : undefined
+            )
+        )
+
+        const roundingNotice = anyRoundedToSigFigs
+            ? {
+                  icon: allRoundedToSigFigs
+                      ? TooltipFooterIcon.none
+                      : TooltipFooterIcon.significance,
+                  text: makeTooltipRoundingNotice(sigFigs, {
+                      plural: sigFigs.length > 1,
+                  }),
+              }
+            : undefined
+        const footer = excludeUndefined([roundingNotice])
+
+        return (
+            <Tooltip
+                id={this.renderUid}
+                tooltipManager={this.props.manager}
+                x={position.x}
+                y={position.y}
+                offsetX={20}
+                offsetY={-16}
+                style={{ maxWidth: "250px" }}
+                title={series.seriesName}
+                subtitle={timeLabel}
+                dissolve={fading}
+                footer={footer}
+                dismiss={() => (this.tooltipState.target = null)}
+            >
+                <TooltipValueRange
+                    column={this.formatColumn}
+                    values={series.values.map((v) => v.y)}
+                />
+            </Tooltip>
+        )
+    }
+
     render() {
         if (this.failMessage)
             return (
@@ -513,6 +604,7 @@ export class SlopeChart
                 {this.renderLabelledSlopes()}
                 {manager.showLegend && <LineLegend manager={this} />}
                 {this.showNoDataSection && this.noDataSection}
+                {this.tooltip}
             </g>
         )
     }
