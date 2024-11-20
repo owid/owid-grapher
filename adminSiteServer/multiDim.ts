@@ -139,39 +139,6 @@ async function getViewIdToChartConfigIdMap(
     )
 }
 
-async function saveNewMultiDimViewChartConfig(
-    knex: db.KnexReadWriteTransaction,
-    patchConfig: GrapherInterface,
-    fullConfig: GrapherInterface
-): Promise<string> {
-    const { chartConfigId } = await saveNewChartConfigInDbAndR2(
-        knex,
-        undefined,
-        patchConfig,
-        fullConfig
-    )
-
-    console.debug(`Chart config created id=${chartConfigId}`)
-    return chartConfigId
-}
-
-async function updateMultiDimViewChartConfig(
-    knex: db.KnexReadWriteTransaction,
-    chartConfigId: Base64String,
-    patchConfig: GrapherInterface,
-    fullConfig: GrapherInterface
-): Promise<string> {
-    await updateChartConfigInDbAndR2(
-        knex,
-        chartConfigId,
-        patchConfig,
-        fullConfig
-    )
-
-    console.debug(`Chart config updated id=${chartConfigId}`)
-    return chartConfigId
-}
-
 async function saveMultiDimConfig(
     knex: db.KnexReadWriteTransaction,
     slug: string,
@@ -281,19 +248,23 @@ export async function createMultiDimConfig(
             let chartConfigId
             if (existingChartConfigId) {
                 chartConfigId = existingChartConfigId
-                await updateMultiDimViewChartConfig(
+                await updateChartConfigInDbAndR2(
                     knex,
                     chartConfigId,
                     patchGrapherConfig,
                     fullGrapherConfig
                 )
                 reusedChartConfigIds.add(chartConfigId)
+                console.debug(`Chart config updated id=${chartConfigId}`)
             } else {
-                chartConfigId = await saveNewMultiDimViewChartConfig(
+                const result = await saveNewChartConfigInDbAndR2(
                     knex,
+                    undefined,
                     patchGrapherConfig,
                     fullGrapherConfig
                 )
+                chartConfigId = result.chartConfigId
+                console.debug(`Chart config created id=${chartConfigId}`)
             }
             return { ...view, fullConfigId: chartConfigId }
         })

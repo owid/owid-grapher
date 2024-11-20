@@ -14,6 +14,18 @@ import {
     saveGrapherConfigToR2ByUUID,
 } from "./chartConfigR2Helpers.js"
 
+/**
+ * One particular detail of of MySQL's JSON support is that MySQL _normalizes_ JSON when storing it.
+ * This means that the JSON string representation of a JSON object stored in MySQL is not equivalent
+ * to the input of an INSERT statement: it may have different whitespace and key order.
+ * This is a problem when we compute MD5 hashes of JSON objects using computed MySQL columns - in
+ * order to get the correct hash, we need to first store the JSON object in MySQL and then retrieve
+ * it and its hash again from MySQL immediately afterwards, such that we can store the exact same
+ * JSON representation and hash in R2 also.
+ * The below is a helper function that does just this.
+ * - @marcelgerber, 2024-11-20
+ */
+
 export const retrieveChartConfigFromDbAndSaveToR2 = async (
     knex: db.KnexReadonlyTransaction,
     chartConfigId: Base64String,
@@ -28,25 +40,30 @@ export const retrieveChartConfigFromDbAndSaveToR2 = async (
             .where({ id: chartConfigId })
             .first()
 
+    if (!fullConfigMd5)
+        throw new Error(
+            `Chart config not found in the database! id=${chartConfigId}`
+        )
+
     if (!r2Path) {
         await saveGrapherConfigToR2ByUUID(
             chartConfigId,
-            fullConfigMd5!.full,
-            fullConfigMd5!.fullMd5 as Base64String
+            fullConfigMd5.full,
+            fullConfigMd5.fullMd5 as Base64String
         )
     } else {
         await saveGrapherConfigToR2(
-            fullConfigMd5!.full,
+            fullConfigMd5.full,
             r2Path.directory,
             r2Path.filename,
-            fullConfigMd5!.fullMd5 as Base64String
+            fullConfigMd5.fullMd5 as Base64String
         )
     }
 
     return {
         chartConfigId,
-        fullConfig: fullConfigMd5!.full,
-        fullConfigMd5: fullConfigMd5!.fullMd5,
+        fullConfig: fullConfigMd5.full,
+        fullConfigMd5: fullConfigMd5.fullMd5,
     }
 }
 
