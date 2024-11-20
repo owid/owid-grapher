@@ -106,7 +106,7 @@ const obtainAvailableEntitiesForGrapherConfig = async (
 
         // In these chart types, an unselected entity is still shown
         const chartTypeShowsUnselectedEntities =
-            grapher.isScatter || grapher.isSlopeChart || grapher.isMarimekko
+            grapher.isScatter || grapher.isMarimekko
 
         if (canChangeEntities || chartTypeShowsUnselectedEntities)
             return grapher.tableForSelection.availableEntityNames as string[]
