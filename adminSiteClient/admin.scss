@@ -753,6 +753,7 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 .chartPreview {
     width: 100%;
     height: auto;
+    max-width: 140px;
 }
 
 .internalNotes {

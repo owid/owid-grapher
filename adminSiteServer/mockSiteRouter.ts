@@ -34,13 +34,9 @@ import {
     countriesIndexPage,
 } from "../baker/countryProfiles.js"
 import { makeSitemap } from "../baker/sitemap.js"
-import {
-    getChartConfigBySlug,
-    getChartVariableData,
-} from "../db/model/Chart.js"
+import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { grapherToSVG } from "../baker/GrapherImageBaker.js"
 import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
 import {
@@ -430,19 +426,6 @@ mockSiteRouter.use(
 )
 
 mockSiteRouter.use("/assets", express.static("dist/assets"))
-
-// We've replaced static grapher exports with a Cloudflare Worker, so this is no longer "mocking" the real site
-// But it's still useful to have for the /admin/charts page
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    "/grapher/exports/:slug.svg",
-    async (req, res, trx) => {
-        const grapher = await getChartConfigBySlug(trx, req.params.slug)
-        const vardata = await getChartVariableData(grapher.config)
-        res.setHeader("Content-Type", "image/svg+xml")
-        res.send(await grapherToSVG(grapher.config, vardata))
-    }
-)
 
 mockSiteRouter.use(
     "/fonts",

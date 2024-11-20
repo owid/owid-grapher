@@ -48,11 +48,19 @@ export class ChartRow extends React.Component<{
 
         return (
             <tr>
-                <td style={{ minWidth: "140px", width: "12.5%" }}>
+                <td
+                    style={{
+                        minWidth: "140px",
+                        width: "12.5%",
+                        textAlign: "center",
+                    }}
+                >
                     {chart.isPublished ? (
                         <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
                             <img
                                 src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${chart.slug}.png`}
+                                height={850}
+                                width={600}
                                 className="chartPreview"
                             />
                         </a>
