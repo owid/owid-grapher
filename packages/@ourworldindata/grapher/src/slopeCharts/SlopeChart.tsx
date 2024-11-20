@@ -27,9 +27,11 @@ import {
 } from "../core/GrapherConstants"
 import {
     ScaleType,
-    EntitySelectionMode,
     SeriesName,
     ColorSchemeName,
+    ColumnSlug,
+    MissingDataStrategy,
+    Time,
     SeriesStrategy,
     EntityName,
 } from "@ourworldindata/types"
@@ -43,10 +45,11 @@ import {
     SlopeChartValue,
     SlopeEntryProps,
 } from "./SlopeChartConstants"
-import { OwidTable } from "@ourworldindata/core-table"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    getDefaultFailMessage,
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
@@ -59,6 +62,7 @@ import { ColorSchemes } from "../color/ColorSchemes"
 
 export interface SlopeChartManager extends ChartManager {
     isModalOpen?: boolean
+    canSelectMultipleEntities?: boolean
 }
 
 const LABEL_SLOPE_PADDING = 8
@@ -79,18 +83,44 @@ export class SlopeChart
     @observable hoverKey?: string
 
     transformTable(table: OwidTable) {
-        if (!table.has(this.yColumnSlug)) return table
-
         table = table.filterByEntityNames(
             this.selectionArray.selectedEntityNames
         )
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
-        table = table.replaceNonNumericCellsWithErrorValues([this.yColumnSlug])
+        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+
+        // drop all data when the author chose to hide entities with missing data and
+        // at least one of the variables has no data for the current entity
+        if (
+            this.missingDataStrategy === MissingDataStrategy.hide &&
+            table.hasAnyColumnNoValidValue(this.yColumnSlugs)
+        ) {
+            table = table.dropAllRows()
+        }
 
         return table
-            .dropRowsWithErrorValuesForColumn(this.yColumnSlug)
-            .interpolateColumnWithTolerance(this.yColumnSlug)
+
+        // TODO: re-enable?
+        // return table
+        //     .dropRowsWithErrorValuesForColumn(this.yColumnSlug)
+        //     .interpolateColumnWithTolerance(this.yColumnSlug)
+    }
+
+    transformTableForSelection(table: OwidTable): OwidTable {
+        // if entities with partial data are not plotted,
+        // make sure they don't show up in the entity selector
+        if (this.missingDataStrategy === MissingDataStrategy.hide) {
+            table = table.replaceNonNumericCellsWithErrorValues(
+                this.yColumnSlugs
+            )
+
+            table = table.dropEntitiesThatHaveNoDataInSomeColumn(
+                this.yColumnSlugs
+            )
+        }
+
+        return table
     }
 
     @computed get manager() {
@@ -111,6 +141,10 @@ export class SlopeChart
 
     @computed private get isPortrait(): boolean {
         return !!(this.manager.isNarrow || this.manager.isStaticAndSmall)
+    }
+
+    @computed private get missingDataStrategy(): MissingDataStrategy {
+        return this.manager.missingDataStrategy || MissingDataStrategy.auto
     }
 
     @action.bound onSlopeMouseOver(slopeProps: SlopeEntryProps) {
@@ -151,7 +185,11 @@ export class SlopeChart
     }
 
     @computed private get showNoDataSection(): boolean {
-        return this.selectedEntitiesWithoutData.length > 0
+        // TODO: for now, only show missing data section for entities
+        return (
+            this.seriesStrategy === SeriesStrategy.entity &&
+            this.selectedEntitiesWithoutData.length > 0
+        )
     }
 
     @computed private get noDataSection(): React.ReactElement {
@@ -191,7 +229,7 @@ export class SlopeChart
                 <LabelledSlopes
                     manager={manager}
                     bounds={innerBounds}
-                    yColumn={this.yColumn!}
+                    formatColumn={this.yColumns[0]}
                     seriesArr={series}
                     hoverKey={hoverKey}
                     onMouseOver={this.onSlopeMouseOver}
@@ -204,19 +242,20 @@ export class SlopeChart
     }
 
     @computed get failMessage() {
-        if (this.yColumn.isMissing) return "Missing Y column"
+        const message = getDefaultFailMessage(this.manager)
+        if (message) return message
         else if (isEmpty(this.series)) return "No matching data"
         return ""
     }
 
     defaultBaseColorScheme = ColorSchemeName.OwidDistinctLines
 
-    @computed private get yColumn() {
-        return this.transformedTable.get(this.yColumnSlug)
+    @computed private get yColumns(): CoreColumn[] {
+        return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug))
     }
 
-    @computed protected get yColumnSlug() {
-        return autoDetectYColumnSlugs(this.manager)[0]
+    @computed protected get yColumnSlugs(): ColumnSlug[] {
+        return autoDetectYColumnSlugs(this.manager)
     }
 
     @computed get transformedTableFromGrapher(): OwidTable {
@@ -234,7 +273,7 @@ export class SlopeChart
         if (isRelativeMode && startHandleTimeBound !== undefined) {
             table = table.toTotalGrowthForEachColumnComparedToStartTime(
                 startHandleTimeBound,
-                this.yColumnSlug ? [this.yColumnSlug] : []
+                this.yColumnSlugs ?? []
             )
         }
         return table
@@ -256,6 +295,14 @@ export class SlopeChart
         )
     }
 
+    @computed private get startTime(): Time {
+        return this.transformedTable.minTime
+    }
+
+    @computed private get endTime(): Time {
+        return this.transformedTable.maxTime! // TODO: remove the ! when we have a better way to handle missing maxTime
+    }
+
     @computed get seriesStrategy(): SeriesStrategy {
         return autoDetectSeriesStrategy(this.manager, true)
     }
@@ -270,6 +317,21 @@ export class SlopeChart
                     : this.inputTable.columnDisplayNameToColorMap,
             autoColorMapCache: this.manager.seriesColorMap,
         })
+    }
+
+    private getSeriesName(
+        entityName: EntityName,
+        columnName: string,
+        entityCount: number
+    ): SeriesName {
+        if (this.seriesStrategy === SeriesStrategy.entity) {
+            return entityName
+        }
+        if (entityCount > 1 || this.manager.canSelectMultipleEntities) {
+            return `${entityName} - ${columnName}`
+        } else {
+            return columnName
+        }
     }
 
     private getColorKey(
@@ -291,48 +353,53 @@ export class SlopeChart
     }
 
     @computed get series() {
-        const column = this.yColumn
-        if (!column) return []
-
-        const { minTime, maxTime } = column
-
+        const { startTime, endTime } = this
         const totalEntityCount =
             this.transformedTable.availableEntityNames.length
-        return column.uniqEntityNames
-            .map((entityName) => {
-                const values: SlopeChartValue[] = []
-
-                const yValues =
-                    column.valueByEntityNameAndOriginalTime.get(entityName)! ||
-                    []
-
-                yValues.forEach((value, time) => {
-                    if (time !== minTime && time !== maxTime) return
-
-                    values.push({
-                        x: time,
-                        y: value,
-                    })
-                })
-
-                // sort values by time
-                const sortedValues = sortBy(values, (v) => v.x)
-
-                const color = this.categoricalColorAssigner.assign(
-                    this.getColorKey(
+        return this.yColumns.flatMap((column) =>
+            column.uniqEntityNames
+                .map((entityName) => {
+                    const seriesName = this.getSeriesName(
                         entityName,
-                        column.displayName,
+                        column.displayName || "Missing name",
                         totalEntityCount
                     )
-                )
 
-                return {
-                    seriesName: entityName,
-                    color,
-                    values: sortedValues,
-                } as SlopeChartSeries
-            })
-            .filter((series) => series.values.length >= 2)
+                    const values: SlopeChartValue[] = []
+
+                    const yValues =
+                        column.valueByEntityNameAndOriginalTime.get(
+                            entityName
+                        )! || []
+
+                    yValues.forEach((value, time) => {
+                        if (time !== startTime && time !== endTime) return
+
+                        values.push({
+                            x: time,
+                            y: value,
+                        })
+                    })
+
+                    // sort values by time
+                    const sortedValues = sortBy(values, (v) => v.x)
+
+                    const color = this.categoricalColorAssigner.assign(
+                        this.getColorKey(
+                            entityName,
+                            column.displayName,
+                            totalEntityCount
+                        )
+                    )
+
+                    return {
+                        seriesName,
+                        color,
+                        values: sortedValues,
+                    } as SlopeChartSeries
+                })
+                .filter((series) => series.values.length >= 2)
+        )
     }
 }
 
@@ -482,8 +549,8 @@ class LabelledSlopes
         return this.props.seriesArr
     }
 
-    @computed private get yColumn() {
-        return this.props.yColumn
+    @computed private get formatColumn() {
+        return this.props.formatColumn
     }
 
     @computed private get manager() {
@@ -531,7 +598,7 @@ class LabelledSlopes
         const axis = this.yAxisConfig.toVerticalAxis()
         axis.domain = this.yDomain
         axis.range = this.yRange
-        axis.formatColumn = this.yColumn
+        axis.formatColumn = this.formatColumn
         axis.label = ""
         return axis
     }
@@ -621,7 +688,7 @@ class LabelledSlopes
     }
 
     @computed private get slopeLabels() {
-        const { isPortrait, yColumn, allowedLabelWidth: maxWidth } = this
+        const { isPortrait, formatColumn, allowedLabelWidth: maxWidth } = this
 
         return this.data.map((series) => {
             const text = series.seriesName
@@ -630,8 +697,8 @@ class LabelledSlopes
                 (isPortrait
                     ? GRAPHER_FONT_SCALE_9_6
                     : GRAPHER_FONT_SCALE_10_5) * this.fontSize
-            const leftValueStr = yColumn.formatValueShort(v1.y)
-            const rightValueStr = yColumn.formatValueShort(v2.y)
+            const leftValueStr = formatColumn.formatValueShort(v1.y)
+            const rightValueStr = formatColumn.formatValueShort(v2.y)
 
             // value labels
             const valueLabelProps = {
@@ -1008,7 +1075,7 @@ class LabelledSlopes
                     fill={GRAPHER_DARK_TEXT}
                     fontSize={this.yAxis.tickFontSize}
                 >
-                    {this.yColumn.formatTime(xDomain[0])}
+                    {this.formatColumn.formatTime(xDomain[0])}
                 </text>
                 <text
                     x={x2}
@@ -1017,7 +1084,7 @@ class LabelledSlopes
                     fill={GRAPHER_DARK_TEXT}
                     fontSize={this.yAxis.tickFontSize}
                 >
-                    {this.yColumn.formatTime(xDomain[1])}
+                    {this.formatColumn.formatTime(xDomain[1])}
                 </text>
                 <g id={makeIdForHumanConsumption("slopes")} className="slopes">
                     {this.renderGroups(this.backgroundGroups)}
