@@ -96,22 +96,22 @@ export function generateSourceProps(
     absoluteUrl: string = ""
 ): SourceProps[] {
     const props: SourceProps[] = []
-    if (smallImage) {
+    if (smallImage && smallImage.cloudflareId) {
+        const encodedSmallId = encodeURIComponent(smallImage.cloudflareId)
         const smallSizes = getSizes(smallImage.originalWidth)
         props.push({
             media: "(max-width: 768px)",
-            srcSet: generateSrcSet(smallSizes, smallImage.filename),
+            srcSet: generateSrcSet(smallSizes, encodedSmallId),
         })
     }
-    const regularSizes = getSizes(regularImage.originalWidth)
-    props.push({
-        media: undefined,
-        srcSet: generateSrcSet(
-            regularSizes,
-            regularImage.filename,
-            absoluteUrl
-        ),
-    })
+    if (regularImage && regularImage.cloudflareId) {
+        const encodedRegularId = encodeURIComponent(regularImage.cloudflareId)
+        const regularSizes = getSizes(regularImage.originalWidth)
+        props.push({
+            media: undefined,
+            srcSet: generateSrcSet(regularSizes, encodedRegularId, absoluteUrl),
+        })
+    }
     return props
 }
 

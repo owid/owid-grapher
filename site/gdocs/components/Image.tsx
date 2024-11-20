@@ -83,6 +83,7 @@ export default function Image(props: {
         "image--has-outline": hasOutline,
     })
 
+    const isPreviewing = useContext(DocumentContext).isPreviewing
     const image = useImage(filename)
     const smallImage = useImage(smallFilename)
     const renderImageError = (name: string) => (
@@ -96,10 +97,19 @@ export default function Image(props: {
     )
 
     if (!image) {
+        if (isPreviewing) {
+            return renderImageError(filename)
+        }
         // Don't render anything if we're not previewing (i.e. a bake) and the image is not found
         return null
     }
-    // Here we can fall back to the regular image filename, so don't return null if not found
+
+    if (!image.cloudflareId) {
+        if (isPreviewing) {
+            return renderImageError(filename)
+        }
+        return null
+    }
 
     const alt = props.alt ?? image.defaultAlt
     const maybeLightboxClassName =
@@ -107,9 +117,9 @@ export default function Image(props: {
             ? ""
             : LIGHTBOX_IMAGE_CLASS
 
-    // TODO: SVG
+    // TODO: SVG?
 
-    const imageSrc = `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(filename)}/small`
+    const imageSrc = `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(image.cloudflareId)}/w=1280`
     const sourceProps = generateSourceProps(
         smallImage,
         image,
