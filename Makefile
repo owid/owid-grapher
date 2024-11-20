@@ -15,7 +15,6 @@ SCRIPT_SHELL ?= $(or $(shell echo $$OWID_SCRIPT_SHELL),$(LOGIN_SHELL))
 # https://lithic.tech/blog/2020-05/makefile-dot-env/
 ifneq (,$(wildcard ./.env))
 	include .env
-	export
 endif
 
 .PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest itsJustJavascript
