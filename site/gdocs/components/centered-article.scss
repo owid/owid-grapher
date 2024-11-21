@@ -635,6 +635,13 @@ h3.article-block__heading.has-supertitle {
     text-align: center;
 }
 
+// When we disable citations then #article-license follows the above content directly. If there
+// is a non-p element then there is usually enough margin at the top but if there is a p element
+// then we need to add some margin to the top of the license.
+p.article-block__text + #article-licence {
+    margin-top: 48px;
+}
+
 .article-block__text,
 .article-block__list,
 .article-block__html,
