@@ -48,10 +48,8 @@ it("filters non-numeric values", () => {
     const chart = new SlopeChart({ manager })
     expect(chart.series.length).toEqual(1)
     expect(
-        chart.series.every((series) =>
-            series.values.every(
-                (value) => isNumber(value.x) && isNumber(value.y)
-            )
+        chart.series.every(
+            (series) => isNumber(series.startValue) && isNumber(series.endValue)
         )
     ).toBeTruthy()
 })
