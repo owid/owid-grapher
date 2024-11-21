@@ -109,7 +109,6 @@ import {
     DbPlainChartView,
     ChartViewsTableName,
     DbInsertChartView,
-    DbInsertChartConfig,
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
 import {
