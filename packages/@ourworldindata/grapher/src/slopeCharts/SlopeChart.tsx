@@ -260,6 +260,7 @@ export class SlopeChart
     @computed get failMessage() {
         const message = getDefaultFailMessage(this.manager)
         if (message) return message
+        else if (this.startTime === this.endTime) return "No matching data"
         else if (isEmpty(this.series)) return "No matching data"
         return ""
     }
