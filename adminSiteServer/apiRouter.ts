@@ -3296,6 +3296,65 @@ const createPatchConfigAndFullConfigForChartView = async (
     return { patchConfig: patchConfigToSave, fullConfig }
 }
 
+interface ApiChartViewOverview {
+    id: number
+    slug: string
+    parent: {
+        id: number
+        title: string
+    }
+    updatedAt: string | null
+    lastEditedByUser: string | null
+    chartConfigId: string
+    title: string
+}
+
+getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
+    type ChartViewRow = Pick<DbPlainChartView, "id" | "slug" | "updatedAt"> & {
+        lastEditedByUser: string
+        chartConfigId: string
+        title: string
+        parentChartId: number
+        parentTitle: string
+    }
+
+    const rows: ChartViewRow[] = await db.knexRaw(
+        trx,
+        `-- sql
+        SELECT
+            cv.id,
+            cv.slug,
+            cv.updatedAt,
+            cv.lastEditedByUserId,
+            cv.chartConfigId,
+            cv.parentChartId,
+            cc.full ->> "$.title" as title,
+            pcc.full ->> "$.title" as parentTitle,
+            u.fullName as lastEditedByUser
+        FROM chart_views cv
+        JOIN chart_configs cc ON cv.chartConfigId = cc.id
+        JOIN charts pc ON cv.parentChartId = pc.id
+        JOIN chart_configs pcc ON pc.configId = pcc.id
+        JOIN users u ON cv.lastEditedByUserId = u.id
+        `
+    )
+
+    const chartViews: ApiChartViewOverview[] = rows.map((row) => ({
+        id: row.id,
+        slug: row.slug,
+        updatedAt: row.updatedAt?.toISOString() ?? null,
+        lastEditedByUser: row.lastEditedByUser,
+        chartConfigId: row.chartConfigId,
+        title: row.title,
+        parent: {
+            id: row.parentChartId,
+            title: row.parentTitle,
+        },
+    }))
+
+    return { chartViews }
+})
+
 postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
     const { slug, parentChartId } = req.body as Pick<
         DbPlainChartView,
@@ -3337,34 +3396,33 @@ putRouteWithRWTransaction(
     "/chartViews/:id",
     async (req, res, trx) => {
         const id = expectInt(req.params.id)
-        const { slug, parentChartId } = req.body as Pick<
-            DbPlainChartView,
-            "slug" | "parentChartId"
-        >
         const rawConfig = req.body.config as GrapherInterface
-        if (!slug || !parentChartId || !rawConfig) {
+        if (!rawConfig) {
             throw new JsonError("Invalid request", 400)
+        }
+
+        const existingRow: Pick<
+            DbPlainChartView,
+            "chartConfigId" | "parentChartId"
+        > = await trx(ChartViewsTableName)
+            .select("parentChartId", "chartConfigId")
+            .where({ id })
+            .first()
+
+        if (!existingRow) {
+            throw new JsonError(`No chart view found for id ${id}`, 404)
         }
 
         const { patchConfig, fullConfig } =
             await createPatchConfigAndFullConfigForChartView(
                 trx,
-                parentChartId,
+                existingRow.parentChartId,
                 rawConfig
             )
 
-        const chartConfigIdRow: Pick<DbPlainChartView, "chartConfigId"> =
-            await trx(ChartViewsTableName)
-                .select("chartConfigId")
-                .where({ id })
-                .first()
-
-        if (!chartConfigIdRow)
-            throw new JsonError(`No chart view found for id ${id}`, 500)
-
         await updateChartConfigInDbAndR2(
             trx,
-            chartConfigIdRow.chartConfigId as Base64String,
+            existingRow.chartConfigId as Base64String,
             patchConfig,
             fullConfig
         )
@@ -3374,6 +3432,35 @@ putRouteWithRWTransaction(
             updatedAt: new Date(),
             lastEditedByUserId: res.locals.user.id,
         })
+
+        return { success: true }
+    }
+)
+
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/chartViews/:id",
+    async (req, res, trx) => {
+        const id = expectInt(req.params.id)
+
+        const chartConfigId: string | undefined = await trx(ChartViewsTableName)
+            .select("chartConfigId")
+            .where({ id })
+            .first()
+            .then((row) => row?.chartConfigId)
+
+        if (!chartConfigId) {
+            throw new JsonError(`No chart view found for id ${id}`, 404)
+        }
+
+        await trx.table(ChartViewsTableName).where({ id }).delete()
+
+        await deleteGrapherConfigFromR2ByUUID(chartConfigId)
+
+        await trx
+            .table(ChartConfigsTableName)
+            .where({ id: chartConfigId })
+            .delete()
 
         return { success: true }
     }
