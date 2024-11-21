@@ -69,13 +69,18 @@ function createColumns({
             dataIndex: "cloudflareId",
             width: 100,
             key: "cloudflareId",
-            render: (cloudflareId) => {
-                const src = `https://imagedelivery.net/qLq-8BTgXU8yG0N6HnOy8g/${encodeURIComponent(cloudflareId)}/test`
+            render: (cloudflareId, { originalWidth }) => {
+                const srcFor = (w: number) =>
+                    `https://imagedelivery.net/qLq-8BTgXU8yG0N6HnOy8g/${encodeURIComponent(cloudflareId)}/w=${w}`
                 return (
-                    <div style={{ height: 100, width: 100 }}>
-                        <a target="_blank" href={src} rel="noopener" key={src}>
+                    <div style={{ height: 100, width: 100 }} key={cloudflareId}>
+                        <a
+                            target="_blank"
+                            href={`${srcFor(originalWidth!)}`}
+                            rel="noopener"
+                        >
                             <img
-                                src={src}
+                                src={`${srcFor(200)}`}
                                 style={{ maxHeight: 100, maxWidth: 100 }}
                             />
                         </a>
@@ -115,7 +120,6 @@ function createColumns({
                     ? a.originalWidth - b.originalWidth
                     : 0,
             width: 100,
-            render: (text) => <span>{text}</span>,
         },
         {
             title: "Height",
@@ -126,7 +130,6 @@ function createColumns({
                     ? a.originalHeight - b.originalHeight
                     : 0,
             width: 100,
-            render: (text) => <span>{text}</span>,
         },
         {
             title: "Last updated",
