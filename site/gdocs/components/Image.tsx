@@ -1,10 +1,8 @@
-import React, { useContext } from "react"
+import React, { useCallback, useContext } from "react"
 import {
-    getFilenameWithoutExtension,
-    IMAGES_DIRECTORY,
     generateSourceProps,
     ImageMetadata,
-    getFilenameMIMEType,
+    triggerDownloadFromBlob,
 } from "@ourworldindata/utils"
 import cx from "classnames"
 import { LIGHTBOX_IMAGE_CLASS } from "../../Lightbox.js"
@@ -14,6 +12,7 @@ import { Container } from "./ArticleBlock.js"
 import { useImage } from "../utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
+import { useMediaQuery } from "usehooks-ts"
 
 // generates rules that tell the browser:
 // below the medium breakpoint, the image will be 95vw wide
@@ -84,6 +83,7 @@ export default function Image(props: {
     })
 
     const isPreviewing = useContext(DocumentContext).isPreviewing
+    const isSmall = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const image = useImage(filename)
     const smallImage = useImage(smallFilename)
     const renderImageError = (name: string) => (
@@ -96,18 +96,29 @@ export default function Image(props: {
         />
     )
 
-    if (!image) {
+    const handleDownload = useCallback(async () => {
+        let src = ""
+        let filename = ""
+        if (image) {
+            src = makeSrc(image)
+            filename = image.filename
+        }
+        if (isSmall && smallImage) {
+            src = makeSrc(smallImage)
+            filename = smallImage.filename
+        }
+        if (src && filename) {
+            const response = await fetch(src)
+            const blob = await response.blob()
+            triggerDownloadFromBlob(filename, blob)
+        }
+    }, [image, smallImage, isSmall])
+
+    if (!image || !image.cloudflareId) {
         if (isPreviewing) {
             return renderImageError(filename)
         }
         // Don't render anything if we're not previewing (i.e. a bake) and the image is not found
-        return null
-    }
-
-    if (!image.cloudflareId) {
-        if (isPreviewing) {
-            return renderImageError(filename)
-        }
         return null
     }
 
@@ -119,7 +130,14 @@ export default function Image(props: {
 
     // TODO: SVG?
 
-    const imageSrc = `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(image.cloudflareId)}/w=1280`
+    function makeSrc(image: ImageMetadata) {
+        if (!image.cloudflareId) {
+            throw new Error("Image has no cloudflareId")
+        }
+        return `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(image.cloudflareId)}/w=${image.originalWidth}`
+    }
+
+    const imageSrc = makeSrc(image)
     const sourceProps = generateSourceProps(
         smallImage,
         image,
@@ -127,27 +145,42 @@ export default function Image(props: {
     )
 
     return (
-        <picture className={className}>
-            {sourceProps.map((props, i) => (
-                <source
-                    key={i}
-                    {...props}
-                    type="image/png"
-                    sizes={
-                        containerSizes[containerType] ?? containerSizes.default
-                    }
+        <>
+            <picture className={className}>
+                {sourceProps.map((props, i) => (
+                    <source
+                        key={i}
+                        {...props}
+                        type="image/png"
+                        sizes={
+                            containerSizes[containerType] ??
+                            containerSizes.default
+                        }
+                    />
+                ))}
+                <img
+                    src={imageSrc}
+                    alt={alt}
+                    className={maybeLightboxClassName}
+                    loading="lazy"
+                    // There's no way of knowing in advance whether we'll be showing the image or smallImage - we just have to choose one
+                    // I went with image, as we currently only use smallImage for data insights
+                    width={image.originalWidth ?? undefined}
+                    height={image.originalHeight ?? undefined}
                 />
-            ))}
-            <img
-                src={imageSrc}
-                alt={alt}
-                className={maybeLightboxClassName}
-                loading="lazy"
-                // There's no way of knowing in advance whether we'll be showing the image or smallImage - we just have to choose one
-                // I went with image, as we currently only use smallImage for data insights
-                width={image.originalWidth ?? undefined}
-                height={image.originalHeight ?? undefined}
-            />
-        </picture>
+            </picture>
+            {
+                <button
+                    aria-label={`Download ${filename}`}
+                    className="article-block__image-download-button"
+                    onClick={(e) => {
+                        e.preventDefault()
+                        void handleDownload()
+                    }}
+                >
+                    Download this image
+                </button>
+            }
+        </>
     )
 }
