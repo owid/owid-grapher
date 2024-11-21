@@ -3316,8 +3316,8 @@ postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
     const { chartConfigId } = await saveNewChartConfigInDbAndR2(
         trx,
         undefined,
-        fullConfig,
-        patchConfig
+        patchConfig,
+        fullConfig
     )
 
     // insert into chart_views
@@ -3365,8 +3365,8 @@ putRouteWithRWTransaction(
         await updateChartConfigInDbAndR2(
             trx,
             chartConfigIdRow.chartConfigId as Base64String,
-            fullConfig,
-            patchConfig
+            patchConfig,
+            fullConfig
         )
 
         // update chart_views
