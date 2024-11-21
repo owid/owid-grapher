@@ -14,6 +14,7 @@ import {
     getParentVariableIdFromChartConfig,
     mergeGrapherConfigs,
     isEmpty,
+    slugify,
 } from "@ourworldindata/utils"
 import { action, computed, observable, runInAction } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
@@ -198,6 +199,42 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         if (json.success)
             w.location.assign(
                 this.manager.admin.url(`charts/${json.chartId}/edit`)
+            )
+    }
+
+    async saveAsNarrativeView(): Promise<void> {
+        const { patchConfig, grapher } = this
+
+        const chartJson = { ...patchConfig }
+        delete chartJson.id
+        delete chartJson.isPublished
+        delete chartJson.slug
+
+        const suggestedSlug = grapher.title ? slugify(grapher.title) : undefined
+
+        const slug = prompt(
+            "Please enter a slug for the narrative view. Note that the slug cannot be changed later.",
+            suggestedSlug
+        )
+
+        // Need to open intermediary tab before AJAX to avoid popup blockers
+        const w = window.open("/", "_blank") as Window
+
+        const body = {
+            slug,
+            parentChartId: grapher.id,
+            config: chartJson,
+        }
+
+        const json = await this.manager.admin.requestJSON(
+            "/api/chartViews",
+            body,
+            "POST"
+        )
+
+        if (json.success)
+            w.location.assign(
+                this.manager.admin.url(`chartViews/${json.chartViewId}/edit`)
             )
     }
 

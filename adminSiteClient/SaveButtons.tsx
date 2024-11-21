@@ -51,6 +51,10 @@ class SaveButtonsForChart extends React.Component<{
         void this.props.editor.saveAsNewGrapher()
     }
 
+    @action.bound onSaveAsNarrativeView() {
+        void this.props.editor.saveAsNarrativeView()
+    }
+
     @action.bound onPublishToggle() {
         if (this.props.editor.grapher.isPublished)
             this.props.editor.unpublishGrapher()
@@ -77,31 +81,41 @@ class SaveButtonsForChart extends React.Component<{
 
         return (
             <div className="SaveButtons">
-                <button
-                    className="btn btn-success"
-                    onClick={this.onSaveChart}
-                    disabled={isSavingDisabled}
-                >
-                    {grapher.isPublished
-                        ? "Update chart"
-                        : grapher.id
-                          ? "Save draft"
-                          : "Create draft"}
-                </button>{" "}
-                <button
-                    className="btn btn-secondary"
-                    onClick={this.onSaveAsNew}
-                    disabled={isSavingDisabled}
-                >
-                    Save as new
-                </button>{" "}
-                <button
-                    className="btn btn-danger"
-                    onClick={this.onPublishToggle}
-                    disabled={isSavingDisabled}
-                >
-                    {grapher.isPublished ? "Unpublish" : "Publish"}
-                </button>
+                <div>
+                    <button
+                        className="btn btn-success"
+                        onClick={this.onSaveChart}
+                        disabled={isSavingDisabled}
+                    >
+                        {grapher.isPublished
+                            ? "Update chart"
+                            : grapher.id
+                              ? "Save draft"
+                              : "Create draft"}
+                    </button>{" "}
+                    <button
+                        className="btn btn-secondary"
+                        onClick={this.onSaveAsNew}
+                        disabled={isSavingDisabled}
+                    >
+                        Save as new
+                    </button>{" "}
+                    <button
+                        className="btn btn-danger"
+                        onClick={this.onPublishToggle}
+                        disabled={isSavingDisabled}
+                    >
+                        {grapher.isPublished ? "Unpublish" : "Publish"}
+                    </button>
+                </div>
+                <div className="mt-2">
+                    <button
+                        className="btn btn-primary"
+                        onClick={this.onSaveAsNarrativeView}
+                    >
+                        Save as narrative view
+                    </button>
+                </div>
             </div>
         )
     }
