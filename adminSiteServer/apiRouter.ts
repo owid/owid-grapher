@@ -3269,7 +3269,7 @@ postRouteWithRWTransaction(apiRouter, "/tagGraph", async (req, res, trx) => {
     res.send({ success: true })
 })
 
-const createPatchConfigForChartView = async (
+const createPatchConfigAndFullConfigForChartView = async (
     knex: db.KnexReadonlyTransaction,
     parentChartId: number,
     config: GrapherInterface
@@ -3291,7 +3291,9 @@ const createPatchConfigForChartView = async (
         // persist these props when they are the same as the default.
         ...pick(fullConfigIncludingDefaults, CHART_VIEW_PROPS_TO_PERSIST),
     }
-    return patchConfigToSave
+
+    const fullConfig = mergeGrapherConfigs(parentChartConfig, patchConfigToSave)
+    return { patchConfig: patchConfigToSave, fullConfig }
 }
 
 postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
@@ -3299,22 +3301,23 @@ postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
         DbPlainChartView,
         "slug" | "parentChartId"
     >
-    const fullConfig = req.body.config as GrapherInterface
-    if (!slug || !parentChartId || !fullConfig) {
+    const rawConfig = req.body.config as GrapherInterface
+    if (!slug || !parentChartId || !rawConfig) {
         throw new JsonError("Invalid request", 400)
     }
 
-    const patchConfigToSave = await createPatchConfigForChartView(
-        trx,
-        parentChartId,
-        fullConfig
-    )
+    const { patchConfig, fullConfig } =
+        await createPatchConfigAndFullConfigForChartView(
+            trx,
+            parentChartId,
+            rawConfig
+        )
 
     const { chartConfigId } = await saveNewChartConfigInDbAndR2(
         trx,
         undefined,
         fullConfig,
-        patchConfigToSave
+        patchConfig
     )
 
     // insert into chart_views
@@ -3338,16 +3341,17 @@ putRouteWithRWTransaction(
             DbPlainChartView,
             "slug" | "parentChartId"
         >
-        const fullConfig = req.body.config as GrapherInterface
-        if (!slug || !parentChartId || !fullConfig) {
+        const rawConfig = req.body.config as GrapherInterface
+        if (!slug || !parentChartId || !rawConfig) {
             throw new JsonError("Invalid request", 400)
         }
 
-        const patchConfigToSave = await createPatchConfigForChartView(
-            trx,
-            parentChartId,
-            fullConfig
-        )
+        const { patchConfig, fullConfig } =
+            await createPatchConfigAndFullConfigForChartView(
+                trx,
+                parentChartId,
+                rawConfig
+            )
 
         const chartConfigIdRow: Pick<DbPlainChartView, "chartConfigId"> =
             await trx(ChartViewsTableName)
@@ -3362,7 +3366,7 @@ putRouteWithRWTransaction(
             trx,
             chartConfigIdRow.chartConfigId as Base64String,
             fullConfig,
-            patchConfigToSave
+            patchConfig
         )
 
         // update chart_views
