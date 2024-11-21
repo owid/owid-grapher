@@ -3388,7 +3388,7 @@ postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
     const result = await trx.table(ChartViewsTableName).insert(insertRow)
     const [resultId] = result
 
-    return { id: resultId, success: true }
+    return { chartViewId: resultId, success: true }
 })
 
 putRouteWithRWTransaction(
