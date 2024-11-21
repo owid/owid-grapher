@@ -372,8 +372,8 @@ export class EditorBasicTab<
             grapher.stackMode = StackMode.relative
         }
 
-        // Give scatterplots and slope charts a default color dimension if they don't have one
-        if (grapher.isScatter || grapher.isSlopeChart) {
+        // Give scatterplots a default color and size dimensions
+        if (grapher.isScatter) {
             const hasColor = grapher.dimensions.find(
                 (d) => d.property === DimensionProperty.color
             )
@@ -382,10 +382,7 @@ export class EditorBasicTab<
                     variableId: CONTINENTS_INDICATOR_ID,
                     property: DimensionProperty.color,
                 })
-        }
 
-        // Give scatterplots a default size dimension if they don't have one
-        if (grapher.isScatter) {
             const hasSize = grapher.dimensions.find(
                 (d) => d.property === DimensionProperty.size
             )
