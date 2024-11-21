@@ -618,9 +618,8 @@ const columnDefFromOwidVariable = (
         shortName,
     } = variable
 
-    // Without this the much used var 123 appears as "Countries Continent". We could rename in Grapher but not sure the effects of that.
     const isContinent = isContinentsVariableId(variable.id)
-    const name = isContinent ? "Continent" : variable.name
+    const name = variable.name
 
     // The column's type
     const type = isContinent

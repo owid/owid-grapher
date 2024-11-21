@@ -463,7 +463,6 @@ describe("colors & legend", () => {
             [2, "Canada", "", 2000, 1, 1, "North America", null],
             [3, "China", "", 2000, 1, null, "Asia", null],
             [4, "Australia", "", 2000, 1, 1, "Oceania", null],
-            [5, "Antarctica", "", 2000, null, null, "Antarctica", null],
             [6, "Chile", "", 2000, 1, 1, "South America", null],
             [7, "Nigeria", "", 2000, 1, 1, "Africa", null],
         ],
@@ -507,7 +506,6 @@ describe("colors & legend", () => {
                 Canada: "North America",
                 China: "Asia",
                 Australia: "Oceania",
-                Antarctica: "Antarctica",
                 Chile: "South America",
                 Nigeria: "Africa",
             }
@@ -531,7 +529,6 @@ describe("colors & legend", () => {
     it("legend contains every continent for which there is data (before timeline filter)", () => {
         expect(chart.legendItems.map((item) => item.label).sort()).toEqual([
             "Africa",
-            "Antarctica",
             "Europe",
             "North America",
             "Oceania",

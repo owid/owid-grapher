@@ -58,7 +58,7 @@ export const ThereWasAProblemLoadingThisChart = `There was a problem loading thi
 
 export const WorldEntityName = "World"
 
-export const CONTINENTS_INDICATOR_ID = 123 // "Countries Continent"
+export const CONTINENTS_INDICATOR_ID = 900801 // "Countries Continent"
 export const POPULATION_INDICATOR_ID_USED_IN_ADMIN = 953899 // "Population (various sources, 2024-07-15)"
 export const POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR = 953903 // "Population (historical) (various sources, 2024-07-15)"
 export const GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR = 905490 // "World Development Indicators - World Bank (2024-05-20)"

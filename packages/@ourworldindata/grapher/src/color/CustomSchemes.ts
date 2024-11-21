@@ -314,14 +314,14 @@ CustomColorSchemes.push({
 
 export const ContinentColors = {
     Africa: OwidDistinctColors.Mauve,
-    Antarctica: OwidDistinctColors.Turquoise,
+    Antarctica: OwidDistinctColors.DarkCopper,
     Asia: OwidDistinctColors.Teal,
     Europe: OwidDistinctColors.Denim,
     NorthAmerica: OwidDistinctColors.Peach,
     ["North America"]: OwidDistinctColors.Peach,
     SouthAmerica: OwidDistinctColors.Maroon,
     ["South America"]: OwidDistinctColors.Maroon,
-    Oceania: OwidDistinctColors.DarkCopper,
+    Oceania: OwidDistinctColors.Turquoise,
     World: OwidDistinctColors.DarkOliveGreen,
     SubSaharanAfrica: OwidDistinctColors.DarkMauve,
     MiddleEastNorthAfrica: OwidDistinctColors.Purple,
@@ -340,7 +340,6 @@ const ContinentColorsNames = lazy(() => invert(ContinentColors))
 
 const ContinentColorPalette = [
     ContinentColors.Africa,
-    ContinentColors.Antarctica,
     ContinentColors.Asia,
     ContinentColors.Europe,
     ContinentColors.NorthAmerica,
@@ -357,6 +356,7 @@ const ContinentColorPalette = [
     ContinentColors.EasternEurope,
     ContinentColors.WesternEurope,
     ContinentColors.AustralasiaAndOceania,
+    ContinentColors.Antarctica,
 ]
 
 export const ContinentColorsColorScheme = {
