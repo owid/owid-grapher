@@ -208,6 +208,13 @@ export interface AnnotationFieldsInTitle {
     changeInPrefix?: boolean
 }
 
+export enum RenderMode {
+    default = "default",
+    focus = "focus", // hovered or focused
+    mute = "mute", // not hovered
+    background = "background", // not focused
+}
+
 export interface Tickmark {
     value: number
     priority: number
