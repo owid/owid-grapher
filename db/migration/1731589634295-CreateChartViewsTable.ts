@@ -5,7 +5,7 @@ export class CreateChartViewsTable1731589634295 implements MigrationInterface {
         await queryRunner.query(`-- sql
             CREATE TABLE chart_views (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                slug VARCHAR(255) NOT NULL,
+                slug VARCHAR(255) NOT NULL UNIQUE,
                 chartConfigId CHAR(36) NOT NULL,
                 parentChartId INT NOT NULL,
                 createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
