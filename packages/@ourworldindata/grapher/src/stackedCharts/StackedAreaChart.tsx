@@ -18,7 +18,7 @@ import {
     max,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
-import { SeriesName } from "@ourworldindata/types"
+import { RenderMode, SeriesName } from "@ourworldindata/types"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_AREA_OPACITY_MUTE,
@@ -68,21 +68,21 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
 
 const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
 
-const AREA_OPACITY = {
-    DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
-    FOCUS: GRAPHER_AREA_OPACITY_FOCUS,
-    MUTE: GRAPHER_AREA_OPACITY_MUTE,
+const AREA_OPACITY: Partial<Record<RenderMode, number>> = {
+    default: GRAPHER_AREA_OPACITY_DEFAULT,
+    focus: GRAPHER_AREA_OPACITY_FOCUS,
+    mute: GRAPHER_AREA_OPACITY_MUTE,
 }
 
-const BORDER_OPACITY = {
-    DEFAULT: 0.7,
-    HOVER: 1,
-    MUTE: 0.3,
+const BORDER_OPACITY: Partial<Record<RenderMode, number>> = {
+    default: 0.7,
+    focus: 1,
+    mute: 0.3,
 }
 
-const BORDER_WIDTH = {
-    DEFAULT: 0.5,
-    HOVER: 1.5,
+const BORDER_WIDTH: Partial<Record<RenderMode, number>> = {
+    default: 0.5,
+    mute: 1.5,
 }
 
 @observer
@@ -183,10 +183,10 @@ class Areas extends React.Component<AreasProps> {
             }
             const points = [...placedPoints, ...reverse(clone(prevPoints))]
             const opacity = !this.isFocusModeActive
-                ? AREA_OPACITY.DEFAULT // normal opacity
+                ? AREA_OPACITY.default // normal opacity
                 : focusedSeriesName === series.seriesName
-                  ? AREA_OPACITY.FOCUS // hovered
-                  : AREA_OPACITY.MUTE // non-hovered
+                  ? AREA_OPACITY.focus // hovered
+                  : AREA_OPACITY.mute // non-hovered
 
             return (
                 <path
@@ -215,14 +215,14 @@ class Areas extends React.Component<AreasProps> {
 
         return placedSeriesArr.map((placedSeries) => {
             const opacity = !this.isFocusModeActive
-                ? BORDER_OPACITY.DEFAULT // normal opacity
+                ? BORDER_OPACITY.default // normal opacity
                 : focusedSeriesName === placedSeries.seriesName
-                  ? BORDER_OPACITY.HOVER // hovered
-                  : BORDER_OPACITY.MUTE // non-hovered
+                  ? BORDER_OPACITY.focus // hovered
+                  : BORDER_OPACITY.mute // non-hovered
             const strokeWidth =
                 focusedSeriesName === placedSeries.seriesName
-                    ? BORDER_WIDTH.HOVER
-                    : BORDER_WIDTH.DEFAULT
+                    ? BORDER_WIDTH.focus
+                    : BORDER_WIDTH.default
 
             return (
                 <path
@@ -593,8 +593,8 @@ export class StackedAreaChart
                                 point?.fake ? undefined : point?.value,
                             ]
                             const opacity = focused
-                                ? AREA_OPACITY.FOCUS
-                                : AREA_OPACITY.DEFAULT
+                                ? AREA_OPACITY.focus
+                                : AREA_OPACITY.default
                             const swatch = { color, opacity }
 
                             return {
