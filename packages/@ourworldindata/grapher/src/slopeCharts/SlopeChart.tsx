@@ -281,11 +281,11 @@ export class SlopeChart
     }
 
     @computed private get startTime(): Time {
-        return this.transformedTable.minTime
+        return this.manager.startTime!
     }
 
     @computed private get endTime(): Time {
-        return this.transformedTable.maxTime
+        return this.manager.endTime!
     }
 
     @computed get seriesStrategy(): SeriesStrategy {
@@ -311,7 +311,7 @@ export class SlopeChart
     private constructSingleSeries(
         entityName: EntityName,
         column: CoreColumn
-    ): RawSlopeChartSeries | undefined {
+    ): RawSlopeChartSeries {
         const { startTime, endTime, seriesStrategy } = this
         const { canSelectMultipleEntities = false } = this.manager
         const { availableEntityNames } = this.transformedTable
@@ -359,11 +359,9 @@ export class SlopeChart
     }
 
     @computed get rawSeries(): RawSlopeChartSeries[] {
-        return excludeUndefined(
-            this.yColumns.flatMap((column) =>
-                column.uniqEntityNames.map((entityName) =>
-                    this.constructSingleSeries(entityName, column)
-                )
+        return this.yColumns.flatMap((column) =>
+            this.selectionArray.selectedEntityNames.map((entityName) =>
+                this.constructSingleSeries(entityName, column)
             )
         )
     }

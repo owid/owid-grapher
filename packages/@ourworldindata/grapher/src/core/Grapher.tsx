@@ -1645,7 +1645,7 @@ export class Grapher
         if (this.shouldAddChangeInPrefixToTitle)
             text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
 
-        if (this.shouldAddTimeSuffixToTitle)
+        if (this.shouldAddTimeSuffixToTitle && this.timeTitleSuffix)
             text = appendAnnotationField(text, this.timeTitleSuffix)
 
         return text.trim()
@@ -1748,11 +1748,11 @@ export class Grapher
         return this.xAxis.scaleType
     }
 
-    @computed private get timeTitleSuffix(): string {
+    @computed private get timeTitleSuffix(): string | undefined {
         const timeColumn = this.table.timeColumn
-        if (timeColumn.isMissing) return "" // Do not show year until data is loaded
+        if (timeColumn.isMissing) return undefined // Do not show year until data is loaded
         const { startTime, endTime } = this
-        if (startTime === undefined || endTime === undefined) return ""
+        if (startTime === undefined || endTime === undefined) return undefined
 
         const time =
             startTime === endTime
