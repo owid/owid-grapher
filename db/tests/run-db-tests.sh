@@ -7,6 +7,10 @@ set -o nounset
 # you run this via "make dbtest" and it will then spin up the docker container for the
 # test database, initialize it and then run the tests
 
+if [ -e .env ]; then
+    source .env
+fi
+
 : "${GRAPHER_TEST_DB_USER:?Need to set GRAPHER_TEST_DB_USER non-empty}"
 : "${GRAPHER_TEST_DB_PASS:?Need to set GRAPHER_TEST_DB_PASS non-empty}"
 : "${GRAPHER_TEST_DB_NAME:?Need to set GRAPHER_TEST_DB_NAME non-empty}"

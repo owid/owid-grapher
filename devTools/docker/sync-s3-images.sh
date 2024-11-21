@@ -3,6 +3,10 @@
 set -o errexit
 set -o pipefail
 
+if [ -e .env ]; then
+    source .env
+fi
+
 if [[ -z "$IMAGE_HOSTING_R2_BUCKET_PATH" ]]; then
   echo 'Please set IMAGE_HOSTING_R2_BUCKET_PATH in .env'
   exit 1
