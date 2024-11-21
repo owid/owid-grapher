@@ -871,7 +871,7 @@ export class ScatterPlotChart
                         {!this.manager.isStatic &&
                             separatorLine(noDataSectionBounds.top)}
                         <NoDataSection
-                            entityNames={this.selectedEntitiesWithoutData}
+                            seriesNames={this.selectedEntitiesWithoutData}
                             bounds={noDataSectionBounds}
                             baseFontSize={this.fontSize}
                         />

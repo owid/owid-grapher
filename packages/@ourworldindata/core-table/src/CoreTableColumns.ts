@@ -305,9 +305,19 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     @imemo get displayName(): string {
         return (
             this.display?.name ??
-            this.def.presentation?.titlePublic ?? // this is a bit of an unusual fallback - if display.name is not given, titlePublic is the next best thing before name
+            // this is a bit of an unusual fallback - if display.name is not given, titlePublic is the next best thing before name
+            this.def.presentation?.titlePublic ??
             this.name ??
             ""
+        )
+    }
+
+    @imemo get nonEmptyDisplayName(): string {
+        return (
+            this.display?.name ||
+            // this is a bit of an unusual fallback - if display.name is not given, titlePublic is the next best thing before name
+            this.def.presentation?.titlePublic ||
+            this.nonEmptyName
         )
     }
 
