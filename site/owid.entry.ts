@@ -102,7 +102,7 @@ if (SENTRY_DSN) {
                         mask: [".sentry-mask"],
                     }),
                 ],
-                replaysSessionSampleRate: ENV === "development" ? 1 : 0.01,
+                replaysSessionSampleRate: ENV === "development" ? 1 : 0.1,
                 replaysOnErrorSampleRate: 0,
             }
         } else {
