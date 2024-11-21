@@ -349,9 +349,14 @@ h3.article-block__heading {
         }
     }
 
-    .download-png-link {
-        @include owid-link-60;
+    .article-block__image-download-button {
+        @include owid-link-90;
+        background-color: transparent;
+        cursor: pointer;
+        border: none;
         font-size: 14px;
+        padding: 0;
+        padding-top: 4px;
     }
 }
 
