@@ -514,6 +514,7 @@ df <- read.csv("${props.csvUrl}")
 
 # Fetch the metadata
 metadata <- fromJSON("${props.metadataUrl}")`,
+        Stata: `import delimited "${props.csvUrl}", encoding("utf-8") clear`,
     }
 
     return (
