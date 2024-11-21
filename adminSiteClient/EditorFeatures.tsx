@@ -62,6 +62,7 @@ export class EditorFeatures {
     @computed get hideLegend() {
         return (
             this.grapher.isLineChart ||
+            this.grapher.isSlopeChart ||
             this.grapher.isStackedArea ||
             this.grapher.isStackedDiscreteBar
         )
