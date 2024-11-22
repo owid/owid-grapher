@@ -18,7 +18,6 @@ import {
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { ColorScaleManager } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     GRAPHER_DARK_TEXT,
@@ -33,7 +32,6 @@ import {
     Time,
     SeriesStrategy,
     EntityName,
-    PrimitiveType,
     RenderMode,
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -75,9 +73,11 @@ import {
     getSeriesName,
 } from "../lineCharts/lineChartHelpers"
 
+type SVGMouseOrTouchEvent =
+    | React.MouseEvent<SVGGElement>
+    | React.TouchEvent<SVGGElement>
+
 export interface SlopeChartManager extends ChartManager {
-    isModalOpen?: boolean
-    canChangeEntity?: boolean
     canSelectMultipleEntities?: boolean
 }
 
@@ -92,9 +92,9 @@ export class SlopeChart
         bounds?: Bounds
         manager: SlopeChartManager
     }>
-    implements ChartInterface, ColorScaleManager
+    implements ChartInterface
 {
-    base: React.RefObject<SVGGElement> = React.createRef()
+    slopeAreaRef: React.RefObject<SVGGElement> = React.createRef()
     defaultBaseColorScheme = ColorSchemeName.OwidDistinctLines
 
     @observable hoveredSeriesName?: string
@@ -166,7 +166,7 @@ export class SlopeChart
     }
 
     @computed private get isLogScale(): boolean {
-        return this.props.manager.yAxisConfig?.scaleType === ScaleType.log
+        return this.yScaleType === ScaleType.log
     }
 
     @computed private get missingDataStrategy(): MissingDataStrategy {
@@ -204,26 +204,22 @@ export class SlopeChart
         return this.xScale(this.endTime)
     }
 
-    private updateTooltipPosition(
-        event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>
-    ) {
+    private updateTooltipPosition(event: SVGMouseOrTouchEvent) {
         const ref = this.manager.base?.current
         if (ref) this.tooltipState.position = getRelativeMouse(ref, event)
     }
 
-    private detectHoveredSlope(
-        event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>
-    ) {
-        const ref = this.base.current
+    private detectHoveredSlope(event: SVGMouseOrTouchEvent) {
+        const ref = this.slopeAreaRef.current
         if (!ref) return
 
         const mouse = getRelativeMouse(ref, event)
         this.mouseFrame = requestAnimationFrame(() => {
             if (this.placedSeries.length === 0) return
 
-            const distToSlope = new Map<PlacedSlopeChartSeries, number>()
+            const distanceMap = new Map<PlacedSlopeChartSeries, number>()
             for (const series of this.placedSeries) {
-                distToSlope.set(
+                distanceMap.set(
                     series,
                     PointVector.distanceFromPointToLineSegmentSq(
                         mouse,
@@ -234,9 +230,9 @@ export class SlopeChart
             }
 
             const closestSlope = minBy(this.placedSeries, (s) =>
-                distToSlope.get(s)
-            )
-            const distanceSq = distToSlope.get(closestSlope!)!
+                distanceMap.get(s)
+            )!
+            const distanceSq = distanceMap.get(closestSlope)!
             const tolerance = 10
             const toleranceSq = tolerance * tolerance
 
@@ -506,7 +502,7 @@ export class SlopeChart
     @computed get xRange(): [number, number] {
         const lineLegendWidth = this.maxLineLegendWidth + LINE_LEGEND_PADDING
 
-        // pick a reasonable width based on an ideal aspect ratio
+        // pick a reasonable max width based on an ideal aspect ratio
         const idealAspectRatio = 0.6
         const chartAreaWidth = this.bounds.width - this.sidebarWidth
         const availableWidth =
@@ -553,7 +549,7 @@ export class SlopeChart
 
     private playIntroAnimation() {
         // Nice little intro animation
-        select(this.base.current)
+        select(this.slopeAreaRef.current)
             .select(".slopes")
             .attr("stroke-dasharray", "100%")
             .attr("stroke-dashoffset", "100%")
@@ -594,11 +590,9 @@ export class SlopeChart
     }
 
     mouseFrame?: number
-    @action.bound onMouseMove(
-        ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>
-    ) {
-        this.updateTooltipPosition(ev)
-        this.detectHoveredSlope(ev)
+    @action.bound onMouseMove(event: SVGMouseOrTouchEvent) {
+        this.updateTooltipPosition(event)
+        this.detectHoveredSlope(event)
     }
 
     @action.bound onMouseLeave() {
@@ -771,7 +765,7 @@ export class SlopeChart
                 />
                 <g
                     id={makeIdForHumanConsumption("slopes")}
-                    ref={this.base}
+                    ref={this.slopeAreaRef}
                     onMouseMove={this.onMouseMove}
                     onTouchMove={this.onMouseMove}
                     onTouchStart={this.onMouseMove}

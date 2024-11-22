@@ -4,7 +4,9 @@ export class RemoveColorDimensionFromSlopeCharts1732195571407
     implements MigrationInterface
 {
     public async up(queryRunner: QueryRunner): Promise<void> {
-        // update dimensions field in chart configs
+        // remove color dimension for all slope charts
+        // the y-dimension always comes first and the color dimension second,
+        // so it's safe to keep the first dimension only
         await queryRunner.query(`
             -- sql
             UPDATE chart_configs
@@ -15,7 +17,7 @@ export class RemoveColorDimensionFromSlopeCharts1732195571407
                 chartType = 'SlopeChart'
         `)
 
-        // remove from chart_dimensions table
+        // remove the color dimension for slope charts from the chart_dimensions table
         await queryRunner.query(`
             -- sql
             DELETE cd FROM chart_dimensions cd
