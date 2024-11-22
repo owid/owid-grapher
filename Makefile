@@ -159,11 +159,6 @@ sync-cloudflare-images:
 
 refresh.full: refresh refresh.pageviews sync-images
 	@echo '==> Full refresh completed'
-	@make bake-images
-
-bake-images:
-	@echo '==> Baking images'
-	@yarn buildLocalBake --steps gdriveImages
 
 sync-images.preflight-check:
 	@echo '==> Checking for rclone'

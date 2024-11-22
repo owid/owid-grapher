@@ -40,7 +40,6 @@ import {
 } from "../baker/GrapherBakingUtils.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { bakeCountries } from "../baker/countryProfiles.js"
-import { bakeDriveImages } from "../baker/GDriveImagesBaker.js"
 import {
     countries,
     FullPost,
@@ -58,7 +57,6 @@ import {
     TombstonePageData,
     gdocUrlRegex,
 } from "@ourworldindata/utils"
-
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import {
@@ -81,7 +79,7 @@ import {
     postsFlushCache,
 } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
-import { Image, getAllImages } from "../db/model/Image.js"
+import { getAllImages } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import {
@@ -144,7 +142,6 @@ const nonWordpressSteps = [
     "multiDimPages",
     "gdocPosts",
     "gdocTombstones",
-    "gdriveImages",
     "dods",
     "dataInsights",
     "authors",
@@ -364,10 +361,9 @@ export class SiteBaker {
                 name: `✅ Prefetched ${publishedGdocs.length} gdocs`,
             })
 
-            const imageMetadataDictionary: Record<string, Image> =
-                await getAllImages(knex).then((images) =>
-                    keyBy(images, "filename")
-                )
+            const imageMetadataDictionary = await getAllImages(knex).then(
+                (images) => keyBy(images, "filename")
+            )
 
             this.progressBar.tick({
                 name: `✅ Prefetched ${Object.values(imageMetadataDictionary).length} images`,
@@ -1038,13 +1034,6 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked rss" })
     }
 
-    private async bakeDriveImages(knex: db.KnexReadonlyTransaction) {
-        if (!this.bakeSteps.has("gdriveImages")) return
-        await this.ensureDir("images/published")
-        await bakeDriveImages(knex, this.bakedSiteDir)
-        this.progressBar.tick({ name: "✅ baked google drive images" })
-    }
-
     // We don't have an icon for every single tag (yet), but for the icons that we *do* have,
     // we want to make sure that we have a corresponding tag in the database.
     private async validateTagIcons(trx: db.KnexReadonlyTransaction) {
@@ -1067,9 +1056,6 @@ export class SiteBaker {
     private async bakeAssets(trx: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("assets")) return
 
-        // do not delete images/published folder so that we don't have to sync gdrive images again
-        const excludes = "--exclude images/published"
-
         await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/dist/assets ${this.bakedSiteDir}/assets`
         )
@@ -1081,7 +1067,7 @@ export class SiteBaker {
 
         await this.validateTagIcons(trx)
         await execWrapper(
-            `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/ ${excludes}`
+            `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/`
         )
 
         await fs.writeFile(
@@ -1147,7 +1133,6 @@ export class SiteBaker {
         await this.bakeGDocTombstones(knex)
         await this.bakeDataInsights(knex)
         await this.bakeAuthors(knex)
-        await this.bakeDriveImages(knex)
     }
 
     // TODO: this transaction is only RW because somewhere inside it we fetch images
