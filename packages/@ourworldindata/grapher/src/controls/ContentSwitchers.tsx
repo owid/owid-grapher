@@ -175,9 +175,11 @@ function TabIcon({
         case GRAPHER_TAB_NAMES.WorldMap:
             return <FontAwesomeIcon icon={faEarthAmericas} />
         default:
-            const chartIcon = isLineChartThatTurnedIntoDiscreteBar
-                ? chartIcons[GRAPHER_CHART_TYPES.DiscreteBar]
-                : chartIcons[tab]
+            const chartIcon =
+                tab === GRAPHER_TAB_NAMES.LineChart &&
+                isLineChartThatTurnedIntoDiscreteBar
+                    ? chartIcons[GRAPHER_CHART_TYPES.DiscreteBar]
+                    : chartIcons[tab]
             return chartIcon
     }
 }
@@ -193,9 +195,15 @@ function makeTabLabelText(
     if (tab === GRAPHER_TAB_NAMES.WorldMap) return "Map"
     if (!options.hasMultipleChartTypes) return "Chart"
 
+    if (
+        tab === GRAPHER_TAB_NAMES.LineChart &&
+        options.isLineChartThatTurnedIntoDiscreteBar
+    )
+        return "Bar"
+
     switch (tab) {
         case GRAPHER_TAB_NAMES.LineChart:
-            return options.isLineChartThatTurnedIntoDiscreteBar ? "Bar" : "Line"
+            return "Line"
         case GRAPHER_TAB_NAMES.SlopeChart:
             return "Slope"
 

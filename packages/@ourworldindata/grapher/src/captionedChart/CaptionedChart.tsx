@@ -83,7 +83,7 @@ export interface CaptionedChartManager
     isOnMapTab?: boolean
     isOnTableTab?: boolean
     activeChartType?: GrapherChartType
-    isLineChartThatTurnedIntoDiscreteBar?: boolean
+    isLineChartThatTurnedIntoDiscreteBarActive?: boolean
     showEntitySelectionToggle?: boolean
     isExportingForSocialMedia?: boolean
 
@@ -197,7 +197,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         if (manager.isOnTableTab) return undefined
         if (manager.isOnMapTab) return GRAPHER_MAP_TYPE
         if (manager.isOnChartTab) {
-            return manager.isLineChartThatTurnedIntoDiscreteBar
+            return manager.isLineChartThatTurnedIntoDiscreteBarActive
                 ? GRAPHER_CHART_TYPES.DiscreteBar
                 : manager.activeChartType
         }
