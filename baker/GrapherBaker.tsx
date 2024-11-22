@@ -40,6 +40,7 @@ import {
     ImageMetadata,
     DbPlainChart,
     DbRawChartConfig,
+    DbEnrichedImage,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -53,7 +54,7 @@ import {
     getPrimaryTopic,
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
-import { Image, getAllImages } from "../db/model/Image.js"
+import { getAllImages } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 import { getTagToSlugMap } from "./GrapherBakingUtils.js"
@@ -65,7 +66,7 @@ const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
     isPreviewing: boolean,
     knex: db.KnexReadWriteTransaction,
-    imageMetadataDictionary?: Record<string, Image>
+    imageMetadataDictionary?: Record<string, DbEnrichedImage>
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
 
@@ -102,7 +103,7 @@ const renderDatapageIfApplicable = async (
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     knex: db.KnexReadWriteTransaction,
-    imageMetadataDictionary?: Record<string, Image>
+    imageMetadataDictionary?: Record<string, DbEnrichedImage>
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(
         grapher,
@@ -290,7 +291,7 @@ const chartIsSameVersion = async (
 
 const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     bakedSiteDir: string,
-    imageMetadataDictionary: Record<string, Image>,
+    imageMetadataDictionary: Record<string, DbEnrichedImage>,
     grapher: GrapherInterface,
     knex: db.KnexReadWriteTransaction
 ) => {
@@ -370,7 +371,7 @@ export interface BakeSingleGrapherChartArguments {
     config: string
     bakedSiteDir: string
     slug: string
-    imageMetadataDictionary: Record<string, Image>
+    imageMetadataDictionary: Record<string, DbEnrichedImage>
 }
 
 export const bakeSingleGrapherChart = async (
