@@ -8,7 +8,7 @@ import {
     getRedirectsFromDb,
 } from "../db/model/Redirect.js"
 
-export const getRedirects = async (knex: db.KnexReadWriteTransaction) => {
+export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
     const staticRedirects = [
         // RSS feed
         "/feed /atom.xml 302",

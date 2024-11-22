@@ -271,9 +271,8 @@ export async function getPublishedGdocBaseObjectBySlug(
     return gdoc
 }
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function getAndLoadGdocBySlug(
-    knex: KnexReadWriteTransaction,
+    knex: KnexReadonlyTransaction,
     slug: string
 ): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
     const base = await getPublishedGdocBaseObjectBySlug(knex, slug, true)
@@ -285,9 +284,8 @@ export async function getAndLoadGdocBySlug(
     return loadGdocFromGdocBase(knex, base)
 }
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function getAndLoadGdocById(
-    knex: KnexReadWriteTransaction,
+    knex: KnexReadonlyTransaction,
     id: string,
     contentSource?: GdocsContentSource
 ): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
@@ -297,7 +295,6 @@ export async function getAndLoadGdocById(
     return loadGdocFromGdocBase(knex, base, contentSource)
 }
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function createOrLoadGdocById(
     trx: KnexReadWriteTransaction,
     id: string
@@ -313,10 +310,8 @@ export async function createOrLoadGdocById(
 
 // From an ID, get a Gdoc object with all its metadata and state loaded, in its correct subclass.
 // If contentSource is Gdocs, use live data from Google, otherwise use the data in the DB.
-
-// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function loadGdocFromGdocBase(
-    knex: KnexReadWriteTransaction,
+    knex: KnexReadonlyTransaction,
     base: OwidGdocBaseInterface,
     contentSource?: GdocsContentSource
 ): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
@@ -357,9 +352,8 @@ export async function loadGdocFromGdocBase(
     return gdoc
 }
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function getAndLoadPublishedDataInsights(
-    knex: KnexReadWriteTransaction,
+    knex: KnexReadonlyTransaction,
     options?: { limit: number; offset?: number }
 ): Promise<GdocDataInsight[]> {
     let query = knex<DbRawPostGdoc>(PostsGdocsTableName)
@@ -394,7 +388,7 @@ export async function getAndLoadPublishedDataInsights(
 }
 
 export async function getAndLoadPublishedDataInsightsPage(
-    knex: KnexReadWriteTransaction,
+    knex: KnexReadonlyTransaction,
     page?: number
 ): Promise<GdocDataInsight[]> {
     const options =
@@ -448,9 +442,8 @@ export async function getLatestDataInsights(
     }
 }
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function getAndLoadPublishedGdocPosts(
-    knex: KnexReadWriteTransaction
+    knex: KnexReadonlyTransaction
 ): Promise<GdocPost[]> {
     const rows = await getPublishedGdocPostsWithTags(knex)
     const gdocs = await Promise.all(
@@ -459,9 +452,8 @@ export async function getAndLoadPublishedGdocPosts(
     return gdocs as GdocPost[]
 }
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function loadPublishedGdocAuthors(
-    knex: KnexReadWriteTransaction
+    knex: KnexReadonlyTransaction
 ): Promise<GdocAuthor[]> {
     const rows = await knexRaw<DbRawPostGdoc>(
         knex,
@@ -486,9 +478,8 @@ export async function loadPublishedGdocAuthors(
     return gdocs as GdocAuthor[]
 }
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function getAndLoadListedGdocPosts(
-    knex: KnexReadWriteTransaction
+    knex: KnexReadonlyTransaction
 ): Promise<GdocPost[]> {
     // TODO: Check if we shouldn't also restrict the types of gdocs here
     const rows = await knexRaw<DbRawPostGdoc>(
