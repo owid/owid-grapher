@@ -1,17 +1,15 @@
-import { EntityName, PartialBy, PointVector } from "@ourworldindata/utils"
+import { PartialBy, PointVector } from "@ourworldindata/utils"
+import { EntityName, OwidVariableRow } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 
 export interface SlopeChartSeries extends ChartSeries {
     entityName: EntityName
-    startValue: number
-    endValue: number
+    start: Pick<OwidVariableRow<number>, "value" | "originalTime">
+    end: Pick<OwidVariableRow<number>, "value" | "originalTime">
     annotation?: string
 }
 
-export type RawSlopeChartSeries = PartialBy<
-    SlopeChartSeries,
-    "startValue" | "endValue"
->
+export type RawSlopeChartSeries = PartialBy<SlopeChartSeries, "start" | "end">
 
 export interface PlacedSlopeChartSeries extends SlopeChartSeries {
     startPoint: PointVector

@@ -39,7 +39,8 @@ it("filters non-numeric values", () => {
     expect(chart.series.length).toEqual(1)
     expect(
         chart.series.every(
-            (series) => isNumber(series.startValue) && isNumber(series.endValue)
+            (series) =>
+                isNumber(series.start.value) && isNumber(series.end.value)
         )
     ).toBeTruthy()
 })

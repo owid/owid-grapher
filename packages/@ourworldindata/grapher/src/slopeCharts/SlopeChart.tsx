@@ -61,6 +61,7 @@ import { ColorSchemes } from "../color/ColorSchemes"
 import { LineLabelSeries, LineLegend } from "../lineLegend/LineLegend"
 import {
     makeTooltipRoundingNotice,
+    makeTooltipToleranceNotice,
     Tooltip,
     TooltipState,
     TooltipValueRange,
@@ -113,6 +114,10 @@ export class SlopeChart
 
         if (this.isLogScale)
             table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
+
+        this.yColumnSlugs.forEach((slug) => {
+            table = table.interpolateColumnWithTolerance(slug)
+        })
 
         return table
     }
@@ -314,10 +319,9 @@ export class SlopeChart
             canSelectMultipleEntities,
         })
 
-        const valueByTime =
-            column.valueByEntityNameAndOriginalTime.get(entityName)
-        const startValue = valueByTime?.get(startTime)
-        const endValue = valueByTime?.get(endTime)
+        const owidRowByTime = column.owidRowByEntityNameAndTime.get(entityName)
+        const start = owidRowByTime?.get(startTime)
+        const end = owidRowByTime?.get(endTime)
 
         const colorKey = getColorKey({
             entityName,
@@ -336,8 +340,8 @@ export class SlopeChart
             seriesName,
             entityName,
             color,
-            startValue,
-            endValue,
+            start,
+            end,
             annotation,
         }
     }
@@ -345,7 +349,12 @@ export class SlopeChart
     private isSeriesValid(
         series: RawSlopeChartSeries
     ): series is SlopeChartSeries {
-        return series.startValue !== undefined && series.endValue !== undefined
+        const { start, end } = series
+        return (
+            start?.value !== undefined &&
+            end?.value !== undefined &&
+            start.originalTime < end.originalTime
+        )
     }
 
     /**
@@ -407,8 +416,8 @@ export class SlopeChart
         const { yAxis, startX, endX } = this
 
         return this.series.map((series) => {
-            const startY = yAxis.place(series.startValue)
-            const endY = yAxis.place(series.endValue)
+            const startY = yAxis.place(series.start.value)
+            const endY = yAxis.place(series.end.value)
 
             const startPoint = new PointVector(startX, startY)
             const endPoint = new PointVector(endX, endY)
@@ -432,8 +441,8 @@ export class SlopeChart
 
     @computed private get allValues(): number[] {
         return this.series.flatMap((series) => [
-            series.startValue,
-            series.endValue,
+            series.start.value,
+            series.end.value,
         ])
     }
 
@@ -537,13 +546,13 @@ export class SlopeChart
     // used in LineLegend
     @computed get labelSeries(): LineLabelSeries[] {
         return this.series.map((series) => {
-            const { seriesName, color, endValue, annotation } = series
+            const { seriesName, color, end, annotation } = series
             return {
                 color,
                 seriesName,
                 label: seriesName,
                 annotation,
-                yValue: endValue,
+                yValue: end.value,
             }
         })
     }
@@ -618,15 +627,26 @@ export class SlopeChart
     @computed get tooltip(): React.ReactElement | undefined {
         const {
             tooltipState: { target, position, fading },
+            startTime,
+            endTime,
         } = this
 
         const { series } = target || {}
         if (!series) return
 
+        const formatTime = (time: Time) => this.formatColumn.formatTime(time)
+
+        const isStartValueOriginal = series.start.originalTime === startTime
+        const isEndValueOriginal = series.end.originalTime === endTime
+        const actualStartTime = isStartValueOriginal
+            ? startTime
+            : series.start.originalTime
+        const actualEndTime = isEndValueOriginal
+            ? endTime
+            : series.end.originalTime
+
         const { isRelativeMode } = this.manager,
-            timeRange = [this.startTime, this.endTime]
-                .map((t) => this.formatColumn.formatTime(t))
-                .join(" to "),
+            timeRange = `${formatTime(actualStartTime)} to ${formatTime(actualEndTime)}`,
             timeLabel = timeRange + (isRelativeMode ? " (relative change)" : "")
 
         const columns = this.yColumns
@@ -644,6 +664,25 @@ export class SlopeChart
             )
         )
 
+        const constructTargetYearForToleranceNotice = () => {
+            if (!isStartValueOriginal && !isEndValueOriginal) {
+                return `${formatTime(startTime)} and ${formatTime(endTime)}`
+            } else if (!isStartValueOriginal) {
+                return formatTime(startTime)
+            } else if (!isEndValueOriginal) {
+                return formatTime(endTime)
+            } else {
+                return undefined
+            }
+        }
+
+        const targetYear = constructTargetYearForToleranceNotice()
+        const toleranceNotice = targetYear
+            ? {
+                  icon: TooltipFooterIcon.notice,
+                  text: makeTooltipToleranceNotice(targetYear),
+              }
+            : undefined
         const roundingNotice = anyRoundedToSigFigs
             ? {
                   icon: allRoundedToSigFigs
@@ -654,7 +693,7 @@ export class SlopeChart
                   }),
               }
             : undefined
-        const footer = excludeUndefined([roundingNotice])
+        const footer = excludeUndefined([toleranceNotice, roundingNotice])
 
         return (
             <Tooltip
@@ -667,13 +706,14 @@ export class SlopeChart
                 style={{ maxWidth: "250px" }}
                 title={series.seriesName}
                 subtitle={timeLabel}
+                subtitleFormat={targetYear ? "notice" : undefined}
                 dissolve={fading}
                 footer={footer}
                 dismiss={() => (this.tooltipState.target = null)}
             >
                 <TooltipValueRange
                     column={this.formatColumn}
-                    values={[series.startValue, series.endValue]}
+                    values={[series.start.value, series.end.value]}
                 />
             </Tooltip>
         )
