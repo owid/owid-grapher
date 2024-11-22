@@ -3552,6 +3552,7 @@ export class Grapher
             this.hasChartTab &&
             this.canSelectMultipleEntities &&
             (this.isOnLineChartTab ||
+                this.isOnSlopeChartTab ||
                 this.isOnStackedAreaTab ||
                 this.isOnStackedBarTab ||
                 this.isOnDiscreteBarTab ||
