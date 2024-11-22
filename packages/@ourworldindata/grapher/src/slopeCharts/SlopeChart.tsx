@@ -269,11 +269,11 @@ export class SlopeChart
     }
 
     @computed private get startTime(): Time {
-        return this.manager.startTime!
+        return this.transformedTable.minTime ?? 0
     }
 
     @computed private get endTime(): Time {
-        return this.manager.endTime!
+        return this.transformedTable.maxTime ?? 0
     }
 
     @computed get seriesStrategy(): SeriesStrategy {
@@ -396,7 +396,7 @@ export class SlopeChart
         return map
     }
 
-    @computed private get series(): SlopeChartSeries[] {
+    @computed get series(): SlopeChartSeries[] {
         return this.rawSeries.filter((series) =>
             this.shouldSeriesBePlotted(series)
         )
