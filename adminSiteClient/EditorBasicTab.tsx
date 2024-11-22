@@ -368,10 +368,6 @@ export class EditorBasicTab<
                 ? []
                 : [value as GrapherChartType]
 
-        if (grapher.isLineChart) {
-            this.addSlopeChart()
-        }
-
         if (grapher.isMarimekko) {
             grapher.hideRelativeToggle = false
             grapher.stackMode = StackMode.relative

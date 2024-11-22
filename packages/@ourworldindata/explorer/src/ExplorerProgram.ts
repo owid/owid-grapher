@@ -66,7 +66,7 @@ interface ExplorerGrapherInterface extends GrapherInterface {
     relatedQuestionText?: string
     relatedQuestionUrl?: string
     mapTargetTime?: number
-    type?: GrapherChartType | "None"
+    type?: GrapherChartType | "LineChart SlopeChart" | "None"
 }
 
 const ExplorerRootDef: CellDef = {
