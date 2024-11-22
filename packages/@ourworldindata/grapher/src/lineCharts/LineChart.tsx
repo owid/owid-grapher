@@ -23,7 +23,6 @@ import {
     AxisAlign,
     Color,
     HorizontalAlign,
-    PrimitiveType,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
