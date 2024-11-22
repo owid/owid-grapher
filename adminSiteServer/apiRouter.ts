@@ -3354,6 +3354,63 @@ getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
     return { chartViews }
 })
 
+getRouteWithROTransaction(
+    apiRouter,
+    "/chartViews/:id",
+    async (req, res, trx) => {
+        const id = expectInt(req.params.id)
+
+        type ChartViewRow = Pick<
+            DbPlainChartView,
+            "id" | "slug" | "updatedAt"
+        > & {
+            lastEditedByUser: string
+            chartConfigId: string
+            configFull: string
+            configPatch: string
+            parentChartId: number
+            parentConfigFull: string
+        }
+
+        const row = await db.knexRawFirst<ChartViewRow>(
+            trx,
+            `-- sql
+        SELECT
+            cv.id,
+            cv.slug,
+            cv.updatedAt,
+            cv.lastEditedByUserId,
+            u.fullName as lastEditedByUser,
+            cv.chartConfigId,
+            cc.full as configFull,
+            cc.patch as configPatch,
+            cv.parentChartId,
+            pcc.full as parentConfigFull
+        FROM chart_views cv
+        JOIN chart_configs cc ON cv.chartConfigId = cc.id
+        JOIN charts pc ON cv.parentChartId = pc.id
+        JOIN chart_configs pcc ON pc.configId = pcc.id
+        JOIN users u ON cv.lastEditedByUserId = u.id
+        WHERE cv.id = ?
+        `,
+            [id]
+        )
+
+        if (!row) {
+            throw new JsonError(`No chart view found for id ${id}`, 404)
+        }
+
+        const chartView = {
+            ...row,
+            configFull: JSON.parse(row.configFull),
+            configPatch: JSON.parse(row.configPatch),
+            parentConfigFull: JSON.parse(row.parentConfigFull),
+        }
+
+        return chartView
+    }
+)
+
 postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
     const { slug, parentChartId } = req.body as Pick<
         DbPlainChartView,
