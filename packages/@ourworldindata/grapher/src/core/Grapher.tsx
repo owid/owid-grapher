@@ -1942,7 +1942,7 @@ export class Grapher
 
     @computed
     get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): GrapherChartType {
-        return this.isLineChartThatTurnedIntoDiscreteBar
+        return this.isLineChartThatTurnedIntoDiscreteBarActive
             ? GRAPHER_CHART_TYPES.DiscreteBar
             : (this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart)
     }
@@ -1999,6 +1999,12 @@ export class Grapher
         const closestMinTime = findClosestTime(times, minTime ?? -Infinity)
         const closestMaxTime = findClosestTime(times, maxTime ?? Infinity)
         return closestMinTime !== undefined && closestMinTime === closestMaxTime
+    }
+
+    @computed get isLineChartThatTurnedIntoDiscreteBarActive(): boolean {
+        return (
+            this.isOnLineChartTab && this.isLineChartThatTurnedIntoDiscreteBar
+        )
     }
 
     @computed get isOnLineChartTab(): boolean {
