@@ -1,4 +1,4 @@
-import React from "react"
+import React, { SVGProps } from "react"
 import {
     Bounds,
     DEFAULT_BOUNDS,
@@ -20,6 +20,7 @@ import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     BASE_FONT_SIZE,
+    GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
@@ -601,6 +602,15 @@ export class SlopeChart
         this.onSlopeMouseLeave()
     }
 
+    @computed private get lineStrokeWidth(): number {
+        const factor = this.manager.isStaticAndSmall ? 2 : 1
+        return factor * 2
+    }
+
+    @computed private get backgroundColor(): string {
+        return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
+    }
+
     @computed get renderUid(): number {
         return guid()
     }
@@ -697,6 +707,9 @@ export class SlopeChart
                 series={series}
                 color={series.color}
                 mode={mode}
+                strokeWidth={this.lineStrokeWidth}
+                outlineWidth={0.25}
+                outlineStroke={this.backgroundColor}
             />
         )
     }
@@ -809,6 +822,10 @@ interface SlopeProps {
     series: PlacedSlopeChartSeries
     color: string
     mode?: RenderMode
+    dotRadius?: number
+    strokeWidth?: number
+    outlineWidth?: number
+    outlineStroke?: string
     onMouseOver?: (series: SlopeChartSeries) => void
     onMouseLeave?: () => void
 }
@@ -817,16 +834,20 @@ function Slope({
     series,
     color,
     mode = RenderMode.default,
+    dotRadius = 3.5,
+    strokeWidth = 2,
+    outlineWidth = 0.5,
+    outlineStroke = "#fff",
     onMouseOver,
     onMouseLeave,
 }: SlopeProps) {
     const { seriesName, startPoint, endPoint } = series
 
-    const usedColor = {
-        [RenderMode.default]: color,
-        [RenderMode.focus]: color,
-        [RenderMode.mute]: "#e2e2e2",
-        [RenderMode.background]: "#e2e2e2",
+    const opacity = {
+        [RenderMode.default]: 1,
+        [RenderMode.focus]: 1,
+        [RenderMode.mute]: 0.3,
+        [RenderMode.background]: 0.3,
     }[mode]
 
     return (
@@ -835,22 +856,72 @@ function Slope({
             onMouseOver={() => onMouseOver?.(series)}
             onMouseLeave={() => onMouseLeave?.()}
         >
+            <HaloLine
+                startPoint={startPoint}
+                endPoint={endPoint}
+                stroke={color}
+                strokeWidth={strokeWidth}
+                outlineWidth={outlineWidth}
+                outlineStroke={outlineStroke}
+                opacity={opacity}
+            />
+            <circle
+                cx={startPoint.x}
+                cy={startPoint.y}
+                r={dotRadius}
+                fill={color}
+                fillOpacity={opacity}
+                stroke={outlineStroke}
+                strokeWidth={outlineWidth}
+            />
+            <circle
+                cx={endPoint.x}
+                cy={endPoint.y}
+                r={dotRadius}
+                fill={color}
+                fillOpacity={opacity}
+                stroke={outlineStroke}
+                strokeWidth={outlineWidth}
+            />
+        </g>
+    )
+}
+
+interface HaloLineProps extends SVGProps<SVGLineElement> {
+    startPoint: PointVector
+    endPoint: PointVector
+    strokeWidth?: number
+    outlineWidth?: number
+    outlineStroke?: string
+}
+
+function HaloLine(props: HaloLineProps): React.ReactElement {
+    const {
+        startPoint,
+        endPoint,
+        outlineWidth = 0.5,
+        outlineStroke = "#fff",
+        ...styleProps
+    } = props
+    return (
+        <>
             <line
                 x1={startPoint.x}
                 y1={startPoint.y}
                 x2={endPoint.x}
                 y2={endPoint.y}
-                stroke={usedColor}
-                strokeWidth={4}
+                {...styleProps}
+                stroke={outlineStroke}
+                strokeWidth={(props.strokeWidth ?? 1) + 2 * outlineWidth}
             />
-            <circle
-                cx={startPoint.x}
-                cy={startPoint.y}
-                r={4}
-                fill={usedColor}
+            <line
+                x1={startPoint.x}
+                y1={startPoint.y}
+                x2={endPoint.x}
+                y2={endPoint.y}
+                {...styleProps}
             />
-            <circle cx={endPoint.x} cy={endPoint.y} r={4} fill={usedColor} />
-        </g>
+        </>
     )
 }
 
@@ -921,6 +992,7 @@ function MarkX({
                 textAnchor="middle"
                 fill={GRAPHER_DARK_TEXT}
                 fontSize={fontSize}
+                fontWeight={600}
             >
                 {label}
             </text>
