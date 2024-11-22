@@ -27,7 +27,7 @@ export function getSeriesName({
 
     // if columns are plotted, use the column name
     // and prepend the entity name if multiple entities can be selected
-    return availableEntityNames.length > 1 && canSelectMultipleEntities
+    return availableEntityNames.length > 1 || canSelectMultipleEntities
         ? `${entityName} - ${columnName}`
         : columnName
 }
