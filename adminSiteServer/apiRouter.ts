@@ -106,12 +106,16 @@ import {
     R2GrapherConfigDirectory,
     ChartConfigsTableName,
     Base64String,
+    DbPlainChartView,
+    ChartViewsTableName,
+    DbInsertChartView,
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
 import {
     migrateGrapherConfigToLatestVersion,
     getVariableDataRoute,
     getVariableMetadataRoute,
+    defaultGrapherConfig,
 } from "@ourworldindata/grapher"
 import { getDatasetById, setTagsForDataset } from "../db/model/Dataset.js"
 import { getUserById, insertUser, updateUser } from "../db/model/User.js"
@@ -187,8 +191,10 @@ import { createMultiDimConfig } from "./multiDim.js"
 import { isMultiDimDataPagePublished } from "../db/model/MultiDimDataPage.js"
 import {
     retrieveChartConfigFromDbAndSaveToR2,
+    saveNewChartConfigInDbAndR2,
     updateChartConfigInDbAndR2,
 } from "./chartConfigHelpers.js"
+import { CHART_VIEW_PROPS_TO_PERSIST } from "../db/model/ChartView.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -3261,5 +3267,203 @@ postRouteWithRWTransaction(apiRouter, "/tagGraph", async (req, res, trx) => {
     await db.updateTagGraph(trx, tagGraph)
     res.send({ success: true })
 })
+
+const createPatchConfigAndFullConfigForChartView = async (
+    knex: db.KnexReadonlyTransaction,
+    parentChartId: number,
+    config: GrapherInterface
+) => {
+    const parentChartConfig = await expectChartById(knex, parentChartId)
+
+    const patchToParentChart = diffGrapherConfigs(config, parentChartConfig)
+
+    const fullConfigIncludingDefaults = mergeGrapherConfigs(
+        defaultGrapherConfig,
+        config
+    )
+    const patchConfigToSave = {
+        ...patchToParentChart,
+
+        // We want to make sure we're explicitly persisting some props like entity selection
+        // always, so they never change when the parent chart changes.
+        // For this, we need to ensure we include the default layer, so that we even
+        // persist these props when they are the same as the default.
+        ...pick(fullConfigIncludingDefaults, CHART_VIEW_PROPS_TO_PERSIST),
+    }
+
+    const fullConfig = mergeGrapherConfigs(parentChartConfig, patchConfigToSave)
+    return { patchConfig: patchConfigToSave, fullConfig }
+}
+
+interface ApiChartViewOverview {
+    id: number
+    slug: string
+    parent: {
+        id: number
+        title: string
+    }
+    updatedAt: string | null
+    lastEditedByUser: string | null
+    chartConfigId: string
+    title: string
+}
+
+getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
+    type ChartViewRow = Pick<DbPlainChartView, "id" | "slug" | "updatedAt"> & {
+        lastEditedByUser: string
+        chartConfigId: string
+        title: string
+        parentChartId: number
+        parentTitle: string
+    }
+
+    const rows: ChartViewRow[] = await db.knexRaw(
+        trx,
+        `-- sql
+        SELECT
+            cv.id,
+            cv.slug,
+            cv.updatedAt,
+            cv.lastEditedByUserId,
+            cv.chartConfigId,
+            cv.parentChartId,
+            cc.full ->> "$.title" as title,
+            pcc.full ->> "$.title" as parentTitle,
+            u.fullName as lastEditedByUser
+        FROM chart_views cv
+        JOIN chart_configs cc ON cv.chartConfigId = cc.id
+        JOIN charts pc ON cv.parentChartId = pc.id
+        JOIN chart_configs pcc ON pc.configId = pcc.id
+        JOIN users u ON cv.lastEditedByUserId = u.id
+        `
+    )
+
+    const chartViews: ApiChartViewOverview[] = rows.map((row) => ({
+        id: row.id,
+        slug: row.slug,
+        updatedAt: row.updatedAt?.toISOString() ?? null,
+        lastEditedByUser: row.lastEditedByUser,
+        chartConfigId: row.chartConfigId,
+        title: row.title,
+        parent: {
+            id: row.parentChartId,
+            title: row.parentTitle,
+        },
+    }))
+
+    return { chartViews }
+})
+
+postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
+    const { slug, parentChartId } = req.body as Pick<
+        DbPlainChartView,
+        "slug" | "parentChartId"
+    >
+    const rawConfig = req.body.config as GrapherInterface
+    if (!slug || !parentChartId || !rawConfig) {
+        throw new JsonError("Invalid request", 400)
+    }
+
+    const { patchConfig, fullConfig } =
+        await createPatchConfigAndFullConfigForChartView(
+            trx,
+            parentChartId,
+            rawConfig
+        )
+
+    const { chartConfigId } = await saveNewChartConfigInDbAndR2(
+        trx,
+        undefined,
+        patchConfig,
+        fullConfig
+    )
+
+    // insert into chart_views
+    const insertRow: DbInsertChartView = {
+        slug,
+        parentChartId,
+        lastEditedByUserId: res.locals.user.id,
+        chartConfigId: chartConfigId,
+    }
+    const result = await trx.table(ChartViewsTableName).insert(insertRow)
+    const [resultId] = result
+
+    return { chartViewId: resultId, success: true }
+})
+
+putRouteWithRWTransaction(
+    apiRouter,
+    "/chartViews/:id",
+    async (req, res, trx) => {
+        const id = expectInt(req.params.id)
+        const rawConfig = req.body.config as GrapherInterface
+        if (!rawConfig) {
+            throw new JsonError("Invalid request", 400)
+        }
+
+        const existingRow: Pick<
+            DbPlainChartView,
+            "chartConfigId" | "parentChartId"
+        > = await trx(ChartViewsTableName)
+            .select("parentChartId", "chartConfigId")
+            .where({ id })
+            .first()
+
+        if (!existingRow) {
+            throw new JsonError(`No chart view found for id ${id}`, 404)
+        }
+
+        const { patchConfig, fullConfig } =
+            await createPatchConfigAndFullConfigForChartView(
+                trx,
+                existingRow.parentChartId,
+                rawConfig
+            )
+
+        await updateChartConfigInDbAndR2(
+            trx,
+            existingRow.chartConfigId as Base64String,
+            patchConfig,
+            fullConfig
+        )
+
+        // update chart_views
+        await trx.table(ChartViewsTableName).where({ id }).update({
+            updatedAt: new Date(),
+            lastEditedByUserId: res.locals.user.id,
+        })
+
+        return { success: true }
+    }
+)
+
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/chartViews/:id",
+    async (req, res, trx) => {
+        const id = expectInt(req.params.id)
+
+        const chartConfigId: string | undefined = await trx(ChartViewsTableName)
+            .select("chartConfigId")
+            .where({ id })
+            .first()
+            .then((row) => row?.chartConfigId)
+
+        if (!chartConfigId) {
+            throw new JsonError(`No chart view found for id ${id}`, 404)
+        }
+
+        await trx.table(ChartViewsTableName).where({ id }).delete()
+
+        await deleteGrapherConfigFromR2ByUUID(chartConfigId)
+
+        await trx
+            .table(ChartConfigsTableName)
+            .where({ id: chartConfigId })
+            .delete()
+
+        return { success: true }
+    }
+)
 
 export { apiRouter }

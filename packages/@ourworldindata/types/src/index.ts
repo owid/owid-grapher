@@ -466,6 +466,11 @@ export {
     type DbChartTagJoin,
 } from "./dbTypes/ChartTags.js"
 export {
+    type DbPlainChartView,
+    type DbInsertChartView,
+    ChartViewsTableName,
+} from "./dbTypes/ChartViews.js"
+export {
     ChartsXEntitiesTableName,
     type DbInsertChartXEntity,
     type DbPlainChartXEntity,
