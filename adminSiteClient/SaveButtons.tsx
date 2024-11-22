@@ -12,6 +12,10 @@ import {
     ErrorMessagesForDimensions,
 } from "./ChartEditorTypes.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import {
+    ChartViewEditor,
+    isChartViewEditorInstance,
+} from "./ChartViewEditor.js"
 
 @observer
 export class SaveButtons<
@@ -29,6 +33,13 @@ export class SaveButtons<
         else if (isIndicatorChartEditorInstance(editor))
             return (
                 <SaveButtonsForIndicatorChart
+                    editor={editor}
+                    {...passthroughProps}
+                />
+            )
+        else if (isChartViewEditorInstance(editor))
+            return (
+                <SaveButtonsForChartView
                     editor={editor}
                     {...passthroughProps}
                 />
@@ -162,6 +173,56 @@ class SaveButtonsForIndicatorChart extends React.Component<{
                         ? "Create indicator chart"
                         : "Update indicator chart"}
                 </button>
+            </div>
+        )
+    }
+}
+
+@observer
+class SaveButtonsForChartView extends React.Component<{
+    editor: ChartViewEditor
+    errorMessages: ErrorMessages
+    errorMessagesForDimensions: ErrorMessagesForDimensions
+}> {
+    @action.bound onSaveChart() {
+        void this.props.editor.saveGrapher()
+    }
+
+    @computed get hasEditingErrors(): boolean {
+        const { errorMessages, errorMessagesForDimensions } = this.props
+
+        if (!isEmpty(errorMessages)) return true
+
+        const allErrorMessagesForDimensions = Object.values(
+            errorMessagesForDimensions
+        ).flat()
+        return allErrorMessagesForDimensions.some((error) => error)
+    }
+
+    render() {
+        const { hasEditingErrors } = this
+        const { editor } = this.props
+        const { grapher } = editor
+
+        const isSavingDisabled = grapher.hasFatalErrors || hasEditingErrors
+
+        return (
+            <div className="SaveButtons">
+                <button
+                    className="btn btn-success"
+                    onClick={this.onSaveChart}
+                    disabled={isSavingDisabled}
+                >
+                    Save chart view
+                </button>{" "}
+                <a
+                    className="btn btn-secondary"
+                    href={`/admin/charts/${editor.parentChartId}/edit`}
+                    target="_blank"
+                    rel="noopener"
+                >
+                    Go to parent chart
+                </a>
             </div>
         )
     }

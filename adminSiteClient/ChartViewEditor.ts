@@ -14,6 +14,7 @@ export interface Chart {
 
 export interface ChartViewEditorManager extends AbstractChartEditorManager {
     chartViewId: number
+    parentChartId: number
 }
 
 export class ChartViewEditor extends AbstractChartEditor<ChartViewEditorManager> {
@@ -38,6 +39,10 @@ export class ChartViewEditor extends AbstractChartEditor<ChartViewEditorManager>
 
     @computed get isNewGrapher(): boolean {
         return false
+    }
+
+    @computed get parentChartId(): number {
+        return this.manager.parentChartId
     }
 
     async saveGrapher({
