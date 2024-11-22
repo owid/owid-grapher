@@ -124,8 +124,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return min(this.allTimes) as Time
     }
 
-    @imemo get maxTime(): Time {
-        return max(this.allTimes) as Time
+    @imemo get maxTime(): number | undefined {
+        return max(this.allTimes)
     }
 
     @imemo private get allTimes(): Time[] {
