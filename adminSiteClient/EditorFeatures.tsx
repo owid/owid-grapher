@@ -119,9 +119,9 @@ export class EditorFeatures {
             return true
         }
 
-        // for line charts, specifying a missing data strategy only makes sense
+        // for line and slope charts, specifying a missing data strategy only makes sense
         // if there are multiple entities
-        if (this.grapher.isLineChart) {
+        if (this.grapher.isLineChart || this.grapher.isSlopeChart) {
             return (
                 this.grapher.canChangeEntity ||
                 this.grapher.canSelectMultipleEntities
