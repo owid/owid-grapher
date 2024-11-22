@@ -113,15 +113,6 @@ export class SlopeChart
         if (this.isLogScale)
             table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
 
-        // drop all data when the author chose to hide entities with missing data and
-        // at least one of the variables has no data for the current entity
-        if (
-            this.missingDataStrategy === MissingDataStrategy.hide &&
-            table.hasAnyColumnNoValidValue(this.yColumnSlugs)
-        ) {
-            table = table.dropAllRows()
-        }
-
         return table
     }
 
@@ -315,8 +306,8 @@ export class SlopeChart
     ): RawSlopeChartSeries {
         const { startTime, endTime, seriesStrategy } = this
         const { canSelectMultipleEntities = false } = this.manager
-        const { availableEntityNames } = this.transformedTable
 
+        const { availableEntityNames } = this.selectionArray
         const columnName = column.nonEmptyDisplayName
         const seriesName = getSeriesName({
             entityName,
@@ -346,6 +337,7 @@ export class SlopeChart
 
         return {
             seriesName,
+            entityName,
             color,
             startValue,
             endValue,
@@ -359,7 +351,35 @@ export class SlopeChart
         return series.startValue !== undefined && series.endValue !== undefined
     }
 
-    @computed get rawSeries(): RawSlopeChartSeries[] {
+    /**
+     * Usually we drop rows with missing data in the transformTable function.
+     * But slope charts have a "No data" section. If slopes that have data
+     * but shouldn't be plotted because a "sibling" slope of the same entity
+     * doesn't have data are dropped from the transformed table, then we
+     * would have no way of knowing whether a slope has been dropped because
+     * it actually had no data or a sibling slope had no data. That's why we
+     * filter out slopes that are valid but shouldn't be plotted here, so
+     * that the noDataSeries is populated correctly.
+     */
+    private shouldSeriesBePlotted(
+        series: RawSlopeChartSeries
+    ): series is SlopeChartSeries {
+        if (!this.isSeriesValid(series)) return false
+
+        if (
+            this.seriesStrategy === SeriesStrategy.column &&
+            this.missingDataStrategy === MissingDataStrategy.hide
+        ) {
+            const entitySeries = this.rawSeriesByEntityName.get(
+                series.entityName
+            )
+            return !!entitySeries?.every((series) => this.isSeriesValid(series))
+        }
+
+        return true
+    }
+
+    @computed private get rawSeries(): RawSlopeChartSeries[] {
         return this.yColumns.flatMap((column) =>
             this.selectionArray.selectedEntityNames.map((entityName) =>
                 this.constructSingleSeries(entityName, column)
@@ -367,19 +387,35 @@ export class SlopeChart
         )
     }
 
-    @computed get series(): SlopeChartSeries[] {
-        return this.rawSeries.filter(this.isSeriesValid)
+    @computed private get rawSeriesByEntityName(): Map<
+        SeriesName,
+        RawSlopeChartSeries[]
+    > {
+        const map = new Map<SeriesName, RawSlopeChartSeries[]>()
+        this.rawSeries.forEach((series) => {
+            const { entityName } = series
+            if (!map.has(entityName)) map.set(entityName, [])
+            map.get(entityName)!.push(series)
+        })
+        return map
+    }
+
+    @computed private get series(): SlopeChartSeries[] {
+        return this.rawSeries.filter((series) =>
+            this.shouldSeriesBePlotted(series)
+        )
     }
 
     @computed private get placedSeries(): PlacedSlopeChartSeries[] {
         const { yAxis, startX, endX } = this
 
         return this.series.map((series) => {
-            const startPoint = new PointVector(
-                startX,
-                yAxis.place(series.startValue)
-            )
-            const endPoint = new PointVector(endX, yAxis.place(series.endValue))
+            const startY = yAxis.place(series.startValue)
+            const endY = yAxis.place(series.endValue)
+
+            const startPoint = new PointVector(startX, startY)
+            const endPoint = new PointVector(endX, endY)
+
             return { ...series, startPoint, endPoint }
         })
     }
