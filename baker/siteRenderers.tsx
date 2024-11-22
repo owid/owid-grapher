@@ -144,9 +144,8 @@ export function renderDynamicCollectionPage() {
     return renderToHtmlPage(<DynamicCollectionPage baseUrl={BAKED_BASE_URL} />)
 }
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
 export const renderGdocsPageBySlug = async (
-    knex: KnexReadWriteTransaction,
+    knex: KnexReadonlyTransaction,
     slug: string,
     isPreviewing: boolean = false
 ): Promise<string | undefined> => {
@@ -242,8 +241,7 @@ export const renderPost = async (
     )
 }
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-export const renderFrontPage = async (knex: KnexReadWriteTransaction) => {
+export const renderFrontPage = async (knex: KnexReadonlyTransaction) => {
     const gdocHomepageId = await getHomepageId(knex)
 
     if (gdocHomepageId) {
@@ -260,8 +258,7 @@ export const renderFrontPage = async (knex: KnexReadWriteTransaction) => {
     }
 }
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-export const renderDonatePage = async (knex: KnexReadWriteTransaction) => {
+export const renderDonatePage = async (knex: KnexReadonlyTransaction) => {
     const faqsGdoc = (await getAndLoadGdocById(
         knex,
         GDOCS_DONATE_FAQS_DOCUMENT_ID
@@ -301,10 +298,9 @@ export const renderDataInsightsIndexPage = (
     )
 }
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
 export const renderBlogByPageNum = async (
     pageNum: number,
-    knex: KnexReadWriteTransaction
+    knex: KnexReadonlyTransaction
 ) => {
     const allPosts = await getBlogIndex(knex)
 
@@ -330,13 +326,12 @@ export const renderSearchPage = () =>
 export const renderNotFoundPage = () =>
     renderToHtmlPage(<NotFoundPage baseUrl={BAKED_BASE_URL} />)
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-export async function makeAtomFeed(knex: KnexReadWriteTransaction) {
+export async function makeAtomFeed(knex: KnexReadonlyTransaction) {
     const posts = (await getBlogIndex(knex)).slice(0, 10)
     return makeAtomFeedFromPosts({ posts })
 }
 
-export async function makeDataInsightsAtomFeed(knex: KnexReadWriteTransaction) {
+export async function makeDataInsightsAtomFeed(knex: KnexReadonlyTransaction) {
     const dataInsights = await getAndLoadPublishedDataInsightsPage(knex, 0)
     return makeAtomFeedFromDataInsights({
         dataInsights,
@@ -348,9 +343,7 @@ export async function makeDataInsightsAtomFeed(knex: KnexReadWriteTransaction) {
 // We don't want to include topic pages in the atom feed that is being consumed
 // by Mailchimp for sending the "immediate update" newsletter. Instead topic
 // pages announcements are sent out manually.
-
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-export async function makeAtomFeedNoTopicPages(knex: KnexReadWriteTransaction) {
+export async function makeAtomFeedNoTopicPages(knex: KnexReadonlyTransaction) {
     const posts = (await getBlogIndex(knex))
         .filter((post: IndexPost) => post.type !== OwidGdocType.TopicPage)
         .slice(0, 10)

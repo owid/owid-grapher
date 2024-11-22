@@ -23,7 +23,7 @@ import {
     GrapherInterface,
     OwidGdocBaseInterface,
 } from "@ourworldindata/types"
-import { KnexReadWriteTransaction } from "../db/db.js"
+import { KnexReadonlyTransaction } from "../db/db.js"
 import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { getSlugForTopicTag } from "./GrapherBakingUtils.js"
@@ -88,8 +88,7 @@ export const getDatapageDataV2 = async (
  * see https://github.com/owid/owid-grapher/issues/2121#issue-1676097164
  */
 export const getDatapageGdoc = async (
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    knex: KnexReadWriteTransaction,
+    knex: KnexReadonlyTransaction,
     googleDocEditLinkOrId: string,
     isPreviewing: boolean
 ): Promise<OwidGdocBaseInterface | null> => {
@@ -137,7 +136,7 @@ type EnrichedFaqLookupSuccess = {
 type EnrichedFaqLookupResult = EnrichedFaqLookupError | EnrichedFaqLookupSuccess
 
 export const fetchAndParseFaqs = async (
-    knex: KnexReadWriteTransaction, // TODO: this transaction is only RW because somewhere inside it we fetch images
+    knex: KnexReadonlyTransaction,
     faqGdocIds: string[],
     { isPreviewing }: { isPreviewing: boolean }
 ) => {
@@ -189,7 +188,7 @@ export const resolveFaqsForVariable = (
 }
 
 export const getPrimaryTopic = async (
-    knex: KnexReadWriteTransaction,
+    knex: KnexReadonlyTransaction,
     firstTopicTag: string | undefined
 ) => {
     if (!firstTopicTag) return undefined

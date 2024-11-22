@@ -61,9 +61,8 @@ export class GdocDataInsight
         this.imageMetadata = Object.assign(this.imageMetadata, imageMetadata)
     }
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
     static async getPublishedDataInsights(
-        knex: db.KnexReadWriteTransaction,
+        knex: db.KnexReadonlyTransaction,
         page?: number
     ): Promise<GdocDataInsight[]> {
         return getAndLoadPublishedDataInsightsPage(knex, page)

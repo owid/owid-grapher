@@ -43,10 +43,7 @@ import {
 import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
 import { DbPlainDatasetFile, DbPlainDataset } from "@ourworldindata/types"
-import {
-    getPlainRouteNonIdempotentWithRWTransaction,
-    getPlainRouteWithROTransaction,
-} from "./plainRouterHelpers.js"
+import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
 import { renderMultiDimDataPageFromConfig } from "../baker/MultiDimBaker.js"
 
@@ -323,8 +320,7 @@ getPlainRouteWithROTransaction(
         return res.send(explorerPage)
     }
 )
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
+getPlainRouteWithROTransaction(
     adminRouter,
     "/datapage-preview/:id",
     async (req, res, trx) => {
@@ -345,8 +341,7 @@ getPlainRouteNonIdempotentWithRWTransaction(
         )
     }
 )
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
+getPlainRouteWithROTransaction(
     adminRouter,
     "/grapher/:slug",
     async (req, res, trx) => {

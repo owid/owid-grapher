@@ -94,8 +94,7 @@ const mockSiteRouter = Router()
 mockSiteRouter.use(express.urlencoded({ extended: true }))
 mockSiteRouter.use(express.json())
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
+getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/atom.xml",
     async (req, res, trx) => {
@@ -105,8 +104,7 @@ getPlainRouteNonIdempotentWithRWTransaction(
     }
 )
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
+getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/atom-no-topic-pages.xml",
     async (req, res, trx) => {
@@ -116,21 +114,17 @@ getPlainRouteNonIdempotentWithRWTransaction(
     }
 )
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
+getPlainRouteWithROTransaction(
     mockSiteRouter,
     `/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
-    async (_, res) => {
+    async (_, res, trx) => {
         res.set("Content-Type", "application/xml")
-        const atomFeedDataInsights = await db.knexReadWriteTransaction((knex) =>
-            makeDataInsightsAtomFeed(knex)
-        )
+        const atomFeedDataInsights = await makeDataInsightsAtomFeed(trx)
         res.send(atomFeedDataInsights)
     }
 )
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
+getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/sitemap.xml",
     async (req, res, trx) => {
@@ -261,8 +255,7 @@ getPlainRouteWithROTransaction(
     }
 )
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
+getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/grapher/:slug",
     async (req, res, trx) => {
@@ -292,29 +285,20 @@ getPlainRouteNonIdempotentWithRWTransaction(
     }
 )
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
-    mockSiteRouter,
-    "/",
-    async (req, res, trx) => {
-        const frontPage = await renderFrontPage(trx)
-        res.send(frontPage)
-    }
-)
+getPlainRouteWithROTransaction(mockSiteRouter, "/", async (_, res, trx) => {
+    const frontPage = await renderFrontPage(trx)
+    res.send(frontPage)
+})
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
-    mockSiteRouter,
-    "/donate",
-    async (req, res, trx) => res.send(await renderDonatePage(trx))
+getPlainRouteWithROTransaction(mockSiteRouter, "/donate", async (_, res, trx) =>
+    res.send(await renderDonatePage(trx))
 )
 
 mockSiteRouter.get("/thank-you", async (req, res) =>
     res.send(await renderThankYouPage())
 )
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
+getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/data-insights/:pageNumberOrSlug?",
     async (req, res, trx) => {
@@ -370,8 +354,7 @@ getPlainRouteWithROTransaction(
     }
 )
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
+getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/datapage-preview/:id",
     async (req, res, trx) => {
@@ -411,18 +394,16 @@ mockSiteRouter.get("/search", async (req, res) =>
     res.send(await renderSearchPage())
 )
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
+getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/latest",
-    async (req, res, trx) => {
+    async (_, res, trx) => {
         const latest = await renderBlogByPageNum(1, trx)
         res.send(latest)
     }
 )
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
+getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/latest/page/:pageno",
     async (req, res, trx) => {
@@ -599,30 +580,25 @@ getPlainRouteWithROTransaction(
     }
 )
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
-    mockSiteRouter,
-    "/*",
-    async (req, res, trx) => {
-        // Remove leading and trailing slashes
-        const slug = req.path.replace(/^\/|\/$/g, "")
+getPlainRouteWithROTransaction(mockSiteRouter, "/*", async (req, res, trx) => {
+    // Remove leading and trailing slashes
+    const slug = req.path.replace(/^\/|\/$/g, "")
 
-        try {
-            const page = await renderGdocsPageBySlug(trx, slug)
-            res.send(page)
-            return
-        } catch (e) {
-            console.error(e)
-        }
-
-        try {
-            const page = await renderPageBySlug(slug, trx)
-            res.send(page)
-        } catch (e) {
-            console.error(e)
-            res.status(404).send(renderNotFoundPage())
-        }
+    try {
+        const page = await renderGdocsPageBySlug(trx, slug)
+        res.send(page)
+        return
+    } catch (e) {
+        console.error(e)
     }
-)
+
+    try {
+        const page = await renderPageBySlug(slug, trx)
+        res.send(page)
+    } catch (e) {
+        console.error(e)
+        res.status(404).send(renderNotFoundPage())
+    }
+})
 
 export { mockSiteRouter }

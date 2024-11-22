@@ -60,7 +60,7 @@ const getRelevantVariableMetadata = async (
 }
 
 const getFaqEntries = async (
-    knex: db.KnexReadWriteTransaction, // TODO: this transaction is only RW because somewhere inside it we fetch images
+    knex: db.KnexReadonlyTransaction,
     config: MultiDimDataPageConfigPreProcessed,
     variableMetadataDict: Record<number, OwidVariableWithSource>
 ): Promise<FaqEntryKeyedByGdocIdAndFragmentId> => {
@@ -117,7 +117,7 @@ const getFaqEntries = async (
 }
 
 export const renderMultiDimDataPageFromConfig = async (
-    knex: db.KnexReadWriteTransaction,
+    knex: db.KnexReadonlyTransaction,
     slug: string,
     config: MultiDimDataPageConfigEnriched
 ) => {
@@ -148,7 +148,7 @@ export const renderMultiDimDataPageFromConfig = async (
 }
 
 export const renderMultiDimDataPageBySlug = async (
-    knex: db.KnexReadWriteTransaction,
+    knex: db.KnexReadonlyTransaction,
     slug: string,
     { onlyPublished = true }: { onlyPublished?: boolean } = {}
 ) => {
@@ -165,7 +165,7 @@ export const renderMultiDimDataPageFromProps = async (
 }
 
 export const bakeMultiDimDataPage = async (
-    knex: db.KnexReadWriteTransaction,
+    knex: db.KnexReadonlyTransaction,
     bakedSiteDir: string,
     slug: string,
     config: MultiDimDataPageConfigEnriched
@@ -180,7 +180,7 @@ export const bakeMultiDimDataPage = async (
 }
 
 export const bakeAllMultiDimDataPages = async (
-    knex: db.KnexReadWriteTransaction,
+    knex: db.KnexReadonlyTransaction,
     bakedSiteDir: string
 ) => {
     const multiDimsBySlug = await getAllMultiDimDataPages(knex)
