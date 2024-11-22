@@ -7,28 +7,18 @@ import {
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
-import { DEFAULT_SLOPE_CHART_COLOR } from "./SlopeChartConstants"
-import { isNumber, OwidTableSlugs } from "@ourworldindata/utils"
+import { isNumber } from "@ourworldindata/utils"
 
 const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
 const manager: ChartManager = {
     table,
     yColumnSlug: SampleColumnSlugs.Population,
+    selection: table.availableEntityNames,
 }
 
 it("can create a new slope chart", () => {
     const chart = new SlopeChart({ manager })
     expect(chart.series.length).toEqual(2)
-})
-
-it("slope charts can have different colors", () => {
-    const manager: ChartManager = {
-        table,
-        yColumnSlug: SampleColumnSlugs.Population,
-        colorColumnSlug: OwidTableSlugs.entityName,
-    }
-    const chart = new SlopeChart({ manager })
-    expect(chart.series[0].color).not.toEqual(DEFAULT_SLOPE_CHART_COLOR)
 })
 
 it("filters non-numeric values", () => {
