@@ -119,8 +119,8 @@ export class MapTooltip
             : targetTime?.toString()
         const displayDatumTime =
             timeColumn && datum
-                ? timeColumn.formatValue(datum?.time)
-                : (datum?.time.toString() ?? "")
+                ? timeColumn.formatValue(datum?.originalTime)
+                : datum?.originalTime.toString() ?? ""
         const valueColor: string | undefined = darkenColorForHighContrastText(
             lineColorScale?.getColor(datum?.value) ?? "#333"
         )
@@ -143,7 +143,7 @@ export class MapTooltip
         const yColumn = this.mapTable.get(this.mapColumnSlug)
 
         const targetNotice =
-            datum && datum.time !== targetTime ? displayTime : undefined
+            datum && datum.originalTime !== targetTime ? displayTime : undefined
         const toleranceNotice = targetNotice
             ? {
                   icon: TooltipFooterIcon.notice,
