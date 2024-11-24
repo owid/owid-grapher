@@ -19,7 +19,7 @@ export class RadioButton extends React.Component<{
                         onChange={onChange}
                     />
                     <div className="outer">
-                        {checked && <div className="inner" />}
+                        <div className="inner" />
                     </div>
                     <div className="label">{label}</div>
                 </label>

@@ -41,11 +41,17 @@
             height: math.div($radio-size, 2);
             background-color: $active-fill;
             border-radius: 50%;
+            display: none;
         }
     }
 
     input:focus-visible + .outer {
         outline: 2px solid $controls-color;
+    }
+
+    input:active + .outer .inner,
+    input:checked + .outer .inner {
+        display: block;
     }
 
     .label {
