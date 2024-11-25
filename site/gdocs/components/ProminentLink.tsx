@@ -88,6 +88,8 @@ export const ProminentLink = (props: {
         ? "col-sm-start-4 col-md-start-3 col-start-2 col-end-limit"
         : "col-start-1 col-end-limit"
 
+    const shouldVerticallyCenter = !description
+
     return (
         <a
             className={cx(props.className, "prominent-link")}
@@ -95,11 +97,23 @@ export const ProminentLink = (props: {
             {...anchorTagProps}
         >
             {thumbnail ? (
-                <div className="prominent-link__image span-sm-cols-3 span-md-cols-2">
+                <div
+                    className={cx(
+                        "span-sm-cols-3 span-md-cols-2 prominent-link__image",
+                        {
+                            "prominent-link__image--centered":
+                                shouldVerticallyCenter,
+                        }
+                    )}
+                >
                     <Thumbnail thumbnail={thumbnail} />
                 </div>
             ) : null}
-            <div className={textContainerClassName}>
+            <div
+                className={cx(textContainerClassName, {
+                    "prominent-link__text--centered": shouldVerticallyCenter,
+                })}
+            >
                 <div className="prominent-link__heading-wrapper">
                     <h3 className="h3-bold">{title}</h3>
                     {linkType === "url" && (
