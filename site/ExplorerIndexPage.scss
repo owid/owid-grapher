@@ -1,7 +1,19 @@
 .explorer-index-page {
     .explorer-index-page__header {
-        background-color: $gray-10;
-        margin-bottom: 24px;
+        background-color: #f0f4fa;
+        margin-bottom: 16px;
+        padding-bottom: 24px;
+        .h1-semibold {
+            margin-top: 24px;
+            margin-bottom: 8px;
+            @include sm-up {
+                font-size: 2rem;
+            }
+        }
+        p {
+            margin: 0;
+            color: #46688f;
+        }
     }
     .explorer-index-page-list {
         background-color: #fff;

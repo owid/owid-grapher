@@ -28,10 +28,10 @@ export const ExplorerIndexPage = ({
                 <SiteHeader baseUrl={baseUrl} />
                 <main className="explorer-index-page grid grid-cols-12-full-width">
                     <header className="explorer-index-page__header grid grid-cols-12-full-width span-cols-14">
-                        <h1 className="display-2-semibold span-cols-12 col-start-2 collection-title">
+                        <h1 className="h1-semibold span-cols-12 col-start-2 collection-title">
                             Data Explorers
                         </h1>
-                        <p className="span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 body-1-regular collection-explanation">
+                        <p className="span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 body-2-regular collection-explanation">
                             Our data explorers gather many indicators together
                             to provide comprehensive overviews of their topics.
                         </p>
