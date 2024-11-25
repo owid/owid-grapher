@@ -13,6 +13,8 @@ import { useImage } from "../utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
 import { useMediaQuery } from "usehooks-ts"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faDownload } from "@fortawesome/free-solid-svg-icons"
 
 // generates rules that tell the browser:
 // below the medium breakpoint, the image will be 95vw wide
@@ -79,6 +81,7 @@ export default function Image(props: {
     } = props
 
     const className = cx(props.className, {
+        image: true,
         "image--has-outline": hasOutline,
     })
 
@@ -123,10 +126,8 @@ export default function Image(props: {
     }
 
     const alt = props.alt ?? image.defaultAlt
-    const maybeLightboxClassName =
-        containerType === "thumbnail" || !shouldLightbox
-            ? ""
-            : LIGHTBOX_IMAGE_CLASS
+    const isInteractive = containerType !== "thumbnail" && shouldLightbox
+    const maybeLightboxClassName = isInteractive ? LIGHTBOX_IMAGE_CLASS : ""
 
     // TODO: SVG?
 
@@ -145,8 +146,8 @@ export default function Image(props: {
     )
 
     return (
-        <>
-            <picture className={className}>
+        <div className={className}>
+            <picture>
                 {sourceProps.map((props, i) => (
                     <source
                         key={i}
@@ -169,18 +170,26 @@ export default function Image(props: {
                     height={image.originalHeight ?? undefined}
                 />
             </picture>
-            {
-                <button
-                    aria-label={`Download ${filename}`}
-                    className="article-block__image-download-button"
-                    onClick={(e) => {
-                        e.preventDefault()
-                        void handleDownload()
-                    }}
-                >
-                    Download this image
-                </button>
-            }
-        </>
+            {isInteractive && (
+                <div className="article-block__image-download-button-container">
+                    <button
+                        aria-label={`Download ${filename}`}
+                        className="article-block__image-download-button"
+                        onClick={(e) => {
+                            e.preventDefault()
+                            void handleDownload()
+                        }}
+                    >
+                        <FontAwesomeIcon
+                            icon={faDownload}
+                            className="article-block__image-download-button-icon"
+                        />
+                        <span className="article-block__image-download-button-text">
+                            Download image
+                        </span>
+                    </button>
+                </div>
+            )}
+        </div>
     )
 }

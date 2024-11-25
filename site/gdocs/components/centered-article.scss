@@ -335,8 +335,18 @@ h3.article-block__heading {
     width: 100%;
     margin: 32px 0;
 
-    & .image--has-outline {
+    .image {
+        position: relative;
+    }
+
+    & .image--has-outline picture {
         outline: 1px solid $gray-10;
+    }
+
+    @include touch-device {
+        &:has(.article-block__image-download-button-container) {
+            margin-bottom: 16px;
+        }
     }
 
     picture {
@@ -352,14 +362,75 @@ h3.article-block__heading {
         }
     }
 
+    &:hover {
+        .article-block__image-download-button-container {
+            opacity: 1;
+        }
+    }
+
+    .article-block__image-download-button-container {
+        backdrop-filter: blur(1px);
+        bottom: 16px;
+        right: 16px;
+        position: absolute;
+        overflow: hidden;
+        transition: opacity 0.3s ease;
+        opacity: 0;
+        &:has(.article-block__image-download-button:focus) {
+            opacity: 1;
+        }
+
+        @include touch-device {
+            position: initial;
+            margin-top: 16px;
+            opacity: 1;
+
+            .article-block__image-download-button {
+                transform: none;
+                background-color: $blue-20;
+                color: $blue-90;
+                width: 100%;
+                justify-content: center;
+                height: 40px;
+            }
+            .article-block__image-download-button-text {
+                opacity: 1;
+            }
+        }
+    }
+
     .article-block__image-download-button {
-        @include owid-link-90;
-        background-color: transparent;
+        background-color: scale-color($gray-70, $alpha: -25%);
+        display: flex;
+        align-items: center;
         cursor: pointer;
         border: none;
-        font-size: 14px;
-        padding: 0;
-        padding-top: 4px;
+        color: #fff;
+        height: 28px;
+        padding-left: 8px;
+        padding-right: 8px;
+        transform: translateX(calc(100% - 28px));
+        transition: transform 0.3s ease;
+
+        &:hover,
+        &:focus {
+            transform: translateX(0);
+            .article-block__image-download-button-text {
+                opacity: 1;
+            }
+        }
+    }
+    .article-block__image-download-button-icon {
+        width: 12px;
+        height: 12px;
+        margin-right: 4px;
+    }
+    .article-block__image-download-button-text {
+        @include label-2-medium;
+        display: inline-block;
+        line-height: 16px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
     }
 }
 
