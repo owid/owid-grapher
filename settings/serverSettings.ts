@@ -34,9 +34,6 @@ export const ADMIN_BASE_URL: string = clientSettings.ADMIN_BASE_URL
 export const BAKED_GRAPHER_URL: string =
     serverSettings.BAKED_GRAPHER_URL ?? `${BAKED_BASE_URL}/grapher`
 
-export const OPTIMIZE_SVG_EXPORTS: boolean =
-    serverSettings.OPTIMIZE_SVG_EXPORTS === "true"
-
 export const GITHUB_USERNAME: string =
     serverSettings.GITHUB_USERNAME ?? "owid-test"
 export const GIT_DEFAULT_USERNAME: string =

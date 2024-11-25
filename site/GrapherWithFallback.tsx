@@ -1,8 +1,8 @@
 import { Grapher } from "@ourworldindata/grapher"
+import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import React from "react"
 import { GrapherFigureView } from "./GrapherFigureView.js"
 import cx from "classnames"
-import { GRAPHER_PREVIEW_CLASS } from "./SiteConstants.js"
 import GrapherImage from "./GrapherImage.js"
 
 export const GrapherWithFallback = ({
@@ -10,11 +10,13 @@ export const GrapherWithFallback = ({
     slug,
     className,
     id,
+    enablePopulatingUrlParams = false,
 }: {
     grapher?: Grapher | undefined
     slug?: string
     className?: string
     id?: string
+    enablePopulatingUrlParams?: boolean
 }) => {
     return (
         <div
@@ -38,7 +40,14 @@ export const GrapherWithFallback = ({
                             "GrapherWithFallback__fallback"
                         )}
                     >
-                        {slug && <GrapherImage slug={slug} />}
+                        {slug && (
+                            <GrapherImage
+                                slug={slug}
+                                enablePopulatingUrlParams={
+                                    enablePopulatingUrlParams
+                                }
+                            />
+                        )}
                     </figure>
                 )}
             </>
