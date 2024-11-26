@@ -349,7 +349,7 @@ export {
     type UnformattedSpan,
 } from "./gdocTypes/Spans.js"
 
-export type { GDriveImageMetadata, ImageMetadata } from "./gdocTypes/Image.js"
+export type { ImageMetadata } from "./gdocTypes/Image.js"
 export {
     ALL_CHARTS_ID,
     LICENSE_ID,
