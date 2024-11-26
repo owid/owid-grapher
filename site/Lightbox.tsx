@@ -12,6 +12,7 @@ import React, { useCallback, useRef, useState } from "react"
 import ReactDOM from "react-dom"
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch"
 import { useTriggerOnEscape } from "./hooks.js"
+import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 
 export const LIGHTBOX_IMAGE_CLASS = "lightbox-image"
 
@@ -36,14 +37,30 @@ function getActiveSourceImgUrl(img: HTMLImageElement): string | undefined {
     return undefined
 }
 
+// Cloudflare Images URLs end in w=1000, so we need to extract the filename from the URL
+// e.g. https://imagedelivery.net/owid-id/the-filename.png/w=1000 -> the-filename.png
+function getFilenameFromCloudflareUrl(url: string | undefined) {
+    if (!url) return undefined
+    const regex = /\/([^\/]+)\/w=/
+    const match = url.match(regex)
+    if (match) {
+        return match[1]
+    }
+    return undefined
+}
+
 const Lightbox = ({
     children,
     containerNode,
     imgSrc,
+    imgFilename,
 }: {
     children: any
     containerNode: Element | null
     imgSrc: string
+    // With CF Images, the filename is not the last part of the URL
+    // so we need to pass it separately
+    imgFilename?: string
 }) => {
     const [isLoaded, setIsLoaded] = useState(false)
     const contentRef = useRef<HTMLDivElement>(null)
@@ -53,6 +70,13 @@ const Lightbox = ({
             ReactDOM.unmountComponentAtNode(containerNode)
         }
     }, [containerNode])
+
+    const handleDownload = useCallback(async () => {
+        const response = await fetch(imgSrc)
+        const blob = await response.blob()
+        const filename = imgFilename || imgSrc.split("/").pop() || "image"
+        triggerDownloadFromBlob(filename, blob)
+    }, [imgFilename, imgSrc])
 
     useTriggerOnEscape(close)
 
@@ -98,13 +122,12 @@ const Lightbox = ({
                                     >
                                         <FontAwesomeIcon icon={faCompress} />
                                     </button>
-                                    <a
-                                        href={imgSrc}
-                                        download={imgSrc.split("/").pop()}
+                                    <button
+                                        onClick={handleDownload}
                                         aria-label="Download high resolution image"
                                     >
                                         <FontAwesomeIcon icon={faDownload} />
-                                    </a>
+                                    </button>
                                 </>
                             )}
                             <button
@@ -170,6 +193,7 @@ export const runLightbox = () => {
             const highResSrc = img.getAttribute("data-high-res-src")
             // If the image is a Gdoc Image with a smallFilename, get the source that is currently active
             const activeSourceImgUrl = getActiveSourceImgUrl(img)
+            const imgFilename = getFilenameFromCloudflareUrl(activeSourceImgUrl)
             const imgSrc = highResSrc
                 ? // getAttribute doesn't automatically URI encode values, img.src does
                   encodeURI(highResSrc)
@@ -180,7 +204,11 @@ export const runLightbox = () => {
             const imgAlt = img.alt
             if (imgSrc) {
                 ReactDOM.render(
-                    <Lightbox imgSrc={imgSrc} containerNode={lightboxContainer}>
+                    <Lightbox
+                        imgSrc={imgSrc}
+                        imgFilename={imgFilename}
+                        containerNode={lightboxContainer}
+                    >
                         {(isLoaded: boolean, setIsLoaded: any) => (
                             <Image
                                 src={imgSrc}
