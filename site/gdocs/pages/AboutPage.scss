@@ -1,0 +1,74 @@
+.about-header {
+    color: $blue-60;
+}
+
+.about-nav {
+    border-bottom: 1px solid $blue-20;
+}
+
+.about-nav-list {
+    display: flex;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+
+    h2 {
+        margin: 0;
+    }
+}
+
+.about-nav-link {
+    @include body-2-regular;
+    display: block;
+    padding: 16px;
+    color: $blue-60;
+    text-wrap: nowrap;
+
+    &--is-active {
+        @include body-2-semibold;
+        color: $blue-90;
+        border-bottom: 1px solid $vermillion;
+    }
+
+    &:hover {
+        color: $blue-90;
+    }
+}
+
+.about-body {
+    margin-bottom: 80px;
+
+    h2 {
+        @include h1-semibold;
+        color: $blue-60;
+    }
+
+    h2:first-of-type {
+        margin-top: 32px;
+    }
+
+    hr {
+        margin: 40px 0;
+    }
+
+    // Remove some margins since margins don't collapse in display: grid.
+    .article-block__side-by-side {
+        margin: 0;
+    }
+
+    hr + .article-block__side-by-side {
+        h2 {
+            margin-top: 0;
+        }
+
+        *:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    .article-block__side-by-side:has(+ hr) {
+        *:last-child {
+            margin-bottom: 0;
+        }
+    }
+}

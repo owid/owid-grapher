@@ -1,0 +1,52 @@
+import cx from "classnames"
+import * as React from "react"
+
+import { OwidGdocAboutInterface } from "@ourworldindata/types"
+import { ArticleBlocks } from "../components/ArticleBlocks.js"
+
+const NAV_LINKS = [
+    { title: "About Us", href: "/about" },
+    { title: "Organization", href: "/organization" },
+    { title: "Funding", href: "/funding" },
+    { title: "Team", href: "/team" },
+    { title: "Jobs", href: "/jobs" },
+    { title: "FAQs", href: "/faqs" },
+]
+
+export default function AboutPage({ content, slug }: OwidGdocAboutInterface) {
+    return (
+        <main className="grid grid-cols-12-full-width">
+            <h1 className="about-header col-start-2 col-end-limit display-2-semibold">
+                About
+            </h1>
+            <AboutNav slug={slug} />
+            <div className="about-body col-start-2 span-cols-12">
+                <ArticleBlocks blocks={content.body} />
+            </div>
+        </main>
+    )
+}
+
+function AboutNav({ slug }: { slug: string }) {
+    return (
+        <nav className="about-nav grid grid-cols-12-full-width col-start-1 col-end-limit">
+            <ul className="about-nav-list col-start-2">
+                {NAV_LINKS.map(({ title, href }) => (
+                    <li key={href}>
+                        <h2>
+                            <a
+                                className={cx("about-nav-link", {
+                                    "about-nav-link--is-active":
+                                        href === `/${slug}`,
+                                })}
+                                href={href}
+                            >
+                                {title}
+                            </a>
+                        </h2>
+                    </li>
+                ))}
+            </ul>
+        </nav>
+    )
+}

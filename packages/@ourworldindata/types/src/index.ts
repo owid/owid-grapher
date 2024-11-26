@@ -284,6 +284,8 @@ export {
     type OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     type OwidGdocLinkJSON,
+    type OwidGdocAboutContent,
+    type OwidGdocAboutInterface,
     type OwidGdocAuthorContent,
     type OwidGdocAuthorInterface,
     type OwidGdocBaseInterface,
