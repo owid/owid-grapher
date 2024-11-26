@@ -16,6 +16,7 @@ function ExplorerTile({ url }: { url: string }) {
     }
     const icon = linkedChart.tags[0] ? (
         <img
+            className="explorer-tile__icon"
             height={40}
             width={40}
             src={`${BAKED_BASE_URL}/images/tag-icons/${encodeURIComponent(
