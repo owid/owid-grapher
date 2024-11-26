@@ -101,7 +101,7 @@ export function generateSourceProps(
         const smallSizes = getSizes(smallImage.originalWidth)
         props.push({
             media: "(max-width: 768px)",
-            srcSet: generateSrcSet(smallSizes, encodedSmallId),
+            srcSet: generateSrcSet(smallSizes, encodedSmallId, absoluteUrl),
         })
     }
     if (regularImage && regularImage.cloudflareId) {
