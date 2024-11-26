@@ -11,6 +11,7 @@ import {
     getAttributionFragmentsFromVariable,
     getCitationLong,
 } from "@ourworldindata/utils"
+import { getGrapherFilters } from "./urlTools.js"
 
 type MetadataColumn = {
     titleShort: string
@@ -189,6 +190,7 @@ export function assembleMetadata(
         columns: Object.fromEntries(columns),
         // date downloaded should be YYYY-MM-DD
         dateDownloaded: dateDownloaded.toISOString().split("T")[0],
+        activeFilters: getGrapherFilters(searchParams),
     }
 
     return fullMetadata
