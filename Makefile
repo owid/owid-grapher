@@ -27,7 +27,7 @@ help:
 	@echo '  make down                   stop any services still running'
 	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
 	@echo '  make refresh.pageviews      (while up) download and load pageviews from the private datasette instance'
-	@echo '  make refresh.full           (while up) run refresh and refresh.pageviews and sync images from R2'
+	@echo '  make refresh.full           (while up) run refresh and refresh.pageviews'
 	@echo '  make migrate                (while up) run any outstanding db migrations'
 	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
 	@echo '  make dbtest                 run db test suite that needs a running mysql db'
@@ -36,10 +36,10 @@ help:
 	@echo
 	@echo '  GRAPHER + CLOUDFLARE (staff-only)'
 	@echo '  make up.full                start dev environment via docker-compose and tmux'
-	@echo '  make sync-images            sync all images from the remote master'
 	@echo '  make update.chart-entities  update the charts_x_entities join table'
 	@echo '  make reindex                reindex (or initialise) search in Algolia'
 	@echo '  make bench.search           run search benchmarks'
+	@echo '  make sync-cloudflare-images sync Cloudflare Images with local DB'
 
 up: export DEBUG = 'knex:query'
 
@@ -149,23 +149,13 @@ refresh.pageviews: node_modules
 	@echo '==> Refreshing pageviews'
 	yarn refreshPageviews
 
-sync-images: sync-images.preflight-check
-	@echo '==> Syncing images to R2'
-	./devTools/docker/sync-s3-images.sh
-
+# Only needed to run once to seed the prod DB with initially
 sync-cloudflare-images:
-	@echo '==> Syncing images to Cloudflare'
+	@echo '==> Syncing images table with Cloudflare Images'
 	@yarn syncCloudflareImages
 
 refresh.full: refresh refresh.pageviews sync-images
 	@echo '==> Full refresh completed'
-
-sync-images.preflight-check:
-	@echo '==> Checking for rclone'
-	@which rclone >/dev/null 2>&1 || (echo "ERROR: please install rclone -- e.g. brew install rclone"; exit 1)
-	@echo '==> Checking if rclone is configured'
-	@test -f ~/.config/rclone/rclone.conf || (echo "ERROR: please configure rclone -- e.g. rclone configure"; exit 1)
-
 
 down:
 	@echo '==> Stopping services'
