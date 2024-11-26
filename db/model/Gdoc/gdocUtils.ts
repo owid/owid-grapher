@@ -174,6 +174,9 @@ export function extractFilenamesFromBlock(
             if (item.filename) filenames.add(item.filename)
             if (item.smallFilename) filenames.add(item.smallFilename)
         })
+        .with({ type: "person" }, (item) => {
+            if (item.image) filenames.add(item.image)
+        })
         .with({ type: "prominent-link" }, (item) => {
             if (item.thumbnail) filenames.add(item.thumbnail)
         })
@@ -233,6 +236,7 @@ export function extractFilenamesFromBlock(
                     "list",
                     "missing-data",
                     "numbered-list",
+                    "people",
                     "pill-row",
                     "pull-quote",
                     "recirc",

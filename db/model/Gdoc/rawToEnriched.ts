@@ -120,6 +120,10 @@ import {
     SocialLinkType,
     RawBlockLatestWork,
     EnrichedBlockLatestWork,
+    RawBlockPeople,
+    EnrichedBlockPeople,
+    RawBlockPerson,
+    EnrichedBlockPerson,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -166,6 +170,8 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "video" }, parseVideo)
         .with({ type: "list" }, parseList)
         .with({ type: "numbered-list" }, parseNumberedList)
+        .with({ type: "people" }, parsePeople)
+        .with({ type: "person" }, parsePerson)
         .with({ type: "pull-quote" }, parsePullQuote)
         .with(
             { type: "horizontal-rule" },
@@ -789,6 +795,50 @@ const parseList = (raw: RawBlockList): EnrichedBlockList => {
 //     const texts = parsedAsBlocks.map((block) => block.value)
 //     return { errors, texts }
 // }
+
+const parsePerson = (raw: RawBlockPerson): EnrichedBlockPerson => {
+    const createError = (error: ParseError): EnrichedBlockPerson => ({
+        type: "person",
+        name: "",
+        text: [],
+        parseErrors: [error],
+    })
+
+    if (!raw.value?.name) {
+        return createError({ message: "Person must have a name" })
+    }
+
+    return {
+        type: "person",
+        image: raw.value.image,
+        name: raw.value.name,
+        title: raw.value.title,
+        text: raw.value.text.map(parseText),
+        parseErrors: [],
+    }
+}
+
+const parsePeople = (raw: RawBlockPeople): EnrichedBlockPeople => {
+    const createError = (
+        error: ParseError,
+        items: EnrichedBlockPerson[] = []
+    ): EnrichedBlockPeople => ({
+        type: "people",
+        items,
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value === "string")
+        return createError({
+            message: "Value is a string, not a list of {.person} blocks",
+        })
+
+    return {
+        type: "people",
+        items: raw.value.map(parsePerson),
+        parseErrors: [],
+    }
+}
 
 const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
     const createError = (

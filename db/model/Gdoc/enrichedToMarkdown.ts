@@ -6,6 +6,7 @@ import { getLinkType } from "@ourworldindata/components"
 import {
     OwidEnrichedGdocBlock,
     Span,
+    compact,
     excludeNullish,
     isArray,
 } from "@ourworldindata/utils"
@@ -156,6 +157,25 @@ ${items}
         .with({ type: "list" }, (b): string | undefined =>
             b.items.map((item) => `* ${spansToMarkdown(item.value)}`).join("\n")
         )
+        .with({ type: "people" }, (b): string | undefined =>
+            b.items
+                .map((item) => enrichedBlockToMarkdown(item, exportComponents))
+                .join("\n")
+        )
+        .with({ type: "person" }, (b): string | undefined => {
+            const items = [
+                b.image &&
+                    markdownComponent(
+                        "Image",
+                        { filename: b.image, alt: b.name },
+                        exportComponents
+                    ),
+                `### ${b.name}`,
+                b.title,
+                enrichedBlocksToMarkdown(b.text, exportComponents),
+            ]
+            return compact(items).join("\n")
+        })
         .with(
             { type: "pull-quote" },
             (b): string | undefined => `> ${spansToMarkdown(b.text)}`

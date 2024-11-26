@@ -22,6 +22,7 @@ import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { match } from "ts-pattern"
 import { renderSpans } from "../utils.js"
 import Paragraph from "./Paragraph.js"
+import People from "./People.js"
 import TableOfContents from "./TableOfContents.js"
 import urlSlug from "url-slug"
 import { MissingData } from "./MissingData.js"
@@ -42,6 +43,7 @@ import { HomepageIntro } from "./HomepageIntro.js"
 import { HomepageSearch } from "./HomepageSearch.js"
 import LatestDataInsightsBlock from "./LatestDataInsightsBlock.js"
 import { Socials } from "./Socials.js"
+import Person from "./Person.js"
 
 export type Container =
     | "default"
@@ -285,6 +287,14 @@ export default function ArticleBlock({
                 filename={block.filename}
             />
         ))
+        .with({ type: "people" }, (block) => (
+            <People className={getLayout("people", containerType)}>
+                {block.items.map((block, index) => (
+                    <ArticleBlock key={index} b={block} />
+                ))}
+            </People>
+        ))
+        .with({ type: "person" }, (block) => <Person person={block} />)
         .with({ type: "pull-quote" }, (block) => (
             <PullQuote
                 className={getLayout("pull-quote", containerType)}

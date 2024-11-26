@@ -245,6 +245,34 @@ export type EnrichedBlockNumberedList = {
     items: EnrichedBlockText[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockPeople = {
+    type: "people"
+    value: RawBlockPerson[] | ArchieMLUnexpectedNonObjectValue
+}
+
+export type RawBlockPerson = {
+    type: "person"
+    value: {
+        image?: string
+        name: string
+        title?: string
+        text: RawBlockText[]
+    }
+}
+
+export type EnrichedBlockPeople = {
+    type: "people"
+    items: EnrichedBlockPerson[]
+} & EnrichedBlockWithParseErrors
+
+export type EnrichedBlockPerson = {
+    type: "person"
+    image?: string
+    name: string
+    title?: string
+    text: EnrichedBlockText[]
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockPullQuote = {
     type: "pull-quote"
     value: OwidRawGdocBlock[] | ArchieMLUnexpectedNonObjectValue
@@ -887,6 +915,8 @@ export type OwidRawGdocBlock =
     | RawBlockImage
     | RawBlockVideo
     | RawBlockList
+    | RawBlockPeople
+    | RawBlockPerson
     | RawBlockPullQuote
     | RawBlockRecirc
     | RawBlockResearchAndWriting
@@ -933,6 +963,8 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockImage
     | EnrichedBlockVideo
     | EnrichedBlockList
+    | EnrichedBlockPeople
+    | EnrichedBlockPerson
     | EnrichedBlockPullQuote
     | EnrichedBlockRecirc
     | EnrichedBlockResearchAndWriting
