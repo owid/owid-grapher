@@ -29,11 +29,7 @@ import {
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis } from "../axis/Axis"
-import {
-    LineLabelSeries,
-    LineLegend,
-    LineLegendManager,
-} from "../lineLegend/LineLegend"
+import { LineLabelSeries, LineLegend } from "../lineLegend/LineLegend"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
@@ -263,10 +259,7 @@ class Areas extends React.Component<AreasProps> {
 }
 
 @observer
-export class StackedAreaChart
-    extends AbstractStackedChart
-    implements LineLegendManager
-{
+export class StackedAreaChart extends AbstractStackedChart {
     constructor(props: AbstractStackedChartProps) {
         super(props)
     }
@@ -319,9 +312,16 @@ export class StackedAreaChart
         return Math.min(150, this.bounds.width / 3)
     }
 
-    @computed get legendDimensions(): LineLegend | undefined {
-        if (!this.manager.showLegend) return undefined
-        return new LineLegend({ manager: this })
+    @computed get lineLegendWidth(): number {
+        if (!this.manager.showLegend) return 0
+
+        // only pass props that are required to calculate
+        // the width to avoid circular dependencies
+        return LineLegend.width({
+            labelSeries: this.labelSeries,
+            maxWidth: this.maxLineLegendWidth,
+            fontSize: this.fontSize,
+        })
     }
 
     @observable tooltipState = new TooltipState<{
@@ -348,8 +348,7 @@ export class StackedAreaChart
     @observable private hoverTimer?: NodeJS.Timeout
 
     @computed protected get paddingForLegendRight(): number {
-        const { legendDimensions } = this
-        return legendDimensions ? legendDimensions.width : 0
+        return this.lineLegendWidth
     }
 
     @computed get seriesSortedByImportance(): string[] {
@@ -656,7 +655,21 @@ export class StackedAreaChart
 
     renderLegend(): React.ReactElement | void {
         if (!this.manager.showLegend) return
-        return <LineLegend manager={this} />
+        return (
+            <LineLegend
+                labelSeries={this.labelSeries}
+                yAxis={this.yAxis}
+                x={this.lineLegendX}
+                yRange={this.lineLegendY}
+                maxWidth={this.maxLineLegendWidth}
+                fontSize={this.fontSize}
+                seriesSortedByImportance={this.seriesSortedByImportance}
+                isStatic={this.isStatic}
+                focusedSeriesNames={this.focusedSeriesNames}
+                onMouseOver={this.onLineLegendMouseOver}
+                onMouseLeave={this.onLineLegendMouseLeave}
+            />
+        )
     }
 
     renderStatic(): React.ReactElement {
@@ -735,8 +748,8 @@ export class StackedAreaChart
     }
 
     @computed get lineLegendX(): number {
-        return this.legendDimensions
-            ? this.bounds.right - this.legendDimensions.width
+        return this.manager.showLegend
+            ? this.bounds.right - this.lineLegendWidth
             : 0
     }
 
