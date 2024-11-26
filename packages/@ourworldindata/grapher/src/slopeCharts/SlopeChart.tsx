@@ -504,6 +504,7 @@ export class SlopeChart
             yAxis: this.yAxis,
             maxWidth: this.maxLineLegendWidth,
             connectorLineWidth: this.lineLegendConnectorLinesWidth,
+            showValueLabelsInline: false,
             fontSize: this.fontSize,
             isStatic: this.manager.isStatic,
         })
@@ -516,6 +517,7 @@ export class SlopeChart
             yAxis: this.yAxis,
             maxWidth: this.maxLineLegendWidth,
             connectorLineWidth: this.lineLegendConnectorLinesWidth,
+            showValueLabelsInline: false,
             fontSize: this.fontSize,
             isStatic: this.manager.isStatic,
         })
@@ -596,11 +598,13 @@ export class SlopeChart
     @computed get lineLegendSeriesRight(): LineLabelSeries[] {
         return this.series.map((series) => {
             const { seriesName, color, end, annotation } = series
+            const formattedValue = this.formatColumn.formatValueLong(end.value)
             return {
                 color,
                 seriesName,
                 label: seriesName,
                 annotation,
+                formattedValue,
                 yValue: end.value,
             }
         })
@@ -962,8 +966,10 @@ export class SlopeChart
                     x={this.xRange[1] + LINE_LEGEND_PADDING}
                     maxWidth={this.maxLineLegendWidth}
                     lineLegendAnchorX="start"
+                    showValueLabelsInline={false}
                     connectorLineWidth={this.lineLegendConnectorLinesWidth}
                     fontSize={this.fontSize}
+                    fontWeight={700}
                     isStatic={this.manager.isStatic}
                     focusedSeriesNames={this.focusedSeriesNames}
                     onMouseLeave={this.onLineLegendMouseLeave}
@@ -975,6 +981,7 @@ export class SlopeChart
                     x={this.xRange[0] - LINE_LEGEND_PADDING}
                     maxWidth={this.maxLineLegendWidth}
                     lineLegendAnchorX="end"
+                    showValueLabelsInline={false}
                     connectorLineWidth={this.lineLegendConnectorLinesWidth}
                     fontSize={this.fontSize}
                     isStatic={this.manager.isStatic}
