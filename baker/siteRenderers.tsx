@@ -60,7 +60,6 @@ import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
 import {
     knexRaw,
-    KnexReadWriteTransaction,
     KnexReadonlyTransaction,
     getHomepageId,
     getFlatTagGraph,
