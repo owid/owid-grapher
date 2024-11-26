@@ -294,7 +294,7 @@ export class StackedAreaChart extends AbstractStackedChart {
         })
     }
 
-    @computed get labelSeries(): LineLabelSeries[] {
+    @computed get lineLegendSeries(): LineLabelSeries[] {
         const { midpoints } = this
         return this.series
             .map((series, index) => ({
@@ -318,7 +318,7 @@ export class StackedAreaChart extends AbstractStackedChart {
         // only pass props that are required to calculate
         // the width to avoid circular dependencies
         return LineLegend.incorrectWidth({
-            labelSeries: this.labelSeries,
+            labelSeries: this.lineLegendSeries,
             maxWidth: this.maxLineLegendWidth,
             fontSize: this.fontSize,
         })
@@ -657,7 +657,7 @@ export class StackedAreaChart extends AbstractStackedChart {
         if (!this.manager.showLegend) return
         return (
             <LineLegend
-                labelSeries={this.labelSeries}
+                labelSeries={this.lineLegendSeries}
                 yAxis={this.yAxis}
                 x={this.lineLegendX}
                 yRange={this.lineLegendY}
