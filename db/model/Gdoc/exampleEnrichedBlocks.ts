@@ -1,6 +1,7 @@
 import {
     BlockImageSize,
     EnrichedBlockChart,
+    EnrichedBlockPerson,
     EnrichedBlockText,
     HorizontalAlign,
     OwidEnrichedGdocBlock,
@@ -45,6 +46,14 @@ const enrichedBlockText: EnrichedBlockText = {
 const enrichedChart: EnrichedBlockChart = {
     type: "chart",
     url: "https://ourworldindata.org/grapher/total-cases-covid-19",
+    parseErrors: [],
+}
+
+const enrichedBlockPerson: EnrichedBlockPerson = {
+    type: "person",
+    image: "example.png",
+    name: "Max Roser",
+    text: [enrichedBlockText],
     parseErrors: [],
 }
 
@@ -176,6 +185,12 @@ export const enrichedBlockExamples: Record<
         items: [enrichedBlockText],
         parseErrors: [],
     },
+    people: {
+        type: "people",
+        items: [enrichedBlockPerson, enrichedBlockPerson],
+        parseErrors: [],
+    },
+    person: enrichedBlockPerson,
     "pull-quote": {
         type: "pull-quote",
         text: [spanSimpleText],

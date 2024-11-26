@@ -37,6 +37,7 @@ export type ImageParentContainer =
     | "author-byline"
     | "thumbnail"
     | "full-width"
+    | "person"
     | "span-5"
     | "span-6"
     | "span-7"
@@ -56,6 +57,7 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["key-insight"]: gridSpan5,
     ["author-byline"]: "48px",
     ["author-header"]: gridSpan2,
+    ["person"]: gridSpan2,
     ["span-5"]: gridSpan5,
     ["span-6"]: gridSpan6,
     ["span-7"]: gridSpan7,

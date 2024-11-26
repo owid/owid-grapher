@@ -44,6 +44,8 @@ import {
     RawBlockHomepageIntro,
     RawBlockLatestDataInsights,
     RawBlockSocials,
+    RawBlockPeople,
+    RawBlockPerson,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -180,6 +182,25 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockList => ({
                 type: b.type,
                 value: b.items.map((item) => spansToHtmlText(item.value)),
+            })
+        )
+        .with(
+            { type: "people" },
+            (b): RawBlockPeople => ({
+                type: b.type,
+                value: b.items.map(enrichedBlockToRawBlock) as RawBlockPerson[],
+            })
+        )
+        .with(
+            { type: "person" },
+            (b): RawBlockPerson => ({
+                type: "person",
+                value: {
+                    image: b.image,
+                    name: b.name,
+                    title: b.title,
+                    text: b.text.map(enrichedBlockToRawBlock) as RawBlockText[],
+                },
             })
         )
         .with(

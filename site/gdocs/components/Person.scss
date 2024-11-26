@@ -1,0 +1,42 @@
+.person {
+    display: flex;
+    gap: 24px;
+
+    @include sm-only {
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+.person-image-container {
+    display: flex;
+    flex: 0 0 193px;
+    gap: 16px;
+
+    @include sm-only {
+        align-items: center;
+        flex: initial;
+    }
+}
+
+.person-image {
+    img {
+        border-radius: 50%;
+    }
+
+    @include sm-only {
+        flex: 0 0 76px;
+    }
+}
+
+.person-header {
+    margin-bottom: 8px;
+}
+
+.person-heading {
+    margin: 0;
+}
+
+.person-title {
+    color: $blue-60;
+}

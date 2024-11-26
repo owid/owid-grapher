@@ -205,7 +205,7 @@ export interface OwidGdocAuthorInterface extends OwidGdocBaseInterface {
 export interface OwidGdocAboutContent {
     type: OwidGdocType.AboutPage
     title: string
-    excerpt: string
+    excerpt?: string
     "featured-image"?: string
     authors: string[]
     body: OwidEnrichedGdocBlock[]

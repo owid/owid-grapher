@@ -9,6 +9,7 @@ import {
     RelatedChart,
     OwidGdocType,
     OwidGdoc as OwidGdocInterface,
+    OwidGdocAboutInterface,
     OwidGdocMinimalPostInterface,
     OwidGdocHomepageMetadata,
     DbEnrichedLatestWork,
@@ -87,7 +88,7 @@ export function OwidGdoc({
             (props) => <GdocPost {...props} />
         )
         .with({ content: { type: OwidGdocType.AboutPage } }, (props) => (
-            <AboutPage {...props} />
+            <AboutPage {...(props as OwidGdocAboutInterface)} />
         ))
         .with({ content: { type: OwidGdocType.DataInsight } }, (props) => (
             <DataInsightPage {...props} />

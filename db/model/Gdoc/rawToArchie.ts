@@ -43,6 +43,8 @@ import {
     RawBlockHomepageSearch,
     RawBlockLatestDataInsights,
     RawBlockSocials,
+    RawBlockPeople,
+    RawBlockPerson,
 } from "@ourworldindata/types"
 import { isArray } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
@@ -211,6 +213,33 @@ function* rawBlockNumberedListToArchieMLString(
     block: RawBlockNumberedList
 ): Generator<string, void, undefined> {
     yield* listToArchieMLString(block.value, "numbered-list")
+}
+
+function* rawBlockPeopleToArchieMLString(
+    block: RawBlockPeople
+): Generator<string, void, undefined> {
+    yield "[.+people]"
+    if (typeof block.value !== "string") {
+        for (const b of block.value) {
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
+        }
+    }
+    yield "[]"
+}
+
+function* rawBlockPersonToArchieMLString(
+    block: RawBlockPerson
+): Generator<string, void, undefined> {
+    yield "{.person}"
+    yield* propertyToArchieMLString("image", block.value)
+    yield* propertyToArchieMLString("name", block.value)
+    yield* propertyToArchieMLString("title", block.value)
+    yield "[.+text]"
+    for (const b of block.value.text) {
+        yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
+    }
+    yield "[]"
+    yield "{}"
 }
 
 function* rawBlockPullQuoteToArchieMLString(
@@ -773,6 +802,8 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "video" }, rawBlockVideoToArchieMLString)
         .with({ type: "list" }, rawBlockListToArchieMLString)
         .with({ type: "numbered-list" }, rawBlockNumberedListToArchieMLString)
+        .with({ type: "people" }, rawBlockPeopleToArchieMLString)
+        .with({ type: "person" }, rawBlockPersonToArchieMLString)
         .with({ type: "pull-quote" }, rawBlockPullQuoteToArchieMLString)
         .with(
             { type: "horizontal-rule" },
