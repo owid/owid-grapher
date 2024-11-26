@@ -20,6 +20,7 @@ import {
     SerializedGridProgram,
     trimObject,
     merge,
+    fetchWithRetry,
 } from "@ourworldindata/utils"
 import {
     CellDef,
@@ -419,7 +420,7 @@ export class ExplorerProgram extends GridProgram {
      */
     private static tableDataLoader = new PromiseCache(
         async (url: string): Promise<CoreTableInputOption> => {
-            const response = await fetch(url)
+            const response = await fetchWithRetry(url)
             if (!response.ok) throw new Error(response.statusText)
             const tableInput: CoreTableInputOption = url.endsWith(".json")
                 ? await response.json()

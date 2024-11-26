@@ -90,6 +90,7 @@ export {
     moveArrayItemToIndex,
     getIndexableKeys,
     retryPromise,
+    fetchWithRetry,
     getOwidGdocFromJSON,
     formatDate,
     canWriteToClipboard,
