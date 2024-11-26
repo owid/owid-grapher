@@ -145,20 +145,26 @@ const Lightbox = ({
     )
 }
 
-const Image = ({
+const LightboxImage = ({
     src,
     alt,
     isLoaded,
     setIsLoaded,
+    width,
+    height,
 }: {
     src: string
     alt: string
     isLoaded: boolean
     setIsLoaded: any
+    width: number
+    height: number
 }) => {
     return (
         <>
             <img
+                width={width}
+                height={height}
                 onLoad={() => {
                     setIsLoaded(true)
                 }}
@@ -170,6 +176,24 @@ const Image = ({
                 style={{ opacity: !isLoaded ? 0 : 1, transition: "opacity 1s" }}
             />
         </>
+    )
+}
+
+const getImageDimensions = (url: string) => {
+    return new Promise<{ width: number; height: number } | undefined>(
+        (resolve, reject) => {
+            const img = new Image()
+
+            img.onload = () => {
+                resolve({
+                    width: img.naturalWidth,
+                    height: img.naturalHeight,
+                })
+            }
+
+            img.onerror = reject
+            img.src = url
+        }
     )
 }
 
@@ -188,18 +212,25 @@ export const runLightbox = () => {
         if (img.closest("[data-no-lightbox]")) return
 
         img.classList.add("lightbox-enabled")
-        img.addEventListener("click", () => {
+        img.addEventListener("click", async () => {
             // An attribute placed by our WP image formatter: the URL of the original image without any WxH suffix
             const highResSrc = img.getAttribute("data-high-res-src")
             // If the image is a Gdoc Image with a smallFilename, get the source that is currently active
             const activeSourceImgUrl = getActiveSourceImgUrl(img)
             const imgFilename = getFilenameFromCloudflareUrl(activeSourceImgUrl)
+
             const imgSrc = highResSrc
                 ? // getAttribute doesn't automatically URI encode values, img.src does
                   encodeURI(highResSrc)
                 : activeSourceImgUrl
                   ? activeSourceImgUrl
                   : img.src
+
+            // load image in advance and get naturalHeight and naturalWidth
+            // if the image doesn't load, use the dimensions of the img element
+            const dimensions = await getImageDimensions(imgSrc)
+            const width = dimensions?.width || img.width
+            const height = dimensions?.height || img.height
 
             const imgAlt = img.alt
             if (imgSrc) {
@@ -210,7 +241,9 @@ export const runLightbox = () => {
                         containerNode={lightboxContainer}
                     >
                         {(isLoaded: boolean, setIsLoaded: any) => (
-                            <Image
+                            <LightboxImage
+                                width={width}
+                                height={height}
                                 src={imgSrc}
                                 alt={imgAlt}
                                 isLoaded={isLoaded}
