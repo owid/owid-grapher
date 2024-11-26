@@ -3021,7 +3021,14 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
         await validateTombstoneRelatedLinkUrl(trx, tombstone.relatedLinkUrl)
         const slug = gdocSlug.replace("/", "")
         const { relatedLinkThumbnail } = tombstone
-        // TODO: validate relatedLinkThumbnail?
+        if (relatedLinkThumbnail) {
+            const images = await db.getCloudflareImages(trx)
+            if (!images.find((i) => i.filename === relatedLinkThumbnail)) {
+                throw new JsonError(
+                    `Image "${relatedLinkThumbnail}" doesn't exist in the database`
+                )
+            }
+        }
         await trx
             .table("posts_gdocs_tombstones")
             .insert({ ...tombstone, gdocId: id, slug })
