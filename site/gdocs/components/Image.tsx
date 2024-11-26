@@ -129,8 +129,6 @@ export default function Image(props: {
     const isInteractive = containerType !== "thumbnail" && shouldLightbox
     const maybeLightboxClassName = isInteractive ? LIGHTBOX_IMAGE_CLASS : ""
 
-    // TODO: SVG?
-
     function makeSrc(image: ImageMetadata) {
         if (!image.cloudflareId) {
             throw new Error("Image has no cloudflareId")

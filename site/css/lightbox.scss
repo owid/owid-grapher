@@ -33,9 +33,9 @@
 
     .react-transform-component {
         display: block; // prevent stretching large images on Safari
-        & > * {
+        img {
+            object-fit: contain;
             max-height: 100vh; // prevent tall images from overflowing
-            background: white;
         }
     }
 
