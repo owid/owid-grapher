@@ -3145,43 +3145,35 @@ postRouteWithRWTransaction(apiRouter, "/image", async (req, res, trx) => {
         }
     }
 
-    await db.knexRaw(
-        trx,
-        `-- sql
-        INSERT INTO images
-            (filename, originalWidth, originalHeight, cloudflareId, defaultAlt, googleId, updatedAt)
-        VALUES
-            (?, ?, ?, ?, ?, ?, ?)`,
-        [
-            filename,
-            dimensions.width,
-            dimensions.height,
-            cloudflareId,
-            // TODO: make defaultAlt nullable
-            "Default alt text",
-            // TODO: drop googleId
-            String(Math.random()).slice(2),
-            new Date().getTime(),
-        ]
-    )
+    await trx<DbEnrichedImage>("images").insert({
+        filename,
+        originalWidth: dimensions.width,
+        originalHeight: dimensions.height,
+        cloudflareId,
+        // TODO: make defaultAlt nullable
+        defaultAlt: "Default alt text",
+        // TODO: drop googleId
+        googleId: String(Math.random()).slice(2),
+        updatedAt: new Date().getTime(),
+    })
 
-    const images = await db.getCloudflareImages(trx)
+    const image = await trx<DbEnrichedImage>("images")
+        .where("cloudflareId", "=", cloudflareId)
+        .first()
 
     return {
         success: true,
-        images,
+        image,
     }
 })
 
 // Update alt text via patch
 patchRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
     const { id } = req.params
-    const image = await db.knexRawFirst<DbEnrichedImage>(
-        trx,
-        `-- sql
-        SELECT * FROM images WHERE id = ?`,
-        [id]
-    )
+
+    const image = await trx<DbEnrichedImage>("images")
+        .where("id", "=", id)
+        .first()
 
     if (!image) {
         throw new JsonError(`No image found for id ${id}`, 404)
@@ -3196,11 +3188,13 @@ patchRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
 
     await trx("images").where({ id }).update(patch)
 
-    const images = await db.getCloudflareImages(trx)
+    const updated = await trx<DbEnrichedImage>("images")
+        .where("id", "=", id)
+        .first()
 
     return {
         success: true,
-        images,
+        image: updated,
     }
 })
 
@@ -3210,12 +3204,9 @@ deleteRouteWithRWTransaction(
     async (req, res, trx) => {
         const { id } = req.params
 
-        const image = await db.knexRawFirst<{ cloudflareId: string }>(
-            trx,
-            `-- sql
-        SELECT cloudflareId FROM images WHERE id = ?`,
-            [id]
-        )
+        const image = await trx<DbEnrichedImage>("images")
+            .where("id", "=", id)
+            .first()
 
         if (!image) {
             throw new JsonError(`No image found for id ${id}`, 404)
@@ -3239,18 +3230,10 @@ deleteRouteWithRWTransaction(
             throw new JsonError(JSON.stringify(response.errors))
         }
 
-        await db.knexRaw(
-            trx,
-            `-- sql
-        DELETE FROM images WHERE id = ?`,
-            [id]
-        )
-
-        const images = await db.getCloudflareImages(trx)
+        await trx("images").where({ id }).delete()
 
         return {
             success: true,
-            images,
         }
     }
 )
