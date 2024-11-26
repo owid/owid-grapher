@@ -31,8 +31,7 @@ const MARKER_MARGIN = 4
 // Space between the label and the annotation
 const ANNOTATION_PADDING = 2
 
-const LEFT_PADDING = 35
-
+const DEFAULT_CONNECTOR_LINE_WIDTH = 35
 const DEFAULT_FONT_WEIGHT = 400
 
 export interface LineLabelSeries extends ChartSeries {
@@ -91,7 +90,8 @@ function stackGroupVertically(
 class LineLabels extends React.Component<{
     series: PlacedSeries[]
     uniqueKey: string
-    needsLines: boolean
+    needsConnectorLines: boolean
+    connectorLineWidth?: number
     anchor?: "start" | "end"
     isFocus?: boolean
     isStatic?: boolean
@@ -107,24 +107,27 @@ class LineLabels extends React.Component<{
         return this.props.anchor ?? "start"
     }
 
+    @computed private get connectorLineWidth(): number {
+        return this.props.connectorLineWidth ?? DEFAULT_CONNECTOR_LINE_WIDTH
+    }
+
     @computed private get markers(): {
         series: PlacedSeries
         labelText: { x: number; y: number }
         connectorLine: { x1: number; x2: number }
     }[] {
         return this.props.series.map((series) => {
-            const markerMargin =
-                this.anchor === "start" ? MARKER_MARGIN : -MARKER_MARGIN
-            const leftPadding =
-                this.anchor === "start" ? LEFT_PADDING : -LEFT_PADDING
+            const direction = this.anchor === "start" ? 1 : -1
+            const markerMargin = direction * MARKER_MARGIN
+            const connectorLineWidth = direction * this.connectorLineWidth
 
             const { x } = series.origBounds
             const connectorLine = {
                 x1: x + markerMargin,
-                x2: x + leftPadding - markerMargin,
+                x2: x + connectorLineWidth - markerMargin,
             }
 
-            const textX = this.props.needsLines
+            const textX = this.props.needsConnectorLines
                 ? connectorLine.x2 + markerMargin
                 : x + markerMargin
             const textY = series.bounds.y
@@ -200,7 +203,7 @@ class LineLabels extends React.Component<{
     }
 
     @computed private get connectorLines(): React.ReactElement | void {
-        if (!this.props.needsLines) return
+        if (!this.props.needsConnectorLines) return
         return (
             <g id={makeIdForHumanConsumption("connectors")}>
                 {this.markers.map(({ series, connectorLine }, index) => {
@@ -293,6 +296,7 @@ export interface LineLegendProps {
     lineLegendAnchorX?: "start" | "end"
 
     // presentation
+    connectorLineWidth?: number
     fontSize?: number
     fontWeight?: number
 
@@ -311,8 +315,18 @@ export interface LineLegendProps {
 export class LineLegend extends React.Component<LineLegendProps> {
     static width(props: LineLegendProps): number {
         const test = new LineLegend(props)
-        if (test.sizedLabels.length === 0) return 0
-        return max(test.sizedLabels.map((d) => d.width)) ?? 0
+        const connectorLineWidth = test.needsLines ? test.connectorLineWidth : 0
+        return test.maxLabelWidth + connectorLineWidth + MARKER_MARGIN
+    }
+
+    /**
+     * Always adds the width of connector lines, which leads to an incorrect
+     * result if no connector lines are rendered. We sometimes can't use the
+     * correct width above due to circular dependencies.
+     */
+    static incorrectWidth(props: LineLegendProps): number {
+        const test = new LineLegend(props)
+        return test.maxLabelWidth + test.connectorLineWidth + MARKER_MARGIN
     }
 
     @computed private get fontSize(): number {
@@ -331,9 +345,13 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return this.props.yAxis ?? new VerticalAxis(new AxisConfig())
     }
 
+    @computed private get connectorLineWidth(): number {
+        return this.props.connectorLineWidth ?? DEFAULT_CONNECTOR_LINE_WIDTH
+    }
+
     @computed.struct get sizedLabels(): SizedSeries[] {
         const { fontSize, fontWeight, maxWidth } = this
-        const maxTextWidth = maxWidth - LEFT_PADDING
+        const maxTextWidth = maxWidth - this.connectorLineWidth
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
         return this.props.labelSeries.map((label) => {
@@ -356,12 +374,10 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 ...label,
                 textWrap,
                 annotationTextWrap,
-                width:
-                    LEFT_PADDING +
-                    Math.max(
-                        textWrap.width,
-                        annotationTextWrap ? annotationTextWrap.width : 0
-                    ),
+                width: Math.max(
+                    textWrap.width,
+                    annotationTextWrap ? annotationTextWrap.width : 0
+                ),
                 height:
                     textWrap.height +
                     (annotationTextWrap
@@ -371,9 +387,9 @@ export class LineLegend extends React.Component<LineLegendProps> {
         })
     }
 
-    @computed get width(): number {
-        if (this.sizedLabels.length === 0) return 0
-        return max(this.sizedLabels.map((d) => d.width)) ?? 0
+    @computed private get maxLabelWidth(): number {
+        const { sizedLabels = [] } = this
+        return max(sizedLabels.map((d) => d.width)) ?? 0
     }
 
     @computed get onMouseOver(): any {
@@ -412,22 +428,25 @@ export class LineLegend extends React.Component<LineLegendProps> {
         const [legendYMin, legendYMax] = legendY
 
         return this.sizedLabels.map((label) => {
+            const labelHeight = label.height
+            const labelWidth = label.width + this.connectorLineWidth
+
             // place vertically centered at Y value
             const midY = yAxis.place(label.yValue)
             const initialY = midY - label.height / 2
             const origBounds = new Bounds(
                 legendX,
                 initialY,
-                label.width,
-                label.height
+                labelWidth,
+                labelHeight
             )
 
             // ensure label doesn't go beyond the top or bottom of the chart
             const y = Math.min(
                 Math.max(initialY, legendYMin),
-                legendYMax - label.height
+                legendYMax - labelHeight
             )
-            const bounds = new Bounds(legendX, y, label.width, label.height)
+            const bounds = new Bounds(legendX, y, labelWidth, labelHeight)
 
             return {
                 ...label,
@@ -699,7 +718,8 @@ export class LineLegend extends React.Component<LineLegendProps> {
             <LineLabels
                 uniqueKey="background"
                 series={this.backgroundSeries}
-                needsLines={this.needsLines}
+                needsConnectorLines={this.needsLines}
+                connectorLineWidth={this.connectorLineWidth}
                 isFocus={false}
                 anchor={this.props.lineLegendAnchorX}
                 isStatic={this.props.isStatic}
@@ -717,7 +737,8 @@ export class LineLegend extends React.Component<LineLegendProps> {
             <LineLabels
                 uniqueKey="focus"
                 series={this.focusedSeries}
-                needsLines={this.needsLines}
+                needsConnectorLines={this.needsLines}
+                connectorLineWidth={this.connectorLineWidth}
                 isFocus={true}
                 anchor={this.props.lineLegendAnchorX}
                 isStatic={this.props.isStatic}
