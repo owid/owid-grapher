@@ -144,7 +144,9 @@ export async function initGrapher(
         bounds,
         staticBounds: bounds,
         baseFontSize: options.fontSize,
+        ...options.grapherProps,
     })
+    grapher.isExportingToSvgOrPng = true
     grapher.shouldIncludeDetailsInStaticExport = options.details
 
     return grapher

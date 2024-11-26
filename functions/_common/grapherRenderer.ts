@@ -82,7 +82,8 @@ async function fetchAndRenderGrapherToSvg(
 
     const svg = grapher.generateStaticSvg()
     grapherLogger.log("generateStaticSvg")
-    return svg
+
+    return { svg, backgroundColor: grapher.backgroundColor }
 }
 
 export const fetchAndRenderGrapher = async (
@@ -94,12 +95,17 @@ export const fetchAndRenderGrapher = async (
     const options = extractOptions(searchParams)
 
     console.log("Rendering", id.id, outType, options)
-    const svg = await fetchAndRenderGrapherToSvg(id, options, searchParams, env)
+    const { svg, backgroundColor } = await fetchAndRenderGrapherToSvg(
+        id,
+        options,
+        searchParams,
+        env
+    )
     console.log("fetched svg")
 
     switch (outType) {
         case "png":
-            return png(await renderSvgToPng(svg, options))
+            return png(await renderSvgToPng(svg, options, backgroundColor))
         case "svg":
             return new Response(svg, {
                 headers: {
@@ -111,7 +117,11 @@ export const fetchAndRenderGrapher = async (
 
 let initialized = false
 
-export async function renderSvgToPng(svg: string, options: ImageOptions) {
+export async function renderSvgToPng(
+    svg: string,
+    options: ImageOptions,
+    backgroundColor: string
+) {
     if (!initialized) {
         await initializeSvg2Png(svg2png_wasm)
         initialized = true
@@ -123,7 +133,7 @@ export async function renderSvgToPng(svg: string, options: ImageOptions) {
 
         // if we include details, pngHeight is only the height of the chart, but we also have an "appendix" at the bottom that we want to include
         height: options.details ? undefined : options.pngHeight,
-        backgroundColor: "#fff",
+        backgroundColor,
         fonts: [LatoRegular, LatoMedium, LatoBold, PlayfairSemiBold].map(
             (f) => new Uint8Array(f)
         ),

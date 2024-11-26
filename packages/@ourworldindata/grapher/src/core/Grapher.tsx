@@ -139,6 +139,7 @@ import {
     GRAPHER_FRAME_PADDING_VERTICAL,
     latestGrapherConfigSchema,
     validChartTypeCombinations,
+    GRAPHER_SQUARE_SIZE,
 } from "../core/GrapherConstants"
 import { loadVariableDataAndMetadata } from "./loadVariable"
 import Cookies from "js-cookie"
@@ -2072,7 +2073,12 @@ export class Grapher
             case GrapherStaticFormat.landscape:
                 return this.defaultBounds
             case GrapherStaticFormat.square:
-                return new Bounds(0, 0, 540, 540)
+                return new Bounds(
+                    0,
+                    0,
+                    GRAPHER_SQUARE_SIZE,
+                    GRAPHER_SQUARE_SIZE
+                )
             default:
                 return this.defaultBounds
         }

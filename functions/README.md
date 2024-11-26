@@ -232,13 +232,14 @@ All of the below options can be given as query parameters, e.g. `?imType=og&noca
         <td><code>imType</code></td>
         <td>
           <code>twitter</code> or <code>og</code> (short for
-          <a href="https://ogp.me">Open Graph</a>)
+          <a href="https://ogp.me">Open Graph</a>) or <code>social-media-square</code>
         </td>
         <td>
           If present, will use fitting defaults for the generated image size:
           <ul>
             <li><code>twitter</code>: 800x418</li>
             <li><code>og</code>: 1200x628</li>
+            <li><code>social-media-square</code>: 2160x2160, customizable using <code>imSquareSize=[number]</code></li>
           </ul>
           All below options will be ignored if <code>imType</code> is set to one of these values.
         </td>
