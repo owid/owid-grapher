@@ -38,12 +38,14 @@ export interface LineLabelSeries extends ChartSeries {
     label: string
     yValue: number
     annotation?: string
+    formattedValue?: string
     yRange?: [number, number]
 }
 
 interface SizedSeries extends LineLabelSeries {
     textWrap: TextWrap
     annotationTextWrap?: TextWrap
+    valueTextWrap?: TextWrap
     width: number
     height: number
 }
@@ -202,6 +204,41 @@ class LineLabels extends React.Component<{
         )
     }
 
+    @computed private get textValues(): React.ReactElement | void {
+        const markersWithTextValues = this.markers.filter(
+            ({ series }) => series.valueTextWrap !== undefined
+        )
+        if (!markersWithTextValues) return
+        return (
+            <g id={makeIdForHumanConsumption("text-values")}>
+                {markersWithTextValues.map(({ series, labelText }, index) => {
+                    const textColor = darkenColorForText(series.color)
+                    return (
+                        <React.Fragment
+                            key={getSeriesKey(
+                                series,
+                                index,
+                                this.props.uniqueKey
+                            )}
+                        >
+                            {series.valueTextWrap?.render(
+                                labelText.x,
+                                labelText.y + series.textWrap.height,
+                                {
+                                    textProps: {
+                                        fill: textColor,
+                                        opacity: this.textOpacity,
+                                        textAnchor: this.anchor,
+                                    },
+                                }
+                            )}
+                        </React.Fragment>
+                    )
+                })}
+            </g>
+        )
+    }
+
     @computed private get connectorLines(): React.ReactElement | void {
         if (!this.props.needsConnectorLines) return
         return (
@@ -278,6 +315,7 @@ class LineLabels extends React.Component<{
             <>
                 {this.connectorLines}
                 {this.textAnnotations}
+                {this.textValues}
                 {this.textLabels}
                 {!this.props.isStatic && this.interactions}
             </>
@@ -299,6 +337,7 @@ export interface LineLegendProps {
     connectorLineWidth?: number
     fontSize?: number
     fontWeight?: number
+    showValueLabelsInline?: boolean
 
     // used to determine which series should be labelled when there is limited space
     seriesSortedByImportance?: EntityName[]
@@ -349,20 +388,26 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return this.props.connectorLineWidth ?? DEFAULT_CONNECTOR_LINE_WIDTH
     }
 
+    @computed private get showValueLabelsInline(): boolean {
+        return this.props.showValueLabelsInline ?? true
+    }
+
+    @computed private get hasValueLabels(): boolean {
+        return this.props.labelSeries.some(
+            (series) => series.formattedValue !== undefined
+        )
+    }
+
+    @computed private get hideAnnotations(): boolean {
+        return this.hasValueLabels && !this.showValueLabelsInline
+    }
+
     @computed.struct get sizedLabels(): SizedSeries[] {
         const { fontSize, fontWeight, maxWidth } = this
         const maxTextWidth = maxWidth - this.connectorLineWidth
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
         return this.props.labelSeries.map((label) => {
-            const annotationTextWrap = label.annotation
-                ? new TextWrap({
-                      text: label.annotation,
-                      maxWidth: maxAnnotationWidth,
-                      fontSize: fontSize * 0.9,
-                      lineHeight: 1,
-                  })
-                : undefined
             const textWrap = new TextWrap({
                 text: label.label,
                 maxWidth: maxTextWidth,
@@ -370,18 +415,40 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 fontWeight,
                 lineHeight: 1,
             })
+            const annotationTextWrap =
+                !this.hideAnnotations && label.annotation
+                    ? new TextWrap({
+                          text: label.annotation,
+                          maxWidth: maxAnnotationWidth,
+                          fontSize: fontSize * 0.9,
+                          lineHeight: 1,
+                      })
+                    : undefined
+            const valueTextWrap = label.formattedValue
+                ? new TextWrap({
+                      text: label.formattedValue,
+                      maxWidth: maxAnnotationWidth,
+                      fontSize: fontSize * 0.9,
+                      lineHeight: 1,
+                  })
+                : undefined
             return {
                 ...label,
                 textWrap,
                 annotationTextWrap,
+                valueTextWrap,
                 width: Math.max(
                     textWrap.width,
-                    annotationTextWrap ? annotationTextWrap.width : 0
+                    annotationTextWrap ? annotationTextWrap.width : 0,
+                    valueTextWrap ? valueTextWrap.width : 0
                 ),
                 height:
                     textWrap.height +
                     (annotationTextWrap
                         ? ANNOTATION_PADDING + annotationTextWrap.height
+                        : 0) +
+                    (valueTextWrap
+                        ? ANNOTATION_PADDING + valueTextWrap.height
                         : 0),
             }
         })
