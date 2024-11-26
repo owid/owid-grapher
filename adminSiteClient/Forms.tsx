@@ -1014,7 +1014,7 @@ export class BindAutoStringExt<
     render() {
         const { readFn, auto, store, ...rest } = this.props
         const currentReadValue = this.props.isAuto
-            ? auto ?? readFn(store)
+            ? (auto ?? readFn(store))
             : readFn(store)
         return (
             <AutoTextField
@@ -1189,7 +1189,7 @@ export class BindAutoFloatExt<
     render() {
         const { readFn, auto, store, ...rest } = this.props
         const currentReadValue = this.props.isAuto
-            ? auto ?? readFn(store)
+            ? (auto ?? readFn(store))
             : readFn(store)
         return (
             <AutoFloatField

@@ -17,23 +17,23 @@ tsc -b --verbose
 
 ## References
 
--   tsconfig options reference https://www.typescriptlang.org/tsconfig
+- tsconfig options reference https://www.typescriptlang.org/tsconfig
 
--   tsc build flag https://www.typescriptlang.org/docs/handbook/project-references.html#tsc--b-commandline
+- tsc build flag https://www.typescriptlang.org/docs/handbook/project-references.html#tsc--b-commandline
 
--   Tips for Performant TypeScript https://github.com/microsoft/TypeScript/wiki/Performance
+- Tips for Performant TypeScript https://github.com/microsoft/TypeScript/wiki/Performance
 
--   Centralized Recommendations for TSConfig bases https://github.com/tsconfig/bases/
+- Centralized Recommendations for TSConfig bases https://github.com/tsconfig/bases/
 
--   Project References https://www.typescriptlang.org/docs/handbook/project-references.html (especially #overall-structure)
+- Project References https://www.typescriptlang.org/docs/handbook/project-references.html (especially #overall-structure)
 
--   Look at tsconfigs in the TypeScript project https://github.com/microsoft/TypeScript/tree/master/src
+- Look at tsconfigs in the TypeScript project https://github.com/microsoft/TypeScript/tree/master/src
 
--   config file inheritance https://www.typescriptlang.org/docs/handbook/tsconfig-json.html
+- config file inheritance https://www.typescriptlang.org/docs/handbook/tsconfig-json.html
 
--   how shopify does it: https://shopify.engineering/migrating-large-typescript-codebases-project-references
+- how shopify does it: https://shopify.engineering/migrating-large-typescript-codebases-project-references
 
--   project references demos: https://github.com/RyanCavanaugh/project-references-demo
+- project references demos: https://github.com/RyanCavanaugh/project-references-demo
 
 ## FAQ
 

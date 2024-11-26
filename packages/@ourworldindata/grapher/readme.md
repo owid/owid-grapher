@@ -8,9 +8,9 @@ The user navigates to a grapher page and the browser fetches the **Grapher Confi
 
 The _Grapher Config_ contains 3 main ingredients:
 
--   Where to get the **Data** and **Metadata**
--   Any **Transforms** to apply to the data
--   What **Chart Components** to show
+- Where to get the **Data** and **Metadata**
+- Any **Transforms** to apply to the data
+- What **Chart Components** to show
 
 ## Step 2: The Data
 

@@ -27,7 +27,7 @@ export class TooltipValue extends React.Component<TooltipValueProps> {
         const { column, value, color, notice } = this.props,
             displayValue = isNumber(value)
                 ? column.formatValueShort(value)
-                : value ?? NO_DATA_LABEL,
+                : (value ?? NO_DATA_LABEL),
             displayColor =
                 displayValue === NO_DATA_LABEL ? NO_DATA_COLOR : color
 

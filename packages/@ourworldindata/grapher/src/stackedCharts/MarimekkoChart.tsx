@@ -115,9 +115,10 @@ function MarimekkoBar({
         bar.kind === BarShape.BarPlaceholder
             ? "#555"
             : isHovered
-              ? color(barBaseColor)?.brighter(0.9).toString() ?? barBaseColor
+              ? (color(barBaseColor)?.brighter(0.9).toString() ?? barBaseColor)
               : isSelected
-                ? color(barBaseColor)?.brighter(0.6).toString() ?? barBaseColor
+                ? (color(barBaseColor)?.brighter(0.6).toString() ??
+                  barBaseColor)
                 : barBaseColor
     const strokeColor = barColor
     const strokeWidth = isHovered || isSelected ? "1px" : "0.5px"

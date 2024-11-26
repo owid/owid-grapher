@@ -1936,7 +1936,7 @@ export class Grapher
     get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): GrapherChartType {
         return this.isLineChartThatTurnedIntoDiscreteBar
             ? GRAPHER_CHART_TYPES.DiscreteBar
-            : this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart
+            : (this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart)
     }
 
     @computed get isLineChart(): boolean {

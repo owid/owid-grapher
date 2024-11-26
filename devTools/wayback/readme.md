@@ -17,6 +17,6 @@ To go wayback, say to July 1st, 2020, go to the `owid-static` folder and run a c
 
 ## Todo:
 
--   Fix some missing images and url bugs
--   Fix a "replaceState" bug with the Covid Explorer
--   Add an easier ability to jump to different checkpoints by date?
+- Fix some missing images and url bugs
+- Fix a "replaceState" bug with the Covid Explorer
+- Add an easier ability to jump to different checkpoints by date?

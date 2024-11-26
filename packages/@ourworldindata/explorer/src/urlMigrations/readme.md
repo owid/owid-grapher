@@ -9,10 +9,10 @@ The goals of this module are to:
 
 There's a mix of cases where we need to migrate URLs:
 
--   User visits old path with old URL params (e.g. legacy COVID explorer)
--   User visits new path with old URL params (e.g. old CO2 & Energy explorers)
--   Authors embed Grapher that is redirected to an Explorer view (we do this for old COVID charts)
--   Authors embed Explorer that has old URL params (since URLs are in the Wordpress database, we cannot easily replace all. Even if we do, it isn't robust – authors occasionally use the revert option.)
+- User visits old path with old URL params (e.g. legacy COVID explorer)
+- User visits new path with old URL params (e.g. old CO2 & Energy explorers)
+- Authors embed Grapher that is redirected to an Explorer view (we do this for old COVID charts)
+- Authors embed Explorer that has old URL params (since URLs are in the Wordpress database, we cannot easily replace all. Even if we do, it isn't robust – authors occasionally use the revert option.)
 
 (Also note that embeds are iframeless – if they were `<iframe>` it would be simpler.)
 

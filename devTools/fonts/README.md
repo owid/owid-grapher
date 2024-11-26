@@ -17,9 +17,9 @@ You can also run `make report` to display the current division of characters bet
 
 ## Dependencies
 
--   Python3 (in order to use the [`fontTools.ttLib`](https://pypi.org/project/fonttools/) module for converting otf to woff2, creating the LatoLatin & PlayfairLatin fonts with its [subset](https://fonttools.readthedocs.io/en/latest/subset/index.html) tool, and unpacking the `cmap` table to calculate `unicode-range` settings for switching between the subset and full version in the browser)
--   the repo's copies of prettier and express in `../../node_modules`
--   the `jq` command line tool
+- Python3 (in order to use the [`fontTools.ttLib`](https://pypi.org/project/fonttools/) module for converting otf to woff2, creating the LatoLatin & PlayfairLatin fonts with its [subset](https://fonttools.readthedocs.io/en/latest/subset/index.html) tool, and unpacking the `cmap` table to calculate `unicode-range` settings for switching between the subset and full version in the browser)
+- the repo's copies of prettier and express in `../../node_modules`
+- the `jq` command line tool
 
 ## Typefaces
 

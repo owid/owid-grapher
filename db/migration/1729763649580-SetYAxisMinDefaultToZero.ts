@@ -76,8 +76,8 @@ export class SetYAxisMinDefaultToZero1729763649580
 
             const fullConfig = mergeGrapherConfigs(
                 defaultGrapherConfig as any,
-                chart.isInheritanceEnabled ? etlConfig ?? {} : {},
-                chart.isInheritanceEnabled ? adminConfig ?? {} : {},
+                chart.isInheritanceEnabled ? (etlConfig ?? {}) : {},
+                chart.isInheritanceEnabled ? (adminConfig ?? {}) : {},
                 patchConfig
             )
 

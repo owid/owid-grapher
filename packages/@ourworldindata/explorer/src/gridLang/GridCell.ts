@@ -130,7 +130,7 @@ export class GridCell implements ParsedCell {
             ),
             def: isCellInHeader
                 ? headerCellDef
-                : valueCellDef ?? SubTableValueCellDef,
+                : (valueCellDef ?? SubTableValueCellDef),
         }
     }
 

@@ -384,7 +384,7 @@ export class HorizontalAxisComponent extends React.Component<{
 
         const tickMarksYPosition = horizontalAxisLabelsOnTop
             ? bounds.top + axis.height - 5
-            : preferredAxisPosition ?? bounds.bottom
+            : (preferredAxisPosition ?? bounds.bottom)
 
         const tickLabelYPlacement = horizontalAxisLabelsOnTop
             ? bounds.top + labelOffset + 10

@@ -1290,7 +1290,7 @@ export class ScatterPlotChart
     @computed private get xScaleType(): ScaleType {
         return this.manager.isRelativeMode
             ? ScaleType.linear
-            : this.xAxisConfig.scaleType ?? ScaleType.linear
+            : (this.xAxisConfig.scaleType ?? ScaleType.linear)
     }
 
     @computed get defaultXAxisLabel(): string | undefined {

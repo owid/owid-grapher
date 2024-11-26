@@ -90,8 +90,8 @@ const getChangesSlackMentions = async (
             `${item.message} (by ${
                 !item.authorEmail
                     ? item.authorName
-                    : emailSlackMentionMap.get(item.authorEmail) ??
-                      item.authorName
+                    : (emailSlackMentionMap.get(item.authorEmail) ??
+                      item.authorName)
             })`
     )
 }

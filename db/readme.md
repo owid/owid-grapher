@@ -18,8 +18,8 @@ yarn runDbMigrations
 
 This **runs automatically in the server deploy script**, so you only need to run it manually when:
 
--   You are creating a new migration locally, or
--   Someone else has created a migration
+- You are creating a new migration locally, or
+- Someone else has created a migration
 
 The database dumps we provide has all migrations already applied.
 

@@ -23,17 +23,17 @@ The specific needs we have are listed below.
 
 Serializing:
 
--   should serialize only persistable properties
--   should have the option to serialize only values changed from their defaults
--   should be able to serialize/deserialize arbitrary "special values" that don't interchange well with JSON, such as Infinity
--   should be able to follow these rules recursively
+- should serialize only persistable properties
+- should have the option to serialize only values changed from their defaults
+- should be able to serialize/deserialize arbitrary "special values" that don't interchange well with JSON, such as Infinity
+- should be able to follow these rules recursively
 
 Deserializing:
 
--   should instantiate the proper non-primitive classes
--   should be able to parse "special values" to the proper in-memory structure
--   should optionally be able to validate
--   should be able to follow these rules recursively
+- should instantiate the proper non-primitive classes
+- should be able to parse "special values" to the proper in-memory structure
+- should optionally be able to validate
+- should be able to follow these rules recursively
 
 ## How to Use
 

@@ -8,12 +8,12 @@ While SQL DBs are great for our high volume, stable object types, they might be 
 
 ## Goals
 
--   Make it easier for authors to edit more things that lie between "content" and "code"
--   Allow new ways for authors to edit content in a safe way
--   Save dev time by just using Git for versioning author editable content
--   Increase dev speed by making it faster and less painful to do migrations
--   Increase dev speed by enabling faster syncing to dev of certain authored content from prod
--   Hopefully lead to some unplanned benefits by making some content more accessible
+- Make it easier for authors to edit more things that lie between "content" and "code"
+- Allow new ways for authors to edit content in a safe way
+- Save dev time by just using Git for versioning author editable content
+- Increase dev speed by making it faster and less painful to do migrations
+- Increase dev speed by enabling faster syncing to dev of certain authored content from prod
+- Hopefully lead to some unplanned benefits by making some content more accessible
 
 ## Implementation notes
 
@@ -23,8 +23,8 @@ While SQL DBs are great for our high volume, stable object types, they might be 
 
 ## todo:
 
--   Cleanup the routes and the unneeded admin vs api split
--   Better test coverage and integration tests
--   Support saving drafts to private repos
--   Better branch handling
--   Better syncing with remote repos
+- Cleanup the routes and the unneeded admin vs api split
+- Better test coverage and integration tests
+- Support saving drafts to private repos
+- Better branch handling
+- Better syncing with remote repos

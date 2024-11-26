@@ -120,7 +120,7 @@ export class MapTooltip
         const displayDatumTime =
             timeColumn && datum
                 ? timeColumn.formatValue(datum?.time)
-                : datum?.time.toString() ?? ""
+                : (datum?.time.toString() ?? "")
         const valueColor: string | undefined = darkenColorForHighContrastText(
             lineColorScale?.getColor(datum?.value) ?? "#333"
         )

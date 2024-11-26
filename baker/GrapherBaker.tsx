@@ -144,7 +144,7 @@ export async function renderDataPageV2(
     // to use indicator level defaults, we should reconsider how this works here.
     const grapher = useIndicatorGrapherConfigs
         ? mergeGrapherConfigs(grapherConfigForVariable ?? {}, pageGrapher ?? {})
-        : pageGrapher ?? {}
+        : (pageGrapher ?? {})
 
     const faqDocIds = compact(
         uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
