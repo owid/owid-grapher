@@ -31,11 +31,7 @@ import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import {
-    LineLegend,
-    LineLabelSeries,
-    LineLegendManager,
-} from "../lineLegend/LineLegend"
+import { LineLegend, LineLabelSeries } from "../lineLegend/LineLegend"
 import { ComparisonLine } from "../scatterCharts/ComparisonLine"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
@@ -365,7 +361,6 @@ export class LineChart
     }>
     implements
         ChartInterface,
-        LineLegendManager,
         AxisManager,
         ColorScaleManager,
         HorizontalColorLegendManager
@@ -847,7 +842,7 @@ export class LineChart
     }
 
     @computed get lineLegendX(): number {
-        return this.bounds.right - (this.lineLegendDimensions?.width || 0)
+        return this.bounds.right - this.lineLegendWidth
     }
 
     @computed get lineLegendY(): [number, number] {
@@ -880,10 +875,17 @@ export class LineChart
             .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
     }
 
-    @computed private get lineLegendDimensions(): LineLegend | undefined {
-        return !this.manager.showLegend
-            ? undefined
-            : new LineLegend({ manager: this })
+    @computed private get lineLegendWidth(): number {
+        if (!this.manager.showLegend) return 0
+
+        // only pass props that are required to calculate
+        // the width to avoid circular dependencies
+        return LineLegend.width({
+            labelSeries: this.lineLegendSeries,
+            maxWidth: this.maxLineLegendWidth,
+            fontSize: this.fontSize,
+            fontWeight: this.fontWeight,
+        })
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
@@ -944,7 +946,21 @@ export class LineChart
                         backgroundColor={this.manager.backgroundColor}
                     />
                 ))}
-                {manager.showLegend && <LineLegend manager={this} />}
+                {manager.showLegend && (
+                    <LineLegend
+                        labelSeries={this.lineLegendSeries}
+                        yAxis={this.yAxis}
+                        x={this.lineLegendX}
+                        yRange={this.lineLegendY}
+                        maxWidth={this.maxLineLegendWidth}
+                        fontSize={this.fontSize}
+                        fontWeight={this.fontWeight}
+                        isStatic={this.isStatic}
+                        focusedSeriesNames={this.focusedSeriesNames}
+                        onMouseOver={this.onLineLegendMouseOver}
+                        onMouseLeave={this.onLineLegendMouseLeave}
+                    />
+                )}
                 <Lines
                     dualAxis={this.dualAxis}
                     placedSeries={this.placedSeries}
@@ -1305,7 +1321,7 @@ export class LineChart
 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
-    @computed get labelSeries(): LineLabelSeries[] {
+    @computed get lineLegendSeries(): LineLabelSeries[] {
         // If there are any projections, ignore non-projection legends
         // Bit of a hack
         let seriesToShow = this.series
@@ -1387,8 +1403,8 @@ export class LineChart
         return new DualAxis({
             bounds: this.boundsWithoutColorLegend
                 .padRight(
-                    this.lineLegendDimensions
-                        ? this.lineLegendDimensions.width
+                    this.manager.showLegend
+                        ? this.lineLegendWidth
                         : this.defaultRightPadding
                 )
                 // top padding leaves room for tick labels

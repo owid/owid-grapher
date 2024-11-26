@@ -1,9 +1,9 @@
 #! /usr/bin/env jest
 
 import { AxisConfig } from "../axis/AxisConfig"
-import { LineLegend, LineLegendManager } from "./LineLegend"
+import { LineLegend, LineLegendProps } from "./LineLegend"
 
-const manager: LineLegendManager = {
+const props: LineLegendProps = {
     labelSeries: [
         {
             seriesName: "Canada",
@@ -20,13 +20,13 @@ const manager: LineLegendManager = {
             annotation: "Below Canada",
         },
     ],
-    lineLegendX: 200,
+    x: 200,
     focusedSeriesNames: [],
     yAxis: new AxisConfig({ min: 0, max: 100 }).toVerticalAxis(),
 }
 
 it("can create a new legend", () => {
-    const legend = new LineLegend({ manager })
+    const legend = new LineLegend(props)
 
     expect(legend.sizedLabels.length).toEqual(2)
 })
