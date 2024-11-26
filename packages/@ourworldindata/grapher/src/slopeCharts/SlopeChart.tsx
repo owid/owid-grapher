@@ -550,7 +550,7 @@ export class SlopeChart
     }
 
     // used in LineLegend
-    @computed get labelSeries(): LineLabelSeries[] {
+    @computed get lineLegendSeries(): LineLabelSeries[] {
         return this.series.map((series) => {
             const { seriesName, color, end, annotation } = series
             return {
@@ -917,7 +917,19 @@ export class SlopeChart
         return (
             <g>
                 {this.renderChartArea()}
-                {this.manager.showLegend && <LineLegend manager={this} />}
+                {this.manager.showLegend && (
+                    <LineLegend
+                        labelSeries={this.lineLegendSeries}
+                        yAxis={this.yAxis}
+                        x={this.lineLegendX}
+                        maxWidth={this.maxLineLegendWidth}
+                        fontSize={this.fontSize}
+                        isStatic={this.manager.isStatic}
+                        focusedSeriesNames={this.focusedSeriesNames}
+                        onMouseLeave={this.onLineLegendMouseLeave}
+                        onMouseOver={this.onLineLegendMouseOver}
+                    />
+                )}
                 {this.showNoDataSection && this.renderNoDataSection()}
                 {this.tooltip}
             </g>

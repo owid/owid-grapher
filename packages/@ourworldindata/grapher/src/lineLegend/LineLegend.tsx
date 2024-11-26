@@ -22,6 +22,7 @@ import { EntityName } from "@ourworldindata/types"
 import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
+import { AxisConfig } from "../axis/AxisConfig.js"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2
@@ -281,42 +282,53 @@ class LineLabels extends React.Component<{
     }
 }
 
-export interface LineLegendManager {
+export interface LineLegendProps {
     labelSeries: LineLabelSeries[]
-    maxLineLegendWidth?: number
+    yAxis?: VerticalAxis
+
+    // positioning
+    x?: number
+    yRange?: [number, number]
+    maxWidth?: number
     lineLegendAnchorX?: "start" | "end"
+
+    // presentation
     fontSize?: number
     fontWeight?: number
-    onLineLegendMouseOver?: (key: EntityName) => void
-    onLineLegendClick?: (key: EntityName) => void
-    onLineLegendMouseLeave?: () => void
-    focusedSeriesNames: EntityName[]
-    yAxis: VerticalAxis
-    lineLegendY?: [number, number]
-    lineLegendX?: number
+
     // used to determine which series should be labelled when there is limited space
     seriesSortedByImportance?: EntityName[]
-    isStatic?: boolean
+
+    // interactions
+    isStatic?: boolean // don't add interactions if true
+    focusedSeriesNames?: EntityName[] // currently in focus
+    onClick?: (key: EntityName) => void
+    onMouseOver?: (key: EntityName) => void
+    onMouseLeave?: () => void
 }
 
 @observer
-export class LineLegend extends React.Component<{
-    manager: LineLegendManager
-}> {
-    @computed private get xAnchor(): "start" | "end" {
-        return this.props.manager.lineLegendAnchorX ?? "start"
+export class LineLegend extends React.Component<LineLegendProps> {
+    static width(props: LineLegendProps): number {
+        const test = new LineLegend(props)
+        if (test.sizedLabels.length === 0) return 0
+        return max(test.sizedLabels.map((d) => d.width)) ?? 0
     }
 
     @computed private get fontSize(): number {
-        return GRAPHER_FONT_SCALE_12 * (this.manager.fontSize ?? BASE_FONT_SIZE)
+        return GRAPHER_FONT_SCALE_12 * (this.props.fontSize ?? BASE_FONT_SIZE)
     }
 
     @computed private get fontWeight(): number {
-        return this.manager.fontWeight ?? DEFAULT_FONT_WEIGHT
+        return this.props.fontWeight ?? DEFAULT_FONT_WEIGHT
     }
 
     @computed private get maxWidth(): number {
-        return this.manager.maxLineLegendWidth ?? 300
+        return this.props.maxWidth ?? 300
+    }
+
+    @computed private get yAxis(): VerticalAxis {
+        return this.props.yAxis ?? new VerticalAxis(new AxisConfig())
     }
 
     @computed.struct get sizedLabels(): SizedSeries[] {
@@ -324,7 +336,7 @@ export class LineLegend extends React.Component<{
         const maxTextWidth = maxWidth - LEFT_PADDING
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
-        return this.manager.labelSeries.map((label) => {
+        return this.props.labelSeries.map((label) => {
             const annotationTextWrap = label.annotation
                 ? new TextWrap({
                       text: label.annotation,
@@ -365,34 +377,37 @@ export class LineLegend extends React.Component<{
     }
 
     @computed get onMouseOver(): any {
-        return this.manager.onLineLegendMouseOver ?? noop
+        return this.props.onMouseOver ?? noop
     }
     @computed get onMouseLeave(): any {
-        return this.manager.onLineLegendMouseLeave ?? noop
+        return this.props.onMouseLeave ?? noop
     }
     @computed get onClick(): any {
-        return this.manager.onLineLegendClick ?? noop
+        return this.props.onClick ?? noop
+    }
+
+    @computed get focusedSeriesNames(): EntityName[] {
+        return this.props.focusedSeriesNames ?? []
     }
 
     @computed get isFocusMode(): boolean {
         return this.sizedLabels.some((label) =>
-            this.manager.focusedSeriesNames.includes(label.seriesName)
+            this.focusedSeriesNames.includes(label.seriesName)
         )
     }
 
     @computed get legendX(): number {
-        return this.manager.lineLegendX ?? 0
+        return this.props.x ?? 0
     }
 
     @computed get legendY(): [number, number] {
-        const range = this.manager.lineLegendY ?? this.manager.yAxis.range
+        const range = this.props.yRange ?? this.yAxis.range
         return [Math.min(range[1], range[0]), Math.max(range[1], range[0])]
     }
 
     // Naive initial placement of each mark at the target height, before collision detection
     @computed private get initialSeries(): PlacedSeries[] {
-        const { yAxis } = this.manager
-        const { legendX, legendY } = this
+        const { yAxis, legendX, legendY } = this
 
         const [legendYMin, legendYMax] = legendY
 
@@ -507,9 +522,9 @@ export class LineLegend extends React.Component<{
     }
 
     @computed get sortedSeriesByImportance(): PlacedSeries[] | undefined {
-        if (!this.manager.seriesSortedByImportance) return undefined
+        if (!this.props.seriesSortedByImportance) return undefined
         return excludeUndefined(
-            this.manager.seriesSortedByImportance.map((seriesName) =>
+            this.props.seriesSortedByImportance.map((seriesName) =>
                 this.initialSeriesByName.get(seriesName)
             )
         )
@@ -657,7 +672,7 @@ export class LineLegend extends React.Component<{
     }
 
     @computed private get backgroundSeries(): PlacedSeries[] {
-        const { focusedSeriesNames } = this.manager
+        const { focusedSeriesNames } = this
         const { isFocusMode } = this
         return this.placedSeries.filter(
             (mark) =>
@@ -666,7 +681,7 @@ export class LineLegend extends React.Component<{
     }
 
     @computed private get focusedSeries(): PlacedSeries[] {
-        const { focusedSeriesNames } = this.manager
+        const { focusedSeriesNames } = this
         const { isFocusMode } = this
         return this.placedSeries.filter(
             (mark) =>
@@ -686,8 +701,8 @@ export class LineLegend extends React.Component<{
                 series={this.backgroundSeries}
                 needsLines={this.needsLines}
                 isFocus={false}
-                anchor={this.xAnchor}
-                isStatic={this.manager.isStatic}
+                anchor={this.props.lineLegendAnchorX}
+                isStatic={this.props.isStatic}
                 onMouseOver={(series): void =>
                     this.onMouseOver(series.seriesName)
                 }
@@ -704,8 +719,8 @@ export class LineLegend extends React.Component<{
                 series={this.focusedSeries}
                 needsLines={this.needsLines}
                 isFocus={true}
-                anchor={this.xAnchor}
-                isStatic={this.manager.isStatic}
+                anchor={this.props.lineLegendAnchorX}
+                isStatic={this.props.isStatic}
                 onMouseOver={(series): void =>
                     this.onMouseOver(series.seriesName)
                 }
@@ -715,10 +730,6 @@ export class LineLegend extends React.Component<{
                 }
             />
         )
-    }
-
-    @computed get manager(): LineLegendManager {
-        return this.props.manager
     }
 
     render(): React.ReactElement {
