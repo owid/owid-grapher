@@ -668,7 +668,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     /**
-     * Load image metadata from the database. Does not check Google Drive or sync to S3
+     * Load image metadata from the database.
      */
     async loadImageMetadataFromDB(
         knex: db.KnexReadonlyTransaction,
