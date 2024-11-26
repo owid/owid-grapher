@@ -3,28 +3,32 @@ import { ColorScheme } from "./ColorScheme"
 import { match } from "ts-pattern"
 import { partition } from "@ourworldindata/utils"
 import {
-    ChartTypeName,
+    GRAPHER_CHART_TYPES,
     ColorSchemeInterface,
     ColorSchemeName,
+    GRAPHER_MAP_TYPE,
+    GrapherChartOrMapType,
 } from "@ourworldindata/types"
 import { getColorBrewerScheme } from "./ColorBrewerSchemes.js"
 
-function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
-    // This function could also be a Map<ChartTypeName, ColorName[]> but
+function getPreferredSchemesByType(
+    type: GrapherChartOrMapType
+): ColorSchemeName[] {
+    // This function could also be a Map<GrapherChartOrMapType, ColorName[]> but
     // by doing it as a function usign ts-pattern.match we get compile
-    // time safety that all enum cases in ChartTypeName are always handled here
+    // time safety that all enum cases in GrapherChartOrMapType are always handled here
     return match(type)
-        .with(ChartTypeName.DiscreteBar, () => [
+        .with(GRAPHER_CHART_TYPES.DiscreteBar, () => [
             ColorSchemeName.SingleColorDenim,
             ColorSchemeName.SingleColorDustyCoral,
             ColorSchemeName.SingleColorPurple,
             ColorSchemeName.SingleColorTeal,
             ColorSchemeName.SingleColorDarkCopper,
         ])
-        .with(ChartTypeName.LineChart, () => [
+        .with(GRAPHER_CHART_TYPES.LineChart, () => [
             ColorSchemeName.OwidDistinctLines,
         ])
-        .with(ChartTypeName.Marimekko, () => [
+        .with(GRAPHER_CHART_TYPES.Marimekko, () => [
             ColorSchemeName.continents,
             ColorSchemeName.SingleColorDenim,
             ColorSchemeName.SingleColorDustyCoral,
@@ -37,15 +41,15 @@ function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
             ColorSchemeName.OwidCategoricalD,
             ColorSchemeName.OwidCategoricalE,
         ])
-        .with(ChartTypeName.ScatterPlot, () => [
+        .with(GRAPHER_CHART_TYPES.ScatterPlot, () => [
             ColorSchemeName.continents,
             ColorSchemeName.OwidDistinctLines,
         ])
-        .with(ChartTypeName.SlopeChart, () => [
+        .with(GRAPHER_CHART_TYPES.SlopeChart, () => [
             ColorSchemeName.continents,
             ColorSchemeName.OwidDistinctLines,
         ])
-        .with(ChartTypeName.StackedArea, () => [
+        .with(GRAPHER_CHART_TYPES.StackedArea, () => [
             ColorSchemeName["owid-distinct"],
             ColorSchemeName.OwidCategoricalA,
             ColorSchemeName.OwidCategoricalB,
@@ -58,7 +62,7 @@ function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
             ColorSchemeName.SingleColorGradientDustyCoral,
             ColorSchemeName.SingleColorGradientDarkCopper,
         ])
-        .with(ChartTypeName.StackedBar, () => [
+        .with(GRAPHER_CHART_TYPES.StackedBar, () => [
             ColorSchemeName["owid-distinct"],
             ColorSchemeName.OwidCategoricalA,
             ColorSchemeName.OwidCategoricalB,
@@ -71,7 +75,7 @@ function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
             ColorSchemeName.SingleColorGradientDustyCoral,
             ColorSchemeName.SingleColorGradientDarkCopper,
         ])
-        .with(ChartTypeName.StackedDiscreteBar, () => [
+        .with(GRAPHER_CHART_TYPES.StackedDiscreteBar, () => [
             ColorSchemeName["owid-distinct"],
             ColorSchemeName.OwidCategoricalA,
             ColorSchemeName.OwidCategoricalB,
@@ -84,7 +88,7 @@ function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
             ColorSchemeName.SingleColorGradientDustyCoral,
             ColorSchemeName.SingleColorGradientDarkCopper,
         ])
-        .with(ChartTypeName.WorldMap, () => [
+        .with(GRAPHER_MAP_TYPE, () => [
             ColorSchemeName.BinaryMapPaletteA,
             ColorSchemeName.BinaryMapPaletteB,
             ColorSchemeName.BinaryMapPaletteC,
@@ -129,7 +133,7 @@ const getAllColorSchemes = (): Map<ColorSchemeName, ColorScheme> => {
     )
 }
 
-export function getColorSchemeForChartType(type: ChartTypeName): {
+export function getColorSchemeForChartType(type: GrapherChartOrMapType): {
     [key in ColorSchemeName]: ColorScheme
 } {
     const preferred = new Set(getPreferredSchemesByType(type))

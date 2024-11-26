@@ -1,7 +1,8 @@
 import {
-    ChartTypeName,
+    GRAPHER_CHART_TYPES,
+    GrapherChartType,
     GrapherTabName,
-    GrapherTabOption,
+    ALL_GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
 import {
     MultipleOwidVariableDataDimensionsMap,
@@ -26,11 +27,6 @@ import { getHeapStatistics } from "v8"
 import { queryStringsByChartType } from "./chart-configurations.js"
 import * as d3 from "d3"
 
-// ignore WorldMaps
-export const CHART_TYPES = Object.values(ChartTypeName).filter(
-    (chartType) => chartType !== ChartTypeName.WorldMap
-)
-
 // the owid-grapher-svgs repo is usually cloned as a sibling to the owid-grapher repo
 export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/configs"
 export const DEFAULT_REFERENCE_DIR = "../owid-grapher-svgs/svg"
@@ -44,7 +40,7 @@ export const finished = util.promisify(stream.finished) // (A)
 export interface ChartWithQueryStr {
     id: number
     slug: string
-    type: ChartTypeName
+    type: GrapherChartType
     queryStr?: string
 }
 
@@ -182,7 +178,7 @@ export async function selectChartIdsToProcess(
     options: {
         chartIdsFile?: string
         grapherIds?: number[]
-        chartTypes?: ChartTypeName[]
+        chartTypes?: GrapherChartType[]
         randomCount?: number
     }
 ): Promise<number[]> {
@@ -210,7 +206,7 @@ export async function findChartViewsToGenerate(
 
         const slug = grapherConfig.slug ?? chartId.toString()
         const chartType =
-            grapherConfig.chartTypes?.[0] ?? ChartTypeName.LineChart
+            grapherConfig.chartTypes?.[0] ?? GRAPHER_CHART_TYPES.LineChart
 
         const queryStrings = options.shouldTestAllViews
             ? queryStringsByChartType[chartType]
@@ -240,7 +236,7 @@ export async function findValidChartIds(
     }: {
         chartIdsFile?: string
         grapherIds?: number[]
-        chartTypes?: ChartTypeName[]
+        chartTypes?: GrapherChartType[]
     }
 ): Promise<number[]> {
     const validChartIds: number[] = []
@@ -289,7 +285,8 @@ export async function findValidChartIds(
                     inDir,
                 })
                 const chartType =
-                    grapherConfig.chartTypes?.[0] ?? ChartTypeName.LineChart
+                    grapherConfig.chartTypes?.[0] ??
+                    GRAPHER_CHART_TYPES.LineChart
                 if (chartTypes.includes(chartType)) {
                     validChartIds.push(grapherId)
                 }
@@ -300,17 +297,17 @@ export async function findValidChartIds(
     return validChartIds
 }
 
-export function validateChartTypes(chartTypes: string[]): ChartTypeName[] {
+export function validateChartTypes(chartTypes: string[]): GrapherChartType[] {
     const validChartTypes = chartTypes.filter(
-        (chartType): chartType is ChartTypeName =>
-            CHART_TYPES.includes(chartType as any)
+        (chartType): chartType is GrapherChartType =>
+            ALL_GRAPHER_CHART_TYPES.includes(chartType as any)
     )
     const invalidChartTypes = chartTypes.filter(
-        (chartType) => !CHART_TYPES.includes(chartType as any)
+        (chartType) => !ALL_GRAPHER_CHART_TYPES.includes(chartType as any)
     )
     if (invalidChartTypes.length) {
         console.warn(
-            `Invalid chart types given: ${invalidChartTypes}. Valid chart types are: ${CHART_TYPES}`
+            `Invalid chart types given: ${invalidChartTypes}. Valid chart types are: ${ALL_GRAPHER_CHART_TYPES}`
         )
     }
     return _.uniq(validChartTypes)

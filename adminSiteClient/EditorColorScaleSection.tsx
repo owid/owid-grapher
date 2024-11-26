@@ -7,7 +7,7 @@ import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import {
     ColorSchemeName,
     BinningStrategy,
-    ChartTypeName,
+    GrapherChartOrMapType,
     Color,
 } from "@ourworldindata/types"
 import {
@@ -43,7 +43,7 @@ interface EditorColorScaleSectionFeatures {
 @observer
 export class EditorColorScaleSection extends React.Component<{
     scale: ColorScale
-    chartType: ChartTypeName
+    chartType: GrapherChartOrMapType
     features: EditorColorScaleSectionFeatures
     showLineChartColors: boolean
     onChange?: () => void
@@ -132,7 +132,7 @@ class ColorLegendSection extends React.Component<{
 @observer
 class ColorsSection extends React.Component<{
     scale: ColorScale
-    chartType: ChartTypeName
+    chartType: GrapherChartOrMapType
     showLineChartColors: boolean
     onChange?: () => void
 }> {

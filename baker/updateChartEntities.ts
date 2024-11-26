@@ -9,7 +9,7 @@ import {
     ChartsXEntitiesTableName,
     DbPlainChart,
     GrapherInterface,
-    GrapherTabOption,
+    GRAPHER_TAB_OPTIONS,
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
     DbRawChartConfig,
@@ -97,7 +97,7 @@ const obtainAvailableEntitiesForGrapherConfig = async (
 
     // If the grapher has a chart tab, then the available entities there are the "most interesting" ones to us
     if (grapher.hasChartTab) {
-        grapher.tab = GrapherTabOption.chart
+        grapher.tab = GRAPHER_TAB_OPTIONS.chart
 
         // If the grapher allows for changing or multi-selecting entities, then let's index all entities the
         // user can choose from. Otherwise, we'll just use the default-selected entities.
@@ -112,7 +112,7 @@ const obtainAvailableEntitiesForGrapherConfig = async (
             return grapher.tableForSelection.availableEntityNames as string[]
         else return grapher.selectedEntityNames ?? []
     } else if (grapher.hasMapTab) {
-        grapher.tab = GrapherTabOption.map
+        grapher.tab = GRAPHER_TAB_OPTIONS.map
         // On a map tab, tableAfterAuthorTimelineAndActiveChartTransform contains all
         // mappable entities for which data is available
         return grapher.tableAfterAuthorTimelineAndActiveChartTransform

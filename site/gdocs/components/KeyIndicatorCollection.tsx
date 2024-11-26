@@ -13,6 +13,7 @@ import {
 import {
     EnrichedBlockKeyIndicatorCollection,
     EnrichedBlockKeyIndicator,
+    GRAPHER_TAB_OPTIONS,
     GrapherTabOption,
 } from "@ourworldindata/types"
 import { Url, urlToSlug, commafyNumber } from "@ourworldindata/utils"
@@ -26,9 +27,9 @@ import { Button } from "@ourworldindata/components"
 const HEIGHT_ANIMATION_DURATION_IN_SECONDS = 0.4
 
 const tabIconMap: Record<GrapherTabOption, IconDefinition> = {
-    [GrapherTabOption.chart]: faChartLine,
-    [GrapherTabOption.map]: faEarthAmericas,
-    [GrapherTabOption.table]: faTable,
+    [GRAPHER_TAB_OPTIONS.chart]: faChartLine,
+    [GRAPHER_TAB_OPTIONS.map]: faEarthAmericas,
+    [GRAPHER_TAB_OPTIONS.table]: faTable,
 }
 
 export default function KeyIndicatorCollection({
@@ -247,7 +248,7 @@ function KeyIndicatorHeader({
             ? queryParams.tab
             : undefined
     const activeTab =
-        tabFromQueryParams || linkedChart.tab || GrapherTabOption.chart
+        tabFromQueryParams || linkedChart.tab || GRAPHER_TAB_OPTIONS.chart
 
     const source = block.source || linkedIndicator.attributionShort
 
@@ -357,5 +358,5 @@ function isElementAtTopOfViewport(element: HTMLElement): boolean {
 }
 
 function isValidGrapherTab(tab: string): tab is GrapherTabOption {
-    return Object.values(GrapherTabOption).includes(tab as GrapherTabOption)
+    return Object.values(GRAPHER_TAB_OPTIONS).includes(tab as GrapherTabOption)
 }

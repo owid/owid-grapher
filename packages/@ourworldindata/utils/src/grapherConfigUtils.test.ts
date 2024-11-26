@@ -3,8 +3,8 @@
 import {
     DimensionProperty,
     GrapherInterface,
-    GrapherTabOption,
     MapProjectionName,
+    GRAPHER_TAB_OPTIONS,
 } from "@ourworldindata/types"
 import {
     mergeGrapherConfigs,
@@ -243,14 +243,14 @@ describe(diffGrapherConfigs, () => {
     it("drops redundant entries", () => {
         expect(
             diffGrapherConfigs(
-                { tab: GrapherTabOption.map },
-                { tab: GrapherTabOption.map }
+                { tab: GRAPHER_TAB_OPTIONS.map },
+                { tab: GRAPHER_TAB_OPTIONS.map }
             )
         ).toEqual({})
         expect(
             diffGrapherConfigs(
-                { tab: GrapherTabOption.chart, title: "Chart" },
-                { tab: GrapherTabOption.chart, title: "Reference chart" }
+                { tab: GRAPHER_TAB_OPTIONS.chart, title: "Chart" },
+                { tab: GRAPHER_TAB_OPTIONS.chart, title: "Reference chart" }
             )
         ).toEqual({ title: "Chart" })
     })
@@ -260,7 +260,7 @@ describe(diffGrapherConfigs, () => {
             diffGrapherConfigs(
                 {
                     title: "Chart",
-                    tab: GrapherTabOption.chart,
+                    tab: GRAPHER_TAB_OPTIONS.chart,
                     map: {
                         projection: MapProjectionName.World,
                         hideTimeline: true,
@@ -268,7 +268,7 @@ describe(diffGrapherConfigs, () => {
                 },
                 {
                     title: "Reference chart",
-                    tab: GrapherTabOption.chart,
+                    tab: GRAPHER_TAB_OPTIONS.chart,
                     map: {
                         projection: MapProjectionName.World,
                         hideTimeline: false,
@@ -279,14 +279,14 @@ describe(diffGrapherConfigs, () => {
         expect(
             diffGrapherConfigs(
                 {
-                    tab: GrapherTabOption.chart,
+                    tab: GRAPHER_TAB_OPTIONS.chart,
                     map: {
                         projection: MapProjectionName.World,
                         hideTimeline: true,
                     },
                 },
                 {
-                    tab: GrapherTabOption.chart,
+                    tab: GRAPHER_TAB_OPTIONS.chart,
                     map: {
                         projection: MapProjectionName.World,
                         hideTimeline: true,
@@ -300,11 +300,11 @@ describe(diffGrapherConfigs, () => {
         expect(
             diffGrapherConfigs(
                 {
-                    tab: GrapherTabOption.chart,
+                    tab: GRAPHER_TAB_OPTIONS.chart,
                     title: "Chart",
                     subtitle: undefined,
                 },
-                { tab: GrapherTabOption.chart, title: "Reference chart" }
+                { tab: GRAPHER_TAB_OPTIONS.chart, title: "Reference chart" }
             )
         ).toEqual({ title: "Chart" })
     })
@@ -361,12 +361,12 @@ describe(diffGrapherConfigs, () => {
 
     it("is idempotent", () => {
         const config: GrapherInterface = {
-            tab: GrapherTabOption.chart,
+            tab: GRAPHER_TAB_OPTIONS.chart,
             title: "Chart",
             subtitle: undefined,
         }
         const reference: GrapherInterface = {
-            tab: GrapherTabOption.chart,
+            tab: GRAPHER_TAB_OPTIONS.chart,
             title: "Reference chart",
         }
         const diffedOnce = diffGrapherConfigs(config, reference)
@@ -378,12 +378,12 @@ describe(diffGrapherConfigs, () => {
 describe("diff+merge", () => {
     it("are consistent", () => {
         const config: GrapherInterface = {
-            tab: GrapherTabOption.chart,
+            tab: GRAPHER_TAB_OPTIONS.chart,
             title: "Chart",
             subtitle: "Chart subtitle",
         }
         const reference: GrapherInterface = {
-            tab: GrapherTabOption.chart,
+            tab: GRAPHER_TAB_OPTIONS.chart,
             title: "Reference chart",
         }
         const diffedAndMerged = mergeGrapherConfigs(

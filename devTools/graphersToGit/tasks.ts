@@ -2,7 +2,7 @@
 
 import { CoreTable } from "@ourworldindata/core-table"
 import {
-    ChartTypeName,
+    GRAPHER_CHART_TYPES,
     ColorScaleConfig,
     Grapher,
     GrapherProgrammaticInterface,
@@ -173,7 +173,7 @@ const dumpComplexSelections = async () => {
                 : 0
         return {
             grapherId: config.id,
-            type: config.type ?? ChartTypeName.LineChart,
+            type: config.type ?? GRAPHER_CHART_TYPES.LineChart,
             url: `https://ourworldindata.org/grapher/${config.slug}`,
             dimensionVariableCount,
             selectionVariableCount,

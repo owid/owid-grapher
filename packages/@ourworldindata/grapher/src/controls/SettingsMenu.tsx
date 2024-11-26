@@ -4,7 +4,12 @@ import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons"
-import { EntityName, ChartTypeName, FacetStrategy } from "@ourworldindata/types"
+import {
+    EntityName,
+    GRAPHER_CHART_TYPES,
+    FacetStrategy,
+    GrapherChartType,
+} from "@ourworldindata/types"
 import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartDimension } from "../chart/ChartDimension"
@@ -46,7 +51,7 @@ const {
     StackedDiscreteBar,
     StackedBar,
     Marimekko,
-} = ChartTypeName
+} = GRAPHER_CHART_TYPES
 
 export interface SettingsMenuManager
     extends AbsRelToggleManager,
@@ -67,7 +72,7 @@ export interface SettingsMenuManager
     hideTableFilterToggle?: boolean
 
     // chart state
-    activeChartType?: ChartTypeName
+    activeChartType?: GrapherChartType
     isRelativeMode?: boolean
     selection?: SelectionArray | EntityName[]
     canChangeAddOrHighlightEntities?: boolean
@@ -104,8 +109,8 @@ export class SettingsMenu extends React.Component<{
         return test.showSettingsMenuToggle
     }
 
-    @computed get chartType(): ChartTypeName {
-        return this.manager.activeChartType ?? ChartTypeName.LineChart
+    @computed get chartType(): GrapherChartType {
+        return this.manager.activeChartType ?? GRAPHER_CHART_TYPES.LineChart
     }
 
     @computed get maxWidth(): number {
@@ -115,7 +120,8 @@ export class SettingsMenu extends React.Component<{
     @computed get showYScaleToggle(): boolean | undefined {
         if (this.manager.hideYScaleToggle) return false
         if (this.manager.isRelativeMode) return false
-        if ([StackedArea, StackedBar].includes(this.chartType)) return false // We currently do not have these charts with log scale
+        if ([StackedArea, StackedBar].includes(this.chartType as any))
+            return false // We currently do not have these charts with log scale
         return this.manager.yAxis.canChangeScaleType
     }
 
@@ -164,7 +170,7 @@ export class SettingsMenu extends React.Component<{
             ScatterPlot,
             LineChart,
             Marimekko,
-        ].includes(this.chartType)
+        ].includes(this.chartType as any)
     }
 
     @computed get showFacetControl(): boolean {
@@ -187,7 +193,7 @@ export class SettingsMenu extends React.Component<{
             StackedBar,
             StackedDiscreteBar,
             LineChart,
-        ].includes(this.chartType)
+        ].includes(this.chartType as any)
 
         const hasProjection = filledDimensions.some(
             (dim) => dim.display.isProjection

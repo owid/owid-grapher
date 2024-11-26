@@ -1,6 +1,6 @@
 import React from "react"
 import { DimensionProperty } from "@ourworldindata/utils"
-import { GrapherTabOption } from "@ourworldindata/types"
+import { GRAPHER_TAB_OPTIONS } from "@ourworldindata/types"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { Explorer, ExplorerProps } from "./Explorer.js"
 
@@ -54,7 +54,7 @@ export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
                 property: DimensionProperty.y,
             },
         ],
-        tab: GrapherTabOption.chart,
+        tab: GRAPHER_TAB_OPTIONS.chart,
         owidDataset: new Map([
             [
                 142609,

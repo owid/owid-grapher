@@ -1,7 +1,7 @@
 // todo: Remove this file when we've migrated OWID data and OWID charts to next version
 
 import {
-    ChartTypeName,
+    GRAPHER_CHART_TYPES,
     ColumnTypeNames,
     CoreColumnDef,
     StandardOwidColumnDefs,
@@ -200,8 +200,8 @@ export const legacyToOwidTableAndDimensions = (
         const targetTime = dimension?.targetYear
         const chartType = grapherConfig.chartTypes?.[0]
         if (
-            (chartType === ChartTypeName.ScatterPlot ||
-                chartType === ChartTypeName.Marimekko) &&
+            (chartType === GRAPHER_CHART_TYPES.ScatterPlot ||
+                chartType === GRAPHER_CHART_TYPES.Marimekko) &&
             isNumber(targetTime)
         ) {
             variableTable = variableTable

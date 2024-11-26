@@ -4,21 +4,22 @@ import {
     faChartBar,
     faChartLine,
     faChartColumn,
-    faEarthAmericas,
 } from "@fortawesome/free-solid-svg-icons"
-import { ChartTypeName } from "@ourworldindata/types"
+import { GRAPHER_CHART_TYPES, GrapherChartType } from "@ourworldindata/types"
 
-export const chartIcons: Record<ChartTypeName, React.ReactElement> = {
+export const chartIcons: Record<GrapherChartType, React.ReactElement> = {
     // line chart
-    [ChartTypeName.LineChart]: <FontAwesomeIcon icon={faChartLine} />,
+    [GRAPHER_CHART_TYPES.LineChart]: <FontAwesomeIcon icon={faChartLine} />,
 
     // bar charts
-    [ChartTypeName.DiscreteBar]: <FontAwesomeIcon icon={faChartColumn} />,
-    [ChartTypeName.StackedBar]: <FontAwesomeIcon icon={faChartColumn} />,
-    [ChartTypeName.StackedDiscreteBar]: <FontAwesomeIcon icon={faChartBar} />,
+    [GRAPHER_CHART_TYPES.DiscreteBar]: <FontAwesomeIcon icon={faChartColumn} />,
+    [GRAPHER_CHART_TYPES.StackedBar]: <FontAwesomeIcon icon={faChartColumn} />,
+    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: (
+        <FontAwesomeIcon icon={faChartBar} />
+    ),
 
     // scatter
-    [ChartTypeName.ScatterPlot]: (
+    [GRAPHER_CHART_TYPES.ScatterPlot]: (
         <svg
             className="custom-icon scatter"
             width="16"
@@ -43,7 +44,7 @@ export const chartIcons: Record<ChartTypeName, React.ReactElement> = {
     ),
 
     // marimekko
-    [ChartTypeName.Marimekko]: (
+    [GRAPHER_CHART_TYPES.Marimekko]: (
         <svg
             className="custom-icon marimekko"
             width="16"
@@ -68,7 +69,7 @@ export const chartIcons: Record<ChartTypeName, React.ReactElement> = {
     ),
 
     // stacked area
-    [ChartTypeName.StackedArea]: (
+    [GRAPHER_CHART_TYPES.StackedArea]: (
         <svg
             className="custom-icon stacked-area"
             width="14"
@@ -89,7 +90,7 @@ export const chartIcons: Record<ChartTypeName, React.ReactElement> = {
     ),
 
     // slope chart
-    [ChartTypeName.SlopeChart]: (
+    [GRAPHER_CHART_TYPES.SlopeChart]: (
         <svg
             className="custom-icon slope"
             width="14"
@@ -107,7 +108,4 @@ export const chartIcons: Record<ChartTypeName, React.ReactElement> = {
             </g>
         </svg>
     ),
-
-    // world map (will never be invoked but included for completeness)
-    [ChartTypeName.WorldMap]: <FontAwesomeIcon icon={faEarthAmericas} />,
 }

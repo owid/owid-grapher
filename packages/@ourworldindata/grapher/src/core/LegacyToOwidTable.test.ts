@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
 import {
-    ChartTypeName,
+    GRAPHER_CHART_TYPES,
     OwidColumnDef,
     OwidTableSlugs,
     StandardOwidColumnDefs,
@@ -466,7 +466,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             it("joins targetTime", () => {
                 const scatterLegacyGrapherConfig = {
                     ...legacyGrapherConfig,
-                    chartTypes: [ChartTypeName.ScatterPlot],
+                    chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
                 }
 
                 const { table } = legacyToOwidTableAndDimensions(

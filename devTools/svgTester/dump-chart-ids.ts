@@ -5,7 +5,7 @@ import parseArgs from "minimist"
 
 import { TransactionCloseMode, knexReadonlyTransaction } from "../../db/db.js"
 import { getMostViewedGrapherIdsByChartType } from "../../db/model/Chart.js"
-import { CHART_TYPES } from "./utils.js"
+import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
 const DEFAULT_OUT_FILE = "../owid-grapher-svgs/most-viewed-charts.txt"
 const CHART_COUNT_PER_TYPE = 25
@@ -15,7 +15,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const outFile = parsedArgs["o"] ?? DEFAULT_OUT_FILE
 
         const chartIds = await knexReadonlyTransaction(async (trx) => {
-            const promises = CHART_TYPES.flatMap((chartType) =>
+            const promises = ALL_GRAPHER_CHART_TYPES.flatMap((chartType) =>
                 getMostViewedGrapherIdsByChartType(
                     trx,
                     chartType,

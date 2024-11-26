@@ -4,9 +4,10 @@ import { runInAction, observable } from "mobx"
 import { bind } from "decko"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
-    ChartTypeName,
+    GrapherChartType,
     GrapherInterface,
-    GrapherTabOption,
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_OPTIONS,
 } from "@ourworldindata/types"
 import { startCase, DbChartTagJoin } from "@ourworldindata/utils"
 import { References, getFullReferencesCount } from "./ChartEditor.js"
@@ -24,7 +25,7 @@ export interface ChartListItem {
     tab: GrapherInterface["tab"]
     hasMapTab: GrapherInterface["hasMapTab"]
 
-    type?: ChartTypeName
+    type?: GrapherChartType
     hasChartTab: boolean
 
     lastEditedAt: string
@@ -152,11 +153,11 @@ export function showChartType(chart: ChartListItem): string {
 
     if (!chartType) return "Map"
 
-    const displayType = ChartTypeName[chartType]
-        ? startCase(ChartTypeName[chartType])
+    const displayType = GRAPHER_CHART_TYPES[chartType]
+        ? startCase(GRAPHER_CHART_TYPES[chartType])
         : "Unknown"
 
-    if (chart.tab === GrapherTabOption.map) {
+    if (chart.tab === GRAPHER_TAB_OPTIONS.map) {
         if (chart.hasChartTab) return `Map + ${displayType}`
         else return "Map"
     } else {

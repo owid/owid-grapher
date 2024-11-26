@@ -15,7 +15,7 @@ import {
     getWindowUrl,
     isPresent,
     Url,
-    GrapherTabOption,
+    GRAPHER_TAB_OPTIONS,
     merge,
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromQueryStr,
@@ -213,11 +213,11 @@ class MultiEmbedder {
             // make sure the tab of the active pane is visible
             if (figureConfigAttr && !isEmpty(localConfig)) {
                 const activeTab = queryParams.tab || grapherPageConfig.tab
-                if (activeTab === GrapherTabOption.chart)
+                if (activeTab === GRAPHER_TAB_OPTIONS.chart)
                     localConfig.hideChartTabs = false
-                if (activeTab === GrapherTabOption.map)
+                if (activeTab === GRAPHER_TAB_OPTIONS.map)
                     localConfig.hasMapTab = true
-                if (activeTab === GrapherTabOption.table)
+                if (activeTab === GRAPHER_TAB_OPTIONS.table)
                     localConfig.hasTableTab = true
             }
 

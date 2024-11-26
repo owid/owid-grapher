@@ -23,7 +23,8 @@ import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
 import { BASE_FONT_SIZE, GRAPHER_DARK_TEXT } from "../core/GrapherConstants"
 import {
-    ChartTypeName,
+    GRAPHER_CHART_TYPES,
+    GrapherChartType,
     FacetAxisDomain,
     FacetStrategy,
     SeriesColorMap,
@@ -137,8 +138,8 @@ export class FacetChart
         return this.props.manager
     }
 
-    @computed private get chartTypeName(): ChartTypeName {
-        return this.props.chartTypeName ?? ChartTypeName.LineChart
+    @computed private get chartTypeName(): GrapherChartType {
+        return this.props.chartTypeName ?? GRAPHER_CHART_TYPES.LineChart
     }
 
     @computed get failMessage(): string {
@@ -357,9 +358,9 @@ export class FacetChart
         return (
             this.uniformYAxis &&
             ![
-                ChartTypeName.StackedDiscreteBar,
-                ChartTypeName.DiscreteBar,
-            ].includes(this.chartTypeName)
+                GRAPHER_CHART_TYPES.StackedDiscreteBar,
+                GRAPHER_CHART_TYPES.DiscreteBar,
+            ].includes(this.chartTypeName as any)
         )
     }
 
@@ -367,7 +368,7 @@ export class FacetChart
         return (
             this.uniformXAxis &&
             // TODO: do this for stacked area charts and line charts as well?
-            this.chartTypeName === ChartTypeName.StackedBar &&
+            this.chartTypeName === GRAPHER_CHART_TYPES.StackedBar &&
             this.facetCount >= SHARED_X_AXIS_MIN_FACET_COUNT
         )
     }
@@ -612,7 +613,8 @@ export class FacetChart
         if (!hasBins) return false
         if (isNumericLegend) return true
         if (
-            this.props.chartTypeName === ChartTypeName.StackedDiscreteBar &&
+            this.props.chartTypeName ===
+                GRAPHER_CHART_TYPES.StackedDiscreteBar &&
             this.facetStrategy === FacetStrategy.metric
         ) {
             return false

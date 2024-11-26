@@ -4,7 +4,7 @@ import { FacetChart } from "./FacetChart"
 import { SynthesizeGDPTable, OwidTable } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import {
-    ChartTypeName,
+    GRAPHER_CHART_TYPES,
     FacetAxisDomain,
     FacetStrategy,
     ColumnTypeNames,
@@ -65,7 +65,7 @@ describe("uniform axes", () => {
     }
     const chart = new FacetChart({
         manager,
-        chartTypeName: ChartTypeName.LineChart,
+        chartTypeName: GRAPHER_CHART_TYPES.LineChart,
     })
     const yAxisConfigs = chart.placedSeries.map(
         (series) => series.manager.yAxisConfig
@@ -165,7 +165,7 @@ describe("config overrides", () => {
     }
     const chart = new FacetChart({
         manager,
-        chartTypeName: ChartTypeName.LineChart,
+        chartTypeName: GRAPHER_CHART_TYPES.LineChart,
     })
 
     it("preserves config passed from manager", () => {
@@ -187,7 +187,7 @@ describe("config overrides", () => {
         }
         const chart = new FacetChart({
             manager: newManager,
-            chartTypeName: ChartTypeName.LineChart,
+            chartTypeName: GRAPHER_CHART_TYPES.LineChart,
         })
         expect(chart.placedSeries[0].manager.yAxisConfig?.nice).toEqual(true)
     })
@@ -231,7 +231,7 @@ describe("global legend", () => {
         }
         const chart = new FacetChart({
             manager,
-            chartTypeName: ChartTypeName.LineChart,
+            chartTypeName: GRAPHER_CHART_TYPES.LineChart,
         })
 
         const legend = chart.categoricalLegendData

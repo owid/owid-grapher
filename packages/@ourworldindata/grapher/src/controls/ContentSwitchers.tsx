@@ -4,7 +4,11 @@ import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
-import { ChartTypeName, GrapherTabName } from "@ourworldindata/types"
+import {
+    GRAPHER_CHART_TYPES,
+    GrapherTabName,
+    GRAPHER_TAB_NAMES,
+} from "@ourworldindata/types"
 import { chartIcons } from "./ChartIcons"
 import { Bounds } from "@ourworldindata/utils"
 import { TabLabel, Tabs } from "../tabs/Tabs.js"
@@ -166,14 +170,14 @@ function TabIcon({
     isLineChartThatTurnedIntoDiscreteBar?: boolean
 }): React.ReactElement {
     switch (tab) {
-        case GrapherTabName.Table:
+        case GRAPHER_TAB_NAMES.Table:
             return <FontAwesomeIcon icon={faTable} />
-        case GrapherTabName.WorldMap:
+        case GRAPHER_TAB_NAMES.WorldMap:
             return <FontAwesomeIcon icon={faEarthAmericas} />
         default:
             const chartIcon = isLineChartThatTurnedIntoDiscreteBar
-                ? chartIcons[ChartTypeName.DiscreteBar]
-                : chartIcons[tab as unknown as ChartTypeName]
+                ? chartIcons[GRAPHER_CHART_TYPES.DiscreteBar]
+                : chartIcons[tab]
             return chartIcon
     }
 }
@@ -185,28 +189,28 @@ function makeTabLabelText(
         hasMultipleChartTypes?: boolean
     }
 ): string {
-    if (tab === GrapherTabName.Table) return "Table"
-    if (tab === GrapherTabName.WorldMap) return "Map"
+    if (tab === GRAPHER_TAB_NAMES.Table) return "Table"
+    if (tab === GRAPHER_TAB_NAMES.WorldMap) return "Map"
     if (!options.hasMultipleChartTypes) return "Chart"
 
     switch (tab) {
-        case GrapherTabName.LineChart:
+        case GRAPHER_TAB_NAMES.LineChart:
             return options.isLineChartThatTurnedIntoDiscreteBar ? "Bar" : "Line"
-        case GrapherTabName.SlopeChart:
+        case GRAPHER_TAB_NAMES.SlopeChart:
             return "Slope"
 
         // chart type labels are preliminary
-        case GrapherTabName.ScatterPlot:
+        case GRAPHER_TAB_NAMES.ScatterPlot:
             return "Scatter"
-        case GrapherTabName.StackedArea:
+        case GRAPHER_TAB_NAMES.StackedArea:
             return "Stacked area"
-        case GrapherTabName.StackedBar:
+        case GRAPHER_TAB_NAMES.StackedBar:
             return "Stacked bar"
-        case GrapherTabName.DiscreteBar:
+        case GRAPHER_TAB_NAMES.DiscreteBar:
             return "Bar"
-        case GrapherTabName.StackedDiscreteBar:
+        case GRAPHER_TAB_NAMES.StackedDiscreteBar:
             return "Stacked bar"
-        case GrapherTabName.Marimekko:
+        case GRAPHER_TAB_NAMES.Marimekko:
             return "Marimekko"
         default:
             return "Chart"

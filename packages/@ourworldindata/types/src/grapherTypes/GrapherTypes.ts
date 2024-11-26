@@ -7,6 +7,13 @@ import { AxisAlign, Position } from "../domainTypes/Layout.js"
 import { Integer, QueryParams } from "../domainTypes/Various.js"
 import { DetailDictionary } from "../gdocTypes/Gdoc.js"
 import { observable } from "mobx"
+import {
+    GRAPHER_CHART_TYPES,
+    GRAPHER_MAP_TYPE,
+    GRAPHER_TAB_NAMES,
+    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_QUERY_PARAMS,
+} from "./GrapherConstants.js"
 
 export interface Box {
     x: number
@@ -119,18 +126,6 @@ export enum ToleranceStrategy {
     backwards = "backwards",
     forwards = "forwards",
 }
-export enum ChartTypeName {
-    LineChart = "LineChart",
-    ScatterPlot = "ScatterPlot",
-    StackedArea = "StackedArea",
-    DiscreteBar = "DiscreteBar",
-    StackedDiscreteBar = "StackedDiscreteBar",
-    SlopeChart = "SlopeChart",
-    StackedBar = "StackedBar",
-    Marimekko = "Marimekko",
-    // special map type that can't be selected by authors
-    WorldMap = "WorldMap",
-}
 
 export enum AxisMinMaxValueStr {
     auto = "auto",
@@ -172,53 +167,13 @@ export type SeriesName = string
 
 export type SeriesColorMap = Map<SeriesName, Color>
 
-/**
- * Grapher tab specified in the config that determines the default tab to show.
- * If `chart` is selected and Grapher has more than one chart tab, then the
- * first chart tab will be active.
- */
-export enum GrapherTabOption {
-    chart = "chart",
-    map = "map",
-    table = "table",
-}
+export type GrapherMapType = typeof GRAPHER_MAP_TYPE
+export type GrapherChartType = keyof typeof GRAPHER_CHART_TYPES
+export type GrapherChartOrMapType = GrapherChartType | GrapherMapType
 
-/**
- * Internal tab names used in Grapher.
- */
-export enum GrapherTabName {
-    Table = "Table",
-    WorldMap = "WorldMap",
-
-    // chart types
-    LineChart = "LineChart",
-    ScatterPlot = "ScatterPlot",
-    StackedArea = "StackedArea",
-    DiscreteBar = "DiscreteBar",
-    StackedDiscreteBar = "StackedDiscreteBar",
-    SlopeChart = "SlopeChart",
-    StackedBar = "StackedBar",
-    Marimekko = "Marimekko",
-}
-
-/**
- * Valid values for the `tab` query parameter in Grapher.
- */
-export enum GrapherTabQueryParam {
-    Chart = "chart",
-    Table = "table",
-    WorldMap = "map",
-
-    // chart types
-    LineChart = "line",
-    ScatterPlot = "scatter",
-    StackedArea = "stacked-area",
-    DiscreteBar = "discrete-bar",
-    StackedDiscreteBar = "stacked-discrete-bar",
-    SlopeChart = "slope",
-    StackedBar = "stacked-bar",
-    Marimekko = "marimekko",
-}
+export type GrapherTabOption = keyof typeof GRAPHER_TAB_OPTIONS
+export type GrapherTabQueryParam = keyof typeof GRAPHER_TAB_QUERY_PARAMS
+export type GrapherTabName = keyof typeof GRAPHER_TAB_NAMES
 
 export interface RelatedQuestionsConfig {
     text: string
@@ -577,7 +532,7 @@ export interface MapConfigInterface {
 // under the same rendering conditions it ought to remain visually identical
 export interface GrapherInterface extends SortConfig {
     $schema?: string
-    chartTypes?: ChartTypeName[]
+    chartTypes?: GrapherChartType[]
     id?: number
     version?: number
     slug?: string

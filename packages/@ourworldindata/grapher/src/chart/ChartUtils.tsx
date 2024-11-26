@@ -4,7 +4,9 @@ import {
     SeriesStrategy,
     EntityName,
     GrapherTabQueryParam,
-    ChartTypeName,
+    GrapherChartType,
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_QUERY_PARAMS,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -128,51 +130,48 @@ export function isTargetOutsideElement(
 
 export function mapQueryParamToChartTypeName(
     chartTab: string
-): ChartTypeName | undefined {
+): GrapherChartType | undefined {
     switch (chartTab) {
-        case GrapherTabQueryParam.LineChart:
-            return ChartTypeName.LineChart
-        case GrapherTabQueryParam.SlopeChart:
-            return ChartTypeName.SlopeChart
-        case GrapherTabQueryParam.ScatterPlot:
-            return ChartTypeName.ScatterPlot
-        case GrapherTabQueryParam.StackedArea:
-            return ChartTypeName.StackedArea
-        case GrapherTabQueryParam.StackedBar:
-            return ChartTypeName.StackedBar
-        case GrapherTabQueryParam.DiscreteBar:
-            return ChartTypeName.DiscreteBar
-        case GrapherTabQueryParam.StackedDiscreteBar:
-            return ChartTypeName.StackedDiscreteBar
-        case GrapherTabQueryParam.Marimekko:
-            return ChartTypeName.Marimekko
+        case GRAPHER_TAB_QUERY_PARAMS.line:
+            return GRAPHER_CHART_TYPES.LineChart
+        case GRAPHER_TAB_QUERY_PARAMS.slope:
+            return GRAPHER_CHART_TYPES.SlopeChart
+        case GRAPHER_TAB_QUERY_PARAMS.scatter:
+            return GRAPHER_CHART_TYPES.ScatterPlot
+        case GRAPHER_TAB_QUERY_PARAMS["stacked-area"]:
+            return GRAPHER_CHART_TYPES.StackedArea
+        case GRAPHER_TAB_QUERY_PARAMS["stacked-bar"]:
+            return GRAPHER_CHART_TYPES.StackedBar
+        case GRAPHER_TAB_QUERY_PARAMS["discrete-bar"]:
+            return GRAPHER_CHART_TYPES.DiscreteBar
+        case GRAPHER_TAB_QUERY_PARAMS["stacked-discrete-bar"]:
+            return GRAPHER_CHART_TYPES.StackedDiscreteBar
+        case GRAPHER_TAB_QUERY_PARAMS.marimekko:
+            return GRAPHER_CHART_TYPES.Marimekko
         default:
             return undefined
     }
 }
 
 export function mapChartTypeNameToQueryParam(
-    chartType: ChartTypeName
+    chartType: GrapherChartType
 ): GrapherTabQueryParam {
     switch (chartType) {
-        case ChartTypeName.LineChart:
-            return GrapherTabQueryParam.LineChart
-        case ChartTypeName.SlopeChart:
-            return GrapherTabQueryParam.SlopeChart
-        case ChartTypeName.ScatterPlot:
-            return GrapherTabQueryParam.ScatterPlot
-        case ChartTypeName.StackedArea:
-            return GrapherTabQueryParam.StackedArea
-        case ChartTypeName.StackedBar:
-            return GrapherTabQueryParam.StackedBar
-        case ChartTypeName.DiscreteBar:
-            return GrapherTabQueryParam.DiscreteBar
-        case ChartTypeName.StackedDiscreteBar:
-            return GrapherTabQueryParam.StackedDiscreteBar
-        case ChartTypeName.Marimekko:
-            return GrapherTabQueryParam.Marimekko
-        // TODO: remove once stricter typed
-        default:
-            return GrapherTabQueryParam.LineChart
+        case GRAPHER_CHART_TYPES.LineChart:
+            return GRAPHER_TAB_QUERY_PARAMS.line
+        case GRAPHER_CHART_TYPES.SlopeChart:
+            return GRAPHER_TAB_QUERY_PARAMS.slope
+        case GRAPHER_CHART_TYPES.ScatterPlot:
+            return GRAPHER_TAB_QUERY_PARAMS.scatter
+        case GRAPHER_CHART_TYPES.StackedArea:
+            return GRAPHER_TAB_QUERY_PARAMS["stacked-area"]
+        case GRAPHER_CHART_TYPES.StackedBar:
+            return GRAPHER_TAB_QUERY_PARAMS["stacked-bar"]
+        case GRAPHER_CHART_TYPES.DiscreteBar:
+            return GRAPHER_TAB_QUERY_PARAMS["discrete-bar"]
+        case GRAPHER_CHART_TYPES.StackedDiscreteBar:
+            return GRAPHER_TAB_QUERY_PARAMS["stacked-discrete-bar"]
+        case GRAPHER_CHART_TYPES.Marimekko:
+            return GRAPHER_TAB_QUERY_PARAMS.marimekko
     }
 }

@@ -6,7 +6,7 @@ import {
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
 import { Bounds } from "@ourworldindata/utils"
-import { ChartTypeName, FacetStrategy } from "../core/GrapherConstants"
+import { FacetStrategy, GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 import { ChartManager } from "../chart/ChartManager"
 
 // See https://storybook.js.org/docs/react/essentials/controls for Control Types
@@ -34,7 +34,7 @@ export const OneMetricOneCountryPerChart = (): React.ReactElement => {
         <svg width={bounds.width} height={bounds.height}>
             <FacetChart
                 bounds={bounds}
-                chartTypeName={ChartTypeName.LineChart}
+                chartTypeName={GRAPHER_CHART_TYPES.LineChart}
                 manager={manager}
             />
         </svg>
@@ -49,7 +49,7 @@ export const MultipleMetricsOneCountryPerChart = (): React.ReactElement => {
         <svg width={bounds.width} height={bounds.height}>
             <FacetChart
                 bounds={bounds}
-                chartTypeName={ChartTypeName.LineChart}
+                chartTypeName={GRAPHER_CHART_TYPES.LineChart}
                 manager={{
                     selection: table.availableEntityNames,
                     table,
@@ -67,7 +67,7 @@ export const OneChartPerMetric = (): React.ReactElement => {
         <svg width={bounds.width} height={bounds.height}>
             <FacetChart
                 bounds={bounds}
-                chartTypeName={ChartTypeName.LineChart}
+                chartTypeName={GRAPHER_CHART_TYPES.LineChart}
                 manager={{
                     facetStrategy: FacetStrategy.metric,
                     yColumnSlugs: table.numericColumnSlugs,

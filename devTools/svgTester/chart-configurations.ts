@@ -1,10 +1,11 @@
 import _ from "lodash"
 import {
-    ChartTypeName,
+    GRAPHER_CHART_TYPES,
     StackMode,
     ScaleType,
     FacetStrategy,
     GrapherQueryParams,
+    GrapherChartType,
 } from "@ourworldindata/types"
 import { cartesian } from "@ourworldindata/utils"
 
@@ -32,8 +33,8 @@ const scaleTypeOptions = Object.values(ScaleType)
 const facetOptions = Object.values(FacetStrategy)
 const booleanOptions = Object.values(Boolean)
 
-const VIEW_MATRIX_BY_CHART_TYPE: Record<ChartTypeName, ViewMatrix> = {
-    [ChartTypeName.LineChart]: {
+const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
+    [GRAPHER_CHART_TYPES.LineChart]: {
         tab: ["chart"],
         time: timeOptionsAll,
         stackMode: stackModeOptions,
@@ -41,7 +42,7 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<ChartTypeName, ViewMatrix> = {
         facet: facetOptions,
         uniformYAxis: booleanOptions,
     },
-    [ChartTypeName.ScatterPlot]: {
+    [GRAPHER_CHART_TYPES.ScatterPlot]: {
         tab: ["chart"],
         time: timeOptionsAll,
         stackMode: stackModeOptions,
@@ -50,61 +51,60 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<ChartTypeName, ViewMatrix> = {
         endpointsOnly: booleanOptions,
         // zoomToSelection ignored for now
     },
-    [ChartTypeName.DiscreteBar]: {
+    [GRAPHER_CHART_TYPES.DiscreteBar]: {
         tab: ["chart"],
         time: timePoints,
         facet: facetOptions,
         // uniformYAxis doesn't apply
     },
-    [ChartTypeName.StackedDiscreteBar]: {
+    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: {
         tab: ["chart"],
         time: timePoints,
         stackMode: stackModeOptions,
         facet: facetOptions,
         // uniformYAxis doesn't apply
     },
-    [ChartTypeName.Marimekko]: {
+    [GRAPHER_CHART_TYPES.Marimekko]: {
         tab: ["chart"],
         time: timePoints,
         stackMode: stackModeOptions,
         showNoDataArea: booleanOptions,
     },
-    [ChartTypeName.SlopeChart]: {
+    [GRAPHER_CHART_TYPES.SlopeChart]: {
         tab: ["chart"],
         time: timeSpan,
         yScale: scaleTypeOptions,
     },
-    [ChartTypeName.StackedArea]: {
+    [GRAPHER_CHART_TYPES.StackedArea]: {
         tab: ["chart"],
         time: timeSpan,
         stackMode: stackModeOptions,
         facet: facetOptions,
         uniformYAxis: booleanOptions,
     },
-    [ChartTypeName.StackedBar]: {
+    [GRAPHER_CHART_TYPES.StackedBar]: {
         tab: ["chart"],
         time: timeSpan,
         stackMode: stackModeOptions,
         facet: facetOptions,
         uniformYAxis: booleanOptions,
     },
-    [ChartTypeName.WorldMap]: {},
 }
 
 // the above view matrix is used to generate all possible combinations of query params
 // but some combinations don't make sense. this matrix is used to exclude those combinations.
 // for example, if a chart is not faceted, the uniformYAxis param doesn't apply
 const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
-    ChartTypeName,
+    GrapherChartType,
     Record<keyof GrapherQueryParams, string>[]
 > = {
-    [ChartTypeName.LineChart]: [
+    [GRAPHER_CHART_TYPES.LineChart]: [
         // sharing an axis only makes sense if a chart is faceted
         { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
         // log scale for percentage values doesn't make sense
         { stackMode: StackMode.relative, yScale: ScaleType.log },
     ],
-    [ChartTypeName.ScatterPlot]: [
+    [GRAPHER_CHART_TYPES.ScatterPlot]: [
         // relative mode only makes sense if a time span is selected
         { time: TimePoint.earliest, stackMode: StackMode.relative },
         { time: TimePoint.latest, stackMode: StackMode.relative },
@@ -117,19 +117,18 @@ const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
         { stackMode: StackMode.relative, yScale: ScaleType.log },
         { stackMode: StackMode.relative, xScale: ScaleType.log },
     ],
-    [ChartTypeName.DiscreteBar]: [],
-    [ChartTypeName.StackedDiscreteBar]: [],
-    [ChartTypeName.Marimekko]: [],
-    [ChartTypeName.SlopeChart]: [],
-    [ChartTypeName.StackedArea]: [
+    [GRAPHER_CHART_TYPES.DiscreteBar]: [],
+    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: [],
+    [GRAPHER_CHART_TYPES.Marimekko]: [],
+    [GRAPHER_CHART_TYPES.SlopeChart]: [],
+    [GRAPHER_CHART_TYPES.StackedArea]: [
         // sharing an axis only makes sense if a chart is faceted
         { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
     ],
-    [ChartTypeName.StackedBar]: [
+    [GRAPHER_CHART_TYPES.StackedBar]: [
         // sharing an axis only makes sense if a chart is faceted
         { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
     ],
-    [ChartTypeName.WorldMap]: [],
 }
 
 export const queryStringsByChartType = Object.fromEntries(
@@ -137,7 +136,7 @@ export const queryStringsByChartType = Object.fromEntries(
         const combinations = explode(viewMatrix)
 
         const viewsToExclude =
-            EXCLUDE_VIEWS_BY_CHART_TYPE[chartType as ChartTypeName]
+            EXCLUDE_VIEWS_BY_CHART_TYPE[chartType as GrapherChartType]
         const validCombinations = combinations.filter((view) =>
             viewsToExclude.every(
                 (viewToExclude) => !_.isMatch(view, viewToExclude)
@@ -147,7 +146,7 @@ export const queryStringsByChartType = Object.fromEntries(
         const queryStrings = validCombinations.map(toQueryStr)
         return [chartType, queryStrings]
     })
-) as Record<ChartTypeName, string[]>
+) as Record<GrapherChartType, string[]>
 
 function toQueryStr(params: Record<string, string>): string {
     return new URLSearchParams(params).toString()

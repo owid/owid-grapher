@@ -8,7 +8,7 @@ import {
 
 import Enzyme from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
-import { GrapherTabOption } from "@ourworldindata/types"
+import { GRAPHER_TAB_OPTIONS } from "@ourworldindata/types"
 
 Enzyme.configure({ adapter: new Adapter() })
 
@@ -30,20 +30,20 @@ describe(Explorer, () => {
 
         explorer.onChangeChoice("Gas")("All GHGs (CO₂eq)")
 
-        if (explorer.grapher) explorer.grapher.tab = GrapherTabOption.table
+        if (explorer.grapher) explorer.grapher.tab = GRAPHER_TAB_OPTIONS.table
         else throw Error("where's the grapher?")
         expect(explorer.queryParams.tab).toEqual("table")
 
         explorer.onChangeChoice("Gas")("CO₂")
         expect(explorer.queryParams.tab).toEqual("table")
 
-        explorer.grapher.tab = GrapherTabOption.chart
+        explorer.grapher.tab = GRAPHER_TAB_OPTIONS.chart
     })
 
     it("switches to first tab if current tab does not exist in new view", () => {
         const explorer = element.instance() as Explorer
         expect(explorer.queryParams.tab).toBeUndefined()
-        if (explorer.grapher) explorer.grapher.tab = GrapherTabOption.map
+        if (explorer.grapher) explorer.grapher.tab = GRAPHER_TAB_OPTIONS.map
         else throw Error("where's the grapher?")
         expect(explorer.queryParams.tab).toEqual("map")
 

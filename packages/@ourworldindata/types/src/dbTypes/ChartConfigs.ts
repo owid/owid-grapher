@@ -1,6 +1,6 @@
 import { Base64String, JsonString } from "../domainTypes/Various.js"
 import {
-    ChartTypeName,
+    GrapherChartType,
     GrapherInterface,
 } from "../grapherTypes/GrapherTypes.js"
 
@@ -11,7 +11,7 @@ export interface DbInsertChartConfig {
     full: JsonString
     fullMd5?: Base64String
     slug?: string | null
-    chartType?: ChartTypeName | null // TODO: exclude WorldMap
+    chartType?: GrapherChartType | null
     createdAt?: Date
     updatedAt?: Date | null
 }
