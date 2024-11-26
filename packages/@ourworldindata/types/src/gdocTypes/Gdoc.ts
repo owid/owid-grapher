@@ -202,17 +202,32 @@ export interface OwidGdocAuthorInterface extends OwidGdocBaseInterface {
     latestWorkLinks?: DbEnrichedLatestWork[]
 }
 
+export interface OwidGdocAboutContent {
+    type: OwidGdocType.AboutPage
+    title: string
+    excerpt: string
+    "featured-image"?: string
+    authors: string[]
+    body: OwidEnrichedGdocBlock[]
+}
+
+export interface OwidGdocAboutInterface extends OwidGdocBaseInterface {
+    content: OwidGdocAboutContent
+}
+
 export type OwidGdocContent =
     | OwidGdocPostContent
     | OwidGdocDataInsightContent
     | OwidGdocHomepageContent
     | OwidGdocAuthorContent
+    | OwidGdocAboutContent
 
 export type OwidGdoc =
     | OwidGdocPostInterface
     | OwidGdocDataInsightInterface
     | OwidGdocHomepageInterface
     | OwidGdocAuthorInterface
+    | OwidGdocAboutInterface
 
 export enum OwidGdocErrorMessageType {
     Error = "error",
@@ -226,6 +241,8 @@ export type OwidGdocProperty =
     | keyof OwidGdocDataInsightContent
     | keyof OwidGdocAuthorInterface
     | keyof OwidGdocAuthorContent
+    | keyof OwidGdocAboutInterface
+    | keyof OwidGdocAboutContent
 
 export type OwidGdocErrorMessageProperty =
     | OwidGdocProperty

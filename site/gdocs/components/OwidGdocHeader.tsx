@@ -174,10 +174,7 @@ export function OwidGdocHeader(props: {
         return <OwidArticleHeader {...props} />
     if (props.content.type === OwidGdocType.TopicPage)
         return <OwidTopicPageHeader {...props} />
-    if (
-        props.content.type === OwidGdocType.LinearTopicPage ||
-        props.content.type === OwidGdocType.AboutPage
-    )
+    if (props.content.type === OwidGdocType.LinearTopicPage)
         return <OwidLinearTopicPageHeader {...props} />
     // Defaulting to ArticleHeader, but will require the value to be set for all docs going forward
     return <OwidArticleHeader {...props} />

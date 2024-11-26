@@ -21,6 +21,7 @@ import { DataInsightPage } from "./pages/DataInsight.js"
 import { Fragment } from "./pages/Fragment.js"
 import { Homepage } from "./pages/Homepage.js"
 import { Author } from "./pages/Author.js"
+import AboutPage from "./pages/AboutPage.js"
 
 export type Attachments = {
     linkedAuthors?: LinkedAuthor[]
@@ -79,13 +80,15 @@ export function OwidGdoc({
                     type: P.union(
                         OwidGdocType.Article,
                         OwidGdocType.TopicPage,
-                        OwidGdocType.LinearTopicPage,
-                        OwidGdocType.AboutPage
+                        OwidGdocType.LinearTopicPage
                     ),
                 },
             },
             (props) => <GdocPost {...props} />
         )
+        .with({ content: { type: OwidGdocType.AboutPage } }, (props) => (
+            <AboutPage {...props} />
+        ))
         .with({ content: { type: OwidGdocType.DataInsight } }, (props) => (
             <DataInsightPage {...props} />
         ))
