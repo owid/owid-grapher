@@ -29,6 +29,7 @@
         }
     }
     .explorer-tile {
+        background-color: $oxford-blue; // show this if the webp image cannot be loaded
         background-image: url("https://ourworldindata.org/explorer-thumbnail.webp");
         background-size: cover;
         background-position: center;
