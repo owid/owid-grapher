@@ -24,7 +24,7 @@ type ImageEditorApi = {
         patch: Partial<DbEnrichedImage>
     ) => void
     deleteImage: (image: DbEnrichedImage) => void
-    getImages: () => Promise<DbEnrichedImage[]>
+    getImages: () => void
 }
 
 function AltTextEditor({
@@ -164,7 +164,7 @@ function ImageUploadButton({
     setImages,
     admin,
 }: {
-    setImages: (images: DbEnrichedImage[]) => void
+    setImages: React.Dispatch<React.SetStateAction<DbEnrichedImage[]>>
     admin: Admin
 }) {
     function uploadImage({ file }: { file: string | Blob | RcFile }) {
@@ -180,13 +180,12 @@ function ImageUploadButton({
                 type: file.type,
             }
 
-            const response = await admin.requestJSON(
-                "/api/image",
-                payload,
-                "POST"
-            )
+            const { image } = await admin.requestJSON<{
+                sucess: true
+                image: DbEnrichedImage
+            }>("/api/image", payload, "POST")
 
-            setImages(response.images)
+            setImages((images) => [image, ...images])
         }
         reader.readAsDataURL(file)
     }
@@ -206,25 +205,23 @@ export function ImageIndexPage() {
     const api = useMemo(
         (): ImageEditorApi => ({
             deleteImage: async (image) => {
-                const response = await admin.requestJSON(
-                    `/api/images/${image.id}`,
-                    {},
-                    "DELETE"
-                )
-                setImages(response.images)
+                await admin.requestJSON(`/api/images/${image.id}`, {}, "DELETE")
+                setImages((images) => images.filter((i) => i.id !== image.id))
             },
             getImages: async () => {
-                const json = await admin.getJSON("/api/images.json")
+                const json = await admin.getJSON<{
+                    images: DbEnrichedImage[]
+                }>("/api/images.json")
                 setImages(json.images)
-                return json.images
             },
             patchImage: async (image, patch) => {
-                const response = await admin.requestJSON(
-                    `/api/images/${image.id}`,
-                    patch,
-                    "PATCH"
+                const response = await admin.requestJSON<{
+                    success: true
+                    image: DbEnrichedImage
+                }>(`/api/images/${image.id}`, patch, "PATCH")
+                setImages((images) =>
+                    images.map((i) => (i.id === image.id ? response.image : i))
                 )
-                setImages(response.images)
             },
         }),
         [admin]
