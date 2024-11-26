@@ -878,7 +878,7 @@ export async function getVariableOfDatapageIfApplicable(
     // showing a data page.
     if (
         yVariableIds.length === 1 &&
-        (grapher.type !== ChartTypeName.ScatterPlot ||
+        (grapher.chartTypes?.[0] !== ChartTypeName.ScatterPlot ||
             xVariableIds.length === 0)
     ) {
         const variableId = yVariableIds[0]

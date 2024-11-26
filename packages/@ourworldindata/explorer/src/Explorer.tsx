@@ -8,7 +8,8 @@ import {
     TableSlug,
     GrapherInterface,
     GrapherQueryParams,
-    GrapherTabOption,
+    GrapherTabQueryParam,
+    GrapherTabName,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -443,18 +444,26 @@ export class Explorer
             time: this.grapher.timeParam,
         }
 
-        const previousTab = this.grapher.tab
+        const previousTab = this.grapher.activeTab
 
         this.updateGrapherFromExplorer()
 
-        // preserve the previous tab if that's still available in the new view;
-        // and use the first tab otherwise, ignoring the table
-        const tabsWithoutTable = this.grapher.availableTabs.filter(
-            (tab) => tab !== GrapherTabOption.table
-        )
-        newGrapherParams.tab = this.grapher.availableTabs.includes(previousTab)
-            ? previousTab
-            : tabsWithoutTable[0] ?? GrapherTabOption.table
+        if (this.grapher.availableTabs.includes(previousTab)) {
+            // preserve the previous tab if that's still available in the new view
+            newGrapherParams.tab =
+                this.grapher.mapGrapherTabToQueryParam(previousTab)
+        } else if (this.grapher.validChartTypes.length > 0) {
+            // otherwise, switch to the first chart tab
+            newGrapherParams.tab = this.grapher.mapGrapherTabToQueryParam(
+                this.grapher.validChartTypes[0] as unknown as GrapherTabName
+            )
+        } else if (this.grapher.hasMapTab) {
+            // or switch to the map, if there is one
+            newGrapherParams.tab = GrapherTabQueryParam.WorldMap
+        } else {
+            // if everything fails, switch to the table tab that is always available
+            newGrapherParams.tab = GrapherTabQueryParam.Table
+        }
 
         this.grapher.populateFromQueryParams(newGrapherParams)
 

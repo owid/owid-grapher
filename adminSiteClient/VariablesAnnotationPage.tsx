@@ -93,7 +93,7 @@ const variableAnnotationsColumnSets: ColumnSet[] = [
         columns: [
             "name",
             "datasetname",
-            "/type",
+            "/chartTypes",
             "/hasMapTab",
             "/title",
             "/subtitle",
@@ -126,9 +126,8 @@ const variableAnnotationsColumnSets: ColumnSet[] = [
             "/baseColorScheme",
             "/map/colorScale",
             "/colorScale",
-            "/hasChartTab",
             "/hasMapTab",
-            "/type",
+            "/chartTypes",
         ],
     },
 ]

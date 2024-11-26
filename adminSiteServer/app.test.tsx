@@ -58,6 +58,7 @@ import {
 import path from "path"
 import fs from "fs"
 import { omitUndefinedValues } from "@ourworldindata/utils"
+import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 
 const ADMIN_SERVER_HOST = "localhost"
 const ADMIN_SERVER_PORT = 8765
@@ -192,11 +193,10 @@ async function makeRequestAgainstAdminApi(
 
 describe("OwidAdminApp", () => {
     const testChartConfig = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+        $schema: latestGrapherConfigSchema,
         slug: "test-chart",
         title: "Test chart",
-        type: "LineChart",
+        chartTypes: ["LineChart"],
     }
 
     it("should be able to create an app", () => {
@@ -311,16 +311,14 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         display: '{ "unit": "kg", "shortUnit": "kg" }',
     }
     const testVariableConfigETL = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+        $schema: latestGrapherConfigSchema,
         hasMapTab: true,
         note: "Indicator note",
         selectedEntityNames: ["France", "Italy", "Spain"],
         hideRelativeToggle: false,
     }
     const testVariableConfigAdmin = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+        $schema: latestGrapherConfigSchema,
         title: "Admin title",
         subtitle: "Admin subtitle",
     }
@@ -331,17 +329,15 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         id: otherVariableId,
     }
     const otherTestVariableConfig = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+        $schema: latestGrapherConfigSchema,
         note: "Other indicator note",
     }
 
     const testChartConfig = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+        $schema: latestGrapherConfigSchema,
         slug: "test-chart",
         title: "Test chart",
-        type: "Marimekko",
+        chartTypes: ["Marimekko"],
         selectedEntityNames: [],
         hideRelativeToggle: false,
         dimensions: [
@@ -352,8 +348,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         ],
     }
     const testMultiDimConfig = {
-        grapherConfigSchema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+        grapherConfigSchema: latestGrapherConfigSchema,
         title: {
             title: "Energy use",
             titleVariant: "by energy source",
@@ -613,14 +608,13 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         )
 
         expect(fullConfig).toEqual({
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            $schema: latestGrapherConfigSchema,
             id: chartId,
             isPublished: false,
             version: 1,
             slug: "test-chart",
             title: "Test chart",
-            type: "Marimekko",
+            chartTypes: ["Marimekko"],
             selectedEntityNames: [],
             hideRelativeToggle: false,
             dimensions: [{ variableId, property: "y" }],
@@ -634,14 +628,13 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             `/charts/${chartId}.patchConfig.json`
         )
         expect(patchConfig).toEqual({
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            $schema: latestGrapherConfigSchema,
             id: chartId,
             version: 1,
             isPublished: false,
             slug: "test-chart",
             title: "Test chart",
-            type: "Marimekko",
+            chartTypes: ["Marimekko"],
             selectedEntityNames: [],
             dimensions: [{ variableId, property: "y" }],
             // note that `hideRelativeToggle` is not included
@@ -671,8 +664,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             `/charts/${chartId}.config.json`
         )
         expect(fullConfigAfterDelete).toEqual({
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            $schema: latestGrapherConfigSchema,
             id: chartId,
             version: 1,
             isPublished: false,
@@ -680,7 +672,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             selectedEntityNames: [],
             slug: "test-chart",
             title: "Test chart",
-            type: "Marimekko",
+            chartTypes: ["Marimekko"],
         })
 
         // fetch the patch config and verify it's diffed correctly
@@ -688,14 +680,13 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             `/charts/${chartId}.patchConfig.json`
         )
         expect(patchConfigAfterDelete).toEqual({
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            $schema: latestGrapherConfigSchema,
             id: chartId,
             version: 1,
             isPublished: false,
             slug: "test-chart",
             title: "Test chart",
-            type: "Marimekko",
+            chartTypes: ["Marimekko"],
             selectedEntityNames: [],
             dimensions: [
                 {

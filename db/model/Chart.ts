@@ -506,7 +506,7 @@ export interface OldChartFieldList {
     id: number
     title: string
     slug: string
-    type: string
+    type?: string
     internalNotes: string
     variantName: string
     isPublished: boolean
@@ -526,11 +526,11 @@ export const oldChartFieldList = `
         charts.id,
         chart_configs.full->>"$.title" AS title,
         chart_configs.full->>"$.slug" AS slug,
-        chart_configs.full->>"$.type" AS type,
+        chart_configs.chartType AS type,
         chart_configs.full->>"$.internalNotes" AS internalNotes,
         chart_configs.full->>"$.variantName" AS variantName,
         chart_configs.full->>"$.tab" AS tab,
-        JSON_EXTRACT(chart_configs.full, "$.hasChartTab") = true AS hasChartTab,
+        chart_configs.chartType IS NOT NULL AS hasChartTab,
         JSON_EXTRACT(chart_configs.full, "$.hasMapTab") = true AS hasMapTab,
         JSON_EXTRACT(chart_configs.full, "$.isPublished") = true AS isPublished,
         charts.lastEditedAt,
@@ -567,9 +567,8 @@ export const getMostViewedGrapherIdsByChartType = async (
             JOIN chart_configs cc ON slug = SUBSTRING_INDEX(a.url, '/', -1)
             JOIN charts c ON c.configId = cc.id
             WHERE a.url LIKE "https://ourworldindata.org/grapher/%"
-                AND COALESCE(cc.full ->> "$.type", 'LineChart') = ?
+                AND cc.chartType = ?
                 AND cc.full ->> "$.isPublished" = "true"
-                and (cc.full ->> "$.hasChartTab" = "true" or cc.full ->> "$.hasChartTab" is null)
             ORDER BY a.views_365d DESC
             LIMIT ?
         `,

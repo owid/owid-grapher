@@ -85,7 +85,7 @@ nav.controlsRow .chart-controls {
     }
 }
 
-@container grapher (max-width:550px) {
+@container grapher (max-width:575px) {
     // collapse the Settings toggle down to just an icon on small screens
     nav.controlsRow .settings-menu button.menu-toggle {
         min-height: $control-row-height;
@@ -105,7 +105,7 @@ nav.controlsRow .chart-controls {
     }
 }
 
-@container grapher (max-width:475px) {
+@container grapher (max-width:525px) {
     // hide the entity name in the Edit/Select/Switch button
     nav.controlsRow .entity-selection-menu button.menu-toggle {
         label span {

@@ -172,10 +172,52 @@ export type SeriesName = string
 
 export type SeriesColorMap = Map<SeriesName, Color>
 
+/**
+ * Grapher tab specified in the config that determines the default tab to show.
+ * If `chart` is selected and Grapher has more than one chart tab, then the
+ * first chart tab will be active.
+ */
 export enum GrapherTabOption {
     chart = "chart",
     map = "map",
     table = "table",
+}
+
+/**
+ * Internal tab names used in Grapher.
+ */
+export enum GrapherTabName {
+    Table = "Table",
+    WorldMap = "WorldMap",
+
+    // chart types
+    LineChart = "LineChart",
+    ScatterPlot = "ScatterPlot",
+    StackedArea = "StackedArea",
+    DiscreteBar = "DiscreteBar",
+    StackedDiscreteBar = "StackedDiscreteBar",
+    SlopeChart = "SlopeChart",
+    StackedBar = "StackedBar",
+    Marimekko = "Marimekko",
+}
+
+/**
+ * Valid values for the `tab` query parameter in Grapher.
+ */
+export enum GrapherTabQueryParam {
+    Chart = "chart",
+    Table = "table",
+    WorldMap = "map",
+
+    // chart types
+    LineChart = "line",
+    ScatterPlot = "scatter",
+    StackedArea = "stacked-area",
+    DiscreteBar = "discrete-bar",
+    StackedDiscreteBar = "stacked-discrete-bar",
+    SlopeChart = "slope",
+    StackedBar = "stacked-bar",
+    Marimekko = "marimekko",
 }
 
 export interface RelatedQuestionsConfig {
@@ -535,7 +577,7 @@ export interface MapConfigInterface {
 // under the same rendering conditions it ought to remain visually identical
 export interface GrapherInterface extends SortConfig {
     $schema?: string
-    type?: ChartTypeName
+    chartTypes?: ChartTypeName[]
     id?: number
     version?: number
     slug?: string
@@ -563,7 +605,6 @@ export interface GrapherInterface extends SortConfig {
     hideTimeline?: boolean
     zoomToSelection?: boolean
     showYearLabels?: boolean // Always show year in labels for bar charts
-    hasChartTab?: boolean
     hasMapTab?: boolean
     tab?: GrapherTabOption
     relatedQuestions?: RelatedQuestionsConfig[]
@@ -654,7 +695,7 @@ export const GRAPHER_QUERY_PARAM_KEYS: (keyof LegacyGrapherQueryParams)[] = [
 // Another approach we may want to try is this: https://github.com/mobxjs/serializr
 export const grapherKeysToSerialize = [
     "$schema",
-    "type",
+    "chartTypes",
     "id",
     "version",
     "slug",
@@ -680,7 +721,6 @@ export const grapherKeysToSerialize = [
     "hideTimeline",
     "zoomToSelection",
     "showYearLabels",
-    "hasChartTab",
     "hasMapTab",
     "tab",
     "internalNotes",

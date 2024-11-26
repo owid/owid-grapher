@@ -14,7 +14,6 @@ import {
     isEqual,
     uniq,
     slugify,
-    identity,
     lowerCaseFirstLetterUnlessAbbreviation,
     isMobile,
     next,
@@ -67,6 +66,7 @@ import {
     extractDetailsFromSyntax,
     omit,
     isTouchDevice,
+    areSetsEqual,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -107,6 +107,8 @@ import {
     Color,
     GRAPHER_QUERY_PARAM_KEYS,
     GrapherTooltipAnchor,
+    GrapherTabName,
+    GrapherTabQueryParam,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -133,6 +135,7 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
     latestGrapherConfigSchema,
+    validChartTypeCombinations,
 } from "../core/GrapherConstants"
 import { loadVariableDataAndMetadata } from "./loadVariable"
 import Cookies from "js-cookie"
@@ -194,6 +197,8 @@ import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    mapChartTypeNameToQueryParam,
+    mapQueryParamToChartTypeName,
 } from "../chart/ChartUtils"
 import classnames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
@@ -305,6 +310,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideTableFilterToggle?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     hasTableTab?: boolean
+    hideChartTabs?: boolean
     hideShareButton?: boolean
     hideExploreTheDataButton?: boolean
     hideRelatedQuestion?: boolean
@@ -354,7 +360,7 @@ export class Grapher
         SlopeChartManager
 {
     @observable.ref $schema = latestGrapherConfigSchema
-    @observable.ref type = ChartTypeName.LineChart
+    @observable.ref chartTypes = [ChartTypeName.LineChart]
     @observable.ref id?: number = undefined
     @observable.ref version = 1
     @observable.ref slug?: string = undefined
@@ -388,9 +394,9 @@ export class Grapher
     @observable.ref hideScatterLabels?: boolean = undefined
     @observable.ref zoomToSelection?: boolean = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
-    @observable.ref hasChartTab = true
     @observable.ref hasMapTab = false
     @observable.ref tab = GrapherTabOption.chart
+    @observable.ref chartTab?: ChartTypeName // TODO: remove map from ChartTypeName
     @observable.ref isPublished?: boolean = undefined
     @observable.ref baseColorScheme?: ColorSchemeName = undefined
     @observable.ref invertColorScheme?: boolean = undefined
@@ -613,13 +619,10 @@ export class Grapher
 
     @action.bound populateFromQueryParams(params: GrapherQueryParams): void {
         // Set tab if specified
-        const tab = params.tab
-        if (tab) {
-            if (this.availableTabs.includes(tab as any)) {
-                this.tab = tab as GrapherTabOption
-            } else {
-                console.error("Unexpected tab: " + tab)
-            }
+        if (params.tab) {
+            const tab = this.mapQueryParamToGrapherTab(params.tab)
+            if (tab) this.setTab(tab)
+            else console.error("Unexpected tab: " + params.tab)
         }
 
         // Set overlay if specified
@@ -701,6 +704,29 @@ export class Grapher
         ) as TimeBounds
     }
 
+    @computed get activeTab(): GrapherTabName {
+        if (this.tab === GrapherTabOption.table) return GrapherTabName.Table
+        if (this.tab === GrapherTabOption.map) return GrapherTabName.WorldMap
+        if (this.chartTab) return this.chartTab as unknown as GrapherTabName
+        return (
+            (this.chartType as unknown as GrapherTabName) ??
+            GrapherTabName.LineChart
+        )
+    }
+
+    @computed get activeChartType(): ChartTypeName | undefined {
+        if (!this.isOnChartTab) return undefined
+        return this.activeTab as unknown as ChartTypeName
+    }
+
+    @computed get chartType(): ChartTypeName | undefined {
+        return this.validChartTypes[0]
+    }
+
+    @computed get hasChartTab(): boolean {
+        return this.validChartTypes.length > 0
+    }
+
     @computed get isOnChartTab(): boolean {
         return this.tab === GrapherTabOption.chart
     }
@@ -728,7 +754,7 @@ export class Grapher
     @computed get showLegend(): boolean {
         // hide the legend for stacked bar charts
         // if the legend only ever shows a single entity
-        if (this.isStackedBar) {
+        if (this.isOnStackedBarTab) {
             const seriesStrategy =
                 this.chartInstance.seriesStrategy ||
                 autoDetectSeriesStrategy(this, true)
@@ -757,10 +783,9 @@ export class Grapher
         // Depending on the chart type, the criteria for being able to select an entity are
         // different; e.g. for scatterplots, the entity needs to (1) not be excluded and
         // (2) needs to have data for the x and y dimension.
-        let table =
-            this.isScatter || this.isSlopeChart
-                ? this.tableAfterAuthorTimelineAndActiveChartTransform
-                : this.inputTable
+        let table = this.isScatter
+            ? this.tableAfterAuthorTimelineAndActiveChartTransform
+            : this.inputTable
 
         if (!this.isReady) return table
 
@@ -856,7 +881,7 @@ export class Grapher
                 table.get(this.yColumnSlugs[0]).tolerance
             )
 
-        if (this.isSlopeChart)
+        if (this.isOnSlopeChartTab)
             return table.filterByTargetTimes([startTime, endTime])
 
         return table.filterByTimeRange(startTime, endTime)
@@ -955,7 +980,7 @@ export class Grapher
                 properties: [
                     // might be missing for charts within explorers or mdims
                     ["slug", this.slug ?? "missing-slug"],
-                    ["chartType", this.type],
+                    ["chartTypes", this.validChartTypes],
                     ["tab", this.tab],
                 ],
             },
@@ -1212,7 +1237,7 @@ export class Grapher
     @computed get isSingleTimeScatterAnimationActive(): boolean {
         return (
             this.isTimelineAnimationActive &&
-            this.isScatter &&
+            this.isOnScatterTab &&
             !this.isRelativeMode &&
             !!this.areHandlesOnSameTimeBeforeAnimation
         )
@@ -1269,6 +1294,19 @@ export class Grapher
         this.disposers.forEach((dispose) => dispose())
     }
 
+    @action.bound setTab(newTab: GrapherTabName): void {
+        if (newTab === GrapherTabName.Table) {
+            this.tab = GrapherTabOption.table
+            this.chartTab = undefined
+        } else if (newTab === GrapherTabName.WorldMap) {
+            this.tab = GrapherTabOption.map
+            this.chartTab = undefined
+        } else {
+            this.tab = GrapherTabOption.chart
+            this.chartTab = newTab as unknown as ChartTypeName
+        }
+    }
+
     // todo: can we remove this?
     // I believe these states can only occur during editing.
     @action.bound private ensureValidConfigWhenEditing(): void {
@@ -1280,8 +1318,8 @@ export class Grapher
         )
         const disposers = [
             autorun(() => {
-                if (!this.availableTabs.includes(this.tab))
-                    runInAction(() => (this.tab = this.availableTabs[0]))
+                if (!this.availableTabs.includes(this.activeTab))
+                    runInAction(() => this.setTab(this.availableTabs[0]))
             }),
             autorun(() => {
                 const validDimensions = this.validDimensions
@@ -1483,12 +1521,40 @@ export class Grapher
         })
     }
 
-    @computed get availableTabs(): GrapherTabOption[] {
-        return [
-            this.hasTableTab && GrapherTabOption.table,
-            this.hasMapTab && GrapherTabOption.map,
-            this.hasChartTab && GrapherTabOption.chart,
-        ].filter(identity) as GrapherTabOption[]
+    @computed get validChartTypes(): ChartTypeName[] {
+        const { chartTypes } = this
+
+        // all single-chart Graphers are valid
+        if (chartTypes.length <= 1) return chartTypes
+
+        const chartTypeSet = new Set(chartTypes)
+        for (const validCombination of validChartTypeCombinations) {
+            const validCombinationSet = new Set(validCombination)
+            if (areSetsEqual(chartTypeSet, validCombinationSet))
+                return validCombination
+        }
+
+        // if the given combination is not valid, then ignore all but the first chart type
+        return chartTypes.slice(0, 1)
+    }
+
+    @computed get validChartTypeSet(): Set<ChartTypeName> {
+        return new Set(this.validChartTypes)
+    }
+
+    @computed get availableTabs(): GrapherTabName[] {
+        const availableTabs: GrapherTabName[] = []
+        if (this.hasTableTab) availableTabs.push(GrapherTabName.Table)
+        if (this.hasMapTab) availableTabs.push(GrapherTabName.WorldMap)
+        if (!this.hideChartTabs)
+            availableTabs.push(
+                ...(this.validChartTypes as unknown as GrapherTabName[])
+            )
+        return availableTabs
+    }
+
+    @computed get hasMultipleChartTypes(): boolean {
+        return this.validChartTypes.length > 1
     }
 
     @computed get currentSubtitle(): string {
@@ -1527,9 +1593,9 @@ export class Grapher
                 (this.hasTimeline &&
                     // chart types that refer to the current time only in the timeline
                     (this.isLineChartThatTurnedIntoDiscreteBar ||
-                        this.isDiscreteBar ||
-                        this.isStackedDiscreteBar ||
-                        this.isMarimekko ||
+                        this.isOnDiscreteBarTab ||
+                        this.isOnStackedDiscreteBarTab ||
+                        this.isOnMarimekkoTab ||
                         this.isOnMapTab)))
         )
     }
@@ -1539,7 +1605,7 @@ export class Grapher
             !this.hideAnnotationFieldsInTitle?.changeInPrefix
         return (
             !this.forceHideAnnotationFieldsInTitle?.changeInPrefix &&
-            this.isLineChart &&
+            this.isOnLineChartTab &&
             this.isRelativeMode &&
             showChangeInPrefix
         )
@@ -1867,35 +1933,34 @@ export class Grapher
 
     @computed
     get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): ChartTypeName {
-        // Switch to bar chart if a single year is selected. Todo: do we want to do this?
         return this.isLineChartThatTurnedIntoDiscreteBar
             ? ChartTypeName.DiscreteBar
-            : this.type
+            : this.activeChartType ?? ChartTypeName.LineChart
     }
 
     @computed get isLineChart(): boolean {
-        return this.type === ChartTypeName.LineChart
+        return this.chartType === ChartTypeName.LineChart || !this.chartType
     }
     @computed get isScatter(): boolean {
-        return this.type === ChartTypeName.ScatterPlot
+        return this.chartType === ChartTypeName.ScatterPlot
     }
     @computed get isStackedArea(): boolean {
-        return this.type === ChartTypeName.StackedArea
+        return this.chartType === ChartTypeName.StackedArea
     }
     @computed get isSlopeChart(): boolean {
-        return this.type === ChartTypeName.SlopeChart
+        return this.chartType === ChartTypeName.SlopeChart
     }
     @computed get isDiscreteBar(): boolean {
-        return this.type === ChartTypeName.DiscreteBar
+        return this.chartType === ChartTypeName.DiscreteBar
     }
     @computed get isStackedBar(): boolean {
-        return this.type === ChartTypeName.StackedBar
+        return this.chartType === ChartTypeName.StackedBar
     }
     @computed get isMarimekko(): boolean {
-        return this.type === ChartTypeName.Marimekko
+        return this.chartType === ChartTypeName.Marimekko
     }
     @computed get isStackedDiscreteBar(): boolean {
-        return this.type === ChartTypeName.StackedDiscreteBar
+        return this.chartType === ChartTypeName.StackedDiscreteBar
     }
 
     @computed get isLineChartThatTurnedIntoDiscreteBar(): boolean {
@@ -1923,6 +1988,38 @@ export class Grapher
         const closestMinTime = findClosestTime(times, minTime ?? -Infinity)
         const closestMaxTime = findClosestTime(times, maxTime ?? Infinity)
         return closestMinTime !== undefined && closestMinTime === closestMaxTime
+    }
+
+    @computed get isOnLineChartTab(): boolean {
+        return this.activeChartType === ChartTypeName.LineChart
+    }
+    @computed get isOnScatterTab(): boolean {
+        return this.activeChartType === ChartTypeName.ScatterPlot
+    }
+    @computed get isOnStackedAreaTab(): boolean {
+        return this.activeChartType === ChartTypeName.StackedArea
+    }
+    @computed get isOnSlopeChartTab(): boolean {
+        return this.activeChartType === ChartTypeName.SlopeChart
+    }
+    @computed get isOnDiscreteBarTab(): boolean {
+        return this.activeChartType === ChartTypeName.DiscreteBar
+    }
+    @computed get isOnStackedBarTab(): boolean {
+        return this.activeChartType === ChartTypeName.StackedBar
+    }
+    @computed get isOnMarimekkoTab(): boolean {
+        return this.activeChartType === ChartTypeName.Marimekko
+    }
+    @computed get isOnStackedDiscreteBarTab(): boolean {
+        return this.activeChartType === ChartTypeName.StackedDiscreteBar
+    }
+
+    @computed get hasLineChart(): boolean {
+        return this.validChartTypeSet.has(ChartTypeName.LineChart)
+    }
+    @computed get hasSlopeChart(): boolean {
+        return this.validChartTypeSet.has(ChartTypeName.SlopeChart)
     }
 
     @computed get supportsMultipleYColumns(): boolean {
@@ -2037,14 +2134,14 @@ export class Grapher
     @computed get mapIsClickable(): boolean {
         return (
             this.hasChartTab &&
-            (this.isLineChart || this.isScatter) &&
+            (this.hasLineChart || this.isScatter) &&
             !isMobile()
         )
     }
 
     @computed get relativeToggleLabel(): string {
-        if (this.isScatter) return "Display average annual change"
-        else if (this.isLineChart) return "Display relative change"
+        if (this.isOnScatterTab) return "Display average annual change"
+        else if (this.isOnLineChartTab) return "Display relative change"
         return "Display relative values"
     }
 
@@ -2063,18 +2160,18 @@ export class Grapher
 
     @computed get canToggleRelativeMode(): boolean {
         const {
-            isLineChart,
+            isOnLineChartTab,
             hideRelativeToggle,
             areHandlesOnSameTime,
             yScaleType,
             hasSingleEntityInFacets,
             hasSingleMetricInFacets,
             xColumnSlug,
-            isMarimekko,
+            isOnMarimekkoTab,
             isStackedChartSplitByMetric,
         } = this
 
-        if (isLineChart)
+        if (isOnLineChartTab)
             return (
                 !hideRelativeToggle &&
                 !areHandlesOnSameTime &&
@@ -2089,7 +2186,7 @@ export class Grapher
         )
             return false
 
-        if (isMarimekko && xColumnSlug === undefined) return false
+        if (isOnMarimekkoTab && xColumnSlug === undefined) return false
         return !hideRelativeToggle
     }
 
@@ -2378,7 +2475,7 @@ export class Grapher
     }
 
     @action.bound private toggleTabCommand(): void {
-        this.tab = next(this.availableTabs, this.tab)
+        this.setTab(next(this.availableTabs, this.activeTab))
     }
 
     @action.bound private togglePlayingCommand(): void {
@@ -2554,21 +2651,21 @@ export class Grapher
 
     @computed private get hasSingleMetricInFacets(): boolean {
         const {
-            isStackedDiscreteBar,
-            isStackedArea,
-            isStackedBar,
+            isOnStackedDiscreteBarTab,
+            isOnStackedAreaTab,
+            isOnStackedBarTab,
             selectedFacetStrategy,
             hasMultipleYColumns,
         } = this
 
-        if (isStackedDiscreteBar) {
+        if (isOnStackedDiscreteBarTab) {
             return (
                 selectedFacetStrategy === FacetStrategy.entity ||
                 selectedFacetStrategy === FacetStrategy.metric
             )
         }
 
-        if (isStackedArea || isStackedBar) {
+        if (isOnStackedAreaTab || isOnStackedBarTab) {
             return (
                 selectedFacetStrategy === FacetStrategy.entity &&
                 !hasMultipleYColumns
@@ -2580,13 +2677,13 @@ export class Grapher
 
     @computed private get hasSingleEntityInFacets(): boolean {
         const {
-            isStackedArea,
-            isStackedBar,
+            isOnStackedAreaTab,
+            isOnStackedBarTab,
             selectedFacetStrategy,
             selection,
         } = this
 
-        if (isStackedArea || isStackedBar) {
+        if (isOnStackedAreaTab || isOnStackedBarTab) {
             return (
                 selectedFacetStrategy === FacetStrategy.metric &&
                 selection.numSelectedEntities === 1
@@ -2604,7 +2701,7 @@ export class Grapher
     @computed
     private get isStackedChartSplitByMetric(): boolean {
         return (
-            (this.isStackedArea || this.isStackedBar) &&
+            (this.isOnStackedAreaTab || this.isOnStackedBarTab) &&
             this.selectedFacetStrategy === FacetStrategy.metric
         )
     }
@@ -2928,7 +3025,6 @@ export class Grapher
         return this.frameBounds.width <= 420
     }
 
-    // SemiNarrow charts shorten their button labels to fit within the controls row
     @computed get isSemiNarrow(): boolean {
         if (this.isStatic) return false
         return this.frameBounds.width <= 550
@@ -3162,9 +3258,58 @@ export class Grapher
 
     debounceMode = false
 
+    private mapQueryParamToGrapherTab(tab: string): GrapherTabName | undefined {
+        const {
+            chartType: defaultChartType,
+            validChartTypeSet,
+            hasMapTab,
+        } = this
+
+        if (tab === GrapherTabQueryParam.Table) {
+            return GrapherTabName.Table
+        }
+        if (tab === GrapherTabQueryParam.WorldMap) {
+            return GrapherTabName.WorldMap
+        }
+
+        if (tab === GrapherTabQueryParam.Chart) {
+            if (defaultChartType) {
+                return defaultChartType as unknown as GrapherTabName
+            } else if (hasMapTab) {
+                return GrapherTabName.WorldMap
+            } else {
+                return GrapherTabName.Table
+            }
+        }
+
+        const chartTypeName = mapQueryParamToChartTypeName(tab)
+
+        if (!chartTypeName) return undefined
+
+        if (validChartTypeSet.has(chartTypeName)) {
+            return chartTypeName as unknown as GrapherTabName
+        } else if (defaultChartType) {
+            return defaultChartType as unknown as GrapherTabName
+        } else if (hasMapTab) {
+            return GrapherTabName.WorldMap
+        } else {
+            return GrapherTabName.Table
+        }
+    }
+
+    mapGrapherTabToQueryParam(tab: GrapherTabName): string {
+        if (tab === GrapherTabName.Table) return GrapherTabQueryParam.Table
+        if (tab === GrapherTabName.WorldMap)
+            return GrapherTabQueryParam.WorldMap
+
+        if (!this.hasMultipleChartTypes) return GrapherTabQueryParam.Chart
+
+        return mapChartTypeNameToQueryParam(tab as unknown as ChartTypeName)
+    }
+
     @computed.struct get allParams(): GrapherQueryParams {
         const params: GrapherQueryParams = {}
-        params.tab = this.tab
+        params.tab = this.mapGrapherTabToQueryParam(this.activeTab)
         params.xScale = this.xAxis.scaleType
         params.yScale = this.yAxis.scaleType
         params.stackMode = this.stackMode
@@ -3331,7 +3476,7 @@ export class Grapher
     }
 
     @computed get disablePlay(): boolean {
-        return this.isSlopeChart
+        return this.isOnSlopeChartTab
     }
 
     @computed get animationEndTime(): Time {
@@ -3376,7 +3521,7 @@ export class Grapher
     @computed get canChangeEntity(): boolean {
         return (
             this.hasChartTab &&
-            !this.isScatter &&
+            !this.isOnScatterTab &&
             !this.canSelectMultipleEntities &&
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
             this.numSelectableEntityNames > 1
@@ -3387,11 +3532,11 @@ export class Grapher
         return (
             this.hasChartTab &&
             this.canSelectMultipleEntities &&
-            (this.isLineChart ||
-                this.isStackedArea ||
-                this.isStackedBar ||
-                this.isDiscreteBar ||
-                this.isStackedDiscreteBar)
+            (this.isOnLineChartTab ||
+                this.isOnStackedAreaTab ||
+                this.isOnStackedBarTab ||
+                this.isOnDiscreteBarTab ||
+                this.isOnStackedDiscreteBarTab)
         )
     }
 
@@ -3500,6 +3645,7 @@ export class Grapher
         changeInPrefix: false,
     }
     @observable hasTableTab = true
+    @observable hideChartTabs = false
     @observable hideShareButton = false
     @observable hideExploreTheDataButton = true
     @observable hideRelatedQuestion = false

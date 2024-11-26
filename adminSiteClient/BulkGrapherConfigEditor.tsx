@@ -79,7 +79,7 @@ const bulkChartEditorColumnSets: ColumnSet[] = [
         label: "Common",
         kind: "specificColumns",
         columns: [
-            "/type",
+            "/chartTypes",
             "/hasMapTab",
             "/title",
             "/subtitle",
@@ -110,9 +110,8 @@ const bulkChartEditorColumnSets: ColumnSet[] = [
             "/baseColorScheme",
             "/map/colorScale",
             "/colorScale",
-            "/hasChartTab",
             "/hasMapTab",
-            "/type",
+            "/chartTypes",
         ],
     },
 ]

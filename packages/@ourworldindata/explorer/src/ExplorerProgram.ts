@@ -8,6 +8,7 @@ import {
     FacetAxisDomain,
     GrapherInterface,
     AxisMinMaxValueStr,
+    ChartTypeName,
 } from "@ourworldindata/types"
 import {
     CoreTable,
@@ -64,6 +65,7 @@ interface ExplorerGrapherInterface extends GrapherInterface {
     relatedQuestionText?: string
     relatedQuestionUrl?: string
     mapTargetTime?: number
+    type?: ChartTypeName | "None"
 }
 
 const ExplorerRootDef: CellDef = {

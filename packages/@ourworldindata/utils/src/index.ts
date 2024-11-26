@@ -62,6 +62,7 @@ export {
     intersectionOfSets,
     unionOfSets,
     differenceOfSets,
+    areSetsEqual,
     isSubsetOf,
     intersection,
     sortByUndefinedLast,

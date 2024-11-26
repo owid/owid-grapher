@@ -2,7 +2,7 @@ import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 
-import { Bounds, DEFAULT_BOUNDS, GrapherTabOption } from "@ourworldindata/utils"
+import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
 
 import { ContentSwitchers, ContentSwitchersManager } from "../ContentSwitchers"
 import {
@@ -25,7 +25,6 @@ export interface ControlsRowManager
         MapProjectionMenuManager,
         SettingsMenuManager {
     sidePanelBounds?: Bounds
-    availableTabs?: GrapherTabOption[]
     showEntitySelectionToggle?: boolean
 }
 
@@ -63,12 +62,16 @@ export class ControlsRow extends React.Component<{
         return this.maxWidth - this.contentSwitchersWidth - 16
     }
 
+    @computed private get showContentSwitchers(): boolean {
+        return ContentSwitchers.shouldShow(this.manager)
+    }
+
     @computed private get showControlsRow(): boolean {
         return (
             SettingsMenu.shouldShow(this.manager) ||
             EntitySelectionToggle.shouldShow(this.manager) ||
             MapProjectionMenu.shouldShow(this.manager) ||
-            ContentSwitchers.shouldShow(this.manager)
+            this.showContentSwitchers
         )
     }
 
@@ -82,7 +85,9 @@ export class ControlsRow extends React.Component<{
                 }}
             >
                 <div>
-                    <ContentSwitchers manager={this.manager} />
+                    {this.showContentSwitchers && (
+                        <ContentSwitchers manager={this.manager} />
+                    )}
                 </div>
                 <div className="chart-controls">
                     {showEntitySelectionToggle && (

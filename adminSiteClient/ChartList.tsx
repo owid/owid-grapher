@@ -3,7 +3,11 @@ import { observer } from "mobx-react"
 import { runInAction, observable } from "mobx"
 import { bind } from "decko"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { ChartTypeName, GrapherInterface } from "@ourworldindata/types"
+import {
+    ChartTypeName,
+    GrapherInterface,
+    GrapherTabOption,
+} from "@ourworldindata/types"
 import { startCase, DbChartTagJoin } from "@ourworldindata/utils"
 import { References, getFullReferencesCount } from "./ChartEditor.js"
 import { ChartRow } from "./ChartRow.js"
@@ -14,13 +18,14 @@ export interface ChartListItem {
     id: GrapherInterface["id"]
     title: GrapherInterface["title"]
     slug: GrapherInterface["slug"]
-    type: GrapherInterface["type"]
     internalNotes: GrapherInterface["internalNotes"]
     variantName: GrapherInterface["variantName"]
     isPublished: GrapherInterface["isPublished"]
     tab: GrapherInterface["tab"]
-    hasChartTab: GrapherInterface["hasChartTab"]
     hasMapTab: GrapherInterface["hasMapTab"]
+
+    type?: ChartTypeName
+    hasChartTab: boolean
 
     lastEditedAt: string
     lastEditedBy: string
@@ -142,13 +147,16 @@ export class ChartList extends React.Component<{
     }
 }
 
-export function showChartType(chart: ChartListItem) {
-    const chartType = chart.type ?? ChartTypeName.LineChart
+export function showChartType(chart: ChartListItem): string {
+    const chartType = chart.type
+
+    if (!chartType) return "Map"
+
     const displayType = ChartTypeName[chartType]
         ? startCase(ChartTypeName[chartType])
         : "Unknown"
 
-    if (chart.tab === "map") {
+    if (chart.tab === GrapherTabOption.map) {
         if (chart.hasChartTab) return `Map + ${displayType}`
         else return "Map"
     } else {

@@ -926,6 +926,9 @@ export const differenceOfSets = <T>(sets: Set<T>[]): Set<T> => {
     return diff
 }
 
+export const areSetsEqual = <T>(setA: Set<T>, setB: Set<T>): boolean =>
+    setA.size === setB.size && [...setA].every((value) => setB.has(value))
+
 /** Tests whether the first argument is a strict subset of the second. The arguments do not have
     to be sets yet, they can be any iterable. Sets will be created by the function internally */
 export function isSubsetOf<T>(
@@ -1966,9 +1969,10 @@ export function traverseObjects<T extends Record<string, any>>(
 export function getParentVariableIdFromChartConfig(
     config: GrapherInterface
 ): number | undefined {
-    const { type = ChartTypeName.LineChart, dimensions } = config
+    const { chartTypes, dimensions } = config
 
-    if (type === ChartTypeName.ScatterPlot) return undefined
+    const chartType = chartTypes?.[0] ?? ChartTypeName.LineChart
+    if (chartType === ChartTypeName.ScatterPlot) return undefined
     if (!dimensions) return undefined
 
     const yVariableIds = dimensions

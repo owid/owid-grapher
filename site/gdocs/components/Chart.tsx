@@ -1,17 +1,18 @@
 import React, { useRef } from "react"
 import { useEmbedChart } from "../../hooks.js"
 import {
-    grapherInterfaceWithHiddenControlsOnly,
-    grapherInterfaceWithHiddenTabsOnly,
+    grapherInterfaceWithHiddenControls,
+    grapherInterfaceWithHiddenTabs,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import {
     ChartControlKeyword,
     ChartTabKeyword,
     EnrichedBlockChart,
-    identity,
     Url,
     merge,
+    excludeUndefined,
+    isEmpty,
 } from "@ourworldindata/utils"
 import { ChartConfigType } from "@ourworldindata/types"
 import { renderSpans, useLinkedChart } from "../utils.js"
@@ -54,17 +55,26 @@ export default function Chart({
     if (!isExplorer && isCustomized) {
         const controls: ChartControlKeyword[] = d.controls || []
         const tabs: ChartTabKeyword[] = d.tabs || []
+
         const showAllControls = controls.includes(ChartControlKeyword.all)
         const showAllTabs = tabs.includes(ChartTabKeyword.all)
-        const listOfPartialGrapherConfigs = [...controls, ...tabs]
-            .map(mapKeywordToGrapherConfig)
-            .filter(identity) as GrapherProgrammaticInterface[]
+
+        const allControlsHidden = grapherInterfaceWithHiddenControls
+        const allTabsHidden = grapherInterfaceWithHiddenTabs
+
+        const enabledControls = excludeUndefined(
+            controls.map(mapControlKeywordToGrapherConfig)
+        )
+        const enabledTabs = excludeUndefined(
+            tabs.map(mapTabKeywordToGrapherConfig)
+        )
 
         customizedChartConfig = merge(
             {},
-            !showAllControls ? grapherInterfaceWithHiddenControlsOnly : {},
-            !showAllTabs ? grapherInterfaceWithHiddenTabsOnly : {},
-            ...listOfPartialGrapherConfigs,
+            !showAllControls ? allControlsHidden : {},
+            !showAllTabs ? allTabsHidden : {},
+            ...enabledControls,
+            ...enabledTabs,
             {
                 hideRelatedQuestion: true,
                 hideShareButton: true, // always hidden since the original chart would be shared, not the customized one
@@ -107,7 +117,9 @@ export default function Chart({
                 data-is-multi-dim={isMultiDim || undefined}
                 data-grapher-src={isExplorer ? undefined : resolvedUrl}
                 data-grapher-config={
-                    isExplorer ? undefined : JSON.stringify(chartConfig)
+                    isExplorer || isEmpty(chartConfig)
+                        ? undefined
+                        : JSON.stringify(chartConfig)
                 }
                 data-explorer-src={isExplorer ? resolvedUrl : undefined}
                 style={{
@@ -134,12 +146,10 @@ export default function Chart({
     )
 }
 
-const mapKeywordToGrapherConfig = (
-    keyword: ChartControlKeyword | ChartTabKeyword
-): GrapherProgrammaticInterface | null => {
+const mapControlKeywordToGrapherConfig = (
+    keyword: ChartControlKeyword
+): GrapherProgrammaticInterface | undefined => {
     switch (keyword) {
-        // controls
-
         case ChartControlKeyword.relativeToggle:
             return { hideRelativeToggle: false }
 
@@ -173,18 +183,25 @@ const mapKeywordToGrapherConfig = (
         case ChartControlKeyword.tableFilterToggle:
             return { hideTableFilterToggle: false }
 
-        // tabs
+        default:
+            return undefined
+    }
+}
 
-        case ChartTabKeyword.chart:
-            return { hasChartTab: true }
+const mapTabKeywordToGrapherConfig = (
+    keyword: ChartTabKeyword
+): GrapherProgrammaticInterface | undefined => {
+    switch (keyword) {
+        case ChartTabKeyword.table:
+            return { hasTableTab: true }
 
         case ChartTabKeyword.map:
             return { hasMapTab: true }
 
-        case ChartTabKeyword.table:
-            return { hasTableTab: true }
+        case ChartTabKeyword.chart:
+            return { hideChartTabs: false }
 
         default:
-            return null
+            return undefined
     }
 }

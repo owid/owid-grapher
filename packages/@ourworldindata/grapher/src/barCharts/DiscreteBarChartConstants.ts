@@ -28,7 +28,7 @@ export interface PlacedDiscreteBarSeries extends DiscreteBarSeries {
 export interface DiscreteBarChartManager extends ChartManager {
     showYearLabels?: boolean
     endTime?: Time
-    isLineChart?: boolean
+    isOnLineChartTab?: boolean
 }
 
 export const BACKGROUND_COLOR = "#fff"

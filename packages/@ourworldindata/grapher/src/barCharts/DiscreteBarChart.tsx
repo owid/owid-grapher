@@ -730,7 +730,7 @@ export class DiscreteBarChart
         // an all-blue color scheme (singleColorDenim).
         const defaultColorScheme = this.defaultBaseColorScheme
         const colorScheme = this.manager.baseColorScheme ?? defaultColorScheme
-        return this.manager.isLineChart
+        return this.manager.isOnLineChartTab
             ? ColorSchemes.get(defaultColorScheme)
             : ColorSchemes.get(colorScheme)
     }

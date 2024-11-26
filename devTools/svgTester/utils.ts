@@ -1,4 +1,8 @@
-import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
+import {
+    ChartTypeName,
+    GrapherTabName,
+    GrapherTabOption,
+} from "@ourworldindata/types"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableMixedData,
@@ -89,7 +93,7 @@ export type SvgRenderPerformance = {
 export type SvgRecord = {
     chartId: number
     slug: string
-    chartType: ChartTypeName | GrapherTabOption | undefined
+    chartType: GrapherTabName | undefined
     queryStr?: string
     md5: string
     svgFilename: string
@@ -205,7 +209,8 @@ export async function findChartViewsToGenerate(
         const grapherConfig = await parseGrapherConfig(chartId, { inDir })
 
         const slug = grapherConfig.slug ?? chartId.toString()
-        const chartType = grapherConfig.type ?? ChartTypeName.LineChart
+        const chartType =
+            grapherConfig.chartTypes?.[0] ?? ChartTypeName.LineChart
 
         const queryStrings = options.shouldTestAllViews
             ? queryStringsByChartType[chartType]
@@ -283,7 +288,8 @@ export async function findValidChartIds(
                 const grapherConfig = await parseGrapherConfig(grapherId, {
                     inDir,
                 })
-                const chartType = grapherConfig.type ?? ChartTypeName.LineChart
+                const chartType =
+                    grapherConfig.chartTypes?.[0] ?? ChartTypeName.LineChart
                 if (chartTypes.includes(chartType)) {
                     validChartIds.push(grapherId)
                 }
@@ -422,7 +428,7 @@ export async function renderSvg(
     const svgRecord = {
         chartId: configAndData.config.id!,
         slug: configAndData.config.slug!,
-        chartType: grapher.tab === "chart" ? grapher.type : grapher.tab,
+        chartType: grapher.activeTab,
         queryStr,
         md5: processSvgAndCalculateHash(svg),
         svgFilename: outFilename,

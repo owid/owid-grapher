@@ -512,7 +512,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         return (
                             <EditorColorScaleSection
                                 scale={colorScale}
-                                chartType={grapher.type}
+                                chartType={
+                                    grapher.chartType ?? ChartTypeName.LineChart
+                                }
                                 features={{
                                     visualScaling: true,
                                     legendDescription: false,
@@ -1096,7 +1098,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     async getFieldDefinitions() {
         const json = await fetch(
-            "https://files.ourworldindata.org/schemas/grapher-schema.005.json"
+            "https://files.ourworldindata.org/schemas/grapher-schema.006.json"
         ).then((response) => response.json())
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {

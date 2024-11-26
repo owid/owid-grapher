@@ -152,19 +152,9 @@ async function propsFromQueryParams(
             query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
             tab = tab || GrapherTabOption.map
         } else {
-            if (params.type === "LineChart") {
-                query = query.andWhereRaw(
-                    `(
-                        cc.full->"$.type" = "LineChart"
-                        OR cc.full->"$.type" IS NULL
-                    ) AND COALESCE(cc.full->>"$.hasChartTab", "true") = "true"`
-                )
-            } else {
-                query = query.andWhereRaw(
-                    `cc.full->"$.type" = :type AND COALESCE(cc.full->>"$.hasChartTab", "true") = "true"`,
-                    { type: params.type }
-                )
-            }
+            query = query.andWhereRaw(`cc.chartType = :type`, {
+                type: params.type,
+            })
             tab = tab || GrapherTabOption.chart
         }
     }
@@ -245,9 +235,7 @@ async function propsFromQueryParams(
     if (tab === GrapherTabOption.map) {
         query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
     } else if (tab === GrapherTabOption.chart) {
-        query = query.andWhereRaw(
-            `COALESCE(cc.full->>"$.hasChartTab", "true") = "true"`
-        )
+        query = query.andWhereRaw(`cc.chartType IS NOT NULL`)
     }
 
     if (datasetIds.length > 0) {
