@@ -493,42 +493,67 @@ export class SlopeChart
             : 0
     }
 
-    @computed private get maxLabelWidth(): number {
-        // TODO: copied from line legend
-        const fontSize =
-            GRAPHER_FONT_SCALE_12 * (this.manager.fontSize ?? BASE_FONT_SIZE)
-        return (
-            max(
-                this.series.map(
-                    (series) =>
-                        Bounds.forText(series.seriesName, { fontSize }).width
-                )
-            ) ?? 0
-        )
+    @computed get maxLineLegendWidth(): number {
+        return this.bounds.width / 6
     }
 
-    @computed get maxLineLegendWidth(): number {
-        // todo: copied from line legend (left padding, marker margin)
-        return Math.min(this.maxLabelWidth + 35 + 4, this.bounds.width / 3)
+    @computed get lineLegendWidthLeft(): number {
+        if (!this.manager.showLegend) return 0
+        return LineLegend.width({
+            labelSeries: this.lineLegendSeriesLeft,
+            yAxis: this.yAxis,
+            maxWidth: this.maxLineLegendWidth,
+            connectorLineWidth: this.lineLegendConnectorLinesWidth,
+            fontSize: this.fontSize,
+            isStatic: this.manager.isStatic,
+        })
+    }
+
+    @computed get lineLegendWidthRight(): number {
+        if (!this.manager.showLegend) return 0
+        return LineLegend.width({
+            labelSeries: this.lineLegendSeriesRight,
+            yAxis: this.yAxis,
+            maxWidth: this.maxLineLegendWidth,
+            connectorLineWidth: this.lineLegendConnectorLinesWidth,
+            fontSize: this.fontSize,
+            isStatic: this.manager.isStatic,
+        })
     }
 
     @computed get xRange(): [number, number] {
-        const lineLegendWidth = this.maxLineLegendWidth + LINE_LEGEND_PADDING
+        const lineLegendWidthLeft =
+            this.lineLegendWidthLeft + LINE_LEGEND_PADDING
+        const lineLegendWidthRight =
+            this.lineLegendWidthRight + LINE_LEGEND_PADDING
 
         // pick a reasonable max width based on an ideal aspect ratio
         const idealAspectRatio = 0.6
         const chartAreaWidth = this.bounds.width - this.sidebarWidth
         const availableWidth =
-            chartAreaWidth - this.yAxisWidth - lineLegendWidth
+            chartAreaWidth -
+            this.yAxisWidth -
+            lineLegendWidthLeft -
+            lineLegendWidthRight
         const idealWidth = idealAspectRatio * this.bounds.height
         const maxSlopeWidth = Math.min(idealWidth, availableWidth)
 
-        let startX =
-            this.bounds.x + Math.max(0.25 * chartAreaWidth, this.yAxisWidth + 4)
-        let endX =
-            this.bounds.x +
-            chartAreaWidth -
-            Math.max(0.25 * chartAreaWidth, lineLegendWidth)
+        let startX: number, endX: number
+        if (this.manager.isSemiNarrow) {
+            startX = this.bounds.x + this.yAxisWidth + 4 + lineLegendWidthLeft
+            endX = this.bounds.x + chartAreaWidth - lineLegendWidthRight
+        } else {
+            startX =
+                this.bounds.x +
+                Math.max(
+                    0.25 * chartAreaWidth,
+                    this.yAxisWidth + 4 + lineLegendWidthLeft
+                )
+            endX =
+                this.bounds.x +
+                chartAreaWidth -
+                Math.max(0.25 * chartAreaWidth, lineLegendWidthRight)
+        }
 
         const currentSlopeWidth = endX - startX
         if (currentSlopeWidth > maxSlopeWidth) {
@@ -544,13 +569,31 @@ export class SlopeChart
         return this.xRange[1] + LINE_LEGEND_PADDING
     }
 
+    @computed get useCompactLineLegend(): boolean {
+        return !!this.manager.isSemiNarrow
+    }
+
     // used by LineLegend
     @computed get focusedSeriesNames(): SeriesName[] {
         return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
     }
 
-    // used in LineLegend
-    @computed get lineLegendSeries(): LineLabelSeries[] {
+    @computed get lineLegendSeriesLeft(): LineLabelSeries[] {
+        return this.series.map((series) => {
+            const { seriesName, color, start, annotation } = series
+            return {
+                color,
+                seriesName,
+                label: this.useCompactLineLegend
+                    ? this.formatColumn.formatValueShort(start.value)
+                    : this.formatColumn.formatValueLong(start.value),
+                annotation,
+                yValue: start.value,
+            }
+        })
+    }
+
+    @computed get lineLegendSeriesRight(): LineLabelSeries[] {
         return this.series.map((series) => {
             const { seriesName, color, end, annotation } = series
             return {
@@ -561,6 +604,10 @@ export class SlopeChart
                 yValue: end.value,
             }
         })
+    }
+
+    @computed private get lineLegendConnectorLinesWidth(): number {
+        return this.useCompactLineLegend ? 15 : 35
     }
 
     private playIntroAnimation() {
@@ -790,7 +837,9 @@ export class SlopeChart
         return seriesName
     }
 
-    private renderNoDataSection(): React.ReactElement {
+    private renderNoDataSection(): React.ReactElement | void {
+        if (!this.showNoDataSection) return
+
         const bounds = new Bounds(
             this.bounds.right - this.sidebarWidth,
             this.bounds.top,
@@ -903,6 +952,40 @@ export class SlopeChart
         )
     }
 
+    private renderLineLegends(): React.ReactElement | void {
+        if (!this.manager.showLegend) return
+        return (
+            <>
+                <LineLegend
+                    labelSeries={this.lineLegendSeriesRight}
+                    yAxis={this.yAxis}
+                    x={this.xRange[1] + LINE_LEGEND_PADDING}
+                    maxWidth={this.maxLineLegendWidth}
+                    lineLegendAnchorX="start"
+                    connectorLineWidth={this.lineLegendConnectorLinesWidth}
+                    fontSize={this.fontSize}
+                    isStatic={this.manager.isStatic}
+                    focusedSeriesNames={this.focusedSeriesNames}
+                    onMouseLeave={this.onLineLegendMouseLeave}
+                    onMouseOver={this.onLineLegendMouseOver}
+                />
+                <LineLegend
+                    labelSeries={this.lineLegendSeriesLeft}
+                    yAxis={this.yAxis}
+                    x={this.xRange[0] - LINE_LEGEND_PADDING}
+                    maxWidth={this.maxLineLegendWidth}
+                    lineLegendAnchorX="end"
+                    connectorLineWidth={this.lineLegendConnectorLinesWidth}
+                    fontSize={this.fontSize}
+                    isStatic={this.manager.isStatic}
+                    focusedSeriesNames={this.focusedSeriesNames}
+                    onMouseLeave={this.onLineLegendMouseLeave}
+                    onMouseOver={this.onLineLegendMouseOver}
+                />
+            </>
+        )
+    }
+
     render() {
         if (this.failMessage)
             return (
@@ -917,20 +1000,8 @@ export class SlopeChart
         return (
             <g>
                 {this.renderChartArea()}
-                {this.manager.showLegend && (
-                    <LineLegend
-                        labelSeries={this.lineLegendSeries}
-                        yAxis={this.yAxis}
-                        x={this.lineLegendX}
-                        maxWidth={this.maxLineLegendWidth}
-                        fontSize={this.fontSize}
-                        isStatic={this.manager.isStatic}
-                        focusedSeriesNames={this.focusedSeriesNames}
-                        onMouseLeave={this.onLineLegendMouseLeave}
-                        onMouseOver={this.onLineLegendMouseOver}
-                    />
-                )}
-                {this.showNoDataSection && this.renderNoDataSection()}
+                {this.renderLineLegends()}
+                {this.renderNoDataSection()}
                 {this.tooltip}
             </g>
         )
