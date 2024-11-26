@@ -1,3 +1,4 @@
+import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import {
     DEFAULT_ASPECT_RATIO,
     MIN_ASPECT_RATIO,
@@ -7,6 +8,7 @@ import {
     DEFAULT_WIDTH,
     DEFAULT_HEIGHT,
 } from "./grapherRenderer.js"
+import { GrapherStaticFormat } from "@ourworldindata/types"
 
 export interface ImageOptions {
     pngWidth: number
@@ -14,7 +16,8 @@ export interface ImageOptions {
     svgWidth: number
     svgHeight: number
     details: boolean
-    fontSize: number
+    fontSize: number | undefined
+    grapherProps?: Partial<GrapherProgrammaticInterface>
 }
 export const TWITTER_OPTIONS: ImageOptions = {
     // Twitter cards are 1.91:1 in aspect ratio, and 800x418 is the recommended size
@@ -34,12 +37,34 @@ const OPEN_GRAPH_OPTIONS: ImageOptions = {
     details: false,
     fontSize: 21,
 }
-export const extractOptions = (params: URLSearchParams): ImageOptions => {
-    const options: Partial<ImageOptions> = {}
+const SOCIAL_MEDIA_SQUARE_OPTIONS: ImageOptions = {
+    pngWidth: 2160,
+    pngHeight: 2160,
+    svgWidth: 540,
+    svgHeight: 540,
+    details: false,
+    fontSize: undefined,
+    grapherProps: {
+        isSocialMediaExport: true,
+        staticFormat: GrapherStaticFormat.square,
+    },
+}
 
+export const extractOptions = (params: URLSearchParams): ImageOptions => {
     // We have two special images types specified via the `imType` query param:
     if (params.get("imType") === "twitter") return TWITTER_OPTIONS
     else if (params.get("imType") === "og") return OPEN_GRAPH_OPTIONS
+    else if (params.get("imType") === "social-media-square") {
+        const squareOptions = SOCIAL_MEDIA_SQUARE_OPTIONS
+        if (params.has("imSquareSize")) {
+            const size = parseInt(params.get("imSquareSize")!)
+            squareOptions.pngWidth = size
+            squareOptions.pngHeight = size
+        }
+        return squareOptions
+    }
+
+    const options: Partial<ImageOptions> = {}
 
     // Otherwise, query params can specify the size to be rendered at; and in addition we're doing a
     // bunch of normalization to make sure the image is rendered at a reasonable size and aspect ratio.

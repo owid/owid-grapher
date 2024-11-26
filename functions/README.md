@@ -18,13 +18,13 @@ Inside a file-based route we sometimes use an instance of itty-router to decide 
 
 2. Start the Cloudflare function development server with either:
 
-- (preferred) `yarn make up.full`: starts the whole local development stack, including the functions development server
-- `yarn startLocalCloudflareFunctions`: only starts the functions development server
+-   (preferred) `yarn make up.full`: starts the whole local development stack, including the functions development server
+-   `yarn startLocalCloudflareFunctions`: only starts the functions development server
 
 Note: compatibility dates between local development, production and preview environments should be kept in sync:
 
-- local: defined in `package.json` -> `startLocalCloudflareFunctions`
-- production & preview : see https://dash.cloudflare.com/078fcdfed9955087315dd86792e71a7e/pages/view/owid/settings/functions
+-   local: defined in `package.json` -> `startLocalCloudflareFunctions`
+-   production & preview : see https://dash.cloudflare.com/078fcdfed9955087315dd86792e71a7e/pages/view/owid/settings/functions
 
 3. _Refer to each function's "Development" section below for further instructions._
 
@@ -147,8 +147,8 @@ In order to test the webhook function locally, you can use the Stripe CLI to lis
 STRIPE_API_KEY=xxx stripe listen --latest --forward-to localhost:8788/donation/thank-you
 ```
 
-- replace `xxx` with the value of `STRIPE_API_KEY (dev)` in 1password. Alternatively, if you have access to the Stripe dashboard, you can forgo the `STRIPE_API_KEY=xxx` part and let `stripe listen ...` guide you through a one-time login process.
-- `--latest` is required when development code uses a more recent API version than the one set in the Stripe dashboard (which `stripe listen` will default to).
+-   replace `xxx` with the value of `STRIPE_API_KEY (dev)` in 1password. Alternatively, if you have access to the Stripe dashboard, you can forgo the `STRIPE_API_KEY=xxx` part and let `stripe listen ...` guide you through a one-time login process.
+-   `--latest` is required when development code uses a more recent API version than the one set in the Stripe dashboard (which `stripe listen` will default to).
 
 3. Copy the webhook secret into `STRIPE_WEBHOOK_SECRET` variable in your `.dev.vars` and then restart the development server. This secret is shown when you ran `stripe listen`, and is stable across restarts.
 
@@ -181,10 +181,10 @@ This route is where the actual thumbnail magic happens 🙌🏻✨
 
 It can:
 
-- Generate _png_ and _svg_ previews
-- Render _png_ exports using our custom fonts, Lato and Playfair
-- Render a preview according to all its query parameters
-- Customize the image output a bunch using various options (see below)
+-   Generate _png_ and _svg_ previews
+-   Render _png_ exports using our custom fonts, Lato and Playfair
+-   Render a preview according to all its query parameters
+-   Customize the image output a bunch using various options (see below)
 
 We (plan to) use these for social media previews, such that the social media user will see the exact chart that is shared, for example with a `?tab=chart&country=IND~CHN&time=2000`.
 We cannot possibly create static previews for all possible combinations, but we can generate them dynamically on the fly as they are being shared.
@@ -232,13 +232,14 @@ All of the below options can be given as query parameters, e.g. `?imType=og&noca
         <td><code>imType</code></td>
         <td>
           <code>twitter</code> or <code>og</code> (short for
-          <a href="https://ogp.me">Open Graph</a>)
+          <a href="https://ogp.me">Open Graph</a>) or <code>social-media-square</code>
         </td>
         <td>
           If present, will use fitting defaults for the generated image size:
           <ul>
             <li><code>twitter</code>: 800x418</li>
             <li><code>og</code>: 1200x628</li>
+            <li><code>social-media-square</code>: 2160x2160, customizable using <code>imSquareSize=[number]</code></li>
           </ul>
           All below options will be ignored if <code>imType</code> is set to one of these values.
         </td>
