@@ -3120,7 +3120,7 @@ export class Grapher
         this.setBaseFontSize()
         this.setUpIntersectionObserver()
         this.setUpWindowResizeEventHandler()
-        exposeInstanceOnWindow(this, "grapher")
+        if (!this.isEmbeddedInADataPage) exposeInstanceOnWindow(this, "grapher")
         // Emit a custom event when the grapher is ready
         // We can use this in global scripts that depend on the grapher e.g. the site-screenshots tool
         this.disposers.push(
