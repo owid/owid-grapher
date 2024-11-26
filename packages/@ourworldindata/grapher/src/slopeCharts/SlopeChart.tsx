@@ -966,7 +966,7 @@ export class SlopeChart
                     x={this.xRange[1] + LINE_LEGEND_PADDING}
                     maxWidth={this.maxLineLegendWidth}
                     lineLegendAnchorX="start"
-                    showValueLabelsInline={false}
+                    showValueLabelsInline={!this.useCompactLineLegend}
                     connectorLineWidth={this.lineLegendConnectorLinesWidth}
                     fontSize={this.fontSize}
                     fontWeight={700}
@@ -981,7 +981,7 @@ export class SlopeChart
                     x={this.xRange[0] - LINE_LEGEND_PADDING}
                     maxWidth={this.maxLineLegendWidth}
                     lineLegendAnchorX="end"
-                    showValueLabelsInline={false}
+                    showValueLabelsInline={!this.useCompactLineLegend}
                     connectorLineWidth={this.lineLegendConnectorLinesWidth}
                     fontSize={this.fontSize}
                     isStatic={this.manager.isStatic}
