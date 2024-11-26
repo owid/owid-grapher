@@ -95,6 +95,7 @@ class LineLabels extends React.Component<{
     needsConnectorLines: boolean
     connectorLineWidth?: number
     anchor?: "start" | "end"
+    showValueLabelsInline?: boolean
     isFocus?: boolean
     isStatic?: boolean
     onClick?: (series: PlacedSeries) => void
@@ -111,6 +112,10 @@ class LineLabels extends React.Component<{
 
     @computed private get connectorLineWidth(): number {
         return this.props.connectorLineWidth ?? DEFAULT_CONNECTOR_LINE_WIDTH
+    }
+
+    @computed private get showValueLabelsInline(): boolean {
+        return this.props.showValueLabelsInline ?? true
     }
 
     @computed private get markers(): {
@@ -213,6 +218,12 @@ class LineLabels extends React.Component<{
             <g id={makeIdForHumanConsumption("text-values")}>
                 {markersWithTextValues.map(({ series, labelText }, index) => {
                     const textColor = darkenColorForText(series.color)
+                    const x = this.showValueLabelsInline
+                        ? labelText.x + series.textWrap.width + 4
+                        : labelText.x
+                    const y = this.showValueLabelsInline
+                        ? labelText.y
+                        : labelText.y + series.textWrap.height
                     return (
                         <React.Fragment
                             key={getSeriesKey(
@@ -221,17 +232,13 @@ class LineLabels extends React.Component<{
                                 this.props.uniqueKey
                             )}
                         >
-                            {series.valueTextWrap?.render(
-                                labelText.x,
-                                labelText.y + series.textWrap.height,
-                                {
-                                    textProps: {
-                                        fill: textColor,
-                                        opacity: this.textOpacity,
-                                        textAnchor: this.anchor,
-                                    },
-                                }
-                            )}
+                            {series.valueTextWrap?.render(x, y, {
+                                textProps: {
+                                    fill: textColor,
+                                    opacity: this.textOpacity,
+                                    textAnchor: this.anchor,
+                                },
+                            })}
                         </React.Fragment>
                     )
                 })}
@@ -281,6 +288,10 @@ class LineLabels extends React.Component<{
         return (
             <g>
                 {this.props.series.map((series, index) => {
+                    const x =
+                        this.anchor === "start"
+                            ? series.origBounds.x
+                            : series.origBounds.x - series.bounds.width
                     return (
                         <g
                             key={getSeriesKey(
@@ -296,7 +307,7 @@ class LineLabels extends React.Component<{
                             style={{ cursor: "default" }}
                         >
                             <rect
-                                x={series.origBounds.x - series.bounds.width}
+                                x={x}
                                 y={series.bounds.y}
                                 width={series.bounds.width}
                                 height={series.bounds.height}
@@ -427,29 +438,35 @@ export class LineLegend extends React.Component<LineLegendProps> {
             const valueTextWrap = label.formattedValue
                 ? new TextWrap({
                       text: label.formattedValue,
-                      maxWidth: maxAnnotationWidth,
+                      maxWidth: Infinity,
                       fontSize: fontSize * 0.9,
                       lineHeight: 1,
                   })
                 : undefined
+
+            const annotationWidth = annotationTextWrap
+                ? annotationTextWrap.width
+                : 0
+            const annotationHeight = annotationTextWrap
+                ? ANNOTATION_PADDING + annotationTextWrap.height
+                : 0
+
+            const valueWidth = valueTextWrap ? valueTextWrap.width : 0
+            const valueHeight = valueTextWrap
+                ? ANNOTATION_PADDING + valueTextWrap.height
+                : 0
+
             return {
                 ...label,
                 textWrap,
                 annotationTextWrap,
                 valueTextWrap,
-                width: Math.max(
-                    textWrap.width,
-                    annotationTextWrap ? annotationTextWrap.width : 0,
-                    valueTextWrap ? valueTextWrap.width : 0
-                ),
-                height:
-                    textWrap.height +
-                    (annotationTextWrap
-                        ? ANNOTATION_PADDING + annotationTextWrap.height
-                        : 0) +
-                    (valueTextWrap
-                        ? ANNOTATION_PADDING + valueTextWrap.height
-                        : 0),
+                width: this.showValueLabelsInline
+                    ? Math.max(textWrap.width + 4 + valueWidth, annotationWidth)
+                    : Math.max(textWrap.width, annotationWidth, valueWidth),
+                height: this.showValueLabelsInline
+                    ? textWrap.height + annotationHeight
+                    : textWrap.height + annotationHeight + valueHeight,
             }
         })
     }
@@ -787,6 +804,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 series={this.backgroundSeries}
                 needsConnectorLines={this.needsLines}
                 connectorLineWidth={this.connectorLineWidth}
+                showValueLabelsInline={this.showValueLabelsInline}
                 isFocus={false}
                 anchor={this.props.lineLegendAnchorX}
                 isStatic={this.props.isStatic}
@@ -806,6 +824,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 series={this.focusedSeries}
                 needsConnectorLines={this.needsLines}
                 connectorLineWidth={this.connectorLineWidth}
+                showValueLabelsInline={this.showValueLabelsInline}
                 isFocus={true}
                 anchor={this.props.lineLegendAnchorX}
                 isStatic={this.props.isStatic}
