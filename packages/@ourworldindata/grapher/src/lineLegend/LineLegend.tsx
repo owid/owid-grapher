@@ -91,27 +91,41 @@ class LineLabels extends React.Component<{
     series: PlacedSeries[]
     uniqueKey: string
     needsLines: boolean
+    anchor?: "start" | "end"
     isFocus?: boolean
     isStatic?: boolean
     onClick?: (series: PlacedSeries) => void
     onMouseOver?: (series: PlacedSeries) => void
     onMouseLeave?: (series: PlacedSeries) => void
 }> {
-    @computed get markers(): {
+    @computed private get textOpacity(): number {
+        return this.props.isFocus ? 1 : 0.6
+    }
+
+    @computed private get anchor(): "start" | "end" {
+        return this.props.anchor ?? "start"
+    }
+
+    @computed private get markers(): {
         series: PlacedSeries
         labelText: { x: number; y: number }
         connectorLine: { x1: number; x2: number }
     }[] {
         return this.props.series.map((series) => {
+            const markerMargin =
+                this.anchor === "start" ? MARKER_MARGIN : -MARKER_MARGIN
+            const leftPadding =
+                this.anchor === "start" ? LEFT_PADDING : -LEFT_PADDING
+
             const { x } = series.origBounds
             const connectorLine = {
-                x1: x + MARKER_MARGIN,
-                x2: x + LEFT_PADDING - MARKER_MARGIN,
+                x1: x + markerMargin,
+                x2: x + leftPadding - markerMargin,
             }
 
             const textX = this.props.needsLines
-                ? connectorLine.x2 + MARKER_MARGIN
-                : x + MARKER_MARGIN
+                ? connectorLine.x2 + markerMargin
+                : x + markerMargin
             const textY = series.bounds.y
 
             return {
@@ -122,11 +136,7 @@ class LineLabels extends React.Component<{
         })
     }
 
-    @computed get textOpacity(): number {
-        return this.props.isFocus ? 1 : 0.6
-    }
-
-    @computed get textLabels(): React.ReactElement {
+    @computed private get textLabels(): React.ReactElement {
         return (
             <g id={makeIdForHumanConsumption("text-labels")}>
                 {this.markers.map(({ series, labelText }, index) => {
@@ -143,6 +153,7 @@ class LineLabels extends React.Component<{
                                 textProps: {
                                     fill: textColor,
                                     opacity: this.textOpacity,
+                                    textAnchor: this.anchor,
                                 },
                             })}
                         </React.Fragment>
@@ -152,7 +163,7 @@ class LineLabels extends React.Component<{
         )
     }
 
-    @computed get textAnnotations(): React.ReactElement | void {
+    @computed private get textAnnotations(): React.ReactElement | void {
         const markersWithAnnotations = this.markers.filter(
             ({ series }) => series.annotationTextWrap !== undefined
         )
@@ -175,6 +186,7 @@ class LineLabels extends React.Component<{
                                     textProps: {
                                         fill: "#333",
                                         opacity: this.textOpacity,
+                                        textAnchor: this.anchor,
                                         style: { fontWeight: 300 },
                                     },
                                 }
@@ -186,7 +198,7 @@ class LineLabels extends React.Component<{
         )
     }
 
-    @computed get connectorLines(): React.ReactElement | void {
+    @computed private get connectorLines(): React.ReactElement | void {
         if (!this.props.needsLines) return
         return (
             <g id={makeIdForHumanConsumption("connectors")}>
@@ -224,7 +236,7 @@ class LineLabels extends React.Component<{
         )
     }
 
-    @computed get interactions(): React.ReactElement | void {
+    @computed private get interactions(): React.ReactElement | void {
         return (
             <g>
                 {this.props.series.map((series, index) => {
@@ -243,7 +255,7 @@ class LineLabels extends React.Component<{
                             style={{ cursor: "default" }}
                         >
                             <rect
-                                x={series.origBounds.x}
+                                x={series.origBounds.x - series.bounds.width}
                                 y={series.bounds.y}
                                 width={series.bounds.width}
                                 height={series.bounds.height}
@@ -272,6 +284,7 @@ class LineLabels extends React.Component<{
 export interface LineLegendManager {
     labelSeries: LineLabelSeries[]
     maxLineLegendWidth?: number
+    lineLegendAnchorX?: "start" | "end"
     fontSize?: number
     fontWeight?: number
     onLineLegendMouseOver?: (key: EntityName) => void
@@ -290,6 +303,10 @@ export interface LineLegendManager {
 export class LineLegend extends React.Component<{
     manager: LineLegendManager
 }> {
+    @computed private get xAnchor(): "start" | "end" {
+        return this.props.manager.lineLegendAnchorX ?? "start"
+    }
+
     @computed private get fontSize(): number {
         return GRAPHER_FONT_SCALE_12 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
@@ -669,6 +686,7 @@ export class LineLegend extends React.Component<{
                 series={this.backgroundSeries}
                 needsLines={this.needsLines}
                 isFocus={false}
+                anchor={this.xAnchor}
                 isStatic={this.manager.isStatic}
                 onMouseOver={(series): void =>
                     this.onMouseOver(series.seriesName)
@@ -686,6 +704,7 @@ export class LineLegend extends React.Component<{
                 series={this.focusedSeries}
                 needsLines={this.needsLines}
                 isFocus={true}
+                anchor={this.xAnchor}
                 isStatic={this.manager.isStatic}
                 onMouseOver={(series): void =>
                     this.onMouseOver(series.seriesName)
