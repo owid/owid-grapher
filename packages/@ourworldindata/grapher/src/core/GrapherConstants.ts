@@ -19,6 +19,8 @@ export const GRAPHER_LOADED_EVENT_NAME = "grapherLoaded"
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
 
+export const GRAPHER_SQUARE_SIZE = 540
+
 export const GRAPHER_FRAME_PADDING_VERTICAL = 16
 export const GRAPHER_FRAME_PADDING_HORIZONTAL = 16
 

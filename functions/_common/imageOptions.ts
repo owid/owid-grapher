@@ -1,4 +1,7 @@
-import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
+import {
+    GrapherProgrammaticInterface,
+    GRAPHER_SQUARE_SIZE,
+} from "@ourworldindata/grapher"
 import {
     DEFAULT_ASPECT_RATIO,
     MIN_ASPECT_RATIO,
@@ -38,10 +41,10 @@ const OPEN_GRAPH_OPTIONS: ImageOptions = {
     fontSize: 21,
 }
 const SOCIAL_MEDIA_SQUARE_OPTIONS: ImageOptions = {
-    pngWidth: 2160,
-    pngHeight: 2160,
-    svgWidth: 540,
-    svgHeight: 540,
+    pngWidth: 4 * GRAPHER_SQUARE_SIZE,
+    pngHeight: 4 * GRAPHER_SQUARE_SIZE,
+    svgWidth: GRAPHER_SQUARE_SIZE,
+    svgHeight: GRAPHER_SQUARE_SIZE,
     details: false,
     fontSize: undefined,
     grapherProps: {
