@@ -180,13 +180,15 @@ export default function Image(props: {
                             void handleDownload()
                         }}
                     >
-                        <FontAwesomeIcon
-                            icon={faDownload}
-                            className="article-block__image-download-button-icon"
-                        />
-                        <span className="article-block__image-download-button-text">
-                            Download image
-                        </span>
+                        <div className="article-block__image-download-button-background-layer">
+                            <FontAwesomeIcon
+                                icon={faDownload}
+                                className="article-block__image-download-button-icon"
+                            />
+                            <span className="article-block__image-download-button-text">
+                                Download image
+                            </span>
+                        </div>
                     </button>
                 </div>
             )}
