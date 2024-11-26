@@ -1,21 +1,20 @@
 ## Supported browsers
 
-As of **2024-03-20**, we support the following browsers:
+As of **2024-11-26**, we support the following browsers:
 
-- Safari 12+ [September 2018] (earlier versions are missing support for [the CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context))
-- iOS Safari 12+ [September 2018] (earlier versions are missing support for [the CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context))
-- Chrome/Edge 66+ [April 2018] (earlier versions are missing support for [Optional catch binding](https://caniuse.com/mdn-javascript_statements_try_catch_optional_catch_binding))
-- Opera 53+ [May 2018] (since Opera 53 is based on Chromium 66)
+- Safari 13.1+ [March 2020] (earlier versions are missing support for [the nullish coalescing operator (`??`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing))
+- iOS Safari 13.4+ [March 2020] (earlier versions are missing support for [the nullish coalescing operator (`??`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing))
+- Chrome/Edge 80+ [February 2020] (earlier versions are missing support for [the nullish coalescing operator (`??`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing))
+- Opera 67+ [February 2020] (since Opera 67 is based on Chromium 80)
 - Firefox 78+ [June 2020] (earlier versions are missing support for [Unicode character class escapes in regular expressions](https://caniuse.com/mdn-javascript_regular_expressions_unicode_character_class_escape))
 
-**Overall, [this caniuse link shows which browsers are supported](https://caniuse.com/mdn-css_properties_gap_grid_context,es6-module,mdn-javascript_statements_try_catch_optional_catch_binding,mdn-javascript_regular_expressions_unicode_character_class_escape)** (scroll down to "Feature summary").
+**Overall, [this caniuse link shows which browsers are supported](https://caniuse.com/mdn-javascript_operators_nullish_coalescing,template-literals,mdn-css_properties_gap_grid_context,es6-module,mdn-javascript_regular_expressions_unicode_character_class_escape)** (scroll down to "Feature summary").
 
 ### "Most breaking" features
 
 "Most breaking" features we use are:
 
-- [Optional catch binding](https://caniuse.com/mdn-javascript_statements_try_catch_optional_catch_binding), which allows for `catch {}` instead of `catch (e) {}`.
-  We don't _have_ to use it, but Chrome < 66 is so uncommon now that's it not a worry.
+- [Nullish coalescing operator (`??`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing), allowing for expressions like `const foo = null ?? 'default string'`.
 - [ES6 modules](https://caniuse.com/es6-module), where we use `<script type="module">` (in HTML) and `import ... from "..."` (in JS)
 - [The CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context), together with `row-gap` and `column-gap`, which was previously prefixed by `grid-` in most browsers. Without support for these properties Google Docs-based pages are borderline unusable; however our interactive charts themselves work pretty much fine on their standalone pages.
 - [Unicode character class escapes in regular expressions](https://caniuse.com/mdn-javascript_regular_expressions_unicode_character_class_escape), which lets you do something like `\p{Letter}` to match any unicode letters in a RegExp.
