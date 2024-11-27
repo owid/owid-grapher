@@ -617,17 +617,26 @@ export class SlopeChart
 
     @computed get tooltip(): React.ReactElement | undefined {
         const {
+            manager: { isRelativeMode },
             tooltipState: { target, position, fading },
+            formatColumn,
+            startTime,
+            endTime,
         } = this
 
         const { series } = target || {}
         if (!series) return
 
-        const { isRelativeMode } = this.manager,
-            timeRange = [this.startTime, this.endTime]
-                .map((t) => this.formatColumn.formatTime(t))
-                .join(" to "),
-            timeLabel = timeRange + (isRelativeMode ? " (relative change)" : "")
+        const title = isRelativeMode
+            ? `${series.seriesName}, ${formatColumn.formatTime(endTime)}`
+            : series.seriesName
+
+        const timeRange = [startTime, endTime]
+            .map((t) => formatColumn.formatTime(t))
+            .join(" to ")
+        const timeLabel = isRelativeMode
+            ? `% change since ${formatColumn.formatTime(startTime)}`
+            : timeRange
 
         const columns = this.yColumns
         const allRoundedToSigFigs = columns.every(
@@ -656,6 +665,10 @@ export class SlopeChart
             : undefined
         const footer = excludeUndefined([roundingNotice])
 
+        const values = isRelativeMode
+            ? [series.endValue]
+            : [series.startValue, series.endValue]
+
         return (
             <Tooltip
                 id={this.renderUid}
@@ -665,16 +678,13 @@ export class SlopeChart
                 offsetX={20}
                 offsetY={-16}
                 style={{ maxWidth: "250px" }}
-                title={series.seriesName}
+                title={title}
                 subtitle={timeLabel}
                 dissolve={fading}
                 footer={footer}
                 dismiss={() => (this.tooltipState.target = null)}
             >
-                <TooltipValueRange
-                    column={this.formatColumn}
-                    values={[series.startValue, series.endValue]}
-                />
+                <TooltipValueRange column={this.formatColumn} values={values} />
             </Tooltip>
         )
     }
