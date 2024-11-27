@@ -31,6 +31,7 @@ import {
     renderThankYouPage,
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
+    renderExplorerIndexPage,
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -703,6 +704,10 @@ export class SiteBaker {
         await this.stageWrite(
             `${this.bakedSiteDir}/search.html`,
             await renderSearchPage()
+        )
+        await this.stageWrite(
+            `${this.bakedSiteDir}/explorers.html`,
+            await renderExplorerIndexPage(knex)
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/custom.html`,

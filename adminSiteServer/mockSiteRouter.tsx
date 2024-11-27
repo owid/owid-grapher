@@ -20,6 +20,7 @@ import {
     renderThankYouPage,
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
+    renderExplorerIndexPage,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -163,6 +164,14 @@ mockSiteRouter.get("/assets/embedCharts.js", async (req, res) => {
 })
 
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    `/${EXPLORERS_ROUTE_FOLDER}`,
+    async (_, res, trx) => {
+        return res.send(await renderExplorerIndexPage(trx))
+    }
+)
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,

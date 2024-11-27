@@ -60,7 +60,7 @@ export function ExplorerTiles({
             </h2>
             <Button
                 className="span-cols-4 col-start-9 span-md-cols-5 col-md-start-8 col-sm-start-1 span-sm-cols-12 body-3-medium explorer-tiles__cta"
-                href="/search?q=%20"
+                href="/explorers"
                 text="See all our Data Explorers"
                 theme="outline-vermillion"
             />
