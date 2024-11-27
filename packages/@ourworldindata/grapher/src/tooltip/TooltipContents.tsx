@@ -337,8 +337,12 @@ export function IconCircledS({
     )
 }
 
-export function makeTooltipToleranceNotice(targetYear: string): string {
-    return `Data not available for ${targetYear}. Showing closest available data point instead`
+export function makeTooltipToleranceNotice(
+    targetYear: string,
+    { plural }: { plural: boolean } = { plural: false }
+): string {
+    const dataPoint = plural ? "data points" : "data point"
+    return `Data not available for ${targetYear}. Showing closest available ${dataPoint} instead`
 }
 
 export function makeTooltipRoundingNotice(
