@@ -407,8 +407,8 @@ export class AbstractStackedChart
                     const pointColor =
                         row.value > 0 ? POSITIVE_COLOR : NEGATIVE_COLOR
                     return {
-                        position: row.time,
-                        time: row.time,
+                        position: row.originalTime,
+                        time: row.originalTime,
                         value: row.value,
                         valueOffset: 0,
                         interpolated:

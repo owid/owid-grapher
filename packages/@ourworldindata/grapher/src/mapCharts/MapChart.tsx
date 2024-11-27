@@ -346,12 +346,12 @@ export class MapChart
 
         return mapColumn.owidRows
             .map((row) => {
-                const { entityName, value, time } = row
+                const { entityName, value, originalTime } = row
                 const color = this.colorScale.getColor(value) || "red" // todo: color fix
                 if (!color) return undefined
                 return {
                     seriesName: entityName,
-                    time,
+                    time: originalTime,
                     value,
                     isSelected: selectionArray.selectedSet.has(entityName),
                     color,
