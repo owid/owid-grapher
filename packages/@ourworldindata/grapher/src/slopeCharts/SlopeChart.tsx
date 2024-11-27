@@ -245,12 +245,20 @@ export class SlopeChart
         })
     }
 
-    @computed get failMessage() {
+    @computed get failMessage(): string {
         const message = getDefaultFailMessage(this.manager)
         if (message) return message
-        else if (this.startTime === this.endTime) return "No matching data"
-        else if (isEmpty(this.series)) return "No matching data"
+        else if (this.startTime === this.endTime)
+            return "No data to display for the selected time period"
         return ""
+    }
+
+    @computed get helpMessage(): string | undefined {
+        if (
+            this.failMessage ===
+            "No data to display for the selected time period"
+        )
+            return "Try dragging the time slider to display data."
     }
 
     @computed private get yColumns(): CoreColumn[] {
@@ -348,29 +356,29 @@ export class SlopeChart
         return series.startValue !== undefined && series.endValue !== undefined
     }
 
-    /**
-     * Usually we drop rows with missing data in the transformTable function.
-     * But slope charts have a "No data" section. If slopes that have data
-     * but shouldn't be plotted because a "sibling" slope of the same entity
-     * doesn't have data are dropped from the transformed table, then we
-     * would have no way of knowing whether a slope has been dropped because
-     * it actually had no data or a sibling slope had no data. That's why we
-     * filter out slopes that are valid but shouldn't be plotted here, so
-     * that the noDataSeries is populated correctly.
-     */
+    // Usually we drop rows with missing data in the transformTable function.
+    // But if we did that for slope charts, we wouldn't know whether a slope
+    // has been dropped because it actually had no data or a sibling slope had
+    // no data. But we need that information for the "No data" section. That's
+    // why the filtering happens here, so that the noDataSeries can be populated
+    // correctly.
     private shouldSeriesBePlotted(
         series: RawSlopeChartSeries
     ): series is SlopeChartSeries {
         if (!this.isSeriesValid(series)) return false
 
+        // when the missing data strategy is set to "hide", we might
+        // choose not to plot a valid series
         if (
             this.seriesStrategy === SeriesStrategy.column &&
             this.missingDataStrategy === MissingDataStrategy.hide
         ) {
-            const entitySeries = this.rawSeriesByEntityName.get(
+            const allSeriesForEntity = this.rawSeriesByEntityName.get(
                 series.entityName
             )
-            return !!entitySeries?.every((series) => this.isSeriesValid(series))
+            return !!allSeriesForEntity?.every((series) =>
+                this.isSeriesValid(series)
+            )
         }
 
         return true
@@ -487,12 +495,14 @@ export class SlopeChart
         // TODO: copied from line legend
         const fontSize =
             GRAPHER_FONT_SCALE_12 * (this.manager.fontSize ?? BASE_FONT_SIZE)
-        return max(
-            this.series.map(
-                (series) =>
-                    Bounds.forText(series.seriesName, { fontSize }).width
-            )
-        )!
+        return (
+            max(
+                this.series.map(
+                    (series) =>
+                        Bounds.forText(series.seriesName, { fontSize }).width
+                )
+            ) ?? 0
+        )
     }
 
     @computed get maxLineLegendWidth(): number {
@@ -689,13 +699,29 @@ export class SlopeChart
         )
     }
 
+    private makeMissingDataLabel(series: RawSlopeChartSeries): string {
+        const { seriesName } = series
+        const startTime = this.formatColumn.formatTime(this.startTime)
+        const endTime = this.formatColumn.formatTime(this.endTime)
+        if (series.startValue === undefined && series.endValue === undefined) {
+            return `${seriesName} (${startTime} & ${endTime})`
+        } else if (series.startValue === undefined) {
+            return `${seriesName} (${startTime})`
+        } else if (series.endValue === undefined) {
+            return `${seriesName} (${endTime})`
+        }
+        return seriesName
+    }
+
     private renderNoDataSection(): React.ReactElement {
-        const seriesNames = this.noDataSeries.map((series) => series.seriesName)
         const bounds = new Bounds(
             this.bounds.right - this.sidebarWidth,
             this.bounds.top,
             this.sidebarWidth,
             this.bounds.height
+        )
+        const seriesNames = this.noDataSeries.map((series) =>
+            this.makeMissingDataLabel(series)
         )
 
         return (
@@ -814,6 +840,7 @@ export class SlopeChart
                     manager={this.manager}
                     bounds={this.props.bounds}
                     message={this.failMessage}
+                    helpText={this.helpMessage}
                 />
             )
 
