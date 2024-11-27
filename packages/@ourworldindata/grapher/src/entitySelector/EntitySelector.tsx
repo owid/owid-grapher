@@ -453,7 +453,7 @@ export class EntitySelector extends React.Component<{
                 const rows = column.owidRowsByEntityName.get(entityName) ?? []
                 searchableEntity[column.slug] = maxBy(
                     rows,
-                    (row) => row.time
+                    (row) => row.originalTime
                 )?.value
             }
 
