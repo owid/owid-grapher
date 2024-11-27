@@ -30,6 +30,7 @@ export interface NoDataModalManager {
 export class NoDataModal extends React.Component<{
     bounds?: Bounds
     message?: string
+    helpText?: string
     manager: NoDataModalManager
 }> {
     @computed private get bounds(): Bounds {
@@ -55,11 +56,12 @@ export class NoDataModal extends React.Component<{
             isStatic,
         } = this.manager
 
-        const helpText = canAddEntities
+        const defaultHelpText = canAddEntities
             ? `Try adding ${entityTypePlural} to display data.`
             : canChangeEntity
               ? `Try choosing ${a(entityType)} to display data.`
               : undefined
+        const helpText = this.props.helpText ?? defaultHelpText
 
         const center = bounds.centerPos
         const padding = 0.75 * this.fontSize
