@@ -3112,6 +3112,17 @@ postRouteWithRWTransaction(apiRouter, "/image", async (req, res, trx) => {
         throw new JsonError("Invalid field types", 400)
     }
 
+    const preexisting = await trx<DbEnrichedImage>("images")
+        .where("filename", "=", filename)
+        .first()
+
+    if (preexisting) {
+        return {
+            success: false,
+            error: "An image with this filename already exists",
+        }
+    }
+
     // Strip the data URL prefix
     const stripped = content.slice(content.indexOf(",") + 1)
     const asBuffer = Buffer.from(stripped, "base64")
@@ -3139,6 +3150,14 @@ postRouteWithRWTransaction(apiRouter, "/image", async (req, res, trx) => {
     ).then((res) => res.json())
 
     if (response.errors.length) {
+        if (response.errors.length === 1) {
+            if (response.errors[0].code === 5409) {
+                throw new JsonError(
+                    "An image with this filename already exists in Cloudflare Images but isn't tracked in the database. Please contact a developer for help."
+                )
+            }
+        }
+
         console.error("Error uploading image to Cloudflare:", response.errors)
         throw new JsonError(JSON.stringify(response.errors))
     }
