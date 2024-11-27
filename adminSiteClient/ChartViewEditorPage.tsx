@@ -22,9 +22,9 @@ export class ChartViewEditorPage
     patchConfig: GrapherInterface = {}
     fullConfig: GrapherInterface = {}
     parentChartId: number = 0
-    parentChartConfigFull: GrapherInterface = {}
+    parentConfig: GrapherInterface = {}
 
-    isInheritanceEnabled: boolean | undefined = undefined
+    isInheritanceEnabled: boolean | undefined = true
 
     async fetchChartViewData(): Promise<void> {
         const data = await this.context.admin.getJSON(
@@ -35,7 +35,7 @@ export class ChartViewEditorPage
         this.fullConfig = data.configFull
         this.patchConfig = data.configPatch
         this.parentChartId = data.parentChartId
-        this.parentChartConfigFull = data.parentConfigFull
+        this.parentConfig = data.parentConfigFull
     }
 
     @computed get admin(): Admin {
