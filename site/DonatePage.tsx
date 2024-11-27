@@ -89,7 +89,11 @@ export const DonatePage = (props: {
                 ) : null}
             </main>
 
-            <SiteFooter hideDonate={true} baseUrl={props.baseUrl} />
+            <SiteFooter
+                hideDonate={true}
+                baseUrl={props.baseUrl}
+                hideDonationFlag
+            />
 
             <script
                 type="module"

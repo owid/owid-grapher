@@ -196,16 +196,19 @@
     }
 }
 .site-navigation__giving {
+    @include body-3-medium;
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 2px 0 5px;
+    color: $white;
+    background-color: $vermillion;
+
+    &:hover {
+        text-decoration: underline;
+    }
+
     @include sm-only {
         display: none;
-    }
-    position: absolute;
-    padding: 5px 10px;
-    margin-left: -10px;
-    color: $white;
-    @include body-3-medium;
-    background-color: $vermillion;
-    &:hover {
-        background-color: $accent-vermillion;
     }
 }

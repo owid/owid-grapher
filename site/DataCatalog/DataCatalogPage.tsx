@@ -35,7 +35,7 @@ export const DataCatalogPage = (props: {
                 ></script>
             </Head>
             <body className="DataCatalogPage">
-                <SiteHeader baseUrl={baseUrl} hideDonationFlag />
+                <SiteHeader baseUrl={baseUrl} />
                 <main
                     id="data-catalog-page-root"
                     className="grid grid-cols-12-full-width"
@@ -45,7 +45,6 @@ export const DataCatalogPage = (props: {
                 <SiteFooter
                     context={SiteFooterContext.dataCatalogPage}
                     baseUrl={baseUrl}
-                    hideDonationFlag
                 />
             </body>
         </html>
