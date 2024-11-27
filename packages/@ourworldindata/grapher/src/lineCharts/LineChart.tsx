@@ -408,13 +408,9 @@ export class LineChart
         // if entities with partial data are not plotted,
         // make sure they don't show up in the entity selector
         if (this.missingDataStrategy === MissingDataStrategy.hide) {
-            table = table.replaceNonNumericCellsWithErrorValues(
-                this.yColumnSlugs
-            )
-
-            table = table.dropEntitiesThatHaveNoDataInSomeColumn(
-                this.yColumnSlugs
-            )
+            table = table
+                .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+                .dropEntitiesThatHaveNoDataInSomeColumn(this.yColumnSlugs)
         }
 
         return table
