@@ -67,8 +67,7 @@ export class MigrateSelectedData1661264304751 implements MigrationInterface {
                 if (item.entityId && item.color) {
                     // migrate entity color
                     if (!legacyConfig.selectedEntityColors) {
-                        newConfig.selectedEntityColors =
-                            newConfig.selectedEntityColors ?? {}
+                        newConfig.selectedEntityColors ??= {}
                         const entityName = entityNameById[item.entityId]
                         if (entityName) {
                             newConfig.selectedEntityColors[entityName] ??=
@@ -79,7 +78,7 @@ export class MigrateSelectedData1661264304751 implements MigrationInterface {
                     // migrate dimension color
                     const dimension = newConfig.dimensions?.[item.index]
                     if (dimension?.variableId) {
-                        dimension.display = dimension.display ?? {}
+                        dimension.display ??= {}
                         dimension.display.color ??= item.color
                     }
                 }

@@ -90,7 +90,7 @@ export const saveNewChartConfigInDbAndR2 = async (
     patchConfig: GrapherInterface,
     fullConfig: GrapherInterface
 ) => {
-    chartConfigId = chartConfigId ?? (uuidv7() as Base64String)
+    chartConfigId ??= uuidv7() as Base64String
 
     await knex<DbInsertChartConfig>(ChartConfigsTableName).insert({
         id: chartConfigId,

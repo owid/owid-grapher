@@ -152,12 +152,12 @@ async function propsFromQueryParams(
     if (params.type) {
         if (params.type === GRAPHER_MAP_TYPE) {
             query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
-            tab = tab || GRAPHER_TAB_OPTIONS.map
+            tab ||= GRAPHER_TAB_OPTIONS.map
         } else {
             query = query.andWhereRaw(`cc.chartType = :type`, {
                 type: params.type,
             })
-            tab = tab || GRAPHER_TAB_OPTIONS.chart
+            tab ||= GRAPHER_TAB_OPTIONS.chart
         }
     }
 

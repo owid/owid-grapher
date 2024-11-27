@@ -1398,9 +1398,10 @@ export class CoreTable<
         sourceTable: CoreTable,
         by?: ColumnSlug[]
     ): COL_DEF_TYPE[] {
-        by =
-            by ??
-            intersection(sourceTable.columnSlugs, destinationTable.columnSlugs)
+        by ??= intersection(
+            sourceTable.columnSlugs,
+            destinationTable.columnSlugs
+        )
         const columnSlugsToAdd = difference(
             sourceTable.columnSlugs,
             destinationTable.columnSlugs

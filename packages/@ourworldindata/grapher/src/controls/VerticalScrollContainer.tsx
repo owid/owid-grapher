@@ -48,7 +48,7 @@ export const VerticalScrollContainer = React.forwardRef(
             ...rest
         } = props
 
-        scrollingShadows = scrollingShadows ?? true
+        scrollingShadows ??= true
 
         const scrollContainerRef = useCombinedRefs<HTMLDivElement>(ref)
         const [scrollTop, scrollBottom] = useScrollBounds(

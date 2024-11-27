@@ -170,7 +170,7 @@ class Areas extends React.Component<AreasProps> {
             if (index > 0) {
                 prevPoints = placedSeriesArr[index - 1].placedPoints
             } else {
-                prevPoints = prevPoints = [
+                prevPoints = [
                     [
                         placedPoints[0][0], // placed x coord of first (= leftmost) point in chart
                         verticalAxis.range[0],

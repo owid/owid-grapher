@@ -65,20 +65,19 @@ export const ProminentLink = (props: {
     let thumbnail: string | undefined = props.thumbnail
     if (linkType === "gdoc") {
         href = `/${linkedDocument?.slug}`
-        title = title ?? linkedDocument?.title
-        description = description ?? linkedDocument?.excerpt
-        thumbnail = thumbnail ?? linkedDocument?.["featured-image"]
+        title ??= linkedDocument?.title
+        description ??= linkedDocument?.excerpt
+        thumbnail ??= linkedDocument?.["featured-image"]
     } else if (linkType === "grapher") {
         href = `${linkedChart?.resolvedUrl}`
-        title = title ?? linkedChart?.title
-        thumbnail = thumbnail ?? linkedChart?.thumbnail
-        description =
-            description ?? "See the data in our interactive visualization"
+        title ??= linkedChart?.title
+        thumbnail ??= linkedChart?.thumbnail
+        description ??= "See the data in our interactive visualization"
     } else if (linkType === "explorer") {
         href = `${linkedChart?.resolvedUrl}`
-        title = title ?? `${linkedChart?.title} Data Explorer`
-        thumbnail = thumbnail ?? linkedChart?.thumbnail
-        description = description ?? linkedChart?.subtitle
+        title ??= `${linkedChart?.title} Data Explorer`
+        thumbnail ??= linkedChart?.thumbnail
+        description ??= linkedChart?.subtitle
     }
 
     const anchorTagProps =

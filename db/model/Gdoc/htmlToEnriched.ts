@@ -438,7 +438,7 @@ export function adjustHeadingLevels(
             const correction = isEntry
                 ? minHeadingLevel - 1
                 : Math.max(0, minHeadingLevel - 2)
-            block.level = block.level - correction
+            block.level -= correction
         } else if ("children" in block) {
             adjustHeadingLevels(
                 block.children as OwidEnrichedGdocBlock[],
