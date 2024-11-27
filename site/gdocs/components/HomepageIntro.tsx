@@ -60,9 +60,9 @@ function FeaturedWorkTile({
         }
     }
 
-    title = title || linkedDocument?.title
-    authors = authors || linkedDocument?.authors
-    description = description || linkedDocument?.excerpt
+    title ||= linkedDocument?.title
+    authors ||= linkedDocument?.authors
+    description ||= linkedDocument?.excerpt
 
     return (
         <a

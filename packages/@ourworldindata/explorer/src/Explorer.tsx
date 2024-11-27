@@ -723,7 +723,7 @@ export class Explorer
                 const mergedDef = { ...def, ...manuallyProvidedDef }
 
                 // update display properties
-                mergedDef.display = mergedDef.display ?? {}
+                mergedDef.display ??= {}
                 if (manuallyProvidedDef.name)
                     mergedDef.display.name = manuallyProvidedDef.name
                 if (manuallyProvidedDef.unit)

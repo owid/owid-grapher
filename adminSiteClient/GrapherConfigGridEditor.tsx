@@ -1341,7 +1341,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             (this.numTotalRows ?? 0) > PAGEING_SIZE &&
             this.desiredPagingOffset >= PAGEING_SIZE
         )
-            this.desiredPagingOffset = this.desiredPagingOffset - PAGEING_SIZE
+            this.desiredPagingOffset -= PAGEING_SIZE
     }
 
     @action.bound
@@ -1350,7 +1350,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             (this.numTotalRows ?? 0) > PAGEING_SIZE &&
             this.desiredPagingOffset + PAGEING_SIZE < (this.numTotalRows ?? 0)
         ) {
-            this.desiredPagingOffset = this.desiredPagingOffset + PAGEING_SIZE
+            this.desiredPagingOffset += PAGEING_SIZE
         }
     }
 

@@ -42,7 +42,7 @@ export const toAlignedTextTable = (
     // Drop columns if they exceed the max line width
     let runningWidth = 0
     const finalHeaderSlugs = headerSlugs.filter((slug, index) => {
-        runningWidth = runningWidth + colWidths[index]
+        runningWidth += colWidths[index]
         if (runningWidth <= maxCharactersPerLine) return true
         return false
     })
