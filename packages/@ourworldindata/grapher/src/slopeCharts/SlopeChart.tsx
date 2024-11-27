@@ -2,7 +2,6 @@ import React, { SVGProps } from "react"
 import {
     Bounds,
     DEFAULT_BOUNDS,
-    isEmpty,
     domainExtent,
     exposeInstanceOnWindow,
     PointVector,
@@ -79,11 +78,11 @@ type SVGMouseOrTouchEvent =
     | React.TouchEvent<SVGGElement>
 
 export interface SlopeChartManager extends ChartManager {
-    canSelectMultipleEntities?: boolean
+    canSelectMultipleEntities?: boolean // used to pick an appropriate series name
 }
 
-const TOP_PADDING = 6
-const BOTTOM_PADDING = 20
+const TOP_PADDING = 6 // leave room for overflowing dots
+const BOTTOM_PADDING = 20 // leave room for the x-axis
 
 const LINE_LEGEND_PADDING = 4
 
@@ -182,83 +181,17 @@ export class SlopeChart
         return this.yColumns[0]
     }
 
-    @computed private get sidebarWidth(): number {
-        return this.showNoDataSection
-            ? clamp(this.bounds.width * 0.125, 60, 140)
-            : 0
+    @computed private get lineStrokeWidth(): number {
+        const factor = this.manager.isStaticAndSmall ? 2 : 1
+        return factor * 2
     }
 
-    // used by LineLegend
-    @computed get focusedSeriesNames(): SeriesName[] {
-        return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
+    @computed private get backgroundColor(): string {
+        return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
     }
 
     @computed private get isFocusModeActive(): boolean {
         return this.hoveredSeriesName !== undefined
-    }
-
-    @computed private get startX(): number {
-        return this.xScale(this.startTime)
-    }
-
-    @computed private get endX(): number {
-        return this.xScale(this.endTime)
-    }
-
-    private updateTooltipPosition(event: SVGMouseOrTouchEvent) {
-        const ref = this.manager.base?.current
-        if (ref) this.tooltipState.position = getRelativeMouse(ref, event)
-    }
-
-    private detectHoveredSlope(event: SVGMouseOrTouchEvent) {
-        const ref = this.slopeAreaRef.current
-        if (!ref) return
-
-        const mouse = getRelativeMouse(ref, event)
-        this.mouseFrame = requestAnimationFrame(() => {
-            if (this.placedSeries.length === 0) return
-
-            const distanceMap = new Map<PlacedSlopeChartSeries, number>()
-            for (const series of this.placedSeries) {
-                distanceMap.set(
-                    series,
-                    PointVector.distanceFromPointToLineSegmentSq(
-                        mouse,
-                        series.startPoint,
-                        series.endPoint
-                    )
-                )
-            }
-
-            const closestSlope = minBy(this.placedSeries, (s) =>
-                distanceMap.get(s)
-            )!
-            const distanceSq = distanceMap.get(closestSlope)!
-            const tolerance = 10
-            const toleranceSq = tolerance * tolerance
-
-            if (closestSlope && distanceSq < toleranceSq) {
-                this.onSlopeMouseOver(closestSlope)
-            } else {
-                this.onSlopeMouseLeave()
-            }
-        })
-    }
-
-    @computed get failMessage(): string {
-        const message = getDefaultFailMessage(this.manager)
-        if (message) return message
-        else if (this.startTime === this.endTime)
-            return "No data to display for the selected time period"
-        return ""
-    }
-
-    @computed get helpMessage(): string | undefined {
-        if (
-            this.failMessage ===
-            "No data to display for the selected time period"
-        )
-            return "Try dragging the time slider to display data."
     }
 
     @computed private get yColumns(): CoreColumn[] {
@@ -283,6 +216,14 @@ export class SlopeChart
 
     @computed private get endTime(): Time {
         return this.transformedTable.maxTime ?? 0
+    }
+
+    @computed private get startX(): number {
+        return this.xScale(this.startTime)
+    }
+
+    @computed private get endX(): number {
+        return this.xScale(this.endTime)
     }
 
     @computed get seriesStrategy(): SeriesStrategy {
@@ -462,7 +403,7 @@ export class SlopeChart
         ]
     }
 
-    @computed get yRange(): [number, number] {
+    @computed private get yRange(): [number, number] {
         return this.bounds
             .padTop(TOP_PADDING)
             .padBottom(BOTTOM_PADDING)
@@ -478,7 +419,7 @@ export class SlopeChart
         return axis
     }
 
-    @computed get yAxisWidth(): number {
+    @computed private get yAxisWidth(): number {
         return this.yAxis.width + 5 // 5px account for the tick marks
     }
 
@@ -489,6 +430,12 @@ export class SlopeChart
 
     @computed private get xDomain(): [number, number] {
         return [this.startTime, this.endTime]
+    }
+
+    @computed private get sidebarWidth(): number {
+        return this.showNoDataSection
+            ? clamp(this.bounds.width * 0.125, 60, 140)
+            : 0
     }
 
     @computed private get maxLabelWidth(): number {
@@ -544,6 +491,11 @@ export class SlopeChart
         return this.xRange[1] + LINE_LEGEND_PADDING
     }
 
+    // used by LineLegend
+    @computed get focusedSeriesNames(): SeriesName[] {
+        return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
+    }
+
     // used in LineLegend
     @computed get labelSeries(): LineLabelSeries[] {
         return this.series.map((series) => {
@@ -574,6 +526,46 @@ export class SlopeChart
         if (!this.manager.disableIntroAnimation) {
             this.playIntroAnimation()
         }
+    }
+
+    private updateTooltipPosition(event: SVGMouseOrTouchEvent) {
+        const ref = this.manager.base?.current
+        if (ref) this.tooltipState.position = getRelativeMouse(ref, event)
+    }
+
+    private detectHoveredSlope(event: SVGMouseOrTouchEvent) {
+        const ref = this.slopeAreaRef.current
+        if (!ref) return
+
+        const mouse = getRelativeMouse(ref, event)
+        this.mouseFrame = requestAnimationFrame(() => {
+            if (this.placedSeries.length === 0) return
+
+            const distanceMap = new Map<PlacedSlopeChartSeries, number>()
+            for (const series of this.placedSeries) {
+                distanceMap.set(
+                    series,
+                    PointVector.distanceFromPointToLineSegmentSq(
+                        mouse,
+                        series.startPoint,
+                        series.endPoint
+                    )
+                )
+            }
+
+            const closestSlope = minBy(this.placedSeries, (s) =>
+                distanceMap.get(s)
+            )!
+            const distanceSq = distanceMap.get(closestSlope)!
+            const tolerance = 10
+            const toleranceSq = tolerance * tolerance
+
+            if (closestSlope && distanceSq < toleranceSq) {
+                this.onSlopeMouseOver(closestSlope)
+            } else {
+                this.onSlopeMouseLeave()
+            }
+        })
     }
 
     private hoverTimer?: NodeJS.Timeout
@@ -612,13 +604,21 @@ export class SlopeChart
         this.onSlopeMouseLeave()
     }
 
-    @computed private get lineStrokeWidth(): number {
-        const factor = this.manager.isStaticAndSmall ? 2 : 1
-        return factor * 2
+    @computed get failMessage(): string {
+        const message = getDefaultFailMessage(this.manager)
+        if (message) return message
+        else if (this.startTime === this.endTime)
+            return "No data to display for the selected time period"
+        return ""
     }
 
-    @computed private get backgroundColor(): string {
-        return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
+    @computed get helpMessage(): string | undefined {
+        if (
+            this.failMessage ===
+            "No data to display for the selected time period"
+        )
+            return "Try dragging the time slider to display data."
+        return undefined
     }
 
     @computed get renderUid(): number {
