@@ -78,6 +78,7 @@ export class EditorFeatures {
             this.grapher.isStackedBar ||
             this.grapher.isStackedDiscreteBar ||
             this.grapher.isLineChart ||
+            this.grapher.isSlopeChart ||
             this.grapher.isScatter ||
             this.grapher.isMarimekko
         )
