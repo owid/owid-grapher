@@ -43,5 +43,13 @@
         a.prompt {
             @include popover-box-button;
         }
+
+        a.prompt-donate {
+            background-color: $vermillion;
+
+            &:hover {
+                background-color: $accent-vermillion;
+            }
+        }
     }
 }
