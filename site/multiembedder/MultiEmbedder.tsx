@@ -9,6 +9,7 @@ import {
     hydrateGlobalEntitySelectorIfAny,
     migrateSelectedEntityNamesParam,
     SelectionArray,
+    migrateGrapherConfigToLatestVersion,
 } from "@ourworldindata/grapher"
 import {
     fetchText,
@@ -199,8 +200,11 @@ class MultiEmbedder {
             } else {
                 configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
             }
-            const grapherPageConfig = await fetch(configUrl).then((res) =>
-                res.json()
+            const fetchedGrapherPageConfig = await fetch(configUrl).then(
+                (res) => res.json()
+            )
+            const grapherPageConfig = migrateGrapherConfigToLatestVersion(
+                fetchedGrapherPageConfig
             )
 
             const figureConfigAttr = figure.getAttribute(

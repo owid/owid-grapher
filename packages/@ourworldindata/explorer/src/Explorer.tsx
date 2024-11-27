@@ -27,6 +27,7 @@ import {
     SlideShowManager,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     GrapherAnalytics,
+    migrateGrapherConfigToLatestVersion,
 } from "@ourworldindata/grapher"
 import {
     Bounds,
@@ -285,14 +286,33 @@ export class Explorer
         this.grapher = grapher
     }
 
-    @computed get grapherConfigs() {
-        const arr = this.props.grapherConfigs || []
-        return new Map(arr.map((config) => [config.id!, config]))
+    @computed get validGrapherConfigs(): GrapherInterface[] {
+        const { grapherConfigs = [] } = this.props
+        return grapherConfigs.map((config) =>
+            migrateGrapherConfigToLatestVersion(config)
+        )
+    }
+
+    @computed get validPartialGrapherConfigs(): GrapherInterface[] {
+        const { partialGrapherConfigs = [] } = this.props
+        return partialGrapherConfigs.map((config) =>
+            migrateGrapherConfigToLatestVersion(config)
+        )
+    }
+
+    @computed get grapherConfigsById() {
+        return new Map(
+            this.validGrapherConfigs.map((config) => [config.id!, config])
+        )
     }
 
     @computed get partialGrapherConfigsByVariableId() {
-        const arr = this.props.partialGrapherConfigs || []
-        return new Map(arr.map((config) => [config.id!, config]))
+        return new Map(
+            this.validPartialGrapherConfigs.map((config) => [
+                config.id!,
+                config,
+            ])
+        )
     }
 
     private setUpIntersectionObserver(): void {
@@ -553,7 +573,7 @@ export class Explorer
         if (!grapher) return
 
         const { grapherId } = this.explorerProgram.explorerGrapherConfig
-        const grapherConfig = this.grapherConfigs.get(grapherId!) ?? {}
+        const grapherConfig = this.grapherConfigsById.get(grapherId!) ?? {}
 
         const config: GrapherProgrammaticInterface = {
             ...mergeGrapherConfigs(
