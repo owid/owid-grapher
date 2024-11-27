@@ -27,12 +27,15 @@ import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import Bugsnag from "@bugsnag/js"
+import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const ONETIME_DONATION_AMOUNTS = [20, 50, 100, 500, 1000]
 const MONTHLY_DONATION_AMOUNTS = [5, 10, 25, 50, 100]
 
 const ONETIME_DEFAULT_INDEX = 2
 const MONTHLY_DEFAULT_INDEX = 2
+
+const analytics = new SiteAnalytics()
 
 @observer
 export class DonateForm extends React.Component {
@@ -162,6 +165,8 @@ export class DonateForm extends React.Component {
                 session.error || `Something went wrong. ${PLEASE_TRY_AGAIN}`
             )
         }
+
+        analytics.logSiteFormSubmit("donate")
 
         window.location.href = session.url
     }
@@ -356,6 +361,7 @@ export class DonateForm extends React.Component {
                         type="submit"
                         className="donation-submit"
                         disabled={this.isLoading || this.isSubmitting}
+                        onClick={() => analytics.logSiteClick("donate-now")}
                     >
                         Donate now
                         <FontAwesomeIcon
