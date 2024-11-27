@@ -133,7 +133,7 @@ export class EditorFeatures {
 
     @computed get showChangeInPrefixToggle() {
         return (
-            this.grapher.isLineChart &&
+            (this.grapher.isLineChart || this.grapher.isSlopeChart) &&
             (this.grapher.isRelativeMode || this.grapher.canToggleRelativeMode)
         )
     }

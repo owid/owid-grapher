@@ -1626,7 +1626,7 @@ export class Grapher
             !this.hideAnnotationFieldsInTitle?.changeInPrefix
         return (
             !this.forceHideAnnotationFieldsInTitle?.changeInPrefix &&
-            this.isOnLineChartTab &&
+            (this.isOnLineChartTab || this.isOnSlopeChartTab) &&
             this.isRelativeMode &&
             showChangeInPrefix
         )
