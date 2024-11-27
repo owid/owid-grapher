@@ -1006,7 +1006,7 @@ export class StackedDiscreteBarChart
                             col.displayName
                         ),
                         points: col.owidRows.map((row) => ({
-                            time: row.time,
+                            time: row.originalTime,
                             position: row.entityName,
                             value: row.value,
                             valueOffset: 0,

@@ -383,7 +383,7 @@ export class MarimekkoChart
                             col.def.color ??
                             colorScheme.getColors(yColumns.length)[i],
                         points: col.owidRows.map((row) => ({
-                            time: row.time,
+                            time: row.originalTime,
                             position: row.entityName,
                             value: row.value,
                             valueOffset: 0,
@@ -417,7 +417,7 @@ export class MarimekkoChart
             const points: SimplePoint[] = []
             for (const row of rows) {
                 points.push({
-                    time: row.time,
+                    time: row.originalTime,
                     value: row.value,
                     entity: row.entityName,
                 })

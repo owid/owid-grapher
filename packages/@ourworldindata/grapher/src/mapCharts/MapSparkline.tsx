@@ -118,7 +118,7 @@ export class MapSparkline extends React.Component<{
             lineStrokeWidth: 2,
             entityYearHighlight: {
                 entityName: this.manager.entityName,
-                year: this.manager.datum?.time,
+                year: this.manager.datum?.originalTime,
             },
             yAxisConfig: {
                 hideAxis: true,
