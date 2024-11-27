@@ -1,13 +1,15 @@
 import React from "react"
 import ReactDOM from "react-dom"
+import cx from "classnames"
 import { FeedbackPrompt } from "./Feedback.js"
 import { ScrollDirection, useScrollDirection } from "./hooks.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import {
-    NewsletterSubscription,
+    // NewsletterSubscription,
     NewsletterSubscriptionForm,
 } from "./NewsletterSubscription.js"
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faHeart } from "@fortawesome/free-solid-svg-icons"
 // import { faHandshake } from "@fortawesome/free-solid-svg-icons"
 
 const SITE_TOOLS_CLASS = "site-tools"
@@ -17,13 +19,21 @@ const SiteTools = () => {
 
     return (
         <div
-            className={`hide-wrapper${
-                (scrollDirection === ScrollDirection.Down && " hide") || ""
-            }`}
+            className={cx("hide-wrapper", {
+                hide: scrollDirection === ScrollDirection.Down,
+            })}
         >
-            <NewsletterSubscription
+            <a
+                className="prompt prompt-donate"
+                data-track-note="page_open_donate"
+                href="/donate"
+            >
+                <FontAwesomeIcon icon={faHeart} />
+                Donate
+            </a>
+            {/* <NewsletterSubscription
                 context={NewsletterSubscriptionContext.Floating}
-            />
+            /> */}
             <FeedbackPrompt />
             {/* <a className="prompt" data-track-note="page_open_jobs" href="/jobs">
                 <FontAwesomeIcon icon={faHandshake} /> Jobs
