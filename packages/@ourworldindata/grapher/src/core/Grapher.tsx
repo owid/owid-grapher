@@ -2197,6 +2197,7 @@ export class Grapher
     @computed get canToggleRelativeMode(): boolean {
         const {
             isOnLineChartTab,
+            isOnSlopeChartTab,
             hideRelativeToggle,
             areHandlesOnSameTime,
             yScaleType,
@@ -2207,7 +2208,7 @@ export class Grapher
             isStackedChartSplitByMetric,
         } = this
 
-        if (isOnLineChartTab)
+        if (isOnLineChartTab || isOnSlopeChartTab)
             return (
                 !hideRelativeToggle &&
                 !areHandlesOnSameTime &&
