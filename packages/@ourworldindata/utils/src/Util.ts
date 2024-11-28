@@ -784,14 +784,18 @@ interface RetryOptions {
 
 export async function fetchWithRetry(
     url: string,
-    options?: RetryOptions
+    fetchOptions?: RequestInit,
+    retryOptions?: RetryOptions
 ): Promise<Response> {
     const defaultRetryOptions: RetryOptions = {
         maxRetries: 5,
         exponentialBackoff: true,
         initialDelay: 250,
     }
-    return retryPromise(() => fetch(url), options ?? defaultRetryOptions)
+    return retryPromise(
+        () => fetch(url, fetchOptions),
+        retryOptions ?? defaultRetryOptions
+    )
 }
 export async function retryPromise<T>(
     promiseGetter: () => Promise<T>,
