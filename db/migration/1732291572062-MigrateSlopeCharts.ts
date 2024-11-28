@@ -63,7 +63,6 @@ const configUpdates: { id: number; config: GrapherInterface }[] = [
     {
         id: 414,
         config: {
-            title: "Top marginal income tax rate",
             selectedEntityNames: [
                 "Colombia",
                 "Guatemala",
