@@ -195,6 +195,7 @@ import {
     updateChartConfigInDbAndR2,
 } from "./chartConfigHelpers.js"
 import { CHART_VIEW_PROPS_TO_PERSIST } from "../db/model/ChartView.js"
+import { ApiChartViewOverview } from "../adminShared/AdminTypes.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -3295,19 +3296,6 @@ const createPatchConfigAndFullConfigForChartView = async (
     return { patchConfig: patchConfigToSave, fullConfig }
 }
 
-interface ApiChartViewOverview {
-    id: number
-    slug: string
-    parent: {
-        id: number
-        title: string
-    }
-    updatedAt: string | null
-    lastEditedByUser: string | null
-    chartConfigId: string
-    title: string
-}
-
 getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
     type ChartViewRow = Pick<DbPlainChartView, "id" | "slug" | "updatedAt"> & {
         lastEditedByUser: string
@@ -3335,6 +3323,7 @@ getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
         JOIN charts pc ON cv.parentChartId = pc.id
         JOIN chart_configs pcc ON pc.configId = pcc.id
         JOIN users u ON cv.lastEditedByUserId = u.id
+        ORDER BY cv.updatedAt DESC
         `
     )
 

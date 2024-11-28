@@ -18,6 +18,7 @@ import {
     faDownload,
     faHatWizard,
     faSitemap,
+    faPanorama,
 } from "@fortawesome/free-solid-svg-icons"
 
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
@@ -29,6 +30,11 @@ export const AdminSidebar = (): React.ReactElement => (
             <li>
                 <Link to="/charts">
                     <FontAwesomeIcon icon={faChartBar} /> Charts
+                </Link>
+            </li>
+            <li>
+                <Link to="/chartViews">
+                    <FontAwesomeIcon icon={faPanorama} /> Chart views
                 </Link>
             </li>
             <li>
