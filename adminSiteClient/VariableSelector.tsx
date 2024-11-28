@@ -42,6 +42,7 @@ interface VariableSelectorProps<Editor> {
 interface Variable {
     id: number
     name: string
+    catalogPath?: string
     datasetId: number
     datasetName: string
     datasetVersion?: string
@@ -109,6 +110,7 @@ export class VariableSelector<
                 variables.push({
                     id: variable.id,
                     name: variable.name,
+                    catalogPath: variable.catalogPath,
                     datasetId: dataset.id,
                     datasetName: dataset.name,
                     datasetVersion: dataset.version,
@@ -127,7 +129,11 @@ export class VariableSelector<
         if (searchWords.length > 0) {
             const filterFn = filterFunctionForSearchWords(
                 searchWords,
-                (variable: Variable) => [variable.name, variable.datasetName]
+                (variable: Variable) => [
+                    variable.name,
+                    variable.datasetName,
+                    variable.catalogPath,
+                ]
             )
             results = this.availableVariables.filter(filterFn)
         }

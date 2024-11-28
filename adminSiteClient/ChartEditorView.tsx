@@ -62,6 +62,7 @@ import { isIndicatorChartEditorInstance } from "./IndicatorChartEditor.js"
 interface Variable {
     id: number
     name: string
+    catalogPath?: string
 }
 
 export interface Dataset {
