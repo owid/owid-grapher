@@ -364,7 +364,7 @@ export class Source extends React.Component<{
 
         // point user directly to the variable edit page if possible
         if (this.def.owidVariableId) {
-            return `${this.props.editBaseUrl.replace("datasets/", "variables/")}/${this.def.owidVariableId}`
+            return `${this.props.editBaseUrl.replace("datasets", "variables")}/${this.def.owidVariableId}`
         } else {
             return `${this.props.editBaseUrl}/${this.def.datasetId}`
         }
