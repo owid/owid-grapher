@@ -32,18 +32,21 @@ export interface Log {
     createdAt: string
 }
 
+export interface ChartViewMinimalInformation {
+    id: number
+    slug: string
+    title: string
+}
+
 export interface References {
     postsWordpress: PostReference[]
     postsGdocs: PostReference[]
     explorers: string[]
+    chartViews: ChartViewMinimalInformation[]
 }
 
 export const getFullReferencesCount = (references: References): number => {
-    return (
-        references.postsWordpress.length +
-        references.postsGdocs.length +
-        references.explorers.length
-    )
+    return Object.values(references).reduce((acc, ref) => acc + ref.length, 0)
 }
 
 export interface ChartEditorManager extends AbstractChartEditorManager {

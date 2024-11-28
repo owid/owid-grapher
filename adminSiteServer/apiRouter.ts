@@ -129,7 +129,10 @@ import {
     indexIndividualGdocPost,
     removeIndividualGdocPostFromIndex,
 } from "../baker/algolia/utils/pages.js"
-import { References } from "../adminSiteClient/ChartEditor.js"
+import {
+    ChartViewMinimalInformation,
+    References,
+} from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import Papa from "papaparse"
@@ -288,11 +291,22 @@ const getReferencesByChartId = async (
             chartId = ?`,
         [chartId]
     )
-    const [postsWordpress, postsGdocs, explorerSlugs] = await Promise.all([
-        postsWordpressPromise,
-        postGdocsPromise,
-        explorerSlugsPromise,
-    ])
+    const chartViewsPromise = db.knexRaw<ChartViewMinimalInformation>(
+        knex,
+        `-- sql
+        SELECT cv.id, cv.slug, cc.full ->> "$.title" AS title
+        FROM chart_views cv
+        JOIN chart_configs cc ON cc.id = cv.chartConfigId
+        WHERE cv.parentChartId = ?`,
+        [chartId]
+    )
+    const [postsWordpress, postsGdocs, explorerSlugs, chartViews] =
+        await Promise.all([
+            postsWordpressPromise,
+            postGdocsPromise,
+            explorerSlugsPromise,
+            chartViewsPromise,
+        ])
 
     return {
         postsGdocs,
@@ -300,6 +314,7 @@ const getReferencesByChartId = async (
         explorers: explorerSlugs.map(
             (row: { explorerSlug: string }) => row.explorerSlug
         ),
+        chartViews,
     }
 }
 
