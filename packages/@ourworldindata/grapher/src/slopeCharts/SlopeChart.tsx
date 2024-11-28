@@ -118,6 +118,8 @@ export class SlopeChart
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
+        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+
         // if time selection is disabled, then filter all entities that
         // don't have data for the current time period
         if (!this.manager.hasTimeline) {
@@ -131,9 +133,9 @@ export class SlopeChart
         // if entities with partial data are not plotted,
         // make sure they don't show up in the entity selector
         if (this.missingDataStrategy === MissingDataStrategy.hide) {
-            table = table
-                .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
-                .dropEntitiesThatHaveNoDataInSomeColumn(this.yColumnSlugs)
+            table = table.dropEntitiesThatHaveNoDataInSomeColumn(
+                this.yColumnSlugs
+            )
         }
 
         return table
