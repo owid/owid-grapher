@@ -79,6 +79,7 @@ type SVGMouseOrTouchEvent =
 
 export interface SlopeChartManager extends ChartManager {
     canSelectMultipleEntities?: boolean // used to pick an appropriate series name
+    hasTimeline?: boolean // used to filter the table for the entity selector
 }
 
 const TOP_PADDING = 6 // leave room for overflowing dots
@@ -117,6 +118,16 @@ export class SlopeChart
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
+        // if time selection is disabled, then filter all entities that
+        // don't have data for the current time period
+        if (!this.manager.hasTimeline) {
+            table = table
+                .filterByTargetTimes([this.startTime, this.endTime])
+                .dropEntitiesThatHaveSomeMissingOrErrorValueInAllColumns(
+                    this.yColumnSlugs
+                )
+        }
+
         // if entities with partial data are not plotted,
         // make sure they don't show up in the entity selector
         if (this.missingDataStrategy === MissingDataStrategy.hide) {
