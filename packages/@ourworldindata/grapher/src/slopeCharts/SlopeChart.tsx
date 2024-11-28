@@ -379,7 +379,7 @@ export class SlopeChart
         return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
-    @computed private get allValues(): number[] {
+    @computed get allValues(): number[] {
         return this.series.flatMap((series) => [
             series.startValue,
             series.endValue,
