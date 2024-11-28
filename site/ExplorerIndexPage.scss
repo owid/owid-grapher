@@ -19,6 +19,11 @@
         background-color: #fff;
         list-style: none;
         row-gap: var(--grid-gap);
+
+        li {
+            overflow: auto; // prevents grid items from blowing up in width if some img's fail to load
+        }
+
         .explorer-index-page__card {
             display: block;
             height: 100%;
