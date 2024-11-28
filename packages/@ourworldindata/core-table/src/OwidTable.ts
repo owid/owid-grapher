@@ -325,6 +325,95 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
+    // Drop _all rows_ for an entity if all columns have at least one invalid or missing value for that entity.
+    dropEntitiesThatHaveSomeMissingOrErrorValueInAllColumns(
+        columnSlugs: ColumnSlug[]
+    ): this {
+        const indexesByEntityName = this.rowIndicesByEntityName
+        const uniqTimes = new Set(this.allTimes)
+
+        // entity names to iterate over
+        const entityNamesToIterateOver = new Set(indexesByEntityName.keys())
+
+        // set of entities we want to keep
+        const entityNamesToKeep = new Set<string>()
+
+        // total number of entities
+        const entityCount = entityNamesToIterateOver.size
+
+        // helper function to generate operation name
+        const makeOpName = (entityNamesToKeep: Set<EntityName>): string => {
+            const entityNamesToDrop = differenceOfSets([
+                this.availableEntityNameSet,
+                entityNamesToKeep,
+            ])
+            const droppedEntitiesStr =
+                entityNamesToDrop.size > 0
+                    ? [...entityNamesToDrop].join(", ")
+                    : "(None)"
+            return `Drop entities that have some missing or error value in all column: ${columnSlugs.join(", ")}.\nDropped entities: ${droppedEntitiesStr}`
+        }
+
+        // Optimization: if there is a column that has a valid data entry for
+        // every entity and every time, we are done
+        for (let i = 0; i <= columnSlugs.length; i++) {
+            const slug = columnSlugs[i]
+            const col = this.get(slug)
+
+            if (
+                col.numValues === entityCount * uniqTimes.size &&
+                col.numErrorValues === 0
+            ) {
+                const entityNamesToKeep = new Set(indexesByEntityName.keys())
+
+                return this.columnFilter(
+                    this.entityNameSlug,
+                    (rowEntityName) =>
+                        entityNamesToKeep.has(rowEntityName as string),
+                    makeOpName(entityNamesToKeep)
+                )
+            }
+        }
+
+        for (let i = 0; i <= columnSlugs.length; i++) {
+            const slug = columnSlugs[i]
+            const col = this.get(slug)
+
+            for (const entityName of entityNamesToIterateOver) {
+                const indicesForEntityName = indexesByEntityName.get(entityName)
+                if (!indicesForEntityName)
+                    throw new Error("Unexpected: entity not found in index map")
+
+                // Optimization: If the column is missing values for the entity,
+                // we know we can't make a decision yet, so we skip this entity
+                if (indicesForEntityName.length < uniqTimes.size) continue
+
+                // Optimization: We don't care about the number of valid/error
+                // values, we just need to know if there is at least one invalid value
+                const hasSomeInvalidValueForEntityInCol =
+                    indicesForEntityName.some(
+                        (index) =>
+                            !isNotErrorValue(
+                                col.valuesIncludingErrorValues[index]
+                            )
+                    )
+
+                // Optimization: If all values are valid, we know we want to keep this entity,
+                // so we remove it from the entities to iterate over
+                if (!hasSomeInvalidValueForEntityInCol) {
+                    entityNamesToKeep.add(entityName)
+                    entityNamesToIterateOver.delete(entityName)
+                }
+            }
+        }
+
+        return this.columnFilter(
+            this.entityNameSlug,
+            (rowEntityName) => entityNamesToKeep.has(rowEntityName as string),
+            makeOpName(entityNamesToKeep)
+        )
+    }
+
     private sumsByTime(columnSlug: ColumnSlug): Map<number, number> {
         const timeValues = this.timeColumn.values
         const values = this.get(columnSlug).values as number[]
