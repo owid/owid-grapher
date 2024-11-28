@@ -149,11 +149,11 @@ export class SlopeChart
     @computed get transformedTable(): OwidTable {
         let table = this.transformedTableFromGrapher
         // The % growth transform cannot be applied in transformTable() because it will filter out
-        // any rows before startHandleTimeBound and change the timeline bounds.
-        const { isRelativeMode, startHandleTimeBound } = this.manager
-        if (isRelativeMode && startHandleTimeBound !== undefined) {
+        // any rows before startTime and change the timeline bounds.
+        const { isRelativeMode, startTime } = this.manager
+        if (isRelativeMode && startTime !== undefined) {
             table = table.toTotalGrowthForEachColumnComparedToStartTime(
-                startHandleTimeBound,
+                startTime,
                 this.yColumnSlugs ?? []
             )
         }
