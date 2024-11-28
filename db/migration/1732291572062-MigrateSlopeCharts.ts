@@ -8,7 +8,9 @@ export class MigrateSlopeCharts1732291572062 implements MigrationInterface {
             SELECT c.id, cc.id AS configId, cc.patch, cc.full
             FROM charts c
             JOIN chart_configs cc ON cc.id = c.configId
-            WHERE cc.chartType = 'SlopeChart'
+            WHERE
+                cc.chartType = 'SlopeChart'
+                AND cc.full ->> '$.isPublished' = 'true'
         `)
 
         const configUpdatesById = new Map(
@@ -93,6 +95,7 @@ const configUpdates: { id: number; config: GrapherInterface }[] = [
             entityType: "cause",
             entityTypePlural: "causes",
             hideRelativeToggle: true,
+            hideLegend: false,
         },
     },
     {
@@ -144,7 +147,17 @@ const configUpdates: { id: number; config: GrapherInterface }[] = [
         },
     },
     { id: 1459, config: {} },
-    { id: 1975, config: { selectedEntityNames: ["World"] } },
+    {
+        id: 1975,
+        config: {
+            selectedEntityNames: [
+                "North America",
+                "South America",
+                "Europe",
+                "Asia",
+            ],
+        },
+    },
     {
         id: 2832,
         config: {
