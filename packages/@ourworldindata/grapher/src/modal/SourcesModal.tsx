@@ -361,7 +361,13 @@ export class Source extends React.Component<{
     @computed private get editUrl(): string | undefined {
         // there will not be a datasetId for explorers that define the FASTT in TSV
         if (!this.props.editBaseUrl || !this.def.datasetId) return undefined
-        return `${this.props.editBaseUrl}/${this.def.datasetId}`
+
+        // point user directly to the variable edit page if possible
+        if (this.def.owidVariableId) {
+            return `${this.props.editBaseUrl.replace("datasets/", "variables/")}/${this.def.owidVariableId}`
+        } else {
+            return `${this.props.editBaseUrl}/${this.def.datasetId}`
+        }
     }
 
     @computed private get producers(): string[] {
