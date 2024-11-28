@@ -1419,7 +1419,6 @@ export class Grapher
         if (this.isLineChart || this.isDiscreteBar) return [yAxis, color]
         else if (this.isScatter) return [yAxis, xAxis, size, color]
         else if (this.isMarimekko) return [yAxis, xAxis, color]
-        else if (this.isSlopeChart) return [yAxis]
         return [yAxis]
     }
 
@@ -2175,7 +2174,8 @@ export class Grapher
 
     @computed get relativeToggleLabel(): string {
         if (this.isOnScatterTab) return "Display average annual change"
-        else if (this.isOnLineChartTab) return "Display relative change"
+        else if (this.isOnLineChartTab || this.isOnSlopeChartTab)
+            return "Display relative change"
         return "Display relative values"
     }
 
