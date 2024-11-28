@@ -262,12 +262,13 @@ export function constructReadme(
         .flatMap((col) => [...columnReadmeText(col)])
     let readme: string
     const queryString = searchParams.size ? "?" + searchParams.toString() : ""
+    const urlWithFilters = `${grapher.canonicalUrl}${queryString}`
 
     const downloadDate = formatDate(new Date()) // formats the date as "October 10, 2024"
     if (isSingleColumn)
         readme = `# ${grapher.title} - Data package
 
-This data package contains the data that powers the chart ["${grapher.title}"](${grapher.canonicalUrl}${queryString}) on the Our World in Data website. It was downloaded on ${downloadDate}.
+This data package contains the data that powers the chart ["${grapher.title}"](${urlWithFilters}) on the Our World in Data website. It was downloaded on ${downloadDate}.
 ${[...activeFilterSettings(searchParams)].join("\n")}
 ## CSV Structure
 
@@ -295,7 +296,7 @@ ${sources.join("\n")}
     else
         readme = `# ${grapher.title} - Data package
 
-This data package contains the data that powers the chart ["${grapher.title}"](${grapher.canonicalUrl}) on the Our World in Data website.
+This data package contains the data that powers the chart ["${grapher.title}"](${urlWithFilters}) on the Our World in Data website.
 
 ## CSV Structure
 
