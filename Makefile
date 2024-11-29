@@ -149,12 +149,18 @@ refresh.pageviews: node_modules
 	@echo '==> Refreshing pageviews'
 	yarn refreshPageviews
 
+sync-images:
+	@echo 'Task has been deprecated.'
+
+bake-images:
+	@echo 'Task has been deprecated.'
+
 # Only needed to run once to seed the prod DB with initially
-sync-cloudflare-images:
+sync-cloudflare-images: node_modules
 	@echo '==> Syncing images table with Cloudflare Images'
 	@yarn syncCloudflareImages
 
-refresh.full: refresh refresh.pageviews sync-images
+refresh.full: refresh refresh.pageviews
 	@echo '==> Full refresh completed'
 
 down:
