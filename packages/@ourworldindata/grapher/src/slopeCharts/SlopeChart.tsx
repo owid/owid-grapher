@@ -185,6 +185,11 @@ export class SlopeChart
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
+    private sidebarMargin = 10
+    @computed private get innerBounds(): Bounds {
+        return this.bounds.padRight(this.sidebarWidth + 8)
+    }
+
     @computed get fontSize() {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
@@ -206,8 +211,7 @@ export class SlopeChart
     }
 
     @computed private get lineStrokeWidth(): number {
-        const factor = this.manager.isStaticAndSmall ? 2 : 1
-        return factor * 2
+        return this.manager.isStaticAndSmall ? 3 : 1.5
     }
 
     @computed private get backgroundColor(): string {
@@ -533,7 +537,7 @@ export class SlopeChart
 
         // pick a reasonable max width based on an ideal aspect ratio
         const idealAspectRatio = 0.6
-        const chartAreaWidth = this.bounds.width - this.sidebarWidth
+        const chartAreaWidth = this.innerBounds.width
         const availableWidth =
             chartAreaWidth -
             this.yAxisWidth -
@@ -848,7 +852,7 @@ export class SlopeChart
         if (!this.showNoDataSection) return
 
         const bounds = new Bounds(
-            this.bounds.right - this.sidebarWidth,
+            this.innerBounds.right + this.sidebarMargin,
             this.bounds.top,
             this.sidebarWidth,
             this.bounds.height
@@ -877,7 +881,7 @@ export class SlopeChart
                 color={series.color}
                 mode={mode}
                 strokeWidth={this.lineStrokeWidth}
-                outlineWidth={0.25}
+                outlineWidth={0.5}
                 outlineStroke={this.backgroundColor}
             />
         )
@@ -915,8 +919,7 @@ export class SlopeChart
                 <GridLines
                     bounds={this.bounds}
                     yAxis={this.yAxis}
-                    startX={startX}
-                    endX={endX}
+                    endX={this.innerBounds.right}
                 />
                 <VerticalAxisComponent
                     bounds={bounds}
@@ -965,6 +968,7 @@ export class SlopeChart
                 labelSeries={this.lineLegendSeriesRight}
                 yAxis={this.yAxis}
                 x={this.xRange[1] + LINE_LEGEND_PADDING}
+                yRange={[this.bounds.top, this.bounds.bottom]}
                 maxWidth={this.maxLineLegendWidth}
                 lineLegendAnchorX="start"
                 showValueLabelsInline={!this.useCompactLineLegend}
@@ -987,7 +991,7 @@ export class SlopeChart
                     x={this.startX}
                     y={this.yAxis.place(0)}
                     textAnchor="end"
-                    dx={-8}
+                    dx={-LINE_LEGEND_PADDING - 4}
                     dy={dyFromAlign(VerticalAlign.middle)}
                     fontSize={GRAPHER_FONT_SCALE_12 * this.fontSize}
                 >
@@ -1000,6 +1004,7 @@ export class SlopeChart
                 labelSeries={this.lineLegendSeriesLeft}
                 yAxis={this.yAxis}
                 x={this.xRange[0] - LINE_LEGEND_PADDING}
+                yRange={[this.bounds.top, this.bounds.bottom]}
                 maxWidth={this.maxLineLegendWidth}
                 lineLegendAnchorX="end"
                 showValueLabelsInline={!this.useCompactLineLegend}
@@ -1157,11 +1162,10 @@ function HaloLine(props: HaloLineProps): React.ReactElement {
 interface GridLinesProps {
     bounds: Bounds
     yAxis: VerticalAxis
-    startX: number
     endX: number
 }
 
-function GridLines({ bounds, yAxis, startX, endX }: GridLinesProps) {
+function GridLines({ bounds, yAxis, endX }: GridLinesProps) {
     return (
         <g id={makeIdForHumanConsumption("grid-lines")}>
             {yAxis.tickLabels.map((tick) => {
@@ -1174,18 +1178,8 @@ function GridLines({ bounds, yAxis, startX, endX }: GridLinesProps) {
                         )}
                         key={tick.formattedValue}
                     >
-                        {/* grid lines connecting the chart area to the axis */}
                         <line
                             x1={bounds.left + yAxis.width + 8}
-                            y1={y}
-                            x2={startX}
-                            y2={y}
-                            stroke="#eee"
-                            strokeDasharray="3,2"
-                        />
-                        {/* grid lines within the chart area */}
-                        <line
-                            x1={startX}
                             y1={y}
                             x2={endX}
                             y2={y}
