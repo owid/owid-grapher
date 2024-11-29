@@ -34,7 +34,7 @@ filename: my_image.png
 
 where `my_image.png` is an image that has been uploaded via the `/admin/images` view in the admin client, and thus exists in Cloudflare Images.
 
-We store information about the image's dimensions and alt text in the database, which is shared via React content to any component that needs to render them. See `Image.tsx` for the (many) implementation details.
+We store information about the image's dimensions and alt text in the database, which is shared via React context to any component that needs to render them. See `Image.tsx` for the (many) implementation details.
 
 ## Data Catalog
 

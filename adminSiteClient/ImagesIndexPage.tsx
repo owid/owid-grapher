@@ -5,7 +5,7 @@ import React, {
     useMemo,
     useState,
 } from "react"
-import { Button, Flex, Input, Space, Table, Upload } from "antd"
+import { Button, Flex, Input, Popconfirm, Space, Table, Upload } from "antd"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
@@ -17,6 +17,7 @@ import { faUpload } from "@fortawesome/free-solid-svg-icons"
 import { Admin } from "./Admin.js"
 import { RcFile } from "antd/es/upload/interface.js"
 import TextArea from "antd/es/input/TextArea.js"
+import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 
 type ImageEditorApi = {
     patchImage: (
@@ -71,7 +72,7 @@ function createColumns({
             key: "cloudflareId",
             render: (cloudflareId, { originalWidth }) => {
                 const srcFor = (w: number) =>
-                    `https://imagedelivery.net/qLq-8BTgXU8yG0N6HnOy8g/${encodeURIComponent(cloudflareId)}/w=${w}`
+                    `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(cloudflareId)}/w=${w}`
                 return (
                     <div style={{ height: 100, width: 100 }} key={cloudflareId}>
                         <a
@@ -147,13 +148,17 @@ function createColumns({
             width: 100,
             render: (_, image) => (
                 <Space size="middle">
-                    <Button
-                        type="text"
-                        danger
-                        onClick={() => api.deleteImage(image)}
+                    <Popconfirm
+                        title="Are you sure?"
+                        description="This will delete the image being used in production."
+                        onConfirm={() => api.deleteImage(image)}
+                        okText="Yes"
+                        cancelText="No"
                     >
-                        Delete
-                    </Button>
+                        <Button type="text" danger>
+                            Delete
+                        </Button>
+                    </Popconfirm>
                 </Space>
             ),
         },

@@ -303,7 +303,7 @@ function DeleteModal({
                                     <Form.Item
                                         name="relatedLinkThumbnail"
                                         label="Thumbnail file name"
-                                        extra="The image must be already be uploaded in the admin."
+                                        extra="The image must already be uploaded in the admin."
                                     >
                                         <Input type="text" />
                                     </Form.Item>
