@@ -581,6 +581,10 @@ export class SlopeChart
         return !!this.manager.isSemiNarrow
     }
 
+    @computed private get showValueLabelsInline(): boolean {
+        return this.useCompactLineLegend
+    }
+
     // used by LineLegend
     @computed get focusedSeriesNames(): SeriesName[] {
         return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
@@ -588,7 +592,7 @@ export class SlopeChart
 
     @computed get lineLegendSeriesLeft(): LineLabelSeries[] {
         return this.series.map((series) => {
-            const { seriesName, color, start, annotation } = series
+            const { seriesName, color, start } = series
             const formattedValue = this.formatColumn.formatValueShort(
                 start.value
             )
@@ -596,7 +600,6 @@ export class SlopeChart
                 color,
                 seriesName,
                 label: formattedValue,
-                annotation,
                 yValue: start.value,
             }
         })
@@ -750,6 +753,11 @@ export class SlopeChart
 
         const formatTime = (time: Time) => formatColumn.formatTime(time)
 
+        const title = series.seriesName
+        const titleAnnotation = !this.showValueLabelsInline
+            ? series.annotation
+            : undefined
+
         const actualStartTime = series.start.originalTime
         const actualEndTime = series.end.originalTime
         const timeRange = `${formatTime(actualStartTime)} to ${formatTime(actualEndTime)}`
@@ -803,7 +811,8 @@ export class SlopeChart
                 offsetX={20}
                 offsetY={-16}
                 style={{ maxWidth: "250px" }}
-                title={series.seriesName}
+                title={title}
+                titleAnnotation={titleAnnotation}
                 subtitle={timeLabel}
                 subtitleFormat={targetYear ? "notice" : undefined}
                 dissolve={fading}
@@ -971,7 +980,7 @@ export class SlopeChart
                 yRange={[this.bounds.top, this.bounds.bottom]}
                 maxWidth={this.maxLineLegendWidth}
                 lineLegendAnchorX="start"
-                showValueLabelsInline={!this.useCompactLineLegend}
+                showValueLabelsInline={this.showValueLabelsInline}
                 connectorLineWidth={this.lineLegendConnectorLinesWidth}
                 fontSize={this.fontSize}
                 fontWeight={700}
@@ -1007,7 +1016,6 @@ export class SlopeChart
                 yRange={[this.bounds.top, this.bounds.bottom]}
                 maxWidth={this.maxLineLegendWidth}
                 lineLegendAnchorX="end"
-                showValueLabelsInline={!this.useCompactLineLegend}
                 connectorLineWidth={this.lineLegendConnectorLinesWidth}
                 fontSize={this.fontSize}
                 isStatic={this.manager.isStatic}
