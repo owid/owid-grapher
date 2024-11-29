@@ -56,6 +56,14 @@
             }
         }
     }
+    @keyframes fadein {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
     .explorer-index-page__card-error {
         width: 100%;
         aspect-ratio: 850/600;
@@ -68,6 +76,10 @@
         align-items: center;
         svg {
             margin-bottom: 16px;
+        }
+        svg,
+        p {
+            animation: fadein ease 0.3s;
         }
     }
 }
