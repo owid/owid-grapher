@@ -796,8 +796,6 @@ export class Grapher
         // Some chart types (e.g. stacked area charts) choose not to show an entity
         // with incomplete data. Such chart types define a custom transform function
         // to ensure that the entity selector only offers entities that are actually plotted.
-        // We apply the `tranformTableForSelection` method of the main chart type,
-        // so that the entity selector doesn't update when switching between chart types.
         if (this.chartInstance.transformTableForSelection) {
             table = this.chartInstance.transformTableForSelection(table)
         }
@@ -1319,7 +1317,7 @@ export class Grapher
     ): void {
         // if switching from a line to a slope chart and the handles are
         // on the same time, then automatically adjust the handles so that
-        // a time period is selected and the slope chart view is meaningful
+        // the slope chart view is meaningful
         if (
             oldTab === GRAPHER_TAB_NAMES.LineChart &&
             newTab === GRAPHER_TAB_NAMES.SlopeChart &&
