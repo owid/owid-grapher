@@ -22,6 +22,7 @@ import {
 import { runAllGraphersLoadedListener } from "./runAllGraphersLoadedListener.js"
 import { hydrateMultiDimDataPageContent } from "./multiDim/MultiDimDataPageContent.js"
 import { hydrateDataCatalogPage } from "./DataCatalog/DataCatalog.js"
+import { hydrateExplorerIndex } from "./ExplorerIndex.js"
 
 export const runSiteFooterScripts = (
     args:
@@ -65,6 +66,9 @@ export const runSiteFooterScripts = (
             runSiteTools()
             runCookiePreferencesManager()
             void runDetailsOnDemand()
+            break
+        case SiteFooterContext.explorerIndexPage:
+            hydrateExplorerIndex()
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
