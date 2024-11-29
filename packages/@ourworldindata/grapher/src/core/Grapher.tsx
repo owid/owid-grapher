@@ -1544,10 +1544,26 @@ export class Grapher
         // if the given combination is not valid, then ignore all but the first chart type
         if (!validChartTypes) return chartTypes.slice(0, 1)
 
-        // projected data is only supported for line charts
+        // make sure showing a slope chart tab next to a line chart tab is sensible
         const isLineChart = validChartTypes[0] === GRAPHER_CHART_TYPES.LineChart
-        if (isLineChart && this.hasProjectedData) {
-            return [GRAPHER_CHART_TYPES.LineChart]
+        if (isLineChart) {
+            // projected data is only supported for line charts
+            if (this.hasProjectedData) return [GRAPHER_CHART_TYPES.LineChart]
+
+            // if the line chart really is a bar chart, don't show the slope chart tab
+            const minTime = minTimeBoundFromJSONOrNegativeInfinity(
+                this.legacyConfigAsAuthored.minTime
+            )
+            const maxTime = maxTimeBoundFromJSONOrPositiveInfinity(
+                this.legacyConfigAsAuthored.maxTime
+            )
+            const times =
+                this.tableAfterAuthorTimelineFilter.timeColumn.uniqValues
+            const [startTime, endTime] = [minTime, maxTime].map((time) =>
+                findClosestTime(times, time)
+            )
+            const isDiscreteBar = this.hideTimeline && startTime === endTime
+            if (isDiscreteBar) return [GRAPHER_CHART_TYPES.LineChart]
         }
 
         return validChartTypes
