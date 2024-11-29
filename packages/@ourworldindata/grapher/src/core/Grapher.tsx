@@ -791,15 +791,15 @@ export class Grapher
             ? this.tableAfterAuthorTimelineAndActiveChartTransform
             : this.inputTable
 
-        if (!this.isReady || !this.mainChartInstance) return table
+        if (!this.isReady) return table
 
         // Some chart types (e.g. stacked area charts) choose not to show an entity
         // with incomplete data. Such chart types define a custom transform function
         // to ensure that the entity selector only offers entities that are actually plotted.
         // We apply the `tranformTableForSelection` method of the main chart type,
         // so that the entity selector doesn't update when switching between chart types.
-        if (this.mainChartInstance.transformTableForSelection) {
-            table = this.mainChartInstance.transformTableForSelection(table)
+        if (this.chartInstance.transformTableForSelection) {
+            table = this.chartInstance.transformTableForSelection(table)
         }
 
         return table
@@ -838,16 +838,6 @@ export class Grapher
             startMark
         )
         return transformedTable
-    }
-
-    // Chart instance of the "main" chart type, which is the first chart type
-    // in the list of valid chart types. Doesn't take into account that line
-    // charts might turn into discrete bar charts. Undefined for map-only Graphers.
-    @computed private get mainChartInstance(): ChartInterface | undefined {
-        if (!this.chartType) return undefined
-        const ChartClass =
-            ChartComponentClassMap.get(this.chartType) ?? DefaultChartClass
-        return new ChartClass({ manager: this })
     }
 
     @computed get chartInstance(): ChartInterface {
