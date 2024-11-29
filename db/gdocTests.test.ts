@@ -294,6 +294,7 @@ level: 2
                     url: "mailto:edouard@ourworldindata.org",
                     text: "Edouard's email",
                     type: SocialLinkType.Email,
+                    parseErrors: [],
                 },
             ],
             parseErrors: [],

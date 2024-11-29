@@ -237,6 +237,7 @@ export function extractFilenamesFromBlock(
                     "missing-data",
                     "numbered-list",
                     "people",
+                    "people-rows",
                     "pill-row",
                     "pull-quote",
                     "recirc",

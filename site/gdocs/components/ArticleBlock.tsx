@@ -56,6 +56,7 @@ export type Container =
     | "summary"
     | "datapage"
     | "key-insight"
+    | "about-page"
     | "author-header"
 
 // Each container must have a default layout, usually just full-width
@@ -115,6 +116,10 @@ const layouts: { [key in Container]: Layouts} = {
     ["datapage"]: {
         ["default"]: "col-start-2 span-cols-6 col-lg-start-2 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12",
         ["chart"]: "span-cols-8 span-lg-cols-9 span-md-cols-12",
+    },
+    ["about-page"]: {
+        ["default"]: "grid col-start-2 span-cols-12",
+        ["people"]: "col-start-2 span-cols-8 col-md-start-2 span-md-cols-12",
     },
     ["author-header"]: {
         ["default"]: "span-cols-8",
@@ -290,6 +295,16 @@ export default function ArticleBlock({
         .with({ type: "people" }, (block) => (
             <People className={getLayout("people", containerType)}>
                 {block.items.map((block, index) => (
+                    <ArticleBlock key={index} b={block} />
+                ))}
+            </People>
+        ))
+        .with({ type: "people-rows" }, (block) => (
+            <People
+                className={getLayout("people-rows", containerType)}
+                columns={block.columns}
+            >
+                {block.people.map((block, index) => (
                     <ArticleBlock key={index} b={block} />
                 ))}
             </People>
@@ -748,7 +763,7 @@ export default function ArticleBlock({
         .with({ type: "socials" }, (block) => (
             <Socials
                 className={getLayout("socials", containerType)}
-                {...block}
+                links={block.links}
             />
         ))
         .exhaustive()

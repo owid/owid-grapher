@@ -1,8 +1,4 @@
-import {
-    EnrichedBlockSocials,
-    EnrichedSocialLink,
-    SocialLinkType,
-} from "@ourworldindata/types"
+import { EnrichedSocialLink, SocialLinkType } from "@ourworldindata/types"
 import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -33,21 +29,27 @@ function SocialLink({ url, text, type }: EnrichedSocialLink) {
     }
 
     return (
-        <li className="article-block__social-link">
+        <li className="article-block__social-link social-link">
             <FontAwesomeIcon icon={type ? typeToIcon[type] : faLink} />
-            <a key={url} href={url} target="_blank" rel="noopener">
+            <a href={url} target="_blank" rel="noopener">
                 {text}
             </a>
         </li>
     )
 }
 
-export function Socials(props: EnrichedBlockSocials & { className?: string }) {
+export function Socials({
+    className,
+    links,
+}: {
+    className?: string
+    links: EnrichedSocialLink[]
+}) {
     return (
-        <div className={props.className}>
+        <div className={className}>
             <ul>
-                {props.links.map((link) => (
-                    <SocialLink {...link} key={link.url} />
+                {links.map((link) => (
+                    <SocialLink key={link.url} {...link} />
                 ))}
             </ul>
         </div>

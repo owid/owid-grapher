@@ -162,6 +162,11 @@ ${items}
                 .map((item) => enrichedBlockToMarkdown(item, exportComponents))
                 .join("\n")
         )
+        .with({ type: "people-rows" }, (b): string | undefined =>
+            b.people
+                .map((item) => enrichedBlockToMarkdown(item, exportComponents))
+                .join("\n")
+        )
         .with({ type: "person" }, (b): string | undefined => {
             const items = [
                 b.image &&

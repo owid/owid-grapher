@@ -190,6 +190,12 @@ export const enrichedBlockExamples: Record<
         items: [enrichedBlockPerson, enrichedBlockPerson],
         parseErrors: [],
     },
+    "people-rows": {
+        type: "people-rows",
+        columns: "2",
+        people: [enrichedBlockPerson, enrichedBlockPerson],
+        parseErrors: [],
+    },
     person: enrichedBlockPerson,
     "pull-quote": {
         type: "pull-quote",
@@ -672,18 +678,20 @@ export const enrichedBlockExamples: Record<
                 url: "https://twitter.com/OurWorldInData",
                 text: "@OurWorldInData",
                 type: SocialLinkType.X,
+                parseErrors: [],
             },
             {
                 url: "https://facebook.com/OurWorldInData",
                 text: "OurWorldInData",
                 type: SocialLinkType.Facebook,
+                parseErrors: [],
             },
             {
                 url: "https://ourworldindata.org",
                 text: "ourworldindata.org",
+                parseErrors: [],
             },
         ],
-
         parseErrors: [],
     },
 }
