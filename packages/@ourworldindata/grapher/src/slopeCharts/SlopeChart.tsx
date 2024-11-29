@@ -266,7 +266,7 @@ export class SlopeChart
         const { startTime, endTime, seriesStrategy } = this
         const { canSelectMultipleEntities = false } = this.manager
 
-        const { availableEntityNames } = this.selectionArray
+        const { availableEntityNames } = this.transformedTable
         const columnName = column.nonEmptyDisplayName
         const seriesName = getSeriesName({
             entityName,
