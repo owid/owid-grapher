@@ -928,7 +928,7 @@ export class SlopeChart
                 <GridLines
                     bounds={this.bounds}
                     yAxis={this.yAxis}
-                    endX={this.innerBounds.right}
+                    endX={this.endX}
                 />
                 <VerticalAxisComponent
                     bounds={bounds}

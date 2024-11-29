@@ -266,10 +266,10 @@ export class TextWrap {
             textProps,
             id,
         }: { textProps?: React.SVGProps<SVGTextElement>; id?: string } = {}
-    ): React.ReactElement | null {
+    ): React.ReactElement {
         const { props, lines, fontSize, fontWeight, lineHeight } = this
 
-        if (lines.length === 0) return null
+        if (lines.length === 0) return <></>
 
         const [correctedX, correctedY] = this.getPositionForSvgRendering(x, y)
 

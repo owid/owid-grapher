@@ -23,9 +23,10 @@ import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
+import { Halo } from "../halo/Halo"
 
 // Minimum vertical space between two legend items
-const LEGEND_ITEM_MIN_SPACING = 2
+const LEGEND_ITEM_MIN_SPACING = 4
 // Horizontal distance from the end of the chart to the start of the marker
 const MARKER_MARGIN = 4
 // Space between the label and the annotation
@@ -151,15 +152,14 @@ class LineLabels extends React.Component<{
         return (
             <g id={makeIdForHumanConsumption("text-labels")}>
                 {this.markers.map(({ series, labelText }, index) => {
+                    const key = getSeriesKey(
+                        series,
+                        index,
+                        this.props.uniqueKey
+                    )
                     const textColor = darkenColorForText(series.color)
                     return (
-                        <React.Fragment
-                            key={getSeriesKey(
-                                series,
-                                index,
-                                this.props.uniqueKey
-                            )}
-                        >
+                        <Halo id={key} key={key}>
                             {series.textWrap.render(labelText.x, labelText.y, {
                                 textProps: {
                                     fill: textColor,
@@ -167,7 +167,7 @@ class LineLabels extends React.Component<{
                                     textAnchor: this.anchor,
                                 },
                             })}
-                        </React.Fragment>
+                        </Halo>
                     )
                 })}
             </g>
@@ -182,17 +182,19 @@ class LineLabels extends React.Component<{
         return (
             <g id={makeIdForHumanConsumption("text-annotations")}>
                 {markersWithAnnotations.map(({ series, labelText }, index) => {
+                    const key = getSeriesKey(
+                        series,
+                        index,
+                        this.props.uniqueKey
+                    )
+                    if (!series.annotationTextWrap) return
                     return (
-                        <React.Fragment
-                            key={getSeriesKey(
-                                series,
-                                index,
-                                this.props.uniqueKey
-                            )}
-                        >
-                            {series.annotationTextWrap?.render(
+                        <Halo id={key} key={key}>
+                            {series.annotationTextWrap.render(
                                 labelText.x,
-                                labelText.y + series.textWrap.height,
+                                labelText.y +
+                                    series.textWrap.height +
+                                    ANNOTATION_PADDING,
                                 {
                                     textProps: {
                                         fill: "#333",
@@ -202,7 +204,7 @@ class LineLabels extends React.Component<{
                                     },
                                 }
                             )}
-                        </React.Fragment>
+                        </Halo>
                     )
                 })}
             </g>
@@ -217,6 +219,12 @@ class LineLabels extends React.Component<{
         return (
             <g id={makeIdForHumanConsumption("text-values")}>
                 {markersWithTextValues.map(({ series, labelText }, index) => {
+                    if (!series.valueTextWrap) return
+                    const key = getSeriesKey(
+                        series,
+                        index,
+                        this.props.uniqueKey
+                    )
                     const textColor = darkenColorForText(series.color)
                     const direction = this.anchor === "start" ? 1 : -1
                     const x = this.showValueLabelsInline
@@ -224,23 +232,19 @@ class LineLabels extends React.Component<{
                         : labelText.x
                     const y = this.showValueLabelsInline
                         ? labelText.y
-                        : labelText.y + series.textWrap.height
+                        : labelText.y +
+                          series.textWrap.height +
+                          ANNOTATION_PADDING
                     return (
-                        <React.Fragment
-                            key={getSeriesKey(
-                                series,
-                                index,
-                                this.props.uniqueKey
-                            )}
-                        >
-                            {series.valueTextWrap?.render(x, y, {
+                        <Halo id={key} key={key}>
+                            {series.valueTextWrap.render(x, y, {
                                 textProps: {
                                     fill: textColor,
                                     opacity: this.textOpacity,
                                     textAnchor: this.anchor,
                                 },
                             })}
-                        </React.Fragment>
+                        </Halo>
                     )
                 })}
             </g>
