@@ -77,8 +77,7 @@ export default function Image(props: {
         shouldLightbox = true,
     } = props
 
-    const className = cx(props.className, {
-        image: true,
+    const className = cx("image", props.className, {
         "image--has-outline": hasOutline,
     })
 

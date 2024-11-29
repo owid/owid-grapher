@@ -341,7 +341,7 @@ async function uploadImageToCloudflareImages(
 async function getCloudflareImageDirectory() {
     console.log("Fetching Cloudflare Images directory...")
     const directory = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1?per_page=2000`,
+        `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1?per_page=10000`,
         {
             headers: {
                 Authorization: `Bearer ${CLOUDFLARE_IMAGES_API_KEY}`,
@@ -367,19 +367,12 @@ async function getCloudflareImageDirectory() {
 
 async function fetchImagesFromDatabase(trx: db.KnexReadWriteTransaction) {
     console.log("Fetching images from the database...")
-    return await trx
-        .raw<DbEnrichedImage[]>(
-            `-- sql
-            SELECT * FROM images WHERE id IN (
-                SELECT DISTINCT imageId FROM posts_gdocs_x_images
-            )`
-        )
-        .then((res) => res.flat())
-        .then(excludeNullish)
-        .then((images) => images.filter((image) => image && image.filename))
-        .then((images) =>
-            images.sort((a, b) => a.filename.localeCompare(b.filename))
-        )
+    return await trx("images")
+        .select("images.*")
+        .whereIn("images.id", trx("posts_gdocs_x_images").distinct("imageId"))
+        .whereNotNull("images.id")
+        .whereNotNull("images.filename")
+        .orderBy("filename", "asc")
 }
 
 async function uploadImagesToCloudflareImages(

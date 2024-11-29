@@ -2999,10 +2999,13 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
         const slug = gdocSlug.replace("/", "")
         const { relatedLinkThumbnail } = tombstone
         if (relatedLinkThumbnail) {
-            const images = await db.getCloudflareImages(trx)
-            if (!images.find((i) => i.filename === relatedLinkThumbnail)) {
+            const thumbnailExists = await db.checkIsImageInDB(
+                trx,
+                relatedLinkThumbnail
+            )
+            if (!thumbnailExists) {
                 throw new JsonError(
-                    `Image "${relatedLinkThumbnail}" doesn't exist in the database`
+                    `Image with filename "${relatedLinkThumbnail}" not found`
                 )
             }
         }
@@ -3109,7 +3112,7 @@ postRouteWithRWTransaction(apiRouter, "/image", async (req, res, trx) => {
         .then(({ width, height }) => ({ width, height }))
 
     const body = new FormData()
-    body.append("file", asBlob)
+    body.append("file", asBlob, filename)
     body.append("id", encodeURIComponent(filename))
     body.append("metadata", JSON.stringify({ filename }))
     body.append("requireSignedURLs", "false")
@@ -3155,8 +3158,6 @@ postRouteWithRWTransaction(apiRouter, "/image", async (req, res, trx) => {
         cloudflareId,
         // TODO: make defaultAlt nullable
         defaultAlt: "Default alt text",
-        // TODO: drop googleId
-        googleId: String(Math.random()).slice(2),
         updatedAt: new Date().getTime(),
     })
 

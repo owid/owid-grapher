@@ -346,6 +346,14 @@ export const getHomepageId = (
     ).then((result) => result?.id)
 }
 
+export async function checkIsImageInDB(
+    trx: KnexReadonlyTransaction,
+    filename: string
+): Promise<boolean> {
+    const image = await trx("images").where("filename", filename).first()
+    return !!image
+}
+
 export const getImageMetadataByFilenames = async (
     knex: KnexReadonlyTransaction,
     filenames: string[]
