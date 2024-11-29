@@ -13,6 +13,7 @@ import {
     max,
     getRelativeMouse,
     minBy,
+    dyFromAlign,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -33,6 +34,7 @@ import {
     SeriesStrategy,
     EntityName,
     RenderMode,
+    VerticalAlign,
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
@@ -583,12 +585,13 @@ export class SlopeChart
     @computed get lineLegendSeriesLeft(): LineLabelSeries[] {
         return this.series.map((series) => {
             const { seriesName, color, start, annotation } = series
+            const formattedValue = this.formatColumn.formatValueShort(
+                start.value
+            )
             return {
                 color,
                 seriesName,
-                label: this.useCompactLineLegend
-                    ? this.formatColumn.formatValueShort(start.value)
-                    : this.formatColumn.formatValueLong(start.value),
+                label: formattedValue,
                 annotation,
                 yValue: start.value,
             }
@@ -598,7 +601,7 @@ export class SlopeChart
     @computed get lineLegendSeriesRight(): LineLabelSeries[] {
         return this.series.map((series) => {
             const { seriesName, color, end, annotation } = series
-            const formattedValue = this.formatColumn.formatValueLong(end.value)
+            const formattedValue = this.formatColumn.formatValueShort(end.value)
             return {
                 color,
                 seriesName,
@@ -611,7 +614,7 @@ export class SlopeChart
     }
 
     @computed private get lineLegendConnectorLinesWidth(): number {
-        return this.useCompactLineLegend ? 15 : 35
+        return this.useCompactLineLegend ? 15 : 25
     }
 
     private playIntroAnimation() {
@@ -956,39 +959,67 @@ export class SlopeChart
         )
     }
 
+    private renderLineLegendRight(): React.ReactElement {
+        return (
+            <LineLegend
+                labelSeries={this.lineLegendSeriesRight}
+                yAxis={this.yAxis}
+                x={this.xRange[1] + LINE_LEGEND_PADDING}
+                maxWidth={this.maxLineLegendWidth}
+                lineLegendAnchorX="start"
+                showValueLabelsInline={!this.useCompactLineLegend}
+                connectorLineWidth={this.lineLegendConnectorLinesWidth}
+                fontSize={this.fontSize}
+                fontWeight={700}
+                isStatic={this.manager.isStatic}
+                focusedSeriesNames={this.focusedSeriesNames}
+                onMouseLeave={this.onLineLegendMouseLeave}
+                onMouseOver={this.onLineLegendMouseOver}
+            />
+        )
+    }
+
+    private renderLineLegendLeft(): React.ReactElement {
+        // in relative mode, all slopes start from 0%
+        if (this.manager.isRelativeMode)
+            return (
+                <text
+                    x={this.startX}
+                    y={this.yAxis.place(0)}
+                    textAnchor="end"
+                    dx={-8}
+                    dy={dyFromAlign(VerticalAlign.middle)}
+                    fontSize={GRAPHER_FONT_SCALE_12 * this.fontSize}
+                >
+                    {this.formatColumn.formatValueShort(0)}
+                </text>
+            )
+
+        return (
+            <LineLegend
+                labelSeries={this.lineLegendSeriesLeft}
+                yAxis={this.yAxis}
+                x={this.xRange[0] - LINE_LEGEND_PADDING}
+                maxWidth={this.maxLineLegendWidth}
+                lineLegendAnchorX="end"
+                showValueLabelsInline={!this.useCompactLineLegend}
+                connectorLineWidth={this.lineLegendConnectorLinesWidth}
+                fontSize={this.fontSize}
+                isStatic={this.manager.isStatic}
+                focusedSeriesNames={this.focusedSeriesNames}
+                onMouseLeave={this.onLineLegendMouseLeave}
+                onMouseOver={this.onLineLegendMouseOver}
+            />
+        )
+    }
+
     private renderLineLegends(): React.ReactElement | void {
         if (!this.manager.showLegend) return
+
         return (
             <>
-                <LineLegend
-                    labelSeries={this.lineLegendSeriesRight}
-                    yAxis={this.yAxis}
-                    x={this.xRange[1] + LINE_LEGEND_PADDING}
-                    maxWidth={this.maxLineLegendWidth}
-                    lineLegendAnchorX="start"
-                    showValueLabelsInline={!this.useCompactLineLegend}
-                    connectorLineWidth={this.lineLegendConnectorLinesWidth}
-                    fontSize={this.fontSize}
-                    fontWeight={700}
-                    isStatic={this.manager.isStatic}
-                    focusedSeriesNames={this.focusedSeriesNames}
-                    onMouseLeave={this.onLineLegendMouseLeave}
-                    onMouseOver={this.onLineLegendMouseOver}
-                />
-                <LineLegend
-                    labelSeries={this.lineLegendSeriesLeft}
-                    yAxis={this.yAxis}
-                    x={this.xRange[0] - LINE_LEGEND_PADDING}
-                    maxWidth={this.maxLineLegendWidth}
-                    lineLegendAnchorX="end"
-                    showValueLabelsInline={!this.useCompactLineLegend}
-                    connectorLineWidth={this.lineLegendConnectorLinesWidth}
-                    fontSize={this.fontSize}
-                    isStatic={this.manager.isStatic}
-                    focusedSeriesNames={this.focusedSeriesNames}
-                    onMouseLeave={this.onLineLegendMouseLeave}
-                    onMouseOver={this.onLineLegendMouseOver}
-                />
+                {this.renderLineLegendLeft()}
+                {this.renderLineLegendRight()}
             </>
         )
     }
