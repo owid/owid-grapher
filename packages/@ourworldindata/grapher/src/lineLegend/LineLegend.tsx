@@ -218,8 +218,9 @@ class LineLabels extends React.Component<{
             <g id={makeIdForHumanConsumption("text-values")}>
                 {markersWithTextValues.map(({ series, labelText }, index) => {
                     const textColor = darkenColorForText(series.color)
+                    const direction = this.anchor === "start" ? 1 : -1
                     const x = this.showValueLabelsInline
-                        ? labelText.x + series.textWrap.width + 4
+                        ? labelText.x + direction * (series.textWrap.width + 4)
                         : labelText.x
                     const y = this.showValueLabelsInline
                         ? labelText.y
