@@ -106,7 +106,7 @@ export class SourcesModal extends React.Component<
 
     @computed private get editBaseUrl(): string | undefined {
         if (!this.manager.showAdminControls) return undefined
-        return `${this.props.manager.adminBaseUrl}/admin/datasets`
+        return `${this.props.manager.adminBaseUrl}/admin`
     }
 
     @computed private get columns(): CoreColumn[] {
@@ -359,15 +359,20 @@ export class Source extends React.Component<{
     }
 
     @computed private get editUrl(): string | undefined {
-        // there will not be a datasetId for explorers that define the FASTT in TSV
-        if (!this.props.editBaseUrl || !this.def.datasetId) return undefined
+        if (!this.props.editBaseUrl) return undefined
 
         // point user directly to the variable edit page if possible
         if (this.def.owidVariableId) {
-            return `${this.props.editBaseUrl.replace("datasets", "variables")}/${this.def.owidVariableId}`
-        } else {
-            return `${this.props.editBaseUrl}/${this.def.datasetId}`
+            return `${this.props.editBaseUrl}/variables/${this.def.owidVariableId}`
         }
+
+        // if that's not possible, point user to the dataset edit page
+        if (this.def.datasetId) {
+            return `${this.props.editBaseUrl}/datasets/${this.def.datasetId}`
+        }
+
+        // we can't link to an edit page for explorers that define the FASTT in TSV
+        return undefined
     }
 
     @computed private get producers(): string[] {
