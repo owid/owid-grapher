@@ -3519,7 +3519,7 @@ export class Grapher
     }
 
     @computed get disablePlay(): boolean {
-        return this.isOnSlopeChartTab
+        return false
     }
 
     @computed get animationEndTime(): Time {
