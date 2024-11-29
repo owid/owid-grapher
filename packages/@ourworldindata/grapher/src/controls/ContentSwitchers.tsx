@@ -18,6 +18,7 @@ export interface ContentSwitchersManager {
     activeTab?: GrapherTabName
     hasMultipleChartTypes?: boolean
     setTab: (tab: GrapherTabName) => void
+    onTabChange: (oldTab: GrapherTabName, newTab: GrapherTabName) => void
     isNarrow?: boolean
     isMedium?: boolean
     isLineChartThatTurnedIntoDiscreteBar?: boolean
@@ -112,8 +113,10 @@ export class ContentSwitchers extends React.Component<{
     }
 
     @action.bound setTab(tabIndex: number): void {
+        const oldTab = this.manager.activeTab
         const newTab = this.availableTabs[tabIndex]
         this.manager.setTab(newTab)
+        this.manager.onTabChange?.(oldTab!, newTab)
     }
 
     render(): React.ReactElement {

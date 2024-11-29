@@ -1311,6 +1311,26 @@ export class Grapher
         }
     }
 
+    @action.bound onTabChange(
+        oldTab: GrapherTabName,
+        newTab: GrapherTabName
+    ): void {
+        // if switching from a line to a slope chart and the handles are
+        // on the same time, then automatically adjust the handles so that
+        // a time period is selected and the slope chart view is meaningful
+        if (
+            oldTab === GRAPHER_TAB_NAMES.LineChart &&
+            newTab === GRAPHER_TAB_NAMES.SlopeChart &&
+            this.areHandlesOnSameTime
+        ) {
+            if (this.startHandleTimeBound !== -Infinity) {
+                this.startHandleTimeBound = -Infinity
+            } else {
+                this.endHandleTimeBound = Infinity
+            }
+        }
+    }
+
     // todo: can we remove this?
     // I believe these states can only occur during editing.
     @action.bound private ensureValidConfigWhenEditing(): void {
