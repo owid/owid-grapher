@@ -122,7 +122,7 @@ export class SlopeChart
 
         // if time selection is disabled, then filter all entities that
         // don't have data for the current time period
-        if (!this.manager.hasTimeline) {
+        if (!this.manager.hasTimeline && this.startTime !== this.endTime) {
             table = table
                 .filterByTargetTimes([this.startTime, this.endTime])
                 .dropEntitiesThatHaveSomeMissingOrErrorValueInAllColumns(
