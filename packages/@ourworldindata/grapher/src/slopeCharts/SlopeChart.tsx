@@ -385,7 +385,18 @@ export class SlopeChart
     }
 
     @computed private get showNoDataSection(): boolean {
-        return this.noDataSeries.length > 0
+        // nothing to show if there are no series with missing data
+        if (this.noDataSeries.length === 0) return false
+
+        // we usually don't show the no data section if columns are plotted
+        // (since columns don't appear in the entity selector there is no need
+        // to explain that a column is missing – it just adds noise). but if
+        // the missing data strategy is set to hide, then we do want to give
+        // feedback as to why a slope is currently not rendered
+        return (
+            this.seriesStrategy === SeriesStrategy.entity ||
+            this.missingDataStrategy === MissingDataStrategy.hide
+        )
     }
 
     @computed private get yAxisConfig(): AxisConfig {
