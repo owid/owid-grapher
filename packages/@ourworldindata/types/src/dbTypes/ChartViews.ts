@@ -1,7 +1,7 @@
 export const ChartViewsTableName = "chart_views"
 export interface DbInsertChartView {
     id?: number
-    slug: string
+    name: string
     chartConfigId: string
     parentChartId: number
     createdAt?: Date | null

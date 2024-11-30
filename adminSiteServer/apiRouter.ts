@@ -294,7 +294,7 @@ const getReferencesByChartId = async (
     const chartViewsPromise = db.knexRaw<ChartViewMinimalInformation>(
         knex,
         `-- sql
-        SELECT cv.id, cv.slug, cc.full ->> "$.title" AS title
+        SELECT cv.id, cv.name, cc.full ->> "$.title" AS title
         FROM chart_views cv
         JOIN chart_configs cc ON cc.id = cv.chartConfigId
         WHERE cv.parentChartId = ?`,
@@ -3312,7 +3312,7 @@ const createPatchConfigAndFullConfigForChartView = async (
 }
 
 getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
-    type ChartViewRow = Pick<DbPlainChartView, "id" | "slug" | "updatedAt"> & {
+    type ChartViewRow = Pick<DbPlainChartView, "id" | "name" | "updatedAt"> & {
         lastEditedByUser: string
         chartConfigId: string
         title: string
@@ -3325,7 +3325,7 @@ getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
         `-- sql
         SELECT
             cv.id,
-            cv.slug,
+            cv.name,
             cv.updatedAt,
             cv.lastEditedByUserId,
             cv.chartConfigId,
@@ -3344,7 +3344,7 @@ getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
 
     const chartViews: ApiChartViewOverview[] = rows.map((row) => ({
         id: row.id,
-        slug: row.slug,
+        name: row.name,
         updatedAt: row.updatedAt?.toISOString() ?? null,
         lastEditedByUser: row.lastEditedByUser,
         chartConfigId: row.chartConfigId,
@@ -3366,7 +3366,7 @@ getRouteWithROTransaction(
 
         type ChartViewRow = Pick<
             DbPlainChartView,
-            "id" | "slug" | "updatedAt"
+            "id" | "name" | "updatedAt"
         > & {
             lastEditedByUser: string
             chartConfigId: string
@@ -3381,7 +3381,7 @@ getRouteWithROTransaction(
             `-- sql
         SELECT
             cv.id,
-            cv.slug,
+            cv.name,
             cv.updatedAt,
             cv.lastEditedByUserId,
             u.fullName as lastEditedByUser,
@@ -3416,12 +3416,12 @@ getRouteWithROTransaction(
 )
 
 postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
-    const { slug, parentChartId } = req.body as Pick<
+    const { name, parentChartId } = req.body as Pick<
         DbPlainChartView,
-        "slug" | "parentChartId"
+        "name" | "parentChartId"
     >
     const rawConfig = req.body.config as GrapherInterface
-    if (!slug || !parentChartId || !rawConfig) {
+    if (!name || !parentChartId || !rawConfig) {
         throw new JsonError("Invalid request", 400)
     }
 
@@ -3441,7 +3441,7 @@ postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
 
     // insert into chart_views
     const insertRow: DbInsertChartView = {
-        slug,
+        name,
         parentChartId,
         lastEditedByUserId: res.locals.user.id,
         chartConfigId: chartConfigId,

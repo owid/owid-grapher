@@ -39,11 +39,11 @@ function createColumns(
             ),
         },
         {
-            title: "Slug",
-            dataIndex: "slug",
-            key: "slug",
+            title: "Name",
+            dataIndex: "name",
+            key: "name",
             width: 150,
-            render: (slug) => highlightFn(slug),
+            render: (name) => highlightFn(name),
         },
         {
             title: "Title",
@@ -124,7 +124,7 @@ export function ChartViewIndexPage() {
             (chartView: ApiChartViewOverview) => [
                 `${chartView.id}`,
                 chartView.title,
-                chartView.slug,
+                chartView.name,
                 chartView.parent.title,
             ]
         )

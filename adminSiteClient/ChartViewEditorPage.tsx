@@ -17,7 +17,7 @@ export class ChartViewEditorPage
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    idAndSlug: { id: number; slug: string } | undefined = undefined
+    idAndName: { id: number; name: string } | undefined = undefined
 
     patchConfig: GrapherInterface = {}
     fullConfig: GrapherInterface = {}
@@ -31,7 +31,7 @@ export class ChartViewEditorPage
             `/api/chartViews/${this.chartViewId}`
         )
 
-        this.idAndSlug = { id: data.id, slug: data.slug }
+        this.idAndName = { id: data.id, name: data.name }
         this.fullConfig = data.configFull
         this.patchConfig = data.configPatch
         this.parentChartId = data.parentChartId

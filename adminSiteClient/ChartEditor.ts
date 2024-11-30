@@ -34,7 +34,7 @@ export interface Log {
 
 export interface ChartViewMinimalInformation {
     id: number
-    slug: string
+    name: string
     title: string
 }
 
@@ -213,18 +213,20 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         delete chartJson.isPublished
         delete chartJson.slug
 
-        const suggestedSlug = grapher.title ? slugify(grapher.title) : undefined
+        const suggestedName = grapher.title ? slugify(grapher.title) : undefined
 
-        const slug = prompt(
-            "Please enter a slug for the narrative view. Note that the slug cannot be changed later.",
-            suggestedSlug
+        const name = prompt(
+            "Please enter a programmatic name for the narrative view. Note that this name cannot be changed later.",
+            suggestedName
         )
+
+        if (name === null) return
 
         // Need to open intermediary tab before AJAX to avoid popup blockers
         const w = window.open("/", "_blank") as Window
 
         const body = {
-            slug,
+            name,
             parentChartId: grapher.id,
             config: chartJson,
         }

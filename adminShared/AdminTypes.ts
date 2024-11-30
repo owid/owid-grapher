@@ -1,6 +1,6 @@
 export interface ApiChartViewOverview {
     id: number
-    slug: string
+    name: string
     parent: {
         id: number
         title: string
