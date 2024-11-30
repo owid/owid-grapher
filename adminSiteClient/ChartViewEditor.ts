@@ -28,7 +28,8 @@ export class ChartViewEditor extends AbstractChartEditor<ChartViewEditorManager>
         if (this.grapher.hasMapTab) tabs.push("map")
         if (this.grapher.isScatter) tabs.push("scatter")
         if (this.grapher.isMarimekko) tabs.push("marimekko")
-        tabs.push("inheritance")
+        tabs.push("refs")
+        tabs.push("export")
         tabs.push("debug")
         return tabs
     }

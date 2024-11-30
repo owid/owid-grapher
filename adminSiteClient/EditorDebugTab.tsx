@@ -2,15 +2,21 @@ import React from "react"
 import { observer } from "mobx-react"
 import { Section, Toggle } from "./Forms.js"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
-import { action } from "mobx"
+import { action, computed, observable } from "mobx"
 import { copyToClipboard, mergeGrapherConfigs } from "@ourworldindata/utils"
 import YAML from "yaml"
-import { notification } from "antd"
+import { Modal, notification } from "antd"
 import {
     IndicatorChartEditor,
     isIndicatorChartEditorInstance,
 } from "./IndicatorChartEditor.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import {
+    ChartViewEditor,
+    isChartViewEditorInstance,
+} from "./ChartViewEditor.js"
+import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
+import { stringify } from "safe-stable-stringify"
 
 @observer
 export class EditorDebugTab<
@@ -22,6 +28,8 @@ export class EditorDebugTab<
         const { editor } = this.props
         if (isChartEditorInstance(editor))
             return <EditorDebugTabForChart editor={editor} />
+        else if (isChartViewEditorInstance(editor))
+            return <EditorDebugTabForChartView editor={editor} />
         else if (isIndicatorChartEditorInstance(editor))
             return <EditorDebugTabForIndicatorChart editor={editor} />
         else return null
@@ -173,6 +181,143 @@ class EditorDebugTabForChart extends React.Component<{
                     </>
                 )}
 
+                <Section name="Full Config">
+                    <textarea
+                        rows={7}
+                        readOnly
+                        className="form-control"
+                        value={YAML.stringify(fullConfig)}
+                    />
+                </Section>
+            </div>
+        )
+    }
+}
+
+@observer
+class EditorDebugTabForChartView extends React.Component<{
+    editor: ChartViewEditor
+}> {
+    @action.bound copyYamlToClipboard() {
+        // Avoid modifying the original JSON object
+        // Due to mobx memoizing computed values, the JSON can be mutated.
+        const patchConfig = {
+            ...this.props.editor.patchConfig,
+        }
+        delete patchConfig.id
+        delete patchConfig.dimensions
+        delete patchConfig.version
+        delete patchConfig.isPublished
+        const chartConfigAsYaml = YAML.stringify(patchConfig)
+        // Use the Clipboard API to copy the config into the users clipboard
+        void copyToClipboard(chartConfigAsYaml)
+        notification["success"]({
+            message: "Copied YAML to clipboard",
+            description: "You can now paste this into the ETL",
+            placement: "bottomRight",
+            closeIcon: <></>,
+        })
+    }
+
+    @observable diffModalOpen = false
+
+    @action.bound onModalClose() {
+        this.diffModalOpen = false
+    }
+
+    @computed get diffModal() {
+        return (
+            <Modal
+                open={this.diffModalOpen}
+                centered
+                width="80vw"
+                onOk={this.onModalClose}
+                onCancel={this.onModalClose}
+                cancelButtonProps={{ style: { display: "none" } }}
+            >
+                <div style={{ maxHeight: "50vh", overflowY: "auto" }}>
+                    <ReactDiffViewer
+                        newValue={stringify(
+                            this.props.editor.fullConfig,
+                            null,
+                            2
+                        )}
+                        oldValue={stringify(
+                            this.props.editor.parentConfig,
+                            null,
+                            2
+                        )}
+                        leftTitle={"a"}
+                        rightTitle={"b"}
+                        compareMethod={DiffMethod.WORDS_WITH_SPACE}
+                        styles={{
+                            contentText: {
+                                wordBreak: "break-word",
+                            },
+                        }}
+                        extraLinesSurroundingDiff={2}
+                    />
+                </div>
+            </Modal>
+        )
+    }
+
+    render() {
+        const { patchConfig, parentConfig, fullConfig, parentChartId } =
+            this.props.editor
+
+        const parentChartLink = (
+            <a
+                href={`/admin/charts/${parentChartId}/edit`}
+                target="_blank"
+                rel="noopener"
+            >
+                {parentConfig?.title ?? "(missing title)"}
+            </a>
+        )
+
+        return (
+            <div>
+                <Section name="Config">
+                    <textarea
+                        rows={7}
+                        readOnly
+                        className="form-control"
+                        value={YAML.stringify(patchConfig)}
+                    />
+                    <button
+                        className="btn btn-primary mt-2"
+                        onClick={this.copyYamlToClipboard}
+                    >
+                        Copy YAML for ETL
+                    </button>
+
+                    {this.diffModal}
+
+                    <button
+                        className="btn btn-secondary mt-2"
+                        onClick={() => (this.diffModalOpen = true)}
+                    >
+                        Show diff to parent chart
+                    </button>
+                </Section>
+
+                <Section name="Parent chart">
+                    <p>
+                        This chart inherits settings from its parent chart,{" "}
+                        {parentChartLink}.
+                    </p>
+                </Section>
+                {parentConfig && (
+                    <Section name="Parent config">
+                        <textarea
+                            rows={7}
+                            readOnly
+                            className="form-control"
+                            value={YAML.stringify(parentConfig)}
+                        />
+                    </Section>
+                )}
                 <Section name="Full Config">
                     <textarea
                         rows={7}
