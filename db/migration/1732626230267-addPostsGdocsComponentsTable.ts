@@ -13,7 +13,7 @@ CREATE TABLE posts_gdocs_components (
     path VARCHAR(1024),
     FOREIGN KEY (gdocId) REFERENCES posts_gdocs(id),
     INDEX idx_gdocId (gdocId)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB;
         `)
     }
 
