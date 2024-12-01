@@ -6,7 +6,10 @@ import {
     parsePostGdocContent,
     serializePostGdocComponentConfig,
 } from "@ourworldindata/types"
-import { enumerateGdocComponentsWithoutChildren } from "../../db/model/Gdoc/extractGdocComponentInfo.js"
+import {
+    enumerateGdocComponentsWithoutChildren,
+    getGdocComponentsWithoutChildren,
+} from "../../db/model/Gdoc/extractGdocComponentInfo.js"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     await knexReadWriteTransaction(async (trx) => {
@@ -23,32 +26,15 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
                     ...gdocRaw,
                     content: parsePostGdocContent(gdocRaw.content),
                 }
-                const startPath = "$.body"
-                const body = gdocEnriched.content.body
-                const componentInfos = []
-                if (body)
-                    for (let i = 0; i < body.length; i++) {
-                        const components =
-                            enumerateGdocComponentsWithoutChildren(
-                                body[i],
-                                startPath,
-                                `${startPath}[${i}]`
-                            )
-                        componentInfos.push(...components)
-                    }
-                const insertData = componentInfos.map(
-                    (componentInfo) =>
-                        ({
-                            gdocId: gdocRaw.id,
-                            path: componentInfo.path,
-                            parent: componentInfo.parentPath,
-                            config: serializePostGdocComponentConfig(
-                                componentInfo.content
-                            ),
-                        }) satisfies DbInsertPostGdocComponent
-                )
-                if (insertData.length > 0)
-                    await trx("posts_gdocs_components").insert(insertData)
+                const gdocComponentsWithoutChildren =
+                    getGdocComponentsWithoutChildren(
+                        gdocEnriched.id,
+                        gdocEnriched.content.body
+                    )
+                if (gdocComponentsWithoutChildren.length > 0)
+                    await trx("posts_gdocs_components").insert(
+                        gdocComponentsWithoutChildren
+                    )
             } catch (e) {
                 console.error(`Error processing post ${gdocRaw.id}`)
                 console.error(e)

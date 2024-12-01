@@ -607,6 +607,7 @@ export {
     parsePostsGdocsComponentRow,
     serializePostGdocComponentConfig,
     serializePostsGdocsComponentRow,
+    PostsGdocsComponentsTableName,
 } from "./dbTypes/PostsGdocsComponents.js"
 export {
     type DbInsertPostGdoc,
