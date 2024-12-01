@@ -1,11 +1,13 @@
 import parseArgs from "minimist"
 import { knexRaw, knexReadWriteTransaction } from "../../db/db.js"
 import {
+    DbInsertPostGdocComponent,
     DbRawPostGdoc,
     EnrichedBlockKeyInsights,
     EnrichedBlockTable,
     OwidEnrichedGdocBlock,
     parsePostGdocContent,
+    serializePostGdocComponentConfig,
 } from "@ourworldindata/types"
 import { omit, spansToUnformattedPlainText } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
@@ -326,12 +328,17 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
                             )
                         componentInfos.push(...components)
                     }
-                const insertData = componentInfos.map((componentInfo) => ({
-                    gdocId: gdocRaw.id,
-                    path: componentInfo.path,
-                    parent: componentInfo.parentPath,
-                    config: JSON.stringify(componentInfo.content),
-                }))
+                const insertData = componentInfos.map(
+                    (componentInfo) =>
+                        ({
+                            gdocId: gdocRaw.id,
+                            path: componentInfo.path,
+                            parent: componentInfo.parentPath,
+                            config: serializePostGdocComponentConfig(
+                                componentInfo.content
+                            ),
+                        }) satisfies DbInsertPostGdocComponent
+                )
                 if (insertData.length > 0)
                     await trx("posts_gdocs_components").insert(insertData)
             } catch (e) {
