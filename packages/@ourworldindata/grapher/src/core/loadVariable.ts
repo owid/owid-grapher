@@ -1,4 +1,5 @@
 import { OwidVariableDataMetadataDimensions } from "@ourworldindata/types"
+import { fetchWithRetry } from "@ourworldindata/utils"
 
 export const getVariableDataRoute = (
     dataApiUrl: string,
@@ -28,8 +29,10 @@ export async function loadVariableDataAndMetadata(
     variableId: number,
     dataApiUrl: string
 ): Promise<OwidVariableDataMetadataDimensions> {
-    const dataPromise = fetch(getVariableDataRoute(dataApiUrl, variableId))
-    const metadataPromise = fetch(
+    const dataPromise = fetchWithRetry(
+        getVariableDataRoute(dataApiUrl, variableId)
+    )
+    const metadataPromise = fetchWithRetry(
         getVariableMetadataRoute(dataApiUrl, variableId)
     )
     const [dataResponse, metadataResponse] = await Promise.all([

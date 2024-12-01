@@ -583,7 +583,7 @@ export const trimObject = <Obj>(
 }
 
 export const fetchText = async (url: string): Promise<string> => {
-    return await fetch(url).then((res) => {
+    return await fetchWithRetry(url).then((res) => {
         if (!res.ok)
             throw new Error(`Fetch failed: ${res.status} ${res.statusText}`)
         return res.text()
@@ -593,7 +593,7 @@ export const fetchText = async (url: string): Promise<string> => {
 const _getUserCountryInformation = async (): Promise<
     UserCountryInformation | undefined
 > =>
-    await fetch("/detect-country")
+    await fetchWithRetry("/detect-country")
         .then((res) => res.json())
         .then((res) => res.country)
         .catch(() => undefined)
@@ -776,17 +776,34 @@ export const getYearFromISOStringAndDayOffset = (
 export const sleep = (ms: number): Promise<void> =>
     new Promise((resolve) => setTimeout(resolve, ms))
 
+interface RetryOptions {
+    maxRetries?: number
+    exponentialBackoff?: boolean
+    initialDelay?: number
+}
+
+export async function fetchWithRetry(
+    url: string,
+    fetchOptions?: RequestInit,
+    retryOptions?: RetryOptions
+): Promise<Response> {
+    const defaultRetryOptions: RetryOptions = {
+        maxRetries: 5,
+        exponentialBackoff: true,
+        initialDelay: 250,
+    }
+    return retryPromise(
+        () => fetch(url, fetchOptions),
+        retryOptions ?? defaultRetryOptions
+    )
+}
 export async function retryPromise<T>(
     promiseGetter: () => Promise<T>,
     {
         maxRetries = 3,
         exponentialBackoff = false,
         initialDelay = 200,
-    }: {
-        maxRetries?: number
-        exponentialBackoff?: boolean
-        initialDelay?: number
-    } = {}
+    }: RetryOptions = {}
 ): Promise<T> {
     let retried = 0
     let lastError

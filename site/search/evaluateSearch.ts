@@ -2,6 +2,7 @@
  * Simulate searches against our Algolia index and evaluate the results.
  */
 
+import { fetchWithRetry } from "@ourworldindata/utils"
 import {
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
@@ -97,7 +98,7 @@ const getClient = (): any => {
 
 const fetchQueryDataset = async (name: string): Promise<QueryDataset> => {
     const url: string = `${SEARCH_EVAL_URL}/${name}`
-    const resp = await fetch(url)
+    const resp = await fetchWithRetry(url)
     const jsonData = await resp.json()
     return { name, queries: jsonData }
 }

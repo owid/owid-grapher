@@ -19,6 +19,7 @@ import {
     merge,
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromQueryStr,
+    fetchWithRetry,
 } from "@ourworldindata/utils"
 import { action } from "mobx"
 import React from "react"
@@ -178,8 +179,8 @@ class MultiEmbedder {
             let configUrl
             if (isMultiDim) {
                 const mdimConfigUrl = `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${slug}.json`
-                const mdimJsonConfig = await fetch(mdimConfigUrl).then((res) =>
-                    res.json()
+                const mdimJsonConfig = await fetchWithRetry(mdimConfigUrl).then(
+                    (res) => res.json()
                 )
                 const mdimConfig =
                     MultiDimDataPageConfig.fromObject(mdimJsonConfig)
@@ -199,8 +200,8 @@ class MultiEmbedder {
             } else {
                 configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
             }
-            const grapherPageConfig = await fetch(configUrl).then((res) =>
-                res.json()
+            const grapherPageConfig = await fetchWithRetry(configUrl).then(
+                (res) => res.json()
             )
 
             const figureConfigAttr = figure.getAttribute(

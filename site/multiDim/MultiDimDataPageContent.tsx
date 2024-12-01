@@ -25,6 +25,7 @@ import {
     multiDimStateToQueryStr,
     merge,
     omit,
+    fetchWithRetry,
 } from "@ourworldindata/utils"
 import cx from "classnames"
 import { DebugProvider } from "../gdocs/DebugContext.js"
@@ -101,16 +102,16 @@ const getDatapageDataV2 = async (
 
 const cachedGetVariableMetadata = memoize(
     (variableId: number): Promise<OwidVariableWithSourceAndDimension> =>
-        fetch(getVariableMetadataRoute(DATA_API_URL, variableId)).then((resp) =>
-            resp.json()
+        fetchWithRetry(getVariableMetadataRoute(DATA_API_URL, variableId)).then(
+            (resp) => resp.json()
         )
 )
 
 const cachedGetGrapherConfigByUuid = memoize(
     (grapherConfigUuid: string): Promise<GrapherInterface> =>
-        fetch(`/grapher/by-uuid/${grapherConfigUuid}.config.json`).then(
-            (resp) => resp.json()
-        )
+        fetchWithRetry(
+            `/grapher/by-uuid/${grapherConfigUuid}.config.json`
+        ).then((resp) => resp.json())
 )
 
 const useTitleFragments = (config: MultiDimDataPageConfig) => {
