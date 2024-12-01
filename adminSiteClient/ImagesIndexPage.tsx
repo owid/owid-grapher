@@ -135,8 +135,12 @@ function UserSelect({
         return (
             <Mentions
                 prefix=""
+                autoFocus
                 allowClear
                 value={value}
+                onKeyDown={(e) => {
+                    if (e.key === "Escape") setIsSetting(false)
+                }}
                 onChange={handleChange}
                 onSelect={handleSelect}
                 options={filteredOptions}
@@ -149,10 +153,10 @@ function UserSelect({
                 type="text"
                 onClick={() => handleSelect({ value: admin.username })}
             >
-                Claim
+                + {admin.username}
             </Button>
             <Button type="text" onClick={() => setIsSetting(true)}>
-                Set
+                + Someone else
             </Button>
         </div>
     )
@@ -249,6 +253,19 @@ function createColumns({
             title: "Owner",
             key: "userId",
             width: 200,
+            filters: [
+                {
+                    text: "Unassigned",
+                    value: null as any,
+                },
+                ...mapToArray(users)
+                    .map((user) => ({
+                        text: user.fullName,
+                        value: user.id,
+                    }))
+                    .sort((a, b) => a.text.localeCompare(b.text)),
+            ],
+            onFilter: (value, record) => record.userId === value,
             render: (_, image) => {
                 const user = users[image.userId]
                 if (!user)
@@ -427,7 +444,7 @@ export function ImageIndexPage() {
             <main className="ImageIndexPage">
                 <Flex justify="space-between">
                     <Input
-                        placeholder="Search by filename or owner"
+                        placeholder="Search by filename"
                         value={filenameSearchValue}
                         onChange={(e) => setFilenameSearchValue(e.target.value)}
                         style={{ width: 500, marginBottom: 20 }}
