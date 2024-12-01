@@ -160,7 +160,7 @@ export async function updateGdocContentOnly(
 export async function updateDerivedGdocPostsComponents(
     knex: KnexReadWriteTransaction,
     gdocId: string,
-    body: OwidEnrichedGdocBlock[] | unknown
+    body: OwidEnrichedGdocBlock[] | undefined
 ): Promise<void> {
     await knex
         .table(PostsGdocsComponentsTableName)
