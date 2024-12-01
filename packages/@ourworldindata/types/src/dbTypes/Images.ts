@@ -1,3 +1,5 @@
+import { DbPlainUser } from "./Users.js"
+
 export const ImagesTableName = "images"
 export interface DbInsertImage {
     googleId: string
@@ -10,8 +12,13 @@ export interface DbInsertImage {
     cloudflareId?: string | null
 }
 export type DbRawImage = Required<DbInsertImage>
+
 export type DbEnrichedImage = Omit<DbRawImage, "updatedAt"> & {
     updatedAt: number | null
+}
+
+export type DbEnrichedImageWithUserId = DbEnrichedImage & {
+    userId: DbPlainUser["id"]
 }
 
 export function parseImageRow(row: DbRawImage): DbEnrichedImage {

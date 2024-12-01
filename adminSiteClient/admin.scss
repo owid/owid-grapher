@@ -1207,3 +1207,16 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         display: block;
     }
 }
+
+.ImageIndexPage {
+    .ImageIndexPage__delete-user-button {
+        border-radius: 50%;
+        margin-left: 8px;
+        height: 16px;
+        font-size: 0.8em;
+        align-items: center;
+        display: inline-flex;
+        width: 16px;
+        vertical-align: -2px;
+    }
+}
