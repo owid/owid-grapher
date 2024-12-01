@@ -28,7 +28,6 @@ import TextArea from "antd/es/input/TextArea.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { keyBy } from "lodash"
 
-// Define map types
 type ImageMap = Record<string, DbEnrichedImageWithUserId>
 
 type UserMap = Record<string, DbPlainUser>
@@ -314,10 +313,10 @@ function createColumns({
 }
 
 function ImageUploadButton({
-    setImagesMap,
+    setImages,
     admin,
 }: {
-    setImagesMap: React.Dispatch<React.SetStateAction<ImageMap>>
+    setImages: React.Dispatch<React.SetStateAction<ImageMap>>
     admin: Admin
 }) {
     function uploadImage({ file }: { file: string | Blob | RcFile }) {
@@ -338,7 +337,7 @@ function ImageUploadButton({
                 image: DbEnrichedImageWithUserId
             }>("/api/image", payload, "POST")
 
-            setImagesMap((imagesMap) => ({
+            setImages((imagesMap) => ({
                 ...imagesMap,
                 [image.id]: image,
             }))
@@ -449,7 +448,7 @@ export function ImageIndexPage() {
                         onChange={(e) => setFilenameSearchValue(e.target.value)}
                         style={{ width: 500, marginBottom: 20 }}
                     />
-                    <ImageUploadButton setImagesMap={setImages} admin={admin} />
+                    <ImageUploadButton setImages={setImages} admin={admin} />
                 </Flex>
                 <Table columns={columns} dataSource={filteredImages} />
             </main>

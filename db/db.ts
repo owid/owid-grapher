@@ -184,7 +184,7 @@ export const getSlugsWithPublishedGdocsSuccessors = async (
     return knexRaw(
         knex,
         `-- sql
-        select
+        SELECT
             p.slug
         FROM
             posts p
