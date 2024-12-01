@@ -5,27 +5,54 @@ import React, {
     useMemo,
     useState,
 } from "react"
-import { Button, Flex, Input, Popconfirm, Space, Table, Upload } from "antd"
-
+import {
+    Button,
+    Flex,
+    Input,
+    Mentions,
+    Popconfirm,
+    Space,
+    Table,
+    Upload,
+} from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { DbEnrichedImage } from "@ourworldindata/types"
+import { DbEnrichedImageWithUserId, DbPlainUser } from "@ourworldindata/types"
 import { Timeago } from "./Forms.js"
 import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faUpload } from "@fortawesome/free-solid-svg-icons"
+import { faClose, faUpload } from "@fortawesome/free-solid-svg-icons"
 import { Admin } from "./Admin.js"
 import { RcFile } from "antd/es/upload/interface.js"
 import TextArea from "antd/es/input/TextArea.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
+import { keyBy } from "lodash"
+
+// Define map types
+type ImageMap = Record<string, DbEnrichedImageWithUserId>
+
+type UserMap = Record<string, DbPlainUser>
 
 type ImageEditorApi = {
     patchImage: (
-        image: DbEnrichedImage,
-        patch: Partial<DbEnrichedImage>
+        image: DbEnrichedImageWithUserId,
+        patch: Partial<DbEnrichedImageWithUserId>
     ) => void
-    deleteImage: (image: DbEnrichedImage) => void
+    deleteImage: (image: DbEnrichedImageWithUserId) => void
     getImages: () => void
+    getUsers: () => void
+    postUserXImage: (
+        user: DbPlainUser,
+        image: DbEnrichedImageWithUserId
+    ) => void
+    deleteUserXImage: (
+        user: DbPlainUser,
+        image: DbEnrichedImageWithUserId
+    ) => void
+}
+
+function mapToArray<T>(map: { [id: string]: T }): T[] {
+    return Object.values(map)
 }
 
 function AltTextEditor({
@@ -33,7 +60,7 @@ function AltTextEditor({
     text,
     patchImage,
 }: {
-    image: DbEnrichedImage
+    image: DbEnrichedImageWithUserId
     text: string
     patchImage: ImageEditorApi["patchImage"]
 }) {
@@ -59,11 +86,85 @@ function AltTextEditor({
     )
 }
 
+function UserSelect({
+    usersMap,
+    initialValue = "",
+    onUserSelect,
+}: {
+    usersMap: UserMap
+    initialValue?: string
+    onUserSelect: (user: DbPlainUser) => void
+}) {
+    const [isSetting, setIsSetting] = useState(false)
+
+    const { admin } = useContext(AdminAppContext)
+    const [value, setValue] = useState(initialValue)
+    const [filteredOptions, setFilteredOptions] = useState(() =>
+        mapToArray(usersMap).map((user) => ({
+            value: user.fullName,
+            label: user.fullName,
+        }))
+    )
+
+    const handleChange = (value: string) => {
+        setValue(value)
+        const lowercaseValue = value.toLowerCase()
+        setFilteredOptions(
+            mapToArray(usersMap)
+                .filter((user) =>
+                    user.fullName.toLowerCase().includes(lowercaseValue)
+                )
+                .map((user) => ({
+                    value: user.fullName,
+                    label: user.fullName,
+                }))
+        )
+    }
+
+    const handleSelect = async (option: { value?: string; label?: string }) => {
+        const selectedUser = mapToArray(usersMap).find(
+            (u) => u.fullName === option.value
+        )
+        if (selectedUser) {
+            setValue(selectedUser.fullName)
+            await onUserSelect(selectedUser)
+        }
+    }
+
+    if (isSetting) {
+        return (
+            <Mentions
+                prefix=""
+                allowClear
+                value={value}
+                onChange={handleChange}
+                onSelect={handleSelect}
+                options={filteredOptions}
+            />
+        )
+    }
+    return (
+        <div>
+            <Button
+                type="text"
+                onClick={() => handleSelect({ value: admin.username })}
+            >
+                Claim
+            </Button>
+            <Button type="text" onClick={() => setIsSetting(true)}>
+                Set
+            </Button>
+        </div>
+    )
+}
+
 function createColumns({
     api,
+    users,
 }: {
     api: ImageEditorApi
-}): ColumnsType<DbEnrichedImage> {
+    users: UserMap
+}): ColumnsType<DbEnrichedImageWithUserId> {
     return [
         {
             title: "Preview",
@@ -72,7 +173,9 @@ function createColumns({
             key: "cloudflareId",
             render: (cloudflareId, { originalWidth }) => {
                 const srcFor = (w: number) =>
-                    `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(cloudflareId)}/w=${w}`
+                    `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(
+                        cloudflareId
+                    )}/w=${w}`
                 return (
                     <div style={{ height: 100, width: 100 }} key={cloudflareId}>
                         <a
@@ -143,6 +246,34 @@ function createColumns({
             render: (time) => <Timeago time={time} />,
         },
         {
+            title: "Owner",
+            key: "userId",
+            width: 200,
+            render: (_, image) => {
+                const user = users[image.userId]
+                if (!user)
+                    return (
+                        <UserSelect
+                            usersMap={users}
+                            onUserSelect={(user) =>
+                                api.postUserXImage(user, image)
+                            }
+                        />
+                    )
+                return (
+                    <div>
+                        {user.fullName}
+                        <button
+                            className="ImageIndexPage__delete-user-button"
+                            onClick={() => api.deleteUserXImage(user, image)}
+                        >
+                            <FontAwesomeIcon icon={faClose} />
+                        </button>
+                    </div>
+                )
+            },
+        },
+        {
             title: "Action",
             key: "action",
             width: 100,
@@ -166,10 +297,10 @@ function createColumns({
 }
 
 function ImageUploadButton({
-    setImages,
+    setImagesMap,
     admin,
 }: {
-    setImages: React.Dispatch<React.SetStateAction<DbEnrichedImage[]>>
+    setImagesMap: React.Dispatch<React.SetStateAction<ImageMap>>
     admin: Admin
 }) {
     function uploadImage({ file }: { file: string | Blob | RcFile }) {
@@ -187,10 +318,13 @@ function ImageUploadButton({
 
             const { image } = await admin.requestJSON<{
                 sucess: true
-                image: DbEnrichedImage
+                image: DbEnrichedImageWithUserId
             }>("/api/image", payload, "POST")
 
-            setImages((images) => [image, ...images])
+            setImagesMap((imagesMap) => ({
+                ...imagesMap,
+                [image.id]: image,
+            }))
         }
         reader.readAsDataURL(file)
     }
@@ -205,45 +339,87 @@ function ImageUploadButton({
 
 export function ImageIndexPage() {
     const { admin } = useContext(AdminAppContext)
-    const [images, setImages] = useState<DbEnrichedImage[]>([])
+    const [images, setImages] = useState<ImageMap>({})
+    const [users, setUsers] = useState<UserMap>({})
     const [filenameSearchValue, setFilenameSearchValue] = useState("")
+
     const api = useMemo(
         (): ImageEditorApi => ({
             deleteImage: async (image) => {
                 await admin.requestJSON(`/api/images/${image.id}`, {}, "DELETE")
-                setImages((images) => images.filter((i) => i.id !== image.id))
+                setImages((prevMap) => {
+                    const newMap = { ...prevMap }
+                    delete newMap[image.id]
+                    return newMap
+                })
             },
             getImages: async () => {
                 const json = await admin.getJSON<{
-                    images: DbEnrichedImage[]
+                    images: DbEnrichedImageWithUserId[]
                 }>("/api/images.json")
-                setImages(json.images)
+                setImages(keyBy(json.images, "id"))
+            },
+            getUsers: async () => {
+                const json = await admin.getJSON<{ users: DbPlainUser[] }>(
+                    "/api/users.json"
+                )
+                setUsers(keyBy(json.users, "id"))
             },
             patchImage: async (image, patch) => {
                 const response = await admin.requestJSON<{
                     success: true
-                    image: DbEnrichedImage
+                    image: DbEnrichedImageWithUserId
                 }>(`/api/images/${image.id}`, patch, "PATCH")
-                setImages((images) =>
-                    images.map((i) => (i.id === image.id ? response.image : i))
+                setImages((prevMap) => ({
+                    ...prevMap,
+                    [image.id]: response.image,
+                }))
+            },
+            postUserXImage: async (user, image) => {
+                const result = await admin.requestJSON(
+                    `/api/users/${user.id}/image/${image.id}`,
+                    {},
+                    "POST"
                 )
+                if (result.success) {
+                    setImages((prevMap) => ({
+                        ...prevMap,
+                        [image.id]: { ...prevMap[image.id], userId: user.id },
+                    }))
+                }
+            },
+            deleteUserXImage: async (user, image) => {
+                const result = await admin.requestJSON(
+                    `/api/users/${user.id}/image/${image.id}`,
+                    {},
+                    "DELETE"
+                )
+                if (result.success) {
+                    setImages((prevMap) => ({
+                        ...prevMap,
+                        [image.id]: { ...prevMap[image.id], userId: null },
+                    }))
+                }
             },
         }),
         [admin]
     )
+
     const filteredImages = useMemo(
         () =>
-            images.filter((image) =>
+            mapToArray(images).filter((image) =>
                 image.filename
                     .toLowerCase()
                     .includes(filenameSearchValue.toLowerCase())
             ),
         [images, filenameSearchValue]
     )
-    const columns = useMemo(() => createColumns({ api }), [api])
+
+    const columns = useMemo(() => createColumns({ api, users }), [api, users])
 
     useEffect(() => {
         void api.getImages()
+        void api.getUsers()
     }, [api])
 
     return (
@@ -251,12 +427,12 @@ export function ImageIndexPage() {
             <main className="ImageIndexPage">
                 <Flex justify="space-between">
                     <Input
-                        placeholder="Search by filename"
+                        placeholder="Search by filename or owner"
                         value={filenameSearchValue}
                         onChange={(e) => setFilenameSearchValue(e.target.value)}
                         style={{ width: 500, marginBottom: 20 }}
                     />
-                    <ImageUploadButton setImages={setImages} admin={admin} />
+                    <ImageUploadButton setImagesMap={setImages} admin={admin} />
                 </Flex>
                 <Table columns={columns} dataSource={filteredImages} />
             </main>

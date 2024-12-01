@@ -29,6 +29,7 @@ import {
     TagGraphNode,
     MinimalExplorerInfo,
     DbEnrichedImage,
+    DbEnrichedImageWithUserId,
 } from "@ourworldindata/types"
 import { groupBy, uniq } from "lodash"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -183,7 +184,7 @@ export const getSlugsWithPublishedGdocsSuccessors = async (
     return knexRaw(
         knex,
         `-- sql
-        SELECT
+        select
             p.slug
         FROM
             posts p
@@ -724,5 +725,35 @@ export function getCloudflareImages(
         SELECT filename, cloudflareId, id, defaultAlt, originalHeight, originalWidth, updatedAt
         FROM images
         WHERE cloudflareId IS NOT NULL`
+    )
+}
+
+export function getCloudflareImagesWithUsers(
+    trx: KnexReadonlyTransaction
+): Promise<DbEnrichedImageWithUserId[]> {
+    return knexRaw(
+        trx,
+        `-- sql
+        SELECT i.*, u.id AS userId
+        FROM images i
+        LEFT JOIN users_x_images uxi ON i.id = uxi.imageId
+        LEFT JOIN users u ON uxi.userId = u.id
+        WHERE i.cloudflareId IS NOT NULL`
+    )
+}
+
+export function getCloudflareImageWithUser(
+    trx: KnexReadonlyTransaction,
+    filename: string
+): Promise<DbEnrichedImageWithUserId | undefined> {
+    return knexRawFirst(
+        trx,
+        `-- sql
+        SELECT i.*, u.id AS userId
+        FROM images i
+        LEFT JOIN users_x_images uxi ON i.id = uxi.imageId
+        LEFT JOIN users u ON uxi.userId = u.id
+        WHERE i.filename = ?`,
+        [filename]
     )
 }
