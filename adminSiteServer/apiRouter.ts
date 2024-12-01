@@ -177,6 +177,7 @@ import {
     addImagesToContentGraph,
     updateGdocContentOnly,
     upsertGdoc,
+    updateDerivedGdocPostsComponents,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { match } from "ts-pattern"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
@@ -2780,6 +2781,11 @@ postRouteWithRWTransaction(
             gdoc.createdAt = new Date()
             gdoc.publishedAt = post.published_at
             await upsertGdoc(trx, gdoc)
+            await updateDerivedGdocPostsComponents(
+                trx,
+                gdoc.id,
+                gdoc.content.body
+            )
             await setTagsForGdoc(trx, gdocId, tags)
         }
         return { googleDocsId: gdocId }
@@ -2981,7 +2987,11 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     )
 
     await upsertGdoc(trx, nextGdoc)
-
+    await updateDerivedGdocPostsComponents(
+        trx,
+        nextGdoc.id,
+        nextGdoc.content.body
+    )
     await indexAndBakeGdocIfNeccesary(trx, res.locals.user, prevGdoc, nextGdoc)
 
     return nextGdoc
