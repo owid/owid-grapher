@@ -4,12 +4,8 @@ import {
     DbInsertPostGdocComponent,
     DbRawPostGdoc,
     parsePostGdocContent,
-    serializePostGdocComponentConfig,
 } from "@ourworldindata/types"
-import {
-    enumerateGdocComponentsWithoutChildren,
-    getGdocComponentsWithoutChildren,
-} from "../../db/model/Gdoc/extractGdocComponentInfo.js"
+import { getGdocComponentsWithoutChildren } from "../../db/model/Gdoc/extractGdocComponentInfo.js"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     await knexReadWriteTransaction(async (trx) => {
