@@ -1,7 +1,9 @@
 import {
+    DbInsertPostGdocComponent,
     EnrichedBlockKeyInsights,
     EnrichedBlockTable,
     OwidEnrichedGdocBlock,
+    serializePostGdocComponentConfig,
 } from "@ourworldindata/types"
 import { omit, spansToUnformattedPlainText } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
@@ -291,4 +293,31 @@ export function enumerateGdocComponentsWithoutChildren(
             (c) => handleComponent(c, [], parentPath, path)
         )
         .exhaustive()
+}
+
+export function getGdocComponentsWithoutChildren(
+    gdocId: string,
+    body: OwidEnrichedGdocBlock[] | undefined
+): DbInsertPostGdocComponent[] {
+    const startPath = "$.body"
+    const componentInfos = []
+    if (body)
+        for (let i = 0; i < body.length; i++) {
+            const components = enumerateGdocComponentsWithoutChildren(
+                body[i],
+                startPath,
+                `${startPath}[${i}]`
+            )
+            componentInfos.push(...components)
+        }
+    const gdocComponents = componentInfos.map(
+        (componentInfo) =>
+            ({
+                gdocId,
+                path: componentInfo.path,
+                parent: componentInfo.parentPath,
+                config: serializePostGdocComponentConfig(componentInfo.content),
+            }) satisfies DbInsertPostGdocComponent
+    )
+    return gdocComponents
 }

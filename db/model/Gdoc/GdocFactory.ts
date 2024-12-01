@@ -11,6 +11,7 @@ import {
     GdocsContentSource,
     ImageMetadata,
     LatestDataInsight,
+    OwidEnrichedGdocBlock,
     OwidGdoc,
     OwidGdocBaseInterface,
     OwidGdocDataInsightContent,
@@ -18,6 +19,7 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocPublicationContext,
     OwidGdocType,
+    PostsGdocsComponentsTableName,
     PostsGdocsLinksTableName,
     PostsGdocsTableName,
     PostsGdocsXImagesTableName,
@@ -48,6 +50,7 @@ import { GdocAbout } from "./GdocAbout.js"
 import { GdocAuthor } from "./GdocAuthor.js"
 import { extractFilenamesFromBlock } from "./gdocUtils.js"
 import { fetchImagesFromDriveAndSyncToS3 } from "../Image.js"
+import { getGdocComponentsWithoutChildren } from "./extractGdocComponentInfo.js"
 
 export function gdocFromJSON(
     json: Record<string, any>
@@ -125,12 +128,13 @@ export async function createGdocAndInsertIntoDb(
     // while fetching the live gdocs (GdocsContentSource.Gdocs) in
     // loadGdocFromGdocBase().
     await upsertGdoc(knex, gdoc)
+    await updateDerivedGdocPostsComponents(knex, gdoc.id, gdoc.content.body)
 
     return gdoc
 }
 
 export async function updateGdocContentOnly(
-    knex: KnexReadonlyTransaction,
+    knex: KnexReadWriteTransaction,
     id: string,
     gdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAbout | GdocAuthor
 ): Promise<void> {
@@ -141,7 +145,7 @@ export async function updateGdocContentOnly(
     } catch (e) {
         console.error("Error when converting content to markdown", e)
     }
-    return knex
+    await knex
         .table(PostsGdocsTableName)
         .where({ id })
         .andWhere("revisionId", "<>", gdoc.revisionId)
@@ -150,6 +154,23 @@ export async function updateGdocContentOnly(
             revisionId: gdoc.revisionId,
             markdown,
         })
+    await updateDerivedGdocPostsComponents(knex, id, gdoc.content.body)
+}
+
+export async function updateDerivedGdocPostsComponents(
+    knex: KnexReadWriteTransaction,
+    gdocId: string,
+    body: OwidEnrichedGdocBlock[] | unknown
+): Promise<void> {
+    await knex
+        .table(PostsGdocsComponentsTableName)
+        .where({ gdocId: gdocId })
+        .delete()
+    if (body) {
+        const components = getGdocComponentsWithoutChildren(gdocId, body)
+        if (components.length)
+            await knex(PostsGdocsComponentsTableName).insert(components)
+    }
 }
 
 export async function getGdocBaseObjectById(
@@ -596,6 +617,11 @@ export async function upsertGdoc(
             .onConflict("id")
             .merge()
         sql = query.toSQL()
+        await updateDerivedGdocPostsComponents(
+            knex,
+            enrichedGdoc.id,
+            enrichedGdoc.content.body
+        )
         return query
     } catch (e) {
         console.error(`Error occured in sql: ${sql}`, e)
