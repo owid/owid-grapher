@@ -1,20 +1,14 @@
 import parseArgs from "minimist"
-import {
-    knexRaw,
-    knexReadonlyTransaction,
-    knexReadWriteTransaction,
-} from "../../db/db.js"
+import { knexRaw, knexReadWriteTransaction } from "../../db/db.js"
 import {
     DbRawPostGdoc,
     EnrichedBlockKeyInsights,
     EnrichedBlockTable,
     OwidEnrichedGdocBlock,
     parsePostGdocContent,
-    Span,
 } from "@ourworldindata/types"
-import { omit, traverseEnrichedSpan } from "@ourworldindata/utils"
+import { omit, spansToUnformattedPlainText } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import { flatten } from "lodash"
 
 interface ChildIterationInfo {
     child: OwidEnrichedGdocBlock
@@ -27,24 +21,6 @@ interface ComponentInfo {
     parentPath: string
     path: string
 }
-
-function iterateSingleItemProp<T extends OwidEnrichedGdocBlock>(
-    parent: T,
-    parentPath: string,
-    prop: keyof T
-): ChildIterationInfo[] {
-    // Todo: there is a difference between props that are lists and single
-    // item props. the default should be the list and then we need to
-    // build up the .[0] part of the path
-    return [
-        {
-            child: parent[prop] as OwidEnrichedGdocBlock,
-            parentPath: `${parentPath}`,
-            path: `${parentPath}.${String(prop)}`,
-        },
-    ]
-}
-
 function iterateKeyInsights<T extends EnrichedBlockKeyInsights>(
     parent: T,
     parentPath: string,
@@ -122,8 +98,36 @@ function handleComponent<T extends OwidEnrichedGdocBlock, S extends keyof T>(
     const props: (keyof T)[] = childProperties.map(
         (childProp) => childProp.prop
     )
+    function convertSpansToPlainText(obj: any): any {
+        if (Array.isArray(obj)) {
+            if (
+                obj.length > 0 &&
+                obj.every(
+                    (item) =>
+                        typeof item === "object" && item && "spanType" in item
+                )
+            ) {
+                return spansToUnformattedPlainText(obj)
+            }
+            return obj.map((item) => convertSpansToPlainText(item))
+        }
+        if (typeof obj === "object" && obj !== null) {
+            if (typeof obj === "object" && "spanType" in obj) {
+                return spansToUnformattedPlainText([obj])
+            }
+            const result: Record<string, any> = {}
+            for (const [key, value] of Object.entries(obj)) {
+                result[key] = convertSpansToPlainText(value)
+            }
+            return result
+        }
+        return obj
+    }
+
     const item: ComponentInfo = {
-        content: omit({ ...component }, props) as Record<string, unknown>,
+        content: convertSpansToPlainText(
+            omit({ ...component }, props)
+        ) as Record<string, unknown>,
         parentPath: parentPath,
         path: path,
     }
@@ -131,14 +135,18 @@ function handleComponent<T extends OwidEnrichedGdocBlock, S extends keyof T>(
     const components = []
 
     for (const { prop, iterator } of childProperties) {
-        const children = iterator(component, `${path}`, prop)
-        for (const child of children) {
-            const childComponents = enumerateGdocComponentsWithoutChildren(
-                child.child,
-                child.parentPath,
-                child.path
-            )
-            components.push(...childComponents)
+        try {
+            const children = iterator(component, `${path}`, prop)
+            for (const child of children) {
+                const childComponents = enumerateGdocComponentsWithoutChildren(
+                    child.child,
+                    child.parentPath,
+                    child.path
+                )
+                components.push(...childComponents)
+            }
+        } catch (e) {
+            throw new Error(`Error iterating ${String(prop)} for ${path}: ${e}`)
         }
     }
 
