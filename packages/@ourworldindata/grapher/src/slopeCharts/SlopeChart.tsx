@@ -500,7 +500,7 @@ export class SlopeChart
     }
 
     @computed get maxLineLegendWidth(): number {
-        return this.bounds.width / 6
+        return this.innerBounds.width / 4
     }
 
     @computed get lineLegendWidthLeft(): number {
@@ -510,7 +510,6 @@ export class SlopeChart
             yAxis: this.yAxis,
             maxWidth: this.maxLineLegendWidth,
             connectorLineWidth: this.lineLegendConnectorLinesWidth,
-            showValueLabelsInline: false,
             fontSize: this.fontSize,
             isStatic: this.manager.isStatic,
         })
@@ -523,7 +522,6 @@ export class SlopeChart
             yAxis: this.yAxis,
             maxWidth: this.maxLineLegendWidth,
             connectorLineWidth: this.lineLegendConnectorLinesWidth,
-            showValueLabelsInline: false,
             fontSize: this.fontSize,
             isStatic: this.manager.isStatic,
         })
@@ -581,10 +579,6 @@ export class SlopeChart
         return !!this.manager.isSemiNarrow
     }
 
-    @computed private get showValueLabelsInline(): boolean {
-        return this.useCompactLineLegend
-    }
-
     // used by LineLegend
     @computed get focusedSeriesNames(): SeriesName[] {
         return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
@@ -613,7 +607,7 @@ export class SlopeChart
                 color,
                 seriesName,
                 label: seriesName,
-                annotation,
+                annotation: this.useCompactLineLegend ? undefined : annotation,
                 formattedValue,
                 yValue: end.value,
             }
@@ -754,7 +748,7 @@ export class SlopeChart
         const formatTime = (time: Time) => formatColumn.formatTime(time)
 
         const title = series.seriesName
-        const titleAnnotation = !this.showValueLabelsInline
+        const titleAnnotation = this.useCompactLineLegend
             ? series.annotation
             : undefined
 
@@ -980,7 +974,6 @@ export class SlopeChart
                 yRange={[this.bounds.top, this.bounds.bottom]}
                 maxWidth={this.maxLineLegendWidth}
                 lineLegendAnchorX="start"
-                showValueLabelsInline={this.showValueLabelsInline}
                 connectorLineWidth={this.lineLegendConnectorLinesWidth}
                 fontSize={this.fontSize}
                 fontWeight={700}
