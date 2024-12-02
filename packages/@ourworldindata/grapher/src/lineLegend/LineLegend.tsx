@@ -14,7 +14,7 @@ import {
     last,
     maxBy,
 } from "@ourworldindata/utils"
-import { TextWrap } from "@ourworldindata/components"
+import { TextWrap, TextWrapGroup } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
@@ -44,9 +44,8 @@ export interface LineLabelSeries extends ChartSeries {
 }
 
 interface SizedSeries extends LineLabelSeries {
-    textWrap: TextWrap
+    textWrap: TextWrapGroup
     annotationTextWrap?: TextWrap
-    valueTextWrap?: TextWrap
     width: number
     height: number
 }
@@ -211,46 +210,6 @@ class LineLabels extends React.Component<{
         )
     }
 
-    @computed private get textValues(): React.ReactElement | void {
-        const markersWithTextValues = this.markers.filter(
-            ({ series }) => series.valueTextWrap !== undefined
-        )
-        if (!markersWithTextValues) return
-        return (
-            <g id={makeIdForHumanConsumption("text-values")}>
-                {markersWithTextValues.map(({ series, labelText }, index) => {
-                    if (!series.valueTextWrap) return
-                    const key = getSeriesKey(
-                        series,
-                        index,
-                        this.props.uniqueKey
-                    )
-                    const textColor = darkenColorForText(series.color)
-                    const direction = this.anchor === "start" ? 1 : -1
-                    const x = this.showValueLabelsInline
-                        ? labelText.x + direction * (series.textWrap.width + 4)
-                        : labelText.x
-                    const y = this.showValueLabelsInline
-                        ? labelText.y
-                        : labelText.y +
-                          series.textWrap.height +
-                          ANNOTATION_PADDING
-                    return (
-                        <Halo id={key} key={key}>
-                            {series.valueTextWrap.render(x, y, {
-                                textProps: {
-                                    fill: textColor,
-                                    opacity: this.textOpacity,
-                                    textAnchor: this.anchor,
-                                },
-                            })}
-                        </Halo>
-                    )
-                })}
-            </g>
-        )
-    }
-
     @computed private get connectorLines(): React.ReactElement | void {
         if (!this.props.needsConnectorLines) return
         return (
@@ -331,7 +290,6 @@ class LineLabels extends React.Component<{
             <>
                 {this.connectorLines}
                 {this.textAnnotations}
-                {this.textValues}
                 {this.textLabels}
                 {!this.props.isStatic && this.interactions}
             </>
@@ -427,11 +385,16 @@ export class LineLegend extends React.Component<LineLegendProps> {
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
         return this.props.labelSeries.map((label) => {
-            const textWrap = new TextWrap({
-                text: label.label,
+            const labelFragments = excludeUndefined([
+                { text: label.label, fontWeight },
+                label.formattedValue
+                    ? { text: label.formattedValue }
+                    : undefined,
+            ])
+            const textWrap = new TextWrapGroup({
+                fragments: labelFragments,
                 maxWidth: maxTextWidth,
                 fontSize,
-                fontWeight,
                 lineHeight: 1,
             })
             const annotationTextWrap =
@@ -443,14 +406,6 @@ export class LineLegend extends React.Component<LineLegendProps> {
                           lineHeight: 1,
                       })
                     : undefined
-            const valueTextWrap = label.formattedValue
-                ? new TextWrap({
-                      text: label.formattedValue,
-                      maxWidth: Infinity,
-                      fontSize: fontSize * 0.9,
-                      lineHeight: 1,
-                  })
-                : undefined
 
             const annotationWidth = annotationTextWrap
                 ? annotationTextWrap.width
@@ -459,22 +414,12 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 ? ANNOTATION_PADDING + annotationTextWrap.height
                 : 0
 
-            const valueWidth = valueTextWrap ? valueTextWrap.width : 0
-            const valueHeight = valueTextWrap
-                ? ANNOTATION_PADDING + valueTextWrap.height
-                : 0
-
             return {
                 ...label,
                 textWrap,
                 annotationTextWrap,
-                valueTextWrap,
-                width: this.showValueLabelsInline
-                    ? Math.max(textWrap.width + 4 + valueWidth, annotationWidth)
-                    : Math.max(textWrap.width, annotationWidth, valueWidth),
-                height: this.showValueLabelsInline
-                    ? textWrap.height + annotationHeight
-                    : textWrap.height + annotationHeight + valueHeight,
+                width: Math.max(textWrap.width, annotationWidth),
+                height: textWrap.height + annotationHeight,
             }
         })
     }
