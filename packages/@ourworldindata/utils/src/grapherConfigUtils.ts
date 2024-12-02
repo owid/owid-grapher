@@ -22,6 +22,27 @@ const KEYS_EXCLUDED_FROM_INHERITANCE = [
     "isPublished",
 ]
 
+/**
+ * Simple merge function that doesn't do any Grapher-specific checks.
+ *
+ * You usually want to use `mergeGrapherConfigs` instead that implements the
+ * inheritance model correctly. Only use this if you know what you're doing.
+ */
+export function simpleMerge(
+    ...grapherConfigs: GrapherInterface[]
+): GrapherInterface {
+    return mergeWith(
+        {}, // mergeWith mutates the first argument
+        ...grapherConfigs,
+        (_: unknown, childValue: unknown): any => {
+            // don't concat arrays, just use the last one
+            if (Array.isArray(childValue)) {
+                return childValue
+            }
+        }
+    )
+}
+
 export function mergeGrapherConfigs(
     ...grapherConfigs: GrapherInterface[]
 ): GrapherInterface {
@@ -60,16 +81,7 @@ export function mergeGrapherConfigs(
         return omit(config, KEYS_EXCLUDED_FROM_INHERITANCE)
     })
 
-    return mergeWith(
-        {}, // mergeWith mutates the first argument
-        ...cleanedConfigs,
-        (_: unknown, childValue: unknown): any => {
-            // don't concat arrays, just use the last one
-            if (Array.isArray(childValue)) {
-                return childValue
-            }
-        }
-    )
+    return simpleMerge(...cleanedConfigs)
 }
 
 export function diffGrapherConfigs(
