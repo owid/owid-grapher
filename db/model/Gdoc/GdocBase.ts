@@ -555,6 +555,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "missing-data",
                         "numbered-list",
                         "people",
+                        "people-rows",
                         "person",
                         "pull-quote",
                         "sdg-grid",

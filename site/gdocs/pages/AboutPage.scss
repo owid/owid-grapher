@@ -3,6 +3,7 @@
 }
 
 .about-nav {
+    margin-bottom: 32px;
     border-bottom: 1px solid $blue-20;
 }
 
@@ -44,7 +45,7 @@
     }
 
     h2:first-of-type {
-        margin-top: 32px;
+        margin-top: 0;
     }
 
     hr {

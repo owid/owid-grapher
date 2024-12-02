@@ -1687,6 +1687,12 @@ export function traverseEnrichedBlock(
                 traverseEnrichedBlock(item, callback, spanCallback)
             }
         })
+        .with({ type: "people-rows" }, (peopleRows) => {
+            callback(peopleRows)
+            for (const person of peopleRows.people) {
+                traverseEnrichedBlock(person, callback, spanCallback)
+            }
+        })
         .with({ type: "person" }, (person) => {
             callback(person)
             for (const node of person.text) {

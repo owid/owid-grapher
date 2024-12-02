@@ -44,6 +44,7 @@ import {
     RawBlockLatestDataInsights,
     RawBlockSocials,
     RawBlockPeople,
+    RawBlockPeopleRows,
     RawBlockPerson,
 } from "@ourworldindata/types"
 import { isArray } from "@ourworldindata/utils"
@@ -225,6 +226,21 @@ function* rawBlockPeopleToArchieMLString(
         }
     }
     yield "[]"
+}
+
+function* rawBlockPeopleRowsToArchieMLString(
+    block: RawBlockPeopleRows
+): Generator<string, void, undefined> {
+    yield "{.people-rows}"
+    yield* propertyToArchieMLString("columns", block.value)
+    yield "[.+people]"
+    if (typeof block.value.people !== "string") {
+        for (const person of block.value.people) {
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(person)
+        }
+    }
+    yield "[]"
+    yield "{}"
 }
 
 function* rawBlockPersonToArchieMLString(
@@ -803,6 +819,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "list" }, rawBlockListToArchieMLString)
         .with({ type: "numbered-list" }, rawBlockNumberedListToArchieMLString)
         .with({ type: "people" }, rawBlockPeopleToArchieMLString)
+        .with({ type: "people-rows" }, rawBlockPeopleRowsToArchieMLString)
         .with({ type: "person" }, rawBlockPersonToArchieMLString)
         .with({ type: "pull-quote" }, rawBlockPullQuoteToArchieMLString)
         .with(

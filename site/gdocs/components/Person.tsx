@@ -5,6 +5,7 @@ import { ArticleBlocks } from "./ArticleBlocks.js"
 import Image from "./Image.js"
 import { useMediaQuery } from "usehooks-ts"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
+import { Socials } from "./Socials.js"
 
 export default function Person({ person }: { person: EnrichedBlockPerson }) {
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
@@ -34,6 +35,12 @@ export default function Person({ person }: { person: EnrichedBlockPerson }) {
             <div>
                 {(!person.image || !isSmallScreen) && header}
                 <ArticleBlocks blocks={person.text} />
+                {person.socials && (
+                    <Socials
+                        className="person-socials"
+                        links={person.socials}
+                    />
+                )}
             </div>
         </div>
     )

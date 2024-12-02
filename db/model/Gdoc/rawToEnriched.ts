@@ -114,6 +114,7 @@ import {
     EnrichedBlockHomepageIntro,
     RawBlockHomepageIntro,
     EnrichedBlockHomepageIntroPost,
+    RawSocialLink,
     RawBlockSocials,
     EnrichedBlockSocials,
     EnrichedSocialLink,
@@ -124,6 +125,8 @@ import {
     EnrichedBlockPeople,
     RawBlockPerson,
     EnrichedBlockPerson,
+    RawBlockPeopleRows,
+    EnrichedBlockPeopleRows,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -171,6 +174,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "list" }, parseList)
         .with({ type: "numbered-list" }, parseNumberedList)
         .with({ type: "people" }, parsePeople)
+        .with({ type: "people-rows" }, parsePeopleRows)
         .with({ type: "person" }, parsePerson)
         .with({ type: "pull-quote" }, parsePullQuote)
         .with(
@@ -808,12 +812,23 @@ const parsePerson = (raw: RawBlockPerson): EnrichedBlockPerson => {
         return createError({ message: "Person must have a name" })
     }
 
+    console.log("value", raw.value)
     return {
         type: "person",
         image: raw.value.image,
         name: raw.value.name,
         title: raw.value.title,
         text: raw.value.text.map(parseText),
+        socials: raw.value.socials?.map(parseSocialLink),
+        parseErrors: [],
+    }
+}
+
+const parsePeopleRows = (raw: RawBlockPeopleRows): EnrichedBlockPeopleRows => {
+    return {
+        type: "people-rows",
+        columns: raw.value.columns,
+        people: raw.value.people.map(parsePerson),
         parseErrors: [],
     }
 }
@@ -2310,6 +2325,44 @@ function parseHomepageIntro(
     }
 }
 
+export const parseSocialLink = (raw: RawSocialLink): EnrichedSocialLink => {
+    const createError = (error: ParseError): EnrichedSocialLink => ({
+        url: "",
+        text: "",
+        type: undefined,
+        parseErrors: [error],
+    })
+
+    const url = extractUrl(raw.url)
+    if (!url) {
+        return createError({
+            message: "Link is missing a url",
+        })
+    }
+    if (!raw.text) {
+        return createError({
+            message: "Link is missing text",
+        })
+    }
+    if (raw.type && Object.values(SocialLinkType).indexOf(raw.type) === -1) {
+        return createError({
+            message: `Link type must be one of ${Object.values(
+                SocialLinkType
+            ).join(", ")}`,
+        })
+    }
+
+    return {
+        url:
+            raw.type === "email" && !url.startsWith("mailto:")
+                ? `mailto:${url}`
+                : url,
+        text: raw.text,
+        type: raw.type,
+        parseErrors: [],
+    }
+}
+
 export const parseSocials = (raw: RawBlockSocials): EnrichedBlockSocials => {
     const createError = (error: ParseError): EnrichedBlockSocials => ({
         type: "socials",
@@ -2328,44 +2381,9 @@ export const parseSocials = (raw: RawBlockSocials): EnrichedBlockSocials => {
         })
     }
 
-    const links: EnrichedSocialLink[] = []
-
-    for (const link of raw.value) {
-        const url = extractUrl(link.url)
-        if (!url) {
-            return createError({
-                message: "Link is missing a url",
-            })
-        }
-        if (!link.text) {
-            return createError({
-                message: "Link is missing text",
-            })
-        }
-        if (
-            link.type &&
-            Object.values(SocialLinkType).indexOf(link.type) === -1
-        ) {
-            return createError({
-                message: `Link type must be one of ${Object.values(
-                    SocialLinkType
-                ).join(", ")}`,
-            })
-        }
-
-        links.push({
-            url:
-                link.type === "email" && !url.startsWith("mailto:")
-                    ? `mailto:${url}`
-                    : url,
-            text: link.text,
-            type: link.type,
-        })
-    }
-
     return {
         type: "socials",
-        links,
+        links: raw.value.map(parseSocialLink),
         parseErrors: [],
     }
 }

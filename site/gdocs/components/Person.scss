@@ -1,6 +1,6 @@
 .person {
     display: flex;
-    gap: 24px;
+    gap: var(--grid-gap);
 
     @include sm-only {
         flex-direction: column;
@@ -30,6 +30,9 @@
 }
 
 .person-header {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
     margin-bottom: 8px;
 }
 
@@ -39,4 +42,25 @@
 
 .person-title {
     color: $blue-60;
+}
+
+.person-socials {
+    margin-top: 16px;
+    margin-bottom: var(--grid-gap);
+
+    ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        list-style-type: none;
+        list-style-position: inside;
+    }
+
+    svg {
+        color: $blue-60;
+    }
+
+    a {
+        @include owid-link-90;
+    }
 }

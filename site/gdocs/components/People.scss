@@ -1,6 +1,9 @@
 .people {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    max-width: 845px;
+    gap: var(--grid-gap);
+
+    @include md-up {
+        .article-block__text {
+            @include body-3-medium;
+        }
+    }
 }

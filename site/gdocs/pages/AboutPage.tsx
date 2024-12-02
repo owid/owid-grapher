@@ -20,8 +20,11 @@ export default function AboutPage({ content, slug }: OwidGdocAboutInterface) {
                 About
             </h1>
             <AboutNav slug={slug} />
-            <div className="about-body col-start-2 span-cols-12">
-                <ArticleBlocks blocks={content.body} />
+            <div className="about-body grid grid-cols-12-full-width col-start-1 col-end-limit">
+                <ArticleBlocks
+                    containerType="about-page"
+                    blocks={content.body}
+                />
             </div>
         </main>
     )

@@ -45,6 +45,7 @@ import {
     RawBlockLatestDataInsights,
     RawBlockSocials,
     RawBlockPeople,
+    RawBlockPeopleRows,
     RawBlockPerson,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
@@ -189,6 +190,18 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockPeople => ({
                 type: b.type,
                 value: b.items.map(enrichedBlockToRawBlock) as RawBlockPerson[],
+            })
+        )
+        .with(
+            { type: "people-rows" },
+            (b): RawBlockPeopleRows => ({
+                type: b.type,
+                value: {
+                    columns: b.columns,
+                    people: b.people.map(
+                        enrichedBlockToRawBlock
+                    ) as RawBlockPerson[],
+                },
             })
         )
         .with(
@@ -549,7 +562,11 @@ export function enrichedBlockToRawBlock(
         .with({ type: "socials" }, (b): RawBlockSocials => {
             return {
                 type: "socials",
-                value: b.links,
+                value: b.links.map(({ url, text, type }) => ({
+                    url,
+                    text,
+                    type,
+                })),
             }
         })
         .exhaustive()
