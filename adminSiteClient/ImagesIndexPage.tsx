@@ -40,18 +40,11 @@ type ImageEditorApi = {
     deleteImage: (image: DbEnrichedImageWithUserId) => void
     getImages: () => void
     getUsers: () => void
-    postUserXImage: (
+    postUserImage: (user: DbPlainUser, image: DbEnrichedImageWithUserId) => void
+    deleteUserImage: (
         user: DbPlainUser,
         image: DbEnrichedImageWithUserId
     ) => void
-    deleteUserXImage: (
-        user: DbPlainUser,
-        image: DbEnrichedImageWithUserId
-    ) => void
-}
-
-function mapToArray<T>(map: { [id: string]: T }): T[] {
-    return Object.values(map)
 }
 
 function AltTextEditor({
@@ -99,7 +92,7 @@ function UserSelect({
     const { admin } = useContext(AdminAppContext)
     const [value, setValue] = useState(initialValue)
     const [filteredOptions, setFilteredOptions] = useState(() =>
-        mapToArray(usersMap).map((user) => ({
+        Object.values(usersMap).map((user) => ({
             value: user.fullName,
             label: user.fullName,
         }))
@@ -109,21 +102,19 @@ function UserSelect({
         setValue(value)
         const lowercaseValue = value.toLowerCase()
         setFilteredOptions(
-            mapToArray(usersMap)
+            Object.values(usersMap)
                 .filter((user) =>
                     user.fullName.toLowerCase().includes(lowercaseValue)
                 )
                 .map((user) => ({
-                    value: user.fullName,
+                    value: String(user.id),
                     label: user.fullName,
                 }))
         )
     }
 
     const handleSelect = async (option: { value?: string; label?: string }) => {
-        const selectedUser = mapToArray(usersMap).find(
-            (u) => u.fullName === option.value
-        )
+        const selectedUser = usersMap[option.value!]
         if (selectedUser) {
             setValue(selectedUser.fullName)
             await onUserSelect(selectedUser)
@@ -257,7 +248,7 @@ function createColumns({
                     text: "Unassigned",
                     value: null as any,
                 },
-                ...mapToArray(users)
+                ...Object.values(users)
                     .map((user) => ({
                         text: user.fullName,
                         value: user.id,
@@ -272,7 +263,7 @@ function createColumns({
                         <UserSelect
                             usersMap={users}
                             onUserSelect={(user) =>
-                                api.postUserXImage(user, image)
+                                api.postUserImage(user, image)
                             }
                         />
                     )
@@ -281,7 +272,7 @@ function createColumns({
                         {user.fullName}
                         <button
                             className="ImageIndexPage__delete-user-button"
-                            onClick={() => api.deleteUserXImage(user, image)}
+                            onClick={() => api.deleteUserImage(user, image)}
                         >
                             <FontAwesomeIcon icon={faClose} />
                         </button>
@@ -391,7 +382,7 @@ export function ImageIndexPage() {
                     [image.id]: response.image,
                 }))
             },
-            postUserXImage: async (user, image) => {
+            postUserImage: async (user, image) => {
                 const result = await admin.requestJSON(
                     `/api/users/${user.id}/image/${image.id}`,
                     {},
@@ -404,7 +395,7 @@ export function ImageIndexPage() {
                     }))
                 }
             },
-            deleteUserXImage: async (user, image) => {
+            deleteUserImage: async (user, image) => {
                 const result = await admin.requestJSON(
                     `/api/users/${user.id}/image/${image.id}`,
                     {},
@@ -423,7 +414,7 @@ export function ImageIndexPage() {
 
     const filteredImages = useMemo(
         () =>
-            mapToArray(images).filter((image) =>
+            Object.values(images).filter((image) =>
                 image.filename
                     .toLowerCase()
                     .includes(filenameSearchValue.toLowerCase())

@@ -722,37 +722,21 @@ export function getCloudflareImages(
     return knexRaw<DbEnrichedImage>(
         trx,
         `-- sql
-        SELECT filename, cloudflareId, id, defaultAlt, originalHeight, originalWidth, updatedAt
+        SELECT *
         FROM images
         WHERE cloudflareId IS NOT NULL`
     )
 }
 
-export function getCloudflareImagesWithUsers(
-    trx: KnexReadonlyTransaction
-): Promise<DbEnrichedImageWithUserId[]> {
-    return knexRaw(
-        trx,
-        `-- sql
-        SELECT i.*, u.id AS userId
-        FROM images i
-        LEFT JOIN users_x_images uxi ON i.id = uxi.imageId
-        LEFT JOIN users u ON uxi.userId = u.id
-        WHERE i.cloudflareId IS NOT NULL`
-    )
-}
-
-export function getCloudflareImageWithUser(
+export function getCloudflareImage(
     trx: KnexReadonlyTransaction,
     filename: string
 ): Promise<DbEnrichedImageWithUserId | undefined> {
     return knexRawFirst(
         trx,
         `-- sql
-        SELECT i.*, u.id AS userId
-        FROM images i
-        LEFT JOIN users_x_images uxi ON i.id = uxi.imageId
-        LEFT JOIN users u ON uxi.userId = u.id
+        SELECT * 
+        FROM images
         WHERE i.filename = ?`,
         [filename]
     )
