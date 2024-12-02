@@ -802,9 +802,7 @@ export class SlopeChart
         const formatTime = (time: Time) => formatColumn.formatTime(time)
 
         const title = series.seriesName
-        const titleAnnotation = this.useCompactLineLegend
-            ? series.annotation
-            : undefined
+        const titleAnnotation = series.annotation
 
         const actualStartTime = series.start.originalTime
         const actualEndTime = series.end.originalTime
