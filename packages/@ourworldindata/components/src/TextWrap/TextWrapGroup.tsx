@@ -131,6 +131,11 @@ export class TextWrapGroup {
         return yOffset + textWrap.height
     }
 
+    @computed get singleLineHeight(): number {
+        if (this.textWraps.length === 0) return 0
+        return this.textWraps[0].singleLineHeight
+    }
+
     @computed get width(): number {
         return max(this.textWraps.map((textWrap) => textWrap.width)) ?? 0
     }
