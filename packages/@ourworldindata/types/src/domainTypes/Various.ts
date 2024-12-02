@@ -34,6 +34,7 @@ export enum SiteFooterContext {
     multiDimDataPage = "multiDimDataPage",
     dynamicCollectionPage = "dynamicCollectionPage",
     explorerPage = "explorerPage",
+    explorerIndexPage = "explorerIndexPage",
     default = "default",
     dataInsightsIndexPage = "data-insights-index-page",
     dataCatalogPage = "data-catalog-page",
