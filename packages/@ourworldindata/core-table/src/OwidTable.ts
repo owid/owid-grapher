@@ -606,11 +606,30 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // Give our users a clean CSV of each Grapher. Assumes an Owid Table with entityName.
-    toPrettyCsv(useShortNames: boolean = false): string {
+    toPrettyCsv(
+        //
+        useShortNames: boolean = false,
+        activeColumnSlugs: string[] | undefined = undefined
+    ): string {
+        const activeColumnsDiff: Set<string> = activeColumnSlugs
+            ? differenceOfSets([
+                  new Set(this.columnSlugs),
+                  new Set(activeColumnSlugs),
+              ])
+            : new Set()
+        const columnSlugsToRemove = differenceOfSets([
+            activeColumnsDiff,
+            new Set([
+                OwidTableSlugs.year,
+                OwidTableSlugs.day,
+                this.entityNameSlug,
+            ]),
+        ])
         return this.dropColumns([
             OwidTableSlugs.entityId,
             OwidTableSlugs.time,
             OwidTableSlugs.entityColor,
+            ...columnSlugsToRemove,
         ])
             .sortBy([this.entityNameSlug])
             .toCsvWithColumnNames(useShortNames)

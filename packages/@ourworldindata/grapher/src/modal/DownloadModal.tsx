@@ -65,6 +65,7 @@ export interface DownloadModalManager {
     showAdminControls?: boolean
     isSocialMediaExport?: boolean
     isPublished?: boolean
+    activeColumnSlugs?: string[]
 }
 
 interface DownloadModalProps {
@@ -432,13 +433,17 @@ interface DataDownloadContextClientSide extends DataDownloadContextBase {
     // Only needed for local CSV generation
     table: OwidTable
     transformedTable: OwidTable
+    activeColumnSlugs: string[] | undefined
 }
 
 const createCsvBlobLocally = async (ctx: DataDownloadContextClientSide) => {
     const csv =
         ctx.csvDownloadType === CsvDownloadType.Full
-            ? ctx.table.toPrettyCsv(ctx.shortColNames)
-            : ctx.transformedTable.toPrettyCsv(ctx.shortColNames)
+            ? ctx.table.toPrettyCsv(ctx.shortColNames, ctx.activeColumnSlugs)
+            : ctx.transformedTable.toPrettyCsv(
+                  ctx.shortColNames,
+                  ctx.activeColumnSlugs
+              )
 
     return new Blob([csv], { type: "text/csv;charset=utf-8" })
 }
@@ -765,6 +770,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
             table: props.manager.table ?? BlankOwidTable(),
             transformedTable:
                 props.manager.transformedTable ?? BlankOwidTable(),
+            activeColumnSlugs: props.manager.activeColumnSlugs,
         }),
         [
             props.manager.baseUrl,
@@ -772,6 +778,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
             props.manager.queryStr,
             props.manager.table,
             props.manager.transformedTable,
+            props.manager.activeColumnSlugs,
         ]
     )
 
