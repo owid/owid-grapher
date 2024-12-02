@@ -95,7 +95,6 @@ class LineLabels extends React.Component<{
     needsConnectorLines: boolean
     connectorLineWidth?: number
     anchor?: "start" | "end"
-    showValueLabelsInline?: boolean
     isFocus?: boolean
     isStatic?: boolean
     onClick?: (series: PlacedSeries) => void
@@ -112,10 +111,6 @@ class LineLabels extends React.Component<{
 
     @computed private get connectorLineWidth(): number {
         return this.props.connectorLineWidth ?? DEFAULT_CONNECTOR_LINE_WIDTH
-    }
-
-    @computed private get showValueLabelsInline(): boolean {
-        return this.props.showValueLabelsInline ?? true
     }
 
     @computed private get markers(): {
@@ -311,7 +306,6 @@ export interface LineLegendProps {
     connectorLineWidth?: number
     fontSize?: number
     fontWeight?: number
-    showValueLabelsInline?: boolean
 
     // used to determine which series should be labelled when there is limited space
     seriesSortedByImportance?: EntityName[]
@@ -365,20 +359,6 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return this.props.connectorLineWidth ?? DEFAULT_CONNECTOR_LINE_WIDTH
     }
 
-    @computed private get showValueLabelsInline(): boolean {
-        return this.props.showValueLabelsInline ?? true
-    }
-
-    @computed private get hasValueLabels(): boolean {
-        return this.props.labelSeries.some(
-            (series) => series.formattedValue !== undefined
-        )
-    }
-
-    @computed private get hideAnnotations(): boolean {
-        return this.hasValueLabels && !this.showValueLabelsInline
-    }
-
     @computed.struct get sizedLabels(): SizedSeries[] {
         const { fontSize, fontWeight, maxWidth } = this
         const maxTextWidth = maxWidth - this.connectorLineWidth
@@ -397,15 +377,14 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 fontSize,
                 lineHeight: 1,
             })
-            const annotationTextWrap =
-                !this.hideAnnotations && label.annotation
-                    ? new TextWrap({
-                          text: label.annotation,
-                          maxWidth: maxAnnotationWidth,
-                          fontSize: fontSize * 0.9,
-                          lineHeight: 1,
-                      })
-                    : undefined
+            const annotationTextWrap = label.annotation
+                ? new TextWrap({
+                      text: label.annotation,
+                      maxWidth: maxAnnotationWidth,
+                      fontSize: fontSize * 0.9,
+                      lineHeight: 1,
+                  })
+                : undefined
 
             const annotationWidth = annotationTextWrap
                 ? annotationTextWrap.width
@@ -757,7 +736,6 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 series={this.backgroundSeries}
                 needsConnectorLines={this.needsLines}
                 connectorLineWidth={this.connectorLineWidth}
-                showValueLabelsInline={this.showValueLabelsInline}
                 isFocus={false}
                 anchor={this.props.lineLegendAnchorX}
                 isStatic={this.props.isStatic}
@@ -777,7 +755,6 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 series={this.focusedSeries}
                 needsConnectorLines={this.needsLines}
                 connectorLineWidth={this.connectorLineWidth}
-                showValueLabelsInline={this.showValueLabelsInline}
                 isFocus={true}
                 anchor={this.props.lineLegendAnchorX}
                 isStatic={this.props.isStatic}
