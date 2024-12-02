@@ -332,6 +332,11 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return test.needsLines
     }
 
+    static fontSize(props: Partial<LineLegendProps>): number {
+        const test = new LineLegend(props as LineLegendProps)
+        return test.fontSize
+    }
+
     /**
      * Always adds the width of connector lines, which leads to an incorrect
      * result if no connector lines are rendered. We sometimes can't use the
