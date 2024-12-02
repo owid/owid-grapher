@@ -140,6 +140,45 @@ export class TextWrapGroup {
         return max(this.textWraps.map((textWrap) => textWrap.width)) ?? 0
     }
 
+    @computed get lines(): {
+        fragments: Omit<TextWrapFragment, "preferLineBreakOverWrapping">[]
+        textWrap: TextWrap
+        yOffset: number
+    }[] {
+        const lines = []
+        for (const { textWrap, yOffset } of this.placedTextWraps) {
+            for (let i = 0; i < textWrap.lineCount; i++) {
+                const textWrapLine = textWrap.lines[i]
+                const isFirstTextWrapLine = i === 0
+
+                const fragment = {
+                    textWrap,
+                    text: textWrapLine.text,
+                    fontWeight: textWrap.fontWeight,
+                }
+
+                const lastLine = last(lines)
+                if (
+                    textWrap.firstLineOffset > 0 &&
+                    isFirstTextWrapLine &&
+                    lastLine
+                ) {
+                    // if the current line is offsetted, add it to the previous line
+                    lastLine.fragments.push(fragment)
+                } else {
+                    // else, push a new line
+                    lines.push({
+                        textWrap,
+                        fragments: [fragment],
+                        yOffset: yOffset + i * textWrap.singleLineHeight,
+                    })
+                }
+            }
+        }
+
+        return lines
+    }
+
     render(
         x: number,
         y: number,
@@ -148,13 +187,36 @@ export class TextWrapGroup {
             id,
         }: { textProps?: React.SVGProps<SVGTextElement>; id?: string } = {}
     ): React.ReactElement {
+        // Alternatively, we could render each TextWrap one by one. That would
+        // give us a good but not pixel-perfect result since the text
+        // measurements are not 100% accurate. To avoid inconsistent spacing
+        // between text wraps, we split the text into lines and render
+        // the different styles as tspans within the same text element.
         return (
-            <g>
-                {this.placedTextWraps.map(({ textWrap, yOffset }, index) => (
-                    <React.Fragment key={index}>
-                        {textWrap.render(x, y + yOffset, { textProps, id })}
-                    </React.Fragment>
-                ))}
+            <g id={id}>
+                {this.lines.map((line) => {
+                    const [textX, textY] =
+                        line.textWrap.getPositionForSvgRendering(x, y)
+                    return (
+                        <text
+                            key={line.yOffset.toString()}
+                            x={textX}
+                            y={textY + line.yOffset}
+                            fontSize={this.fontSize.toFixed(2)}
+                            {...textProps}
+                        >
+                            {line.fragments.map((fragment, index) => (
+                                <tspan
+                                    key={index}
+                                    fontWeight={fragment.fontWeight}
+                                >
+                                    {index === 0 ? "" : " "}
+                                    {fragment.text}
+                                </tspan>
+                            ))}
+                        </text>
+                    )
+                })}
             </g>
         )
     }
