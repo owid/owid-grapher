@@ -970,7 +970,7 @@ export class SlopeChart
                 labelSeries={this.lineLegendSeriesRight}
                 yAxis={this.yAxis}
                 x={this.xRange[1] + LINE_LEGEND_PADDING}
-                yRange={[this.bounds.top, this.bounds.bottom]}
+                yRange={[this.bounds.top, this.bounds.bottom - BOTTOM_PADDING]}
                 maxWidth={this.maxLineLegendWidth}
                 xAnchor="start"
                 verticalAlign={VerticalAlign.top}
@@ -1006,7 +1006,7 @@ export class SlopeChart
                 labelSeries={this.lineLegendSeriesLeft}
                 yAxis={this.yAxis}
                 x={this.xRange[0] - LINE_LEGEND_PADDING}
-                yRange={[this.bounds.top, this.bounds.bottom]}
+                yRange={[this.bounds.top, this.bounds.bottom - BOTTOM_PADDING]}
                 maxWidth={this.maxLineLegendWidth}
                 xAnchor="end"
                 verticalAlign={VerticalAlign.top}

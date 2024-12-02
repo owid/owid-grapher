@@ -373,7 +373,10 @@ export class LineLegend extends React.Component<LineLegendProps> {
             const labelFragments = excludeUndefined([
                 { text: label.label, fontWeight },
                 label.formattedValue
-                    ? { text: label.formattedValue }
+                    ? {
+                          text: label.formattedValue,
+                          preferLineBreakOverWrapping: true,
+                      }
                     : undefined,
             ])
             const textWrap = new TextWrapGroup({
