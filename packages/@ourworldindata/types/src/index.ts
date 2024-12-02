@@ -681,12 +681,6 @@ export {
 } from "./dbTypes/Users.js"
 
 export {
-    UsersXImagesTableName,
-    type DbInsertUsersXImages,
-    type DbRawUsersXImages,
-} from "./dbTypes/UsersXImages.js"
-
-export {
     type DbRawVariable,
     type DbEnrichedVariable,
     type DbInsertVariable,
