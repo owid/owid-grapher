@@ -104,7 +104,10 @@ export const chartIcons: Record<GrapherChartType, React.ReactElement> = {
                 strokeLinejoin="round"
                 strokeWidth="1.6"
             >
-                <path d="M1 1v11.267h12M3.6 7.933 12.267 3.6" />
+                <path d="M1 1.3V12.5667" />
+                <path d="M13 1.3V12.5667" />
+                <path d="M1 3.3L13 11.3" />
+                <path d="M13 3.3L1 11.3" />
             </g>
         </svg>
     ),
