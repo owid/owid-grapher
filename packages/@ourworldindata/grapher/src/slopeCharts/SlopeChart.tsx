@@ -503,6 +503,33 @@ export class SlopeChart
         return this.innerBounds.width / 4
     }
 
+    @computed private get lineLegendLeftHasConnectorLines(): boolean {
+        // can't use this.lineLegendSeriesLeft due to a circular dependency
+        const lineLegendSeries = this.series.map((series) => {
+            const { seriesName, color, start } = series
+            const showSeriesName = false
+            const value = this.formatColumn.formatValueShort(start.value)
+            const label = showSeriesName ? seriesName : value
+            const formattedValue = showSeriesName ? value : undefined
+            return {
+                color,
+                seriesName,
+                label,
+                formattedValue,
+                yValue: start.value,
+            }
+        })
+
+        return LineLegend.needsConnectorLines({
+            labelSeries: lineLegendSeries,
+            yAxis: this.yAxis,
+            maxWidth: this.maxLineLegendWidth,
+            connectorLineWidth: this.lineLegendConnectorLinesWidth,
+            fontSize: this.fontSize,
+            isStatic: this.manager.isStatic,
+        })
+    }
+
     @computed get lineLegendWidthLeft(): number {
         if (!this.manager.showLegend) return 0
         return LineLegend.width({
@@ -511,6 +538,7 @@ export class SlopeChart
             maxWidth: this.maxLineLegendWidth,
             connectorLineWidth: this.lineLegendConnectorLinesWidth,
             fontSize: this.fontSize,
+            fontWeight: this.showSeriesNamesInLineLegendLeft ? 700 : undefined,
             isStatic: this.manager.isStatic,
         })
     }
@@ -584,16 +612,26 @@ export class SlopeChart
         return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
     }
 
+    /**
+     * If the line legend uses connector lines, then we do show the series
+     * name to make it clear which slope the value belongs to
+     */
+    @computed private get showSeriesNamesInLineLegendLeft(): boolean {
+        return this.lineLegendLeftHasConnectorLines
+    }
+
     @computed get lineLegendSeriesLeft(): LineLabelSeries[] {
+        const { showSeriesNamesInLineLegendLeft: showSeriesName } = this
         return this.series.map((series) => {
             const { seriesName, color, start } = series
-            const formattedValue = this.formatColumn.formatValueShort(
-                start.value
-            )
+            const value = this.formatColumn.formatValueShort(start.value)
+            const label = showSeriesName ? seriesName : value
+            const formattedValue = showSeriesName ? value : undefined
             return {
                 color,
                 seriesName,
-                label: formattedValue,
+                label,
+                formattedValue,
                 yValue: start.value,
             }
         })
@@ -1023,6 +1061,9 @@ export class SlopeChart
                 verticalAlign={VerticalAlign.top}
                 connectorLineWidth={this.lineLegendConnectorLinesWidth}
                 fontSize={this.fontSize}
+                fontWeight={
+                    this.showSeriesNamesInLineLegendLeft ? 700 : undefined
+                }
                 isStatic={this.manager.isStatic}
                 focusedSeriesNames={this.focusedSeriesNames}
                 onMouseLeave={this.onLineLegendMouseLeave}
