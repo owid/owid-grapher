@@ -71,7 +71,7 @@ import {
     getAnnotationsMap,
     getColorKey,
     getSeriesName,
-} from "../lineCharts/lineChartHelpers"
+} from "../lineCharts/LineChartHelpers"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -295,6 +295,7 @@ export class SlopeChart
         )
 
         return {
+            column,
             seriesName,
             entityName,
             color,
@@ -403,7 +404,7 @@ export class SlopeChart
         return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
-    @computed get allValues(): number[] {
+    @computed get allYValues(): number[] {
         return this.series.flatMap((series) => [
             series.startValue,
             series.endValue,
@@ -415,7 +416,7 @@ export class SlopeChart
     }
 
     @computed private get yDomainDefault(): [number, number] {
-        return domainExtent(this.allValues, this.yScaleType)
+        return domainExtent(this.allYValues, this.yScaleType)
     }
 
     @computed private get yDomain(): [number, number] {
@@ -496,10 +497,8 @@ export class SlopeChart
             this.bounds.x + Math.max(0.25 * chartAreaWidth, this.yAxisWidth + 4)
         let endX =
             this.bounds.x +
-            Math.min(
-                chartAreaWidth - 0.25 * chartAreaWidth,
-                chartAreaWidth - lineLegendWidth
-            )
+            chartAreaWidth -
+            Math.max(0.25 * chartAreaWidth, lineLegendWidth)
 
         const currentSlopeWidth = endX - startX
         if (currentSlopeWidth > maxSlopeWidth) {
@@ -537,7 +536,7 @@ export class SlopeChart
     private playIntroAnimation() {
         // Nice little intro animation
         select(this.slopeAreaRef.current)
-            .select(".slopes")
+            .selectAll(".slope")
             .attr("stroke-dasharray", "100%")
             .attr("stroke-dashoffset", "100%")
             .transition()
@@ -672,29 +671,13 @@ export class SlopeChart
             ? `% change since ${formatColumn.formatTime(startTime)}`
             : timeRange
 
-        const columns = this.yColumns
-        const allRoundedToSigFigs = columns.every(
-            (column) => column.roundsToSignificantFigures
-        )
-        const anyRoundedToSigFigs = columns.some(
-            (column) => column.roundsToSignificantFigures
-        )
-        const sigFigs = excludeUndefined(
-            columns.map((column) =>
-                column.roundsToSignificantFigures
-                    ? column.numSignificantFigures
-                    : undefined
-            )
-        )
-
-        const roundingNotice = anyRoundedToSigFigs
+        const roundingNotice = series.column.roundsToSignificantFigures
             ? {
-                  icon: allRoundedToSigFigs
-                      ? TooltipFooterIcon.none
-                      : TooltipFooterIcon.significance,
-                  text: makeTooltipRoundingNotice(sigFigs, {
-                      plural: sigFigs.length > 1,
-                  }),
+                  icon: TooltipFooterIcon.none,
+                  text: makeTooltipRoundingNotice(
+                      [series.column.numSignificantFigures],
+                      { plural: !isRelativeMode }
+                  ),
               }
             : undefined
         const footer = excludeUndefined([roundingNotice])
@@ -803,13 +786,6 @@ export class SlopeChart
 
         return (
             <g>
-                <rect
-                    x={bounds.x}
-                    y={bounds.y}
-                    width={bounds.width}
-                    height={bounds.height}
-                    fill="transparent"
-                />
                 <GridLines
                     bounds={this.bounds}
                     yAxis={this.yAxis}
@@ -849,7 +825,7 @@ export class SlopeChart
                         y={bounds.y}
                         width={this.endX - this.startX}
                         height={bounds.height}
-                        fill="transparent"
+                        fillOpacity={0}
                     />
                     {this.renderSlopes()}
                 </g>
@@ -914,6 +890,7 @@ function Slope({
     return (
         <g
             id={makeIdForHumanConsumption("slope", seriesName)}
+            className="slope"
             onMouseOver={() => onMouseOver?.(series)}
             onMouseLeave={() => onMouseLeave?.()}
         >

@@ -8,7 +8,7 @@ import {
 } from "@ourworldindata/types"
 import { LabeledSwitch } from "@ourworldindata/components"
 
-const { LineChart, ScatterPlot } = GRAPHER_CHART_TYPES
+const { LineChart, ScatterPlot, SlopeChart } = GRAPHER_CHART_TYPES
 
 export interface AbsRelToggleManager {
     stackMode?: StackMode
@@ -38,7 +38,7 @@ export class AbsRelToggle extends React.Component<{
         const { activeChartType } = this.manager
         return activeChartType === ScatterPlot
             ? "Show the percentage change per year over the the selected time range."
-            : activeChartType === LineChart
+            : activeChartType === LineChart || activeChartType === SlopeChart
               ? "Show proportional changes over time or actual values in their original units."
               : "Show values as their share of the total or as actual values in their original units."
     }
