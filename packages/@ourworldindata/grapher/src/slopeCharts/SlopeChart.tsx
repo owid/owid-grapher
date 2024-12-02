@@ -49,6 +49,7 @@ import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
+    getShortNameForEntity,
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import { AxisConfig } from "../axis/AxisConfig"
@@ -281,9 +282,11 @@ export class SlopeChart
         const { canSelectMultipleEntities = false } = this.manager
 
         const { availableEntityNames } = this.transformedTable
+        const displayEntityName =
+            getShortNameForEntity(entityName) ?? entityName
         const columnName = column.nonEmptyDisplayName
         const seriesName = getSeriesName({
-            entityName,
+            entityName: displayEntityName,
             columnName,
             seriesStrategy,
             availableEntityNames,
