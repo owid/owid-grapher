@@ -1,4 +1,4 @@
-import { max, stripHTML, Bounds, FontFamily } from "@ourworldindata/utils"
+import { max, stripHTML, Bounds, FontFamily, last } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import React from "react"
 import { Fragment, joinFragments, splitIntoFragments } from "./TextWrapUtils"
@@ -11,6 +11,7 @@ interface TextWrapProps {
     lineHeight?: number
     fontSize: FontSize
     fontWeight?: number
+    firstLineOffset?: number
     separators?: string[]
     rawHtml?: boolean
 }
@@ -80,6 +81,9 @@ export class TextWrap {
     @computed get separators(): string[] {
         return this.props.separators ?? [" "]
     }
+    @computed get firstLineOffset(): number {
+        return this.props.firstLineOffset ?? 0
+    }
 
     // We need to take care that HTML tags are not split across lines.
     // Instead, we want every line to have opening and closing tags for all tags that appear.
@@ -148,10 +152,17 @@ export class TextWrap {
                 ? stripHTML(joinFragments(nextLine))
                 : joinFragments(nextLine)
 
-            const nextBounds = Bounds.forText(text, {
+            let nextBounds = Bounds.forText(text, {
                 fontSize,
                 fontWeight,
             })
+
+            // add offset to the first line if given
+            if (lines.length === 0 && this.firstLineOffset) {
+                nextBounds = nextBounds.set({
+                    width: nextBounds.width + this.firstLineOffset,
+                })
+            }
 
             if (
                 startsWithNewline(fragment.text) ||
@@ -194,14 +205,35 @@ export class TextWrap {
         else return lines
     }
 
+    @computed get lineCount(): number {
+        return this.lines.length
+    }
+
+    @computed get singleLineHeight(): number {
+        return this.fontSize * this.lineHeight
+    }
+
     @computed get height(): number {
-        const { lines, lineHeight, fontSize } = this
-        if (lines.length === 0) return 0
-        return lines.length * lineHeight * fontSize
+        if (this.lineCount === 0) return 0
+        return this.lineCount * this.singleLineHeight
+    }
+
+    @computed get heightWithoutOffsetedLine(): number {
+        if (this.firstLineOffset === 0) {
+            return this.height
+        } else if (this.lineCount > 1) {
+            return (this.lineCount - 1) * this.singleLineHeight
+        } else {
+            return 0
+        }
     }
 
     @computed get width(): number {
         return max(this.lines.map((l) => l.width)) ?? 0
+    }
+
+    @computed get lastLineWidth(): number {
+        return last(this.lines)?.width ?? 0
     }
 
     @computed get htmlStyle(): any {
@@ -267,7 +299,14 @@ export class TextWrap {
             id,
         }: { textProps?: React.SVGProps<SVGTextElement>; id?: string } = {}
     ): React.ReactElement {
-        const { props, lines, fontSize, fontWeight, lineHeight } = this
+        const {
+            props,
+            lines,
+            fontSize,
+            fontWeight,
+            lineHeight,
+            firstLineOffset,
+        } = this
 
         if (lines.length === 0) return <></>
 
@@ -283,25 +322,21 @@ export class TextWrap {
                 {...textProps}
             >
                 {lines.map((line, i) => {
+                    const x = correctedX + (i === 0 ? firstLineOffset : 0)
+                    const y = correctedY + lineHeight * fontSize * i
+
                     if (props.rawHtml)
                         return (
                             <tspan
                                 key={i}
-                                x={correctedX}
-                                y={correctedY + lineHeight * fontSize * i}
+                                x={x}
+                                y={y}
                                 dangerouslySetInnerHTML={{ __html: line.text }}
                             />
                         )
                     else
                         return (
-                            <tspan
-                                key={i}
-                                x={correctedX}
-                                y={
-                                    correctedY +
-                                    (i === 0 ? 0 : lineHeight * fontSize * i)
-                                }
-                            >
+                            <tspan key={i} x={x} y={y}>
                                 {line.text}
                             </tspan>
                         )
