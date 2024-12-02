@@ -71,7 +71,7 @@ it("can filter points with negative values when using a log scale", () => {
     }
     const chart = new SlopeChart({ manager })
     // expect(chart.series.length).toEqual(2)
-    expect(chart.allValues.length).toEqual(4)
+    expect(chart.allYValues.length).toEqual(4)
 
     const logScaleManager = {
         ...manager,
@@ -82,7 +82,7 @@ it("can filter points with negative values when using a log scale", () => {
     const logChart = new SlopeChart({ manager: logScaleManager })
     expect(logChart.yAxis.domain[0]).toBeGreaterThan(0)
     // expect(logChart.series.length).toEqual(2)
-    expect(logChart.allValues.length).toEqual(2)
+    expect(logChart.allYValues.length).toEqual(2)
 })
 
 describe("series naming in multi-column mode", () => {
