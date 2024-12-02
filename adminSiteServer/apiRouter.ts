@@ -113,7 +113,6 @@ import {
     ChartViewsTableName,
     DbInsertChartView,
     DbEnrichedImage,
-    DbRawUsersXImages,
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
 import {
@@ -1228,7 +1227,7 @@ postRouteWithRWTransaction(
     async (req, res, trx) => {
         const userId = expectInt(req.params.userId)
         const imageId = expectInt(req.params.imageId)
-        await trx("users_x_images").insert({ userId, imageId })
+        await trx("images").where({ id: imageId }).update({ userId })
         return { success: true }
     }
 )
@@ -1239,7 +1238,9 @@ deleteRouteWithRWTransaction(
     async (req, res, trx) => {
         const userId = expectInt(req.params.userId)
         const imageId = expectInt(req.params.imageId)
-        await trx("users_x_images").where({ userId, imageId }).delete()
+        await trx("images")
+            .where({ id: imageId, userId })
+            .update({ userId: null })
         return { success: true }
     }
 )
@@ -3090,7 +3091,7 @@ getRouteNonIdempotentWithRWTransaction(
     "/images.json",
     async (_, res, trx) => {
         try {
-            const images = await db.getCloudflareImagesWithUsers(trx)
+            const images = await db.getCloudflareImages(trx)
             res.set("Cache-Control", "no-store")
             res.send({ images })
         } catch (error) {
@@ -3174,7 +3175,7 @@ postRouteWithRWTransaction(apiRouter, "/image", async (req, res, trx) => {
         }
     }
 
-    const [imageId] = await trx<DbEnrichedImage>("images").insert({
+    await trx<DbEnrichedImage>("images").insert({
         filename,
         originalWidth: dimensions.width,
         originalHeight: dimensions.height,
@@ -3182,14 +3183,10 @@ postRouteWithRWTransaction(apiRouter, "/image", async (req, res, trx) => {
         // TODO: make defaultAlt nullable
         defaultAlt: "Default alt text",
         updatedAt: new Date().getTime(),
-    })
-
-    await trx<DbRawUsersXImages>("users_x_images").insert({
         userId: res.locals.user.id,
-        imageId,
     })
 
-    const image = await db.getCloudflareImageWithUser(trx, filename)
+    const image = await db.getCloudflareImage(trx, filename)
 
     return {
         success: true,
@@ -3260,9 +3257,6 @@ deleteRouteWithRWTransaction(
             throw new JsonError(JSON.stringify(response.errors))
         }
 
-        await trx<DbRawUsersXImages>("users_x_images")
-            .where("imageId", "=", id)
-            .delete()
         await trx("images").where({ id }).delete()
 
         return {
