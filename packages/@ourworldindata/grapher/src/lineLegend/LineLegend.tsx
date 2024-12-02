@@ -327,6 +327,11 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return test.maxLabelWidth + connectorLineWidth + MARKER_MARGIN
     }
 
+    static needsConnectorLines(props: LineLegendProps): boolean {
+        const test = new LineLegend(props)
+        return test.needsLines
+    }
+
     /**
      * Always adds the width of connector lines, which leads to an incorrect
      * result if no connector lines are rendered. We sometimes can't use the
