@@ -355,6 +355,11 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return test.stableWidth
     }
 
+    static width(props: LineLegendProps): number {
+        const test = new LineLegend(props)
+        return test.width
+    }
+
     static fontSize(props: Partial<LineLegendProps>): number {
         const test = new LineLegend(props as LineLegendProps)
         return test.fontSize
@@ -447,6 +452,12 @@ export class LineLegend extends React.Component<LineLegendProps> {
 
     @computed get stableWidth(): number {
         return this.maxLabelWidth + DEFAULT_CONNECTOR_LINE_WIDTH + MARKER_MARGIN
+    }
+
+    @computed get width(): number {
+        return this.needsLines
+            ? this.stableWidth
+            : this.maxLabelWidth + MARKER_MARGIN
     }
 
     @computed get onMouseOver(): any {

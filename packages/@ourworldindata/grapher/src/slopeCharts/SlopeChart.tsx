@@ -22,6 +22,7 @@ import {
     BASE_FONT_SIZE,
     GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
+    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import {
     ScaleType,
@@ -34,6 +35,7 @@ import {
     EntityName,
     RenderMode,
     VerticalAlign,
+    FacetStrategy,
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
@@ -81,6 +83,8 @@ import {
 } from "../lineCharts/LineChartHelpers"
 import { SelectionArray } from "../selection/SelectionArray"
 import { Halo } from "@ourworldindata/components"
+import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
+import { CategoricalBin } from "../color/ColorScaleBin"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -89,10 +93,10 @@ type SVGMouseOrTouchEvent =
 export interface SlopeChartManager extends ChartManager {
     canSelectMultipleEntities?: boolean // used to pick an appropriate series name
     hasTimeline?: boolean // used to filter the table for the entity selector
+    hideNoDataSection?: boolean
 }
 
 const TOP_PADDING = 6 // leave room for overflowing dots
-const BOTTOM_PADDING = 20 // leave room for the x-axis
 
 const LINE_LEGEND_PADDING = 4
 
@@ -194,7 +198,10 @@ export class SlopeChart
     }
 
     @computed private get innerBounds(): Bounds {
-        return this.bounds.padRight(this.sidebarWidth + this.sidebarMargin)
+        return this.bounds
+            .padTop(TOP_PADDING)
+            .padBottom(this.bottomPadding)
+            .padRight(this.sidebarWidth + this.sidebarMargin)
     }
 
     @computed get fontSize(): number {
@@ -226,7 +233,7 @@ export class SlopeChart
     }
 
     @computed private get isFocusModeActive(): boolean {
-        return this.hoveredSeriesName !== undefined
+        return this.focusedSeriesNames.length > 0
     }
 
     @computed private get yColumns(): CoreColumn[] {
@@ -263,6 +270,17 @@ export class SlopeChart
 
     @computed get seriesStrategy(): SeriesStrategy {
         return autoDetectSeriesStrategy(this.manager, true)
+    }
+
+    @computed get availableFacetStrategies(): FacetStrategy[] {
+        const strategies: FacetStrategy[] = [FacetStrategy.none]
+
+        if (this.selectionArray.numSelectedEntities > 1)
+            strategies.push(FacetStrategy.entity)
+
+        if (this.yColumns.length > 1) strategies.push(FacetStrategy.metric)
+
+        return strategies
     }
 
     @computed private get categoricalColorAssigner(): CategoricalColorAssigner {
@@ -431,6 +449,8 @@ export class SlopeChart
     }
 
     @computed private get showNoDataSection(): boolean {
+        if (this.manager.hideNoDataSection) return false
+
         // nothing to show if there are no series with missing data
         if (this.noDataSeries.length === 0) return false
 
@@ -476,11 +496,16 @@ export class SlopeChart
         ]
     }
 
+    @computed private get bottomPadding(): number {
+        return 1.5 * GRAPHER_FONT_SCALE_12 * this.fontSize
+    }
+
+    @computed private get xLabelPadding(): number {
+        return this.useCompactLayout ? 4 : 8
+    }
+
     @computed private get yRange(): [number, number] {
-        return this.bounds
-            .padTop(TOP_PADDING)
-            .padBottom(BOTTOM_PADDING)
-            .yRange()
+        return this.innerBounds.yRange()
     }
 
     @computed get yAxis(): VerticalAxis {
@@ -511,6 +536,22 @@ export class SlopeChart
             : 0
     }
 
+    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+        if (!this.manager.showLegend) {
+            const categoricalLegendData = this.series.map(
+                (series, index) =>
+                    new CategoricalBin({
+                        index,
+                        value: series.seriesName,
+                        label: series.seriesName,
+                        color: series.color,
+                    })
+            )
+            return { categoricalLegendData }
+        }
+        return undefined
+    }
+
     @computed get maxLineLegendWidth(): number {
         return 0.25 * this.innerBounds.width
     }
@@ -525,7 +566,7 @@ export class SlopeChart
         const bottom =
             this.bounds.bottom -
             // leave space for the x-axis labels
-            BOTTOM_PADDING +
+            this.bottomPadding +
             // but allow for a little extra space
             this.lineLegendFontSize / 2
 
@@ -586,16 +627,25 @@ export class SlopeChart
     }
 
     @computed get lineLegendWidthLeft(): number {
-        if (!this.manager.showLegend) return 0
-        return LineLegend.stableWidth({
+        const props = {
             labelSeries: this.lineLegendSeriesLeft,
             ...this.lineLegendPropsCommon,
             ...this.lineLegendPropsLeft,
-        })
+        }
+
+        // We usually use the "stable" width of the line legend, which might be
+        // a bit too wide because the connector line width is always added, even
+        // it no connector lines are drawn. Using the stable width prevents
+        // layout shifts when the connector lines are toggled on and off.
+        // However, if the chart area is very narrow (like when it's faceted),
+        // the stable width of the line legend takes too much space, so we use the
+        // actual width instead.
+        return this.isNarrow
+            ? LineLegend.width(props)
+            : LineLegend.stableWidth(props)
     }
 
-    @computed get lineLegendRight(): LineLegend | undefined {
-        if (!this.manager.showLegend) return undefined
+    @computed get lineLegendRight(): LineLegend {
         return new LineLegend({
             labelSeries: this.lineLegendSeriesRight,
             ...this.lineLegendPropsCommon,
@@ -604,7 +654,16 @@ export class SlopeChart
     }
 
     @computed get lineLegendWidthRight(): number {
-        return this.lineLegendRight?.stableWidth ?? 0
+        // We usually use the "stable" width of the line legend, which might be
+        // a bit too wide because the connector line width is always added, even
+        // it no connector lines are drawn. Using the stable width prevents
+        // layout shifts when the connector lines are toggled on and off.
+        // However, if the chart area is very narrow (like when it's faceted),
+        // the stable width of the line legend takes too much space, so we use the
+        // actual width instead.
+        return this.isNarrow
+            ? this.lineLegendRight.width
+            : this.lineLegendRight.stableWidth
     }
 
     @computed get visibleLineLegendLabelsRight(): Set<SeriesName> {
@@ -642,7 +701,7 @@ export class SlopeChart
         const maxEndX = this.innerBounds.right - lineLegendWidthRight
 
         // use all available space if the chart is narrow
-        if (this.manager.isNarrow) {
+        if (this.manager.isNarrow || this.isNarrow) {
             return [minStartX, maxEndX]
         }
 
@@ -674,12 +733,33 @@ export class SlopeChart
         return [startX, endX]
     }
 
+    @computed private get isNarrow(): boolean {
+        return this.bounds.width < 320
+    }
+
     @computed get useCompactLayout(): boolean {
-        return !!this.manager.isSemiNarrow
+        return !!this.manager.isSemiNarrow || this.isNarrow
     }
 
     @computed get focusedSeriesNames(): SeriesName[] {
-        return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
+        const focusedSeriesNames: SeriesName[] = []
+
+        // hovered series name
+        if (this.hoveredSeriesName)
+            focusedSeriesNames.push(this.hoveredSeriesName)
+
+        // hovered legend item in the external facet legend
+        if (this.manager.externalLegendHoverBin) {
+            focusedSeriesNames.push(
+                ...this.series
+                    .map((s) => s.seriesName)
+                    .filter((name) =>
+                        this.manager.externalLegendHoverBin?.contains(name)
+                    )
+            )
+        }
+
+        return focusedSeriesNames
     }
 
     private constructSingleLineLegendSeries(
@@ -723,7 +803,10 @@ export class SlopeChart
             this.constructSingleLineLegendSeries(
                 series,
                 (series) => series.end.value,
-                { showSeriesName: true, showAnnotation: !this.useCompactLayout }
+                {
+                    showSeriesName: this.manager.showLegend,
+                    showAnnotation: !this.useCompactLayout,
+                }
             )
         )
     }
@@ -748,7 +831,7 @@ export class SlopeChart
     }
 
     @computed private get showSeriesNamesInLineLegendLeft(): boolean {
-        return this.lineLegendMaxLevelLeft >= 4
+        return this.lineLegendMaxLevelLeft >= 4 && !!this.manager.showLegend
     }
 
     private updateTooltipPosition(event: SVGMouseOrTouchEvent): void {
@@ -827,20 +910,11 @@ export class SlopeChart
         this.onSlopeMouseLeave()
     }
 
-    private failMessageForSingleTimeSelection =
-        "Two time points needed for comparison"
     @computed get failMessage(): string {
         const message = getDefaultFailMessage(this.manager)
         if (message) return message
-        else if (this.startTime === this.endTime)
-            return this.failMessageForSingleTimeSelection
+        else if (this.series.length === 0) return "No matching data"
         return ""
-    }
-
-    @computed get helpMessage(): string | undefined {
-        if (this.failMessage === this.failMessageForSingleTimeSelection)
-            return "Click or drag the timeline to select two different points in time."
-        return undefined
     }
 
     @computed get renderUid(): number {
@@ -1013,7 +1087,7 @@ export class SlopeChart
 
         const [focusedSeries, backgroundSeries] = partition(
             this.placedSeries,
-            (series) => series.seriesName === this.hoveredSeriesName
+            (series) => this.focusedSeriesNames.includes(series.seriesName)
         )
 
         return (
@@ -1032,33 +1106,53 @@ export class SlopeChart
         )
     }
 
-    private renderChartArea(): React.ReactElement {
-        const { bounds, xDomain, yRange, startX, endX } = this
+    private renderYAxis(): React.ReactElement {
+        return (
+            <>
+                {!this.yAxis.hideGridlines && (
+                    <GridLines bounds={this.innerBounds} yAxis={this.yAxis} />
+                )}
+                {!this.yAxis.hideAxis && (
+                    <VerticalAxisComponent
+                        bounds={this.bounds}
+                        verticalAxis={this.yAxis}
+                        labelColor={this.manager.secondaryColorInStaticCharts}
+                    />
+                )}
+            </>
+        )
+    }
 
-        const [bottom, top] = yRange
+    private renderXAxis() {
+        const { xDomain, startX, endX } = this
 
         return (
-            <g>
-                <GridLines bounds={this.innerBounds} yAxis={this.yAxis} />
-                <VerticalAxisComponent
-                    bounds={bounds}
-                    verticalAxis={this.yAxis}
-                    labelColor={this.manager.secondaryColorInStaticCharts}
-                />
+            <>
                 <MarkX
                     label={this.formatColumn.formatTime(xDomain[0])}
                     x={startX}
-                    top={top}
-                    bottom={bottom}
+                    top={this.innerBounds.top}
+                    bottom={this.innerBounds.bottom}
+                    labelPadding={this.xLabelPadding}
                     fontSize={this.yAxis.tickFontSize}
                 />
                 <MarkX
                     label={this.formatColumn.formatTime(xDomain[1])}
                     x={endX}
-                    top={top}
-                    bottom={bottom}
+                    top={this.innerBounds.top}
+                    bottom={this.innerBounds.bottom}
+                    labelPadding={this.xLabelPadding}
                     fontSize={this.yAxis.tickFontSize}
                 />
+            </>
+        )
+    }
+
+    private renderChartArea() {
+        return (
+            <g>
+                {this.renderYAxis()}
+                {this.renderXAxis()}
                 <g
                     id={makeIdForHumanConsumption("slopes")}
                     ref={this.slopeAreaRef}
@@ -1069,9 +1163,9 @@ export class SlopeChart
                 >
                     <rect
                         x={this.startX}
-                        y={bounds.y}
+                        y={this.bounds.y}
                         width={this.endX - this.startX}
-                        height={bounds.height}
+                        height={this.bounds.height}
                         fillOpacity={0}
                     />
                     {this.renderSlopes()}
@@ -1133,8 +1227,6 @@ export class SlopeChart
     }
 
     private renderLineLegends(): React.ReactElement | void {
-        if (!this.manager.showLegend) return
-
         return (
             <>
                 {this.renderLineLegendLeft()}
@@ -1146,12 +1238,14 @@ export class SlopeChart
     render() {
         if (this.failMessage)
             return (
-                <NoDataModal
-                    manager={this.manager}
-                    bounds={this.props.bounds}
-                    message={this.failMessage}
-                    helpText={this.helpMessage}
-                />
+                <>
+                    {this.renderYAxis()}
+                    <NoDataModal
+                        manager={this.manager}
+                        bounds={this.props.bounds}
+                        message={this.failMessage}
+                    />
+                </>
             )
 
         return (
@@ -1304,12 +1398,14 @@ function MarkX({
     x,
     top,
     bottom,
+    labelPadding,
     fontSize,
 }: {
     label: string
     x: number
     top: number
     bottom: number
+    labelPadding: number
     fontSize: number
 }) {
     return (
@@ -1317,7 +1413,8 @@ function MarkX({
             <line x1={x} y1={top} x2={x} y2={bottom} stroke="#999" />
             <text
                 x={x}
-                y={bottom + BOTTOM_PADDING - 2}
+                y={bottom + labelPadding}
+                dy={dyFromAlign(VerticalAlign.bottom)}
                 textAnchor="middle"
                 fill={GRAPHER_DARK_TEXT}
                 fontSize={fontSize}
