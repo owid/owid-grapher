@@ -3,6 +3,7 @@ import {
     GrapherInterface,
     ScaleType,
 } from "@ourworldindata/types"
+import { simpleMerge } from "@ourworldindata/utils"
 import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class MigrateSlopeCharts1732291572062 implements MigrationInterface {
@@ -28,14 +29,8 @@ export class MigrateSlopeCharts1732291572062 implements MigrationInterface {
             const patchConfig = JSON.parse(chart.patch)
             const fullConfig = JSON.parse(chart.full)
 
-            const newPatchConfig = {
-                ...patchConfig,
-                ...migrationConfig,
-            }
-            const newFullConfig = {
-                ...fullConfig,
-                ...migrationConfig,
-            }
+            const newPatchConfig = simpleMerge(patchConfig, migrationConfig)
+            const newFullConfig = simpleMerge(fullConfig, migrationConfig)
 
             await queryRunner.query(
                 `
