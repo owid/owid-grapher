@@ -295,7 +295,9 @@ export class FacetChart
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
             const showLegend = !this.hideFacetLegends
+
             const hidePoints = true
+            const hideNoDataSection = true
 
             // NOTE: The order of overrides is important!
             // We need to preserve most config coming in.
@@ -319,6 +321,7 @@ export class FacetChart
                 endTime,
                 missingDataStrategy,
                 backgroundColor,
+                hideNoDataSection,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
@@ -369,6 +372,13 @@ export class FacetChart
             this.uniformXAxis &&
             // TODO: do this for stacked area charts and line charts as well?
             this.chartTypeName === GRAPHER_CHART_TYPES.StackedBar &&
+            this.facetCount >= SHARED_X_AXIS_MIN_FACET_COUNT
+        )
+    }
+
+    @computed private get isYAxisHidden(): boolean {
+        return (
+            this.chartTypeName === GRAPHER_CHART_TYPES.SlopeChart &&
             this.facetCount >= SHARED_X_AXIS_MIN_FACET_COUNT
         )
     }
@@ -495,11 +505,10 @@ export class FacetChart
                     ...axes.x.config,
                 },
                 yAxisConfig: {
-                    hideAxis: shouldHideFacetAxis(
-                        yAxis,
-                        cellEdges,
-                        sharedAxesSizes
-                    ),
+                    hideAxis:
+                        this.isYAxisHidden ||
+                        shouldHideFacetAxis(yAxis, cellEdges, sharedAxesSizes),
+                    hideGridlines: this.isYAxisHidden,
                     ...series.manager.yAxisConfig,
                     ...axes.y.config,
                 },
@@ -756,7 +765,8 @@ export class FacetChart
         )
         if (this.facetStrategy === FacetStrategy.metric && newBins.length <= 1)
             return []
-        return newBins
+        const sortedBins = sortBy(newBins, (bin) => bin.label)
+        return sortedBins
     }
 
     @observable.ref private legendHoverBin: ColorScaleBin | undefined =

@@ -68,6 +68,7 @@ export interface ChartManager {
 
     hidePoints?: boolean // for line options
     startHandleTimeBound?: TimeBound // for relative-to-first-year line chart
+    hideNoDataSection?: boolean // for slope charts
 
     // we need endTime so DiscreteBarCharts and StackedDiscreteBarCharts can
     // know what date the timeline is set to. and let's pass startTime in, too.
@@ -78,7 +79,7 @@ export interface ChartManager {
     seriesStrategy?: SeriesStrategy
 
     sortConfig?: SortConfig
-    showNoDataArea?: boolean
+    showNoDataArea?: boolean // No data area in Marimekko charts
 
     externalLegendHoverBin?: ColorScaleBin | undefined
     disableIntroAnimation?: boolean

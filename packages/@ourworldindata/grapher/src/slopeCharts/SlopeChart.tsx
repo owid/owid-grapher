@@ -34,6 +34,7 @@ import {
     EntityName,
     RenderMode,
     VerticalAlign,
+    FacetStrategy,
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
@@ -75,6 +76,8 @@ import {
     getColorKey,
     getSeriesName,
 } from "../lineCharts/LineChartHelpers"
+import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
+import { CategoricalBin } from "../color/ColorScaleBin"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -83,6 +86,7 @@ type SVGMouseOrTouchEvent =
 export interface SlopeChartManager extends ChartManager {
     canSelectMultipleEntities?: boolean // used to pick an appropriate series name
     hasTimeline?: boolean // used to filter the table for the entity selector
+    hideNoDataSection?: boolean
 }
 
 const TOP_PADDING = 6 // leave room for overflowing dots
@@ -219,7 +223,7 @@ export class SlopeChart
     }
 
     @computed private get isFocusModeActive(): boolean {
-        return this.hoveredSeriesName !== undefined
+        return this.focusedSeriesNames.length > 0
     }
 
     @computed private get yColumns(): CoreColumn[] {
@@ -256,6 +260,17 @@ export class SlopeChart
 
     @computed get seriesStrategy(): SeriesStrategy {
         return autoDetectSeriesStrategy(this.manager, true)
+    }
+
+    @computed get availableFacetStrategies(): FacetStrategy[] {
+        const strategies: FacetStrategy[] = [FacetStrategy.none]
+
+        if (this.selectionArray.numSelectedEntities > 1)
+            strategies.push(FacetStrategy.entity)
+
+        if (this.yColumns.length > 1) strategies.push(FacetStrategy.metric)
+
+        return strategies
     }
 
     @computed private get categoricalColorAssigner(): CategoricalColorAssigner {
@@ -424,6 +439,8 @@ export class SlopeChart
     }
 
     @computed private get showNoDataSection(): boolean {
+        if (this.manager.hideNoDataSection) return false
+
         // nothing to show if there are no series with missing data
         if (this.noDataSeries.length === 0) return false
 
@@ -504,6 +521,22 @@ export class SlopeChart
             : 0
     }
 
+    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+        if (!this.manager.showLegend) {
+            const categoricalLegendData = this.series.map(
+                (series, index) =>
+                    new CategoricalBin({
+                        index,
+                        value: series.seriesName,
+                        label: series.seriesName,
+                        color: series.color,
+                    })
+            )
+            return { categoricalLegendData }
+        }
+        return undefined
+    }
+
     @computed get maxLineLegendWidth(): number {
         return 0.25 * this.innerBounds.width
     }
@@ -551,7 +584,6 @@ export class SlopeChart
     }
 
     @computed get lineLegendWidthLeft(): number {
-        if (!this.manager.showLegend) return 0
         return LineLegend.width({
             labelSeries: this.lineLegendSeriesLeft,
             yAxis: this.yAxis,
@@ -564,7 +596,6 @@ export class SlopeChart
     }
 
     @computed get lineLegendWidthRight(): number {
-        if (!this.manager.showLegend) return 0
         return LineLegend.width({
             labelSeries: this.lineLegendSeriesRight,
             yAxis: this.yAxis,
@@ -573,7 +604,7 @@ export class SlopeChart
             maxWidth: this.maxLineLegendWidth,
             connectorLineWidth: this.lineLegendConnectorLinesWidth,
             fontSize: this.fontSize,
-            fontWeight: 700,
+            fontWeight: this.manager.showLegend ? 700 : undefined,
             isStatic: this.manager.isStatic,
         })
     }
@@ -628,12 +659,28 @@ export class SlopeChart
     }
 
     @computed get useCompactLineLegend(): boolean {
-        return !!this.manager.isSemiNarrow
+        return !!this.manager.isSemiNarrow || this.bounds.width < 400
     }
 
-    // used by LineLegend
     @computed get focusedSeriesNames(): SeriesName[] {
-        return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
+        const focusedSeriesNames: SeriesName[] = []
+
+        // hovered series name
+        if (this.hoveredSeriesName)
+            focusedSeriesNames.push(this.hoveredSeriesName)
+
+        // hovered legend item in the external facet legend
+        if (this.manager.externalLegendHoverBin) {
+            focusedSeriesNames.push(
+                ...this.series
+                    .map((s) => s.seriesName)
+                    .filter((name) =>
+                        this.manager.externalLegendHoverBin?.contains(name)
+                    )
+            )
+        }
+
+        return focusedSeriesNames
     }
 
     /**
@@ -641,7 +688,7 @@ export class SlopeChart
      * name to make it clear which slope the value belongs to
      */
     @computed private get showSeriesNamesInLineLegendLeft(): boolean {
-        return this.lineLegendLeftHasConnectorLines
+        return this.lineLegendLeftHasConnectorLines && !!this.manager.showLegend
     }
 
     @computed get lineLegendSeriesLeft(): LineLabelSeries[] {
@@ -665,14 +712,19 @@ export class SlopeChart
     @computed get lineLegendSeriesRight(): LineLabelSeries[] {
         return this.series.map((series) => {
             const { seriesName, color, end, annotation } = series
-            const formattedValue = this.formatColumn.formatValueShort(end.value)
+            const value = this.formatColumn.formatValueShort(end.value)
+            const label = this.manager.showLegend ? seriesName : value
+            const formattedValue = this.manager.showLegend ? value : undefined
             return {
                 color,
                 seriesName,
-                label: seriesName,
-                annotation: this.useCompactLineLegend ? undefined : annotation,
+                label,
                 formattedValue,
                 valueInNewLine: this.useCompactLineLegend,
+                annotation:
+                    this.manager.showLegend && this.useCompactLineLegend
+                        ? undefined
+                        : annotation,
                 yValue: end.value,
             }
         })
@@ -782,6 +834,7 @@ export class SlopeChart
         if (message) return message
         else if (this.startTime === this.endTime)
             return "Two time points needed for comparison"
+        else if (this.series.length === 0) return "No matching data"
         return ""
     }
 
@@ -957,7 +1010,7 @@ export class SlopeChart
 
         const [focusedSeries, backgroundSeries] = partition(
             this.placedSeries,
-            (series) => series.seriesName === this.hoveredSeriesName
+            (series) => this.focusedSeriesNames.includes(series.seriesName)
         )
 
         return (
@@ -972,23 +1025,30 @@ export class SlopeChart
         )
     }
 
-    private renderChartArea() {
-        const { bounds, xDomain, yRange, startX, endX } = this
+    private renderYAxis() {
+        return (
+            <>
+                {!this.yAxis.hideGridlines && (
+                    <GridLines bounds={this.innerBounds} yAxis={this.yAxis} />
+                )}
+                {!this.yAxis.hideAxis && (
+                    <VerticalAxisComponent
+                        bounds={this.bounds}
+                        verticalAxis={this.yAxis}
+                        labelColor={this.manager.secondaryColorInStaticCharts}
+                    />
+                )}
+            </>
+        )
+    }
+
+    private renderXAxis() {
+        const { xDomain, yRange, startX, endX } = this
 
         const [bottom, top] = yRange
 
         return (
-            <g>
-                <GridLines
-                    bounds={bounds}
-                    yAxis={this.yAxis}
-                    endX={this.endX}
-                />
-                <VerticalAxisComponent
-                    bounds={bounds}
-                    verticalAxis={this.yAxis}
-                    labelColor={this.manager.secondaryColorInStaticCharts}
-                />
+            <>
                 <MarkX
                     label={this.formatColumn.formatTime(xDomain[0])}
                     x={startX}
@@ -1003,6 +1063,15 @@ export class SlopeChart
                     bottom={bottom}
                     fontSize={this.yAxis.tickFontSize}
                 />
+            </>
+        )
+    }
+
+    private renderChartArea() {
+        return (
+            <g>
+                {this.renderYAxis()}
+                {this.renderXAxis()}
                 <g
                     id={makeIdForHumanConsumption("slopes")}
                     ref={this.slopeAreaRef}
@@ -1013,9 +1082,9 @@ export class SlopeChart
                 >
                     <rect
                         x={this.startX}
-                        y={bounds.y}
+                        y={this.bounds.y}
                         width={this.endX - this.startX}
-                        height={bounds.height}
+                        height={this.bounds.height}
                         fillOpacity={0}
                     />
                     {this.renderSlopes()}
@@ -1036,7 +1105,7 @@ export class SlopeChart
                 verticalAlign={VerticalAlign.top}
                 connectorLineWidth={this.lineLegendConnectorLinesWidth}
                 fontSize={this.fontSize}
-                fontWeight={700}
+                fontWeight={this.manager.showLegend ? 700 : undefined}
                 isStatic={this.manager.isStatic}
                 focusedSeriesNames={this.focusedSeriesNames}
                 onMouseLeave={this.onLineLegendMouseLeave}
@@ -1094,8 +1163,6 @@ export class SlopeChart
     }
 
     private renderLineLegends(): React.ReactElement | void {
-        if (!this.manager.showLegend) return
-
         return (
             <>
                 {this.renderLineLegendLeft()}
@@ -1107,12 +1174,15 @@ export class SlopeChart
     render() {
         if (this.failMessage)
             return (
-                <NoDataModal
-                    manager={this.manager}
-                    bounds={this.props.bounds}
-                    message={this.failMessage}
-                    helpText={this.helpMessage}
-                />
+                <>
+                    {this.renderYAxis()}
+                    <NoDataModal
+                        manager={this.manager}
+                        bounds={this.props.bounds}
+                        message={this.failMessage}
+                        helpText={this.helpMessage}
+                    />
+                </>
             )
 
         return (
@@ -1230,10 +1300,9 @@ function LineWithDots({
 interface GridLinesProps {
     bounds: Bounds
     yAxis: VerticalAxis
-    endX: number
 }
 
-function GridLines({ bounds, yAxis, endX }: GridLinesProps) {
+function GridLines({ bounds, yAxis }: GridLinesProps) {
     return (
         <g id={makeIdForHumanConsumption("grid-lines")}>
             {yAxis.tickLabels.map((tick) => {
@@ -1249,7 +1318,7 @@ function GridLines({ bounds, yAxis, endX }: GridLinesProps) {
                         <line
                             x1={bounds.left + yAxis.width}
                             y1={y}
-                            x2={endX}
+                            x2={bounds.right}
                             y2={y}
                             stroke="#ddd"
                             strokeDasharray="3,2"
