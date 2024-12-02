@@ -30,7 +30,7 @@ const LEGEND_ITEM_MIN_SPACING = 4
 // Horizontal distance from the end of the chart to the start of the marker
 const MARKER_MARGIN = 4
 // Space between the label and the annotation
-const ANNOTATION_PADDING = 2
+const ANNOTATION_PADDING = 1
 
 const DEFAULT_CONNECTOR_LINE_WIDTH = 35
 const DEFAULT_FONT_WEIGHT = 400
