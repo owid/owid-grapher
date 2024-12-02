@@ -13,6 +13,7 @@ import {
     getRelativeMouse,
     minBy,
     dyFromAlign,
+    uniq,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -986,8 +987,18 @@ export class SlopeChart
     }
 
     private renderLineLegendLeft(): React.ReactElement {
-        // in relative mode, all slopes start from 0%
-        if (this.manager.isRelativeMode)
+        const uniqYValues = uniq(
+            this.lineLegendSeriesLeft.map((series) => series.yValue)
+        )
+        const allSlopesStartFromZero =
+            uniqYValues.length === 1 && uniqYValues[0] === 0
+
+        // if all values have a start value of 0, show the 0-label only once
+        if (
+            // in relative mode, all slopes start from 0%
+            this.manager.isRelativeMode ||
+            allSlopesStartFromZero
+        )
             return (
                 <text
                     x={this.startX}
