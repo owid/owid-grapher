@@ -10,7 +10,6 @@ import {
     guid,
     excludeUndefined,
     partition,
-    max,
     getRelativeMouse,
     minBy,
     dyFromAlign,
@@ -973,7 +972,8 @@ export class SlopeChart
                 x={this.xRange[1] + LINE_LEGEND_PADDING}
                 yRange={[this.bounds.top, this.bounds.bottom]}
                 maxWidth={this.maxLineLegendWidth}
-                lineLegendAnchorX="start"
+                xAnchor="start"
+                verticalAlign={VerticalAlign.top}
                 connectorLineWidth={this.lineLegendConnectorLinesWidth}
                 fontSize={this.fontSize}
                 fontWeight={700}
@@ -1008,7 +1008,8 @@ export class SlopeChart
                 x={this.xRange[0] - LINE_LEGEND_PADDING}
                 yRange={[this.bounds.top, this.bounds.bottom]}
                 maxWidth={this.maxLineLegendWidth}
-                lineLegendAnchorX="end"
+                xAnchor="end"
+                verticalAlign={VerticalAlign.top}
                 connectorLineWidth={this.lineLegendConnectorLinesWidth}
                 fontSize={this.fontSize}
                 isStatic={this.manager.isStatic}

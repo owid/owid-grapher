@@ -18,7 +18,7 @@ import { TextWrap, TextWrapGroup } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
-import { EntityName } from "@ourworldindata/types"
+import { EntityName, VerticalAlign } from "@ourworldindata/types"
 import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
@@ -300,7 +300,8 @@ export interface LineLegendProps {
     x?: number
     yRange?: [number, number]
     maxWidth?: number
-    lineLegendAnchorX?: "start" | "end"
+    xAnchor?: "start" | "end"
+    verticalAlign?: VerticalAlign
 
     // presentation
     connectorLineWidth?: number
@@ -357,6 +358,10 @@ export class LineLegend extends React.Component<LineLegendProps> {
 
     @computed private get connectorLineWidth(): number {
         return this.props.connectorLineWidth ?? DEFAULT_CONNECTOR_LINE_WIDTH
+    }
+
+    @computed private get verticalAlign(): VerticalAlign {
+        return this.props.verticalAlign ?? VerticalAlign.middle
     }
 
     @computed.struct get sizedLabels(): SizedSeries[] {
@@ -437,6 +442,19 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return [Math.min(range[1], range[0]), Math.max(range[1], range[0])]
     }
 
+    private getYPositionForSeriesLabel(series: SizedSeries): number {
+        const y = this.yAxis.place(series.yValue)
+        const lineHeight = series.textWrap.singleLineHeight
+        switch (this.verticalAlign) {
+            case VerticalAlign.middle:
+                return y - series.height / 2
+            case VerticalAlign.top:
+                return y - lineHeight / 2
+            case VerticalAlign.bottom:
+                return y - series.height + lineHeight / 2
+        }
+    }
+
     // Naive initial placement of each mark at the target height, before collision detection
     @computed private get initialSeries(): PlacedSeries[] {
         const { yAxis, legendX, legendY } = this
@@ -447,17 +465,16 @@ export class LineLegend extends React.Component<LineLegendProps> {
             const labelHeight = label.height
             const labelWidth = label.width + this.connectorLineWidth
 
-            // place vertically centered at Y value
             const midY = yAxis.place(label.yValue)
-            const initialY = midY - label.height / 2
             const origBounds = new Bounds(
                 legendX,
-                initialY,
+                midY - label.height / 2,
                 labelWidth,
                 labelHeight
             )
 
             // ensure label doesn't go beyond the top or bottom of the chart
+            const initialY = this.getYPositionForSeriesLabel(label)
             const y = Math.min(
                 Math.max(initialY, legendYMin),
                 legendYMax - labelHeight
@@ -737,7 +754,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 needsConnectorLines={this.needsLines}
                 connectorLineWidth={this.connectorLineWidth}
                 isFocus={false}
-                anchor={this.props.lineLegendAnchorX}
+                anchor={this.props.xAnchor}
                 isStatic={this.props.isStatic}
                 onMouseOver={(series): void =>
                     this.onMouseOver(series.seriesName)
@@ -756,7 +773,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 needsConnectorLines={this.needsLines}
                 connectorLineWidth={this.connectorLineWidth}
                 isFocus={true}
-                anchor={this.props.lineLegendAnchorX}
+                anchor={this.props.xAnchor}
                 isStatic={this.props.isStatic}
                 onMouseOver={(series): void =>
                     this.onMouseOver(series.seriesName)

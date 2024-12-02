@@ -52,6 +52,7 @@ import {
     MissingDataStrategy,
     ColorScaleConfigInterface,
     ColorSchemeName,
+    VerticalAlign,
 } from "@ourworldindata/types"
 import {
     GRAPHER_AXIS_LINE_WIDTH_THICK,
@@ -885,6 +886,7 @@ export class LineChart
             maxWidth: this.maxLineLegendWidth,
             fontSize: this.fontSize,
             fontWeight: this.fontWeight,
+            verticalAlign: VerticalAlign.top,
         })
     }
 
@@ -953,6 +955,7 @@ export class LineChart
                         x={this.lineLegendX}
                         yRange={this.lineLegendY}
                         maxWidth={this.maxLineLegendWidth}
+                        verticalAlign={VerticalAlign.top}
                         fontSize={this.fontSize}
                         fontWeight={this.fontWeight}
                         isStatic={this.isStatic}
