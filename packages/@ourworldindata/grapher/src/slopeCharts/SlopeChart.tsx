@@ -22,7 +22,6 @@ import {
     BASE_FONT_SIZE,
     GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import {
     ScaleType,
@@ -501,6 +500,23 @@ export class SlopeChart
 
     @computed get maxLineLegendWidth(): number {
         return this.innerBounds.width / 4
+    }
+
+    @computed get lineLegendFontSize(): number {
+        return LineLegend.fontSize({ fontSize: this.fontSize })
+    }
+
+    @computed get lineLegendYRange(): [number, number] {
+        const top = this.bounds.top
+
+        const bottom =
+            this.bounds.bottom -
+            // leave space for the x-axis labels
+            BOTTOM_PADDING +
+            // but allow for a little extra space
+            this.lineLegendFontSize / 2
+
+        return [top, bottom]
     }
 
     @computed private get lineLegendLeftHasConnectorLines(): boolean {
@@ -1009,7 +1025,7 @@ export class SlopeChart
                 labelSeries={this.lineLegendSeriesRight}
                 yAxis={this.yAxis}
                 x={this.xRange[1] + LINE_LEGEND_PADDING}
-                yRange={[this.bounds.top, this.bounds.bottom - BOTTOM_PADDING]}
+                yRange={this.lineLegendYRange}
                 maxWidth={this.maxLineLegendWidth}
                 xAnchor="start"
                 verticalAlign={VerticalAlign.top}
@@ -1044,7 +1060,7 @@ export class SlopeChart
                     textAnchor="end"
                     dx={-LINE_LEGEND_PADDING - 4}
                     dy={dyFromAlign(VerticalAlign.middle)}
-                    fontSize={GRAPHER_FONT_SCALE_12 * this.fontSize}
+                    fontSize={this.lineLegendFontSize}
                 >
                     {this.formatColumn.formatValueShort(0)}
                 </text>
@@ -1055,7 +1071,7 @@ export class SlopeChart
                 labelSeries={this.lineLegendSeriesLeft}
                 yAxis={this.yAxis}
                 x={this.xRange[0] - LINE_LEGEND_PADDING}
-                yRange={[this.bounds.top, this.bounds.bottom - BOTTOM_PADDING]}
+                yRange={this.lineLegendYRange}
                 maxWidth={this.maxLineLegendWidth}
                 xAnchor="end"
                 verticalAlign={VerticalAlign.top}
@@ -1269,7 +1285,6 @@ function MarkX({
                 textAnchor="middle"
                 fill={GRAPHER_DARK_TEXT}
                 fontSize={fontSize}
-                fontWeight={600}
             >
                 {label}
             </text>
