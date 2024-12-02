@@ -128,7 +128,7 @@ export async function createGdocAndInsertIntoDb(
     // while fetching the live gdocs (GdocsContentSource.Gdocs) in
     // loadGdocFromGdocBase().
     await upsertGdoc(knex, gdoc)
-    await updateDerivedGdocPostsComponents(knex, gdoc.id, gdoc.content.body)
+
     return gdoc
 }
 
@@ -616,7 +616,9 @@ export async function upsertGdoc(
             .onConflict("id")
             .merge()
         sql = query.toSQL()
-        return query
+        const indices = await query
+        await updateDerivedGdocPostsComponents(knex, gdoc.id, gdoc.content.body)
+        return indices
     } catch (e) {
         console.error(`Error occured in sql: ${sql}`, e)
         throw e
