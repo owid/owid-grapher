@@ -1,7 +1,9 @@
 import { EntityName, PartialBy, PointVector } from "@ourworldindata/utils"
 import { ChartSeries } from "../chart/ChartInterface"
+import { CoreColumn } from "@ourworldindata/core-table"
 
 export interface SlopeChartSeries extends ChartSeries {
+    column: CoreColumn
     entityName: EntityName
     startValue: number
     endValue: number
