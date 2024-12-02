@@ -112,6 +112,7 @@ import {
     DbPlainChartView,
     ChartViewsTableName,
     DbInsertChartView,
+    PostsGdocsComponentsTableName,
     CHART_VIEW_PROPS_TO_PERSIST,
     CHART_VIEW_PROPS_TO_OMIT,
     DbEnrichedImage,
@@ -183,7 +184,6 @@ import {
     addImagesToContentGraph,
     updateGdocContentOnly,
     upsertGdoc,
-    updateDerivedGdocPostsComponents,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { match } from "ts-pattern"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
@@ -2817,11 +2817,6 @@ postRouteWithRWTransaction(
             gdoc.createdAt = new Date()
             gdoc.publishedAt = post.published_at
             await upsertGdoc(trx, gdoc)
-            await updateDerivedGdocPostsComponents(
-                trx,
-                gdoc.id,
-                gdoc.content.body
-            )
             await setTagsForGdoc(trx, gdocId, tags)
         }
         return { googleDocsId: gdocId }
@@ -3023,11 +3018,7 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     )
 
     await upsertGdoc(trx, nextGdoc)
-    await updateDerivedGdocPostsComponents(
-        trx,
-        nextGdoc.id,
-        nextGdoc.content.body
-    )
+
     await indexAndBakeGdocIfNeccesary(trx, res.locals.user, prevGdoc, nextGdoc)
 
     return nextGdoc
@@ -3091,6 +3082,10 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     await trx.table(PostsGdocsLinksTableName).where({ sourceId: id }).delete()
     await trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
     await trx.table(PostsGdocsTableName).where({ id }).delete()
+    await trx
+        .table(PostsGdocsComponentsTableName)
+        .where({ gdocId: id })
+        .delete()
     if (gdoc.published && checkIsGdocPostExcludingFragments(gdoc)) {
         await removeIndividualGdocPostFromIndex(gdoc)
     }
