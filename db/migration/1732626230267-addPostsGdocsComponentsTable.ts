@@ -11,7 +11,7 @@ CREATE TABLE posts_gdocs_components (
     config JSON,
     parent VARCHAR(1024),
     path VARCHAR(1024),
-    FOREIGN KEY (gdocId) REFERENCES posts_gdocs(id),
+    FOREIGN KEY (gdocId) REFERENCES posts_gdocs(id) ON DELETE CASCADE ON UPDATE CASCADE,
     INDEX idx_gdocId (gdocId)
 ) ENGINE=InnoDB;
         `)
