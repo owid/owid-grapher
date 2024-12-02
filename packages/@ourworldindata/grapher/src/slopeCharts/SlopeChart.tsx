@@ -186,7 +186,7 @@ export class SlopeChart
 
     private sidebarMargin = 10
     @computed private get innerBounds(): Bounds {
-        return this.bounds.padRight(this.sidebarWidth + 8)
+        return this.bounds.padRight(this.sidebarWidth + this.sidebarMargin)
     }
 
     @computed get fontSize() {
@@ -480,7 +480,7 @@ export class SlopeChart
     }
 
     @computed private get yAxisWidth(): number {
-        return this.yAxis.width + 5 // 5px account for the tick marks
+        return this.yAxis.width
     }
 
     @computed private get xScale(): ScaleLinear<number, number> {
@@ -972,14 +972,13 @@ export class SlopeChart
         return (
             <g>
                 <GridLines
-                    bounds={this.bounds}
+                    bounds={bounds}
                     yAxis={this.yAxis}
                     endX={this.endX}
                 />
                 <VerticalAxisComponent
                     bounds={bounds}
                     verticalAxis={this.yAxis}
-                    showTickMarks={true}
                     labelColor={this.manager.secondaryColorInStaticCharts}
                 />
                 <MarkX
@@ -1247,7 +1246,7 @@ function GridLines({ bounds, yAxis, endX }: GridLinesProps) {
                         key={tick.formattedValue}
                     >
                         <line
-                            x1={bounds.left + yAxis.width + 8}
+                            x1={bounds.left + yAxis.width}
                             y1={y}
                             x2={endX}
                             y2={y}
