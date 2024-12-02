@@ -335,7 +335,7 @@ export class SlopeChart
         // if tolerance has been applied to one of the values, then we require
         // a minimal distance between the original times
         if (isToleranceAppliedToStartValue || isToleranceAppliedToEndValue) {
-            return end.originalTime - start.originalTime >= 2 * tolerance
+            return end.originalTime - start.originalTime >= tolerance
         }
 
         return true
@@ -692,25 +692,17 @@ export class SlopeChart
 
         const formatTime = (time: Time) => formatColumn.formatTime(time)
 
-        const title = isRelativeMode
-            ? `${series.seriesName}, ${formatColumn.formatTime(endTime)}`
-            : series.seriesName
-
-        const isStartValueOriginal = series.start.originalTime === startTime
-        const isEndValueOriginal = series.end.originalTime === endTime
-        const actualStartTime = isStartValueOriginal
-            ? startTime
-            : series.start.originalTime
-        const actualEndTime = isEndValueOriginal
-            ? endTime
-            : series.end.originalTime
-
+        const actualStartTime = series.start.originalTime
+        const actualEndTime = series.end.originalTime
         const timeRange = `${formatTime(actualStartTime)} to ${formatTime(actualEndTime)}`
         const timeLabel = isRelativeMode
-            ? `% change since ${formatColumn.formatTime(startTime)}`
+            ? `% change between ${formatColumn.formatTime(actualStartTime)} and ${formatColumn.formatTime(actualEndTime)}`
             : timeRange
 
         const constructTargetYearForToleranceNotice = () => {
+            const isStartValueOriginal = series.start.originalTime === startTime
+            const isEndValueOriginal = series.end.originalTime === endTime
+
             if (!isStartValueOriginal && !isEndValueOriginal) {
                 return `${formatTime(startTime)} and ${formatTime(endTime)}`
             } else if (!isStartValueOriginal) {
@@ -753,7 +745,7 @@ export class SlopeChart
                 offsetX={20}
                 offsetY={-16}
                 style={{ maxWidth: "250px" }}
-                title={title}
+                title={series.seriesName}
                 subtitle={timeLabel}
                 subtitleFormat={targetYear ? "notice" : undefined}
                 dissolve={fading}
