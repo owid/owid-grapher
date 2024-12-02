@@ -69,6 +69,9 @@ export const runSiteFooterScripts = (
             break
         case SiteFooterContext.explorerIndexPage:
             hydrateExplorerIndex()
+            runSiteNavigation(BAKED_BASE_URL)
+            runCookiePreferencesManager()
+            runSiteTools()
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
