@@ -107,7 +107,7 @@ import {
     getAnnotationsMap,
     getColorKey,
     getSeriesName,
-} from "./lineChartHelpers"
+} from "./LineChartHelpers"
 
 const LINE_CHART_CLASS_NAME = "LineChart"
 
