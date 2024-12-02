@@ -380,14 +380,12 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 fragments: labelFragments,
                 maxWidth: maxTextWidth,
                 fontSize,
-                lineHeight: 1,
             })
             const annotationTextWrap = label.annotation
                 ? new TextWrap({
                       text: label.annotation,
                       maxWidth: maxAnnotationWidth,
                       fontSize: fontSize * 0.9,
-                      lineHeight: 1,
                   })
                 : undefined
 
