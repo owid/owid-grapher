@@ -4,7 +4,7 @@ import {
 } from "../OwidVariableDisplayConfigInterface.js"
 import { ColumnSlugs, EntityName } from "../domainTypes/CoreTableTypes.js"
 import { AxisAlign, Position } from "../domainTypes/Layout.js"
-import { Integer, QueryParams } from "../domainTypes/Various.js"
+import { Integer } from "../domainTypes/Various.js"
 import { DetailDictionary } from "../gdocTypes/Gdoc.js"
 import { observable } from "mobx"
 import {
@@ -602,7 +602,9 @@ export interface LegacyGrapherInterface extends GrapherInterface {
     data: any
 }
 
-export interface GrapherQueryParams extends QueryParams {
+// This is intentionally a `type` and not an `interface`, because the TS semantics make it so that this here can be assigned to a `Record<string, string>`.
+// See https://stackoverflow.com/q/64970414
+export type GrapherQueryParams = {
     country?: string
     tab?: string
     overlay?: string
@@ -619,7 +621,7 @@ export interface GrapherQueryParams extends QueryParams {
     showNoDataArea?: string
 }
 
-export interface LegacyGrapherQueryParams extends GrapherQueryParams {
+export type LegacyGrapherQueryParams = GrapherQueryParams & {
     year?: string
 }
 
