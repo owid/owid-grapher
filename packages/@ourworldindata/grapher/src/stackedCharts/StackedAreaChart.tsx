@@ -317,7 +317,7 @@ export class StackedAreaChart extends AbstractStackedChart {
 
         // only pass props that are required to calculate
         // the width to avoid circular dependencies
-        return LineLegend.incorrectWidth({
+        return LineLegend.width({
             labelSeries: this.lineLegendSeries,
             maxWidth: this.maxLineLegendWidth,
             fontSize: this.fontSize,
