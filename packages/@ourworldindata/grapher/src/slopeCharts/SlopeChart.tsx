@@ -686,6 +686,7 @@ export class SlopeChart
             .attr("stroke-dasharray", "100%")
             .attr("stroke-dashoffset", "100%")
             .transition()
+            .duration(600)
             .attr("stroke-dashoffset", "0%")
     }
 
