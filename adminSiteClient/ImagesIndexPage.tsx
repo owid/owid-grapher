@@ -37,6 +37,16 @@ type ImageEditorApi = {
         image: DbEnrichedImageWithUserId,
         patch: Partial<DbEnrichedImageWithUserId>
     ) => void
+    putImage: (payload: {
+        filename: string
+        content?: string
+        type: string
+    }) => void
+    postImage: (payload: {
+        filename: string
+        content?: string
+        type: string
+    }) => void
     deleteImage: (image: DbEnrichedImageWithUserId) => void
     getImages: () => void
     getUsers: () => void
@@ -286,6 +296,9 @@ function createColumns({
             width: 100,
             render: (_, image) => (
                 <Space size="middle">
+                    <ImageUpload onRequest={(payload) => api.putImage(payload)}>
+                        <Button type="text">Upload new version</Button>
+                    </ImageUpload>
                     <Popconfirm
                         title="Are you sure?"
                         description="This will delete the image being used in production."
@@ -303,12 +316,16 @@ function createColumns({
     ]
 }
 
-function ImageUploadButton({
-    setImages,
-    admin,
+function ImageUpload({
+    children,
+    onRequest,
 }: {
-    setImages: React.Dispatch<React.SetStateAction<ImageMap>>
-    admin: Admin
+    children: React.ReactNode
+    onRequest: (payload: {
+        filename: string
+        content?: string
+        type: string
+    }) => void
 }) {
     function uploadImage({ file }: { file: string | Blob | RcFile }) {
         if (typeof file === "string") return
@@ -323,23 +340,13 @@ function ImageUploadButton({
                 type: file.type,
             }
 
-            const { image } = await admin.requestJSON<{
-                sucess: true
-                image: DbEnrichedImageWithUserId
-            }>("/api/image", payload, "POST")
-
-            setImages((imagesMap) => ({
-                ...imagesMap,
-                [image.id]: image,
-            }))
+            onRequest(payload)
         }
         reader.readAsDataURL(file)
     }
     return (
         <Upload showUploadList={false} customRequest={uploadImage}>
-            <Button type="primary" icon={<FontAwesomeIcon icon={faUpload} />}>
-                Upload image
-            </Button>
+            {children}
         </Upload>
     )
 }
@@ -382,13 +389,33 @@ export function ImageIndexPage() {
                     [image.id]: response.image,
                 }))
             },
+            postImage: async (image) => {
+                const response = await admin.requestJSON<{
+                    success: true
+                    image: DbEnrichedImageWithUserId
+                }>(`/api/image`, image, "POST")
+                setImages((prevMap) => ({
+                    ...prevMap,
+                    [response.image.id]: response.image,
+                }))
+            },
+            putImage: async (image) => {
+                const response = await admin.requestJSON<{
+                    success: true
+                    image: DbEnrichedImageWithUserId
+                }>(`/api/image/${image.id}`, image, "PUT")
+                setImages((prevMap) => ({
+                    ...prevMap,
+                    [image.id]: response.image,
+                }))
+            },
             postUserImage: async (user, image) => {
-                const result = await admin.requestJSON(
+                const response = await admin.requestJSON(
                     `/api/users/${user.id}/image/${image.id}`,
                     {},
                     "POST"
                 )
-                if (result.success) {
+                if (response.success) {
                     setImages((prevMap) => ({
                         ...prevMap,
                         [image.id]: { ...prevMap[image.id], userId: user.id },
@@ -439,7 +466,13 @@ export function ImageIndexPage() {
                         onChange={(e) => setFilenameSearchValue(e.target.value)}
                         style={{ width: 500, marginBottom: 20 }}
                     />
-                    <ImageUploadButton setImages={setImages} admin={admin} />
+                    <ImageUpload
+                        onRequest={(payload) => api.postImage(payload)}
+                    >
+                        <Button type="primary">
+                            <FontAwesomeIcon icon={faUpload} /> Upload
+                        </Button>
+                    </ImageUpload>
                 </Flex>
                 <Table columns={columns} dataSource={filteredImages} />
             </main>
