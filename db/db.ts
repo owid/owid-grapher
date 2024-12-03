@@ -737,7 +737,7 @@ export function getCloudflareImage(
         `-- sql
         SELECT * 
         FROM images
-        WHERE i.filename = ?`,
+        WHERE filename = ?`,
         [filename]
     )
 }
