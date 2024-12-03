@@ -381,17 +381,16 @@ export class LineLegend extends React.Component<LineLegendProps> {
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
         return this.props.labelSeries.map((label) => {
-            const labelFragments = excludeUndefined([
-                { text: label.label, fontWeight },
-                label.formattedValue
-                    ? {
-                          text: label.formattedValue,
-                          newLine: label.placeFormattedValueInNewLine
-                              ? "always"
-                              : "avoid-wrap",
-                      }
-                    : undefined,
-            ])
+            const mainLabel = { text: label.label, fontWeight }
+            const valueLabel = label.formattedValue
+                ? {
+                      text: label.formattedValue,
+                      newLine: (label.placeFormattedValueInNewLine
+                          ? "always"
+                          : "avoid-wrap") as "always" | "avoid-wrap",
+                  }
+                : undefined
+            const labelFragments = excludeUndefined([mainLabel, valueLabel])
             const textWrap = new TextWrapGroup({
                 fragments: labelFragments,
                 maxWidth: maxTextWidth,
