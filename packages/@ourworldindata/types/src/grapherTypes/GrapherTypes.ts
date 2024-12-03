@@ -603,6 +603,7 @@ export interface LegacyGrapherInterface extends GrapherInterface {
 }
 
 export interface GrapherQueryParams extends QueryParams {
+    country?: string
     tab?: string
     overlay?: string
     stackMode?: string
@@ -611,9 +612,7 @@ export interface GrapherQueryParams extends QueryParams {
     yScale?: string
     time?: string
     region?: string
-    shown?: string
     endpointsOnly?: string
-    selection?: string
     facet?: string
     uniformYAxis?: string
     showSelectionOnlyInTable?: string
@@ -622,7 +621,6 @@ export interface GrapherQueryParams extends QueryParams {
 
 export interface LegacyGrapherQueryParams extends GrapherQueryParams {
     year?: string
-    country?: string // deprecated
 }
 
 // NOTE: This should list all keys of the LegacyGrapherQueryParams type. ATM
@@ -636,9 +634,7 @@ export const GRAPHER_QUERY_PARAM_KEYS: (keyof LegacyGrapherQueryParams)[] = [
     "yScale",
     "time",
     "region",
-    "shown",
     "endpointsOnly",
-    "selection",
     "facet",
     "uniformYAxis",
     "showSelectionOnlyInTable",
