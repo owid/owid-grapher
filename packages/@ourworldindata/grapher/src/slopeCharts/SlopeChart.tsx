@@ -1141,7 +1141,7 @@ function Slope({
     series,
     color,
     mode = RenderMode.default,
-    dotRadius = 3.5,
+    dotRadius = 2.5,
     strokeWidth = 2,
     outlineWidth = 0.5,
     outlineStroke = "#fff",
@@ -1149,6 +1149,8 @@ function Slope({
     onMouseLeave,
 }: SlopeProps) {
     const { seriesName, startPoint, endPoint } = series
+
+    const showOutline = mode === RenderMode.default || mode === RenderMode.focus
 
     const opacity = {
         [RenderMode.default]: 1,
@@ -1164,72 +1166,63 @@ function Slope({
             onMouseOver={() => onMouseOver?.(series)}
             onMouseLeave={() => onMouseLeave?.()}
         >
-            <HaloLine
+            {showOutline && (
+                <LineWithDots
+                    startPoint={startPoint}
+                    endPoint={endPoint}
+                    radius={dotRadius}
+                    color={outlineStroke}
+                    lineWidth={strokeWidth + 2 * outlineWidth}
+                />
+            )}
+            <LineWithDots
                 startPoint={startPoint}
                 endPoint={endPoint}
-                stroke={color}
-                strokeWidth={strokeWidth}
-                outlineWidth={outlineWidth}
-                outlineStroke={outlineStroke}
+                radius={dotRadius}
+                color={color}
+                lineWidth={strokeWidth}
                 opacity={opacity}
-            />
-            <circle
-                cx={startPoint.x}
-                cy={startPoint.y}
-                r={dotRadius}
-                fill={color}
-                fillOpacity={opacity}
-                stroke={outlineStroke}
-                strokeWidth={outlineWidth}
-            />
-            <circle
-                cx={endPoint.x}
-                cy={endPoint.y}
-                r={dotRadius}
-                fill={color}
-                fillOpacity={opacity}
-                stroke={outlineStroke}
-                strokeWidth={outlineWidth}
             />
         </g>
     )
 }
 
-interface HaloLineProps extends SVGProps<SVGLineElement> {
+/**
+ * Line with two dots at the ends, drawn as a single path element.
+ */
+function LineWithDots({
+    startPoint,
+    endPoint,
+    radius,
+    color,
+    lineWidth = 2,
+    opacity = 1,
+}: {
     startPoint: PointVector
     endPoint: PointVector
-    strokeWidth?: number
-    outlineWidth?: number
-    outlineStroke?: string
-}
+    radius?: number
+    color: string
+    lineWidth?: number
+    opacity?: number
+}): React.ReactElement {
+    const startDotPath = makeCirclePath(startPoint.x, startPoint.y, radius)
+    const endDotPath = makeCirclePath(endPoint.x, endPoint.y, radius)
 
-function HaloLine(props: HaloLineProps): React.ReactElement {
-    const {
-        startPoint,
-        endPoint,
-        outlineWidth = 0.5,
-        outlineStroke = "#fff",
-        ...styleProps
-    } = props
+    const linePath = makeLinePath(
+        startPoint.x,
+        startPoint.y,
+        endPoint.x,
+        endPoint.y
+    )
+
     return (
-        <>
-            <line
-                x1={startPoint.x}
-                y1={startPoint.y}
-                x2={endPoint.x}
-                y2={endPoint.y}
-                {...styleProps}
-                stroke={outlineStroke}
-                strokeWidth={(props.strokeWidth ?? 1) + 2 * outlineWidth}
-            />
-            <line
-                x1={startPoint.x}
-                y1={startPoint.y}
-                x2={endPoint.x}
-                y2={endPoint.y}
-                {...styleProps}
-            />
-        </>
+        <path
+            d={`${startDotPath} ${endDotPath} ${linePath}`}
+            fill={color}
+            stroke={color}
+            strokeWidth={lineWidth}
+            opacity={opacity}
+        />
     )
 }
 
@@ -1294,4 +1287,14 @@ function MarkX({
             </text>
         </>
     )
+}
+
+const makeCirclePath = (centerX: number, centerY: number, radius: number) => {
+    const topX = centerX
+    const topY = centerY - radius
+    return `M ${topX},${topY} A ${radius},${radius} 0 1,1 ${topX - 0.0001},${topY}`
+}
+
+const makeLinePath = (x1: number, y1: number, x2: number, y2: number) => {
+    return `M ${x1},${y1} L ${x2},${y2}`
 }
