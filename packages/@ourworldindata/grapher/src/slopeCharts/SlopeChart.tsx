@@ -565,9 +565,12 @@ export class SlopeChart
         return LineLegend.width({
             labelSeries: this.lineLegendSeriesRight,
             yAxis: this.yAxis,
+            yRange: this.lineLegendYRange,
+            verticalAlign: VerticalAlign.top,
             maxWidth: this.maxLineLegendWidth,
             connectorLineWidth: this.lineLegendConnectorLinesWidth,
             fontSize: this.fontSize,
+            fontWeight: 700,
             isStatic: this.manager.isStatic,
         })
     }
