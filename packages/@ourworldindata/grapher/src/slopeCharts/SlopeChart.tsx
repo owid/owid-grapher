@@ -777,13 +777,14 @@ export class SlopeChart
     @computed get failMessage(): string {
         const message = getDefaultFailMessage(this.manager)
         if (message) return message
-        else if (this.startTime === this.endTime) return "Single date selected"
+        else if (this.startTime === this.endTime)
+            return "Two time points needed for comparison"
         return ""
     }
 
     @computed get helpMessage(): string | undefined {
-        if (this.failMessage === "Single date selected")
-            return "Please select two dates to display data."
+        if (this.failMessage === "Two time points needed for compariso")
+            return "Click or drag the timeline to select two different points in time"
         return undefined
     }
 
