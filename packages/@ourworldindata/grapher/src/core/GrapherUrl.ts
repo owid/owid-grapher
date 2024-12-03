@@ -6,6 +6,7 @@ import {
 } from "@ourworldindata/types"
 import { generateSelectedEntityNamesParam } from "./EntityUrlBuilder.js"
 import { match } from "ts-pattern"
+import { Grapher } from "./Grapher.js"
 
 // This function converts a (potentially partial) GrapherInterface to the query params this translates to.
 // This is helpful for when we have a patch config to a parent chart, and we want to know which query params we need to get the parent chart as close as possible to the patched child chart.
@@ -64,5 +65,35 @@ const grapherConfigToQueryParams = (
         },
         {} as GrapherQueryParams
     )
+    return params
+}
+
+export const grapherObjectToQueryParams = (
+    grapher: Grapher
+): GrapherQueryParams => {
+    const params: GrapherQueryParams = {
+        tab: grapher.mapGrapherTabToQueryParam(grapher.activeTab),
+        xScale: grapher.xAxis.scaleType,
+        yScale: grapher.yAxis.scaleType,
+        stackMode: grapher.stackMode,
+        zoomToSelection: grapher.zoomToSelection ? "true" : undefined,
+        endpointsOnly: grapher.compareEndPointsOnly ? "1" : "0",
+        time: grapher.timeParam,
+        region: grapher.map.projection,
+        facet: grapher.selectedFacetStrategy,
+        uniformYAxis:
+            grapher.yAxis.facetDomain === FacetAxisDomain.independent
+                ? "0"
+                : "1",
+        showSelectionOnlyInTable: grapher.showSelectionOnlyInDataTable
+            ? "1"
+            : "0",
+        showNoDataArea: grapher.showNoDataArea ? "1" : "0",
+        country: grapher.selectedEntitiesIfDifferentThanAuthors
+            ? generateSelectedEntityNamesParam(
+                  grapher.selectedEntitiesIfDifferentThanAuthors
+              )
+            : undefined,
+    }
     return params
 }

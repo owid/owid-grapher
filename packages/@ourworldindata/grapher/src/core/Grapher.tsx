@@ -150,10 +150,7 @@ import {
 import { TooltipManager } from "../tooltip/TooltipProps"
 
 import { DimensionSlot } from "../chart/DimensionSlot"
-import {
-    generateSelectedEntityNamesParam,
-    getSelectedEntityNamesParam,
-} from "./EntityUrlBuilder"
+import { getSelectedEntityNamesParam } from "./EntityUrlBuilder"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { MapConfig } from "../mapCharts/MapConfig"
@@ -223,6 +220,7 @@ import {
 } from "../entitySelector/EntitySelector"
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
+import { grapherObjectToQueryParams } from "./GrapherUrl.js"
 
 declare global {
     interface Window {
@@ -3318,31 +3316,10 @@ export class Grapher
     }
 
     @computed.struct get allParams(): GrapherQueryParams {
-        const params: GrapherQueryParams = {}
-        params.tab = this.mapGrapherTabToQueryParam(this.activeTab)
-        params.xScale = this.xAxis.scaleType
-        params.yScale = this.yAxis.scaleType
-        params.stackMode = this.stackMode
-        params.zoomToSelection = this.zoomToSelection ? "true" : undefined
-        params.endpointsOnly = this.compareEndPointsOnly ? "1" : "0"
-        params.time = this.timeParam
-        params.region = this.map.projection
-        params.facet = this.selectedFacetStrategy
-        params.uniformYAxis =
-            this.yAxis.facetDomain === FacetAxisDomain.independent ? "0" : "1"
-        params.showSelectionOnlyInTable = this.showSelectionOnlyInDataTable
-            ? "1"
-            : "0"
-        params.showNoDataArea = this.showNoDataArea ? "1" : "0"
-        params.country = this.selectedEntitiesIfDifferentThanAuthors
-            ? generateSelectedEntityNamesParam(
-                  this.selectedEntitiesIfDifferentThanAuthors
-              )
-            : undefined
-        return params
+        return grapherObjectToQueryParams(this)
     }
 
-    @computed private get selectedEntitiesIfDifferentThanAuthors():
+    @computed get selectedEntitiesIfDifferentThanAuthors():
         | EntityName[]
         | undefined {
         const authoredConfig = this.legacyConfigAsAuthored
