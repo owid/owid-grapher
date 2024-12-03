@@ -151,8 +151,8 @@ import { TooltipManager } from "../tooltip/TooltipProps"
 
 import { DimensionSlot } from "../chart/DimensionSlot"
 import {
+    generateSelectedEntityNamesParam,
     getSelectedEntityNamesParam,
-    setSelectedEntityNamesParam,
 } from "./EntityUrlBuilder"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
@@ -3334,10 +3334,12 @@ export class Grapher
             ? "1"
             : "0"
         params.showNoDataArea = this.showNoDataArea ? "1" : "0"
-        return setSelectedEntityNamesParam(
-            Url.fromQueryParams(params),
-            this.selectedEntitiesIfDifferentThanAuthors
-        ).queryParams
+        params.country = this.selectedEntitiesIfDifferentThanAuthors
+            ? generateSelectedEntityNamesParam(
+                  this.selectedEntitiesIfDifferentThanAuthors
+              )
+            : undefined
+        return params
     }
 
     @computed private get selectedEntitiesIfDifferentThanAuthors():
