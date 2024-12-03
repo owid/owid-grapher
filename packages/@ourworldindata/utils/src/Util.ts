@@ -2000,15 +2000,3 @@ export function getPaginationPageNumbers(
 
     return pageNumbers
 }
-
-/**
- * Convert 0 to "0th", 1 to "1st", etc.
- * */
-export function getOrdinalNumberString(n: number): string {
-    const suffix = ["th", "st", "nd", "rd"]
-    const modulusValue = n % 100
-    return (
-        n +
-        (suffix[(modulusValue - 20) % 10] || suffix[modulusValue] || suffix[0])
-    )
-}

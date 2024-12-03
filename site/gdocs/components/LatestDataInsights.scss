@@ -191,7 +191,7 @@ html:not(.js-enabled) .latest-data-insights__card,
     }
 }
 
-.latest-data-insights__control-dots {
+.latest-data-insights__dots {
     position: absolute;
     display: flex;
     justify-content: center;
@@ -207,7 +207,7 @@ html:not(.js-enabled) .latest-data-insights__card,
     }
 }
 
-.latest-data-insights__control-dot {
+.latest-data-insights__dot {
     background-color: $blue-30;
     touch-action: manipulation;
     display: inline-flex;

@@ -1,12 +1,5 @@
 import * as React from "react"
-import {
-    memo,
-    useState,
-    useCallback,
-    useEffect,
-    useMemo,
-    ComponentPropsWithRef,
-} from "react"
+import { memo, useState, useCallback, useEffect, useMemo } from "react"
 import { useMediaQuery } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -24,7 +17,6 @@ import {
     EnrichedBlockImage,
     OwidEnrichedGdocBlock,
     LatestDataInsight,
-    getOrdinalNumberString,
 } from "@ourworldindata/utils"
 import { dataInsightIndexToIdMap } from "../pages/DataInsight.js"
 import Image from "./Image.js"
@@ -55,8 +47,7 @@ export default function LatestDataInsights({
     const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start" }, [
         ClassNames(),
     ])
-    const { selectedIndex, scrollSnaps, onDotButtonClick } =
-        useDotButton(emblaApi)
+    const { selectedIndex, scrollSnaps } = useDotButton(emblaApi)
     const [canScrollPrev, setCanScrollPrev] = useState(false)
     const [canScrollNext, setCanScrollNext] = useState(false)
 
@@ -130,14 +121,12 @@ export default function LatestDataInsights({
                     text=""
                 />
             )}
-            <div className="latest-data-insights__control-dots">
+            <div className="latest-data-insights__dots">
                 {scrollSnaps.map((_, index) => (
-                    <DotButton
+                    <div
                         key={index}
-                        index={index}
-                        onClick={() => onDotButtonClick(index)}
-                        className={cx("latest-data-insights__control-dot", {
-                            "latest-data-insights__control-dot--selected":
+                        className={cx("latest-data-insights__dot", {
+                            "latest-data-insights__dot--selected":
                                 index === selectedIndex,
                         })}
                     />
@@ -251,17 +240,4 @@ function useDotButton(emblaApi: EmblaCarouselType | undefined): {
         scrollSnaps,
         onDotButtonClick,
     }
-}
-
-function DotButton({
-    children,
-    index,
-    ...restProps
-}: ComponentPropsWithRef<"button"> & { index: number }) {
-    const label = `Navigate to the ${getOrdinalNumberString(index + 1)} data insight card`
-    return (
-        <button aria-label={label} {...restProps}>
-            {children}
-        </button>
-    )
 }
