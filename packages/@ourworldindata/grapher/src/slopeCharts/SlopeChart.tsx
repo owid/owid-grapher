@@ -776,17 +776,13 @@ export class SlopeChart
     @computed get failMessage(): string {
         const message = getDefaultFailMessage(this.manager)
         if (message) return message
-        else if (this.startTime === this.endTime)
-            return "No data to display for the selected time period"
+        else if (this.startTime === this.endTime) return "Single date selected"
         return ""
     }
 
     @computed get helpMessage(): string | undefined {
-        if (
-            this.failMessage ===
-            "No data to display for the selected time period"
-        )
-            return "Try dragging the time slider to display data."
+        if (this.failMessage === "Single date selected")
+            return "Please select two dates to display data."
         return undefined
     }
 
@@ -1200,7 +1196,7 @@ function LineWithDots({
 }: {
     startPoint: PointVector
     endPoint: PointVector
-    radius?: number
+    radius: number
     color: string
     lineWidth?: number
     opacity?: number
