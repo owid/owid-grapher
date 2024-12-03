@@ -1221,6 +1221,30 @@ postRouteWithRWTransaction(
     }
 )
 
+postRouteWithRWTransaction(
+    apiRouter,
+    "/users/:userId/image/:imageId",
+    async (req, res, trx) => {
+        const userId = expectInt(req.params.userId)
+        const imageId = expectInt(req.params.imageId)
+        await trx("images").where({ id: imageId }).update({ userId })
+        return { success: true }
+    }
+)
+
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/users/:userId/image/:imageId",
+    async (req, res, trx) => {
+        const userId = expectInt(req.params.userId)
+        const imageId = expectInt(req.params.imageId)
+        await trx("images")
+            .where({ id: imageId, userId })
+            .update({ userId: null })
+        return { success: true }
+    }
+)
+
 getRouteWithROTransaction(
     apiRouter,
     "/variables.json",
@@ -3159,11 +3183,10 @@ postRouteWithRWTransaction(apiRouter, "/image", async (req, res, trx) => {
         // TODO: make defaultAlt nullable
         defaultAlt: "Default alt text",
         updatedAt: new Date().getTime(),
+        userId: res.locals.user.id,
     })
 
-    const image = await trx<DbEnrichedImage>("images")
-        .where("cloudflareId", "=", cloudflareId)
-        .first()
+    const image = await db.getCloudflareImage(trx, filename)
 
     return {
         success: true,
@@ -3217,7 +3240,7 @@ deleteRouteWithRWTransaction(
         }
 
         const response = await fetch(
-            `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1/${image.cloudflareId}`,
+            `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1/${encodeURIComponent(image.cloudflareId!)}`,
             {
                 method: "DELETE",
                 headers: {

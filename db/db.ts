@@ -29,6 +29,7 @@ import {
     TagGraphNode,
     MinimalExplorerInfo,
     DbEnrichedImage,
+    DbEnrichedImageWithUserId,
 } from "@ourworldindata/types"
 import { groupBy, uniq } from "lodash"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -721,8 +722,22 @@ export function getCloudflareImages(
     return knexRaw<DbEnrichedImage>(
         trx,
         `-- sql
-        SELECT filename, cloudflareId, id, defaultAlt, originalHeight, originalWidth, updatedAt
+        SELECT *
         FROM images
         WHERE cloudflareId IS NOT NULL`
+    )
+}
+
+export function getCloudflareImage(
+    trx: KnexReadonlyTransaction,
+    filename: string
+): Promise<DbEnrichedImageWithUserId | undefined> {
+    return knexRawFirst(
+        trx,
+        `-- sql
+        SELECT * 
+        FROM images
+        WHERE i.filename = ?`,
+        [filename]
     )
 }

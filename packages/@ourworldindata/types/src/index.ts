@@ -528,6 +528,7 @@ export {
 export {
     type DbRawImage,
     type DbEnrichedImage,
+    type DbEnrichedImageWithUserId,
     type DbInsertImage,
     parseImageRow,
     parseImageUpdatedAt,
@@ -661,6 +662,7 @@ export {
     type DbInsertUser,
     UsersTableName,
 } from "./dbTypes/Users.js"
+
 export {
     type DbRawVariable,
     type DbEnrichedVariable,
