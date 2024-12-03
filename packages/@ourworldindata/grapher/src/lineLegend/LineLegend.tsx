@@ -322,10 +322,16 @@ export interface LineLegendProps {
 
 @observer
 export class LineLegend extends React.Component<LineLegendProps> {
+    /**
+     * Larger than the actual width since the width of the connector lines
+     * is always added, even if they're not rendered.
+     *
+     * This is partly due to a circular dependency (in line and stacked area
+     * charts), partly to avoid jumpy layout changes (slope charts).
+     */
     static width(props: LineLegendProps): number {
         const test = new LineLegend(props)
-        const connectorLineWidth = test.needsLines ? test.connectorLineWidth : 0
-        return test.maxLabelWidth + connectorLineWidth + MARKER_MARGIN
+        return test.maxLabelWidth + test.connectorLineWidth + MARKER_MARGIN
     }
 
     static needsConnectorLines(props: LineLegendProps): boolean {
@@ -336,16 +342,6 @@ export class LineLegend extends React.Component<LineLegendProps> {
     static fontSize(props: Partial<LineLegendProps>): number {
         const test = new LineLegend(props as LineLegendProps)
         return test.fontSize
-    }
-
-    /**
-     * Always adds the width of connector lines, which leads to an incorrect
-     * result if no connector lines are rendered. We sometimes can't use the
-     * correct width above due to circular dependencies.
-     */
-    static incorrectWidth(props: LineLegendProps): number {
-        const test = new LineLegend(props)
-        return test.maxLabelWidth + test.connectorLineWidth + MARKER_MARGIN
     }
 
     @computed private get fontSize(): number {
