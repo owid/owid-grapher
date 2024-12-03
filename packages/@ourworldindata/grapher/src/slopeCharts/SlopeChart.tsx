@@ -502,7 +502,7 @@ export class SlopeChart
     }
 
     @computed get maxLineLegendWidth(): number {
-        return this.innerBounds.width / 4
+        return 0.25 * this.innerBounds.width
     }
 
     @computed get lineLegendFontSize(): number {
@@ -526,15 +526,13 @@ export class SlopeChart
         // can't use this.lineLegendSeriesLeft due to a circular dependency
         const lineLegendSeries = this.series.map((series) => {
             const { seriesName, color, start } = series
-            const showSeriesName = false
-            const value = this.formatColumn.formatValueShort(start.value)
-            const label = showSeriesName ? seriesName : value
-            const formattedValue = showSeriesName ? value : undefined
+            const formattedValue = this.formatColumn.formatValueShort(
+                start.value
+            )
             return {
                 color,
                 seriesName,
-                label,
-                formattedValue,
+                label: formattedValue,
                 yValue: start.value,
             }
         })
@@ -579,10 +577,28 @@ export class SlopeChart
             this.lineLegendWidthLeft + LINE_LEGEND_PADDING
         const lineLegendWidthRight =
             this.lineLegendWidthRight + LINE_LEGEND_PADDING
+        const chartAreaWidth = this.innerBounds.width
+
+        // start and end value when the slopes are as wide as possible
+        const minStartX =
+            this.innerBounds.x + this.yAxisWidth + lineLegendWidthLeft
+        const maxEndX = this.innerBounds.right - lineLegendWidthRight
+
+        // use all available space if the chart is narrow
+        if (this.manager.isSemiNarrow) {
+            return [minStartX, maxEndX]
+        }
+
+        const offset = 0.25
+        let startX = this.innerBounds.x + offset * chartAreaWidth
+        let endX = this.innerBounds.right - offset * chartAreaWidth
+
+        // make sure the start and end values are within the bounds
+        startX = Math.max(startX, minStartX)
+        endX = Math.min(endX, maxEndX)
 
         // pick a reasonable max width based on an ideal aspect ratio
-        const idealAspectRatio = 0.6
-        const chartAreaWidth = this.innerBounds.width
+        const idealAspectRatio = 0.9
         const availableWidth =
             chartAreaWidth -
             this.yAxisWidth -
@@ -590,23 +606,6 @@ export class SlopeChart
             lineLegendWidthRight
         const idealWidth = idealAspectRatio * this.bounds.height
         const maxSlopeWidth = Math.min(idealWidth, availableWidth)
-
-        let startX: number, endX: number
-        if (this.manager.isSemiNarrow) {
-            startX = this.bounds.x + this.yAxisWidth + 4 + lineLegendWidthLeft
-            endX = this.bounds.x + chartAreaWidth - lineLegendWidthRight
-        } else {
-            startX =
-                this.bounds.x +
-                Math.max(
-                    0.25 * chartAreaWidth,
-                    this.yAxisWidth + 4 + lineLegendWidthLeft
-                )
-            endX =
-                this.bounds.x +
-                chartAreaWidth -
-                Math.max(0.25 * chartAreaWidth, lineLegendWidthRight)
-        }
 
         const currentSlopeWidth = endX - startX
         if (currentSlopeWidth > maxSlopeWidth) {
@@ -651,6 +650,7 @@ export class SlopeChart
                 seriesName,
                 label,
                 formattedValue,
+                valueInNewLine: this.useCompactLineLegend,
                 yValue: start.value,
             }
         })
@@ -666,6 +666,7 @@ export class SlopeChart
                 label: seriesName,
                 annotation: this.useCompactLineLegend ? undefined : annotation,
                 formattedValue,
+                valueInNewLine: this.useCompactLineLegend,
                 yValue: end.value,
             }
         })

@@ -7,7 +7,9 @@ import { Bounds, last, max } from "@ourworldindata/utils"
 interface TextWrapFragment {
     text: string
     fontWeight?: number
-    preferLineBreakOverWrapping?: boolean
+    // "always" places the fragment in a new line in all cases
+    // "avoid-wrap" places the fragment in a new line only if the fragment would wrap otherwise
+    newLine?: "always" | "avoid-wrap"
 }
 
 interface PlacedTextWrap {
@@ -92,10 +94,18 @@ export class TextWrapGroup {
             const { textWrap: lastTextWrap, yOffset: lastYOffset } =
                 textWraps[i - 1]
 
-            let textWrap = this.makeTextWrapForFragment(
-                fragment,
-                lastTextWrap.lastLineWidth + whitespaceWidth
-            )
+            // x-offset for the new text wrap
+            const offset = lastTextWrap.lastLineWidth + whitespaceWidth
+
+            // place the text wrap in a new line
+            if (fragment.newLine === "always" || offset > this.maxWidth) {
+                const textWrap = this.makeTextWrapForFragment(fragment)
+                const yOffset = lastYOffset + lastTextWrap.height
+                textWraps.push({ textWrap, yOffset })
+                continue
+            }
+
+            let textWrap = this.makeTextWrapForFragment(fragment, offset)
 
             let yOffset = lastYOffset
             if (textWrap.firstLineOffset === 0) {
@@ -107,10 +117,7 @@ export class TextWrapGroup {
 
             // some fragments are preferred to break into a new line
             // instead of being wrapped
-            if (
-                fragment.preferLineBreakOverWrapping &&
-                textWrap.lineCount > 1
-            ) {
+            if (fragment.newLine === "avoid-wrap" && textWrap.lineCount > 1) {
                 textWrap = this.makeTextWrapForFragment(fragment)
                 yOffset += lastTextWrap.singleLineHeight
             }
@@ -141,7 +148,7 @@ export class TextWrapGroup {
     }
 
     @computed get lines(): {
-        fragments: Omit<TextWrapFragment, "preferLineBreakOverWrapping">[]
+        fragments: Omit<TextWrapFragment, "newLine">[]
         textWrap: TextWrap
         yOffset: number
     }[] {
