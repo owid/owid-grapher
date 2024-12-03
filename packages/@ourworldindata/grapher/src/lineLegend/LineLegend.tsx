@@ -40,6 +40,7 @@ export interface LineLabelSeries extends ChartSeries {
     yValue: number
     annotation?: string
     formattedValue?: string
+    placeFormattedValueInNewLine?: boolean
     yRange?: [number, number]
 }
 
@@ -385,7 +386,9 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 label.formattedValue
                     ? {
                           text: label.formattedValue,
-                          preferLineBreakOverWrapping: true,
+                          newLine: label.placeFormattedValueInNewLine
+                              ? "always"
+                              : "avoid-wrap",
                       }
                     : undefined,
             ])

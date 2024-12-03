@@ -43,7 +43,7 @@ it("should place the second segment in a new line if preferred", () => {
     const textWrapGroup = new TextWrapGroup({
         fragments: [
             { text: TEXT },
-            { text: "30 million", preferLineBreakOverWrapping: true },
+            { text: "30 million", newLine: "avoid-wrap" },
         ],
         maxWidth,
         fontSize: FONT_SIZE,
@@ -65,7 +65,7 @@ it("should place the second segment in the same line if possible", () => {
     const textWrapGroup = new TextWrapGroup({
         fragments: [
             { text: TEXT },
-            { text: "30 million", preferLineBreakOverWrapping: true },
+            { text: "30 million", newLine: "avoid-wrap" },
         ],
         maxWidth,
         fontSize: FONT_SIZE,
@@ -74,6 +74,25 @@ it("should place the second segment in the same line if possible", () => {
     // since the max width is large, "30 million" fits into the same line
     // as the text of the first fragmemt
     expect(textWrapGroup.height).toEqual(
+        new TextWrap({
+            text: TEXT,
+            maxWidth,
+            fontSize: FONT_SIZE,
+        }).height
+    )
+})
+
+it("should place the second segment in the same line if specified", () => {
+    const maxWidth = 1000
+    const textWrapGroup = new TextWrapGroup({
+        fragments: [{ text: TEXT }, { text: "30 million", newLine: "always" }],
+        maxWidth,
+        fontSize: FONT_SIZE,
+    })
+
+    // since the max width is large, "30 million" fits into the same line
+    // as the text of the first fragmemt
+    expect(textWrapGroup.height).toBeGreaterThan(
         new TextWrap({
             text: TEXT,
             maxWidth,
