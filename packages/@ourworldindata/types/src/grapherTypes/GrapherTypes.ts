@@ -625,25 +625,28 @@ export type LegacyGrapherQueryParams = GrapherQueryParams & {
     year?: string
 }
 
-// NOTE: This should list all keys of the LegacyGrapherQueryParams type. ATM
-// that can't be enforced with types.
-export const GRAPHER_QUERY_PARAM_KEYS: (keyof LegacyGrapherQueryParams)[] = [
-    "tab",
-    "overlay",
-    "stackMode",
-    "zoomToSelection",
-    "xScale",
-    "yScale",
-    "time",
-    "region",
-    "endpointsOnly",
-    "facet",
-    "uniformYAxis",
-    "showSelectionOnlyInTable",
-    "showNoDataArea",
-    "year",
-    "country",
-]
+// We don't use this anywhere, but this is a way to ensure that we have an object with all keys present
+// ... so GRAPHER_QUERY_PARAM_KEYS below is guaranteed to have all keys of LegacyGrapherQueryParams
+const GRAPHER_ALL_QUERY_PARAMS: Required<LegacyGrapherQueryParams> = {
+    country: "",
+    tab: "",
+    overlay: "",
+    stackMode: "",
+    zoomToSelection: "",
+    xScale: "",
+    yScale: "",
+    time: "",
+    region: "",
+    endpointsOnly: "",
+    facet: "",
+    uniformYAxis: "",
+    showSelectionOnlyInTable: "",
+    showNoDataArea: "",
+    year: "",
+}
+export const GRAPHER_QUERY_PARAM_KEYS = Object.keys(
+    GRAPHER_ALL_QUERY_PARAMS
+) as (keyof LegacyGrapherQueryParams)[]
 
 // Another approach we may want to try is this: https://github.com/mobxjs/serializr
 export const grapherKeysToSerialize = [
