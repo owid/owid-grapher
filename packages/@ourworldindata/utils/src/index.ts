@@ -3,6 +3,7 @@ export {
     type NoUndefinedValues,
     type AllKeysRequired,
     type PartialBy,
+    type PartialRecord,
     createFormatter,
     getRelativeMouse,
     exposeInstanceOnWindow,

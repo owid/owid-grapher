@@ -230,6 +230,10 @@ export type AllKeysRequired<T> = AllowUndefinedValues<
 
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
+// doesn't do anything fancy, but makes it a bit more readable by skipping one layer of angle brackets:
+// PartialRecord<A, B> = Partial<Record<A, B>>
+export type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>
+
 // d3 v6 changed the default minus sign used in d3-format to "−" (Unicode minus sign), which looks
 // nicer but can cause issues when copy-pasting values into a spreadsheet or script.
 // For that reason we change that back to a plain old hyphen.
