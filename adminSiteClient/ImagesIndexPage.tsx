@@ -3,18 +3,10 @@ import React, {
     useContext,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from "react"
-import {
-    Button,
-    Flex,
-    Input,
-    Mentions,
-    Popconfirm,
-    Space,
-    Table,
-    Upload,
-} from "antd"
+import { Button, Flex, Input, Mentions, Popconfirm, Table, Upload } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { DbEnrichedImageWithUserId, DbPlainUser } from "@ourworldindata/types"
@@ -22,7 +14,6 @@ import { Timeago } from "./Forms.js"
 import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faClose, faUpload } from "@fortawesome/free-solid-svg-icons"
-import { Admin } from "./Admin.js"
 import { RcFile } from "antd/es/upload/interface.js"
 import TextArea from "antd/es/input/TextArea.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
@@ -37,11 +28,14 @@ type ImageEditorApi = {
         image: DbEnrichedImageWithUserId,
         patch: Partial<DbEnrichedImageWithUserId>
     ) => void
-    putImage: (payload: {
-        filename: string
-        content?: string
-        type: string
-    }) => void
+    putImage: (
+        id: number,
+        payload: {
+            filename: string
+            content?: string
+            type: string
+        }
+    ) => void
     postImage: (payload: {
         filename: string
         content?: string
@@ -124,7 +118,11 @@ function UserSelect({
     }
 
     const handleSelect = async (option: { value?: string; label?: string }) => {
-        const selectedUser = usersMap[option.value!]
+        // iterating because we only have the label when using the admin context
+        const selectedUser = Object.values(usersMap).find(
+            (user) => user.fullName === option.label
+        )
+
         if (selectedUser) {
             setValue(selectedUser.fullName)
             await onUserSelect(selectedUser)
@@ -151,7 +149,7 @@ function UserSelect({
         <div>
             <Button
                 type="text"
-                onClick={() => handleSelect({ value: admin.username })}
+                onClick={() => handleSelect({ label: admin.username })}
             >
                 + {admin.username}
             </Button>
@@ -160,6 +158,33 @@ function UserSelect({
             </Button>
         </div>
     )
+}
+
+// when updatedAt changes, the image will reload the src
+// but it looks like sometimes cloudflare doesn't update in time :(
+function ImgWithRefresh({
+    src,
+    updatedAt,
+}: {
+    src: string
+    updatedAt: number | null
+}) {
+    const ref = useRef<HTMLImageElement>(null)
+    useEffect(() => {
+        if (ref.current && updatedAt) {
+            ref.current.src = ""
+            fetch(src, { cache: "reload" })
+                .then(() => {
+                    if (ref.current) {
+                        ref.current.src = src
+                    }
+                })
+                .catch(() => {
+                    console.log("Something went wrong refreshing the image")
+                })
+        }
+    })
+    return <img ref={ref} src={src} style={{ maxHeight: 100, maxWidth: 100 }} />
 }
 
 function createColumns({
@@ -175,7 +200,7 @@ function createColumns({
             dataIndex: "cloudflareId",
             width: 100,
             key: "cloudflareId",
-            render: (cloudflareId, { originalWidth }) => {
+            render: (cloudflareId, { originalWidth, updatedAt }) => {
                 const srcFor = (w: number) =>
                     `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(
                         cloudflareId
@@ -187,9 +212,9 @@ function createColumns({
                             href={`${srcFor(originalWidth!)}`}
                             rel="noopener"
                         >
-                            <img
+                            <ImgWithRefresh
                                 src={`${srcFor(200)}`}
-                                style={{ maxHeight: 100, maxWidth: 100 }}
+                                updatedAt={updatedAt}
                             />
                         </a>
                     </div>
@@ -295,10 +320,8 @@ function createColumns({
             key: "action",
             width: 100,
             render: (_, image) => (
-                <Space size="middle">
-                    <ImageUpload onRequest={(payload) => api.putImage(payload)}>
-                        <Button type="text">Upload new version</Button>
-                    </ImageUpload>
+                <Flex vertical>
+                    <PutImageButton putImage={api.putImage} id={image.id} />
                     <Popconfirm
                         title="Are you sure?"
                         description="This will delete the image being used in production."
@@ -310,43 +333,78 @@ function createColumns({
                             Delete
                         </Button>
                     </Popconfirm>
-                </Space>
+                </Flex>
             ),
         },
     ]
 }
 
-function ImageUpload({
-    children,
-    onRequest,
-}: {
-    children: React.ReactNode
-    onRequest: (payload: {
-        filename: string
-        content?: string
-        type: string
-    }) => void
-}) {
-    function uploadImage({ file }: { file: string | Blob | RcFile }) {
-        if (typeof file === "string") return
+type File = string | Blob | RcFile
 
+type FileToBase64Result = {
+    filename: string
+    content: string
+    type: string
+}
+
+/**
+ * Uploading as base64, because otherwise we'd need multipart/form-data parsing middleware in the server.
+ * This seems easier as a one-off.
+ **/
+function fileToBase64(file: File): Promise<FileToBase64Result | null> {
+    if (typeof file === "string") return Promise.resolve(null)
+
+    return new Promise((resolve) => {
         const reader = new FileReader()
-        reader.onload = async () => {
-            const base64Data = reader.result?.toString()
-
-            const payload = {
+        reader.onload = () => {
+            resolve({
                 filename: file.name,
-                content: base64Data,
+                content: reader.result?.toString() ?? "",
                 type: file.type,
-            }
-
-            onRequest(payload)
+            })
         }
         reader.readAsDataURL(file)
+    })
+}
+
+function PostImageButton({
+    postImage,
+}: {
+    postImage: ImageEditorApi["postImage"]
+}) {
+    async function uploadImage({ file }: { file: File }) {
+        const result = await fileToBase64(file)
+        if (result) {
+            postImage(result)
+        }
     }
     return (
         <Upload showUploadList={false} customRequest={uploadImage}>
-            {children}
+            <Button type="primary">
+                <FontAwesomeIcon icon={faUpload} /> Upload
+            </Button>
+        </Upload>
+    )
+}
+
+function PutImageButton({
+    putImage,
+    id,
+}: {
+    putImage: ImageEditorApi["putImage"]
+    id: number
+}) {
+    async function uploadImage({ file }: { file: File }) {
+        const result = await fileToBase64(file)
+        if (result) {
+            putImage(id, result)
+        }
+    }
+    return (
+        <Upload showUploadList={false} customRequest={uploadImage}>
+            <Button className="ImageIndexPage__update-image-button" type="text">
+                Upload new version
+            </Button>
         </Upload>
     )
 }
@@ -384,34 +442,40 @@ export function ImageIndexPage() {
                     success: true
                     image: DbEnrichedImageWithUserId
                 }>(`/api/images/${image.id}`, patch, "PATCH")
-                setImages((prevMap) => ({
-                    ...prevMap,
-                    [image.id]: response.image,
-                }))
+                if (response.success) {
+                    setImages((prevMap) => ({
+                        ...prevMap,
+                        [image.id]: response.image,
+                    }))
+                }
             },
             postImage: async (image) => {
                 const response = await admin.requestJSON<{
                     success: true
                     image: DbEnrichedImageWithUserId
-                }>(`/api/image`, image, "POST")
-                setImages((prevMap) => ({
-                    ...prevMap,
-                    [response.image.id]: response.image,
-                }))
+                }>(`/api/images`, image, "POST")
+                if (response.success) {
+                    setImages((prevMap) => ({
+                        ...prevMap,
+                        [response.image.id]: response.image,
+                    }))
+                }
             },
-            putImage: async (image) => {
+            putImage: async (id, payload) => {
                 const response = await admin.requestJSON<{
                     success: true
                     image: DbEnrichedImageWithUserId
-                }>(`/api/image/${image.id}`, image, "PUT")
-                setImages((prevMap) => ({
-                    ...prevMap,
-                    [image.id]: response.image,
-                }))
+                }>(`/api/images/${id}`, payload, "PUT")
+                if (response.success) {
+                    setImages((prevMap) => ({
+                        ...prevMap,
+                        [id]: response.image,
+                    }))
+                }
             },
             postUserImage: async (user, image) => {
                 const response = await admin.requestJSON(
-                    `/api/users/${user.id}/image/${image.id}`,
+                    `/api/users/${user.id}/images/${image.id}`,
                     {},
                     "POST"
                 )
@@ -424,7 +488,7 @@ export function ImageIndexPage() {
             },
             deleteUserImage: async (user, image) => {
                 const result = await admin.requestJSON(
-                    `/api/users/${user.id}/image/${image.id}`,
+                    `/api/users/${user.id}/images/${image.id}`,
                     {},
                     "DELETE"
                 )
@@ -466,13 +530,7 @@ export function ImageIndexPage() {
                         onChange={(e) => setFilenameSearchValue(e.target.value)}
                         style={{ width: 500, marginBottom: 20 }}
                     />
-                    <ImageUpload
-                        onRequest={(payload) => api.postImage(payload)}
-                    >
-                        <Button type="primary">
-                            <FontAwesomeIcon icon={faUpload} /> Upload
-                        </Button>
-                    </ImageUpload>
+                    <PostImageButton postImage={api.postImage} />
                 </Flex>
                 <Table columns={columns} dataSource={filteredImages} />
             </main>
