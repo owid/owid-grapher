@@ -11,11 +11,14 @@ import { Grapher } from "./Grapher.js"
 // This function converts a (potentially partial) GrapherInterface to the query params this translates to.
 // This is helpful for when we have a patch config to a parent chart, and we want to know which query params we need to get the parent chart as close as possible to the patched child chart.
 // Note that some settings cannot be set in the config, so they are always set to undefined.
-const grapherConfigToQueryParams = (
+export const grapherConfigToQueryParams = (
     config: GrapherInterface
 ): GrapherQueryParams => {
-    const { minTime, maxTime } = config // can be a year, yyyy-mm-dd date, or "earliest" or "latest"
+    const { minTime, maxTime } = config // can be a number, or "earliest" or "latest"
 
+    // Note that this code will never format dates in yyyy-mm-dd format.
+    // For us to know that we're working with daily data, we need to have a DayColumn instance, which we only have when we have a grapher instance.
+    // Instead, we just serialize a date as a number - which also works fine for query params.
     const timeParam =
         minTime === maxTime
             ? minTime // This case also covers the case where both are undefined, in which case the result is also undefined
