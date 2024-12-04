@@ -1,6 +1,6 @@
 import { PartialBy, PointVector } from "@ourworldindata/utils"
 import { EntityName, OwidVariableRow } from "@ourworldindata/types"
-import { ChartSeries } from "../chart/ChartInterface"
+import { ChartSeries, RenderChartSeries } from "../chart/ChartInterface"
 import { CoreColumn } from "@ourworldindata/core-table"
 
 export interface SlopeChartSeries extends ChartSeries {
@@ -18,10 +18,6 @@ export interface PlacedSlopeChartSeries extends SlopeChartSeries {
     endPoint: PointVector
 }
 
-export interface RenderSlopeChartSeries extends PlacedSlopeChartSeries {
-    background: boolean
-    hovered: boolean
-    muted: boolean
-}
+export type RenderSlopeChartSeries = RenderChartSeries<PlacedSlopeChartSeries>
 
 export const DEFAULT_SLOPE_CHART_COLOR = "#ff7f0e"

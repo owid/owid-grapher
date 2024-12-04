@@ -63,7 +63,7 @@ import {
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartInterface, FocusState, HoverState } from "../chart/ChartInterface"
 import {
     LinesProps,
     LineChartSeries,
@@ -81,6 +81,7 @@ import {
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    byHoverThenFocusState,
     getDefaultFailMessage,
     getSeriesKey,
     isTargetOutsideElement,
@@ -187,8 +188,8 @@ export class LineChart
         return makeSelectionArray(this.manager.selection)
     }
 
-    @computed private get focusedSeriesNames(): SeriesName[] {
-        return this.manager.focusedSeriesNames ?? []
+    @computed private get focusedSeriesNameSet(): Set<SeriesName> {
+        return this.manager.focusedSeriesNameSet ?? new Set()
     }
 
     @computed private get missingDataStrategy(): MissingDataStrategy {
@@ -355,9 +356,10 @@ export class LineChart
                           )
                         : series.color
 
-                    const color = this.seriesIsInBackground(series)
-                        ? "#E7E7E7"
-                        : seriesColor
+                    const color =
+                        series.focus === FocusState.background
+                            ? "#E7E7E7"
+                            : seriesColor
 
                     return (
                         <circle
@@ -485,8 +487,8 @@ export class LineChart
                         )
 
                         const blurred =
-                            this.seriesIsInBackground(series) ||
-                            point === undefined
+                            this.seriesFocusState(series) ===
+                                FocusState.background || point === undefined
 
                         const color = blurred
                             ? BLUR_LINE_COLOR
@@ -539,12 +541,10 @@ export class LineChart
     }
 
     @action.bound onLineLegendClick(seriesName: SeriesName): void {
-        if (this.focusedSeriesNames.includes(seriesName)) {
-            this.manager.focusedSeriesNames = this.focusedSeriesNames.filter(
-                (name) => name !== seriesName
-            )
-        } else if (this.manager.focusedSeriesNames) {
-            this.manager.focusedSeriesNames.push(seriesName)
+        if (this.focusedSeriesNameSet.has(seriesName)) {
+            this.manager.focusedSeriesNameSet?.delete(seriesName)
+        } else {
+            this.manager.focusedSeriesNameSet?.add(seriesName)
         }
     }
 
@@ -561,19 +561,21 @@ export class LineChart
             .filter((name) => externalLegendHoverBin.contains(name))
     }
 
-    @computed get hoveredSeriesNames(): string[] {
-        return excludeUndefined([
-            this.hoveredSeriesName,
-            ...this.facetLegendHoveredSeriesNames,
-        ])
+    @computed get hoveredSeriesNameSet(): Set<string> {
+        return new Set(
+            excludeUndefined([
+                this.hoveredSeriesName,
+                ...this.facetLegendHoveredSeriesNames,
+            ])
+        )
     }
 
     @computed get isHoverModeActive(): boolean {
-        return this.hoveredSeriesNames.length > 0
+        return this.hoveredSeriesNameSet.size > 0
     }
 
     @computed get isFocusModeActive(): boolean {
-        return this.focusedSeriesNames.length > 0
+        return this.focusedSeriesNameSet.size > 0
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
@@ -1112,40 +1114,43 @@ export class LineChart
     }
 
     @computed get renderSeries(): RenderLineChartSeries[] {
-        const series = this.placedSeries.map((series) => {
-            return {
-                ...series,
-                background: this.seriesIsInBackground(series),
-                hovered: this.seriesIsHovered(series),
-                muted: this.seriesIsMuted(series),
+        const series: RenderLineChartSeries[] = this.placedSeries.map(
+            (series) => {
+                return {
+                    ...series,
+                    focus: this.seriesFocusState(series),
+                    hover: this.seriesHoverState(series),
+                }
             }
-        })
+        )
 
-        const sortedSeries = sortBy(series, (series) => {
-            if (series.background && !series.hovered) return 0
-            if (!series.background && !series.hovered) return 1
-            if (series.background && series.hovered) return 2
-            if (!series.background && series.hovered) return 3
-            return 4
-        })
+        if (this.isFocusModeActive || this.isHoverModeActive) {
+            return sortBy(series, byHoverThenFocusState)
+        }
 
-        return sortedSeries
+        return series
     }
 
     private seriesIsFocused(series: LineChartSeries): boolean {
-        return this.focusedSeriesNames.includes(series.seriesName)
+        return this.focusedSeriesNameSet.has(series.seriesName)
     }
 
     private seriesIsHovered(series: LineChartSeries): boolean {
-        return this.hoveredSeriesNames.includes(series.seriesName)
+        return this.hoveredSeriesNameSet.has(series.seriesName)
     }
 
-    private seriesIsInBackground(series: LineChartSeries): boolean {
-        return this.isFocusModeActive && !this.seriesIsFocused(series)
+    private seriesFocusState(series: LineChartSeries): FocusState {
+        if (!this.isFocusModeActive) return FocusState.off
+        return this.seriesIsFocused(series)
+            ? FocusState.active
+            : FocusState.background
     }
 
-    private seriesIsMuted(series: LineChartSeries): boolean {
-        return this.isHoverModeActive && !this.seriesIsHovered(series)
+    private seriesHoverState(series: LineChartSeries): HoverState {
+        if (!this.isHoverModeActive) return HoverState.off
+        return this.seriesIsHovered(series)
+            ? HoverState.active
+            : HoverState.background
     }
 
     // Order of the legend items on a line chart should visually correspond
@@ -1170,9 +1175,8 @@ export class LineChart
                     seriesName
                 ),
                 yValue: lastValue,
-                background: this.seriesIsInBackground(series),
-                hovered: this.seriesIsHovered(series),
-                muted: this.seriesIsMuted(series),
+                hover: this.seriesHoverState(series),
+                focus: this.seriesFocusState(series),
             }
         })
     }
@@ -1316,7 +1320,11 @@ class Lines extends React.Component<LinesProps> {
         if (this.props.hidePoints) return false
         const totalPoints = sum(
             this.props.series
-                .filter((s) => !s.background || s.hovered)
+                .filter((s) => {
+                    const nonFocused = s.focus === FocusState.background
+                    const hovered = s.hover === HoverState.active
+                    return !nonFocused || hovered
+                })
                 .map((series) => series.placedPoints.length)
         )
         return totalPoints < 500
@@ -1347,8 +1355,11 @@ class Lines extends React.Component<LinesProps> {
     }
 
     private seriesHasMarkers(series: RenderLineChartSeries): boolean {
+        const nonFocused = series.focus === FocusState.background
+        const hovered = series.hover === HoverState.active
+
         // Don't show markers for lines in the background
-        if (series.background && !series.hovered) return false
+        if (nonFocused && !hovered) return false
 
         // If the series only contains one point, then we will always want to
         // show a marker/circle because we can't draw a line.
@@ -1359,12 +1370,17 @@ class Lines extends React.Component<LinesProps> {
     }
 
     renderLine(series: RenderLineChartSeries): React.ReactElement {
+        const nonFocused = series.focus === FocusState.background
+        const hovered = series.hover === HoverState.active
+        const nonHovered = series.hover === HoverState.background
         const color =
-            !series.background || series.hovered
+            !nonFocused || hovered
                 ? (series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR)
                 : "#E7E7E7"
-        const strokeWidth = series.muted ? 1 : this.strokeWidth
-        const strokeOpacity = series.muted && !series.background ? 0.3 : 1
+        const strokeWidth = nonHovered ? 1 : this.strokeWidth
+        const strokeOpacity = nonHovered && !nonFocused ? 0.3 : 1
+        // console.log(series.seriesName, series.nonHovered)
+        // const strokeOpacity = series.nonHovered ? 0.3 : 1
         const strokeDasharray = series.isProjection ? "2,3" : undefined
 
         const outline = this.renderPathForSeries(series, {
@@ -1411,7 +1427,8 @@ class Lines extends React.Component<LinesProps> {
         if (!this.seriesHasMarkers(series)) return
 
         const { horizontalAxis } = this.props.dualAxis
-        const opacity = series.muted ? 0.3 : 1
+        const nonHovered = series.hover === HoverState.background
+        const opacity = nonHovered ? 0.3 : 1
 
         return (
             <g

@@ -1,7 +1,7 @@
 import { DualAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
 import { CoreValueType, EntityYearHighlight } from "@ourworldindata/types"
-import { ChartSeries } from "../chart/ChartInterface"
+import { ChartSeries, RenderChartSeries } from "../chart/ChartInterface"
 import { Color } from "@ourworldindata/utils"
 
 export interface LinePoint {
@@ -26,11 +26,7 @@ export interface PlacedLineChartSeries extends LineChartSeries {
     placedPoints: PlacedPoint[]
 }
 
-export interface RenderLineChartSeries extends PlacedLineChartSeries {
-    background: boolean
-    hovered: boolean
-    muted: boolean
-}
+export type RenderLineChartSeries = RenderChartSeries<PlacedLineChartSeries>
 
 export interface LinesProps {
     dualAxis: DualAxis

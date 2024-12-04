@@ -14,6 +14,7 @@ import {
     minBy,
     dyFromAlign,
     uniq,
+    sortBy,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -35,7 +36,7 @@ import {
     VerticalAlign,
     FacetStrategy,
 } from "@ourworldindata/types"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartInterface, FocusState, HoverState } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { select } from "d3-selection"
@@ -49,6 +50,7 @@ import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    byHoverThenFocusState,
     getDefaultFailMessage,
     getShortNameForEntity,
     makeSelectionArray,
@@ -223,11 +225,11 @@ export class SlopeChart
     }
 
     @computed private get isHoverModeActive(): boolean {
-        return this.hoveredSeriesNames.length > 0
+        return this.hoveredSeriesNameSet.size > 0
     }
 
     @computed private get isFocusModeActive(): boolean {
-        return this.focusedSeriesNames.length > 0
+        return this.focusedSeriesNameSet.size > 0
     }
 
     @computed private get yColumns(): CoreColumn[] {
@@ -438,30 +440,41 @@ export class SlopeChart
     }
 
     private seriesIsFocused(series: SlopeChartSeries): boolean {
-        return this.focusedSeriesNames.includes(series.seriesName)
+        return this.focusedSeriesNameSet.has(series.seriesName)
     }
 
     private seriesIsHovered(series: SlopeChartSeries): boolean {
-        return this.hoveredSeriesNames.includes(series.seriesName)
+        return this.hoveredSeriesNameSet.has(series.seriesName)
     }
 
-    private seriesIsInBackground(series: SlopeChartSeries): boolean {
-        return this.isFocusModeActive && !this.seriesIsFocused(series)
+    private seriesFocusState(series: SlopeChartSeries): FocusState {
+        if (!this.isFocusModeActive) return FocusState.off
+        return this.seriesIsFocused(series)
+            ? FocusState.active
+            : FocusState.background
     }
 
-    private seriesIsMuted(series: SlopeChartSeries): boolean {
-        return this.isHoverModeActive && !this.seriesIsHovered(series)
+    private seriesHoverState(series: SlopeChartSeries): HoverState {
+        if (!this.isHoverModeActive) return HoverState.off
+        return this.seriesIsHovered(series)
+            ? HoverState.active
+            : HoverState.background
     }
 
     @computed get renderSeries(): RenderSlopeChartSeries[] {
-        return this.placedSeries.map((series) => {
+        const series = this.placedSeries.map((series) => {
             return {
                 ...series,
-                background: this.seriesIsInBackground(series),
-                hovered: this.seriesIsHovered(series),
-                muted: this.seriesIsMuted(series),
+                focus: this.seriesFocusState(series),
+                hover: this.seriesHoverState(series),
             }
         })
+
+        if (this.isFocusModeActive || this.isHoverModeActive) {
+            return sortBy(series, byHoverThenFocusState)
+        }
+
+        return series
     }
 
     @computed
@@ -693,22 +706,20 @@ export class SlopeChart
         return !!this.manager.isSemiNarrow || this.bounds.width < 400
     }
 
-    @computed get hoveredSeriesNames(): SeriesName[] {
-        const hoveredSeriesNames: SeriesName[] = []
+    @computed get hoveredSeriesNameSet(): Set<SeriesName> {
+        const hoveredSeriesNames = new Set<SeriesName>()
 
         // hovered series name
         if (this.hoveredSeriesName)
-            hoveredSeriesNames.push(this.hoveredSeriesName)
+            hoveredSeriesNames.add(this.hoveredSeriesName)
 
         // hovered legend item in the external facet legend
-        if (this.manager.externalLegendHoverBin) {
-            hoveredSeriesNames.push(
-                ...this.series
-                    .map((s) => s.seriesName)
-                    .filter((name) =>
-                        this.manager.externalLegendHoverBin?.contains(name)
-                    )
-            )
+        const { externalLegendHoverBin } = this.manager
+        if (externalLegendHoverBin) {
+            this.series
+                .map((s) => s.seriesName)
+                .filter((name) => externalLegendHoverBin?.contains(name))
+                .forEach((name) => hoveredSeriesNames.add(name))
         }
 
         return hoveredSeriesNames
@@ -736,9 +747,8 @@ export class SlopeChart
                 formattedValue,
                 valueInNewLine: this.useCompactLineLegend,
                 yValue: start.value,
-                background: this.seriesIsInBackground(series),
-                hovered: this.seriesIsHovered(series),
-                muted: this.seriesIsMuted(series),
+                focus: this.seriesFocusState(series),
+                hover: this.seriesHoverState(series),
             }
         })
     }
@@ -760,9 +770,8 @@ export class SlopeChart
                         ? undefined
                         : annotation,
                 yValue: end.value,
-                background: this.seriesIsInBackground(series),
-                hovered: this.seriesIsHovered(series),
-                muted: this.seriesIsMuted(series),
+                focus: this.seriesFocusState(series),
+                hover: this.seriesHoverState(series),
             }
         })
     }
@@ -830,17 +839,15 @@ export class SlopeChart
         })
     }
 
-    @computed private get focusedSeriesNames(): SeriesName[] {
-        return this.manager.focusedSeriesNames ?? []
+    @computed private get focusedSeriesNameSet(): Set<SeriesName> {
+        return this.manager.focusedSeriesNameSet ?? new Set()
     }
 
     @action.bound onLineLegendClick(seriesName: SeriesName): void {
-        if (this.focusedSeriesNames.includes(seriesName)) {
-            this.manager.focusedSeriesNames = this.focusedSeriesNames.filter(
-                (name) => name !== seriesName
-            )
-        } else if (this.manager.focusedSeriesNames) {
-            this.manager.focusedSeriesNames.push(seriesName)
+        if (this.focusedSeriesNameSet.has(seriesName)) {
+            this.manager.focusedSeriesNameSet?.delete(seriesName)
+        } else {
+            this.manager.focusedSeriesNameSet?.add(seriesName)
         }
     }
 
@@ -1037,26 +1044,19 @@ export class SlopeChart
         )
     }
 
-    // private renderSlope(series: RenderSlopeChartSeries): React.ReactElement {
-    //     return (
-    //         <Slope
-    //             key={series.seriesName}
-    //             series={series}
-    //             color={series.color}
-    //             strokeWidth={this.lineStrokeWidth}
-    //             outlineWidth={0.5}
-    //             outlineStroke={this.backgroundColor}
-    //         />
-    //     )
-    // }
-
     private renderSlopes() {
         return (
-            <Slopes
-                series={this.renderSeries}
-                lineStrokeWidth={this.lineStrokeWidth}
-                backgroundColor={this.backgroundColor}
-            />
+            <g className="slopes">
+                {this.renderSeries.map((series) => (
+                    <Slope
+                        key={series.seriesName}
+                        series={series}
+                        strokeWidth={this.lineStrokeWidth}
+                        outlineWidth={0.5}
+                        outlineStroke={this.backgroundColor}
+                    />
+                ))}
+            </g>
         )
     }
 
@@ -1231,62 +1231,6 @@ export class SlopeChart
     }
 }
 
-@observer
-class Slopes extends React.Component<{
-    series: RenderSlopeChartSeries[]
-    lineStrokeWidth?: number
-    backgroundColor?: string
-}> {
-    @computed get foregroundSeries(): {
-        hover: RenderSlopeChartSeries[]
-        nonHover: RenderSlopeChartSeries[]
-    } {
-        const foregroundSeries = this.props.series.filter((s) => !s.background)
-        const [hover, nonHover] = partition(foregroundSeries, (s) => s.hovered)
-        return { hover, nonHover }
-    }
-
-    @computed get backgroundSeries(): {
-        hover: RenderSlopeChartSeries[]
-        nonHover: RenderSlopeChartSeries[]
-    } {
-        const backgroundSeries = this.props.series.filter((s) => s.background)
-        const [hover, nonHover] = partition(backgroundSeries, (s) => s.hovered)
-        return { hover, nonHover }
-    }
-
-    private renderSlope(series: RenderSlopeChartSeries) {
-        return (
-            <Slope
-                key={series.seriesName}
-                series={series}
-                strokeWidth={this.props.lineStrokeWidth}
-                outlineWidth={0.5}
-                outlineStroke={this.props.backgroundColor}
-            />
-        )
-    }
-
-    render() {
-        return (
-            <g className="slopes">
-                {this.backgroundSeries.nonHover.map((series) =>
-                    this.renderSlope(series)
-                )}
-                {this.foregroundSeries.nonHover.map((series) =>
-                    this.renderSlope(series)
-                )}
-                {this.backgroundSeries.hover.map((series) =>
-                    this.renderSlope(series)
-                )}
-                {this.foregroundSeries.hover.map((series) =>
-                    this.renderSlope(series)
-                )}
-            </g>
-        )
-    }
-}
-
 interface SlopeProps {
     series: RenderSlopeChartSeries
     dotRadius?: number
@@ -1308,10 +1252,13 @@ function Slope({
 }: SlopeProps) {
     const { seriesName, startPoint, endPoint } = series
 
-    const color =
-        !series.background || series.hovered ? series.color : "#E7E7E7"
-    const showOutline = !series.muted
-    const opacity = series.muted ? 0.3 : 1
+    const background = series.focus === FocusState.background
+    const hovered = series.hover === HoverState.active
+    const muted = series.hover === HoverState.background
+
+    const color = !background || hovered ? series.color : "#E7E7E7"
+    const showOutline = !muted
+    const opacity = muted ? 0.3 : 1
 
     return (
         <g

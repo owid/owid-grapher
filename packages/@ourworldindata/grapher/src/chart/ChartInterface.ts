@@ -17,11 +17,24 @@ export interface ChartSeries {
     color: Color
 }
 
-export type RenderChartSeries<TChartSeries> = TChartSeries & {
-    background?: boolean
-    hovered?: boolean
-    muted?: boolean
+export enum FocusState {
+    off = "off", // nothing is currently focused
+    active = "active", // actively focused
+    background = "background", // another series is actively focused
 }
+
+export enum HoverState {
+    off = "off", // nothing is currently hovered
+    active = "active", // actively hovered
+    background = "background", // another series is actively hovered
+}
+
+export interface ChartSeriesStates {
+    focus: FocusState
+    hover: HoverState
+}
+
+export type RenderChartSeries<TChartSeries> = TChartSeries & ChartSeriesStates
 
 export type ChartTableTransformer = (inputTable: OwidTable) => OwidTable
 

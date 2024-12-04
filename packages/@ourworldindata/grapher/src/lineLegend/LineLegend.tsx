@@ -20,7 +20,12 @@ import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
 import { EntityName, VerticalAlign } from "@ourworldindata/types"
 import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
-import { ChartSeries } from "../chart/ChartInterface"
+import {
+    ChartSeries,
+    ChartSeriesStates,
+    FocusState,
+    HoverState,
+} from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import { Halo } from "../halo/Halo"
@@ -35,17 +40,15 @@ const ANNOTATION_PADDING = 1
 const DEFAULT_CONNECTOR_LINE_WIDTH = 35
 const DEFAULT_FONT_WEIGHT = 400
 
-export interface LineLabelSeries extends ChartSeries {
+export interface LineLabelSeries
+    extends ChartSeries,
+        Partial<ChartSeriesStates> {
     label: string
     yValue: number
     annotation?: string
     formattedValue?: string
     placeFormattedValueInNewLine?: boolean
     yRange?: [number, number]
-
-    background?: boolean
-    hovered?: boolean
-    muted?: boolean
 }
 
 interface SizedSeries extends LineLabelSeries {
@@ -97,11 +100,14 @@ class LineLabels extends React.Component<{
     onMouseLeave?: (series: PlacedSeries) => void
 }> {
     private opacityForSeries(series: PlacedSeries): number {
-        return !series.muted ? 1 : 0.6
+        const nonHovered = series.hover === HoverState.background
+        return !nonHovered ? 1 : 0.6
     }
 
     private textColorForSeries(series: PlacedSeries): string {
-        return !series.background || series.hovered
+        const nonFocused = series.focus === FocusState.background
+        const hovered = series.hover === HoverState.active
+        return !nonFocused || hovered
             ? darkenColorForText(series.color)
             : "#DADADA"
     }
@@ -209,11 +215,13 @@ class LineLabels extends React.Component<{
                         bounds: { centerY: rightCenterY },
                     } = series
 
+                    const nonFocused = series.focus === FocusState.background
+                    const hovered = series.hover === HoverState.active
+
                     const step = (x2 - x1) / (totalLevels + 1)
                     const markerXMid = x1 + step + level * step
                     const d = `M${x1},${leftCenterY} H${markerXMid} V${rightCenterY} H${x2}`
-                    const lineColor =
-                        !series.background || series.hovered ? "#999" : "#eee"
+                    const lineColor = !nonFocused || hovered ? "#999" : "#eee"
 
                     return (
                         <path

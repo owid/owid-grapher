@@ -463,7 +463,7 @@ export class Grapher
     @observable.ref windowInnerHeight?: number
 
     // TODO: internal only for now
-    @observable private focusedSeriesNames: string[] = []
+    @observable focusedSeriesNameSet = new Set<string>()
 
     owidDataset?: MultipleOwidVariableDataDimensionsMap = undefined // This is used for passing data for testing
 

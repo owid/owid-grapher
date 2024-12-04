@@ -64,7 +64,7 @@ export interface ChartManager {
     colorColumnSlug?: ColumnSlug
 
     selection?: SelectionArray | EntityName[]
-    focusedSeriesNames?: string[]
+    focusedSeriesNameSet?: Set<string>
     entityType?: string
 
     hidePoints?: boolean // for line options
