@@ -53,7 +53,11 @@ export function AllCharts(props: AllChartsProps) {
                 id={ALL_CHARTS_ID}
             >
                 {heading}
-                <a className="deep-link" href={`#${ALL_CHARTS_ID}`} />
+                <a
+                    className="deep-link"
+                    aria-labelledby={ALL_CHARTS_ID}
+                    href={`#${ALL_CHARTS_ID}`}
+                />
             </h1>
             <RelatedCharts
                 showKeyChartsOnly={true}

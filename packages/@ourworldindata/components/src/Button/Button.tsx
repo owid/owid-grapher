@@ -14,11 +14,15 @@ type ButtonCommonProps = {
 type WithHrefProps = {
     href: string
     onClick?: never
+    ariaLabel?: never
+    type?: never
 }
 
 type WithOnClickProps = {
     onClick?: () => void
     href?: never
+    ariaLabel: string
+    type?: "button" | "submit"
 }
 
 export type ButtonProps =
@@ -31,6 +35,8 @@ export const Button = ({
     href,
     onClick,
     text,
+    ariaLabel,
+    type = "button",
     icon = faArrowRight,
 }: ButtonProps) => {
     const classes = cx("owid-btn", `owid-btn--${theme}`, className)
@@ -44,7 +50,12 @@ export const Button = ({
     }
 
     return (
-        <button className={classes} onClick={onClick}>
+        <button
+            aria-label={ariaLabel}
+            type={type}
+            className={classes}
+            onClick={onClick}
+        >
             {text} {icon && <FontAwesomeIcon icon={icon} />}
         </button>
     )

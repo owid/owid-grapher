@@ -240,7 +240,15 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                 Please consult our full{" "}
                                 <a href="/about#legal">legal disclaimer</a>.
                             </p>
-                            <p>
+                            <p className="legal--last-paragraph">
+                                <span>
+                                    Our World In Data is a project of the{" "}
+                                    <a href="https://global-change-data-lab.org/">
+                                        Global Change Data Lab
+                                    </a>
+                                    , a registered charity in England and Wales
+                                    (Charity Number 1186433).
+                                </span>
                                 <a
                                     href="https://global-change-data-lab.org/"
                                     className="partner-logo gcdl-logo"
@@ -260,12 +268,6 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                         />
                                     </picture>
                                 </a>
-                                Our World In Data is a project of the{" "}
-                                <a href="https://global-change-data-lab.org/">
-                                    Global Change Data Lab
-                                </a>
-                                , a registered charity in England and Wales
-                                (Charity Number 1186433).
                             </p>
                         </div>
                     </div>

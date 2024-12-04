@@ -202,7 +202,11 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                 id={slug}
             >
                 {heading || RESEARCH_AND_WRITING_DEFAULT_HEADING}
-                <a className="deep-link" href={`#${slug}`} />
+                <a
+                    className="deep-link"
+                    aria-labelledby={slug}
+                    href={`#${slug}`}
+                />
             </h1>
             <div className="span-cols-12 research-and-writing-row">
                 <div

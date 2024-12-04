@@ -7,5 +7,11 @@ import React, { HtmlHTMLAttributes } from "react"
  * See the <script> tag in Head.tsx / NoJSDetector.tsx for the client-side JavaScript that removes this class.
  */
 export const Html = (props: HtmlHTMLAttributes<Element>) => {
-    return <html {...props} className={cx("js-disabled", props.className)} />
+    return (
+        <html
+            {...props}
+            lang="en"
+            className={cx("js-disabled", props.className)}
+        />
+    )
 }

@@ -24,6 +24,19 @@
     }
 }
 
+@mixin owid-link-40 {
+    color: $blue-40;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+
+    &:visited {
+        color: $blue-30;
+    }
+    &:hover {
+        text-decoration: none;
+    }
+}
+
 @mixin cancel-link-styles {
     color: $blue-90;
     text-decoration: none;

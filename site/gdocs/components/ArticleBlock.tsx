@@ -427,7 +427,11 @@ export default function ArticleBlock({
                     ) : null}
                     {renderSpans(text, shouldRenderLinks)}
                     {shouldRenderLinks && (
-                        <a className="deep-link" href={`#${id}`} />
+                        <a
+                            className="deep-link"
+                            aria-labelledby={id}
+                            href={`#${id}`}
+                        />
                     )}
                 </h3>
             )

@@ -30,6 +30,7 @@
     }
     .topic-page-header__byline a {
         @include owid-link-60;
+        color: scale-color($blue-60, $lightness: -5%);
         &:visited {
             color: inherit;
         }

@@ -1,7 +1,7 @@
 .site-footer {
     background-color: $oxford-blue;
     padding: 3rem 0;
-    color: $blue-50;
+    color: scale-color($blue-50, $lightness: 5%);
 
     @include sm-only {
         text-align: center;
@@ -14,12 +14,7 @@
     }
 
     a {
-        color: inherit;
-        transition: color 150ms ease;
-
-        &:hover {
-            color: $blue-30;
-        }
+        @include owid-link-40;
     }
 
     ul {
@@ -27,7 +22,7 @@
         margin-bottom: 1rem;
 
         a {
-            display: block;
+            display: inline-block;
             text-decoration: none;
 
             @include sm-only {
@@ -47,11 +42,25 @@
 
     .legal {
         font-size: 0.875rem;
-        color: $blue-60;
+        color: scale-color($blue-50, $lightness: 5%);
         text-align: left;
 
         p {
             margin: 0 0 1rem;
+        }
+
+        .legal--last-paragraph {
+            display: flex;
+            span {
+                flex: 7;
+            }
+            .partner-logo {
+                flex: 1;
+                text-align: right;
+                img {
+                    max-width: 48px;
+                }
+            }
         }
     }
 
@@ -63,7 +72,7 @@
             opacity 150ms ease,
             filter 150ms ease;
         filter: grayscale(1);
-        opacity: 0.5;
+        opacity: 0.9;
 
         &:hover {
             filter: grayscale(0);

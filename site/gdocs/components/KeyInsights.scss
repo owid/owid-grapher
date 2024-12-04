@@ -85,6 +85,10 @@ $slide-content-height: $grapher-height;
             color: $blue-90;
             letter-spacing: -0.2px;
         }
+        &:focus {
+            border-color: $gray-50;
+            outline: none;
+        }
     }
 
     .slides {

@@ -426,6 +426,7 @@ export class Footer<
                 <a
                     className="learn-more-about-data"
                     data-track-note="chart_click_sources"
+                    tabIndex={0}
                     onClick={action((e) => {
                         e.stopPropagation()
 

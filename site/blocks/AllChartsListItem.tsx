@@ -18,7 +18,11 @@ export const AllChartsListItem = ({
                 href={`${BAKED_BASE_URL}/grapher/${chart.slug}`}
                 onClick={onClick}
             >
-                <GrapherImage slug={chart.slug} noFormatting />
+                <GrapherImage
+                    slug={chart.slug}
+                    alt={`A thumbnail of the "${chart.title}" chart`}
+                    noFormatting
+                />
                 <span>{chart.title}</span>
             </a>
             {chart.variantName ? (
