@@ -62,7 +62,7 @@ import {
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartInterface, FocusState, HoverState } from "../chart/ChartInterface"
 import {
     LinesProps,
     LineChartSeries,
@@ -70,6 +70,7 @@ import {
     LinePoint,
     PlacedLineChartSeries,
     PlacedPoint,
+    RenderLineChartSeries,
 } from "./LineChartConstants"
 import {
     OwidTable,
@@ -79,6 +80,7 @@ import {
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    byHoverThenFocusState,
     getDefaultFailMessage,
     getSeriesKey,
     isTargetOutsideElement,
@@ -105,6 +107,7 @@ import {
     getColorKey,
     getSeriesName,
 } from "./LineChartHelpers"
+import { InteractionArray } from "../selection/InteractionArray"
 
 const LINE_CHART_CLASS_NAME = "LineChart"
 
@@ -122,237 +125,6 @@ const DEFAULT_LINE_OUTLINE_WIDTH = 0.5
 const VARIABLE_COLOR_LINE_OUTLINE_WIDTH = 1.0
 // legend
 const LEGEND_PADDING = 25
-
-@observer
-class Lines extends React.Component<LinesProps> {
-    @computed get bounds(): Bounds {
-        const { horizontalAxis, verticalAxis } = this.props.dualAxis
-        return Bounds.fromCorners(
-            new PointVector(horizontalAxis.range[0], verticalAxis.range[0]),
-            new PointVector(horizontalAxis.range[1], verticalAxis.range[1])
-        )
-    }
-
-    @computed private get focusedLines(): PlacedLineChartSeries[] {
-        const { focusedSeriesNames } = this.props
-        // If nothing is focused, everything is
-        if (!focusedSeriesNames.length) return this.props.placedSeries
-        return this.props.placedSeries.filter((series) =>
-            focusedSeriesNames.includes(series.seriesName)
-        )
-    }
-
-    @computed private get backgroundLines(): PlacedLineChartSeries[] {
-        const { focusedSeriesNames } = this.props
-        // if nothing is focused, everything is focused, so nothing is in the background
-        if (!focusedSeriesNames.length) return []
-        return this.props.placedSeries.filter(
-            (series) => !focusedSeriesNames.includes(series.seriesName)
-        )
-    }
-
-    // Don't display point markers if there are very many of them for performance reasons
-    // Note that we're using circle elements instead of marker-mid because marker performance in Safari 10 is very poor for some reason
-    @computed private get hasMarkers(): boolean {
-        if (this.props.hidePoints) return false
-        return (
-            sum(this.focusedLines.map((series) => series.placedPoints.length)) <
-            500
-        )
-    }
-
-    @computed private get markerRadius(): number {
-        return this.props.markerRadius ?? DEFAULT_MARKER_RADIUS
-    }
-
-    @computed private get strokeWidth(): number {
-        return this.props.lineStrokeWidth ?? DEFAULT_STROKE_WIDTH
-    }
-
-    @computed private get lineOutlineWidth(): number {
-        return this.props.lineOutlineWidth ?? DEFAULT_LINE_OUTLINE_WIDTH
-    }
-
-    private renderPathForSeries(
-        series: PlacedLineChartSeries,
-        props: Partial<React.SVGProps<SVGPathElement>>
-    ): React.ReactElement {
-        const strokeDasharray = series.isProjection ? "2,3" : undefined
-        return (
-            <path
-                fill="none"
-                strokeLinecap="butt"
-                strokeLinejoin="round"
-                stroke={DEFAULT_LINE_COLOR}
-                strokeWidth={this.strokeWidth}
-                strokeDasharray={strokeDasharray}
-                {...props}
-                d={pointsToPath(
-                    series.placedPoints.map((value) => [value.x, value.y]) as [
-                        number,
-                        number,
-                    ][]
-                )}
-            />
-        )
-    }
-
-    private renderFocusLines(): React.ReactElement | void {
-        if (this.focusedLines.length === 0) return
-        return (
-            <g id={makeIdForHumanConsumption("lines")}>
-                {this.focusedLines.map((series) => {
-                    const strokeDasharray = series.isProjection
-                        ? "2,3"
-                        : undefined
-                    return (
-                        <React.Fragment key={getSeriesKey(series, "lines")}>
-                            {this.renderPathForSeries(series, {
-                                id: makeIdForHumanConsumption(
-                                    "outline",
-                                    series.seriesName
-                                ),
-                                stroke:
-                                    this.props.backgroundColor ??
-                                    GRAPHER_BACKGROUND_DEFAULT,
-                                strokeWidth:
-                                    this.strokeWidth +
-                                    this.lineOutlineWidth * 2,
-                            })}
-                            {this.props.multiColor ? (
-                                <MultiColorPolyline
-                                    id={makeIdForHumanConsumption(
-                                        "multicolor-line",
-                                        series.seriesName
-                                    )}
-                                    points={series.placedPoints}
-                                    strokeLinejoin="round"
-                                    strokeWidth={this.strokeWidth}
-                                    strokeDasharray={strokeDasharray}
-                                />
-                            ) : (
-                                this.renderPathForSeries(series, {
-                                    id: makeIdForHumanConsumption(
-                                        "line",
-                                        series.seriesName
-                                    ),
-                                    stroke:
-                                        series.placedPoints[0]?.color ??
-                                        DEFAULT_LINE_COLOR,
-                                })
-                            )}
-                        </React.Fragment>
-                    )
-                })}
-            </g>
-        )
-    }
-
-    private renderLineMarkers(): React.ReactElement | void {
-        const { horizontalAxis } = this.props.dualAxis
-        if (this.focusedLines.length === 0) return
-        return (
-            <g id={makeIdForHumanConsumption("markers")}>
-                {this.focusedLines.map((series) => {
-                    // If the series only contains one point, then we will always want to show a marker/circle
-                    // because we can't draw a line.
-                    const showMarkers =
-                        (this.hasMarkers || series.placedPoints.length === 1) &&
-                        !series.isProjection
-                    return (
-                        showMarkers && (
-                            <g
-                                id={makeIdForHumanConsumption(
-                                    "markers",
-                                    series.seriesName
-                                )}
-                                key={getSeriesKey(series, "markers")}
-                            >
-                                {series.placedPoints.map((value, index) => (
-                                    <circle
-                                        id={makeIdForHumanConsumption(
-                                            horizontalAxis.formatTick(
-                                                value.time
-                                            )
-                                        )}
-                                        key={index}
-                                        cx={value.x}
-                                        cy={value.y}
-                                        r={this.markerRadius}
-                                        fill={value.color}
-                                    />
-                                ))}
-                            </g>
-                        )
-                    )
-                })}
-            </g>
-        )
-    }
-
-    private renderFocusGroups(): React.ReactElement | void {
-        return (
-            <>
-                {this.renderFocusLines()}
-                {this.renderLineMarkers()}
-            </>
-        )
-    }
-
-    private renderBackgroundGroups(): React.ReactElement | void {
-        if (this.backgroundLines.length === 0) return
-        return (
-            <g id={makeIdForHumanConsumption("background-lines")}>
-                {this.backgroundLines.map((series) => (
-                    <React.Fragment key={getSeriesKey(series, "background")}>
-                        {this.renderPathForSeries(series, {
-                            id: makeIdForHumanConsumption(
-                                "background-line",
-                                series.seriesName
-                            ),
-                            stroke: series.color,
-                            strokeWidth: 1,
-                            strokeOpacity: 0.3,
-                        })}
-                    </React.Fragment>
-                ))}
-            </g>
-        )
-    }
-
-    renderStatic(): React.ReactElement {
-        return (
-            <>
-                {this.renderBackgroundGroups()}
-                {this.renderFocusGroups()}
-            </>
-        )
-    }
-
-    renderInteractive(): React.ReactElement {
-        const { bounds } = this
-        return (
-            <g className="Lines">
-                <rect
-                    x={Math.round(bounds.x)}
-                    y={Math.round(bounds.y)}
-                    width={Math.round(bounds.width)}
-                    height={Math.round(bounds.height)}
-                    fill="rgba(255,255,255,0)"
-                    opacity={0}
-                />
-                {this.renderBackgroundGroups()}
-                {this.renderFocusGroups()}
-            </g>
-        )
-    }
-
-    render(): React.ReactElement {
-        return this.props.isStatic
-            ? this.renderStatic()
-            : this.renderInteractive()
-    }
-}
 
 @observer
 export class LineChart
@@ -410,6 +182,18 @@ export class LineChart
         }
 
         return table
+    }
+
+    @computed get selectionArray(): SelectionArray {
+        return makeSelectionArray(this.manager.selection)
+    }
+
+    @computed get interactionArray(): InteractionArray {
+        return this.manager.interactionArray ?? new InteractionArray()
+    }
+
+    @computed private get focusedSeriesNameSet(): Set<SeriesName> {
+        return this.interactionArray.focusedEntityNameSet
     }
 
     @computed private get missingDataStrategy(): MissingDataStrategy {
@@ -542,17 +326,6 @@ export class LineChart
             : DEFAULT_MARKER_RADIUS
     }
 
-    @computed get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.selection)
-    }
-
-    seriesIsBlurred(series: LineChartSeries): boolean {
-        return (
-            this.isFocusModeActive &&
-            !this.focusedSeriesNames.includes(series.seriesName)
-        )
-    }
-
     @computed get activeX(): number | undefined {
         return (
             this.tooltipState.target?.x ??
@@ -575,11 +348,22 @@ export class LineChart
                     y2={verticalAxis.range[1]}
                     stroke="rgba(180,180,180,.4)"
                 />
-                {this.series.map((series) => {
+                {this.renderSeries.map((series) => {
                     const value = series.points.find(
                         (point) => point.x === activeX
                     )
-                    if (!value || this.seriesIsBlurred(series)) return null
+                    if (!value) return null
+
+                    const seriesColor = this.hasColorScale
+                        ? darkenColorForLine(
+                              this.getColorScaleColor(value.colorValue)
+                          )
+                        : series.color
+
+                    const color =
+                        series.focus === FocusState.background
+                            ? "#E7E7E7"
+                            : seriesColor
 
                     return (
                         <circle
@@ -587,15 +371,7 @@ export class LineChart
                             cx={horizontalAxis.place(value.x)}
                             cy={verticalAxis.place(value.y)}
                             r={this.lineStrokeWidth / 2 + 3.5}
-                            fill={
-                                this.hasColorScale
-                                    ? darkenColorForLine(
-                                          this.getColorScaleColor(
-                                              value.colorValue
-                                          )
-                                      )
-                                    : series.color
-                            }
+                            fill={color}
                             stroke={
                                 this.manager.backgroundColor ??
                                 GRAPHER_BACKGROUND_DEFAULT
@@ -715,7 +491,8 @@ export class LineChart
                         )
 
                         const blurred =
-                            this.seriesIsBlurred(series) || point === undefined
+                            this.seriesFocusState(series) ===
+                                FocusState.background || point === undefined
 
                         const color = blurred
                             ? BLUR_LINE_COLOR
@@ -767,24 +544,38 @@ export class LineChart
         this.clearHighlightedSeries()
     }
 
-    @computed get focusedSeriesNames(): string[] {
+    @action.bound onLineLegendClick(seriesName: SeriesName): void {
+        this.interactionArray.toggleFocus(seriesName)
+    }
+
+    // TODO
+    @computed get highlightedSeriesName(): string | undefined {
+        return this.props.manager.entityYearHighlight?.entityName
+    }
+
+    @computed get facetLegendHoveredSeriesNames(): string[] {
         const { externalLegendHoverBin } = this.manager
-        const focusedSeriesNames = excludeUndefined([
-            this.props.manager.entityYearHighlight?.entityName,
-            this.hoveredSeriesName,
-        ])
-        if (externalLegendHoverBin) {
-            focusedSeriesNames.push(
-                ...this.series
-                    .map((s) => s.seriesName)
-                    .filter((name) => externalLegendHoverBin.contains(name))
-            )
-        }
-        return focusedSeriesNames
+        if (!externalLegendHoverBin) return []
+        return this.series
+            .map((s) => s.seriesName)
+            .filter((name) => externalLegendHoverBin.contains(name))
+    }
+
+    @computed get hoveredSeriesNameSet(): Set<string> {
+        return new Set(
+            excludeUndefined([
+                this.hoveredSeriesName,
+                ...this.facetLegendHoveredSeriesNames,
+            ])
+        )
+    }
+
+    @computed get isHoverModeActive(): boolean {
+        return this.hoveredSeriesNameSet.size > 0
     }
 
     @computed get isFocusModeActive(): boolean {
-        return this.focusedSeriesNames.length > 0
+        return this.focusedSeriesNameSet.size > 0
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
@@ -959,17 +750,17 @@ export class LineChart
                         fontSize={this.fontSize}
                         fontWeight={this.fontWeight}
                         isStatic={this.isStatic}
-                        focusedSeriesNames={this.focusedSeriesNames}
+                        onClick={this.onLineLegendClick}
                         onMouseOver={this.onLineLegendMouseOver}
                         onMouseLeave={this.onLineLegendMouseLeave}
                     />
                 )}
                 <Lines
                     dualAxis={this.dualAxis}
-                    placedSeries={this.placedSeries}
+                    series={this.renderSeries}
+                    isHoverModeActive={this.isHoverModeActive}
                     multiColor={this.hasColorScale}
                     hidePoints={manager.hidePoints || manager.isStaticAndSmall}
-                    focusedSeriesNames={this.focusedSeriesNames}
                     lineStrokeWidth={this.lineStrokeWidth}
                     lineOutlineWidth={this.lineOutlineWidth}
                     backgroundColor={this.manager.backgroundColor}
@@ -1322,6 +1113,46 @@ export class LineChart
             })
     }
 
+    @computed get renderSeries(): RenderLineChartSeries[] {
+        const series: RenderLineChartSeries[] = this.placedSeries.map(
+            (series) => {
+                return {
+                    ...series,
+                    focus: this.seriesFocusState(series),
+                    hover: this.seriesHoverState(series),
+                }
+            }
+        )
+
+        if (this.isFocusModeActive || this.isHoverModeActive) {
+            return sortBy(series, byHoverThenFocusState)
+        }
+
+        return series
+    }
+
+    private seriesIsFocused(series: LineChartSeries): boolean {
+        return this.focusedSeriesNameSet.has(series.seriesName)
+    }
+
+    private seriesIsHovered(series: LineChartSeries): boolean {
+        return this.hoveredSeriesNameSet.has(series.seriesName)
+    }
+
+    private seriesFocusState(series: LineChartSeries): FocusState {
+        if (!this.isFocusModeActive) return FocusState.off
+        return this.seriesIsFocused(series)
+            ? FocusState.active
+            : FocusState.background
+    }
+
+    private seriesHoverState(series: LineChartSeries): HoverState {
+        if (!this.isHoverModeActive) return HoverState.off
+        return this.seriesIsHovered(series)
+            ? HoverState.active
+            : HoverState.background
+    }
+
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed get lineLegendSeries(): LineLabelSeries[] {
@@ -1344,6 +1175,8 @@ export class LineChart
                     seriesName
                 ),
                 yValue: lastValue,
+                hover: this.seriesHoverState(series),
+                focus: this.seriesFocusState(series),
             }
         })
     }
@@ -1456,5 +1289,222 @@ export class LineChart
             }
         }
         return undefined
+    }
+}
+
+@observer
+class Lines extends React.Component<LinesProps> {
+    @computed get bounds(): Bounds {
+        const { horizontalAxis, verticalAxis } = this.props.dualAxis
+        return Bounds.fromCorners(
+            new PointVector(horizontalAxis.range[0], verticalAxis.range[0]),
+            new PointVector(horizontalAxis.range[1], verticalAxis.range[1])
+        )
+    }
+
+    @computed private get markerRadius(): number {
+        return this.props.markerRadius ?? DEFAULT_MARKER_RADIUS
+    }
+
+    @computed private get strokeWidth(): number {
+        return this.props.lineStrokeWidth ?? DEFAULT_STROKE_WIDTH
+    }
+
+    @computed private get lineOutlineWidth(): number {
+        return this.props.lineOutlineWidth ?? DEFAULT_LINE_OUTLINE_WIDTH
+    }
+
+    // Don't display point markers if there are very many of them for performance reasons
+    // Note that we're using circle elements instead of marker-mid because marker performance in Safari 10 is very poor for some reason
+    @computed private get hasMarkers(): boolean {
+        if (this.props.hidePoints) return false
+        const totalPoints = sum(
+            this.props.series
+                .filter((s) => {
+                    const nonFocused = s.focus === FocusState.background
+                    const hovered = s.hover === HoverState.active
+                    return !nonFocused || hovered
+                })
+                .map((series) => series.placedPoints.length)
+        )
+        return totalPoints < 500
+    }
+
+    private renderPathForSeries(
+        series: PlacedLineChartSeries,
+        props: Partial<React.SVGProps<SVGPathElement>>
+    ): React.ReactElement {
+        const strokeDasharray = series.isProjection ? "2,3" : undefined
+        return (
+            <path
+                fill="none"
+                strokeLinecap="butt"
+                strokeLinejoin="round"
+                stroke={DEFAULT_LINE_COLOR}
+                strokeWidth={this.strokeWidth}
+                strokeDasharray={strokeDasharray}
+                {...props}
+                d={pointsToPath(
+                    series.placedPoints.map((value) => [value.x, value.y]) as [
+                        number,
+                        number,
+                    ][]
+                )}
+            />
+        )
+    }
+
+    private seriesHasMarkers(series: RenderLineChartSeries): boolean {
+        const nonFocused = series.focus === FocusState.background
+        const hovered = series.hover === HoverState.active
+
+        // Don't show markers for lines in the background
+        if (nonFocused && !hovered) return false
+
+        // If the series only contains one point, then we will always want to
+        // show a marker/circle because we can't draw a line.
+        return (
+            (this.hasMarkers || series.placedPoints.length === 1) &&
+            !series.isProjection
+        )
+    }
+
+    renderLine(series: RenderLineChartSeries): React.ReactElement {
+        const nonFocused = series.focus === FocusState.background
+        const hovered = series.hover === HoverState.active
+        const nonHovered = series.hover === HoverState.background
+        const color =
+            !nonFocused || hovered
+                ? (series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR)
+                : "#E7E7E7"
+        const strokeWidth = nonHovered ? 1 : this.strokeWidth
+        const strokeOpacity = nonHovered && !nonFocused ? 0.3 : 1
+        // console.log(series.seriesName, series.nonHovered)
+        // const strokeOpacity = series.nonHovered ? 0.3 : 1
+        const strokeDasharray = series.isProjection ? "2,3" : undefined
+
+        const outline = this.renderPathForSeries(series, {
+            id: makeIdForHumanConsumption("outline", series.seriesName),
+            stroke: this.props.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT,
+            strokeWidth: strokeWidth + this.lineOutlineWidth * 2,
+        })
+
+        if (this.props.multiColor) {
+            return (
+                <>
+                    {outline}
+                    <MultiColorPolyline
+                        id={makeIdForHumanConsumption(
+                            "multicolor-line",
+                            series.seriesName
+                        )}
+                        points={series.placedPoints}
+                        strokeLinejoin="round"
+                        strokeWidth={strokeWidth}
+                        strokeDasharray={strokeDasharray}
+                        strokeOpacity={strokeOpacity}
+                    />
+                </>
+            )
+        }
+
+        return (
+            <>
+                {outline}
+                {this.renderPathForSeries(series, {
+                    id: makeIdForHumanConsumption("line", series.seriesName),
+                    stroke: color,
+                    strokeWidth,
+                    strokeOpacity,
+                })}
+            </>
+        )
+    }
+
+    renderLineMarkers(
+        series: RenderLineChartSeries
+    ): React.ReactElement | void {
+        if (!this.seriesHasMarkers(series)) return
+
+        const { horizontalAxis } = this.props.dualAxis
+        const nonHovered = series.hover === HoverState.background
+        const opacity = nonHovered ? 0.3 : 1
+
+        return (
+            <g
+                id={makeIdForHumanConsumption("markers", series.seriesName)}
+                key={getSeriesKey(series, "markers")}
+            >
+                {series.placedPoints.map((value, index) => (
+                    <circle
+                        id={makeIdForHumanConsumption(
+                            horizontalAxis.formatTick(value.time)
+                        )}
+                        key={index}
+                        cx={value.x}
+                        cy={value.y}
+                        r={this.markerRadius}
+                        fill={value.color}
+                        opacity={opacity}
+                    />
+                ))}
+            </g>
+        )
+    }
+
+    renderLineWithMarkers(series: RenderLineChartSeries): React.ReactElement {
+        return (
+            <>
+                {this.renderLine(series)}
+                {this.renderLineMarkers(series)}
+            </>
+        )
+    }
+
+    renderStatic(): React.ReactElement {
+        return (
+            <>
+                {this.props.series.map((series) => {
+                    const showMarkers = this.seriesHasMarkers(series)
+                    return (
+                        <>
+                            {this.renderLine(series)}
+                            {showMarkers && this.renderLineMarkers(series)}
+                        </>
+                    )
+                })}
+            </>
+        )
+    }
+
+    renderInteractive(): React.ReactElement {
+        const { bounds } = this
+        return (
+            <g className="Lines">
+                <rect
+                    x={Math.round(bounds.x)}
+                    y={Math.round(bounds.y)}
+                    width={Math.round(bounds.width)}
+                    height={Math.round(bounds.height)}
+                    fill="rgba(255,255,255,0)"
+                    opacity={0}
+                />
+                {this.props.series.map((series) => {
+                    const showMarkers = this.seriesHasMarkers(series)
+                    return (
+                        <>
+                            {this.renderLine(series)}
+                            {showMarkers && this.renderLineMarkers(series)}
+                        </>
+                    )
+                })}
+            </g>
+        )
+    }
+
+    render(): React.ReactElement {
+        return this.props.isStatic
+            ? this.renderStatic()
+            : this.renderInteractive()
     }
 }

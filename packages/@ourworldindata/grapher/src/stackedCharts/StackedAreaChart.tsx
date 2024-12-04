@@ -18,7 +18,7 @@ import {
     max,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
-import { RenderMode, SeriesName } from "@ourworldindata/types"
+import { SeriesName } from "@ourworldindata/types"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_AREA_OPACITY_MUTE,
@@ -60,6 +60,13 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
     focusedSeriesName?: SeriesName
     onAreaMouseEnter?: (seriesName: SeriesName) => void
     onAreaMouseLeave?: () => void
+}
+
+enum RenderMode {
+    default = "default",
+    focus = "focus", // hovered or focused
+    mute = "mute", // not hovered
+    background = "background", // not focused
 }
 
 const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
@@ -303,6 +310,10 @@ export class StackedAreaChart extends AbstractStackedChart {
                 label: series.seriesName,
                 yValue: midpoints[index],
                 isAllZeros: series.isAllZeros,
+                hovered: series.seriesName === this.hoveredSeriesName,
+                muted:
+                    !!this.hoveredSeriesName &&
+                    series.seriesName !== this.hoveredSeriesName,
             }))
             .filter((series) => !series.isAllZeros)
             .reverse()
@@ -416,7 +427,7 @@ export class StackedAreaChart extends AbstractStackedChart {
         return hoveredSeries?.seriesName
     }
 
-    @computed get focusedSeriesName(): SeriesName | undefined {
+    @computed get hoveredSeriesName(): SeriesName | undefined {
         return (
             // if the chart area is hovered
             this.tooltipState.target?.series ??
@@ -425,11 +436,6 @@ export class StackedAreaChart extends AbstractStackedChart {
             // if the facet legend is hovered
             this.facetLegendHoveredSeriesName
         )
-    }
-
-    // used by the line legend component
-    @computed get focusedSeriesNames(): string[] {
-        return this.focusedSeriesName ? [this.focusedSeriesName] : []
     }
 
     @action.bound private onCursorMove(
@@ -665,7 +671,6 @@ export class StackedAreaChart extends AbstractStackedChart {
                 fontSize={this.fontSize}
                 seriesSortedByImportance={this.seriesSortedByImportance}
                 isStatic={this.isStatic}
-                focusedSeriesNames={this.focusedSeriesNames}
                 onMouseOver={this.onLineLegendMouseOver}
                 onMouseLeave={this.onLineLegendMouseLeave}
             />
@@ -680,7 +685,7 @@ export class StackedAreaChart extends AbstractStackedChart {
                 <Areas
                     dualAxis={this.dualAxis}
                     seriesArr={this.series}
-                    focusedSeriesName={this.focusedSeriesName}
+                    focusedSeriesName={this.hoveredSeriesName}
                 />
             </>
         )
@@ -718,7 +723,7 @@ export class StackedAreaChart extends AbstractStackedChart {
                     <Areas
                         dualAxis={dualAxis}
                         seriesArr={series}
-                        focusedSeriesName={this.focusedSeriesName}
+                        focusedSeriesName={this.hoveredSeriesName}
                         onAreaMouseEnter={this.onAreaMouseEnter}
                         onAreaMouseLeave={this.onAreaMouseLeave}
                     />

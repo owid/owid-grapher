@@ -208,13 +208,6 @@ export interface AnnotationFieldsInTitle {
     changeInPrefix?: boolean
 }
 
-export enum RenderMode {
-    default = "default",
-    focus = "focus", // hovered or focused
-    mute = "mute", // not hovered
-    background = "background", // not focused
-}
-
 export interface Tickmark {
     value: number
     priority: number
@@ -587,6 +580,7 @@ export interface GrapherInterface extends SortConfig {
     includedEntities?: number[]
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string | undefined }
+    focusedSeriesNames?: SeriesName[]
     missingDataStrategy?: MissingDataStrategy
     hideFacetControl?: boolean
     facettingLabelByYVariables?: string
@@ -705,6 +699,7 @@ export const grapherKeysToSerialize = [
     "dimensions",
     "selectedEntityNames",
     "selectedEntityColors",
+    "focusedSeriesNames",
     "sortBy",
     "sortOrder",
     "sortColumnSlug",

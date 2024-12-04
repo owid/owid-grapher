@@ -1,5 +1,10 @@
 import React from "react"
-import { areSetsEqual, Box, getCountryByName } from "@ourworldindata/utils"
+import {
+    areSetsEqual,
+    Box,
+    getCountryByName,
+    sortBy,
+} from "@ourworldindata/utils"
 import {
     SeriesStrategy,
     EntityName,
@@ -17,6 +22,7 @@ import {
     GRAPHER_SETTINGS_CLASS,
     validChartTypeCombinations,
 } from "../core/GrapherConstants"
+import { FocusState, HoverState, RenderChartSeries } from "./ChartInterface.js"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
@@ -187,4 +193,38 @@ export function findValidChartTypeCombination(
             return validCombination
     }
     return undefined
+}
+
+function byFocusState<TChartSeries>(
+    series: RenderChartSeries<TChartSeries>
+): number {
+    switch (series.focus) {
+        case FocusState.background:
+            return 1
+        case FocusState.off:
+            return 2
+        case FocusState.active:
+            return 3
+    }
+}
+
+function byHoverState<TChartSeries>(
+    series: RenderChartSeries<TChartSeries>
+): number {
+    switch (series.hover) {
+        case HoverState.background:
+            return 1
+        case HoverState.off:
+            return 2
+        case HoverState.active:
+            return 3
+    }
+}
+
+export function byHoverThenFocusState<TChartSeries>(
+    series: RenderChartSeries<TChartSeries>
+): number {
+    const hoverScore = byHoverState(series)
+    const focusScore = byFocusState(series)
+    return 10 * hoverScore + focusScore
 }

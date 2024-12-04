@@ -20,7 +20,12 @@ import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
 import { EntityName, VerticalAlign } from "@ourworldindata/types"
 import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
-import { ChartSeries } from "../chart/ChartInterface"
+import {
+    ChartSeries,
+    ChartSeriesStates,
+    FocusState,
+    HoverState,
+} from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import { Halo } from "../halo/Halo"
@@ -35,7 +40,9 @@ const ANNOTATION_PADDING = 1
 const DEFAULT_CONNECTOR_LINE_WIDTH = 35
 const DEFAULT_FONT_WEIGHT = 400
 
-export interface LineLabelSeries extends ChartSeries {
+export interface LineLabelSeries
+    extends ChartSeries,
+        Partial<ChartSeriesStates> {
     label: string
     yValue: number
     annotation?: string
@@ -58,14 +65,6 @@ interface PlacedSeries extends SizedSeries {
     level: number
     totalLevels: number
     midY: number
-}
-
-function getSeriesKey(
-    series: PlacedSeries,
-    index: number,
-    key: string
-): string {
-    return `${key}-${index}-` + series.seriesName
 }
 
 function groupBounds(group: PlacedSeries[]): Bounds {
@@ -92,18 +91,25 @@ function stackGroupVertically(
 @observer
 class LineLabels extends React.Component<{
     series: PlacedSeries[]
-    uniqueKey: string
     needsConnectorLines: boolean
     connectorLineWidth?: number
     anchor?: "start" | "end"
-    isFocus?: boolean
-    isStatic?: boolean
+    interactive?: boolean
     onClick?: (series: PlacedSeries) => void
     onMouseOver?: (series: PlacedSeries) => void
     onMouseLeave?: (series: PlacedSeries) => void
 }> {
-    @computed private get textOpacity(): number {
-        return this.props.isFocus ? 1 : 0.6
+    private opacityForSeries(series: PlacedSeries): number {
+        const nonHovered = series.hover === HoverState.background
+        return !nonHovered ? 1 : 0.6
+    }
+
+    private textColorForSeries(series: PlacedSeries): string {
+        const nonFocused = series.focus === FocusState.background
+        const hovered = series.hover === HoverState.active
+        return !nonFocused || hovered
+            ? darkenColorForText(series.color)
+            : "#DADADA"
     }
 
     @computed private get anchor(): "start" | "end" {
@@ -146,19 +152,14 @@ class LineLabels extends React.Component<{
     @computed private get textLabels(): React.ReactElement {
         return (
             <g id={makeIdForHumanConsumption("text-labels")}>
-                {this.markers.map(({ series, labelText }, index) => {
-                    const key = getSeriesKey(
-                        series,
-                        index,
-                        this.props.uniqueKey
-                    )
-                    const textColor = darkenColorForText(series.color)
+                {this.markers.map(({ series, labelText }) => {
+                    const textColor = this.textColorForSeries(series)
                     return (
-                        <Halo id={key} key={key}>
+                        <Halo id={series.seriesName} key={series.seriesName}>
                             {series.textWrap.render(labelText.x, labelText.y, {
                                 textProps: {
                                     fill: textColor,
-                                    opacity: this.textOpacity,
+                                    opacity: this.opacityForSeries(series),
                                     textAnchor: this.anchor,
                                 },
                             })}
@@ -176,15 +177,10 @@ class LineLabels extends React.Component<{
         if (!markersWithAnnotations) return
         return (
             <g id={makeIdForHumanConsumption("text-annotations")}>
-                {markersWithAnnotations.map(({ series, labelText }, index) => {
-                    const key = getSeriesKey(
-                        series,
-                        index,
-                        this.props.uniqueKey
-                    )
+                {markersWithAnnotations.map(({ series, labelText }) => {
                     if (!series.annotationTextWrap) return
                     return (
-                        <Halo id={key} key={key}>
+                        <Halo id={series.seriesName} key={series.seriesName}>
                             {series.annotationTextWrap.render(
                                 labelText.x,
                                 labelText.y +
@@ -193,7 +189,7 @@ class LineLabels extends React.Component<{
                                 {
                                     textProps: {
                                         fill: "#333",
-                                        opacity: this.textOpacity,
+                                        opacity: this.opacityForSeries(series),
                                         textAnchor: this.anchor,
                                         style: { fontWeight: 300 },
                                     },
@@ -210,8 +206,7 @@ class LineLabels extends React.Component<{
         if (!this.props.needsConnectorLines) return
         return (
             <g id={makeIdForHumanConsumption("connectors")}>
-                {this.markers.map(({ series, connectorLine }, index) => {
-                    const { isFocus } = this.props
+                {this.markers.map(({ series, connectorLine }) => {
                     const { x1, x2 } = connectorLine
                     const {
                         level,
@@ -220,19 +215,18 @@ class LineLabels extends React.Component<{
                         bounds: { centerY: rightCenterY },
                     } = series
 
+                    const nonFocused = series.focus === FocusState.background
+                    const hovered = series.hover === HoverState.active
+
                     const step = (x2 - x1) / (totalLevels + 1)
                     const markerXMid = x1 + step + level * step
                     const d = `M${x1},${leftCenterY} H${markerXMid} V${rightCenterY} H${x2}`
-                    const lineColor = isFocus ? "#999" : "#eee"
+                    const lineColor = !nonFocused || hovered ? "#999" : "#eee"
 
                     return (
                         <path
                             id={makeIdForHumanConsumption(series.seriesName)}
-                            key={getSeriesKey(
-                                series,
-                                index,
-                                this.props.uniqueKey
-                            )}
+                            key={series.seriesName}
                             d={d}
                             stroke={lineColor}
                             strokeWidth={0.5}
@@ -247,23 +241,19 @@ class LineLabels extends React.Component<{
     @computed private get interactions(): React.ReactElement | void {
         return (
             <g>
-                {this.props.series.map((series, index) => {
+                {this.props.series.map((series) => {
                     const x =
                         this.anchor === "start"
                             ? series.origBounds.x
                             : series.origBounds.x - series.bounds.width
                     return (
                         <g
-                            key={getSeriesKey(
-                                series,
-                                index,
-                                this.props.uniqueKey
-                            )}
+                            key={series.seriesName}
+                            onClick={() => this.props.onClick?.(series)}
                             onMouseOver={() => this.props.onMouseOver?.(series)}
                             onMouseLeave={() =>
                                 this.props.onMouseLeave?.(series)
                             }
-                            onClick={() => this.props.onClick?.(series)}
                             style={{ cursor: "default" }}
                         >
                             <rect
@@ -287,7 +277,7 @@ class LineLabels extends React.Component<{
                 {this.connectorLines}
                 {this.textAnnotations}
                 {this.textLabels}
-                {!this.props.isStatic && this.interactions}
+                {this.props.interactive && this.interactions}
             </>
         )
     }
@@ -314,7 +304,6 @@ export interface LineLegendProps {
 
     // interactions
     isStatic?: boolean // don't add interactions if true
-    focusedSeriesNames?: EntityName[] // currently in focus
     onClick?: (key: EntityName) => void
     onMouseOver?: (key: EntityName) => void
     onMouseLeave?: () => void
@@ -430,16 +419,6 @@ export class LineLegend extends React.Component<LineLegendProps> {
     }
     @computed get onClick(): any {
         return this.props.onClick ?? noop
-    }
-
-    @computed get focusedSeriesNames(): EntityName[] {
-        return this.props.focusedSeriesNames ?? []
-    }
-
-    @computed get isFocusMode(): boolean {
-        return this.sizedLabels.some((label) =>
-            this.focusedSeriesNames.includes(label.seriesName)
-        )
     }
 
     @computed get legendX(): number {
@@ -732,67 +711,13 @@ export class LineLegend extends React.Component<LineLegendProps> {
         }
     }
 
-    @computed private get backgroundSeries(): PlacedSeries[] {
-        const { focusedSeriesNames } = this
-        const { isFocusMode } = this
-        return this.placedSeries.filter(
-            (mark) =>
-                isFocusMode && !focusedSeriesNames.includes(mark.seriesName)
-        )
-    }
-
-    @computed private get focusedSeries(): PlacedSeries[] {
-        const { focusedSeriesNames } = this
-        const { isFocusMode } = this
-        return this.placedSeries.filter(
-            (mark) =>
-                !isFocusMode || focusedSeriesNames.includes(mark.seriesName)
-        )
-    }
-
     // Does this placement need line markers or is the position of the labels already clear?
     @computed private get needsLines(): boolean {
         return this.placedSeries.some((series) => series.totalLevels > 1)
     }
 
-    private renderBackground(): React.ReactElement {
-        return (
-            <LineLabels
-                uniqueKey="background"
-                series={this.backgroundSeries}
-                needsConnectorLines={this.needsLines}
-                connectorLineWidth={this.connectorLineWidth}
-                isFocus={false}
-                anchor={this.props.xAnchor}
-                isStatic={this.props.isStatic}
-                onMouseOver={(series): void =>
-                    this.onMouseOver(series.seriesName)
-                }
-                onClick={(series): void => this.onClick(series.seriesName)}
-            />
-        )
-    }
-
-    // All labels are focused by default, moved to background when mouseover of other label
-    private renderFocus(): React.ReactElement {
-        return (
-            <LineLabels
-                uniqueKey="focus"
-                series={this.focusedSeries}
-                needsConnectorLines={this.needsLines}
-                connectorLineWidth={this.connectorLineWidth}
-                isFocus={true}
-                anchor={this.props.xAnchor}
-                isStatic={this.props.isStatic}
-                onMouseOver={(series): void =>
-                    this.onMouseOver(series.seriesName)
-                }
-                onClick={(series): void => this.onClick(series.seriesName)}
-                onMouseLeave={(series): void =>
-                    this.onMouseLeave(series.seriesName)
-                }
-            />
-        )
+    @computed private get isStatic(): boolean {
+        return this.props.isStatic ?? false
     }
 
     render(): React.ReactElement {
@@ -801,8 +726,20 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 id={makeIdForHumanConsumption("line-labels")}
                 className="LineLabels"
             >
-                {this.renderBackground()}
-                {this.renderFocus()}
+                <LineLabels
+                    series={this.placedSeries}
+                    needsConnectorLines={this.needsLines}
+                    connectorLineWidth={this.connectorLineWidth}
+                    anchor={this.props.xAnchor}
+                    interactive={!this.isStatic}
+                    onClick={(series): void => this.onClick(series.seriesName)}
+                    onMouseOver={(series): void =>
+                        this.onMouseOver(series.seriesName)
+                    }
+                    onMouseLeave={(series): void =>
+                        this.onMouseLeave(series.seriesName)
+                    }
+                />
             </g>
         )
     }
