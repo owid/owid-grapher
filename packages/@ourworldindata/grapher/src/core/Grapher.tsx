@@ -111,6 +111,7 @@ import {
     GRAPHER_TAB_NAMES,
     GRAPHER_TAB_QUERY_PARAMS,
     GrapherTabOption,
+    SeriesName,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -222,6 +223,7 @@ import {
 } from "../entitySelector/EntitySelector"
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
+import { InteractionArray } from "../selection/InteractionArray"
 
 declare global {
     interface Window {
@@ -433,6 +435,7 @@ export class Grapher
 
     // Initializing arrays with `undefined` ensures that empty arrays get serialised
     @observable selectedEntityNames?: EntityName[] = undefined
+    @observable focusedSeriesNames?: SeriesName[] = undefined
     @observable excludedEntities?: number[] = undefined
     /** IncludedEntities are usually empty which means use all available entities. When
         includedEntities is set it means "only use these entities". excludedEntities
@@ -565,6 +568,7 @@ export class Grapher
         )
 
         obj.selectedEntityNames = this.selection.selectedEntityNames
+        obj.focusedSeriesNames = this.interactionArray.focusedEntityNames
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
@@ -605,6 +609,9 @@ export class Grapher
         // update selection
         if (obj.selectedEntityNames)
             this.selection.setSelectedEntities(obj.selectedEntityNames)
+
+        if (obj.focusedSeriesNames)
+            this.interactionArray.setFocusedEntities(obj.focusedSeriesNames)
 
         // JSON doesn't support Infinity, so we use strings instead.
         this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
@@ -2536,6 +2543,8 @@ export class Grapher
             this.props.selectedEntityNames ?? [],
             this.props.table?.availableEntities ?? []
         )
+
+    interactionArray = new InteractionArray()
 
     @computed get availableEntities(): Entity[] {
         return this.tableForSelection.availableEntities

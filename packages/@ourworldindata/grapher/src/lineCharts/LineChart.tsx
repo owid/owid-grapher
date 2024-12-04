@@ -107,6 +107,7 @@ import {
     getColorKey,
     getSeriesName,
 } from "./LineChartHelpers"
+import { InteractionArray } from "../selection/InteractionArray"
 
 const LINE_CHART_CLASS_NAME = "LineChart"
 
@@ -187,8 +188,12 @@ export class LineChart
         return makeSelectionArray(this.manager.selection)
     }
 
+    @computed get interactionArray(): InteractionArray {
+        return this.manager.interactionArray ?? new InteractionArray()
+    }
+
     @computed private get focusedSeriesNameSet(): Set<SeriesName> {
-        return this.selectionArray.focusedEntityNameSet
+        return this.interactionArray.focusedEntityNameSet
     }
 
     @computed private get missingDataStrategy(): MissingDataStrategy {
@@ -540,7 +545,7 @@ export class LineChart
     }
 
     @action.bound onLineLegendClick(seriesName: SeriesName): void {
-        this.selectionArray.toggleFocus(seriesName)
+        this.interactionArray.toggleFocus(seriesName)
     }
 
     // TODO

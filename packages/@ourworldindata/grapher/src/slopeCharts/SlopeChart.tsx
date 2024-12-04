@@ -80,6 +80,7 @@ import {
 } from "../lineCharts/LineChartHelpers"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
+import { InteractionArray } from "../selection/InteractionArray"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -212,8 +213,12 @@ export class SlopeChart
         return makeSelectionArray(this.manager.selection)
     }
 
+    @computed get interactionArray(): InteractionArray {
+        return this.manager.interactionArray ?? new InteractionArray()
+    }
+
     @computed private get focusedSeriesNameSet(): Set<SeriesName> {
-        return this.selectionArray.focusedEntityNameSet
+        return this.interactionArray.focusedEntityNameSet
     }
 
     @computed private get formatColumn() {
@@ -844,7 +849,7 @@ export class SlopeChart
     }
 
     @action.bound onLineLegendClick(seriesName: SeriesName): void {
-        this.selectionArray.toggleFocus(seriesName)
+        this.interactionArray.toggleFocus(seriesName)
     }
 
     private hoverTimer?: NodeJS.Timeout

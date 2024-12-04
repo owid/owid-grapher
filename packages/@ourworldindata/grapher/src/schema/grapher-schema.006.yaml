@@ -104,6 +104,15 @@ properties:
         items:
             type:
                 - string
+    focusedSeriesNames:
+        type: array
+        description: |
+            The initially focused chart elements (e.g. line or bar).
+            Is either a list of entity or variable names.
+            Only works to line and slope charts for now.
+        items:
+            type:
+                - string
     baseColorScheme:
         type: string
         description: |

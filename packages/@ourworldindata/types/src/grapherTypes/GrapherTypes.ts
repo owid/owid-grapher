@@ -580,6 +580,7 @@ export interface GrapherInterface extends SortConfig {
     includedEntities?: number[]
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string | undefined }
+    focusedSeriesNames?: SeriesName[]
     missingDataStrategy?: MissingDataStrategy
     hideFacetControl?: boolean
     facettingLabelByYVariables?: string
@@ -698,6 +699,7 @@ export const grapherKeysToSerialize = [
     "dimensions",
     "selectedEntityNames",
     "selectedEntityColors",
+    "focusedSeriesNames",
     "sortBy",
     "sortOrder",
     "sortColumnSlug",
