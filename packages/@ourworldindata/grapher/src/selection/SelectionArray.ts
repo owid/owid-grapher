@@ -15,10 +15,14 @@ export class SelectionArray {
     ) {
         this.selectedEntityNames = selectedEntityNames.slice()
         this.availableEntities = availableEntities.slice()
+
+        this.focusedEntityNames = []
     }
 
     @observable selectedEntityNames: EntityName[]
     @observable private availableEntities: Entity[]
+
+    @observable focusedEntityNames: EntityName[]
 
     @computed get availableEntityNames(): string[] {
         return this.availableEntities.map((entity) => entity.entityName)
@@ -101,6 +105,33 @@ export class SelectionArray {
             (name) => !entityNames.includes(name)
         )
         return this
+    }
+
+    @computed get focusedEntityNameSet(): Set<EntityName> {
+        return new Set<EntityName>(this.focusedEntityNames)
+    }
+
+    @computed get hoveredEntityNameSet(): Set<EntityName> {
+        return new Set<EntityName>(this.focusedEntityNames)
+    }
+
+    @action.bound focusEntity(entityName: EntityName): this {
+        if (!this.focusedEntityNameSet.has(entityName))
+            this.focusedEntityNames.push(entityName)
+        return this
+    }
+
+    @action.bound unfocusEntity(entityName: EntityName): this {
+        this.focusedEntityNames = this.focusedEntityNames.filter(
+            (name) => name !== entityName
+        )
+        return this
+    }
+
+    @action.bound toggleFocus(entityName: EntityName): this {
+        return this.focusedEntityNameSet.has(entityName)
+            ? this.unfocusEntity(entityName)
+            : this.focusEntity(entityName)
     }
 
     // Mainly for testing

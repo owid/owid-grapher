@@ -212,6 +212,10 @@ export class SlopeChart
         return makeSelectionArray(this.manager.selection)
     }
 
+    @computed private get focusedSeriesNameSet(): Set<SeriesName> {
+        return this.selectionArray.focusedEntityNameSet
+    }
+
     @computed private get formatColumn() {
         return this.yColumns[0]
     }
@@ -839,16 +843,8 @@ export class SlopeChart
         })
     }
 
-    @computed private get focusedSeriesNameSet(): Set<SeriesName> {
-        return this.manager.focusedSeriesNameSet ?? new Set()
-    }
-
     @action.bound onLineLegendClick(seriesName: SeriesName): void {
-        if (this.focusedSeriesNameSet.has(seriesName)) {
-            this.manager.focusedSeriesNameSet?.delete(seriesName)
-        } else {
-            this.manager.focusedSeriesNameSet?.add(seriesName)
-        }
+        this.selectionArray.toggleFocus(seriesName)
     }
 
     private hoverTimer?: NodeJS.Timeout

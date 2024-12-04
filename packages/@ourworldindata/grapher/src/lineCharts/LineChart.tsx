@@ -24,7 +24,6 @@ import {
     Color,
     HorizontalAlign,
     makeIdForHumanConsumption,
-    partition,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -189,7 +188,7 @@ export class LineChart
     }
 
     @computed private get focusedSeriesNameSet(): Set<SeriesName> {
-        return this.manager.focusedSeriesNameSet ?? new Set()
+        return this.selectionArray.focusedEntityNameSet
     }
 
     @computed private get missingDataStrategy(): MissingDataStrategy {
@@ -541,11 +540,7 @@ export class LineChart
     }
 
     @action.bound onLineLegendClick(seriesName: SeriesName): void {
-        if (this.focusedSeriesNameSet.has(seriesName)) {
-            this.manager.focusedSeriesNameSet?.delete(seriesName)
-        } else {
-            this.manager.focusedSeriesNameSet?.add(seriesName)
-        }
+        this.selectionArray.toggleFocus(seriesName)
     }
 
     // TODO
