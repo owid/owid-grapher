@@ -1,8 +1,10 @@
 import cx from "classnames"
+import { isEmpty } from "lodash"
 import * as React from "react"
 
 import { OwidGdocAboutInterface } from "@ourworldindata/types"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
+import Footnotes from "../components/Footnotes.js"
 
 const NAV_LINKS = [
     { title: "About Us", href: "/about" },
@@ -15,7 +17,7 @@ const NAV_LINKS = [
 
 export default function AboutPage({ content, slug }: OwidGdocAboutInterface) {
     return (
-        <main className="grid grid-cols-12-full-width">
+        <main className="centered-article-container grid grid-cols-12-full-width">
             <h1 className="about-header col-start-2 col-end-limit display-2-semibold">
                 About
             </h1>
@@ -26,6 +28,9 @@ export default function AboutPage({ content, slug }: OwidGdocAboutInterface) {
                     blocks={content.body}
                 />
             </div>
+            {content.refs && !isEmpty(content.refs.definitions) ? (
+                <Footnotes definitions={content.refs.definitions} />
+            ) : null}
         </main>
     )
 }
