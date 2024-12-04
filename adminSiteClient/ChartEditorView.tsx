@@ -35,7 +35,6 @@ import { EditorScatterTab } from "./EditorScatterTab.js"
 import { EditorMapTab } from "./EditorMapTab.js"
 import { EditorHistoryTab } from "./EditorHistoryTab.js"
 import { EditorReferencesTab } from "./EditorReferencesTab.js"
-import { EditorInheritanceTab } from "./EditorInheritanceTab.js"
 import { EditorDebugTab } from "./EditorDebugTab.js"
 import { SaveButtons } from "./SaveButtons.js"
 import { LoadingBlocker } from "./Forms.js"
@@ -57,7 +56,6 @@ import {
     ErrorMessagesForDimensions,
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
-import { isIndicatorChartEditorInstance } from "./IndicatorChartEditor.js"
 
 interface Variable {
     id: number
@@ -351,9 +349,6 @@ export class ChartEditorView<
         const { grapher, availableTabs } = editor
 
         const chartEditor = isChartEditorInstance(editor) ? editor : undefined
-        const indicatorChartEditor = isIndicatorChartEditorInstance(editor)
-            ? editor
-            : undefined
 
         return (
             <>
@@ -386,10 +381,9 @@ export class ChartEditorView<
                                         }}
                                     >
                                         {capitalize(tab)}
-                                        {tab === "refs" &&
-                                        chartEditor?.references
+                                        {tab === "refs" && editor?.references
                                             ? ` (${getFullReferencesCount(
-                                                  chartEditor.references
+                                                  editor.references
                                               )})`
                                             : ""}
                                     </a>
@@ -434,15 +428,9 @@ export class ChartEditorView<
                         {chartEditor && chartEditor.tab === "revisions" && (
                             <EditorHistoryTab editor={chartEditor} />
                         )}
-                        {chartEditor && chartEditor.tab === "refs" && (
-                            <EditorReferencesTab editor={chartEditor} />
+                        {editor.tab === "refs" && (
+                            <EditorReferencesTab editor={editor} />
                         )}
-                        {indicatorChartEditor &&
-                            indicatorChartEditor.tab === "inheritance" && (
-                                <EditorInheritanceTab
-                                    editor={indicatorChartEditor}
-                                />
-                            )}
                         {editor.tab === "export" && (
                             <EditorExportTab editor={editor} />
                         )}

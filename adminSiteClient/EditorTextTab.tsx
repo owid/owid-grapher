@@ -216,14 +216,15 @@ export class EditorTextTab<
                     />
                     {isChartEditorInstance(editor) &&
                         editor.references &&
-                        (editor.references.postsWordpress.length > 0 ||
-                            editor.references.postsGdocs.length > 0) && (
+                        (editor.references.postsWordpress?.length ||
+                            editor.references.postsGdocs?.length) && (
                             <div className="originSuggestions">
                                 <p>Origin url suggestions</p>
                                 <ul>
                                     {[
-                                        ...editor.references.postsWordpress,
-                                        ...editor.references.postsGdocs,
+                                        ...(editor.references.postsWordpress ??
+                                            []),
+                                        ...(editor.references.postsGdocs ?? []),
                                     ].map((post) => (
                                         <li key={post.id}>{post.url}</li>
                                     ))}

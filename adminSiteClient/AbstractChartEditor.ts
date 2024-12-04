@@ -4,11 +4,14 @@ import {
     GrapherInterface,
     diffGrapherConfigs,
     mergeGrapherConfigs,
+    PostReference,
 } from "@ourworldindata/utils"
 import { action, computed, observable, when } from "mobx"
 import { EditorFeatures } from "./EditorFeatures.js"
 import { Admin } from "./Admin.js"
 import { defaultGrapherConfig, Grapher } from "@ourworldindata/grapher"
+import { ChartViewMinimalInformation } from "./ChartEditor.js"
+import { Chart } from "./IndicatorChartEditor.js"
 
 export type EditorTab =
     | "basic"
@@ -29,6 +32,14 @@ export interface AbstractChartEditorManager {
     patchConfig: GrapherInterface
     parentConfig?: GrapherInterface
     isInheritanceEnabled?: boolean
+}
+
+export interface References {
+    postsWordpress?: PostReference[]
+    postsGdocs?: PostReference[]
+    explorers?: string[]
+    chartViews?: ChartViewMinimalInformation[]
+    childCharts?: Chart[]
 }
 
 export abstract class AbstractChartEditor<
@@ -72,6 +83,8 @@ export abstract class AbstractChartEditor<
             () => (this.savedPatchConfig = this.patchConfig)
         )
     }
+
+    abstract get references(): References | undefined
 
     /** original grapher config used to init the grapher instance */
     @computed get originalGrapherConfig(): GrapherInterface {

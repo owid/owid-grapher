@@ -7,7 +7,6 @@
 
 import {
     type RawPageview,
-    PostReference,
     ChartRedirect,
     Json,
     GrapherInterface,
@@ -24,6 +23,7 @@ import {
     AbstractChartEditor,
     AbstractChartEditorManager,
     EditorTab,
+    References,
 } from "./AbstractChartEditor.js"
 import { Admin } from "./Admin.js"
 
@@ -38,13 +38,6 @@ export interface ChartViewMinimalInformation {
     id: number
     name: string
     title: string
-}
-
-export interface References {
-    postsWordpress: PostReference[]
-    postsGdocs: PostReference[]
-    explorers: string[]
-    chartViews: ChartViewMinimalInformation[]
 }
 
 export const getFullReferencesCount = (references: References): number => {

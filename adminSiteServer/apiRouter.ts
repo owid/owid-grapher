@@ -131,10 +131,7 @@ import {
     indexIndividualGdocPost,
     removeIndividualGdocPostFromIndex,
 } from "../baker/algolia/utils/pages.js"
-import {
-    ChartViewMinimalInformation,
-    References,
-} from "../adminSiteClient/ChartEditor.js"
+import { ChartViewMinimalInformation } from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import Papa from "papaparse"
@@ -200,6 +197,7 @@ import {
     updateChartConfigInDbAndR2,
 } from "./chartConfigHelpers.js"
 import { ApiChartViewOverview } from "../adminShared/AdminTypes.js"
+import { References } from "../adminSiteClient/AbstractChartEditor.js"
 
 const apiRouter = new FunctionalRouter()
 

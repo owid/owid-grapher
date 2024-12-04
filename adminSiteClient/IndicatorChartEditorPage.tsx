@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { computed, action } from "mobx"
+import { computed, action, observable } from "mobx"
 import { isEmpty } from "@ourworldindata/utils"
 import { GrapherInterface, DimensionProperty } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
@@ -12,6 +12,7 @@ import {
     type Chart,
 } from "./IndicatorChartEditor.js"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
+import { References } from "./AbstractChartEditor.js"
 
 @observer
 export class IndicatorChartEditorPage
@@ -24,6 +25,8 @@ export class IndicatorChartEditorPage
 {
     static contextType = AdminAppContext
     context!: AdminAppContextType
+
+    @observable references: References | undefined = undefined
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined
@@ -64,6 +67,9 @@ export class IndicatorChartEditorPage
         this.charts = await this.context.admin.getJSON(
             `/api/variables/${variableId}/charts.json`
         )
+        this.references = {
+            childCharts: this.charts.filter((c) => c.isChild && c.isPublished),
+        }
     }
 
     @computed get admin(): Admin {
