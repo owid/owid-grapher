@@ -1,0 +1,36 @@
+.donors-note {
+    color: $blue-60;
+    font-style: italic;
+    margin: 0;
+}
+
+.donors-letter {
+    @include display-1-semibold;
+    color: $vermillion;
+    margin: 0 0 8px;
+}
+
+.donor-list {
+    @include body-3-medium;
+    margin-bottom: 32px;
+    columns: 6;
+
+    @include lg-down {
+        columns: 5;
+    }
+
+    @include md-down {
+        columns: 4;
+    }
+
+    @include sm-only {
+        columns: 2;
+    }
+}
+
+.donor-item {
+    list-style: none;
+    // Make the visual line height smaller for names that span more than one line.
+    padding: 2px 0;
+    line-height: 20px;
+}

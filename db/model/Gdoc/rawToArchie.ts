@@ -5,6 +5,7 @@ import {
     RawBlockAside,
     RawBlockChart,
     RawBlockChartStory,
+    RawBlockDonorList,
     RawBlockGraySection,
     RawBlockHomepageIntro,
     RawBlockHorizontalRule,
@@ -123,6 +124,13 @@ function* rawBlockChartToArchieMLString(
         yield* propertyToArchieMLString("position", block.value)
         yield* propertyToArchieMLString("caption", block.value)
     }
+    yield "{}"
+}
+
+function* rawBlockDonorListToArchieMLString(
+    _block: RawBlockDonorList
+): Generator<string, void, undefined> {
+    yield "{.donors}"
     yield "{}"
 }
 
@@ -811,6 +819,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "all-charts" }, rawBlockAllChartsToArchieMLString)
         .with({ type: "aside" }, rawBlockAsideToArchieMLString)
         .with({ type: "chart" }, rawBlockChartToArchieMLString)
+        .with({ type: "donors" }, rawBlockDonorListToArchieMLString)
         .with({ type: "scroller" }, rawBlockScrollerToArchieMLString)
         .with({ type: "callout" }, rawBlockCalloutToArchieMLString)
         .with({ type: "chart-story" }, rawBlockChartStoryToArchieMLString)

@@ -179,6 +179,7 @@ import {
 import { match } from "ts-pattern"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { GdocHomepage } from "../db/model/Gdoc/GdocHomepage.js"
+import { GdocAbout } from "../db/model/Gdoc/GdocAbout.js"
 import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
 import path from "path"
 import {
@@ -2882,8 +2883,13 @@ getRouteNonIdempotentWithRWTransaction(
 async function indexAndBakeGdocIfNeccesary(
     trx: db.KnexReadWriteTransaction,
     user: Required<DbInsertUser>,
-    prevGdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor,
-    nextGdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor
+    prevGdoc:
+        | GdocPost
+        | GdocDataInsight
+        | GdocHomepage
+        | GdocAbout
+        | GdocAuthor,
+    nextGdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAbout | GdocAuthor
 ) {
     const prevJson = prevGdoc.toJSON()
     const nextJson = nextGdoc.toJSON()

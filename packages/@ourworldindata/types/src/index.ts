@@ -213,6 +213,7 @@ export {
     type RawBlockTableRow,
     type RawBlockTableCell,
     type RawChartStoryValue,
+    type RawBlockDonorList,
     type RawRecircLink,
     type RawSDGGridItem,
     type RawBlockEntrySummary,
@@ -224,6 +225,7 @@ export {
     type EnrichedBlockCallout,
     type EnrichedBlockChart,
     type EnrichedBlockChartStory,
+    type EnrichedBlockDonorList,
     type EnrichedBlockExpandableParagraph,
     type EnrichedBlockExplorerTiles,
     type EnrichedBlockGraySection,
@@ -512,6 +514,11 @@ export {
     type DbInsertDatasetTag,
     DatasetTagsTableName,
 } from "./dbTypes/DatasetTags.js"
+export {
+    type DbInsertDonor,
+    type DbPlainDonor,
+    DonorsTableName,
+} from "./dbTypes/Donors.js"
 export {
     type DbPlainEntity,
     type DbInsertEntity,

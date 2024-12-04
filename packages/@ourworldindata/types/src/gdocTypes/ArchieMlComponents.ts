@@ -86,6 +86,16 @@ export type EnrichedBlockChart = {
     tabs?: ChartTabKeyword[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockDonorList = {
+    type: "donors"
+    value?: Record<string, never> // dummy value to unify block shapes
+}
+
+export type EnrichedBlockDonorList = {
+    type: "donors"
+    value?: Record<string, never> // dummy value to unify block shapes
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockKeyIndicatorValue = {
     datapageUrl?: string
     title?: string
@@ -925,6 +935,7 @@ export type OwidRawGdocBlock =
     | RawBlockAside
     | RawBlockCallout
     | RawBlockChart
+    | RawBlockDonorList
     | RawBlockScroller
     | RawBlockChartStory
     | RawBlockExplorerTiles
@@ -974,6 +985,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockAside
     | EnrichedBlockCallout
     | EnrichedBlockChart
+    | EnrichedBlockDonorList
     | EnrichedBlockScroller
     | EnrichedBlockChartStory
     | EnrichedBlockExplorerTiles

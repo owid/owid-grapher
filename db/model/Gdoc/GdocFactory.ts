@@ -44,13 +44,14 @@ import {
     getPublishedGdocPostsWithTags,
 } from "../../db.js"
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
+import { GdocAbout } from "./GdocAbout.js"
 import { GdocAuthor } from "./GdocAuthor.js"
 import { extractFilenamesFromBlock } from "./gdocUtils.js"
 import { fetchImagesFromDriveAndSyncToS3 } from "../Image.js"
 
 export function gdocFromJSON(
     json: Record<string, any>
-): GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor {
+): GdocPost | GdocDataInsight | GdocHomepage | GdocAbout | GdocAuthor {
     if (typeof json.content === "string") {
         json.content = JSON.parse(json.content)
     }
@@ -72,11 +73,15 @@ export function gdocFromJSON(
                 OwidGdocType.Article,
                 OwidGdocType.LinearTopicPage,
                 OwidGdocType.TopicPage,
-                OwidGdocType.Fragment,
-                OwidGdocType.AboutPage
+                OwidGdocType.Fragment
             ),
             // TODO: better validation here?
             () => GdocPost.create({ ...(json as any) })
+        )
+        .with(
+            OwidGdocType.AboutPage,
+            // TODO: better validation here?
+            () => GdocAbout.create({ ...(json as any) })
         )
         .with(
             OwidGdocType.DataInsight,
@@ -127,7 +132,7 @@ export async function createGdocAndInsertIntoDb(
 export async function updateGdocContentOnly(
     knex: KnexReadonlyTransaction,
     id: string,
-    gdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor
+    gdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAbout | GdocAuthor
 ): Promise<void> {
     let markdown: string | null = gdoc.markdown
     try {
@@ -276,7 +281,7 @@ export async function getPublishedGdocBaseObjectBySlug(
 export async function getAndLoadGdocBySlug(
     knex: KnexReadWriteTransaction,
     slug: string
-): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
+): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAbout | GdocAuthor> {
     const base = await getPublishedGdocBaseObjectBySlug(knex, slug, true)
     if (!base) {
         throw new Error(
@@ -291,7 +296,7 @@ export async function getAndLoadGdocById(
     knex: KnexReadWriteTransaction,
     id: string,
     contentSource?: GdocsContentSource
-): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
+): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAbout | GdocAuthor> {
     const base = await getGdocBaseObjectById(knex, id, true)
     if (!base)
         throw new Error(`No Google Doc with id "${id}" found in the database`)
@@ -320,7 +325,7 @@ export async function loadGdocFromGdocBase(
     knex: KnexReadWriteTransaction,
     base: OwidGdocBaseInterface,
     contentSource?: GdocsContentSource
-): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
+): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAbout | GdocAuthor> {
     const type = get(base, "content.type") as unknown
     if (!type)
         throw new Error(
@@ -338,11 +343,11 @@ export async function loadGdocFromGdocBase(
                 OwidGdocType.Article,
                 OwidGdocType.LinearTopicPage,
                 OwidGdocType.TopicPage,
-                OwidGdocType.Fragment,
-                OwidGdocType.AboutPage
+                OwidGdocType.Fragment
             ),
             () => GdocPost.create(base)
         )
+        .with(OwidGdocType.AboutPage, () => GdocAbout.create(base))
         .with(OwidGdocType.DataInsight, () => GdocDataInsight.create(base))
         .with(OwidGdocType.Homepage, () => GdocHomepage.create(base))
         .with(OwidGdocType.Author, () => GdocAuthor.create(base))
@@ -627,7 +632,7 @@ export async function getAllGdocIndexItemsOrderedByUpdatedAt(
 
 export async function addImagesToContentGraph(
     trx: KnexReadWriteTransaction,
-    gdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor
+    gdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAbout | GdocAuthor
 ): Promise<void> {
     const id = gdoc.id
     // Deleting and recreating these is simpler than tracking orphans over the next code block

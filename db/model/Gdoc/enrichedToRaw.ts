@@ -6,6 +6,7 @@ import {
     RawBlockAside,
     RawBlockChart,
     RawBlockChartStory,
+    RawBlockDonorList,
     RawBlockGraySection,
     RawBlockHeading,
     RawBlockHtml,
@@ -119,6 +120,13 @@ export function enrichedBlockToRawBlock(
                     position: b.position,
                     caption: b.caption ? spansToHtmlText(b.caption) : undefined,
                 },
+            })
+        )
+        .with(
+            { type: "donors" },
+            (b): RawBlockDonorList => ({
+                type: b.type,
+                value: b.value,
             })
         )
         .with(

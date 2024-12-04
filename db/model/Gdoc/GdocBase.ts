@@ -82,6 +82,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     breadcrumbs: BreadcrumbItem[] | null = null
     tags: DbPlainTag[] | null = null
     errors: OwidGdocErrorMessage[] = []
+    donors: string[] = []
     imageMetadata: Record<string, ImageMetadata> = {}
     linkedAuthors: LinkedAuthor[] = []
     linkedCharts: Record<string, LinkedChart> = {}
@@ -543,6 +544,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "aside",
                         "blockquote",
                         "callout",
+                        "donors",
                         "expandable-paragraph",
                         "entry-summary",
                         "gray-section",

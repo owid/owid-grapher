@@ -92,6 +92,11 @@ export const enrichedBlockExamples: Record<
         caption: boldLinkExampleText,
         parseErrors: [],
     },
+    donors: {
+        type: "donors",
+        value: {},
+        parseErrors: [],
+    },
     scroller: {
         type: "scroller",
         blocks: [
