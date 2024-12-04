@@ -209,6 +209,7 @@ export interface OwidGdocAboutContent {
     "featured-image"?: string
     authors: string[]
     body: OwidEnrichedGdocBlock[]
+    refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
 }
 
 export interface OwidGdocAboutInterface extends OwidGdocBaseInterface {
