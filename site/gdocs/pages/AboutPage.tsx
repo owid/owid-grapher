@@ -33,7 +33,7 @@ export default function AboutPage({ content, slug }: OwidGdocAboutInterface) {
 function AboutNav({ slug }: { slug: string }) {
     return (
         <nav className="about-nav grid grid-cols-12-full-width col-start-1 col-end-limit">
-            <ul className="about-nav-list col-start-2">
+            <ul className="about-nav-list col-start-2 col-end-14 col-sm-start-1">
                 {NAV_LINKS.map(({ title, href }) => (
                     <li key={href}>
                         <h2>
