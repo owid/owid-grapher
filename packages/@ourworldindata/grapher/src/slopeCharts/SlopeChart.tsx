@@ -427,6 +427,9 @@ export class SlopeChart
         // nothing to show if there are no series with missing data
         if (this.noDataSeries.length === 0) return false
 
+        // the No Data section is HTML and won't show up in the SVG export
+        if (this.manager.isStatic) return false
+
         // we usually don't show the no data section if columns are plotted
         // (since columns don't appear in the entity selector there is no need
         // to explain that a column is missing – it just adds noise). but if
