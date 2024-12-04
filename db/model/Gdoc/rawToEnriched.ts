@@ -7,6 +7,7 @@ import {
     EnrichedBlockCallout,
     EnrichedBlockChart,
     EnrichedBlockChartStory,
+    EnrichedBlockDonorList,
     EnrichedBlockGraySection,
     EnrichedBlockHeading,
     EnrichedBlockHorizontalRule,
@@ -43,6 +44,7 @@ import {
     RawBlockCallout,
     RawBlockChart,
     RawBlockChartStory,
+    RawBlockDonorList,
     RawBlockGraySection,
     RawBlockHeading,
     RawBlockHtml,
@@ -167,6 +169,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "blockquote" }, parseBlockquote)
         .with({ type: "callout" }, parseCallout)
         .with({ type: "chart" }, parseChart)
+        .with({ type: "donors" }, parseDonorList)
         .with({ type: "scroller" }, parseScroller)
         .with({ type: "chart-story" }, parseChartStory)
         .with({ type: "image" }, parseImage)
@@ -486,6 +489,14 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
             tabs: tabs.length > 0 ? tabs : undefined,
             parseErrors: [],
         }) as EnrichedBlockChart
+    }
+}
+
+const parseDonorList = (raw: RawBlockDonorList): EnrichedBlockDonorList => {
+    return {
+        type: "donors",
+        value: raw.value,
+        parseErrors: [],
     }
 }
 

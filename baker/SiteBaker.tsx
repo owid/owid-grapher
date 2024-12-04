@@ -110,8 +110,10 @@ import { getRedirectsFromDb } from "../db/model/Redirect.js"
 import { getTombstones } from "../db/model/GdocTombstone.js"
 import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
 import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
+import { getPublicDonorNames } from "../db/model/Donor.js"
 
 type PrefetchedAttachments = {
+    donors: string[]
     linkedAuthors: LinkedAuthor[]
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
     imageMetadata: Record<string, ImageMetadata>
@@ -170,14 +172,14 @@ function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
     if (bakeSteps.has("redirects")) total++
     // Add a tick for the validation step that occurs when these two steps run
     if (bakeSteps.has("dods") && bakeSteps.has("charts")) total++
-    // Add 6 ticks for prefetching attachments, which will only run if any of these steps are enabled
+    // Add ticks for prefetching attachments, which will only run if any of these steps are enabled
     if (
         bakeSteps.has("gdocPosts") ||
         bakeSteps.has("gdocTombstones") ||
         bakeSteps.has("dataInsights") ||
         bakeSteps.has("authors")
     ) {
-        total += 7
+        total += 8
     }
     return total
 }
@@ -350,6 +352,12 @@ export class SiteBaker {
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
             console.log("Prefetching attachments...")
+
+            const donors = await getPublicDonorNames(knex)
+            this.progressBar.tick({
+                name: `✅ Prefetched donors`,
+            })
+
             const publishedGdocs = await getAllMinimalGdocBaseObjects(knex)
             const publishedGdocsDictionary = keyBy(publishedGdocs, "id")
             this.progressBar.tick({
@@ -456,6 +464,7 @@ export class SiteBaker {
             })
 
             const prefetchedAttachments = {
+                donors,
                 linkedAuthors: publishedAuthors,
                 linkedDocuments: publishedGdocsDictionary,
                 imageMetadata: imageMetadataDictionary,
@@ -497,6 +506,7 @@ export class SiteBaker {
             )
 
             return {
+                donors: this._prefetchedAttachmentsCache.donors,
                 linkedDocuments,
                 imageMetadata: pick(
                     this._prefetchedAttachmentsCache.imageMetadata,
@@ -614,6 +624,7 @@ export class SiteBaker {
                 publishedGdoc.linkedChartSlugs.grapher,
                 publishedGdoc.linkedChartSlugs.explorer,
             ])
+            publishedGdoc.donors = attachments.donors
             publishedGdoc.linkedAuthors = attachments.linkedAuthors
             publishedGdoc.linkedDocuments = attachments.linkedDocuments
             publishedGdoc.imageMetadata = attachments.imageMetadata

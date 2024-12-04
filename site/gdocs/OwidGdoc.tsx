@@ -25,6 +25,7 @@ import { Author } from "./pages/Author.js"
 import AboutPage from "./pages/AboutPage.js"
 
 export type Attachments = {
+    donors?: string[]
     linkedAuthors?: LinkedAuthor[]
     linkedCharts: Record<string, LinkedChart>
     linkedIndicators: Record<number, LinkedIndicator>
@@ -120,6 +121,7 @@ export function OwidGdoc({
     return (
         <AttachmentsContext.Provider
             value={{
+                donors: get(props, "donors", []),
                 linkedAuthors: get(props, "linkedAuthors", []),
                 linkedDocuments: get(props, "linkedDocuments", {}),
                 imageMetadata: get(props, "imageMetadata", {}),

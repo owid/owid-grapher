@@ -4,6 +4,7 @@ import cx from "classnames"
 import ChartStory from "./ChartStory.js"
 import Scroller from "./Scroller.js"
 import Chart from "./Chart.js"
+import Donors from "./Donors.js"
 import PullQuote from "./PullQuote.js"
 import Recirc from "./Recirc.js"
 import List from "./List.js"
@@ -120,6 +121,7 @@ const layouts: { [key in Container]: Layouts} = {
     ["about-page"]: {
         ["default"]: "grid col-start-2 span-cols-12",
         ["people"]: "col-start-2 span-cols-8 col-md-start-2 span-md-cols-12",
+        ["donors"]: "grid grid-cols-12-full-width col-start-1 col-end-limit",
     },
     ["author-header"]: {
         ["default"]: "span-cols-8",
@@ -237,6 +239,9 @@ export default function ArticleBlock({
                 />
             )
         })
+        .with({ type: "donors" }, (_block) => (
+            <Donors className={getLayout("donors", containerType)} />
+        ))
         .with({ type: "scroller" }, (block) => (
             <Scroller
                 className={getLayout("scroller", containerType)}

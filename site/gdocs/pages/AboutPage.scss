@@ -1,3 +1,9 @@
+.about-page {
+    .footnote-container {
+        margin-top: 0;
+    }
+}
+
 .about-header {
     color: $blue-60;
 }
@@ -40,6 +46,10 @@
 .about-body {
     margin-bottom: 80px;
 
+    &:has(.article-block__donors) {
+        margin-bottom: 0;
+    }
+
     h2 {
         @include h1-semibold;
         color: $blue-60;
@@ -71,6 +81,17 @@
     .article-block__side-by-side:has(+ hr) {
         *:last-child {
             margin-bottom: 0;
+        }
+    }
+
+    .article-block__donors {
+        margin-top: 32px;
+        padding-top: 40px;
+        background-color: $beige;
+
+        @include md-down {
+            margin-top: 16px;
+            padding-top: 24px;
         }
     }
 }

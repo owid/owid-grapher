@@ -17,7 +17,7 @@ const NAV_LINKS = [
 
 export default function AboutPage({ content, slug }: OwidGdocAboutInterface) {
     return (
-        <main className="centered-article-container grid grid-cols-12-full-width">
+        <main className="about-page centered-article-container grid grid-cols-12-full-width">
             <h1 className="about-header col-start-2 col-end-limit display-2-semibold">
                 About
             </h1>

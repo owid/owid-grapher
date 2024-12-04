@@ -142,6 +142,11 @@ export const useImage = (
     return metadata
 }
 
+export function useDonors(): string[] | undefined {
+    const { donors } = useContext(AttachmentsContext)
+    return donors
+}
+
 const LinkedA = ({ span }: { span: SpanLink }): React.ReactElement => {
     const linkType = getLinkType(span.url)
     const { linkedDocument } = useLinkedDocument(span.url)

@@ -214,6 +214,7 @@ export interface OwidGdocAboutContent {
 
 export interface OwidGdocAboutInterface extends OwidGdocBaseInterface {
     content: OwidGdocAboutContent
+    donors?: string[]
 }
 
 export type OwidGdocContent =
