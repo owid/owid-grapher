@@ -17,6 +17,12 @@ export interface ChartSeries {
     color: Color
 }
 
+export type RenderChartSeries<TChartSeries> = TChartSeries & {
+    background?: boolean
+    hovered?: boolean
+    muted?: boolean
+}
+
 export type ChartTableTransformer = (inputTable: OwidTable) => OwidTable
 
 export interface ChartInterface {

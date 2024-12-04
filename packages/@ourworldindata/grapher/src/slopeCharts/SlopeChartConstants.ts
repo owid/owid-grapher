@@ -18,4 +18,10 @@ export interface PlacedSlopeChartSeries extends SlopeChartSeries {
     endPoint: PointVector
 }
 
+export interface RenderSlopeChartSeries extends PlacedSlopeChartSeries {
+    background: boolean
+    hovered: boolean
+    muted: boolean
+}
+
 export const DEFAULT_SLOPE_CHART_COLOR = "#ff7f0e"
