@@ -1,4 +1,4 @@
-import React, { SVGProps } from "react"
+import React from "react"
 import {
     Bounds,
     DEFAULT_BOUNDS,
