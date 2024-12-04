@@ -15,7 +15,7 @@ export default function People({
             className={cx(
                 "people grid-cols-2",
                 {
-                    "grid-md-cols-1": columns === "2",
+                    "people-cols-2 grid-md-cols-1": columns === "2",
                 },
                 className
             )}
