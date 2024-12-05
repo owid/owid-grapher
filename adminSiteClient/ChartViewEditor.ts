@@ -4,6 +4,12 @@ import {
     AbstractChartEditorManager,
     type EditorTab,
 } from "./AbstractChartEditor.js"
+import { ENV } from "../settings/clientSettings.js"
+
+// Don't yet show chart views in the admin interface
+// This is low-stakes - if it shows up anyhow (e.g. on staging servers), it's not a big deal.
+// TODO: Remove this flag once we're launching this feature
+export const chartViewsFeatureEnabled = ENV === "development"
 
 export interface Chart {
     id: number

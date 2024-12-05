@@ -14,6 +14,7 @@ import {
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import {
     ChartViewEditor,
+    chartViewsFeatureEnabled,
     isChartViewEditorInstance,
 } from "./ChartViewEditor.js"
 
@@ -119,14 +120,16 @@ class SaveButtonsForChart extends React.Component<{
                         {grapher.isPublished ? "Unpublish" : "Publish"}
                     </button>
                 </div>
-                <div className="mt-2">
-                    <button
-                        className="btn btn-primary"
-                        onClick={this.onSaveAsNarrativeView}
-                    >
-                        Save as narrative view
-                    </button>
-                </div>
+                {chartViewsFeatureEnabled && (
+                    <div className="mt-2">
+                        <button
+                            className="btn btn-primary"
+                            onClick={this.onSaveAsNarrativeView}
+                        >
+                            Save as narrative view
+                        </button>
+                    </div>
+                )}
             </div>
         )
     }
