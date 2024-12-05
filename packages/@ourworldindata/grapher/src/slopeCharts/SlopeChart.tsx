@@ -509,7 +509,9 @@ export class SlopeChart
     }
 
     @computed get maxLineLegendWidth(): number {
-        return 0.25 * this.innerBounds.width
+        return this.useCompactLayout
+            ? 0.15 * this.innerBounds.width
+            : 0.25 * this.innerBounds.width
     }
 
     @computed get lineLegendFontSize(): number {
@@ -650,7 +652,7 @@ export class SlopeChart
         return this.xRange[1] + LINE_LEGEND_PADDING
     }
 
-    @computed get useCompactLineLegend(): boolean {
+    @computed get useCompactLayout(): boolean {
         return !!this.manager.isSemiNarrow
     }
 
@@ -675,7 +677,7 @@ export class SlopeChart
                     seriesName,
                     label,
                     formattedValue,
-                    valueInNewLine: this.useCompactLineLegend,
+                    valueInNewLine: this.useCompactLayout,
                     yValue: start.value,
                 }
             })
@@ -690,16 +692,16 @@ export class SlopeChart
                 color,
                 seriesName,
                 label: seriesName,
-                annotation: this.useCompactLineLegend ? undefined : annotation,
+                annotation: this.useCompactLayout ? undefined : annotation,
                 formattedValue,
-                valueInNewLine: this.useCompactLineLegend,
+                valueInNewLine: this.useCompactLayout,
                 yValue: end.value,
             }
         })
     }
 
     @computed private get lineLegendConnectorLinesWidth(): number {
-        return this.useCompactLineLegend ? 15 : 25
+        return this.useCompactLayout ? 15 : 25
     }
 
     private playIntroAnimation() {
