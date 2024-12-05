@@ -179,8 +179,8 @@ function ImgWithRefresh({
                         ref.current.src = src
                     }
                 })
-                .catch(() => {
-                    console.log("Something went wrong refreshing the image")
+                .catch((e) => {
+                    console.log("Something went wrong refreshing the image", e)
                 })
         }
     })
