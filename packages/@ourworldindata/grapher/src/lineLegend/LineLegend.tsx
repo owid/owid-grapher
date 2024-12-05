@@ -18,8 +18,12 @@ import { TextWrap, TextWrapGroup } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
-import { EntityName, VerticalAlign } from "@ourworldindata/types"
-import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
+import { Color, EntityName, VerticalAlign } from "@ourworldindata/types"
+import {
+    BASE_FONT_SIZE,
+    GRAPHER_BACKGROUND_DEFAULT,
+    GRAPHER_FONT_SCALE_12,
+} from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
@@ -95,6 +99,7 @@ class LineLabels extends React.Component<{
     uniqueKey: string
     needsConnectorLines: boolean
     connectorLineWidth?: number
+    outlineColor?: Color
     anchor?: "start" | "end"
     isFocus?: boolean
     isStatic?: boolean
@@ -112,6 +117,10 @@ class LineLabels extends React.Component<{
 
     @computed private get connectorLineWidth(): number {
         return this.props.connectorLineWidth ?? DEFAULT_CONNECTOR_LINE_WIDTH
+    }
+
+    @computed private get outlineColor(): Color {
+        return this.props.outlineColor ?? GRAPHER_BACKGROUND_DEFAULT
     }
 
     @computed private get markers(): {
@@ -154,7 +163,7 @@ class LineLabels extends React.Component<{
                     )
                     const textColor = darkenColorForText(series.color)
                     return (
-                        <Halo id={key} key={key}>
+                        <Halo id={key} key={key} background={this.outlineColor}>
                             {series.textWrap.render(labelText.x, labelText.y, {
                                 textProps: {
                                     fill: textColor,
@@ -184,7 +193,7 @@ class LineLabels extends React.Component<{
                     )
                     if (!series.annotationTextWrap) return
                     return (
-                        <Halo id={key} key={key}>
+                        <Halo id={key} key={key} background={this.outlineColor}>
                             {series.annotationTextWrap.render(
                                 labelText.x,
                                 labelText.y +
@@ -308,6 +317,7 @@ export interface LineLegendProps {
     connectorLineWidth?: number
     fontSize?: number
     fontWeight?: number
+    outlineColor?: Color // used for halos
 
     // used to determine which series should be labelled when there is limited space
     seriesSortedByImportance?: EntityName[]
@@ -762,6 +772,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 series={this.backgroundSeries}
                 needsConnectorLines={this.needsLines}
                 connectorLineWidth={this.connectorLineWidth}
+                outlineColor={this.props.outlineColor}
                 isFocus={false}
                 anchor={this.props.xAnchor}
                 isStatic={this.props.isStatic}
@@ -781,6 +792,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 series={this.focusedSeries}
                 needsConnectorLines={this.needsLines}
                 connectorLineWidth={this.connectorLineWidth}
+                outlineColor={this.props.outlineColor}
                 isFocus={true}
                 anchor={this.props.xAnchor}
                 isStatic={this.props.isStatic}
