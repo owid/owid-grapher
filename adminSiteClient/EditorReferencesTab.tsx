@@ -349,11 +349,9 @@ export class EditorReferencesTabForIndicator extends React.Component<{
     editor: IndicatorChartEditor
 }> {
     render() {
-        const { charts } = this.props.editor
+        const { references } = this.props.editor
 
-        const publishedChildren = charts.filter(
-            (chart) => chart.isChild && chart.isPublished
-        )
+        const publishedChildren = references?.childCharts ?? []
         const [chartsInheritanceEnabled, chartsInheritanceDisabled] = partition(
             publishedChildren,
             (chart) => chart.isInheritanceEnabled

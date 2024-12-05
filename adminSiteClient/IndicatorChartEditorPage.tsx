@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { computed, action, observable } from "mobx"
+import { computed, action } from "mobx"
 import { isEmpty } from "@ourworldindata/utils"
 import { GrapherInterface, DimensionProperty } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
@@ -26,7 +26,7 @@ export class IndicatorChartEditorPage
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable references: References | undefined = undefined
+    references: References | undefined = undefined
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined
