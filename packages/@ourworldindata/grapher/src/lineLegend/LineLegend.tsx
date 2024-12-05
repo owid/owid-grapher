@@ -41,7 +41,7 @@ const MARKER_MARGIN = 4
 // Space between the label and the annotation
 const ANNOTATION_PADDING = 1
 
-const DEFAULT_CONNECTOR_LINE_WIDTH = 35
+const DEFAULT_CONNECTOR_LINE_WIDTH = 25
 const DEFAULT_FONT_WEIGHT = 400
 
 export interface LineLabelSeries extends ChartSeries {
@@ -103,8 +103,8 @@ class LineLabels extends React.Component<{
     series: PlacedSeries[]
     uniqueKey: string
     needsConnectorLines: boolean
-    connectorLineWidth?: number
-    outlineColor?: Color
+    showTextOutline?: boolean
+    textOutlineColor?: Color
     anchor?: "start" | "end"
     isFocus?: boolean
     isStatic?: boolean
@@ -120,12 +120,12 @@ class LineLabels extends React.Component<{
         return this.props.anchor ?? "start"
     }
 
-    @computed private get connectorLineWidth(): number {
-        return this.props.connectorLineWidth ?? DEFAULT_CONNECTOR_LINE_WIDTH
+    @computed private get showTextOutline(): boolean {
+        return this.props.showTextOutline ?? false
     }
 
-    @computed private get outlineColor(): Color {
-        return this.props.outlineColor ?? GRAPHER_BACKGROUND_DEFAULT
+    @computed private get textOutlineColor(): Color {
+        return this.props.textOutlineColor ?? GRAPHER_BACKGROUND_DEFAULT
     }
 
     @computed private get markers(): {
@@ -136,7 +136,7 @@ class LineLabels extends React.Component<{
         return this.props.series.map((series) => {
             const direction = this.anchor === "start" ? 1 : -1
             const markerMargin = direction * MARKER_MARGIN
-            const connectorLineWidth = direction * this.connectorLineWidth
+            const connectorLineWidth = direction * DEFAULT_CONNECTOR_LINE_WIDTH
 
             const { x } = series.origBounds
             const connectorLine = {
@@ -168,7 +168,12 @@ class LineLabels extends React.Component<{
                     )
                     const textColor = darkenColorForText(series.color)
                     return (
-                        <Halo id={key} key={key} background={this.outlineColor}>
+                        <Halo
+                            id={key}
+                            key={key}
+                            show={this.showTextOutline}
+                            background={this.textOutlineColor}
+                        >
                             {series.textWrap.render(labelText.x, labelText.y, {
                                 textProps: {
                                     fill: textColor,
@@ -198,7 +203,12 @@ class LineLabels extends React.Component<{
                     )
                     if (!series.annotationTextWrap) return
                     return (
-                        <Halo id={key} key={key} background={this.outlineColor}>
+                        <Halo
+                            id={key}
+                            key={key}
+                            show={this.showTextOutline}
+                            background={this.textOutlineColor}
+                        >
                             {series.annotationTextWrap.render(
                                 labelText.x,
                                 labelText.y +
@@ -319,10 +329,10 @@ export interface LineLegendProps {
     verticalAlign?: VerticalAlign
 
     // presentation
-    connectorLineWidth?: number
     fontSize?: number
     fontWeight?: number
-    outlineColor?: Color // used for halos
+    showTextOutlines?: boolean
+    textOutlineColor?: Color
 
     // used to determine which series should be labelled when there is limited space
     seriesSortedByImportance?: EntityName[]
@@ -346,7 +356,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
      */
     static width(props: LineLegendProps): number {
         const test = new LineLegend(props)
-        return test.maxLabelWidth + test.connectorLineWidth + MARKER_MARGIN
+        return test.maxLabelWidth + DEFAULT_CONNECTOR_LINE_WIDTH + MARKER_MARGIN
     }
 
     static fontSize(props: Partial<LineLegendProps>): number {
@@ -365,10 +375,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
     }
 
     @computed private get fontSize(): number {
-        return Math.max(
-            GRAPHER_FONT_SCALE_12 * (this.props.fontSize ?? BASE_FONT_SIZE),
-            11.5
-        )
+        return GRAPHER_FONT_SCALE_12 * (this.props.fontSize ?? BASE_FONT_SIZE)
     }
 
     @computed private get fontWeight(): number {
@@ -383,17 +390,13 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return this.props.yAxis ?? new VerticalAxis(new AxisConfig())
     }
 
-    @computed private get connectorLineWidth(): number {
-        return this.props.connectorLineWidth ?? DEFAULT_CONNECTOR_LINE_WIDTH
-    }
-
     @computed private get verticalAlign(): VerticalAlign {
         return this.props.verticalAlign ?? VerticalAlign.middle
     }
 
     @computed.struct get sizedLabels(): SizedSeries[] {
         const { fontSize, fontWeight, maxWidth } = this
-        const maxTextWidth = maxWidth - this.connectorLineWidth
+        const maxTextWidth = maxWidth - DEFAULT_CONNECTOR_LINE_WIDTH
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
         return this.props.labelSeries.map((label) => {
@@ -492,7 +495,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
 
         return this.sizedLabels.map((label) => {
             const labelHeight = label.height
-            const labelWidth = label.width + this.connectorLineWidth
+            const labelWidth = label.width + DEFAULT_CONNECTOR_LINE_WIDTH
 
             const midY = yAxis.place(label.yValue)
             const origBounds = new Bounds(
@@ -785,7 +788,6 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 uniqueKey="background"
                 series={this.backgroundSeries}
                 needsConnectorLines={this.needsLines}
-                connectorLineWidth={this.connectorLineWidth}
                 outlineColor={this.props.outlineColor}
                 isFocus={false}
                 anchor={this.props.xAnchor}
@@ -805,7 +807,6 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 uniqueKey="focus"
                 series={this.focusedSeries}
                 needsConnectorLines={this.needsLines}
-                connectorLineWidth={this.connectorLineWidth}
                 outlineColor={this.props.outlineColor}
                 isFocus={true}
                 anchor={this.props.xAnchor}
