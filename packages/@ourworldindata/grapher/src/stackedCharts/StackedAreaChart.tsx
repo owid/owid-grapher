@@ -663,7 +663,6 @@ export class StackedAreaChart extends AbstractStackedChart {
                 yRange={this.lineLegendY}
                 maxWidth={this.maxLineLegendWidth}
                 fontSize={this.fontSize}
-                outlineColor={this.manager.backgroundColor}
                 seriesSortedByImportance={this.seriesSortedByImportance}
                 isStatic={this.isStatic}
                 focusedSeriesNames={this.focusedSeriesNames}
