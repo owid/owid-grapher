@@ -12,6 +12,11 @@ import {
     ErrorMessagesForDimensions,
 } from "./ChartEditorTypes.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import {
+    ChartViewEditor,
+    chartViewsFeatureEnabled,
+    isChartViewEditorInstance,
+} from "./ChartViewEditor.js"
 
 @observer
 export class SaveButtons<
@@ -33,6 +38,13 @@ export class SaveButtons<
                     {...passthroughProps}
                 />
             )
+        else if (isChartViewEditorInstance(editor))
+            return (
+                <SaveButtonsForChartView
+                    editor={editor}
+                    {...passthroughProps}
+                />
+            )
         else return null
     }
 }
@@ -49,6 +61,10 @@ class SaveButtonsForChart extends React.Component<{
 
     @action.bound onSaveAsNew() {
         void this.props.editor.saveAsNewGrapher()
+    }
+
+    @action.bound onSaveAsNarrativeView() {
+        void this.props.editor.saveAsNarrativeView()
     }
 
     @action.bound onPublishToggle() {
@@ -77,31 +93,43 @@ class SaveButtonsForChart extends React.Component<{
 
         return (
             <div className="SaveButtons">
-                <button
-                    className="btn btn-success"
-                    onClick={this.onSaveChart}
-                    disabled={isSavingDisabled}
-                >
-                    {grapher.isPublished
-                        ? "Update chart"
-                        : grapher.id
-                          ? "Save draft"
-                          : "Create draft"}
-                </button>{" "}
-                <button
-                    className="btn btn-secondary"
-                    onClick={this.onSaveAsNew}
-                    disabled={isSavingDisabled}
-                >
-                    Save as new
-                </button>{" "}
-                <button
-                    className="btn btn-danger"
-                    onClick={this.onPublishToggle}
-                    disabled={isSavingDisabled}
-                >
-                    {grapher.isPublished ? "Unpublish" : "Publish"}
-                </button>
+                <div>
+                    <button
+                        className="btn btn-success"
+                        onClick={this.onSaveChart}
+                        disabled={isSavingDisabled}
+                    >
+                        {grapher.isPublished
+                            ? "Update chart"
+                            : grapher.id
+                              ? "Save draft"
+                              : "Create draft"}
+                    </button>{" "}
+                    <button
+                        className="btn btn-secondary"
+                        onClick={this.onSaveAsNew}
+                        disabled={isSavingDisabled}
+                    >
+                        Save as new
+                    </button>{" "}
+                    <button
+                        className="btn btn-danger"
+                        onClick={this.onPublishToggle}
+                        disabled={isSavingDisabled}
+                    >
+                        {grapher.isPublished ? "Unpublish" : "Publish"}
+                    </button>
+                </div>
+                {chartViewsFeatureEnabled && (
+                    <div className="mt-2">
+                        <button
+                            className="btn btn-primary"
+                            onClick={this.onSaveAsNarrativeView}
+                        >
+                            Save as narrative view
+                        </button>
+                    </div>
+                )}
             </div>
         )
     }
@@ -148,6 +176,56 @@ class SaveButtonsForIndicatorChart extends React.Component<{
                         ? "Create indicator chart"
                         : "Update indicator chart"}
                 </button>
+            </div>
+        )
+    }
+}
+
+@observer
+class SaveButtonsForChartView extends React.Component<{
+    editor: ChartViewEditor
+    errorMessages: ErrorMessages
+    errorMessagesForDimensions: ErrorMessagesForDimensions
+}> {
+    @action.bound onSaveChart() {
+        void this.props.editor.saveGrapher()
+    }
+
+    @computed get hasEditingErrors(): boolean {
+        const { errorMessages, errorMessagesForDimensions } = this.props
+
+        if (!isEmpty(errorMessages)) return true
+
+        const allErrorMessagesForDimensions = Object.values(
+            errorMessagesForDimensions
+        ).flat()
+        return allErrorMessagesForDimensions.some((error) => error)
+    }
+
+    render() {
+        const { hasEditingErrors } = this
+        const { editor } = this.props
+        const { grapher } = editor
+
+        const isSavingDisabled = grapher.hasFatalErrors || hasEditingErrors
+
+        return (
+            <div className="SaveButtons">
+                <button
+                    className="btn btn-success"
+                    onClick={this.onSaveChart}
+                    disabled={isSavingDisabled}
+                >
+                    Save chart view
+                </button>{" "}
+                <a
+                    className="btn btn-secondary"
+                    href={`/admin/charts/${editor.parentChartId}/edit`}
+                    target="_blank"
+                    rel="noopener"
+                >
+                    Go to parent chart
+                </a>
             </div>
         )
     }

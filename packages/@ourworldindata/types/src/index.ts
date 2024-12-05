@@ -486,6 +486,8 @@ export {
     type DbPlainChartView,
     type DbInsertChartView,
     ChartViewsTableName,
+    CHART_VIEW_PROPS_TO_PERSIST,
+    CHART_VIEW_PROPS_TO_OMIT,
 } from "./dbTypes/ChartViews.js"
 export {
     ChartsXEntitiesTableName,

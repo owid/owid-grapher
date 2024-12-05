@@ -14,6 +14,9 @@ import {
     getParentVariableIdFromChartConfig,
     mergeGrapherConfigs,
     isEmpty,
+    slugify,
+    omit,
+    CHART_VIEW_PROPS_TO_OMIT,
 } from "@ourworldindata/utils"
 import { action, computed, observable, runInAction } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
@@ -31,18 +34,21 @@ export interface Log {
     createdAt: string
 }
 
+export interface ChartViewMinimalInformation {
+    id: number
+    name: string
+    title: string
+}
+
 export interface References {
     postsWordpress: PostReference[]
     postsGdocs: PostReference[]
     explorers: string[]
+    chartViews: ChartViewMinimalInformation[]
 }
 
 export const getFullReferencesCount = (references: References): number => {
-    return (
-        references.postsWordpress.length +
-        references.postsGdocs.length +
-        references.explorers.length
-    )
+    return Object.values(references).reduce((acc, ref) => acc + ref.length, 0)
 }
 
 export interface ChartEditorManager extends AbstractChartEditorManager {
@@ -198,6 +204,41 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         if (json.success)
             w.location.assign(
                 this.manager.admin.url(`charts/${json.chartId}/edit`)
+            )
+    }
+
+    async saveAsNarrativeView(): Promise<void> {
+        const { patchConfig, grapher } = this
+
+        const chartJson = omit(patchConfig, CHART_VIEW_PROPS_TO_OMIT)
+
+        const suggestedName = grapher.title ? slugify(grapher.title) : undefined
+
+        const name = prompt(
+            "Please enter a programmatic name for the narrative view. Note that this name cannot be changed later.",
+            suggestedName
+        )
+
+        if (name === null) return
+
+        // Need to open intermediary tab before AJAX to avoid popup blockers
+        const w = window.open("/", "_blank") as Window
+
+        const body = {
+            name,
+            parentChartId: grapher.id,
+            config: chartJson,
+        }
+
+        const json = await this.manager.admin.requestJSON(
+            "/api/chartViews",
+            body,
+            "POST"
+        )
+
+        if (json.success)
+            w.location.assign(
+                this.manager.admin.url(`chartViews/${json.chartViewId}/edit`)
             )
     }
 

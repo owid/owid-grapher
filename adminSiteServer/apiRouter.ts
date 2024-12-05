@@ -109,6 +109,8 @@ import {
     DbPlainChartView,
     ChartViewsTableName,
     DbInsertChartView,
+    CHART_VIEW_PROPS_TO_PERSIST,
+    CHART_VIEW_PROPS_TO_OMIT,
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
 import {
@@ -129,7 +131,10 @@ import {
     indexIndividualGdocPost,
     removeIndividualGdocPostFromIndex,
 } from "../baker/algolia/utils/pages.js"
-import { References } from "../adminSiteClient/ChartEditor.js"
+import {
+    ChartViewMinimalInformation,
+    References,
+} from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import Papa from "papaparse"
@@ -194,7 +199,7 @@ import {
     saveNewChartConfigInDbAndR2,
     updateChartConfigInDbAndR2,
 } from "./chartConfigHelpers.js"
-import { CHART_VIEW_PROPS_TO_PERSIST } from "../db/model/ChartView.js"
+import { ApiChartViewOverview } from "../adminShared/AdminTypes.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -287,11 +292,22 @@ const getReferencesByChartId = async (
             chartId = ?`,
         [chartId]
     )
-    const [postsWordpress, postsGdocs, explorerSlugs] = await Promise.all([
-        postsWordpressPromise,
-        postGdocsPromise,
-        explorerSlugsPromise,
-    ])
+    const chartViewsPromise = db.knexRaw<ChartViewMinimalInformation>(
+        knex,
+        `-- sql
+        SELECT cv.id, cv.name, cc.full ->> "$.title" AS title
+        FROM chart_views cv
+        JOIN chart_configs cc ON cc.id = cv.chartConfigId
+        WHERE cv.parentChartId = ?`,
+        [chartId]
+    )
+    const [postsWordpress, postsGdocs, explorerSlugs, chartViews] =
+        await Promise.all([
+            postsWordpressPromise,
+            postGdocsPromise,
+            explorerSlugsPromise,
+            chartViewsPromise,
+        ])
 
     return {
         postsGdocs,
@@ -299,6 +315,7 @@ const getReferencesByChartId = async (
         explorers: explorerSlugs.map(
             (row: { explorerSlug: string }) => row.explorerSlug
         ),
+        chartViews,
     }
 }
 
@@ -3275,6 +3292,8 @@ const createPatchConfigAndFullConfigForChartView = async (
 ) => {
     const parentChartConfig = await expectChartById(knex, parentChartId)
 
+    config = omit(config, CHART_VIEW_PROPS_TO_OMIT)
+
     const patchToParentChart = diffGrapherConfigs(config, parentChartConfig)
 
     const fullConfigIncludingDefaults = mergeGrapherConfigs(
@@ -3295,21 +3314,8 @@ const createPatchConfigAndFullConfigForChartView = async (
     return { patchConfig: patchConfigToSave, fullConfig }
 }
 
-interface ApiChartViewOverview {
-    id: number
-    slug: string
-    parent: {
-        id: number
-        title: string
-    }
-    updatedAt: string | null
-    lastEditedByUser: string | null
-    chartConfigId: string
-    title: string
-}
-
 getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
-    type ChartViewRow = Pick<DbPlainChartView, "id" | "slug" | "updatedAt"> & {
+    type ChartViewRow = Pick<DbPlainChartView, "id" | "name" | "updatedAt"> & {
         lastEditedByUser: string
         chartConfigId: string
         title: string
@@ -3322,25 +3328,25 @@ getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
         `-- sql
         SELECT
             cv.id,
-            cv.slug,
+            cv.name,
             cv.updatedAt,
-            cv.lastEditedByUserId,
+            u.fullName as lastEditedByUser,
             cv.chartConfigId,
-            cv.parentChartId,
             cc.full ->> "$.title" as title,
-            pcc.full ->> "$.title" as parentTitle,
-            u.fullName as lastEditedByUser
+            cv.parentChartId,
+            pcc.full ->> "$.title" as parentTitle
         FROM chart_views cv
         JOIN chart_configs cc ON cv.chartConfigId = cc.id
         JOIN charts pc ON cv.parentChartId = pc.id
         JOIN chart_configs pcc ON pc.configId = pcc.id
         JOIN users u ON cv.lastEditedByUserId = u.id
+        ORDER BY cv.updatedAt DESC
         `
     )
 
     const chartViews: ApiChartViewOverview[] = rows.map((row) => ({
         id: row.id,
-        slug: row.slug,
+        name: row.name,
         updatedAt: row.updatedAt?.toISOString() ?? null,
         lastEditedByUser: row.lastEditedByUser,
         chartConfigId: row.chartConfigId,
@@ -3354,13 +3360,69 @@ getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
     return { chartViews }
 })
 
+getRouteWithROTransaction(
+    apiRouter,
+    "/chartViews/:id",
+    async (req, res, trx) => {
+        const id = expectInt(req.params.id)
+
+        type ChartViewRow = Pick<
+            DbPlainChartView,
+            "id" | "name" | "updatedAt"
+        > & {
+            lastEditedByUser: string
+            chartConfigId: string
+            configFull: string
+            configPatch: string
+            parentChartId: number
+            parentConfigFull: string
+        }
+
+        const row = await db.knexRawFirst<ChartViewRow>(
+            trx,
+            `-- sql
+        SELECT
+            cv.id,
+            cv.name,
+            cv.updatedAt,
+            u.fullName as lastEditedByUser,
+            cv.chartConfigId,
+            cc.full as configFull,
+            cc.patch as configPatch,
+            cv.parentChartId,
+            pcc.full as parentConfigFull
+        FROM chart_views cv
+        JOIN chart_configs cc ON cv.chartConfigId = cc.id
+        JOIN charts pc ON cv.parentChartId = pc.id
+        JOIN chart_configs pcc ON pc.configId = pcc.id
+        JOIN users u ON cv.lastEditedByUserId = u.id
+        WHERE cv.id = ?
+        `,
+            [id]
+        )
+
+        if (!row) {
+            throw new JsonError(`No chart view found for id ${id}`, 404)
+        }
+
+        const chartView = {
+            ...row,
+            configFull: parseChartConfig(row.configFull),
+            configPatch: parseChartConfig(row.configPatch),
+            parentConfigFull: parseChartConfig(row.parentConfigFull),
+        }
+
+        return chartView
+    }
+)
+
 postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
-    const { slug, parentChartId } = req.body as Pick<
+    const { name, parentChartId } = req.body as Pick<
         DbPlainChartView,
-        "slug" | "parentChartId"
+        "name" | "parentChartId"
     >
     const rawConfig = req.body.config as GrapherInterface
-    if (!slug || !parentChartId || !rawConfig) {
+    if (!name || !parentChartId || !rawConfig) {
         throw new JsonError("Invalid request", 400)
     }
 
@@ -3380,7 +3442,7 @@ postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
 
     // insert into chart_views
     const insertRow: DbInsertChartView = {
-        slug,
+        name,
         parentChartId,
         lastEditedByUserId: res.locals.user.id,
         chartConfigId: chartConfigId,

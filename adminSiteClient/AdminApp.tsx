@@ -42,6 +42,8 @@ import { GdocsIndexPage, GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsStoreProvider } from "./GdocsStore.js"
 import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
+import { ChartViewEditorPage } from "./ChartViewEditorPage.js"
+import { ChartViewIndexPage } from "./ChartViewIndexPage.js"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -156,6 +158,22 @@ export class AdminApp extends React.Component<{
                                 exact
                                 path="/charts"
                                 component={ChartIndexPage}
+                            />
+                            <Route
+                                exact
+                                path="/chartViews"
+                                component={ChartViewIndexPage}
+                            />
+                            <Route
+                                exact
+                                path="/chartViews/:chartViewId/edit"
+                                render={({ match }) => (
+                                    <ChartViewEditorPage
+                                        chartViewId={parseInt(
+                                            match.params.chartViewId
+                                        )}
+                                    />
+                                )}
                             />
                             <Route
                                 exact

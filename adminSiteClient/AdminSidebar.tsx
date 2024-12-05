@@ -18,9 +18,11 @@ import {
     faDownload,
     faHatWizard,
     faSitemap,
+    faPanorama,
 } from "@fortawesome/free-solid-svg-icons"
 
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
+import { chartViewsFeatureEnabled } from "./ChartViewEditor.js"
 
 export const AdminSidebar = (): React.ReactElement => (
     <aside className="AdminSidebar">
@@ -31,6 +33,13 @@ export const AdminSidebar = (): React.ReactElement => (
                     <FontAwesomeIcon icon={faChartBar} /> Charts
                 </Link>
             </li>
+            {chartViewsFeatureEnabled && (
+                <li>
+                    <Link to="/chartViews">
+                        <FontAwesomeIcon icon={faPanorama} /> Narrative views
+                    </Link>
+                </li>
+            )}
             <li>
                 <Link to="/posts">
                     <FontAwesomeIcon icon={faFile} /> Posts

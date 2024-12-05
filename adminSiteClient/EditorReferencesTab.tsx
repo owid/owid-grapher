@@ -101,6 +101,25 @@ export const ReferencesSection = (props: {
         <></>
     )
 
+    const chartViews = !!props.references?.chartViews?.length && (
+        <>
+            <p>Narrative views based on this chart</p>
+            <ul className="list-group">
+                {props.references.chartViews.map((chartView) => (
+                    <li key={chartView.id} className="list-group-item">
+                        <a
+                            href={`/admin/chartViews/${chartView.id}/edit`}
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            <strong>{chartView.title}</strong>
+                        </a>
+                    </li>
+                ))}
+            </ul>
+        </>
+    )
+
     return (
         <>
             <h5>References</h5>
@@ -110,6 +129,7 @@ export const ReferencesSection = (props: {
                     {wpPosts}
                     {gdocsPosts}
                     {explorers}
+                    {chartViews}
                 </>
             ) : (
                 <p>No references found</p>
