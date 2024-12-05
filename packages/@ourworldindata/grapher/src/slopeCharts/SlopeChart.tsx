@@ -60,6 +60,7 @@ import { ColorSchemes } from "../color/ColorSchemes"
 import { LineLabelSeries, LineLegend } from "../lineLegend/LineLegend"
 import {
     makeTooltipRoundingNotice,
+    makeTooltipToleranceNotice,
     Tooltip,
     TooltipState,
     TooltipValueRange,
@@ -114,11 +115,19 @@ export class SlopeChart
         if (this.isLogScale)
             table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
 
+        this.yColumnSlugs.forEach((slug) => {
+            table = table.interpolateColumnWithTolerance(slug)
+        })
+
         return table
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+
+        this.yColumnSlugs.forEach((slug) => {
+            table = table.interpolateColumnWithTolerance(slug)
+        })
 
         // if time selection is disabled, then filter all entities that
         // don't have data for the current time period
@@ -276,10 +285,9 @@ export class SlopeChart
             canSelectMultipleEntities,
         })
 
-        const valueByTime =
-            column.valueByEntityNameAndOriginalTime.get(entityName)
-        const startValue = valueByTime?.get(startTime)
-        const endValue = valueByTime?.get(endTime)
+        const owidRowByTime = column.owidRowByEntityNameAndTime.get(entityName)
+        const start = owidRowByTime?.get(startTime)
+        const end = owidRowByTime?.get(endTime)
 
         const colorKey = getColorKey({
             entityName,
@@ -299,8 +307,8 @@ export class SlopeChart
             seriesName,
             entityName,
             color,
-            startValue,
-            endValue,
+            start,
+            end,
             annotation,
         }
     }
@@ -308,7 +316,29 @@ export class SlopeChart
     private isSeriesValid(
         series: RawSlopeChartSeries
     ): series is SlopeChartSeries {
-        return series.startValue !== undefined && series.endValue !== undefined
+        const {
+            start,
+            end,
+            column: { tolerance },
+        } = series
+
+        // if the start or end value is missing, we can't draw the slope
+        if (start?.value === undefined || end?.value === undefined) return false
+
+        // sanity check (might happen if tolerance is enabled)
+        if (start.originalTime >= end.originalTime) return false
+
+        const isToleranceAppliedToStartValue =
+            start.originalTime !== this.startTime
+        const isToleranceAppliedToEndValue = end.originalTime !== this.endTime
+
+        // if tolerance has been applied to one of the values, then we require
+        // a minimal distance between the original times
+        if (isToleranceAppliedToStartValue || isToleranceAppliedToEndValue) {
+            return end.originalTime - start.originalTime >= tolerance
+        }
+
+        return true
     }
 
     // Usually we drop rows with missing data in the transformTable function.
@@ -370,8 +400,8 @@ export class SlopeChart
         const { yAxis, startX, endX } = this
 
         return this.series.map((series) => {
-            const startY = yAxis.place(series.startValue)
-            const endY = yAxis.place(series.endValue)
+            const startY = yAxis.place(series.start.value)
+            const endY = yAxis.place(series.end.value)
 
             const startPoint = new PointVector(startX, startY)
             const endPoint = new PointVector(endX, endY)
@@ -406,8 +436,8 @@ export class SlopeChart
 
     @computed get allYValues(): number[] {
         return this.series.flatMap((series) => [
-            series.startValue,
-            series.endValue,
+            series.start.value,
+            series.end.value,
         ])
     }
 
@@ -522,13 +552,13 @@ export class SlopeChart
     // used in LineLegend
     @computed get labelSeries(): LineLabelSeries[] {
         return this.series.map((series) => {
-            const { seriesName, color, endValue, annotation } = series
+            const { seriesName, color, end, annotation } = series
             return {
                 color,
                 seriesName,
                 label: seriesName,
                 annotation,
-                yValue: endValue,
+                yValue: end.value,
             }
         })
     }
@@ -660,17 +690,37 @@ export class SlopeChart
         const { series } = target || {}
         if (!series) return
 
-        const title = isRelativeMode
-            ? `${series.seriesName}, ${formatColumn.formatTime(endTime)}`
-            : series.seriesName
+        const formatTime = (time: Time) => formatColumn.formatTime(time)
 
-        const timeRange = [startTime, endTime]
-            .map((t) => formatColumn.formatTime(t))
-            .join(" to ")
+        const actualStartTime = series.start.originalTime
+        const actualEndTime = series.end.originalTime
+        const timeRange = `${formatTime(actualStartTime)} to ${formatTime(actualEndTime)}`
         const timeLabel = isRelativeMode
-            ? `% change since ${formatColumn.formatTime(startTime)}`
+            ? `% change between ${formatColumn.formatTime(actualStartTime)} and ${formatColumn.formatTime(actualEndTime)}`
             : timeRange
 
+        const constructTargetYearForToleranceNotice = () => {
+            const isStartValueOriginal = series.start.originalTime === startTime
+            const isEndValueOriginal = series.end.originalTime === endTime
+
+            if (!isStartValueOriginal && !isEndValueOriginal) {
+                return `${formatTime(startTime)} and ${formatTime(endTime)}`
+            } else if (!isStartValueOriginal) {
+                return formatTime(startTime)
+            } else if (!isEndValueOriginal) {
+                return formatTime(endTime)
+            } else {
+                return undefined
+            }
+        }
+
+        const targetYear = constructTargetYearForToleranceNotice()
+        const toleranceNotice = targetYear
+            ? {
+                  icon: TooltipFooterIcon.notice,
+                  text: makeTooltipToleranceNotice(targetYear),
+              }
+            : undefined
         const roundingNotice = series.column.roundsToSignificantFigures
             ? {
                   icon: TooltipFooterIcon.none,
@@ -680,11 +730,11 @@ export class SlopeChart
                   ),
               }
             : undefined
-        const footer = excludeUndefined([roundingNotice])
+        const footer = excludeUndefined([toleranceNotice, roundingNotice])
 
         const values = isRelativeMode
-            ? [series.endValue]
-            : [series.startValue, series.endValue]
+            ? [series.end.value]
+            : [series.start.value, series.end.value]
 
         return (
             <Tooltip
@@ -695,8 +745,9 @@ export class SlopeChart
                 offsetX={20}
                 offsetY={-16}
                 style={{ maxWidth: "250px" }}
-                title={title}
+                title={series.seriesName}
                 subtitle={timeLabel}
+                subtitleFormat={targetYear ? "notice" : undefined}
                 dissolve={fading}
                 footer={footer}
                 dismiss={() => (this.tooltipState.target = null)}
@@ -707,16 +758,35 @@ export class SlopeChart
     }
 
     private makeMissingDataLabel(series: RawSlopeChartSeries): string {
-        const { seriesName } = series
+        const { seriesName, start, end } = series
+
         const startTime = this.formatColumn.formatTime(this.startTime)
         const endTime = this.formatColumn.formatTime(this.endTime)
-        if (series.startValue === undefined && series.endValue === undefined) {
+
+        // mention the start or end value if they're missing
+        if (start?.value === undefined && end?.value === undefined) {
             return `${seriesName} (${startTime} & ${endTime})`
-        } else if (series.startValue === undefined) {
+        } else if (start?.value === undefined) {
             return `${seriesName} (${startTime})`
-        } else if (series.endValue === undefined) {
+        } else if (end?.value === undefined) {
             return `${seriesName} (${endTime})`
         }
+
+        // if both values are given but the series shows up in the No Data
+        // section, then tolerance has been applied to one of the values
+        // in such a way that we decided not to render the slope after all
+        // (e.g. when the original times are too close to each other)
+        const isToleranceAppliedToStartValue =
+            start.originalTime !== this.startTime
+        const isToleranceAppliedToEndValue = end.originalTime !== this.endTime
+        if (isToleranceAppliedToStartValue && isToleranceAppliedToEndValue) {
+            return `${seriesName} (${startTime} & ${endTime})`
+        } else if (isToleranceAppliedToStartValue) {
+            return `${seriesName} (${startTime})`
+        } else if (isToleranceAppliedToEndValue) {
+            return `${seriesName} (${endTime})`
+        }
+
         return seriesName
     }
 
