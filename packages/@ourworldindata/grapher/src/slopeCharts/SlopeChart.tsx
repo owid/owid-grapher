@@ -404,6 +404,10 @@ export class SlopeChart
         )
     }
 
+    @computed get seriesByName(): Map<SeriesName, SlopeChartSeries> {
+        return new Map(this.series.map((series) => [series.seriesName, series]))
+    }
+
     @computed private get placedSeries(): PlacedSlopeChartSeries[] {
         const { yAxis, startX, endX } = this
 
@@ -533,7 +537,6 @@ export class SlopeChart
             maxWidth: this.maxLineLegendWidth,
             connectorLineWidth: this.lineLegendConnectorLinesWidth,
             fontSize: this.fontSize,
-            fontWeight: this.showSeriesNamesInLineLegendLeft ? 700 : undefined,
             isStatic: this.manager.isStatic,
         })
     }
@@ -541,6 +544,21 @@ export class SlopeChart
     @computed get lineLegendWidthRight(): number {
         if (!this.manager.showLegend) return 0
         return LineLegend.width({
+            labelSeries: this.lineLegendSeriesRight,
+            yAxis: this.yAxis,
+            yRange: this.lineLegendYRange,
+            verticalAlign: VerticalAlign.top,
+            maxWidth: this.maxLineLegendWidth,
+            connectorLineWidth: this.lineLegendConnectorLinesWidth,
+            fontSize: this.fontSize,
+            fontWeight: 700,
+            isStatic: this.manager.isStatic,
+        })
+    }
+
+    @computed get visibleLineLegendLabelsRight(): SeriesName[] {
+        if (!this.manager.showLegend) return []
+        return LineLegend.visibleSeriesNames({
             labelSeries: this.lineLegendSeriesRight,
             yAxis: this.yAxis,
             yRange: this.lineLegendYRange,
@@ -612,19 +630,24 @@ export class SlopeChart
     }
 
     @computed get lineLegendSeriesLeft(): LineLabelSeries[] {
-        return this.series.map((series) => {
-            const { seriesName, color, start } = series
-            const formattedValue = this.formatColumn.formatValueShort(
-                start.value
-            )
-            return {
-                color,
-                seriesName,
-                label: formattedValue,
-                valueInNewLine: this.useCompactLineLegend,
-                yValue: start.value,
-            }
-        })
+        return excludeUndefined(
+            this.visibleLineLegendLabelsRight.map((seriesName) => {
+                const series = this.seriesByName.get(seriesName)
+                if (!series) return undefined
+
+                const { color, start } = series
+                const formattedValue = this.formatColumn.formatValueShort(
+                    start.value
+                )
+                return {
+                    color,
+                    seriesName,
+                    label: formattedValue,
+                    valueInNewLine: this.useCompactLineLegend,
+                    yValue: start.value,
+                }
+            })
+        )
     }
 
     @computed get lineLegendSeriesRight(): LineLabelSeries[] {
@@ -1048,9 +1071,6 @@ export class SlopeChart
                 verticalAlign={VerticalAlign.top}
                 connectorLineWidth={this.lineLegendConnectorLinesWidth}
                 fontSize={this.fontSize}
-                fontWeight={
-                    this.showSeriesNamesInLineLegendLeft ? 700 : undefined
-                }
                 outlineColor={this.backgroundColor}
                 isStatic={this.manager.isStatic}
                 focusedSeriesNames={this.focusedSeriesNames}

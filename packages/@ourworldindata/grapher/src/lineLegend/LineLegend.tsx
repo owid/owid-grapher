@@ -18,7 +18,12 @@ import { TextWrap, TextWrapGroup } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
-import { Color, EntityName, VerticalAlign } from "@ourworldindata/types"
+import {
+    Color,
+    EntityName,
+    SeriesName,
+    VerticalAlign,
+} from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     GRAPHER_BACKGROUND_DEFAULT,
@@ -347,6 +352,11 @@ export class LineLegend extends React.Component<LineLegendProps> {
     static fontSize(props: Partial<LineLegendProps>): number {
         const test = new LineLegend(props as LineLegendProps)
         return test.fontSize
+    }
+
+    static visibleSeriesNames(props: LineLegendProps): SeriesName[] {
+        const test = new LineLegend(props as LineLegendProps)
+        return test.partialInitialSeries.map((series) => series.seriesName)
     }
 
     @computed private get fontSize(): number {
