@@ -3,7 +3,12 @@ import { observer } from "mobx-react"
 import { Section, Toggle } from "./Forms.js"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action, computed, observable } from "mobx"
-import { copyToClipboard, mergeGrapherConfigs } from "@ourworldindata/utils"
+import {
+    CHART_VIEW_PROPS_TO_OMIT,
+    copyToClipboard,
+    mergeGrapherConfigs,
+    omit,
+} from "@ourworldindata/utils"
 import YAML from "yaml"
 import { Modal, notification } from "antd"
 import {
@@ -243,7 +248,10 @@ class EditorDebugTabForChartView extends React.Component<{
                             2
                         )}
                         oldValue={stringify(
-                            this.props.editor.parentConfig,
+                            omit(
+                                this.props.editor.parentConfig,
+                                CHART_VIEW_PROPS_TO_OMIT
+                            ),
                             null,
                             2
                         )}

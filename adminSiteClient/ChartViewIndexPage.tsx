@@ -106,13 +106,6 @@ export function ChartViewIndexPage() {
     const [chartViews, setChartViews] = useState<ApiChartViewOverview[]>([])
     const [searchValue, setSearchValue] = useState("")
 
-    const getChartViews = useCallback(async () => {
-        const json = await admin.getJSON<{
-            chartViews: ApiChartViewOverview[]
-        }>("/api/chartViews")
-        setChartViews(json.chartViews)
-    }, [admin])
-
     const searchWords = useMemo(
         () => buildSearchWordsFromSearchString(searchValue),
         [searchValue]
@@ -138,8 +131,13 @@ export function ChartViewIndexPage() {
     const columns = useMemo(() => createColumns(highlightFn), [highlightFn])
 
     useEffect(() => {
-        void getChartViews()
-    }, [getChartViews])
+        const getChartViews = async () =>
+            await admin.getJSON<{
+                chartViews: ApiChartViewOverview[]
+            }>("/api/chartViews")
+
+        void getChartViews().then((res) => setChartViews(res.chartViews))
+    }, [admin])
 
     return (
         <AdminLayout title="Narrative views">

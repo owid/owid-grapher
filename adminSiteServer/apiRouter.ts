@@ -109,6 +109,8 @@ import {
     DbPlainChartView,
     ChartViewsTableName,
     DbInsertChartView,
+    CHART_VIEW_PROPS_TO_PERSIST,
+    CHART_VIEW_PROPS_TO_OMIT,
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
 import {
@@ -197,7 +199,6 @@ import {
     saveNewChartConfigInDbAndR2,
     updateChartConfigInDbAndR2,
 } from "./chartConfigHelpers.js"
-import { CHART_VIEW_PROPS_TO_PERSIST } from "../db/model/ChartView.js"
 import { ApiChartViewOverview } from "../adminShared/AdminTypes.js"
 
 const apiRouter = new FunctionalRouter()
@@ -3291,6 +3292,8 @@ const createPatchConfigAndFullConfigForChartView = async (
 ) => {
     const parentChartConfig = await expectChartById(knex, parentChartId)
 
+    config = omit(config, CHART_VIEW_PROPS_TO_OMIT)
+
     const patchToParentChart = diffGrapherConfigs(config, parentChartConfig)
 
     const fullConfigIncludingDefaults = mergeGrapherConfigs(
@@ -3327,12 +3330,11 @@ getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
             cv.id,
             cv.name,
             cv.updatedAt,
-            cv.lastEditedByUserId,
+            u.fullName as lastEditedByUser,
             cv.chartConfigId,
-            cv.parentChartId,
             cc.full ->> "$.title" as title,
-            pcc.full ->> "$.title" as parentTitle,
-            u.fullName as lastEditedByUser
+            cv.parentChartId,
+            pcc.full ->> "$.title" as parentTitle
         FROM chart_views cv
         JOIN chart_configs cc ON cv.chartConfigId = cc.id
         JOIN charts pc ON cv.parentChartId = pc.id
@@ -3383,7 +3385,6 @@ getRouteWithROTransaction(
             cv.id,
             cv.name,
             cv.updatedAt,
-            cv.lastEditedByUserId,
             u.fullName as lastEditedByUser,
             cv.chartConfigId,
             cc.full as configFull,
@@ -3406,9 +3407,9 @@ getRouteWithROTransaction(
 
         const chartView = {
             ...row,
-            configFull: JSON.parse(row.configFull),
-            configPatch: JSON.parse(row.configPatch),
-            parentConfigFull: JSON.parse(row.parentConfigFull),
+            configFull: parseChartConfig(row.configFull),
+            configPatch: parseChartConfig(row.configPatch),
+            parentConfigFull: parseChartConfig(row.parentConfigFull),
         }
 
         return chartView

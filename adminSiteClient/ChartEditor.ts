@@ -15,6 +15,8 @@ import {
     mergeGrapherConfigs,
     isEmpty,
     slugify,
+    omit,
+    CHART_VIEW_PROPS_TO_OMIT,
 } from "@ourworldindata/utils"
 import { action, computed, observable, runInAction } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
@@ -208,10 +210,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     async saveAsNarrativeView(): Promise<void> {
         const { patchConfig, grapher } = this
 
-        const chartJson = { ...patchConfig }
-        delete chartJson.id
-        delete chartJson.isPublished
-        delete chartJson.slug
+        const chartJson = omit(patchConfig, CHART_VIEW_PROPS_TO_OMIT)
 
         const suggestedName = grapher.title ? slugify(grapher.title) : undefined
 
