@@ -5,6 +5,17 @@ import {
     type EditorTab,
 } from "./AbstractChartEditor.js"
 import { ENV } from "../settings/clientSettings.js"
+import {
+    CHART_VIEW_PROPS_TO_OMIT,
+    CHART_VIEW_PROPS_TO_PERSIST,
+    GrapherInterface,
+} from "@ourworldindata/types"
+import {
+    diffGrapherConfigs,
+    mergeGrapherConfigs,
+    omit,
+    pick,
+} from "@ourworldindata/utils"
 
 // Don't yet show chart views in the admin interface
 // This is low-stakes - if it shows up anyhow (e.g. on staging servers), it's not a big deal.
@@ -38,6 +49,28 @@ export class ChartViewEditor extends AbstractChartEditor<ChartViewEditorManager>
         tabs.push("export")
         tabs.push("debug")
         return tabs
+    }
+
+    @computed override get patchConfig(): GrapherInterface {
+        const config = omit(
+            this.liveConfigWithDefaults,
+            CHART_VIEW_PROPS_TO_OMIT
+        )
+
+        const patchToParentChart = diffGrapherConfigs(
+            config,
+            this.activeParentConfigWithDefaults || {}
+        )
+
+        return {
+            ...patchToParentChart,
+
+            // We want to make sure we're explicitly persisting some props like entity selection
+            // always, so they never change when the parent chart changes.
+            // For this, we need to ensure we include the default layer, so that we even
+            // persist these props when they are the same as the default.
+            ...pick(this.liveConfigWithDefaults, CHART_VIEW_PROPS_TO_PERSIST),
+        }
     }
 
     @computed get chartViewId(): number {
