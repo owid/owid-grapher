@@ -1081,12 +1081,14 @@ deleteRouteWithRWTransaction(
     "/charts/:chartId",
     async (req, res, trx) => {
         const chart = await expectChartById(trx, req.params.chartId)
-        const links = await getPublishedLinksTo(trx, [chart.slug!])
-        if (links.length) {
-            const sources = links.map((link) => link.sourceSlug).join(", ")
-            throw new Error(
-                `Cannot delete chart in-use in the following published documents: ${sources}`
-            )
+        if (chart.slug) {
+            const links = await getPublishedLinksTo(trx, [chart.slug])
+            if (links.length) {
+                const sources = links.map((link) => link.sourceSlug).join(", ")
+                throw new Error(
+                    `Cannot delete chart in-use in the following published documents: ${sources}`
+                )
+            }
         }
 
         await db.knexRaw(trx, `DELETE FROM chart_dimensions WHERE chartId=?`, [
