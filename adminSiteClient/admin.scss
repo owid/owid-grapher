@@ -1224,4 +1224,27 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         color: #007bff;
         margin-bottom: 8px;
     }
+
+    .ImageIndexPage__alt-text-editor {
+        textarea {
+            border-radius: 6px;
+            position: relative;
+            border: 1px solid #ccc;
+            width: 100%;
+            &.ImageIndexPage__alt-text-editor--should-autosize {
+                field-sizing: content;
+            }
+        }
+    }
+    .ImageIndexPage__unsaved-chip {
+        color: gray;
+        background-color: lightgray;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 10px;
+        text-transform: uppercase;
+        display: inline-block;
+        top: -2px;
+        position: relative;
+    }
 }

@@ -3,7 +3,9 @@ import sharp from "sharp"
 import {
     CLOUDFLARE_IMAGES_ACCOUNT_ID,
     CLOUDFLARE_IMAGES_API_KEY,
+    OPENAI_API_KEY,
 } from "../settings/serverSettings.js"
+import { OpenAI } from "openai"
 
 export function validateImagePayload(body: any): {
     filename: string
@@ -100,4 +102,36 @@ export async function deleteFromCloudflare(cloudflareId: string) {
         console.error("Error deleting image from Cloudflare:", response.errors)
         throw new JsonError(JSON.stringify(response.errors))
     }
+}
+
+export async function fetchGptGeneratedAltText(url: string) {
+    const openai = new OpenAI({
+        apiKey: OPENAI_API_KEY,
+    })
+
+    const completion = await openai.chat.completions.create({
+        messages: [
+            {
+                role: "user",
+                content: `Generate alt text for this image, describing it for a vision impaired person using a screen reader.
+Do not say "alt text:".
+Do not say "The image...".
+If the image is a data visualization and there are data sources in the footer, describe them exhaustively.`,
+            },
+            {
+                role: "user",
+                content: [
+                    {
+                        type: "image_url",
+                        image_url: {
+                            url,
+                        },
+                    },
+                ],
+            },
+        ],
+        model: "gpt-4o-mini",
+    })
+
+    return completion.choices[0].message.content
 }

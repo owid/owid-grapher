@@ -13,17 +13,23 @@ import { DbEnrichedImageWithUserId, DbPlainUser } from "@ourworldindata/types"
 import { Timeago } from "./Forms.js"
 import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faClose, faUpload } from "@fortawesome/free-solid-svg-icons"
+import {
+    faClose,
+    faRobot,
+    faSave,
+    faUpload,
+} from "@fortawesome/free-solid-svg-icons"
 import { RcFile } from "antd/es/upload/interface.js"
-import TextArea from "antd/es/input/TextArea.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { keyBy } from "lodash"
+import cx from "classnames"
 
 type ImageMap = Record<string, DbEnrichedImageWithUserId>
 
 type UserMap = Record<string, DbPlainUser>
 
 type ImageEditorApi = {
+    getAltText: (id: number) => void
     patchImage: (
         image: DbEnrichedImageWithUserId,
         patch: Partial<DbEnrichedImageWithUserId>
@@ -55,30 +61,58 @@ function AltTextEditor({
     image,
     text,
     patchImage,
+    getAltText,
 }: {
     image: DbEnrichedImageWithUserId
     text: string
     patchImage: ImageEditorApi["patchImage"]
+    getAltText: ImageEditorApi["getAltText"]
 }) {
     const [value, setValue] = useState(text)
+    const [savedValue, setSavedValue] = useState(text)
+    const [shouldAutosize, setShouldAutosize] = useState(false)
 
-    const handleBlur = useCallback(
-        (e: React.FocusEvent<HTMLTextAreaElement>) => {
-            const trimmed = e.target.value.trim()
-            setValue(trimmed)
-            if (trimmed !== text) {
-                patchImage(image, { defaultAlt: trimmed })
-            }
-        },
-        [image, text, patchImage]
-    )
+    // Update local state if the prop updates (i.e. from the alt text suggestion)
+    useEffect(() => {
+        setValue(text)
+    }, [text])
+
+    const saveAltText = useCallback(() => {
+        const trimmed = value.trim()
+        patchImage(image, { defaultAlt: trimmed })
+        setSavedValue(trimmed)
+    }, [image, patchImage, value])
+
+    const handleGetAltText = useCallback(() => {
+        getAltText(image.id)
+        // Only autoexpand the textarea if the user generates alt text
+        setShouldAutosize(true)
+    }, [image.id, getAltText])
 
     return (
-        <TextArea
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onBlur={handleBlur}
-        />
+        <div className="ImageIndexPage__alt-text-editor">
+            <textarea
+                className={cx({
+                    "ImageIndexPage__alt-text-editor--should-autosize":
+                        shouldAutosize,
+                })}
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+            />
+            <Button onClick={handleGetAltText} type="text">
+                <FontAwesomeIcon icon={faRobot} />
+            </Button>
+            <Button
+                type="text"
+                onClick={saveAltText}
+                disabled={savedValue === value}
+            >
+                <FontAwesomeIcon icon={faSave} />
+            </Button>
+            {savedValue !== value && (
+                <span className="ImageIndexPage__unsaved-chip">Unsaved</span>
+            )}
+        </div>
     )
 }
 
@@ -183,7 +217,7 @@ function ImgWithRefresh({
                     console.log("Something went wrong refreshing the image", e)
                 })
         }
-    })
+    }, [src, updatedAt])
     return <img ref={ref} src={src} style={{ maxHeight: 100, maxWidth: 100 }} />
 }
 
@@ -241,6 +275,7 @@ function createColumns({
                     text={text}
                     image={image}
                     patchImage={api.patchImage}
+                    getAltText={api.getAltText}
                 />
             ),
         },
@@ -417,6 +452,18 @@ export function ImageIndexPage() {
 
     const api = useMemo(
         (): ImageEditorApi => ({
+            getAltText: async (id) => {
+                const response = await admin.requestJSON<{
+                    success: true
+                    altText: string
+                }>(`/api/gpt/suggest-alt-text/${id}`, {}, "GET")
+                if (response.success) {
+                    setImages((prevMap) => ({
+                        ...prevMap,
+                        [id]: { ...prevMap[id], defaultAlt: response.altText },
+                    }))
+                }
+            },
             deleteImage: async (image) => {
                 await admin.requestJSON(`/api/images/${image.id}`, {}, "DELETE")
                 setImages((prevMap) => {
