@@ -1,7 +1,6 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
 import * as lodash from "lodash"
-import sharp from "sharp"
 import * as db from "../db/db.js"
 import {
     UNCATEGORIZED_TAG_ID,
@@ -10,8 +9,6 @@ import {
     ADMIN_BASE_URL,
     DATA_API_URL,
     FEATURE_FLAGS,
-    CLOUDFLARE_IMAGES_ACCOUNT_ID,
-    CLOUDFLARE_IMAGES_API_KEY,
 } from "../settings/serverSettings.js"
 import { FeatureFlagFeature } from "../settings/clientSettings.js"
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
@@ -198,6 +195,12 @@ import {
     updateChartConfigInDbAndR2,
 } from "./chartConfigHelpers.js"
 import { CHART_VIEW_PROPS_TO_PERSIST } from "../db/model/ChartView.js"
+import {
+    deleteFromCloudflare,
+    processImageContent,
+    uploadToCloudflare,
+    validateImagePayload,
+} from "./imagesHelpers.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -1223,7 +1226,7 @@ postRouteWithRWTransaction(
 
 postRouteWithRWTransaction(
     apiRouter,
-    "/users/:userId/image/:imageId",
+    "/users/:userId/images/:imageId",
     async (req, res, trx) => {
         const userId = expectInt(req.params.userId)
         const imageId = expectInt(req.params.imageId)
@@ -1234,7 +1237,7 @@ postRouteWithRWTransaction(
 
 deleteRouteWithRWTransaction(
     apiRouter,
-    "/users/:userId/image/:imageId",
+    "/users/:userId/images/:imageId",
     async (req, res, trx) => {
         const userId = expectInt(req.params.userId)
         const imageId = expectInt(req.params.imageId)
@@ -3103,18 +3106,8 @@ getRouteNonIdempotentWithRWTransaction(
     }
 )
 
-postRouteWithRWTransaction(apiRouter, "/image", async (req, res, trx) => {
-    const { filename, type, content } = req.body
-    if (!filename || !type || !content) {
-        throw new JsonError("Missing required fields", 400)
-    }
-    if (
-        typeof filename !== "string" ||
-        typeof type !== "string" ||
-        typeof content !== "string"
-    ) {
-        throw new JsonError("Invalid field types", 400)
-    }
+postRouteWithRWTransaction(apiRouter, "/images", async (req, res, trx) => {
+    const { filename, type, content } = validateImagePayload(req.body)
 
     const preexisting = await trx<DbEnrichedImage>("images")
         .where("filename", "=", filename)
@@ -3127,46 +3120,9 @@ postRouteWithRWTransaction(apiRouter, "/image", async (req, res, trx) => {
         }
     }
 
-    // Strip the data URL prefix
-    const stripped = content.slice(content.indexOf(",") + 1)
-    const asBuffer = Buffer.from(stripped, "base64")
-    const asBlob = new Blob([asBuffer], { type: type })
-    const dimensions = await sharp(asBuffer)
-        .metadata()
-        .then(({ width, height }) => ({ width, height }))
+    const { asBlob, dimensions } = await processImageContent(content, type)
 
-    const body = new FormData()
-    body.append("file", asBlob, filename)
-    body.append("id", encodeURIComponent(filename))
-    body.append("metadata", JSON.stringify({ filename }))
-    body.append("requireSignedURLs", "false")
-
-    console.log("Uploading image:", filename)
-    const response = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1`,
-        {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${CLOUDFLARE_IMAGES_API_KEY}`,
-            },
-            body,
-        }
-    ).then((res) => res.json())
-
-    if (response.errors.length) {
-        if (response.errors.length === 1) {
-            if (response.errors[0].code === 5409) {
-                throw new JsonError(
-                    "An image with this filename already exists in Cloudflare Images but isn't tracked in the database. Please contact a developer for help."
-                )
-            }
-        }
-
-        console.error("Error uploading image to Cloudflare:", response.errors)
-        throw new JsonError(JSON.stringify(response.errors))
-    }
-
-    const cloudflareId = response.result.id
+    const cloudflareId = await uploadToCloudflare(filename, asBlob)
 
     if (!cloudflareId) {
         return {
@@ -3191,6 +3147,56 @@ postRouteWithRWTransaction(apiRouter, "/image", async (req, res, trx) => {
     return {
         success: true,
         image,
+    }
+})
+
+/**
+ * Similar to the POST route, but for updating an existing image. Deletes the image
+ * from Cloudflare and re-uploads it with the new content. The filename will stay the same,
+ * but the dimensions will be updated.
+ */
+putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
+    const { id } = req.params
+
+    const image = await trx<DbEnrichedImage>("images")
+        .where("id", "=", id)
+        .first()
+
+    if (!image) {
+        throw new JsonError(`No image found for id ${id}`, 404)
+    }
+
+    const originalCloudflareId = image.cloudflareId
+    const originalFilename = image.filename
+
+    if (!originalCloudflareId) {
+        throw new JsonError(
+            `Image with id ${id} has no associated Cloudflare image`,
+            400
+        )
+    }
+
+    await deleteFromCloudflare(originalCloudflareId)
+
+    const { type, content } = validateImagePayload(req.body)
+    const { asBlob, dimensions } = await processImageContent(content, type)
+    const newCloudflareId = await uploadToCloudflare(originalFilename, asBlob)
+
+    if (!newCloudflareId) {
+        throw new JsonError("Failed to upload image", 500)
+    }
+
+    await trx<DbEnrichedImage>("images").where("id", "=", id).update({
+        originalWidth: dimensions.width,
+        originalHeight: dimensions.height,
+        updatedAt: new Date().getTime(),
+    })
+
+    const updated = await db.getCloudflareImage(trx, originalFilename)
+
+    return {
+        success: true,
+        image: updated,
     }
 })
 
@@ -3238,24 +3244,11 @@ deleteRouteWithRWTransaction(
         if (!image) {
             throw new JsonError(`No image found for id ${id}`, 404)
         }
-
-        const response = await fetch(
-            `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1/${encodeURIComponent(image.cloudflareId!)}`,
-            {
-                method: "DELETE",
-                headers: {
-                    Authorization: `Bearer ${CLOUDFLARE_IMAGES_API_KEY}`,
-                },
-            }
-        ).then((res) => res.json())
-
-        if (response.errors.length) {
-            console.error(
-                "Error deleting image from Cloudflare:",
-                response.errors
-            )
-            throw new JsonError(JSON.stringify(response.errors))
+        if (!image.cloudflareId) {
+            throw new JsonError(`Image does not have a cloudflare ID`, 400)
         }
+
+        await deleteFromCloudflare(image.cloudflareId)
 
         await trx("images").where({ id }).delete()
 

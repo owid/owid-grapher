@@ -1219,4 +1219,9 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         width: 16px;
         vertical-align: -2px;
     }
+
+    .ImageIndexPage__update-image-button {
+        color: #007bff;
+        margin-bottom: 8px;
+    }
 }
