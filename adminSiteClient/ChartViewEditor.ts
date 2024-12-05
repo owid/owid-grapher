@@ -10,12 +10,7 @@ import {
     CHART_VIEW_PROPS_TO_PERSIST,
     GrapherInterface,
 } from "@ourworldindata/types"
-import {
-    diffGrapherConfigs,
-    mergeGrapherConfigs,
-    omit,
-    pick,
-} from "@ourworldindata/utils"
+import { diffGrapherConfigs, omit, pick } from "@ourworldindata/utils"
 
 // Don't yet show chart views in the admin interface
 // This is low-stakes - if it shows up anyhow (e.g. on staging servers), it's not a big deal.
