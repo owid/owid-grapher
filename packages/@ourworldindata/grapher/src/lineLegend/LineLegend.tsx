@@ -344,11 +344,6 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return test.maxLabelWidth + test.connectorLineWidth + MARKER_MARGIN
     }
 
-    static needsConnectorLines(props: LineLegendProps): boolean {
-        const test = new LineLegend(props)
-        return test.needsLines
-    }
-
     static fontSize(props: Partial<LineLegendProps>): number {
         const test = new LineLegend(props as LineLegendProps)
         return test.fontSize
