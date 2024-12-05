@@ -13,9 +13,13 @@ const defaultHaloStyle: React.CSSProperties = {
 export function Halo(props: {
     id: React.Key
     children: React.ReactElement
+    show?: boolean
     background?: Color
     style?: React.CSSProperties
 }): React.ReactElement {
+    const show = props.show ?? true
+    if (!show) return props.children
+
     const defaultStyle = {
         ...defaultHaloStyle,
         fill: props.background ?? defaultHaloStyle.fill,
