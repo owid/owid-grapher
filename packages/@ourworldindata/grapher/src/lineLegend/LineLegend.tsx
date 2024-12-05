@@ -354,6 +354,11 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return test.fontSize
     }
 
+    static maxLevel(props: Partial<LineLegendProps>): number {
+        const test = new LineLegend(props as LineLegendProps)
+        return test.maxLevel
+    }
+
     static visibleSeriesNames(props: LineLegendProps): SeriesName[] {
         const test = new LineLegend(props as LineLegendProps)
         return test.partialInitialSeries.map((series) => series.seriesName)
@@ -768,6 +773,10 @@ export class LineLegend extends React.Component<LineLegendProps> {
     // Does this placement need line markers or is the position of the labels already clear?
     @computed private get needsLines(): boolean {
         return this.placedSeries.some((series) => series.totalLevels > 1)
+    }
+
+    @computed private get maxLevel(): number {
+        return max(this.placedSeries.map((series) => series.totalLevels)) ?? 0
     }
 
     private renderBackground(): React.ReactElement {
