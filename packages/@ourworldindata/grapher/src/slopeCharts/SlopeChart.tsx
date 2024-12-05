@@ -1037,6 +1037,7 @@ export class SlopeChart
                 connectorLineWidth={this.lineLegendConnectorLinesWidth}
                 fontSize={this.fontSize}
                 fontWeight={700}
+                outlineColor={this.backgroundColor}
                 isStatic={this.manager.isStatic}
                 focusedSeriesNames={this.focusedSeriesNames}
                 onMouseLeave={this.onLineLegendMouseLeave}
@@ -1085,6 +1086,7 @@ export class SlopeChart
                 fontWeight={
                     this.showSeriesNamesInLineLegendLeft ? 700 : undefined
                 }
+                outlineColor={this.backgroundColor}
                 isStatic={this.manager.isStatic}
                 focusedSeriesNames={this.focusedSeriesNames}
                 onMouseLeave={this.onLineLegendMouseLeave}

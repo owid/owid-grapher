@@ -958,6 +958,7 @@ export class LineChart
                         verticalAlign={VerticalAlign.top}
                         fontSize={this.fontSize}
                         fontWeight={this.fontWeight}
+                        outlineColor={this.manager.backgroundColor}
                         isStatic={this.isStatic}
                         focusedSeriesNames={this.focusedSeriesNames}
                         onMouseOver={this.onLineLegendMouseOver}
