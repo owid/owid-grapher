@@ -10,12 +10,12 @@ import { Admin } from "./Admin.js"
 import {
     ChartEditor,
     Log,
-    References,
     ChartEditorManager,
     fetchMergedGrapherConfigByVariableId,
 } from "./ChartEditor.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
+import { References } from "./AbstractChartEditor.js"
 
 @observer
 export class ChartEditorPage

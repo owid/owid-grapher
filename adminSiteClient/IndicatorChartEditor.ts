@@ -2,10 +2,11 @@ import { computed, observable, runInAction, when } from "mobx"
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,
+    References,
     type EditorTab,
 } from "./AbstractChartEditor.js"
 
-export interface Chart {
+export interface IndicatorChartInfo {
     id: number
     title?: string
     variantName?: string
@@ -17,8 +18,9 @@ export interface Chart {
 export interface IndicatorChartEditorManager
     extends AbstractChartEditorManager {
     variableId: number
+    references: References | undefined
     isNewGrapher?: boolean
-    charts: Chart[]
+    charts: IndicatorChartInfo[]
 }
 
 export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEditorManager> {
@@ -39,9 +41,13 @@ export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEdit
         if (this.grapher.hasMapTab) tabs.push("map")
         if (this.grapher.isScatter) tabs.push("scatter")
         if (this.grapher.isMarimekko) tabs.push("marimekko")
-        tabs.push("inheritance")
+        tabs.push("refs")
         tabs.push("debug")
         return tabs
+    }
+
+    @computed get references(): References | undefined {
+        return this.manager.references
     }
 
     @computed get variableId(): number {
@@ -52,7 +58,7 @@ export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEdit
         return this._isNewGrapher ?? false
     }
 
-    @computed get charts(): Chart[] {
+    @computed get charts(): IndicatorChartInfo[] {
         return this.manager.charts
     }
 

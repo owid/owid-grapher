@@ -2,6 +2,7 @@ import { computed, runInAction } from "mobx"
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,
+    References,
     type EditorTab,
 } from "./AbstractChartEditor.js"
 import { ENV } from "../settings/clientSettings.js"
@@ -44,6 +45,11 @@ export class ChartViewEditor extends AbstractChartEditor<ChartViewEditorManager>
         tabs.push("export")
         tabs.push("debug")
         return tabs
+    }
+
+    @computed get references(): References | undefined {
+        // Not yet implemented for chart views
+        return undefined
     }
 
     @computed override get patchConfig(): GrapherInterface {

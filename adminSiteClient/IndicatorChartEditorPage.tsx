@@ -9,9 +9,10 @@ import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
 import {
     IndicatorChartEditor,
     IndicatorChartEditorManager,
-    type Chart,
+    type IndicatorChartInfo,
 } from "./IndicatorChartEditor.js"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
+import { References } from "./AbstractChartEditor.js"
 
 @observer
 export class IndicatorChartEditorPage
@@ -25,10 +26,12 @@ export class IndicatorChartEditorPage
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
+    references: References | undefined = undefined
+
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined
 
-    charts: Chart[] = []
+    charts: IndicatorChartInfo[] = []
 
     isNewGrapher: boolean | undefined = undefined
     isInheritanceEnabled: boolean | undefined = undefined
@@ -64,6 +67,9 @@ export class IndicatorChartEditorPage
         this.charts = await this.context.admin.getJSON(
             `/api/variables/${variableId}/charts.json`
         )
+        this.references = {
+            childCharts: this.charts.filter((c) => c.isChild && c.isPublished),
+        }
     }
 
     @computed get admin(): Admin {

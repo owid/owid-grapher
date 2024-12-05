@@ -10,8 +10,9 @@ import {
     GRAPHER_TAB_OPTIONS,
 } from "@ourworldindata/types"
 import { startCase, DbChartTagJoin } from "@ourworldindata/utils"
-import { References, getFullReferencesCount } from "./ChartEditor.js"
+import { getFullReferencesCount } from "./ChartEditor.js"
 import { ChartRow } from "./ChartRow.js"
+import { References } from "./AbstractChartEditor.js"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {
