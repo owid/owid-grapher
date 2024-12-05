@@ -11,7 +11,7 @@ import { EditorFeatures } from "./EditorFeatures.js"
 import { Admin } from "./Admin.js"
 import { defaultGrapherConfig, Grapher } from "@ourworldindata/grapher"
 import { ChartViewMinimalInformation } from "./ChartEditor.js"
-import { Chart } from "./IndicatorChartEditor.js"
+import { IndicatorChartInfo } from "./IndicatorChartEditor.js"
 
 export type EditorTab =
     | "basic"
@@ -39,7 +39,7 @@ export interface References {
     postsGdocs?: PostReference[]
     explorers?: string[]
     chartViews?: ChartViewMinimalInformation[]
-    childCharts?: Chart[]
+    childCharts?: IndicatorChartInfo[]
 }
 
 export abstract class AbstractChartEditor<

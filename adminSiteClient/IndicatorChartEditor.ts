@@ -6,7 +6,7 @@ import {
     type EditorTab,
 } from "./AbstractChartEditor.js"
 
-export interface Chart {
+export interface IndicatorChartInfo {
     id: number
     title?: string
     variantName?: string
@@ -20,7 +20,7 @@ export interface IndicatorChartEditorManager
     variableId: number
     references: References | undefined
     isNewGrapher?: boolean
-    charts: Chart[]
+    charts: IndicatorChartInfo[]
 }
 
 export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEditorManager> {
@@ -58,7 +58,7 @@ export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEdit
         return this._isNewGrapher ?? false
     }
 
-    @computed get charts(): Chart[] {
+    @computed get charts(): IndicatorChartInfo[] {
         return this.manager.charts
     }
 

@@ -16,7 +16,7 @@ import {
 } from "@ourworldindata/utils"
 import { AbstractChartEditor, References } from "./AbstractChartEditor.js"
 import {
-    Chart,
+    IndicatorChartInfo,
     IndicatorChartEditor,
     isIndicatorChartEditorInstance,
 } from "./IndicatorChartEditor.js"
@@ -359,7 +359,7 @@ export class EditorReferencesTabForIndicator extends React.Component<{
             (chart) => chart.isInheritanceEnabled
         )
 
-        const renderChartList = (charts: Chart[]) => (
+        const renderChartList = (charts: IndicatorChartInfo[]) => (
             <ul>
                 {charts.map((chart) => (
                     <li key={chart.id}>

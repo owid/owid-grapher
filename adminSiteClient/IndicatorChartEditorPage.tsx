@@ -9,7 +9,7 @@ import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
 import {
     IndicatorChartEditor,
     IndicatorChartEditorManager,
-    type Chart,
+    type IndicatorChartInfo,
 } from "./IndicatorChartEditor.js"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import { References } from "./AbstractChartEditor.js"
@@ -31,7 +31,7 @@ export class IndicatorChartEditorPage
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined
 
-    charts: Chart[] = []
+    charts: IndicatorChartInfo[] = []
 
     isNewGrapher: boolean | undefined = undefined
     isInheritanceEnabled: boolean | undefined = undefined
