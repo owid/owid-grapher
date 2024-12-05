@@ -14,6 +14,9 @@ export class CloudflareImagesAddUserId1732994843041
     }
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
+            ALTER TABLE images DROP CONSTRAINT fk_user_images;
+        `)
+        await queryRunner.query(`-- sql
             ALTER TABLE images DROP COLUMN userId;
         `)
     }
