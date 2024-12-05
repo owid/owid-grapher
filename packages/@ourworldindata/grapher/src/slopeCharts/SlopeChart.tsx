@@ -529,6 +529,35 @@ export class SlopeChart
         return [top, bottom]
     }
 
+    @computed get lineLegendMaxLevelLeft(): number {
+        if (!this.manager.showLegend) return 0
+
+        const series = excludeUndefined(
+            this.visibleLineLegendLabelsRight.map((seriesName) => {
+                const series = this.seriesByName.get(seriesName)
+                if (!series) return undefined
+
+                const { color, start } = series
+                const value = this.formatColumn.formatValueShort(start.value)
+                return {
+                    color,
+                    seriesName,
+                    label: value,
+                    yValue: start.value,
+                }
+            })
+        )
+
+        return LineLegend.maxLevel({
+            labelSeries: series,
+            yAxis: this.yAxis,
+            maxWidth: this.maxLineLegendWidth,
+            connectorLineWidth: this.lineLegendConnectorLinesWidth,
+            fontSize: this.fontSize,
+            isStatic: this.manager.isStatic,
+        })
+    }
+
     @computed get lineLegendWidthLeft(): number {
         if (!this.manager.showLegend) return 0
         return LineLegend.width({
@@ -537,6 +566,7 @@ export class SlopeChart
             maxWidth: this.maxLineLegendWidth,
             connectorLineWidth: this.lineLegendConnectorLinesWidth,
             fontSize: this.fontSize,
+            fontWeight: this.showSeriesNamesInLineLegendLeft ? 700 : undefined,
             isStatic: this.manager.isStatic,
         })
     }
@@ -630,19 +660,21 @@ export class SlopeChart
     }
 
     @computed get lineLegendSeriesLeft(): LineLabelSeries[] {
+        const { showSeriesNamesInLineLegendLeft: showSeriesNames } = this
         return excludeUndefined(
             this.visibleLineLegendLabelsRight.map((seriesName) => {
                 const series = this.seriesByName.get(seriesName)
                 if (!series) return undefined
 
                 const { color, start } = series
-                const formattedValue = this.formatColumn.formatValueShort(
-                    start.value
-                )
+                const value = this.formatColumn.formatValueShort(start.value)
+                const label = showSeriesNames ? seriesName : value
+                const formattedValue = showSeriesNames ? value : undefined
                 return {
                     color,
                     seriesName,
-                    label: formattedValue,
+                    label,
+                    formattedValue,
                     valueInNewLine: this.useCompactLineLegend,
                     yValue: start.value,
                 }
@@ -687,6 +719,10 @@ export class SlopeChart
         if (!this.manager.disableIntroAnimation) {
             this.playIntroAnimation()
         }
+    }
+
+    @computed private get showSeriesNamesInLineLegendLeft(): boolean {
+        return this.lineLegendMaxLevelLeft >= 4
     }
 
     private updateTooltipPosition(event: SVGMouseOrTouchEvent) {
@@ -1071,6 +1107,9 @@ export class SlopeChart
                 verticalAlign={VerticalAlign.top}
                 connectorLineWidth={this.lineLegendConnectorLinesWidth}
                 fontSize={this.fontSize}
+                fontWeight={
+                    this.showSeriesNamesInLineLegendLeft ? 700 : undefined
+                }
                 outlineColor={this.backgroundColor}
                 isStatic={this.manager.isStatic}
                 focusedSeriesNames={this.focusedSeriesNames}
