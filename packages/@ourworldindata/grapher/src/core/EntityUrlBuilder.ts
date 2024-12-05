@@ -153,6 +153,10 @@ export const getSelectedEntityNamesParam = (
         : undefined
 }
 
+export const generateSelectedEntityNamesParam = (
+    entityNames: EntityName[]
+): string => entityNamesToV2Param(entityNames.map(entityNameToCode))
+
 export const setSelectedEntityNamesParam = (
     url: Url,
     entityNames: EntityName[] | undefined
@@ -160,7 +164,7 @@ export const setSelectedEntityNamesParam = (
     // Expects an already-migrated URL as input
     return url.updateQueryParams({
         country: entityNames
-            ? entityNamesToV2Param(entityNames.map(entityNameToCode))
+            ? generateSelectedEntityNamesParam(entityNames)
             : undefined,
     })
 }

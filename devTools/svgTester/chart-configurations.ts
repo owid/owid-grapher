@@ -7,9 +7,9 @@ import {
     GrapherQueryParams,
     GrapherChartType,
 } from "@ourworldindata/types"
-import { cartesian } from "@ourworldindata/utils"
+import { cartesian, PartialRecord } from "@ourworldindata/utils"
 
-export type ViewMatrix = Record<keyof GrapherQueryParams, string[]>
+export type ViewMatrix = PartialRecord<keyof GrapherQueryParams, string[]>
 
 enum TimePoint {
     earliest = "earliest",
@@ -96,7 +96,7 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
 // for example, if a chart is not faceted, the uniformYAxis param doesn't apply
 const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
     GrapherChartType,
-    Record<keyof GrapherQueryParams, string>[]
+    PartialRecord<keyof GrapherQueryParams, string>[]
 > = {
     [GRAPHER_CHART_TYPES.LineChart]: [
         // sharing an axis only makes sense if a chart is faceted

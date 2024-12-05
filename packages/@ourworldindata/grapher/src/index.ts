@@ -76,6 +76,7 @@ export {
     setSelectedEntityNamesParam,
     migrateSelectedEntityNamesParam,
     getSelectedEntityNamesParam,
+    generateSelectedEntityNamesParam,
 } from "./core/EntityUrlBuilder"
 export {
     type SlideShowManager,

@@ -1,5 +1,5 @@
 import { HitAttributeHighlightResult } from "instantsearch.js"
-import { EntityName } from "@ourworldindata/types"
+import { EntityName, GrapherQueryParams } from "@ourworldindata/types"
 import {
     Region,
     getRegionByNameOrVariantName,
@@ -9,7 +9,7 @@ import {
     lazy,
     Url,
 } from "@ourworldindata/utils"
-import { setSelectedEntityNamesParam } from "@ourworldindata/grapher"
+import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -121,12 +121,10 @@ export const getEntityQueryStr = (
 ) => {
     if (!entities?.length) return existingQueryStr
     else {
-        return setSelectedEntityNamesParam(
+        return Url.fromQueryStr(existingQueryStr).updateQueryParams({
             // If we have any entities pre-selected, we want to show the chart tab
-            Url.fromQueryStr(existingQueryStr).updateQueryParams({
-                tab: "chart",
-            }),
-            entities
-        ).queryStr
+            tab: "chart",
+            country: generateSelectedEntityNamesParam(entities),
+        } satisfies GrapherQueryParams).queryStr
     }
 }
