@@ -10,7 +10,10 @@ import {
     DATA_API_URL,
     FEATURE_FLAGS,
 } from "../settings/serverSettings.js"
-import { FeatureFlagFeature } from "../settings/clientSettings.js"
+import {
+    CLOUDFLARE_IMAGES_URL,
+    FeatureFlagFeature,
+} from "../settings/clientSettings.js"
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import {
     OldChartFieldList,
@@ -197,6 +200,7 @@ import {
 import { CHART_VIEW_PROPS_TO_PERSIST } from "../db/model/ChartView.js"
 import {
     deleteFromCloudflare,
+    fetchGptGeneratedAltText,
     processImageContent,
     uploadToCloudflare,
     validateImagePayload,
@@ -3280,6 +3284,44 @@ getRouteWithROTransaction(
         return {
             topics,
         }
+    }
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    `/gpt/suggest-alt-text/:imageId`,
+    async (
+        req: Request,
+        res,
+        trx
+    ): Promise<{
+        success: boolean
+        altText: string | null
+    }> => {
+        const imageId = parseIntOrUndefined(req.params.imageId)
+        if (!imageId) throw new JsonError(`Invalid image ID`, 400)
+        const image = await trx<DbEnrichedImage>("images")
+            .where("id", imageId)
+            .first()
+        if (!image) throw new JsonError(`No image found for ID ${imageId}`, 404)
+
+        const src = `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/public`
+        let altText: string | null = ""
+        try {
+            altText = await fetchGptGeneratedAltText(src)
+        } catch (error) {
+            console.error(
+                `Error fetching GPT alt text for image ${imageId}`,
+                error
+            )
+            throw new JsonError(`Error fetching GPT alt text: ${error}`, 500)
+        }
+
+        if (!altText) {
+            throw new JsonError(`Unable to generate alt text for image`, 404)
+        }
+
+        return { success: true, altText }
     }
 )
 
