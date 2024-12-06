@@ -80,6 +80,7 @@ import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { TextWrap } from "@ourworldindata/components"
+import { InteractionArray } from "../selection/InteractionArray"
 
 // if an entity name exceeds this width, we use the short name instead (if available)
 const SOFT_MAX_LABEL_WIDTH = 90
@@ -134,6 +135,8 @@ export class StackedDiscreteBarChart
     implements ChartInterface, HorizontalColorLegendManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
+
+    private hoverArray = new InteractionArray()
 
     private applyMissingDataStrategy(table: OwidTable): OwidTable {
         if (this.missingDataStrategy === MissingDataStrategy.hide) {
@@ -195,7 +198,9 @@ export class StackedDiscreteBarChart
         return this.manager.sortConfig ?? {}
     }
 
-    @observable focusSeriesName?: SeriesName
+    @computed get focusSeriesName(): SeriesName | undefined {
+        return this.hoverArray.first
+    }
 
     @computed get inputTable(): OwidTable {
         return this.manager.table
@@ -535,15 +540,17 @@ export class StackedDiscreteBarChart
     }
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
-        this.focusSeriesName = first(
+        const hoveredSeriesName = first(
             this.series
                 .map((s) => s.seriesName)
                 .filter((name) => bin.contains(name))
         )
+        if (hoveredSeriesName)
+            this.hoverArray.clearAllAndActivate(hoveredSeriesName)
     }
 
     @action.bound onLegendMouseLeave(): void {
-        this.focusSeriesName = undefined
+        this.hoverArray.clear()
     }
 
     @computed private get legend(): HorizontalCategoricalColorLegend {

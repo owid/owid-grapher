@@ -7,6 +7,7 @@ import {
     GrapherChartType,
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_QUERY_PARAMS,
+    InteractionState,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -187,4 +188,16 @@ export function findValidChartTypeCombination(
             return validCombination
     }
     return undefined
+}
+
+/** Useful for sorting series by their interaction state */
+export function byInteractionState(series: {
+    hover?: InteractionState
+}): number {
+    // background series first,
+    // then series in their default state,
+    // then active series
+    if (series.hover === InteractionState.background) return 1
+    else if (series.hover === InteractionState.active) return 3
+    else return 2
 }

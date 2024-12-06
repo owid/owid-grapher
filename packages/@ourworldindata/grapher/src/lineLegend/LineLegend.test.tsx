@@ -21,7 +21,6 @@ const props: LineLegendProps = {
         },
     ],
     x: 200,
-    focusedSeriesNames: [],
     yAxis: new AxisConfig({ min: 0, max: 100 }).toVerticalAxis(),
 }
 
