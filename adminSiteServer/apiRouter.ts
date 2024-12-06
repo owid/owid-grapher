@@ -3148,7 +3148,21 @@ postRouteWithRWTransaction(apiRouter, "/images", async (req, res, trx) => {
         }
     }
 
-    const { asBlob, dimensions } = await processImageContent(content, type)
+    const { asBlob, dimensions, hash } = await processImageContent(
+        content,
+        type
+    )
+
+    const collision = await trx<DbEnrichedImage>("images")
+        .where("hash", "=", hash)
+        .first()
+
+    if (collision) {
+        return {
+            success: false,
+            error: `An image with this content already exists (filename: ${collision.filename})`,
+        }
+    }
 
     const cloudflareId = await uploadToCloudflare(filename, asBlob)
 
@@ -3164,10 +3178,9 @@ postRouteWithRWTransaction(apiRouter, "/images", async (req, res, trx) => {
         originalWidth: dimensions.width,
         originalHeight: dimensions.height,
         cloudflareId,
-        // TODO: make defaultAlt nullable
-        defaultAlt: "Default alt text",
         updatedAt: new Date().getTime(),
         userId: res.locals.user.id,
+        hash,
     })
 
     const image = await db.getCloudflareImage(trx, filename)
@@ -3204,10 +3217,23 @@ putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
         )
     }
 
-    await deleteFromCloudflare(originalCloudflareId)
-
     const { type, content } = validateImagePayload(req.body)
-    const { asBlob, dimensions } = await processImageContent(content, type)
+    const { asBlob, dimensions, hash } = await processImageContent(
+        content,
+        type
+    )
+    const collision = await trx<DbEnrichedImage>("images")
+        .where("hash", "=", hash)
+        .first()
+
+    if (collision) {
+        return {
+            success: false,
+            error: `An image with this content already exists (filename: ${collision.filename})`,
+        }
+    }
+
+    await deleteFromCloudflare(originalCloudflareId)
     const newCloudflareId = await uploadToCloudflare(originalFilename, asBlob)
 
     if (!newCloudflareId) {
@@ -3218,6 +3244,7 @@ putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
         originalWidth: dimensions.width,
         originalHeight: dimensions.height,
         updatedAt: new Date().getTime(),
+        hash,
     })
 
     const updated = await db.getCloudflareImage(trx, originalFilename)
