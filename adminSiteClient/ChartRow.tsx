@@ -105,6 +105,7 @@ export class ChartRow extends React.Component<{
                         by={highlight(chart.lastEditedBy)}
                     />
                 </td>
+                <td>{chart.pageviewsPerDay?.toLocaleString() ?? "0"}</td>
                 <td>
                     <Link
                         to={`/charts/${chart.id}/edit`}

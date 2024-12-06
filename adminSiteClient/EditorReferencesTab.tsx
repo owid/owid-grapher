@@ -208,6 +208,18 @@ export class EditorReferencesTabForChart extends React.Component<{
                             <strong>Last 365 days:</strong>{" "}
                             {this.renderPageview(this.pageviews?.views_365d)}
                         </div>
+                        <div>
+                            <strong>
+                                Average pageviews per day over the last year:
+                            </strong>{" "}
+                            {this.renderPageview(
+                                this.pageviews?.views_365d
+                                    ? Math.round(
+                                          this.pageviews?.views_365d / 36.5
+                                      ) / 10
+                                    : undefined
+                            )}
+                        </div>
                     </div>
                     <small className="form-text text-muted">
                         Pageview numbers are inaccurate when the chart has been
