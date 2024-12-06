@@ -202,7 +202,6 @@ import {
 } from "./chartConfigHelpers.js"
 import { ApiChartViewOverview } from "../adminShared/AdminTypes.js"
 import { References } from "../adminSiteClient/AbstractChartEditor.js"
-import { CHART_VIEW_PROPS_TO_PERSIST } from "../db/model/ChartView.js"
 import {
     deleteFromCloudflare,
     fetchGptGeneratedAltText,
