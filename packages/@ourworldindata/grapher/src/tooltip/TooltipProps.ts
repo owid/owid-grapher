@@ -28,6 +28,7 @@ export interface TooltipProps {
     offsetXDirection?: "left" | "right"
     offsetYDirection?: "upward" | "downward"
     title?: string | number // header text
+    titleAnnotation?: string // rendered next to the title, but muted
     subtitle?: string | number // header deck
     subtitleFormat?: "notice" | "unit" // optional postprocessing for subtitle
     footer?: { icon: TooltipFooterIcon; text: string }[]

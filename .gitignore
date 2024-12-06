@@ -44,3 +44,4 @@ dist/
 .dev.vars
 **/tsup.config.bundled*.mjs
 cfstorage/
+vite.*.mjs
