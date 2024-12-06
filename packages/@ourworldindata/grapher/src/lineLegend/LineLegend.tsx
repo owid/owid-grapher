@@ -335,13 +335,13 @@ export interface LineLegendProps {
     textOutlineColor?: Color
 
     // used to determine which series should be labelled when there is limited space
-    seriesSortedByImportance?: EntityName[]
+    seriesSortedByImportance?: SeriesName[]
 
     // interactions
     isStatic?: boolean // don't add interactions if true
-    focusedSeriesNames?: EntityName[] // currently in focus
-    onClick?: (key: EntityName) => void
-    onMouseOver?: (key: EntityName) => void
+    focusedSeriesNames?: SeriesName[] // currently in focus
+    onClick?: (key: SeriesName) => void
+    onMouseOver?: (key: SeriesName) => void
     onMouseLeave?: () => void
 }
 
@@ -788,7 +788,8 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 uniqueKey="background"
                 series={this.backgroundSeries}
                 needsConnectorLines={this.needsLines}
-                outlineColor={this.props.outlineColor}
+                showTextOutline={this.props.showTextOutlines}
+                textOutlineColor={this.props.textOutlineColor}
                 isFocus={false}
                 anchor={this.props.xAnchor}
                 isStatic={this.props.isStatic}
@@ -807,7 +808,8 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 uniqueKey="focus"
                 series={this.focusedSeries}
                 needsConnectorLines={this.needsLines}
-                outlineColor={this.props.outlineColor}
+                showTextOutline={this.props.showTextOutlines}
+                textOutlineColor={this.props.textOutlineColor}
                 isFocus={true}
                 anchor={this.props.xAnchor}
                 isStatic={this.props.isStatic}
