@@ -563,6 +563,8 @@ export class SlopeChart
         return {
             xAnchor: "end",
             fontWeight: this.showSeriesNamesInLineLegendLeft ? 700 : undefined,
+            seriesSortedByImportance:
+                this.seriesSortedByImportanceForLineLegendLeft,
         }
     }
 
@@ -574,21 +576,19 @@ export class SlopeChart
         if (!this.manager.showLegend) return 0
 
         // can't use `lineLegendSeriesLeft` due to a circular dependency
-        const series = excludeUndefined(
-            this.visibleLineLegendLabelsRight.map((seriesName) => {
-                const series = this.seriesByName.get(seriesName)
-                if (!series) return undefined
-                return this.constructSingleLineLegendSeries(
-                    series,
-                    (series) => series.start.value,
-                    { showSeriesName: false }
-                )
-            })
+        const series = this.series.map((series) =>
+            this.constructSingleLineLegendSeries(
+                series,
+                (series) => series.start.value,
+                { showSeriesName: false }
+            )
         )
 
         return LineLegend.maxLevel({
             labelSeries: series,
             ...this.lineLegendPropsCommon,
+            seriesSortedByImportance:
+                this.seriesSortedByImportanceForLineLegendLeft,
             // not including `lineLegendPropsLeft` due to a circular dependency
         })
     }
@@ -611,13 +611,33 @@ export class SlopeChart
         })
     }
 
-    @computed get visibleLineLegendLabelsRight(): SeriesName[] {
-        if (!this.manager.showLegend) return []
-        return LineLegend.visibleSeriesNames({
-            labelSeries: this.lineLegendSeriesRight,
-            ...this.lineLegendPropsCommon,
-            ...this.lineLegendPropsRight,
-        })
+    @computed get visibleLineLegendLabelsRight(): Set<SeriesName> {
+        if (!this.manager.showLegend) return new Set()
+        return new Set(
+            LineLegend.visibleSeriesNames({
+                labelSeries: this.lineLegendSeriesRight,
+                ...this.lineLegendPropsCommon,
+                ...this.lineLegendPropsRight,
+            })
+        )
+    }
+
+    @computed get seriesSortedByImportanceForLineLegendLeft(): SeriesName[] {
+        return this.series
+            .map((s) => s.seriesName)
+            .toSorted((s1: SeriesName, s2: SeriesName): number => {
+                const PREFER_S1 = -1
+                const PREFER_S2 = 1
+
+                const s1_isLabelled = this.visibleLineLegendLabelsRight.has(s1)
+                const s2_isLabelled = this.visibleLineLegendLabelsRight.has(s2)
+
+                // prefer to show value labels for series that are already labelled
+                if (s1_isLabelled && !s2_isLabelled) return PREFER_S1
+                if (s2_isLabelled && !s1_isLabelled) return PREFER_S2
+
+                return 0
+            })
     }
 
     @computed get xRange(): [number, number] {
@@ -700,27 +720,23 @@ export class SlopeChart
 
     @computed get lineLegendSeriesLeft(): LineLabelSeries[] {
         const { showSeriesNamesInLineLegendLeft: showSeriesName } = this
-        return excludeUndefined(
-            this.visibleLineLegendLabelsRight.map((seriesName) => {
-                const series = this.seriesByName.get(seriesName)
-                if (!series) return undefined
-                return this.constructSingleLineLegendSeries(
-                    series,
-                    (series) => series.start.value,
-                    { showSeriesName }
-                )
-            })
+        return this.series.map((series) =>
+            this.constructSingleLineLegendSeries(
+                series,
+                (series) => series.start.value,
+                { showSeriesName }
+            )
         )
     }
 
     @computed get lineLegendSeriesRight(): LineLabelSeries[] {
-        return this.series.map((series) => {
-            return this.constructSingleLineLegendSeries(
+        return this.series.map((series) =>
+            this.constructSingleLineLegendSeries(
                 series,
                 (series) => series.end.value,
                 { showSeriesName: true, showAnnotation: !this.useCompactLayout }
             )
-        })
+        )
     }
 
     private playIntroAnimation() {
