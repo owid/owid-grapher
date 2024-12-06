@@ -15,7 +15,7 @@ import {
     exposeInstanceOnWindow,
     guid,
 } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { computed, reaction } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import {
@@ -31,6 +31,7 @@ import {
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    findSeriesNamesContainedInBin,
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import { easeLinear } from "d3-ease"
@@ -44,6 +45,7 @@ import {
     CategoricalColorMap,
 } from "../color/CategoricalColorAssigner.js"
 import { BinaryMapPaletteE } from "../color/CustomSchemes"
+import { InteractionArray } from "../selection/InteractionArray"
 
 // used in StackedBar charts to color negative and positive bars
 const POSITIVE_COLOR = BinaryMapPaletteE.colorSets[0][0] // orange
@@ -60,6 +62,8 @@ export class AbstractStackedChart
     extends React.Component<AbstractStackedChartProps>
     implements ChartInterface, AxisManager
 {
+    protected hoverArray = new InteractionArray()
+
     transformTable(table: OwidTable): OwidTable {
         table = table.filterByEntityNames(
             this.selectionArray.selectedEntityNames
@@ -182,6 +186,8 @@ export class AbstractStackedChart
         unknown
     >
 
+    disposers: (() => void)[] = []
+
     base: React.RefObject<SVGGElement> = React.createRef()
     componentDidMount(): void {
         if (!this.manager.disableIntroAnimation) {
@@ -198,10 +204,29 @@ export class AbstractStackedChart
                 .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
         }
         exposeInstanceOnWindow(this)
+
+        this.disposers.push(
+            reaction(
+                () => this.manager.externalLegendHoverBin,
+                () => {
+                    if (this.manager.externalLegendHoverBin) {
+                        this.hoverArray.clearAllAndActivate(
+                            ...findSeriesNamesContainedInBin(
+                                this.series,
+                                this.manager.externalLegendHoverBin
+                            )
+                        )
+                    } else {
+                        this.hoverArray.clear()
+                    }
+                }
+            )
+        )
     }
 
     componentWillUnmount(): void {
         if (this.animSelection) this.animSelection.interrupt()
+        this.disposers.forEach((dispose) => dispose())
     }
 
     @computed get seriesStrategy(): SeriesStrategy {
@@ -447,7 +472,9 @@ export class AbstractStackedChart
                         })
                 )
                 .reverse()
-            return { categoricalLegendData }
+            return {
+                categoricalLegendData,
+            }
         }
         return undefined
     }

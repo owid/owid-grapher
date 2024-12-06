@@ -113,7 +113,7 @@ export {
     GrapherWindowType,
     AxisMinMaxValueStr,
     GrapherTooltipAnchor,
-    RenderMode,
+    InteractionState,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {

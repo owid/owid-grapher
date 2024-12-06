@@ -95,6 +95,12 @@ export enum DimensionProperty {
     table = "table",
 }
 
+export enum InteractionState {
+    none = "none", // series is in its default state since the chart is not interacted with
+    active = "active", // series is actively hovered/focused
+    background = "background", // another series is actively hovered/focused
+}
+
 // see CoreTableConstants.ts
 export type ColumnSlug = string // a url friendly name for a column in a table. cannot have spaces
 
@@ -206,13 +212,6 @@ export interface AnnotationFieldsInTitle {
     entity?: boolean
     time?: boolean
     changeInPrefix?: boolean
-}
-
-export enum RenderMode {
-    default = "default",
-    focus = "focus", // hovered or focused
-    mute = "mute", // not hovered
-    background = "background", // not focused
 }
 
 export interface Tickmark {
