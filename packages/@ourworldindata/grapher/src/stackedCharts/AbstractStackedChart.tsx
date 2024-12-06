@@ -15,7 +15,7 @@ import {
     exposeInstanceOnWindow,
     guid,
 } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import {
@@ -37,13 +37,14 @@ import { easeLinear } from "d3-ease"
 import { select } from "d3-selection"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { SelectionArray } from "../selection/SelectionArray"
-import { CategoricalBin } from "../color/ColorScaleBin"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import {
     CategoricalColorAssigner,
     CategoricalColorMap,
 } from "../color/CategoricalColorAssigner.js"
 import { BinaryMapPaletteE } from "../color/CustomSchemes"
+import { InteractionArray } from "../selection/InteractionArray"
 
 // used in StackedBar charts to color negative and positive bars
 const POSITIVE_COLOR = BinaryMapPaletteE.colorSets[0][0] // orange
@@ -60,6 +61,8 @@ export class AbstractStackedChart
     extends React.Component<AbstractStackedChartProps>
     implements ChartInterface, AxisManager
 {
+    protected hoverArray = new InteractionArray()
+
     transformTable(table: OwidTable): OwidTable {
         table = table.filterByEntityNames(
             this.selectionArray.selectedEntityNames
@@ -434,6 +437,18 @@ export class AbstractStackedChart
         return this.unstackedSeries
     }
 
+    @action.bound onExternalLegendMouseOver(bin: ColorScaleBin): void {
+        this.hoverArray.clearAllAndActivate(
+            ...this.series
+                .map(({ seriesName }) => seriesName)
+                .filter((seriesName) => bin.contains(seriesName))
+        )
+    }
+
+    @action.bound onExternalLegendMouseLeave(): void {
+        this.hoverArray.clear()
+    }
+
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (!this.manager.showLegend) {
             const categoricalLegendData = this.series
@@ -447,7 +462,11 @@ export class AbstractStackedChart
                         })
                 )
                 .reverse()
-            return { categoricalLegendData }
+            return {
+                categoricalLegendData,
+                onLegendMouseOver: this.onExternalLegendMouseOver,
+                onLegendMouseLeave: this.onExternalLegendMouseLeave,
+            }
         }
         return undefined
     }

@@ -72,13 +72,6 @@ interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     onBarMouseLeave: () => void
 }
 
-interface TickmarkPlacement {
-    time: number
-    text: string
-    bounds: Bounds
-    isHidden: boolean
-}
-
 const BAR_OPACITY = {
     DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
     FOCUS: GRAPHER_AREA_OPACITY_FOCUS,
@@ -152,10 +145,6 @@ export class StackedBarChart
         super(props)
     }
 
-    // currently hovered legend color
-    @observable hoverColor?: string
-    // currently hovered axis label
-    @observable hoveredTick?: TickmarkPlacement
     // current hovered individual bar
     @observable tooltipState = new TooltipState<{
         bar: StackedPoint<number>
@@ -220,42 +209,18 @@ export class StackedBarChart
         return this.props.enableLinearInterpolation ?? false
     }
 
-    // All currently hovered group keys, combining the legend and the main UI
-    @computed get hoverKeys(): string[] {
-        const { hoverColor, manager } = this
-        const { externalLegendHoverBin } = manager
-
-        const hoverKeys =
-            hoverColor === undefined
-                ? []
-                : uniq(
-                      this.series
-                          .filter((g) => g.color === hoverColor)
-                          .map((g) => g.seriesName)
-                  )
-        if (externalLegendHoverBin) {
-            hoverKeys.push(
-                ...this.rawSeries
-                    .map((g) => g.seriesName)
-                    .filter((name) => externalLegendHoverBin.contains(name))
-            )
-        }
-
-        return hoverKeys
-    }
-
+    // used by HorizontalColorLegendManager
     @computed get activeColors(): string[] {
-        const { hoverKeys } = this
-        const activeKeys = hoverKeys.length > 0 ? hoverKeys : []
-
-        if (!activeKeys.length)
-            // No hover means they're all active by default
+        // No hover means they're all active by default
+        if (this.hoverArray.isEmpty)
             return uniq(this.series.map((g) => g.color))
 
         return uniq(
             this.series
-                .filter((g) => activeKeys.indexOf(g.seriesName) !== -1)
-                .map((g) => g.color)
+                .filter(({ seriesName }) =>
+                    this.hoverArray.isActive(seriesName)
+                )
+                .map((series) => series.color)
         )
     }
 
@@ -336,7 +301,6 @@ export class StackedBarChart
         const {
             tooltipState: { target, position, fading },
             series,
-            hoveredTick,
             formatColumn,
         } = this
 
@@ -344,8 +308,6 @@ export class StackedBarChart
         let hoverTime: number
         if (hoverBar !== undefined) {
             hoverTime = hoverBar.position
-        } else if (hoveredTick !== undefined) {
-            hoverTime = hoveredTick.time
         } else return
 
         const { unit, shortUnit } = formatColumn
@@ -431,20 +393,19 @@ export class StackedBarChart
     // The <HorizontalCategoricalColorLegend /> component expects a string,
     // the <VerticalColorLegend /> component expects a ColorScaleBin.
     @action.bound onLegendMouseOver(binOrColor: string | ColorScaleBin): void {
-        this.hoverColor =
+        const hoveredColor =
             typeof binOrColor === "string" ? binOrColor : binOrColor.color
+        this.hoverArray.clearAllAndActivate(
+            ...uniq(
+                this.series
+                    .filter((g) => g.color === hoveredColor)
+                    .map((g) => g.seriesName)
+            )
+        )
     }
 
     @action.bound onLegendMouseLeave(): void {
-        this.hoverColor = undefined
-    }
-
-    @action.bound onLabelMouseOver(tick: TickmarkPlacement): void {
-        this.hoveredTick = tick
-    }
-
-    @action.bound onLabelMouseLeave(): void {
-        this.hoveredTick = undefined
+        this.hoverArray.clear()
     }
 
     @action.bound onBarMouseOver(
@@ -509,13 +470,12 @@ export class StackedBarChart
         return (
             <>
                 {this.series.map((series, index) => {
-                    const isLegendHovered = this.hoverKeys.includes(
+                    const foreground = this.hoverArray.isInForeground(
                         series.seriesName
                     )
-                    const opacity =
-                        isLegendHovered || this.hoverKeys.length === 0
-                            ? BAR_OPACITY.DEFAULT
-                            : BAR_OPACITY.MUTE
+                    const opacity = foreground
+                        ? BAR_OPACITY.DEFAULT
+                        : BAR_OPACITY.MUTE
 
                     return (
                         <g

@@ -9,11 +9,11 @@ import {
     makeIdForHumanConsumption,
     guid,
     excludeUndefined,
-    partition,
     getRelativeMouse,
     minBy,
     dyFromAlign,
     uniq,
+    sortBy,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -33,9 +33,9 @@ import {
     Time,
     SeriesStrategy,
     EntityName,
-    RenderMode,
     VerticalAlign,
     FacetStrategy,
+    InteractionState,
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
@@ -44,12 +44,14 @@ import { select } from "d3-selection"
 import {
     PlacedSlopeChartSeries,
     RawSlopeChartSeries,
+    RenderSlopeChartSeries,
     SlopeChartSeries,
 } from "./SlopeChartConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    byInteractionState,
     getDefaultFailMessage,
     getShortNameForEntity,
     makeSelectionArray,
@@ -84,7 +86,8 @@ import {
 import { SelectionArray } from "../selection/SelectionArray"
 import { Halo } from "../halo/Halo"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
-import { CategoricalBin } from "../color/ColorScaleBin"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
+import { InteractionArray } from "../selection/InteractionArray"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -110,10 +113,10 @@ export class SlopeChart
 {
     private slopeAreaRef: React.RefObject<SVGGElement> = React.createRef()
     private defaultBaseColorScheme = ColorSchemeName.OwidDistinctLines
+    private hoverArray = new InteractionArray()
 
     private sidebarMargin = 10
 
-    @observable hoveredSeriesName?: string
     @observable tooltipState = new TooltipState<{
         series: SlopeChartSeries
     }>({ fade: "immediate" })
@@ -230,10 +233,6 @@ export class SlopeChart
 
     @computed private get backgroundColor(): string {
         return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
-    }
-
-    @computed private get isFocusModeActive(): boolean {
-        return this.focusedSeriesNames.length > 0
     }
 
     @computed private get yColumns(): CoreColumn[] {
@@ -443,6 +442,25 @@ export class SlopeChart
         })
     }
 
+    @computed private get renderSeries(): RenderSlopeChartSeries[] {
+        const { hoverArray } = this
+
+        const series: RenderSlopeChartSeries[] = this.placedSeries.map(
+            (series) => {
+                return {
+                    ...series,
+                    hover: hoverArray.state(series.seriesName),
+                }
+            }
+        )
+
+        if (this.hoverArray.hasActiveSeries) {
+            return sortBy(series, byInteractionState)
+        }
+
+        return series
+    }
+
     @computed
     private get noDataSeries(): RawSlopeChartSeries[] {
         return this.rawSeries.filter((series) => !this.isSeriesValid(series))
@@ -536,6 +554,18 @@ export class SlopeChart
             : 0
     }
 
+    @action.bound onExternalLegendMouseOver(bin: ColorScaleBin): void {
+        this.hoverArray.clearAllAndActivate(
+            ...this.series
+                .map(({ seriesName }) => seriesName)
+                .filter((seriesName) => bin.contains(seriesName))
+        )
+    }
+
+    @action.bound onExternalLegendMouseLeave(): void {
+        this.hoverArray.clear()
+    }
+
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (!this.manager.showLegend) {
             const categoricalLegendData = this.series.map(
@@ -547,7 +577,11 @@ export class SlopeChart
                         color: series.color,
                     })
             )
-            return { categoricalLegendData }
+            return {
+                categoricalLegendData,
+                onLegendMouseOver: this.onExternalLegendMouseOver,
+                onLegendMouseLeave: this.onExternalLegendMouseLeave,
+            }
         }
         return undefined
     }
@@ -583,7 +617,6 @@ export class SlopeChart
             verticalAlign: VerticalAlign.top,
             showTextOutlines: true,
             textOutlineColor: this.backgroundColor,
-            focusedSeriesNames: this.focusedSeriesNames,
             onMouseOver: this.onLineLegendMouseOver,
             onMouseLeave: this.onLineLegendMouseLeave,
         }
@@ -748,27 +781,6 @@ export class SlopeChart
         return !!this.manager.isSemiNarrow || this.isNarrow
     }
 
-    @computed get focusedSeriesNames(): SeriesName[] {
-        const focusedSeriesNames: SeriesName[] = []
-
-        // hovered series name
-        if (this.hoveredSeriesName)
-            focusedSeriesNames.push(this.hoveredSeriesName)
-
-        // hovered legend item in the external facet legend
-        if (this.manager.externalLegendHoverBin) {
-            focusedSeriesNames.push(
-                ...this.series
-                    .map((s) => s.seriesName)
-                    .filter((name) =>
-                        this.manager.externalLegendHoverBin?.contains(name)
-                    )
-            )
-        }
-
-        return focusedSeriesNames
-    }
-
     private constructSingleLineLegendSeries(
         series: SlopeChartSeries,
         getValue: (series: SlopeChartSeries) => number,
@@ -791,6 +803,7 @@ export class SlopeChart
             formattedValue: showSeriesName ? formattedValue : undefined,
             placeFormattedValueInNewLine: this.useCompactLayout,
             yValue: value,
+            hover: this.hoverArray.state(seriesName),
         }
     }
 
@@ -884,24 +897,24 @@ export class SlopeChart
     private hoverTimer?: NodeJS.Timeout
     @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {
         clearTimeout(this.hoverTimer)
-        this.hoveredSeriesName = seriesName
+        this.hoverArray.clearAllAndActivate(seriesName)
     }
 
     @action.bound onLineLegendMouseLeave(): void {
         clearTimeout(this.hoverTimer)
         this.hoverTimer = setTimeout(() => {
             // wait before clearing selection in case the mouse is moving quickly over neighboring labels
-            this.hoveredSeriesName = undefined
+            this.hoverArray.clear()
         }, 200)
     }
 
     @action.bound onSlopeMouseOver(series: SlopeChartSeries): void {
-        this.hoveredSeriesName = series.seriesName
+        this.hoverArray.clearAllAndActivate(series.seriesName)
         this.tooltipState.target = { series }
     }
 
     @action.bound onSlopeMouseLeave(): void {
-        this.hoveredSeriesName = undefined
+        this.hoverArray.clear()
         this.tooltipState.target = null
     }
 
@@ -1066,48 +1079,18 @@ export class SlopeChart
         )
     }
 
-    private renderSlope(
-        series: PlacedSlopeChartSeries,
-        mode?: RenderMode
-    ): React.ReactElement {
-        return (
-            <Slope
-                key={series.seriesName}
-                series={series}
-                color={series.color}
-                mode={mode}
-                strokeWidth={this.lineStrokeWidth}
-                outlineWidth={0.5}
-                outlineStroke={this.backgroundColor}
-            />
-        )
-    }
-
     private renderSlopes() {
-        if (!this.isFocusModeActive) {
-            return this.placedSeries.map((series) => (
-                <React.Fragment key={series.seriesName}>
-                    {this.renderSlope(series)}
-                </React.Fragment>
-            ))
-        }
-
-        const [focusedSeries, backgroundSeries] = partition(
-            this.placedSeries,
-            (series) => this.focusedSeriesNames.includes(series.seriesName)
-        )
-
         return (
             <>
-                {backgroundSeries.map((series) => (
-                    <React.Fragment key={series.seriesName}>
-                        {this.renderSlope(series, RenderMode.mute)}
-                    </React.Fragment>
-                ))}
-                {focusedSeries.map((series) => (
-                    <React.Fragment key={series.seriesName}>
-                        {this.renderSlope(series, RenderMode.focus)}
-                    </React.Fragment>
+                {this.renderSeries.map((series) => (
+                    <Slope
+                        key={series.seriesName}
+                        series={series}
+                        color={series.color}
+                        strokeWidth={this.lineStrokeWidth}
+                        outlineWidth={0.5}
+                        outlineStroke={this.backgroundColor}
+                    />
                 ))}
             </>
         )
@@ -1264,9 +1247,8 @@ export class SlopeChart
 }
 
 interface SlopeProps {
-    series: PlacedSlopeChartSeries
+    series: RenderSlopeChartSeries
     color: string
-    mode?: RenderMode
     dotRadius?: number
     strokeWidth?: number
     outlineWidth?: number
@@ -1278,7 +1260,6 @@ interface SlopeProps {
 function Slope({
     series,
     color,
-    mode = RenderMode.default,
     dotRadius = 2.5,
     strokeWidth = 2,
     outlineWidth = 0.5,
@@ -1288,14 +1269,9 @@ function Slope({
 }: SlopeProps) {
     const { seriesName, startPoint, endPoint } = series
 
-    const showOutline = mode === RenderMode.default || mode === RenderMode.focus
-
-    const opacity = {
-        [RenderMode.default]: 1,
-        [RenderMode.focus]: 1,
-        [RenderMode.mute]: 0.3,
-        [RenderMode.background]: 0.3,
-    }[mode]
+    const isInBackground = series.hover === InteractionState.background
+    const showOutline = !isInBackground
+    const opacity = isInBackground ? 0.3 : 1
 
     return (
         <g

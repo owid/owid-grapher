@@ -88,6 +88,7 @@ import {
     LabelCandidateWithElement,
     MarimekkoBarProps,
 } from "./MarimekkoChartConstants"
+import { InteractionArray } from "../selection/InteractionArray"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
@@ -270,8 +271,7 @@ export class MarimekkoChart
     defaultNoDataColor = OwidNoDataGray
     labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
 
-    // currently hovered legend color
-    @observable focusColorBin?: ColorScaleBin
+    private hoverArray = new InteractionArray()
 
     // current tooltip target & position
     @observable tooltipState = new TooltipState<{
@@ -898,11 +898,17 @@ export class MarimekkoChart
     }
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
-        this.focusColorBin = bin
+        this.hoverArray.clearAllAndActivate(
+            ...this.placedItems
+                .filter((series) =>
+                    bin.contains(series.entityColor?.colorDomainValue)
+                )
+                .map(({ entityName }) => entityName)
+        )
     }
 
     @action.bound onLegendMouseLeave(): void {
-        this.focusColorBin = undefined
+        this.hoverArray.clear()
     }
 
     @computed private get legend(): HorizontalCategoricalColorLegend {
@@ -1108,7 +1114,6 @@ export class MarimekkoChart
             dualAxis,
             x0,
             y0,
-            focusColorBin,
             placedLabels,
             labelLines,
             placedItems,
@@ -1198,8 +1203,7 @@ export class MarimekkoChart
                 entityName === tooltipState.target?.entityName &&
                 !tooltipState.fading
             const isFaint =
-                (focusColorBin !== undefined &&
-                    !focusColorBin.contains(entityColor?.colorDomainValue)) ||
+                this.hoverArray.isInBackground(entityName) ||
                 (hasSelection && !isSelected)
 
             // figure out what the minimum height in domain space has to be so

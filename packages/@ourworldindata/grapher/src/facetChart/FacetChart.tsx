@@ -479,7 +479,6 @@ export class FacetChart
             const manager = {
                 ...series.manager,
                 useValueBasedColorScheme,
-                externalLegendHoverBin: this.legendHoverBin,
                 xAxisConfig: {
                     // For now, sharing an x axis means hiding the tick labels of inner facets.
                     // This means that none of the x axes are actually hidden (we just don't plot their tick labels).
@@ -761,17 +760,6 @@ export class FacetChart
             return []
         const sortedBins = sortBy(newBins, (bin) => bin.label)
         return sortedBins
-    }
-
-    @observable.ref private legendHoverBin: ColorScaleBin | undefined =
-        undefined
-
-    @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
-        this.legendHoverBin = bin
-    }
-
-    @action.bound onLegendMouseLeave(): void {
-        this.legendHoverBin = undefined
     }
 
     // end of legend props
