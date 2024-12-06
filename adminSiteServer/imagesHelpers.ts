@@ -1,3 +1,4 @@
+import crypto from "crypto"
 import { JsonError } from "@ourworldindata/types"
 import sharp from "sharp"
 import {
@@ -32,9 +33,11 @@ export async function processImageContent(
 ): Promise<{
     asBlob: Blob
     dimensions: { width: number; height: number }
+    hash: string
 }> {
     const stripped = content.slice(content.indexOf(",") + 1)
     const asBuffer = Buffer.from(stripped, "base64")
+    const hash = crypto.createHash("sha256").update(asBuffer).digest("hex")
     const asBlob = new Blob([asBuffer], { type })
     const { width, height } = await sharp(asBuffer)
         .metadata()
@@ -50,6 +53,7 @@ export async function processImageContent(
             width,
             height,
         },
+        hash,
     }
 }
 
