@@ -231,15 +231,15 @@ function* columnReadmeText(col: CoreColumn) {
 }
 
 function* activeFilterSettings(searchParams: URLSearchParams) {
+    // NOTE: this is filtered by whitelisted grapher query params - if you want other params to be
+    //       inlucded here (e.g. MDIM selection), add them to the whitelist inside getGrapherFilters
     const filterSettings = getGrapherFilters(searchParams)
     if (filterSettings) {
         yield ""
         yield `### Active Filters`
         yield ""
         yield `A filtered subset of the full data was downloaded. The following filters were applied:`
-        for (const entry of Object.entries(filterSettings)) {
-            const key = entry[0]
-            const val = entry[1] as string
+        for (const [key, val] of Object.entries(filterSettings)) {
             if (key === "country")
                 yield `${key}: ${val.replace("~", ", ")}` // country filter is separated with tilde
             else yield `${key}: ${val}`
@@ -261,8 +261,7 @@ export function constructReadme(
         )
         .flatMap((col) => [...columnReadmeText(col)])
     let readme: string
-    const queryString = searchParams.size ? "?" + searchParams.toString() : ""
-    const urlWithFilters = `${grapher.canonicalUrl}${queryString}`
+    const urlWithFilters = `${grapher.canonicalUrl}`
 
     const downloadDate = formatDate(new Date()) // formats the date as "October 10, 2024"
     if (isSingleColumn)
