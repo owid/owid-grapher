@@ -5,6 +5,8 @@ export class CloudflareImages1731360326761 implements MigrationInterface {
         await queryRunner.query(`-- sql
             ALTER TABLE images
             ADD COLUMN cloudflareId VARCHAR(255) NULL,
+            ADD CONSTRAINT images_cloudflareId_unique UNIQUE (cloudflareId),
+            ADD COLUMN hash VARCHAR(255) NULL,
             MODIFY COLUMN googleId VARCHAR(255) NULL,
             MODIFY COLUMN defaultAlt VARCHAR(1600) NULL;`)
 
@@ -19,7 +21,8 @@ export class CloudflareImages1731360326761 implements MigrationInterface {
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             ALTER TABLE images
-            DROP COLUMN cloudflareId
+            DROP COLUMN cloudflareId,
+            DROP COLUMN hash
         `)
 
         await queryRunner.query(`-- sql
