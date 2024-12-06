@@ -147,6 +147,9 @@ export class TextWrapGroup {
         return max(this.textWraps.map((textWrap) => textWrap.width)) ?? 0
     }
 
+    // split concatenated fragments into lines for rendering. a line may have
+    // multiple fragments since each fragment comes with its own style and
+    // is therefore rendered into a separate tspan.
     @computed get lines(): {
         fragments: Omit<TextWrapFragment, "newLine">[]
         textWrap: TextWrap
@@ -189,10 +192,7 @@ export class TextWrapGroup {
     render(
         x: number,
         y: number,
-        {
-            textProps,
-            id,
-        }: { textProps?: React.SVGProps<SVGTextElement>; id?: string } = {}
+        { textProps }: { textProps?: React.SVGProps<SVGTextElement> } = {}
     ): React.ReactElement {
         // Alternatively, we could render each TextWrap one by one. That would
         // give us a good but not pixel-perfect result since the text
@@ -200,7 +200,7 @@ export class TextWrapGroup {
         // between text wraps, we split the text into lines and render
         // the different styles as tspans within the same text element.
         return (
-            <g id={id}>
+            <>
                 {this.lines.map((line) => {
                     const [textX, textY] =
                         line.textWrap.getPositionForSvgRendering(x, y)
@@ -224,7 +224,7 @@ export class TextWrapGroup {
                         </text>
                     )
                 })}
-            </g>
+            </>
         )
     }
 }
