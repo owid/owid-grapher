@@ -354,9 +354,9 @@ export class LineLegend extends React.Component<LineLegendProps> {
      * This is partly due to a circular dependency (in line and stacked area
      * charts), partly to avoid jumpy layout changes (slope charts).
      */
-    static width(props: LineLegendProps): number {
+    static stableWidth(props: LineLegendProps): number {
         const test = new LineLegend(props)
-        return test.maxLabelWidth + DEFAULT_CONNECTOR_LINE_WIDTH + MARKER_MARGIN
+        return test.stableWidth
     }
 
     static fontSize(props: Partial<LineLegendProps>): number {
@@ -371,7 +371,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
 
     static visibleSeriesNames(props: LineLegendProps): SeriesName[] {
         const test = new LineLegend(props as LineLegendProps)
-        return test.partialInitialSeries.map((series) => series.seriesName)
+        return test.visibleSeriesNames
     }
 
     @computed private get fontSize(): number {
@@ -420,6 +420,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                       text: label.annotation,
                       maxWidth: maxAnnotationWidth,
                       fontSize: fontSize * 0.9,
+                      lineHeight: 1,
                   })
                 : undefined
 
@@ -443,6 +444,10 @@ export class LineLegend extends React.Component<LineLegendProps> {
     @computed private get maxLabelWidth(): number {
         const { sizedLabels = [] } = this
         return max(sizedLabels.map((d) => d.width)) ?? 0
+    }
+
+    @computed get stableWidth(): number {
+        return this.maxLabelWidth + DEFAULT_CONNECTOR_LINE_WIDTH + MARKER_MARGIN
     }
 
     @computed get onMouseOver(): any {
@@ -753,6 +758,10 @@ export class LineLegend extends React.Component<LineLegendProps> {
 
             return sortedKeepSeries
         }
+    }
+
+    @computed get visibleSeriesNames(): SeriesName[] {
+        return this.partialInitialSeries.map((series) => series.seriesName)
     }
 
     @computed private get backgroundSeries(): PlacedSeries[] {

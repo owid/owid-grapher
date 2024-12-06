@@ -411,10 +411,6 @@ export class SlopeChart
         )
     }
 
-    @computed get seriesByName(): Map<SeriesName, SlopeChartSeries> {
-        return new Map(this.series.map((series) => [series.seriesName, series]))
-    }
-
     @computed private get placedSeries(): PlacedSlopeChartSeries[] {
         const { yAxis, startX, endX } = this
 
@@ -595,31 +591,28 @@ export class SlopeChart
 
     @computed get lineLegendWidthLeft(): number {
         if (!this.manager.showLegend) return 0
-        return LineLegend.width({
+        return LineLegend.stableWidth({
             labelSeries: this.lineLegendSeriesLeft,
             ...this.lineLegendPropsCommon,
             ...this.lineLegendPropsLeft,
         })
     }
 
-    @computed get lineLegendWidthRight(): number {
-        if (!this.manager.showLegend) return 0
-        return LineLegend.width({
+    @computed get lineLegendRight(): LineLegend | undefined {
+        if (!this.manager.showLegend) return undefined
+        return new LineLegend({
             labelSeries: this.lineLegendSeriesRight,
             ...this.lineLegendPropsCommon,
             ...this.lineLegendPropsRight,
         })
     }
 
+    @computed get lineLegendWidthRight(): number {
+        return this.lineLegendRight?.stableWidth ?? 0
+    }
+
     @computed get visibleLineLegendLabelsRight(): Set<SeriesName> {
-        if (!this.manager.showLegend) return new Set()
-        return new Set(
-            LineLegend.visibleSeriesNames({
-                labelSeries: this.lineLegendSeriesRight,
-                ...this.lineLegendPropsCommon,
-                ...this.lineLegendPropsRight,
-            })
-        )
+        return new Set(this.lineLegendRight?.visibleSeriesNames ?? [])
     }
 
     @computed get seriesSortedByImportanceForLineLegendLeft(): SeriesName[] {
