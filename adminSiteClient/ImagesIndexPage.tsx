@@ -29,7 +29,7 @@ type ImageMap = Record<string, DbEnrichedImageWithUserId>
 type UserMap = Record<string, DbPlainUser>
 
 type ImageEditorApi = {
-    getAltText: (id: number) => void
+    getAltText: (id: number) => Promise<{ altText: string; success: boolean }>
     patchImage: (
         image: DbEnrichedImageWithUserId,
         patch: Partial<DbEnrichedImageWithUserId>
@@ -69,22 +69,16 @@ function AltTextEditor({
     getAltText: ImageEditorApi["getAltText"]
 }) {
     const [value, setValue] = useState(text)
-    const [savedValue, setSavedValue] = useState(text)
     const [shouldAutosize, setShouldAutosize] = useState(false)
-
-    // Update local state if the prop updates (i.e. from the alt text suggestion)
-    useEffect(() => {
-        setValue(text)
-    }, [text])
 
     const saveAltText = useCallback(() => {
         const trimmed = value.trim()
         patchImage(image, { defaultAlt: trimmed })
-        setSavedValue(trimmed)
     }, [image, patchImage, value])
 
-    const handleGetAltText = useCallback(() => {
-        getAltText(image.id)
+    const handleGetAltText = useCallback(async () => {
+        const response = await getAltText(image.id)
+        setValue(response.altText)
         // Only autoexpand the textarea if the user generates alt text
         setShouldAutosize(true)
     }, [image.id, getAltText])
@@ -102,14 +96,10 @@ function AltTextEditor({
             <Button onClick={handleGetAltText} type="text">
                 <FontAwesomeIcon icon={faRobot} />
             </Button>
-            <Button
-                type="text"
-                onClick={saveAltText}
-                disabled={savedValue === value}
-            >
+            <Button type="text" onClick={saveAltText} disabled={value === text}>
                 <FontAwesomeIcon icon={faSave} />
             </Button>
-            {savedValue !== value && (
+            {value !== text && (
                 <span className="ImageIndexPage__unsaved-chip">Unsaved</span>
             )}
         </div>
@@ -452,17 +442,11 @@ export function ImageIndexPage() {
 
     const api = useMemo(
         (): ImageEditorApi => ({
-            getAltText: async (id) => {
-                const response = await admin.requestJSON<{
+            getAltText: (id) => {
+                return admin.requestJSON<{
                     success: true
                     altText: string
                 }>(`/api/gpt/suggest-alt-text/${id}`, {}, "GET")
-                if (response.success) {
-                    setImages((prevMap) => ({
-                        ...prevMap,
-                        [id]: { ...prevMap[id], defaultAlt: response.altText },
-                    }))
-                }
             },
             deleteImage: async (image) => {
                 await admin.requestJSON(`/api/images/${image.id}`, {}, "DELETE")
