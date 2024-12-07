@@ -62,6 +62,7 @@ export class EditorFeatures {
     @computed get hideLegend() {
         return (
             this.grapher.isLineChart ||
+            this.grapher.isSlopeChart ||
             this.grapher.isStackedArea ||
             this.grapher.isStackedDiscreteBar
         )
@@ -77,6 +78,7 @@ export class EditorFeatures {
             this.grapher.isStackedBar ||
             this.grapher.isStackedDiscreteBar ||
             this.grapher.isLineChart ||
+            this.grapher.isSlopeChart ||
             this.grapher.isScatter ||
             this.grapher.isMarimekko
         )
@@ -118,9 +120,9 @@ export class EditorFeatures {
             return true
         }
 
-        // for line charts, specifying a missing data strategy only makes sense
+        // for line and slope charts, specifying a missing data strategy only makes sense
         // if there are multiple entities
-        if (this.grapher.isLineChart) {
+        if (this.grapher.isLineChart || this.grapher.isSlopeChart) {
             return (
                 this.grapher.canChangeEntity ||
                 this.grapher.canSelectMultipleEntities
@@ -132,7 +134,7 @@ export class EditorFeatures {
 
     @computed get showChangeInPrefixToggle() {
         return (
-            this.grapher.isLineChart &&
+            (this.grapher.isLineChart || this.grapher.isSlopeChart) &&
             (this.grapher.isRelativeMode || this.grapher.canToggleRelativeMode)
         )
     }
