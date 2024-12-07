@@ -131,8 +131,7 @@ export class OwidAdminApp {
         // Public preview of a Gdoc document
         app.get("/gdocs/:id/preview", async (req, res) => {
             try {
-                // TODO: this transaction is only RW because somewhere inside it we fetch images
-                await db.knexReadWriteTransaction(async (knex) => {
+                await db.knexReadonlyTransaction(async (knex) => {
                     const gdoc = await getAndLoadGdocById(
                         knex,
                         req.params.id,

@@ -169,6 +169,12 @@ export const R2_SECRET_ACCESS_KEY: string =
 export const R2_REGION: string =
     serverSettings.R2_REGION || rcloneConfig["owid-r2"]?.region || "auto"
 
+export const CLOUDFLARE_IMAGES_ACCOUNT_ID: string =
+    serverSettings.CLOUDFLARE_IMAGES_ACCOUNT_ID || ""
+
+export const CLOUDFLARE_IMAGES_API_KEY: string =
+    serverSettings.CLOUDFLARE_IMAGES_API_KEY || ""
+
 export const GRAPHER_CONFIG_R2_BUCKET: string | undefined =
     serverSettings.GRAPHER_CONFIG_R2_BUCKET
 export const GRAPHER_CONFIG_R2_BUCKET_PATH: string | undefined =

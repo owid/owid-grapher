@@ -19,8 +19,7 @@ void yargs(hideBin(process.argv))
         async ({ slug }) => {
             const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
 
-            // TODO: this transaction is only RW because somewhere inside it we fetch images
-            await db.knexReadWriteTransaction(
+            await db.knexReadonlyTransaction(
                 (trx) => baker.bakeGDocPosts(trx, [slug]),
                 db.TransactionCloseMode.Close
             )

@@ -29,13 +29,12 @@ export function getSizes(
 
 export function generateSrcSet(
     sizes: number[],
-    filename: ImageMetadata["filename"]
+    id: ImageMetadata["cloudflareId"],
+    absoluteUrl: string = ""
 ): string {
     return sizes
         .map((size) => {
-            const path = `/images/published/${getFilenameWithoutExtension(
-                encodeURIComponent(filename)
-            )}_${size}.png`
+            const path = `${absoluteUrl}/${id}/w=${size}`
             return `${path} ${size}w`
         })
         .join(", ")
@@ -93,21 +92,26 @@ export type SourceProps = {
  */
 export function generateSourceProps(
     smallImage: ImageMetadata | undefined,
-    regularImage: ImageMetadata
+    regularImage: ImageMetadata,
+    absoluteUrl: string = ""
 ): SourceProps[] {
     const props: SourceProps[] = []
-    if (smallImage) {
+    if (smallImage && smallImage.cloudflareId) {
+        const encodedSmallId = encodeURIComponent(smallImage.cloudflareId)
         const smallSizes = getSizes(smallImage.originalWidth)
         props.push({
             media: "(max-width: 768px)",
-            srcSet: generateSrcSet(smallSizes, smallImage.filename),
+            srcSet: generateSrcSet(smallSizes, encodedSmallId, absoluteUrl),
         })
     }
-    const regularSizes = getSizes(regularImage.originalWidth)
-    props.push({
-        media: undefined,
-        srcSet: generateSrcSet(regularSizes, regularImage.filename),
-    })
+    if (regularImage && regularImage.cloudflareId) {
+        const encodedRegularId = encodeURIComponent(regularImage.cloudflareId)
+        const regularSizes = getSizes(regularImage.originalWidth)
+        props.push({
+            media: undefined,
+            srcSet: generateSrcSet(regularSizes, encodedRegularId, absoluteUrl),
+        })
+    }
     return props
 }
 

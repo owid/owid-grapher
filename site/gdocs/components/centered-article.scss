@@ -335,8 +335,18 @@ h3.article-block__heading {
     width: 100%;
     margin: 32px 0;
 
-    & .image--has-outline {
+    .image {
+        position: relative;
+    }
+
+    & .image--has-outline picture {
         outline: 1px solid $gray-10;
+    }
+
+    @include touch-device {
+        &:has(.article-block__image-download-button-container) {
+            margin-bottom: 16px;
+        }
     }
 
     picture {
@@ -352,9 +362,81 @@ h3.article-block__heading {
         }
     }
 
-    .download-png-link {
-        @include owid-link-60;
-        font-size: 14px;
+    &:hover {
+        .article-block__image-download-button {
+            opacity: 1;
+        }
+    }
+
+    .article-block__image-download-button-container {
+        bottom: 16px;
+        right: 16px;
+        position: absolute;
+        overflow: hidden;
+
+        @include touch-device {
+            position: initial;
+            margin-top: 16px;
+
+            .article-block__image-download-button {
+                opacity: 1;
+                transform: none;
+                width: 100%;
+            }
+            .article-block__image-download-button-background-layer {
+                display: flex;
+                justify-content: center;
+                height: 40px;
+                color: $blue-90;
+                background-color: $blue-20;
+            }
+            .article-block__image-download-button-text {
+                opacity: 1;
+            }
+        }
+    }
+
+    .article-block__image-download-button {
+        background: transparent;
+        transform: translateX(calc(100% - 28px));
+        transition: 0.3s ease;
+        backdrop-filter: blur(1px);
+        padding: 0;
+        opacity: 0;
+
+        &:hover,
+        &:focus {
+            transform: translateX(0);
+            opacity: 1;
+            .article-block__image-download-button-text {
+                opacity: 1;
+            }
+        }
+    }
+
+    .article-block__image-download-button-background-layer {
+        background-color: scale-color($gray-70, $alpha: -25%);
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        border: none;
+        color: #fff;
+        height: 28px;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .article-block__image-download-button-icon {
+        width: 12px;
+        height: 12px;
+        margin-right: 4px;
+    }
+    .article-block__image-download-button-text {
+        @include label-2-medium;
+        display: inline-block;
+        line-height: 16px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
     }
 }
 

@@ -15,8 +15,7 @@ const indexPagesToAlgolia = async () => {
     }
     const index = client.initIndex(getIndexName(SearchIndexName.Pages))
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    const records = await db.knexReadWriteTransaction(
+    const records = await db.knexReadonlyTransaction(
         getPagesRecords,
         db.TransactionCloseMode.Close
     )

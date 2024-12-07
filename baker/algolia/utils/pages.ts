@@ -239,9 +239,8 @@ function generateGdocRecords(
     return records
 }
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
 // Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
-export const getPagesRecords = async (knex: db.KnexReadWriteTransaction) => {
+export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
     const gdocs = await db
         .getPublishedGdocPostsWithTags(knex)

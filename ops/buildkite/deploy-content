@@ -75,8 +75,6 @@ sync_to_r2_aws() {
 sync_baked_data_to_r2() {
     echo '--- Sync baked data to R2'
     # Cloudflare Pages has limit of 20000 files
-    # NOTE: There's also images/published, which are the gdocs images synced from GDrive.
-    #   There's currently a small-enough amount of them, but we need to sync them to R2 or Cloudflare Images at some point.
     # NOTE: aws is about 3x faster than rclone
     sync_to_r2_aws grapher/exports  # 9203 files
     sync_to_r2_aws exports  # 3314 files
