@@ -538,7 +538,8 @@ export const oldChartFieldList = `
         lastEditedByUser.fullName AS lastEditedBy,
         charts.publishedAt,
         charts.publishedByUserId,
-        publishedByUser.fullName AS publishedBy
+        publishedByUser.fullName AS publishedBy,
+        round(views_365d / 365, 1) as pageviewsPerDay
     `
 // TODO: replace this with getBySlug and pick
 
