@@ -6,6 +6,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "files.insertFinalNewline": false,
     "search.exclude": {
+        ".yarn": true,
         "**/itsJustJavascript": true,
         "bakedSite": true,
         "yarn.lock": true
