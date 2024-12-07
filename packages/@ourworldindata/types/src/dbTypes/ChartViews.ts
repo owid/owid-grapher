@@ -1,3 +1,4 @@
+import { JsonString } from "../domainTypes/Various.js"
 import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
 
 export const ChartViewsTableName = "chart_views"
@@ -6,6 +7,7 @@ export interface DbInsertChartView {
     name: string
     chartConfigId: string
     parentChartId: number
+    queryParamsForParentChart?: JsonString | null
     createdAt?: Date | null
     updatedAt?: Date | null
     lastEditedByUserId: number
