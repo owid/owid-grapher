@@ -18,6 +18,7 @@ export interface ContentSwitchersManager {
     activeTab?: GrapherTabName
     hasMultipleChartTypes?: boolean
     setTab: (tab: GrapherTabName) => void
+    onTabChange: (oldTab: GrapherTabName, newTab: GrapherTabName) => void
     isNarrow?: boolean
     isMedium?: boolean
     isLineChartThatTurnedIntoDiscreteBar?: boolean
@@ -112,8 +113,10 @@ export class ContentSwitchers extends React.Component<{
     }
 
     @action.bound setTab(tabIndex: number): void {
+        const oldTab = this.manager.activeTab
         const newTab = this.availableTabs[tabIndex]
         this.manager.setTab(newTab)
+        this.manager.onTabChange?.(oldTab!, newTab)
     }
 
     render(): React.ReactElement {
@@ -175,9 +178,11 @@ function TabIcon({
         case GRAPHER_TAB_NAMES.WorldMap:
             return <FontAwesomeIcon icon={faEarthAmericas} />
         default:
-            const chartIcon = isLineChartThatTurnedIntoDiscreteBar
-                ? chartIcons[GRAPHER_CHART_TYPES.DiscreteBar]
-                : chartIcons[tab]
+            const chartIcon =
+                tab === GRAPHER_TAB_NAMES.LineChart &&
+                isLineChartThatTurnedIntoDiscreteBar
+                    ? chartIcons[GRAPHER_CHART_TYPES.DiscreteBar]
+                    : chartIcons[tab]
             return chartIcon
     }
 }
@@ -193,9 +198,15 @@ function makeTabLabelText(
     if (tab === GRAPHER_TAB_NAMES.WorldMap) return "Map"
     if (!options.hasMultipleChartTypes) return "Chart"
 
+    if (
+        tab === GRAPHER_TAB_NAMES.LineChart &&
+        options.isLineChartThatTurnedIntoDiscreteBar
+    )
+        return "Bar"
+
     switch (tab) {
         case GRAPHER_TAB_NAMES.LineChart:
-            return options.isLineChartThatTurnedIntoDiscreteBar ? "Bar" : "Line"
+            return "Line"
         case GRAPHER_TAB_NAMES.SlopeChart:
             return "Slope"
 

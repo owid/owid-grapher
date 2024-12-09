@@ -409,11 +409,14 @@ export class DiscreteBarChart
             <g id={makeIdForHumanConsumption("entity-labels")}>
                 {this.placedSeries.map((series) => {
                     return (
-                        series.label &&
-                        series.label.render(
-                            series.entityLabelX,
-                            series.barY - series.label.height / 2,
-                            { textProps: style }
+                        series.label && (
+                            <React.Fragment key={series.seriesName}>
+                                {series.label.render(
+                                    series.entityLabelX,
+                                    series.barY - series.label.height / 2,
+                                    { textProps: style }
+                                )}
+                            </React.Fragment>
                         )
                     )
                 })}
@@ -990,6 +993,7 @@ function makeProjectedDataPattern(color: string): React.ReactElement {
     const size = 7
     return (
         <pattern
+            key={color}
             id={makeProjectedDataPatternId(color)}
             patternUnits="userSpaceOnUse"
             width={size}
