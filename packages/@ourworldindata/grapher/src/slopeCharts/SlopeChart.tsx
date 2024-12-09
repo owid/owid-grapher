@@ -51,6 +51,7 @@ import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     byInteractionState,
+    byHoverThenFocusState,
     getDefaultFailMessage,
     getInteractionStateForSeries,
     getShortNameForEntity,
@@ -88,6 +89,7 @@ import { Halo } from "@ourworldindata/components"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import {
+    BACKGROUND_LINE_COLOR,
     GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
 } from "../color/ColorConstants"
@@ -461,21 +463,25 @@ export class SlopeChart
             activeSeriesNames: this.hoveredSeriesNames,
         })
     }
+    @computed get focusArray(): InteractionArray {
+        return this.manager.focusArray ?? new InteractionArray()
+    }
 
     @computed private get renderSeries(): RenderSlopeChartSeries[] {
+        const { focusArray } = this
+
         const series: RenderSlopeChartSeries[] = this.placedSeries.map(
             (series) => {
                 return {
                     ...series,
                     hover: this.hoverStateForSeries(series),
+                    focus: focusArray.state(series.seriesName),
                 }
             }
         )
 
-        // sort by interaction state so that hovered series
-        // are drawn on top of background series
-        if (this.isHoverModeActive) {
-            return sortBy(series, byInteractionState)
+        if (this.isHoverModeActive || this.focusArray.hasActiveSeries) {
+            return sortBy(series, byHoverThenFocusState)
         }
 
         return series
@@ -624,6 +630,7 @@ export class SlopeChart
             textOutlineColor: this.backgroundColor,
             onMouseOver: this.onLineLegendMouseOver,
             onMouseLeave: this.onLineLegendMouseLeave,
+            onClick: this.onLineLegendClick,
         }
     }
 
@@ -823,6 +830,7 @@ export class SlopeChart
             placeFormattedValueInNewLine: this.useCompactLayout,
             yValue: value,
             hover: this.hoverStateForSeries(series),
+            focus: this.focusArray.state(seriesName),
         }
     }
 
@@ -937,6 +945,10 @@ export class SlopeChart
             // wait before clearing selection in case the mouse is moving quickly over neighboring labels
             this.hoveredSeriesName = undefined
         }, 200)
+    }
+
+    @action.bound onLineLegendClick(seriesName: SeriesName): void {
+        this.focusArray.toggle(seriesName)
     }
 
     @action.bound onSlopeMouseOver(series: SlopeChartSeries): void {
@@ -1117,7 +1129,6 @@ export class SlopeChart
                     <Slope
                         key={series.seriesName}
                         series={series}
-                        color={series.color}
                         strokeWidth={this.lineStrokeWidth}
                         outlineWidth={0.5}
                         outlineStroke={this.backgroundColor}
@@ -1282,36 +1293,31 @@ export class SlopeChart
 
 interface SlopeProps {
     series: RenderSlopeChartSeries
-    color: string
     dotRadius?: number
     strokeWidth?: number
     outlineWidth?: number
     outlineStroke?: string
-    onMouseOver?: (series: SlopeChartSeries) => void
-    onMouseLeave?: () => void
 }
 
 function Slope({
     series,
-    color,
     dotRadius = 2.5,
     strokeWidth = 2,
     outlineWidth = 0.5,
     outlineStroke = "#fff",
-    onMouseOver,
-    onMouseLeave,
 }: SlopeProps) {
-    const { seriesName, startPoint, endPoint } = series
+    const { seriesName, startPoint, endPoint, hover, focus } = series
 
-    const showOutline = !series.hover.background
-    const opacity = series.hover.background ? GRAPHER_OPACITY_MUTE : 1
+    const showOutline = !hover.background
+    const opacity =
+        hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
+    const color =
+        !focus.background || hover.active ? series.color : BACKGROUND_LINE_COLOR
 
     return (
         <g
             id={makeIdForHumanConsumption("slope", seriesName)}
             className="slope"
-            onMouseOver={() => onMouseOver?.(series)}
-            onMouseLeave={() => onMouseLeave?.()}
         >
             {showOutline && (
                 <LineWithDots
