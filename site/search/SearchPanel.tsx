@@ -781,6 +781,7 @@ export class InstantSearchContainer extends React.Component {
                             reset: "search-panel-reset-button",
                         }}
                         queryHook={this.handleQuery}
+                        autoFocus
                     />
                     <Filters
                         isHidden={!this.inputValue}
