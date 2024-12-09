@@ -1,11 +1,16 @@
 import React from "react"
-import { moveArrayItemToIndex, omit } from "@ourworldindata/utils"
+import {
+    differenceOfSets,
+    moveArrayItemToIndex,
+    omit,
+} from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     EntitySelectionMode,
     MissingDataStrategy,
     EntityName,
+    SeriesName,
 } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
 import { ColorBox, SelectField, Section, FieldsRow } from "./Forms.js"
@@ -27,6 +32,11 @@ import { AbstractChartEditor } from "./AbstractChartEditor.js"
 interface EntityItemProps extends React.HTMLProps<HTMLDivElement> {
     grapher: Grapher
     entityName: EntityName
+    onRemove?: () => void
+}
+
+interface SeriesItemProps extends React.HTMLProps<HTMLDivElement> {
+    seriesName: SeriesName
     onRemove?: () => void
 }
 
@@ -80,6 +90,32 @@ class EntityItem extends React.Component<EntityItemProps> {
                     />
                     {entityName}
                 </div>
+                <div className="clickable" onClick={this.onRemove}>
+                    <FontAwesomeIcon icon={faTimes} />
+                </div>
+            </div>
+        )
+    }
+}
+
+@observer
+class SeriesItem extends React.Component<SeriesItemProps> {
+    @action.bound onRemove() {
+        this.props.onRemove?.()
+    }
+
+    render() {
+        const { props } = this
+        const { seriesName } = props
+        const rest = omit(props, ["seriesName", "onRemove"])
+
+        return (
+            <div
+                className="list-group-item EditableListItem"
+                key={seriesName}
+                {...rest}
+            >
+                <div>{seriesName}</div>
                 <div className="clickable" onClick={this.onRemove}>
                     <FontAwesomeIcon icon={faTimes} />
                 </div>
@@ -217,6 +253,58 @@ export class KeysSection extends React.Component<{
 }
 
 @observer
+export class FocusSection extends React.Component<{
+    editor: AbstractChartEditor
+}> {
+    @computed get editor() {
+        return this.props.editor
+    }
+
+    @action.bound onFocusSeries(seriesName: SeriesName) {
+        this.editor.grapher.focusArray.activate(seriesName)
+    }
+
+    render() {
+        const { editor } = this
+        const { grapher } = editor
+
+        const seriesNameSet = new Set(grapher.chartSeriesNames)
+        const focusedSeriesNameSet = grapher.focusArray.activeSeriesNameSet
+        const availableSeriesNameSet = differenceOfSets<string>([
+            seriesNameSet,
+            focusedSeriesNameSet,
+        ])
+
+        const availableSeriesNames: SeriesName[] = Array.from(
+            availableSeriesNameSet
+        )
+        const focusedSeriesNames: SeriesName[] =
+            Array.from(focusedSeriesNameSet)
+
+        return (
+            <Section name="Data to highlight">
+                <FieldsRow>
+                    <SelectField
+                        onValue={this.onFocusSeries}
+                        value="Select data"
+                        options={["Select data"]
+                            .concat(availableSeriesNames)
+                            .map((key) => ({ value: key }))}
+                    />
+                </FieldsRow>
+                {focusedSeriesNames.map((seriesName) => (
+                    <SeriesItem
+                        key={seriesName}
+                        seriesName={seriesName}
+                        onRemove={() => grapher.focusArray.toggle(seriesName)}
+                    />
+                ))}
+            </Section>
+        )
+    }
+}
+
+@observer
 class MissingDataSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<{ editor: Editor }> {
@@ -332,6 +420,7 @@ export class EditorDataTab<
                     </div>
                 </Section>
                 <KeysSection editor={editor} />
+                <FocusSection editor={editor} />
                 {features.canSpecifyMissingDataStrategy && (
                     <MissingDataSection editor={this.props.editor} />
                 )}

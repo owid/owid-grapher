@@ -12,6 +12,10 @@ export class InteractionArray {
 
     @observable private activeSet: Set<SeriesName>
 
+    @computed get activeSeriesNameSet(): Set<SeriesName> {
+        return this.activeSet
+    }
+
     @computed get activeSeriesNames(): SeriesName[] {
         return Array.from(this.activeSet)
     }

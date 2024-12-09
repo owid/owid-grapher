@@ -874,6 +874,10 @@ export class Grapher
         return new ChartClass({ manager: this })
     }
 
+    @computed get chartSeriesNames(): SeriesName[] {
+        return this.chartInstance.series.map((series) => series.seriesName)
+    }
+
     @computed get table(): OwidTable {
         return this.tableAfterAuthorTimelineFilter
     }
