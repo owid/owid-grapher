@@ -536,14 +536,16 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     // assumes table is sorted by time
     @imemo get owidRows(): OwidVariableRow<JS_TYPE>[] {
         const entities = this.allEntityNames
-        const times = this.originalTimes
+        const times = this.allTimes
         const values = this.values
+        const originalTimes = this.originalTimes
         const originalValues = this.originalValues
-        return range(0, times.length).map((index) => {
+        return range(0, originalTimes.length).map((index) => {
             return omitUndefinedValues({
                 entityName: entities[index],
                 time: times[index],
                 value: values[index],
+                originalTime: originalTimes[index],
                 originalValue: originalValues[index],
             })
         })
@@ -563,6 +565,23 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // todo: remove? Should not be on CoreTable
+    @imemo get owidRowByEntityNameAndTime(): Map<
+        EntityName,
+        Map<Time, OwidVariableRow<JS_TYPE>>
+    > {
+        const valueByEntityNameAndTime = new Map<
+            EntityName,
+            Map<Time, OwidVariableRow<JS_TYPE>>
+        >()
+        this.owidRows.forEach((row) => {
+            if (!valueByEntityNameAndTime.has(row.entityName))
+                valueByEntityNameAndTime.set(row.entityName, new Map())
+            valueByEntityNameAndTime.get(row.entityName)!.set(row.time, row)
+        })
+        return valueByEntityNameAndTime
+    }
+
+    // todo: remove? Should not be on CoreTable
     // NOTE: this uses the original times, so any tolerance is effectively unapplied.
     @imemo get valueByEntityNameAndOriginalTime(): Map<
         EntityName,
@@ -577,7 +596,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
                 valueByEntityNameAndTime.set(row.entityName, new Map())
             valueByEntityNameAndTime
                 .get(row.entityName)!
-                .set(row.time, row.value)
+                .set(row.originalTime, row.value)
         })
         return valueByEntityNameAndTime
     }

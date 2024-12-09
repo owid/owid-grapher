@@ -884,7 +884,10 @@ export class Grapher
             )
 
         if (this.isOnSlopeChartTab)
-            return table.filterByTargetTimes([startTime, endTime])
+            return table.filterByTargetTimes(
+                [startTime, endTime],
+                table.get(this.yColumnSlugs[0]).tolerance
+            )
 
         return table.filterByTimeRange(startTime, endTime)
     }
