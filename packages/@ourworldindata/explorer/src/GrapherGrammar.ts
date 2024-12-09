@@ -3,6 +3,7 @@ import {
     ColorSchemeName,
     FacetAxisDomain,
     FacetStrategy,
+    GRAPHER_CHART_TYPES,
     GRAPHER_TAB_OPTIONS,
     MissingDataStrategy,
     StackMode,
@@ -66,10 +67,11 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         description: `The type of chart to show such as LineChart or ScatterPlot. If set to None, then the chart tab is hidden.`,
         terminalOptions: toTerminalOptions([
             ...ALL_GRAPHER_CHART_TYPES,
+            `${GRAPHER_CHART_TYPES.LineChart} ${GRAPHER_CHART_TYPES.SlopeChart}`,
             "None",
         ]),
         toGrapherObject: (value) => ({
-            chartTypes: value === "None" ? [] : [value],
+            chartTypes: value === "None" ? [] : value.split(" "),
         }),
     },
     grapherId: {
