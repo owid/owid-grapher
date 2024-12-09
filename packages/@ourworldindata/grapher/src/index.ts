@@ -78,6 +78,7 @@ export {
     getSelectedEntityNamesParam,
     generateSelectedEntityNamesParam,
 } from "./core/EntityUrlBuilder"
+export { grapherConfigToQueryParams } from "./core/GrapherUrl.js"
 export {
     type SlideShowManager,
     SlideShowController,

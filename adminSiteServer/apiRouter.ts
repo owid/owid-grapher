@@ -111,6 +111,7 @@ import {
     DbInsertChartView,
     CHART_VIEW_PROPS_TO_PERSIST,
     CHART_VIEW_PROPS_TO_OMIT,
+    JsonString,
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
 import {
@@ -118,6 +119,7 @@ import {
     getVariableDataRoute,
     getVariableMetadataRoute,
     defaultGrapherConfig,
+    grapherConfigToQueryParams,
 } from "@ourworldindata/grapher"
 import { getDatasetById, setTagsForDataset } from "../db/model/Dataset.js"
 import { getUserById, insertUser, updateUser } from "../db/model/User.js"
@@ -3291,7 +3293,7 @@ postRouteWithRWTransaction(apiRouter, "/tagGraph", async (req, res, trx) => {
     res.send({ success: true })
 })
 
-const createPatchConfigAndFullConfigForChartView = async (
+const createPatchConfigAndQueryParamsForChartView = async (
     knex: db.KnexReadonlyTransaction,
     parentChartId: number,
     config: GrapherInterface
@@ -3316,8 +3318,10 @@ const createPatchConfigAndFullConfigForChartView = async (
         ...pick(fullConfigIncludingDefaults, CHART_VIEW_PROPS_TO_PERSIST),
     }
 
+    const queryParams = grapherConfigToQueryParams(config)
+
     const fullConfig = mergeGrapherConfigs(parentChartConfig, patchConfigToSave)
-    return { patchConfig: patchConfigToSave, fullConfig }
+    return { patchConfig: patchConfigToSave, fullConfig, queryParams }
 }
 
 getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
@@ -3378,10 +3382,11 @@ getRouteWithROTransaction(
         > & {
             lastEditedByUser: string
             chartConfigId: string
-            configFull: string
-            configPatch: string
+            configFull: JsonString
+            configPatch: JsonString
             parentChartId: number
-            parentConfigFull: string
+            parentConfigFull: JsonString
+            queryParamsForParentChart: JsonString
         }
 
         const row = await db.knexRawFirst<ChartViewRow>(
@@ -3396,7 +3401,8 @@ getRouteWithROTransaction(
             cc.full as configFull,
             cc.patch as configPatch,
             cv.parentChartId,
-            pcc.full as parentConfigFull
+            pcc.full as parentConfigFull,
+            cv.queryParamsForParentChart
         FROM chart_views cv
         JOIN chart_configs cc ON cv.chartConfigId = cc.id
         JOIN charts pc ON cv.parentChartId = pc.id
@@ -3416,6 +3422,9 @@ getRouteWithROTransaction(
             configFull: parseChartConfig(row.configFull),
             configPatch: parseChartConfig(row.configPatch),
             parentConfigFull: parseChartConfig(row.parentConfigFull),
+            queryParamsForParentChart: JSON.parse(
+                row.queryParamsForParentChart
+            ),
         }
 
         return chartView
@@ -3432,8 +3441,8 @@ postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
         throw new JsonError("Invalid request", 400)
     }
 
-    const { patchConfig, fullConfig } =
-        await createPatchConfigAndFullConfigForChartView(
+    const { patchConfig, fullConfig, queryParams } =
+        await createPatchConfigAndQueryParamsForChartView(
             trx,
             parentChartId,
             rawConfig
@@ -3452,6 +3461,7 @@ postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
         parentChartId,
         lastEditedByUserId: res.locals.user.id,
         chartConfigId: chartConfigId,
+        queryParamsForParentChart: JSON.stringify(queryParams),
     }
     const result = await trx.table(ChartViewsTableName).insert(insertRow)
     const [resultId] = result
@@ -3481,8 +3491,8 @@ putRouteWithRWTransaction(
             throw new JsonError(`No chart view found for id ${id}`, 404)
         }
 
-        const { patchConfig, fullConfig } =
-            await createPatchConfigAndFullConfigForChartView(
+        const { patchConfig, fullConfig, queryParams } =
+            await createPatchConfigAndQueryParamsForChartView(
                 trx,
                 existingRow.parentChartId,
                 rawConfig
@@ -3496,10 +3506,14 @@ putRouteWithRWTransaction(
         )
 
         // update chart_views
-        await trx.table(ChartViewsTableName).where({ id }).update({
-            updatedAt: new Date(),
-            lastEditedByUserId: res.locals.user.id,
-        })
+        await trx
+            .table(ChartViewsTableName)
+            .where({ id })
+            .update({
+                updatedAt: new Date(),
+                lastEditedByUserId: res.locals.user.id,
+                queryParamsForParentChart: JSON.stringify(queryParams),
+            })
 
         return { success: true }
     }
