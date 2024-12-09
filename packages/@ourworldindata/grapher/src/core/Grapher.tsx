@@ -111,6 +111,7 @@ import {
     GRAPHER_TAB_NAMES,
     GRAPHER_TAB_QUERY_PARAMS,
     GrapherTabOption,
+    SeriesName,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -144,7 +145,10 @@ import {
 import { TooltipManager } from "../tooltip/TooltipProps"
 
 import { DimensionSlot } from "../chart/DimensionSlot"
-import { getSelectedEntityNamesParam } from "./EntityUrlBuilder"
+import {
+    getSelectedEntityNamesParam,
+    getSelectedEntityNamesFromQueryParam,
+} from "./EntityUrlBuilder"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { MapConfig } from "../mapCharts/MapConfig"
@@ -439,6 +443,7 @@ export class Grapher
         are evaluated afterwards and can still remove entities even if they were included before.
      */
     @observable includedEntities?: number[] = undefined
+    @observable focusedSeriesNames?: SeriesName[] = undefined
     @observable comparisonLines?: ComparisonLineConfig[] = undefined // todo: Persistables?
     @observable relatedQuestions?: RelatedQuestionsConfig[] = undefined // todo: Persistables?
 
@@ -565,6 +570,7 @@ export class Grapher
         )
 
         obj.selectedEntityNames = this.selection.selectedEntityNames
+        obj.focusedSeriesNames = this.focusArray.activeSeriesNames
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
@@ -605,6 +611,9 @@ export class Grapher
         // update selection
         if (obj.selectedEntityNames)
             this.selection.setSelectedEntities(obj.selectedEntityNames)
+
+        if (obj.focusedSeriesNames)
+            this.focusArray.clearAllAndActivate(...obj.focusedSeriesNames)
 
         // JSON doesn't support Infinity, so we use strings instead.
         this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
@@ -681,6 +690,14 @@ export class Grapher
 
         if (this.addCountryMode !== EntitySelectionMode.Disabled && selection)
             this.selection.setSelectedEntities(selection)
+
+        const focusedSeriesNames =
+            params.focus !== undefined
+                ? getSelectedEntityNamesFromQueryParam(params.focus)
+                : undefined
+        if (focusedSeriesNames) {
+            this.focusArray.clearAllAndActivate(...focusedSeriesNames)
+        }
 
         // faceting
         if (params.facet && params.facet in FacetStrategy) {
@@ -2539,6 +2556,8 @@ export class Grapher
             this.props.table?.availableEntities ?? []
         )
 
+    focusArray = new InteractionArray()
+
     @computed get availableEntities(): Entity[] {
         return this.tableForSelection.availableEntities
     }
@@ -3182,6 +3201,10 @@ export class Grapher
                         )
                     }
                 }
+            ),
+            reaction(
+                () => this.facetStrategy,
+                () => this.focusArray.clear()
             )
         )
         if (this.props.bindUrlToWindow) this.bindToWindow()
@@ -3382,6 +3405,30 @@ export class Grapher
             entityNamesThatTheUserDeselected.length
         )
             return this.selection.selectedEntityNames
+
+        return undefined
+    }
+
+    @computed get focusedSeriesNamesIfDifferentThanAuthors():
+        | SeriesName[]
+        | undefined {
+        const authoredConfig = this.legacyConfigAsAuthored
+
+        const originalFocusedSeriesNames =
+            authoredConfig.focusedSeriesNames ?? []
+        const currentFocusedSeriesNames = this.focusArray.activeSeriesNames
+
+        const seriesNamesThatTheUserDeselected = difference(
+            currentFocusedSeriesNames,
+            originalFocusedSeriesNames
+        )
+
+        if (
+            currentFocusedSeriesNames.length !==
+                originalFocusedSeriesNames.length ||
+            seriesNamesThatTheUserDeselected.length
+        )
+            return this.focusArray.activeSeriesNames
 
         return undefined
     }

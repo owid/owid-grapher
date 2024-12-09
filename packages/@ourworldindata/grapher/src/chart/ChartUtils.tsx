@@ -192,18 +192,6 @@ export function findValidChartTypeCombination(
     return undefined
 }
 
-/** Useful for sorting series by their interaction state */
-export function byInteractionState(series: {
-    hover: InteractionState
-}): number {
-    // background series rank lowest
-    if (series.hover.background) return 1
-    // active series rank highest
-    if (series.hover.active) return 3
-    // series in their default state rank in the middle
-    return 2
-}
-
 export function getInteractionStateForSeries(
     series: ChartSeries,
     props: {
@@ -223,4 +211,24 @@ export function getInteractionStateForSeries(
     const active = activeSeriesNames.includes(series.seriesName)
     const background = isInteractionModeActive && !active
     return { active, background }
+}
+
+/** Useful for sorting series by their interaction state */
+export function byInteractionState(state: InteractionState): number {
+    // background series rank lowest
+    if (state.background) return 1
+    // active series rank highest
+    if (state.active) return 3
+    // series in their default state rank in the middle
+    return 2
+}
+
+/** Useful for sorting series by their interaction state */
+export function byHoverThenFocusState(series: {
+    hover: InteractionState
+    focus: InteractionState
+}): number {
+    const hoverScore = byInteractionState(series.hover)
+    const focusScore = byInteractionState(series.focus)
+    return hoverScore * 10 + focusScore
 }

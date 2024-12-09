@@ -143,13 +143,17 @@ export const migrateSelectedEntityNamesParam: UrlMigration = (
  * Accessors
  */
 
+export const getSelectedEntityNamesFromQueryParam = (
+    queryParam: string
+): EntityName[] => entityNamesFromV2Param(queryParam).map(codeToEntityName)
+
 export const getSelectedEntityNamesParam = (
     url: Url
 ): EntityName[] | undefined => {
     // Expects an already-migrated URL as input
     const { country } = url.queryParams
     return country !== undefined
-        ? entityNamesFromV2Param(country).map(codeToEntityName)
+        ? getSelectedEntityNamesFromQueryParam(country)
         : undefined
 }
 
