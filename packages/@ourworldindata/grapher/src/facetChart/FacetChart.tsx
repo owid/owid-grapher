@@ -295,7 +295,9 @@ export class FacetChart
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
             const showLegend = !this.hideFacetLegends
+
             const hidePoints = true
+            const hideNoDataSection = true
 
             // NOTE: The order of overrides is important!
             // We need to preserve most config coming in.
@@ -319,6 +321,7 @@ export class FacetChart
                 endTime,
                 missingDataStrategy,
                 backgroundColor,
+                hideNoDataSection,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
@@ -756,7 +759,8 @@ export class FacetChart
         )
         if (this.facetStrategy === FacetStrategy.metric && newBins.length <= 1)
             return []
-        return newBins
+        const sortedBins = sortBy(newBins, (bin) => bin.label)
+        return sortedBins
     }
 
     @observable.ref private legendHoverBin: ColorScaleBin | undefined =
