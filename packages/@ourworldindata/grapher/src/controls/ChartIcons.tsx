@@ -93,18 +93,22 @@ export const chartIcons: Record<GrapherChartType, React.ReactElement> = {
     [GRAPHER_CHART_TYPES.SlopeChart]: (
         <svg
             className="custom-icon slope"
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
             fill="none"
         >
             <g
                 stroke="currentColor"
+                strokeWidth="1.6"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="1.6"
             >
-                <path d="M1 1v11.267h12M3.6 7.933 12.267 3.6" />
+                <path d="M2 2.30005V13.5667" />
+                <path d="M14 2.30005V13.5667" />
+                <path d="M2 3.30005L14 12.3" />
+                <path d="M2 11L14 12" />
+                <path d="M14 4.30005L2 9.30005" />
             </g>
         </svg>
     ),
