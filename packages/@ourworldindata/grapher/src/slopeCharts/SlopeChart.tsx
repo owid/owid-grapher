@@ -20,8 +20,6 @@ import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     BASE_FONT_SIZE,
-    GRAPHER_BACKGROUND_DEFAULT,
-    GRAPHER_DARK_TEXT,
     GRAPHER_FONT_SCALE_12,
     GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants"
@@ -89,6 +87,10 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { Halo } from "@ourworldindata/components"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
+import {
+    GRAPHER_BACKGROUND_DEFAULT,
+    GRAPHER_DARK_TEXT,
+} from "../color/ColorConstants"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>

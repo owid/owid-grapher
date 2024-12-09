@@ -95,7 +95,12 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import { OwidNoDataGray } from "../color/ColorConstants"
+import {
+    BACKGROUND_DOT_COLOR,
+    BACKGROUND_LINE_COLOR,
+    GRAPHER_BACKGROUND_DEFAULT,
+    OWID_NO_DATA_GRAY,
+} from "../color/ColorConstants"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import { darkenColorForLine } from "../color/ColorUtils"

@@ -12,10 +12,9 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
-    GRAPHER_DARK_TEXT,
-    GRAPHER_LIGHT_TEXT,
 } from "../core/GrapherConstants"
 import { Halo } from "@ourworldindata/components"
+import { GRAPHER_DARK_TEXT, GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
 
 export interface NoDataModalManager {
     canChangeEntity?: boolean

@@ -91,7 +91,7 @@ import {
 } from "./ScatterPlotChartConstants"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
-import { OwidNoDataGray } from "../color/ColorConstants"
+import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,
@@ -1038,7 +1038,7 @@ export class ScatterPlotChart
     }
 
     defaultBaseColorScheme = ColorSchemeName.continents
-    defaultNoDataColor = OwidNoDataGray
+    defaultNoDataColor = OWID_NO_DATA_GRAY
 
     @computed get hasNoDataBin(): boolean {
         if (this.colorColumn.isMissing) return false

@@ -11,11 +11,8 @@ import {
 } from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
-    GRAPHER_BACKGROUND_DEFAULT,
-    GRAPHER_DARK_TEXT,
     GRAPHER_FONT_SCALE_10,
     GRAPHER_FONT_SCALE_11,
-    GRAPHER_LIGHT_TEXT,
 } from "../core/GrapherConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
@@ -26,6 +23,11 @@ import {
     SCATTER_POINT_DEFAULT_RADIUS,
 } from "./ScatterPlotChartConstants"
 import { darkenColorForText } from "../color/ColorUtils"
+import {
+    GRAPHER_BACKGROUND_DEFAULT,
+    GRAPHER_DARK_TEXT,
+    GRAPHER_LIGHT_TEXT,
+} from "../color/ColorConstants"
 
 export interface ScatterSizeLegendManager {
     sidebarWidth: number
