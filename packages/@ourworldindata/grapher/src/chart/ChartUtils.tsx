@@ -7,6 +7,8 @@ import {
     GrapherChartType,
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_QUERY_PARAMS,
+    InteractionState,
+    SeriesName,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -17,6 +19,8 @@ import {
     GRAPHER_SETTINGS_CLASS,
     validChartTypeCombinations,
 } from "../core/GrapherConstants"
+import { ChartSeries } from "./ChartInterface"
+import { ColorScaleBin } from "../color/ColorScaleBin"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
@@ -187,4 +191,22 @@ export function findValidChartTypeCombination(
             return validCombination
     }
     return undefined
+}
+
+/** Useful for sorting series by their interaction state */
+export function byInteractionState(series: {
+    hover: InteractionState
+}): number {
+    if (series.hover.background) return 1
+    if (series.hover.active) return 3
+    return 2
+}
+
+export function findSeriesNamesContainedInBin(
+    series: readonly ChartSeries[],
+    bin: ColorScaleBin
+): SeriesName[] {
+    return series
+        .map(({ seriesName }) => seriesName)
+        .filter((seriesName) => bin.contains(seriesName))
 }

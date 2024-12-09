@@ -111,6 +111,7 @@ import {
     makeTooltipRoundingNotice,
 } from "../tooltip/Tooltip"
 import { NoDataSection } from "./NoDataSection"
+import { InteractionArray } from "../selection/InteractionArray"
 
 function computeSizeDomain(table: OwidTable, slug: ColumnSlug): ValueRange {
     const sizeValues = table.get(slug).values.filter(isNumber)
@@ -130,8 +131,8 @@ export class ScatterPlotChart
         VerticalColorLegendManager,
         ColorScaleManager
 {
-    // currently hovered legend color
-    @observable private hoverColor?: Color
+    private hoverArray = new InteractionArray()
+
     // current hovered individual series + tooltip position
     @observable tooltipState = new TooltipState<{
         series: ScatterSeries
@@ -409,12 +410,18 @@ export class ScatterPlotChart
 
     @action.bound onLegendMouseOver(color: string): void {
         if (isTouchDevice()) return
-        this.hoverColor = color
+        this.hoverArray.clearAllAndActivate(
+            ...uniq(
+                this.series
+                    .filter((series) => series.color === color)
+                    .map((series) => series.seriesName)
+            )
+        )
     }
 
     @action.bound onLegendMouseLeave(): void {
         if (isTouchDevice()) return
-        this.hoverColor = undefined
+        this.hoverArray.clear()
     }
 
     // When the color legend is clicked, toggle selection fo all associated keys
@@ -454,22 +461,10 @@ export class ScatterPlotChart
 
     // All currently hovered series keys, combining the legend and the main UI
     @computed private get hoveredSeriesNames(): string[] {
-        const { hoverColor, tooltipState } = this
-
-        const hoveredSeriesNames =
-            hoverColor === undefined
-                ? []
-                : uniq(
-                      this.series
-                          .filter((g) => g.color === hoverColor)
-                          .map((g) => g.seriesName)
-                  )
-
-        if (tooltipState.target) {
-            hoveredSeriesNames.push(tooltipState.target.series.seriesName)
-        }
-
-        return hoveredSeriesNames
+        return excludeUndefined([
+            ...this.hoverArray.activeSeriesNames,
+            this.tooltipState.target?.series.seriesName,
+        ])
     }
 
     @computed private get focusedEntityNames(): string[] {

@@ -18,7 +18,7 @@ import {
     max,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
-import { RenderMode, SeriesName } from "@ourworldindata/types"
+import { InteractionState, SeriesName } from "@ourworldindata/types"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_AREA_OPACITY_MUTE,
@@ -64,22 +64,22 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
 
 const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
 
-const AREA_OPACITY: Partial<Record<RenderMode, number>> = {
+const AREA_OPACITY = {
     default: GRAPHER_AREA_OPACITY_DEFAULT,
     focus: GRAPHER_AREA_OPACITY_FOCUS,
     mute: GRAPHER_AREA_OPACITY_MUTE,
-}
+} as const
 
-const BORDER_OPACITY: Partial<Record<RenderMode, number>> = {
+const BORDER_OPACITY = {
     default: 0.7,
     focus: 1,
     mute: 0.3,
-}
+} as const
 
-const BORDER_WIDTH: Partial<Record<RenderMode, number>> = {
+const BORDER_WIDTH = {
     default: 0.5,
-    mute: 1.5,
-}
+    focus: 1.5,
+} as const
 
 @observer
 class Areas extends React.Component<AreasProps> {
@@ -294,6 +294,14 @@ export class StackedAreaChart extends AbstractStackedChart {
         })
     }
 
+    private hoverStateForSeries(
+        series: StackedSeries<number>
+    ): InteractionState {
+        const active = this.focusedSeriesName === series.seriesName
+        const background = !!this.focusedSeriesName && !active
+        return { active, background }
+    }
+
     @computed get lineLegendSeries(): LineLabelSeries[] {
         const { midpoints } = this
         return this.series
@@ -303,6 +311,7 @@ export class StackedAreaChart extends AbstractStackedChart {
                 label: series.seriesName,
                 yValue: midpoints[index],
                 isAllZeros: series.isAllZeros,
+                hover: this.hoverStateForSeries(series),
             }))
             .filter((series) => !series.isAllZeros)
             .reverse()
@@ -344,7 +353,6 @@ export class StackedAreaChart extends AbstractStackedChart {
         extend(this.tooltipState.target, { series: undefined })
     }
 
-    @observable lineLegendHoveredSeriesName?: SeriesName
     @observable private hoverTimer?: NodeJS.Timeout
 
     @computed protected get paddingForLegendRight(): number {
@@ -394,42 +402,24 @@ export class StackedAreaChart extends AbstractStackedChart {
 
     @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {
         clearTimeout(this.hoverTimer)
-        this.lineLegendHoveredSeriesName = seriesName
+        this.hoverArray.clearAllAndActivate(seriesName)
     }
 
     @action.bound onLineLegendMouseLeave(): void {
         clearTimeout(this.hoverTimer)
         this.hoverTimer = setTimeout(() => {
             // wait before clearing selection in case the mouse is moving quickly over neighboring labels
-            this.lineLegendHoveredSeriesName = undefined
+            this.hoverArray.clear()
         }, 200)
-    }
-
-    @computed get facetLegendHoveredSeriesName(): SeriesName | undefined {
-        const { externalLegendHoverBin } = this.manager
-        if (!externalLegendHoverBin) return undefined
-        // stacked area charts can't plot the same entity or column multiple times,
-        // so we just find the first series that matches the hovered legend item
-        const hoveredSeries = this.rawSeries.find((series) =>
-            externalLegendHoverBin.contains(series.seriesName)
-        )
-        return hoveredSeries?.seriesName
     }
 
     @computed get focusedSeriesName(): SeriesName | undefined {
         return (
             // if the chart area is hovered
             this.tooltipState.target?.series ??
-            // if the line legend is hovered
-            this.lineLegendHoveredSeriesName ??
-            // if the facet legend is hovered
-            this.facetLegendHoveredSeriesName
+            // if the line legend or facet legend is hovered
+            this.hoverArray.first
         )
-    }
-
-    // used by the line legend component
-    @computed get focusedSeriesNames(): string[] {
-        return this.focusedSeriesName ? [this.focusedSeriesName] : []
     }
 
     @action.bound private onCursorMove(
@@ -483,7 +473,7 @@ export class StackedAreaChart extends AbstractStackedChart {
         if (!this.manager.shouldPinTooltipToBottom) {
             this.dismissTooltip()
         }
-        this.lineLegendHoveredSeriesName = undefined
+        this.hoverArray.clear()
     }
 
     @computed private get activeXVerticalLine():
@@ -665,7 +655,6 @@ export class StackedAreaChart extends AbstractStackedChart {
                 fontSize={this.fontSize}
                 seriesSortedByImportance={this.seriesSortedByImportance}
                 isStatic={this.isStatic}
-                focusedSeriesNames={this.focusedSeriesNames}
                 onMouseOver={this.onLineLegendMouseOver}
                 onMouseLeave={this.onLineLegendMouseLeave}
             />
