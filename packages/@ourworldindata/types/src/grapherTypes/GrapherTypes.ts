@@ -585,6 +585,7 @@ export interface GrapherInterface extends SortConfig {
     includedEntities?: number[]
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string | undefined }
+    focusedSeriesNames?: SeriesName[]
     missingDataStrategy?: MissingDataStrategy
     hideFacetControl?: boolean
     facettingLabelByYVariables?: string
@@ -611,6 +612,7 @@ export interface LegacyGrapherInterface extends GrapherInterface {
 // See https://stackoverflow.com/q/64970414
 export type GrapherQueryParams = {
     country?: string
+    focus?: string
     tab?: string
     overlay?: string
     stackMode?: string
@@ -634,6 +636,7 @@ export type LegacyGrapherQueryParams = GrapherQueryParams & {
 // ... so GRAPHER_QUERY_PARAM_KEYS below is guaranteed to have all keys of LegacyGrapherQueryParams
 const GRAPHER_ALL_QUERY_PARAMS: Required<LegacyGrapherQueryParams> = {
     country: "",
+    focus: "",
     tab: "",
     overlay: "",
     stackMode: "",
@@ -704,6 +707,7 @@ export const grapherKeysToSerialize = [
     "dimensions",
     "selectedEntityNames",
     "selectedEntityColors",
+    "focusedSeriesNames",
     "sortBy",
     "sortOrder",
     "sortColumnSlug",

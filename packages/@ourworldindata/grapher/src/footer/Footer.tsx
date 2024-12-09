@@ -19,8 +19,8 @@ import { ActionButtons } from "../controls/ActionButtons"
 import {
     BASE_FONT_SIZE,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
-    GRAPHER_DARK_TEXT,
 } from "../core/GrapherConstants"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 
 /*
 

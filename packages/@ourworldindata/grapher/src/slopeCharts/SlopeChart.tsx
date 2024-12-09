@@ -18,12 +18,7 @@ import {
 import { observable, computed, action, reaction } from "mobx"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import {
-    BASE_FONT_SIZE,
-    GRAPHER_BACKGROUND_DEFAULT,
-    GRAPHER_DARK_TEXT,
-    GRAPHER_FONT_SCALE_12,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
 import {
     ScaleType,
     SeriesName,
@@ -50,8 +45,8 @@ import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
-    byInteractionState,
     findSeriesNamesContainedInBin,
+    byHoverThenFocusState,
     getDefaultFailMessage,
     getShortNameForEntity,
     makeSelectionArray,
@@ -88,6 +83,11 @@ import { Halo } from "../halo/Halo"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { InteractionArray } from "../selection/InteractionArray"
+import {
+    BACKGROUND_LINE_COLOR,
+    GRAPHER_BACKGROUND_DEFAULT,
+    GRAPHER_DARK_TEXT,
+} from "../color/ColorConstants"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -442,20 +442,28 @@ export class SlopeChart
         })
     }
 
+    @computed get focusArray(): InteractionArray {
+        return this.manager.focusArray ?? new InteractionArray()
+    }
+
     @computed private get renderSeries(): RenderSlopeChartSeries[] {
-        const { hoverArray } = this
+        const { hoverArray, focusArray } = this
 
         const series: RenderSlopeChartSeries[] = this.placedSeries.map(
             (series) => {
                 return {
                     ...series,
                     hover: hoverArray.state(series.seriesName),
+                    focus: focusArray.state(series.seriesName),
                 }
             }
         )
 
-        if (this.hoverArray.hasActiveSeries) {
-            return sortBy(series, byInteractionState)
+        if (
+            this.hoverArray.hasActiveSeries ||
+            this.focusArray.hasActiveSeries
+        ) {
+            return sortBy(series, byHoverThenFocusState)
         }
 
         return series
@@ -605,6 +613,7 @@ export class SlopeChart
             textOutlineColor: this.backgroundColor,
             onMouseOver: this.onLineLegendMouseOver,
             onMouseLeave: this.onLineLegendMouseLeave,
+            onClick: this.onLineLegendClick,
         }
     }
 
@@ -790,6 +799,7 @@ export class SlopeChart
             placeFormattedValueInNewLine: this.useCompactLayout,
             yValue: value,
             hover: this.hoverArray.state(seriesName),
+            focus: this.focusArray.state(seriesName),
         }
     }
 
@@ -924,6 +934,10 @@ export class SlopeChart
             // wait before clearing selection in case the mouse is moving quickly over neighboring labels
             this.hoverArray.clear()
         }, 200)
+    }
+
+    @action.bound onLineLegendClick(seriesName: SeriesName): void {
+        this.focusArray.toggle(seriesName)
     }
 
     @action.bound onSlopeMouseOver(series: SlopeChartSeries): void {
@@ -1104,7 +1118,6 @@ export class SlopeChart
                     <Slope
                         key={series.seriesName}
                         series={series}
-                        color={series.color}
                         strokeWidth={this.lineStrokeWidth}
                         outlineWidth={0.5}
                         outlineStroke={this.backgroundColor}
@@ -1266,37 +1279,30 @@ export class SlopeChart
 
 interface SlopeProps {
     series: RenderSlopeChartSeries
-    color: string
     dotRadius?: number
     strokeWidth?: number
     outlineWidth?: number
     outlineStroke?: string
-    onMouseOver?: (series: SlopeChartSeries) => void
-    onMouseLeave?: () => void
 }
 
 function Slope({
     series,
-    color,
     dotRadius = 2.5,
     strokeWidth = 2,
     outlineWidth = 0.5,
     outlineStroke = "#fff",
-    onMouseOver,
-    onMouseLeave,
 }: SlopeProps) {
-    const { seriesName, startPoint, endPoint } = series
+    const { seriesName, startPoint, endPoint, hover, focus } = series
 
-    const isInBackground = series.hover.background
-    const showOutline = !isInBackground
-    const opacity = isInBackground ? 0.3 : 1
+    const showOutline = !hover.background
+    const opacity = hover.background && !focus.background ? 0.3 : 1
+    const color =
+        !focus.background || hover.active ? series.color : BACKGROUND_LINE_COLOR
 
     return (
         <g
             id={makeIdForHumanConsumption("slope", seriesName)}
             className="slope"
-            onMouseOver={() => onMouseOver?.(series)}
-            onMouseLeave={() => onMouseLeave?.()}
         >
             {showOutline && (
                 <LineWithDots

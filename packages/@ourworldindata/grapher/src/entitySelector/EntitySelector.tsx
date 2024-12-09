@@ -50,6 +50,7 @@ import { ColumnSlug, OwidColumnDef } from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
+import { InteractionArray } from "../selection/InteractionArray"
 
 export interface EntitySelectorState {
     searchInput: string
@@ -70,6 +71,7 @@ export interface EntitySelectorManager {
     isEntitySelectorModalOrDrawerOpen?: boolean
     canChangeEntity?: boolean
     canHighlightEntities?: boolean
+    focusArray?: InteractionArray
 }
 
 interface SortConfig {
@@ -603,7 +605,10 @@ export class EntitySelector extends React.Component<{
             this.selectionArray.setSelectedEntities([entityName])
         }
 
-        this.clearSearchInput()
+        // remove focus from an entity that has been removed from the selection
+        if (!this.selectionArray.isSelected(entityName)) {
+            this.manager.focusArray?.deactivate(entityName)
+        }
 
         // close the modal or drawer automatically after selection if in single mode
         if (

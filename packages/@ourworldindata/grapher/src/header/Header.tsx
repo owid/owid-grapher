@@ -16,8 +16,8 @@ import {
     BASE_FONT_SIZE,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
-    GRAPHER_DARK_TEXT,
 } from "../core/GrapherConstants"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 
 interface HeaderProps {
     manager: HeaderManager

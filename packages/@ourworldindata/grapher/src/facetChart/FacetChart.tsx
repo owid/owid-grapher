@@ -21,7 +21,7 @@ import {
 } from "@ourworldindata/utils"
 import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
-import { BASE_FONT_SIZE, GRAPHER_DARK_TEXT } from "../core/GrapherConstants"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import {
     GRAPHER_CHART_TYPES,
     GrapherChartType,
@@ -64,6 +64,7 @@ import {
     ColorScaleBin,
     NumericBin,
 } from "../color/ColorScaleBin"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
 
@@ -479,6 +480,7 @@ export class FacetChart
             const manager = {
                 ...series.manager,
                 useValueBasedColorScheme,
+                focusArray: this.manager.focusArray,
                 externalLegendHoverBin: this.legendHoverBin,
                 xAxisConfig: {
                     // For now, sharing an x axis means hiding the tick labels of inner facets.
@@ -772,6 +774,17 @@ export class FacetChart
 
     @action.bound onLegendMouseLeave(): void {
         this.legendHoverBin = undefined
+    }
+
+    @action.bound onLegendClick(bin: ColorScaleBin): void {
+        const seriesNames = uniq(
+            this.intermediateChartInstances.flatMap((chartInstance) =>
+                chartInstance.series.map((s) => s.seriesName)
+            )
+        )
+        this.manager.focusArray?.toggle(
+            ...seriesNames.filter((seriesName) => bin.contains(seriesName))
+        )
     }
 
     // end of legend props

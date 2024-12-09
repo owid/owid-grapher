@@ -91,6 +91,17 @@ export class InteractionArray {
         return this
     }
 
+    @action.bound toggle(...seriesNames: SeriesName[]): this {
+        for (const seriesName of seriesNames) {
+            if (this.isActive(seriesName)) {
+                this.deactivate(seriesName)
+            } else {
+                this.activate(seriesName)
+            }
+        }
+        return this
+    }
+
     @action.bound clear(): void {
         this.activeSet.clear()
     }

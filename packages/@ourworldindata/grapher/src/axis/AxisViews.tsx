@@ -13,7 +13,7 @@ import {
 } from "@ourworldindata/utils"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
-import { GRAPHER_DARK_TEXT } from "../core/GrapherConstants"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { ScaleType, DetailsMarker } from "@ourworldindata/types"
 
 const dasharrayFromFontSize = (fontSize: number): string => {

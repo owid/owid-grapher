@@ -193,15 +193,6 @@ export function findValidChartTypeCombination(
     return undefined
 }
 
-/** Useful for sorting series by their interaction state */
-export function byInteractionState(series: {
-    hover: InteractionState
-}): number {
-    if (series.hover.background) return 1
-    if (series.hover.active) return 3
-    return 2
-}
-
 export function findSeriesNamesContainedInBin(
     series: readonly ChartSeries[],
     bin: ColorScaleBin
@@ -209,4 +200,21 @@ export function findSeriesNamesContainedInBin(
     return series
         .map(({ seriesName }) => seriesName)
         .filter((seriesName) => bin.contains(seriesName))
+}
+
+/** Useful for sorting series by their interaction state */
+export function byInteractionState(state: InteractionState): number {
+    if (state.background) return 1
+    if (state.active) return 3
+    return 2
+}
+
+/** Useful for sorting series by their interaction state */
+export function byHoverThenFocusState(series: {
+    hover: InteractionState
+    focus: InteractionState
+}): number {
+    const hoverScore = byInteractionState(series.hover)
+    const focusScore = byInteractionState(series.focus)
+    return hoverScore * 10 + focusScore
 }
