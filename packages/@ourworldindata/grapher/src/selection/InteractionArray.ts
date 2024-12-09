@@ -60,9 +60,10 @@ export class InteractionArray {
      * isn't currently interacted with.
      */
     state(seriesName: SeriesName): InteractionState {
-        return this.isInForeground(seriesName)
-            ? InteractionState.foreground
-            : InteractionState.background
+        return {
+            active: this.isActive(seriesName),
+            background: this.isInBackground(seriesName),
+        }
     }
 
     @action.bound private _activate(seriesName: SeriesName): this {

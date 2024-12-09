@@ -95,9 +95,9 @@ export enum DimensionProperty {
     table = "table",
 }
 
-export enum InteractionState {
-    foreground = "foreground", // series is either actively hovered/focused or the chart is not currently being interacted with
-    background = "background", // another series is actively hovered/focused
+export interface InteractionState {
+    active: boolean // actively hovered or focused
+    background: boolean // another series is actively hovered or focused
 }
 
 // see CoreTableConstants.ts

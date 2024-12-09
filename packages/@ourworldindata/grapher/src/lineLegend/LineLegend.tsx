@@ -117,7 +117,7 @@ class LineLabels extends React.Component<{
     }
 
     private textOpacityForSeries(series: PlacedSeries): number {
-        return series.hover === InteractionState.background ? 0.6 : 1
+        return series.hover?.background ? 0.6 : 1
     }
 
     @computed private get markers(): {
@@ -229,10 +229,7 @@ class LineLabels extends React.Component<{
                     const step = (x2 - x1) / (totalLevels + 1)
                     const markerXMid = x1 + step + level * step
                     const d = `M${x1},${leftCenterY} H${markerXMid} V${rightCenterY} H${x2}`
-                    const lineColor =
-                        series.hover === InteractionState.background
-                            ? "#eee"
-                            : "#999"
+                    const lineColor = series.hover?.background ? "#eee" : "#999"
 
                     return (
                         <path
@@ -739,18 +736,6 @@ export class LineLegend extends React.Component<LineLegendProps> {
 
     @computed get visibleSeriesNames(): SeriesName[] {
         return this.partialInitialSeries.map((series) => series.seriesName)
-    }
-
-    @computed private get backgroundSeries(): PlacedSeries[] {
-        return this.placedSeries.filter(
-            (series) => series.hover === InteractionState.background
-        )
-    }
-
-    @computed private get focusedSeries(): PlacedSeries[] {
-        return this.placedSeries.filter(
-            (series) => series.hover !== InteractionState.background
-        )
     }
 
     // Does this placement need line markers or is the position of the labels already clear?

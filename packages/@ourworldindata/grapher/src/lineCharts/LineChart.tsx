@@ -53,7 +53,6 @@ import {
     ColorScaleConfigInterface,
     ColorSchemeName,
     VerticalAlign,
-    InteractionState,
 } from "@ourworldindata/types"
 import {
     GRAPHER_AXIS_LINE_WIDTH_THICK,
@@ -1283,7 +1282,7 @@ class Lines extends React.Component<LinesProps> {
         if (this.props.hidePoints) return false
         const totalPoints = sum(
             this.props.series
-                .filter((s) => s.hover !== InteractionState.background)
+                .filter((series) => this.seriesHasMarkers(series))
                 .map((series) => series.placedPoints.length)
         )
         return totalPoints < 500
@@ -1314,24 +1313,17 @@ class Lines extends React.Component<LinesProps> {
     }
 
     private seriesHasMarkers(series: RenderLineChartSeries): boolean {
-        // Don't show markers for lines in the background
-        if (series.hover === InteractionState.background) return false
-
-        // If the series only contains one point, then we will always want to
-        // show a marker/circle because we can't draw a line.
-        return (
-            (this.hasMarkers || series.placedPoints.length === 1) &&
-            !series.isProjection
-        )
+        return !series.hover.background
     }
 
     renderLine(series: RenderLineChartSeries): React.ReactElement {
+        const { hover } = series
+
         const color = series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR
         const strokeDasharray = series.isProjection ? "2,3" : undefined
 
-        const nonHovered = series.hover === InteractionState.background
-        const strokeWidth = nonHovered ? 1 : this.strokeWidth
-        const strokeOpacity = nonHovered ? 0.3 : 1
+        const strokeWidth = hover.background ? 1 : this.strokeWidth
+        const strokeOpacity = hover.background ? 0.3 : 1
 
         const outline = this.renderPathForSeries(series, {
             id: makeIdForHumanConsumption("outline", series.seriesName),
@@ -1374,11 +1366,17 @@ class Lines extends React.Component<LinesProps> {
     renderLineMarkers(
         series: RenderLineChartSeries
     ): React.ReactElement | void {
-        if (!this.seriesHasMarkers(series)) return
+        // If the series only contains one point, then we will always want to
+        // show a marker/circle because we can't draw a line.
+        const forceMarkers = series.placedPoints.length === 1
+
+        // check if we should hide markers on the chart and series level
+        const hideMarkers = !this.hasMarkers || !this.seriesHasMarkers(series)
+
+        if (hideMarkers && !forceMarkers) return
 
         const { horizontalAxis } = this.props.dualAxis
-        const nonHovered = series.hover === InteractionState.background
-        const opacity = nonHovered ? 0.3 : 1
+        const opacity = series.hover.background ? 0.3 : 1
 
         return (
             <g
@@ -1414,15 +1412,12 @@ class Lines extends React.Component<LinesProps> {
     renderLines(): React.ReactElement {
         return (
             <>
-                {this.props.series.map((series) => {
-                    const showMarkers = this.seriesHasMarkers(series)
-                    return (
-                        <React.Fragment key={series.seriesName}>
-                            {this.renderLine(series)}
-                            {showMarkers && this.renderLineMarkers(series)}
-                        </React.Fragment>
-                    )
-                })}
+                {this.props.series.map((series) => (
+                    <React.Fragment key={series.seriesName}>
+                        {this.renderLine(series)}
+                        {this.renderLineMarkers(series)}
+                    </React.Fragment>
+                ))}
             </>
         )
     }

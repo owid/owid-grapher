@@ -197,15 +197,9 @@ export function findValidChartTypeCombination(
 export function byInteractionState(series: {
     hover: InteractionState
 }): number {
-    // background series first,
-    // then series in their default state,
-    // then active series
-    switch (series.hover) {
-        case InteractionState.background:
-            return 1
-        case InteractionState.foreground:
-            return 2
-    }
+    if (series.hover.background) return 1
+    if (series.hover.active) return 3
+    return 2
 }
 
 export function findSeriesNamesContainedInBin(

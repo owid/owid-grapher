@@ -35,7 +35,6 @@ import {
     EntityName,
     VerticalAlign,
     FacetStrategy,
-    InteractionState,
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
@@ -1288,7 +1287,7 @@ function Slope({
 }: SlopeProps) {
     const { seriesName, startPoint, endPoint } = series
 
-    const isInBackground = series.hover === InteractionState.background
+    const isInBackground = series.hover.background
     const showOutline = !isInBackground
     const opacity = isInBackground ? 0.3 : 1
 
