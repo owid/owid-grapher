@@ -59,7 +59,6 @@ import {
     GRAPHER_AXIS_LINE_WIDTH_THICK,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     BASE_FONT_SIZE,
-    GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
@@ -95,7 +94,10 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import { OwidNoDataGray } from "../color/ColorConstants"
+import {
+    GRAPHER_BACKGROUND_DEFAULT,
+    OWID_NO_DATA_GRAY,
+} from "../color/ColorConstants"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import { darkenColorForLine } from "../color/ColorUtils"
@@ -1073,7 +1075,7 @@ export class LineChart
     }
 
     defaultBaseColorScheme = ColorSchemeName.OwidDistinctLines
-    defaultNoDataColor = OwidNoDataGray
+    defaultNoDataColor = OWID_NO_DATA_GRAY
     colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
     private getColorScaleColor(value: CoreValueType | undefined): Color {

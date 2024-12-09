@@ -20,7 +20,7 @@ import {
 } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { LineChartManager } from "./LineChartConstants"
-import { OwidNoDataGray } from "../color/ColorConstants"
+import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 
 it("can create a new chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
@@ -359,7 +359,7 @@ describe("color scale", () => {
             },
         }
         const chart = new LineChart({ manager })
-        const noDataColor = OwidNoDataGray
+        const noDataColor = OWID_NO_DATA_GRAY
 
         expect(chart.series).toHaveLength(1)
         expect(chart.series[0].color).toEqual(noDataColor)

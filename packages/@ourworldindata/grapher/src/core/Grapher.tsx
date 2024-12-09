@@ -126,14 +126,10 @@ import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
-    GRAPHER_DARK_TEXT,
     STATIC_EXPORT_DETAIL_SPACING,
-    GRAPHER_LIGHT_TEXT,
     GRAPHER_LOADED_EVENT_NAME,
     isContinentsVariableId,
     isPopulationVariableETLPath,
-    GRAPHER_BACKGROUND_BEIGE,
-    GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
     latestGrapherConfigSchema,
@@ -220,6 +216,12 @@ import {
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
 import { grapherObjectToQueryParams } from "./GrapherUrl.js"
+import {
+    GRAPHER_BACKGROUND_BEIGE,
+    GRAPHER_BACKGROUND_DEFAULT,
+    GRAPHER_DARK_TEXT,
+    GRAPHER_LIGHT_TEXT,
+} from "../color/ColorConstants"
 
 declare global {
     interface Window {

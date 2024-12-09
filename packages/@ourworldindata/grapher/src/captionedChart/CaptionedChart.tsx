@@ -19,7 +19,6 @@ import {
     BASE_FONT_SIZE,
     Patterns,
     STATIC_EXPORT_DETAIL_SPACING,
-    GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_FRAME_PADDING_VERTICAL,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
 } from "../core/GrapherConstants"
@@ -53,6 +52,7 @@ import {
     ControlsRow,
     ControlsRowManager,
 } from "../controls/controlsRow/ControlsRow"
+import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 
 export interface CaptionedChartManager
     extends ChartManager,

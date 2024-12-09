@@ -3,8 +3,8 @@ import { Bounds } from "@ourworldindata/utils"
 import {
     GRAPHER_FONT_SCALE_11,
     GRAPHER_FONT_SCALE_12,
-    GRAPHER_LIGHT_TEXT,
 } from "../core/GrapherConstants"
+import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
 
 export function NoDataSection({
     seriesNames,
