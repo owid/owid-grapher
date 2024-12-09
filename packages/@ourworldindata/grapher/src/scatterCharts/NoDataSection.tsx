@@ -1,9 +1,7 @@
 import React from "react"
 import { Bounds } from "@ourworldindata/utils"
-import {
-    GRAPHER_DARK_TEXT,
-    GRAPHER_FONT_SCALE_11_2,
-} from "../core/GrapherConstants"
+import { GRAPHER_FONT_SCALE_11_2 } from "../core/GrapherConstants"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 
 export function NoDataSection({
     seriesNames,

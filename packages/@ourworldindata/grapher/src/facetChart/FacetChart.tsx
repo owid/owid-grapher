@@ -21,7 +21,7 @@ import {
 } from "@ourworldindata/utils"
 import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
-import { BASE_FONT_SIZE, GRAPHER_DARK_TEXT } from "../core/GrapherConstants"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import {
     GRAPHER_CHART_TYPES,
     GrapherChartType,
@@ -64,6 +64,7 @@ import {
     ColorScaleBin,
     NumericBin,
 } from "../color/ColorScaleBin"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
 
