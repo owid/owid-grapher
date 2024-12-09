@@ -49,6 +49,7 @@ export interface LineLabelSeries extends ChartSeries {
     placeFormattedValueInNewLine?: boolean
     yRange?: [number, number]
     hover?: InteractionState
+    focus?: InteractionState
 }
 
 interface SizedSeries extends LineLabelSeries {
@@ -96,6 +97,7 @@ class LineLabels extends React.Component<{
     textOutlineColor?: Color
     anchor?: "start" | "end"
     isStatic?: boolean
+    cursor?: string
     onClick?: (series: PlacedSeries) => void
     onMouseOver?: (series: PlacedSeries) => void
     onMouseLeave?: (series: PlacedSeries) => void
@@ -113,7 +115,9 @@ class LineLabels extends React.Component<{
     }
 
     private textOpacityForSeries(series: PlacedSeries): number {
-        return series.hover?.background ? 0.6 : 1
+        const nonHovered = series.hover?.background
+        const nonFocused = series.focus?.background
+        return nonHovered && !nonFocused ? 0.6 : 1
     }
 
     @computed private get markers(): {
@@ -149,7 +153,12 @@ class LineLabels extends React.Component<{
         return (
             <g id={makeIdForHumanConsumption("text-labels")}>
                 {this.markers.map(({ series, labelText }) => {
-                    const textColor = darkenColorForText(series.color)
+                    const hovered = series.hover?.active
+                    const nonFocused = series.focus?.background
+                    const textColor =
+                        nonFocused && !hovered
+                            ? BACKGROUND_TEXT_COLOR
+                            : darkenColorForText(series.color)
                     return (
                         <React.Fragment key={series.seriesName}>
                             {series.textWrap.render(labelText.x, labelText.y, {
@@ -222,7 +231,11 @@ class LineLabels extends React.Component<{
                     const step = (x2 - x1) / (totalLevels + 1)
                     const markerXMid = x1 + step + level * step
                     const d = `M${x1},${leftCenterY} H${markerXMid} V${rightCenterY} H${x2}`
-                    const lineColor = series.hover?.background ? "#eee" : "#999"
+                    const lineColor = series.hover?.background
+                        ? "#eee"
+                        : series.focus?.background
+                          ? "#dadada"
+                          : "#999"
 
                     return (
                         <path
@@ -255,7 +268,7 @@ class LineLabels extends React.Component<{
                                 this.props.onMouseLeave?.(series)
                             }
                             onClick={() => this.props.onClick?.(series)}
-                            style={{ cursor: "default" }}
+                            style={{ cursor: this.props.cursor }}
                         >
                             <rect
                                 x={x}
@@ -763,6 +776,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                     onMouseLeave={(series): void =>
                         this.onMouseLeave(series.seriesName)
                     }
+                    cursor={this.props.onClick ? "pointer" : "default"}
                 />
             </g>
         )

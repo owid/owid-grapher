@@ -44,6 +44,10 @@ export class SelectionArray {
         return new Set<EntityName>(this.selectedEntityNames)
     }
 
+    isSelected(entityName: EntityName): boolean {
+        return this.selectedSet.has(entityName)
+    }
+
     // Clears and sets selected entities
     @action.bound setSelectedEntities(entityNames: EntityName[]): this {
         this.clearSelection()

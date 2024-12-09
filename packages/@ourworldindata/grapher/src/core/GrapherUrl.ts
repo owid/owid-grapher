@@ -53,6 +53,9 @@ export const grapherConfigToQueryParams = (
         country: config.selectedEntityNames
             ? generateSelectedEntityNamesParam(config.selectedEntityNames)
             : undefined,
+        focus: config.focusedSeriesNames
+            ? generateSelectedEntityNamesParam(config.focusedSeriesNames)
+            : undefined,
 
         // These cannot be specified in config, so we always set them to undefined
         showSelectionOnlyInTable: undefined,
@@ -95,6 +98,11 @@ export const grapherObjectToQueryParams = (
         country: grapher.selectedEntitiesIfDifferentThanAuthors
             ? generateSelectedEntityNamesParam(
                   grapher.selectedEntitiesIfDifferentThanAuthors
+              )
+            : undefined,
+        focus: grapher.focusedSeriesNamesIfDifferentThanAuthors
+            ? generateSelectedEntityNamesParam(
+                  grapher.focusedSeriesNamesIfDifferentThanAuthors
               )
             : undefined,
     }
