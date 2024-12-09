@@ -296,10 +296,10 @@ export class StackedAreaChart extends AbstractStackedChart {
 
     private hoverStateForSeries(
         series: StackedSeries<number>
-    ): InteractionState | undefined {
-        if (!this.focusedSeriesName) return undefined
+    ): InteractionState {
+        if (!this.focusedSeriesName) return InteractionState.foreground
         return this.focusedSeriesName === series.seriesName
-            ? InteractionState.active
+            ? InteractionState.foreground
             : InteractionState.background
     }
 

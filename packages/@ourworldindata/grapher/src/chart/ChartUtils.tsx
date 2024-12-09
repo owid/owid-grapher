@@ -203,10 +203,8 @@ export function byInteractionState(series: {
     switch (series.hover) {
         case InteractionState.background:
             return 1
-        case InteractionState.none:
+        case InteractionState.foreground:
             return 2
-        case InteractionState.active:
-            return 3
     }
 }
 

@@ -96,8 +96,7 @@ export enum DimensionProperty {
 }
 
 export enum InteractionState {
-    none = "none", // series is in its default state since the chart is not interacted with
-    active = "active", // series is actively hovered/focused
+    foreground = "foreground", // series is either actively hovered/focused or the chart is not currently being interacted with
     background = "background", // another series is actively hovered/focused
 }
 
