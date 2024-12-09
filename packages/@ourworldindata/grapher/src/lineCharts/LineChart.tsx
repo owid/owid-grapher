@@ -79,8 +79,8 @@ import {
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
-    byInteractionState,
     findSeriesNamesContainedInBin,
+    byHoverThenFocusState,
     getDefaultFailMessage,
     getSeriesKey,
     isTargetOutsideElement,
@@ -117,7 +117,6 @@ import { InteractionArray } from "../selection/InteractionArray"
 const LINE_CHART_CLASS_NAME = "LineChart"
 
 // line color
-const BLUR_LINE_COLOR = "#eee"
 const DEFAULT_LINE_COLOR = "#000"
 // stroke width
 const DEFAULT_STROKE_WIDTH = 1.5
@@ -325,10 +324,6 @@ export class LineChart
         return makeSelectionArray(this.manager.selection)
     }
 
-    seriesIsBlurred(series: LineChartSeries): boolean {
-        return this.hoverArray.isInBackground(series.seriesName)
-    }
-
     @computed get activeX(): number | undefined {
         return (
             this.tooltipState.target?.x ??
@@ -351,11 +346,21 @@ export class LineChart
                     y2={verticalAxis.range[1]}
                     stroke="rgba(180,180,180,.4)"
                 />
-                {this.series.map((series) => {
+                {this.renderSeries.map((series) => {
                     const value = series.points.find(
                         (point) => point.x === activeX
                     )
-                    if (!value || this.seriesIsBlurred(series)) return null
+                    if (!value || series.hover.background) return null
+
+                    const seriesColor = this.hasColorScale
+                        ? darkenColorForLine(
+                              this.getColorScaleColor(value.colorValue)
+                          )
+                        : series.color
+                    const color =
+                        series.focus.background && !series.hover.active
+                            ? BACKGROUND_DOT_COLOR
+                            : seriesColor
 
                     return (
                         <circle
@@ -363,15 +368,7 @@ export class LineChart
                             cx={horizontalAxis.place(value.x)}
                             cy={verticalAxis.place(value.y)}
                             r={this.lineStrokeWidth / 2 + 3.5}
-                            fill={
-                                this.hasColorScale
-                                    ? darkenColorForLine(
-                                          this.getColorScaleColor(
-                                              value.colorValue
-                                          )
-                                      )
-                                    : series.color
-                            }
+                            fill={color}
                             stroke={
                                 this.manager.backgroundColor ??
                                 GRAPHER_BACKGROUND_DEFAULT
@@ -491,10 +488,12 @@ export class LineChart
                         )
 
                         const blurred =
-                            this.seriesIsBlurred(series) || point === undefined
+                            this.hoverArray.isInBackground(series.seriesName) ||
+                            this.focusArray.isInBackground(series.seriesName) ||
+                            point === undefined
 
                         const color = blurred
-                            ? BLUR_LINE_COLOR
+                            ? BACKGROUND_LINE_COLOR
                             : this.hasColorScale
                               ? darkenColorForLine(
                                     this.getColorScaleColor(point?.colorValue)
@@ -540,6 +539,10 @@ export class LineChart
 
     @action.bound onLineLegendMouseLeave(): void {
         this.clearHighlightedSeries()
+    }
+
+    @action.bound onLineLegendClick(seriesName: SeriesName): void {
+        this.focusArray.toggle(seriesName)
     }
 
     @computed private get hasEntityYearHighlight(): boolean {
@@ -741,6 +744,7 @@ export class LineChart
                         isStatic={this.isStatic}
                         onMouseOver={this.onLineLegendMouseOver}
                         onMouseLeave={this.onLineLegendMouseLeave}
+                        onClick={this.onLineLegendClick}
                     />
                 )}
                 <Lines
@@ -879,7 +883,7 @@ export class LineChart
     }
 
     defaultBaseColorScheme = ColorSchemeName.OwidDistinctLines
-    defaultNoDataColor = OwidNoDataGray
+    defaultNoDataColor = OWID_NO_DATA_GRAY
     colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
     private getColorScaleColor(value: CoreValueType | undefined): Color {
@@ -1101,20 +1105,28 @@ export class LineChart
             })
     }
 
+    @computed get focusArray(): InteractionArray {
+        return this.manager.focusArray ?? new InteractionArray()
+    }
+
     @computed get renderSeries(): RenderLineChartSeries[] {
-        const { hoverArray } = this
+        const { hoverArray, focusArray } = this
 
         const series: RenderLineChartSeries[] = this.placedSeries.map(
             (series) => {
                 return {
                     ...series,
                     hover: hoverArray.state(series.seriesName),
+                    focus: focusArray.state(series.seriesName),
                 }
             }
         )
 
-        if (this.hoverArray.hasActiveSeries) {
-            return sortBy(series, byInteractionState)
+        if (
+            this.hoverArray.hasActiveSeries ||
+            this.focusArray.hasActiveSeries
+        ) {
+            return sortBy(series, byHoverThenFocusState)
         }
 
         return series
@@ -1143,6 +1155,7 @@ export class LineChart
                 ),
                 yValue: lastValue,
                 hover: this.hoverArray.state(series.seriesName),
+                focus: this.focusArray.state(series.seriesName),
             }
         })
     }
@@ -1317,17 +1330,24 @@ class Lines extends React.Component<LinesProps> {
     }
 
     private seriesHasMarkers(series: RenderLineChartSeries): boolean {
-        return !series.hover.background
+        return (
+            series.hover.active ||
+            (!series.focus.background && !series.hover.background)
+        )
     }
 
     renderLine(series: RenderLineChartSeries): React.ReactElement {
-        const { hover } = series
+        const { hover, focus } = series
 
-        const color = series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR
+        const seriesColor = series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR
         const strokeDasharray = series.isProjection ? "2,3" : undefined
 
-        const strokeWidth = hover.background ? 1 : this.strokeWidth
-        const strokeOpacity = hover.background ? 0.3 : 1
+        const color =
+            !focus.background || hover.active
+                ? seriesColor
+                : BACKGROUND_LINE_COLOR
+        const strokeWidth = this.strokeWidth
+        const strokeOpacity = hover.background && !focus.background ? 0.3 : 1
 
         const outline = this.renderPathForSeries(series, {
             id: makeIdForHumanConsumption("outline", series.seriesName),
@@ -1380,26 +1400,34 @@ class Lines extends React.Component<LinesProps> {
         if (hideMarkers && !forceMarkers) return
 
         const { horizontalAxis } = this.props.dualAxis
-        const opacity = series.hover.background ? 0.3 : 1
+        const { focus, hover } = series
+
+        const opacity = hover.background ? 0.3 : 1
 
         return (
             <g
                 id={makeIdForHumanConsumption("markers", series.seriesName)}
                 key={getSeriesKey(series, "markers")}
             >
-                {series.placedPoints.map((value, index) => (
-                    <circle
-                        id={makeIdForHumanConsumption(
-                            horizontalAxis.formatTick(value.time)
-                        )}
-                        key={index}
-                        cx={value.x}
-                        cy={value.y}
-                        r={this.markerRadius}
-                        fill={value.color}
-                        opacity={opacity}
-                    />
-                ))}
+                {series.placedPoints.map((value, index) => {
+                    const color =
+                        !focus.background || hover.active
+                            ? value.color
+                            : BACKGROUND_LINE_COLOR
+                    return (
+                        <circle
+                            id={makeIdForHumanConsumption(
+                                horizontalAxis.formatTick(value.time)
+                            )}
+                            key={index}
+                            cx={value.x}
+                            cy={value.y}
+                            r={this.markerRadius}
+                            fill={color}
+                            opacity={opacity}
+                        />
+                    )
+                })}
             </g>
         )
     }

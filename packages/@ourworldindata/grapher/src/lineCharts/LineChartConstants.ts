@@ -32,6 +32,7 @@ export interface PlacedLineChartSeries extends LineChartSeries {
 
 export interface RenderLineChartSeries extends PlacedLineChartSeries {
     hover: InteractionState
+    focus: InteractionState
 }
 
 export interface LinesProps {
