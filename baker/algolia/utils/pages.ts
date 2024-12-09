@@ -162,7 +162,7 @@ function getGdocThumbnailUrl(gdoc: OwidGdocPostInterface): string {
     if (gdoc.content["featured-image"]) {
         return getThumbnailPath(gdoc.content["featured-image"])
     }
-    return `/${DEFAULT_GDOC_FEATURED_IMAGE}`
+    return `/images/published/${DEFAULT_GDOC_FEATURED_IMAGE}`
 }
 
 function generateGdocRecords(
