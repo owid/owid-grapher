@@ -88,6 +88,8 @@ export default function Image(props: {
     const isSmall = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const image = useImage(filename)
     const smallImage = useImage(smallFilename)
+    const activeImage = isSmall && smallImage ? smallImage : image
+
     const renderImageError = (name: string) => (
         <BlockErrorFallback
             className={className}
@@ -99,24 +101,17 @@ export default function Image(props: {
     )
 
     const handleDownload = useCallback(async () => {
-        let src = ""
-        let filename = ""
-        if (image) {
-            src = makeSrc(image)
-            filename = image.filename
-        }
-        if (isSmall && smallImage) {
-            src = makeSrc(smallImage)
-            filename = smallImage.filename
-        }
+        if (!activeImage) return
+        const { filename } = activeImage
+        const src = makeSrc(activeImage)
         if (src && filename) {
             const response = await fetch(src)
             const blob = await response.blob()
             triggerDownloadFromBlob(filename, blob)
         }
-    }, [image, smallImage, isSmall])
+    }, [activeImage])
 
-    if (!image || !image.cloudflareId) {
+    if (!activeImage || !activeImage.cloudflareId) {
         if (isPreviewing) {
             return renderImageError(filename)
         }
@@ -124,7 +119,7 @@ export default function Image(props: {
         return null
     }
 
-    const alt = props.alt ?? image.defaultAlt
+    const alt = props.alt ?? activeImage.defaultAlt
     const isInteractive = containerType !== "thumbnail" && shouldLightbox
     const maybeLightboxClassName = isInteractive ? LIGHTBOX_IMAGE_CLASS : ""
 
@@ -135,10 +130,10 @@ export default function Image(props: {
         return `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/w=${image.originalWidth}`
     }
 
-    const imageSrc = makeSrc(image)
+    const imageSrc = makeSrc(activeImage)
     const sourceProps = generateSourceProps(
         smallImage,
-        image,
+        activeImage,
         CLOUDFLARE_IMAGES_URL
     )
 
@@ -161,10 +156,11 @@ export default function Image(props: {
                     alt={alt}
                     className={maybeLightboxClassName}
                     loading="lazy"
+                    data-filename={activeImage.filename}
                     // There's no way of knowing in advance whether we'll be showing the image or smallImage - we just have to choose one
                     // I went with image, as we currently only use smallImage for data insights
-                    width={image.originalWidth ?? undefined}
-                    height={image.originalHeight ?? undefined}
+                    width={activeImage.originalWidth ?? undefined}
+                    height={activeImage.originalHeight ?? undefined}
                 />
             </picture>
             {isInteractive && (

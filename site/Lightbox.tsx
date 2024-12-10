@@ -37,18 +37,6 @@ function getActiveSourceImgUrl(img: HTMLImageElement): string | undefined {
     return undefined
 }
 
-// Cloudflare Images URLs end in w=1000, so we need to extract the filename from the URL
-// e.g. https://imagedelivery.net/owid-id/the-filename.png/w=1000 -> the-filename.png
-function getFilenameFromCloudflareUrl(url: string | undefined) {
-    if (!url) return undefined
-    const regex = /\/([^\/]+)\/w=/
-    const match = url.match(regex)
-    if (match) {
-        return match[1]
-    }
-    return undefined
-}
-
 const Lightbox = ({
     children,
     containerNode,
@@ -217,7 +205,8 @@ export const runLightbox = () => {
             const highResSrc = img.getAttribute("data-high-res-src")
             // If the image is a Gdoc Image with a smallFilename, get the source that is currently active
             const activeSourceImgUrl = getActiveSourceImgUrl(img)
-            const imgFilename = getFilenameFromCloudflareUrl(activeSourceImgUrl)
+            const imgFilename =
+                img.getAttribute("data-filename") || "owid-image"
 
             const imgSrc = highResSrc
                 ? // getAttribute doesn't automatically URI encode values, img.src does
