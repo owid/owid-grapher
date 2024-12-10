@@ -14,7 +14,7 @@ import {
     last,
     maxBy,
 } from "@ourworldindata/utils"
-import { TextWrap, TextWrapGroup } from "@ourworldindata/components"
+import { TextWrap, TextWrapGroup, Halo } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
@@ -32,7 +32,6 @@ import {
 import { ChartSeries } from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
-import { Halo } from "@ourworldindata/components"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 4

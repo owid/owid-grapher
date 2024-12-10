@@ -1,7 +1,7 @@
 import React from "react"
 import { computed } from "mobx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
-import { TextWrap } from "@ourworldindata/components"
+import { TextWrap, Halo } from "@ourworldindata/components"
 import {
     Color,
     first,
@@ -18,7 +18,6 @@ import {
     GRAPHER_LIGHT_TEXT,
 } from "../core/GrapherConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { Halo } from "@ourworldindata/components"
 import {
     ScatterSeries,
     SCATTER_POINT_MAX_RADIUS,
