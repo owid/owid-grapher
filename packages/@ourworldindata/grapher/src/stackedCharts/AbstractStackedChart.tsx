@@ -286,6 +286,8 @@ export class AbstractStackedChart
 
     @computed
     private get entitiesAsSeries(): readonly StackedRawSeries<number>[] {
+        if (!this.yColumns.length) return []
+
         const { isProjection, owidRowsByEntityName } = this.yColumns[0]
         return this.selectionArray.selectedEntityNames
             .map((seriesName) => {
