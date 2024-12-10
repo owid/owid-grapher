@@ -308,8 +308,6 @@ export {
     getSizes,
     generateSrcSet,
     getFilenameWithoutExtension,
-    getFilenameAsThumbnail,
-    getThumbnailPath,
     getFilenameAsPng,
     getFilenameExtension,
     getFilenameMIMEType,

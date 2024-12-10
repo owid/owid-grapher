@@ -56,16 +56,6 @@ export function getFilenameAsPng(filename: ImageMetadata["filename"]): string {
     return `${getFilenameWithoutExtension(filename)}.png`
 }
 
-export function getFilenameAsThumbnail(
-    filename: ImageMetadata["filename"]
-): string {
-    return `${getFilenameWithoutExtension(filename)}_${LARGE_THUMBNAIL_WIDTH}.png`
-}
-
-export function getThumbnailPath(filename: string): string {
-    return `/images/published/${getFilenameAsThumbnail(filename)}`
-}
-
 export function getFilenameMIMEType(filename: string): string | undefined {
     const fileExtension = getFilenameExtension(filename)
     const MIMEType = {
@@ -133,6 +123,7 @@ export function getFeaturedImageFilename(gdoc: OwidGdoc): string | undefined {
                 const featuredImageSlug = match.content["featured-image"]
                 if (!featuredImageSlug) return undefined
                 // Social media platforms don't support SVG's for og:image, in which case, use the fallback PNG that the baker generates
+                // TODO: remove this and add an error if an author tries to use an SVG as a featured image
                 return getFilenameExtension(featuredImageSlug) === "svg"
                     ? getFilenameAsPng(featuredImageSlug)
                     : featuredImageSlug

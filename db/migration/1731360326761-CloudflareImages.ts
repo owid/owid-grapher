@@ -4,7 +4,7 @@ export class CloudflareImages1731360326761 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             ALTER TABLE images
-            ADD COLUMN cloudflareId VARCHAR(255) NULL,
+            ADD COLUMN cloudflareId CHAR(36) NULL,
             ADD CONSTRAINT images_cloudflareId_unique UNIQUE (cloudflareId),
             ADD COLUMN hash VARCHAR(255) NULL,
             MODIFY COLUMN googleId VARCHAR(255) NULL,

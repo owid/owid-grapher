@@ -11,7 +11,6 @@ import {
     groupBy,
     uniqBy,
     Region,
-    DEFAULT_GDOC_FEATURED_IMAGE,
 } from "@ourworldindata/utils"
 import {
     InstantSearch,
@@ -66,12 +65,6 @@ import { ChartHit } from "./ChartHit.js"
 const siteAnalytics = new SiteAnalytics()
 
 function PagesHit({ hit }: { hit: IPageHit }) {
-    // a temporary fix for articles that have been indexed without the directory
-    const src =
-        hit.thumbnailUrl === `/${DEFAULT_GDOC_FEATURED_IMAGE}`
-            ? `/images/published/${DEFAULT_GDOC_FEATURED_IMAGE}`
-            : hit.thumbnailUrl
-
     return (
         <a
             href={`${BAKED_BASE_URL}/${hit.slug}`}
@@ -83,7 +76,7 @@ function PagesHit({ hit }: { hit: IPageHit }) {
             {hit.thumbnailUrl && (
                 <div className="search-results__page-hit-img-container">
                     <img
-                        src={src}
+                        src={hit.thumbnailUrl}
                         role="presentation"
                         className="search-results__page-hit-img"
                     />

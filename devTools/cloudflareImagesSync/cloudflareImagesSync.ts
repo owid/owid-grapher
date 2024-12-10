@@ -119,7 +119,7 @@ async function purgeRecords(trx: db.KnexReadWriteTransaction) {
             console.log("Deleting image:", image.filename)
             try {
                 await fetch(
-                    `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1/${encodeURIComponent(image.id)}`,
+                    `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1/${image.id}`,
                     {
                         method: "DELETE",
                         headers: {
@@ -295,7 +295,6 @@ async function uploadImageToCloudflareImages(
 
     const formData = new FormData()
     formData.append("url", imageUrl)
-    formData.append("id", encodeURIComponent(filename))
     formData.append("metadata", metadata)
     formData.append("requireSignedURLs", "false")
 
@@ -430,7 +429,6 @@ You need to set "CLOUDFLARE_IMAGES_ACCOUNT_ID" and "CLOUDFLARE_IMAGES_API_KEY" i
 
     await db.knexReadWriteTransaction(async (trx) => {
         // await purgeRecords(trx)
-
         const directory = await getCloudflareImageDirectory()
         const { isValid, invalidImages } = await validateDirectory(
             trx,
