@@ -50,10 +50,9 @@ import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
-    byInteractionState,
     byHoverThenFocusState,
     getDefaultFailMessage,
-    getInteractionStateForSeries,
+    getHoverStateForSeries,
     getShortNameForEntity,
     makeSelectionArray,
 } from "../chart/ChartUtils"
@@ -89,10 +88,11 @@ import { Halo } from "@ourworldindata/components"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import {
-    BACKGROUND_LINE_COLOR,
+    OWID_NON_FOCUSED_GRAY,
     GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
 } from "../color/ColorConstants"
+import { InteractionArray } from "../selection/InteractionArray"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -104,8 +104,9 @@ export interface SlopeChartManager extends ChartManager {
     hideNoDataSection?: boolean
 }
 
-const TOP_PADDING = 6 // leave room for overflowing dots
+const NON_FOCUSED_LINE_COLOR = OWID_NON_FOCUSED_GRAY
 
+const TOP_PADDING = 6 // leave room for overflowing dots
 const LINE_LEGEND_PADDING = 4
 
 @observer
@@ -248,6 +249,10 @@ export class SlopeChart
             // the currently hovered series
             !!this.manager.externalLegendHoverBin
         )
+    }
+
+    @computed get isFocusModeActive(): boolean {
+        return this.focusArray.hasActiveSeries
     }
 
     @computed private get yColumns(): CoreColumn[] {
@@ -458,29 +463,32 @@ export class SlopeChart
     }
 
     private hoverStateForSeries(series: SlopeChartSeries): InteractionState {
-        return getInteractionStateForSeries(series, {
-            isInteractionModeActive: this.isHoverModeActive,
-            activeSeriesNames: this.hoveredSeriesNames,
+        return getHoverStateForSeries(series, {
+            isHoverModeActive: this.isHoverModeActive,
+            hoveredSeriesNames: this.hoveredSeriesNames,
         })
     }
+
+    private focusStateForSeries(series: SlopeChartSeries): InteractionState {
+        return this.focusArray.state(series.seriesName)
+    }
+
     @computed get focusArray(): InteractionArray {
         return this.manager.focusArray ?? new InteractionArray()
     }
 
     @computed private get renderSeries(): RenderSlopeChartSeries[] {
-        const { focusArray } = this
-
         const series: RenderSlopeChartSeries[] = this.placedSeries.map(
             (series) => {
                 return {
                     ...series,
                     hover: this.hoverStateForSeries(series),
-                    focus: focusArray.state(series.seriesName),
+                    focus: this.focusStateForSeries(series),
                 }
             }
         )
 
-        if (this.isHoverModeActive || this.focusArray.hasActiveSeries) {
+        if (this.isHoverModeActive || this.isFocusModeActive) {
             return sortBy(series, byHoverThenFocusState)
         }
 
@@ -630,7 +638,8 @@ export class SlopeChart
             textOutlineColor: this.backgroundColor,
             onMouseOver: this.onLineLegendMouseOver,
             onMouseLeave: this.onLineLegendMouseLeave,
-            onClick: this.onLineLegendClick,
+            onClick:
+                this.series.length > 1 ? this.onLineLegendClick : undefined,
         }
     }
 
@@ -830,7 +839,7 @@ export class SlopeChart
             placeFormattedValueInNewLine: this.useCompactLayout,
             yValue: value,
             hover: this.hoverStateForSeries(series),
-            focus: this.focusArray.state(seriesName),
+            focus: this.focusStateForSeries(series),
         }
     }
 
@@ -1312,7 +1321,9 @@ function Slope({
     const opacity =
         hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
     const color =
-        !focus.background || hover.active ? series.color : BACKGROUND_LINE_COLOR
+        !focus.background || hover.active
+            ? series.color
+            : NON_FOCUSED_LINE_COLOR
 
     return (
         <g

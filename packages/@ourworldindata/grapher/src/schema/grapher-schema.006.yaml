@@ -108,7 +108,7 @@ properties:
         type: array
         description: |
             The initially focused chart elements. Is either a list of entity or variable names.
-            Only works to line and slope charts for now.
+            Only works for line and slope charts for now.
         items:
             type:
                 - string
