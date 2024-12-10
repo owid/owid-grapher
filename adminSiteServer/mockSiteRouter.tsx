@@ -419,13 +419,6 @@ getPlainRouteWithROTransaction(
 )
 
 mockSiteRouter.use(
-    "/images/published",
-    express.static(path.join(DEFAULT_LOCAL_BAKE_DIR, "images/published"), {
-        fallthrough: false,
-    })
-)
-
-mockSiteRouter.use(
     // Not all /app/uploads paths are going through formatting
     // and being rewritten as /uploads. E.g. blog index images paths
     // on front page.
