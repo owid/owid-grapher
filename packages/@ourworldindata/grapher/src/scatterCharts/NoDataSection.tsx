@@ -1,8 +1,9 @@
 import React from "react"
 import { Bounds } from "@ourworldindata/utils"
 import {
-    GRAPHER_DARK_TEXT,
-    GRAPHER_FONT_SCALE_11_2,
+    GRAPHER_FONT_SCALE_11,
+    GRAPHER_FONT_SCALE_12,
+    GRAPHER_LIGHT_TEXT,
 } from "../core/GrapherConstants"
 
 export function NoDataSection({
@@ -21,41 +22,31 @@ export function NoDataSection({
             seriesNames.length - displayedNames.length
         )
 
+        const headingFontsize = GRAPHER_FONT_SCALE_11 * baseFontSize
+        const bodyFontsize = GRAPHER_FONT_SCALE_12 * baseFontSize
+
         return (
             <foreignObject
+                className="NoDataSection"
                 {...bounds.toProps()}
                 style={{
-                    color: GRAPHER_DARK_TEXT,
-                    fontSize: GRAPHER_FONT_SCALE_11_2 * baseFontSize,
+                    textAlign: "right",
+                    color: GRAPHER_LIGHT_TEXT,
                 }}
             >
-                <div
-                    style={{
-                        textTransform: "uppercase",
-                        fontWeight: 700,
-                        marginBottom: 2,
-                        lineHeight: 1.15,
-                    }}
-                >
+                <div className="heading" style={{ fontSize: headingFontsize }}>
                     No data
                 </div>
-                <ul>
-                    {displayedNames.map((entityName) => (
-                        <li
-                            key={entityName}
-                            style={{
-                                fontStyle: "italic",
-                                lineHeight: 1.15,
-                                marginBottom: 2,
-                            }}
-                        >
-                            {entityName}
-                        </li>
-                    ))}
-                </ul>
-                {remaining > 0 && (
-                    <div>& {remaining === 1 ? "one" : remaining} more</div>
-                )}
+                <div className="body" style={{ fontSize: bodyFontsize }}>
+                    <ul>
+                        {displayedNames.map((entityName) => (
+                            <li key={entityName}>{entityName}</li>
+                        ))}
+                    </ul>
+                    {remaining > 0 && (
+                        <div>& {remaining === 1 ? "one" : remaining} more</div>
+                    )}
+                </div>
             </foreignObject>
         )
     }

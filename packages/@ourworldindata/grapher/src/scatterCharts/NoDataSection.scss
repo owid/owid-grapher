@@ -1,0 +1,14 @@
+.NoDataSection {
+    .heading {
+        @include grapher_h5-black-caps;
+        margin-bottom: 0.25em;
+    }
+
+    .body {
+        @include grapher_label-2-regular;
+
+        li {
+            margin-bottom: 0.15em;
+        }
+    }
+}
