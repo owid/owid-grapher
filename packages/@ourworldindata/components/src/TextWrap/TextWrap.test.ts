@@ -145,3 +145,60 @@ describe("lines()", () => {
         ])
     })
 })
+
+describe("firstLineOffset", () => {
+    it("should offset the first line if requested", () => {
+        const text = "an example line"
+        const props = { text, maxWidth: 100, fontSize: FONT_SIZE }
+
+        const wrapWithoutOffset = new TextWrap(props)
+        const wrapWithOffset = new TextWrap({
+            ...props,
+            firstLineOffset: 50,
+        })
+
+        expect(wrapWithoutOffset.lines.map((l) => l.text)).toEqual([
+            "an example",
+            "line",
+        ])
+        expect(wrapWithOffset.lines.map((l) => l.text)).toEqual([
+            "an",
+            "example line",
+        ])
+    })
+
+    it("should break into a new line even if the first line would end up being empty", () => {
+        const text = "a-very-long-word"
+        const props = { text, maxWidth: 100, fontSize: FONT_SIZE }
+
+        const wrapWithoutOffset = new TextWrap(props)
+        const wrapWithOffset = new TextWrap({
+            ...props,
+            firstLineOffset: 50,
+        })
+
+        expect(wrapWithoutOffset.lines.map((l) => l.text)).toEqual([
+            "a-very-long-word",
+        ])
+        expect(wrapWithOffset.lines.map((l) => l.text)).toEqual([
+            "",
+            "a-very-long-word",
+        ])
+    })
+
+    it("should break into a new line if firstLineOffset > maxWidth", () => {
+        const text = "an example line"
+        const wrap = new TextWrap({
+            text,
+            maxWidth: 100,
+            fontSize: FONT_SIZE,
+            firstLineOffset: 150,
+        })
+
+        expect(wrap.lines.map((l) => l.text)).toEqual([
+            "",
+            "an example",
+            "line",
+        ])
+    })
+})

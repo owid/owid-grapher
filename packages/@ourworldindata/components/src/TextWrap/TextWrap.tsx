@@ -164,10 +164,15 @@ export class TextWrap {
                 })
             }
 
-            if (
-                startsWithNewline(fragment.text) ||
-                (nextBounds.width + 10 > maxWidth && line.length >= 1)
-            ) {
+            // start a new line before the current word if the max-width is exceeded.
+            // usually breaking into a new line doesn't make sense if the current line is empty.
+            // but if the first line is offset (which is useful in grouped text wraps),
+            // we might want to break into a new line anyway.
+            const startNewLineBeforeWord =
+                nextBounds.width + 10 > maxWidth &&
+                (line.length >= 1 || this.firstLineOffset)
+
+            if (startsWithNewline(fragment.text) || startNewLineBeforeWord) {
                 // Introduce a newline _before_ this word
                 lines.push({
                     text: joinFragments(line),
@@ -216,16 +221,6 @@ export class TextWrap {
     @computed get height(): number {
         if (this.lineCount === 0) return 0
         return this.lineCount * this.singleLineHeight
-    }
-
-    @computed get heightWithoutOffsetedLine(): number {
-        if (this.firstLineOffset === 0) {
-            return this.height
-        } else if (this.lineCount > 1) {
-            return (this.lineCount - 1) * this.singleLineHeight
-        } else {
-            return 0
-        }
     }
 
     @computed get width(): number {
@@ -283,10 +278,11 @@ export class TextWrap {
         // overlap (see storybook of this component).
         const HEIGHT_CORRECTION_FACTOR = 0.74
 
-        const textHeight = (lines[0].height ?? 0) * HEIGHT_CORRECTION_FACTOR
+        const textHeight = max(lines.map((line) => line.height)) ?? 0
+        const correctedTextHeight = textHeight * HEIGHT_CORRECTION_FACTOR
         const containerHeight = lineHeight * fontSize
         const yOffset =
-            y + (containerHeight - (containerHeight - textHeight) / 2)
+            y + (containerHeight - (containerHeight - correctedTextHeight) / 2)
 
         return [x, yOffset]
     }

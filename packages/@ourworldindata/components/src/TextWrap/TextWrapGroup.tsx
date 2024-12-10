@@ -7,9 +7,12 @@ import { Bounds, last, max } from "@ourworldindata/utils"
 interface TextWrapFragment {
     text: string
     fontWeight?: number
-    // "always" places the fragment in a new line in all cases
-    // "avoid-wrap" places the fragment in a new line only if the fragment would wrap otherwise
-    newLine?: "always" | "avoid-wrap"
+    // specifies the wrapping behavior of the fragment (only applies to the
+    // second, third,... fragments but not the first one)
+    // - "continue-line" places the fragment in the same line if possible (default)
+    // - "always" places the fragment in a new line in all cases
+    // - "avoid-wrap" places the fragment in a new line only if the fragment would wrap otherwise
+    newLine?: "continue-line" | "always" | "avoid-wrap"
 }
 
 interface PlacedTextWrap {
@@ -74,55 +77,109 @@ export class TextWrapGroup {
         })
     }
 
+    @computed private get whitespaceWidth(): number {
+        return Bounds.forText(" ", { fontSize: this.fontSize }).width
+    }
+
+    private getOffsetOfNextTextWrap(textWrap: TextWrap): number {
+        return textWrap.lastLineWidth + this.whitespaceWidth
+    }
+
+    private placeTextWrapIntoNewLine(
+        fragment: TextWrapFragment,
+        previousPlacedTextWrap: PlacedTextWrap
+    ): PlacedTextWrap {
+        const { textWrap: lastTextWrap, yOffset: lastYOffset } =
+            previousPlacedTextWrap
+
+        const textWrap = this.makeTextWrapForFragment(fragment)
+        const yOffset = lastYOffset + lastTextWrap.height
+
+        return { textWrap, yOffset }
+    }
+
+    private placeTextWrapIntoTheSameLine(
+        fragment: TextWrapFragment,
+        previousPlacedTextWrap: PlacedTextWrap
+    ): PlacedTextWrap {
+        const { textWrap: lastTextWrap, yOffset: lastYOffset } =
+            previousPlacedTextWrap
+
+        const xOffset = this.getOffsetOfNextTextWrap(lastTextWrap)
+        const textWrap = this.makeTextWrapForFragment(fragment, xOffset)
+
+        // if the text wrap is placed in the same line, we need to
+        // be careful not to double count the height of the first line
+        const heightWithoutFirstLine =
+            (lastTextWrap.lineCount - 1) * lastTextWrap.singleLineHeight
+        const yOffset = lastYOffset + heightWithoutFirstLine
+
+        return { textWrap, yOffset }
+    }
+
+    private placeTextWrapIntoTheSameLineIfNotWrapping(
+        fragment: TextWrapFragment,
+        previousPlacedTextWrap: PlacedTextWrap
+    ): PlacedTextWrap {
+        const { textWrap: lastTextWrap } = previousPlacedTextWrap
+
+        // try to place text wrap in the same line with the given offset
+        const xOffset = this.getOffsetOfNextTextWrap(lastTextWrap)
+        const textWrap = this.makeTextWrapForFragment(fragment, xOffset)
+
+        const lineCount = textWrap.lines.filter((text) => text).length
+        if (lineCount > 1) {
+            // if the text is wrapping, break into a new line instead
+            return this.placeTextWrapIntoNewLine(
+                fragment,
+                previousPlacedTextWrap
+            )
+        } else {
+            // else, place the text wrap in the same line
+            return this.placeTextWrapIntoTheSameLine(
+                fragment,
+                previousPlacedTextWrap
+            )
+        }
+    }
+
+    private placeTextWrap(
+        fragment: TextWrapFragment,
+        previousPlacedTextWrap: PlacedTextWrap
+    ): PlacedTextWrap {
+        const newLine = fragment.newLine ?? "continue-line"
+        switch (newLine) {
+            case "always":
+                return this.placeTextWrapIntoNewLine(
+                    fragment,
+                    previousPlacedTextWrap
+                )
+            case "continue-line":
+                return this.placeTextWrapIntoTheSameLine(
+                    fragment,
+                    previousPlacedTextWrap
+                )
+            case "avoid-wrap":
+                return this.placeTextWrapIntoTheSameLineIfNotWrapping(
+                    fragment,
+                    previousPlacedTextWrap
+                )
+        }
+    }
+
     @computed get placedTextWraps(): PlacedTextWrap[] {
         const { fragments } = this.props
         if (fragments.length === 0) return []
 
-        const whitespaceWidth = Bounds.forText(" ", {
-            fontSize: this.fontSize,
-        }).width
-
+        const firstTextWrap = this.makeTextWrapForFragment(fragments[0])
         const textWraps: PlacedTextWrap[] = [
-            {
-                textWrap: this.makeTextWrapForFragment(fragments[0]),
-                yOffset: 0,
-            },
+            { textWrap: firstTextWrap, yOffset: 0 },
         ]
 
         for (let i = 1; i < fragments.length; i++) {
             const fragment = fragments[i]
-            const { textWrap: lastTextWrap, yOffset: lastYOffset } =
-                textWraps[i - 1]
-
-            // x-offset for the new text wrap
-            const offset = lastTextWrap.lastLineWidth + whitespaceWidth
-
-            // place the text wrap in a new line
-            if (fragment.newLine === "always" || offset > this.maxWidth) {
-                const textWrap = this.makeTextWrapForFragment(fragment)
-                const yOffset = lastYOffset + lastTextWrap.height
-                textWraps.push({ textWrap, yOffset })
-                continue
-            }
-
-            let textWrap = this.makeTextWrapForFragment(fragment, offset)
-
-            let yOffset = lastYOffset
-            if (textWrap.firstLineOffset === 0) {
-                yOffset += lastTextWrap.height
-            } else {
-                yOffset +=
-                    (lastTextWrap.lineCount - 1) * lastTextWrap.singleLineHeight
-            }
-
-            // some fragments are preferred to break into a new line
-            // instead of being wrapped
-            if (fragment.newLine === "avoid-wrap" && textWrap.lineCount > 1) {
-                textWrap = this.makeTextWrapForFragment(fragment)
-                yOffset += lastTextWrap.singleLineHeight
-            }
-
-            textWraps.push({ textWrap, yOffset })
+            const previousPlacedTextWrap = textWraps[i - 1]
+            textWraps.push(this.placeTextWrap(fragment, previousPlacedTextWrap))
         }
 
         return textWraps
@@ -151,34 +208,34 @@ export class TextWrapGroup {
     // multiple fragments since each fragment comes with its own style and
     // is therefore rendered into a separate tspan.
     @computed get lines(): {
-        fragments: Omit<TextWrapFragment, "newLine">[]
-        textWrap: TextWrap
+        fragments: { text: string; textWrap: TextWrap }[]
         yOffset: number
     }[] {
         const lines = []
         for (const { textWrap, yOffset } of this.placedTextWraps) {
             for (let i = 0; i < textWrap.lineCount; i++) {
-                const textWrapLine = textWrap.lines[i]
-                const isFirstTextWrapLine = i === 0
+                const line = textWrap.lines[i]
+                const isFirstLineInTextWrap = i === 0
+
+                // don't render empty lines
+                if (!line.text) continue
 
                 const fragment = {
+                    text: line.text,
                     textWrap,
-                    text: textWrapLine.text,
-                    fontWeight: textWrap.fontWeight,
                 }
 
                 const lastLine = last(lines)
                 if (
+                    isFirstLineInTextWrap &&
                     textWrap.firstLineOffset > 0 &&
-                    isFirstTextWrapLine &&
                     lastLine
                 ) {
-                    // if the current line is offsetted, add it to the previous line
+                    // if the current line is offset, add it to the previous line
                     lastLine.fragments.push(fragment)
                 } else {
                     // else, push a new line
                     lines.push({
-                        textWrap,
                         fragments: [fragment],
                         yOffset: yOffset + i * textWrap.singleLineHeight,
                     })
@@ -203,7 +260,10 @@ export class TextWrapGroup {
             <>
                 {this.lines.map((line) => {
                     const [textX, textY] =
-                        line.textWrap.getPositionForSvgRendering(x, y)
+                        line.fragments[0].textWrap.getPositionForSvgRendering(
+                            x,
+                            y
+                        )
                     return (
                         <text
                             key={line.yOffset.toString()}
@@ -215,7 +275,7 @@ export class TextWrapGroup {
                             {line.fragments.map((fragment, index) => (
                                 <tspan
                                     key={index}
-                                    fontWeight={fragment.fontWeight}
+                                    fontWeight={fragment.textWrap.fontWeight}
                                 >
                                     {index === 0 ? "" : " "}
                                     {fragment.text}

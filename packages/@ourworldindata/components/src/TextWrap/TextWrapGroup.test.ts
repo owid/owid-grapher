@@ -90,8 +90,7 @@ it("should place the second segment in the same line if specified", () => {
         fontSize: FONT_SIZE,
     })
 
-    // since the max width is large, "30 million" fits into the same line
-    // as the text of the first fragmemt
+    // "30 million" should be placed in a new line since newLine is set to 'always'
     expect(textWrapGroup.height).toBeGreaterThan(
         new TextWrap({
             text: TEXT,
@@ -118,4 +117,24 @@ it("should use all available space when one fragment exceeds the given max width
     })
     expect(textWrap.width).toBeGreaterThan(maxWidth)
     expect(textWrapGroup.maxWidth).toEqual(textWrap.width)
+})
+
+it("should place very long words in a separate line", () => {
+    const maxWidth = 150
+    const textWrapGroup = new TextWrapGroup({
+        fragments: [
+            { text: "30 million" },
+            { text: "Long-word-that-can't-be-broken-up" },
+        ],
+        maxWidth,
+        fontSize: FONT_SIZE,
+    })
+    expect(textWrapGroup.lines.length).toEqual(2)
+
+    const placedTextWrapOffsets = textWrapGroup.placedTextWraps.map(
+        ({ yOffset }) => yOffset
+    )
+    const lineOffsets = textWrapGroup.lines.map(({ yOffset }) => yOffset)
+    expect(placedTextWrapOffsets).toEqual([0, 0])
+    expect(lineOffsets).toEqual([0, textWrapGroup.lineHeight * FONT_SIZE])
 })
