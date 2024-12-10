@@ -122,6 +122,12 @@ const layouts: { [key in Container]: Layouts} = {
         ["default"]: "grid col-start-2 span-cols-12",
         ["people"]: "col-start-2 span-cols-8 col-md-start-2 span-md-cols-12",
         ["donors"]: "grid grid-cols-12-full-width col-start-1 col-end-limit",
+        ["sticky-left-left-column"]: "grid grid-cols-7 span-cols-7 span-md-cols-10 grid-md-cols-10",
+        ["sticky-left-right-column"]: "grid grid-cols-5 span-cols-5 span-md-cols-10 grid-md-cols-10",
+        ["sticky-left"]: "grid span-cols-12 col-start-2",
+        ["sticky-right-left-column"]: "grid span-cols-5 grid grid-cols-5 span-md-cols-10 grid-md-cols-10 col-md-start-2 span-sm-cols-12 grid-sm-cols-12 col-sm-start-1",
+        ["sticky-right-right-column"]: "span-cols-7 grid-cols-7 span-md-cols-10 grid-md-cols-10 col-md-start-2 span-sm-cols-12 grid-sm-cols-12 col-sm-start-1",
+        ["sticky-right"]: "grid span-cols-12 col-start-2",
     },
     ["author-header"]: {
         ["default"]: "span-cols-8",
