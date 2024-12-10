@@ -29,19 +29,19 @@ import {
 } from "react-beautiful-dnd"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
-interface EntityItemProps extends React.HTMLProps<HTMLDivElement> {
+interface EntityListItemProps extends React.HTMLProps<HTMLDivElement> {
     grapher: Grapher
     entityName: EntityName
     onRemove?: () => void
 }
 
-interface SeriesItemProps extends React.HTMLProps<HTMLDivElement> {
+interface SeriesListItemProps extends React.HTMLProps<HTMLDivElement> {
     seriesName: SeriesName
     onRemove?: () => void
 }
 
 @observer
-class EntityItem extends React.Component<EntityItemProps> {
+class EntityListItem extends React.Component<EntityListItemProps> {
     @observable.ref isChoosingColor: boolean = false
 
     @computed get table() {
@@ -99,7 +99,7 @@ class EntityItem extends React.Component<EntityItemProps> {
 }
 
 @observer
-class SeriesItem extends React.Component<SeriesItemProps> {
+class SeriesListItem extends React.Component<SeriesListItemProps> {
     @action.bound onRemove() {
         this.props.onRemove?.()
     }
@@ -110,11 +110,7 @@ class SeriesItem extends React.Component<SeriesItemProps> {
         const rest = omit(props, ["seriesName", "onRemove"])
 
         return (
-            <div
-                className="list-group-item EditableListItem"
-                key={seriesName}
-                {...rest}
-            >
+            <div className="list-group-item" key={seriesName} {...rest}>
                 <div>{seriesName}</div>
                 <div className="clickable" onClick={this.onRemove}>
                     <FontAwesomeIcon icon={faTimes} />
@@ -125,7 +121,7 @@ class SeriesItem extends React.Component<SeriesItemProps> {
 }
 
 @observer
-export class KeysSection extends React.Component<{
+export class EntitySelectionSection extends React.Component<{
     editor: AbstractChartEditor
 }> {
     @observable.ref dragKey?: EntityName
@@ -219,7 +215,7 @@ export class KeysSection extends React.Component<{
                                                     {...provided.draggableProps}
                                                     {...provided.dragHandleProps}
                                                 >
-                                                    <EntityItem
+                                                    <EntityListItem
                                                         key={entityName}
                                                         grapher={grapher}
                                                         entityName={entityName}
@@ -260,8 +256,12 @@ export class FocusSection extends React.Component<{
         return this.props.editor
     }
 
-    @action.bound onFocusSeries(seriesName: SeriesName) {
+    @action.bound addToFocusedSeries(seriesName: SeriesName) {
         this.editor.grapher.focusArray.activate(seriesName)
+    }
+
+    @action.bound removeFromFocusedSeries(seriesName: SeriesName) {
+        this.editor.grapher.focusArray.deactivate(seriesName)
     }
 
     render() {
@@ -269,23 +269,23 @@ export class FocusSection extends React.Component<{
         const { grapher } = editor
 
         const seriesNameSet = new Set(grapher.chartSeriesNames)
+
         const focusedSeriesNameSet = grapher.focusArray.activeSeriesNameSet
+        const focusedSeriesNames = grapher.focusArray.activeSeriesNames
+
         const availableSeriesNameSet = differenceOfSets<string>([
             seriesNameSet,
             focusedSeriesNameSet,
         ])
-
         const availableSeriesNames: SeriesName[] = Array.from(
             availableSeriesNameSet
         )
-        const focusedSeriesNames: SeriesName[] =
-            Array.from(focusedSeriesNameSet)
 
         return (
             <Section name="Data to highlight">
                 <FieldsRow>
                     <SelectField
-                        onValue={this.onFocusSeries}
+                        onValue={this.addToFocusedSeries}
                         value="Select data"
                         options={["Select data"]
                             .concat(availableSeriesNames)
@@ -293,10 +293,12 @@ export class FocusSection extends React.Component<{
                     />
                 </FieldsRow>
                 {focusedSeriesNames.map((seriesName) => (
-                    <SeriesItem
+                    <SeriesListItem
                         key={seriesName}
                         seriesName={seriesName}
-                        onRemove={() => grapher.focusArray.toggle(seriesName)}
+                        onRemove={() =>
+                            this.removeFromFocusedSeries(seriesName)
+                        }
                     />
                 ))}
             </Section>
@@ -419,7 +421,7 @@ export class EditorDataTab<
                         </label>
                     </div>
                 </Section>
-                <KeysSection editor={editor} />
+                <EntitySelectionSection editor={editor} />
                 <FocusSection editor={editor} />
                 {features.canSpecifyMissingDataStrategy && (
                     <MissingDataSection editor={this.props.editor} />

@@ -266,6 +266,7 @@ export class FacetChart
             endTime,
             missingDataStrategy,
             backgroundColor,
+            focusArray,
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
@@ -323,6 +324,7 @@ export class FacetChart
                 missingDataStrategy,
                 backgroundColor,
                 hideNoDataSection,
+                focusArray,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
@@ -480,7 +482,6 @@ export class FacetChart
             const manager = {
                 ...series.manager,
                 useValueBasedColorScheme,
-                focusArray: this.manager.focusArray,
                 externalLegendHoverBin: this.legendHoverBin,
                 xAxisConfig: {
                     // For now, sharing an x axis means hiding the tick labels of inner facets.
@@ -731,6 +732,22 @@ export class FacetChart
         return [this.legendHoverBin.color]
     }
 
+    @computed get activeColors(): Color[] | undefined {
+        const { focusArray } = this.manager
+        if (!focusArray) return undefined
+
+        // find colour of all currently focused series
+        const activeColors = uniq(
+            this.intermediateChartInstances.flatMap((chartInstance) =>
+                chartInstance.series
+                    .filter((series) => focusArray?.isActive(series.seriesName))
+                    .map((series) => series.color)
+            )
+        )
+
+        return activeColors.length > 0 ? activeColors : undefined
+    }
+
     @computed get numericLegendData(): ColorScaleBin[] {
         if (!this.isNumericLegend || !this.hideFacetLegends) return []
         const allBins: ColorScaleBin[] = this.externalLegends.flatMap(
@@ -782,14 +799,15 @@ export class FacetChart
     }
 
     @action.bound onLegendClick(bin: ColorScaleBin): void {
+        // find all series (of all facets) that are contained in the bin
         const seriesNames = uniq(
             this.intermediateChartInstances.flatMap((chartInstance) =>
-                chartInstance.series.map((s) => s.seriesName)
+                chartInstance.series
+                    .filter((series) => bin.contains(series.seriesName))
+                    .map((series) => series.seriesName)
             )
         )
-        this.manager.focusArray?.toggle(
-            ...seriesNames.filter((seriesName) => bin.contains(seriesName))
-        )
+        this.manager.focusArray?.toggle(...seriesNames)
     }
 
     // end of legend props

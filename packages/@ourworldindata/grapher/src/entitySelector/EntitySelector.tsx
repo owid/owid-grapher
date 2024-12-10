@@ -623,11 +623,12 @@ export class EntitySelector extends React.Component<{
         const { partitionedSearchResults } = this
         if (this.searchInput) {
             const { selected = [] } = partitionedSearchResults ?? {}
-            this.selectionArray.deselectEntities(
-                selected.map((entity) => entity.name)
-            )
+            const entityNames = selected.map((entity) => entity.name)
+            this.selectionArray.deselectEntities(entityNames)
+            this.manager.focusArray?.deactivate(...entityNames)
         } else {
             this.selectionArray.clearSelection()
+            this.manager.focusArray?.clear()
         }
     }
 

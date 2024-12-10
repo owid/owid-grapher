@@ -612,6 +612,7 @@ export class Grapher
         if (obj.selectedEntityNames)
             this.selection.setSelectedEntities(obj.selectedEntityNames)
 
+        // update focused series
         if (obj.focusedSeriesNames)
             this.focusArray.clearAllAndActivate(...obj.focusedSeriesNames)
 
@@ -684,13 +685,14 @@ export class Grapher
         if (region !== undefined)
             this.map.projection = region as MapProjectionName
 
+        // selection
         const selection = getSelectedEntityNamesParam(
             Url.fromQueryParams(params)
         )
-
         if (this.addCountryMode !== EntitySelectionMode.Disabled && selection)
             this.selection.setSelectedEntities(selection)
 
+        // focus
         const focusedSeriesNames =
             params.focus !== undefined
                 ? getSelectedEntityNamesFromQueryParam(params.focus)

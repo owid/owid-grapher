@@ -29,8 +29,10 @@ import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
-import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
+import { GRAPHER_BACKGROUND_DEFAULT, GRAY_70 } from "../color/ColorConstants"
 
+// text color for labels of background series
+const NON_FOCUSED_TEXT_COLOR = GRAY_70
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 4
 // Horizontal distance from the end of the chart to the start of the marker
@@ -116,9 +118,7 @@ class LineLabels extends React.Component<{
     }
 
     private textOpacityForSeries(series: PlacedSeries): number {
-        const nonHovered = series.hover?.background
-        const nonFocused = series.focus?.background
-        return nonHovered && !nonFocused ? 0.6 : 1
+        return series.hover?.background && !series.focus?.background ? 0.6 : 1
     }
 
     @computed private get markers(): {
@@ -154,12 +154,10 @@ class LineLabels extends React.Component<{
         return (
             <g id={makeIdForHumanConsumption("text-labels")}>
                 {this.markers.map(({ series, labelText }) => {
-                    const hovered = series.hover?.active
-                    const nonFocused = series.focus?.background
                     const textColor =
-                        nonFocused && !hovered
-                            ? BACKGROUND_TEXT_COLOR
-                            : darkenColorForText(series.color)
+                        !series.focus?.background || series.hover?.active
+                            ? darkenColorForText(series.color)
+                            : NON_FOCUSED_TEXT_COLOR
                     return series.textWrap instanceof TextWrap ? (
                         <Halo
                             id={series.seriesName}
@@ -462,7 +460,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 : 0
 
             // font weight priority:
-            // series focus state > globally set font weight > default font weight
+            // series focus state > presense of value label > globally set font weight
             const activeFontWeight = label.focus?.active ? 700 : undefined
             const seriesFontWeight = label.formattedValue ? 700 : undefined
             const fontWeight =

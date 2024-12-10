@@ -2,7 +2,7 @@ import { SeriesName, InteractionState } from "@ourworldindata/types"
 import { action, computed, observable } from "mobx"
 
 /**
- * A class to manage a set of active series that are activated
+ * A class to manage a set of active series that are activated and
  * deactivated by being interacted with, e.g. by hovering or focusing.
  */
 export class InteractionArray {
@@ -28,11 +28,6 @@ export class InteractionArray {
         return !this.isEmpty
     }
 
-    @computed get first(): SeriesName | undefined {
-        if (this.hasActiveSeries) return this.activeSeriesNames[0]
-        return undefined
-    }
-
     /**
      * Whether a series is currently interacted with
      */
@@ -44,7 +39,7 @@ export class InteractionArray {
      * Whether a series is in the foreground, i.e. either
      * the chart isn't currently interacted with (in which
      * all series are in the foreground by default) or the
-     * series is currently active.
+     * series is currently interacted with.
      */
     isInForeground(seriesName: SeriesName): boolean {
         return this.isEmpty || this.isActive(seriesName)
@@ -59,9 +54,9 @@ export class InteractionArray {
     }
 
     /**
-     * Get the interaction state of a series. Either 'active' or
-     * 'background' (see definitions above) or 'none' if the chart
-     * isn't currently interacted with.
+     * Get the interaction state of a series:
+     * - active: whether the series is currently interacted with
+     * - background: whether another series is currently interacted with
      */
     state(seriesName: SeriesName): InteractionState {
         return {
@@ -70,14 +65,9 @@ export class InteractionArray {
         }
     }
 
-    @action.bound private _activate(seriesName: SeriesName): this {
-        if (!this.activeSet.has(seriesName)) this.activeSet.add(seriesName)
-        return this
-    }
-
     @action.bound activate(...seriesNames: SeriesName[]): this {
         for (const seriesName of seriesNames) {
-            this._activate(seriesName)
+            this.activeSet.add(seriesName)
         }
         return this
     }
