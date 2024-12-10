@@ -420,7 +420,7 @@ export const domainExtent = (
     numValues: number[],
     scaleType: ScaleType,
     maxValueMultiplierForPadding = 1
-): [number, number] => {
+): [number, number] | undefined => {
     const filterValues =
         scaleType === ScaleType.log ? numValues.filter((v) => v > 0) : numValues
     const [minValue, maxValue] = extent(filterValues)
@@ -439,9 +439,9 @@ export const domainExtent = (
                 ? [minValue / 10, minValue * 10]
                 : [minValue - 1, maxValue + 1]
         }
-    } else {
-        return scaleType === ScaleType.log ? [1, 100] : [-1, 1]
     }
+
+    return undefined
 }
 
 // Compound annual growth rate

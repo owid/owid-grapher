@@ -484,7 +484,8 @@ export class SlopeChart
     }
 
     @computed private get yDomainDefault(): [number, number] {
-        return domainExtent(this.allYValues, this.yScaleType)
+        const defaultDomain: [number, number] = [Infinity, -Infinity]
+        return domainExtent(this.allYValues, this.yScaleType) ?? defaultDomain
     }
 
     @computed private get yDomain(): [number, number] {
