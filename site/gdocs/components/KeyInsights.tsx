@@ -363,7 +363,7 @@ export const KeyInsights = ({
                                                     />
                                                 </div>
                                             </div>
-                                            <div className="span-cols-7 span-md-cols-12">
+                                            <div className="key-insight__asset-container span-cols-7 span-md-cols-12">
                                                 {renderAssetForInsight({
                                                     filename,
                                                     url,
