@@ -1,6 +1,7 @@
 .person {
     display: flex;
     gap: var(--grid-gap);
+    margin-bottom: 8px;
 
     @include sm-only {
         flex-direction: column;
@@ -46,7 +47,7 @@
 
 .person-socials {
     margin-top: 16px;
-    margin-bottom: var(--grid-gap);
+    margin-bottom: 16px;
 
     ul {
         display: flex;
