@@ -12,10 +12,10 @@ import {
     PostRestApi,
     DbPlainTag,
     OwidGdocPostInterface,
-    getThumbnailPath,
     ARCHVED_THUMBNAIL_FILENAME,
     DEFAULT_GDOC_FEATURED_IMAGE,
     DEFAULT_THUMBNAIL_FILENAME,
+    DbEnrichedImage,
 } from "@ourworldindata/utils"
 import { formatPost } from "../../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
@@ -40,6 +40,11 @@ import { match, P } from "ts-pattern"
 import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"
 import { formatUrls } from "../../../site/formatting.js"
 import { TypeAndImportance } from "./types.js"
+import {
+    BAKED_BASE_URL,
+    CLOUDFLARE_IMAGES_URL,
+} from "../../../settings/clientSettings.js"
+import { logErrorAndMaybeSendToBugsnag } from "../../../serverUtils/errorLog.js"
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
@@ -155,19 +160,38 @@ async function generateWordpressRecords(
     return records
 }
 
-function getGdocThumbnailUrl(gdoc: OwidGdocPostInterface): string {
+const getThumbnailUrl = (
+    gdoc: OwidGdocPostInterface,
+    cloudflareImages: Record<string, DbEnrichedImage>
+): string => {
     if (gdoc.content["deprecation-notice"]) {
-        return `/${ARCHVED_THUMBNAIL_FILENAME}`
+        return `${BAKED_BASE_URL}/${ARCHVED_THUMBNAIL_FILENAME}`
     }
-    if (gdoc.content["featured-image"]) {
-        return getThumbnailPath(gdoc.content["featured-image"])
+
+    if (!gdoc.content["featured-image"]) {
+        return `${BAKED_BASE_URL}/${DEFAULT_GDOC_FEATURED_IMAGE}`
     }
-    return `/images/published/${DEFAULT_GDOC_FEATURED_IMAGE}`
+
+    const thumbnailFilename = gdoc.content["featured-image"]
+    const cloudflareId = cloudflareImages[thumbnailFilename]?.cloudflareId
+
+    if (!cloudflareId) {
+        void logErrorAndMaybeSendToBugsnag(
+            new Error(
+                `Gdoc ${gdoc.id} has no cloudflare image with filename ${thumbnailFilename}`
+            )
+        )
+        // won't render in the search page
+        return ""
+    }
+
+    return `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=512`
 }
 
 function generateGdocRecords(
     gdocs: OwidGdocPostInterface[],
-    pageviews: Record<string, RawPageview>
+    pageviews: Record<string, RawPageview>,
+    cloudflareImagesByFilename: Record<string, DbEnrichedImage>
 ): PageRecord[] {
     const getPostTypeAndImportance = (
         gdoc: OwidGdocPostInterface
@@ -211,7 +235,8 @@ function generateGdocRecords(
         const chunks = generateChunksFromHtmlText(renderedPostContent)
         const postTypeAndImportance = getPostTypeAndImportance(gdoc)
         let i = 0
-        const thumbnailUrl = getGdocThumbnailUrl(gdoc)
+
+        const thumbnailUrl = getThumbnailUrl(gdoc, cloudflareImagesByFilename)
 
         for (const chunk of chunks) {
             const record = {
@@ -239,9 +264,8 @@ function generateGdocRecords(
     return records
 }
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
 // Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
-export const getPagesRecords = async (knex: db.KnexReadWriteTransaction) => {
+export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
     const gdocs = await db
         .getPublishedGdocPostsWithTags(knex)
@@ -267,7 +291,15 @@ export const getPagesRecords = async (knex: db.KnexReadWriteTransaction) => {
         pageviews,
         knex
     )
-    const gdocsRecords = generateGdocRecords(gdocs, pageviews)
+    const cloudflareImagesByFilename = await db
+        .getCloudflareImages(knex)
+        .then((images) => keyBy(images, "filename"))
+
+    const gdocsRecords = generateGdocRecords(
+        gdocs,
+        pageviews,
+        cloudflareImagesByFilename
+    )
 
     return [...countryRecords, ...wordpressRecords, ...gdocsRecords]
 }
@@ -318,6 +350,9 @@ export async function indexIndividualGdocPost(
     }
     const index = client.initIndex(getIndexName(SearchIndexName.Pages))
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
+    const cloudflareImagesByFilename = await db
+        .getCloudflareImages(knex)
+        .then((images) => keyBy(images, "filename"))
     const existingPageviews = pageviews[`/${indexedSlug}`]
     const pageviewsForGdoc = {
         [gdoc.slug]: existingPageviews || {
@@ -328,7 +363,11 @@ export async function indexIndividualGdocPost(
             url: gdoc.slug,
         },
     }
-    const records = generateGdocRecords([gdoc], pageviewsForGdoc)
+    const records = generateGdocRecords(
+        [gdoc],
+        pageviewsForGdoc,
+        cloudflareImagesByFilename
+    )
 
     const existingRecordsForPost: ObjectWithObjectID[] =
         await getExistingRecordsForSlug(index, indexedSlug)

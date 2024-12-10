@@ -153,9 +153,8 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         return errors
     }
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
     static async getPublishedAuthors(
-        knex: db.KnexReadWriteTransaction
+        knex: db.KnexReadonlyTransaction
     ): Promise<GdocAuthor[]> {
         return loadPublishedGdocAuthors(knex)
     }

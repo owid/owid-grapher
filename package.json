@@ -41,7 +41,8 @@
         "testJest": "lerna run buildTests && jest",
         "testSiteNavigation": "tsx --tsconfig tsconfig.tsx.json devTools/navigationTest/navigationTest.ts",
         "generateDbTypes": "npx @rmp135/sql-ts -c db/sql-ts/sql-ts-config.json",
-        "syncGraphersToR2": "tsx --tsconfig tsconfig.tsx.json devTools/syncGraphersToR2/syncGraphersToR2.ts"
+        "syncGraphersToR2": "tsx --tsconfig tsconfig.tsx.json devTools/syncGraphersToR2/syncGraphersToR2.ts",
+        "syncCloudflareImages": "tsx --tsconfig tsconfig.tsx.json devTools/cloudflareImagesSync/cloudflareImagesSync.ts"
     },
     "dependencies": {
         "@algolia/autocomplete-js": "^1.17.2",

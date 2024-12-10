@@ -29,10 +29,11 @@ export const GDOCS_URL_PLACEHOLDER = `${GDOCS_BASE_URL}/document/d/****/edit`
 
 export const gdocIdRegex = /^[0-9A-Za-z\-_]{44}$/
 
-// This file is saved in Drive in the Unattributed Images folder
-// Somewhat fragile, should be fixed as part of https://github.com/owid/owid-grapher/issues/2485
+// Stored in this repo and served
 export const DEFAULT_GDOC_FEATURED_IMAGE = "default-featured-image.png"
 
+// Stored in this repo and served
 export const DEFAULT_THUMBNAIL_FILENAME = "default-thumbnail.png"
 
+// Stored in this repo and served
 export const ARCHVED_THUMBNAIL_FILENAME = "archived-thumbnail.jpg"

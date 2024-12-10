@@ -17,10 +17,10 @@ import { match, P } from "ts-pattern"
 import {
     ARCHVED_THUMBNAIL_FILENAME,
     EnrichedBlockText,
-    IMAGES_DIRECTORY,
 } from "@ourworldindata/types"
 import { DATA_INSIGHT_ATOM_FEED_PROPS } from "../SiteConstants.js"
 import { Html } from "../Html.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 
 declare global {
     interface Window {
@@ -100,7 +100,8 @@ export default function OwidGdocPage({
     ) {
         imageUrl = `${baseUrl}/${ARCHVED_THUMBNAIL_FILENAME}`
     } else if (featuredImageFilename) {
-        imageUrl = `${baseUrl}${IMAGES_DIRECTORY}${featuredImageFilename}`
+        // A hard-coded variant that doesn't need to know the image's width
+        imageUrl = `${CLOUDFLARE_IMAGES_URL}/${featuredImageFilename}/public`
     }
 
     return (

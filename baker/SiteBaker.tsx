@@ -40,7 +40,6 @@ import {
 } from "../baker/GrapherBakingUtils.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { bakeCountries } from "../baker/countryProfiles.js"
-import { bakeDriveImages } from "../baker/GDriveImagesBaker.js"
 import {
     countries,
     FullPost,
@@ -58,7 +57,6 @@ import {
     TombstonePageData,
     gdocUrlRegex,
 } from "@ourworldindata/utils"
-
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import {
@@ -81,7 +79,7 @@ import {
     postsFlushCache,
 } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
-import { Image, getAllImages } from "../db/model/Image.js"
+import { getAllImages } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import {
@@ -144,7 +142,6 @@ const nonWordpressSteps = [
     "multiDimPages",
     "gdocPosts",
     "gdocTombstones",
-    "gdriveImages",
     "dods",
     "dataInsights",
     "authors",
@@ -364,10 +361,9 @@ export class SiteBaker {
                 name: `✅ Prefetched ${publishedGdocs.length} gdocs`,
             })
 
-            const imageMetadataDictionary: Record<string, Image> =
-                await getAllImages(knex).then((images) =>
-                    keyBy(images, "filename")
-                )
+            const imageMetadataDictionary = await getAllImages(knex).then(
+                (images) => keyBy(images, "filename")
+            )
 
             this.progressBar.tick({
                 name: `✅ Prefetched ${Object.values(imageMetadataDictionary).length} images`,
@@ -693,8 +689,7 @@ export class SiteBaker {
 
     // Bake unique individual pages
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    private async bakeSpecialPages(knex: db.KnexReadWriteTransaction) {
+    private async bakeSpecialPages(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("specialPages")) return
         await this.stageWrite(
             `${this.bakedSiteDir}/index.html`,
@@ -821,7 +816,7 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ validated grapher dods" })
     }
 
-    private async bakeMultiDimPages(knex: db.KnexReadWriteTransaction) {
+    private async bakeMultiDimPages(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("multiDimPages")) return
         if (!FEATURE_FLAGS.has(FeatureFlagFeature.MultiDimDataPage)) {
             console.log(
@@ -865,8 +860,7 @@ export class SiteBaker {
         }
     }
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    private async bakeDataInsights(knex: db.KnexReadWriteTransaction) {
+    private async bakeDataInsights(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("dataInsights")) return
         const {
             dataInsights: latestDataInsights,
@@ -943,8 +937,7 @@ export class SiteBaker {
         }
     }
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    private async bakeAuthors(knex: db.KnexReadWriteTransaction) {
+    private async bakeAuthors(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("authors")) return
 
         const publishedAuthors = await GdocAuthor.getPublishedAuthors(knex)
@@ -1004,8 +997,7 @@ export class SiteBaker {
 
     // Bake the blog index
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    private async bakeBlogIndex(knex: db.KnexReadWriteTransaction) {
+    private async bakeBlogIndex(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("blogIndex")) return
         const allPosts = await getBlogIndex(knex)
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
@@ -1020,8 +1012,7 @@ export class SiteBaker {
 
     // Bake the RSS feed
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    private async bakeRSS(knex: db.KnexReadWriteTransaction) {
+    private async bakeRSS(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("rss")) return
         await this.stageWrite(
             `${this.bakedSiteDir}/atom.xml`,
@@ -1036,13 +1027,6 @@ export class SiteBaker {
             await makeDataInsightsAtomFeed(knex)
         )
         this.progressBar.tick({ name: "✅ baked rss" })
-    }
-
-    private async bakeDriveImages(knex: db.KnexReadonlyTransaction) {
-        if (!this.bakeSteps.has("gdriveImages")) return
-        await this.ensureDir("images/published")
-        await bakeDriveImages(knex, this.bakedSiteDir)
-        this.progressBar.tick({ name: "✅ baked google drive images" })
     }
 
     // We don't have an icon for every single tag (yet), but for the icons that we *do* have,
@@ -1067,9 +1051,6 @@ export class SiteBaker {
     private async bakeAssets(trx: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("assets")) return
 
-        // do not delete images/published folder so that we don't have to sync gdrive images again
-        const excludes = "--exclude images/published"
-
         await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/dist/assets ${this.bakedSiteDir}/assets`
         )
@@ -1081,7 +1062,7 @@ export class SiteBaker {
 
         await this.validateTagIcons(trx)
         await execWrapper(
-            `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/ ${excludes}`
+            `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/`
         )
 
         await fs.writeFile(
@@ -1094,7 +1075,7 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked assets" })
     }
 
-    async bakeRedirects(knex: db.KnexReadWriteTransaction) {
+    async bakeRedirects(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("redirects")) return
         const redirects = await getRedirects(knex)
         this.progressBar.tick({ name: "✅ got redirects" })
@@ -1112,9 +1093,7 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked redirects" })
     }
 
-    // TODO: This transaction is RW because we delete expired redirects and
-    //       somewhere inside it we fetch images.
-    async bakeWordpressPages(knex: db.KnexReadWriteTransaction) {
+    async bakeWordpressPages(knex: db.KnexReadonlyTransaction) {
         await this.bakeRedirects(knex)
         await this.bakeEmbeds(knex)
         await this.bakeBlogIndex(knex)
@@ -1123,8 +1102,7 @@ export class SiteBaker {
         await this.bakePosts(knex)
     }
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    private async _bakeNonWordpressPages(knex: db.KnexReadWriteTransaction) {
+    private async _bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {
         if (this.bakeSteps.has("countries")) {
             await bakeCountries(this, knex)
         }
@@ -1147,11 +1125,9 @@ export class SiteBaker {
         await this.bakeGDocTombstones(knex)
         await this.bakeDataInsights(knex)
         await this.bakeAuthors(knex)
-        await this.bakeDriveImages(knex)
     }
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    async bakeNonWordpressPages(knex: db.KnexReadWriteTransaction) {
+    async bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {
         const progressBarTotal = nonWordpressSteps
             .map((step) => this.bakeSteps.has(step))
             .filter((hasStep) => hasStep).length
@@ -1165,8 +1141,7 @@ export class SiteBaker {
         await this._bakeNonWordpressPages(knex)
     }
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    async bakeAll(knex: db.KnexReadWriteTransaction) {
+    async bakeAll(knex: db.KnexReadonlyTransaction) {
         // Ensure caches are correctly initialized
         this.flushCache()
         await this.removeDeletedPosts(knex)

@@ -10,7 +10,10 @@ import {
     DATA_API_URL,
     FEATURE_FLAGS,
 } from "../settings/serverSettings.js"
-import { FeatureFlagFeature } from "../settings/clientSettings.js"
+import {
+    CLOUDFLARE_IMAGES_URL,
+    FeatureFlagFeature,
+} from "../settings/clientSettings.js"
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import {
     OldChartFieldList,
@@ -111,6 +114,7 @@ import {
     DbInsertChartView,
     CHART_VIEW_PROPS_TO_PERSIST,
     CHART_VIEW_PROPS_TO_OMIT,
+    DbEnrichedImage,
     JsonString,
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
@@ -191,7 +195,6 @@ import {
     deleteGrapherConfigFromR2ByUUID,
     saveGrapherConfigToR2ByUUID,
 } from "./chartConfigR2Helpers.js"
-import { fetchImagesFromDriveAndSyncToS3 } from "../db/model/Image.js"
 import { createMultiDimConfig } from "./multiDim.js"
 import { isMultiDimDataPagePublished } from "../db/model/MultiDimDataPage.js"
 import {
@@ -201,6 +204,13 @@ import {
 } from "./chartConfigHelpers.js"
 import { ApiChartViewOverview } from "../adminShared/AdminTypes.js"
 import { References } from "../adminSiteClient/AbstractChartEditor.js"
+import {
+    deleteFromCloudflare,
+    fetchGptGeneratedAltText,
+    processImageContent,
+    uploadToCloudflare,
+    validateImagePayload,
+} from "./imagesHelpers.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -1234,6 +1244,30 @@ postRouteWithRWTransaction(
             fullName,
         })
 
+        return { success: true }
+    }
+)
+
+postRouteWithRWTransaction(
+    apiRouter,
+    "/users/:userId/images/:imageId",
+    async (req, res, trx) => {
+        const userId = expectInt(req.params.userId)
+        const imageId = expectInt(req.params.imageId)
+        await trx("images").where({ id: imageId }).update({ userId })
+        return { success: true }
+    }
+)
+
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/users/:userId/images/:imageId",
+    async (req, res, trx) => {
+        const userId = expectInt(req.params.userId)
+        const imageId = expectInt(req.params.imageId)
+        await trx("images")
+            .where({ id: imageId, userId })
+            .update({ userId: null })
         return { success: true }
     }
 )
@@ -3021,7 +3055,15 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
         const slug = gdocSlug.replace("/", "")
         const { relatedLinkThumbnail } = tombstone
         if (relatedLinkThumbnail) {
-            await fetchImagesFromDriveAndSyncToS3(trx, [relatedLinkThumbnail])
+            const thumbnailExists = await db.checkIsImageInDB(
+                trx,
+                relatedLinkThumbnail
+            )
+            if (!thumbnailExists) {
+                throw new JsonError(
+                    `Image with filename "${relatedLinkThumbnail}" not found`
+                )
+            }
         }
         await trx
             .table("posts_gdocs_tombstones")
@@ -3076,6 +3118,202 @@ postRouteWithRWTransaction(
     }
 )
 
+getRouteNonIdempotentWithRWTransaction(
+    apiRouter,
+    "/images.json",
+    async (_, res, trx) => {
+        try {
+            const images = await db.getCloudflareImages(trx)
+            res.set("Cache-Control", "no-store")
+            res.send({ images })
+        } catch (error) {
+            console.error("Error fetching images", error)
+            res.status(500).json({
+                error: { message: String(error), status: 500 },
+            })
+        }
+    }
+)
+
+postRouteWithRWTransaction(apiRouter, "/images", async (req, res, trx) => {
+    const { filename, type, content } = validateImagePayload(req.body)
+
+    const preexisting = await trx<DbEnrichedImage>("images")
+        .where("filename", "=", filename)
+        .first()
+
+    if (preexisting) {
+        return {
+            success: false,
+            error: "An image with this filename already exists",
+        }
+    }
+
+    const { asBlob, dimensions, hash } = await processImageContent(
+        content,
+        type
+    )
+
+    const collision = await trx<DbEnrichedImage>("images")
+        .where("hash", "=", hash)
+        .first()
+
+    if (collision) {
+        return {
+            success: false,
+            error: `An image with this content already exists (filename: ${collision.filename})`,
+        }
+    }
+
+    const cloudflareId = await uploadToCloudflare(filename, asBlob)
+
+    if (!cloudflareId) {
+        return {
+            success: false,
+            error: "Failed to upload image",
+        }
+    }
+
+    await trx<DbEnrichedImage>("images").insert({
+        filename,
+        originalWidth: dimensions.width,
+        originalHeight: dimensions.height,
+        cloudflareId,
+        updatedAt: new Date().getTime(),
+        userId: res.locals.user.id,
+        hash,
+    })
+
+    const image = await db.getCloudflareImage(trx, filename)
+
+    return {
+        success: true,
+        image,
+    }
+})
+
+/**
+ * Similar to the POST route, but for updating an existing image. Deletes the image
+ * from Cloudflare and re-uploads it with the new content. The filename will stay the same,
+ * but the dimensions will be updated.
+ */
+putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
+    const { id } = req.params
+
+    const image = await trx<DbEnrichedImage>("images")
+        .where("id", "=", id)
+        .first()
+
+    if (!image) {
+        throw new JsonError(`No image found for id ${id}`, 404)
+    }
+
+    const originalCloudflareId = image.cloudflareId
+    const originalFilename = image.filename
+
+    if (!originalCloudflareId) {
+        throw new JsonError(
+            `Image with id ${id} has no associated Cloudflare image`,
+            400
+        )
+    }
+
+    const { type, content } = validateImagePayload(req.body)
+    const { asBlob, dimensions, hash } = await processImageContent(
+        content,
+        type
+    )
+    const collision = await trx<DbEnrichedImage>("images")
+        .where("hash", "=", hash)
+        .first()
+
+    if (collision) {
+        return {
+            success: false,
+            error: `An image with this content already exists (filename: ${collision.filename})`,
+        }
+    }
+
+    await deleteFromCloudflare(originalCloudflareId)
+    const newCloudflareId = await uploadToCloudflare(originalFilename, asBlob)
+
+    if (!newCloudflareId) {
+        throw new JsonError("Failed to upload image", 500)
+    }
+
+    await trx<DbEnrichedImage>("images").where("id", "=", id).update({
+        originalWidth: dimensions.width,
+        originalHeight: dimensions.height,
+        updatedAt: new Date().getTime(),
+        hash,
+    })
+
+    const updated = await db.getCloudflareImage(trx, originalFilename)
+
+    return {
+        success: true,
+        image: updated,
+    }
+})
+
+// Update alt text via patch
+patchRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
+    const { id } = req.params
+
+    const image = await trx<DbEnrichedImage>("images")
+        .where("id", "=", id)
+        .first()
+
+    if (!image) {
+        throw new JsonError(`No image found for id ${id}`, 404)
+    }
+
+    const patchableImageProperties = ["defaultAlt"] as const
+    const patch = lodash.pick(req.body, patchableImageProperties)
+
+    if (Object.keys(patch).length === 0) {
+        throw new JsonError("No patchable properties provided", 400)
+    }
+
+    await trx("images").where({ id }).update(patch)
+
+    const updated = await trx<DbEnrichedImage>("images")
+        .where("id", "=", id)
+        .first()
+
+    return {
+        success: true,
+        image: updated,
+    }
+})
+
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/images/:id",
+    async (req, res, trx) => {
+        const { id } = req.params
+
+        const image = await trx<DbEnrichedImage>("images")
+            .where("id", "=", id)
+            .first()
+
+        if (!image) {
+            throw new JsonError(`No image found for id ${id}`, 404)
+        }
+        if (!image.cloudflareId) {
+            throw new JsonError(`Image does not have a cloudflare ID`, 400)
+        }
+
+        await deleteFromCloudflare(image.cloudflareId)
+
+        await trx("images").where({ id }).delete()
+
+        return {
+            success: true,
+        }
+    }
+)
+
 getRouteWithROTransaction(
     apiRouter,
     `/gpt/suggest-topics/${TaggableType.Charts}/:chartId.json`,
@@ -3098,6 +3336,44 @@ getRouteWithROTransaction(
         return {
             topics,
         }
+    }
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    `/gpt/suggest-alt-text/:imageId`,
+    async (
+        req: Request,
+        res,
+        trx
+    ): Promise<{
+        success: boolean
+        altText: string | null
+    }> => {
+        const imageId = parseIntOrUndefined(req.params.imageId)
+        if (!imageId) throw new JsonError(`Invalid image ID`, 400)
+        const image = await trx<DbEnrichedImage>("images")
+            .where("id", imageId)
+            .first()
+        if (!image) throw new JsonError(`No image found for ID ${imageId}`, 404)
+
+        const src = `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/public`
+        let altText: string | null = ""
+        try {
+            altText = await fetchGptGeneratedAltText(src)
+        } catch (error) {
+            console.error(
+                `Error fetching GPT alt text for image ${imageId}`,
+                error
+            )
+            throw new JsonError(`Error fetching GPT alt text: ${error}`, 500)
+        }
+
+        if (!altText) {
+            throw new JsonError(`Unable to generate alt text for image`, 404)
+        }
+
+        return { success: true, altText }
     }
 )
 

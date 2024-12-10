@@ -9,8 +9,7 @@ import * as db from "../db/db.js"
  */
 
 const main = async (folder: string) => {
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    return db.knexReadWriteTransaction(
+    return db.knexReadonlyTransaction(
         (trx) =>
             bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
                 folder,

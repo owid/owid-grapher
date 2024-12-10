@@ -40,6 +40,7 @@ import {
     ImageMetadata,
     DbPlainChart,
     DbRawChartConfig,
+    DbEnrichedImage,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -53,7 +54,7 @@ import {
     getPrimaryTopic,
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
-import { Image, getAllImages } from "../db/model/Image.js"
+import { getAllImages } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 import { getTagToSlugMap } from "./GrapherBakingUtils.js"
@@ -64,8 +65,8 @@ import pMap from "p-map"
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
     isPreviewing: boolean,
-    knex: db.KnexReadWriteTransaction,
-    imageMetadataDictionary?: Record<string, Image>
+    knex: db.KnexReadonlyTransaction,
+    imageMetadataDictionary?: Record<string, DbEnrichedImage>
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
 
@@ -98,11 +99,10 @@ const renderDatapageIfApplicable = async (
  * Render a datapage if available, otherwise render a grapher page.
  */
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
-    knex: db.KnexReadWriteTransaction,
-    imageMetadataDictionary?: Record<string, Image>
+    knex: db.KnexReadonlyTransaction,
+    imageMetadataDictionary?: Record<string, DbEnrichedImage>
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(
         grapher,
@@ -130,9 +130,7 @@ export async function renderDataPageV2(
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
     },
-
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    knex: db.KnexReadWriteTransaction
+    knex: db.KnexReadonlyTransaction
 ) {
     const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
         knex,
@@ -237,9 +235,7 @@ export async function renderDataPageV2(
  */
 export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
-
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    knex: db.KnexReadWriteTransaction
+    knex: db.KnexReadonlyTransaction
 ) => {
     const datapage = await renderDatapageIfApplicable(grapher, true, knex)
     if (datapage) return datapage
@@ -290,9 +286,9 @@ const chartIsSameVersion = async (
 
 const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     bakedSiteDir: string,
-    imageMetadataDictionary: Record<string, Image>,
+    imageMetadataDictionary: Record<string, DbEnrichedImage>,
     grapher: GrapherInterface,
-    knex: db.KnexReadWriteTransaction
+    knex: db.KnexReadonlyTransaction
 ) => {
     const htmlPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     const isSameVersion = await chartIsSameVersion(htmlPath, grapher.version)
@@ -370,14 +366,12 @@ export interface BakeSingleGrapherChartArguments {
     config: string
     bakedSiteDir: string
     slug: string
-    imageMetadataDictionary: Record<string, Image>
+    imageMetadataDictionary: Record<string, DbEnrichedImage>
 }
 
 export const bakeSingleGrapherChart = async (
     args: BakeSingleGrapherChartArguments,
-
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    knex: db.KnexReadWriteTransaction
+    knex: db.KnexReadonlyTransaction
 ) => {
     const grapher: GrapherInterface = JSON.parse(args.config)
     grapher.id = args.id
@@ -399,8 +393,7 @@ export const bakeSingleGrapherChart = async (
 }
 
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    async (bakedSiteDir: string, knex: db.KnexReadWriteTransaction) => {
+    async (bakedSiteDir: string, knex: db.KnexReadonlyTransaction) => {
         const chartsToBake = await knexRaw<
             Pick<DbPlainChart, "id"> & {
                 config: DbRawChartConfig["full"]

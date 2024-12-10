@@ -6,6 +6,8 @@ export interface Env {
     GRAPHER_CONFIG_R2_BUCKET_PATH: string
     GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH: string
     CF_PAGES_BRANCH: string
+    CLOUDFLARE_IMAGES_API_KEY: string
+    CLOUDFLARE_IMAGES_URL: string
     ENV: string
 }
 // We collect the possible extensions here so we can easily take them into account
