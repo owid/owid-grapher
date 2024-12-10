@@ -32,7 +32,7 @@ import {
 import { ChartSeries } from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
-import { Halo } from "../halo/Halo"
+import { Halo } from "@ourworldindata/components"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 4
@@ -168,20 +168,17 @@ class LineLabels extends React.Component<{
                     )
                     const textColor = darkenColorForText(series.color)
                     return (
-                        <Halo
-                            id={key}
-                            key={key}
-                            show={this.showTextOutline}
-                            background={this.textOutlineColor}
-                        >
+                        <React.Fragment key={key}>
                             {series.textWrap.render(labelText.x, labelText.y, {
+                                showTextOutline: this.showTextOutline,
+                                textOutlineColor: this.textOutlineColor,
                                 textProps: {
                                     fill: textColor,
                                     opacity: this.textOpacity,
                                     textAnchor: this.anchor,
                                 },
                             })}
-                        </Halo>
+                        </React.Fragment>
                     )
                 })}
             </g>
@@ -207,7 +204,7 @@ class LineLabels extends React.Component<{
                             id={key}
                             key={key}
                             show={this.showTextOutline}
-                            background={this.textOutlineColor}
+                            outlineColor={this.textOutlineColor}
                         >
                             {series.annotationTextWrap.render(
                                 labelText.x,

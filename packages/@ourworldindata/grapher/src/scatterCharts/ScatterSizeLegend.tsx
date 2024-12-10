@@ -18,7 +18,7 @@ import {
     GRAPHER_LIGHT_TEXT,
 } from "../core/GrapherConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { Halo } from "../halo/Halo"
+import { Halo } from "@ourworldindata/components"
 import {
     ScatterSeries,
     SCATTER_POINT_MAX_RADIUS,
@@ -310,7 +310,7 @@ const LegendItem = ({
             />
             <Halo
                 id={label}
-                background={backgroundColor}
+                outlineColor={backgroundColor}
                 style={{ ...style, strokeWidth: 3.5 }}
             >
                 <text

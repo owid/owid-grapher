@@ -3,6 +3,7 @@ import { computed } from "mobx"
 import { TextWrap } from "./TextWrap"
 import { splitIntoFragments } from "./TextWrapUtils"
 import { Bounds, last, max } from "@ourworldindata/utils"
+import { Halo } from "../Halo/Halo"
 
 interface TextWrapFragment {
     text: string
@@ -249,7 +250,15 @@ export class TextWrapGroup {
     render(
         x: number,
         y: number,
-        { textProps }: { textProps?: React.SVGProps<SVGTextElement> } = {}
+        {
+            showTextOutline,
+            textOutlineColor,
+            textProps,
+        }: {
+            showTextOutline?: boolean
+            textOutlineColor?: string
+            textProps?: React.SVGProps<SVGTextElement>
+        } = {}
     ): React.ReactElement {
         // Alternatively, we could render each TextWrap one by one. That would
         // give us a good but not pixel-perfect result since the text
@@ -259,29 +268,38 @@ export class TextWrapGroup {
         return (
             <>
                 {this.lines.map((line) => {
+                    const key = line.yOffset.toString()
                     const [textX, textY] =
                         line.fragments[0].textWrap.getPositionForSvgRendering(
                             x,
                             y
                         )
                     return (
-                        <text
-                            key={line.yOffset.toString()}
-                            x={textX}
-                            y={textY + line.yOffset}
-                            fontSize={this.fontSize.toFixed(2)}
-                            {...textProps}
+                        <Halo
+                            id={key}
+                            key={key}
+                            show={showTextOutline}
+                            outlineColor={textOutlineColor}
                         >
-                            {line.fragments.map((fragment, index) => (
-                                <tspan
-                                    key={index}
-                                    fontWeight={fragment.textWrap.fontWeight}
-                                >
-                                    {index === 0 ? "" : " "}
-                                    {fragment.text}
-                                </tspan>
-                            ))}
-                        </text>
+                            <text
+                                x={textX}
+                                y={textY + line.yOffset}
+                                fontSize={this.fontSize.toFixed(2)}
+                                {...textProps}
+                            >
+                                {line.fragments.map((fragment, index) => (
+                                    <tspan
+                                        key={index}
+                                        fontWeight={
+                                            fragment.textWrap.fontWeight
+                                        }
+                                    >
+                                        {index === 0 ? "" : " "}
+                                        {fragment.text}
+                                    </tspan>
+                                ))}
+                            </text>
+                        </Halo>
                     )
                 })}
             </>

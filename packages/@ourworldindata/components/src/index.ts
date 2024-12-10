@@ -60,3 +60,5 @@ export {
 } from "./SharedDataPageConstants.js"
 
 export { Button } from "./Button/Button.js"
+
+export { Halo } from "./Halo/Halo.js"

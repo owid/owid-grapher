@@ -80,7 +80,7 @@ import {
     getSeriesName,
 } from "../lineCharts/LineChartHelpers"
 import { SelectionArray } from "../selection/SelectionArray"
-import { Halo } from "../halo/Halo"
+import { Halo } from "@ourworldindata/components"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -1108,7 +1108,10 @@ export class SlopeChart
             allSlopesStartFromZero
         )
             return (
-                <Halo id="x-axis-zero-label" background={this.backgroundColor}>
+                <Halo
+                    id="x-axis-zero-label"
+                    outlineColor={this.backgroundColor}
+                >
                     <text
                         x={this.startX}
                         y={this.yAxis.place(0)}

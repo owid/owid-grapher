@@ -10,7 +10,7 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { DualAxis } from "../axis/Axis"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
-import { Halo } from "../halo/Halo"
+import { Halo } from "@ourworldindata/components"
 import { Color, ComparisonLineConfig } from "@ourworldindata/types"
 import { GRAPHER_FONT_SCALE_10_5 } from "../core/GrapherConstants"
 
@@ -125,7 +125,7 @@ export class ComparisonLine extends React.Component<{
                     >
                         <Halo
                             id={`path-${renderUid}`}
-                            background={this.props.backgroundColor}
+                            outlineColor={this.props.backgroundColor}
                         >
                             <textPath
                                 baselineShift="-0.2rem"
