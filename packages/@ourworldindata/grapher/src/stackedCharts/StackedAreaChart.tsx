@@ -53,7 +53,7 @@ import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 import {
     makeClipPath,
     isTargetOutsideElement,
-    getInteractionStateForSeries,
+    getHoverStateForSeries,
 } from "../chart/ChartUtils"
 import { bind } from "decko"
 import { AxisConfig } from "../axis/AxisConfig.js"
@@ -301,9 +301,9 @@ export class StackedAreaChart extends AbstractStackedChart {
     private hoverStateForSeries(
         series: StackedSeries<number>
     ): InteractionState {
-        return getInteractionStateForSeries(series, {
-            isInteractionModeActive: this.isHoverModeActive,
-            activeSeriesNames: this.hoveredSeriesNames,
+        return getHoverStateForSeries(series, {
+            isHoverModeActive: this.isHoverModeActive,
+            hoveredSeriesNames: this.hoveredSeriesNames,
         })
     }
 
