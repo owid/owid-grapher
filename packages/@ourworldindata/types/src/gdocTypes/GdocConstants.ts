@@ -9,8 +9,6 @@ export const RESEARCH_AND_WRITING_ID = "research-writing"
 
 export const RESEARCH_AND_WRITING_DEFAULT_HEADING = "Research & Writing"
 
-export const IMAGES_DIRECTORY = "/images/published/"
-
 /** Works for:
  * https://docs.google.com/document/d/abcd1234
  * https://docs.google.com/document/d/abcd1234/

@@ -108,9 +108,6 @@ create_dist() {
 
     "${RSYNC_COMMAND[@]}" live-data/bakedSite/ dist/
 
-    # remove .etag of gdoc images from dist
-    rm dist/images/published/*.etag
-
     # copy over Pages Functions as-is
     rsync -havzq --delete owid-grapher/functions dist/
     rsync -havzq owid-grapher/wrangler.toml dist/
