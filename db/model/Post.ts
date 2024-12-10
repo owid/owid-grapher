@@ -13,7 +13,6 @@ import {
     RelatedChart,
     IndexPost,
     OwidGdocPostInterface,
-    IMAGES_DIRECTORY,
     snapshotIsPostRestApi,
     snapshotIsBlockGraphQlApi,
     PostReference,
@@ -25,10 +24,21 @@ import {
     DbPlainTag,
     DEFAULT_THUMBNAIL_FILENAME,
     ARCHVED_THUMBNAIL_FILENAME,
+    DbEnrichedImage,
 } from "@ourworldindata/types"
-import { uniqBy, sortBy, memoize, orderBy } from "@ourworldindata/utils"
+import {
+    uniqBy,
+    sortBy,
+    memoize,
+    orderBy,
+    keyBy,
+    LARGEST_IMAGE_WIDTH,
+} from "@ourworldindata/utils"
 import { Knex } from "knex"
-import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
+import {
+    BAKED_BASE_URL,
+    CLOUDFLARE_IMAGES_URL,
+} from "../../settings/clientSettings.js"
 import { BLOG_SLUG } from "../../settings/serverSettings.js"
 import { SiteNavigationStatic } from "../../site/SiteNavigation.js"
 import { decodeHTML } from "entities"
@@ -285,6 +295,9 @@ const selectHomepagePosts: FilterFnPostRestApi = (post) =>
 export const getBlogIndex = memoize(
     async (knex: db.KnexReadonlyTransaction): Promise<IndexPost[]> => {
         const gdocPosts = await getAndLoadListedGdocPosts(knex)
+        const imagesByFilename = await db
+            .getCloudflareImages(knex)
+            .then((images) => keyBy(images, "filename"))
         const wpPosts = await Promise.all(
             await getPostsFromSnapshots(
                 knex,
@@ -297,7 +310,7 @@ export const getBlogIndex = memoize(
         )
 
         const gdocSlugs = new Set(gdocPosts.map(({ slug }) => slug))
-        const posts = [...mapGdocsToWordpressPosts(gdocPosts)]
+        const posts = [...mapGdocsToWordpressPosts(gdocPosts, imagesByFilename)]
 
         // Only adding each wpPost if there isn't already a gdoc with the same slug,
         // to make sure we use the most up-to-date metadata
@@ -311,18 +324,27 @@ export const getBlogIndex = memoize(
     }
 )
 
-function getGdocThumbnail(gdoc: OwidGdocPostInterface): string {
-    let thumbnailPath = `/${DEFAULT_THUMBNAIL_FILENAME}`
+function getGdocThumbnail(
+    gdoc: OwidGdocPostInterface,
+    imagesByFilename: Record<string, DbEnrichedImage>
+): string {
+    let thumbnailUrl = `${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`
     if (gdoc.content["deprecation-notice"]) {
-        thumbnailPath = `/${ARCHVED_THUMBNAIL_FILENAME}`
-    } else if (gdoc.content["featured-image"]) {
-        thumbnailPath = `${IMAGES_DIRECTORY}${gdoc.content["featured-image"]}`
+        thumbnailUrl = `${BAKED_BASE_URL}/${ARCHVED_THUMBNAIL_FILENAME}`
+    } else if (
+        gdoc.content["featured-image"] &&
+        imagesByFilename[gdoc.content["featured-image"]]?.cloudflareId
+    ) {
+        const cloudflareId =
+            imagesByFilename[gdoc.content["featured-image"]].cloudflareId
+        thumbnailUrl = `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=${LARGEST_IMAGE_WIDTH}`
     }
-    return `${BAKED_BASE_URL}${thumbnailPath}`
+    return thumbnailUrl
 }
 
 export const mapGdocsToWordpressPosts = (
-    gdocs: OwidGdocPostInterface[]
+    gdocs: OwidGdocPostInterface[],
+    imagesByFilename: Record<string, DbEnrichedImage>
 ): IndexPost[] => {
     return gdocs.map((gdoc) => ({
         title: gdoc.content["atom-title"] || gdoc.content.title || "Untitled",
@@ -334,7 +356,7 @@ export const mapGdocsToWordpressPosts = (
             : new Date(gdoc.publishedAt as Date),
         authors: gdoc.content.authors,
         excerpt: gdoc.content["atom-excerpt"] || gdoc.content.excerpt,
-        imageUrl: getGdocThumbnail(gdoc),
+        imageUrl: getGdocThumbnail(gdoc, imagesByFilename),
     }))
 }
 

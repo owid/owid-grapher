@@ -132,7 +132,7 @@ export default function Image(props: {
         if (!image.cloudflareId) {
             throw new Error("Image has no cloudflareId")
         }
-        return `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(image.cloudflareId)}/w=${image.originalWidth}`
+        return `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/w=${image.originalWidth}`
     }
 
     const imageSrc = makeSrc(image)

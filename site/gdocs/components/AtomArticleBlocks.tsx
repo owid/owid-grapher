@@ -1,16 +1,12 @@
 import * as React from "react"
 import { match } from "ts-pattern"
 
-import { IMAGES_DIRECTORY, OwidEnrichedGdocBlock } from "@ourworldindata/types"
-import { BAKED_BASE_URL } from "../../../settings/serverSettings.js"
+import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
 import { useImage } from "../utils.js"
 import ArticleBlock, { Container, getLayout } from "./ArticleBlock.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
-import {
-    getFilenameExtension,
-    getFilenameWithoutExtension,
-    LARGEST_IMAGE_WIDTH,
-} from "@ourworldindata/utils"
+import { LARGEST_IMAGE_WIDTH } from "@ourworldindata/utils"
+import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
 
 export default function AtomArticleBlocks({
     blocks,
@@ -79,28 +75,16 @@ function Image({
     const smallImage = useImage(smallFilename)
     const image = smallImage || normalImage
     if (!image) return null
-    const filenameWithoutExtension = encodeURIComponent(
-        getFilenameWithoutExtension(image.filename)
-    )
-    const widthSuffix =
-        image.originalWidth && image.originalWidth > LARGEST_IMAGE_WIDTH
-            ? `_${LARGEST_IMAGE_WIDTH}`
-            : ""
-    const aspectRatio =
-        image.originalWidth && image.originalHeight
-            ? image.originalWidth / image.originalHeight
-            : null
-    const height = aspectRatio
-        ? Math.round(LARGEST_IMAGE_WIDTH / aspectRatio)
-        : undefined
 
-    // If we're using a resized image (i.e. it has a width suffix), the file extension is ALWAYS png
-    // If we're using the original image, we need to check the original file extension (which SHOULD be png, but might not be)
-    const extension = widthSuffix ? "png" : getFilenameExtension(filename)
+    let height: string | number = "auto"
+    if (image.originalWidth && image.originalHeight) {
+        height =
+            (image.originalHeight / image.originalWidth) * LARGEST_IMAGE_WIDTH
+    }
 
     return (
         <img
-            src={`${BAKED_BASE_URL}${IMAGES_DIRECTORY}${filenameWithoutExtension}${widthSuffix}.${extension}`}
+            src={`${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/w=${LARGEST_IMAGE_WIDTH}`}
             alt={alt ?? image.defaultAlt}
             width={LARGEST_IMAGE_WIDTH}
             height={height}

@@ -2,7 +2,7 @@ import React from "react"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import { IMAGES_DIRECTORY, OwidGdocPostInterface } from "@ourworldindata/utils"
+import { OwidGdocPostInterface } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
@@ -19,7 +19,7 @@ export const DonatePage = (props: {
             pageTitle="Donate"
             baseUrl={props.baseUrl}
             pageDesc="Support open data and research to make progress against the world's largest problems"
-            imageUrl={`${props.baseUrl}${IMAGES_DIRECTORY}donate-thumbnail.png`}
+            imageUrl={`${props.baseUrl}/donate-thumbnail.png`}
         >
             <script src="https://js.stripe.com/v3/" />
             <script

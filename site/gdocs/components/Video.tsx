@@ -1,12 +1,8 @@
-import React, { useContext } from "react"
+import React from "react"
 import cx from "classnames"
-import { IMAGES_DIRECTORY, Span } from "@ourworldindata/utils"
-import { renderSpans } from "../utils.js"
-import { DocumentContext } from "../OwidGdoc.js"
-import {
-    IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH,
-    IMAGE_HOSTING_R2_CDN_URL,
-} from "../../../settings/clientSettings.js"
+import { LARGEST_IMAGE_WIDTH, Span } from "@ourworldindata/utils"
+import { renderSpans, useImage } from "../utils.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
 
 interface VideoProps {
     url: string
@@ -20,10 +16,10 @@ interface VideoProps {
 export default function Video(props: VideoProps) {
     const { url, caption, className, shouldLoop, shouldAutoplay, filename } =
         props
-    const { isPreviewing } = useContext(DocumentContext)
-    const posterSrc = isPreviewing
-        ? `${IMAGE_HOSTING_R2_CDN_URL}/${IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH}/${filename}`
-        : `${IMAGES_DIRECTORY}${filename}`
+    const poster = useImage(filename)
+    const posterSrc = poster?.cloudflareId
+        ? `${CLOUDFLARE_IMAGES_URL}/${poster.cloudflareId}/w=${LARGEST_IMAGE_WIDTH}`
+        : undefined
     return (
         <figure className={cx(className)}>
             <video
