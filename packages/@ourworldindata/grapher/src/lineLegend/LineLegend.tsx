@@ -53,10 +53,11 @@ export interface LineLabelSeries extends ChartSeries {
 }
 
 interface SizedSeries extends LineLabelSeries {
-    textWrap: TextWrapGroup
+    textWrap: TextWrap | TextWrapGroup
     annotationTextWrap?: TextWrap
     width: number
     height: number
+    fontWeight?: number
 }
 
 interface PlacedSeries extends SizedSeries {
@@ -159,7 +160,24 @@ class LineLabels extends React.Component<{
                         nonFocused && !hovered
                             ? BACKGROUND_TEXT_COLOR
                             : darkenColorForText(series.color)
-                    return (
+                    return series.textWrap instanceof TextWrap ? (
+                        <Halo
+                            id={series.seriesName}
+                            key={series.seriesName}
+                            show={this.showTextOutline}
+                            outlineColor={this.textOutlineColor}
+                        >
+                            {series.textWrap.render(labelText.x, labelText.y, {
+                                textProps: {
+                                    fill: textColor,
+                                    opacity: this.textOpacityForSeries(series),
+                                    textAnchor: this.anchor,
+                                    // might override the textWrap's fontWeight
+                                    fontWeight: series.fontWeight,
+                                },
+                            })}
+                        </Halo>
+                    ) : (
                         <React.Fragment key={series.seriesName}>
                             {series.textWrap.render(labelText.x, labelText.y, {
                                 showTextOutline: this.showTextOutline,
@@ -378,45 +396,77 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return this.props.verticalAlign ?? VerticalAlign.middle
     }
 
-    @computed.struct get sizedLabels(): SizedSeries[] {
-        const { fontSize, maxWidth } = this
-        const maxTextWidth = maxWidth - DEFAULT_CONNECTOR_LINE_WIDTH
-        const maxAnnotationWidth = Math.min(maxTextWidth, 150)
+    @computed private get textMaxWidth(): number {
+        return this.maxWidth - DEFAULT_CONNECTOR_LINE_WIDTH
+    }
 
-        return this.props.labelSeries.map((label) => {
-            // if a formatted value is given, make the main label bold
-            const fontWeight = label.formattedValue ? 700 : this.fontWeight
-
-            const mainLabel = { text: label.label, fontWeight }
-            const valueLabel = label.formattedValue
-                ? {
-                      text: label.formattedValue,
-                      newLine: (label.placeFormattedValueInNewLine
-                          ? "always"
-                          : "avoid-wrap") as "always" | "avoid-wrap",
-                  }
-                : undefined
-            const labelFragments = excludeUndefined([mainLabel, valueLabel])
-            const textWrap = new TextWrapGroup({
-                fragments: labelFragments,
-                maxWidth: maxTextWidth,
-                fontSize,
+    private makeLabelTextWrap(
+        series: LineLabelSeries
+    ): TextWrap | TextWrapGroup {
+        if (!series.formattedValue) {
+            return new TextWrap({
+                text: series.label,
+                maxWidth: this.textMaxWidth,
+                fontSize: this.fontSize,
+                // focused labels are bold while non-focused labels are regular.
+                // if we used the actual font-weights to compute the layout,
+                // the layout would be jumpy since different font weights lead
+                // to different text widths. that's why we always use bold labels
+                // for comupting the layout.
+                fontWeight: 700,
             })
-            const annotationTextWrap = label.annotation
-                ? new TextWrap({
-                      text: label.annotation,
-                      maxWidth: maxAnnotationWidth,
-                      fontSize: fontSize * 0.9,
-                      lineHeight: 1,
-                  })
-                : undefined
+        }
 
-            const annotationWidth = annotationTextWrap
-                ? annotationTextWrap.width
-                : 0
+        // text label fragment
+        const textLabel = { text: series.label, fontWeight: 700 }
+
+        // value label fragment
+        const newLine = series.placeFormattedValueInNewLine
+            ? "always"
+            : "avoid-wrap"
+        const valueLabel = {
+            text: series.formattedValue,
+            fontWeight: 400,
+            newLine,
+        }
+
+        return new TextWrapGroup({
+            fragments: [textLabel, valueLabel],
+            maxWidth: this.textMaxWidth,
+            fontSize: this.fontSize,
+        })
+    }
+
+    private makeAnnotationTextWrap(
+        series: LineLabelSeries
+    ): TextWrap | undefined {
+        if (!series.annotation) return undefined
+        const maxWidth = Math.min(this.textMaxWidth, 150)
+        return new TextWrap({
+            text: series.annotation,
+            maxWidth,
+            fontSize: this.fontSize * 0.9,
+            lineHeight: 1,
+        })
+    }
+
+    @computed.struct get sizedLabels(): SizedSeries[] {
+        const { fontWeight: globalFontWeight } = this
+        return this.props.labelSeries.map((label) => {
+            const textWrap = this.makeLabelTextWrap(label)
+            const annotationTextWrap = this.makeAnnotationTextWrap(label)
+
+            const annotationWidth = annotationTextWrap?.width ?? 0
             const annotationHeight = annotationTextWrap
                 ? ANNOTATION_PADDING + annotationTextWrap.height
                 : 0
+
+            // font weight priority:
+            // series focus state > globally set font weight > default font weight
+            const activeFontWeight = label.focus?.active ? 700 : undefined
+            const seriesFontWeight = label.formattedValue ? 700 : undefined
+            const fontWeight =
+                activeFontWeight ?? seriesFontWeight ?? globalFontWeight
 
             return {
                 ...label,
@@ -424,6 +474,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 annotationTextWrap,
                 width: Math.max(textWrap.width, annotationWidth),
                 height: textWrap.height + annotationHeight,
+                fontWeight,
             }
         })
     }
