@@ -558,7 +558,6 @@ export class SlopeChart
     @computed private get lineLegendPropsLeft(): Partial<LineLegendProps> {
         return {
             xAnchor: "end",
-            fontWeight: this.showSeriesNamesInLineLegendLeft ? 700 : undefined,
             seriesSortedByImportance:
                 this.seriesSortedByImportanceForLineLegendLeft,
         }
@@ -618,7 +617,7 @@ export class SlopeChart
     @computed get seriesSortedByImportanceForLineLegendLeft(): SeriesName[] {
         return this.series
             .map((s) => s.seriesName)
-            .toSorted((s1: SeriesName, s2: SeriesName): number => {
+            .sort((s1: SeriesName, s2: SeriesName): number => {
                 const PREFER_S1 = -1
                 const PREFER_S2 = 1
 

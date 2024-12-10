@@ -67,9 +67,10 @@
                     font-size: 14px;
                     font-weight: $bold;
                     letter-spacing: 0;
+                    margin-right: 4px;
 
                     .annotation {
-                        margin-left: 4px;
+                        display: inline-block;
                         font-weight: normal;
                         color: $grey;
                         font-size: 0.9em;

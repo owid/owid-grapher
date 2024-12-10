@@ -395,11 +395,15 @@ export class LineLegend extends React.Component<LineLegendProps> {
     }
 
     @computed.struct get sizedLabels(): SizedSeries[] {
-        const { fontSize, fontWeight, maxWidth } = this
+        const { fontSize, maxWidth } = this
         const maxTextWidth = maxWidth - DEFAULT_CONNECTOR_LINE_WIDTH
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
         return this.props.labelSeries.map((label) => {
+            // if a formatted value is given, make the main label bold by default
+            const fontWeight =
+                this.fontWeight ?? (label.formattedValue ? 700 : undefined)
+
             const mainLabel = { text: label.label, fontWeight }
             const valueLabel = label.formattedValue
                 ? {
