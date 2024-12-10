@@ -1,22 +1,20 @@
-import React, { useContext } from "react"
+import React, { useCallback, useContext } from "react"
 import {
-    getFilenameWithoutExtension,
-    IMAGES_DIRECTORY,
     generateSourceProps,
     ImageMetadata,
-    getFilenameMIMEType,
+    triggerDownloadFromBlob,
 } from "@ourworldindata/utils"
 import cx from "classnames"
 import { LIGHTBOX_IMAGE_CLASS } from "../../Lightbox.js"
-import {
-    IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH,
-    IMAGE_HOSTING_R2_CDN_URL,
-} from "../../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
 import { DocumentContext } from "../OwidGdoc.js"
 import { Container } from "./ArticleBlock.js"
 import { useImage } from "../utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
+import { useMediaQuery } from "usehooks-ts"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faDownload } from "@fortawesome/free-solid-svg-icons"
 
 // generates rules that tell the browser:
 // below the medium breakpoint, the image will be 95vw wide
@@ -82,11 +80,12 @@ export default function Image(props: {
         shouldLightbox = true,
     } = props
 
-    const className = cx(props.className, {
+    const className = cx("image", props.className, {
         "image--has-outline": hasOutline,
     })
 
-    const { isPreviewing } = useContext(DocumentContext)
+    const isPreviewing = useContext(DocumentContext).isPreviewing
+    const isSmall = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const image = useImage(filename)
     const smallImage = useImage(smallFilename)
     const renderImageError = (name: string) => (
@@ -99,108 +98,97 @@ export default function Image(props: {
         />
     )
 
-    if (!image) {
+    const handleDownload = useCallback(async () => {
+        let src = ""
+        let filename = ""
+        if (image) {
+            src = makeSrc(image)
+            filename = image.filename
+        }
+        if (isSmall && smallImage) {
+            src = makeSrc(smallImage)
+            filename = smallImage.filename
+        }
+        if (src && filename) {
+            const response = await fetch(src)
+            const blob = await response.blob()
+            triggerDownloadFromBlob(filename, blob)
+        }
+    }, [image, smallImage, isSmall])
+
+    if (!image || !image.cloudflareId) {
         if (isPreviewing) {
             return renderImageError(filename)
         }
         // Don't render anything if we're not previewing (i.e. a bake) and the image is not found
         return null
     }
-    // Here we can fall back to the regular image filename, so don't return null if not found
-    if (isPreviewing && smallFilename && !smallImage) {
-        return renderImageError(smallFilename)
-    }
 
     const alt = props.alt ?? image.defaultAlt
-    const maybeLightboxClassName =
-        containerType === "thumbnail" || !shouldLightbox
-            ? ""
-            : LIGHTBOX_IMAGE_CLASS
+    const isInteractive = containerType !== "thumbnail" && shouldLightbox
+    const maybeLightboxClassName = isInteractive ? LIGHTBOX_IMAGE_CLASS : ""
 
-    if (isPreviewing) {
-        const makePreviewUrl = (f: string) =>
-            `${IMAGE_HOSTING_R2_CDN_URL}/${IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH}/${encodeURIComponent(f)}`
-
-        const PreviewSource = (props: { i?: ImageMetadata; sm?: boolean }) => {
-            const { i, sm } = props
-            if (!i) return null
-
-            return (
-                <source
-                    srcSet={`${makePreviewUrl(i.filename)} ${i.originalWidth}w`}
-                    media={sm ? SMALL_BREAKPOINT_MEDIA_QUERY : undefined}
-                    type={getFilenameMIMEType(i.filename)}
-                    sizes={
-                        containerSizes[containerType] ?? containerSizes.default
-                    }
-                />
-            )
+    function makeSrc(image: ImageMetadata) {
+        if (!image.cloudflareId) {
+            throw new Error("Image has no cloudflareId")
         }
-        return (
-            <picture className={className}>
-                <PreviewSource i={smallImage} sm />
-                <PreviewSource i={image} />
+        return `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(image.cloudflareId)}/w=${image.originalWidth}`
+    }
+
+    const imageSrc = makeSrc(image)
+    const sourceProps = generateSourceProps(
+        smallImage,
+        image,
+        CLOUDFLARE_IMAGES_URL
+    )
+
+    return (
+        <div className={className}>
+            <picture>
+                {sourceProps.map((props, i) => (
+                    <source
+                        key={i}
+                        {...props}
+                        type="image/png"
+                        sizes={
+                            containerSizes[containerType] ??
+                            containerSizes.default
+                        }
+                    />
+                ))}
                 <img
-                    src={makePreviewUrl(image.filename)}
+                    src={imageSrc}
                     alt={alt}
                     className={maybeLightboxClassName}
+                    loading="lazy"
+                    // There's no way of knowing in advance whether we'll be showing the image or smallImage - we just have to choose one
+                    // I went with image, as we currently only use smallImage for data insights
                     width={image.originalWidth ?? undefined}
                     height={image.originalHeight ?? undefined}
                 />
             </picture>
-        )
-    }
-
-    if (filename.endsWith(".svg")) {
-        const pngFilename = `${getFilenameWithoutExtension(filename)}.png`
-        const imgSrc = `${IMAGES_DIRECTORY}${encodeURIComponent(filename)}`
-        return (
-            <div className={className}>
-                <img
-                    src={imgSrc}
-                    alt={alt}
-                    className={maybeLightboxClassName}
-                    width={image.originalWidth ?? undefined}
-                    height={image.originalHeight ?? undefined}
-                />
-                {containerType !== "thumbnail" ? (
-                    <a
-                        className="download-png-link"
-                        href={`${IMAGES_DIRECTORY}${pngFilename}`}
-                        download
+            {isInteractive && (
+                <div className="article-block__image-download-button-container">
+                    <button
+                        aria-label={`Download ${filename}`}
+                        className="article-block__image-download-button"
+                        onClick={(e) => {
+                            e.preventDefault()
+                            void handleDownload()
+                        }}
                     >
-                        Download image
-                    </a>
-                ) : null}
-            </div>
-        )
-    }
-
-    const imageSrc = `${IMAGES_DIRECTORY}${encodeURIComponent(filename)}`
-    const sourceProps = generateSourceProps(smallImage, image)
-
-    return (
-        <picture className={className}>
-            {sourceProps.map((props, i) => (
-                <source
-                    key={i}
-                    {...props}
-                    type="image/png"
-                    sizes={
-                        containerSizes[containerType] ?? containerSizes.default
-                    }
-                />
-            ))}
-            <img
-                src={imageSrc}
-                alt={alt}
-                className={maybeLightboxClassName}
-                loading="lazy"
-                // There's no way of knowing in advance whether we'll be showing the image or smallImage - we just have to choose one
-                // I went with image, as we currently only use smallImage for data insights
-                width={image.originalWidth ?? undefined}
-                height={image.originalHeight ?? undefined}
-            />
-        </picture>
+                        <div className="article-block__image-download-button-background-layer">
+                            <FontAwesomeIcon
+                                icon={faDownload}
+                                className="article-block__image-download-button-icon"
+                            />
+                            <span className="article-block__image-download-button-text">
+                                Download image
+                            </span>
+                        </div>
+                    </button>
+                </div>
+            )}
+        </div>
     )
 }

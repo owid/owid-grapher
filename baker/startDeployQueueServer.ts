@@ -11,7 +11,7 @@ import * as db from "../db/db.js"
 import "../db/cleanup.js"
 
 const runDeployIfQueueIsNotEmpty = async () =>
-    await db.knexReadWriteTransaction(
+    await db.knexReadonlyTransaction(
         deployIfQueueIsNotEmpty,
         db.TransactionCloseMode.KeepOpen
     )
@@ -40,7 +40,6 @@ const main = async () => {
         setTimeout(runDeployIfQueueIsNotEmpty, 10 * 1000)
     })
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
     void runDeployIfQueueIsNotEmpty()
 }
 

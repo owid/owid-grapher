@@ -19,6 +19,7 @@ import {
     faHatWizard,
     faSitemap,
     faPanorama,
+    faImage,
 } from "@fortawesome/free-solid-svg-icons"
 
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
@@ -46,6 +47,11 @@ export const AdminSidebar = (): React.ReactElement => (
                 </Link>
                 <Link to="/gdocs">
                     <FontAwesomeIcon icon={faFile} /> Google Docs
+                </Link>
+            </li>
+            <li>
+                <Link to="/images">
+                    <FontAwesomeIcon icon={faImage} /> Images
                 </Link>
             </li>
             <li>

@@ -28,6 +28,8 @@ import {
     DbPlainTag,
     TagGraphNode,
     MinimalExplorerInfo,
+    DbEnrichedImage,
+    DbEnrichedImageWithUserId,
 } from "@ourworldindata/types"
 import { groupBy, uniq } from "lodash"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -345,6 +347,14 @@ export const getHomepageId = (
     ).then((result) => result?.id)
 }
 
+export async function checkIsImageInDB(
+    trx: KnexReadonlyTransaction,
+    filename: string
+): Promise<boolean> {
+    const image = await trx("images").where("filename", filename).first()
+    return !!image
+}
+
 export const getImageMetadataByFilenames = async (
     knex: KnexReadonlyTransaction,
     filenames: string[]
@@ -355,12 +365,12 @@ export const getImageMetadataByFilenames = async (
         `-- sql
         SELECT
             id,
-            googleId,
             filename,
             defaultAlt,
             updatedAt,
             originalWidth,
-            originalHeight
+            originalHeight,
+            cloudflareId
         FROM
             images
         WHERE filename IN (?)`,
@@ -704,4 +714,30 @@ export async function getLinkedIndicatorSlugs({
         .then((gdocs) => gdocs.map((gdoc) => gdocFromJSON(gdoc)))
         .then((gdocs) => gdocs.flatMap((gdoc) => gdoc.linkedKeyIndicatorSlugs))
         .then((slugs) => new Set(slugs))
+}
+
+export function getCloudflareImages(
+    trx: KnexReadonlyTransaction
+): Promise<DbEnrichedImage[]> {
+    return knexRaw<DbEnrichedImage>(
+        trx,
+        `-- sql
+        SELECT *
+        FROM images
+        WHERE cloudflareId IS NOT NULL`
+    )
+}
+
+export function getCloudflareImage(
+    trx: KnexReadonlyTransaction,
+    filename: string
+): Promise<DbEnrichedImageWithUserId | undefined> {
+    return knexRawFirst(
+        trx,
+        `-- sql
+        SELECT * 
+        FROM images
+        WHERE filename = ?`,
+        [filename]
+    )
 }

@@ -29,13 +29,12 @@ export function getSizes(
 
 export function generateSrcSet(
     sizes: number[],
-    filename: ImageMetadata["filename"]
+    id: ImageMetadata["cloudflareId"],
+    absoluteUrl: string = ""
 ): string {
     return sizes
         .map((size) => {
-            const path = `/images/published/${getFilenameWithoutExtension(
-                encodeURIComponent(filename)
-            )}_${size}.png`
+            const path = `${absoluteUrl}/${id}/w=${size}`
             return `${path} ${size}w`
         })
         .join(", ")
@@ -55,16 +54,6 @@ export function getFilenameExtension(
 
 export function getFilenameAsPng(filename: ImageMetadata["filename"]): string {
     return `${getFilenameWithoutExtension(filename)}.png`
-}
-
-export function getFilenameAsThumbnail(
-    filename: ImageMetadata["filename"]
-): string {
-    return `${getFilenameWithoutExtension(filename)}_${LARGE_THUMBNAIL_WIDTH}.png`
-}
-
-export function getThumbnailPath(filename: string): string {
-    return `/images/published/${getFilenameAsThumbnail(filename)}`
 }
 
 export function getFilenameMIMEType(filename: string): string | undefined {
@@ -93,21 +82,26 @@ export type SourceProps = {
  */
 export function generateSourceProps(
     smallImage: ImageMetadata | undefined,
-    regularImage: ImageMetadata
+    regularImage: ImageMetadata,
+    absoluteUrl: string = ""
 ): SourceProps[] {
     const props: SourceProps[] = []
-    if (smallImage) {
+    if (smallImage && smallImage.cloudflareId) {
+        const encodedSmallId = encodeURIComponent(smallImage.cloudflareId)
         const smallSizes = getSizes(smallImage.originalWidth)
         props.push({
             media: "(max-width: 768px)",
-            srcSet: generateSrcSet(smallSizes, smallImage.filename),
+            srcSet: generateSrcSet(smallSizes, encodedSmallId, absoluteUrl),
         })
     }
-    const regularSizes = getSizes(regularImage.originalWidth)
-    props.push({
-        media: undefined,
-        srcSet: generateSrcSet(regularSizes, regularImage.filename),
-    })
+    if (regularImage && regularImage.cloudflareId) {
+        const encodedRegularId = encodeURIComponent(regularImage.cloudflareId)
+        const regularSizes = getSizes(regularImage.originalWidth)
+        props.push({
+            media: undefined,
+            srcSet: generateSrcSet(regularSizes, encodedRegularId, absoluteUrl),
+        })
+    }
     return props
 }
 
@@ -129,6 +123,7 @@ export function getFeaturedImageFilename(gdoc: OwidGdoc): string | undefined {
                 const featuredImageSlug = match.content["featured-image"]
                 if (!featuredImageSlug) return undefined
                 // Social media platforms don't support SVG's for og:image, in which case, use the fallback PNG that the baker generates
+                // TODO: remove this and add an error if an author tries to use an SVG as a featured image
                 return getFilenameExtension(featuredImageSlug) === "svg"
                     ? getFilenameAsPng(featuredImageSlug)
                     : featuredImageSlug

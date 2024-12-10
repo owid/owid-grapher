@@ -65,10 +65,9 @@ const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
     }
 }
 
-// TODO: this transaction is only RW because somewhere inside it we fetch images
 export const makeSitemap = async (
     explorerAdminServer: ExplorerAdminServer,
-    knex: db.KnexReadWriteTransaction
+    knex: db.KnexReadonlyTransaction
 ) => {
     const alreadyPublishedViaGdocsSlugsSet =
         await db.getSlugsWithPublishedGdocsSuccessors(knex)
