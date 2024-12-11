@@ -337,6 +337,7 @@ export { isAndroid, isIOS } from "./BrowserUtils.js"
 export {
     diffGrapherConfigs,
     mergeGrapherConfigs,
+    simpleMerge,
 } from "./grapherConfigUtils.js"
 
 export {
