@@ -404,7 +404,11 @@ function PostImageButton({
         }
     }
     return (
-        <Upload showUploadList={false} customRequest={uploadImage}>
+        <Upload
+            accept="image/*"
+            showUploadList={false}
+            customRequest={uploadImage}
+        >
             <Button type="primary">
                 <FontAwesomeIcon icon={faUpload} /> Upload
             </Button>
@@ -426,7 +430,11 @@ function PutImageButton({
         }
     }
     return (
-        <Upload showUploadList={false} customRequest={uploadImage}>
+        <Upload
+            accept="image/*"
+            showUploadList={false}
+            customRequest={uploadImage}
+        >
             <Button className="ImageIndexPage__update-image-button" type="text">
                 Upload new version
             </Button>
