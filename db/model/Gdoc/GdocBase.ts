@@ -577,6 +577,10 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "key-indicator-collection",
                         "list",
                         "missing-data",
+
+                        // Open question: there's not a direct link to a chart here, but there is a chart and also a parent chart
+                        "narrative-chart",
+
                         "numbered-list",
                         "people",
                         "people-rows",

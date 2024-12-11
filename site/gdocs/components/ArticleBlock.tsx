@@ -44,6 +44,7 @@ import { HomepageSearch } from "./HomepageSearch.js"
 import LatestDataInsightsBlock from "./LatestDataInsightsBlock.js"
 import { Socials } from "./Socials.js"
 import Person from "./Person.js"
+import NarrativeChart from "./NarrativeChart.js"
 import { Container, getLayout } from "./layout.js"
 
 export default function ArticleBlock({
@@ -101,6 +102,15 @@ export default function ArticleBlock({
             return (
                 <Chart
                     className={getLayout(layoutSubtype, containerType)}
+                    d={block}
+                    fullWidthOnMobile={true}
+                />
+            )
+        })
+        .with({ type: "narrative-chart" }, (block) => {
+            return (
+                <NarrativeChart
+                    className={getLayout("chart", containerType)}
                     d={block}
                     fullWidthOnMobile={true}
                 />
