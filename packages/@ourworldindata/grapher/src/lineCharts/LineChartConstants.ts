@@ -1,9 +1,9 @@
 import { DualAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
 import {
-    SeriesName,
     CoreValueType,
     EntityYearHighlight,
+    InteractionState,
 } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Color } from "@ourworldindata/utils"
@@ -30,10 +30,13 @@ export interface PlacedLineChartSeries extends LineChartSeries {
     placedPoints: PlacedPoint[]
 }
 
+export interface RenderLineChartSeries extends PlacedLineChartSeries {
+    hover: InteractionState
+}
+
 export interface LinesProps {
     dualAxis: DualAxis
-    placedSeries: PlacedLineChartSeries[]
-    focusedSeriesNames: SeriesName[]
+    series: RenderLineChartSeries[]
     hidePoints?: boolean
     lineStrokeWidth?: number
     lineOutlineWidth?: number

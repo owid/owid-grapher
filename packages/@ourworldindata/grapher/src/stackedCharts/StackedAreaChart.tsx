@@ -18,7 +18,7 @@ import {
     max,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
-import { RenderMode, SeriesName } from "@ourworldindata/types"
+import { InteractionState, SeriesName } from "@ourworldindata/types"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_AREA_OPACITY_MUTE,
@@ -50,7 +50,11 @@ import {
     StackedSeries,
 } from "./StackedConstants"
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
-import { makeClipPath, isTargetOutsideElement } from "../chart/ChartUtils"
+import {
+    makeClipPath,
+    isTargetOutsideElement,
+    getInteractionStateForSeries,
+} from "../chart/ChartUtils"
 import { bind } from "decko"
 import { AxisConfig } from "../axis/AxisConfig.js"
 
@@ -64,22 +68,22 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
 
 const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
 
-const AREA_OPACITY: Partial<Record<RenderMode, number>> = {
+const AREA_OPACITY = {
     default: GRAPHER_AREA_OPACITY_DEFAULT,
     focus: GRAPHER_AREA_OPACITY_FOCUS,
     mute: GRAPHER_AREA_OPACITY_MUTE,
-}
+} as const
 
-const BORDER_OPACITY: Partial<Record<RenderMode, number>> = {
+const BORDER_OPACITY = {
     default: 0.7,
     focus: 1,
     mute: 0.3,
-}
+} as const
 
-const BORDER_WIDTH: Partial<Record<RenderMode, number>> = {
+const BORDER_WIDTH = {
     default: 0.5,
-    mute: 1.5,
-}
+    focus: 1.5,
+} as const
 
 @observer
 class Areas extends React.Component<AreasProps> {
@@ -294,6 +298,12 @@ export class StackedAreaChart extends AbstractStackedChart {
         })
     }
 
+    private hoverStateForSeries(
+        series: StackedSeries<number>
+    ): InteractionState {
+        return getInteractionStateForSeries(series, this.hoveredSeriesNames)
+    }
+
     @computed get lineLegendSeries(): LineLabelSeries[] {
         const { midpoints } = this
         return this.series
@@ -303,6 +313,7 @@ export class StackedAreaChart extends AbstractStackedChart {
                 label: series.seriesName,
                 yValue: midpoints[index],
                 isAllZeros: series.isAllZeros,
+                hover: this.hoverStateForSeries(series),
             }))
             .filter((series) => !series.isAllZeros)
             .reverse()
@@ -416,7 +427,7 @@ export class StackedAreaChart extends AbstractStackedChart {
         return hoveredSeries?.seriesName
     }
 
-    @computed get focusedSeriesName(): SeriesName | undefined {
+    @computed get hoveredSeriesName(): SeriesName | undefined {
         return (
             // if the chart area is hovered
             this.tooltipState.target?.series ??
@@ -427,9 +438,8 @@ export class StackedAreaChart extends AbstractStackedChart {
         )
     }
 
-    // used by the line legend component
-    @computed get focusedSeriesNames(): string[] {
-        return this.focusedSeriesName ? [this.focusedSeriesName] : []
+    @computed get hoveredSeriesNames(): string[] {
+        return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
     }
 
     @action.bound private onCursorMove(
@@ -665,7 +675,6 @@ export class StackedAreaChart extends AbstractStackedChart {
                 fontSize={this.fontSize}
                 seriesSortedByImportance={this.seriesSortedByImportance}
                 isStatic={this.isStatic}
-                focusedSeriesNames={this.focusedSeriesNames}
                 onMouseOver={this.onLineLegendMouseOver}
                 onMouseLeave={this.onLineLegendMouseLeave}
             />
@@ -680,7 +689,7 @@ export class StackedAreaChart extends AbstractStackedChart {
                 <Areas
                     dualAxis={this.dualAxis}
                     seriesArr={this.series}
-                    focusedSeriesName={this.focusedSeriesName}
+                    focusedSeriesName={this.hoveredSeriesName}
                 />
             </>
         )
@@ -718,7 +727,7 @@ export class StackedAreaChart extends AbstractStackedChart {
                     <Areas
                         dualAxis={dualAxis}
                         seriesArr={series}
-                        focusedSeriesName={this.focusedSeriesName}
+                        focusedSeriesName={this.hoveredSeriesName}
                         onAreaMouseEnter={this.onAreaMouseEnter}
                         onAreaMouseLeave={this.onAreaMouseLeave}
                     />
