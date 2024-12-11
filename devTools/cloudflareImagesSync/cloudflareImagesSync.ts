@@ -368,7 +368,11 @@ async function fetchImagesFromDatabase(trx: db.KnexReadWriteTransaction) {
     console.log("Fetching images from the database...")
     return await trx("images")
         .select("images.*")
-        .whereIn("images.id", trx("posts_gdocs_x_images").distinct("imageId"))
+        // We used to filter to only images that are referenced in posts_gdocs_x_images but
+        // that was strangely only filled for published posts. On 2024-12-10/11 when we migrated
+        // images from gdrive to cloudflare, there were 2400 images, of which around 800
+        // were excluded by this. Most of these seemed sensible to have so I opted to just
+        // transfer all images that we have in the images table.
         .whereNotNull("images.id")
         .whereNotNull("images.filename")
         .orderBy("filename", "asc")
@@ -421,7 +425,7 @@ async function uploadImagesToCloudflareImages(
 async function main() {
     if (!CLOUDFLARE_IMAGES_ACCOUNT_ID || !CLOUDFLARE_IMAGES_API_KEY) {
         console.error(
-            `Cloudflare Images credentials not set. 
+            `Cloudflare Images credentials not set.
 You need to set "CLOUDFLARE_IMAGES_ACCOUNT_ID" and "CLOUDFLARE_IMAGES_API_KEY" in your .env`
         )
         return
