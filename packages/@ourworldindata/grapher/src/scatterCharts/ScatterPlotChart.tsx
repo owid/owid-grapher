@@ -871,7 +871,7 @@ export class ScatterPlotChart
                         {!this.manager.isStatic &&
                             separatorLine(noDataSectionBounds.top)}
                         <NoDataSection
-                            entityNames={this.selectedEntitiesWithoutData}
+                            seriesNames={this.selectedEntitiesWithoutData}
                             bounds={noDataSectionBounds}
                             baseFontSize={this.fontSize}
                         />
@@ -935,7 +935,9 @@ export class ScatterPlotChart
             timeLabel =
                 timeRange + (isRelativeMode ? " (avg. annual change)" : "")
 
-        const columns = [xColumn, yColumn, sizeColumn]
+        const columns = [xColumn, yColumn, sizeColumn].filter(
+            (column) => !column.isMissing
+        )
         const allRoundedToSigFigs = columns.every(
             (column) => column.roundsToSignificantFigures
         )

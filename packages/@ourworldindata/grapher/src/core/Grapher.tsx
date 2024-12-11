@@ -66,7 +66,6 @@ import {
     extractDetailsFromSyntax,
     omit,
     isTouchDevice,
-    areSetsEqual,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -138,7 +137,6 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
     latestGrapherConfigSchema,
-    validChartTypeCombinations,
     GRAPHER_SQUARE_SIZE,
 } from "../core/GrapherConstants"
 import { loadVariableDataAndMetadata } from "./loadVariable"
@@ -198,6 +196,7 @@ import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    findValidChartTypeCombination,
     mapChartTypeNameToQueryParam,
     mapQueryParamToChartTypeName,
 } from "../chart/ChartUtils"
@@ -1310,6 +1309,26 @@ export class Grapher
         }
     }
 
+    @action.bound onTabChange(
+        oldTab: GrapherTabName,
+        newTab: GrapherTabName
+    ): void {
+        // if switching from a line to a slope chart and the handles are
+        // on the same time, then automatically adjust the handles so that
+        // the slope chart view is meaningful
+        if (
+            oldTab === GRAPHER_TAB_NAMES.LineChart &&
+            newTab === GRAPHER_TAB_NAMES.SlopeChart &&
+            this.areHandlesOnSameTime
+        ) {
+            if (this.startHandleTimeBound !== -Infinity) {
+                this.startHandleTimeBound = -Infinity
+            } else {
+                this.endHandleTimeBound = Infinity
+            }
+        }
+    }
+
     // todo: can we remove this?
     // I believe these states can only occur during editing.
     @action.bound private ensureValidConfigWhenEditing(): void {
@@ -1408,7 +1427,6 @@ export class Grapher
         if (this.isLineChart || this.isDiscreteBar) return [yAxis, color]
         else if (this.isScatter) return [yAxis, xAxis, size, color]
         else if (this.isMarimekko) return [yAxis, xAxis, color]
-        else if (this.isSlopeChart) return [yAxis, color]
         return [yAxis]
     }
 
@@ -1524,21 +1542,31 @@ export class Grapher
         })
     }
 
+    @computed get hasProjectedData(): boolean {
+        return this.inputTable.numericColumnSlugs.some(
+            (slug) => this.inputTable.get(slug).isProjection
+        )
+    }
+
     @computed get validChartTypes(): GrapherChartType[] {
         const { chartTypes } = this
 
         // all single-chart Graphers are valid
         if (chartTypes.length <= 1) return chartTypes
 
-        const chartTypeSet = new Set(chartTypes)
-        for (const validCombination of validChartTypeCombinations) {
-            const validCombinationSet = new Set(validCombination)
-            if (areSetsEqual(chartTypeSet, validCombinationSet))
-                return validCombination
-        }
+        // find valid combination in a pre-defined list
+        const validChartTypes = findValidChartTypeCombination(chartTypes)
 
         // if the given combination is not valid, then ignore all but the first chart type
-        return chartTypes.slice(0, 1)
+        if (!validChartTypes) return chartTypes.slice(0, 1)
+
+        // projected data is only supported for line charts
+        const isLineChart = validChartTypes[0] === GRAPHER_CHART_TYPES.LineChart
+        if (isLineChart && this.hasProjectedData) {
+            return [GRAPHER_CHART_TYPES.LineChart]
+        }
+
+        return validChartTypes
     }
 
     @computed get validChartTypeSet(): Set<GrapherChartType> {
@@ -1605,7 +1633,7 @@ export class Grapher
             !this.hideAnnotationFieldsInTitle?.changeInPrefix
         return (
             !this.forceHideAnnotationFieldsInTitle?.changeInPrefix &&
-            this.isOnLineChartTab &&
+            (this.isOnLineChartTab || this.isOnSlopeChartTab) &&
             this.isRelativeMode &&
             showChangeInPrefix
         )
@@ -1634,7 +1662,7 @@ export class Grapher
         if (this.shouldAddChangeInPrefixToTitle)
             text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
 
-        if (this.shouldAddTimeSuffixToTitle)
+        if (this.shouldAddTimeSuffixToTitle && this.timeTitleSuffix)
             text = appendAnnotationField(text, this.timeTitleSuffix)
 
         return text.trim()
@@ -1737,11 +1765,11 @@ export class Grapher
         return this.xAxis.scaleType
     }
 
-    @computed private get timeTitleSuffix(): string {
+    @computed private get timeTitleSuffix(): string | undefined {
         const timeColumn = this.table.timeColumn
-        if (timeColumn.isMissing) return "" // Do not show year until data is loaded
+        if (timeColumn.isMissing) return undefined // Do not show year until data is loaded
         const { startTime, endTime } = this
-        if (startTime === undefined || endTime === undefined) return ""
+        if (startTime === undefined || endTime === undefined) return undefined
 
         const time =
             startTime === endTime
@@ -1933,7 +1961,7 @@ export class Grapher
 
     @computed
     get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): GrapherChartType {
-        return this.isLineChartThatTurnedIntoDiscreteBar
+        return this.isLineChartThatTurnedIntoDiscreteBarActive
             ? GRAPHER_CHART_TYPES.DiscreteBar
             : (this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart)
     }
@@ -1992,6 +2020,12 @@ export class Grapher
         return closestMinTime !== undefined && closestMinTime === closestMaxTime
     }
 
+    @computed get isLineChartThatTurnedIntoDiscreteBarActive(): boolean {
+        return (
+            this.isOnLineChartTab && this.isLineChartThatTurnedIntoDiscreteBar
+        )
+    }
+
     @computed get isOnLineChartTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.LineChart
     }
@@ -2025,7 +2059,7 @@ export class Grapher
     }
 
     @computed get supportsMultipleYColumns(): boolean {
-        return !(this.isScatter || this.isSlopeChart)
+        return !this.isScatter
     }
 
     @computed private get xDimension(): ChartDimension | undefined {
@@ -2148,7 +2182,8 @@ export class Grapher
 
     @computed get relativeToggleLabel(): string {
         if (this.isOnScatterTab) return "Display average annual change"
-        else if (this.isOnLineChartTab) return "Display relative change"
+        else if (this.isOnLineChartTab || this.isOnSlopeChartTab)
+            return "Display relative change"
         return "Display relative values"
     }
 
@@ -2168,6 +2203,7 @@ export class Grapher
     @computed get canToggleRelativeMode(): boolean {
         const {
             isOnLineChartTab,
+            isOnSlopeChartTab,
             hideRelativeToggle,
             areHandlesOnSameTime,
             yScaleType,
@@ -2178,7 +2214,7 @@ export class Grapher
             isStackedChartSplitByMetric,
         } = this
 
-        if (isOnLineChartTab)
+        if (isOnLineChartTab || isOnSlopeChartTab)
             return (
                 !hideRelativeToggle &&
                 !areHandlesOnSameTime &&
@@ -3465,7 +3501,7 @@ export class Grapher
     }
 
     @computed get disablePlay(): boolean {
-        return this.isOnSlopeChartTab
+        return false
     }
 
     @computed get animationEndTime(): Time {
@@ -3522,6 +3558,7 @@ export class Grapher
             this.hasChartTab &&
             this.canSelectMultipleEntities &&
             (this.isOnLineChartTab ||
+                this.isOnSlopeChartTab ||
                 this.isOnStackedAreaTab ||
                 this.isOnStackedBarTab ||
                 this.isOnDiscreteBarTab ||

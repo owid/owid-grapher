@@ -23,7 +23,6 @@ import {
     AxisAlign,
     Color,
     HorizontalAlign,
-    PrimitiveType,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
@@ -102,6 +101,13 @@ import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
+import {
+    AnnotationsMap,
+    getAnnotationsForSeries,
+    getAnnotationsMap,
+    getColorKey,
+    getSeriesName,
+} from "./LineChartHelpers"
 
 const LINE_CHART_CLASS_NAME = "LineChart"
 
@@ -402,13 +408,9 @@ export class LineChart
         // if entities with partial data are not plotted,
         // make sure they don't show up in the entity selector
         if (this.missingDataStrategy === MissingDataStrategy.hide) {
-            table = table.replaceNonNumericCellsWithErrorValues(
-                this.yColumnSlugs
-            )
-
-            table = table.dropEntitiesThatHaveNoDataInSomeColumn(
-                this.yColumnSlugs
-            )
+            table = table
+                .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+                .dropEntitiesThatHaveNoDataInSomeColumn(this.yColumnSlugs)
         }
 
         return table
@@ -437,10 +439,10 @@ export class LineChart
         let table = this.transformedTableFromGrapher
         // The % growth transform cannot be applied in transformTable() because it will filter out
         // any rows before startHandleTimeBound and change the timeline bounds.
-        const { isRelativeMode, startHandleTimeBound } = this.manager
-        if (isRelativeMode && startHandleTimeBound !== undefined) {
+        const { isRelativeMode, startTime } = this.manager
+        if (isRelativeMode && startTime !== undefined) {
             table = table.toTotalGrowthForEachColumnComparedToStartTime(
-                startHandleTimeBound,
+                startTime,
                 this.manager.yColumnSlugs ?? []
             )
         }
@@ -707,7 +709,10 @@ export class LineChart
                     rows={sortedData.map((series) => {
                         const { seriesName: name, isProjection: striped } =
                             series
-                        const annotation = this.getAnnotationsForSeries(name)
+                        const annotation = getAnnotationsForSeries(
+                            this.annotationsMap,
+                            name
+                        )
 
                         const point = series.points.find(
                             (point) => point.x === target.x
@@ -1148,24 +1153,8 @@ export class LineChart
 
     // End of color legend props
 
-    // todo: for now just works with 1 y column
-    @computed private get annotationsMap(): Map<
-        PrimitiveType,
-        Set<PrimitiveType>
-    > {
-        return this.inputTable
-            .getAnnotationColumnForColumn(this.yColumnSlugs[0])
-            ?.getUniqueValuesGroupedBy(this.inputTable.entityNameSlug)
-    }
-
-    getAnnotationsForSeries(seriesName: SeriesName): string | undefined {
-        const annotationsMap = this.annotationsMap
-        const annos = annotationsMap?.get(seriesName)
-        return annos
-            ? Array.from(annos.values())
-                  .filter((anno) => anno)
-                  .join(" & ")
-            : undefined
+    @computed private get annotationsMap(): AnnotationsMap | undefined {
+        return getAnnotationsMap(this.inputTable, this.yColumnSlugs[0])
     }
 
     @computed private get colorScheme(): ColorScheme {
@@ -1196,39 +1185,6 @@ export class LineChart
         })
     }
 
-    private getSeriesName(
-        entityName: EntityName,
-        columnName: string,
-        entityCount: number
-    ): SeriesName {
-        if (this.seriesStrategy === SeriesStrategy.entity) {
-            return entityName
-        }
-        if (entityCount > 1 || this.manager.canSelectMultipleEntities) {
-            return `${entityName} - ${columnName}`
-        } else {
-            return columnName
-        }
-    }
-
-    private getColorKey(
-        entityName: EntityName,
-        columnName: string,
-        entityCount: number
-    ): SeriesName {
-        if (this.seriesStrategy === SeriesStrategy.entity) {
-            return entityName
-        }
-        // If only one entity is plotted, we want to use the column colors.
-        // Unlike in `getSeriesName`, we don't care whether the user can select
-        // multiple entities, only whether more than one is plotted.
-        if (entityCount > 1) {
-            return `${entityName} - ${columnName}`
-        } else {
-            return columnName
-        }
-    }
-
     // cache value for performance
     @computed private get rowIndicesByEntityName(): Map<string, number[]> {
         return this.transformedTable.rowIndex([
@@ -1237,14 +1193,20 @@ export class LineChart
     }
 
     private constructSingleSeries(
-        entityName: string,
-        col: CoreColumn
+        entityName: EntityName,
+        column: CoreColumn
     ): LineChartSeries {
-        const { hasColorScale, transformedTable, colorColumn } = this
+        const {
+            manager: { canSelectMultipleEntities = false },
+            transformedTable: { availableEntityNames },
+            seriesStrategy,
+            hasColorScale,
+            colorColumn,
+        } = this
 
         // Construct the points
-        const timeValues = col.originalTimeColumn.valuesIncludingErrorValues
-        const values = col.valuesIncludingErrorValues
+        const timeValues = column.originalTimeColumn.valuesIncludingErrorValues
+        const values = column.valuesIncludingErrorValues
         const colorValues = colorColumn.valuesIncludingErrorValues
         // If Y and Color are the same column, we need to get rid of any duplicate rows.
         // Duplicates occur because Y doesn't have tolerance applied, but Color does.
@@ -1269,26 +1231,34 @@ export class LineChart
         })
 
         // Construct series properties
-        const totalEntityCount = transformedTable.availableEntityNames.length
-        const seriesName = this.getSeriesName(
+        const columnName = column.nonEmptyDisplayName
+        const seriesName = getSeriesName({
             entityName,
-            col.displayName,
-            totalEntityCount
-        )
+            columnName,
+            seriesStrategy,
+            availableEntityNames,
+            canSelectMultipleEntities,
+        })
+
         let seriesColor: Color
         if (hasColorScale) {
             const colorValue = last(points)?.colorValue
             seriesColor = this.getColorScaleColor(colorValue)
         } else {
             seriesColor = this.categoricalColorAssigner.assign(
-                this.getColorKey(entityName, col.displayName, totalEntityCount)
+                getColorKey({
+                    entityName,
+                    columnName,
+                    seriesStrategy,
+                    availableEntityNames,
+                })
             )
         }
 
         return {
             points,
             seriesName,
-            isProjection: col.isProjection,
+            isProjection: column.isProjection,
             color: seriesColor,
         }
     }
@@ -1350,7 +1320,10 @@ export class LineChart
                 seriesName,
                 // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
                 label: !this.manager.showLegend ? "" : `${seriesName}`,
-                annotation: this.getAnnotationsForSeries(seriesName),
+                annotation: getAnnotationsForSeries(
+                    this.annotationsMap,
+                    seriesName
+                ),
                 yValue: lastValue,
             }
         })

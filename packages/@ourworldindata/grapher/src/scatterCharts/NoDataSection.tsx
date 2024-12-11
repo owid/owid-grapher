@@ -6,19 +6,19 @@ import {
 } from "../core/GrapherConstants"
 
 export function NoDataSection({
-    entityNames,
+    seriesNames,
     bounds,
     baseFontSize = 16,
 }: {
-    entityNames: string[]
+    seriesNames: string[]
     bounds: Bounds
     baseFontSize?: number
 }): React.ReactElement {
     {
-        const displayedEntities = entityNames.slice(0, 5)
-        const numRemainingEntities = Math.max(
+        const displayedNames = seriesNames.slice(0, 5)
+        const remaining = Math.max(
             0,
-            entityNames.length - displayedEntities.length
+            seriesNames.length - displayedNames.length
         )
 
         return (
@@ -40,7 +40,7 @@ export function NoDataSection({
                     No data
                 </div>
                 <ul>
-                    {displayedEntities.map((entityName) => (
+                    {displayedNames.map((entityName) => (
                         <li
                             key={entityName}
                             style={{
@@ -53,14 +53,8 @@ export function NoDataSection({
                         </li>
                     ))}
                 </ul>
-                {numRemainingEntities > 0 && (
-                    <div>
-                        &{" "}
-                        {numRemainingEntities === 1
-                            ? "one"
-                            : numRemainingEntities}{" "}
-                        more
-                    </div>
+                {remaining > 0 && (
+                    <div>& {remaining === 1 ? "one" : remaining} more</div>
                 )}
             </foreignObject>
         )
