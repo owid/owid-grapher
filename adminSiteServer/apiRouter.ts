@@ -3315,6 +3315,15 @@ deleteRouteWithRWTransaction(
     }
 )
 
+getRouteWithROTransaction(apiRouter, "/images/usage", async (_, __, trx) => {
+    const usage = await db.getImageUsage(trx)
+
+    return {
+        success: true,
+        usage,
+    }
+})
+
 getRouteWithROTransaction(
     apiRouter,
     `/gpt/suggest-topics/${TaggableType.Charts}/:chartId.json`,

@@ -1236,6 +1236,7 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
             }
         }
     }
+
     .ImageIndexPage__unsaved-chip {
         color: gray;
         background-color: lightgray;
@@ -1247,4 +1248,21 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         top: -2px;
         position: relative;
     }
+}
+
+.ImageIndexPage__usage-chip {
+    background-color: #ddd;
+    padding: 2px 4px;
+    display: inline-block;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 12px;
+}
+
+.ImageIndexPage__usage-list {
+    max-width: 300px;
+    padding-left: 16px;
+    margin-top: -8px;
+    margin-bottom: 0;
 }
