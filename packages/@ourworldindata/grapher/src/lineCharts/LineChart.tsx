@@ -114,7 +114,7 @@ import {
     getColorKey,
     getSeriesName,
 } from "./LineChartHelpers"
-import { InteractionArray } from "../selection/InteractionArray.js"
+import { FocusArray } from "../selection/FocusArray.js"
 
 const LINE_CHART_CLASS_NAME = "LineChart"
 
@@ -168,16 +168,23 @@ class Lines extends React.Component<LinesProps> {
     }
 
     private seriesHasMarkers(series: RenderLineChartSeries): boolean {
-        return !series.hover.background && !series.isProjection
+        if (series.hover.background || series.isProjection) return false
+        return !series.focus.background || series.hover.active
     }
 
     private renderLine(series: RenderLineChartSeries): React.ReactElement {
-        const { hover } = series
+        const { hover, focus } = series
 
-        const stroke = series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR
+        const seriesColor = series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR
+        const color =
+            !focus.background || hover.active
+                ? seriesColor
+                : NON_FOCUSED_LINE_COLOR
+
         const strokeDasharray = series.isProjection ? "2,3" : undefined
         const strokeWidth = hover.background ? 1 : this.strokeWidth
-        const strokeOpacity = hover.background ? GRAPHER_OPACITY_MUTE : 1
+        const strokeOpacity =
+            hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
 
         const outlineColor =
             this.props.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
@@ -217,7 +224,7 @@ class Lines extends React.Component<LinesProps> {
                 <LinePath
                     id={makeIdForHumanConsumption("line", series.seriesName)}
                     placedPoints={series.placedPoints}
-                    stroke={stroke}
+                    stroke={color}
                     strokeWidth={strokeWidth}
                     strokeOpacity={strokeOpacity}
                     strokeDasharray={strokeDasharray}
@@ -230,6 +237,7 @@ class Lines extends React.Component<LinesProps> {
         series: RenderLineChartSeries
     ): React.ReactElement | void {
         const { horizontalAxis } = this.props.dualAxis
+        const { hover, focus } = series
 
         // If the series only contains one point, then we will always want to
         // show a marker/circle because we can't draw a line.
@@ -240,26 +248,34 @@ class Lines extends React.Component<LinesProps> {
 
         if (hideMarkers && !forceMarkers) return
 
-        const opacity = series.hover.background ? GRAPHER_OPACITY_MUTE : 1
+        const opacity =
+            hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
 
         return (
             <g
                 id={makeIdForHumanConsumption("markers", series.seriesName)}
                 key={getSeriesKey(series, "markers")}
             >
-                {series.placedPoints.map((value, index) => (
-                    <circle
-                        id={makeIdForHumanConsumption(
-                            horizontalAxis.formatTick(value.time)
-                        )}
-                        key={index}
-                        cx={value.x}
-                        cy={value.y}
-                        r={this.markerRadius}
-                        fill={value.color}
-                        opacity={opacity}
-                    />
-                ))}
+                {series.placedPoints.map((value, index) => {
+                    const valueColor = value.color
+                    const color =
+                        !focus.background || hover.active
+                            ? valueColor
+                            : NON_FOCUSED_LINE_COLOR
+                    return (
+                        <circle
+                            id={makeIdForHumanConsumption(
+                                horizontalAxis.formatTick(value.time)
+                            )}
+                            key={index}
+                            cx={value.x}
+                            cy={value.y}
+                            r={this.markerRadius}
+                            fill={color}
+                            opacity={opacity}
+                        />
+                    )
+                })}
             </g>
         )
     }
@@ -518,8 +534,8 @@ export class LineChart
         return makeSelectionArray(this.manager.selection)
     }
 
-    @computed get focusArray(): InteractionArray {
-        return this.manager.focusArray ?? new InteractionArray()
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
     }
 
     @computed get activeX(): number | undefined {
@@ -771,7 +787,7 @@ export class LineChart
     }
 
     @computed get isFocusModeActive(): boolean {
-        return this.focusArray.hasActiveSeries
+        return !this.focusArray.isEmpty
     }
 
     @computed private get hasEntityYearHighlight(): boolean {

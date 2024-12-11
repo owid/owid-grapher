@@ -50,7 +50,7 @@ import { ColumnSlug, OwidColumnDef } from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
-import { InteractionArray } from "../selection/InteractionArray"
+import { FocusArray } from "../selection/FocusArray"
 
 export interface EntitySelectorState {
     searchInput: string
@@ -71,7 +71,7 @@ export interface EntitySelectorManager {
     isEntitySelectorModalOrDrawerOpen?: boolean
     canChangeEntity?: boolean
     canHighlightEntities?: boolean
-    focusArray?: InteractionArray
+    focusArray?: FocusArray
 }
 
 interface SortConfig {

@@ -20,6 +20,7 @@ import {
     WorldEntityName,
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
+    Grapher,
 } from "@ourworldindata/grapher"
 import {
     DimensionProperty,
@@ -29,6 +30,7 @@ import {
     sampleSize,
     startCase,
     OwidChartDimensionInterface,
+    differenceOfSets,
 } from "@ourworldindata/utils"
 import { FieldsRow, Section, SelectField, Toggle } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
@@ -142,6 +144,12 @@ class DimensionSlotView<
         }
     }
 
+    @action.bound private syncFocusedSeriesNames(): void {
+        const { grapher } = this.props.editor
+        const invalidFocusedSeriesNames = findInvalidFocusedSeriesNames(grapher)
+        grapher.focusArray.deactivate(...invalidFocusedSeriesNames)
+    }
+
     componentDidMount() {
         // We want to add the reaction only after the grapher is loaded,
         // so we don't update the initial chart (as configured) by accident.
@@ -155,7 +163,10 @@ class DimensionSlotView<
                     ),
                     reaction(
                         () => this.grapher.yColumnsFromDimensions.length,
-                        this.updateDefaults
+                        () => {
+                            this.updateDefaults()
+                            this.syncFocusedSeriesNames()
+                        }
                     )
                 )
             }
@@ -506,5 +517,14 @@ function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
         <Section name="Indicator chart">
             <p>This is the Grapher config for indicator {variableLink}.</p>
         </Section>
+    )
+}
+
+export function findInvalidFocusedSeriesNames(grapher: Grapher) {
+    const availableSeriesNames = new Set(grapher.chartSeriesNames)
+    const focusedSeriesNames = grapher.focusArray.focusedSeriesNameSet
+
+    return Array.from(
+        differenceOfSets([focusedSeriesNames, availableSeriesNames])
     )
 }

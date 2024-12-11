@@ -28,6 +28,7 @@ import {
     DropResult,
 } from "react-beautiful-dnd"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { findInvalidFocusedSeriesNames } from "./EditorBasicTab.js"
 
 interface EntityListItemProps extends React.HTMLProps<HTMLDivElement> {
     grapher: Grapher
@@ -110,7 +111,11 @@ class SeriesListItem extends React.Component<SeriesListItemProps> {
         const rest = omit(props, ["seriesName", "onRemove"])
 
         return (
-            <div className="list-group-item" key={seriesName} {...rest}>
+            <div
+                className="list-group-item EditableListItem"
+                key={seriesName}
+                {...rest}
+            >
                 <div>{seriesName}</div>
                 <div className="clickable" onClick={this.onRemove}>
                     <FontAwesomeIcon icon={faTimes} />
@@ -132,6 +137,12 @@ export class EntitySelectionSection extends React.Component<{
 
     @action.bound onAddKey(entityName: EntityName) {
         this.editor.grapher.selection.selectEntity(entityName)
+        this.syncFocusedSeriesNames()
+    }
+
+    @action.bound onRemoveKey(entityName: EntityName) {
+        this.editor.grapher.selection.deselectEntity(entityName)
+        this.syncFocusedSeriesNames()
     }
 
     @action.bound onDragEnd(result: DropResult) {
@@ -154,6 +165,12 @@ export class EntitySelectionSection extends React.Component<{
         grapher.selection.setSelectedEntities(
             activeParentConfig.selectedEntityNames
         )
+    }
+
+    @action.bound private syncFocusedSeriesNames(): void {
+        const { grapher } = this.props.editor
+        const invalidFocusedSeriesNames = findInvalidFocusedSeriesNames(grapher)
+        grapher.focusArray.deactivate(...invalidFocusedSeriesNames)
     }
 
     render() {
@@ -220,7 +237,7 @@ export class EntitySelectionSection extends React.Component<{
                                                         grapher={grapher}
                                                         entityName={entityName}
                                                         onRemove={() =>
-                                                            selection.deselectEntity(
+                                                            this.onRemoveKey(
                                                                 entityName
                                                             )
                                                         }
@@ -270,8 +287,8 @@ export class FocusSection extends React.Component<{
 
         const seriesNameSet = new Set(grapher.chartSeriesNames)
 
-        const focusedSeriesNameSet = grapher.focusArray.activeSeriesNameSet
-        const focusedSeriesNames = grapher.focusArray.activeSeriesNames
+        const focusedSeriesNameSet = grapher.focusArray.focusedSeriesNameSet
+        const focusedSeriesNames = grapher.focusArray.focusedSeriesNames
 
         const availableSeriesNameSet = differenceOfSets<string>([
             seriesNameSet,

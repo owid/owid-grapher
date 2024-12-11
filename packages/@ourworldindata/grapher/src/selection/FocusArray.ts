@@ -1,22 +1,18 @@
 import { SeriesName, InteractionState } from "@ourworldindata/types"
 import { action, computed, observable } from "mobx"
 
-/**
- * A class to manage a set of active series that are activated and
- * deactivated by being interacted with, e.g. by hovering or focusing.
- */
-export class InteractionArray {
+export class FocusArray {
     constructor() {
         this.activeSet = new Set()
     }
 
     @observable private activeSet: Set<SeriesName>
 
-    @computed get activeSeriesNameSet(): Set<SeriesName> {
+    @computed get focusedSeriesNameSet(): Set<SeriesName> {
         return this.activeSet
     }
 
-    @computed get activeSeriesNames(): SeriesName[] {
+    @computed get focusedSeriesNames(): SeriesName[] {
         return Array.from(this.activeSet)
     }
 
@@ -24,43 +20,40 @@ export class InteractionArray {
         return this.activeSet.size === 0
     }
 
-    @computed get hasActiveSeries(): boolean {
-        return !this.isEmpty
-    }
-
     /**
-     * Whether a series is currently interacted with
+     * Whether a series is currently highlighted
      */
-    isActive(seriesName: SeriesName): boolean {
+    isFocused(seriesName: SeriesName): boolean {
         return this.activeSet.has(seriesName)
     }
 
     /**
      * Whether a series is in the foreground, i.e. either
-     * the chart isn't currently interacted with (in which
+     * the chart isn't currently is focus mode (in which
      * all series are in the foreground by default) or the
-     * series is currently interacted with.
+     * series itself is currently highlighted.
      */
     isInForeground(seriesName: SeriesName): boolean {
-        return this.isEmpty || this.isActive(seriesName)
+        return this.isEmpty || this.isFocused(seriesName)
     }
 
     /**
      * Whether a series is in the background, i.e. the chart
-     * is currently interacted with but the series isn't.
+     * is currently in focus mode but the given series isn't
+     * highlighted.
      */
     isInBackground(seriesName: SeriesName): boolean {
-        return this.hasActiveSeries && !this.isActive(seriesName)
+        return !this.isEmpty && !this.isFocused(seriesName)
     }
 
     /**
      * Get the interaction state of a series:
-     * - active: whether the series is currently interacted with
-     * - background: whether another series is currently interacted with
+     * - active: whether the series is currently focused
+     * - background: whether another series is currently focused
      */
     state(seriesName: SeriesName): InteractionState {
         return {
-            active: this.isActive(seriesName),
+            active: this.isFocused(seriesName),
             background: this.isInBackground(seriesName),
         }
     }
@@ -87,7 +80,7 @@ export class InteractionArray {
 
     @action.bound toggle(...seriesNames: SeriesName[]): this {
         for (const seriesName of seriesNames) {
-            if (this.isActive(seriesName)) {
+            if (this.isFocused(seriesName)) {
                 this.deactivate(seriesName)
             } else {
                 this.activate(seriesName)
