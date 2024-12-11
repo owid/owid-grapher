@@ -549,10 +549,7 @@ export class SlopeChart
     }
 
     @computed private get lineLegendPropsRight(): Partial<LineLegendProps> {
-        return {
-            xAnchor: "start",
-            fontWeight: 700,
-        }
+        return { xAnchor: "start" }
     }
 
     @computed private get lineLegendPropsLeft(): Partial<LineLegendProps> {
