@@ -236,7 +236,7 @@
         "jest": "^29.7.0",
         "jest-environment-jsdom": "^29.7.0",
         "lerna": "^8.1.6",
-        "lint-staged": "^15.2.2",
+        "lint-staged": "^15.2.11",
         "prettier": "^3.4.0",
         "sass": "^1.77.8",
         "tmex": "^1.0.8",
