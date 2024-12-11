@@ -60,7 +60,6 @@ export async function processImageContent(
 export async function uploadToCloudflare(filename: string, blob: Blob) {
     const body = new FormData()
     body.append("file", blob, filename)
-    body.append("id", encodeURIComponent(filename))
     body.append("metadata", JSON.stringify({ filename }))
     body.append("requireSignedURLs", "false")
 
@@ -91,9 +90,9 @@ export async function uploadToCloudflare(filename: string, blob: Blob) {
 
 export async function deleteFromCloudflare(cloudflareId: string) {
     const response = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1/${encodeURIComponent(
+        `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1/${
             cloudflareId
-        )}`,
+        }`,
         {
             method: "DELETE",
             headers: {
