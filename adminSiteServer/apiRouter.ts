@@ -3138,17 +3138,6 @@ getRouteNonIdempotentWithRWTransaction(
 postRouteWithRWTransaction(apiRouter, "/images", async (req, res, trx) => {
     const { filename, type, content } = validateImagePayload(req.body)
 
-    const preexisting = await trx<DbEnrichedImage>("images")
-        .where("filename", "=", filename)
-        .first()
-
-    if (preexisting) {
-        return {
-            success: false,
-            error: "An image with this filename already exists",
-        }
-    }
-
     const { asBlob, dimensions, hash } = await processImageContent(
         content,
         type
@@ -3162,6 +3151,17 @@ postRouteWithRWTransaction(apiRouter, "/images", async (req, res, trx) => {
         return {
             success: false,
             error: `An image with this content already exists (filename: ${collision.filename})`,
+        }
+    }
+
+    const preexisting = await trx<DbEnrichedImage>("images")
+        .where("filename", "=", filename)
+        .first()
+
+    if (preexisting) {
+        return {
+            success: false,
+            error: "An image with this filename already exists",
         }
     }
 
@@ -3195,9 +3195,25 @@ postRouteWithRWTransaction(apiRouter, "/images", async (req, res, trx) => {
 /**
  * Similar to the POST route, but for updating an existing image. Deletes the image
  * from Cloudflare and re-uploads it with the new content. The filename will stay the same,
- * but the dimensions will be updated.
+ * but the dimensions and cloudflareId will be updated.
  */
 putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
+    const { type, content } = validateImagePayload(req.body)
+    const { asBlob, dimensions, hash } = await processImageContent(
+        content,
+        type
+    )
+    const collision = await trx<DbEnrichedImage>("images")
+        .where("hash", "=", hash)
+        .first()
+
+    if (collision) {
+        return {
+            success: false,
+            error: `An image with this content already exists (filename: ${collision.filename})`,
+        }
+    }
+
     const { id } = req.params
 
     const image = await trx<DbEnrichedImage>("images")
@@ -3216,22 +3232,6 @@ putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
             `Image with id ${id} has no associated Cloudflare image`,
             400
         )
-    }
-
-    const { type, content } = validateImagePayload(req.body)
-    const { asBlob, dimensions, hash } = await processImageContent(
-        content,
-        type
-    )
-    const collision = await trx<DbEnrichedImage>("images")
-        .where("hash", "=", hash)
-        .first()
-
-    if (collision) {
-        return {
-            success: false,
-            error: `An image with this content already exists (filename: ${collision.filename})`,
-        }
     }
 
     await deleteFromCloudflare(originalCloudflareId)
