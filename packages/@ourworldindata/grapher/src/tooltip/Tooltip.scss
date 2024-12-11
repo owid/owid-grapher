@@ -67,6 +67,14 @@
                     font-size: 14px;
                     font-weight: $bold;
                     letter-spacing: 0;
+                    margin-right: 4px;
+
+                    .annotation {
+                        display: inline-block;
+                        font-weight: normal;
+                        color: $grey;
+                        font-size: 0.9em;
+                    }
                 }
                 .subtitle {
                     margin: 4px 0 2px 0;

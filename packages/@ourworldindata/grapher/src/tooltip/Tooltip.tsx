@@ -103,6 +103,7 @@ class TooltipCard extends React.Component<
         let {
             id,
             title,
+            titleAnnotation,
             subtitle,
             subtitleFormat,
             footer,
@@ -189,7 +190,14 @@ class TooltipCard extends React.Component<
             >
                 {hasHeader && (
                     <div className="frontmatter">
-                        {title && <div className="title">{title}</div>}
+                        {title && (
+                            <div className="title">
+                                {title}{" "}
+                                <span className="annotation">
+                                    {titleAnnotation}
+                                </span>
+                            </div>
+                        )}
                         {subtitle && (
                             <div className="subtitle">
                                 {timeNotice && TOOLTIP_ICON.notice}

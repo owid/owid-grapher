@@ -1,4 +1,5 @@
 export { TextWrap, shortenForTargetWidth } from "./TextWrap/TextWrap.js"
+export { TextWrapGroup } from "./TextWrap/TextWrapGroup.js"
 
 export {
     MarkdownTextWrap,
@@ -59,3 +60,5 @@ export {
 } from "./SharedDataPageConstants.js"
 
 export { Button } from "./Button/Button.js"
+
+export { Halo } from "./Halo/Halo.js"

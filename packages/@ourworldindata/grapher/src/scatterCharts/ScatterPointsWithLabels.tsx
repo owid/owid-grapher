@@ -18,7 +18,7 @@ import {
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { Halo } from "../halo/Halo"
+import { Halo } from "@ourworldindata/components"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import {
     ScatterPointsWithLabelsProps,
@@ -425,7 +425,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             <Halo
                                 key={series.displayKey + "-endLabel"}
                                 id={series.displayKey + "-endLabel"}
-                                background={this.props.backgroundColor}
+                                outlineColor={this.props.backgroundColor}
                             >
                                 <text
                                     id={makeIdForHumanConsumption(
@@ -561,7 +561,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                     <Halo
                         key={`${series.displayKey}-label-${index}`}
                         id={`${series.displayKey}-label-${index}`}
-                        background={this.props.backgroundColor}
+                        outlineColor={this.props.backgroundColor}
                     >
                         <text
                             id={makeIdForHumanConsumption(

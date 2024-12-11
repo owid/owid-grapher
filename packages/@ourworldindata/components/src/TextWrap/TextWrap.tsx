@@ -1,4 +1,4 @@
-import { max, stripHTML, Bounds, FontFamily } from "@ourworldindata/utils"
+import { max, stripHTML, Bounds, FontFamily, last } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import React from "react"
 import { Fragment, joinFragments, splitIntoFragments } from "./TextWrapUtils"
@@ -11,6 +11,7 @@ interface TextWrapProps {
     lineHeight?: number
     fontSize: FontSize
     fontWeight?: number
+    firstLineOffset?: number
     separators?: string[]
     rawHtml?: boolean
 }
@@ -80,6 +81,9 @@ export class TextWrap {
     @computed get separators(): string[] {
         return this.props.separators ?? [" "]
     }
+    @computed get firstLineOffset(): number {
+        return this.props.firstLineOffset ?? 0
+    }
 
     // We need to take care that HTML tags are not split across lines.
     // Instead, we want every line to have opening and closing tags for all tags that appear.
@@ -148,15 +152,27 @@ export class TextWrap {
                 ? stripHTML(joinFragments(nextLine))
                 : joinFragments(nextLine)
 
-            const nextBounds = Bounds.forText(text, {
+            let nextBounds = Bounds.forText(text, {
                 fontSize,
                 fontWeight,
             })
 
-            if (
-                startsWithNewline(fragment.text) ||
-                (nextBounds.width + 10 > maxWidth && line.length >= 1)
-            ) {
+            // add offset to the first line if given
+            if (lines.length === 0 && this.firstLineOffset) {
+                nextBounds = nextBounds.set({
+                    width: nextBounds.width + this.firstLineOffset,
+                })
+            }
+
+            // start a new line before the current word if the max-width is exceeded.
+            // usually breaking into a new line doesn't make sense if the current line is empty.
+            // but if the first line is offset (which is useful in grouped text wraps),
+            // we might want to break into a new line anyway.
+            const startNewLineBeforeWord =
+                nextBounds.width + 10 > maxWidth &&
+                (line.length >= 1 || this.firstLineOffset)
+
+            if (startsWithNewline(fragment.text) || startNewLineBeforeWord) {
                 // Introduce a newline _before_ this word
                 lines.push({
                     text: joinFragments(line),
@@ -194,14 +210,25 @@ export class TextWrap {
         else return lines
     }
 
+    @computed get lineCount(): number {
+        return this.lines.length
+    }
+
+    @computed get singleLineHeight(): number {
+        return this.fontSize * this.lineHeight
+    }
+
     @computed get height(): number {
-        const { lines, lineHeight, fontSize } = this
-        if (lines.length === 0) return 0
-        return lines.length * lineHeight * fontSize
+        if (this.lineCount === 0) return 0
+        return this.lineCount * this.singleLineHeight
     }
 
     @computed get width(): number {
         return max(this.lines.map((l) => l.width)) ?? 0
+    }
+
+    @computed get lastLineWidth(): number {
+        return last(this.lines)?.width ?? 0
     }
 
     @computed get htmlStyle(): any {
@@ -251,10 +278,11 @@ export class TextWrap {
         // overlap (see storybook of this component).
         const HEIGHT_CORRECTION_FACTOR = 0.74
 
-        const textHeight = (lines[0].height ?? 0) * HEIGHT_CORRECTION_FACTOR
+        const textHeight = max(lines.map((line) => line.height)) ?? 0
+        const correctedTextHeight = textHeight * HEIGHT_CORRECTION_FACTOR
         const containerHeight = lineHeight * fontSize
         const yOffset =
-            y + (containerHeight - (containerHeight - textHeight) / 2)
+            y + (containerHeight - (containerHeight - correctedTextHeight) / 2)
 
         return [x, yOffset]
     }
@@ -266,10 +294,17 @@ export class TextWrap {
             textProps,
             id,
         }: { textProps?: React.SVGProps<SVGTextElement>; id?: string } = {}
-    ): React.ReactElement | null {
-        const { props, lines, fontSize, fontWeight, lineHeight } = this
+    ): React.ReactElement {
+        const {
+            props,
+            lines,
+            fontSize,
+            fontWeight,
+            lineHeight,
+            firstLineOffset,
+        } = this
 
-        if (lines.length === 0) return null
+        if (lines.length === 0) return <></>
 
         const [correctedX, correctedY] = this.getPositionForSvgRendering(x, y)
 
@@ -283,25 +318,21 @@ export class TextWrap {
                 {...textProps}
             >
                 {lines.map((line, i) => {
+                    const x = correctedX + (i === 0 ? firstLineOffset : 0)
+                    const y = correctedY + lineHeight * fontSize * i
+
                     if (props.rawHtml)
                         return (
                             <tspan
                                 key={i}
-                                x={correctedX}
-                                y={correctedY + lineHeight * fontSize * i}
+                                x={x}
+                                y={y}
                                 dangerouslySetInnerHTML={{ __html: line.text }}
                             />
                         )
                     else
                         return (
-                            <tspan
-                                key={i}
-                                x={correctedX}
-                                y={
-                                    correctedY +
-                                    (i === 0 ? 0 : lineHeight * fontSize * i)
-                                }
-                            >
+                            <tspan key={i} x={x} y={y}>
                                 {line.text}
                             </tspan>
                         )

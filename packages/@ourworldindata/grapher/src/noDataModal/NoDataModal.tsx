@@ -15,7 +15,7 @@ import {
     GRAPHER_DARK_TEXT,
     GRAPHER_LIGHT_TEXT,
 } from "../core/GrapherConstants"
-import { Halo } from "../halo/Halo"
+import { Halo } from "@ourworldindata/components"
 
 export interface NoDataModalManager {
     canChangeEntity?: boolean

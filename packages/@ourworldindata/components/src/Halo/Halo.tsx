@@ -13,13 +13,17 @@ const defaultHaloStyle: React.CSSProperties = {
 export function Halo(props: {
     id: React.Key
     children: React.ReactElement
-    background?: Color
+    show?: boolean
+    outlineColor?: Color
     style?: React.CSSProperties
 }): React.ReactElement {
+    const show = props.show ?? true
+    if (!show) return props.children
+
     const defaultStyle = {
         ...defaultHaloStyle,
-        fill: props.background ?? defaultHaloStyle.fill,
-        stroke: props.background ?? defaultHaloStyle.stroke,
+        fill: props.outlineColor ?? defaultHaloStyle.fill,
+        stroke: props.outlineColor ?? defaultHaloStyle.stroke,
     }
     const halo = React.cloneElement(props.children, {
         style: {
