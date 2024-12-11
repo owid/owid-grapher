@@ -353,8 +353,8 @@ export function enumerateGdocComponentsWithoutChildren(
                         "additional-charts",
                         "simple-text",
                         "donors",
-                        "socials"
-                        // "narrative-chart" should go here once it's done
+                        "socials",
+                        "narrative-chart"
                     ),
                 },
                 (c) => handleComponent(c, [], parentPath, path)

@@ -287,6 +287,8 @@ export {
     SocialLinkType,
     type RawSocialLink,
     type EnrichedSocialLink,
+    type RawBlockNarrativeChart,
+    type EnrichedBlockNarrativeChart,
 } from "./gdocTypes/ArchieMlComponents.js"
 export {
     ChartConfigType,
@@ -330,6 +332,7 @@ export {
     type OwidGdocContent,
     type OwidGdocIndexItem,
     extractGdocIndexItem,
+    type ChartViewMetadata,
 } from "./gdocTypes/Gdoc.js"
 
 export {
