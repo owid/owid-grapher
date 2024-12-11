@@ -13,6 +13,7 @@ import {
     StackMode,
     ALL_GRAPHER_CHART_TYPES,
     GrapherChartType,
+    GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
 import {
     DimensionSlot,
@@ -414,6 +415,32 @@ export class EditorBasicTab<
         ]
     }
 
+    private addSlopeChart(): void {
+        const { grapher } = this.props.editor
+        if (grapher.hasSlopeChart) return
+        grapher.chartTypes = [
+            ...grapher.chartTypes,
+            GRAPHER_CHART_TYPES.SlopeChart,
+        ]
+    }
+
+    private removeSlopeChart(): void {
+        const { grapher } = this.props.editor
+        grapher.chartTypes = grapher.chartTypes.filter(
+            (type) => type !== GRAPHER_CHART_TYPES.SlopeChart
+        )
+    }
+
+    @action.bound toggleSecondarySlopeChart(
+        shouldHaveSlopeChart: boolean
+    ): void {
+        if (shouldHaveSlopeChart) {
+            this.addSlopeChart()
+        } else {
+            this.removeSlopeChart()
+        }
+    }
+
     render() {
         const { editor } = this.props
         const { grapher } = editor
@@ -438,6 +465,13 @@ export class EditorBasicTab<
                                 (grapher.hasMapTab = shouldHaveMapTab)
                             }
                         />
+                        {grapher.isLineChart && (
+                            <Toggle
+                                label="Slope chart"
+                                value={grapher.hasSlopeChart}
+                                onValue={this.toggleSecondarySlopeChart}
+                            />
+                        )}
                     </FieldsRow>
                 </Section>
                 {!isIndicatorChart && (
