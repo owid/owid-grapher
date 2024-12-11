@@ -195,6 +195,7 @@ export class SettingsMenu extends React.Component<{
             StackedBar,
             StackedDiscreteBar,
             LineChart,
+            SlopeChart,
         ].includes(this.chartType as any)
 
         const hasProjection = filledDimensions.some(

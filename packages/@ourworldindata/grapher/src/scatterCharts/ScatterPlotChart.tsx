@@ -1144,10 +1144,16 @@ export class ScatterPlotChart
     // domains across the entire timeline
     private domainDefault(property: "x" | "y"): [number, number] {
         const scaleType = property === "x" ? this.xScaleType : this.yScaleType
-        return domainExtent(
-            this.pointsForAxisDomains.map((point) => point[property]),
-            scaleType,
-            this.manager.zoomToSelection && this.selectedPoints.length ? 1.1 : 1
+        const defaultDomain: [number, number] =
+            scaleType === ScaleType.log ? [1, 100] : [-1, 1]
+        return (
+            domainExtent(
+                this.pointsForAxisDomains.map((point) => point[property]),
+                scaleType,
+                this.manager.zoomToSelection && this.selectedPoints.length
+                    ? 1.1
+                    : 1
+            ) ?? defaultDomain
         )
     }
 
