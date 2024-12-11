@@ -3245,6 +3245,7 @@ putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
         originalWidth: dimensions.width,
         originalHeight: dimensions.height,
         updatedAt: new Date().getTime(),
+        cloudflareId: newCloudflareId,
         hash,
     })
 

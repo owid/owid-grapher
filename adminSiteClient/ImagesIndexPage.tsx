@@ -3,7 +3,6 @@ import React, {
     useContext,
     useEffect,
     useMemo,
-    useRef,
     useState,
 } from "react"
 import { Button, Flex, Input, Mentions, Popconfirm, Table, Upload } from "antd"
@@ -184,33 +183,6 @@ function UserSelect({
     )
 }
 
-// when updatedAt changes, the image will reload the src
-// but it looks like sometimes cloudflare doesn't update in time :(
-function ImgWithRefresh({
-    src,
-    updatedAt,
-}: {
-    src: string
-    updatedAt: number | null
-}) {
-    const ref = useRef<HTMLImageElement>(null)
-    useEffect(() => {
-        if (ref.current && updatedAt) {
-            ref.current.src = ""
-            fetch(src, { cache: "reload" })
-                .then(() => {
-                    if (ref.current) {
-                        ref.current.src = src
-                    }
-                })
-                .catch((e) => {
-                    console.log("Something went wrong refreshing the image", e)
-                })
-        }
-    }, [src, updatedAt])
-    return <img ref={ref} src={src} style={{ maxHeight: 100, maxWidth: 100 }} />
-}
-
 function createColumns({
     api,
     users,
@@ -224,7 +196,7 @@ function createColumns({
             dataIndex: "cloudflareId",
             width: 100,
             key: "cloudflareId",
-            render: (cloudflareId, { originalWidth, updatedAt }) => {
+            render: (cloudflareId, { originalWidth, originalHeight }) => {
                 const srcFor = (w: number) =>
                     `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(
                         cloudflareId
@@ -236,9 +208,12 @@ function createColumns({
                             href={`${srcFor(originalWidth!)}`}
                             rel="noopener"
                         >
-                            <ImgWithRefresh
+                            <img
                                 src={`${srcFor(200)}`}
-                                updatedAt={updatedAt}
+                                width="100"
+                                height={
+                                    (originalHeight! / originalWidth!) * 100
+                                }
                             />
                         </a>
                     </div>
