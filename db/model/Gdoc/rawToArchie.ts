@@ -47,6 +47,7 @@ import {
     RawBlockPeople,
     RawBlockPeopleRows,
     RawBlockPerson,
+    RawBlockNarrativeChart,
     RawBlockCode,
 } from "@ourworldindata/types"
 import { isArray } from "@ourworldindata/utils"
@@ -119,6 +120,21 @@ function* rawBlockChartToArchieMLString(
     yield "{.chart}"
     if (typeof block.value !== "string") {
         yield* propertyToArchieMLString("url", block.value)
+        yield* propertyToArchieMLString("height", block.value)
+        yield* propertyToArchieMLString("row", block.value)
+        yield* propertyToArchieMLString("column", block.value)
+        yield* propertyToArchieMLString("position", block.value)
+        yield* propertyToArchieMLString("caption", block.value)
+    }
+    yield "{}"
+}
+
+function* rawBlockNarrativeChartToArchieMLString(
+    block: RawBlockNarrativeChart
+): Generator<string, void, undefined> {
+    yield "{.narrative-chart}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("name", block.value)
         yield* propertyToArchieMLString("height", block.value)
         yield* propertyToArchieMLString("row", block.value)
         yield* propertyToArchieMLString("column", block.value)
@@ -840,6 +856,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "all-charts" }, rawBlockAllChartsToArchieMLString)
         .with({ type: "aside" }, rawBlockAsideToArchieMLString)
         .with({ type: "chart" }, rawBlockChartToArchieMLString)
+        .with(
+            { type: "narrative-chart" },
+            rawBlockNarrativeChartToArchieMLString
+        )
         .with({ type: "code" }, rawBlockCodeToArchieMLString)
         .with({ type: "donors" }, rawBlockDonorListToArchieMLString)
         .with({ type: "scroller" }, rawBlockScrollerToArchieMLString)
