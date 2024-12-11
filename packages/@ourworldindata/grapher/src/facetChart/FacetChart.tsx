@@ -740,7 +740,9 @@ export class FacetChart
         const activeColors = uniq(
             this.intermediateChartInstances.flatMap((chartInstance) =>
                 chartInstance.series
-                    .filter((series) => focusArray?.isActive(series.seriesName))
+                    .filter((series) =>
+                        focusArray?.isFocused(series.seriesName)
+                    )
                     .map((series) => series.color)
             )
         )

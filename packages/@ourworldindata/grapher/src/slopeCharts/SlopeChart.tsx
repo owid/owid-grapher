@@ -92,7 +92,7 @@ import {
     GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
 } from "../color/ColorConstants"
-import { InteractionArray } from "../selection/InteractionArray"
+import { FocusArray } from "../selection/FocusArray"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -252,7 +252,7 @@ export class SlopeChart
     }
 
     @computed get isFocusModeActive(): boolean {
-        return this.focusArray.hasActiveSeries
+        return !this.focusArray.isEmpty
     }
 
     @computed private get yColumns(): CoreColumn[] {
@@ -473,8 +473,8 @@ export class SlopeChart
         return this.focusArray.state(series.seriesName)
     }
 
-    @computed get focusArray(): InteractionArray {
-        return this.manager.focusArray ?? new InteractionArray()
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
     }
 
     @computed private get renderSeries(): RenderSlopeChartSeries[] {
@@ -638,13 +638,15 @@ export class SlopeChart
             textOutlineColor: this.backgroundColor,
             onMouseOver: this.onLineLegendMouseOver,
             onMouseLeave: this.onLineLegendMouseLeave,
-            onClick:
-                this.series.length > 1 ? this.onLineLegendClick : undefined,
         }
     }
 
     @computed private get lineLegendPropsRight(): Partial<LineLegendProps> {
-        return { xAnchor: "start" }
+        return {
+            xAnchor: "start",
+            onClick:
+                this.series.length > 1 ? this.onLineLegendClick : undefined,
+        }
     }
 
     @computed private get lineLegendPropsLeft(): Partial<LineLegendProps> {
