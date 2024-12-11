@@ -109,6 +109,7 @@ import { getTombstones } from "../db/model/GdocTombstone.js"
 import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
 import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
+import { getAllChartViewsMetadata } from "../db/model/ChartView.js"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -176,7 +177,7 @@ function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
         bakeSteps.has("dataInsights") ||
         bakeSteps.has("authors")
     ) {
-        total += 8
+        total += 9
     }
     return total
 }
@@ -459,6 +460,12 @@ export class SiteBaker {
                 name: `✅ Prefetched ${publishedAuthors.length} authors`,
             })
 
+            const chartViewMetadata = await getAllChartViewsMetadata(knex)
+            const chartViewMetadataByName = keyBy(chartViewMetadata, "name")
+            this.progressBar.tick({
+                name: `✅ Prefetched ${chartViewMetadata.length} chart views`,
+            })
+
             const prefetchedAttachments = {
                 donors,
                 linkedAuthors: publishedAuthors,
@@ -469,6 +476,7 @@ export class SiteBaker {
                     graphers: publishedChartsBySlug,
                 },
                 linkedIndicators: datapageIndicatorsById,
+                chartViewMetadata: chartViewMetadataByName,
             }
             this.progressBar.tick({ name: "✅ Prefetched attachments" })
             this._prefetchedAttachmentsCache = prefetchedAttachments
