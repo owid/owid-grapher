@@ -748,7 +748,13 @@ export class LineChart
     }
 
     @computed get isHoverModeActive(): boolean {
-        return this.hoveredSeriesNames.length > 0
+        return (
+            this.hoveredSeriesNames.length > 0 ||
+            // if the external legend is hovered, we want to mute
+            // all non-hovered series even if the chart doesn't plot
+            // the currently hovered series
+            (!!this.manager.externalLegendHoverBin && !this.hasColorScale)
+        )
     }
 
     @computed private get hasEntityYearHighlight(): boolean {
@@ -1290,7 +1296,10 @@ export class LineChart
     }
 
     private hoverStateForSeries(series: LineChartSeries): InteractionState {
-        return getInteractionStateForSeries(series, this.hoveredSeriesNames)
+        return getInteractionStateForSeries(series, {
+            isInteractionModeActive: this.isHoverModeActive,
+            activeSeriesNames: this.hoveredSeriesNames,
+        })
     }
 
     @computed get renderSeries(): RenderLineChartSeries[] {

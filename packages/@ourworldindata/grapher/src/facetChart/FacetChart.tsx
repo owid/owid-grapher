@@ -724,6 +724,11 @@ export class FacetChart
         return this.getExternalLegendProp("equalSizeBins")
     }
 
+    @computed get hoverColors(): Color[] | undefined {
+        if (!this.legendHoverBin) return undefined
+        return [this.legendHoverBin.color]
+    }
+
     @computed get numericLegendData(): ColorScaleBin[] {
         if (!this.isNumericLegend || !this.hideFacetLegends) return []
         const allBins: ColorScaleBin[] = this.externalLegends.flatMap(
