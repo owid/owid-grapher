@@ -24,6 +24,10 @@ This content is only updated in an environment's database when someone presses "
 
 ## Images
 
+To use images locally, you need to set the `CLOUDFLARE_IMAGES_ACCOUNT_ID`,
+`CLOUDFLARE_IMAGES_API_KEY`, and `CLOUDFLARE_IMAGES_URL` in your `.env` file.
+See `.env.example-full` for the format.
+
 Image blocks can be added to gdocs via the follow archie syntax:
 
 ```
@@ -33,6 +37,11 @@ filename: my_image.png
 ```
 
 where `my_image.png` is an image that has been uploaded via the `/admin/images` view in the admin client, and thus exists in Cloudflare Images.
+
+> [!CAUTION]
+> Cloudflare Images don't have separate environments for production, staging and
+> dev, so be careful not to upload images that are only available in one
+> environment and even more **careful when deleting images**.
 
 We store information about the image's dimensions and alt text in the database, which is shared via React context to any component that needs to render them. See `Image.tsx` for the (many) implementation details.
 
