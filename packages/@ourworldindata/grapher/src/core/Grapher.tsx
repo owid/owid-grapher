@@ -220,6 +220,7 @@ import {
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
 import { grapherObjectToQueryParams } from "./GrapherUrl.js"
+import { FocusArray } from "../selection/FocusArray"
 import {
     GRAPHER_BACKGROUND_BEIGE,
     GRAPHER_BACKGROUND_DEFAULT,
@@ -570,7 +571,7 @@ export class Grapher
         )
 
         obj.selectedEntityNames = this.selection.selectedEntityNames
-        obj.focusedSeriesNames = this.focusArray.activeSeriesNames
+        obj.focusedSeriesNames = this.focusArray.focusedSeriesNames
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
@@ -2562,7 +2563,7 @@ export class Grapher
             this.props.table?.availableEntities ?? []
         )
 
-    focusArray = new InteractionArray()
+    focusArray = new FocusArray()
 
     @computed get availableEntities(): Entity[] {
         return this.tableForSelection.availableEntities
@@ -3422,7 +3423,7 @@ export class Grapher
 
         const originalFocusedSeriesNames =
             authoredConfig.focusedSeriesNames ?? []
-        const currentFocusedSeriesNames = this.focusArray.activeSeriesNames
+        const currentFocusedSeriesNames = this.focusArray.focusedSeriesNames
 
         const seriesNamesThatTheUserDeselected = difference(
             currentFocusedSeriesNames,
@@ -3434,7 +3435,7 @@ export class Grapher
                 originalFocusedSeriesNames.length ||
             seriesNamesThatTheUserDeselected.length
         )
-            return this.focusArray.activeSeriesNames
+            return this.focusArray.focusedSeriesNames
 
         return undefined
     }
