@@ -27,6 +27,7 @@ import {
     GRAPHER_FONT_SCALE_12,
     GRAPHER_FONT_SCALE_12_8,
     GRAPHER_FONT_SCALE_14,
+    GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import { darkenColorForLine } from "../color/ColorUtils"
 
@@ -91,8 +92,9 @@ export interface HorizontalColorLegendManager {
     onLegendMouseLeave?: () => void
     onLegendMouseOver?: (d: ColorScaleBin) => void
     onLegendClick?: (d: ColorScaleBin) => void
-    activeColors?: string[]
-    focusColors?: string[]
+    activeColors?: string[] // inactive colors are grayed out
+    focusColors?: string[] // focused colors are bolded
+    hoverColors?: string[] // non-hovered colors are muted
     isStatic?: boolean
 }
 
@@ -808,12 +810,15 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
 
     renderLabels(): React.ReactElement {
         const { manager, marks } = this
-        const { focusColors } = manager
+        const { focusColors, hoverColors = [] } = manager
 
         return (
             <g id={makeIdForHumanConsumption("labels")}>
                 {marks.map((mark, index) => {
                     const isFocus = focusColors?.includes(mark.bin.color)
+                    const isNotHovered =
+                        hoverColors.length > 0 &&
+                        !hoverColors.includes(mark.bin.color)
 
                     return (
                         <text
@@ -826,6 +831,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                             dy={dyFromAlign(VerticalAlign.middle)}
                             fontSize={mark.label.fontSize}
                             fontWeight={isFocus ? "bold" : undefined}
+                            opacity={isNotHovered ? GRAPHER_OPACITY_MUTE : 1}
                         >
                             {mark.label.text}
                         </text>
@@ -837,12 +843,15 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
 
     renderSwatches(): React.ReactElement {
         const { manager, marks } = this
-        const { activeColors } = manager
+        const { activeColors, hoverColors = [] } = manager
 
         return (
             <g id={makeIdForHumanConsumption("swatches")}>
                 {marks.map((mark, index) => {
                     const isActive = activeColors?.includes(mark.bin.color)
+                    const isNotHovered =
+                        hoverColors.length > 0 &&
+                        !hoverColors.includes(mark.bin.color)
 
                     const color = mark.bin.patternRef
                         ? `url(#${mark.bin.patternRef})`
@@ -850,6 +859,10 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
 
                     const fill =
                         isActive || activeColors === undefined ? color : "#ccc"
+
+                    const opacity = isNotHovered
+                        ? GRAPHER_OPACITY_MUTE
+                        : manager.legendOpacity
 
                     return (
                         <rect
@@ -862,7 +875,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                             fill={fill}
                             stroke={manager.categoricalBinStroke}
                             strokeWidth={0.4}
-                            opacity={manager.legendOpacity}
+                            opacity={opacity}
                         />
                     )
                 })}

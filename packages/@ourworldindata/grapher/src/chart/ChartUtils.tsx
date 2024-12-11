@@ -206,9 +206,21 @@ export function byInteractionState(series: {
 
 export function getInteractionStateForSeries(
     series: ChartSeries,
-    activeSeriesNames: SeriesName[]
+    props: {
+        activeSeriesNames: SeriesName[]
+        // usually the interaction mode is active when there is
+        // at least one active element. But sometimes the interaction
+        // mode might be active although there are no active elements.
+        // For example, when the facet legend is hovered but a particular
+        // chart doesn't plot the hovered element.
+        isInteractionModeActive?: boolean
+    }
 ): InteractionState {
+    const activeSeriesNames = props.activeSeriesNames
+    const isInteractionModeActive =
+        props.isInteractionModeActive ?? activeSeriesNames.length > 0
+
     const active = activeSeriesNames.includes(series.seriesName)
-    const background = activeSeriesNames.length > 0 && !active
+    const background = isInteractionModeActive && !active
     return { active, background }
 }
