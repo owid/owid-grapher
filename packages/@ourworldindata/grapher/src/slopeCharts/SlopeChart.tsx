@@ -1325,7 +1325,7 @@ function Slope({
 }: SlopeProps) {
     const { displayName, startPoint, endPoint, hover, focus } = series
 
-    const showOutline = !hover.background
+    const showOutline = !focus.background || hover.active
     const opacity =
         hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
     const color =
