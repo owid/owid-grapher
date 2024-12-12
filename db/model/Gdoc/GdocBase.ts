@@ -67,7 +67,7 @@ import {
     OwidGdocLinkType,
     OwidGdocType,
 } from "@ourworldindata/types"
-import { getAllChartViewsMetadata } from "../ChartView.js"
+import { getChartViewsMetadata } from "../ChartView.js"
 
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
@@ -721,7 +721,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         knex: db.KnexReadonlyTransaction
     ): Promise<void> {
         // TODO: Filter down to only those that are used in the Gdoc
-        const result = await getAllChartViewsMetadata(knex)
+        const result = await getChartViewsMetadata(knex)
         this.chartViewMetadata = keyBy(result, "name")
     }
 
