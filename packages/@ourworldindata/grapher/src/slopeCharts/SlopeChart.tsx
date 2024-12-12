@@ -326,27 +326,25 @@ export class SlopeChart
         const { canSelectMultipleEntities = false } = this.manager
 
         const { availableEntityNames } = this.transformedTable
-        const displayEntityName =
-            getShortNameForEntity(entityName) ?? entityName
         const columnName = column.nonEmptyDisplayName
-        const seriesName = getSeriesName({
-            entityName: displayEntityName,
+        const props = {
+            entityName,
             columnName,
             seriesStrategy,
             availableEntityNames,
             canSelectMultipleEntities,
+        }
+        const seriesName = getSeriesName(props)
+        const displayName = getSeriesName({
+            ...props,
+            entityName: getShortNameForEntity(entityName) ?? entityName,
         })
 
         const owidRowByTime = column.owidRowByEntityNameAndTime.get(entityName)
         const start = owidRowByTime?.get(startTime)
         const end = owidRowByTime?.get(endTime)
 
-        const colorKey = getColorKey({
-            entityName,
-            columnName,
-            seriesStrategy,
-            availableEntityNames,
-        })
+        const colorKey = getColorKey(props)
         const color = this.categoricalColorAssigner.assign(colorKey)
 
         const annotation = getAnnotationsForSeries(
@@ -358,6 +356,7 @@ export class SlopeChart
             column,
             seriesName,
             entityName,
+            displayName,
             color,
             start,
             end,
@@ -596,7 +595,7 @@ export class SlopeChart
                     new CategoricalBin({
                         index,
                         value: series.seriesName,
-                        label: series.seriesName,
+                        label: series.displayName,
                         color: series.color,
                     })
             )
@@ -829,14 +828,14 @@ export class SlopeChart
             showAnnotation?: boolean
         }
     ): LineLabelSeries {
-        const { seriesName, color, annotation } = series
+        const { seriesName, displayName, color, annotation } = series
         const value = getValue(series)
         const formattedValue = this.formatValue(value)
         return {
             color,
             seriesName,
             annotation: showAnnotation ? annotation : undefined,
-            label: showSeriesName ? seriesName : formattedValue,
+            label: showSeriesName ? displayName : formattedValue,
             formattedValue: showSeriesName ? formattedValue : undefined,
             placeFormattedValueInNewLine: this.useCompactLayout,
             yValue: value,
@@ -1079,18 +1078,18 @@ export class SlopeChart
     }
 
     private makeMissingDataLabel(series: RawSlopeChartSeries): string {
-        const { seriesName, start, end } = series
+        const { displayName, start, end } = series
 
         const startTime = this.formatColumn.formatTime(this.startTime)
         const endTime = this.formatColumn.formatTime(this.endTime)
 
         // mention the start or end value if they're missing
         if (start?.value === undefined && end?.value === undefined) {
-            return `${seriesName} (${startTime} & ${endTime})`
+            return `${displayName} (${startTime} & ${endTime})`
         } else if (start?.value === undefined) {
-            return `${seriesName} (${startTime})`
+            return `${displayName} (${startTime})`
         } else if (end?.value === undefined) {
-            return `${seriesName} (${endTime})`
+            return `${displayName} (${endTime})`
         }
 
         // if both values are given but the series shows up in the No Data
@@ -1101,14 +1100,14 @@ export class SlopeChart
             start.originalTime !== this.startTime
         const isToleranceAppliedToEndValue = end.originalTime !== this.endTime
         if (isToleranceAppliedToStartValue && isToleranceAppliedToEndValue) {
-            return `${seriesName} (${startTime} & ${endTime})`
+            return `${displayName} (${startTime} & ${endTime})`
         } else if (isToleranceAppliedToStartValue) {
-            return `${seriesName} (${startTime})`
+            return `${displayName} (${startTime})`
         } else if (isToleranceAppliedToEndValue) {
-            return `${seriesName} (${endTime})`
+            return `${displayName} (${endTime})`
         }
 
-        return seriesName
+        return displayName
     }
 
     private renderNoDataSection(): React.ReactElement | void {
@@ -1317,7 +1316,7 @@ function Slope({
     outlineWidth = 0.5,
     outlineStroke = "#fff",
 }: SlopeProps) {
-    const { seriesName, startPoint, endPoint, hover, focus } = series
+    const { displayName, startPoint, endPoint, hover, focus } = series
 
     const showOutline = !hover.background
     const opacity =
@@ -1329,7 +1328,7 @@ function Slope({
 
     return (
         <g
-            id={makeIdForHumanConsumption("slope", seriesName)}
+            id={makeIdForHumanConsumption("slope", displayName)}
             className="slope"
         >
             {showOutline && (

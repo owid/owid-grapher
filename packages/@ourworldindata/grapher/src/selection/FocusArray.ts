@@ -3,28 +3,28 @@ import { action, computed, observable } from "mobx"
 
 export class FocusArray {
     constructor() {
-        this.activeSet = new Set()
+        this.store = new Set()
     }
 
-    @observable private activeSet: Set<SeriesName>
+    @observable private store: Set<SeriesName>
 
-    @computed get focusedSeriesNameSet(): Set<SeriesName> {
-        return this.activeSet
+    @computed get seriesNameSet(): Set<SeriesName> {
+        return this.store
     }
 
-    @computed get focusedSeriesNames(): SeriesName[] {
-        return Array.from(this.activeSet)
+    @computed get seriesNames(): SeriesName[] {
+        return Array.from(this.store)
     }
 
     @computed get isEmpty(): boolean {
-        return this.activeSet.size === 0
+        return this.store.size === 0
     }
 
     /**
      * Whether a series is currently highlighted
      */
-    isFocused(seriesName: SeriesName): boolean {
-        return this.activeSet.has(seriesName)
+    has(seriesName: SeriesName): boolean {
+        return this.store.has(seriesName)
     }
 
     /**
@@ -34,7 +34,7 @@ export class FocusArray {
      * series itself is currently highlighted.
      */
     isInForeground(seriesName: SeriesName): boolean {
-        return this.isEmpty || this.isFocused(seriesName)
+        return this.isEmpty || this.has(seriesName)
     }
 
     /**
@@ -43,7 +43,7 @@ export class FocusArray {
      * highlighted.
      */
     isInBackground(seriesName: SeriesName): boolean {
-        return !this.isEmpty && !this.isFocused(seriesName)
+        return !this.isEmpty && !this.has(seriesName)
     }
 
     /**
@@ -53,43 +53,43 @@ export class FocusArray {
      */
     state(seriesName: SeriesName): InteractionState {
         return {
-            active: this.isFocused(seriesName),
+            active: this.has(seriesName),
             background: this.isInBackground(seriesName),
         }
     }
 
-    @action.bound activate(...seriesNames: SeriesName[]): this {
+    @action.bound add(...seriesNames: SeriesName[]): this {
         for (const seriesName of seriesNames) {
-            this.activeSet.add(seriesName)
+            this.store.add(seriesName)
         }
         return this
     }
 
-    @action.bound deactivate(...seriesNames: SeriesName[]): this {
+    @action.bound remove(...seriesNames: SeriesName[]): this {
         for (const seriesName of seriesNames) {
-            this.activeSet.delete(seriesName)
+            this.store.delete(seriesName)
         }
         return this
     }
 
-    @action.bound clearAllAndActivate(...seriesNames: SeriesName[]): this {
+    @action.bound clearAllAndAdd(...seriesNames: SeriesName[]): this {
         this.clear()
-        this.activate(...seriesNames)
+        this.add(...seriesNames)
         return this
     }
 
     @action.bound toggle(...seriesNames: SeriesName[]): this {
         for (const seriesName of seriesNames) {
-            if (this.isFocused(seriesName)) {
-                this.deactivate(seriesName)
+            if (this.has(seriesName)) {
+                this.remove(seriesName)
             } else {
-                this.activate(seriesName)
+                this.add(seriesName)
             }
         }
         return this
     }
 
     @action.bound clear(): void {
-        this.activeSet.clear()
+        this.store.clear()
     }
 }

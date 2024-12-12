@@ -170,7 +170,7 @@ export class EntitySelectionSection extends React.Component<{
     @action.bound private syncFocusedSeriesNames(): void {
         const { grapher } = this.props.editor
         const invalidFocusedSeriesNames = findInvalidFocusedSeriesNames(grapher)
-        grapher.focusArray.deactivate(...invalidFocusedSeriesNames)
+        grapher.focusArray.remove(...invalidFocusedSeriesNames)
     }
 
     render() {
@@ -274,11 +274,11 @@ export class FocusSection extends React.Component<{
     }
 
     @action.bound addToFocusedSeries(seriesName: SeriesName) {
-        this.editor.grapher.focusArray.activate(seriesName)
+        this.editor.grapher.focusArray.add(seriesName)
     }
 
     @action.bound removeFromFocusedSeries(seriesName: SeriesName) {
-        this.editor.grapher.focusArray.deactivate(seriesName)
+        this.editor.grapher.focusArray.remove(seriesName)
     }
 
     render() {
@@ -287,8 +287,8 @@ export class FocusSection extends React.Component<{
 
         const seriesNameSet = new Set(grapher.chartSeriesNames)
 
-        const focusedSeriesNameSet = grapher.focusArray.focusedSeriesNameSet
-        const focusedSeriesNames = grapher.focusArray.focusedSeriesNames
+        const focusedSeriesNameSet = grapher.focusArray.seriesNameSet
+        const focusedSeriesNames = grapher.focusArray.seriesNames
 
         const availableSeriesNameSet = differenceOfSets<string>([
             seriesNameSet,
