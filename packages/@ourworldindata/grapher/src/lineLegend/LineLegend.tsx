@@ -748,6 +748,9 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 const candidateScores: [PlacedSeries, number][] = Array.from(
                     candidates
                 ).map((candidate) => {
+                    // if the candidate is focused, we want to keep it in any case
+                    if (candidate.focus?.active) return [candidate, Infinity]
+
                     // find the bracket that the candidate is contained in
                     const [start, end] = findBracket(
                         sortedBrackets,
