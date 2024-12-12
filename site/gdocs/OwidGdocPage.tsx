@@ -10,6 +10,7 @@ import {
     SiteFooterContext,
     OwidGdocType,
     spansToUnformattedPlainText,
+    get,
 } from "@ourworldindata/utils"
 import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
 import { DebugProvider } from "./DebugContext.js"
@@ -100,8 +101,15 @@ export default function OwidGdocPage({
     ) {
         imageUrl = `${baseUrl}/${ARCHVED_THUMBNAIL_FILENAME}`
     } else if (featuredImageFilename) {
-        // A hard-coded variant that doesn't need to know the image's width
-        imageUrl = `${CLOUDFLARE_IMAGES_URL}/${featuredImageFilename}/public`
+        const cloudflareId = get(gdoc, [
+            "imageMetadata",
+            featuredImageFilename,
+            "cloudflareId",
+        ])
+        if (cloudflareId) {
+            // "public" is a hard-coded variant that doesn't need to know the image's width
+            imageUrl = `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/public`
+        }
     }
 
     return (
