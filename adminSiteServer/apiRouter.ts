@@ -926,7 +926,7 @@ getRouteWithROTransaction(
     async (req, res, trx) => {
         const datasets = []
         const rows = await db.knexRaw<
-            Pick<DbRawVariable, "name" | "id"> & {
+            Pick<DbRawVariable, "name" | "id" | "catalogPath"> & {
                 datasetId: number
                 datasetName: string
                 datasetVersion: string
@@ -940,6 +940,7 @@ getRouteWithROTransaction(
         SELECT
                 v.name,
                 v.id,
+                v.catalogPath,
                 d.id as datasetId,
                 d.name as datasetName,
                 d.version as datasetVersion,
@@ -959,7 +960,11 @@ getRouteWithROTransaction(
                   namespace: string
                   isPrivate: boolean
                   nonRedistributable: boolean
-                  variables: { id: number; name: string }[]
+                  variables: {
+                      id: number
+                      name: string
+                      catalogPath?: string
+                  }[]
               }
             | undefined
         for (const row of rows) {
@@ -980,6 +985,7 @@ getRouteWithROTransaction(
             dataset.variables.push({
                 id: row.id,
                 name: row.name ?? "",
+                catalogPath: row.catalogPath ?? undefined,
             })
         }
 
