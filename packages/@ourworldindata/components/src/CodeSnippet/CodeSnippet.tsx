@@ -8,11 +8,13 @@ import cx from "classnames"
 import { SimpleMarkdownText } from "../SimpleMarkdownText"
 
 export const CodeSnippet = ({
+    className,
     code,
     theme = "dark",
     isTruncated = false,
     useMarkdown = false,
 }: {
+    className?: string
     code: string
     theme?: "dark" | "light"
     isTruncated?: boolean
@@ -40,7 +42,12 @@ export const CodeSnippet = ({
     }
 
     return (
-        <div className={`wp-code-snippet wp-code-snippet--${theme}`}>
+        <div
+            className={cx(
+                `wp-code-snippet wp-code-snippet--${theme}`,
+                className
+            )}
+        >
             <pre className="wp-block-code">
                 <code
                     className={cx("wp-code-snippet__code", {

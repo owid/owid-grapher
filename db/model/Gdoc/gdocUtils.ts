@@ -222,6 +222,7 @@ export function extractFilenamesFromBlock(
                     "callout",
                     "chart-story",
                     "chart",
+                    "code",
                     "donors",
                     "entry-summary",
                     "expandable-paragraph",

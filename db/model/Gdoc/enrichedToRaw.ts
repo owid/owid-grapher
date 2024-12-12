@@ -48,6 +48,7 @@ import {
     RawBlockPeople,
     RawBlockPeopleRows,
     RawBlockPerson,
+    RawBlockCode,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -120,6 +121,13 @@ export function enrichedBlockToRawBlock(
                     position: b.position,
                     caption: b.caption ? spansToHtmlText(b.caption) : undefined,
                 },
+            })
+        )
+        .with(
+            { type: "code" },
+            (b): RawBlockCode => ({
+                type: b.type,
+                value: b.text,
             })
         )
         .with(

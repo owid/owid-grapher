@@ -127,6 +127,11 @@ ${items}
                 exportComponents
             )
         )
+        .with({ type: "code" }, (b): string | undefined => {
+            return (
+                "```\n" + b.text.map((text) => text.value).join("\n") + "\n```"
+            )
+        })
         .with({ type: "donors" }, (_): string | undefined =>
             markdownComponent("DonorList", {}, exportComponents)
         )
