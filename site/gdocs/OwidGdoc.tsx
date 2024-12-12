@@ -49,6 +49,7 @@ export const AttachmentsContext = createContext<Attachments>({
     latestDataInsights: [],
     homepageMetadata: {},
     latestWorkLinks: [],
+    chartViewMetadata: {},
 })
 
 export const DocumentContext = createContext<{ isPreviewing: boolean }>({

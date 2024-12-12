@@ -147,6 +147,11 @@ export function useDonors(): string[] | undefined {
     return donors
 }
 
+export const useChartViewMetadata = (name: string) => {
+    const { chartViewMetadata } = useContext(AttachmentsContext)
+    return chartViewMetadata?.[name]
+}
+
 const LinkedA = ({ span }: { span: SpanLink }): React.ReactElement => {
     const linkType = getLinkType(span.url)
     const { linkedDocument } = useLinkedDocument(span.url)
