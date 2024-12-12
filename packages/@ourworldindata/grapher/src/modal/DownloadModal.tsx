@@ -783,8 +783,10 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                 shortColNames: false,
             }
             if (serverSideDownloadAvailable) {
+                const fullOrFiltered =
+                    csvDownloadType === CsvDownloadType.Full ? "" : ".filtered"
                 triggerDownloadFromUrl(
-                    ctx.slug + ".zip",
+                    ctx.slug + fullOrFiltered + ".zip",
                     getDownloadUrl("zip", ctx)
                 )
             } else {
