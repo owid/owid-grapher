@@ -192,35 +192,44 @@ export function findValidChartTypeCombination(
     return undefined
 }
 
-/** Useful for sorting series by their interaction state */
-export function byInteractionState(series: {
-    hover: InteractionState
-}): number {
-    // background series rank lowest
-    if (series.hover.background) return 1
-    // active series rank highest
-    if (series.hover.active) return 3
-    // series in their default state rank in the middle
-    return 2
-}
-
-export function getInteractionStateForSeries(
+export function getHoverStateForSeries(
     series: ChartSeries,
     props: {
-        activeSeriesNames: SeriesName[]
+        hoveredSeriesNames: SeriesName[]
         // usually the interaction mode is active when there is
         // at least one active element. But sometimes the interaction
         // mode might be active although there are no active elements.
         // For example, when the facet legend is hovered but a particular
         // chart doesn't plot the hovered element.
-        isInteractionModeActive?: boolean
+        isHoverModeActive?: boolean
     }
 ): InteractionState {
-    const activeSeriesNames = props.activeSeriesNames
-    const isInteractionModeActive =
-        props.isInteractionModeActive ?? activeSeriesNames.length > 0
+    const hoveredSeriesNames = props.hoveredSeriesNames
+    const isHoverModeActive =
+        props.isHoverModeActive ?? hoveredSeriesNames.length > 0
 
-    const active = activeSeriesNames.includes(series.seriesName)
-    const background = isInteractionModeActive && !active
+    const active = hoveredSeriesNames.includes(series.seriesName)
+    const background = isHoverModeActive && !active
     return { active, background }
+}
+
+function byInteractionState(state: InteractionState): number {
+    // background series rank lowest
+    if (state.background) return 1
+    // active series rank highest
+    if (state.active) return 3
+    // series in their default state rank in the middle
+    return 2
+}
+
+/** Useful for sorting series by their interaction state */
+export function byHoverThenFocusState(series: {
+    hover: InteractionState
+    focus: InteractionState
+}): number {
+    const hoverScore = byInteractionState(series.hover)
+    const focusScore = byInteractionState(series.focus)
+
+    // hover trumps focus
+    return hoverScore * 10 + focusScore
 }

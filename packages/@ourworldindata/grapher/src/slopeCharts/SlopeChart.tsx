@@ -20,8 +20,6 @@ import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     BASE_FONT_SIZE,
-    GRAPHER_BACKGROUND_DEFAULT,
-    GRAPHER_DARK_TEXT,
     GRAPHER_FONT_SCALE_12,
     GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants"
@@ -52,9 +50,9 @@ import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
-    byInteractionState,
+    byHoverThenFocusState,
     getDefaultFailMessage,
-    getInteractionStateForSeries,
+    getHoverStateForSeries,
     getShortNameForEntity,
     makeSelectionArray,
 } from "../chart/ChartUtils"
@@ -89,6 +87,12 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { Halo } from "@ourworldindata/components"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
+import {
+    OWID_NON_FOCUSED_GRAY,
+    GRAPHER_BACKGROUND_DEFAULT,
+    GRAPHER_DARK_TEXT,
+} from "../color/ColorConstants"
+import { FocusArray } from "../selection/FocusArray"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -100,8 +104,9 @@ export interface SlopeChartManager extends ChartManager {
     hideNoDataSection?: boolean
 }
 
-const TOP_PADDING = 6 // leave room for overflowing dots
+const NON_FOCUSED_LINE_COLOR = OWID_NON_FOCUSED_GRAY
 
+const TOP_PADDING = 6 // leave room for overflowing dots
 const LINE_LEGEND_PADDING = 4
 
 @observer
@@ -244,6 +249,10 @@ export class SlopeChart
             // the currently hovered series
             !!this.manager.externalLegendHoverBin
         )
+    }
+
+    @computed get isFocusModeActive(): boolean {
+        return !this.focusArray.isEmpty
     }
 
     @computed private get yColumns(): CoreColumn[] {
@@ -454,10 +463,18 @@ export class SlopeChart
     }
 
     private hoverStateForSeries(series: SlopeChartSeries): InteractionState {
-        return getInteractionStateForSeries(series, {
-            isInteractionModeActive: this.isHoverModeActive,
-            activeSeriesNames: this.hoveredSeriesNames,
+        return getHoverStateForSeries(series, {
+            isHoverModeActive: this.isHoverModeActive,
+            hoveredSeriesNames: this.hoveredSeriesNames,
         })
+    }
+
+    private focusStateForSeries(series: SlopeChartSeries): InteractionState {
+        return this.focusArray.state(series.seriesName)
+    }
+
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
     }
 
     @computed private get renderSeries(): RenderSlopeChartSeries[] {
@@ -466,14 +483,13 @@ export class SlopeChart
                 return {
                     ...series,
                     hover: this.hoverStateForSeries(series),
+                    focus: this.focusStateForSeries(series),
                 }
             }
         )
 
-        // sort by interaction state so that hovered series
-        // are drawn on top of background series
-        if (this.isHoverModeActive) {
-            return sortBy(series, byInteractionState)
+        if (this.isHoverModeActive || this.isFocusModeActive) {
+            return sortBy(series, byHoverThenFocusState)
         }
 
         return series
@@ -626,7 +642,11 @@ export class SlopeChart
     }
 
     @computed private get lineLegendPropsRight(): Partial<LineLegendProps> {
-        return { xAnchor: "start" }
+        return {
+            xAnchor: "start",
+            onClick:
+                this.series.length > 1 ? this.onLineLegendClick : undefined,
+        }
     }
 
     @computed private get lineLegendPropsLeft(): Partial<LineLegendProps> {
@@ -821,6 +841,7 @@ export class SlopeChart
             placeFormattedValueInNewLine: this.useCompactLayout,
             yValue: value,
             hover: this.hoverStateForSeries(series),
+            focus: this.focusStateForSeries(series),
         }
     }
 
@@ -935,6 +956,10 @@ export class SlopeChart
             // wait before clearing selection in case the mouse is moving quickly over neighboring labels
             this.hoveredSeriesName = undefined
         }, 200)
+    }
+
+    @action.bound onLineLegendClick(seriesName: SeriesName): void {
+        this.focusArray.toggle(seriesName)
     }
 
     @action.bound onSlopeMouseOver(series: SlopeChartSeries): void {
@@ -1115,7 +1140,6 @@ export class SlopeChart
                     <Slope
                         key={series.seriesName}
                         series={series}
-                        color={series.color}
                         strokeWidth={this.lineStrokeWidth}
                         outlineWidth={0.5}
                         outlineStroke={this.backgroundColor}
@@ -1280,36 +1304,33 @@ export class SlopeChart
 
 interface SlopeProps {
     series: RenderSlopeChartSeries
-    color: string
     dotRadius?: number
     strokeWidth?: number
     outlineWidth?: number
     outlineStroke?: string
-    onMouseOver?: (series: SlopeChartSeries) => void
-    onMouseLeave?: () => void
 }
 
 function Slope({
     series,
-    color,
     dotRadius = 2.5,
     strokeWidth = 2,
     outlineWidth = 0.5,
     outlineStroke = "#fff",
-    onMouseOver,
-    onMouseLeave,
 }: SlopeProps) {
-    const { seriesName, startPoint, endPoint } = series
+    const { seriesName, startPoint, endPoint, hover, focus } = series
 
-    const showOutline = !series.hover.background
-    const opacity = series.hover.background ? GRAPHER_OPACITY_MUTE : 1
+    const showOutline = !hover.background
+    const opacity =
+        hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
+    const color =
+        !focus.background || hover.active
+            ? series.color
+            : NON_FOCUSED_LINE_COLOR
 
     return (
         <g
             id={makeIdForHumanConsumption("slope", seriesName)}
             className="slope"
-            onMouseOver={() => onMouseOver?.(series)}
-            onMouseLeave={() => onMouseLeave?.()}
         >
             {showOutline && (
                 <LineWithDots

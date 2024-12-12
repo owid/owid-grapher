@@ -1,11 +1,16 @@
 import React from "react"
-import { moveArrayItemToIndex, omit } from "@ourworldindata/utils"
+import {
+    differenceOfSets,
+    moveArrayItemToIndex,
+    omit,
+} from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     EntitySelectionMode,
     MissingDataStrategy,
     EntityName,
+    SeriesName,
 } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
 import { ColorBox, SelectField, Section, FieldsRow } from "./Forms.js"
@@ -24,14 +29,19 @@ import {
 } from "react-beautiful-dnd"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
-interface EntityItemProps extends React.HTMLProps<HTMLDivElement> {
+interface EntityListItemProps extends React.HTMLProps<HTMLDivElement> {
     grapher: Grapher
     entityName: EntityName
     onRemove?: () => void
 }
 
+interface SeriesListItemProps extends React.HTMLProps<HTMLDivElement> {
+    seriesName: SeriesName
+    onRemove?: () => void
+}
+
 @observer
-class EntityItem extends React.Component<EntityItemProps> {
+class EntityListItem extends React.Component<EntityListItemProps> {
     @observable.ref isChoosingColor: boolean = false
 
     @computed get table() {
@@ -89,7 +99,29 @@ class EntityItem extends React.Component<EntityItemProps> {
 }
 
 @observer
-export class KeysSection extends React.Component<{
+class SeriesListItem extends React.Component<SeriesListItemProps> {
+    @action.bound onRemove() {
+        this.props.onRemove?.()
+    }
+
+    render() {
+        const { props } = this
+        const { seriesName } = props
+        const rest = omit(props, ["seriesName", "onRemove"])
+
+        return (
+            <div className="list-group-item" key={seriesName} {...rest}>
+                <div>{seriesName}</div>
+                <div className="clickable" onClick={this.onRemove}>
+                    <FontAwesomeIcon icon={faTimes} />
+                </div>
+            </div>
+        )
+    }
+}
+
+@observer
+export class EntitySelectionSection extends React.Component<{
     editor: AbstractChartEditor
 }> {
     @observable.ref dragKey?: EntityName
@@ -183,7 +215,7 @@ export class KeysSection extends React.Component<{
                                                     {...provided.draggableProps}
                                                     {...provided.dragHandleProps}
                                                 >
-                                                    <EntityItem
+                                                    <EntityListItem
                                                         key={entityName}
                                                         grapher={grapher}
                                                         entityName={entityName}
@@ -211,6 +243,64 @@ export class KeysSection extends React.Component<{
                         </i>
                     </p>
                 )}
+            </Section>
+        )
+    }
+}
+
+@observer
+export class FocusSection extends React.Component<{
+    editor: AbstractChartEditor
+}> {
+    @computed get editor() {
+        return this.props.editor
+    }
+
+    @action.bound addToFocusedSeries(seriesName: SeriesName) {
+        this.editor.grapher.focusArray.activate(seriesName)
+    }
+
+    @action.bound removeFromFocusedSeries(seriesName: SeriesName) {
+        this.editor.grapher.focusArray.deactivate(seriesName)
+    }
+
+    render() {
+        const { editor } = this
+        const { grapher } = editor
+
+        const seriesNameSet = new Set(grapher.chartSeriesNames)
+
+        const focusedSeriesNameSet = grapher.focusArray.activeSeriesNameSet
+        const focusedSeriesNames = grapher.focusArray.activeSeriesNames
+
+        const availableSeriesNameSet = differenceOfSets<string>([
+            seriesNameSet,
+            focusedSeriesNameSet,
+        ])
+        const availableSeriesNames: SeriesName[] = Array.from(
+            availableSeriesNameSet
+        )
+
+        return (
+            <Section name="Data to highlight">
+                <FieldsRow>
+                    <SelectField
+                        onValue={this.addToFocusedSeries}
+                        value="Select data"
+                        options={["Select data"]
+                            .concat(availableSeriesNames)
+                            .map((key) => ({ value: key }))}
+                    />
+                </FieldsRow>
+                {focusedSeriesNames.map((seriesName) => (
+                    <SeriesListItem
+                        key={seriesName}
+                        seriesName={seriesName}
+                        onRemove={() =>
+                            this.removeFromFocusedSeries(seriesName)
+                        }
+                    />
+                ))}
             </Section>
         )
     }
@@ -331,7 +421,8 @@ export class EditorDataTab<
                         </label>
                     </div>
                 </Section>
-                <KeysSection editor={editor} />
+                <EntitySelectionSection editor={editor} />
+                <FocusSection editor={editor} />
                 {features.canSpecifyMissingDataStrategy && (
                     <MissingDataSection editor={this.props.editor} />
                 )}

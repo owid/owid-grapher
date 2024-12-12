@@ -24,4 +24,5 @@ export interface PlacedSlopeChartSeries extends SlopeChartSeries {
 
 export interface RenderSlopeChartSeries extends PlacedSlopeChartSeries {
     hover: InteractionState
+    focus: InteractionState
 }

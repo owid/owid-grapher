@@ -25,15 +25,14 @@ import {
     SeriesName,
     VerticalAlign,
 } from "@ourworldindata/types"
-import {
-    BASE_FONT_SIZE,
-    GRAPHER_BACKGROUND_DEFAULT,
-    GRAPHER_FONT_SCALE_12,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
+import { GRAPHER_BACKGROUND_DEFAULT, GRAY_70 } from "../color/ColorConstants"
 
+// text color for labels of background series
+const NON_FOCUSED_TEXT_COLOR = GRAY_70
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 4
 // Horizontal distance from the end of the chart to the start of the marker
@@ -52,13 +51,15 @@ export interface LineLabelSeries extends ChartSeries {
     placeFormattedValueInNewLine?: boolean
     yRange?: [number, number]
     hover?: InteractionState
+    focus?: InteractionState
 }
 
 interface SizedSeries extends LineLabelSeries {
-    textWrap: TextWrapGroup
+    textWrap: TextWrap | TextWrapGroup
     annotationTextWrap?: TextWrap
     width: number
     height: number
+    fontWeight?: number
 }
 
 interface PlacedSeries extends SizedSeries {
@@ -99,6 +100,7 @@ class LineLabels extends React.Component<{
     textOutlineColor?: Color
     anchor?: "start" | "end"
     isStatic?: boolean
+    cursor?: string
     onClick?: (series: PlacedSeries) => void
     onMouseOver?: (series: PlacedSeries) => void
     onMouseLeave?: (series: PlacedSeries) => void
@@ -116,7 +118,7 @@ class LineLabels extends React.Component<{
     }
 
     private textOpacityForSeries(series: PlacedSeries): number {
-        return series.hover?.background ? 0.6 : 1
+        return series.hover?.background && !series.focus?.background ? 0.6 : 1
     }
 
     @computed private get markers(): {
@@ -152,8 +154,28 @@ class LineLabels extends React.Component<{
         return (
             <g id={makeIdForHumanConsumption("text-labels")}>
                 {this.markers.map(({ series, labelText }) => {
-                    const textColor = darkenColorForText(series.color)
-                    return (
+                    const textColor =
+                        !series.focus?.background || series.hover?.active
+                            ? darkenColorForText(series.color)
+                            : NON_FOCUSED_TEXT_COLOR
+                    return series.textWrap instanceof TextWrap ? (
+                        <Halo
+                            id={series.seriesName}
+                            key={series.seriesName}
+                            show={this.showTextOutline}
+                            outlineColor={this.textOutlineColor}
+                        >
+                            {series.textWrap.render(labelText.x, labelText.y, {
+                                textProps: {
+                                    fill: textColor,
+                                    opacity: this.textOpacityForSeries(series),
+                                    textAnchor: this.anchor,
+                                    // might override the textWrap's fontWeight
+                                    fontWeight: series.fontWeight,
+                                },
+                            })}
+                        </Halo>
+                    ) : (
                         <React.Fragment key={series.seriesName}>
                             {series.textWrap.render(labelText.x, labelText.y, {
                                 showTextOutline: this.showTextOutline,
@@ -225,7 +247,11 @@ class LineLabels extends React.Component<{
                     const step = (x2 - x1) / (totalLevels + 1)
                     const markerXMid = x1 + step + level * step
                     const d = `M${x1},${leftCenterY} H${markerXMid} V${rightCenterY} H${x2}`
-                    const lineColor = series.hover?.background ? "#eee" : "#999"
+                    const lineColor = series.hover?.background
+                        ? "#eee"
+                        : series.focus?.background
+                          ? "#dadada"
+                          : "#999"
 
                     return (
                         <path
@@ -258,7 +284,7 @@ class LineLabels extends React.Component<{
                                 this.props.onMouseLeave?.(series)
                             }
                             onClick={() => this.props.onClick?.(series)}
-                            style={{ cursor: "default" }}
+                            style={{ cursor: this.props.cursor }}
                         >
                             <rect
                                 x={x}
@@ -368,45 +394,77 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return this.props.verticalAlign ?? VerticalAlign.middle
     }
 
-    @computed.struct get sizedLabels(): SizedSeries[] {
-        const { fontSize, maxWidth } = this
-        const maxTextWidth = maxWidth - DEFAULT_CONNECTOR_LINE_WIDTH
-        const maxAnnotationWidth = Math.min(maxTextWidth, 150)
+    @computed private get textMaxWidth(): number {
+        return this.maxWidth - DEFAULT_CONNECTOR_LINE_WIDTH
+    }
 
-        return this.props.labelSeries.map((label) => {
-            // if a formatted value is given, make the main label bold
-            const fontWeight = label.formattedValue ? 700 : this.fontWeight
-
-            const mainLabel = { text: label.label, fontWeight }
-            const valueLabel = label.formattedValue
-                ? {
-                      text: label.formattedValue,
-                      newLine: (label.placeFormattedValueInNewLine
-                          ? "always"
-                          : "avoid-wrap") as "always" | "avoid-wrap",
-                  }
-                : undefined
-            const labelFragments = excludeUndefined([mainLabel, valueLabel])
-            const textWrap = new TextWrapGroup({
-                fragments: labelFragments,
-                maxWidth: maxTextWidth,
-                fontSize,
+    private makeLabelTextWrap(
+        series: LineLabelSeries
+    ): TextWrap | TextWrapGroup {
+        if (!series.formattedValue) {
+            return new TextWrap({
+                text: series.label,
+                maxWidth: this.textMaxWidth,
+                fontSize: this.fontSize,
+                // focused labels are bold while non-focused labels are regular.
+                // if we used the actual font-weights to compute the layout,
+                // the layout would be jumpy since different font weights lead
+                // to different text widths. that's why we always use bold labels
+                // for comupting the layout.
+                fontWeight: 700,
             })
-            const annotationTextWrap = label.annotation
-                ? new TextWrap({
-                      text: label.annotation,
-                      maxWidth: maxAnnotationWidth,
-                      fontSize: fontSize * 0.9,
-                      lineHeight: 1,
-                  })
-                : undefined
+        }
 
-            const annotationWidth = annotationTextWrap
-                ? annotationTextWrap.width
-                : 0
+        // text label fragment
+        const textLabel = { text: series.label, fontWeight: 700 }
+
+        // value label fragment
+        const newLine = series.placeFormattedValueInNewLine
+            ? "always"
+            : "avoid-wrap"
+        const valueLabel = {
+            text: series.formattedValue,
+            fontWeight: 400,
+            newLine,
+        }
+
+        return new TextWrapGroup({
+            fragments: [textLabel, valueLabel],
+            maxWidth: this.textMaxWidth,
+            fontSize: this.fontSize,
+        })
+    }
+
+    private makeAnnotationTextWrap(
+        series: LineLabelSeries
+    ): TextWrap | undefined {
+        if (!series.annotation) return undefined
+        const maxWidth = Math.min(this.textMaxWidth, 150)
+        return new TextWrap({
+            text: series.annotation,
+            maxWidth,
+            fontSize: this.fontSize * 0.9,
+            lineHeight: 1,
+        })
+    }
+
+    @computed.struct get sizedLabels(): SizedSeries[] {
+        const { fontWeight: globalFontWeight } = this
+        return this.props.labelSeries.map((label) => {
+            const textWrap = this.makeLabelTextWrap(label)
+            const annotationTextWrap = this.makeAnnotationTextWrap(label)
+
+            const annotationWidth = annotationTextWrap?.width ?? 0
             const annotationHeight = annotationTextWrap
                 ? ANNOTATION_PADDING + annotationTextWrap.height
                 : 0
+
+            // font weight priority:
+            // series focus state > presense of value label > globally set font weight
+            const activeFontWeight = label.focus?.active ? 700 : undefined
+            const seriesFontWeight = label.formattedValue ? 700 : undefined
+            const fontWeight =
+                activeFontWeight ?? seriesFontWeight ?? globalFontWeight
 
             return {
                 ...label,
@@ -414,6 +472,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 annotationTextWrap,
                 width: Math.max(textWrap.width, annotationWidth),
                 height: textWrap.height + annotationHeight,
+                fontWeight,
             }
         })
     }
@@ -766,6 +825,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                     onMouseLeave={(series): void =>
                         this.onMouseLeave(series.seriesName)
                     }
+                    cursor={this.props.onClick ? "pointer" : "default"}
                 />
             </g>
         )

@@ -21,7 +21,7 @@ import {
 } from "@ourworldindata/utils"
 import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
-import { BASE_FONT_SIZE, GRAPHER_DARK_TEXT } from "../core/GrapherConstants"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import {
     GRAPHER_CHART_TYPES,
     GrapherChartType,
@@ -64,6 +64,7 @@ import {
     ColorScaleBin,
     NumericBin,
 } from "../color/ColorScaleBin"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
 
@@ -265,6 +266,7 @@ export class FacetChart
             endTime,
             missingDataStrategy,
             backgroundColor,
+            focusArray,
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
@@ -322,6 +324,7 @@ export class FacetChart
                 missingDataStrategy,
                 backgroundColor,
                 hideNoDataSection,
+                focusArray,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
@@ -729,6 +732,24 @@ export class FacetChart
         return [this.legendHoverBin.color]
     }
 
+    @computed get activeColors(): Color[] | undefined {
+        const { focusArray } = this.manager
+        if (!focusArray) return undefined
+
+        // find colour of all currently focused series
+        const activeColors = uniq(
+            this.intermediateChartInstances.flatMap((chartInstance) =>
+                chartInstance.series
+                    .filter((series) =>
+                        focusArray?.isFocused(series.seriesName)
+                    )
+                    .map((series) => series.color)
+            )
+        )
+
+        return activeColors.length > 0 ? activeColors : undefined
+    }
+
     @computed get numericLegendData(): ColorScaleBin[] {
         if (!this.isNumericLegend || !this.hideFacetLegends) return []
         const allBins: ColorScaleBin[] = this.externalLegends.flatMap(
@@ -777,6 +798,18 @@ export class FacetChart
 
     @action.bound onLegendMouseLeave(): void {
         this.legendHoverBin = undefined
+    }
+
+    @action.bound onLegendClick(bin: ColorScaleBin): void {
+        // find all series (of all facets) that are contained in the bin
+        const seriesNames = uniq(
+            this.intermediateChartInstances.flatMap((chartInstance) =>
+                chartInstance.series
+                    .filter((series) => bin.contains(series.seriesName))
+                    .map((series) => series.seriesName)
+            )
+        )
+        this.manager.focusArray?.toggle(...seriesNames)
     }
 
     // end of legend props

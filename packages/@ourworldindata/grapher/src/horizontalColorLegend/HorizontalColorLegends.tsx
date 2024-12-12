@@ -30,6 +30,7 @@ import {
     GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import { darkenColorForLine } from "../color/ColorUtils"
+import { OWID_NON_FOCUSED_GRAY } from "../color/ColorConstants"
 
 export interface PositionedBin {
     x: number
@@ -858,7 +859,9 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                         : mark.bin.color
 
                     const fill =
-                        isActive || activeColors === undefined ? color : "#ccc"
+                        isActive || activeColors === undefined
+                            ? color
+                            : OWID_NON_FOCUSED_GRAY
 
                     const opacity = isNotHovered
                         ? GRAPHER_OPACITY_MUTE
