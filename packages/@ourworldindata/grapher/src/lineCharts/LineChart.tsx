@@ -186,6 +186,7 @@ class Lines extends React.Component<LinesProps> {
         const strokeOpacity =
             hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
 
+        const showOutline = !focus.background || hover.active
         const outlineColor =
             this.props.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
         const outlineWidth = strokeWidth + this.lineOutlineWidth * 2
@@ -199,36 +200,30 @@ class Lines extends React.Component<LinesProps> {
             />
         )
 
-        if (this.props.multiColor) {
-            return (
-                <>
-                    {outline}
-                    <MultiColorPolyline
-                        id={makeIdForHumanConsumption(
-                            "multicolor-line",
-                            series.seriesName
-                        )}
-                        points={series.placedPoints}
-                        strokeLinejoin="round"
-                        strokeWidth={strokeWidth}
-                        strokeDasharray={strokeDasharray}
-                        strokeOpacity={strokeOpacity}
-                    />
-                </>
-            )
-        }
+        const line = this.props.multiColor ? (
+            <MultiColorPolyline
+                id={makeIdForHumanConsumption("line", series.seriesName)}
+                points={series.placedPoints}
+                strokeLinejoin="round"
+                strokeWidth={strokeWidth}
+                strokeDasharray={strokeDasharray}
+                strokeOpacity={strokeOpacity}
+            />
+        ) : (
+            <LinePath
+                id={makeIdForHumanConsumption("line", series.seriesName)}
+                placedPoints={series.placedPoints}
+                stroke={color}
+                strokeWidth={strokeWidth}
+                strokeOpacity={strokeOpacity}
+                strokeDasharray={strokeDasharray}
+            />
+        )
 
         return (
             <>
-                {outline}
-                <LinePath
-                    id={makeIdForHumanConsumption("line", series.seriesName)}
-                    placedPoints={series.placedPoints}
-                    stroke={color}
-                    strokeWidth={strokeWidth}
-                    strokeOpacity={strokeOpacity}
-                    strokeDasharray={strokeDasharray}
-                />
+                {showOutline && outline}
+                {line}
             </>
         )
     }
