@@ -47,6 +47,7 @@ import {
     RawBlockPeople,
     RawBlockPeopleRows,
     RawBlockPerson,
+    RawBlockCode,
 } from "@ourworldindata/types"
 import { isArray } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
@@ -125,6 +126,16 @@ function* rawBlockChartToArchieMLString(
         yield* propertyToArchieMLString("caption", block.value)
     }
     yield "{}"
+}
+
+function* rawBlockCodeToArchieMLString(
+    block: RawBlockCode
+): Generator<string, void, undefined> {
+    yield "[.+code]"
+    for (const text of block.value) {
+        yield* OwidRawGdocBlockToArchieMLStringGenerator(text)
+    }
+    yield "[]"
 }
 
 function* rawBlockDonorListToArchieMLString(
@@ -819,6 +830,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "all-charts" }, rawBlockAllChartsToArchieMLString)
         .with({ type: "aside" }, rawBlockAsideToArchieMLString)
         .with({ type: "chart" }, rawBlockChartToArchieMLString)
+        .with({ type: "code" }, rawBlockCodeToArchieMLString)
         .with({ type: "donors" }, rawBlockDonorListToArchieMLString)
         .with({ type: "scroller" }, rawBlockScrollerToArchieMLString)
         .with({ type: "callout" }, rawBlockCalloutToArchieMLString)
