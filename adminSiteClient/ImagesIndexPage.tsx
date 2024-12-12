@@ -5,7 +5,16 @@ import React, {
     useMemo,
     useState,
 } from "react"
-import { Button, Flex, Input, Mentions, Popconfirm, Table, Upload } from "antd"
+import {
+    Button,
+    Flex,
+    Input,
+    Mentions,
+    Popconfirm,
+    Popover,
+    Table,
+    Upload,
+} from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { DbEnrichedImageWithUserId, DbPlainUser } from "@ourworldindata/types"
@@ -20,14 +29,20 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { RcFile } from "antd/es/upload/interface.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
-import { keyBy } from "lodash"
+import { Dictionary, keyBy } from "lodash"
 import cx from "classnames"
 
 type ImageMap = Record<string, DbEnrichedImageWithUserId>
 
 type UserMap = Record<string, DbPlainUser>
 
+type UsageInfo = {
+    title: string
+    id: string
+}
+
 type ImageEditorApi = {
+    getUsage: () => void
     getAltText: (id: number) => Promise<{ altText: string; success: boolean }>
     patchImage: (
         image: DbEnrichedImageWithUserId,
@@ -183,12 +198,49 @@ function UserSelect({
     )
 }
 
+function UsageViewer({ usage }: { usage: UsageInfo[] | undefined }) {
+    const content = (
+        <div>
+            {usage ? (
+                <ul className="ImageIndexPage__usage-list">
+                    {usage.map((use) => (
+                        <li key={use.id}>
+                            <a href={`/admin/gdocs/${use.id}/preview`}>
+                                {use.title}
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            ) : null}
+        </div>
+    )
+
+    return (
+        <Popover
+            content={content}
+            title="Published posts that reference this image"
+            trigger="click"
+        >
+            <Button type="text" disabled={!usage || !usage.length}>
+                See usage
+                {usage ? (
+                    <span className="ImageIndexPage__usage-chip">
+                        {usage.length}
+                    </span>
+                ) : null}
+            </Button>
+        </Popover>
+    )
+}
+
 function createColumns({
     api,
     users,
+    usage,
 }: {
     api: ImageEditorApi
     users: UserMap
+    usage: Dictionary<UsageInfo[]>
 }): ColumnsType<DbEnrichedImageWithUserId> {
     return [
         {
@@ -319,22 +371,35 @@ function createColumns({
             title: "Action",
             key: "action",
             width: 100,
-            render: (_, image) => (
-                <Flex vertical>
-                    <PutImageButton putImage={api.putImage} id={image.id} />
-                    <Popconfirm
-                        title="Are you sure?"
-                        description="This will delete the image being used in production."
-                        onConfirm={() => api.deleteImage(image)}
-                        okText="Yes"
-                        cancelText="No"
-                    >
-                        <Button type="text" danger>
-                            Delete
-                        </Button>
-                    </Popconfirm>
-                </Flex>
-            ),
+            render: (_, image) => {
+                const isDeleteDisabled = !!(usage && usage[image.id]?.length)
+                return (
+                    <Flex vertical>
+                        <UsageViewer usage={usage && usage[image.id]} />
+                        <PutImageButton putImage={api.putImage} id={image.id} />
+                        <Popconfirm
+                            title="Are you sure?"
+                            description="This will delete the image being used in production."
+                            onConfirm={() => api.deleteImage(image)}
+                            okText="Yes"
+                            cancelText="No"
+                        >
+                            <Button
+                                type="text"
+                                danger
+                                disabled={isDeleteDisabled}
+                                title={
+                                    isDeleteDisabled
+                                        ? "This image is being used in production"
+                                        : undefined
+                                }
+                            >
+                                Delete
+                            </Button>
+                        </Popconfirm>
+                    </Flex>
+                )
+            },
         },
     ]
 }
@@ -421,10 +486,18 @@ export function ImageIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [images, setImages] = useState<ImageMap>({})
     const [users, setUsers] = useState<UserMap>({})
+    const [usage, setUsage] = useState<Dictionary<UsageInfo[]>>({})
     const [filenameSearchValue, setFilenameSearchValue] = useState("")
 
     const api = useMemo(
         (): ImageEditorApi => ({
+            getUsage: async () => {
+                const usage = await admin.requestJSON<{
+                    success: true
+                    usage: Dictionary<UsageInfo[]>
+                }>(`/api/images/usage`, {}, "GET")
+                setUsage(usage.usage)
+            },
             getAltText: (id) => {
                 return admin.requestJSON<{
                     success: true
@@ -527,11 +600,15 @@ export function ImageIndexPage() {
         [images, filenameSearchValue]
     )
 
-    const columns = useMemo(() => createColumns({ api, users }), [api, users])
+    const columns = useMemo(
+        () => createColumns({ api, users, usage }),
+        [api, users, usage]
+    )
 
     useEffect(() => {
         void api.getImages()
         void api.getUsers()
+        void api.getUsage()
     }, [api])
 
     return (
