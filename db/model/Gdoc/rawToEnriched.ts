@@ -129,6 +129,8 @@ import {
     EnrichedBlockPerson,
     RawBlockPeopleRows,
     EnrichedBlockPeopleRows,
+    RawBlockCode,
+    EnrichedBlockCode,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -142,6 +144,7 @@ import {
     isArray,
     partition,
     compact,
+    toAsciiQuotes,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink, getLinkType } from "@ourworldindata/components"
 import {
@@ -169,6 +172,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "blockquote" }, parseBlockquote)
         .with({ type: "callout" }, parseCallout)
         .with({ type: "chart" }, parseChart)
+        .with({ type: "code" }, parseCode)
         .with({ type: "donors" }, parseDonorList)
         .with({ type: "scroller" }, parseScroller)
         .with({ type: "chart-story" }, parseChartStory)
@@ -489,6 +493,17 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
             tabs: tabs.length > 0 ? tabs : undefined,
             parseErrors: [],
         }) as EnrichedBlockChart
+    }
+}
+
+const parseCode = (raw: RawBlockCode): EnrichedBlockCode => {
+    return {
+        type: "code",
+        text: raw.value.map((text) => ({
+            type: "text",
+            value: toAsciiQuotes(text.value),
+        })),
+        parseErrors: [],
     }
 }
 

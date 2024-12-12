@@ -17,7 +17,7 @@ import {
     TocHeadingWithTitleSupertitle,
     Url,
 } from "@ourworldindata/utils"
-import { convertHeadingTextToId } from "@ourworldindata/components"
+import { CodeSnippet, convertHeadingTextToId } from "@ourworldindata/components"
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { match } from "ts-pattern"
@@ -245,6 +245,12 @@ export default function ArticleBlock({
                 />
             )
         })
+        .with({ type: "code" }, (block) => (
+            <CodeSnippet
+                className={getLayout("code-snippet", containerType)}
+                code={block.text.map((text) => text.value).join("\n")}
+            />
+        ))
         .with({ type: "donors" }, (_block) => (
             <Donors className={getLayout("donors", containerType)} />
         ))

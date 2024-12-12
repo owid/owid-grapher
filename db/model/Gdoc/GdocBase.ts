@@ -544,6 +544,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "aside",
                         "blockquote",
                         "callout",
+                        "code",
                         "donors",
                         "expandable-paragraph",
                         "entry-summary",

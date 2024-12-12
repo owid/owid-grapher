@@ -31,3 +31,7 @@ export const titleCase = (str: string): string => {
         })
         .join(" ")
 }
+
+export function toAsciiQuotes(str: string): string {
+    return str.replace(/[“”]/g, '"').replace(/[‘’]/g, "'")
+}
