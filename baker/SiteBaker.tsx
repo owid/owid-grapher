@@ -110,7 +110,7 @@ import { getTombstones } from "../db/model/GdocTombstone.js"
 import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
 import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
-import { getAllChartViewsMetadata } from "../db/model/ChartView.js"
+import { getChartViewsMetadata } from "../db/model/ChartView.js"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -462,7 +462,7 @@ export class SiteBaker {
                 name: `✅ Prefetched ${publishedAuthors.length} authors`,
             })
 
-            const chartViewMetadata = await getAllChartViewsMetadata(knex)
+            const chartViewMetadata = await getChartViewsMetadata(knex)
             const chartViewMetadataByName = keyBy(chartViewMetadata, "name")
             this.progressBar.tick({
                 name: `✅ Prefetched ${chartViewMetadata.length} chart views`,
