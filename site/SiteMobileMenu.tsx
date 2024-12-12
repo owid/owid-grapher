@@ -3,6 +3,7 @@ import { CategoryWithEntries } from "@ourworldindata/utils"
 import classnames from "classnames"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import { Menu } from "./SiteNavigation.js"
+import { SiteAbout } from "./SiteAbout.js"
 import { SiteResources } from "./SiteResources.js"
 import { SiteMobileCategory } from "./SiteMobileCategory.js"
 
@@ -68,9 +69,20 @@ export const SiteMobileMenu = ({
                     </SiteNavigationToggle>
                 </li>
                 <li>
-                    <a href="/about" className="section__header">
+                    <SiteNavigationToggle
+                        ariaLabel="Toggle about menu"
+                        isActive={menu === Menu.About}
+                        onToggle={() =>
+                            toggleMenu(
+                                menu === Menu.About ? Menu.Topics : Menu.About
+                            )
+                        }
+                        dropdown={<SiteAbout />}
+                        withCaret={true}
+                        className="SiteNavigationToggle--lvl1"
+                    >
                         About
-                    </a>
+                    </SiteNavigationToggle>
                 </li>
                 <li>
                     <a href="/donate" className="donate">
