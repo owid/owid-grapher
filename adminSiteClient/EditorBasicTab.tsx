@@ -108,7 +108,7 @@ class DimensionSlotView<
         this.updateParentConfig()
     }
 
-    @action.bound private updateDefaults() {
+    @action.bound private updateDefaultSelection() {
         const { grapher } = this.props.editor
         const { selection } = grapher
         const { availableEntityNames, availableEntityNameSet } = selection
@@ -145,8 +145,16 @@ class DimensionSlotView<
         }
     }
 
-    @action.bound private syncFocusedSeriesNames(): void {
+    @action.bound private validateFocusedSeriesNames(): void {
         const { grapher } = this.props.editor
+
+        // focus state is only supported for line and slope charts
+        if (!grapher.hasLineChart && !grapher.hasSlopeChart) {
+            grapher.focusArray.clear()
+            return
+        }
+
+        // sync focused series names by removing invalid ones
         const invalidFocusedSeriesNames = findInvalidFocusedSeriesNames(grapher)
         grapher.focusArray.remove(...invalidFocusedSeriesNames)
     }
@@ -160,13 +168,16 @@ class DimensionSlotView<
                 this.disposers.push(
                     reaction(
                         () => this.grapher.validChartTypes,
-                        this.updateDefaults
+                        () => {
+                            this.updateDefaultSelection()
+                            this.validateFocusedSeriesNames()
+                        }
                     ),
                     reaction(
                         () => this.grapher.yColumnsFromDimensions.length,
                         () => {
-                            this.updateDefaults()
-                            this.syncFocusedSeriesNames()
+                            this.updateDefaultSelection()
+                            this.validateFocusedSeriesNames()
                         }
                     )
                 )

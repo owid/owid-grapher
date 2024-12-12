@@ -98,15 +98,13 @@ export const grapherObjectToQueryParams = (
             ? "1"
             : "0",
         showNoDataArea: grapher.showNoDataArea ? "1" : "0",
-        country: grapher.selectedEntitiesIfDifferentThanAuthors
+        country: grapher.areSelectedEntitiesDifferentThanAuthors
             ? generateSelectedEntityNamesParam(
-                  grapher.selectedEntitiesIfDifferentThanAuthors
+                  grapher.selection.selectedEntityNames
               )
             : undefined,
-        focus: grapher.focusedSeriesNamesIfDifferentThanAuthors
-            ? generateFocusedSeriesNamesParam(
-                  grapher.focusedSeriesNamesIfDifferentThanAuthors
-              )
+        focus: grapher.areFocusedSeriesNamesDifferentThanAuthors
+            ? generateFocusedSeriesNamesParam(grapher.focusArray.seriesNames)
             : undefined,
     }
     return params

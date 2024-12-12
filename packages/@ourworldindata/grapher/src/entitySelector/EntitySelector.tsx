@@ -606,9 +606,11 @@ export class EntitySelector extends React.Component<{
         }
 
         // remove focus from an entity that has been removed from the selection
-        if (!this.selectionArray.isSelected(entityName)) {
+        if (!this.selectionArray.selectedSet.has(entityName)) {
             this.manager.focusArray?.remove(entityName)
         }
+
+        this.clearSearchInput()
 
         // close the modal or drawer automatically after selection if in single mode
         if (

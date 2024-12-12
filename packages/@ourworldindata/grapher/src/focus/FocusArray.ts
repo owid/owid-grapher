@@ -21,7 +21,7 @@ export class FocusArray {
     }
 
     /**
-     * Whether a series is currently highlighted
+     * Whether a series is currently focused
      */
     has(seriesName: SeriesName): boolean {
         return this.store.has(seriesName)
@@ -29,9 +29,9 @@ export class FocusArray {
 
     /**
      * Whether a series is in the foreground, i.e. either
-     * the chart isn't currently is focus mode (in which
+     * the chart isn't currently in focus mode (in which
      * all series are in the foreground by default) or the
-     * series itself is currently highlighted.
+     * series itself is currently focused.
      */
     isInForeground(seriesName: SeriesName): boolean {
         return this.isEmpty || this.has(seriesName)
@@ -40,7 +40,7 @@ export class FocusArray {
     /**
      * Whether a series is in the background, i.e. the chart
      * is currently in focus mode but the given series isn't
-     * highlighted.
+     * focused.
      */
     isInBackground(seriesName: SeriesName): boolean {
         return !this.isEmpty && !this.has(seriesName)
@@ -48,8 +48,8 @@ export class FocusArray {
 
     /**
      * Get the interaction state of a series:
-     * - active: whether the series is currently focused
-     * - background: whether another series is currently focused
+     * - active: true if the series is currently focused
+     * - background: true if another series is currently focused
      */
     state(seriesName: SeriesName): InteractionState {
         return {
