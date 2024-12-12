@@ -732,6 +732,13 @@ export class SlopeChart
                 const PREFER_S1 = -1
                 const PREFER_S2 = 1
 
+                const s1_isFocused = this.focusArray.has(s1)
+                const s2_isFocused = this.focusArray.has(s2)
+
+                // prefer to label focused series
+                if (s1_isFocused && !s2_isFocused) return PREFER_S1
+                if (s2_isFocused && !s1_isFocused) return PREFER_S2
+
                 const s1_isLabelled = this.visibleLineLegendLabelsRight.has(s1)
                 const s2_isLabelled = this.visibleLineLegendLabelsRight.has(s2)
 
