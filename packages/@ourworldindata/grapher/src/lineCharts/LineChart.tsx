@@ -114,7 +114,7 @@ import {
     getColorKey,
     getSeriesName,
 } from "./LineChartHelpers"
-import { FocusArray } from "../selection/FocusArray.js"
+import { FocusArray } from "../focus/FocusArray.js"
 
 const LINE_CHART_CLASS_NAME = "LineChart"
 

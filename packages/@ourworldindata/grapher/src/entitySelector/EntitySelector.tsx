@@ -50,7 +50,7 @@ import { ColumnSlug, OwidColumnDef } from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
-import { FocusArray } from "../selection/FocusArray"
+import { FocusArray } from "../focus/FocusArray"
 
 export interface EntitySelectorState {
     searchInput: string
