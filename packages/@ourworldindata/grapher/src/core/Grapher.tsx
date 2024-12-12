@@ -19,7 +19,6 @@ import {
     next,
     sampleFrom,
     range,
-    difference,
     exposeInstanceOnWindow,
     findClosestTime,
     excludeUndefined,
@@ -66,6 +65,7 @@ import {
     extractDetailsFromSyntax,
     omit,
     isTouchDevice,
+    isArrayDifferentFromReference,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -146,8 +146,8 @@ import { TooltipManager } from "../tooltip/TooltipProps"
 
 import { DimensionSlot } from "../chart/DimensionSlot"
 import {
+    getFocusedSeriesNamesParam,
     getSelectedEntityNamesParam,
-    getSelectedEntityNamesFromQueryParam,
 } from "./EntityUrlBuilder"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
@@ -694,10 +694,7 @@ export class Grapher
             this.selection.setSelectedEntities(selection)
 
         // focus
-        const focusedSeriesNames =
-            params.focus !== undefined
-                ? getSelectedEntityNamesFromQueryParam(params.focus)
-                : undefined
+        const focusedSeriesNames = getFocusedSeriesNamesParam(params.focus)
         if (focusedSeriesNames) {
             this.focusArray.clearAllAndAdd(...focusedSeriesNames)
         }
@@ -3394,48 +3391,32 @@ export class Grapher
         | EntityName[]
         | undefined {
         const authoredConfig = this.legacyConfigAsAuthored
-
+        const currentSelectedEntityNames = this.selection.selectedEntityNames
         const originalSelectedEntityNames =
             authoredConfig.selectedEntityNames ?? []
-        const currentSelectedEntityNames = this.selection.selectedEntityNames
 
-        const entityNamesThatTheUserDeselected = difference(
+        const isDifferentThanAuthors = isArrayDifferentFromReference(
             currentSelectedEntityNames,
             originalSelectedEntityNames
         )
 
-        if (
-            currentSelectedEntityNames.length !==
-                originalSelectedEntityNames.length ||
-            entityNamesThatTheUserDeselected.length
-        )
-            return this.selection.selectedEntityNames
-
-        return undefined
+        return isDifferentThanAuthors ? currentSelectedEntityNames : undefined
     }
 
     @computed get focusedSeriesNamesIfDifferentThanAuthors():
         | SeriesName[]
         | undefined {
         const authoredConfig = this.legacyConfigAsAuthored
-
+        const currentFocusedSeriesNames = this.focusArray.seriesNames
         const originalFocusedSeriesNames =
             authoredConfig.focusedSeriesNames ?? []
-        const currentFocusedSeriesNames = this.focusArray.seriesNames
 
-        const seriesNamesThatTheUserDeselected = difference(
+        const isDifferentThanAuthors = isArrayDifferentFromReference(
             currentFocusedSeriesNames,
             originalFocusedSeriesNames
         )
 
-        if (
-            currentFocusedSeriesNames.length !==
-                originalFocusedSeriesNames.length ||
-            seriesNamesThatTheUserDeselected.length
-        )
-            return this.focusArray.seriesNames
-
-        return undefined
+        return isDifferentThanAuthors ? currentFocusedSeriesNames : undefined
     }
 
     // Autocomputed url params to reflect difference between current grapher state
