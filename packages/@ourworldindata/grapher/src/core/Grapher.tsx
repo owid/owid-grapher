@@ -437,15 +437,14 @@ export class Grapher
         [entityName: string]: string | undefined
     } = {}
 
-    // Initializing arrays with `undefined` ensures that empty arrays get serialised
-    @observable selectedEntityNames?: EntityName[] = undefined
+    @observable selectedEntityNames: EntityName[] = []
+    @observable focusedSeriesNames: SeriesName[] = []
     @observable excludedEntities?: number[] = undefined
     /** IncludedEntities are usually empty which means use all available entities. When
         includedEntities is set it means "only use these entities". excludedEntities
         are evaluated afterwards and can still remove entities even if they were included before.
      */
     @observable includedEntities?: number[] = undefined
-    @observable focusedSeriesNames?: SeriesName[] = undefined
     @observable comparisonLines?: ComparisonLineConfig[] = undefined // todo: Persistables?
     @observable relatedQuestions?: RelatedQuestionsConfig[] = undefined // todo: Persistables?
 

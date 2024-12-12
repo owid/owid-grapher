@@ -101,6 +101,7 @@ properties:
     selectedEntityNames:
         type: array
         description: The initial selection of entities
+        default: []
         items:
             type:
                 - string
@@ -109,6 +110,7 @@ properties:
         description: |
             The initially focused chart elements. Is either a list of entity or variable names.
             Only works for line and slope charts for now.
+        default: []
         items:
             type:
                 - string
@@ -195,6 +197,7 @@ properties:
     comparisonLines:
         description: List of vertical comparison lines to draw
         type: array
+        default: []
         items:
             type: object
             properties:
@@ -361,6 +364,7 @@ properties:
     relatedQuestions:
         type: array
         description: Links to related questions
+        default: []
         items:
             type: object
             properties:
@@ -428,6 +432,7 @@ properties:
     excludedEntities:
         type: array
         description: Entities that should be excluded from the chart
+        default: []
         items:
             type: integer
             minimum: 0
@@ -493,6 +498,7 @@ properties:
     includedEntities:
         type: array
         description: Entities to include. Opposite of excludedEntities. If this is set then all entities not specified here are excluded.
+        default: []
         items:
             type: number
     entityTypePlural:
