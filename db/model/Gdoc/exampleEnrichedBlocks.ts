@@ -53,7 +53,36 @@ const enrichedBlockPerson: EnrichedBlockPerson = {
     type: "person",
     image: "example.png",
     name: "Max Roser",
+    title: "Founder and Executive Co-Director",
+    url: "https://docs.google.com/document/d/7Kj2Pq5MvNxRzF8tLwB3nY9pQx4vC8mXkHs6jWn3-Hy/edit",
     text: [enrichedBlockText],
+    socials: [
+        {
+            type: SocialLinkType.X,
+            url: "https://x.com/MaxCRoser",
+            text: "@MaxCRoser",
+            parseErrors: [],
+        },
+        {
+            type: SocialLinkType.Mastodon,
+            url: "https://mas.to/@maxroser",
+            text: "@maxroser",
+            parseErrors: [],
+        },
+        {
+            type: SocialLinkType.Bluesky,
+            url: "https://bsky.app/profile/maxroser.bsky.social",
+            text: "@maxroser.bsky.social",
+            parseErrors: [],
+        },
+        {
+            type: SocialLinkType.Threads,
+            url: "https://www.threads.net/@max.roser.ox",
+            text: "@max.roser.ox",
+            parseErrors: [],
+        },
+    ],
+
     parseErrors: [],
 }
 

@@ -294,7 +294,12 @@ export { Url, setWindowUrl, getWindowUrl } from "./urls/Url.js"
 
 export { type UrlMigration, performUrlMigrations } from "./urls/UrlMigration.js"
 
-export { camelCaseProperties, titleCase, toAsciiQuotes } from "./string.js"
+export {
+    camelCaseProperties,
+    titleCase,
+    toAsciiQuotes,
+    removeDiacritics,
+} from "./string.js"
 
 export { serializeJSONForHTML, deserializeJSONFromHTML } from "./serializers.js"
 
