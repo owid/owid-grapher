@@ -92,7 +92,7 @@ import {
     GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
 } from "../color/ColorConstants"
-import { FocusArray } from "../selection/FocusArray"
+import { FocusArray } from "../focus/FocusArray"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>

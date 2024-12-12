@@ -220,7 +220,7 @@ import {
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
 import { grapherObjectToQueryParams } from "./GrapherUrl.js"
-import { FocusArray } from "../selection/FocusArray"
+import { FocusArray } from "../focus/FocusArray"
 import {
     GRAPHER_BACKGROUND_BEIGE,
     GRAPHER_BACKGROUND_DEFAULT,
