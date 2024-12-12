@@ -2045,3 +2045,11 @@ export function getPaginationPageNumbers(
 
     return pageNumbers
 }
+
+export function isArrayDifferentFromReference<T>(
+    array: T[],
+    referenceArray: T[]
+): boolean {
+    if (array.length !== referenceArray.length) return true
+    return difference(array, referenceArray).length > 0
+}

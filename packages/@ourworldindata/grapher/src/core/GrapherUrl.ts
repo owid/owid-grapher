@@ -4,7 +4,10 @@ import {
     GrapherQueryParams,
     TimeBoundValueStr,
 } from "@ourworldindata/types"
-import { generateSelectedEntityNamesParam } from "./EntityUrlBuilder.js"
+import {
+    generateFocusedSeriesNamesParam,
+    generateSelectedEntityNamesParam,
+} from "./EntityUrlBuilder.js"
 import { match } from "ts-pattern"
 import { Grapher } from "./Grapher.js"
 
@@ -54,7 +57,7 @@ export const grapherConfigToQueryParams = (
             ? generateSelectedEntityNamesParam(config.selectedEntityNames)
             : undefined,
         focus: config.focusedSeriesNames
-            ? generateSelectedEntityNamesParam(config.focusedSeriesNames)
+            ? generateFocusedSeriesNamesParam(config.focusedSeriesNames)
             : undefined,
 
         // These cannot be specified in config, so we always set them to undefined
@@ -101,7 +104,7 @@ export const grapherObjectToQueryParams = (
               )
             : undefined,
         focus: grapher.focusedSeriesNamesIfDifferentThanAuthors
-            ? generateSelectedEntityNamesParam(
+            ? generateFocusedSeriesNamesParam(
                   grapher.focusedSeriesNamesIfDifferentThanAuthors
               )
             : undefined,
