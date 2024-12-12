@@ -3,6 +3,7 @@ import {
     differenceOfSets,
     moveArrayItemToIndex,
     omit,
+    sortBy,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -285,17 +286,17 @@ export class FocusSection extends React.Component<{
         const { editor } = this
         const { grapher } = editor
 
-        const seriesNameSet = new Set(grapher.chartSeriesNames)
-
         const focusedSeriesNameSet = grapher.focusArray.seriesNameSet
         const focusedSeriesNames = grapher.focusArray.seriesNames
 
-        const availableSeriesNameSet = differenceOfSets<string>([
+        // series available to highlight are those that are currently plotted
+        const seriesNameSet = new Set(grapher.chartSeriesNames)
+        const availableSeriesNameSet = differenceOfSets([
             seriesNameSet,
             focusedSeriesNameSet,
         ])
-        const availableSeriesNames: SeriesName[] = Array.from(
-            availableSeriesNameSet
+        const availableSeriesNames: SeriesName[] = sortBy(
+            Array.from(availableSeriesNameSet)
         )
 
         return (

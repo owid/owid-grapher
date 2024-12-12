@@ -29,6 +29,9 @@ export const CHART_VIEW_PROPS_TO_PERSIST: (keyof GrapherInterface)[] = [
     // Time selection
     "minTime",
     "maxTime",
+
+    // Focus state
+    "focusedSeriesNames",
 ]
 
 export const CHART_VIEW_PROPS_TO_OMIT: (keyof GrapherInterface)[] = [

@@ -13,6 +13,7 @@ import {
     sortedIndexBy,
     last,
     maxBy,
+    partition,
 } from "@ourworldindata/utils"
 import { TextWrap, TextWrapGroup, Halo } from "@ourworldindata/components"
 import { computed } from "mobx"
@@ -571,10 +572,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
         const [yLegendMin, yLegendMax] = this.legendY
 
         // ensure list is sorted by the visual position in ascending order
-        const sortedSeries = sortBy(
-            this.partialInitialSeries,
-            (label) => label.midY
-        )
+        const sortedSeries = sortBy(this.visibleSeries, (label) => label.midY)
 
         const groups: PlacedSeries[][] = cloneDeep(sortedSeries).map((mark) => [
             mark,
@@ -651,7 +649,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
         )
     }
 
-    @computed get partialInitialSeries(): PlacedSeries[] {
+    @computed get visibleSeries(): PlacedSeries[] {
         const { legendY } = this
         const availableHeight = Math.abs(legendY[1] - legendY[0])
         const nonOverlappingMinHeight =
@@ -725,17 +723,63 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 return [undefined, undefined]
             }
 
-            const sortedCandidates = sortBy(this.initialSeries, (c) => c.midY)
+            const [focusedCandidates, nonFocusedCandidates] = partition(
+                this.initialSeries,
+                (series) => series.focus?.active
+            )
 
-            // pick two candidates, one from the top and one from the bottom
-            const midIndex = Math.floor((sortedCandidates.length - 1) / 2)
-            for (let startIndex = 0; startIndex <= midIndex; startIndex++) {
-                const endIndex = sortedCandidates.length - 1 - startIndex
-                maybePickCandidate(sortedCandidates[endIndex])
-                if (sortedKeepSeries.length >= 2 || startIndex === endIndex)
-                    break
-                maybePickCandidate(sortedCandidates[startIndex])
-                if (sortedKeepSeries.length >= 2) break
+            // pick focused canidates first
+            while (focusedCandidates.length > 0) {
+                const focusedCandidate = focusedCandidates.pop()!
+                const picked = maybePickCandidate(focusedCandidate)
+
+                // if one of the focused candidates doesn't fit,
+                // remove it from the candidates and continue
+                if (!picked) candidates.delete(focusedCandidate)
+            }
+
+            // we initially need to pick at least two candidates.
+            // if we already picked two from the set of focused series,
+            // we're done. if we picked one, then we pick a another one
+            // that is as far away from the first one as possible.
+            // if we haven't picked any focused series, we pick two from
+            // the non-focused series, one from the top and one from the bottom.
+            if (sortedKeepSeries.length === 0) {
+                // sort the remaining candidates by their position
+                const sortedCandidates = sortBy(
+                    nonFocusedCandidates,
+                    (c) => c.midY
+                )
+
+                // pick two candidates, one from the top and one from the bottom
+                const midIndex = Math.floor((sortedCandidates.length - 1) / 2)
+                for (let startIndex = 0; startIndex <= midIndex; startIndex++) {
+                    const endIndex = sortedCandidates.length - 1 - startIndex
+                    maybePickCandidate(sortedCandidates[endIndex])
+                    if (sortedKeepSeries.length >= 2 || startIndex === endIndex)
+                        break
+                    maybePickCandidate(sortedCandidates[startIndex])
+                    if (sortedKeepSeries.length >= 2) break
+                }
+            } else if (sortedKeepSeries.length === 1) {
+                const keepMidY = sortedKeepSeries[0].midY
+
+                while (nonFocusedCandidates.length > 0) {
+                    // prefer the candidate that is furthest away from the one
+                    // that was already picked
+                    const candidate = maxBy(nonFocusedCandidates, (c) =>
+                        Math.abs(c.midY - keepMidY)
+                    )!
+                    const cIndex = nonFocusedCandidates.indexOf(candidate)
+                    if (cIndex > -1) nonFocusedCandidates.splice(cIndex, 1)
+
+                    // we only need one more candidate
+                    const picked = maybePickCandidate(candidate)
+                    if (picked) break
+
+                    // if the candidate wasn't picked, remove it from the candidates and continue
+                    candidates.delete(candidate)
+                }
             }
 
             while (candidates.size > 0 && keepSeriesHeight <= availableHeight) {
@@ -748,9 +792,6 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 const candidateScores: [PlacedSeries, number][] = Array.from(
                     candidates
                 ).map((candidate) => {
-                    // if the candidate is focused, we want to keep it in any case
-                    if (candidate.focus?.active) return [candidate, Infinity]
-
                     // find the bracket that the candidate is contained in
                     const [start, end] = findBracket(
                         sortedBrackets,
@@ -796,7 +837,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
     }
 
     @computed get visibleSeriesNames(): SeriesName[] {
-        return this.partialInitialSeries.map((series) => series.seriesName)
+        return this.visibleSeries.map((series) => series.seriesName)
     }
 
     // Does this placement need line markers or is the position of the labels already clear?

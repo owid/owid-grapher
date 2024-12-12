@@ -3387,36 +3387,28 @@ export class Grapher
         return grapherObjectToQueryParams(this)
     }
 
-    @computed get selectedEntitiesIfDifferentThanAuthors():
-        | EntityName[]
-        | undefined {
+    @computed get areSelectedEntitiesDifferentThanAuthors(): boolean {
         const authoredConfig = this.legacyConfigAsAuthored
         const currentSelectedEntityNames = this.selection.selectedEntityNames
         const originalSelectedEntityNames =
             authoredConfig.selectedEntityNames ?? []
 
-        const isDifferentThanAuthors = isArrayDifferentFromReference(
+        return isArrayDifferentFromReference(
             currentSelectedEntityNames,
             originalSelectedEntityNames
         )
-
-        return isDifferentThanAuthors ? currentSelectedEntityNames : undefined
     }
 
-    @computed get focusedSeriesNamesIfDifferentThanAuthors():
-        | SeriesName[]
-        | undefined {
+    @computed get areFocusedSeriesNamesDifferentThanAuthors(): boolean {
         const authoredConfig = this.legacyConfigAsAuthored
         const currentFocusedSeriesNames = this.focusArray.seriesNames
         const originalFocusedSeriesNames =
             authoredConfig.focusedSeriesNames ?? []
 
-        const isDifferentThanAuthors = isArrayDifferentFromReference(
+        return isArrayDifferentFromReference(
             currentFocusedSeriesNames,
             originalFocusedSeriesNames
         )
-
-        return isDifferentThanAuthors ? currentFocusedSeriesNames : undefined
     }
 
     // Autocomputed url params to reflect difference between current grapher state
