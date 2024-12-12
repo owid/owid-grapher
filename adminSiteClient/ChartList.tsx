@@ -38,13 +38,21 @@ export interface ChartListItem {
     isInheritanceEnabled?: boolean
 
     tags: DbChartTagJoin[]
+    pageviewsPerDay: number
 }
+
+export type SortConfig = {
+    field: "pageviewsPerDay"
+    direction: "asc" | "desc"
+} | null
 
 @observer
 export class ChartList extends React.Component<{
     charts: ChartListItem[]
     searchHighlight?: (text: string) => string | React.ReactElement
     onDelete?: (chart: ChartListItem) => void
+    onSort?: (sort: SortConfig) => void
+    sortConfig?: SortConfig
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
@@ -109,8 +117,23 @@ export class ChartList extends React.Component<{
     }
 
     render() {
-        const { charts, searchHighlight } = this.props
+        const { charts, searchHighlight, sortConfig, onSort } = this.props
         const { availableTags } = this
+
+        const getSortIndicator = () => {
+            if (!sortConfig || sortConfig.field !== "pageviewsPerDay") return ""
+            return sortConfig.direction === "desc" ? " ↓" : " ↑"
+        }
+
+        const handleSortClick = () => {
+            if (!sortConfig || sortConfig.field !== "pageviewsPerDay") {
+                onSort?.({ field: "pageviewsPerDay", direction: "desc" })
+            } else if (sortConfig.direction === "desc") {
+                onSort?.({ field: "pageviewsPerDay", direction: "asc" })
+            } else {
+                onSort?.(null)
+            }
+        }
 
         // if the first chart has inheritance information, we assume all charts have it
         const showInheritanceColumn =
@@ -128,6 +151,12 @@ export class ChartList extends React.Component<{
                         <th>Tags</th>
                         <th>Published</th>
                         <th>Last Updated</th>
+                        <th
+                            style={{ cursor: "pointer" }}
+                            onClick={handleSortClick}
+                        >
+                            views/day{getSortIndicator()}
+                        </th>
                         <th></th>
                         <th></th>
                     </tr>
