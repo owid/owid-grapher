@@ -286,6 +286,41 @@ export function enumerateGdocComponentsWithoutChildren(
                         path
                     )
             )
+            .with({ type: "person" }, (person) =>
+                handleComponent(
+                    person,
+                    [
+                        { prop: "text", iterator: iterateArrayProp },
+                        { prop: "socials", iterator: iterateArrayProp },
+                    ],
+                    parentPath,
+                    path
+                )
+            )
+            .with({ type: "people" }, (people) =>
+                handleComponent(
+                    people,
+                    [{ prop: "items", iterator: iterateArrayProp }],
+                    parentPath,
+                    path
+                )
+            )
+            .with({ type: "people-rows" }, (peopleRows) =>
+                handleComponent(
+                    peopleRows,
+                    [{ prop: "people", iterator: iterateArrayProp }],
+                    parentPath,
+                    path
+                )
+            )
+            .with({ type: "code" }, (code) =>
+                handleComponent(
+                    code,
+                    [{ prop: "text", iterator: iterateArrayProp }],
+                    parentPath,
+                    path
+                )
+            )
             .with(
                 {
                     type: P.union(
@@ -316,7 +351,9 @@ export function enumerateGdocComponentsWithoutChildren(
                         "text",
                         "heading",
                         "additional-charts",
-                        "simple-text"
+                        "simple-text",
+                        "donors",
+                        "socials"
                     ),
                 },
                 (c) => handleComponent(c, [], parentPath, path)
