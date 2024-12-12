@@ -823,7 +823,6 @@ const parsePerson = (raw: RawBlockPerson): EnrichedBlockPerson => {
         return createError({ message: "Person must have a name" })
     }
 
-    console.log("value", raw.value)
     return {
         type: "person",
         image: raw.value.image,

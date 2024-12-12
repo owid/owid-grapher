@@ -1,9 +1,21 @@
 .people {
-    gap: var(--grid-gap);
+    row-gap: 16px;
 }
 
 .people-cols-2 {
     @include md-up {
+        .article-block__text {
+            @include body-3-medium;
+        }
+
+        .person-socials {
+            @include body-3-medium;
+        }
+    }
+}
+
+.people-cols-4 {
+    @include lg-up {
         .article-block__text {
             @include body-3-medium;
         }

@@ -50,37 +50,71 @@
         margin-bottom: 0;
     }
 
-    h2 {
+    h2.article-block__heading {
         @include h1-semibold;
+        color: $blue-60;
+        margin-top: 0;
+
+        &:has(+ .article-block__side-by-side) {
+            margin-bottom: 8px;
+        }
+    }
+
+    h3.article-block__heading {
+        @include h2-bold;
+        margin-bottom: 16px;
+        margin-top: 16px;
+    }
+
+    h4.article-block__heading {
+        @include h3-bold;
+        margin-bottom: 16px;
+    }
+
+    h5.article-block__heading {
         color: $blue-60;
     }
 
-    h2:first-of-type {
+    .article-block__heading + .article-block__heading {
         margin-top: 0;
     }
 
+    .grid .article-block__text + .h2-bold,
+    .grid .article-block__list + .h2-bold,
+    .grid .article-block__text + .h3-bold,
+    .grid .article-block__list + .h3-bold,
+    .grid .article-block__text + .h4-semibold,
+    .grid .article-block__list + .h4-semibold {
+        margin-top: 16px;
+    }
+
     hr {
-        margin: 40px 0;
+        margin: 16px 0 40px 0;
+    }
+
+    .article-block__callout {
+        margin-top: 0;
+        margin-bottom: 24px;
+    }
+
+    .article-block__image {
+        margin: 0 0 24px;
+    }
+
+    .article-block__chart {
+        margin-bottom: 24px;
+    }
+
+    .article-block__prominent-link {
+        margin-bottom: 24px;
     }
 
     // Remove some margins since margins don't collapse in display: grid.
-    .article-block__side-by-side {
-        margin: 0;
-    }
-
-    hr + .article-block__side-by-side {
-        h2 {
-            margin-top: 0;
-        }
-
-        *:last-child {
-            margin-bottom: 0;
-        }
-    }
-
-    .article-block__side-by-side:has(+ hr) {
-        *:last-child {
-            margin-bottom: 0;
+    .article-block__side-by-side,
+    .article-block__sticky-left,
+    .article-block__sticky-right {
+        @include md-up {
+            margin: 0;
         }
     }
 

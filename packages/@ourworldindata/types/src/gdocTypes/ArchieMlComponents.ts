@@ -258,7 +258,7 @@ export type EnrichedBlockNumberedList = {
 export type RawBlockPeopleRows = {
     type: "people-rows"
     value: {
-        columns: "2"
+        columns: "2" | "4"
         people: RawBlockPerson[]
     }
 }
@@ -281,7 +281,7 @@ export type RawBlockPerson = {
 
 export type EnrichedBlockPeopleRows = {
     type: "people-rows"
-    columns: "2"
+    columns: "2" | "4"
     people: EnrichedBlockPerson[]
 } & EnrichedBlockWithParseErrors
 
