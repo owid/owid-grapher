@@ -56,6 +56,7 @@ import {
     grabMetadataForGdocLinkedIndicator,
     TombstonePageData,
     gdocUrlRegex,
+    ChartViewMetadata,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -121,6 +122,7 @@ type PrefetchedAttachments = {
         explorers: Record<string, LinkedChart>
     }
     linkedIndicators: Record<number, LinkedIndicator>
+    chartViewMetadata: Record<string, ChartViewMetadata>
 }
 
 // These aren't all "wordpress" steps
@@ -536,6 +538,8 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedAuthors.filter(
                         (author) => authorNames.includes(author.name)
                     ),
+                chartViewMetadata:
+                    this._prefetchedAttachmentsCache.chartViewMetadata, // TODO: Filter
             }
         }
         return this._prefetchedAttachmentsCache
@@ -637,6 +641,7 @@ export class SiteBaker {
                 ...attachments.linkedCharts.explorers,
             }
             publishedGdoc.linkedIndicators = attachments.linkedIndicators
+            publishedGdoc.chartViewMetadata = attachments.chartViewMetadata
 
             // this is a no-op if the gdoc doesn't have an all-chart block
             if ("loadRelatedCharts" in publishedGdoc) {

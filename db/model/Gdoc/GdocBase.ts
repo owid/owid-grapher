@@ -56,6 +56,7 @@ import {
 import {
     ARCHVED_THUMBNAIL_FILENAME,
     ChartConfigType,
+    ChartViewMetadata,
     DEFAULT_THUMBNAIL_FILENAME,
     GrapherInterface,
     LatestDataInsight,
@@ -66,6 +67,7 @@ import {
     OwidGdocLinkType,
     OwidGdocType,
 } from "@ourworldindata/types"
+import { getAllChartViewsMetadata } from "../ChartView.js"
 
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
@@ -89,6 +91,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     linkedIndicators: Record<number, LinkedIndicator> = {}
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     latestDataInsights: LatestDataInsight[] = []
+    chartViewMetadata?: Record<string, ChartViewMetadata> = {}
     _omittableFields: string[] = []
 
     constructor(id?: string) {
@@ -714,6 +717,14 @@ export class GdocBase implements OwidGdocBaseInterface {
         }
     }
 
+    async loadChartViewMetadata(
+        knex: db.KnexReadonlyTransaction
+    ): Promise<void> {
+        // TODO: Filter down to only those that are used in the Gdoc
+        const result = await getAllChartViewsMetadata(knex)
+        this.chartViewMetadata = keyBy(result, "name")
+    }
+
     async fetchAndEnrichGdoc(): Promise<void> {
         const docsClient = google.docs({
             version: "v1",
@@ -859,6 +870,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadImageMetadataFromDB(knex)
         await this.loadLinkedCharts(knex)
         await this.loadLinkedIndicators() // depends on linked charts
+        await this.loadChartViewMetadata(knex)
         await this._loadSubclassAttachments(knex)
         await this.validate(knex)
     }
