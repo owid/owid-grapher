@@ -200,25 +200,26 @@ class Lines extends React.Component<LinesProps> {
             />
         )
 
-        const line = this.props.multiColor ? (
-            <MultiColorPolyline
-                id={makeIdForHumanConsumption("line", series.seriesName)}
-                points={series.placedPoints}
-                strokeLinejoin="round"
-                strokeWidth={strokeWidth}
-                strokeDasharray={strokeDasharray}
-                strokeOpacity={strokeOpacity}
-            />
-        ) : (
-            <LinePath
-                id={makeIdForHumanConsumption("line", series.seriesName)}
-                placedPoints={series.placedPoints}
-                stroke={color}
-                strokeWidth={strokeWidth}
-                strokeOpacity={strokeOpacity}
-                strokeDasharray={strokeDasharray}
-            />
-        )
+        const line =
+            this.props.multiColor && !focus.background ? (
+                <MultiColorPolyline
+                    id={makeIdForHumanConsumption("line", series.seriesName)}
+                    points={series.placedPoints}
+                    strokeLinejoin="round"
+                    strokeWidth={strokeWidth}
+                    strokeDasharray={strokeDasharray}
+                    strokeOpacity={strokeOpacity}
+                />
+            ) : (
+                <LinePath
+                    id={makeIdForHumanConsumption("line", series.seriesName)}
+                    placedPoints={series.placedPoints}
+                    stroke={color}
+                    strokeWidth={strokeWidth}
+                    strokeOpacity={strokeOpacity}
+                    strokeDasharray={strokeDasharray}
+                />
+            )
 
         return (
             <>
