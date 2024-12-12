@@ -14,6 +14,7 @@ import {
     ALL_GRAPHER_CHART_TYPES,
     GrapherChartType,
     GRAPHER_CHART_TYPES,
+    SeriesName,
 } from "@ourworldindata/types"
 import {
     DimensionSlot,
@@ -147,7 +148,7 @@ class DimensionSlotView<
     @action.bound private syncFocusedSeriesNames(): void {
         const { grapher } = this.props.editor
         const invalidFocusedSeriesNames = findInvalidFocusedSeriesNames(grapher)
-        grapher.focusArray.deactivate(...invalidFocusedSeriesNames)
+        grapher.focusArray.remove(...invalidFocusedSeriesNames)
     }
 
     componentDidMount() {
@@ -520,9 +521,9 @@ function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
     )
 }
 
-export function findInvalidFocusedSeriesNames(grapher: Grapher) {
+export function findInvalidFocusedSeriesNames(grapher: Grapher): SeriesName[] {
     const availableSeriesNames = new Set(grapher.chartSeriesNames)
-    const focusedSeriesNames = grapher.focusArray.focusedSeriesNameSet
+    const focusedSeriesNames = grapher.focusArray.seriesNameSet
 
     return Array.from(
         differenceOfSets([focusedSeriesNames, availableSeriesNames])

@@ -607,7 +607,7 @@ export class EntitySelector extends React.Component<{
 
         // remove focus from an entity that has been removed from the selection
         if (!this.selectionArray.isSelected(entityName)) {
-            this.manager.focusArray?.deactivate(entityName)
+            this.manager.focusArray?.remove(entityName)
         }
 
         // close the modal or drawer automatically after selection if in single mode
@@ -625,7 +625,7 @@ export class EntitySelector extends React.Component<{
             const { selected = [] } = partitionedSearchResults ?? {}
             const entityNames = selected.map((entity) => entity.name)
             this.selectionArray.deselectEntities(entityNames)
-            this.manager.focusArray?.deactivate(...entityNames)
+            this.manager.focusArray?.remove(...entityNames)
         } else {
             this.selectionArray.clearSelection()
             this.manager.focusArray?.clear()

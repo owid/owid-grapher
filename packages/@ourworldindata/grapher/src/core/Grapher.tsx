@@ -571,7 +571,7 @@ export class Grapher
         )
 
         obj.selectedEntityNames = this.selection.selectedEntityNames
-        obj.focusedSeriesNames = this.focusArray.focusedSeriesNames
+        obj.focusedSeriesNames = this.focusArray.seriesNames
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
@@ -615,7 +615,7 @@ export class Grapher
 
         // update focused series
         if (obj.focusedSeriesNames)
-            this.focusArray.clearAllAndActivate(...obj.focusedSeriesNames)
+            this.focusArray.clearAllAndAdd(...obj.focusedSeriesNames)
 
         // JSON doesn't support Infinity, so we use strings instead.
         this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
@@ -699,7 +699,7 @@ export class Grapher
                 ? getSelectedEntityNamesFromQueryParam(params.focus)
                 : undefined
         if (focusedSeriesNames) {
-            this.focusArray.clearAllAndActivate(...focusedSeriesNames)
+            this.focusArray.clearAllAndAdd(...focusedSeriesNames)
         }
 
         // faceting
@@ -3423,7 +3423,7 @@ export class Grapher
 
         const originalFocusedSeriesNames =
             authoredConfig.focusedSeriesNames ?? []
-        const currentFocusedSeriesNames = this.focusArray.focusedSeriesNames
+        const currentFocusedSeriesNames = this.focusArray.seriesNames
 
         const seriesNamesThatTheUserDeselected = difference(
             currentFocusedSeriesNames,
@@ -3435,7 +3435,7 @@ export class Grapher
                 originalFocusedSeriesNames.length ||
             seriesNamesThatTheUserDeselected.length
         )
-            return this.focusArray.focusedSeriesNames
+            return this.focusArray.seriesNames
 
         return undefined
     }
