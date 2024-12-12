@@ -106,7 +106,7 @@ export abstract class AbstractChartEditor<
     /** patch config merged with parent config */
     @computed get fullConfig(): GrapherInterface {
         if (!this.activeParentConfig) return this.liveConfig
-        return mergeGrapherConfigs(this.activeParentConfig, this.liveConfig)
+        return mergeGrapherConfigs(this.activeParentConfig, this.patchConfig)
     }
 
     /** parent config currently applied to grapher */
