@@ -119,7 +119,8 @@ const getFaqEntries = async (
 export const renderMultiDimDataPageFromConfig = async (
     knex: db.KnexReadonlyTransaction,
     slug: string,
-    config: MultiDimDataPageConfigEnriched
+    config: MultiDimDataPageConfigEnriched,
+    isPreviewing: boolean = false
 ) => {
     // TAGS
     const tagToSlugMap = await getTagToSlugMap(knex)
@@ -142,6 +143,7 @@ export const renderMultiDimDataPageFromConfig = async (
         tagToSlugMap: minimalTagToSlugMap,
         faqEntries,
         primaryTopic,
+        isPreviewing,
     }
 
     return renderMultiDimDataPageFromProps(props)

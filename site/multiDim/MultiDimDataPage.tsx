@@ -18,6 +18,7 @@ export function MultiDimDataPage({
     faqEntries,
     primaryTopic,
     initialQueryStr,
+    isPreviewing,
 }: MultiDimDataPageProps) {
     const canonicalUrl = `${baseGrapherUrl}/${slug}`
     const contentProps: MultiDimDataPageContentProps = {
@@ -81,6 +82,7 @@ export function MultiDimDataPage({
                 <SiteFooter
                     baseUrl={baseUrl}
                     context={SiteFooterContext.multiDimDataPage}
+                    isPreviewing={isPreviewing}
                 />
             </body>
         </Html>
