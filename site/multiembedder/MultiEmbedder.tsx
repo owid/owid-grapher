@@ -21,6 +21,7 @@ import {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromQueryStr,
     fetchWithRetry,
+    deserializeJSONFromHTML,
 } from "@ourworldindata/utils"
 import { action } from "mobx"
 import React from "react"
@@ -163,8 +164,10 @@ class MultiEmbedder {
             dataApiUrl: DATA_API_URL,
         }
 
+        const html = await fetchText(fullUrl)
+
         if (isExplorer) {
-            const html = await fetchText(fullUrl)
+            // const html = await fetchText(fullUrl)
             const props: ExplorerProps = await buildExplorerProps(
                 html,
                 queryStr,
@@ -175,38 +178,36 @@ class MultiEmbedder {
             ReactDOM.render(<Explorer {...props} />, figure)
         } else {
             figure.classList.remove(GRAPHER_PREVIEW_CLASS)
-            const url = new URL(fullUrl)
-            const slug = url.pathname.split("/").pop()
-            let configUrl
-            if (isMultiDim) {
-                const mdimConfigUrl = `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${slug}.json`
-                const mdimJsonConfig = await fetchWithRetry(mdimConfigUrl).then(
-                    (res) => res.json()
-                )
-                const mdimConfig =
-                    MultiDimDataPageConfig.fromObject(mdimJsonConfig)
-                const dimensions = extractMultiDimChoicesFromQueryStr(
-                    url.search,
-                    mdimConfig
-                )
-                const view = mdimConfig.findViewByDimensions(dimensions)
-                if (!view) {
-                    throw new Error(
-                        `No view found for dimensions ${JSON.stringify(
-                            dimensions
-                        )}`
-                    )
-                }
-                configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${view.fullConfigId}.config.json`
-            } else {
-                configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
-            }
-            const fetchedGrapherPageConfig = await fetchWithRetry(
-                configUrl
-            ).then((res) => res.json())
-            const grapherPageConfig = migrateGrapherConfigToLatestVersion(
-                fetchedGrapherPageConfig
-            )
+            const grapherPageConfig = deserializeJSONFromHTML(html)
+            // const url = new URL(fullUrl)
+            // const slug = url.pathname.split("/").pop()
+            // let configUrl
+            // if (isMultiDim) {
+            //     const mdimConfigUrl = `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${slug}.json`
+            //     const mdimJsonConfig = await fetch(mdimConfigUrl).then((res) =>
+            //         res.json()
+            //     )
+            //     const mdimConfig =
+            //         MultiDimDataPageConfig.fromObject(mdimJsonConfig)
+            //     const dimensions = extractMultiDimChoicesFromQueryStr(
+            //         url.search,
+            //         mdimConfig
+            //     )
+            //     const view = mdimConfig.findViewByDimensions(dimensions)
+            //     if (!view) {
+            //         throw new Error(
+            //             `No view found for dimensions ${JSON.stringify(
+            //                 dimensions
+            //             )}`
+            //         )
+            //     }
+            //     configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${view.fullConfigId}.config.json`
+            // } else {
+            //     configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
+            // }
+            // const grapherPageConfig = await fetch(configUrl).then((res) =>
+            //     res.json()
+            // )
 
             const figureConfigAttr = figure.getAttribute(
                 GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR
