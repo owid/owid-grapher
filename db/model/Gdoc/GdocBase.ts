@@ -312,6 +312,17 @@ export class GdocBase implements OwidGdocBaseInterface {
         block: OwidEnrichedGdocBlock
     ): DbInsertPostGdocLink[] | void {
         const links: DbInsertPostGdocLink[] = match(block)
+            .with({ type: "person" }, (block) => {
+                if (!block.url) return []
+                return [
+                    createLinkFromUrl({
+                        url: block.url,
+                        source: this,
+                        componentType: block.type,
+                        text: block.name,
+                    }),
+                ]
+            })
             .with({ type: "prominent-link" }, (block) => [
                 createLinkFromUrl({
                     url: block.url,
@@ -559,7 +570,6 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "numbered-list",
                         "people",
                         "people-rows",
-                        "person",
                         "pull-quote",
                         "sdg-grid",
                         "sdg-toc",

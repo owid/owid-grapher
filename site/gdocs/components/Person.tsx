@@ -1,18 +1,31 @@
 import * as React from "react"
+import { useMediaQuery } from "usehooks-ts"
 
-import { EnrichedBlockPerson } from "@ourworldindata/types"
+import { getCanonicalUrl } from "@ourworldindata/components"
+import { EnrichedBlockPerson, OwidGdocType } from "@ourworldindata/types"
+import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
+import { useLinkedDocument } from "../utils.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import Image from "./Image.js"
-import { useMediaQuery } from "usehooks-ts"
-import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
 import { Socials } from "./Socials.js"
 
 export default function Person({ person }: { person: EnrichedBlockPerson }) {
+    const { linkedDocument } = useLinkedDocument(person.url ?? "")
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
+
+    const slug = linkedDocument?.slug
+    const url = slug
+        ? getCanonicalUrl("", {
+              slug,
+              content: { type: OwidGdocType.Author },
+          })
+        : undefined
+
+    const heading = <h3 className="person-heading">{person.name}</h3>
 
     const header = (
         <div className="person-header">
-            <h3 className="person-heading h2-bold">{person.name}</h3>
+            {url ? <a href={url}>{heading}</a> : heading}
             {person.title && (
                 <span className="person-title">{person.title}</span>
             )}

@@ -269,11 +269,21 @@ function* rawBlockPersonToArchieMLString(
     yield* propertyToArchieMLString("image", block.value)
     yield* propertyToArchieMLString("name", block.value)
     yield* propertyToArchieMLString("title", block.value)
+    yield* propertyToArchieMLString("url", block.value)
     yield "[.+text]"
     for (const b of block.value.text) {
         yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
     }
     yield "[]"
+    if (block.value.socials?.length) {
+        yield "[.socials]"
+        for (const b of block.value.socials) {
+            yield* propertyToArchieMLString("type", b)
+            yield* propertyToArchieMLString("url", b)
+            yield* propertyToArchieMLString("text", b)
+        }
+        yield "[]"
+    }
     yield "{}"
 }
 

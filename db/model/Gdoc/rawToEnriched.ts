@@ -843,6 +843,7 @@ const parsePerson = (raw: RawBlockPerson): EnrichedBlockPerson => {
         image: raw.value.image,
         name: raw.value.name,
         title: raw.value.title,
+        url: extractUrl(raw.value.url),
         text: raw.value.text.map(parseText),
         socials: raw.value.socials?.map(parseSocialLink),
         parseErrors: [],
@@ -1369,6 +1370,12 @@ function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
         text: [],
     })
 
+    if (raw.value.icon && raw.value.icon !== "info") {
+        return createError({
+            message: "Only the 'info' icon is supported for callouts",
+        })
+    }
+
     if (!raw.value.text) {
         return createError({ message: "No text provided for callout block" })
     }
@@ -1394,6 +1401,7 @@ function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
 
     return {
         type: "callout",
+        icon: raw.value.icon,
         parseErrors: [],
         text: excludeNullish(enrichedTextBlocks),
         title: raw.value.title,
