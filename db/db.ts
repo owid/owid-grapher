@@ -741,3 +741,40 @@ export function getCloudflareImage(
         [filename]
     )
 }
+
+/**
+ * Get the title, slug, and googleId of all gdocs that reference each image
+ */
+export function getImageUsage(trx: KnexReadonlyTransaction): Promise<
+    Record<
+        number,
+        {
+            title: string
+            id: string
+        }[]
+    >
+> {
+    return knexRaw<{
+        imageId: number
+        posts: string
+    }>(
+        trx,
+        `-- sql
+        SELECT 
+        i.id as imageId,
+        JSON_ARRAYAGG(
+            JSON_OBJECT(
+            'title', p.content->>'$.title',
+            'id', p.id
+            )
+        ) as posts  
+        FROM posts_gdocs p
+        JOIN posts_gdocs_x_images pi ON p.id = pi.gdocId 
+        JOIN images i ON pi.imageId = i.id
+        GROUP BY i.id`
+    ).then((results) =>
+        Object.fromEntries(
+            results.map((result) => [result.imageId, JSON.parse(result.posts)])
+        )
+    )
+}
