@@ -1,6 +1,7 @@
-import React, { useContext, useRef } from "react"
+import React, { useRef } from "react"
 import { useEmbedChart } from "../../hooks.js"
 import { EnrichedBlockNarrativeChart } from "@ourworldindata/types"
+import { useChartViewMetadata } from "../utils.js"
 import cx from "classnames"
 import { GRAPHER_PREVIEW_CLASS } from "../../SiteConstants.js"
 import { AttachmentsContext } from "../../gdocs/AttachmentsContext.js"
@@ -19,9 +20,7 @@ export default function NarrativeChart({
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(0, refChartContainer)
 
-    const attachments = useContext(AttachmentsContext)
-
-    const viewMetadata = attachments.chartViewMetadata?.[d.name]
+    const viewMetadata = useChartViewMetadata(d.name)
 
     if (!viewMetadata)
         return (
