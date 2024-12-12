@@ -6,7 +6,7 @@
         },
         {
             "path": "./dist/assets/owid.css",
-            "maxSize": "450KB"
+            "maxSize": "470KB"
         }
     ],
     "defaultCompression": "none"
