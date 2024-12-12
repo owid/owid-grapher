@@ -54,10 +54,6 @@
         @include h1-semibold;
         color: $blue-60;
         margin-top: 0;
-
-        &:has(+ .article-block__side-by-side) {
-            margin-bottom: 8px;
-        }
     }
 
     h3.article-block__heading {
@@ -97,16 +93,17 @@
         margin-bottom: 24px;
     }
 
-    .article-block__chart {
-        margin-bottom: 24px;
-    }
-
     .article-block__code-snippet {
         margin-bottom: 16px;
     }
 
+    .article-block__chart,
     .article-block__image {
         margin: 0 0 24px;
+    }
+
+    .article-block__people + .article-block__heading {
+        margin-top: 40px;
     }
 
     .article-block__prominent-link {
@@ -119,6 +116,12 @@
     .article-block__sticky-right {
         @include md-up {
             margin: 0;
+        }
+    }
+
+    .article-block__side-by-side {
+        :first-child {
+            margin-top: 0;
         }
     }
 

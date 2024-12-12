@@ -1,5 +1,11 @@
 .people {
     row-gap: 16px;
+
+    .article-block__text,
+    .article-block__list,
+    .article-block__numbered-list {
+        font-size: 16px;
+    }
 }
 
 .people-cols-2 {

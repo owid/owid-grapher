@@ -21,6 +21,10 @@
 }
 
 .person-image {
+    picture {
+        display: flex; // Fix extra padding at the bottom.
+    }
+
     img {
         border-radius: 50%;
     }
