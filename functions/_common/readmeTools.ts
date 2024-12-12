@@ -241,7 +241,7 @@ function* activeFilterSettings(searchParams: URLSearchParams) {
         yield `A filtered subset of the full data was downloaded. The following filters were applied:`
         for (const [key, val] of Object.entries(filterSettings)) {
             if (key === "country")
-                yield `${key}: ${val.replace("~", ", ")}` // country filter is separated with tilde
+                yield `${key}: ${val.replaceAll("~", ", ")}` // country filter is separated with tilde
             else yield `${key}: ${val}`
         }
         yield ""
