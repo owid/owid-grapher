@@ -1,5 +1,17 @@
 .people {
-    row-gap: 16px;
+    display: grid;
+    row-gap: 48px;
+    margin-bottom: 24px;
+
+    .article-block__text,
+    .article-block__list,
+    .article-block__numbered-list {
+        font-size: 16px;
+    }
+
+    @include sm-only {
+        row-gap: 40px;
+    }
 }
 
 .people-cols-2 {
@@ -15,6 +27,10 @@
 }
 
 .people-cols-4 {
+    .person-heading {
+        font-size: 18px;
+    }
+
     @include lg-up {
         .article-block__text {
             @include body-3-medium;

@@ -464,14 +464,11 @@ h3.article-block__heading {
     }
 }
 
-.image--has-outline + .article-block__image-caption {
-    margin-top: 8px;
-}
-
 .article-block__image-caption {
     @include body-3-medium-italic;
     color: $blue-60;
     text-align: center;
+    margin-top: 16px;
 }
 
 .article-block__chart + .article-block__heading {
@@ -1053,6 +1050,7 @@ div.raw-html-table__container {
 // A small grey block
 .article-block__callout {
     h4 {
+        display: inline;
         color: $blue-90;
         margin-bottom: 8px;
         margin-top: 8px;
@@ -1139,6 +1137,12 @@ div.raw-html-table__container {
     // Last consecutive sibling.
     &:has(+ :not(.article-block__prominent-link)) {
         margin-bottom: 32px;
+    }
+}
+
+@include sm-only {
+    .article-block__text + .article-block__prominent-link {
+        margin-top: 8px;
     }
 }
 

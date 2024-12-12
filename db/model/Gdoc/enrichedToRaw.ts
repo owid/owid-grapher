@@ -228,7 +228,13 @@ export function enrichedBlockToRawBlock(
                     image: b.image,
                     name: b.name,
                     title: b.title,
+                    url: b.url,
                     text: b.text.map(enrichedBlockToRawBlock) as RawBlockText[],
+                    socials: b.socials?.map((social) => ({
+                        type: social.type,
+                        url: social.url,
+                        text: social.text,
+                    })),
                 },
             })
         )

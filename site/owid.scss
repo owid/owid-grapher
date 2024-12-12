@@ -87,6 +87,7 @@
 @import "./Breadcrumb/Breadcrumb.scss";
 @import "./gdocs/components/centered-article.scss";
 @import "./gdocs/components/topic-page.scss";
+@import "./gdocs/components/Callout.scss";
 @import "./gdocs/components/DataInsightDateline.scss";
 @import "./gdocs/components/DataInsightsNewsletter.scss";
 @import "./gdocs/components/Donors.scss";
@@ -225,6 +226,13 @@ main {
     }
     &:focus {
         opacity: 1;
+    }
+
+    @include touch-device {
+        // It's not visible because of the opacity anyway, but if it's the
+        // only reason the whole heading wraps to the next line, it adds
+        // vertical space, which shouldn't be there.
+        display: none;
     }
 }
 
