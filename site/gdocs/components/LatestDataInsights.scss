@@ -107,6 +107,7 @@ html:not(.js-enabled) .latest-data-insights__card,
     flex-direction: column;
     height: 100%;
     min-height: 0;
+    overflow: hidden;
 }
 
 .latest-data-insights__card-body {
@@ -127,6 +128,7 @@ html:not(.js-enabled) .latest-data-insights__card,
         );
     }
 }
+
 .latest-data-insights__card-continue {
     @include body-3-medium;
 
