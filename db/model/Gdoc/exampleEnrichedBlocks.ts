@@ -125,8 +125,12 @@ export const enrichedBlockExamples: Record<
         type: "code",
         text: [
             {
-                type: "text",
-                value: '<iframe src="https://ourworldindata.org/grapher/children-per-woman-un?region=Africa&tab=map" loading="lazy" style="width: 100%; height: 600px; border: 0px none;" allow="web-share; clipboard-write"></iframe>',
+                type: "simple-text",
+                value: {
+                    spanType: "span-simple-text",
+                    text: '<iframe src="https://ourworldindata.org/grapher/children-per-woman-un?region=Africa&tab=map" loading="lazy" style="width: 100%; height: 600px; border: 0px none;" allow="web-share; clipboard-write"></iframe>',
+                },
+                parseErrors: [],
             },
         ],
         parseErrors: [],

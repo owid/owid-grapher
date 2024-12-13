@@ -127,7 +127,10 @@ export function enrichedBlockToRawBlock(
             { type: "code" },
             (b): RawBlockCode => ({
                 type: b.type,
-                value: b.text,
+                value: b.text.map((text) => ({
+                    type: "text",
+                    value: text.value.text,
+                })),
             })
         )
         .with(
