@@ -108,7 +108,7 @@ function convertSpansToPlainText(obj: any): any {
     return obj
 }
 
-function handleComponent<T extends OwidEnrichedGdocBlock, S extends keyof T>(
+function handleComponent<T extends OwidEnrichedGdocBlock>(
     component: T,
     childProperties: {
         prop: keyof T
@@ -354,6 +354,7 @@ export function enumerateGdocComponentsWithoutChildren(
                         "simple-text",
                         "donors",
                         "socials"
+                        // "narrative-chart" should go here once it's done
                     ),
                 },
                 (c) => handleComponent(c, [], parentPath, path)
