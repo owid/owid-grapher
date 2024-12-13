@@ -104,7 +104,6 @@
             // doesn't cover the full viewport height
             @include sm-up {
                 height: #{math.div(1, $ideal-ratio) * 100}vw;
-                min-height: $orientation-height;
                 max-height: calc(100vh - $header-height-sm - 110px);
             }
 
