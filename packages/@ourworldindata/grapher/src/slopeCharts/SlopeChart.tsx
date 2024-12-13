@@ -595,7 +595,7 @@ export class SlopeChart
                     new CategoricalBin({
                         index,
                         value: series.seriesName,
-                        label: series.displayName,
+                        label: series.seriesName,
                         color: series.color,
                     })
             )
@@ -1323,7 +1323,7 @@ function Slope({
     outlineWidth = 0.5,
     outlineStroke = "#fff",
 }: SlopeProps) {
-    const { displayName, startPoint, endPoint, hover, focus } = series
+    const { seriesName, startPoint, endPoint, hover, focus } = series
 
     const showOutline = !focus.background || hover.active
     const opacity =
@@ -1335,7 +1335,7 @@ function Slope({
 
     return (
         <g
-            id={makeIdForHumanConsumption("slope", displayName)}
+            id={makeIdForHumanConsumption("slope", seriesName)}
             className="slope"
         >
             {showOutline && (

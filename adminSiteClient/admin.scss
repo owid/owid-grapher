@@ -509,6 +509,30 @@ $nav-height: 45px;
     }
 }
 
+.ListItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    > div {
+        display: flex;
+        align-items: center;
+    }
+
+    i {
+        font-size: 1.2rem;
+        color: #666;
+    }
+
+    > div:first-child > * {
+        margin-right: 12px;
+    }
+
+    &.invalid {
+        background: #fce9e6;
+    }
+}
+
 .EditableListItem {
     @extend .draggable;
     display: flex;

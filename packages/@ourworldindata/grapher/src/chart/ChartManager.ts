@@ -67,6 +67,8 @@ export interface ChartManager {
     selection?: SelectionArray | EntityName[]
     entityType?: string
 
+    focusArray?: FocusArray
+
     hidePoints?: boolean // for line options
     startHandleTimeBound?: TimeBound // for relative-to-first-year line chart
     hideNoDataSection?: boolean // for slope charts
@@ -98,6 +100,4 @@ export interface ChartManager {
 
     detailsOrderedByReference?: string[]
     detailsMarkerInSvg?: DetailsMarker
-
-    focusArray?: FocusArray
 }

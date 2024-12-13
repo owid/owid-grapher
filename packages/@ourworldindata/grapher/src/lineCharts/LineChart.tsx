@@ -1351,7 +1351,7 @@ export class LineChart
             }
         )
 
-        // sort by interaction state so that hovered series
+        // sort by interaction state so that foreground series
         // are drawn on top of background series
         if (this.isHoverModeActive || this.isFocusModeActive) {
             return sortBy(series, byHoverThenFocusState)

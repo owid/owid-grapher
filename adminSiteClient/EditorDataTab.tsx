@@ -7,6 +7,7 @@ import {
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
+import cx from "classnames"
 import {
     EntitySelectionMode,
     MissingDataStrategy,
@@ -39,6 +40,7 @@ interface EntityListItemProps extends React.HTMLProps<HTMLDivElement> {
 
 interface SeriesListItemProps extends React.HTMLProps<HTMLDivElement> {
     seriesName: SeriesName
+    isValid?: boolean
     onRemove?: () => void
 }
 
@@ -108,16 +110,19 @@ class SeriesListItem extends React.Component<SeriesListItemProps> {
 
     render() {
         const { props } = this
-        const { seriesName } = props
-        const rest = omit(props, ["seriesName", "onRemove"])
+        const { seriesName, isValid } = props
+        const rest = omit(props, ["seriesName", "isValid", "onRemove"])
+
+        const className = cx("ListItem", "list-group-item", {
+            invalid: !isValid,
+        })
+        const annotation = !isValid ? "(not plotted)" : ""
 
         return (
-            <div
-                className="list-group-item EditableListItem"
-                key={seriesName}
-                {...rest}
-            >
-                <div>{seriesName}</div>
+            <div className={className} key={seriesName} {...rest}>
+                <div>
+                    {seriesName} {annotation}
+                </div>
                 <div className="clickable" onClick={this.onRemove}>
                     <FontAwesomeIcon icon={faTimes} />
                 </div>
@@ -299,6 +304,10 @@ export class FocusSection extends React.Component<{
             Array.from(availableSeriesNameSet)
         )
 
+        const invalidFocusedSeriesNames = new Set(
+            findInvalidFocusedSeriesNames(grapher)
+        )
+
         return (
             <Section name="Data to highlight">
                 <FieldsRow>
@@ -314,6 +323,7 @@ export class FocusSection extends React.Component<{
                     <SeriesListItem
                         key={seriesName}
                         seriesName={seriesName}
+                        isValid={!invalidFocusedSeriesNames.has(seriesName)}
                         onRemove={() =>
                             this.removeFromFocusedSeries(seriesName)
                         }

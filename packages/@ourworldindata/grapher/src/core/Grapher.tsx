@@ -505,6 +505,15 @@ export class Grapher
     isEmbeddedInAnOwidPage?: boolean = this.props.isEmbeddedInAnOwidPage
     isEmbeddedInADataPage?: boolean = this.props.isEmbeddedInADataPage
 
+    selection =
+        this.manager?.selection ??
+        new SelectionArray(
+            this.props.selectedEntityNames ?? [],
+            this.props.table?.availableEntities ?? []
+        )
+
+    focusArray = new FocusArray()
+
     /**
      * todo: factor this out and make more RAII.
      *
@@ -613,7 +622,7 @@ export class Grapher
         if (obj.selectedEntityNames)
             this.selection.setSelectedEntities(obj.selectedEntityNames)
 
-        // update focused series
+        // update focus
         if (obj.focusedSeriesNames)
             this.focusArray.clearAllAndAdd(...obj.focusedSeriesNames)
 
@@ -2550,15 +2559,6 @@ export class Grapher
     @action.bound private togglePlayingCommand(): void {
         void this.timelineController.togglePlay()
     }
-
-    selection =
-        this.manager?.selection ??
-        new SelectionArray(
-            this.props.selectedEntityNames ?? [],
-            this.props.table?.availableEntities ?? []
-        )
-
-    focusArray = new FocusArray()
 
     @computed get availableEntities(): Entity[] {
         return this.tableForSelection.availableEntities

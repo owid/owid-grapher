@@ -736,7 +736,7 @@ export class FacetChart
         const { focusArray } = this.manager
         if (!focusArray) return undefined
 
-        // find colour of all currently focused series
+        // find colours of all currently focused series
         const activeColors = uniq(
             this.intermediateChartInstances.flatMap((chartInstance) =>
                 chartInstance.series
