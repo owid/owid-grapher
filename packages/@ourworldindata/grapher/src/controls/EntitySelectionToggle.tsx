@@ -2,11 +2,7 @@ import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import {
-    faPencilAlt,
-    faEye,
-    faRightLeft,
-} from "@fortawesome/free-solid-svg-icons"
+import { faEye, faRightLeft, faPen } from "@fortawesome/free-solid-svg-icons"
 import classnames from "classnames"
 
 export interface EntitySelectionManager {
@@ -66,7 +62,7 @@ export class EntitySelectionToggle extends React.Component<{
                 ? {
                       action: "Edit",
                       entity: entityTypePlural,
-                      icon: <FontAwesomeIcon icon={faPencilAlt} />,
+                      icon: <FontAwesomeIcon icon={faPen} />,
                   }
                 : null
     }
