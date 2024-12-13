@@ -112,6 +112,7 @@ import {
     DbPlainChartView,
     ChartViewsTableName,
     DbInsertChartView,
+    PostsGdocsComponentsTableName,
     CHART_VIEW_PROPS_TO_PERSIST,
     CHART_VIEW_PROPS_TO_OMIT,
     DbEnrichedImage,
@@ -3081,6 +3082,10 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     await trx.table(PostsGdocsLinksTableName).where({ sourceId: id }).delete()
     await trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
     await trx.table(PostsGdocsTableName).where({ id }).delete()
+    await trx
+        .table(PostsGdocsComponentsTableName)
+        .where({ gdocId: id })
+        .delete()
     if (gdoc.published && checkIsGdocPostExcludingFragments(gdoc)) {
         await removeIndividualGdocPostFromIndex(gdoc)
     }

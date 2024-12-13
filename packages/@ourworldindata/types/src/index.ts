@@ -600,6 +600,16 @@ export {
     snapshotIsBlockGraphQlApi,
 } from "./dbTypes/Posts.js"
 export {
+    type DbRawPostGdocComponent,
+    type DbEnrichedPostGdocComponent,
+    type DbInsertPostGdocComponent,
+    parsePostGdocComponentConfig,
+    parsePostsGdocsComponentRow,
+    serializePostGdocComponentConfig,
+    serializePostsGdocsComponentRow,
+    PostsGdocsComponentsTableName,
+} from "./dbTypes/PostsGdocsComponents.js"
+export {
     type DbInsertPostGdoc,
     type DbRawPostGdoc,
     type DBRawPostGdocWithTags,
