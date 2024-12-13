@@ -201,7 +201,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                 className="article-block__heading span-cols-12 h1-semibold"
                 id={slug}
             >
-                {heading || RESEARCH_AND_WRITING_DEFAULT_HEADING}
+                <span>{heading || RESEARCH_AND_WRITING_DEFAULT_HEADING}</span>
                 <a
                     className="deep-link"
                     aria-labelledby={slug}
