@@ -85,7 +85,10 @@ html:not(.js-enabled) .latest-data-insights__card,
 
 .latest-data-insights__card-left {
     display: flex;
-    height: 100%;
+
+    picture {
+        display: flex; // Fix extra padding at the bottom.
+    }
 
     img {
         height: 100%;
@@ -93,6 +96,7 @@ html:not(.js-enabled) .latest-data-insights__card,
         max-width: initial;
 
         @include md-down {
+            height: auto;
             max-width: 100%;
         }
     }
