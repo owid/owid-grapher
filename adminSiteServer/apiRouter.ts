@@ -728,7 +728,7 @@ getRouteWithROTransaction(apiRouter, "/charts.json", async (req, res, trx) => {
             SELECT ${oldChartFieldList} FROM charts
             JOIN chart_configs ON chart_configs.id = charts.configId
             JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-            LEFT JOIN analytics_pageviews on analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug)
+            LEFT JOIN analytics_pageviews on (analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug)  AND chart_configs.full ->> '$.isPublished' = "true" )
             LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
             ORDER BY charts.lastEditedAt DESC LIMIT ?
         `,
