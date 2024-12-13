@@ -40,7 +40,7 @@ div.indicator-processing {
         display: flex;
         flex-direction: column;
         background-color: var(--background);
-        margin: 32px -24px 0;
+        margin: 32px calc(-1 * var(--grid-gap)) 0;
         padding: 24px;
 
         .indicator-processing-callout__title {
