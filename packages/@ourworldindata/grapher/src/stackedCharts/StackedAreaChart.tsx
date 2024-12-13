@@ -301,7 +301,10 @@ export class StackedAreaChart extends AbstractStackedChart {
     private hoverStateForSeries(
         series: StackedSeries<number>
     ): InteractionState {
-        return getInteractionStateForSeries(series, this.hoveredSeriesNames)
+        return getInteractionStateForSeries(series, {
+            isInteractionModeActive: this.isHoverModeActive,
+            activeSeriesNames: this.hoveredSeriesNames,
+        })
     }
 
     @computed get lineLegendSeries(): LineLabelSeries[] {
@@ -435,6 +438,16 @@ export class StackedAreaChart extends AbstractStackedChart {
             this.lineLegendHoveredSeriesName ??
             // if the facet legend is hovered
             this.facetLegendHoveredSeriesName
+        )
+    }
+
+    @computed get isHoverModeActive(): boolean {
+        return (
+            !!this.hoveredSeriesName ||
+            // if the external legend is hovered, we want to mute
+            // all non-hovered series even if the chart doesn't plot
+            // the currently hovered series
+            !!this.manager.externalLegendHoverBin
         )
     }
 
