@@ -184,7 +184,7 @@ class Lines extends React.Component<LinesProps> {
         const strokeDasharray = series.isProjection ? "2,3" : undefined
         const strokeWidth =
             hover.background || focus.background
-                ? this.strokeWidth - 0.33 * this.strokeWidth
+                ? 0.66 * this.strokeWidth
                 : this.strokeWidth
         const strokeOpacity =
             hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
@@ -562,14 +562,14 @@ export class LineChart
                     )
                     if (!value || series.hover.background) return null
 
-                    const seriesColor = this.hasColorScale
+                    const valueColor = this.hasColorScale
                         ? darkenColorForLine(
                               this.getColorScaleColor(value.colorValue)
                           )
                         : series.color
                     const color =
                         !series.focus.background || series.hover.active
-                            ? seriesColor
+                            ? valueColor
                             : GRAY_50
 
                     return (

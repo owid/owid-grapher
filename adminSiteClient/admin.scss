@@ -519,15 +519,6 @@ $nav-height: 45px;
         align-items: center;
     }
 
-    i {
-        font-size: 1.2rem;
-        color: #666;
-    }
-
-    > div:first-child > * {
-        margin-right: 12px;
-    }
-
     &.invalid {
         background: #fce9e6;
     }

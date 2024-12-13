@@ -743,11 +743,13 @@ export class LineLegend extends React.Component<LineLegendProps> {
             }
 
             // we initially need to pick at least two candidates.
-            // if we already picked two from the set of focused series,
-            // we're done. if we picked one, then we pick a another one
-            // that is as far away from the first one as possible.
-            // if we haven't picked any focused series, we pick two from
-            // the non-focused series, one from the top and one from the bottom.
+            // - if we already picked two from the set of focused series,
+            //   we're done
+            // - if we picked only one focused series, then we pick another
+            //   one from the set of non-focused series. we pick the one that
+            //   is furthest away from the focused one
+            // - if we haven't picked any focused series, we pick two from
+            //   the non-focused series, one from the top and one from the bottom
             if (sortedKeepSeries.length === 0) {
                 // sort the remaining candidates by their position
                 const sortedCandidates = sortBy(
@@ -777,11 +779,12 @@ export class LineLegend extends React.Component<LineLegendProps> {
                     const cIndex = nonFocusedCandidates.indexOf(candidate)
                     if (cIndex > -1) nonFocusedCandidates.splice(cIndex, 1)
 
-                    // we only need one more candidate
+                    // we only need one more candidate, so if we find one, we're done
                     const picked = maybePickCandidate(candidate)
                     if (picked) break
 
-                    // if the candidate wasn't picked, remove it from the candidates and continue
+                    // if the candidate wasn't picked, remove it from the
+                    // candidates and continue
                     candidates.delete(candidate)
                 }
             }

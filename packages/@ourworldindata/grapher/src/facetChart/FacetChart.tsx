@@ -740,7 +740,7 @@ export class FacetChart
         const activeColors = uniq(
             this.intermediateChartInstances.flatMap((chartInstance) =>
                 chartInstance.series
-                    .filter((series) => focusArray?.has(series.seriesName))
+                    .filter((series) => focusArray.has(series.seriesName))
                     .map((series) => series.color)
             )
         )
@@ -799,6 +799,7 @@ export class FacetChart
     }
 
     @action.bound onLegendClick(bin: ColorScaleBin): void {
+        if (!this.manager.focusArray) return
         // find all series (of all facets) that are contained in the bin
         const seriesNames = uniq(
             this.intermediateChartInstances.flatMap((chartInstance) =>
@@ -807,7 +808,7 @@ export class FacetChart
                     .map((series) => series.seriesName)
             )
         )
-        this.manager.focusArray?.toggle(...seriesNames)
+        this.manager.focusArray.toggle(...seriesNames)
     }
 
     // end of legend props

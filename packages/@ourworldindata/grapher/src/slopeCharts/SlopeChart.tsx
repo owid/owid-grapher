@@ -229,6 +229,10 @@ export class SlopeChart
         return makeSelectionArray(this.manager.selection)
     }
 
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
+    }
+
     @computed private get formatColumn(): CoreColumn {
         return this.yColumns[0]
     }
@@ -472,10 +476,6 @@ export class SlopeChart
         return this.focusArray.state(series.seriesName)
     }
 
-    @computed get focusArray(): FocusArray {
-        return this.manager.focusArray ?? new FocusArray()
-    }
-
     @computed private get renderSeries(): RenderSlopeChartSeries[] {
         const series: RenderSlopeChartSeries[] = this.placedSeries.map(
             (series) => {
@@ -487,6 +487,8 @@ export class SlopeChart
             }
         )
 
+        // sort by interaction state so that foreground series
+        // are drawn on top of background series
         if (this.isHoverModeActive || this.isFocusModeActive) {
             return sortBy(series, byHoverThenFocusState)
         }
@@ -1333,9 +1335,7 @@ function Slope({
             ? series.color
             : NON_FOCUSED_LINE_COLOR
     const lineWidth =
-        hover.background || focus.background
-            ? strokeWidth - 0.33 * strokeWidth
-            : strokeWidth
+        hover.background || focus.background ? 0.66 * strokeWidth : strokeWidth
 
     return (
         <g
