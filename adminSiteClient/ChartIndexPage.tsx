@@ -12,6 +12,7 @@ import {
     highlightFunctionForSearchWords,
     SearchWord,
 } from "../adminShared/search.js"
+import { sortNumeric, SortOrder } from "@ourworldindata/utils"
 
 @observer
 export class ChartIndexPage extends React.Component {
@@ -56,13 +57,11 @@ export class ChartIndexPage extends React.Component {
 
         // Apply sorting if needed
         if (sortConfig?.field === "pageviewsPerDay") {
-            return [...filtered].sort((a, b) => {
-                const aValue = a.pageviewsPerDay || 0
-                const bValue = b.pageviewsPerDay || 0
-                return sortConfig.direction === "desc"
-                    ? bValue - aValue
-                    : aValue - bValue
-            })
+            return sortNumeric(
+                [...filtered],
+                (chart) => chart.pageviewsPerDay,
+                sortConfig.direction === "asc" ? SortOrder.asc : SortOrder.desc
+            )
         }
 
         return filtered

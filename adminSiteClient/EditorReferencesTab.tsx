@@ -13,6 +13,7 @@ import {
     formatValue,
     ChartRedirect,
     partition,
+    round,
 } from "@ourworldindata/utils"
 import { AbstractChartEditor, References } from "./AbstractChartEditor.js"
 import {
@@ -214,9 +215,7 @@ export class EditorReferencesTabForChart extends React.Component<{
                             </strong>{" "}
                             {this.renderPageview(
                                 this.pageviews?.views_365d
-                                    ? Math.round(
-                                          this.pageviews?.views_365d / 36.5
-                                      ) / 10
+                                    ? round(this.pageviews?.views_365d / 365, 1)
                                     : undefined
                             )}
                         </div>
