@@ -248,7 +248,7 @@ export default function ArticleBlock({
         .with({ type: "code" }, (block) => (
             <CodeSnippet
                 className={getLayout("code-snippet", containerType)}
-                code={block.text.map((text) => text.value).join("\n")}
+                code={block.text.map((text) => text.value.text).join("\n")}
             />
         ))
         .with({ type: "donors" }, (_block) => (

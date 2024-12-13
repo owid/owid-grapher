@@ -93,7 +93,7 @@ export type RawBlockCode = {
 
 export type EnrichedBlockCode = {
     type: "code"
-    text: RawBlockText[]
+    text: EnrichedBlockSimpleText[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockDonorList = {
@@ -366,6 +366,7 @@ export type EnrichedBlockSimpleText = {
     type: "simple-text"
     value: SpanSimpleText
 } & EnrichedBlockWithParseErrors
+
 export type RawBlockHtml = {
     type: "html"
     value: string
