@@ -227,6 +227,7 @@ import {
     GRAPHER_DARK_TEXT,
     GRAPHER_LIGHT_TEXT,
 } from "../color/ColorConstants"
+import { FacetChart } from "../facetChart/FacetChart"
 
 declare global {
     interface Window {
@@ -884,6 +885,17 @@ export class Grapher
     }
 
     @computed get chartSeriesNames(): SeriesName[] {
+        // collect series names from all chart instances when faceted
+        if (this.isFaceted) {
+            const facetChartInstance = new FacetChart({ manager: this })
+            return uniq(
+                facetChartInstance.intermediateChartInstances.flatMap(
+                    (chartInstance) =>
+                        chartInstance.series.map((series) => series.seriesName)
+                )
+            )
+        }
+
         return this.chartInstance.series.map((series) => series.seriesName)
     }
 
@@ -2803,6 +2815,11 @@ export class Grapher
 
     set facetStrategy(facet: FacetStrategy) {
         this.selectedFacetStrategy = facet
+    }
+
+    @computed get isFaceted(): boolean {
+        const hasFacetStrategy = this.facetStrategy !== FacetStrategy.none
+        return !this.isOnMapTab && hasFacetStrategy
     }
 
     @action.bound randomSelection(num: number): void {

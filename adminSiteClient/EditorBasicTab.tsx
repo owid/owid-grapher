@@ -14,14 +14,12 @@ import {
     ALL_GRAPHER_CHART_TYPES,
     GrapherChartType,
     GRAPHER_CHART_TYPES,
-    SeriesName,
 } from "@ourworldindata/types"
 import {
     DimensionSlot,
     WorldEntityName,
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
-    Grapher,
 } from "@ourworldindata/grapher"
 import {
     DimensionProperty,
@@ -31,7 +29,6 @@ import {
     sampleSize,
     startCase,
     OwidChartDimensionInterface,
-    differenceOfSets,
 } from "@ourworldindata/utils"
 import { FieldsRow, Section, SelectField, Toggle } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
@@ -63,6 +60,10 @@ class DimensionSlotView<
     disposers: IReactionDisposer[] = []
 
     @observable.ref isSelectingVariables: boolean = false
+
+    private get editor() {
+        return this.props.editor
+    }
 
     private get grapher() {
         return this.props.editor.grapher
@@ -145,20 +146,6 @@ class DimensionSlotView<
         }
     }
 
-    @action.bound private validateFocusedSeriesNames(): void {
-        const { grapher } = this.props.editor
-
-        // focus state is only supported for line and slope charts
-        if (!grapher.hasLineChart && !grapher.hasSlopeChart) {
-            grapher.focusArray.clear()
-            return
-        }
-
-        // sync focused series names by removing invalid ones
-        const invalidFocusedSeriesNames = findInvalidFocusedSeriesNames(grapher)
-        grapher.focusArray.remove(...invalidFocusedSeriesNames)
-    }
-
     componentDidMount() {
         // We want to add the reaction only after the grapher is loaded,
         // so we don't update the initial chart (as configured) by accident.
@@ -170,14 +157,14 @@ class DimensionSlotView<
                         () => this.grapher.validChartTypes,
                         () => {
                             this.updateDefaultSelection()
-                            this.validateFocusedSeriesNames()
+                            this.editor.removeInvalidFocusedSeriesNames()
                         }
                     ),
                     reaction(
                         () => this.grapher.yColumnsFromDimensions.length,
                         () => {
                             this.updateDefaultSelection()
-                            this.validateFocusedSeriesNames()
+                            this.editor.removeInvalidFocusedSeriesNames()
                         }
                     )
                 )
@@ -529,14 +516,5 @@ function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
         <Section name="Indicator chart">
             <p>This is the Grapher config for indicator {variableLink}.</p>
         </Section>
-    )
-}
-
-export function findInvalidFocusedSeriesNames(grapher: Grapher): SeriesName[] {
-    const availableSeriesNames = new Set(grapher.chartSeriesNames)
-    const focusedSeriesNames = grapher.focusArray.seriesNameSet
-
-    return Array.from(
-        differenceOfSets([focusedSeriesNames, availableSeriesNames])
     )
 }
