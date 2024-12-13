@@ -517,12 +517,15 @@ export class StackedAreaChart extends AbstractStackedChart {
         const hoveredPointIndex = this.tooltipState.target?.index
         if (hoveredPointIndex === undefined) return undefined
 
+        const xPoint = series[0].points[hoveredPointIndex]
+        if (xPoint === undefined) return undefined
+
         return (
             // disable pointer events to avoid interfering with enter/leave tracking of areas
             <g className="hoverIndicator" style={{ pointerEvents: "none" }}>
                 {series.map((series) => {
                     const point = series.points[hoveredPointIndex]
-                    if (point.fake || point.value === 0) return null
+                    if (!point || point.fake || point.value === 0) return null
                     return (
                         <circle
                             key={series.seriesName}
@@ -536,13 +539,9 @@ export class StackedAreaChart extends AbstractStackedChart {
                     )
                 })}
                 <line
-                    x1={horizontalAxis.place(
-                        series[0].points[hoveredPointIndex].position
-                    )}
+                    x1={horizontalAxis.place(xPoint.position)}
                     y1={verticalAxis.range[0]}
-                    x2={horizontalAxis.place(
-                        series[0].points[hoveredPointIndex].position
-                    )}
+                    x2={horizontalAxis.place(xPoint.position)}
                     y2={verticalAxis.range[1]}
                     stroke="rgba(180,180,180,.4)"
                 />
@@ -566,12 +565,14 @@ export class StackedAreaChart extends AbstractStackedChart {
         const { series } = this
         const hoveredPointIndex = target.index
         const bottomSeriesPoint = series[0].points[hoveredPointIndex]
+        if (!bottomSeriesPoint) return undefined
 
         const formatColumn = this.yColumns[0], // Assumes same type for all columns.
             formattedTime = formatColumn.formatTime(bottomSeriesPoint.position),
             { unit, shortUnit } = formatColumn
 
         const lastStackedPoint = last(series)!.points[hoveredPointIndex]
+        if (!lastStackedPoint) return undefined
         const totalValue = lastStackedPoint.value + lastStackedPoint.valueOffset
 
         const roundingNotice = formatColumn.roundsToSignificantFigures
