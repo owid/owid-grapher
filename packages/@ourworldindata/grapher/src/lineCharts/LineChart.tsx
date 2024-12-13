@@ -182,7 +182,10 @@ class Lines extends React.Component<LinesProps> {
                 : NON_FOCUSED_LINE_COLOR
 
         const strokeDasharray = series.isProjection ? "2,3" : undefined
-        const strokeWidth = hover.background ? 1 : this.strokeWidth
+        const strokeWidth =
+            hover.background || focus.background
+                ? this.strokeWidth - 0.33 * this.strokeWidth
+                : this.strokeWidth
         const strokeOpacity =
             hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
 
@@ -196,7 +199,7 @@ class Lines extends React.Component<LinesProps> {
                 id={makeIdForHumanConsumption("outline", series.seriesName)}
                 placedPoints={series.placedPoints}
                 stroke={outlineColor}
-                strokeWidth={outlineWidth}
+                strokeWidth={outlineWidth.toFixed(1)}
             />
         )
 
@@ -206,7 +209,7 @@ class Lines extends React.Component<LinesProps> {
                     id={makeIdForHumanConsumption("line", series.seriesName)}
                     points={series.placedPoints}
                     strokeLinejoin="round"
-                    strokeWidth={strokeWidth}
+                    strokeWidth={strokeWidth.toFixed(1)}
                     strokeDasharray={strokeDasharray}
                     strokeOpacity={strokeOpacity}
                 />
@@ -215,7 +218,7 @@ class Lines extends React.Component<LinesProps> {
                     id={makeIdForHumanConsumption("line", series.seriesName)}
                     placedPoints={series.placedPoints}
                     stroke={color}
-                    strokeWidth={strokeWidth}
+                    strokeWidth={strokeWidth.toFixed(1)}
                     strokeOpacity={strokeOpacity}
                     strokeDasharray={strokeDasharray}
                 />

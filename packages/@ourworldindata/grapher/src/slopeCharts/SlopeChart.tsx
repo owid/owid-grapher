@@ -1332,6 +1332,10 @@ function Slope({
         !focus.background || hover.active
             ? series.color
             : NON_FOCUSED_LINE_COLOR
+    const lineWidth =
+        hover.background || focus.background
+            ? strokeWidth - 0.33 * strokeWidth
+            : strokeWidth
 
     return (
         <g
@@ -1344,7 +1348,7 @@ function Slope({
                     endPoint={endPoint}
                     radius={dotRadius}
                     color={outlineStroke}
-                    lineWidth={strokeWidth + 2 * outlineWidth}
+                    lineWidth={lineWidth + 2 * outlineWidth}
                 />
             )}
             <LineWithDots
@@ -1352,7 +1356,7 @@ function Slope({
                 endPoint={endPoint}
                 radius={dotRadius}
                 color={color}
-                lineWidth={strokeWidth}
+                lineWidth={lineWidth}
                 opacity={opacity}
             />
         </g>
@@ -1392,7 +1396,7 @@ function LineWithDots({
             d={`${startDotPath} ${endDotPath} ${linePath}`}
             fill={color}
             stroke={color}
-            strokeWidth={lineWidth}
+            strokeWidth={lineWidth.toFixed(1)}
             opacity={opacity}
         />
     )
