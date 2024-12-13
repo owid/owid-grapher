@@ -38,13 +38,13 @@ The Grapher project is built with [Lerna](https://github.com/lerna/lerna/) and [
 
 A Grapher-based tool that creates more complex [data visualization user interfaces](https://ourworldindata.org/explorers/migration).
 
-Each explorer can be configured via a [panel](explorerAdminServer/) in the admin client. Their config files are stored in [a separate repository](https://github.com/owid/owid-content/tree/master/explorers).
+Each explorer can be configured via a [panel](explorerAdminServer/) in the admin client. Their config files are stored in [a separate repository](https://github.com/owid/owid-content/tree/master/explorers) but will probably be moved to the DB soon.
 
 ### Grapher Admin
 
--   A [client-side](adminSiteClient/) project that provides a user interface for configuring graphers, explorers, and managing and uploading data.
+- A [client-side](adminSiteClient/) project that provides a user interface for configuring graphers, explorers, and managing and uploading data.
 
--   A [server-side](adminSiteServer/) project that manages the MySQL database used by graphers.
+- A [server-side](adminSiteServer/) project that manages the MySQL database used by graphers.
 
 ### [Baker](baker/)
 
@@ -76,10 +76,10 @@ The following is an excerpt explaining the origin of this repo and what the alte
 >
 > Using our own system has very important advantages:
 >
-> -   **Integration with our global development database**: Our database of global development metrics is integrated into our visualization tool so that when we add and update empirical data the visualizations are all updated. (In contrast to this, a pre-existing tool would make the exploration of a database impossible and would require the preparation of each dataset separately for each visualisation.)
-> -   **Flexibility**: We can use automation to change our entire system all at once. For example, if we decide we want to use a different source referencing style, we could easily update this across hundreds of charts. This makes it possible to scale our publication and to sustainably improve our work without starting from scratch at each round.
-> -   **Risk mitigation**: We hope(!) that Our World in Data is a long-term project and we want the visualizations we produce to continue to be useful and available years from now. An external web service may be shut down or change for reasons we cannot control. We have had this experience in the past and learned our lesson from it.
-> -   **Keeping everything up-to-date**: Because we want to be a useful resource for some time we make sure that we have a technology in place that allows us to keep all of our work up-to-date without starting from scratch each time. We have our global development database directly integrated in the Grapher and as soon as new data becomes available (for example from a UN agency) we can run a script that pulls in that data and updates all the visualizations that present that data.
+> - **Integration with our global development database**: Our database of global development metrics is integrated into our visualization tool so that when we add and update empirical data the visualizations are all updated. (In contrast to this, a pre-existing tool would make the exploration of a database impossible and would require the preparation of each dataset separately for each visualisation.)
+> - **Flexibility**: We can use automation to change our entire system all at once. For example, if we decide we want to use a different source referencing style, we could easily update this across hundreds of charts. This makes it possible to scale our publication and to sustainably improve our work without starting from scratch at each round.
+> - **Risk mitigation**: We hope(!) that Our World in Data is a long-term project and we want the visualizations we produce to continue to be useful and available years from now. An external web service may be shut down or change for reasons we cannot control. We have had this experience in the past and learned our lesson from it.
+> - **Keeping everything up-to-date**: Because we want to be a useful resource for some time we make sure that we have a technology in place that allows us to keep all of our work up-to-date without starting from scratch each time. We have our global development database directly integrated in the Grapher and as soon as new data becomes available (for example from a UN agency) we can run a script that pulls in that data and updates all the visualizations that present that data.
 
 ---
 
