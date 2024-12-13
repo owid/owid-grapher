@@ -12,7 +12,7 @@ import {
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
-import { OwidNoDataGray } from "./ColorConstants"
+import { OWID_NO_DATA_GRAY } from "./ColorConstants"
 import { getBinMaximums } from "./BinningStrategies"
 import {
     ColorScaleConfigInterface,
@@ -101,7 +101,7 @@ export class ColorScale {
     }
 
     @computed private get defaultNoDataColor(): Color {
-        return this.manager.defaultNoDataColor ?? OwidNoDataGray
+        return this.manager.defaultNoDataColor ?? OWID_NO_DATA_GRAY
     }
 
     @computed get colorScaleColumn(): CoreColumn | undefined {

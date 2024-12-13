@@ -25,14 +25,11 @@ import {
     SeriesName,
     VerticalAlign,
 } from "@ourworldindata/types"
-import {
-    BASE_FONT_SIZE,
-    GRAPHER_BACKGROUND_DEFAULT,
-    GRAPHER_FONT_SCALE_12,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
+import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 4

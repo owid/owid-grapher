@@ -69,7 +69,7 @@ import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,
 } from "../color/ColorScaleConfig"
-import { OwidNoDataGray } from "../color/ColorConstants"
+import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { color } from "d3-color"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
@@ -267,7 +267,7 @@ export class MarimekkoChart
     base: React.RefObject<SVGGElement> = React.createRef()
 
     defaultBaseColorScheme = ColorSchemeName.continents
-    defaultNoDataColor = OwidNoDataGray
+    defaultNoDataColor = OWID_NO_DATA_GRAY
     labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
 
     // currently hovered legend color
