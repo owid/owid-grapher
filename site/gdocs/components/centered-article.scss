@@ -288,46 +288,22 @@ $banner-height: 200px;
     }
 }
 
-.article-block__heading {
-    a.deep-link {
-        position: absolute;
-    }
-
-    &:hover {
-        a.deep-link {
-            opacity: 1;
-        }
-    }
-}
-
 h1.article-block__heading {
     a.deep-link {
-        margin-top: 16px;
         height: 16px;
         width: 16px;
-        @include sm-only {
-            margin-top: 10px;
-        }
     }
 }
 h2.article-block__heading {
     a.deep-link {
-        margin-top: 11px;
         height: 14px;
         width: 14px;
-        @include sm-only {
-            margin-top: 10px;
-        }
     }
 }
 h3.article-block__heading {
     a.deep-link {
-        margin-top: 8px;
         height: 12px;
         width: 12px;
-        @include sm-only {
-            margin-top: 10px;
-        }
     }
 }
 
