@@ -500,8 +500,12 @@ const parseCode = (raw: RawBlockCode): EnrichedBlockCode => {
     return {
         type: "code",
         text: raw.value.map((text) => ({
-            type: "text",
-            value: toAsciiQuotes(text.value),
+            type: "simple-text",
+            value: {
+                spanType: "span-simple-text",
+                text: toAsciiQuotes(text.value),
+            },
+            parseErrors: [],
         })),
         parseErrors: [],
     }
