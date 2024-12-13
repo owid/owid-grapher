@@ -156,4 +156,11 @@ export class EditorFeatures {
             )
         )
     }
+
+    @computed get canHighlightSeries() {
+        return (
+            (this.grapher.hasLineChart || this.grapher.hasSlopeChart) &&
+            this.grapher.isOnChartTab
+        )
+    }
 }

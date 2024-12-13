@@ -265,6 +265,14 @@ export class ChartEditorView<
             }
         )
 
+        // add an error message if any focused series names are invalid
+        const { invalidFocusedSeriesNames = [] } = this.editor ?? {}
+        if (invalidFocusedSeriesNames.length > 0) {
+            const invalidNames = invalidFocusedSeriesNames.join(", ")
+            const message = `Invalid focus state. The following entities/indicators are not plotted: ${invalidNames}`
+            errorMessages.focusedSeriesNames = message
+        }
+
         return errorMessages
     }
 
@@ -287,9 +295,8 @@ export class ChartEditorView<
 
                 // add error message if details are referenced in the display name
                 if (hasDetailsInDisplayName) {
-                    errorMessages[slot.property][dimensionIndex] = {
-                        displayName: "Detail syntax is not supported",
-                    }
+                    errorMessages[slot.property][dimensionIndex] =
+                        `Detail syntax is not supported for display names of indicators: ${dimension.display.name}`
                 }
             })
         })

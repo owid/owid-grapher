@@ -6,13 +6,8 @@ export type FieldWithDetailReferences =
     | "axisLabelX"
     | "axisLabelY"
 
-export interface DimensionErrorMessage {
-    displayName?: string
-}
+type ErrorMessageFieldName = FieldWithDetailReferences | "focusedSeriesNames"
 
-export type ErrorMessages = Partial<Record<FieldWithDetailReferences, string>>
+export type ErrorMessages = Partial<Record<ErrorMessageFieldName, string>>
 
-export type ErrorMessagesForDimensions = Record<
-    DimensionProperty,
-    DimensionErrorMessage[]
->
+export type ErrorMessagesForDimensions = Record<DimensionProperty, string[]>

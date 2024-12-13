@@ -2,7 +2,7 @@ import React from "react"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { isEmpty, omit } from "@ourworldindata/utils"
+import { excludeUndefined, omit } from "@ourworldindata/utils"
 import {
     IndicatorChartEditor,
     isIndicatorChartEditorInstance,
@@ -73,22 +73,20 @@ class SaveButtonsForChart extends React.Component<{
         else this.props.editor.publishGrapher()
     }
 
-    @computed get hasEditingErrors(): boolean {
+    @computed get editingErrors(): string[] {
         const { errorMessages, errorMessagesForDimensions } = this.props
-
-        if (!isEmpty(errorMessages)) return true
-
-        const allErrorMessagesForDimensions = Object.values(
-            errorMessagesForDimensions
-        ).flat()
-        return allErrorMessagesForDimensions.some((error) => error)
+        return excludeUndefined([
+            ...Object.values(errorMessages),
+            ...Object.values(errorMessagesForDimensions).flat(),
+        ])
     }
 
     render() {
-        const { hasEditingErrors } = this
+        const { editingErrors } = this
         const { editor } = this.props
         const { grapher } = editor
 
+        const hasEditingErrors = editingErrors.length > 0
         const isSavingDisabled = grapher.hasFatalErrors || hasEditingErrors
 
         return (
@@ -125,11 +123,17 @@ class SaveButtonsForChart extends React.Component<{
                         <button
                             className="btn btn-primary"
                             onClick={this.onSaveAsNarrativeView}
+                            disabled={isSavingDisabled}
                         >
                             Save as narrative view
                         </button>
                     </div>
                 )}
+                {editingErrors.map((error, i) => (
+                    <div key={i} className="alert alert-danger mt-2">
+                        {error}
+                    </div>
+                ))}
             </div>
         )
     }
@@ -145,23 +149,21 @@ class SaveButtonsForIndicatorChart extends React.Component<{
         void this.props.editor.saveGrapher()
     }
 
-    @computed get hasEditingErrors(): boolean {
+    @computed get editingErrors(): string[] {
         const { errorMessages, errorMessagesForDimensions } = this.props
-
-        if (!isEmpty(errorMessages)) return true
-
-        const allErrorMessagesForDimensions = Object.values(
-            errorMessagesForDimensions
-        ).flat()
-        return allErrorMessagesForDimensions.some((error) => error)
+        return excludeUndefined([
+            ...Object.values(errorMessages),
+            ...Object.values(errorMessagesForDimensions).flat(),
+        ])
     }
 
     render() {
-        const { hasEditingErrors } = this
+        const { editingErrors } = this
         const { editor } = this.props
         const { grapher } = editor
 
         const isTrivial = editor.isNewGrapher && !editor.isModified
+        const hasEditingErrors = editingErrors.length > 0
         const isSavingDisabled =
             grapher.hasFatalErrors || hasEditingErrors || isTrivial
 
@@ -176,6 +178,11 @@ class SaveButtonsForIndicatorChart extends React.Component<{
                         ? "Create indicator chart"
                         : "Update indicator chart"}
                 </button>
+                {editingErrors.map((error, i) => (
+                    <div key={i} className="alert alert-danger mt-2">
+                        {error}
+                    </div>
+                ))}
             </div>
         )
     }
@@ -191,22 +198,20 @@ class SaveButtonsForChartView extends React.Component<{
         void this.props.editor.saveGrapher()
     }
 
-    @computed get hasEditingErrors(): boolean {
+    @computed get editingErrors(): string[] {
         const { errorMessages, errorMessagesForDimensions } = this.props
-
-        if (!isEmpty(errorMessages)) return true
-
-        const allErrorMessagesForDimensions = Object.values(
-            errorMessagesForDimensions
-        ).flat()
-        return allErrorMessagesForDimensions.some((error) => error)
+        return excludeUndefined([
+            ...Object.values(errorMessages),
+            ...Object.values(errorMessagesForDimensions).flat(),
+        ])
     }
 
     render() {
-        const { hasEditingErrors } = this
+        const { editingErrors } = this
         const { editor } = this.props
         const { grapher } = editor
 
+        const hasEditingErrors = editingErrors.length > 0
         const isSavingDisabled = grapher.hasFatalErrors || hasEditingErrors
 
         return (
@@ -226,6 +231,11 @@ class SaveButtonsForChartView extends React.Component<{
                 >
                     Go to parent chart
                 </a>
+                {editingErrors.map((error, i) => (
+                    <div key={i} className="alert alert-danger mt-2">
+                        {error}
+                    </div>
+                ))}
             </div>
         )
     }

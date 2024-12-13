@@ -30,7 +30,6 @@ import {
     DropResult,
 } from "react-beautiful-dnd"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { findInvalidFocusedSeriesNames } from "./EditorBasicTab.js"
 
 interface EntityListItemProps extends React.HTMLProps<HTMLDivElement> {
     grapher: Grapher
@@ -143,12 +142,12 @@ export class EntitySelectionSection extends React.Component<{
 
     @action.bound onAddKey(entityName: EntityName) {
         this.editor.grapher.selection.selectEntity(entityName)
-        this.syncFocusedSeriesNames()
+        this.editor.removeInvalidFocusedSeriesNames()
     }
 
     @action.bound onRemoveKey(entityName: EntityName) {
         this.editor.grapher.selection.deselectEntity(entityName)
-        this.syncFocusedSeriesNames()
+        this.editor.removeInvalidFocusedSeriesNames()
     }
 
     @action.bound onDragEnd(result: DropResult) {
@@ -171,12 +170,7 @@ export class EntitySelectionSection extends React.Component<{
         grapher.selection.setSelectedEntities(
             activeParentConfig.selectedEntityNames
         )
-    }
-
-    @action.bound private syncFocusedSeriesNames(): void {
-        const { grapher } = this.props.editor
-        const invalidFocusedSeriesNames = findInvalidFocusedSeriesNames(grapher)
-        grapher.focusArray.remove(...invalidFocusedSeriesNames)
+        this.editor.removeInvalidFocusedSeriesNames()
     }
 
     render() {
@@ -287,9 +281,22 @@ export class FocusSection extends React.Component<{
         this.editor.grapher.focusArray.remove(seriesName)
     }
 
+    @action.bound setFocusedSeriesNamesToParentValue() {
+        const { grapher, activeParentConfig } = this.editor
+        if (!activeParentConfig || !activeParentConfig.focusedSeriesNames)
+            return
+        grapher.focusArray.clearAllAndAdd(
+            ...activeParentConfig.focusedSeriesNames
+        )
+        this.editor.removeInvalidFocusedSeriesNames()
+    }
+
     render() {
         const { editor } = this
         const { grapher } = editor
+
+        const isFocusInherited =
+            editor.isPropertyInherited("focusedSeriesNames")
 
         const focusedSeriesNameSet = grapher.focusArray.seriesNameSet
         const focusedSeriesNames = grapher.focusArray.seriesNames
@@ -300,13 +307,19 @@ export class FocusSection extends React.Component<{
             seriesNameSet,
             focusedSeriesNameSet,
         ])
+
+        // focusing only makes sense for two or more plotted series
+        if (focusedSeriesNameSet.size === 0 && availableSeriesNameSet.size < 2)
+            return null
+
         const availableSeriesNames: SeriesName[] = sortBy(
             Array.from(availableSeriesNameSet)
         )
 
-        const invalidFocusedSeriesNames = new Set(
-            findInvalidFocusedSeriesNames(grapher)
-        )
+        const invalidFocusedSeriesNames = differenceOfSets([
+            focusedSeriesNameSet,
+            seriesNameSet,
+        ])
 
         return (
             <Section name="Data to highlight">
@@ -318,6 +331,20 @@ export class FocusSection extends React.Component<{
                             .concat(availableSeriesNames)
                             .map((key) => ({ value: key }))}
                     />
+                    {editor.couldPropertyBeInherited("focusedSeriesNames") && (
+                        <button
+                            className="btn btn-outline-secondary"
+                            type="button"
+                            style={{ maxWidth: "min-content" }}
+                            title="Reset to parent focus"
+                            onClick={this.setFocusedSeriesNamesToParentValue}
+                            disabled={isFocusInherited}
+                        >
+                            <FontAwesomeIcon
+                                icon={isFocusInherited ? faLink : faUnlink}
+                            />
+                        </button>
+                    )}
                 </FieldsRow>
                 {focusedSeriesNames.map((seriesName) => (
                     <SeriesListItem
@@ -450,7 +477,9 @@ export class EditorDataTab<
                     </div>
                 </Section>
                 <EntitySelectionSection editor={editor} />
-                <FocusSection editor={editor} />
+                {features.canHighlightSeries && (
+                    <FocusSection editor={editor} />
+                )}
                 {features.canSpecifyMissingDataStrategy && (
                     <MissingDataSection editor={this.props.editor} />
                 )}

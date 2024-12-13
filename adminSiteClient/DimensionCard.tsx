@@ -4,7 +4,6 @@ import { observer } from "mobx-react"
 import { ChartDimension } from "@ourworldindata/grapher"
 import { OwidColumnDef, OwidVariableRoundingMode } from "@ourworldindata/types"
 import { startCase } from "@ourworldindata/utils"
-import { DimensionErrorMessage } from "./ChartEditorTypes.js"
 import {
     Toggle,
     BindAutoString,
@@ -35,7 +34,7 @@ export class DimensionCard<
     onChange: (dimension: ChartDimension) => void
     onEdit?: () => void
     onRemove?: () => void
-    errorMessage?: DimensionErrorMessage
+    errorMessage?: string
 }> {
     @observable.ref isExpanded: boolean = false
 
@@ -171,7 +170,7 @@ export class DimensionCard<
                             store={dimension.display}
                             auto={column.displayName}
                             onBlur={this.onChange}
-                            errorMessage={this.props.errorMessage?.displayName}
+                            errorMessage={this.props.errorMessage}
                         />
                         <BindAutoString
                             label="Unit of measurement"

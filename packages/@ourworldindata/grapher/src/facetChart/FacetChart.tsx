@@ -347,7 +347,7 @@ export class FacetChart
         })
     }
 
-    @computed private get intermediateChartInstances(): ChartInterface[] {
+    @computed get intermediateChartInstances(): ChartInterface[] {
         return this.intermediatePlacedSeries.map(({ bounds, manager }) => {
             const ChartClass =
                 ChartComponentClassMap.get(this.chartTypeName) ??
