@@ -218,13 +218,13 @@ export function byHoverThenFocusState(series: {
     hover: InteractionState
     focus: InteractionState
 }): number {
-    // background series rank lowest
-    if (series.hover.background || series.focus.background) return 1
-
     // active series rank highest and hover trumps focus
     if (series.hover.active) return 4
     if (series.focus.active) return 3
 
     // series in their default state rank in the middle
-    return 2
+    if (!series.hover.background && !series.focus.background) return 2
+
+    // background series rank lowest
+    return 1
 }
