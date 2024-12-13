@@ -213,10 +213,8 @@ html:not(.js-enabled) .latest-data-insights__card,
 
 .latest-data-insights__dot {
     background-color: $blue-30;
-    touch-action: manipulation;
     display: inline-flex;
     text-decoration: none;
-    cursor: pointer;
     border: 0;
     padding: 0;
     margin: 0;
