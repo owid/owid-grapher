@@ -196,9 +196,9 @@ export function getHoverStateForSeries(
     series: ChartSeries,
     props: {
         hoveredSeriesNames: SeriesName[]
-        // usually the interaction mode is active when there is
-        // at least one active element. But sometimes the interaction
-        // mode might be active although there are no active elements.
+        // usually the hover mode is active when there is
+        // at least one hovered element. But sometimes the hover
+        // mode might be active although there are no hovered elements.
         // For example, when the facet legend is hovered but a particular
         // chart doesn't plot the hovered element.
         isHoverModeActive?: boolean
@@ -213,23 +213,18 @@ export function getHoverStateForSeries(
     return { active, background }
 }
 
-function byInteractionState(state: InteractionState): number {
-    // background series rank lowest
-    if (state.background) return 1
-    // active series rank highest
-    if (state.active) return 3
-    // series in their default state rank in the middle
-    return 2
-}
-
 /** Useful for sorting series by their interaction state */
 export function byHoverThenFocusState(series: {
     hover: InteractionState
     focus: InteractionState
 }): number {
-    const hoverScore = byInteractionState(series.hover)
-    const focusScore = byInteractionState(series.focus)
+    // background series rank lowest
+    if (series.hover.background || series.focus.background) return 1
 
-    // hover trumps focus
-    return hoverScore * 10 + focusScore
+    // active series rank highest and hover trumps focus
+    if (series.hover.active) return 4
+    if (series.focus.active) return 3
+
+    // series in their default state rank in the middle
+    return 2
 }

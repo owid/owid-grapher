@@ -30,7 +30,11 @@ import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
-import { GRAPHER_BACKGROUND_DEFAULT, GRAY_70 } from "../color/ColorConstants"
+import {
+    GRAPHER_BACKGROUND_DEFAULT,
+    GRAY_30,
+    GRAY_70,
+} from "../color/ColorConstants"
 
 // text color for labels of background series
 const NON_FOCUSED_TEXT_COLOR = GRAY_70
@@ -159,6 +163,12 @@ class LineLabels extends React.Component<{
                         !series.focus?.background || series.hover?.active
                             ? darkenColorForText(series.color)
                             : NON_FOCUSED_TEXT_COLOR
+                    const textProps = {
+                        fill: textColor,
+                        opacity: this.textOpacityForSeries(series),
+                        textAnchor: this.anchor,
+                    }
+
                     return series.textWrap instanceof TextWrap ? (
                         <Halo
                             id={series.seriesName}
@@ -168,9 +178,7 @@ class LineLabels extends React.Component<{
                         >
                             {series.textWrap.render(labelText.x, labelText.y, {
                                 textProps: {
-                                    fill: textColor,
-                                    opacity: this.textOpacityForSeries(series),
-                                    textAnchor: this.anchor,
+                                    ...textProps,
                                     // might override the textWrap's fontWeight
                                     fontWeight: series.fontWeight,
                                 },
@@ -181,11 +189,7 @@ class LineLabels extends React.Component<{
                             {series.textWrap.render(labelText.x, labelText.y, {
                                 showTextOutline: this.showTextOutline,
                                 textOutlineColor: this.textOutlineColor,
-                                textProps: {
-                                    fill: textColor,
-                                    opacity: this.textOpacityForSeries(series),
-                                    textAnchor: this.anchor,
-                                },
+                                textProps,
                             })}
                         </React.Fragment>
                     )
@@ -251,7 +255,7 @@ class LineLabels extends React.Component<{
                     const lineColor = series.hover?.background
                         ? "#eee"
                         : series.focus?.background
-                          ? "#dadada"
+                          ? GRAY_30
                           : "#999"
 
                     return (
@@ -407,11 +411,11 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 text: series.label,
                 maxWidth: this.textMaxWidth,
                 fontSize: this.fontSize,
-                // focused labels are bold while non-focused labels are regular.
-                // if we used the actual font-weights to compute the layout,
-                // the layout would be jumpy since different font weights lead
-                // to different text widths. that's why we always use bold labels
-                // for comupting the layout.
+                // using the actual font weight here would lead to a jumpy layout
+                // when focusing/unfocusing a series since focused series are
+                // bolded and the computed text width depends on the text's font weight.
+                // that's why we always use bold labels to comupte the layout,
+                // but might render them later using a regular font weight.
                 fontWeight: 700,
             })
         }
