@@ -13,6 +13,7 @@ import {
     formatValue,
     ChartRedirect,
     partition,
+    round,
 } from "@ourworldindata/utils"
 import { AbstractChartEditor, References } from "./AbstractChartEditor.js"
 import {
@@ -207,6 +208,16 @@ export class EditorReferencesTabForChart extends React.Component<{
                         <div>
                             <strong>Last 365 days:</strong>{" "}
                             {this.renderPageview(this.pageviews?.views_365d)}
+                        </div>
+                        <div>
+                            <strong>
+                                Average pageviews per day over the last year:
+                            </strong>{" "}
+                            {this.renderPageview(
+                                this.pageviews?.views_365d
+                                    ? round(this.pageviews?.views_365d / 365, 1)
+                                    : undefined
+                            )}
                         </div>
                     </div>
                     <small className="form-text text-muted">

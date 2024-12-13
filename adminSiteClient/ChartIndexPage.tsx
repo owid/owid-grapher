@@ -4,7 +4,7 @@ import { observable, computed, action, runInAction } from "mobx"
 
 import { TextField } from "./Forms.js"
 import { AdminLayout } from "./AdminLayout.js"
-import { ChartList, ChartListItem } from "./ChartList.js"
+import { ChartList, ChartListItem, SortConfig } from "./ChartList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     buildSearchWordsFromSearchString,
@@ -12,6 +12,7 @@ import {
     highlightFunctionForSearchWords,
     SearchWord,
 } from "../adminShared/search.js"
+import { sortNumeric, SortOrder } from "@ourworldindata/utils"
 
 @observer
 export class ChartIndexPage extends React.Component {
@@ -21,6 +22,8 @@ export class ChartIndexPage extends React.Component {
     @observable searchInput?: string
     @observable maxVisibleCharts = 50
     @observable charts: ChartListItem[] = []
+    @observable sortBy: "pageviewsPerDay" | null = null
+    @observable sortConfig: SortConfig = null
 
     @computed get searchWords(): SearchWord[] {
         const { searchInput } = this
@@ -31,7 +34,8 @@ export class ChartIndexPage extends React.Component {
     }
 
     @computed get allChartsToShow(): ChartListItem[] {
-        const { searchWords, charts } = this
+        const { searchWords, charts, sortConfig } = this
+        let filtered = charts
         if (searchWords.length > 0) {
             const filterFn = filterFunctionForSearchWords(
                 searchWords,
@@ -48,10 +52,19 @@ export class ChartIndexPage extends React.Component {
                     ...chart.tags.map((tag) => tag.name),
                 ]
             )
-            return charts.filter(filterFn)
-        } else {
-            return this.charts
+            filtered = charts.filter(filterFn)
         }
+
+        // Apply sorting if needed
+        if (sortConfig?.field === "pageviewsPerDay") {
+            return sortNumeric(
+                [...filtered],
+                (chart) => chart.pageviewsPerDay,
+                sortConfig.direction === "asc" ? SortOrder.asc : SortOrder.desc
+            )
+        }
+
+        return filtered
     }
 
     @computed get chartsToShow(): ChartListItem[] {
@@ -67,8 +80,12 @@ export class ChartIndexPage extends React.Component {
         this.maxVisibleCharts += 100
     }
 
+    @action.bound onSort(sortConfig: SortConfig) {
+        this.sortConfig = sortConfig
+    }
+
     render() {
-        const { chartsToShow, searchInput, numTotalCharts } = this
+        const { chartsToShow, searchInput, numTotalCharts, sortConfig } = this
 
         const highlight = highlightFunctionForSearchWords(this.searchWords)
 
@@ -93,6 +110,8 @@ export class ChartIndexPage extends React.Component {
                         onDelete={action((c: ChartListItem) =>
                             this.charts.splice(this.charts.indexOf(c), 1)
                         )}
+                        onSort={this.onSort}
+                        sortConfig={sortConfig}
                     />
                     {!searchInput && (
                         <button
