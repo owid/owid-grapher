@@ -1,15 +1,16 @@
 {
-  "name": "owid-functions",
-  "type": "module",
-  "dependencies": {
-    "@ourworldindata/grapher": "workspace:^",
-    "@ourworldindata/utils": "workspace:^",
-    "itty-router": "^5.0.17",
-    "littlezipper": "^0.1.4",
-    "stripe": "^14.20.0",
-    "svg2png-wasm": "^1.4.1"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240919.0"
-  }
+    "name": "owid-functions",
+    "type": "module",
+    "dependencies": {
+        "@ourworldindata/grapher": "workspace:^",
+        "@ourworldindata/types": "workspace:^",
+        "@ourworldindata/utils": "workspace:^",
+        "itty-router": "^5.0.17",
+        "littlezipper": "^0.1.4",
+        "stripe": "^14.20.0",
+        "svg2png-wasm": "^1.4.1"
+    },
+    "devDependencies": {
+        "@cloudflare/workers-types": "^4.20240919.0"
+    }
 }

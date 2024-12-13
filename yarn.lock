@@ -15437,6 +15437,7 @@ __metadata:
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240919.0"
     "@ourworldindata/grapher": "workspace:^"
+    "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     itty-router: "npm:^5.0.17"
     littlezipper: "npm:^0.1.4"

@@ -17,6 +17,7 @@ import {
 } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { Grapher } from "@ourworldindata/grapher"
+import { getGrapherFilters } from "./urlTools.js"
 
 const markdownNewlineEnding = "  "
 
@@ -229,9 +230,28 @@ function* columnReadmeText(col: CoreColumn) {
     yield ""
 }
 
+function* activeFilterSettings(searchParams: URLSearchParams) {
+    // NOTE: this is filtered by whitelisted grapher query params - if you want other params to be
+    //       inlucded here (e.g. MDIM selection), add them to the whitelist inside getGrapherFilters
+    const filterSettings = getGrapherFilters(searchParams)
+    if (filterSettings) {
+        yield ""
+        yield `### Active Filters`
+        yield ""
+        yield `A filtered subset of the full data was downloaded. The following filters were applied:`
+        for (const [key, val] of Object.entries(filterSettings)) {
+            if (key === "country")
+                yield `${key}: ${val.replaceAll("~", ", ")}` // country filter is separated with tilde
+            else yield `${key}: ${val}`
+        }
+        yield ""
+    }
+}
+
 export function constructReadme(
     grapher: Grapher,
-    columns: CoreColumn[]
+    columns: CoreColumn[],
+    searchParams: URLSearchParams
 ): string {
     const isSingleColumn = columns.length === 1
     // Some computed columns have neither a source nor origins - filter these away
@@ -241,12 +261,14 @@ export function constructReadme(
         )
         .flatMap((col) => [...columnReadmeText(col)])
     let readme: string
+    const urlWithFilters = `${grapher.canonicalUrl}`
+
     const downloadDate = formatDate(new Date()) // formats the date as "October 10, 2024"
     if (isSingleColumn)
         readme = `# ${grapher.title} - Data package
 
-This data package contains the data that powers the chart ["${grapher.title}"](${grapher.canonicalUrl}) on the Our World in Data website. It was downloaded on ${downloadDate}.
-
+This data package contains the data that powers the chart ["${grapher.title}"](${urlWithFilters}) on the Our World in Data website. It was downloaded on ${downloadDate}.
+${[...activeFilterSettings(searchParams)].join("\n")}
 ## CSV Structure
 
 The high level structure of the CSV file is that each row is an observation for an entity (usually a country or region) and a timepoint (usually a year).
@@ -273,7 +295,7 @@ ${sources.join("\n")}
     else
         readme = `# ${grapher.title} - Data package
 
-This data package contains the data that powers the chart ["${grapher.title}"](${grapher.canonicalUrl}) on the Our World in Data website.
+This data package contains the data that powers the chart ["${grapher.title}"](${urlWithFilters}) on the Our World in Data website.
 
 ## CSV Structure
 

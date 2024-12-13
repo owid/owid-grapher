@@ -38,7 +38,7 @@ The Grapher project is built with [Lerna](https://github.com/lerna/lerna/) and [
 
 A Grapher-based tool that creates more complex [data visualization user interfaces](https://ourworldindata.org/explorers/migration).
 
-Each explorer can be configured via a [panel](explorerAdminServer/) in the admin client. Their config files are stored in [a separate repository](https://github.com/owid/owid-content/tree/master/explorers).
+Each explorer can be configured via a [panel](explorerAdminServer/) in the admin client. Their config files are stored in [a separate repository](https://github.com/owid/owid-content/tree/master/explorers) but will probably be moved to the DB soon.
 
 ### Grapher Admin
 

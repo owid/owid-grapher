@@ -125,14 +125,17 @@ export async function fetchReadmeForGrapher(
 
     await grapher.downloadLegacyDataFromOwidVariableIds()
 
-    const readme = assembleReadme(grapher)
+    const readme = assembleReadme(grapher, searchParams)
     return new Response(readme, {
         headers: {
             "Content-Type": "text/markdown; charset=utf-8",
         },
     })
 }
-function assembleReadme(grapher: Grapher): string {
+function assembleReadme(
+    grapher: Grapher,
+    searchParams: URLSearchParams
+): string {
     const metadataCols = getColumnsForMetadata(grapher)
-    return constructReadme(grapher, metadataCols)
+    return constructReadme(grapher, metadataCols, searchParams)
 }
