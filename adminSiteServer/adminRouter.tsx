@@ -363,7 +363,8 @@ getPlainRouteWithROTransaction(
             const renderedPage = await renderMultiDimDataPageFromConfig(
                 trx,
                 slug,
-                mdd.config
+                mdd.config,
+                true
             )
             res.send(renderedPage)
             return

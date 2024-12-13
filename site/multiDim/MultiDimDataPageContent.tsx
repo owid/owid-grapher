@@ -108,10 +108,14 @@ const cachedGetVariableMetadata = memoize(
 )
 
 const cachedGetGrapherConfigByUuid = memoize(
-    (grapherConfigUuid: string): Promise<GrapherInterface> =>
-        fetchWithRetry(
-            `/grapher/by-uuid/${grapherConfigUuid}.config.json`
+    (
+        grapherConfigUuid: string,
+        isPreviewing: boolean
+    ): Promise<GrapherInterface> => {
+        return fetchWithRetry(
+            `/grapher/by-uuid/${grapherConfigUuid}.config.json${isPreviewing ? "?nocache" : ""}`
         ).then((resp) => resp.json())
+    }
 )
 
 const useTitleFragments = (config: MultiDimDataPageConfig) => {
@@ -135,7 +139,8 @@ const useView = (
 
 const useVarDatapageData = (
     config: MultiDimDataPageConfig,
-    currentView: ViewEnriched | undefined
+    currentView: ViewEnriched | undefined,
+    isPreviewing: boolean
 ) => {
     const [varDatapageData, setVarDatapageData] =
         useState<DataPageDataV2 | null>(null)
@@ -163,7 +168,7 @@ const useVarDatapageData = (
         )
         const grapherConfigUuid = currentView?.fullConfigId
         const grapherConfigPromise = grapherConfigUuid
-            ? cachedGetGrapherConfigByUuid(grapherConfigUuid)
+            ? cachedGetGrapherConfigByUuid(grapherConfigUuid, isPreviewing)
             : null
 
         Promise.allSettled([datapageDataPromise, grapherConfigPromise])
@@ -189,6 +194,7 @@ const useVarDatapageData = (
         currentView?.indicators,
         currentView?.config,
         currentView?.metadata,
+        isPreviewing,
     ])
 
     return {
@@ -216,7 +222,7 @@ export const MultiDimDataPageContent = ({
     canonicalUrl,
     // _datapageData,
     configObj,
-    // isPreviewing = false,
+    isPreviewing,
     faqEntries,
     primaryTopic,
     tagToSlugMap,
@@ -242,7 +248,7 @@ export const MultiDimDataPageContent = ({
 
     const currentView = useView(currentSettings, config)
     const { varDatapageData, varGrapherConfig, grapherConfigIsReady } =
-        useVarDatapageData(config, currentView)
+        useVarDatapageData(config, currentView, isPreviewing ?? false)
 
     // This is the ACTUAL grapher instance being used, because GrapherFigureView/GrapherWithFallback are doing weird things and are not actually using the grapher instance we pass into it
     // and therefore we can not access the grapher state (e.g. tab, selection) from the grapher instance we pass into it

@@ -186,7 +186,7 @@ async function handleConfigRequest(
     }
 
     const cacheControl = shouldCache
-        ? "s-maxage=3600, max-age=0, must-revalidate"
+        ? "s-maxage=300, max-age=0, must-revalidate"
         : "no-cache"
 
     //grapherPageResp.headers.set("Cache-Control", cacheControl)
