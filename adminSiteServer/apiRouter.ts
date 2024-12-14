@@ -725,7 +725,9 @@ getRouteWithROTransaction(apiRouter, "/charts.json", async (req, res, trx) => {
     const charts = await db.knexRaw<OldChartFieldList>(
         trx,
         `-- sql
-            SELECT ${oldChartFieldList} FROM charts
+            SELECT ${oldChartFieldList},
+                round(views_365d / 365, 1) as pageviewsPerDay
+            FROM charts
             JOIN chart_configs ON chart_configs.id = charts.configId
             JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
             LEFT JOIN analytics_pageviews on (analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug)  AND chart_configs.full ->> '$.isPublished' = "true" )
@@ -1596,7 +1598,6 @@ getRouteWithROTransaction(
                 JOIN chart_configs ON chart_configs.id = charts.configId
                 JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
                 LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-                LEFT JOIN analytics_pageviews on analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug)
                 JOIN chart_dimensions cd ON cd.chartId = charts.id
                 WHERE cd.variableId = ?
                 GROUP BY charts.id
@@ -2083,7 +2084,6 @@ getRouteWithROTransaction(
                 JOIN variables AS v ON cd.variableId = v.id
                 JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
                 LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-                LEFT JOIN analytics_pageviews on analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug)
                 WHERE v.datasetId = ?
                 GROUP BY charts.id
             `,
@@ -2481,7 +2481,6 @@ getRouteWithROTransaction(
                 LEFT JOIN chart_tags ct ON ct.chartId=charts.id
                 JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
                 LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-                LEFT JOIN analytics_pageviews on analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug)
                 WHERE ct.tagId ${tagId === UNCATEGORIZED_TAG_ID ? "IS NULL" : "= ?"}
                 GROUP BY charts.id
                 ORDER BY charts.updatedAt DESC
