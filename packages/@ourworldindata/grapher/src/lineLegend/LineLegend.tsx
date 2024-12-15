@@ -7,13 +7,9 @@ import {
     max,
     min,
     sortBy,
-    sumBy,
     makeIdForHumanConsumption,
     excludeUndefined,
-    sortedIndexBy,
-    last,
-    maxBy,
-    partition,
+    sumBy,
 } from "@ourworldindata/utils"
 import { TextWrap, TextWrapGroup, Halo } from "@ourworldindata/components"
 import { computed } from "mobx"
@@ -30,23 +26,19 @@ import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
+import { GRAPHER_BACKGROUND_DEFAULT, GRAY_30 } from "../color/ColorConstants"
 import {
-    GRAPHER_BACKGROUND_DEFAULT,
-    GRAY_30,
-    GRAY_70,
-} from "../color/ColorConstants"
-
-// text color for labels of background series
-const NON_FOCUSED_TEXT_COLOR = GRAY_70
-// Minimum vertical space between two legend items
-export const LEGEND_ITEM_MIN_SPACING = 4
-// Horizontal distance from the end of the chart to the start of the marker
-const MARKER_MARGIN = 4
-// Space between the label and the annotation
-const ANNOTATION_PADDING = 1
-
-const DEFAULT_CONNECTOR_LINE_WIDTH = 25
-const DEFAULT_FONT_WEIGHT = 400
+    findImportantSeriesThatFitIntoTheAvailableSpace,
+    findSeriesThatFitIntoTheAvailableSpace,
+} from "./LineLegendFilterAlgorithms.js"
+import {
+    ANNOTATION_PADDING,
+    DEFAULT_CONNECTOR_LINE_WIDTH,
+    DEFAULT_FONT_WEIGHT,
+    LEGEND_ITEM_MIN_SPACING,
+    MARKER_MARGIN,
+    NON_FOCUSED_TEXT_COLOR,
+} from "./LineLegendConstants.js"
 
 export interface LineLabelSeries extends ChartSeries {
     label: string
@@ -664,195 +656,26 @@ export class LineLegend extends React.Component<LineLegendProps> {
     }
 
     @computed get visiblePlacedSeries(): PlacedSeries[] {
-        const { legendY } = this
+        const { initialPlacedSeries, seriesSortedByImportance, legendY } = this
         const availableHeight = Math.abs(legendY[1] - legendY[0])
-        const nonOverlappingMinHeight = this.computeHeight(
-            this.initialPlacedSeries
-        )
+        const totalHeight = this.computeHeight(initialPlacedSeries)
 
         // early return if filtering is not needed
-        if (nonOverlappingMinHeight <= availableHeight)
-            return this.initialPlacedSeries
+        if (totalHeight <= availableHeight) return initialPlacedSeries
 
-        if (this.seriesSortedByImportance) {
-            // keep a subset of series that fit within the available height,
-            // prioritizing by importance. Note that more important (but longer)
-            // series names are skipped if they don't fit.
-            const keepSeries: PlacedSeries[] = []
-            let keepSeriesHeight = 0
-            for (const series of this.seriesSortedByImportance) {
-                // if the candidate is the first one, don't add padding
-                const padding =
-                    keepSeries.length === 0 ? 0 : LEGEND_ITEM_MIN_SPACING
-                const newHeight =
-                    keepSeriesHeight + series.bounds.height + padding
-                if (newHeight <= availableHeight) {
-                    keepSeries.push(series)
-                    keepSeriesHeight = newHeight
-                    if (keepSeriesHeight > availableHeight) break
-                }
-            }
-            return keepSeries
-        } else {
-            const candidates = new Set<PlacedSeries>(this.initialPlacedSeries)
-            const sortedKeepSeries: PlacedSeries[] = []
-
-            let keepSeriesHeight = 0
-
-            const maybePickCandidate = (candidate: PlacedSeries): boolean => {
-                // if the candidate is the first one, don't add padding
-                const padding =
-                    sortedKeepSeries.length === 0 ? 0 : LEGEND_ITEM_MIN_SPACING
-                const newHeight =
-                    keepSeriesHeight + candidate.bounds.height + padding
-                if (newHeight <= availableHeight) {
-                    const insertIndex = sortedIndexBy(
-                        sortedKeepSeries,
-                        candidate,
-                        (s) => s.midY
-                    )
-                    sortedKeepSeries.splice(insertIndex, 0, candidate)
-                    candidates.delete(candidate)
-                    keepSeriesHeight = newHeight
-                    return true
-                }
-                return false
-            }
-
-            type Bracket = [number, number]
-            const findBracket = (
-                sortedBrackets: Bracket[],
-                n: number
-            ): [number | undefined, number | undefined] => {
-                if (sortedBrackets.length === 0) return [undefined, undefined]
-
-                const firstBracketValue = sortedBrackets[0][0]
-                const lastBracketValue = last(sortedBrackets)![1]
-
-                if (n < firstBracketValue) return [undefined, firstBracketValue]
-                if (n >= lastBracketValue) return [lastBracketValue, undefined]
-
-                for (const bracket of sortedBrackets) {
-                    if (n >= bracket[0] && n < bracket[1]) return bracket
-                }
-
-                return [undefined, undefined]
-            }
-
-            const [focusedCandidates, nonFocusedCandidates] = partition(
-                this.initialPlacedSeries,
-                (series) => series.focus?.active
+        // if a list of series sorted by importance is provided, use it
+        if (seriesSortedByImportance) {
+            return findImportantSeriesThatFitIntoTheAvailableSpace(
+                seriesSortedByImportance,
+                availableHeight
             )
-
-            // pick focused canidates first
-            while (focusedCandidates.length > 0) {
-                const focusedCandidate = focusedCandidates.pop()!
-                const picked = maybePickCandidate(focusedCandidate)
-
-                // if one of the focused candidates doesn't fit,
-                // remove it from the candidates and continue
-                if (!picked) candidates.delete(focusedCandidate)
-            }
-
-            // we initially need to pick at least two candidates.
-            // - if we already picked two from the set of focused series,
-            //   we're done
-            // - if we picked only one focused series, then we pick another
-            //   one from the set of non-focused series. we pick the one that
-            //   is furthest away from the focused one
-            // - if we haven't picked any focused series, we pick two from
-            //   the non-focused series, one from the top and one from the bottom
-            if (sortedKeepSeries.length === 0) {
-                // sort the remaining candidates by their position
-                const sortedCandidates = sortBy(
-                    nonFocusedCandidates,
-                    (c) => c.midY
-                )
-
-                // pick two candidates, one from the top and one from the bottom
-                const midIndex = Math.floor((sortedCandidates.length - 1) / 2)
-                for (let startIndex = 0; startIndex <= midIndex; startIndex++) {
-                    const endIndex = sortedCandidates.length - 1 - startIndex
-                    maybePickCandidate(sortedCandidates[endIndex])
-                    if (sortedKeepSeries.length >= 2 || startIndex === endIndex)
-                        break
-                    maybePickCandidate(sortedCandidates[startIndex])
-                    if (sortedKeepSeries.length >= 2) break
-                }
-            } else if (sortedKeepSeries.length === 1) {
-                const keepMidY = sortedKeepSeries[0].midY
-
-                while (nonFocusedCandidates.length > 0) {
-                    // prefer the candidate that is furthest away from the one
-                    // that was already picked
-                    const candidate = maxBy(nonFocusedCandidates, (c) =>
-                        Math.abs(c.midY - keepMidY)
-                    )!
-                    const cIndex = nonFocusedCandidates.indexOf(candidate)
-                    if (cIndex > -1) nonFocusedCandidates.splice(cIndex, 1)
-
-                    // we only need one more candidate, so if we find one, we're done
-                    const picked = maybePickCandidate(candidate)
-                    if (picked) break
-
-                    // if the candidate wasn't picked, remove it from the
-                    // candidates and continue
-                    candidates.delete(candidate)
-                }
-            }
-
-            while (candidates.size > 0 && keepSeriesHeight <= availableHeight) {
-                const sortedBrackets = sortedKeepSeries
-                    .slice(0, -1)
-                    .map((s, i) => [s.midY, sortedKeepSeries[i + 1].midY])
-                    .filter((bracket) => bracket[0] !== bracket[1]) as Bracket[]
-
-                // score each candidate based on how well it fits into the available space
-                const candidateScores: [PlacedSeries, number][] = Array.from(
-                    candidates
-                ).map((candidate) => {
-                    // find the bracket that the candidate is contained in
-                    const [start, end] = findBracket(
-                        sortedBrackets,
-                        candidate.midY
-                    )
-                    // if no bracket is found, return the worst possible score
-                    if (end === undefined || start === undefined)
-                        return [candidate, 0]
-
-                    // score the candidate based on how far it is from the
-                    // middle of the bracket and how large the bracket is
-                    const length = end - start
-                    const midPoint = start + length / 2
-                    const distanceFromMidPoint = Math.abs(
-                        candidate.midY - midPoint
-                    )
-                    const score = length - distanceFromMidPoint
-
-                    return [candidate, score]
-                })
-
-                // pick the candidate with the highest score
-                // that fits into the available space
-                let picked = false
-                while (!picked && candidateScores.length > 0) {
-                    const maxCandidateArr = maxBy(candidateScores, (s) => s[1])!
-                    const maxCandidate = maxCandidateArr[0]
-                    picked = maybePickCandidate(maxCandidate)
-
-                    // if the highest scoring candidate doesn't fit,
-                    // remove it from the candidates and continue
-                    if (!picked) {
-                        candidates.delete(maxCandidate)
-
-                        const cIndex = candidateScores.indexOf(maxCandidateArr)
-                        if (cIndex > -1) candidateScores.splice(cIndex, 1)
-                    }
-                }
-            }
-
-            return sortedKeepSeries
         }
+
+        // otherwise use the default filtering
+        return findSeriesThatFitIntoTheAvailableSpace(
+            initialPlacedSeries,
+            availableHeight
+        )
     }
 
     @computed get visibleSeriesNames(): SeriesName[] {

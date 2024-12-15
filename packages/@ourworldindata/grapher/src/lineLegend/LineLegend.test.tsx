@@ -2,11 +2,8 @@
 
 import { PartialBy } from "@ourworldindata/utils"
 import { AxisConfig } from "../axis/AxisConfig"
-import {
-    LEGEND_ITEM_MIN_SPACING,
-    LineLabelSeries,
-    LineLegend,
-} from "./LineLegend"
+import { LineLabelSeries, LineLegend } from "./LineLegend"
+import { LEGEND_ITEM_MIN_SPACING } from "./LineLegendConstants"
 
 const makeAxis = ({
     min = 0,
@@ -94,8 +91,8 @@ describe("dropping labels", () => {
 
         // 'Democratic Republic of Congo' is skipped since it doesn't fit
         expect(lineLegend.visibleSeriesNames).toEqual([
-            "Mexico",
             "Canada",
+            "Mexico",
             "Spain",
         ])
     })
@@ -162,6 +159,28 @@ describe("dropping labels", () => {
         })
 
         expect(lineLegend.visibleSeriesNames).toEqual(["Canada", "France"])
+    })
+
+    it("picks labels from the edges, skipping long labels", () => {
+        const series = makeSeries([
+            { seriesName: "United States of America", yValue: 5 },
+            { seriesName: "Canada", yValue: 10 },
+            { seriesName: "Mexico", yValue: 50 },
+            { seriesName: "Democratic Republic of Congo", yValue: 90 },
+        ])
+
+        const lineLegend = new LineLegend({
+            series,
+            maxWidth: 100,
+            yAxis: makeAxis({ yRange: [0, 60] }),
+        })
+
+        // the two outermost labels don't fit both into the available space.
+        // so 'Mexico' is picked instead of 'Democratic Republic of Congo'
+        expect(lineLegend.visibleSeriesNames).toEqual([
+            "United States of America",
+            "Mexico",
+        ])
     })
 
     it("picks labels in a balanced way", () => {
