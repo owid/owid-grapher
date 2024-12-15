@@ -39,7 +39,7 @@ import {
 // text color for labels of background series
 const NON_FOCUSED_TEXT_COLOR = GRAY_70
 // Minimum vertical space between two legend items
-const LEGEND_ITEM_MIN_SPACING = 4
+export const LEGEND_ITEM_MIN_SPACING = 4
 // Horizontal distance from the end of the chart to the start of the marker
 const MARKER_MARGIN = 4
 // Space between the label and the annotation
@@ -319,7 +319,7 @@ class LineLabels extends React.Component<{
 }
 
 export interface LineLegendProps {
-    labelSeries: LineLabelSeries[]
+    series: LineLabelSeries[]
     yAxis?: VerticalAxis
 
     // positioning
@@ -336,7 +336,7 @@ export interface LineLegendProps {
     textOutlineColor?: Color
 
     // used to determine which series should be labelled when there is limited space
-    seriesSortedByImportance?: SeriesName[]
+    seriesNamesSortedByImportance?: SeriesName[]
 
     // interactions
     isStatic?: boolean // don't add interactions if true
@@ -453,11 +453,11 @@ export class LineLegend extends React.Component<LineLegendProps> {
         })
     }
 
-    @computed.struct get sizedLabels(): SizedSeries[] {
+    @computed.struct get sizedSeries(): SizedSeries[] {
         const { fontWeight: globalFontWeight } = this
-        return this.props.labelSeries.map((label) => {
-            const textWrap = this.makeLabelTextWrap(label)
-            const annotationTextWrap = this.makeAnnotationTextWrap(label)
+        return this.props.series.map((series) => {
+            const textWrap = this.makeLabelTextWrap(series)
+            const annotationTextWrap = this.makeAnnotationTextWrap(series)
 
             const annotationWidth = annotationTextWrap?.width ?? 0
             const annotationHeight = annotationTextWrap
@@ -466,13 +466,13 @@ export class LineLegend extends React.Component<LineLegendProps> {
 
             // font weight priority:
             // series focus state > presense of value label > globally set font weight
-            const activeFontWeight = label.focus?.active ? 700 : undefined
-            const seriesFontWeight = label.formattedValue ? 700 : undefined
+            const activeFontWeight = series.focus?.active ? 700 : undefined
+            const seriesFontWeight = series.formattedValue ? 700 : undefined
             const fontWeight =
                 activeFontWeight ?? seriesFontWeight ?? globalFontWeight
 
             return {
-                ...label,
+                ...series,
                 textWrap,
                 annotationTextWrap,
                 width: Math.max(textWrap.width, annotationWidth),
@@ -483,8 +483,8 @@ export class LineLegend extends React.Component<LineLegendProps> {
     }
 
     @computed private get maxLabelWidth(): number {
-        const { sizedLabels = [] } = this
-        return max(sizedLabels.map((d) => d.width)) ?? 0
+        const { sizedSeries = [] } = this
+        return max(sizedSeries.map((d) => d.width)) ?? 0
     }
 
     @computed get stableWidth(): number {
@@ -530,25 +530,25 @@ export class LineLegend extends React.Component<LineLegendProps> {
     }
 
     // Naive initial placement of each mark at the target height, before collision detection
-    @computed private get initialSeries(): PlacedSeries[] {
+    @computed private get initialPlacedSeries(): PlacedSeries[] {
         const { yAxis, legendX, legendY } = this
 
         const [legendYMin, legendYMax] = legendY
 
-        return this.sizedLabels.map((label) => {
-            const labelHeight = label.height
-            const labelWidth = label.width + DEFAULT_CONNECTOR_LINE_WIDTH
+        return this.sizedSeries.map((series) => {
+            const labelHeight = series.height
+            const labelWidth = series.width + DEFAULT_CONNECTOR_LINE_WIDTH
 
-            const midY = yAxis.place(label.yValue)
+            const midY = yAxis.place(series.yValue)
             const origBounds = new Bounds(
                 legendX,
-                midY - label.height / 2,
+                midY - series.height / 2,
                 labelWidth,
                 labelHeight
             )
 
             // ensure label doesn't go beyond the top or bottom of the chart
-            const initialY = this.getYPositionForSeriesLabel(label)
+            const initialY = this.getYPositionForSeriesLabel(series)
             const y = Math.min(
                 Math.max(initialY, legendYMin),
                 legendYMax - labelHeight
@@ -556,7 +556,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
             const bounds = new Bounds(legendX, y, labelWidth, labelHeight)
 
             return {
-                ...label,
+                ...series,
                 y,
                 midY,
                 origBounds,
@@ -568,15 +568,18 @@ export class LineLegend extends React.Component<LineLegendProps> {
         })
     }
 
-    @computed get initialSeriesByName(): Map<EntityName, PlacedSeries> {
-        return new Map(this.initialSeries.map((d) => [d.seriesName, d]))
+    @computed get initialPlacedSeriesByName(): Map<EntityName, PlacedSeries> {
+        return new Map(this.initialPlacedSeries.map((d) => [d.seriesName, d]))
     }
 
     @computed get placedSeries(): PlacedSeries[] {
         const [yLegendMin, yLegendMax] = this.legendY
 
         // ensure list is sorted by the visual position in ascending order
-        const sortedSeries = sortBy(this.visibleSeries, (label) => label.midY)
+        const sortedSeries = sortBy(
+            this.visiblePlacedSeries,
+            (label) => label.midY
+        )
 
         const groups: PlacedSeries[][] = cloneDeep(sortedSeries).map((mark) => [
             mark,
@@ -644,37 +647,45 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return groups.flat()
     }
 
-    @computed get sortedSeriesByImportance(): PlacedSeries[] | undefined {
-        if (!this.props.seriesSortedByImportance) return undefined
+    @computed get seriesSortedByImportance(): PlacedSeries[] | undefined {
+        if (!this.props.seriesNamesSortedByImportance) return undefined
         return excludeUndefined(
-            this.props.seriesSortedByImportance.map((seriesName) =>
-                this.initialSeriesByName.get(seriesName)
+            this.props.seriesNamesSortedByImportance.map((seriesName) =>
+                this.initialPlacedSeriesByName.get(seriesName)
             )
         )
     }
 
-    @computed get visibleSeries(): PlacedSeries[] {
+    private computeHeight(series: PlacedSeries[]): number {
+        return (
+            sumBy(series, (series) => series.bounds.height) +
+            (series.length - 1) * LEGEND_ITEM_MIN_SPACING
+        )
+    }
+
+    @computed get visiblePlacedSeries(): PlacedSeries[] {
         const { legendY } = this
         const availableHeight = Math.abs(legendY[1] - legendY[0])
-        const nonOverlappingMinHeight =
-            sumBy(this.initialSeries, (series) => series.bounds.height) +
-            this.initialSeries.length * LEGEND_ITEM_MIN_SPACING
+        const nonOverlappingMinHeight = this.computeHeight(
+            this.initialPlacedSeries
+        )
 
         // early return if filtering is not needed
         if (nonOverlappingMinHeight <= availableHeight)
-            return this.initialSeries
+            return this.initialPlacedSeries
 
-        if (this.sortedSeriesByImportance) {
+        if (this.seriesSortedByImportance) {
             // keep a subset of series that fit within the available height,
             // prioritizing by importance. Note that more important (but longer)
             // series names are skipped if they don't fit.
             const keepSeries: PlacedSeries[] = []
             let keepSeriesHeight = 0
-            for (const series of this.sortedSeriesByImportance) {
+            for (const series of this.seriesSortedByImportance) {
+                // if the candidate is the first one, don't add padding
+                const padding =
+                    keepSeries.length === 0 ? 0 : LEGEND_ITEM_MIN_SPACING
                 const newHeight =
-                    keepSeriesHeight +
-                    series.bounds.height +
-                    LEGEND_ITEM_MIN_SPACING
+                    keepSeriesHeight + series.bounds.height + padding
                 if (newHeight <= availableHeight) {
                     keepSeries.push(series)
                     keepSeriesHeight = newHeight
@@ -683,16 +694,17 @@ export class LineLegend extends React.Component<LineLegendProps> {
             }
             return keepSeries
         } else {
-            const candidates = new Set<PlacedSeries>(this.initialSeries)
+            const candidates = new Set<PlacedSeries>(this.initialPlacedSeries)
             const sortedKeepSeries: PlacedSeries[] = []
 
             let keepSeriesHeight = 0
 
             const maybePickCandidate = (candidate: PlacedSeries): boolean => {
+                // if the candidate is the first one, don't add padding
+                const padding =
+                    sortedKeepSeries.length === 0 ? 0 : LEGEND_ITEM_MIN_SPACING
                 const newHeight =
-                    keepSeriesHeight +
-                    candidate.bounds.height +
-                    LEGEND_ITEM_MIN_SPACING
+                    keepSeriesHeight + candidate.bounds.height + padding
                 if (newHeight <= availableHeight) {
                     const insertIndex = sortedIndexBy(
                         sortedKeepSeries,
@@ -728,7 +740,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
             }
 
             const [focusedCandidates, nonFocusedCandidates] = partition(
-                this.initialSeries,
+                this.initialPlacedSeries,
                 (series) => series.focus?.active
             )
 
@@ -844,7 +856,11 @@ export class LineLegend extends React.Component<LineLegendProps> {
     }
 
     @computed get visibleSeriesNames(): SeriesName[] {
-        return this.visibleSeries.map((series) => series.seriesName)
+        return this.visiblePlacedSeries.map((series) => series.seriesName)
+    }
+
+    @computed get visibleSeriesHeight(): number {
+        return this.computeHeight(this.visiblePlacedSeries)
     }
 
     // Does this placement need line markers or is the position of the labels already clear?

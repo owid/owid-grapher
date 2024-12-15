@@ -651,7 +651,7 @@ export class SlopeChart
     @computed private get lineLegendPropsLeft(): Partial<LineLegendProps> {
         return {
             xAnchor: "end",
-            seriesSortedByImportance:
+            seriesNamesSortedByImportance:
                 this.seriesSortedByImportanceForLineLegendLeft,
         }
     }
@@ -673,17 +673,17 @@ export class SlopeChart
         )
 
         return LineLegend.maxLevel({
-            labelSeries: series,
+            series,
             ...this.lineLegendPropsCommon,
-            seriesSortedByImportance:
+            seriesNamesSortedByImportance:
                 this.seriesSortedByImportanceForLineLegendLeft,
             // not including `lineLegendPropsLeft` due to a circular dependency
         })
     }
 
     @computed get lineLegendWidthLeft(): number {
-        const props = {
-            labelSeries: this.lineLegendSeriesLeft,
+        const props: LineLegendProps = {
+            series: this.lineLegendSeriesLeft,
             ...this.lineLegendPropsCommon,
             ...this.lineLegendPropsLeft,
         }
@@ -702,7 +702,7 @@ export class SlopeChart
 
     @computed get lineLegendRight(): LineLegend {
         return new LineLegend({
-            labelSeries: this.lineLegendSeriesRight,
+            series: this.lineLegendSeriesRight,
             ...this.lineLegendPropsCommon,
             ...this.lineLegendPropsRight,
         })
@@ -1221,7 +1221,7 @@ export class SlopeChart
     private renderLineLegendRight(): React.ReactElement {
         return (
             <LineLegend
-                labelSeries={this.lineLegendSeriesRight}
+                series={this.lineLegendSeriesRight}
                 x={this.xRange[1] + LINE_LEGEND_PADDING}
                 {...this.lineLegendPropsCommon}
                 {...this.lineLegendPropsRight}
@@ -1262,7 +1262,7 @@ export class SlopeChart
 
         return (
             <LineLegend
-                labelSeries={this.lineLegendSeriesLeft}
+                series={this.lineLegendSeriesLeft}
                 x={this.xRange[0] - LINE_LEGEND_PADDING}
                 {...this.lineLegendPropsCommon}
                 {...this.lineLegendPropsLeft}

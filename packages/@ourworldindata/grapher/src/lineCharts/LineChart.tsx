@@ -885,7 +885,7 @@ export class LineChart
         // only pass props that are required to calculate
         // the width to avoid circular dependencies
         return LineLegend.stableWidth({
-            labelSeries: this.lineLegendSeries,
+            series: this.lineLegendSeries,
             maxWidth: this.maxLineLegendWidth,
             fontSize: this.fontSize,
             fontWeight: this.fontWeight,
@@ -953,7 +953,7 @@ export class LineChart
                 ))}
                 {manager.showLegend && (
                     <LineLegend
-                        labelSeries={this.lineLegendSeries}
+                        series={this.lineLegendSeries}
                         yAxis={this.yAxis}
                         x={this.lineLegendX}
                         yRange={this.lineLegendY}
