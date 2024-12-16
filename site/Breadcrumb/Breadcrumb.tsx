@@ -41,14 +41,13 @@ export const Breadcrumbs = ({
         {items.map((item, idx) => {
             const isLast = idx === items.length - 1
 
-            const breadcrumb =
-                !isLast && item.href ? (
-                    <a href={item.href} data-track-note="breadcrumb">
-                        {item.label}
-                    </a>
-                ) : (
-                    <span>{item.label}</span>
-                )
+            const breadcrumb = item.href ? (
+                <a href={item.href} data-track-note="breadcrumb">
+                    {item.label}
+                </a>
+            ) : (
+                <span>{item.label}</span>
+            )
 
             return (
                 <Fragment key={item.label}>

@@ -597,6 +597,9 @@ export class SiteBaker {
             .getPublishedGdocPostsWithTags(knex)
             .then((gdocs) => gdocs.map(gdocFromJSON))
 
+        const allParentTagArraysByChildName =
+            await db.getParentTagArraysByChildName(knex)
+
         const gdocsToBake =
             slugs !== undefined
                 ? publishedGdocs.filter((gdoc) => slugs.includes(gdoc.slug))
@@ -629,6 +632,16 @@ export class SiteBaker {
                 ...attachments.linkedCharts.explorers,
             }
             publishedGdoc.linkedIndicators = attachments.linkedIndicators
+
+            if (
+                !publishedGdoc.breadcrumbs?.length &&
+                publishedGdoc.tags?.length
+            ) {
+                publishedGdoc.breadcrumbs = db.getBestBreadcrumbs(
+                    publishedGdoc.tags,
+                    allParentTagArraysByChildName
+                )
+            }
 
             // this is a no-op if the gdoc doesn't have an all-chart block
             if ("loadRelatedCharts" in publishedGdoc) {
