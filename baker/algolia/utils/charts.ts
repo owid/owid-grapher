@@ -13,6 +13,7 @@ import { isPathRedirectedToExplorer } from "../../../explorerAdminServer/Explore
 import { ParsedChartRecordRow, RawChartRecordRow } from "./types.js"
 import { excludeNullish } from "@ourworldindata/utils"
 import { processAvailableEntities } from "./shared.js"
+import { getUniqueNamesFromParentTagArrays } from "@ourworldindata/utils/dist/Util.js"
 
 const computeChartScore = (record: Omit<ChartRecord, "score">): number => {
     const { numRelatedArticles, views_7d } = record
@@ -99,7 +100,8 @@ export const getChartsRecords = async (
 
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
 
-    const parentTagsByChildName = await db.getParentTagsByChildName(knex)
+    const parentTagArraysByChildName =
+        await db.getParentTagArraysByChildName(knex)
 
     const records: ChartRecord[] = []
     for (const c of parsedRows) {
@@ -121,10 +123,12 @@ export const getChartsRecords = async (
                   fontSize: 10, // doesn't matter, but is a mandatory field
               }).plaintext
 
-        const parentTags = c.tags.flatMap(
+        const parentTags = c.tags.flatMap((tagName) => {
+            const parentTagArrays = parentTagArraysByChildName[tagName]
             // a chart can be tagged with a tag that isn't in the tag graph
-            (tag) => parentTagsByChildName[tag] || []
-        )
+            if (!parentTagArrays) return []
+            return getUniqueNamesFromParentTagArrays(parentTagArrays)
+        })
 
         const record = {
             objectID: c.id.toString(),

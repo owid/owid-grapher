@@ -44,6 +44,8 @@ import {
     KnexReadWriteTransaction,
     getImageMetadataByFilenames,
     getPublishedGdocPostsWithTags,
+    getParentTagArraysByChildName,
+    getBestBreadcrumbs,
 } from "../../db.js"
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { GdocAbout } from "./GdocAbout.js"
@@ -204,7 +206,17 @@ export async function getGdocBaseObjectById(
             [id]
         )
         gdoc.tags = tags
+
+        if (!gdoc.breadcrumbs?.length && tags.length) {
+            const parentTagArraysByChildName =
+                await getParentTagArraysByChildName(knex)
+            gdoc.breadcrumbs = getBestBreadcrumbs(
+                gdoc.tags,
+                parentTagArraysByChildName
+            )
+        }
     }
+
     return gdoc
 }
 
@@ -292,6 +304,14 @@ export async function getPublishedGdocBaseObjectBySlug(
             [gdoc.id]
         )
         gdoc.tags = tags
+        if (!gdoc.breadcrumbs?.length && tags.length) {
+            const parentTagArraysByChildName =
+                await getParentTagArraysByChildName(knex)
+            gdoc.breadcrumbs = getBestBreadcrumbs(
+                gdoc.tags,
+                parentTagArraysByChildName
+            )
+        }
     }
     return gdoc
 }
