@@ -9,7 +9,6 @@ export function getGrapherFilters(
         : undefined
     if (!params) return undefined
     // delete url query params that the download api uses but that are not related to grapher.
-    // Might want to store these in a separate object in the future
     delete params.v1
     delete params.csvType
     delete params.useColumnShortNames
