@@ -327,6 +327,7 @@ export function enumerateGdocComponentsWithoutChildren(
                     type: P.union(
                         "chart-story",
                         "chart",
+                        "narrative-chart",
                         "horizontal-rule",
                         "html",
                         "image",
