@@ -12,6 +12,7 @@ export interface DbInsertImage {
     cloudflareId?: string | null
     hash?: string | null
     userId?: number | null
+    replacedBy?: number | null
 }
 export type DbRawImage = Required<DbInsertImage>
 

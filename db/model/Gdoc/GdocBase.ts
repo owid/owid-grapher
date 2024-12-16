@@ -734,7 +734,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 if (!this.imageMetadata[filename]) {
                     errors.push({
                         property: "imageMetadata",
-                        message: `No image named ${filename} found in Drive`,
+                        message: `No image named ${filename} found in the admin`,
                         type: OwidGdocErrorMessageType.Error,
                     })
                 } else if (!this.imageMetadata[filename].defaultAlt) {

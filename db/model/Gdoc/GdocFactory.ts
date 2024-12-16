@@ -648,8 +648,7 @@ export async function addImagesToContentGraph(
     await trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
     const filenames = gdoc.filenames
 
-    // Includes fragments so that images in data pages are
-    // synced to S3 and ultimately baked in bakeDriveImages().
+    // Includes fragments so that images in data pages are also tracked
     if (filenames.length && gdoc.published) {
         const images = await getImageMetadataByFilenames(trx, filenames)
         const gdocXImagesToInsert: DbInsertPostGdocXImage[] = []

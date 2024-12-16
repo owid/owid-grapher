@@ -373,7 +373,8 @@ export const getImageMetadataByFilenames = async (
             cloudflareId
         FROM
             images
-        WHERE filename IN (?)`,
+        WHERE filename IN (?)
+        AND replacedBy IS NULL`,
         [filenames]
     )
     return keyBy(rows, "filename")
@@ -716,6 +717,30 @@ export async function getLinkedIndicatorSlugs({
         .then((slugs) => new Set(slugs))
 }
 
+export async function selectReplacementChainForImage(
+    trx: KnexReadonlyTransaction,
+    id: string
+): Promise<DbEnrichedImage[]> {
+    return knexRaw<DbEnrichedImage>(
+        trx,
+        `-- sql
+        WITH RECURSIVE replacement_chain AS (
+            SELECT i.*
+            FROM images i
+            WHERE id = ?
+        
+            UNION ALL
+        
+            SELECT i.*
+            FROM images i
+            INNER JOIN replacement_chain rc ON i.replacedBy = rc.id
+        )
+        SELECT * FROM replacement_chain
+        `,
+        [id]
+    )
+}
+
 export function getCloudflareImages(
     trx: KnexReadonlyTransaction
 ): Promise<DbEnrichedImage[]> {
@@ -724,7 +749,8 @@ export function getCloudflareImages(
         `-- sql
         SELECT *
         FROM images
-        WHERE cloudflareId IS NOT NULL`
+        WHERE cloudflareId IS NOT NULL
+        AND replacedBy IS NULL`
     )
 }
 
@@ -737,7 +763,8 @@ export function getCloudflareImage(
         `-- sql
         SELECT * 
         FROM images
-        WHERE filename = ?`,
+        WHERE filename = ?
+        AND replacedBy IS NULL`,
         [filename]
     )
 }
@@ -771,6 +798,7 @@ export function getImageUsage(trx: KnexReadonlyTransaction): Promise<
         FROM posts_gdocs p
         JOIN posts_gdocs_x_images pi ON p.id = pi.gdocId 
         JOIN images i ON pi.imageId = i.id
+        WHERE i.replacedBy IS NULL
         GROUP BY i.id`
     ).then((results) =>
         Object.fromEntries(
