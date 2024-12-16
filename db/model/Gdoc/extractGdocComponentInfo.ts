@@ -68,7 +68,7 @@ function iterateArrayProp<T extends OwidEnrichedGdocBlock>(
     parentPath: string,
     prop: keyof T
 ): ChildIterationInfo[] {
-    if (prop in parent)
+    if (parent[prop])
         return (parent[prop] as OwidEnrichedGdocBlock[]).map(
             (child, index) => ({
                 child: child,
