@@ -68,11 +68,15 @@ function iterateArrayProp<T extends OwidEnrichedGdocBlock>(
     parentPath: string,
     prop: keyof T
 ): ChildIterationInfo[] {
-    return (parent[prop] as OwidEnrichedGdocBlock[]).map((child, index) => ({
-        child: child,
-        parentPath: `${parentPath}`,
-        path: `${parentPath}.${String(prop)}[${index}]`,
-    }))
+    if (parent[prop])
+        return (parent[prop] as OwidEnrichedGdocBlock[]).map(
+            (child, index) => ({
+                child: child,
+                parentPath: `${parentPath}`,
+                path: `${parentPath}.${String(prop)}[${index}]`,
+            })
+        )
+    else return []
 }
 
 /** Convert the spans in a gdoc component to plain text.
