@@ -240,16 +240,13 @@ class Lines extends React.Component<LinesProps> {
         const opacity = series.hover.background ? GRAPHER_OPACITY_MUTE : 1
 
         return (
-            <g
-                id={makeIdForHumanConsumption("markers", series.seriesName)}
-                key={getSeriesKey(series, "markers")}
-            >
+            <g id={makeIdForHumanConsumption("markers", series.seriesName)}>
                 {series.placedPoints.map((value, index) => (
                     <circle
                         id={makeIdForHumanConsumption(
                             horizontalAxis.formatTick(value.time)
                         )}
-                        key={index}
+                        key={`${value}-${index}`}
                         cx={value.x}
                         cy={value.y}
                         r={this.markerRadius}
@@ -265,7 +262,7 @@ class Lines extends React.Component<LinesProps> {
         return (
             <>
                 {this.props.series.map((series) => (
-                    <React.Fragment key={series.seriesName}>
+                    <React.Fragment key={getSeriesKey(series)}>
                         {this.renderLine(series)}
                         {this.renderLineMarkers(series)}
                     </React.Fragment>
