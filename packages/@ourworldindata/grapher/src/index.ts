@@ -85,3 +85,4 @@ export {
 } from "./slideshowController/SlideShowController"
 export { defaultGrapherConfig } from "./schema/defaultGrapherConfig"
 export { migrateGrapherConfigToLatestVersion } from "./schema/migrations/migrate"
+export { generateGrapherImageSrcSet } from "./chart/ChartUtils.js"

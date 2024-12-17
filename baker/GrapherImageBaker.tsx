@@ -12,11 +12,7 @@ import sharp from "sharp"
 import svgo from "svgo"
 import * as db from "../db/db.js"
 import { getDataForMultipleVariables } from "../db/model/Variable.js"
-import {
-    grapherSlugToExportFileKey,
-    grapherUrlToSlugAndQueryStr,
-} from "./GrapherBakingUtils.js"
-import pMap from "p-map"
+import { grapherSlugToExportFileKey } from "./GrapherBakingUtils.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 
 interface SvgFilenameFragments {
@@ -30,15 +26,13 @@ interface SvgFilenameFragments {
 export async function bakeGrapherToSvgAndPng(
     outDir: string,
     jsonConfig: GrapherInterface,
-    vardata: MultipleOwidVariableDataDimensionsMap,
-    optimizeSvgs = false
+    vardata: MultipleOwidVariableDataDimensionsMap
 ) {
     const grapher = initGrapherForSvgExport(jsonConfig)
     grapher.receiveOwidData(vardata)
     const outPath = path.join(outDir, grapher.slug as string)
 
-    let svgCode = grapher.staticSVG
-    if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
+    const svgCode = grapher.staticSVG
 
     return Promise.all([
         fs
@@ -174,35 +168,6 @@ export function buildSvgOutFilepath(
     const outPath = path.join(outDir, outFilename)
     if (verbose) console.log(outPath)
     return outPath
-}
-
-export async function bakeGraphersToSvgs(
-    knex: db.KnexReadonlyTransaction,
-    grapherUrls: string[],
-    outDir: string,
-    optimizeSvgs = false
-) {
-    await fs.mkdirp(outDir)
-    const graphersBySlug = await getGraphersAndRedirectsBySlug(knex)
-
-    return pMap(
-        grapherUrls,
-        async (grapherUrl) => {
-            const { slug, queryStr } = grapherUrlToSlugAndQueryStr(grapherUrl)
-            const jsonConfig = graphersBySlug.get(slug)
-            if (jsonConfig) {
-                return await bakeGrapherToSvg(
-                    jsonConfig,
-                    outDir,
-                    slug,
-                    queryStr,
-                    optimizeSvgs
-                )
-            }
-            return undefined
-        },
-        { concurrency: 10 }
-    )
 }
 
 const svgoConfig: svgo.Config = {

@@ -32,7 +32,7 @@ import { archieToEnriched } from "./archieToEnriched.js"
 import { getChartConfigById, mapSlugsToIds } from "../Chart.js"
 import {
     BAKED_BASE_URL,
-    BAKED_GRAPHER_EXPORTS_BASE_URL,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { match, P } from "ts-pattern"
@@ -948,7 +948,7 @@ export async function makeGrapherLinkedChart(
         title: resolvedTitle,
         tab,
         resolvedUrl,
-        thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
+        thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${resolvedSlug}.svg`,
         tags: [],
         indicatorId: datapageIndicator?.id,
     }

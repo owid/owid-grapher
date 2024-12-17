@@ -7,7 +7,7 @@ import Enzyme from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
 import {
     BAKED_BASE_URL,
-    BAKED_GRAPHER_EXPORTS_BASE_URL,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../../settings/clientSettings.js"
 import { KeyChartLevel } from "@ourworldindata/utils"
 Enzyme.configure({ adapter: new Adapter() })
@@ -37,7 +37,7 @@ it("renders active chart links and loads respective chart on click", () => {
             .find("li")
             .first()
             .find(
-                `img[src="${BAKED_GRAPHER_EXPORTS_BASE_URL}/${charts[1].slug}.svg"]`
+                `img[src="${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${charts[1].slug}.png"]`
             )
     ).toHaveLength(1)
 

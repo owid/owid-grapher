@@ -739,3 +739,9 @@ export type {
     View,
     ViewEnriched,
 } from "./siteTypes/MultiDimDataPage.js"
+
+export {
+    GRAPHER_PREVIEW_CLASS,
+    HIDE_IF_JS_DISABLED_CLASSNAME,
+    HIDE_IF_JS_ENABLED_CLASSNAME,
+} from "./siteTypes/SiteConstants.js"

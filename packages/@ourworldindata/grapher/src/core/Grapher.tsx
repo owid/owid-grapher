@@ -2321,7 +2321,7 @@ export class Grapher
                 container
             )
         } catch (err) {
-            container.innerHTML = `<img src="/grapher/exports/${jsonConfig.slug}.svg"/><p>Unable to load interactive visualization</p>`
+            container.innerHTML = `<p>Unable to load interactive visualization</p>`
             container.setAttribute("id", "fallback")
             throw err
         }

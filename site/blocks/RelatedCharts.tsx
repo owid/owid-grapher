@@ -1,10 +1,14 @@
 import React, { useState, useRef } from "react"
-import { orderBy, RelatedChart } from "@ourworldindata/utils"
+import {
+    HIDE_IF_JS_ENABLED_CLASSNAME,
+    orderBy,
+    RelatedChart,
+} from "@ourworldindata/utils"
 import { useEmbedChart } from "../hooks.js"
 import { GalleryArrow, GalleryArrowDirection } from "./GalleryArrow.js"
 import { AllChartsListItem } from "./AllChartsListItem.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
-import { GRAPHER_PREVIEW_CLASS } from "../SiteConstants.js"
+import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import GrapherImage from "../GrapherImage.js"
 
 export const RELATED_CHARTS_CLASS_NAME = "related-charts"
@@ -53,7 +57,7 @@ export const RelatedCharts = ({
             key={activeChartSlug}
             data-grapher-src={grapherUrl}
         >
-            <div className="js--hide-if-js-enabled">
+            <div className={HIDE_IF_JS_ENABLED_CLASSNAME}>
                 <a href={grapherUrl}>
                     <GrapherImage
                         slug={activeChartSlug}

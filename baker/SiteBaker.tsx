@@ -1,7 +1,7 @@
 import fs from "fs-extra"
 import path from "path"
 import { glob } from "glob"
-import { keyBy, without, uniq, mapValues, pick, chunk } from "lodash"
+import { keyBy, without, mapValues, pick, chunk } from "lodash"
 import ProgressBar from "progress"
 import * as db from "../db/db.js"
 import {
@@ -33,11 +33,6 @@ import {
     renderGdocTombstone,
     renderExplorerIndexPage,
 } from "../baker/siteRenderers.js"
-import {
-    bakeGrapherUrls,
-    getGrapherExportsByUrl,
-    GrapherExports,
-} from "../baker/GrapherBakingUtils.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { bakeCountries } from "../baker/countryProfiles.js"
 import {
@@ -82,10 +77,7 @@ import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getAllImages } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import {
-    getChartEmbedUrlsInPublishedWordpressPosts,
-    mapSlugsToConfigs,
-} from "../db/model/Chart.js"
+import { mapSlugsToConfigs } from "../db/model/Chart.js"
 import { FeatureFlagFeature } from "../settings/clientSettings.js"
 import pMap from "p-map"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
@@ -127,7 +119,6 @@ type PrefetchedAttachments = {
 const wordpressSteps = [
     "assets",
     "blogIndex",
-    "embeds",
     "redirects",
     "rss",
     "wordpressPosts",
@@ -182,7 +173,6 @@ function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
 }
 
 export class SiteBaker {
-    private grapherExports!: GrapherExports
     private bakedSiteDir: string
     baseUrl: string
     progressBar: ProgressBar
@@ -217,20 +207,6 @@ export class SiteBaker {
         // }
     }
 
-    private async bakeEmbeds(knex: db.KnexReadonlyTransaction) {
-        if (!this.bakeSteps.has("embeds")) return
-
-        // Find all grapher urls used as embeds in all Wordpress posts on the site
-        const grapherUrls = uniq(
-            await getChartEmbedUrlsInPublishedWordpressPosts(knex)
-        )
-
-        await bakeGrapherUrls(knex, grapherUrls)
-
-        this.grapherExports = await getGrapherExportsByUrl()
-        this.progressBar.tick({ name: "✅ baked embeds" })
-    }
-
     private async bakeCountryProfiles(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("countryProfiles")) return
         await Promise.all(
@@ -244,8 +220,7 @@ export class SiteBaker {
                     const html = await renderCountryProfile(
                         spec,
                         country,
-                        knex,
-                        this.grapherExports
+                        knex
                     ).catch(() =>
                         console.error(
                             `${country.name} country profile not baked for project "${spec.project}". Check that both pages "${spec.landingPageSlug}" and "${spec.genericProfileSlug}" exist and are published.`
@@ -292,12 +267,7 @@ export class SiteBaker {
 
     // Bake an individual post/page
     private async bakePost(post: FullPost, knex: db.KnexReadonlyTransaction) {
-        const html = await renderPost(
-            post,
-            knex,
-            this.baseUrl,
-            this.grapherExports
-        )
+        const html = await renderPost(post, knex, this.baseUrl)
 
         const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
         await fs.mkdirp(path.dirname(outPath))
@@ -1095,7 +1065,6 @@ export class SiteBaker {
 
     async bakeWordpressPages(knex: db.KnexReadonlyTransaction) {
         await this.bakeRedirects(knex)
-        await this.bakeEmbeds(knex)
         await this.bakeBlogIndex(knex)
         await this.bakeRSS(knex)
         await this.bakeAssets(knex)
