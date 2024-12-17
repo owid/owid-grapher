@@ -171,28 +171,8 @@ export class ScatterPlotChart
         if (this.yScaleType === ScaleType.log && this.yColumnSlug)
             table = table.replaceNonPositiveCellsForLogScale([this.yColumnSlug])
 
-        if (this.sizeColumnSlug) {
-            const tolerance =
-                table.get(this.sizeColumnSlug)?.display?.tolerance ?? Infinity
-            table = table.interpolateColumnWithTolerance(
-                this.sizeColumnSlug,
-                tolerance
-            )
-        }
-
-        if (this.colorColumnSlug) {
-            const tolerance =
-                table.get(this.colorColumnSlug)?.display?.tolerance ?? Infinity
-            table = table.interpolateColumnWithTolerance(
-                this.colorColumnSlug,
-                tolerance
-            )
-            if (this.manager.matchingEntitiesOnly) {
-                table = table.dropRowsWithErrorValuesForColumn(
-                    this.colorColumnSlug
-                )
-            }
-        }
+        if (this.colorColumnSlug && this.manager.matchingEntitiesOnly)
+            table = table.dropRowsWithErrorValuesForColumn(this.colorColumnSlug)
 
         // We want to "chop off" any rows outside the time domain for X and Y to avoid creating
         // leading and trailing timeline times that don't really exist in the dataset.

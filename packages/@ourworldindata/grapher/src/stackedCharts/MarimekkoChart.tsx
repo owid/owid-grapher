@@ -318,17 +318,9 @@ export class MarimekkoChart
         if (xColumnSlug)
             table = table.interpolateColumnWithTolerance(xColumnSlug)
 
-        if (colorColumnSlug) {
-            const tolerance =
-                table.get(colorColumnSlug)?.display?.tolerance ?? Infinity
-            table = table.interpolateColumnWithTolerance(
-                colorColumnSlug,
-                tolerance
-            )
-            if (manager.matchingEntitiesOnly) {
-                table = table.dropRowsWithErrorValuesForColumn(colorColumnSlug)
-            }
-        }
+        if (colorColumnSlug && manager.matchingEntitiesOnly)
+            table = table.dropRowsWithErrorValuesForColumn(colorColumnSlug)
+
         if (!manager.showNoDataArea)
             table = table.dropRowsWithErrorValuesForAllColumns(yColumnSlugs)
 
