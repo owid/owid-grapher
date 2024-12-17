@@ -293,10 +293,7 @@ export function enumerateGdocComponentsWithoutChildren(
             .with({ type: "person" }, (person) =>
                 handleComponent(
                     person,
-                    [
-                        { prop: "text", iterator: iterateArrayProp },
-                        { prop: "socials", iterator: iterateArrayProp },
-                    ],
+                    [{ prop: "text", iterator: iterateArrayProp }],
                     parentPath,
                     path
                 )
@@ -350,7 +347,6 @@ export function enumerateGdocComponentsWithoutChildren(
                         "homepage-search",
                         "homepage-intro",
                         "latest-data-insights",
-                        "socials",
                         "aside",
                         "text",
                         "heading",
