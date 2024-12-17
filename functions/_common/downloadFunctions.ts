@@ -46,7 +46,7 @@ export async function fetchZipForGrapher(
     await grapher.downloadLegacyDataFromOwidVariableIds()
     ensureDownloadOfDataAllowed(grapher)
     const metadata = assembleMetadata(grapher, searchParams)
-    const readme = assembleReadme(grapher)
+    const readme = assembleReadme(grapher, searchParams)
     const csv = assembleCsv(grapher, searchParams)
     console.log("Fetched the parts, creating zip file")
 
