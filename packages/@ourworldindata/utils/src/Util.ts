@@ -2046,6 +2046,11 @@ export function getPaginationPageNumbers(
     return pageNumbers
 }
 
+/**
+ * Checks for content equality, but doesn't care about the order of elements.
+ *
+ * For example, `isArrayDifferentFromReference([1, 2], [2, 1])` returns `false`.
+ */
 export function isArrayDifferentFromReference<T>(
     array: T[],
     referenceArray: T[]
