@@ -16,6 +16,7 @@ import {
     OwidGdocType,
     getOwidGdocFromJSON,
 } from "@ourworldindata/utils"
+import { SiteAbout } from "./SiteAbout.js"
 import { SiteResources } from "./SiteResources.js"
 import { SiteSearchNavigation } from "./SiteSearchNavigation.js"
 import { SiteMobileMenu } from "./SiteMobileMenu.js"
@@ -174,8 +175,16 @@ export const SiteNavigation = ({
                                         Resources
                                     </SiteNavigationToggle>
                                 </li>
-                                <li>
-                                    <a href="/about">About</a>
+                                <li className="with-relative-dropdown">
+                                    <SiteNavigationToggle
+                                        ariaLabel="Toggle about menu"
+                                        isActive={menu === Menu.About}
+                                        onToggle={() => toggleMenu(Menu.About)}
+                                        dropdown={<SiteAbout />}
+                                        withCaret={true}
+                                    >
+                                        About
+                                    </SiteNavigationToggle>
                                 </li>
                             </ul>
                         </nav>

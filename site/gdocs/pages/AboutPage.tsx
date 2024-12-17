@@ -3,17 +3,9 @@ import { isEmpty } from "lodash"
 import * as React from "react"
 
 import { OwidGdocAboutInterface } from "@ourworldindata/types"
+import { ABOUT_LINKS } from "../../SiteAbout.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import Footnotes from "../components/Footnotes.js"
-
-const NAV_LINKS = [
-    { title: "About Us", href: "/about" },
-    { title: "Organization", href: "/organization" },
-    { title: "Funding", href: "/funding" },
-    { title: "Team", href: "/team" },
-    { title: "Jobs", href: "/jobs" },
-    { title: "FAQs", href: "/faqs" },
-]
 
 export default function AboutPage({ content, slug }: OwidGdocAboutInterface) {
     return (
@@ -39,21 +31,22 @@ function AboutNav({ slug }: { slug: string }) {
     return (
         <nav className="about-nav grid grid-cols-12-full-width col-start-1 col-end-limit">
             <ul className="about-nav-list col-start-2 col-end-14 col-sm-start-1">
-                {NAV_LINKS.map(({ title, href }) => (
-                    <li key={href}>
-                        <h2>
+                {ABOUT_LINKS.map(({ title, href }) => {
+                    const isActive = href === `/${slug}`
+                    return (
+                        <li key={href}>
                             <a
                                 className={cx("about-nav-link", {
-                                    "about-nav-link--is-active":
-                                        href === `/${slug}`,
+                                    "about-nav-link--is-active": isActive,
                                 })}
                                 href={href}
+                                aria-current={isActive ? "page" : undefined}
                             >
                                 {title}
                             </a>
-                        </h2>
-                    </li>
-                ))}
+                        </li>
+                    )
+                })}
             </ul>
         </nav>
     )
