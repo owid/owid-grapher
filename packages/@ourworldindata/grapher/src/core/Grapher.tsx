@@ -885,6 +885,8 @@ export class Grapher
     }
 
     @computed get chartSeriesNames(): SeriesName[] {
+        if (!this.isReady) return []
+
         // collect series names from all chart instances when faceted
         if (this.isFaceted) {
             const facetChartInstance = new FacetChart({ manager: this })
