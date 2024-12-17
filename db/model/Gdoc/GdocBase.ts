@@ -48,7 +48,7 @@ import {
     getVariableMetadata,
     getVariableOfDatapageIfApplicable,
 } from "../Variable.js"
-import { createLinkFromUrl } from "../Link.js"
+import { createLinkForNarrativeChart, createLinkFromUrl } from "../Link.js"
 import {
     getMultiDimDataPageBySlug,
     isMultiDimDataPagePublished,
@@ -341,6 +341,13 @@ export class GdocBase implements OwidGdocBaseInterface {
                     componentType: block.type,
                 }),
             ])
+            .with({ type: "narrative-chart" }, (block) => [
+                createLinkForNarrativeChart({
+                    name: block.name,
+                    source: this,
+                    componentType: block.type,
+                }),
+            ])
             .with({ type: "all-charts" }, (block) =>
                 block.top.map((item) =>
                     createLinkFromUrl({
@@ -570,10 +577,6 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "key-indicator-collection",
                         "list",
                         "missing-data",
-
-                        // Open question: there's not a direct link to a chart here, but there is a chart and also a parent chart
-                        "narrative-chart",
-
                         "numbered-list",
                         "people",
                         "people-rows",
