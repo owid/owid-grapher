@@ -30,6 +30,8 @@ export const defaultGrapherConfig = {
         time: "latest",
     },
     maxTime: "latest",
+    selectedEntityNames: [],
+    focusedSeriesNames: [],
     yAxis: {
         removePointsOutsideDomain: false,
         scaleType: "linear",
@@ -54,11 +56,13 @@ export const defaultGrapherConfig = {
     selectedFacetStrategy: "none",
     invertColorScheme: false,
     hideRelativeToggle: true,
+    comparisonLines: [],
     logo: "owid",
     entityType: "country or region",
     facettingLabelByYVariables: "metric",
     addCountryMode: "add-country",
     compareEndPointsOnly: false,
+    relatedQuestions: [],
     chartTypes: ["LineChart"],
     hasMapTab: false,
     stackMode: "absolute",
@@ -68,6 +72,7 @@ export const defaultGrapherConfig = {
         time: false,
         changeInPrefix: false,
     },
+    excludedEntities: [],
     xAxis: {
         removePointsOutsideDomain: false,
         scaleType: "linear",
@@ -85,6 +90,7 @@ export const defaultGrapherConfig = {
     sortBy: "total",
     sortOrder: "desc",
     hideFacetControl: true,
+    includedEntities: [],
     entityTypePlural: "countries and regions",
     missingDataStrategy: "auto",
 } as GrapherInterface
