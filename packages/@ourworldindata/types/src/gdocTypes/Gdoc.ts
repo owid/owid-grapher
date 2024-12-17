@@ -55,7 +55,7 @@ export interface LinkedChart {
 }
 
 // An object containing metadata needed for embedded narrative charts
-export interface ChartViewMetadata {
+export interface NarrativeViewInfo {
     name: string
     title: string
     chartConfigId: string

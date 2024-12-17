@@ -13,7 +13,7 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocHomepageMetadata,
     DbEnrichedLatestWork,
-    ChartViewMetadata,
+    NarrativeViewInfo,
 } from "@ourworldindata/types"
 import { get, getOwidGdocFromJSON } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
@@ -36,7 +36,7 @@ export type Attachments = {
     latestDataInsights?: LatestDataInsight[]
     homepageMetadata?: OwidGdocHomepageMetadata
     latestWorkLinks?: DbEnrichedLatestWork[]
-    chartViewMetadata?: Record<string, ChartViewMetadata>
+    narrativeViewsInfo?: Record<string, NarrativeViewInfo>
 }
 
 export const AttachmentsContext = createContext<Attachments>({
@@ -49,7 +49,7 @@ export const AttachmentsContext = createContext<Attachments>({
     latestDataInsights: [],
     homepageMetadata: {},
     latestWorkLinks: [],
-    chartViewMetadata: {},
+    narrativeViewsInfo: {},
 })
 
 export const DocumentContext = createContext<{ isPreviewing: boolean }>({
@@ -134,7 +134,7 @@ export function OwidGdoc({
                 latestDataInsights: get(props, "latestDataInsights", []),
                 homepageMetadata: get(props, "homepageMetadata", {}),
                 latestWorkLinks: get(props, "latestWorkLinks", []),
-                chartViewMetadata: get(props, "chartViewMetadata", {}),
+                narrativeViewsInfo: get(props, "narrativeViewsInfo", {}),
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
