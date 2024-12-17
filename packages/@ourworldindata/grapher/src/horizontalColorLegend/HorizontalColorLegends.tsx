@@ -808,6 +808,10 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return max(this.marks.map((mark) => mark.y + mark.rectSize)) ?? 0
     }
 
+    @computed get numLines(): number {
+        return this.markLines.length
+    }
+
     renderLabels(): React.ReactElement {
         const { manager, marks } = this
         const { focusColors, hoverColors = [] } = manager
