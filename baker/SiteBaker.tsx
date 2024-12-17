@@ -348,7 +348,7 @@ export class SiteBaker {
     _prefetchedAttachmentsCache: PrefetchedAttachments | undefined = undefined
     private async getPrefetchedGdocAttachments(
         knex: db.KnexReadonlyTransaction,
-        picks?: [string[], string[], string[], string[], string[]]
+        picks?: [string[], string[], string[], string[], string[], string[]]
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
             console.log("Prefetching attachments...")
@@ -490,6 +490,7 @@ export class SiteBaker {
                 imageFilenames,
                 linkedGrapherSlugs,
                 linkedExplorerSlugs,
+                linkedNarrativeChartNames,
             ] = picks
             const linkedDocuments = pick(
                 this._prefetchedAttachmentsCache.linkedDocuments,
@@ -538,8 +539,10 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedAuthors.filter(
                         (author) => authorNames.includes(author.name)
                     ),
-                narrativeViewsInfo:
-                    this._prefetchedAttachmentsCache.narrativeViewsInfo, // TODO: Filter
+                narrativeViewsInfo: pick(
+                    this._prefetchedAttachmentsCache.narrativeViewsInfo,
+                    linkedNarrativeChartNames
+                ),
             }
         }
         return this._prefetchedAttachmentsCache
@@ -631,6 +634,7 @@ export class SiteBaker {
                 publishedGdoc.linkedImageFilenames,
                 publishedGdoc.linkedChartSlugs.grapher,
                 publishedGdoc.linkedChartSlugs.explorer,
+                publishedGdoc.linkedNarrativeChartNames,
             ])
             publishedGdoc.donors = attachments.donors
             publishedGdoc.linkedAuthors = attachments.linkedAuthors
@@ -889,6 +893,7 @@ export class SiteBaker {
                 dataInsight.linkedImageFilenames,
                 dataInsight.linkedChartSlugs.grapher,
                 dataInsight.linkedChartSlugs.explorer,
+                dataInsight.linkedNarrativeChartNames,
             ])
             dataInsight.linkedDocuments = attachments.linkedDocuments
             dataInsight.imageMetadata = {
@@ -962,6 +967,7 @@ export class SiteBaker {
                 publishedAuthor.linkedImageFilenames,
                 publishedAuthor.linkedChartSlugs.grapher,
                 publishedAuthor.linkedChartSlugs.explorer,
+                publishedAuthor.linkedNarrativeChartNames,
             ])
 
             // We don't need these to be attached to the gdoc in the current
