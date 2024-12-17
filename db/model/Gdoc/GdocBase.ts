@@ -295,6 +295,14 @@ export class GdocBase implements OwidGdocBaseInterface {
         return { grapher: [...grapher], explorer: [...explorer] }
     }
 
+    get linkedNarrativeChartNames(): string[] {
+        const filteredLinks = this.links
+            .filter((link) => link.linkType === "narrative-chart")
+            .map((link) => link.target)
+
+        return filteredLinks
+    }
+
     get hasAllChartsBlock(): boolean {
         let hasAllChartsBlock = false
         for (const enrichedBlockSource of this.enrichedBlockSources) {
@@ -723,8 +731,10 @@ export class GdocBase implements OwidGdocBaseInterface {
     async loadNarrativeViewsInfo(
         knex: db.KnexReadonlyTransaction
     ): Promise<void> {
-        // TODO: Filter down to only those that are used in the Gdoc
-        const result = await getNarrativeViewsInfo(knex)
+        const result = await getNarrativeViewsInfo(
+            knex,
+            this.linkedNarrativeChartNames
+        )
         this.narrativeViewsInfo = keyBy(result, "name")
     }
 
