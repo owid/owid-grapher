@@ -30,16 +30,21 @@ export class CloudflareImagesReplacedBy1734369183234
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        // Remove the combined unique constraint
+        // First remove the foreign key constraint
+        await queryRunner.query(`-- sql
+            ALTER TABLE images
+            DROP FOREIGN KEY fk_images_replaced_by
+        `)
+
+        // Then remove the combined unique constraint
         await queryRunner.query(`-- sql
             ALTER TABLE images
             DROP KEY uk_images_replaced_by_filename
         `)
 
-        // Remove the foreign key constraint and column
+        // Remove the column
         await queryRunner.query(`-- sql
             ALTER TABLE images
-            DROP FOREIGN KEY fk_images_replaced_by,
             DROP COLUMN replacedBy
         `)
 
