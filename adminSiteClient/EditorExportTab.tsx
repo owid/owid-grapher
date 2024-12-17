@@ -211,6 +211,7 @@ export class EditorExportTab<
                     staticFormat: format,
                     selectedEntityNames:
                         this.grapher.selection.selectedEntityNames,
+                    focusedSeriesNames: this.grapher.focusedSeriesNames,
                     isSocialMediaExport,
                 })
             }

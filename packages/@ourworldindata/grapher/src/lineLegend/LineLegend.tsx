@@ -13,6 +13,7 @@ import {
     sortedIndexBy,
     last,
     maxBy,
+    partition,
 } from "@ourworldindata/utils"
 import { TextWrap, TextWrapGroup, Halo } from "@ourworldindata/components"
 import { computed } from "mobx"
@@ -29,8 +30,14 @@ import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
-import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
+import {
+    GRAPHER_BACKGROUND_DEFAULT,
+    GRAY_30,
+    GRAY_70,
+} from "../color/ColorConstants"
 
+// text color for labels of background series
+const NON_FOCUSED_TEXT_COLOR = GRAY_70
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 4
 // Horizontal distance from the end of the chart to the start of the marker
@@ -49,13 +56,15 @@ export interface LineLabelSeries extends ChartSeries {
     placeFormattedValueInNewLine?: boolean
     yRange?: [number, number]
     hover?: InteractionState
+    focus?: InteractionState
 }
 
 interface SizedSeries extends LineLabelSeries {
-    textWrap: TextWrapGroup
+    textWrap: TextWrap | TextWrapGroup
     annotationTextWrap?: TextWrap
     width: number
     height: number
+    fontWeight?: number
 }
 
 interface PlacedSeries extends SizedSeries {
@@ -96,6 +105,7 @@ class LineLabels extends React.Component<{
     textOutlineColor?: Color
     anchor?: "start" | "end"
     isStatic?: boolean
+    cursor?: string
     onClick?: (series: PlacedSeries) => void
     onMouseOver?: (series: PlacedSeries) => void
     onMouseLeave?: (series: PlacedSeries) => void
@@ -113,7 +123,7 @@ class LineLabels extends React.Component<{
     }
 
     private textOpacityForSeries(series: PlacedSeries): number {
-        return series.hover?.background ? 0.6 : 1
+        return series.hover?.background && !series.focus?.background ? 0.6 : 1
     }
 
     @computed private get markers(): {
@@ -149,17 +159,37 @@ class LineLabels extends React.Component<{
         return (
             <g id={makeIdForHumanConsumption("text-labels")}>
                 {this.markers.map(({ series, labelText }) => {
-                    const textColor = darkenColorForText(series.color)
-                    return (
+                    const textColor =
+                        !series.focus?.background || series.hover?.active
+                            ? darkenColorForText(series.color)
+                            : NON_FOCUSED_TEXT_COLOR
+                    const textProps = {
+                        fill: textColor,
+                        opacity: this.textOpacityForSeries(series),
+                        textAnchor: this.anchor,
+                    }
+
+                    return series.textWrap instanceof TextWrap ? (
+                        <Halo
+                            id={series.seriesName}
+                            key={series.seriesName}
+                            show={this.showTextOutline}
+                            outlineColor={this.textOutlineColor}
+                        >
+                            {series.textWrap.render(labelText.x, labelText.y, {
+                                textProps: {
+                                    ...textProps,
+                                    // might override the textWrap's fontWeight
+                                    fontWeight: series.fontWeight,
+                                },
+                            })}
+                        </Halo>
+                    ) : (
                         <React.Fragment key={series.seriesName}>
                             {series.textWrap.render(labelText.x, labelText.y, {
                                 showTextOutline: this.showTextOutline,
                                 textOutlineColor: this.textOutlineColor,
-                                textProps: {
-                                    fill: textColor,
-                                    opacity: this.textOpacityForSeries(series),
-                                    textAnchor: this.anchor,
-                                },
+                                textProps,
                             })}
                         </React.Fragment>
                     )
@@ -222,7 +252,11 @@ class LineLabels extends React.Component<{
                     const step = (x2 - x1) / (totalLevels + 1)
                     const markerXMid = x1 + step + level * step
                     const d = `M${x1},${leftCenterY} H${markerXMid} V${rightCenterY} H${x2}`
-                    const lineColor = series.hover?.background ? "#eee" : "#999"
+                    const lineColor = series.hover?.background
+                        ? "#eee"
+                        : series.focus?.background
+                          ? GRAY_30
+                          : "#999"
 
                     return (
                         <path
@@ -255,7 +289,7 @@ class LineLabels extends React.Component<{
                                 this.props.onMouseLeave?.(series)
                             }
                             onClick={() => this.props.onClick?.(series)}
-                            style={{ cursor: "default" }}
+                            style={{ cursor: this.props.cursor }}
                         >
                             <rect
                                 x={x}
@@ -365,45 +399,77 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return this.props.verticalAlign ?? VerticalAlign.middle
     }
 
-    @computed.struct get sizedLabels(): SizedSeries[] {
-        const { fontSize, maxWidth } = this
-        const maxTextWidth = maxWidth - DEFAULT_CONNECTOR_LINE_WIDTH
-        const maxAnnotationWidth = Math.min(maxTextWidth, 150)
+    @computed private get textMaxWidth(): number {
+        return this.maxWidth - DEFAULT_CONNECTOR_LINE_WIDTH
+    }
 
-        return this.props.labelSeries.map((label) => {
-            // if a formatted value is given, make the main label bold
-            const fontWeight = label.formattedValue ? 700 : this.fontWeight
-
-            const mainLabel = { text: label.label, fontWeight }
-            const valueLabel = label.formattedValue
-                ? {
-                      text: label.formattedValue,
-                      newLine: (label.placeFormattedValueInNewLine
-                          ? "always"
-                          : "avoid-wrap") as "always" | "avoid-wrap",
-                  }
-                : undefined
-            const labelFragments = excludeUndefined([mainLabel, valueLabel])
-            const textWrap = new TextWrapGroup({
-                fragments: labelFragments,
-                maxWidth: maxTextWidth,
-                fontSize,
+    private makeLabelTextWrap(
+        series: LineLabelSeries
+    ): TextWrap | TextWrapGroup {
+        if (!series.formattedValue) {
+            return new TextWrap({
+                text: series.label,
+                maxWidth: this.textMaxWidth,
+                fontSize: this.fontSize,
+                // using the actual font weight here would lead to a jumpy layout
+                // when focusing/unfocusing a series since focused series are
+                // bolded and the computed text width depends on the text's font weight.
+                // that's why we always use bold labels to comupte the layout,
+                // but might render them later using a regular font weight.
+                fontWeight: 700,
             })
-            const annotationTextWrap = label.annotation
-                ? new TextWrap({
-                      text: label.annotation,
-                      maxWidth: maxAnnotationWidth,
-                      fontSize: fontSize * 0.9,
-                      lineHeight: 1,
-                  })
-                : undefined
+        }
 
-            const annotationWidth = annotationTextWrap
-                ? annotationTextWrap.width
-                : 0
+        // text label fragment
+        const textLabel = { text: series.label, fontWeight: 700 }
+
+        // value label fragment
+        const newLine = series.placeFormattedValueInNewLine
+            ? "always"
+            : "avoid-wrap"
+        const valueLabel = {
+            text: series.formattedValue,
+            fontWeight: 400,
+            newLine,
+        }
+
+        return new TextWrapGroup({
+            fragments: [textLabel, valueLabel],
+            maxWidth: this.textMaxWidth,
+            fontSize: this.fontSize,
+        })
+    }
+
+    private makeAnnotationTextWrap(
+        series: LineLabelSeries
+    ): TextWrap | undefined {
+        if (!series.annotation) return undefined
+        const maxWidth = Math.min(this.textMaxWidth, 150)
+        return new TextWrap({
+            text: series.annotation,
+            maxWidth,
+            fontSize: this.fontSize * 0.9,
+            lineHeight: 1,
+        })
+    }
+
+    @computed.struct get sizedLabels(): SizedSeries[] {
+        const { fontWeight: globalFontWeight } = this
+        return this.props.labelSeries.map((label) => {
+            const textWrap = this.makeLabelTextWrap(label)
+            const annotationTextWrap = this.makeAnnotationTextWrap(label)
+
+            const annotationWidth = annotationTextWrap?.width ?? 0
             const annotationHeight = annotationTextWrap
                 ? ANNOTATION_PADDING + annotationTextWrap.height
                 : 0
+
+            // font weight priority:
+            // series focus state > presense of value label > globally set font weight
+            const activeFontWeight = label.focus?.active ? 700 : undefined
+            const seriesFontWeight = label.formattedValue ? 700 : undefined
+            const fontWeight =
+                activeFontWeight ?? seriesFontWeight ?? globalFontWeight
 
             return {
                 ...label,
@@ -411,6 +477,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 annotationTextWrap,
                 width: Math.max(textWrap.width, annotationWidth),
                 height: textWrap.height + annotationHeight,
+                fontWeight,
             }
         })
     }
@@ -509,10 +576,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
         const [yLegendMin, yLegendMax] = this.legendY
 
         // ensure list is sorted by the visual position in ascending order
-        const sortedSeries = sortBy(
-            this.partialInitialSeries,
-            (label) => label.midY
-        )
+        const sortedSeries = sortBy(this.visibleSeries, (label) => label.midY)
 
         const groups: PlacedSeries[][] = cloneDeep(sortedSeries).map((mark) => [
             mark,
@@ -589,7 +653,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
         )
     }
 
-    @computed get partialInitialSeries(): PlacedSeries[] {
+    @computed get visibleSeries(): PlacedSeries[] {
         const { legendY } = this
         const availableHeight = Math.abs(legendY[1] - legendY[0])
         const nonOverlappingMinHeight =
@@ -663,17 +727,66 @@ export class LineLegend extends React.Component<LineLegendProps> {
                 return [undefined, undefined]
             }
 
-            const sortedCandidates = sortBy(this.initialSeries, (c) => c.midY)
+            const [focusedCandidates, nonFocusedCandidates] = partition(
+                this.initialSeries,
+                (series) => series.focus?.active
+            )
 
-            // pick two candidates, one from the top and one from the bottom
-            const midIndex = Math.floor((sortedCandidates.length - 1) / 2)
-            for (let startIndex = 0; startIndex <= midIndex; startIndex++) {
-                const endIndex = sortedCandidates.length - 1 - startIndex
-                maybePickCandidate(sortedCandidates[endIndex])
-                if (sortedKeepSeries.length >= 2 || startIndex === endIndex)
-                    break
-                maybePickCandidate(sortedCandidates[startIndex])
-                if (sortedKeepSeries.length >= 2) break
+            // pick focused canidates first
+            while (focusedCandidates.length > 0) {
+                const focusedCandidate = focusedCandidates.pop()!
+                const picked = maybePickCandidate(focusedCandidate)
+
+                // if one of the focused candidates doesn't fit,
+                // remove it from the candidates and continue
+                if (!picked) candidates.delete(focusedCandidate)
+            }
+
+            // we initially need to pick at least two candidates.
+            // - if we already picked two from the set of focused series,
+            //   we're done
+            // - if we picked only one focused series, then we pick another
+            //   one from the set of non-focused series. we pick the one that
+            //   is furthest away from the focused one
+            // - if we haven't picked any focused series, we pick two from
+            //   the non-focused series, one from the top and one from the bottom
+            if (sortedKeepSeries.length === 0) {
+                // sort the remaining candidates by their position
+                const sortedCandidates = sortBy(
+                    nonFocusedCandidates,
+                    (c) => c.midY
+                )
+
+                // pick two candidates, one from the top and one from the bottom
+                const midIndex = Math.floor((sortedCandidates.length - 1) / 2)
+                for (let startIndex = 0; startIndex <= midIndex; startIndex++) {
+                    const endIndex = sortedCandidates.length - 1 - startIndex
+                    maybePickCandidate(sortedCandidates[endIndex])
+                    if (sortedKeepSeries.length >= 2 || startIndex === endIndex)
+                        break
+                    maybePickCandidate(sortedCandidates[startIndex])
+                    if (sortedKeepSeries.length >= 2) break
+                }
+            } else if (sortedKeepSeries.length === 1) {
+                const keepMidY = sortedKeepSeries[0].midY
+
+                while (nonFocusedCandidates.length > 0) {
+                    // prefer the candidate that is furthest away from the one
+                    // that was already picked
+                    const candidate = maxBy(nonFocusedCandidates, (c) =>
+                        Math.abs(c.midY - keepMidY)
+                    )!
+                    const cIndex = nonFocusedCandidates.indexOf(candidate)
+                    if (cIndex > -1) nonFocusedCandidates.splice(cIndex, 1)
+
+                    // we only need one more candidate, so if we find one, we're done
+                    const picked = maybePickCandidate(candidate)
+                    if (picked) break
+
+                    // if the candidate wasn't picked, remove it from the
+                    // candidates and continue
+                    candidates.delete(candidate)
+                }
             }
 
             while (candidates.size > 0 && keepSeriesHeight <= availableHeight) {
@@ -731,7 +844,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
     }
 
     @computed get visibleSeriesNames(): SeriesName[] {
-        return this.partialInitialSeries.map((series) => series.seriesName)
+        return this.visibleSeries.map((series) => series.seriesName)
     }
 
     // Does this placement need line markers or is the position of the labels already clear?
@@ -763,6 +876,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
                     onMouseLeave={(series): void =>
                         this.onMouseLeave(series.seriesName)
                     }
+                    cursor={this.props.onClick ? "pointer" : "default"}
                 />
             </g>
         )

@@ -266,6 +266,7 @@ export class FacetChart
             endTime,
             missingDataStrategy,
             backgroundColor,
+            focusArray,
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
@@ -323,6 +324,7 @@ export class FacetChart
                 missingDataStrategy,
                 backgroundColor,
                 hideNoDataSection,
+                focusArray,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
@@ -345,7 +347,7 @@ export class FacetChart
         })
     }
 
-    @computed private get intermediateChartInstances(): ChartInterface[] {
+    @computed get intermediateChartInstances(): ChartInterface[] {
         return this.intermediatePlacedSeries.map(({ bounds, manager }) => {
             const ChartClass =
                 ChartComponentClassMap.get(this.chartTypeName) ??
@@ -730,6 +732,22 @@ export class FacetChart
         return [this.legendHoverBin.color]
     }
 
+    @computed get activeColors(): Color[] | undefined {
+        const { focusArray } = this.manager
+        if (!focusArray) return undefined
+
+        // find colours of all currently focused series
+        const activeColors = uniq(
+            this.intermediateChartInstances.flatMap((chartInstance) =>
+                chartInstance.series
+                    .filter((series) => focusArray.has(series.seriesName))
+                    .map((series) => series.color)
+            )
+        )
+
+        return activeColors.length > 0 ? activeColors : undefined
+    }
+
     @computed get numericLegendData(): ColorScaleBin[] {
         if (!this.isNumericLegend || !this.hideFacetLegends) return []
         const allBins: ColorScaleBin[] = this.externalLegends.flatMap(
@@ -778,6 +796,19 @@ export class FacetChart
 
     @action.bound onLegendMouseLeave(): void {
         this.legendHoverBin = undefined
+    }
+
+    @action.bound onLegendClick(bin: ColorScaleBin): void {
+        if (!this.manager.focusArray) return
+        // find all series (of all facets) that are contained in the bin
+        const seriesNames = uniq(
+            this.intermediateChartInstances.flatMap((chartInstance) =>
+                chartInstance.series
+                    .filter((series) => bin.contains(series.seriesName))
+                    .map((series) => series.seriesName)
+            )
+        )
+        this.manager.focusArray.toggle(...seriesNames)
     }
 
     // end of legend props

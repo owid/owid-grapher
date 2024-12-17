@@ -50,9 +50,9 @@ import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
-    byInteractionState,
+    byHoverThenFocusState,
     getDefaultFailMessage,
-    getInteractionStateForSeries,
+    getHoverStateForSeries,
     getShortNameForEntity,
     makeSelectionArray,
 } from "../chart/ChartUtils"
@@ -88,9 +88,11 @@ import { Halo } from "@ourworldindata/components"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import {
+    OWID_NON_FOCUSED_GRAY,
     GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
 } from "../color/ColorConstants"
+import { FocusArray } from "../focus/FocusArray"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -102,8 +104,9 @@ export interface SlopeChartManager extends ChartManager {
     hideNoDataSection?: boolean
 }
 
-const TOP_PADDING = 6 // leave room for overflowing dots
+const NON_FOCUSED_LINE_COLOR = OWID_NON_FOCUSED_GRAY
 
+const TOP_PADDING = 6 // leave room for overflowing dots
 const LINE_LEGEND_PADDING = 4
 
 @observer
@@ -226,6 +229,10 @@ export class SlopeChart
         return makeSelectionArray(this.manager.selection)
     }
 
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
+    }
+
     @computed private get formatColumn(): CoreColumn {
         return this.yColumns[0]
     }
@@ -246,6 +253,10 @@ export class SlopeChart
             // the currently hovered series
             !!this.manager.externalLegendHoverBin
         )
+    }
+
+    @computed get isFocusModeActive(): boolean {
+        return !this.focusArray.isEmpty
     }
 
     @computed private get yColumns(): CoreColumn[] {
@@ -319,27 +330,25 @@ export class SlopeChart
         const { canSelectMultipleEntities = false } = this.manager
 
         const { availableEntityNames } = this.transformedTable
-        const displayEntityName =
-            getShortNameForEntity(entityName) ?? entityName
         const columnName = column.nonEmptyDisplayName
-        const seriesName = getSeriesName({
-            entityName: displayEntityName,
+        const props = {
+            entityName,
             columnName,
             seriesStrategy,
             availableEntityNames,
             canSelectMultipleEntities,
+        }
+        const seriesName = getSeriesName(props)
+        const displayName = getSeriesName({
+            ...props,
+            entityName: getShortNameForEntity(entityName) ?? entityName,
         })
 
         const owidRowByTime = column.owidRowByEntityNameAndTime.get(entityName)
         const start = owidRowByTime?.get(startTime)
         const end = owidRowByTime?.get(endTime)
 
-        const colorKey = getColorKey({
-            entityName,
-            columnName,
-            seriesStrategy,
-            availableEntityNames,
-        })
+        const colorKey = getColorKey(props)
         const color = this.categoricalColorAssigner.assign(colorKey)
 
         const annotation = getAnnotationsForSeries(
@@ -351,6 +360,7 @@ export class SlopeChart
             column,
             seriesName,
             entityName,
+            displayName,
             color,
             start,
             end,
@@ -456,10 +466,14 @@ export class SlopeChart
     }
 
     private hoverStateForSeries(series: SlopeChartSeries): InteractionState {
-        return getInteractionStateForSeries(series, {
-            isInteractionModeActive: this.isHoverModeActive,
-            activeSeriesNames: this.hoveredSeriesNames,
+        return getHoverStateForSeries(series, {
+            isHoverModeActive: this.isHoverModeActive,
+            hoveredSeriesNames: this.hoveredSeriesNames,
         })
+    }
+
+    private focusStateForSeries(series: SlopeChartSeries): InteractionState {
+        return this.focusArray.state(series.seriesName)
     }
 
     @computed private get renderSeries(): RenderSlopeChartSeries[] {
@@ -468,14 +482,15 @@ export class SlopeChart
                 return {
                     ...series,
                     hover: this.hoverStateForSeries(series),
+                    focus: this.focusStateForSeries(series),
                 }
             }
         )
 
-        // sort by interaction state so that hovered series
+        // sort by interaction state so that foreground series
         // are drawn on top of background series
-        if (this.isHoverModeActive) {
-            return sortBy(series, byInteractionState)
+        if (this.isHoverModeActive || this.isFocusModeActive) {
+            return sortBy(series, byHoverThenFocusState)
         }
 
         return series
@@ -624,6 +639,8 @@ export class SlopeChart
             textOutlineColor: this.backgroundColor,
             onMouseOver: this.onLineLegendMouseOver,
             onMouseLeave: this.onLineLegendMouseLeave,
+            onClick:
+                this.series.length > 1 ? this.onLineLegendClick : undefined,
         }
     }
 
@@ -714,6 +731,13 @@ export class SlopeChart
             .sort((s1: SeriesName, s2: SeriesName): number => {
                 const PREFER_S1 = -1
                 const PREFER_S2 = 1
+
+                const s1_isFocused = this.focusArray.has(s1)
+                const s2_isFocused = this.focusArray.has(s2)
+
+                // prefer to label focused series
+                if (s1_isFocused && !s2_isFocused) return PREFER_S1
+                if (s2_isFocused && !s1_isFocused) return PREFER_S2
 
                 const s1_isLabelled = this.visibleLineLegendLabelsRight.has(s1)
                 const s2_isLabelled = this.visibleLineLegendLabelsRight.has(s2)
@@ -811,18 +835,19 @@ export class SlopeChart
             showAnnotation?: boolean
         }
     ): LineLabelSeries {
-        const { seriesName, color, annotation } = series
+        const { seriesName, displayName, color, annotation } = series
         const value = getValue(series)
         const formattedValue = this.formatValue(value)
         return {
             color,
             seriesName,
             annotation: showAnnotation ? annotation : undefined,
-            label: showSeriesName ? seriesName : formattedValue,
+            label: showSeriesName ? displayName : formattedValue,
             formattedValue: showSeriesName ? formattedValue : undefined,
             placeFormattedValueInNewLine: this.useCompactLayout,
             yValue: value,
             hover: this.hoverStateForSeries(series),
+            focus: this.focusStateForSeries(series),
         }
     }
 
@@ -937,6 +962,10 @@ export class SlopeChart
             // wait before clearing selection in case the mouse is moving quickly over neighboring labels
             this.hoveredSeriesName = undefined
         }, 200)
+    }
+
+    @action.bound onLineLegendClick(seriesName: SeriesName): void {
+        this.focusArray.toggle(seriesName)
     }
 
     @action.bound onSlopeMouseOver(series: SlopeChartSeries): void {
@@ -1056,18 +1085,18 @@ export class SlopeChart
     }
 
     private makeMissingDataLabel(series: RawSlopeChartSeries): string {
-        const { seriesName, start, end } = series
+        const { displayName, start, end } = series
 
         const startTime = this.formatColumn.formatTime(this.startTime)
         const endTime = this.formatColumn.formatTime(this.endTime)
 
         // mention the start or end value if they're missing
         if (start?.value === undefined && end?.value === undefined) {
-            return `${seriesName} (${startTime} & ${endTime})`
+            return `${displayName} (${startTime} & ${endTime})`
         } else if (start?.value === undefined) {
-            return `${seriesName} (${startTime})`
+            return `${displayName} (${startTime})`
         } else if (end?.value === undefined) {
-            return `${seriesName} (${endTime})`
+            return `${displayName} (${endTime})`
         }
 
         // if both values are given but the series shows up in the No Data
@@ -1078,14 +1107,14 @@ export class SlopeChart
             start.originalTime !== this.startTime
         const isToleranceAppliedToEndValue = end.originalTime !== this.endTime
         if (isToleranceAppliedToStartValue && isToleranceAppliedToEndValue) {
-            return `${seriesName} (${startTime} & ${endTime})`
+            return `${displayName} (${startTime} & ${endTime})`
         } else if (isToleranceAppliedToStartValue) {
-            return `${seriesName} (${startTime})`
+            return `${displayName} (${startTime})`
         } else if (isToleranceAppliedToEndValue) {
-            return `${seriesName} (${endTime})`
+            return `${displayName} (${endTime})`
         }
 
-        return seriesName
+        return displayName
     }
 
     private renderNoDataSection(): React.ReactElement | void {
@@ -1117,7 +1146,6 @@ export class SlopeChart
                     <Slope
                         key={series.seriesName}
                         series={series}
-                        color={series.color}
                         strokeWidth={this.lineStrokeWidth}
                         outlineWidth={0.5}
                         outlineStroke={this.backgroundColor}
@@ -1282,36 +1310,35 @@ export class SlopeChart
 
 interface SlopeProps {
     series: RenderSlopeChartSeries
-    color: string
     dotRadius?: number
     strokeWidth?: number
     outlineWidth?: number
     outlineStroke?: string
-    onMouseOver?: (series: SlopeChartSeries) => void
-    onMouseLeave?: () => void
 }
 
 function Slope({
     series,
-    color,
     dotRadius = 2.5,
     strokeWidth = 2,
     outlineWidth = 0.5,
     outlineStroke = "#fff",
-    onMouseOver,
-    onMouseLeave,
 }: SlopeProps) {
-    const { seriesName, startPoint, endPoint } = series
+    const { seriesName, startPoint, endPoint, hover, focus } = series
 
-    const showOutline = !series.hover.background
-    const opacity = series.hover.background ? GRAPHER_OPACITY_MUTE : 1
+    const showOutline = !focus.background || hover.active
+    const opacity =
+        hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
+    const color =
+        !focus.background || hover.active
+            ? series.color
+            : NON_FOCUSED_LINE_COLOR
+    const lineWidth =
+        hover.background || focus.background ? 0.66 * strokeWidth : strokeWidth
 
     return (
         <g
             id={makeIdForHumanConsumption("slope", seriesName)}
             className="slope"
-            onMouseOver={() => onMouseOver?.(series)}
-            onMouseLeave={() => onMouseLeave?.()}
         >
             {showOutline && (
                 <LineWithDots
@@ -1319,7 +1346,7 @@ function Slope({
                     endPoint={endPoint}
                     radius={dotRadius}
                     color={outlineStroke}
-                    lineWidth={strokeWidth + 2 * outlineWidth}
+                    lineWidth={lineWidth + 2 * outlineWidth}
                 />
             )}
             <LineWithDots
@@ -1327,7 +1354,7 @@ function Slope({
                 endPoint={endPoint}
                 radius={dotRadius}
                 color={color}
-                lineWidth={strokeWidth}
+                lineWidth={lineWidth}
                 opacity={opacity}
             />
         </g>
@@ -1367,7 +1394,7 @@ function LineWithDots({
             d={`${startDotPath} ${endDotPath} ${linePath}`}
             fill={color}
             stroke={color}
-            strokeWidth={lineWidth}
+            strokeWidth={lineWidth.toFixed(1)}
             opacity={opacity}
         />
     )

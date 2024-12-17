@@ -61,6 +61,10 @@ class DimensionSlotView<
 
     @observable.ref isSelectingVariables: boolean = false
 
+    private get editor() {
+        return this.props.editor
+    }
+
     private get grapher() {
         return this.props.editor.grapher
     }
@@ -105,7 +109,7 @@ class DimensionSlotView<
         this.updateParentConfig()
     }
 
-    @action.bound private updateDefaults() {
+    @action.bound private updateDefaultSelection() {
         const { grapher } = this.props.editor
         const { selection } = grapher
         const { availableEntityNames, availableEntityNameSet } = selection
@@ -151,11 +155,17 @@ class DimensionSlotView<
                 this.disposers.push(
                     reaction(
                         () => this.grapher.validChartTypes,
-                        this.updateDefaults
+                        () => {
+                            this.updateDefaultSelection()
+                            this.editor.removeInvalidFocusedSeriesNames()
+                        }
                     ),
                     reaction(
                         () => this.grapher.yColumnsFromDimensions.length,
-                        this.updateDefaults
+                        () => {
+                            this.updateDefaultSelection()
+                            this.editor.removeInvalidFocusedSeriesNames()
+                        }
                     )
                 )
             }

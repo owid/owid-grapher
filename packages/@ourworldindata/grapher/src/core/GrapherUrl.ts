@@ -4,7 +4,10 @@ import {
     GrapherQueryParams,
     TimeBoundValueStr,
 } from "@ourworldindata/types"
-import { generateSelectedEntityNamesParam } from "./EntityUrlBuilder.js"
+import {
+    generateFocusedSeriesNamesParam,
+    generateSelectedEntityNamesParam,
+} from "./EntityUrlBuilder.js"
 import { match } from "ts-pattern"
 import { Grapher } from "./Grapher.js"
 
@@ -53,6 +56,9 @@ export const grapherConfigToQueryParams = (
         country: config.selectedEntityNames
             ? generateSelectedEntityNamesParam(config.selectedEntityNames)
             : undefined,
+        focus: config.focusedSeriesNames
+            ? generateFocusedSeriesNamesParam(config.focusedSeriesNames)
+            : undefined,
 
         // These cannot be specified in config, so we always set them to undefined
         showSelectionOnlyInTable: undefined,
@@ -92,10 +98,13 @@ export const grapherObjectToQueryParams = (
             ? "1"
             : "0",
         showNoDataArea: grapher.showNoDataArea ? "1" : "0",
-        country: grapher.selectedEntitiesIfDifferentThanAuthors
+        country: grapher.areSelectedEntitiesDifferentThanAuthors
             ? generateSelectedEntityNamesParam(
-                  grapher.selectedEntitiesIfDifferentThanAuthors
+                  grapher.selection.selectedEntityNames
               )
+            : undefined,
+        focus: grapher.areFocusedSeriesNamesDifferentThanAuthors
+            ? generateFocusedSeriesNamesParam(grapher.focusArray.seriesNames)
             : undefined,
     }
     return params

@@ -80,8 +80,9 @@ it("an empty Grapher serializes to an object that includes only the schema", () 
     expect(new Grapher().toObject()).toEqual({
         $schema: latestGrapherConfigSchema,
 
-        // TODO: ideally, selectedEntityNames is not serialised for an empty object
+        // TODO: ideally, these are not serialised for an empty object
         selectedEntityNames: [],
+        focusedSeriesNames: [],
     })
 })
 
@@ -93,8 +94,9 @@ it("a bad chart type does not crash grapher", () => {
         ...input,
         $schema: latestGrapherConfigSchema,
 
-        // TODO: ideally, selectedEntityNames is not serialised for an empty object
+        // TODO: ideally, these are not serialised for an empty object
         selectedEntityNames: [],
+        focusedSeriesNames: [],
     })
 })
 
@@ -102,8 +104,9 @@ it("does not preserve defaults in the object (except for the schema)", () => {
     expect(new Grapher({ tab: GRAPHER_TAB_OPTIONS.chart }).toObject()).toEqual({
         $schema: latestGrapherConfigSchema,
 
-        // TODO: ideally, selectedEntityNames is not serialised for an empty object
+        // TODO: ideally, these are not serialised for an empty object
         selectedEntityNames: [],
+        focusedSeriesNames: [],
     })
 })
 

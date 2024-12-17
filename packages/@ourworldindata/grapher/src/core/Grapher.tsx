@@ -19,7 +19,6 @@ import {
     next,
     sampleFrom,
     range,
-    difference,
     exposeInstanceOnWindow,
     findClosestTime,
     excludeUndefined,
@@ -66,6 +65,7 @@ import {
     extractDetailsFromSyntax,
     omit,
     isTouchDevice,
+    isArrayDifferentFromReference,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -111,6 +111,7 @@ import {
     GRAPHER_TAB_NAMES,
     GRAPHER_TAB_QUERY_PARAMS,
     GrapherTabOption,
+    SeriesName,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -144,7 +145,10 @@ import {
 import { TooltipManager } from "../tooltip/TooltipProps"
 
 import { DimensionSlot } from "../chart/DimensionSlot"
-import { getSelectedEntityNamesParam } from "./EntityUrlBuilder"
+import {
+    getFocusedSeriesNamesParam,
+    getSelectedEntityNamesParam,
+} from "./EntityUrlBuilder"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { MapConfig } from "../mapCharts/MapConfig"
@@ -216,12 +220,14 @@ import {
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
 import { grapherObjectToQueryParams } from "./GrapherUrl.js"
+import { FocusArray } from "../focus/FocusArray"
 import {
     GRAPHER_BACKGROUND_BEIGE,
     GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
     GRAPHER_LIGHT_TEXT,
 } from "../color/ColorConstants"
+import { FacetChart } from "../facetChart/FacetChart"
 
 declare global {
     interface Window {
@@ -439,6 +445,7 @@ export class Grapher
         are evaluated afterwards and can still remove entities even if they were included before.
      */
     @observable includedEntities?: number[] = undefined
+    @observable focusedSeriesNames?: SeriesName[] = undefined
     @observable comparisonLines?: ComparisonLineConfig[] = undefined // todo: Persistables?
     @observable relatedQuestions?: RelatedQuestionsConfig[] = undefined // todo: Persistables?
 
@@ -498,6 +505,15 @@ export class Grapher
 
     isEmbeddedInAnOwidPage?: boolean = this.props.isEmbeddedInAnOwidPage
     isEmbeddedInADataPage?: boolean = this.props.isEmbeddedInADataPage
+
+    selection =
+        this.manager?.selection ??
+        new SelectionArray(
+            this.props.selectedEntityNames ?? [],
+            this.props.table?.availableEntities ?? []
+        )
+
+    focusArray = new FocusArray()
 
     /**
      * todo: factor this out and make more RAII.
@@ -565,6 +581,7 @@ export class Grapher
         )
 
         obj.selectedEntityNames = this.selection.selectedEntityNames
+        obj.focusedSeriesNames = this.focusArray.seriesNames
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
@@ -605,6 +622,10 @@ export class Grapher
         // update selection
         if (obj.selectedEntityNames)
             this.selection.setSelectedEntities(obj.selectedEntityNames)
+
+        // update focus
+        if (obj.focusedSeriesNames)
+            this.focusArray.clearAllAndAdd(...obj.focusedSeriesNames)
 
         // JSON doesn't support Infinity, so we use strings instead.
         this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
@@ -675,12 +696,18 @@ export class Grapher
         if (region !== undefined)
             this.map.projection = region as MapProjectionName
 
+        // selection
         const selection = getSelectedEntityNamesParam(
             Url.fromQueryParams(params)
         )
-
         if (this.addCountryMode !== EntitySelectionMode.Disabled && selection)
             this.selection.setSelectedEntities(selection)
+
+        // focus
+        const focusedSeriesNames = getFocusedSeriesNamesParam(params.focus)
+        if (focusedSeriesNames) {
+            this.focusArray.clearAllAndAdd(...focusedSeriesNames)
+        }
 
         // faceting
         if (params.facet && params.facet in FacetStrategy) {
@@ -855,6 +882,23 @@ export class Grapher
         const ChartClass =
             ChartComponentClassMap.get(chartTypeName) ?? DefaultChartClass
         return new ChartClass({ manager: this })
+    }
+
+    @computed get chartSeriesNames(): SeriesName[] {
+        if (!this.isReady) return []
+
+        // collect series names from all chart instances when faceted
+        if (this.isFaceted) {
+            const facetChartInstance = new FacetChart({ manager: this })
+            return uniq(
+                facetChartInstance.intermediateChartInstances.flatMap(
+                    (chartInstance) =>
+                        chartInstance.series.map((series) => series.seriesName)
+                )
+            )
+        }
+
+        return this.chartInstance.series.map((series) => series.seriesName)
     }
 
     @computed get table(): OwidTable {
@@ -2532,13 +2576,6 @@ export class Grapher
         void this.timelineController.togglePlay()
     }
 
-    selection =
-        this.manager?.selection ??
-        new SelectionArray(
-            this.props.selectedEntityNames ?? [],
-            this.props.table?.availableEntities ?? []
-        )
-
     @computed get availableEntities(): Entity[] {
         return this.tableForSelection.availableEntities
     }
@@ -2782,6 +2819,11 @@ export class Grapher
 
     set facetStrategy(facet: FacetStrategy) {
         this.selectedFacetStrategy = facet
+    }
+
+    @computed get isFaceted(): boolean {
+        const hasFacetStrategy = this.facetStrategy !== FacetStrategy.none
+        return this.isOnChartTab && hasFacetStrategy
     }
 
     @action.bound randomSelection(num: number): void {
@@ -3182,6 +3224,10 @@ export class Grapher
                         )
                     }
                 }
+            ),
+            reaction(
+                () => this.facetStrategy,
+                () => this.focusArray.clear()
             )
         )
         if (this.props.bindUrlToWindow) this.bindToWindow()
@@ -3362,28 +3408,28 @@ export class Grapher
         return grapherObjectToQueryParams(this)
     }
 
-    @computed get selectedEntitiesIfDifferentThanAuthors():
-        | EntityName[]
-        | undefined {
+    @computed get areSelectedEntitiesDifferentThanAuthors(): boolean {
         const authoredConfig = this.legacyConfigAsAuthored
-
+        const currentSelectedEntityNames = this.selection.selectedEntityNames
         const originalSelectedEntityNames =
             authoredConfig.selectedEntityNames ?? []
-        const currentSelectedEntityNames = this.selection.selectedEntityNames
 
-        const entityNamesThatTheUserDeselected = difference(
+        return isArrayDifferentFromReference(
             currentSelectedEntityNames,
             originalSelectedEntityNames
         )
+    }
 
-        if (
-            currentSelectedEntityNames.length !==
-                originalSelectedEntityNames.length ||
-            entityNamesThatTheUserDeselected.length
+    @computed get areFocusedSeriesNamesDifferentThanAuthors(): boolean {
+        const authoredConfig = this.legacyConfigAsAuthored
+        const currentFocusedSeriesNames = this.focusArray.seriesNames
+        const originalFocusedSeriesNames =
+            authoredConfig.focusedSeriesNames ?? []
+
+        return isArrayDifferentFromReference(
+            currentFocusedSeriesNames,
+            originalFocusedSeriesNames
         )
-            return this.selection.selectedEntityNames
-
-        return undefined
     }
 
     // Autocomputed url params to reflect difference between current grapher state

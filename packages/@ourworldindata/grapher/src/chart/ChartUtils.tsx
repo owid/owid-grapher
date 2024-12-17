@@ -192,35 +192,39 @@ export function findValidChartTypeCombination(
     return undefined
 }
 
-/** Useful for sorting series by their interaction state */
-export function byInteractionState(series: {
-    hover: InteractionState
-}): number {
-    // background series rank lowest
-    if (series.hover.background) return 1
-    // active series rank highest
-    if (series.hover.active) return 3
-    // series in their default state rank in the middle
-    return 2
-}
-
-export function getInteractionStateForSeries(
+export function getHoverStateForSeries(
     series: ChartSeries,
     props: {
-        activeSeriesNames: SeriesName[]
-        // usually the interaction mode is active when there is
-        // at least one active element. But sometimes the interaction
-        // mode might be active although there are no active elements.
+        hoveredSeriesNames: SeriesName[]
+        // usually the hover mode is active when there is
+        // at least one hovered element. But sometimes the hover
+        // mode might be active although there are no hovered elements.
         // For example, when the facet legend is hovered but a particular
         // chart doesn't plot the hovered element.
-        isInteractionModeActive?: boolean
+        isHoverModeActive?: boolean
     }
 ): InteractionState {
-    const activeSeriesNames = props.activeSeriesNames
-    const isInteractionModeActive =
-        props.isInteractionModeActive ?? activeSeriesNames.length > 0
+    const hoveredSeriesNames = props.hoveredSeriesNames
+    const isHoverModeActive =
+        props.isHoverModeActive ?? hoveredSeriesNames.length > 0
 
-    const active = activeSeriesNames.includes(series.seriesName)
-    const background = isInteractionModeActive && !active
+    const active = hoveredSeriesNames.includes(series.seriesName)
+    const background = isHoverModeActive && !active
     return { active, background }
+}
+
+/** Useful for sorting series by their interaction state */
+export function byHoverThenFocusState(series: {
+    hover: InteractionState
+    focus: InteractionState
+}): number {
+    // active series rank highest and hover trumps focus
+    if (series.hover.active) return 4
+    if (series.focus.active) return 3
+
+    // series in their default state rank in the middle
+    if (!series.hover.background && !series.focus.background) return 2
+
+    // background series rank lowest
+    return 1
 }

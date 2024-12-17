@@ -1,4 +1,4 @@
-import { EntityName } from "@ourworldindata/types"
+import { EntityName, SeriesName } from "@ourworldindata/types"
 import { Url, performUrlMigrations, UrlMigration } from "@ourworldindata/utils"
 import { codeToEntityName, entityNameToCode } from "./EntityCodes"
 
@@ -168,3 +168,30 @@ export const setSelectedEntityNamesParam = (
             : undefined,
     })
 }
+
+/*
+ * Focused series names
+ *
+ * A focused series name is one of:
+ * (i) an entity name (common case)
+ * (ii) an indicator name (less common, but not rare)
+ * (iii) a combination of both, typically represented as 'entityName – indicatorName' (rare)
+ *
+ * Parsing and serializing focused series names for the URL is done using utility
+ * functions that have originally been written for entity names, so that the same
+ * delimiter is used and entity names are mapped to their codes if possible. Note
+ * that stand-alone entity names are mapped to their codes (case i), while entity
+ * names that are a substring of a series name are not (case iii).
+ */
+
+export const getFocusedSeriesNamesParam = (
+    queryParam: string | undefined
+): SeriesName[] | undefined => {
+    return queryParam !== undefined
+        ? entityNamesFromV2Param(queryParam).map(codeToEntityName)
+        : undefined
+}
+
+export const generateFocusedSeriesNamesParam = (
+    seriesNames: SeriesName[]
+): string => entityNamesToV2Param(seriesNames.map(entityNameToCode))

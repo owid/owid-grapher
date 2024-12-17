@@ -127,6 +127,7 @@ export {
     formatInlineList,
     lazy,
     getParentVariableIdFromChartConfig,
+    isArrayDifferentFromReference,
 } from "./Util.js"
 
 export {

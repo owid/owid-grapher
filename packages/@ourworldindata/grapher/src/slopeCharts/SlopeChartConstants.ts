@@ -10,6 +10,7 @@ import { CoreColumn } from "@ourworldindata/core-table"
 export interface SlopeChartSeries extends ChartSeries {
     column: CoreColumn
     entityName: EntityName
+    displayName: string
     start: Pick<OwidVariableRow<number>, "value" | "originalTime">
     end: Pick<OwidVariableRow<number>, "value" | "originalTime">
     annotation?: string
@@ -24,4 +25,5 @@ export interface PlacedSlopeChartSeries extends SlopeChartSeries {
 
 export interface RenderSlopeChartSeries extends PlacedSlopeChartSeries {
     hover: InteractionState
+    focus: InteractionState
 }

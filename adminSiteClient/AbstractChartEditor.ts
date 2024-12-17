@@ -5,6 +5,8 @@ import {
     diffGrapherConfigs,
     mergeGrapherConfigs,
     PostReference,
+    SeriesName,
+    difference,
 } from "@ourworldindata/utils"
 import { action, computed, observable, when } from "mobx"
 import { EditorFeatures } from "./EditorFeatures.js"
@@ -161,6 +163,24 @@ export abstract class AbstractChartEditor<
     couldPropertyBeInherited(property: keyof GrapherInterface): boolean {
         if (!this.isInheritanceEnabled || !this.activeParentConfig) return false
         return Object.hasOwn(this.activeParentConfig, property)
+    }
+
+    @computed get invalidFocusedSeriesNames(): SeriesName[] {
+        const { grapher } = this
+
+        // if focusing is not supported, then all focused series are invalid
+        if (!this.features.canHighlightSeries) {
+            return grapher.focusArray.seriesNames
+        }
+
+        // find invalid focused series
+        const availableSeriesNames = grapher.chartSeriesNames
+        const focusedSeriesNames = grapher.focusArray.seriesNames
+        return difference(focusedSeriesNames, availableSeriesNames)
+    }
+
+    @action.bound removeInvalidFocusedSeriesNames(): void {
+        this.grapher.focusArray.remove(...this.invalidFocusedSeriesNames)
     }
 
     abstract get isNewGrapher(): boolean

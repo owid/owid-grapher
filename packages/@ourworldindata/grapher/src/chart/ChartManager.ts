@@ -20,6 +20,7 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { ColumnSlug, SortConfig, TimeBound } from "@ourworldindata/utils"
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
+import { FocusArray } from "../focus/FocusArray"
 
 // The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
 
@@ -65,6 +66,8 @@ export interface ChartManager {
 
     selection?: SelectionArray | EntityName[]
     entityType?: string
+
+    focusArray?: FocusArray
 
     hidePoints?: boolean // for line options
     startHandleTimeBound?: TimeBound // for relative-to-first-year line chart

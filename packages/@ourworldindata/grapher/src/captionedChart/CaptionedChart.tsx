@@ -34,7 +34,6 @@ import { SelectionArray } from "../selection/SelectionArray"
 import {
     EntityName,
     GRAPHER_CHART_TYPES,
-    FacetStrategy,
     RelatedQuestionsConfig,
     Color,
     GrapherTabName,
@@ -83,6 +82,7 @@ export interface CaptionedChartManager
     isOnMapTab?: boolean
     isOnTableTab?: boolean
     activeChartType?: GrapherChartType
+    isFaceted?: boolean
     isLineChartThatTurnedIntoDiscreteBarActive?: boolean
     showEntitySelectionToggle?: boolean
     isExportingForSocialMedia?: boolean
@@ -185,13 +185,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    @computed get isFaceted(): boolean {
-        const hasStrategy =
-            !!this.manager.facetStrategy &&
-            this.manager.facetStrategy !== FacetStrategy.none
-        return !this.manager.isOnMapTab && hasStrategy
-    }
-
     @computed get activeChartOrMapType(): GrapherChartOrMapType | undefined {
         const { manager } = this
         if (manager.isOnTableTab) return undefined
@@ -211,6 +204,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             activeChartOrMapType,
             containerElement,
         } = this
+        const { isFaceted } = manager
 
         if (!activeChartOrMapType) return
 
@@ -219,7 +213,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             activeChartOrMapType !== GRAPHER_MAP_TYPE
                 ? activeChartOrMapType
                 : undefined
-        if (this.isFaceted && activeChartType)
+        if (isFaceted && activeChartType)
             return (
                 <FacetChart
                     bounds={bounds}

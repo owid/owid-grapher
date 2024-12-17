@@ -9,6 +9,10 @@ import {
 
 export type AnnotationsMap = Map<PrimitiveType, Set<PrimitiveType>>
 
+/**
+ * Unique identifier for a series that must be shared between
+ * line and slope charts since focus states are built on top of it.
+ */
 export function getSeriesName({
     entityName,
     columnName,
