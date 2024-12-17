@@ -281,6 +281,7 @@ export enum OwidGdocLinkType {
     Url = "url",
     Grapher = "grapher",
     Explorer = "explorer",
+    NarrativeChart = "narrative-chart",
 }
 
 export interface OwidGdocLinkJSON {
