@@ -148,9 +148,9 @@ export function useDonors(): string[] | undefined {
     return donors
 }
 
-export const useChartViewMetadata = (name: string) => {
-    const { chartViewMetadata } = useContext(AttachmentsContext)
-    return chartViewMetadata?.[name]
+export const useNarrativeViewsInfo = (name: string) => {
+    const { narrativeViewsInfo } = useContext(AttachmentsContext)
+    return narrativeViewsInfo?.[name]
 }
 
 export function getShortPageCitation(

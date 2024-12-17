@@ -9,7 +9,7 @@ import {
     LatestDataInsight,
     OwidGdocHomepageMetadata,
     DbEnrichedLatestWork,
-    ChartViewMetadata,
+    NarrativeViewInfo,
 } from "@ourworldindata/types"
 
 export type Attachments = {
@@ -23,7 +23,7 @@ export type Attachments = {
     latestDataInsights?: LatestDataInsight[]
     homepageMetadata?: OwidGdocHomepageMetadata
     latestWorkLinks?: DbEnrichedLatestWork[]
-    chartViewMetadata?: Record<string, ChartViewMetadata>
+    narrativeViewsInfo?: Record<string, NarrativeViewInfo>
 }
 
 export const AttachmentsContext = createContext<Attachments>({
@@ -36,5 +36,5 @@ export const AttachmentsContext = createContext<Attachments>({
     latestDataInsights: [],
     homepageMetadata: {},
     latestWorkLinks: [],
-    chartViewMetadata: {},
+    narrativeViewsInfo: {},
 })

@@ -332,7 +332,7 @@ export {
     type OwidGdocContent,
     type OwidGdocIndexItem,
     extractGdocIndexItem,
-    type ChartViewMetadata,
+    type NarrativeViewInfo,
 } from "./gdocTypes/Gdoc.js"
 
 export {

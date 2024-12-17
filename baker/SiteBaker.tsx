@@ -56,7 +56,7 @@ import {
     grabMetadataForGdocLinkedIndicator,
     TombstonePageData,
     gdocUrlRegex,
-    ChartViewMetadata,
+    NarrativeViewInfo,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -110,7 +110,7 @@ import { getTombstones } from "../db/model/GdocTombstone.js"
 import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
 import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
-import { getChartViewsMetadata } from "../db/model/ChartView.js"
+import { getNarrativeViewsInfo } from "../db/model/ChartView.js"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -122,7 +122,7 @@ type PrefetchedAttachments = {
         explorers: Record<string, LinkedChart>
     }
     linkedIndicators: Record<number, LinkedIndicator>
-    chartViewMetadata: Record<string, ChartViewMetadata>
+    narrativeViewsInfo: Record<string, NarrativeViewInfo>
 }
 
 // These aren't all "wordpress" steps
@@ -462,10 +462,10 @@ export class SiteBaker {
                 name: `✅ Prefetched ${publishedAuthors.length} authors`,
             })
 
-            const chartViewMetadata = await getChartViewsMetadata(knex)
-            const chartViewMetadataByName = keyBy(chartViewMetadata, "name")
+            const narrativeViewsInfo = await getNarrativeViewsInfo(knex)
+            const narrativeViewsInfoByName = keyBy(narrativeViewsInfo, "name")
             this.progressBar.tick({
-                name: `✅ Prefetched ${chartViewMetadata.length} chart views`,
+                name: `✅ Prefetched ${narrativeViewsInfo.length} chart views`,
             })
 
             const prefetchedAttachments = {
@@ -478,7 +478,7 @@ export class SiteBaker {
                     graphers: publishedChartsBySlug,
                 },
                 linkedIndicators: datapageIndicatorsById,
-                chartViewMetadata: chartViewMetadataByName,
+                narrativeViewsInfo: narrativeViewsInfoByName,
             }
             this.progressBar.tick({ name: "✅ Prefetched attachments" })
             this._prefetchedAttachmentsCache = prefetchedAttachments
@@ -538,8 +538,8 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedAuthors.filter(
                         (author) => authorNames.includes(author.name)
                     ),
-                chartViewMetadata:
-                    this._prefetchedAttachmentsCache.chartViewMetadata, // TODO: Filter
+                narrativeViewsInfo:
+                    this._prefetchedAttachmentsCache.narrativeViewsInfo, // TODO: Filter
             }
         }
         return this._prefetchedAttachmentsCache
@@ -641,7 +641,7 @@ export class SiteBaker {
                 ...attachments.linkedCharts.explorers,
             }
             publishedGdoc.linkedIndicators = attachments.linkedIndicators
-            publishedGdoc.chartViewMetadata = attachments.chartViewMetadata
+            publishedGdoc.narrativeViewsInfo = attachments.narrativeViewsInfo
 
             // this is a no-op if the gdoc doesn't have an all-chart block
             if ("loadRelatedCharts" in publishedGdoc) {
