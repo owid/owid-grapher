@@ -56,7 +56,7 @@ import {
 import {
     ARCHVED_THUMBNAIL_FILENAME,
     ChartConfigType,
-    ChartViewMetadata,
+    NarrativeViewInfo,
     DEFAULT_THUMBNAIL_FILENAME,
     GrapherInterface,
     LatestDataInsight,
@@ -67,7 +67,7 @@ import {
     OwidGdocLinkType,
     OwidGdocType,
 } from "@ourworldindata/types"
-import { getChartViewsMetadata } from "../ChartView.js"
+import { getNarrativeViewsInfo } from "../ChartView.js"
 
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
@@ -91,7 +91,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     linkedIndicators: Record<number, LinkedIndicator> = {}
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     latestDataInsights: LatestDataInsight[] = []
-    chartViewMetadata?: Record<string, ChartViewMetadata> = {}
+    narrativeViewsInfo?: Record<string, NarrativeViewInfo> = {}
     _omittableFields: string[] = []
 
     constructor(id?: string) {
@@ -717,12 +717,12 @@ export class GdocBase implements OwidGdocBaseInterface {
         }
     }
 
-    async loadChartViewMetadata(
+    async loadNarrativeViewsInfo(
         knex: db.KnexReadonlyTransaction
     ): Promise<void> {
         // TODO: Filter down to only those that are used in the Gdoc
-        const result = await getChartViewsMetadata(knex)
-        this.chartViewMetadata = keyBy(result, "name")
+        const result = await getNarrativeViewsInfo(knex)
+        this.narrativeViewsInfo = keyBy(result, "name")
     }
 
     async fetchAndEnrichGdoc(): Promise<void> {
@@ -870,7 +870,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadImageMetadataFromDB(knex)
         await this.loadLinkedCharts(knex)
         await this.loadLinkedIndicators() // depends on linked charts
-        await this.loadChartViewMetadata(knex)
+        await this.loadNarrativeViewsInfo(knex)
         await this._loadSubclassAttachments(knex)
         await this.validate(knex)
     }

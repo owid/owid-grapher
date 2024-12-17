@@ -441,7 +441,7 @@ ${dataInsights
                     latestDataInsights: get(post, "latestDataInsights", []),
                     homepageMetadata: get(post, "homepageMetadata", {}),
                     latestWorkLinks: get(post, "latestWorkLinks", []),
-                    chartViewMetadata: get(post, "chartViewMetadata", {}),
+                    narrativeViewsInfo: get(post, "narrativeViewsInfo", {}),
                 }}
             >
                 <AtomArticleBlocks blocks={post.content.body} />
