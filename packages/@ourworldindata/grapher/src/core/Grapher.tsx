@@ -2821,7 +2821,7 @@ export class Grapher
 
     @computed get isFaceted(): boolean {
         const hasFacetStrategy = this.facetStrategy !== FacetStrategy.none
-        return !this.isOnMapTab && hasFacetStrategy
+        return this.isOnChartTab && hasFacetStrategy
     }
 
     @action.bound randomSelection(num: number): void {
