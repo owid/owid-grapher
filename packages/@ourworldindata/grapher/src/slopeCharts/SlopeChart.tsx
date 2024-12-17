@@ -639,15 +639,13 @@ export class SlopeChart
             textOutlineColor: this.backgroundColor,
             onMouseOver: this.onLineLegendMouseOver,
             onMouseLeave: this.onLineLegendMouseLeave,
+            onClick:
+                this.series.length > 1 ? this.onLineLegendClick : undefined,
         }
     }
 
     @computed private get lineLegendPropsRight(): Partial<LineLegendProps> {
-        return {
-            xAnchor: "start",
-            onClick:
-                this.series.length > 1 ? this.onLineLegendClick : undefined,
-        }
+        return { xAnchor: "start" }
     }
 
     @computed private get lineLegendPropsLeft(): Partial<LineLegendProps> {
