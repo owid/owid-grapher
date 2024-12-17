@@ -3225,7 +3225,7 @@ putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
     if (collision) {
         return {
             success: false,
-            error: `An image with this content already exists (filename: ${collision.filename})`,
+            error: `An exact copy of this image already exists (filename: ${collision.filename})`,
         }
     }
 
@@ -3263,6 +3263,7 @@ putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
         updatedAt: new Date().getTime(),
         userId: res.locals.user.id,
         hash,
+        version: image.version + 1,
     })
 
     await trx<DbEnrichedImage>("images").where("id", "=", id).update({
