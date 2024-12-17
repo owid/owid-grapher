@@ -2,8 +2,7 @@ import React from "react"
 import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor.js"
 import { Timeago } from "./Forms.js"
-import { computed, action, observable } from "mobx"
-import { Json } from "@ourworldindata/utils"
+import { computed, observable } from "mobx"
 import { Modal } from "antd"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 
@@ -55,7 +54,6 @@ function LogCompareModal({
 class LogRenderer extends React.Component<{
     log: Log
     previousLog: Log | undefined
-    applyConfig: (config: any) => void
 }> {
     @observable isCompareModalOpen = false
 
@@ -97,12 +95,6 @@ class LogRenderer extends React.Component<{
                             Compare <br /> to previous
                         </button>
                     )}
-                    <button
-                        className="btn btn-danger"
-                        onClick={() => this.props.applyConfig(log.config)}
-                    >
-                        Restore
-                    </button>
                 </div>
             </li>
         )
@@ -115,16 +107,6 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
         return this.props.editor.logs || []
     }
 
-    @action.bound async applyConfig(config: Json) {
-        const { grapher } = this.props.editor
-        grapher.updateFromObject(config)
-        grapher.updateAuthoredVersion({
-            ...grapher.toObject(),
-            data: config.data,
-        })
-        grapher.rebuildInputOwidTable()
-    }
-
     render() {
         return (
             <div>
@@ -133,7 +115,6 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
                         <LogRenderer
                             log={log}
                             previousLog={this.logs[i + 1]} // Needed for comparison, might be undefined
-                            applyConfig={this.applyConfig}
                         ></LogRenderer>
                     </ul>
                 ))}
