@@ -1141,7 +1141,7 @@ export class SlopeChart
 
     private renderSlopes() {
         return (
-            <>
+            <g id={makeIdForHumanConsumption("slopes")}>
                 {this.renderSeries.map((series) => (
                     <Slope
                         key={series.seriesName}
@@ -1151,7 +1151,28 @@ export class SlopeChart
                         outlineStroke={this.backgroundColor}
                     />
                 ))}
-            </>
+            </g>
+        )
+    }
+
+    private renderInteractiveSlopes(): React.ReactElement {
+        return (
+            <g
+                ref={this.slopeAreaRef}
+                onMouseMove={this.onMouseMove}
+                onTouchMove={this.onMouseMove}
+                onTouchStart={this.onMouseMove}
+                onMouseLeave={this.onMouseLeave}
+            >
+                <rect
+                    x={this.startX}
+                    y={this.bounds.y}
+                    width={this.endX - this.startX}
+                    height={this.bounds.height}
+                    fillOpacity={0}
+                />
+                {this.renderSlopes()}
+            </g>
         )
     }
 
@@ -1176,7 +1197,7 @@ export class SlopeChart
         const { xDomain, startX, endX } = this
 
         return (
-            <>
+            <g id={makeIdForHumanConsumption("horizontal-axis")}>
                 <MarkX
                     label={this.formatColumn.formatTime(xDomain[0])}
                     x={startX}
@@ -1193,32 +1214,6 @@ export class SlopeChart
                     labelPadding={this.xLabelPadding}
                     fontSize={this.yAxis.tickFontSize}
                 />
-            </>
-        )
-    }
-
-    private renderChartArea() {
-        return (
-            <g>
-                {this.renderYAxis()}
-                {this.renderXAxis()}
-                <g
-                    id={makeIdForHumanConsumption("slopes")}
-                    ref={this.slopeAreaRef}
-                    onMouseMove={this.onMouseMove}
-                    onTouchMove={this.onMouseMove}
-                    onTouchStart={this.onMouseMove}
-                    onMouseLeave={this.onMouseLeave}
-                >
-                    <rect
-                        x={this.startX}
-                        y={this.bounds.y}
-                        width={this.endX - this.startX}
-                        height={this.bounds.height}
-                        fillOpacity={0}
-                    />
-                    {this.renderSlopes()}
-                </g>
             </g>
         )
     }
@@ -1284,6 +1279,30 @@ export class SlopeChart
         )
     }
 
+    private renderInteractive(): React.ReactElement {
+        return (
+            <>
+                {this.renderYAxis()}
+                {this.renderXAxis()}
+                {this.renderInteractiveSlopes()}
+                {this.renderLineLegends()}
+                {this.renderNoDataSection()}
+                {this.tooltip}
+            </>
+        )
+    }
+
+    private renderStatic(): React.ReactElement {
+        return (
+            <>
+                {this.renderYAxis()}
+                {this.renderXAxis()}
+                {this.renderSlopes()}
+                {this.renderLineLegends()}
+            </>
+        )
+    }
+
     render() {
         if (this.failMessage)
             return (
@@ -1297,14 +1316,9 @@ export class SlopeChart
                 </>
             )
 
-        return (
-            <g>
-                {this.renderChartArea()}
-                {this.renderLineLegends()}
-                {this.renderNoDataSection()}
-                {this.tooltip}
-            </g>
-        )
+        return this.manager.isStatic
+            ? this.renderStatic()
+            : this.renderInteractive()
     }
 }
 
@@ -1336,10 +1350,7 @@ function Slope({
         hover.background || focus.background ? 0.66 * strokeWidth : strokeWidth
 
     return (
-        <g
-            id={makeIdForHumanConsumption("slope", seriesName)}
-            className="slope"
-        >
+        <g id={makeIdForHumanConsumption(seriesName)} className="slope">
             {showOutline && (
                 <LineWithDots
                     startPoint={startPoint}
@@ -1411,22 +1422,16 @@ function GridLines({ bounds, yAxis }: GridLinesProps) {
             {yAxis.tickLabels.map((tick) => {
                 const y = yAxis.place(tick.value)
                 return (
-                    <g
-                        id={makeIdForHumanConsumption(
-                            "grid-line",
-                            tick.formattedValue
-                        )}
+                    <line
+                        id={makeIdForHumanConsumption(tick.formattedValue)}
                         key={tick.formattedValue}
-                    >
-                        <line
-                            x1={bounds.left + yAxis.width}
-                            y1={y}
-                            x2={bounds.right}
-                            y2={y}
-                            stroke="#ddd"
-                            strokeDasharray="3,2"
-                        />
-                    </g>
+                        x1={bounds.left + yAxis.width}
+                        y1={y}
+                        x2={bounds.right}
+                        y2={y}
+                        stroke="#ddd"
+                        strokeDasharray="3,2"
+                    />
                 )
             })}
         </g>
@@ -1450,7 +1455,14 @@ function MarkX({
 }) {
     return (
         <>
-            <line x1={x} y1={top} x2={x} y2={bottom} stroke="#999" />
+            <line
+                id={makeIdForHumanConsumption(label)}
+                x1={x}
+                y1={top}
+                x2={x}
+                y2={bottom}
+                stroke="#999"
+            />
             <text
                 x={x}
                 y={bottom + labelPadding}
