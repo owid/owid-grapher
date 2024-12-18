@@ -22,10 +22,12 @@ import {
     ColumnTypeNames,
     OwidTableSlugs,
     Color,
+    GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
 import { ContinentColors } from "../color/CustomSchemes"
 import { sortBy, uniq, uniqBy } from "@ourworldindata/utils"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
+import { Grapher } from "../core/Grapher"
 
 it("can create a new chart", () => {
     const manager: ScatterPlotManager = {
@@ -139,14 +141,16 @@ describe("interpolation defaults", () => {
             },
         ]
     )
-    const manager: ScatterPlotManager = {
-        xColumnSlug: "x",
-        yColumnSlug: "y",
-        colorColumnSlug: "color",
-        sizeColumnSlug: "size",
+
+    const grapher = new Grapher({
         table,
-    }
-    const chart = new ScatterPlotChart({ manager })
+        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+        xSlug: "x",
+        ySlugs: "y",
+        colorSlug: "color",
+        sizeSlug: "size",
+    })
+    const chart = grapher.chartInstance as ScatterPlotChart
 
     it("color defaults to infinity tolerance if none specified", () => {
         expect(
@@ -195,15 +199,15 @@ describe("basic scatterplot", () => {
         ]
     )
 
-    const manager: ScatterPlotManager = {
-        xColumnSlug: "x",
-        yColumnSlug: "y",
-        colorColumnSlug: "color",
-        sizeColumnSlug: "size",
+    const grapher = new Grapher({
+        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+        xSlug: "x",
+        ySlugs: "y",
+        colorSlug: "color",
+        sizeSlug: "size",
         table,
-    }
-
-    const chart = new ScatterPlotChart({ manager })
+    })
+    const chart = grapher.chartInstance as ScatterPlotChart
 
     it("removes error values from X and Y", () => {
         expect(chart.transformedTable.numRows).toEqual(2)
@@ -425,16 +429,16 @@ describe("entity exclusion", () => {
         ]
     )
 
-    const manager: ScatterPlotManager = {
-        xColumnSlug: "x",
-        yColumnSlug: "y",
-        colorColumnSlug: "color",
-        sizeColumnSlug: "size",
+    const grapher = new Grapher({
+        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+        xSlug: "x",
+        ySlugs: "y",
+        colorSlug: "color",
+        sizeSlug: "size",
         matchingEntitiesOnly: true,
         table,
-    }
-
-    const chart = new ScatterPlotChart({ manager })
+    })
+    const chart = grapher.chartInstance as ScatterPlotChart
 
     it("excludes entities without color when matchingEntitiesOnly is enabled", () => {
         expect(chart.allPoints.length).toEqual(1)
@@ -815,15 +819,15 @@ describe("x/y tolerance", () => {
         ]
     )
 
-    const manager: ScatterPlotManager = {
-        xColumnSlug: "x",
-        yColumnSlug: "y",
-        colorColumnSlug: "color",
-        sizeColumnSlug: "size",
+    const grapher = new Grapher({
+        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+        xSlug: "x",
+        ySlugs: "y",
+        colorSlug: "color",
+        sizeSlug: "size",
         table,
-    }
-
-    const chart = new ScatterPlotChart({ manager })
+    })
+    const chart = grapher.chartInstance as ScatterPlotChart
 
     const transformedTable = chart.transformedTable
 
@@ -1029,4 +1033,49 @@ describe("correct bubble sizes", () => {
         expect(sortedRenderSeries[1].size).toEqual(SCATTER_POINT_DEFAULT_RADIUS)
         expect(sortedRenderSeries[1].fontSize).toEqual(10.5)
     })
+})
+
+it("applies color tolerance before applying the author timeline filter", () => {
+    const table = new OwidTable(
+        [
+            [
+                "entityId",
+                "entityName",
+                "entityCode",
+                "year",
+                "x",
+                "y",
+                "color",
+                "size",
+            ],
+            [1, "UK", "", -1000, 1, 1, null, null],
+            [1, "UK", "", 1000, 1, 1, null, 100],
+            [1, "UK", "", 2020, 1, 1, null, null],
+            [1, "UK", "", 2023, null, null, "Europe", null],
+        ],
+        [
+            { slug: "x", type: ColumnTypeNames.Numeric },
+            { slug: "y", type: ColumnTypeNames.Numeric },
+            { slug: "color", type: ColumnTypeNames.String },
+            {
+                slug: "size",
+                type: ColumnTypeNames.Numeric,
+            },
+        ]
+    )
+
+    const grapher = new Grapher({
+        table,
+        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+        xSlug: "x",
+        ySlugs: "y",
+        colorSlug: "color",
+        sizeSlug: "size",
+        timelineMaxTime: 2020,
+    })
+    const chart = grapher.chartInstance as ScatterPlotChart
+
+    expect(
+        uniq(chart.transformedTable.get("color").valuesIncludingErrorValues)
+    ).toEqual(["Europe"])
 })

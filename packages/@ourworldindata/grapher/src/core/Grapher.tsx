@@ -829,9 +829,47 @@ export class Grapher
         return table
     }
 
+    /**
+     * Input table with color and size tolerance applied.
+     *
+     * This happens _before_ applying the author's timeline filter to avoid
+     * accidentally dropping all color values before applying tolerance.
+     * This is especially important for scatter plots and Marimekko charts,
+     * where color and size columns are often transformed with infinite tolerance.
+     *
+     * Line and discrete bar charts also support a color dimension, but their
+     * tolerance transformations run in their respective transformTable functions
+     * since it's more efficient to run them on a table that has been filtered
+     * by selected entities.
+     */
+    @computed get tableAfterColorAndSizeToleranceApplication(): OwidTable {
+        let table = this.inputTable
+
+        if (this.isScatter && this.sizeColumnSlug) {
+            const tolerance =
+                table.get(this.sizeColumnSlug)?.display?.tolerance ?? Infinity
+            table = table.interpolateColumnWithTolerance(
+                this.sizeColumnSlug,
+                tolerance
+            )
+        }
+
+        if ((this.isScatter || this.isMarimekko) && this.colorColumnSlug) {
+            const tolerance =
+                table.get(this.colorColumnSlug)?.display?.tolerance ?? Infinity
+            table = table.interpolateColumnWithTolerance(
+                this.colorColumnSlug,
+                tolerance
+            )
+        }
+
+        return table
+    }
+
     // If an author sets a timeline filter run it early in the pipeline so to the charts it's as if the filtered times do not exist
     @computed get tableAfterAuthorTimelineFilter(): OwidTable {
-        const table = this.inputTable
+        const table = this.tableAfterColorAndSizeToleranceApplication
+
         if (
             this.timelineMinTime === undefined &&
             this.timelineMaxTime === undefined
