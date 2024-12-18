@@ -1,10 +1,11 @@
-import React, { useRef } from "react"
+import React, { useContext, useRef } from "react"
 import { useEmbedChart } from "../../hooks.js"
 import { EnrichedBlockNarrativeChart } from "@ourworldindata/types"
 import { renderSpans, useNarrativeViewsInfo } from "../utils.js"
 import cx from "classnames"
 import { GRAPHER_PREVIEW_CLASS } from "../../SiteConstants.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
+import { DocumentContext } from "../OwidGdoc.js"
 
 export default function NarrativeChart({
     d,
@@ -20,16 +21,21 @@ export default function NarrativeChart({
 
     const viewMetadata = useNarrativeViewsInfo(d.name)
 
-    if (!viewMetadata)
-        return (
-            <BlockErrorFallback
-                className={className}
-                error={{
-                    name: "Narrative view not found",
-                    message: `Narrative view with name "${d.name}" couldn't be found.`,
-                }}
-            />
-        )
+    const { isPreviewing } = useContext(DocumentContext)
+
+    if (!viewMetadata) {
+        if (isPreviewing) {
+            return (
+                <BlockErrorFallback
+                    className={className}
+                    error={{
+                        name: "Narrative view not found",
+                        message: `Narrative view with name "${d.name}" couldn't be found.`,
+                    }}
+                />
+            )
+        } else return null // If not previewing, just don't render anything
+    }
 
     const metadataStringified = JSON.stringify(viewMetadata)
 
@@ -45,7 +51,6 @@ export default function NarrativeChart({
                 key={metadataStringified}
                 className={cx(GRAPHER_PREVIEW_CLASS, "chart")}
                 data-grapher-view-config={metadataStringified}
-                // data-grapher-src={isExplorer ? undefined : resolvedUrl}
                 style={{
                     width: "100%",
                     border: "0px none",
