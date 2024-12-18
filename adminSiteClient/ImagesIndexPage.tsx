@@ -554,10 +554,14 @@ export function ImageIndexPage() {
                     image: DbEnrichedImageWithUserId
                 }>(`/api/images/${id}`, payload, "PUT")
                 if (response.success) {
-                    setImages((prevMap) => ({
-                        ...prevMap,
-                        [id]: response.image,
-                    }))
+                    setImages((prevMap) => {
+                        const nextMap = { ...prevMap }
+                        delete nextMap[id]
+                        return {
+                            ...nextMap,
+                            [response.image.id]: response.image,
+                        }
+                    })
                 }
             },
             postUserImage: async (user, image) => {

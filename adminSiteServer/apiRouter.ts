@@ -212,6 +212,7 @@ import {
     uploadToCloudflare,
     validateImagePayload,
 } from "./imagesHelpers.js"
+import pMap from "p-map"
 
 const apiRouter = new FunctionalRouter()
 
@@ -3152,7 +3153,10 @@ postRouteWithRWTransaction(apiRouter, "/images", async (req, res, trx) => {
     )
 
     const collision = await trx<DbEnrichedImage>("images")
-        .where("hash", "=", hash)
+        .where({
+            hash,
+            replacedBy: null,
+        })
         .first()
 
     if (collision) {
@@ -3201,9 +3205,9 @@ postRouteWithRWTransaction(apiRouter, "/images", async (req, res, trx) => {
 })
 
 /**
- * Similar to the POST route, but for updating an existing image. Deletes the image
- * from Cloudflare and re-uploads it with the new content. The filename will stay the same,
- * but the dimensions and cloudflareId will be updated.
+ * Similar to the POST route, but for updating an existing image.
+ * Creates a new image entry in the database and uploads the new image to Cloudflare.
+ * The old image is marked as replaced by the new image.
  */
 putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
     const { type, content } = validateImagePayload(req.body)
@@ -3212,13 +3216,16 @@ putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
         type
     )
     const collision = await trx<DbEnrichedImage>("images")
-        .where("hash", "=", hash)
+        .where({
+            hash,
+            replacedBy: null,
+        })
         .first()
 
     if (collision) {
         return {
             success: false,
-            error: `An image with this content already exists (filename: ${collision.filename})`,
+            error: `An exact copy of this image already exists (filename: ${collision.filename})`,
         }
     }
 
@@ -3242,22 +3249,33 @@ putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
         )
     }
 
-    await deleteFromCloudflare(originalCloudflareId)
     const newCloudflareId = await uploadToCloudflare(originalFilename, asBlob)
 
     if (!newCloudflareId) {
         throw new JsonError("Failed to upload image", 500)
     }
 
-    await trx<DbEnrichedImage>("images").where("id", "=", id).update({
+    const [newImageId] = await trx<DbEnrichedImage>("images").insert({
+        filename: originalFilename,
         originalWidth: dimensions.width,
         originalHeight: dimensions.height,
-        updatedAt: new Date().getTime(),
         cloudflareId: newCloudflareId,
+        updatedAt: new Date().getTime(),
+        userId: res.locals.user.id,
         hash,
+        version: image.version + 1,
+    })
+
+    await trx<DbEnrichedImage>("images").where("id", "=", id).update({
+        replacedBy: newImageId,
     })
 
     const updated = await db.getCloudflareImage(trx, originalFilename)
+
+    await triggerStaticBuild(
+        res.locals.user,
+        `Updating image "${originalFilename}"`
+    )
 
     return {
         success: true,
@@ -3296,32 +3314,39 @@ patchRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
     }
 })
 
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/images/:id",
-    async (req, res, trx) => {
-        const { id } = req.params
+deleteRouteWithRWTransaction(apiRouter, "/images/:id", async (req, _, trx) => {
+    const { id } = req.params
 
-        const image = await trx<DbEnrichedImage>("images")
-            .where("id", "=", id)
-            .first()
+    const image = await trx<DbEnrichedImage>("images")
+        .where("id", "=", id)
+        .first()
 
-        if (!image) {
-            throw new JsonError(`No image found for id ${id}`, 404)
-        }
-        if (!image.cloudflareId) {
-            throw new JsonError(`Image does not have a cloudflare ID`, 400)
-        }
-
-        await deleteFromCloudflare(image.cloudflareId)
-
-        await trx("images").where({ id }).delete()
-
-        return {
-            success: true,
-        }
+    if (!image) {
+        throw new JsonError(`No image found for id ${id}`, 404)
     }
-)
+    if (!image.cloudflareId) {
+        throw new JsonError(`Image does not have a cloudflare ID`, 400)
+    }
+
+    const replacementChain = await db.selectReplacementChainForImage(trx, id)
+
+    await pMap(
+        replacementChain,
+        async (image) => {
+            if (image.cloudflareId) {
+                await deleteFromCloudflare(image.cloudflareId)
+            }
+        },
+        { concurrency: 5 }
+    )
+
+    // There's an ON DELETE CASCADE which will delete the replacements
+    await trx("images").where({ id }).delete()
+
+    return {
+        success: true,
+    }
+})
 
 getRouteWithROTransaction(apiRouter, "/images/usage", async (_, __, trx) => {
     const usage = await db.getImageUsage(trx)
