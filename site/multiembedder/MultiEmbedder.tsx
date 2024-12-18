@@ -10,6 +10,7 @@ import {
     migrateSelectedEntityNamesParam,
     SelectionArray,
     migrateGrapherConfigToLatestVersion,
+    GRAPHER_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR,
 } from "@ourworldindata/grapher"
 import {
     fetchText,
@@ -21,6 +22,7 @@ import {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromQueryStr,
     fetchWithRetry,
+    NarrativeViewInfo,
 } from "@ourworldindata/utils"
 import { action } from "mobx"
 import ReactDOM from "react-dom"
@@ -41,6 +43,9 @@ import {
 } from "../../settings/clientSettings.js"
 import Bugsnag from "@bugsnag/js"
 import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
+import { match } from "ts-pattern"
+
+type EmbedType = "grapher" | "explorer" | "multiDim" | "grapherView"
 
 const figuresFromDOM = (
     container: HTMLElement | Document = document,
@@ -109,10 +114,16 @@ class MultiEmbedder {
      * Use this when you programmatically create/replace charts.
      */
     observeFigures(container: HTMLElement | Document = document) {
-        const figures = figuresFromDOM(
-            container,
-            GRAPHER_EMBEDDED_FIGURE_ATTR
-        ).concat(figuresFromDOM(container, EXPLORER_EMBEDDED_FIGURE_SELECTOR))
+        const figures = figuresFromDOM(container, GRAPHER_EMBEDDED_FIGURE_ATTR)
+            .concat(
+                figuresFromDOM(container, EXPLORER_EMBEDDED_FIGURE_SELECTOR)
+            )
+            .concat(
+                figuresFromDOM(
+                    container,
+                    GRAPHER_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR
+                )
+            )
 
         figures.forEach((figure) => {
             this.figuresObserver?.observe(figure)
@@ -127,20 +138,171 @@ class MultiEmbedder {
         })
     }
 
+    async renderExplorerIntoFigure(figure: Element) {
+        const explorerUrl = figure.getAttribute(
+            EXPLORER_EMBEDDED_FIGURE_SELECTOR
+        )
+
+        if (!explorerUrl) return
+
+        const { fullUrl, queryStr } = Url.fromURL(explorerUrl)
+
+        const html = await fetchText(fullUrl)
+        const props: ExplorerProps = await buildExplorerProps(
+            html,
+            queryStr,
+            this.selection
+        )
+        if (props.selection)
+            this.graphersAndExplorersToUpdate.add(props.selection)
+        ReactDOM.render(<Explorer {...props} />, figure)
+    }
+
+    private async _renderGrapherComponentIntoFigure(
+        figure: Element,
+        {
+            configUrl,
+            embedUrl,
+            additionalConfig,
+        }: {
+            configUrl: string
+            embedUrl?: Url
+            additionalConfig?: Partial<GrapherProgrammaticInterface>
+        }
+    ) {
+        const { queryStr, queryParams } = embedUrl ?? {}
+
+        figure.classList.remove(GRAPHER_PREVIEW_CLASS)
+        const common: GrapherProgrammaticInterface = {
+            isEmbeddedInAnOwidPage: true,
+            queryStr,
+            adminBaseUrl: ADMIN_BASE_URL,
+            bakedGrapherURL: BAKED_GRAPHER_URL,
+            dataApiUrl: DATA_API_URL,
+        }
+
+        const fetchedGrapherPageConfig = await fetchWithRetry(configUrl).then(
+            (res) => res.json()
+        )
+        const grapherPageConfig = migrateGrapherConfigToLatestVersion(
+            fetchedGrapherPageConfig
+        )
+
+        const figureConfigAttr = figure.getAttribute(
+            GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR
+        )
+        const localConfig = figureConfigAttr ? JSON.parse(figureConfigAttr) : {}
+
+        // make sure the tab of the active pane is visible
+        if (figureConfigAttr && !isEmpty(localConfig)) {
+            const activeTab = queryParams?.tab || grapherPageConfig.tab
+            if (activeTab === GRAPHER_TAB_OPTIONS.chart)
+                localConfig.hideChartTabs = false
+            if (activeTab === GRAPHER_TAB_OPTIONS.map)
+                localConfig.hasMapTab = true
+            if (activeTab === GRAPHER_TAB_OPTIONS.table)
+                localConfig.hasTableTab = true
+        }
+
+        const config = merge(
+            {}, // merge mutates the first argument
+            grapherPageConfig,
+            common,
+            additionalConfig,
+            localConfig,
+            {
+                manager: {
+                    selection: new SelectionArray(
+                        this.selection.selectedEntityNames
+                    ),
+                },
+            }
+        )
+        if (config.manager?.selection)
+            this.graphersAndExplorersToUpdate.add(config.manager.selection)
+
+        const grapherRef = Grapher.renderGrapherIntoContainer(config, figure)
+
+        // Special handling for shared collections
+        if (window.location.pathname.startsWith("/collection/custom")) {
+            embedDynamicCollectionGrapher(grapherRef, figure)
+        }
+    }
+    async renderGrapherIntoFigure(figure: Element) {
+        const embedUrlRaw = figure.getAttribute(GRAPHER_EMBEDDED_FIGURE_ATTR)
+        if (!embedUrlRaw) return
+        const embedUrl = Url.fromURL(embedUrlRaw)
+
+        const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/${embedUrl.slug}.config.json`
+
+        await this._renderGrapherComponentIntoFigure(figure, {
+            configUrl,
+            embedUrl,
+        })
+    }
+    async renderMultiDimIntoFigure(figure: Element) {
+        const embedUrlRaw = figure.getAttribute(GRAPHER_EMBEDDED_FIGURE_ATTR)
+        if (!embedUrlRaw) return
+        const embedUrl = Url.fromURL(embedUrlRaw)
+
+        const { queryStr, slug } = embedUrl
+
+        const mdimConfigUrl = `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${slug}.json`
+        const mdimJsonConfig = await fetchWithRetry(mdimConfigUrl).then((res) =>
+            res.json()
+        )
+        const mdimConfig = MultiDimDataPageConfig.fromObject(mdimJsonConfig)
+        const dimensions = extractMultiDimChoicesFromQueryStr(
+            queryStr,
+            mdimConfig
+        )
+        const view = mdimConfig.findViewByDimensions(dimensions)
+        if (!view) {
+            throw new Error(
+                `No view found for dimensions ${JSON.stringify(dimensions)}`
+            )
+        }
+
+        const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${view.fullConfigId}.config.json`
+
+        await this._renderGrapherComponentIntoFigure(figure, {
+            configUrl,
+            embedUrl,
+        })
+    }
+    async renderGrapherViewIntoFigure(figure: Element) {
+        const viewConfigRaw = figure.getAttribute(
+            GRAPHER_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR
+        )
+        if (!viewConfigRaw) return
+        const viewConfig: NarrativeViewInfo = JSON.parse(viewConfigRaw)
+        if (!viewConfig) return
+
+        const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${viewConfig.chartConfigId}.config.json`
+
+        await this._renderGrapherComponentIntoFigure(figure, {
+            configUrl,
+            additionalConfig: {},
+        })
+    }
+
     @action.bound
     async renderInteractiveFigure(figure: Element) {
         const isExplorer = figure.hasAttribute(
             EXPLORER_EMBEDDED_FIGURE_SELECTOR
         )
         const isMultiDim = figure.hasAttribute("data-is-multi-dim")
-
-        const dataSrc = figure.getAttribute(
-            isExplorer
-                ? EXPLORER_EMBEDDED_FIGURE_SELECTOR
-                : GRAPHER_EMBEDDED_FIGURE_ATTR
+        const isGrapherView = figure.hasAttribute(
+            GRAPHER_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR
         )
 
-        if (!dataSrc) return
+        const embedType: EmbedType = isExplorer
+            ? "explorer"
+            : isMultiDim
+              ? "multiDim"
+              : isGrapherView
+                ? "grapherView"
+                : "grapher"
 
         const hasPreview = isExplorer ? false : !!figure.querySelector("img")
         if (!shouldProgressiveEmbed() && hasPreview) return
@@ -152,105 +314,12 @@ class MultiEmbedder {
         // when going from portrait to landscape mode (without page reload).
         this.figuresObserver?.unobserve(figure)
 
-        const { fullUrl, queryStr, queryParams } = Url.fromURL(dataSrc)
-
-        const common: GrapherProgrammaticInterface = {
-            isEmbeddedInAnOwidPage: true,
-            queryStr,
-            adminBaseUrl: ADMIN_BASE_URL,
-            bakedGrapherURL: BAKED_GRAPHER_URL,
-            dataApiUrl: DATA_API_URL,
-        }
-
-        if (isExplorer) {
-            const html = await fetchText(fullUrl)
-            const props: ExplorerProps = await buildExplorerProps(
-                html,
-                queryStr,
-                this.selection
-            )
-            if (props.selection)
-                this.graphersAndExplorersToUpdate.add(props.selection)
-            ReactDOM.render(<Explorer {...props} />, figure)
-        } else {
-            figure.classList.remove(GRAPHER_PREVIEW_CLASS)
-            const url = new URL(fullUrl)
-            const slug = url.pathname.split("/").pop()
-            let configUrl
-            if (isMultiDim) {
-                const mdimConfigUrl = `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${slug}.json`
-                const mdimJsonConfig = await fetchWithRetry(mdimConfigUrl).then(
-                    (res) => res.json()
-                )
-                const mdimConfig =
-                    MultiDimDataPageConfig.fromObject(mdimJsonConfig)
-                const dimensions = extractMultiDimChoicesFromQueryStr(
-                    url.search,
-                    mdimConfig
-                )
-                const view = mdimConfig.findViewByDimensions(dimensions)
-                if (!view) {
-                    throw new Error(
-                        `No view found for dimensions ${JSON.stringify(
-                            dimensions
-                        )}`
-                    )
-                }
-                configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${view.fullConfigId}.config.json`
-            } else {
-                configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
-            }
-            const fetchedGrapherPageConfig = await fetchWithRetry(
-                configUrl
-            ).then((res) => res.json())
-            const grapherPageConfig = migrateGrapherConfigToLatestVersion(
-                fetchedGrapherPageConfig
-            )
-
-            const figureConfigAttr = figure.getAttribute(
-                GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR
-            )
-            const localConfig = figureConfigAttr
-                ? JSON.parse(figureConfigAttr)
-                : {}
-
-            // make sure the tab of the active pane is visible
-            if (figureConfigAttr && !isEmpty(localConfig)) {
-                const activeTab = queryParams.tab || grapherPageConfig.tab
-                if (activeTab === GRAPHER_TAB_OPTIONS.chart)
-                    localConfig.hideChartTabs = false
-                if (activeTab === GRAPHER_TAB_OPTIONS.map)
-                    localConfig.hasMapTab = true
-                if (activeTab === GRAPHER_TAB_OPTIONS.table)
-                    localConfig.hasTableTab = true
-            }
-
-            const config = merge(
-                {}, // merge mutates the first argument
-                grapherPageConfig,
-                common,
-                localConfig,
-                {
-                    manager: {
-                        selection: new SelectionArray(
-                            this.selection.selectedEntityNames
-                        ),
-                    },
-                }
-            )
-            if (config.manager?.selection)
-                this.graphersAndExplorersToUpdate.add(config.manager.selection)
-
-            const grapherRef = Grapher.renderGrapherIntoContainer(
-                config,
-                figure
-            )
-
-            // Special handling for shared collections
-            if (window.location.pathname.startsWith("/collection/custom")) {
-                embedDynamicCollectionGrapher(grapherRef, figure)
-            }
-        }
+        await match(embedType)
+            .with("explorer", () => this.renderExplorerIntoFigure(figure))
+            .with("multiDim", () => this.renderMultiDimIntoFigure(figure))
+            .with("grapherView", () => this.renderGrapherViewIntoFigure(figure))
+            .with("grapher", () => this.renderGrapherIntoFigure(figure))
+            .exhaustive()
     }
 
     setUpGlobalEntitySelectorForEmbeds() {
