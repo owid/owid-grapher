@@ -1248,7 +1248,10 @@ export class ScatterPlotChart
         const axis = axisConfig.toVerticalAxis()
         axis.formatColumn = this.yColumn
         axis.scaleType = this.yScaleType
-        axis.label = this.currentVerticalAxisLabel
+
+        let label = this.currentVerticalAxisLabel
+        if (this.yColumn.displayUnit) label += ` (${this.yColumn.displayUnit})`
+        axis.label = label
 
         if (
             this.manager.isSingleTimeScatterAnimationActive &&
@@ -1312,8 +1315,12 @@ export class ScatterPlotChart
         axis.formatColumn = this.xColumn
         axis.scaleType = this.xScaleType
 
-        if (this.currentHorizontalAxisLabel)
-            axis.label = this.currentHorizontalAxisLabel
+        if (this.currentHorizontalAxisLabel) {
+            let label = this.currentHorizontalAxisLabel
+            if (this.xColumn.displayUnit)
+                label += ` (${this.xColumn.displayUnit})`
+            axis.label = label
+        }
 
         if (
             this.manager.isSingleTimeScatterAnimationActive &&

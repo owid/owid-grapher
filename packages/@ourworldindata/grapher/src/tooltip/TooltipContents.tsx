@@ -132,11 +132,7 @@ class Variable extends React.Component<{
 
         if (column.isMissing || column.name === "time") return null
 
-        const { unit, shortUnit, displayName } = column,
-            displayUnit =
-                unit && unit !== shortUnit
-                    ? unit.replace(/^\((.*)\)$/, "$1")
-                    : undefined,
+        const { displayUnit, displayName } = column,
             displayNotice =
                 uniq((notice ?? []).filter((t) => t !== undefined))
                     .map((time) =>
