@@ -86,6 +86,31 @@ export type EnrichedBlockChart = {
     tabs?: ChartTabKeyword[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockNarrativeChartValue = {
+    name?: string
+    height?: string
+    row?: string
+    column?: string
+    // TODO: position is used as a classname apparently? Should be renamed or split
+    position?: string
+    caption?: string
+}
+
+export type RawBlockNarrativeChart = {
+    type: "narrative-chart"
+    value: RawBlockNarrativeChartValue | string
+}
+
+export type EnrichedBlockNarrativeChart = {
+    type: "narrative-chart"
+    name: string
+    height?: string
+    row?: string
+    column?: string
+    position?: ChartPositionChoice
+    caption?: Span[]
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockCode = {
     type: "code"
     value: RawBlockText[]
@@ -945,6 +970,7 @@ export type OwidRawGdocBlock =
     | RawBlockAside
     | RawBlockCallout
     | RawBlockChart
+    | RawBlockNarrativeChart
     | RawBlockCode
     | RawBlockDonorList
     | RawBlockScroller
@@ -996,6 +1022,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockAside
     | EnrichedBlockCallout
     | EnrichedBlockChart
+    | EnrichedBlockNarrativeChart
     | EnrichedBlockCode
     | EnrichedBlockDonorList
     | EnrichedBlockScroller

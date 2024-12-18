@@ -13,6 +13,7 @@ import {
 } from "./ArchieMlComponents.js"
 import { MinimalTag } from "../dbTypes/Tags.js"
 import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
+import { QueryParams } from "../domainTypes/Various.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -51,6 +52,15 @@ export interface LinkedChart {
     tags: string[]
     tab?: GrapherTabOption
     indicatorId?: number // in case of a datapage
+}
+
+// An object containing metadata needed for embedded narrative charts
+export interface NarrativeViewInfo {
+    name: string
+    title: string
+    chartConfigId: string
+    parentChartSlug: string
+    queryParamsForParentChart: QueryParams
 }
 
 /**
@@ -271,6 +281,7 @@ export enum OwidGdocLinkType {
     Url = "url",
     Grapher = "grapher",
     Explorer = "explorer",
+    NarrativeChart = "narrative-chart",
 }
 
 export interface OwidGdocLinkJSON {

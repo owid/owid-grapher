@@ -62,3 +62,23 @@ export function createLinkFromUrl({
         sourceId: source.id,
     } satisfies DbInsertPostGdocLink
 }
+
+export function createLinkForNarrativeChart({
+    name,
+    source,
+    componentType,
+}: {
+    name: string
+    source: GdocBase
+    componentType: string
+}): DbInsertPostGdocLink {
+    return {
+        target: name,
+        linkType: OwidGdocLinkType.NarrativeChart,
+        queryString: "",
+        hash: "",
+        text: "",
+        componentType,
+        sourceId: source.id,
+    } satisfies DbInsertPostGdocLink
+}
