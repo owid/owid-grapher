@@ -60,6 +60,7 @@ import {
 interface Variable {
     id: number
     name: string
+    catalogPath?: string
 }
 
 export interface Dataset {
