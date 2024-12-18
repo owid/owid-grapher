@@ -23,6 +23,7 @@ import {
     extractMultiDimChoicesFromQueryStr,
     fetchWithRetry,
     NarrativeViewInfo,
+    queryParamsToStr,
 } from "@ourworldindata/utils"
 import { action } from "mobx"
 import React from "react"
@@ -281,9 +282,18 @@ class MultiEmbedder {
 
         const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${viewConfig.chartConfigId}.config.json`
 
+        const queryStr = queryParamsToStr(viewConfig.queryParamsForParentChart)
+
         await this._renderGrapherComponentIntoFigure(figure, {
             configUrl,
-            additionalConfig: {},
+            additionalConfig: {
+                hideRelatedQuestion: true,
+                hideShareButton: true, // always hidden since the original chart would be shared, not the customized one
+                hideExploreTheDataButton: false,
+                manager: {
+                    canonicalUrl: `${BAKED_GRAPHER_URL}/${viewConfig.parentChartSlug}${queryStr}`,
+                },
+            },
         })
     }
 
