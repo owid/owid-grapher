@@ -74,8 +74,8 @@ class DatasetRow extends React.Component<{
                     </Link>
                 </td>
                 <td>{dataset.namespace}</td>
-                <td>{dataset.version}</td>
                 <td>{highlight(dataset.shortName)}</td>
+                <td>{dataset.version}</td>
                 <td>{dataset.numCharts}</td>
                 <td>
                     <Timeago
@@ -124,8 +124,8 @@ export class DatasetList extends React.Component<{
                     <tr>
                         <th>Dataset</th>
                         <th>Namespace</th>
-                        <th>Version</th>
                         <th>Short name</th>
+                        <th>Version</th>
                         <th>Number of charts</th>
                         <th>Uploaded</th>
                         <th>Notes</th>
