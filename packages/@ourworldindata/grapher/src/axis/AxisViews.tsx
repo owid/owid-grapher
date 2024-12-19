@@ -14,7 +14,7 @@ import {
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
-import { ScaleType, DetailsMarker } from "@ourworldindata/types"
+import { ScaleType, DetailsMarker, AxisAlign } from "@ourworldindata/types"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { GRAPHER_AXIS_LABEL_PADDING } from "../core/GrapherConstants.js"
 
@@ -429,12 +429,14 @@ export class VerticalAxisTickMark extends React.Component<{
 export function HorizonalAxisLabel({
     textWrap,
     dualAxis,
+    align = AxisAlign.middle,
     padding = GRAPHER_AXIS_LABEL_PADDING,
     color = GRAPHER_DARK_TEXT,
     detailsMarker,
 }: {
     textWrap: MarkdownTextWrap
     dualAxis: DualAxis
+    align?: AxisAlign
     padding?: number
     color?: string
     detailsMarker?: DetailsMarker
@@ -443,7 +445,12 @@ export function HorizonalAxisLabel({
 
     const horizontalAxisLabelsOnTop = horizontalAxis.orient === Position.top
 
-    const x = horizontalAxis.rangeCenter
+    const x =
+        align === AxisAlign.middle
+            ? horizontalAxis.rangeCenter
+            : AxisAlign.end
+              ? bounds.right
+              : bounds.left
     const y = horizontalAxisLabelsOnTop
         ? bounds.top - textWrap.height - padding
         : bounds.bottom + padding
@@ -452,7 +459,12 @@ export function HorizonalAxisLabel({
         id: makeIdForHumanConsumption("horizontal-axis-label"),
         textProps: {
             fill: color || GRAPHER_DARK_TEXT,
-            textAnchor: "middle",
+            textAnchor:
+                align === AxisAlign.middle
+                    ? "middle"
+                    : align === AxisAlign.end
+                      ? "end"
+                      : "start",
         },
         detailsMarker,
     })
@@ -461,27 +473,31 @@ export function HorizonalAxisLabel({
 export function VerticalAxisLabel({
     textWrap,
     dualAxis,
+    align = AxisAlign.middle,
     padding = GRAPHER_AXIS_LABEL_PADDING,
     color = GRAPHER_DARK_TEXT,
     detailsMarker,
 }: {
     textWrap: MarkdownTextWrap
     dualAxis: DualAxis
+    align?: AxisAlign
     padding?: number
     color?: string
     detailsMarker?: DetailsMarker
 }): React.ReactElement | null {
     const { verticalAxis, bounds } = dualAxis
 
-    const x = -verticalAxis.rangeCenter
-    const y = bounds.left - textWrap.height - padding
+    const alignMiddle = align === AxisAlign.middle
+    const x = alignMiddle ? -verticalAxis.rangeCenter : bounds.left
+    const y =
+        (alignMiddle ? bounds.left : bounds.top) - textWrap.height - padding
 
     return textWrap.renderSVG(x, y, {
         id: makeIdForHumanConsumption("vertical-axis-label"),
         textProps: {
-            transform: "rotate(-90)",
+            transform: alignMiddle ? "rotate(-90)" : undefined,
             fill: color || GRAPHER_DARK_TEXT,
-            textAnchor: "middle",
+            textAnchor: alignMiddle ? "middle" : "start",
         },
         detailsMarker,
     })
