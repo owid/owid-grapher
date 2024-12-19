@@ -7,7 +7,7 @@ import { AdminAppContext } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
 import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { ApiChartViewOverview } from "../adminShared/AdminTypes.js"
-import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
+import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
 import { Link } from "./Link.js"
 import {
     buildSearchWordsFromSearchString,
@@ -28,7 +28,7 @@ function createColumns(
             width: 200,
             render: (chartConfigId) => (
                 <img
-                    src={`${BAKED_GRAPHER_URL}/by-uuid/${chartConfigId}.svg`}
+                    src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${chartConfigId}.svg`}
                     style={{ maxWidth: 200, maxHeight: 200 }}
                 />
             ),
