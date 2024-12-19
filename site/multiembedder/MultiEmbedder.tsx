@@ -10,7 +10,7 @@ import {
     migrateSelectedEntityNamesParam,
     SelectionArray,
     migrateGrapherConfigToLatestVersion,
-    GRAPHER_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR,
+    GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR,
 } from "@ourworldindata/grapher"
 import {
     fetchText,
@@ -22,7 +22,7 @@ import {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromQueryStr,
     fetchWithRetry,
-    NarrativeViewInfo,
+    ChartViewInfo,
     queryParamsToStr,
 } from "@ourworldindata/utils"
 import { action } from "mobx"
@@ -46,7 +46,7 @@ import Bugsnag from "@bugsnag/js"
 import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
 import { match } from "ts-pattern"
 
-type EmbedType = "grapher" | "explorer" | "multiDim" | "grapherView"
+type EmbedType = "grapher" | "explorer" | "multiDim" | "chartView"
 
 const figuresFromDOM = (
     container: HTMLElement | Document = document,
@@ -122,7 +122,7 @@ class MultiEmbedder {
             .concat(
                 figuresFromDOM(
                     container,
-                    GRAPHER_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR
+                    GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR
                 )
             )
 
@@ -271,12 +271,12 @@ class MultiEmbedder {
             embedUrl,
         })
     }
-    async renderGrapherViewIntoFigure(figure: Element) {
+    async renderChartViewIntoFigure(figure: Element) {
         const viewConfigRaw = figure.getAttribute(
-            GRAPHER_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR
+            GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR
         )
         if (!viewConfigRaw) return
-        const viewConfig: NarrativeViewInfo = JSON.parse(viewConfigRaw)
+        const viewConfig: ChartViewInfo = JSON.parse(viewConfigRaw)
         if (!viewConfig) return
 
         const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${viewConfig.chartConfigId}.config.json`
@@ -302,16 +302,16 @@ class MultiEmbedder {
             EXPLORER_EMBEDDED_FIGURE_SELECTOR
         )
         const isMultiDim = figure.hasAttribute("data-is-multi-dim")
-        const isGrapherView = figure.hasAttribute(
-            GRAPHER_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR
+        const isChartView = figure.hasAttribute(
+            GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR
         )
 
         const embedType: EmbedType = isExplorer
             ? "explorer"
             : isMultiDim
               ? "multiDim"
-              : isGrapherView
-                ? "grapherView"
+              : isChartView
+                ? "chartView"
                 : "grapher"
 
         const hasPreview = isExplorer ? false : !!figure.querySelector("img")
@@ -327,7 +327,7 @@ class MultiEmbedder {
         await match(embedType)
             .with("explorer", () => this.renderExplorerIntoFigure(figure))
             .with("multiDim", () => this.renderMultiDimIntoFigure(figure))
-            .with("grapherView", () => this.renderGrapherViewIntoFigure(figure))
+            .with("chartView", () => this.renderChartViewIntoFigure(figure))
             .with("grapher", () => this.renderGrapherIntoFigure(figure))
             .exhaustive()
     }

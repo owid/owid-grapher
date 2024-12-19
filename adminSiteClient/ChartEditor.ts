@@ -200,7 +200,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
             )
     }
 
-    async saveAsNarrativeView(): Promise<void> {
+    async saveAsChartView(): Promise<void> {
         const { patchConfig, grapher } = this
 
         const chartJson = omit(patchConfig, CHART_VIEW_PROPS_TO_OMIT)
@@ -208,7 +208,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         const suggestedName = grapher.title ? slugify(grapher.title) : undefined
 
         const name = prompt(
-            "Please enter a programmatic name for the narrative view. Note that this name cannot be changed later.",
+            "Please enter a programmatic name for the narrative chart. Note that this name cannot be changed later.",
             suggestedName
         )
 

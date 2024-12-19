@@ -135,7 +135,7 @@ export function ChartViewIndexPage() {
     }, [admin])
 
     return (
-        <AdminLayout title="Narrative views">
+        <AdminLayout title="Narrative charts">
             <main className="ChartViewIndexPage">
                 <Flex justify="space-between">
                     <Input

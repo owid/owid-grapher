@@ -55,7 +55,7 @@ export interface LinkedChart {
 }
 
 // An object containing metadata needed for embedded narrative charts
-export interface NarrativeViewInfo {
+export interface ChartViewInfo {
     name: string
     title: string
     chartConfigId: string
@@ -281,7 +281,7 @@ export enum OwidGdocLinkType {
     Url = "url",
     Grapher = "grapher",
     Explorer = "explorer",
-    NarrativeChart = "narrative-chart",
+    ChartView = "chart-view",
 }
 
 export interface OwidGdocLinkJSON {
