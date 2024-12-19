@@ -40,6 +40,7 @@
         svg {
             font-size: 10px;
             padding-left: 0.75px;
+            display: none;
         }
     }
 
@@ -47,17 +48,13 @@
         outline: 2px solid $controls-color;
     }
 
-    input:active + .custom {
-        background: $active-fill;
-    }
-
     input:checked + .custom {
         background: $active-fill;
         border-color: $active-fill;
-    }
 
-    input:checked:active + .custom {
-        background: white;
+        svg {
+            display: block;
+        }
     }
 
     .label {

@@ -19,7 +19,7 @@ export class Checkbox extends React.Component<{
                         onChange={onChange}
                     />
                     <div className="custom">
-                        {checked && <FontAwesomeIcon icon={faCheck} />}
+                        <FontAwesomeIcon icon={faCheck} />
                     </div>
                     <div className="label">{label}</div>
                 </label>
