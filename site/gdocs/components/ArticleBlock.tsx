@@ -1,6 +1,7 @@
 import React from "react"
 import cx from "classnames"
 
+import Callout from "./Callout.js"
 import ChartStory from "./ChartStory.js"
 import Scroller from "./Scroller.js"
 import Chart from "./Chart.js"
@@ -248,7 +249,7 @@ export default function ArticleBlock({
         .with({ type: "code" }, (block) => (
             <CodeSnippet
                 className={getLayout("code-snippet", containerType)}
-                code={block.text.map((text) => text.value).join("\n")}
+                code={block.text.map((text) => text.value.text).join("\n")}
             />
         ))
         .with({ type: "donors" }, (_block) => (
@@ -261,14 +262,10 @@ export default function ArticleBlock({
             />
         ))
         .with({ type: "callout" }, (block) => (
-            <div className={getLayout("callout", containerType)}>
-                {block.title ? (
-                    <h4 className="h4-semibold">{block.title}</h4>
-                ) : null}
-                {block.text.map((textBlock, i) => (
-                    <ArticleBlock key={i} b={textBlock} />
-                ))}
-            </div>
+            <Callout
+                className={getLayout("callout", containerType)}
+                block={block}
+            />
         ))
         .with({ type: "chart-story" }, (block) => (
             <ChartStory

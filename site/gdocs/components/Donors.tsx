@@ -1,12 +1,14 @@
 import * as React from "react"
-import { groupBy } from "@ourworldindata/utils"
+import { groupBy, removeDiacritics } from "@ourworldindata/utils"
 import { useDonors } from "../utils.js"
 
 export default function Donors({ className }: { className?: string }) {
     const donors = useDonors()
     if (!donors) return null
 
-    const donorsByLetter = groupBy(donors, (donor) => donor[0])
+    const donorsByLetter = groupBy(donors, (donor) =>
+        removeDiacritics(donor[0].toUpperCase())
+    )
     return (
         <div className={className}>
             <div className="col-start-2 span-cols-12">

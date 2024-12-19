@@ -52,7 +52,7 @@ export function AllCharts(props: AllChartsProps) {
                 className="article-block__heading h1-semibold"
                 id={ALL_CHARTS_ID}
             >
-                {heading}
+                <span>{heading}</span>
                 <a
                     className="deep-link"
                     aria-labelledby={ALL_CHARTS_ID}
