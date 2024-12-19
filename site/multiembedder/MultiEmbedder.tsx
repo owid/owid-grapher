@@ -23,7 +23,6 @@ import {
     extractMultiDimChoicesFromQueryStr,
     fetchWithRetry,
     ChartViewInfo,
-    queryParamsToStr,
 } from "@ourworldindata/utils"
 import { action } from "mobx"
 import React from "react"
