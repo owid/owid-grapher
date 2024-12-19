@@ -5,8 +5,8 @@ import type { GrapherProgrammaticInterface } from "./Grapher"
 export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
 export const GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR = "data-grapher-config"
 
-export const GRAPHER_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR =
-    "data-grapher-view-config"
+export const GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR =
+    "data-grapher-chart-view-config"
 
 export const GRAPHER_PAGE_BODY_CLASS = "StandaloneGrapherOrExplorerPage"
 export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"

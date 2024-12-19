@@ -56,7 +56,7 @@ import {
     grabMetadataForGdocLinkedIndicator,
     TombstonePageData,
     gdocUrlRegex,
-    NarrativeViewInfo,
+    ChartViewInfo,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -110,7 +110,7 @@ import { getTombstones } from "../db/model/GdocTombstone.js"
 import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
 import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
-import { getNarrativeViewsInfo } from "../db/model/ChartView.js"
+import { getChartViewsInfo } from "../db/model/ChartView.js"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -122,7 +122,7 @@ type PrefetchedAttachments = {
         explorers: Record<string, LinkedChart>
     }
     linkedIndicators: Record<number, LinkedIndicator>
-    narrativeViewsInfo: Record<string, NarrativeViewInfo>
+    linkedChartViews: Record<string, ChartViewInfo>
 }
 
 // These aren't all "wordpress" steps
@@ -462,10 +462,10 @@ export class SiteBaker {
                 name: `✅ Prefetched ${publishedAuthors.length} authors`,
             })
 
-            const narrativeViewsInfo = await getNarrativeViewsInfo(knex)
-            const narrativeViewsInfoByName = keyBy(narrativeViewsInfo, "name")
+            const chartViewsInfo = await getChartViewsInfo(knex)
+            const chartViewsInfoByName = keyBy(chartViewsInfo, "name")
             this.progressBar.tick({
-                name: `✅ Prefetched ${narrativeViewsInfo.length} chart views`,
+                name: `✅ Prefetched ${chartViewsInfo.length} chart views`,
             })
 
             const prefetchedAttachments = {
@@ -478,7 +478,7 @@ export class SiteBaker {
                     graphers: publishedChartsBySlug,
                 },
                 linkedIndicators: datapageIndicatorsById,
-                narrativeViewsInfo: narrativeViewsInfoByName,
+                linkedChartViews: chartViewsInfoByName,
             }
             this.progressBar.tick({ name: "✅ Prefetched attachments" })
             this._prefetchedAttachmentsCache = prefetchedAttachments
@@ -490,7 +490,7 @@ export class SiteBaker {
                 imageFilenames,
                 linkedGrapherSlugs,
                 linkedExplorerSlugs,
-                linkedNarrativeChartNames,
+                linkedChartViewNames,
             ] = picks
             const linkedDocuments = pick(
                 this._prefetchedAttachmentsCache.linkedDocuments,
@@ -539,9 +539,9 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedAuthors.filter(
                         (author) => authorNames.includes(author.name)
                     ),
-                narrativeViewsInfo: pick(
-                    this._prefetchedAttachmentsCache.narrativeViewsInfo,
-                    linkedNarrativeChartNames
+                linkedChartViews: pick(
+                    this._prefetchedAttachmentsCache.linkedChartViews,
+                    linkedChartViewNames
                 ),
             }
         }
@@ -634,7 +634,7 @@ export class SiteBaker {
                 publishedGdoc.linkedImageFilenames,
                 publishedGdoc.linkedChartSlugs.grapher,
                 publishedGdoc.linkedChartSlugs.explorer,
-                publishedGdoc.linkedNarrativeChartNames,
+                publishedGdoc.linkedChartViewNames,
             ])
             publishedGdoc.donors = attachments.donors
             publishedGdoc.linkedAuthors = attachments.linkedAuthors
@@ -645,7 +645,7 @@ export class SiteBaker {
                 ...attachments.linkedCharts.explorers,
             }
             publishedGdoc.linkedIndicators = attachments.linkedIndicators
-            publishedGdoc.narrativeViewsInfo = attachments.narrativeViewsInfo
+            publishedGdoc.linkedChartViews = attachments.linkedChartViews
 
             // this is a no-op if the gdoc doesn't have an all-chart block
             if ("loadRelatedCharts" in publishedGdoc) {
@@ -893,7 +893,7 @@ export class SiteBaker {
                 dataInsight.linkedImageFilenames,
                 dataInsight.linkedChartSlugs.grapher,
                 dataInsight.linkedChartSlugs.explorer,
-                dataInsight.linkedNarrativeChartNames,
+                dataInsight.linkedChartViewNames,
             ])
             dataInsight.linkedDocuments = attachments.linkedDocuments
             dataInsight.imageMetadata = {
@@ -967,7 +967,7 @@ export class SiteBaker {
                 publishedAuthor.linkedImageFilenames,
                 publishedAuthor.linkedChartSlugs.grapher,
                 publishedAuthor.linkedChartSlugs.explorer,
-                publishedAuthor.linkedNarrativeChartNames,
+                publishedAuthor.linkedChartViewNames,
             ])
 
             // We don't need these to be attached to the gdoc in the current

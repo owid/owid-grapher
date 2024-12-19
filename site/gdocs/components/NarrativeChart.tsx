@@ -1,11 +1,12 @@
 import React, { useContext, useRef } from "react"
 import { useEmbedChart } from "../../hooks.js"
 import { EnrichedBlockNarrativeChart } from "@ourworldindata/types"
-import { renderSpans, useNarrativeViewsInfo } from "../utils.js"
+import { renderSpans, useLinkedChartView } from "../utils.js"
 import cx from "classnames"
 import { GRAPHER_PREVIEW_CLASS } from "../../SiteConstants.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { DocumentContext } from "../OwidGdoc.js"
+import { GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR } from "@ourworldindata/grapher"
 
 export default function NarrativeChart({
     d,
@@ -19,7 +20,7 @@ export default function NarrativeChart({
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(0, refChartContainer)
 
-    const viewMetadata = useNarrativeViewsInfo(d.name)
+    const viewMetadata = useLinkedChartView(d.name)
 
     const { isPreviewing } = useContext(DocumentContext)
 
@@ -29,8 +30,8 @@ export default function NarrativeChart({
                 <BlockErrorFallback
                     className={className}
                     error={{
-                        name: "Narrative view not found",
-                        message: `Narrative view with name "${d.name}" couldn't be found.`,
+                        name: "Narrative chart not found",
+                        message: `Narrative chart with name "${d.name}" couldn't be found.`,
                     }}
                 />
             )
@@ -50,11 +51,14 @@ export default function NarrativeChart({
             <figure
                 key={metadataStringified}
                 className={cx(GRAPHER_PREVIEW_CLASS, "chart")}
-                data-grapher-view-config={metadataStringified}
                 style={{
                     width: "100%",
                     border: "0px none",
                     height: d.height,
+                }}
+                {...{
+                    [GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR]:
+                        metadataStringified,
                 }}
             >
                 {/* <a href={resolvedUrl} target="_blank" rel="noopener">
