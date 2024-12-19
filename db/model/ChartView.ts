@@ -1,11 +1,11 @@
-import { NarrativeViewInfo, JsonString } from "@ourworldindata/types"
+import { ChartViewInfo, JsonString } from "@ourworldindata/types"
 import * as db from "../db.js"
 
-export const getNarrativeViewsInfo = async (
+export const getChartViewsInfo = async (
     knex: db.KnexReadonlyTransaction,
     names?: string[]
-): Promise<NarrativeViewInfo[]> => {
-    type RawRow = Omit<NarrativeViewInfo, "queryParamsForParentChart"> & {
+): Promise<ChartViewInfo[]> => {
+    type RawRow = Omit<ChartViewInfo, "queryParamsForParentChart"> & {
         queryParamsForParentChart: JsonString
     }
     let rows: RawRow[]

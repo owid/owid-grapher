@@ -93,7 +93,7 @@ export function OwidGdoc({
                 latestDataInsights: get(props, "latestDataInsights", []),
                 homepageMetadata: get(props, "homepageMetadata", {}),
                 latestWorkLinks: get(props, "latestWorkLinks", []),
-                narrativeViewsInfo: get(props, "narrativeViewsInfo", {}),
+                linkedChartViews: get(props, "linkedChartViews", {}),
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
