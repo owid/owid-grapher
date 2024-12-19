@@ -298,7 +298,6 @@ export class DiscreteBarChart
 
         axis.formatColumn = this.yColumns[0] // todo: does this work for columns as series?
         axis.range = this.xRange
-        axis.label = ""
         return axis
     }
 
@@ -522,7 +521,6 @@ export class DiscreteBarChart
                             bounds={boundsWithoutColorLegend}
                             axis={yAxis}
                             preferredAxisPosition={innerBounds.bottom}
-                            labelColor={manager.secondaryColorInStaticCharts}
                             tickMarkWidth={axisLineWidth}
                         />
                         <HorizontalAxisGridLines

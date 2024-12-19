@@ -263,11 +263,9 @@ export interface AxisConfigInterface {
     minSize?: number
 
     /**
-     * The padding between:
-     * - an axis tick and an axis gridline
-     * - an axis label and an axis tick
+     * The padding between an axis tick and an axis gridline.
      */
-    labelPadding?: number
+    tickPadding?: number
 
     /**
      * Extend scale to start & end on "nicer" round values.

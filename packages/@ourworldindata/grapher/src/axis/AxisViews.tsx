@@ -15,6 +15,8 @@ import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { ScaleType, DetailsMarker } from "@ourworldindata/types"
+import { MarkdownTextWrap } from "@ourworldindata/components"
+import { GRAPHER_AXIS_LABEL_PADDING } from "../core/GrapherConstants.js"
 
 const dasharrayFromFontSize = (fontSize: number): string => {
     const dashLength = Math.round((fontSize / 16) * 3)
@@ -172,11 +174,9 @@ interface DualAxisViewProps {
     dualAxis: DualAxis
     highlightValue?: { x: number; y: number }
     showTickMarks?: boolean
-    labelColor?: string
     tickColor?: string
     lineWidth?: number
     gridDashPattern?: string
-    detailsMarker?: DetailsMarker
 }
 
 @observer
@@ -185,11 +185,9 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
         const {
             dualAxis,
             showTickMarks,
-            labelColor,
             tickColor,
             lineWidth,
             gridDashPattern,
-            detailsMarker,
         } = this.props
         const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
 
@@ -215,9 +213,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
             <VerticalAxisComponent
                 bounds={bounds}
                 verticalAxis={verticalAxis}
-                labelColor={labelColor}
                 tickColor={tickColor}
-                detailsMarker={detailsMarker}
             />
         )
 
@@ -227,10 +223,8 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 axis={horizontalAxis}
                 showTickMarks={showTickMarks}
                 preferredAxisPosition={innerBounds.bottom}
-                labelColor={labelColor}
                 tickColor={tickColor}
                 tickMarkWidth={lineWidth}
-                detailsMarker={detailsMarker}
             />
         )
 
@@ -250,42 +244,17 @@ export class VerticalAxisComponent extends React.Component<{
     bounds: Bounds
     verticalAxis: VerticalAxis
     showTickMarks?: boolean
-    labelColor?: string
     tickColor?: string
-    detailsMarker?: DetailsMarker
 }> {
     render(): React.ReactElement {
-        const {
-            bounds,
-            verticalAxis,
-            labelColor,
-            tickColor,
-            detailsMarker,
-            showTickMarks,
-        } = this.props
-        const { tickLabels, labelTextWrap, config } = verticalAxis
+        const { bounds, verticalAxis, tickColor, showTickMarks } = this.props
+        const { tickLabels, config } = verticalAxis
 
         return (
             <g
                 id={makeIdForHumanConsumption("vertical-axis")}
                 className="VerticalAxis"
             >
-                {labelTextWrap &&
-                    labelTextWrap.renderSVG(
-                        -verticalAxis.rangeCenter,
-                        bounds.left,
-                        {
-                            id: makeIdForHumanConsumption(
-                                "vertical-axis-label"
-                            ),
-                            textProps: {
-                                transform: "rotate(-90)",
-                                fill: labelColor || GRAPHER_DARK_TEXT,
-                                textAnchor: "middle",
-                            },
-                            detailsMarker,
-                        }
-                    )}
                 {showTickMarks && (
                     <g id={makeIdForHumanConsumption("tick-marks")}>
                         {tickLabels.map((label, i) => (
@@ -315,7 +284,7 @@ export class VerticalAxisComponent extends React.Component<{
                                     x={(
                                         bounds.left +
                                         verticalAxis.width -
-                                        verticalAxis.labelPadding
+                                        verticalAxis.tickPadding
                                     ).toFixed(2)}
                                     y={y}
                                     dy={dyFromAlign(
@@ -343,10 +312,8 @@ export class HorizontalAxisComponent extends React.Component<{
     axis: HorizontalAxis
     showTickMarks?: boolean
     preferredAxisPosition?: number
-    labelColor?: string
     tickColor?: string
     tickMarkWidth?: number
-    detailsMarker?: DetailsMarker
 }> {
     @computed get scaleType(): ScaleType {
         return this.props.axis.scaleType
@@ -370,25 +337,20 @@ export class HorizontalAxisComponent extends React.Component<{
             axis,
             showTickMarks,
             preferredAxisPosition,
-            labelColor,
             tickColor,
             tickMarkWidth = 1,
-            detailsMarker,
         } = this.props
-        const { tickLabels, labelTextWrap: label, labelOffset, orient } = axis
+        const { tickLabels, orient } = axis
         const tickSize = 5
         const horizontalAxisLabelsOnTop = orient === Position.top
-        const labelYPosition = horizontalAxisLabelsOnTop
-            ? bounds.top
-            : bounds.bottom - (label?.height ?? 0)
 
         const tickMarksYPosition = horizontalAxisLabelsOnTop
             ? bounds.top + axis.height - 5
             : (preferredAxisPosition ?? bounds.bottom)
 
         const tickLabelYPlacement = horizontalAxisLabelsOnTop
-            ? bounds.top + labelOffset + 10
-            : bounds.bottom - labelOffset
+            ? bounds.top + 10
+            : bounds.bottom
 
         const showTickLabels = !axis.config.hideTickLabels
 
@@ -397,15 +359,6 @@ export class HorizontalAxisComponent extends React.Component<{
                 id={makeIdForHumanConsumption("horizontal-axis")}
                 className="HorizontalAxis"
             >
-                {label &&
-                    label.renderSVG(axis.rangeCenter, labelYPosition, {
-                        id: makeIdForHumanConsumption("horizontal-axis-label"),
-                        textProps: {
-                            fill: labelColor || GRAPHER_DARK_TEXT,
-                            textAnchor: "middle",
-                        },
-                        detailsMarker,
-                    })}
                 {showTickMarks && (
                     <g id={makeIdForHumanConsumption("tick-marks")}>
                         {tickLabels.map((label) => (
@@ -471,4 +424,65 @@ export class VerticalAxisTickMark extends React.Component<{
             />
         )
     }
+}
+
+export function HorizonalAxisLabel({
+    textWrap,
+    dualAxis,
+    padding = GRAPHER_AXIS_LABEL_PADDING,
+    color = GRAPHER_DARK_TEXT,
+    detailsMarker,
+}: {
+    textWrap: MarkdownTextWrap
+    dualAxis: DualAxis
+    padding?: number
+    color?: string
+    detailsMarker?: DetailsMarker
+}): React.ReactElement | null {
+    const { horizontalAxis, bounds } = dualAxis
+
+    const horizontalAxisLabelsOnTop = horizontalAxis.orient === Position.top
+
+    const x = horizontalAxis.rangeCenter
+    const y = horizontalAxisLabelsOnTop
+        ? bounds.top - textWrap.height - padding
+        : bounds.bottom + padding
+
+    return textWrap.renderSVG(x, y, {
+        id: makeIdForHumanConsumption("horizontal-axis-label"),
+        textProps: {
+            fill: color || GRAPHER_DARK_TEXT,
+            textAnchor: "middle",
+        },
+        detailsMarker,
+    })
+}
+
+export function VerticalAxisLabel({
+    textWrap,
+    dualAxis,
+    padding = GRAPHER_AXIS_LABEL_PADDING,
+    color = GRAPHER_DARK_TEXT,
+    detailsMarker,
+}: {
+    textWrap: MarkdownTextWrap
+    dualAxis: DualAxis
+    padding?: number
+    color?: string
+    detailsMarker?: DetailsMarker
+}): React.ReactElement | null {
+    const { verticalAxis, bounds } = dualAxis
+
+    const x = -verticalAxis.rangeCenter
+    const y = bounds.left - textWrap.height - padding
+
+    return textWrap.renderSVG(x, y, {
+        id: makeIdForHumanConsumption("vertical-axis-label"),
+        textProps: {
+            transform: "rotate(-90)",
+            fill: color || GRAPHER_DARK_TEXT,
+            textAnchor: "middle",
+        },
+        detailsMarker,
+    })
 }
