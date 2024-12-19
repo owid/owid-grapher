@@ -18,8 +18,11 @@ import {
     GRAPHER_TIMELINE_CLASS,
     GRAPHER_SETTINGS_CLASS,
     validChartTypeCombinations,
+    GRAPHER_FONT_SCALE_12,
+    BASE_FONT_SIZE,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
@@ -227,4 +230,24 @@ export function byHoverThenFocusState(series: {
 
     // background series rank lowest
     return 1
+}
+
+export function makeAxisLabelWrap({
+    text,
+    maxWidth,
+    baseFontSize = BASE_FONT_SIZE,
+    detailsOrderedByReference,
+}: {
+    text: string
+    maxWidth: number
+    baseFontSize?: number
+    detailsOrderedByReference?: string[]
+}): MarkdownTextWrap {
+    return new MarkdownTextWrap({
+        text,
+        maxWidth,
+        fontSize: GRAPHER_FONT_SCALE_12 * baseFontSize,
+        lineHeight: 1,
+        detailsOrderedByReference,
+    })
 }

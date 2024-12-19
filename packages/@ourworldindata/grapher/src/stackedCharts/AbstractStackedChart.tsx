@@ -8,7 +8,10 @@ import {
     MissingDataStrategy,
     SeriesStrategy,
 } from "@ourworldindata/types"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    GRAPHER_AXIS_LABEL_PADDING,
+} from "../core/GrapherConstants"
 import {
     Bounds,
     DEFAULT_BOUNDS,
@@ -31,6 +34,7 @@ import {
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    makeAxisLabelWrap,
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import { easeLinear } from "d3-ease"
@@ -44,6 +48,7 @@ import {
     CategoricalColorMap,
 } from "../color/CategoricalColorAssigner.js"
 import { BinaryMapPaletteE } from "../color/CustomSchemes"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 
 // used in StackedBar charts to color negative and positive bars
 const POSITIVE_COLOR = BinaryMapPaletteE.colorSets[0][0] // orange
@@ -151,10 +156,6 @@ export class AbstractStackedChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed get detailsOrderedByReference(): string[] {
-        return this.manager.detailsOrderedByReference ?? []
-    }
-
     protected get paddingForLegendRight(): number {
         return 0
     }
@@ -220,10 +221,18 @@ export class AbstractStackedChart
         )
     }
 
+    @computed private get axisBounds(): Bounds {
+        const xAxisLabelHeight = this.horizontalAxisLabelWrap
+            ? this.horizontalAxisLabelWrap.height + GRAPHER_AXIS_LABEL_PADDING
+            : 0
+
+        return this.innerBounds.padBottom(xAxisLabelHeight)
+    }
+
     @computed protected get dualAxis(): DualAxis {
         const { horizontalAxisPart, verticalAxisPart } = this
         return new DualAxis({
-            bounds: this.innerBounds,
+            bounds: this.axisBounds,
             horizontalAxis: horizontalAxisPart,
             verticalAxis: verticalAxisPart,
         })
@@ -250,6 +259,20 @@ export class AbstractStackedChart
         axis.formatColumn = this.inputTable.timeColumn
         axis.hideFractionalTicks = true
         return axis
+    }
+
+    @computed protected get horizontalAxisLabelWrap():
+        | MarkdownTextWrap
+        | undefined {
+        if (!this.xAxisConfig.label) return undefined
+
+        const maxWidth = this.innerBounds.width - this.verticalAxisPart.size
+
+        return makeAxisLabelWrap({
+            text: this.xAxisConfig.label,
+            maxWidth,
+            baseFontSize: this.fontSize,
+        })
     }
 
     @computed private get yAxisConfig(): AxisConfig {
