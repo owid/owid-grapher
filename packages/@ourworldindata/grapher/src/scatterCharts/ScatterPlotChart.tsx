@@ -11,6 +11,7 @@ import {
     ColorSchemeName,
     ValueRange,
     ColumnSlug,
+    AxisAlign,
 } from "@ourworldindata/types"
 import { ComparisonLine } from "../scatterCharts/ComparisonLine"
 import { observable, computed, action } from "mobx"
@@ -359,7 +360,7 @@ export class ScatterPlotChart
 
     @computed private get axisBounds(): Bounds {
         return this.innerBounds
-            .padLeft(this.verticalAxisLabelHeight)
+            .padTop(this.verticalAxisLabelHeight)
             .padBottom(this.horizontalAxisLabelHeight)
     }
 
@@ -833,6 +834,7 @@ export class ScatterPlotChart
                     <HorizonalAxisLabel
                         textWrap={this.horizontalAxisLabelWrap}
                         dualAxis={dualAxis}
+                        align={AxisAlign.end}
                         color={manager.secondaryColorInStaticCharts}
                         detailsMarker={manager.detailsMarkerInSvg}
                     />
@@ -841,6 +843,7 @@ export class ScatterPlotChart
                     <VerticalAxisLabel
                         textWrap={this.verticalAxisLabelWrap}
                         dualAxis={dualAxis}
+                        align={AxisAlign.start}
                         color={manager.secondaryColorInStaticCharts}
                         detailsMarker={manager.detailsMarkerInSvg}
                     />
