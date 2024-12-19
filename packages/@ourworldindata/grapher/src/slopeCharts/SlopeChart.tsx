@@ -567,7 +567,6 @@ export class SlopeChart
         axis.domain = this.yDomain
         axis.range = this.yRange
         axis.formatColumn = this.yColumns[0]
-        axis.label = ""
         return axis
     }
 
@@ -1179,7 +1178,6 @@ export class SlopeChart
                     <VerticalAxisComponent
                         bounds={this.bounds}
                         verticalAxis={this.yAxis}
-                        labelColor={this.manager.secondaryColorInStaticCharts}
                     />
                 )}
             </>

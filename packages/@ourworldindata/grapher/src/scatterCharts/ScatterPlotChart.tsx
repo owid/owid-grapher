@@ -47,8 +47,10 @@ import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     BASE_FONT_SIZE,
+    GRAPHER_AXIS_LABEL_PADDING,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
+    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import {
     OwidTable,
@@ -65,7 +67,11 @@ import {
     VerticalColorLegend,
     VerticalColorLegendManager,
 } from "../verticalColorLegend/VerticalColorLegend"
-import { DualAxisComponent } from "../axis/AxisViews"
+import {
+    DualAxisComponent,
+    HorizonalAxisLabel,
+    VerticalAxisLabel,
+} from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
 import {
@@ -90,7 +96,11 @@ import {
     SCATTER_QUADTREE_SAMPLING_DISTANCE,
 } from "./ScatterPlotChartConstants"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
-import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import {
+    autoDetectYColumnSlugs,
+    makeAxisLabelWrap,
+    makeSelectionArray,
+} from "../chart/ChartUtils"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import {
     ColorScaleConfig,
@@ -111,6 +121,7 @@ import {
     makeTooltipRoundingNotice,
 } from "../tooltip/Tooltip"
 import { NoDataSection } from "./NoDataSection"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 
 function computeSizeDomain(table: OwidTable, slug: ColumnSlug): ValueRange {
     const sizeValues = table.get(slug).values.filter(isNumber)
@@ -334,15 +345,22 @@ export class ScatterPlotChart
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
+    private sidebarPadding = 20
     @computed private get innerBounds(): Bounds {
         return (
             this.bounds
-                .padRight(this.sidebarWidth + 20)
+                .padRight(this.sidebarWidth + this.sidebarPadding)
                 // top padding leaves room for tick labels
                 .padTop(6)
                 // bottom padding makes sure the x-axis label doesn't overflow
                 .padBottom(2)
         )
+    }
+
+    @computed private get axisBounds(): Bounds {
+        return this.innerBounds
+            .padLeft(this.verticalAxisLabelHeight)
+            .padBottom(this.horizontalAxisLabelHeight)
     }
 
     @computed private get canAddCountry(): boolean {
@@ -377,10 +395,6 @@ export class ScatterPlotChart
                 this.colorScale.getColor(colorValue)
             )
         )
-    }
-
-    @computed get detailsOrderedByReference(): string[] {
-        return this.manager.detailsOrderedByReference ?? []
     }
 
     @computed get fontSize(): number {
@@ -538,7 +552,7 @@ export class ScatterPlotChart
     @computed get dualAxis(): DualAxis {
         const { horizontalAxisPart, verticalAxisPart } = this
         return new DualAxis({
-            bounds: this.innerBounds,
+            bounds: this.axisBounds,
             horizontalAxis: horizontalAxisPart,
             verticalAxis: verticalAxisPart,
         })
@@ -809,14 +823,28 @@ export class ScatterPlotChart
                 <DualAxisComponent
                     dualAxis={dualAxis}
                     showTickMarks={false}
-                    labelColor={manager.secondaryColorInStaticCharts}
                     lineWidth={
                         manager.isStaticAndSmall
                             ? GRAPHER_AXIS_LINE_WIDTH_THICK
                             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
                     }
-                    detailsMarker={manager.detailsMarkerInSvg}
                 />
+                {this.horizontalAxisLabelWrap && (
+                    <HorizonalAxisLabel
+                        textWrap={this.horizontalAxisLabelWrap}
+                        dualAxis={dualAxis}
+                        color={manager.secondaryColorInStaticCharts}
+                        detailsMarker={manager.detailsMarkerInSvg}
+                    />
+                )}
+                {this.verticalAxisLabelWrap && (
+                    <VerticalAxisLabel
+                        textWrap={this.verticalAxisLabelWrap}
+                        dualAxis={dualAxis}
+                        color={manager.secondaryColorInStaticCharts}
+                        detailsMarker={manager.detailsMarkerInSvg}
+                    />
+                )}
                 {comparisonLines &&
                     comparisonLines.map((line, i) => (
                         <ComparisonLine
@@ -1241,6 +1269,76 @@ export class ScatterPlotChart
         return label
     }
 
+    @computed get axisLabelFontSize(): number {
+        return GRAPHER_FONT_SCALE_12 * this.fontSize
+    }
+
+    @computed private get horizontalAxisLabelWrap():
+        | MarkdownTextWrap
+        | undefined {
+        if (!this.currentHorizontalAxisLabel) return
+
+        // can't use the computed property due to a circular dependency
+        const singleLineHeight =
+            GRAPHER_FONT_SCALE_12 * this.fontSize + GRAPHER_AXIS_LABEL_PADDING
+        const approximateMaxWidth =
+            this.innerBounds.height -
+            this.horizontalAxisPart.size -
+            singleLineHeight
+        const yAxisLabel = this.currentVerticalAxisLabel
+            ? makeAxisLabelWrap({
+                  text: this.currentVerticalAxisLabel,
+                  maxWidth: approximateMaxWidth,
+                  baseFontSize: this.fontSize,
+              })
+            : undefined
+        const yAxisLabelHeight = yAxisLabel
+            ? yAxisLabel.height + GRAPHER_AXIS_LABEL_PADDING
+            : 0
+
+        const maxWidth =
+            this.innerBounds.width -
+            this.verticalAxisPart.size -
+            yAxisLabelHeight
+
+        return makeAxisLabelWrap({
+            text: this.currentHorizontalAxisLabel,
+            maxWidth,
+            baseFontSize: this.fontSize,
+            detailsOrderedByReference: this.manager.detailsOrderedByReference,
+        })
+    }
+
+    @computed private get verticalAxisLabelWrap():
+        | MarkdownTextWrap
+        | undefined {
+        if (!this.currentVerticalAxisLabel) return
+
+        const maxWidth =
+            this.innerBounds.height -
+            this.horizontalAxisPart.size -
+            this.horizontalAxisLabelHeight
+
+        return makeAxisLabelWrap({
+            text: this.currentVerticalAxisLabel,
+            maxWidth,
+            baseFontSize: this.fontSize,
+            detailsOrderedByReference: this.manager.detailsOrderedByReference,
+        })
+    }
+
+    @computed private get horizontalAxisLabelHeight(): number {
+        return this.horizontalAxisLabelWrap
+            ? this.horizontalAxisLabelWrap.height + GRAPHER_AXIS_LABEL_PADDING
+            : 0
+    }
+
+    @computed private get verticalAxisLabelHeight(): number {
+        return this.verticalAxisLabelWrap
+            ? this.verticalAxisLabelWrap.height + GRAPHER_AXIS_LABEL_PADDING
+            : 0
+    }
+
     @computed private get verticalAxisPart(): VerticalAxis {
         const { manager, yDomainDefault, validValuesForAxisDomainY } = this
         const axisConfig = this.yAxisConfig
@@ -1248,7 +1346,6 @@ export class ScatterPlotChart
         const axis = axisConfig.toVerticalAxis()
         axis.formatColumn = this.yColumn
         axis.scaleType = this.yScaleType
-        axis.label = this.currentVerticalAxisLabel
 
         if (
             this.manager.isSingleTimeScatterAnimationActive &&
@@ -1311,9 +1408,6 @@ export class ScatterPlotChart
         const axis = xAxisConfig.toHorizontalAxis()
         axis.formatColumn = this.xColumn
         axis.scaleType = this.xScaleType
-
-        if (this.currentHorizontalAxisLabel)
-            axis.label = this.currentHorizontalAxisLabel
 
         if (
             this.manager.isSingleTimeScatterAnimationActive &&

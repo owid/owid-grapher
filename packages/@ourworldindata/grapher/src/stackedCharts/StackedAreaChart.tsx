@@ -27,7 +27,7 @@ import {
     GRAPHER_AXIS_LINE_WIDTH_THICK,
 } from "../core/GrapherConstants"
 import { observer } from "mobx-react"
-import { DualAxisComponent } from "../axis/AxisViews"
+import { DualAxisComponent, HorizonalAxisLabel } from "../axis/AxisViews"
 import { DualAxis } from "../axis/Axis"
 import { LineLabelSeries, LineLegend } from "../lineLegend/LineLegend"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -663,17 +663,24 @@ export class StackedAreaChart extends AbstractStackedChart {
     renderAxis(): React.ReactElement {
         const { manager } = this
         return (
-            <DualAxisComponent
-                dualAxis={this.dualAxis}
-                showTickMarks={true}
-                labelColor={manager.secondaryColorInStaticCharts}
-                lineWidth={
-                    manager.isStaticAndSmall
-                        ? GRAPHER_AXIS_LINE_WIDTH_THICK
-                        : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
-                }
-                detailsMarker={manager.detailsMarkerInSvg}
-            />
+            <>
+                <DualAxisComponent
+                    dualAxis={this.dualAxis}
+                    showTickMarks={true}
+                    lineWidth={
+                        manager.isStaticAndSmall
+                            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+                            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+                    }
+                />
+                {this.horizontalAxisLabelWrap && (
+                    <HorizonalAxisLabel
+                        textWrap={this.horizontalAxisLabelWrap}
+                        dualAxis={this.dualAxis}
+                        color={manager.secondaryColorInStaticCharts}
+                    />
+                )}
+            </>
         )
     }
 

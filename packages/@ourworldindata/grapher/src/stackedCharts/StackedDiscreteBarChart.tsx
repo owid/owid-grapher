@@ -324,7 +324,6 @@ export class StackedDiscreteBarChart
 
         axis.formatColumn = this.yColumns[0] // todo: does this work for columns as series?
         axis.range = this.xRange
-        axis.label = ""
         return axis
     }
 
@@ -700,7 +699,6 @@ export class StackedDiscreteBarChart
                             bounds={bounds}
                             axis={yAxis}
                             preferredAxisPosition={innerBounds.bottom}
-                            labelColor={manager.secondaryColorInStaticCharts}
                             tickMarkWidth={axisLineWidth}
                         />
                         <HorizontalAxisGridLines

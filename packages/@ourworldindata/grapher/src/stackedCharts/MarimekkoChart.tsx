@@ -27,12 +27,17 @@ import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
+    GRAPHER_AXIS_LABEL_PADDING,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
     GRAPHER_FONT_SCALE_12,
     Patterns,
 } from "../core/GrapherConstants"
-import { DualAxisComponent } from "../axis/AxisViews"
+import {
+    DualAxisComponent,
+    HorizonalAxisLabel,
+    VerticalAxisLabel,
+} from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -46,6 +51,7 @@ import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
     autoDetectYColumnSlugs,
     getShortNameForEntity,
+    makeAxisLabelWrap,
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
@@ -88,6 +94,7 @@ import {
     LabelCandidateWithElement,
     MarimekkoBarProps,
 } from "./MarimekkoChartConstants"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
@@ -548,11 +555,23 @@ export class MarimekkoChart
         const marginToEnsureWidestEntityLabelFitsEvenIfAtX0 =
             Math.max(whiteSpaceOnLeft, this.longestLabelWidth) -
             whiteSpaceOnLeft
+        const yLabelHeight = this.verticalAxisLabelWrap
+            ? this.verticalAxisLabelWrap.height + GRAPHER_AXIS_LABEL_PADDING
+            : 0
+        const xLabelHeight = this.horizontalAxisLabelWrap
+            ? this.horizontalAxisLabelWrap.height + GRAPHER_AXIS_LABEL_PADDING
+            : 0
         return this.bounds
             .padBottom(this.longestLabelHeight + 2)
             .padBottom(labelLinesHeight)
             .padTop(this.legend.height + this.legendPaddingTop)
-            .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
+            .padTop(xLabelHeight)
+            .padLeft(
+                Math.max(
+                    marginToEnsureWidestEntityLabelFitsEvenIfAtX0,
+                    yLabelHeight
+                )
+            )
     }
 
     @computed get isStatic(): boolean {
@@ -631,10 +650,41 @@ export class MarimekkoChart
         axis.updateDomainPreservingUserSettings(this.yDomainDefault)
 
         axis.formatColumn = this.yColumns[0]
-        axis.label = this.currentVerticalAxisLabel
 
         return axis
     }
+
+    @computed private get verticalAxisLabelWrap():
+        | MarkdownTextWrap
+        | undefined {
+        if (!this.currentVerticalAxisLabel) return
+
+        const maxWidth =
+            this.bounds.height -
+            this.legend.height -
+            MARKER_AREA_HEIGHT -
+            this.longestLabelHeight
+
+        return makeAxisLabelWrap({
+            text: this.currentVerticalAxisLabel,
+            maxWidth,
+            baseFontSize: this.fontSize,
+            detailsOrderedByReference: this.manager.detailsOrderedByReference,
+        })
+    }
+
+    @computed private get horizontalAxisLabelWrap():
+        | MarkdownTextWrap
+        | undefined {
+        if (!this.currentHorizontalAxisLabel) return
+        return makeAxisLabelWrap({
+            text: this.currentHorizontalAxisLabel,
+            maxWidth: this.bounds.width,
+            baseFontSize: this.fontSize,
+            detailsOrderedByReference: this.manager.detailsOrderedByReference,
+        })
+    }
+
     @computed private get isNarrow(): boolean {
         // TODO: this should probably come from grapher?
         return this.bounds.width < 650 // innerBounds would lead to dependency cycle
@@ -677,7 +727,6 @@ export class MarimekkoChart
 
         axis.formatColumn = xColumn
 
-        axis.label = this.currentHorizontalAxisLabel
         return axis
     }
 
@@ -865,10 +914,6 @@ export class MarimekkoChart
         return this.baseFontSize
     }
 
-    @computed get detailsOrderedByReference(): string[] {
-        return this.manager.detailsOrderedByReference ?? []
-    }
-
     @computed get categoricalLegendData(): CategoricalBin[] {
         const { colorColumnSlug, colorScale, series } = this
         if (colorColumnSlug) {
@@ -1045,14 +1090,28 @@ export class MarimekkoChart
                 <DualAxisComponent
                     dualAxis={dualAxis}
                     showTickMarks={true}
-                    labelColor={manager.secondaryColorInStaticCharts}
                     lineWidth={
                         manager.isStaticAndSmall
                             ? GRAPHER_AXIS_LINE_WIDTH_THICK
                             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
                     }
-                    detailsMarker={manager.detailsMarkerInSvg}
                 />
+                {this.horizontalAxisLabelWrap && (
+                    <HorizonalAxisLabel
+                        textWrap={this.horizontalAxisLabelWrap}
+                        dualAxis={dualAxis}
+                        color={manager.secondaryColorInStaticCharts}
+                        detailsMarker={manager.detailsMarkerInSvg}
+                    />
+                )}
+                {this.verticalAxisLabelWrap && (
+                    <VerticalAxisLabel
+                        textWrap={this.verticalAxisLabelWrap}
+                        dualAxis={dualAxis}
+                        color={manager.secondaryColorInStaticCharts}
+                        detailsMarker={manager.detailsMarkerInSvg}
+                    />
+                )}
                 <HorizontalCategoricalColorLegend manager={this} />
                 {this.renderBars()}
                 {target && (

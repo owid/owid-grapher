@@ -20,7 +20,6 @@ import {
 
 export interface AxisManager {
     fontSize: number
-    detailsOrderedByReference?: string[]
 }
 
 class AxisConfigDefaults implements AxisConfigInterface {
@@ -33,7 +32,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref hideAxis?: boolean = undefined
     @observable.ref hideGridlines?: boolean = undefined
     @observable.ref hideTickLabels?: boolean = undefined
-    @observable.ref labelPadding?: number = undefined
+    @observable.ref tickPadding?: number = undefined
     @observable.ref nice?: boolean = undefined
     @observable.ref maxTicks?: number = undefined
     @observable.ref tickFormattingOptions?: TickFormattingOptions = undefined
@@ -89,7 +88,7 @@ export class AxisConfig
             hideAxis: this.hideAxis,
             hideGridlines: this.hideGridlines,
             hideTickLabels: this.hideTickLabels,
-            labelPadding: this.labelPadding,
+            tickPadding: this.tickPadding,
             nice: this.nice,
             maxTicks: this.maxTicks,
             tickFormattingOptions: this.tickFormattingOptions,

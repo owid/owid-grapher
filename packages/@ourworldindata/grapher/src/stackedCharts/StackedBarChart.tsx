@@ -14,7 +14,7 @@ import {
     partition,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
-import { DualAxisComponent } from "../axis/AxisViews"
+import { DualAxisComponent, HorizonalAxisLabel } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     VerticalColorLegend,
@@ -488,13 +488,20 @@ export class StackedBarChart
             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
 
         return (
-            <DualAxisComponent
-                dualAxis={this.dualAxis}
-                showTickMarks={true}
-                labelColor={manager.secondaryColorInStaticCharts}
-                lineWidth={lineWidth}
-                detailsMarker={manager.detailsMarkerInSvg}
-            />
+            <>
+                <DualAxisComponent
+                    dualAxis={this.dualAxis}
+                    showTickMarks={true}
+                    lineWidth={lineWidth}
+                />
+                {this.horizontalAxisLabelWrap && (
+                    <HorizonalAxisLabel
+                        textWrap={this.horizontalAxisLabelWrap}
+                        dualAxis={this.dualAxis}
+                        color={manager.secondaryColorInStaticCharts}
+                    />
+                )}
+            </>
         )
     }
 

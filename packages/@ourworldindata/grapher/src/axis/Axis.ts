@@ -23,7 +23,6 @@ import {
     OwidVariableRoundingMode,
 } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "./AxisConfig"
-import { MarkdownTextWrap } from "@ourworldindata/components"
 import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
 import { GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants.js"
 
@@ -73,7 +72,6 @@ abstract class AbstractAxis {
     @observable hideFractionalTicks = false
     @observable.struct range: ValueRange = [0, 0]
     @observable private _scaleType?: ScaleType
-    @observable private _label?: string
 
     constructor(config: AxisConfig, axisManager?: AxisManager) {
         this.config = config
@@ -88,7 +86,6 @@ abstract class AbstractAxis {
      */
     abstract get size(): number
     abstract get orient(): Position
-    abstract get labelWidth(): number
 
     abstract placeTickLabel(value: number): TickLabelPlacement
     abstract get tickLabels(): TickLabelPlacement[]
@@ -101,8 +98,8 @@ abstract class AbstractAxis {
         return this.config.hideGridlines ?? false
     }
 
-    @computed get labelPadding(): number {
-        return this.config.labelPadding ?? 5
+    @computed get tickPadding(): number {
+        return this.config.tickPadding ?? 5
     }
 
     @computed get nice(): boolean {
@@ -133,14 +130,6 @@ abstract class AbstractAxis {
         this._scaleType = value
     }
 
-    @computed get label(): string {
-        return this._label ?? this.config.label ?? ""
-    }
-
-    set label(value: string) {
-        this._label = value
-    }
-
     // This will expand the domain but never shrink.
     // This will change the min unless the user's min setting is less
     // This will change the max unless the user's max setting is greater
@@ -167,7 +156,6 @@ abstract class AbstractAxis {
         this.hideFractionalTicks = parentAxis.hideFractionalTicks
         this.range = parentAxis.range.slice() as ValueRange
         this._scaleType = parentAxis._scaleType
-        this._label = parentAxis._label
         return this
     }
 
@@ -479,24 +467,6 @@ abstract class AbstractAxis {
             tick.toString()
         )
     }
-
-    @computed get labelFontSize(): number {
-        return GRAPHER_FONT_SCALE_12 * this.fontSize
-    }
-
-    @computed get labelTextWrap(): MarkdownTextWrap | undefined {
-        const text = this.label
-        return text
-            ? new MarkdownTextWrap({
-                  maxWidth: this.labelWidth,
-                  fontSize: this.labelFontSize,
-                  text,
-                  lineHeight: 1,
-                  detailsOrderedByReference:
-                      this.axisManager?.detailsOrderedByReference,
-              })
-            : undefined
-    }
 }
 
 export class HorizontalAxis extends AbstractAxis {
@@ -511,27 +481,15 @@ export class HorizontalAxis extends AbstractAxis {
             : Position.bottom
     }
 
-    @computed get labelOffset(): number {
-        return this.labelTextWrap
-            ? this.labelTextWrap.height + this.labelPadding * 2
-            : 0
-    }
-
-    @computed get labelWidth(): number {
-        return this.rangeSize
-    }
-
     // note that we intentionally don't take `hideAxisLabels` into account here.
     // tick labels might be hidden in faceted charts. when faceted, it's important
     // the axis size doesn't change as a result of hiding the axis labels, or else
     // we might end up with misaligned axes.
     @computed get height(): number {
         if (this.hideAxis) return 0
-        const { labelOffset, labelPadding } = this
+        const { tickPadding } = this
         const maxTickHeight = max(this.tickLabels.map((tick) => tick.height))
-        const height = maxTickHeight
-            ? maxTickHeight + labelOffset + labelPadding
-            : 0
+        const height = maxTickHeight ? maxTickHeight + tickPadding : 0
         return Math.max(height, this.config.minSize ?? 0)
     }
 
@@ -630,28 +588,16 @@ export class VerticalAxis extends AbstractAxis {
         return Position.left
     }
 
-    @computed get labelWidth(): number {
-        return this.height
-    }
-
-    @computed get labelOffset(): number {
-        return this.labelTextWrap
-            ? this.labelTextWrap.height + this.labelPadding * 2
-            : 0
-    }
-
     // note that we intentionally don't take `hideAxisLabels` into account here.
     // tick labels might be hidden in faceted charts. when faceted, it's important
     // the axis size doesn't change as a result of hiding the axis labels, or else
     // we might end up with misaligned axes.
     @computed get width(): number {
         if (this.hideAxis) return 0
-        const { labelOffset, labelPadding } = this
+        const { tickPadding } = this
         const maxTickWidth = max(this.tickLabels.map((tick) => tick.width))
         const width =
-            maxTickWidth !== undefined
-                ? maxTickWidth + labelOffset + labelPadding
-                : 0
+            maxTickWidth !== undefined ? maxTickWidth + tickPadding : 0
         return Math.max(width, this.config.minSize ?? 0)
     }
 

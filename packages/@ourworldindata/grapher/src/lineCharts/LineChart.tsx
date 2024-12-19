@@ -29,7 +29,7 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
-import { DualAxisComponent } from "../axis/AxisViews"
+import { DualAxisComponent, HorizonalAxisLabel } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { LineLegend, LineLabelSeries } from "../lineLegend/LineLegend"
 import { ComparisonLine } from "../scatterCharts/ComparisonLine"
@@ -60,6 +60,7 @@ import {
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     BASE_FONT_SIZE,
     GRAPHER_OPACITY_MUTE,
+    GRAPHER_AXIS_LABEL_PADDING,
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
@@ -86,6 +87,7 @@ import {
     getHoverStateForSeries,
     getSeriesKey,
     isTargetOutsideElement,
+    makeAxisLabelWrap,
     makeClipPath,
     makeSelectionArray,
 } from "../chart/ChartUtils"
@@ -115,6 +117,7 @@ import {
     getSeriesName,
 } from "./LineChartHelpers"
 import { FocusArray } from "../focus/FocusArray.js"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 
 const LINE_CHART_CLASS_NAME = "LineChart"
 
@@ -497,9 +500,11 @@ export class LineChart
     }
 
     @computed private get boundsWithoutColorLegend(): Bounds {
-        return this.bounds.padTop(
-            this.hasColorLegend ? this.legendHeight + LEGEND_PADDING : 0
-        )
+        const colorLegendHeight = this.hasColorLegend
+            ? this.legendHeight + LEGEND_PADDING
+            : 0
+
+        return this.bounds.padTop(colorLegendHeight)
     }
 
     @computed get maxLineLegendWidth(): number {
@@ -833,10 +838,6 @@ export class LineChart
         return guid()
     }
 
-    @computed get detailsOrderedByReference(): string[] {
-        return this.manager.detailsOrderedByReference ?? []
-    }
-
     @computed get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
@@ -918,14 +919,21 @@ export class LineChart
             : undefined
 
         return (
-            <DualAxisComponent
-                dualAxis={dualAxis}
-                showTickMarks={true}
-                labelColor={manager.secondaryColorInStaticCharts}
-                lineWidth={lineWidth}
-                gridDashPattern={dashPattern}
-                detailsMarker={manager.detailsMarkerInSvg}
-            />
+            <>
+                <DualAxisComponent
+                    dualAxis={dualAxis}
+                    showTickMarks={true}
+                    lineWidth={lineWidth}
+                    gridDashPattern={dashPattern}
+                />
+                {this.horizontalAxisLabelWrap && (
+                    <HorizonalAxisLabel
+                        textWrap={this.horizontalAxisLabelWrap}
+                        dualAxis={dualAxis}
+                        color={manager.secondaryColorInStaticCharts}
+                    />
+                )}
+            </>
         )
     }
 
@@ -1409,6 +1417,17 @@ export class LineChart
         return axis
     }
 
+    @computed get horizontalAxisLabelWrap(): MarkdownTextWrap | undefined {
+        if (!this.xAxisConfig.label) return
+        const maxWidth = this.innerBounds.width - this.verticalAxisPart.size
+        return makeAxisLabelWrap({
+            text: this.xAxisConfig.label,
+            maxWidth,
+            baseFontSize: this.fontSize,
+            detailsOrderedByReference: this.manager.detailsOrderedByReference,
+        })
+    }
+
     @computed private get yAxisConfig(): AxisConfig {
         // TODO: enable nice axis ticks for linear scales
         return new AxisConfig(
@@ -1437,14 +1456,13 @@ export class LineChart
         axis.hideFractionalTicks = this.yColumns.every(
             (yColumn) => yColumn.isAllIntegers
         ) // all y axis points are integral, don't show fractional ticks in that case
-        axis.label = ""
         axis.formatColumn = this.formatColumn
         return axis
     }
 
-    @computed get dualAxis(): DualAxis {
-        return new DualAxis({
-            bounds: this.boundsWithoutColorLegend
+    @computed private get innerBounds(): Bounds {
+        return (
+            this.boundsWithoutColorLegend
                 .padRight(
                     this.manager.showLegend
                         ? this.lineLegendWidth
@@ -1453,7 +1471,20 @@ export class LineChart
                 // top padding leaves room for tick labels
                 .padTop(6)
                 // bottom padding avoids axis labels to be cut off at some resolutions
-                .padBottom(2),
+                .padBottom(2)
+        )
+    }
+
+    @computed private get axisBounds(): Bounds {
+        const xAxisLabelHeight = this.horizontalAxisLabelWrap
+            ? this.horizontalAxisLabelWrap.height + GRAPHER_AXIS_LABEL_PADDING
+            : 0
+        return this.innerBounds.padBottom(xAxisLabelHeight)
+    }
+
+    @computed get dualAxis(): DualAxis {
+        return new DualAxis({
+            bounds: this.axisBounds,
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
         })
