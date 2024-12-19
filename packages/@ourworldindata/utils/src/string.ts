@@ -35,3 +35,8 @@ export const titleCase = (str: string): string => {
 export function toAsciiQuotes(str: string): string {
     return str.replace(/[“”]/g, '"').replace(/[‘’]/g, "'")
 }
+
+// https://stackoverflow.com/a/37511463/9846837
+export function removeDiacritics(str: string): string {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+}

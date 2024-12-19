@@ -321,7 +321,7 @@ export const KeyInsights = ({
                 className="article-block__heading h1-semibold"
                 id={KEY_INSIGHTS_ID}
             >
-                {heading}
+                <span>{heading}</span>
                 <a
                     className="deep-link"
                     aria-labelledby={KEY_INSIGHTS_ID}

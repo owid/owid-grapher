@@ -203,38 +203,23 @@
     }
     h1.article-block__heading.h1-semibold {
         font-size: 2.25rem;
-        a.deep-link {
-            margin-top: 19px;
-        }
+
         @include sm-up {
             font-size: 2.625rem;
-            a.deep-link {
-                margin-top: 23px;
-            }
         }
     }
     h2.article-block__heading.h2-bold {
         font-size: 1.5rem;
-        a.deep-link {
-            margin-top: 13px;
-        }
+
         @include sm-up {
             font-size: 2rem;
-            a.deep-link {
-                margin-top: 19px;
-            }
         }
     }
     h3.article-block__heading.h3-bold {
         font-size: 1.25rem;
-        a.deep-link {
-            margin-top: 10px;
-        }
+
         @include sm-up {
             font-size: 1.5rem;
-            a.deep-link {
-                margin-top: 12px;
-            }
         }
     }
 }

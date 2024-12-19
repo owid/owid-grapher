@@ -93,7 +93,7 @@ export type RawBlockCode = {
 
 export type EnrichedBlockCode = {
     type: "code"
-    text: RawBlockText[]
+    text: EnrichedBlockSimpleText[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockDonorList = {
@@ -284,6 +284,7 @@ export type RawBlockPerson = {
         image?: string
         name: string
         title?: string
+        url?: string
         text: RawBlockText[]
         socials?: RawSocialLink[]
     }
@@ -305,6 +306,7 @@ export type EnrichedBlockPerson = {
     image?: string
     name: string
     title?: string
+    url?: string
     text: EnrichedBlockText[]
     socials?: EnrichedSocialLink[]
 } & EnrichedBlockWithParseErrors
@@ -366,6 +368,7 @@ export type EnrichedBlockSimpleText = {
     type: "simple-text"
     value: SpanSimpleText
 } & EnrichedBlockWithParseErrors
+
 export type RawBlockHtml = {
     type: "html"
     value: string
@@ -511,6 +514,7 @@ export type EnrichedBlockProminentLink = {
 export type RawBlockCallout = {
     type: "callout"
     value: {
+        icon?: "info"
         title?: string
         text: (RawBlockText | RawBlockHeading | RawBlockList)[]
     }
@@ -518,6 +522,7 @@ export type RawBlockCallout = {
 
 export type EnrichedBlockCallout = {
     type: "callout"
+    icon?: "info"
     title?: string
     text: (EnrichedBlockText | EnrichedBlockHeading | EnrichedBlockList)[]
 } & EnrichedBlockWithParseErrors

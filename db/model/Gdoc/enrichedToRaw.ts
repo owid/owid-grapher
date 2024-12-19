@@ -127,7 +127,10 @@ export function enrichedBlockToRawBlock(
             { type: "code" },
             (b): RawBlockCode => ({
                 type: b.type,
-                value: b.text,
+                value: b.text.map((text) => ({
+                    type: "text",
+                    value: text.value.text,
+                })),
             })
         )
         .with(
@@ -228,7 +231,13 @@ export function enrichedBlockToRawBlock(
                     image: b.image,
                     name: b.name,
                     title: b.title,
+                    url: b.url,
                     text: b.text.map(enrichedBlockToRawBlock) as RawBlockText[],
+                    socials: b.socials?.map((social) => ({
+                        type: social.type,
+                        url: social.url,
+                        text: social.text,
+                    })),
                 },
             })
         )

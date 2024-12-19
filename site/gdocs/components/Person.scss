@@ -1,11 +1,14 @@
 .person {
     display: flex;
     gap: var(--grid-gap);
-    margin-bottom: 8px;
 
     @include sm-only {
         flex-direction: column;
         gap: 16px;
+    }
+
+    & :last-child {
+        margin-bottom: 0;
     }
 }
 
@@ -21,6 +24,10 @@
 }
 
 .person-image {
+    picture {
+        display: flex; // Fix extra padding at the bottom.
+    }
+
     img {
         border-radius: 50%;
     }
@@ -35,19 +42,30 @@
     flex-direction: column;
     gap: 2px;
     margin-bottom: 8px;
+
+    a {
+        color: inherit;
+    }
 }
 
 .person-heading {
+    @include h2-bold;
     margin: 0;
+
+    @include sm-only {
+        @include h3-bold;
+        margin: 0;
+    }
 }
 
 .person-title {
+    line-height: 19px;
     color: $blue-60;
 }
 
 .person-socials {
     margin-top: 16px;
-    margin-bottom: 16px;
+    font-size: 14px;
 
     ul {
         display: flex;
