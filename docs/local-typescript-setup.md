@@ -77,5 +77,3 @@ To run our test suite you first need to build the TypeScript files into JavaScri
     ```sh
     yarn testJest
     ```
-
-![Storybook](screenshots/storybook.png)
