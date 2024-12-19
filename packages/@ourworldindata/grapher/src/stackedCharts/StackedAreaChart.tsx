@@ -332,7 +332,7 @@ export class StackedAreaChart extends AbstractStackedChart {
         // only pass props that are required to calculate
         // the width to avoid circular dependencies
         return LineLegend.stableWidth({
-            labelSeries: this.lineLegendSeries,
+            series: this.lineLegendSeries,
             maxWidth: this.maxLineLegendWidth,
             fontSize: this.fontSize,
         })
@@ -681,13 +681,13 @@ export class StackedAreaChart extends AbstractStackedChart {
         if (!this.manager.showLegend) return
         return (
             <LineLegend
-                labelSeries={this.lineLegendSeries}
+                series={this.lineLegendSeries}
                 yAxis={this.yAxis}
                 x={this.lineLegendX}
                 yRange={this.lineLegendY}
                 maxWidth={this.maxLineLegendWidth}
                 fontSize={this.fontSize}
-                seriesSortedByImportance={this.seriesSortedByImportance}
+                seriesNamesSortedByImportance={this.seriesSortedByImportance}
                 isStatic={this.isStatic}
                 onMouseOver={this.onLineLegendMouseOver}
                 onMouseLeave={this.onLineLegendMouseLeave}
