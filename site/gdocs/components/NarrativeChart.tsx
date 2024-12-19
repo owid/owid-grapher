@@ -16,7 +16,6 @@ import {
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../../../settings/clientSettings.js"
 import { queryParamsToStr } from "@ourworldindata/utils"
-import GrapherImage from "../../GrapherImage.js"
 import InteractionNotice from "../../InteractionNotice.js"
 
 export default function NarrativeChart({
