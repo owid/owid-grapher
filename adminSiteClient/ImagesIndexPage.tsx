@@ -14,6 +14,7 @@ import {
     Popover,
     Table,
     Upload,
+    notification,
 } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
@@ -31,6 +32,7 @@ import { RcFile } from "antd/es/upload/interface.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { Dictionary, keyBy } from "lodash"
 import cx from "classnames"
+import { NotificationInstance } from "antd/es/notification/interface.js"
 
 type ImageMap = Record<string, DbEnrichedImageWithUserId>
 
@@ -237,10 +239,12 @@ function createColumns({
     api,
     users,
     usage,
+    notificationApi,
 }: {
     api: ImageEditorApi
     users: UserMap
     usage: Dictionary<UsageInfo[]>
+    notificationApi: NotificationInstance
 }): ColumnsType<DbEnrichedImageWithUserId> {
     return [
         {
@@ -376,7 +380,11 @@ function createColumns({
                 return (
                     <Flex vertical>
                         <UsageViewer usage={usage && usage[image.id]} />
-                        <PutImageButton putImage={api.putImage} id={image.id} />
+                        <PutImageButton
+                            putImage={api.putImage}
+                            notificationApi={notificationApi}
+                            id={image.id}
+                        />
                         <Popconfirm
                             title="Are you sure?"
                             description="This will delete the image being used in production."
@@ -459,31 +467,48 @@ function PostImageButton({
 function PutImageButton({
     putImage,
     id,
+    notificationApi,
 }: {
     putImage: ImageEditorApi["putImage"]
     id: number
+    notificationApi: NotificationInstance
 }) {
     async function uploadImage({ file }: { file: File }) {
         const result = await fileToBase64(file)
         if (result) {
-            putImage(id, result)
+            await putImage(id, result)
+            notificationApi.info({
+                message: "Image replaced!",
+                description:
+                    "Make sure you update the alt text if your revision has substantive changes",
+                placement: "bottomRight",
+            })
         }
     }
     return (
-        <Upload
-            accept="image/*"
-            showUploadList={false}
-            customRequest={uploadImage}
-        >
-            <Button className="ImageIndexPage__update-image-button" type="text">
-                Upload new version
-            </Button>
-        </Upload>
+        <>
+            <Upload
+                accept="image/*"
+                showUploadList={false}
+                customRequest={uploadImage}
+            >
+                <Button
+                    className="ImageIndexPage__update-image-button"
+                    type="text"
+                >
+                    Upload new version
+                </Button>
+            </Upload>
+        </>
     )
 }
 
+const NotificationContext = React.createContext(null)
+
 export function ImageIndexPage() {
     const { admin } = useContext(AdminAppContext)
+    const [notificationApi, notificationContextHolder] =
+        notification.useNotification()
     const [images, setImages] = useState<ImageMap>({})
     const [users, setUsers] = useState<UserMap>({})
     const [usage, setUsage] = useState<Dictionary<UsageInfo[]>>({})
@@ -605,8 +630,8 @@ export function ImageIndexPage() {
     )
 
     const columns = useMemo(
-        () => createColumns({ api, users, usage }),
-        [api, users, usage]
+        () => createColumns({ api, users, usage, notificationApi }),
+        [api, users, usage, notificationApi]
     )
 
     useEffect(() => {
@@ -617,18 +642,23 @@ export function ImageIndexPage() {
 
     return (
         <AdminLayout title="Images">
-            <main className="ImageIndexPage">
-                <Flex justify="space-between">
-                    <Input
-                        placeholder="Search by filename"
-                        value={filenameSearchValue}
-                        onChange={(e) => setFilenameSearchValue(e.target.value)}
-                        style={{ width: 500, marginBottom: 20 }}
-                    />
-                    <PostImageButton postImage={api.postImage} />
-                </Flex>
-                <Table columns={columns} dataSource={filteredImages} />
-            </main>
+            <NotificationContext.Provider value={null}>
+                {notificationContextHolder}
+                <main className="ImageIndexPage">
+                    <Flex justify="space-between">
+                        <Input
+                            placeholder="Search by filename"
+                            value={filenameSearchValue}
+                            onChange={(e) =>
+                                setFilenameSearchValue(e.target.value)
+                            }
+                            style={{ width: 500, marginBottom: 20 }}
+                        />
+                        <PostImageButton postImage={api.postImage} />
+                    </Flex>
+                    <Table columns={columns} dataSource={filteredImages} />
+                </main>
+            </NotificationContext.Provider>
         </AdminLayout>
     )
 }
