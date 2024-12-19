@@ -176,10 +176,10 @@ describe("dropping labels", () => {
         })
 
         // the two outermost labels don't fit both into the available space.
-        // so 'Mexico' is picked instead of 'Democratic Republic of Congo'
+        // so 'Canada' is picked instead of 'United States of America'
         expect(lineLegend.visibleSeriesNames).toEqual([
-            "United States of America",
-            "Mexico",
+            "Canada",
+            "Democratic Republic of Congo",
         ])
     })
 

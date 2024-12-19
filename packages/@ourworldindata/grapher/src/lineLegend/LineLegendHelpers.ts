@@ -1,10 +1,4 @@
-import {
-    last,
-    maxBy,
-    minBy,
-    SeriesName,
-    sortedIndexBy,
-} from "@ourworldindata/utils"
+import { last, maxBy, SeriesName, sortedIndexBy } from "@ourworldindata/utils"
 import { PlacedSeries } from "./LineLegendTypes"
 import { LEGEND_ITEM_MIN_SPACING } from "./LineLegendConstants"
 
@@ -20,7 +14,7 @@ export interface LineLegendFilterAlgorithmContext {
 interface PickFromCandidateSubsetParams {
     context: LineLegendFilterAlgorithmContext
     candidateSubset: PlacedSeries[]
-    popCandidateFromSubset?: (
+    getCandidateFromSubset?: (
         candidateSubset: PlacedSeries[]
     ) => PlacedSeries | undefined
 }
@@ -59,7 +53,7 @@ function findBracket(
 /**
  * Add a candidate to the list of picked series and update the context accordingly.
  */
-function pickCandidate(
+export function pickCandidate(
     context: LineLegendFilterAlgorithmContext,
     candidate: PlacedSeries
 ): LineLegendFilterAlgorithmContext {
@@ -100,7 +94,7 @@ function dismissCandidate(
  * - no more candidates fit into the available space
  *
  * The order of candidates to consider for placement is determined by the
- * `popCandidateFromSubset` function. The function should return the next candidate
+ * `getCandidateFromSubset` function. The function should return the next candidate
  * to consider. If the function returns `undefined`, the algorithm stops.
  *
  * If no custom function is provided, the algorithm picks candidates starting from
@@ -112,7 +106,7 @@ function pickFromCandidateSubsetWithRetry(
     let {
         context,
         candidateSubset,
-        popCandidateFromSubset,
+        getCandidateFromSubset,
         maxCandidatesToPick,
     } = params
 
@@ -122,11 +116,11 @@ function pickFromCandidateSubsetWithRetry(
     const remainingCandidates = [...candidateSubset]
     let numPicked = 0
 
-    // if a custom function to pop candidates is provided, use it
+    // if a custom function to get a candidate is provided, use it
     // otherwise, pop the last candidate
-    const popCandidate = (): PlacedSeries | undefined => {
-        if (popCandidateFromSubset) {
-            const candidate = popCandidateFromSubset(remainingCandidates)
+    const getCandidate = (): PlacedSeries | undefined => {
+        if (getCandidateFromSubset) {
+            const candidate = getCandidateFromSubset(remainingCandidates)
             if (candidate) {
                 const index = remainingCandidates.indexOf(candidate)
                 remainingCandidates.splice(index, 1)
@@ -138,7 +132,7 @@ function pickFromCandidateSubsetWithRetry(
     }
 
     while (remainingCandidates.length > 0) {
-        const candidate = popCandidate()
+        const candidate = getCandidate()
         if (!candidate) break
 
         // sanity check if this is a valid candidate
@@ -164,7 +158,7 @@ function pickFromCandidateSubsetWithRetry(
  * Pick as many candidates as possible from a given subset.
  *
  * The order of candidates to consider for placement is determined by the
- * `popCandidateFromSubset` function. The function should return the next candidate
+ * `getCandidateFromSubset` function. The function should return the next candidate
  * to consider. If the function returns `undefined`, the algorithm stops.
  *
  * If no custom function is provided, the algorithm picks candidates starting from
@@ -180,7 +174,7 @@ export function pickAsManyAsPossibleWithRetry(
  * Pick a fixed number of candidates from a give subset.
  *
  * The order of candidates to consider for placement is determined by the
- * `popCandidateFromSubset` function. The function should return the next candidate
+ * `getCandidateFromSubset` function. The function should return the next candidate
  * to consider. If the function returns `undefined`, the algorithm stops.
  *
  * If no custom function is provided, the algorithm picks candidates starting from
@@ -201,47 +195,14 @@ export function pickCandidateWithMaxDistanceToReferenceCandidate(params: {
     referenceCandidate: PlacedSeries
 }): LineLegendFilterAlgorithmContext {
     const { context, candidateSubset, referenceCandidate } = params
-    const distanceMap = new Map(
-        candidateSubset.map((c) => [c.seriesName, dist(c, referenceCandidate)])
-    )
-    const pop = (candidates: PlacedSeries[]) =>
-        maxBy(candidates, (c) => distanceMap.get(c.seriesName))
+
+    const getMaxDistCandidate = (candidates: PlacedSeries[]) =>
+        maxBy(candidates, (c) => dist(c, referenceCandidate))
 
     return pickCandidateWithRetry({
         context,
         candidateSubset,
-        popCandidateFromSubset: pop,
-    })
-}
-
-export function pickOutermostCanidate(params: {
-    context: LineLegendFilterAlgorithmContext
-    candidateSubset: PlacedSeries[]
-}): LineLegendFilterAlgorithmContext {
-    const { context, candidateSubset } = params
-
-    if (candidateSubset.length === 0) return context
-
-    if (candidateSubset.length === 1) {
-        return pickCandidate(context, candidateSubset[1])
-    }
-
-    const minCandidate = minBy(candidateSubset, (c) => c.midY)!
-    const maxCanidate = maxBy(candidateSubset, (c) => c.midY)!
-    const distanceMap = new Map(
-        candidateSubset.map((c) => [
-            c.seriesName,
-            Math.min(dist(minCandidate, c), dist(maxCanidate, c)),
-        ])
-    )
-
-    const pop = (candidates: PlacedSeries[]) =>
-        minBy(candidates, (c) => distanceMap.get(c.seriesName))
-
-    return pickCandidateWithRetry({
-        context,
-        candidateSubset,
-        popCandidateFromSubset: pop,
+        getCandidateFromSubset: getMaxDistCandidate,
     })
 }
 

@@ -3,9 +3,9 @@ import {
     computeCandidateScores,
     LineLegendFilterAlgorithmContext,
     pickAsManyAsPossibleWithRetry,
+    pickCandidate,
     pickCandidateWithMaxDistanceToReferenceCandidate,
     pickCandidateWithRetry,
-    pickOutermostCanidate,
 } from "./LineLegendHelpers"
 import { PlacedSeries } from "./LineLegendTypes"
 
@@ -38,20 +38,20 @@ export function findImportantSeriesThatFitIntoTheAvailableSpace(
         ])
     )
 
-    const pop = (candidates: PlacedSeries[]) =>
+    const getMostImportantCandidate = (candidates: PlacedSeries[]) =>
         maxBy(candidates, (c) => importanceScore.get(c.seriesName))
 
     // focused series have priority
     context = pickAsManyAsPossibleWithRetry({
         context,
         candidateSubset: focusedCandidates,
-        popCandidateFromSubset: pop,
+        getCandidateFromSubset: getMostImportantCandidate,
     })
 
     context = pickAsManyAsPossibleWithRetry({
         context,
         candidateSubset: nonFocusedCandidates,
-        popCandidateFromSubset: pop,
+        getCandidateFromSubset: getMostImportantCandidate,
     })
 
     return context.sortedKeepSeries
@@ -95,16 +95,19 @@ export function findSeriesThatFitIntoTheAvailableSpace(
     // we initially need to pick at least two candidates
     const numPickedCandidates = context.sortedKeepSeries.length
     if (numPickedCandidates === 0) {
-        // pick two candidates with maximal distance to each other
-        context = pickOutermostCanidate({
-            context,
-            candidateSubset: nonFocusedCandidates,
-        })
-        context = pickCandidateWithMaxDistanceToReferenceCandidate({
-            context,
-            candidateSubset: nonFocusedCandidates,
-            referenceCandidate: context.sortedKeepSeries[0],
-        })
+        // pick two candidates with maximal distance to each other.
+        // by convention we pick the max candidate first, but we could also
+        // start by picking the min cadidate
+        const maxCandidate = maxBy(nonFocusedCandidates, (c) => c.midY)
+        if (maxCandidate) {
+            context = pickCandidate(context, maxCandidate)
+
+            context = pickCandidateWithMaxDistanceToReferenceCandidate({
+                context,
+                candidateSubset: nonFocusedCandidates,
+                referenceCandidate: context.sortedKeepSeries[0],
+            })
+        }
     } else if (numPickedCandidates === 1) {
         // pick the candidate that is furthest away from the focused label
         context = pickCandidateWithMaxDistanceToReferenceCandidate({
@@ -126,13 +129,13 @@ export function findSeriesThatFitIntoTheAvailableSpace(
         )
 
         // pick the candidate with the highest score
-        const pop = (candidates: PlacedSeries[]) =>
+        const getBestCandidate = (candidates: PlacedSeries[]) =>
             maxBy(candidates, (c) => scoreMap.get(c.seriesName))
 
         context = pickCandidateWithRetry({
             context,
             candidateSubset: candidates,
-            popCandidateFromSubset: pop,
+            getCandidateFromSubset: getBestCandidate,
         })
     }
 
