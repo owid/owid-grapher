@@ -238,7 +238,9 @@ h6 {
     // doesn't work and programmatically wrapping the last word and the
     // deep-link in a span with text-wrap: nowrap would be an even bigger hack.
     &:has(.deep-link) {
-        > *:first-child {
+        // Pick the second-to-last child, since the heading can have multiple
+        // elements as children and the last child is the deep-link.
+        > *:nth-last-child(2) {
             padding-right: 2rem;
 
             // On touch devices, the deep-link is hidden, so we don't need the
