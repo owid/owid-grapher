@@ -7,7 +7,17 @@ import { GRAPHER_PREVIEW_CLASS } from "../../SiteConstants.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import SpanElements from "./SpanElements.js"
 import { DocumentContext } from "../DocumentContext.js"
-import { GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR } from "@ourworldindata/grapher"
+import {
+    DEFAULT_GRAPHER_HEIGHT,
+    DEFAULT_GRAPHER_WIDTH,
+    GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR,
+} from "@ourworldindata/grapher"
+import {
+    BAKED_GRAPHER_URL,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
+} from "../../../settings/clientSettings.js"
+import { queryParamsToStr } from "@ourworldindata/utils"
+import InteractionNotice from "../../InteractionNotice.js"
 
 export default function NarrativeChart({
     d,
@@ -41,6 +51,10 @@ export default function NarrativeChart({
 
     const metadataStringified = JSON.stringify(viewMetadata)
 
+    const resolvedUrl = `${BAKED_GRAPHER_URL}/${viewMetadata.parentChartSlug}${queryParamsToStr(
+        viewMetadata.queryParamsForParentChart
+    )}`
+
     return (
         <div
             className={cx(d.position, className, {
@@ -62,10 +76,17 @@ export default function NarrativeChart({
                         metadataStringified,
                 }}
             >
-                {/* <a href={resolvedUrl} target="_blank" rel="noopener">
-                    <GrapherImage slug={resolvedSlug} alt={d.title} />
+                <a href={resolvedUrl} target="_blank" rel="noopener">
+                    <img
+                        src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${viewMetadata.chartConfigId}.svg`}
+                        alt={viewMetadata.title}
+                        width={DEFAULT_GRAPHER_WIDTH}
+                        height={DEFAULT_GRAPHER_HEIGHT}
+                        loading="lazy"
+                        data-no-lightbox
+                    />
                     <InteractionNotice />
-                </a> */}
+                </a>
             </figure>
             {d.caption ? (
                 <figcaption>
