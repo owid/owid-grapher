@@ -21,7 +21,12 @@ const router = Router<
     [URL, Env, Etag, EventContext<unknown, any, Record<string, unknown>>]
 >({
     before: [preflight],
-    finally: [corsify],
+    finally: [
+        // This is a workaround for a bug in itty-router; without this, we would get 500 errors with
+        // "Can't modify immutable headers." for requests served from cache.
+        // see https://github.com/kwhitley/itty-router/issues/242#issuecomment-2194227007
+        (resp: Response) => corsify(new Response(resp.body, resp)),
+    ],
 })
 router
     .get(
