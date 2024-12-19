@@ -66,32 +66,16 @@ Note: on Windows we strongly recommend using the [Windows Subsystem for Linux](h
 
 To run our test suite you first need to build the TypeScript files into JavaScript and then run jest:
 
-1. Run buildTsc
+1. Build JavaScript
 
     ```sh
-    yarn buildTsc
+    yarn lerna run build && yarn buildTsc
     ```
 
 2. Run jest
 
     ```sh
     yarn testJest
-    ```
-
-## Using storybook
-
-Storybook allows you to interact with our Grapher and Explorer components visually in a browser and can be a great way to debug or to test new features.
-
-1. Run buildTsc
-
-    ```sh
-    yarn buildTsc
-    ```
-
-2. Run Storybook Server
-
-    ```sh
-    yarn startStorybookServer
     ```
 
 ![Storybook](screenshots/storybook.png)
