@@ -62,3 +62,23 @@ export function createLinkFromUrl({
         sourceId: source.id,
     } satisfies DbInsertPostGdocLink
 }
+
+export function createLinkForChartView({
+    name,
+    source,
+    componentType,
+}: {
+    name: string
+    source: GdocBase
+    componentType: string
+}): DbInsertPostGdocLink {
+    return {
+        target: name,
+        linkType: OwidGdocLinkType.ChartView,
+        queryString: "",
+        hash: "",
+        text: "",
+        componentType,
+        sourceId: source.id,
+    } satisfies DbInsertPostGdocLink
+}

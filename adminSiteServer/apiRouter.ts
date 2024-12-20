@@ -3639,7 +3639,7 @@ const createPatchConfigAndQueryParamsForChartView = async (
         ...pick(fullConfigIncludingDefaults, CHART_VIEW_PROPS_TO_PERSIST),
     }
 
-    const queryParams = grapherConfigToQueryParams(config)
+    const queryParams = grapherConfigToQueryParams(patchConfigToSave)
 
     const fullConfig = mergeGrapherConfigs(parentChartConfig, patchConfigToSave)
     return { patchConfig: patchConfigToSave, fullConfig, queryParams }
