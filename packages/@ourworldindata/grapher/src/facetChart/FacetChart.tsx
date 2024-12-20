@@ -55,9 +55,11 @@ import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
     HorizontalCategoricalColorLegend,
+    HorizontalCategoricalColorLegendProps,
     HorizontalColorLegend,
-    HorizontalColorLegendManager,
+    HorizontalColorLegendProps,
     HorizontalNumericColorLegend,
+    HorizontalNumericColorLegendProps,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import {
     CategoricalBin,
@@ -118,7 +120,7 @@ interface AxesInfo {
 @observer
 export class FacetChart
     extends React.Component<FacetChartProps>
-    implements ChartInterface, HorizontalColorLegendManager
+    implements ChartInterface
 {
     transformTable(table: OwidTable): OwidTable {
         return table
@@ -589,26 +591,28 @@ export class FacetChart
 
     // legend utils
 
-    @computed private get externalLegends(): HorizontalColorLegendManager[] {
+    @computed
+    private get externalCategoricalLegends(): HorizontalCategoricalColorLegendProps[] {
         return excludeUndefined(
             this.intermediateChartInstances.map(
-                (instance) => instance.externalLegend
+                (instance) => instance.externalCategoricalLegend
+            )
+        )
+    }
+
+    @computed
+    private get externalNumericLegends(): HorizontalNumericColorLegendProps[] {
+        return excludeUndefined(
+            this.intermediateChartInstances.map(
+                (instance) => instance.externalNumericLegend
             )
         )
     }
 
     @computed private get isNumericLegend(): boolean {
-        return this.externalLegends.some((legend) =>
-            legend.numericLegendData?.some((bin) => bin instanceof NumericBin)
+        return this.externalNumericLegends.some((legend) =>
+            legend.numericLegendData.some((bin) => bin instanceof NumericBin)
         )
-    }
-
-    @computed private get LegendClass():
-        | typeof HorizontalNumericColorLegend
-        | typeof HorizontalCategoricalColorLegend {
-        return this.isNumericLegend
-            ? HorizontalNumericColorLegend
-            : HorizontalCategoricalColorLegend
     }
 
     @computed private get showLegend(): boolean {
@@ -641,10 +645,21 @@ export class FacetChart
         return false
     }
 
-    private getExternalLegendProp<
-        Prop extends keyof HorizontalColorLegendManager,
-    >(prop: Prop): HorizontalColorLegendManager[Prop] | undefined {
-        for (const externalLegend of this.externalLegends) {
+    private getCategoricalExternalLegendProp<
+        Prop extends keyof HorizontalCategoricalColorLegendProps,
+    >(prop: Prop): HorizontalCategoricalColorLegendProps[Prop] | undefined {
+        for (const externalLegend of this.externalCategoricalLegends) {
+            if (externalLegend[prop] !== undefined) {
+                return externalLegend[prop]
+            }
+        }
+        return undefined
+    }
+
+    private getNumericExternalLegendProp<
+        Prop extends keyof HorizontalNumericColorLegendProps,
+    >(prop: Prop): HorizontalNumericColorLegendProps[Prop] | undefined {
+        for (const externalLegend of this.externalNumericLegends) {
             if (externalLegend[prop] !== undefined) {
                 return externalLegend[prop]
             }
@@ -667,64 +682,50 @@ export class FacetChart
 
     // legend props
 
-    @computed get legendX(): number {
-        return this.bounds.x
+    @computed private get commonLegendProps(): HorizontalColorLegendProps {
+        return {
+            fontSize: this.fontSize,
+            legendX: this.bounds.x,
+            legendMaxWidth: this.bounds.width,
+            legendAlign: HorizontalAlign.left,
+            onLegendMouseOver: this.onLegendMouseOver,
+            onLegendMouseLeave: this.onLegendMouseLeave,
+        }
     }
 
-    @computed get numericLegendY(): number {
-        return this.bounds.top
+    @computed
+    private get numericLegendProps(): HorizontalNumericColorLegendProps {
+        return {
+            ...this.commonLegendProps,
+            numericLegendY: this.bounds.top,
+            legendTitle: this.getNumericExternalLegendProp("legendTitle"),
+            legendTextColor:
+                this.getNumericExternalLegendProp("legendTextColor"),
+            legendTickSize: this.getNumericExternalLegendProp("legendTickSize"),
+            numericBinSize: this.getNumericExternalLegendProp("numericBinSize"),
+            numericBinStroke:
+                this.getNumericExternalLegendProp("numericBinStroke"),
+            numericBinStrokeWidth: this.getNumericExternalLegendProp(
+                "numericBinStrokeWidth"
+            ),
+            equalSizeBins: this.getNumericExternalLegendProp("equalSizeBins"),
+            numericLegendData: this.numericLegendData,
+        }
     }
 
-    @computed get categoryLegendY(): number {
-        return this.bounds.top
-    }
-
-    @computed get legendMaxWidth(): number {
-        return this.bounds.width
-    }
-
-    @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.left
-    }
-
-    @computed get legendTitle(): string | undefined {
-        return this.getExternalLegendProp("legendTitle")
-    }
-
-    @computed get legendHeight(): number | undefined {
-        return this.getExternalLegendProp("legendHeight")
-    }
-
-    @computed get legendOpacity(): number | undefined {
-        return this.getExternalLegendProp("legendOpacity")
-    }
-
-    @computed get legendTextColor(): Color | undefined {
-        return this.getExternalLegendProp("legendTextColor")
-    }
-
-    @computed get legendTickSize(): number | undefined {
-        return this.getExternalLegendProp("legendTickSize")
-    }
-
-    @computed get categoricalBinStroke(): Color | undefined {
-        return this.getExternalLegendProp("categoricalBinStroke")
-    }
-
-    @computed get numericBinSize(): number | undefined {
-        return this.getExternalLegendProp("numericBinSize")
-    }
-
-    @computed get numericBinStroke(): Color | undefined {
-        return this.getExternalLegendProp("numericBinStroke")
-    }
-
-    @computed get numericBinStrokeWidth(): number | undefined {
-        return this.getExternalLegendProp("numericBinStrokeWidth")
-    }
-
-    @computed get equalSizeBins(): boolean | undefined {
-        return this.getExternalLegendProp("equalSizeBins")
+    @computed
+    private get categoricalLegendProps(): HorizontalCategoricalColorLegendProps {
+        return {
+            ...this.commonLegendProps,
+            categoryLegendY: this.bounds.top,
+            categoricalBinStroke: this.getCategoricalExternalLegendProp(
+                "categoricalBinStroke"
+            ),
+            hoverColors: this.hoverColors,
+            activeColors: this.activeColors,
+            categoricalLegendData: this.categoricalLegendData,
+            onLegendClick: this.onLegendClick,
+        }
     }
 
     @computed get hoverColors(): Color[] | undefined {
@@ -750,13 +751,14 @@ export class FacetChart
 
     @computed get numericLegendData(): ColorScaleBin[] {
         if (!this.isNumericLegend || !this.hideFacetLegends) return []
-        const allBins: ColorScaleBin[] = this.externalLegends.flatMap(
-            (legend) => [
-                ...(legend.numericLegendData ?? []),
-                ...(legend.categoricalLegendData ?? []),
-            ]
-        )
-        const uniqBins = this.getUniqBins(allBins)
+        const uniqBins = this.getUniqBins([
+            ...this.externalCategoricalLegends.flatMap(
+                (legend) => legend.categoricalLegendData
+            ),
+            ...this.externalNumericLegends.flatMap(
+                (legend) => legend.numericLegendData
+            ),
+        ])
         const sortedBins = sortBy(
             uniqBins,
             (bin) => bin instanceof CategoricalBin
@@ -766,12 +768,9 @@ export class FacetChart
 
     @computed get categoricalLegendData(): CategoricalBin[] {
         if (this.isNumericLegend || !this.hideFacetLegends) return []
-        const allBins: CategoricalBin[] = this.externalLegends
-            .flatMap((legend) => [
-                ...(legend.numericLegendData ?? []),
-                ...(legend.categoricalLegendData ?? []),
-            ])
-            .filter((bin) => bin instanceof CategoricalBin) as CategoricalBin[]
+        const allBins = this.externalCategoricalLegends.flatMap(
+            (legend) => legend.categoricalLegendData
+        )
         const uniqBins = this.getUniqBins(allBins)
         const newBins = uniqBins.map(
             // remap index to ensure it's unique (the above procedure can lead to duplicates)
@@ -815,7 +814,9 @@ export class FacetChart
     // end of legend props
 
     @computed private get legend(): HorizontalColorLegend {
-        return new this.LegendClass({ manager: this })
+        return this.isNumericLegend
+            ? new HorizontalNumericColorLegend(this.numericLegendProps)
+            : new HorizontalCategoricalColorLegend(this.categoricalLegendProps)
     }
 
     @computed private get isFocusModeSupported(): boolean {
@@ -866,11 +867,21 @@ export class FacetChart
         return { fontSize, shortenedLabel: label }
     }
 
+    private renderLegend(): React.ReactElement {
+        return this.isNumericLegend ? (
+            <HorizontalNumericColorLegend {...this.numericLegendProps} />
+        ) : (
+            <HorizontalCategoricalColorLegend
+                {...this.categoricalLegendProps}
+            />
+        )
+    }
+
     render(): React.ReactElement {
-        const { facetFontSize, LegendClass, showLegend } = this
+        const { facetFontSize, showLegend } = this
         return (
             <React.Fragment>
-                {showLegend && <LegendClass manager={this} />}
+                {showLegend && this.renderLegend()}
                 {this.placedSeries.map((facetChart, index: number) => {
                     const ChartClass =
                         ChartComponentClassMap.get(this.chartTypeName) ??

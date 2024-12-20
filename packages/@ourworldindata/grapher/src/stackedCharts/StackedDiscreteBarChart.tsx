@@ -68,7 +68,7 @@ import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import {
     HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
+    HorizontalCategoricalColorLegendProps,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { isDarkColor } from "../color/ColorUtils"
@@ -131,7 +131,7 @@ export class StackedDiscreteBarChart
         manager: StackedDiscreteBarChartManager
         containerElement?: HTMLDivElement
     }>
-    implements ChartInterface, HorizontalColorLegendManager
+    implements ChartInterface
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 
@@ -330,8 +330,8 @@ export class StackedDiscreteBarChart
 
     @computed private get boundsWithoutLegend(): Bounds {
         return this.bounds.padTop(
-            this.showLegend && this.legend.height > 0
-                ? this.legend.height + this.legendPaddingTop
+            this.showLegend && this.legendHeight > 0
+                ? this.legendHeight + this.legendPaddingTop
                 : 0
         )
     }
@@ -525,7 +525,9 @@ export class StackedDiscreteBarChart
         return this.showLegend ? this.legendBins : []
     }
 
-    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+    @computed get externalCategoricalLegend():
+        | HorizontalCategoricalColorLegendProps
+        | undefined {
         if (!this.showLegend) {
             return {
                 categoricalLegendData: this.legendBins,
@@ -546,8 +548,13 @@ export class StackedDiscreteBarChart
         this.focusSeriesName = undefined
     }
 
-    @computed private get legend(): HorizontalCategoricalColorLegend {
-        return new HorizontalCategoricalColorLegend({ manager: this })
+    @computed private get legendHeight(): number {
+        return HorizontalCategoricalColorLegend.height({
+            fontSize: this.fontSize,
+            legendAlign: this.legendAlign,
+            legendWidth: this.legendWidth,
+            categoricalLegendData: this.categoricalLegendData,
+        })
     }
 
     @computed private get formatColumn(): CoreColumn {
@@ -724,7 +731,19 @@ export class StackedDiscreteBarChart
 
     renderLegend(): React.ReactElement | void {
         if (!this.showLegend) return
-        return <HorizontalCategoricalColorLegend manager={this} />
+        return (
+            <HorizontalCategoricalColorLegend
+                fontSize={this.fontSize}
+                legendX={this.legendX}
+                legendAlign={this.legendAlign}
+                categoryLegendY={this.categoryLegendY}
+                legendWidth={this.legendWidth}
+                categoricalLegendData={this.categoricalLegendData}
+                onLegendMouseLeave={this.onLegendMouseLeave}
+                onLegendMouseOver={this.onLegendMouseOver}
+                isStatic={this.isStatic}
+            />
+        )
     }
 
     renderStatic(): React.ReactElement {

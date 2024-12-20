@@ -86,7 +86,7 @@ import {
 } from "../lineCharts/LineChartHelpers"
 import { SelectionArray } from "../selection/SelectionArray"
 import { Halo } from "@ourworldindata/components"
-import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
+import { HorizontalCategoricalColorLegendProps } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import {
     OWID_NON_FOCUSED_GRAY,
@@ -591,7 +591,9 @@ export class SlopeChart
             : 0
     }
 
-    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+    @computed get externalCategoricalLegend():
+        | HorizontalCategoricalColorLegendProps
+        | undefined {
         if (!this.manager.showLegend) {
             const categoricalLegendData = this.series.map(
                 (series, index) =>

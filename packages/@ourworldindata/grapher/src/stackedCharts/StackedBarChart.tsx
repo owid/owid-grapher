@@ -211,7 +211,7 @@ export class StackedBarChart
 
     @computed protected get paddingForLegendTop(): number {
         return this.showHorizontalLegend
-            ? this.horizontalColorLegend.height + 8
+            ? this.horizontalColorLegendHeight + 8
             : 0
     }
 
@@ -307,13 +307,9 @@ export class StackedBarChart
 
     @computed get sidebarWidth(): number {
         if (!this.manager.showLegend) return 0
-        const {
-            sidebarMinWidth,
-            sidebarMaxWidth,
-            verticalColorLegend: legendDimensions,
-        } = this
+        const { sidebarMinWidth, sidebarMaxWidth, verticalColorLegend } = this
         return Math.max(
-            Math.min(legendDimensions.width, sidebarMaxWidth),
+            Math.min(verticalColorLegend.width, sidebarMaxWidth),
             sidebarMinWidth
         )
     }
@@ -329,8 +325,13 @@ export class StackedBarChart
     }
 
     @computed
-    private get horizontalColorLegend(): HorizontalCategoricalColorLegend {
-        return new HorizontalCategoricalColorLegend({ manager: this })
+    private get horizontalColorLegendHeight(): number {
+        return HorizontalCategoricalColorLegend.height({
+            fontSize: this.fontSize,
+            legendAlign: this.legendAlign,
+            legendWidth: this.legendWidth,
+            categoricalLegendData: this.categoricalLegendData,
+        })
     }
 
     @computed get formatColumn(): CoreColumn {
@@ -485,7 +486,18 @@ export class StackedBarChart
         const y = this.bounds.top
 
         return showHorizontalLegend ? (
-            <HorizontalCategoricalColorLegend manager={this} />
+            <HorizontalCategoricalColorLegend
+                fontSize={this.fontSize}
+                legendX={this.legendX}
+                legendAlign={this.legendAlign}
+                categoryLegendY={this.categoryLegendY}
+                legendWidth={this.legendWidth}
+                categoricalLegendData={this.categoricalLegendData}
+                onLegendMouseLeave={this.onLegendMouseLeave}
+                onLegendMouseOver={this.onLegendMouseOver}
+                activeColors={this.activeColors}
+                isStatic={this.isStatic}
+            />
         ) : (
             <VerticalColorLegendComponent
                 legend={this.verticalColorLegend}
