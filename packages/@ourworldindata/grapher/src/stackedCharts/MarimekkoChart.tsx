@@ -58,10 +58,7 @@ import {
     makeTooltipRoundingNotice,
     makeTooltipToleranceNotice,
 } from "../tooltip/Tooltip"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+import { HorizontalCategoricalColorLegend } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
@@ -262,7 +259,7 @@ export class MarimekkoChart
         manager: MarimekkoChartManager
         containerElement?: HTMLDivElement
     }>
-    implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
+    implements ChartInterface, ColorScaleManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 
@@ -551,7 +548,7 @@ export class MarimekkoChart
         return this.bounds
             .padBottom(this.longestLabelHeight + 2)
             .padBottom(labelLinesHeight)
-            .padTop(this.legend.height + this.legendPaddingTop)
+            .padTop(this.legendHeight + this.legendPaddingTop)
             .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
     }
 
@@ -838,7 +835,7 @@ export class MarimekkoChart
     // legend props
 
     @computed get legendPaddingTop(): number {
-        return this.legend.height > 0 ? this.baseFontSize : 0
+        return this.legendHeight > 0 ? this.baseFontSize : 0
     }
 
     @computed get legendX(): number {
@@ -897,8 +894,13 @@ export class MarimekkoChart
         this.focusColorBin = undefined
     }
 
-    @computed private get legend(): HorizontalCategoricalColorLegend {
-        return new HorizontalCategoricalColorLegend({ manager: this })
+    @computed private get legendHeight(): number {
+        return HorizontalCategoricalColorLegend.height({
+            fontSize: this.fontSize,
+            legendAlign: this.legendAlign,
+            legendWidth: this.legendWidth,
+            categoricalLegendData: this.categoricalLegendData,
+        })
     }
 
     @computed private get formatColumn(): CoreColumn {
@@ -1053,7 +1055,18 @@ export class MarimekkoChart
                     }
                     detailsMarker={manager.detailsMarkerInSvg}
                 />
-                <HorizontalCategoricalColorLegend manager={this} />
+                <HorizontalCategoricalColorLegend
+                    fontSize={this.fontSize}
+                    legendX={this.legendX}
+                    legendAlign={this.legendAlign}
+                    categoryLegendY={this.categoryLegendY}
+                    legendWidth={this.legendWidth}
+                    legendOpacity={this.legendOpacity}
+                    categoricalLegendData={this.categoricalLegendData}
+                    onLegendMouseLeave={this.onLegendMouseLeave}
+                    onLegendMouseOver={this.onLegendMouseOver}
+                    isStatic={this.isStatic}
+                />
                 {this.renderBars()}
                 {target && (
                     <Tooltip

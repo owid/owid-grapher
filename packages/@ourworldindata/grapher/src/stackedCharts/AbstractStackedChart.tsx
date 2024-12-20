@@ -38,7 +38,7 @@ import { select } from "d3-selection"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CategoricalBin } from "../color/ColorScaleBin"
-import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
+import { HorizontalCategoricalColorLegendProps } from "../horizontalColorLegend/HorizontalColorLegends"
 import {
     CategoricalColorAssigner,
     CategoricalColorMap,
@@ -436,7 +436,9 @@ export class AbstractStackedChart
         return this.unstackedSeries
     }
 
-    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+    @computed get externalCategoricalLegend():
+        | HorizontalCategoricalColorLegendProps
+        | undefined {
         if (!this.manager.showLegend) {
             const categoricalLegendData = this.series
                 .map(

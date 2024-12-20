@@ -65,38 +65,45 @@ interface MarkLine {
     marks: CategoricalMark[]
 }
 
-// TODO unify properties across categorical & numeric legend.
-// This would make multiple legends per chart less convenient (only used in Map), but we shouldn't
-// be using multiple anyway – instead the numeric should also handle categorical bins too.
-export interface HorizontalColorLegendManager {
+export interface HorizontalColorLegendProps {
     fontSize?: number
     legendX?: number
     legendAlign?: HorizontalAlign
-    legendTitle?: string
-    categoryLegendY?: number
-    numericLegendY?: number
+
     legendWidth?: number
-    legendMaxWidth?: number
-    legendHeight?: number
     legendOpacity?: number
-    legendTextColor?: Color
-    legendTickSize?: number
-    categoricalLegendData?: CategoricalBin[]
-    categoricalFocusBracket?: CategoricalBin
+    legendMaxWidth?: number
+
+    onLegendMouseLeave?: () => void
+    onLegendMouseOver?: (d: ColorScaleBin) => void
+}
+
+export interface HorizontalCategoricalColorLegendProps
+    extends HorizontalColorLegendProps {
+    categoricalLegendData: CategoricalBin[]
     categoricalBinStroke?: Color
-    numericLegendData?: ColorScaleBin[]
-    numericFocusBracket?: ColorScaleBin
+    categoryLegendY?: number
+
+    focusColors?: string[] // focused colors are bolded
+    hoverColors?: string[] // non-hovered colors are muted
+    activeColors?: string[] // inactive colors are grayed out
+
+    onLegendClick?: (d: ColorScaleBin) => void
+    isStatic?: boolean
+}
+
+export interface HorizontalNumericColorLegendProps
+    extends HorizontalColorLegendProps {
+    numericLegendData: ColorScaleBin[]
     numericBinSize?: number
     numericBinStroke?: Color
     numericBinStrokeWidth?: number
     equalSizeBins?: boolean
-    onLegendMouseLeave?: () => void
-    onLegendMouseOver?: (d: ColorScaleBin) => void
-    onLegendClick?: (d: ColorScaleBin) => void
-    activeColors?: string[] // inactive colors are grayed out
-    focusColors?: string[] // focused colors are bolded
-    hoverColors?: string[] // non-hovered colors are muted
-    isStatic?: boolean
+    legendTitle?: string
+    numericFocusBracket?: ColorScaleBin
+    numericLegendY?: number
+    legendTextColor?: Color
+    legendTickSize?: number
 }
 
 const DEFAULT_NUMERIC_BIN_SIZE = 10
@@ -110,48 +117,24 @@ const FOCUS_BORDER_COLOR = "#111"
 const SPACE_BETWEEN_CATEGORICAL_BINS = 7
 const MINIMUM_LABEL_DISTANCE = 5
 
-export abstract class HorizontalColorLegend extends React.Component<{
-    manager: HorizontalColorLegendManager
-}> {
-    @computed protected get manager(): HorizontalColorLegendManager {
-        return this.props.manager
-    }
-
+export abstract class HorizontalColorLegend<
+    Props extends HorizontalColorLegendProps = HorizontalColorLegendProps,
+> extends React.Component<Props> {
     @computed protected get legendX(): number {
-        return this.manager.legendX ?? 0
-    }
-
-    @computed protected get categoryLegendY(): number {
-        return this.manager.categoryLegendY ?? 0
-    }
-
-    @computed protected get numericLegendY(): number {
-        return this.manager.numericLegendY ?? 0
-    }
-
-    @computed protected get legendMaxWidth(): number | undefined {
-        return this.manager.legendMaxWidth
-    }
-
-    @computed protected get legendHeight(): number {
-        return this.manager.legendHeight ?? 200
+        return this.props.legendX ?? 0
     }
 
     @computed protected get legendAlign(): HorizontalAlign {
         // Assume center alignment if none specified, for backwards-compatibility
-        return this.manager.legendAlign ?? HorizontalAlign.center
+        return this.props.legendAlign ?? HorizontalAlign.center
     }
 
     @computed protected get fontSize(): number {
-        return this.manager.fontSize ?? BASE_FONT_SIZE
+        return this.props.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed protected get legendTextColor(): Color {
-        return this.manager.legendTextColor ?? DEFAULT_TEXT_COLOR
-    }
-
-    @computed protected get legendTickSize(): number {
-        return this.manager.legendTickSize ?? DEFAULT_TICK_SIZE
+    @computed protected get legendMaxWidth(): number | undefined {
+        return this.props.legendMaxWidth
     }
 
     abstract get height(): number
@@ -159,11 +142,57 @@ export abstract class HorizontalColorLegend extends React.Component<{
 }
 
 @observer
-export class HorizontalNumericColorLegend extends HorizontalColorLegend {
+export class HorizontalNumericColorLegend extends HorizontalColorLegend<HorizontalNumericColorLegendProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
+    static height(
+        props: Pick<
+            HorizontalNumericColorLegendProps,
+            | "numericLegendData"
+            | "numericBinSize"
+            | "fontSize"
+            | "legendWidth"
+            | "legendMaxWidth"
+            | "legendTitle"
+            | "equalSizeBins"
+            | "legendAlign"
+            | "legendX"
+        >
+    ): number {
+        const legend = new HorizontalNumericColorLegend(props)
+        return legend.height
+    }
+
+    static width(
+        props: Pick<
+            HorizontalNumericColorLegendProps,
+            | "numericLegendData"
+            | "numericBinSize"
+            | "fontSize"
+            | "legendWidth"
+            | "legendMaxWidth"
+            | "legendTitle"
+            | "equalSizeBins"
+        >
+    ): number {
+        const legend = new HorizontalNumericColorLegend(props)
+        return legend.width
+    }
+
+    @computed private get numericLegendY(): number {
+        return this.props.numericLegendY ?? 0
+    }
+
+    @computed private get legendTextColor(): Color {
+        return this.props.legendTextColor ?? DEFAULT_TEXT_COLOR
+    }
+
+    @computed private get legendTickSize(): number {
+        return this.props.legendTickSize ?? DEFAULT_TICK_SIZE
+    }
+
     @computed private get numericLegendData(): ColorScaleBin[] {
-        return this.manager.numericLegendData ?? []
+        return this.props.numericLegendData ?? []
     }
 
     @computed private get visibleBins(): ColorScaleBin[] {
@@ -177,17 +206,16 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get numericBinSize(): number {
-        return this.props.manager.numericBinSize ?? DEFAULT_NUMERIC_BIN_SIZE
+        return this.props.numericBinSize ?? DEFAULT_NUMERIC_BIN_SIZE
     }
 
     @computed private get numericBinStroke(): Color {
-        return this.props.manager.numericBinStroke ?? DEFAULT_NUMERIC_BIN_STROKE
+        return this.props.numericBinStroke ?? DEFAULT_NUMERIC_BIN_STROKE
     }
 
     @computed private get numericBinStrokeWidth(): number {
         return (
-            this.props.manager.numericBinStrokeWidth ??
-            DEFAULT_NUMERIC_BIN_STROKE_WIDTH
+            this.props.numericBinStrokeWidth ?? DEFAULT_NUMERIC_BIN_STROKE_WIDTH
         )
     }
 
@@ -212,7 +240,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get maxWidth(): number {
-        return this.manager.legendMaxWidth ?? this.manager.legendWidth ?? 200
+        return this.props.legendMaxWidth ?? this.props.legendWidth ?? 200
     }
 
     private getTickLabelWidth(label: string): number {
@@ -240,8 +268,8 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
     @computed private get isAutoWidth(): boolean {
         return (
-            this.manager.legendWidth === undefined &&
-            this.manager.legendMaxWidth !== undefined
+            this.props.legendWidth === undefined &&
+            this.props.legendMaxWidth !== undefined
         )
     }
 
@@ -270,7 +298,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             shareOfTotal: (bin.max - bin.min) / this.rangeSize,
         }))
         // Make sure the legend is big enough to avoid overlapping labels (including `raisedMode`)
-        if (this.manager.equalSizeBins) {
+        if (this.props.equalSizeBins) {
             // Try to keep the minimum close to the size of the "No data" bin,
             // so they look visually balanced somewhat.
             const minBinWidth = this.fontSize * 3.25
@@ -326,7 +354,6 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
     @computed private get positionedBins(): PositionedBin[] {
         const {
-            manager,
             rangeSize,
             availableNumericWidth,
             visibleBins,
@@ -334,6 +361,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             legendTitleWidth,
             x,
         } = this
+        const { equalSizeBins } = this.props
 
         let xOffset = x + legendTitleWidth
         let prevBin: ColorScaleBin | undefined
@@ -344,7 +372,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             let marginLeft: number = isFirst ? 0 : this.itemMargin
 
             if (bin instanceof NumericBin) {
-                if (manager.equalSizeBins) {
+                if (equalSizeBins) {
                     width = availableNumericWidth / numericBins.length
                 } else {
                     width =
@@ -374,7 +402,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get legendTitle(): TextWrap | undefined {
-        const { legendTitle } = this.manager
+        const { legendTitle } = this.props
         return legendTitle
             ? new TextWrap({
                   text: legendTitle,
@@ -498,8 +526,9 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     @action.bound private onMouseMove(ev: MouseEvent | TouchEvent): void {
-        const { manager, base, positionedBins } = this
-        const { numericFocusBracket } = manager
+        const { base, positionedBins } = this
+        const { numericFocusBracket, onLegendMouseLeave, onLegendMouseOver } =
+            this.props
         if (base.current) {
             const mouse = getRelativeMouse(base.current, ev)
 
@@ -512,8 +541,8 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
             // If outside legend bounds, trigger onMouseLeave if there is an existing bin in focus.
             if (!this.bounds.contains(mouse)) {
-                if (numericFocusBracket && manager.onLegendMouseLeave)
-                    return manager.onLegendMouseLeave()
+                if (numericFocusBracket && onLegendMouseLeave)
+                    return onLegendMouseLeave()
                 return
             }
 
@@ -524,8 +553,8 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                     newFocusBracket = bin.bin
             })
 
-            if (newFocusBracket && manager.onLegendMouseOver)
-                manager.onLegendMouseOver(newFocusBracket)
+            if (newFocusBracket && onLegendMouseOver)
+                onLegendMouseOver(newFocusBracket)
         }
     }
 
@@ -546,14 +575,8 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     render(): React.ReactElement {
-        const {
-            manager,
-            numericLabels,
-            numericBinSize,
-            positionedBins,
-            height,
-        } = this
-        const { numericFocusBracket } = manager
+        const { numericLabels, numericBinSize, positionedBins, height } = this
+        const { numericFocusBracket, legendOpacity } = this.props
 
         const stroke = this.numericBinStroke
         const strokeWidth = this.numericBinStrokeWidth
@@ -604,7 +627,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                                             ? `url(#${bin.patternRef})`
                                             : bin.color
                                     }
-                                    opacity={manager.legendOpacity} // defaults to undefined which removes the prop
+                                    opacity={legendOpacity} // defaults to undefined which removes the prop
                                     stroke={
                                         isFocus ? FOCUS_BORDER_COLOR : stroke
                                     }
@@ -700,16 +723,47 @@ const NumericBinRect = (props: NumericBinRectProps) => {
 }
 
 @observer
-export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
+export class HorizontalCategoricalColorLegend extends HorizontalColorLegend<HorizontalCategoricalColorLegendProps> {
     private rectPadding = 5
     private markPadding = 5
 
+    static height(
+        props: Pick<
+            HorizontalCategoricalColorLegendProps,
+            | "categoricalLegendData"
+            | "fontSize"
+            | "legendWidth"
+            | "legendMaxWidth"
+            | "legendAlign"
+        >
+    ): number {
+        const legend = new HorizontalCategoricalColorLegend(props)
+        return legend.height
+    }
+
+    static numLines(
+        props: Pick<
+            HorizontalCategoricalColorLegendProps,
+            | "categoricalLegendData"
+            | "fontSize"
+            | "legendWidth"
+            | "legendMaxWidth"
+        >
+    ): number {
+        const legend = new HorizontalCategoricalColorLegend(props)
+        return legend.numLines
+    }
+
+    @computed private get categoryLegendY(): number {
+        return this.props.categoryLegendY ?? 0
+    }
+
     @computed get width(): number {
-        return this.manager.legendWidth ?? this.manager.legendMaxWidth ?? 200
+        return this.props.legendWidth ?? this.legendMaxWidth ?? 200
     }
 
     @computed private get categoricalLegendData(): CategoricalBin[] {
-        return this.manager.categoricalLegendData ?? []
+        return this.props.categoricalLegendData ?? []
     }
 
     @computed private get visibleCategoricalBins(): CategoricalBin[] {
@@ -814,8 +868,8 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     }
 
     renderLabels(): React.ReactElement {
-        const { manager, marks } = this
-        const { focusColors, hoverColors = [] } = manager
+        const { marks } = this
+        const { focusColors, hoverColors = [] } = this.props
 
         return (
             <g id={makeIdForHumanConsumption("labels")}>
@@ -847,8 +901,13 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     }
 
     renderSwatches(): React.ReactElement {
-        const { manager, marks } = this
-        const { activeColors, hoverColors = [] } = manager
+        const { marks } = this
+        const {
+            activeColors,
+            hoverColors = [],
+            legendOpacity,
+            categoricalBinStroke,
+        } = this.props
 
         return (
             <g id={makeIdForHumanConsumption("swatches")}>
@@ -869,7 +928,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
 
                     const opacity = isNotHovered
                         ? GRAPHER_OPACITY_MUTE
-                        : manager.legendOpacity
+                        : legendOpacity
 
                     return (
                         <rect
@@ -880,7 +939,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                             width={mark.rectSize}
                             height={mark.rectSize}
                             fill={fill}
-                            stroke={manager.categoricalBinStroke}
+                            stroke={categoricalBinStroke}
                             strokeWidth={0.4}
                             opacity={opacity}
                         />
@@ -891,21 +950,21 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     }
 
     renderInteractiveElements(): React.ReactElement {
-        const { manager, marks } = this
+        const { marks, props } = this
 
         return (
             <g>
                 {marks.map((mark, index) => {
                     const mouseOver = (): void =>
-                        manager.onLegendMouseOver
-                            ? manager.onLegendMouseOver(mark.bin)
+                        props.onLegendMouseOver
+                            ? props.onLegendMouseOver(mark.bin)
                             : undefined
                     const mouseLeave = (): void =>
-                        manager.onLegendMouseLeave
-                            ? manager.onLegendMouseLeave()
+                        props.onLegendMouseLeave
+                            ? props.onLegendMouseLeave()
                             : undefined
-                    const click = manager.onLegendClick
-                        ? (): void => manager.onLegendClick?.(mark.bin)
+                    const click = props.onLegendClick
+                        ? (): void => props.onLegendClick?.(mark.bin)
                         : undefined
 
                     const cursor = click ? "pointer" : "default"
@@ -948,7 +1007,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
             >
                 {this.renderSwatches()}
                 {this.renderLabels()}
-                {!this.manager.isStatic && this.renderInteractiveElements()}
+                {!this.props.isStatic && this.renderInteractiveElements()}
             </g>
         )
     }

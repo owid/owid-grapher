@@ -75,8 +75,8 @@ import {
 } from "../color/ColorConstants"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import {
-    HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
+    HorizontalNumericColorLegendProps,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { BaseType, Selection } from "d3"
 import { TextWrap } from "@ourworldindata/components"
@@ -514,7 +514,7 @@ export class DiscreteBarChart
             <>
                 {this.renderDefs()}
                 {this.showColorLegend && (
-                    <HorizontalNumericColorLegend manager={this} />
+                    <HorizontalNumericColorLegend {...this.legendProps} />
                 )}
                 {this.showHorizontalAxis && (
                     <>
@@ -833,6 +833,24 @@ export class DiscreteBarChart
         return sortBy(legendBins, (bin) => bin instanceof CategoricalBin)
     }
 
+    @computed
+    private get legendProps(): HorizontalNumericColorLegendProps {
+        return {
+            fontSize: this.fontSize,
+            legendX: this.legendX,
+            legendAlign: this.legendAlign,
+            legendMaxWidth: this.legendMaxWidth,
+            numericLegendData: this.numericLegendData,
+            numericBinSize: this.numericBinSize,
+            numericBinStroke: this.numericBinStroke,
+            equalSizeBins: this.equalSizeBins,
+            legendTitle: this.legendTitle,
+            numericLegendY: this.numericLegendY,
+            legendTextColor: this.legendTextColor,
+            legendTickSize: this.legendTickSize,
+        }
+    }
+
     @computed get projectedDataColorInLegend(): string {
         // if a single color is in use, use that color in the legend
         if (uniqBy(this.series, "color").length === 1)
@@ -840,7 +858,9 @@ export class DiscreteBarChart
         return DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND
     }
 
-    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+    @computed get externalNumericLegend():
+        | HorizontalNumericColorLegendProps
+        | undefined {
         if (this.hasColorLegend) {
             return {
                 numericLegendData: this.numericLegendData,
@@ -860,10 +880,10 @@ export class DiscreteBarChart
     legendTextColor = "#555"
     legendTickSize = 1
 
-    @computed get numericLegend(): HorizontalNumericColorLegend | undefined {
+    @computed get legendHeight(): number {
         return this.hasColorScale && this.manager.showLegend
-            ? new HorizontalNumericColorLegend({ manager: this })
-            : undefined
+            ? HorizontalNumericColorLegend.height(this.legendProps)
+            : 0
     }
 
     @computed get numericLegendY(): number {
@@ -874,10 +894,6 @@ export class DiscreteBarChart
         return this.hasColorScale
             ? this.colorScale.legendDescription
             : undefined
-    }
-
-    @computed get legendHeight(): number {
-        return this.numericLegend?.height ?? 0
     }
 
     // End of color legend props

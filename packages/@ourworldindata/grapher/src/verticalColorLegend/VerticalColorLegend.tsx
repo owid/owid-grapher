@@ -24,11 +24,6 @@ export interface VerticalColorLegendProps {
     isStatic?: boolean
 }
 
-type VerticalColorLegendPropsMinimal = Pick<
-    VerticalColorLegendProps,
-    "legendItems" | "maxLegendWidth" | "fontSize" | "legendTitle"
->
-
 export interface LegendItem {
     label?: string
     minText?: string
@@ -49,10 +44,12 @@ export class VerticalColorLegend extends React.Component<VerticalColorLegendProp
     private rectPadding = 5
     private lineHeight = 5
 
-    static dimensions(props: VerticalColorLegendPropsMinimal): {
-        width: number
-        height: number
-    } {
+    static dimensions(
+        props: Pick<
+            VerticalColorLegendProps,
+            "legendItems" | "maxLegendWidth" | "fontSize" | "legendTitle"
+        >
+    ): { width: number; height: number } {
         const legend = new VerticalColorLegend(props)
         return {
             width: legend.width,

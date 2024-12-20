@@ -844,7 +844,6 @@ export class ScatterPlotChart
                     legendY={this.legendY}
                     activeColors={this.activeColors}
                     focusColors={this.focusColors}
-                    isStatic={manager.isStatic}
                 />
                 {sizeLegend && (
                     <>
