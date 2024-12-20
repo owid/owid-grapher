@@ -35,9 +35,3 @@ export async function handleMultiDimDataPageRequest(
     }
     return { success: true, id }
 }
-
-putRouteWithRWTransaction(
-    apiRouter,
-    "/multi-dim/:slug",
-    handleMultiDimDataPageRequest
-)

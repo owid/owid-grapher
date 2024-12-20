@@ -1,9 +1,4 @@
 import { JsonError } from "@ourworldindata/types"
-import { apiRouter } from "../apiRouter.js"
-import {
-    postRouteWithRWTransaction,
-    deleteRouteWithRWTransaction,
-} from "../functionalRouterHelpers.js"
 import { Request } from "express"
 import * as e from "express"
 
@@ -36,11 +31,3 @@ export async function deleteExplorerTags(
     await trx.table("explorer_tags").where({ explorerSlug: slug }).delete()
     return { success: true }
 }
-
-postRouteWithRWTransaction(apiRouter, "/explorer/:slug/tags", addExplorerTags)
-
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/explorer/:slug/tags",
-    deleteExplorerTags
-)

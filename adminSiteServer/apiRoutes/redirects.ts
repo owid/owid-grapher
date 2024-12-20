@@ -6,12 +6,6 @@ import {
     getRedirectById,
 } from "../../db/model/Redirect.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import { apiRouter } from "../apiRouter.js"
-import {
-    getRouteWithROTransaction,
-    postRouteWithRWTransaction,
-    deleteRouteWithRWTransaction,
-} from "../functionalRouterHelpers.js"
 import { triggerStaticBuild } from "./routeUtils.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
@@ -151,35 +145,3 @@ export async function handleDeleteChartRedirect(
 
     return { success: true }
 }
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/site-redirects.json",
-    handleGetSiteRedirects
-)
-
-postRouteWithRWTransaction(
-    apiRouter,
-    "/site-redirects/new",
-    handlePostNewSiteRedirect
-)
-
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/site-redirects/:id",
-    handleDeleteSiteRedirect
-)
-
-getRouteWithROTransaction(apiRouter, "/redirects.json", handleGetRedirects)
-
-postRouteWithRWTransaction(
-    apiRouter,
-    "/charts/:chartId/redirects/new",
-    handlePostNewChartRedirect
-)
-
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/redirects/:id",
-    handleDeleteChartRedirect
-)

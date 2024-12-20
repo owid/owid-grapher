@@ -22,14 +22,9 @@ import {
     getGrapherConfigsForVariable,
     updateGrapherConfigAdminOfVariable,
 } from "../../db/model/Variable.js"
-import {
-    getRouteWithROTransaction,
-    patchRouteWithRWTransaction,
-} from "../functionalRouterHelpers.js"
 import { saveGrapher } from "./charts.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
-import { apiRouter } from "../apiRouter.js"
 import { Request } from "../authentication.js"
 import e from "express"
 
@@ -245,22 +240,3 @@ export async function updateVariableAnnotations(
 
     return { success: true }
 }
-
-patchRouteWithRWTransaction(
-    apiRouter,
-    "/variable-annotations",
-    updateVariableAnnotations
-)
-
-getRouteWithROTransaction(apiRouter, "/chart-bulk-update", getChartBulkUpdate)
-
-patchRouteWithRWTransaction(
-    apiRouter,
-    "/chart-bulk-update",
-    updateBulkChartConfigs
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variable-annotations",
-    getVariableAnnotations
-)

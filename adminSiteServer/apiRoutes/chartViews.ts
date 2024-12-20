@@ -19,18 +19,11 @@ import { diffGrapherConfigs, mergeGrapherConfigs } from "@ourworldindata/utils"
 import { omit, pick } from "lodash"
 import { ApiChartViewOverview } from "../../adminShared/AdminTypes.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import { apiRouter } from "../apiRouter.js"
 import {
     saveNewChartConfigInDbAndR2,
     updateChartConfigInDbAndR2,
 } from "../chartConfigHelpers.js"
 import { deleteGrapherConfigFromR2ByUUID } from "../chartConfigR2Helpers.js"
-import {
-    getRouteWithROTransaction,
-    postRouteWithRWTransaction,
-    putRouteWithRWTransaction,
-    deleteRouteWithRWTransaction,
-} from "../functionalRouterHelpers.js"
 
 import * as db from "../../db/db.js"
 import { expectChartById } from "./charts.js"
@@ -288,13 +281,3 @@ export async function deleteChartView(
 
     return { success: true }
 }
-
-getRouteWithROTransaction(apiRouter, "/chartViews", getChartViews)
-
-getRouteWithROTransaction(apiRouter, "/chartViews/:id", getChartViewById)
-
-postRouteWithRWTransaction(apiRouter, "/chartViews", createChartView)
-
-putRouteWithRWTransaction(apiRouter, "/chartViews/:id", updateChartView)
-
-deleteRouteWithRWTransaction(apiRouter, "/chartViews/:id", deleteChartView)

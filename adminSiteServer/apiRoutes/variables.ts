@@ -26,12 +26,6 @@ import {
     updateGrapherConfigETLOfVariable,
 } from "../../db/model/Variable.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
-import { apiRouter } from "../apiRouter.js"
-import {
-    deleteRouteWithRWTransaction,
-    getRouteWithROTransaction,
-    putRouteWithRWTransaction,
-} from "../functionalRouterHelpers.js"
 import * as db from "../../db/db.js"
 import {
     getParentVariableIdFromChartConfig,
@@ -546,86 +540,3 @@ export async function getVariablesVariableIdChartsJson(
         isPublished: chart.isPublished,
     }))
 }
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/editorData/variables.json",
-    getEditorVariablesJson
-)
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/data/variables/data/:variableStr.json",
-    getVariableDataJson
-)
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/data/variables/metadata/:variableStr.json",
-    getVariableMetadataJson
-)
-
-getRouteWithROTransaction(apiRouter, "/variables.json", getVariablesJson)
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables.usages.json",
-    getVariablesUsagesJson
-)
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/grapherConfigETL/:variableId.patchConfig.json",
-    getVariablesGrapherConfigETLPatchConfigJson
-)
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/grapherConfigAdmin/:variableId.patchConfig.json",
-    getVariablesGrapherConfigAdminPatchConfigJson
-)
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/mergedGrapherConfig/:variableId.json",
-    getVariablesMergedGrapherConfigJson
-)
-
-// Used in VariableEditPage
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/:variableId.json",
-    getVariablesVariableIdJson
-)
-
-// inserts a new config or updates an existing one
-putRouteWithRWTransaction(
-    apiRouter,
-    "/variables/:variableId/grapherConfigETL",
-    putVariablesVariableIdGrapherConfigETL
-)
-
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/variables/:variableId/grapherConfigETL",
-    deleteVariablesVariableIdGrapherConfigETL
-)
-
-// inserts a new config or updates an existing one
-putRouteWithRWTransaction(
-    apiRouter,
-    "/variables/:variableId/grapherConfigAdmin",
-    putVariablesVariableIdGrapherConfigAdmin
-)
-
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/variables/:variableId/grapherConfigAdmin",
-    deleteVariablesVariableIdGrapherConfigAdmin
-)
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/:variableId/charts.json",
-    getVariablesVariableIdChartsJson
-)

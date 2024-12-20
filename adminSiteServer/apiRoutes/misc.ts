@@ -4,15 +4,11 @@
 // [.secondary] section of the {.research-and-writing} block of author pages
 
 import { DbRawPostGdoc, JsonError } from "@ourworldindata/types"
-import { apiRouter } from "../apiRouter.js"
-import { getRouteWithROTransaction } from "../functionalRouterHelpers.js"
 
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
 import path from "path"
-import { DeployQueueServer } from "../../baker/DeployQueueServer.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import { triggerStaticBuild } from "./routeUtils.js"
 import { Request } from "../authentication.js"
 import e from "express"
 // using the alternate template, which highlights topics rather than articles.
@@ -179,19 +175,3 @@ export async function fetchSourceById(
 
     return { source: source }
 }
-
-apiRouter.get("/deploys.json", async () => ({
-    deploys: await new DeployQueueServer().getDeploys(),
-}))
-
-apiRouter.put("/deploy", async (req, res) => {
-    return triggerStaticBuild(res.locals.user, "Manually triggered deploy")
-})
-
-getRouteWithROTransaction(apiRouter, "/all-work", fetchAllWork)
-getRouteWithROTransaction(
-    apiRouter,
-    "/editorData/namespaces.json",
-    fetchNamespaces
-)
-getRouteWithROTransaction(apiRouter, "/sources/:sourceId.json", fetchSourceById)
