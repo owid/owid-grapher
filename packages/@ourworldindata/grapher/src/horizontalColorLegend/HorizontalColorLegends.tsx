@@ -854,6 +854,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
             <g id={makeIdForHumanConsumption("swatches")}>
                 {marks.map((mark, index) => {
                     const isActive = activeColors?.includes(mark.bin.color)
+                    const isHovered = hoverColors.includes(mark.bin.color)
                     const isNotHovered =
                         hoverColors.length > 0 &&
                         !hoverColors.includes(mark.bin.color)
@@ -863,7 +864,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                         : mark.bin.color
 
                     const fill =
-                        isActive || activeColors === undefined
+                        isHovered || isActive || activeColors === undefined
                             ? color
                             : OWID_NON_FOCUSED_GRAY
 
