@@ -18,7 +18,6 @@ import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     VerticalColorLegend,
-    VerticalColorLegendManager,
     LegendItem,
 } from "../verticalColorLegend/VerticalColorLegend"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
@@ -144,7 +143,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 @observer
 export class StackedBarChart
     extends AbstractStackedChart
-    implements VerticalColorLegendManager, ColorScaleManager
+    implements ColorScaleManager
 {
     readonly minBarSpacing = 4
 
@@ -318,8 +317,15 @@ export class StackedBarChart
         )
     }
 
-    @computed private get verticalColorLegend(): VerticalColorLegend {
-        return new VerticalColorLegend({ manager: this })
+    @computed private get verticalColorLegend(): {
+        width: number
+        height: number
+    } {
+        return VerticalColorLegend.dimensions({
+            maxLegendWidth: this.maxLegendWidth,
+            fontSize: this.fontSize,
+            legendItems: this.legendItems,
+        })
     }
 
     @computed
@@ -476,7 +482,17 @@ export class StackedBarChart
         return showHorizontalLegend ? (
             <HorizontalCategoricalColorLegend manager={this} />
         ) : (
-            <VerticalColorLegend manager={this} />
+            <VerticalColorLegend
+                legendItems={this.legendItems}
+                maxLegendWidth={this.maxLegendWidth}
+                fontSize={this.fontSize}
+                onLegendMouseOver={this.onLegendMouseOver}
+                onLegendMouseLeave={this.onLegendMouseLeave}
+                legendX={this.legendX}
+                legendY={this.legendY}
+                activeColors={this.activeColors}
+                isStatic={this.isStatic}
+            />
         )
     }
 
