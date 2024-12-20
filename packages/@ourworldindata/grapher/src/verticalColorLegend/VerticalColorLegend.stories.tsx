@@ -3,6 +3,7 @@ import {
     VerticalColorLegend,
     VerticalColorLegendProps,
 } from "./VerticalColorLegend"
+import { VerticalColorLegendComponent } from "./VerticalColorLegendComponent"
 
 export default {
     title: "VerticalColorLegend",
@@ -26,9 +27,10 @@ const props: VerticalColorLegendProps = {
 }
 
 export const CategoricalBins = (): React.ReactElement => {
+    const verticalColorLegend = new VerticalColorLegend(props)
     return (
         <svg width={600} height={400}>
-            <VerticalColorLegend {...props} />
+            <VerticalColorLegendComponent legend={verticalColorLegend} />
         </svg>
     )
 }

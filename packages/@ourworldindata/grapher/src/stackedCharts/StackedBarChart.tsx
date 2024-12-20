@@ -20,6 +20,7 @@ import {
     VerticalColorLegend,
     LegendItem,
 } from "../verticalColorLegend/VerticalColorLegend"
+import { VerticalColorLegendComponent } from "../verticalColorLegend/VerticalColorLegendComponent"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -317,11 +318,8 @@ export class StackedBarChart
         )
     }
 
-    @computed private get verticalColorLegend(): {
-        width: number
-        height: number
-    } {
-        return VerticalColorLegend.dimensions({
+    @computed private get verticalColorLegend(): VerticalColorLegend {
+        return new VerticalColorLegend({
             maxLegendWidth: this.maxLegendWidth,
             fontSize: this.fontSize,
             legendItems: this.legendItems,
@@ -473,7 +471,7 @@ export class StackedBarChart
 
     renderLegend(): React.ReactElement | void {
         const {
-            manager: { showLegend },
+            manager: { showLegend, isStatic },
             showHorizontalLegend,
         } = this
 
@@ -482,16 +480,17 @@ export class StackedBarChart
         return showHorizontalLegend ? (
             <HorizontalCategoricalColorLegend manager={this} />
         ) : (
-            <VerticalColorLegend
-                legendItems={this.legendItems}
-                maxLegendWidth={this.maxLegendWidth}
-                fontSize={this.fontSize}
-                onLegendMouseOver={this.onLegendMouseOver}
-                onLegendMouseLeave={this.onLegendMouseLeave}
-                legendX={this.legendX}
-                legendY={this.legendY}
+            <VerticalColorLegendComponent
+                legend={this.verticalColorLegend}
+                x={this.legendX}
+                y={this.legendY}
                 activeColors={this.activeColors}
-                isStatic={this.isStatic}
+                onLegendMouseOver={
+                    !isStatic ? this.onLegendMouseOver : undefined
+                }
+                onLegendMouseLeave={
+                    !isStatic ? this.onLegendMouseLeave : undefined
+                }
             />
         )
     }
