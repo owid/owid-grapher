@@ -1,5 +1,4 @@
 import {
-    TaggableType,
     DbChartTagJoin,
     JsonError,
     DbEnrichedImage,
@@ -7,8 +6,6 @@ import {
 import { parseIntOrUndefined } from "@ourworldindata/utils"
 import { getGptTopicSuggestions } from "../../db/model/Chart.js"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
-import { apiRouter } from "../apiRouter.js"
-import { getRouteWithROTransaction } from "../functionalRouterHelpers.js"
 import { fetchGptGeneratedAltText } from "../imagesHelpers.js"
 import * as db from "../../db/db.js"
 import e from "express"
@@ -65,15 +62,3 @@ export async function suggestGptAltText(
 
     return { success: true, altText }
 }
-
-getRouteWithROTransaction(
-    apiRouter,
-    `/gpt/suggest-topics/${TaggableType.Charts}/:chartId.json`,
-    suggestGptTopics
-)
-
-getRouteWithROTransaction(
-    apiRouter,
-    `/gpt/suggest-alt-text/:imageId`,
-    suggestGptAltText
-)

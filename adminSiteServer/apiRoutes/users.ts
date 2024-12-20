@@ -3,13 +3,6 @@ import { parseIntOrUndefined } from "@ourworldindata/utils"
 import { pick } from "lodash"
 import { getUserById, updateUser, insertUser } from "../../db/model/User.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import { apiRouter } from "../apiRouter.js"
-import {
-    getRouteWithROTransaction,
-    deleteRouteWithRWTransaction,
-    putRouteWithRWTransaction,
-    postRouteWithRWTransaction,
-} from "../functionalRouterHelpers.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import e from "express"
@@ -120,25 +113,3 @@ export async function removeUserImage(
     await trx("images").where({ id: imageId, userId }).update({ userId: null })
     return { success: true }
 }
-
-getRouteWithROTransaction(apiRouter, "/users.json", getUsers)
-
-getRouteWithROTransaction(apiRouter, "/users/:userId.json", getUserByIdHandler)
-
-deleteRouteWithRWTransaction(apiRouter, "/users/:userId", deleteUser)
-
-putRouteWithRWTransaction(apiRouter, "/users/:userId", updateUserHandler)
-
-postRouteWithRWTransaction(apiRouter, "/users/add", addUser)
-
-postRouteWithRWTransaction(
-    apiRouter,
-    "/users/:userId/images/:imageId",
-    addImageToUser
-)
-
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/users/:userId/images/:imageId",
-    removeUserImage
-)

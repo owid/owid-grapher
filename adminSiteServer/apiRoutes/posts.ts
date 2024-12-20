@@ -13,11 +13,6 @@ import { upsertGdoc, setTagsForGdoc } from "../../db/model/Gdoc/GdocFactory.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { setTagsForPost, getTagsByPostId } from "../../db/model/Post.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import { apiRouter } from "../apiRouter.js"
-import {
-    getRouteWithROTransaction,
-    postRouteWithRWTransaction,
-} from "../functionalRouterHelpers.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import e from "express"
@@ -218,25 +213,3 @@ export async function handleUnlinkGdoc(
 
     return { success: true }
 }
-
-getRouteWithROTransaction(apiRouter, "/posts.json", handleGetPostsJson)
-
-postRouteWithRWTransaction(
-    apiRouter,
-    "/posts/:postId/setTags",
-    handleSetTagsForPost
-)
-
-getRouteWithROTransaction(apiRouter, "/posts/:postId.json", handleGetPostById)
-
-postRouteWithRWTransaction(
-    apiRouter,
-    "/posts/:postId/createGdoc",
-    handleCreateGdoc
-)
-
-postRouteWithRWTransaction(
-    apiRouter,
-    "/posts/:postId/unlinkGdoc",
-    handleUnlinkGdoc
-)

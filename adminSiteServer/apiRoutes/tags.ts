@@ -12,13 +12,6 @@ import {
 } from "../../db/model/Chart.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { UNCATEGORIZED_TAG_ID } from "../../settings/serverSettings.js"
-import { apiRouter } from "../apiRouter.js"
-import {
-    getRouteWithROTransaction,
-    putRouteWithRWTransaction,
-    postRouteWithRWTransaction,
-    deleteRouteWithRWTransaction,
-} from "../functionalRouterHelpers.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
 import e from "express"
@@ -266,9 +259,3 @@ export async function deleteTag(
 
     return { success: true }
 }
-
-getRouteWithROTransaction(apiRouter, "/tags/:tagId.json", getTagById)
-putRouteWithRWTransaction(apiRouter, "/tags/:tagId", updateTag)
-postRouteWithRWTransaction(apiRouter, "/tags/new", createTag)
-getRouteWithROTransaction(apiRouter, "/tags.json", getAllTags)
-deleteRouteWithRWTransaction(apiRouter, "/tags/:tagId/delete", deleteTag)

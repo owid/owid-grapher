@@ -1,14 +1,5 @@
 import { DbEnrichedImage, JsonError } from "@ourworldindata/types"
 import pMap from "p-map"
-import { apiRouter } from "../apiRouter.js"
-import {
-    getRouteNonIdempotentWithRWTransaction,
-    postRouteWithRWTransaction,
-    putRouteWithRWTransaction,
-    patchRouteWithRWTransaction,
-    deleteRouteWithRWTransaction,
-    getRouteWithROTransaction,
-} from "../functionalRouterHelpers.js"
 import {
     validateImagePayload,
     processImageContent,
@@ -270,20 +261,3 @@ export async function getImageUsageHandler(
         usage,
     }
 }
-
-getRouteNonIdempotentWithRWTransaction(
-    apiRouter,
-    "/images.json",
-    getImagesHandler
-)
-
-postRouteWithRWTransaction(apiRouter, "/images", postImageHandler)
-
-putRouteWithRWTransaction(apiRouter, "/images/:id", putImageHandler)
-
-// Update alt text via patch
-patchRouteWithRWTransaction(apiRouter, "/images/:id", patchImageHandler)
-
-deleteRouteWithRWTransaction(apiRouter, "/images/:id", deleteImageHandler)
-
-getRouteWithROTransaction(apiRouter, "/images/usage", getImageUsageHandler)

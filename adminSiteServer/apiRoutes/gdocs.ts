@@ -42,14 +42,6 @@ import {
 } from "../../db/model/Gdoc/GdocFactory.js"
 import { GdocHomepage } from "../../db/model/Gdoc/GdocHomepage.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
-import { apiRouter } from "../apiRouter.js"
-import {
-    getRouteWithROTransaction,
-    getRouteNonIdempotentWithRWTransaction,
-    putRouteWithRWTransaction,
-    deleteRouteWithRWTransaction,
-    postRouteWithRWTransaction,
-} from "../functionalRouterHelpers.js"
 import { triggerStaticBuild, enqueueLightningChange } from "./routeUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
@@ -295,17 +287,3 @@ export async function setGdocTags(
 
     return { success: true }
 }
-
-getRouteWithROTransaction(apiRouter, "/gdocs", getAllGdocIndexItems)
-
-getRouteNonIdempotentWithRWTransaction(
-    apiRouter,
-    "/gdocs/:id",
-    getIndividualGdoc
-)
-
-putRouteWithRWTransaction(apiRouter, "/gdocs/:id", createOrUpdateGdoc)
-
-deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", deleteGdoc)
-
-postRouteWithRWTransaction(apiRouter, "/gdocs/:gdocId/setTags", setGdocTags)

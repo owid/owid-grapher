@@ -1,10 +1,5 @@
 import { JsonError, FlatTagGraph } from "@ourworldindata/types"
 import { checkIsPlainObjectWithGuard } from "@ourworldindata/utils"
-import { apiRouter } from "../apiRouter.js"
-import {
-    getRouteWithROTransaction,
-    postRouteWithRWTransaction,
-} from "../functionalRouterHelpers.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
 import { Request } from "../authentication.js"
@@ -65,11 +60,3 @@ export async function handlePostTagGraph(
     await db.updateTagGraph(trx, tagGraph)
     res.send({ success: true })
 }
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/flatTagGraph.json",
-    handleGetFlatTagGraph
-)
-
-postRouteWithRWTransaction(apiRouter, "/tagGraph", handlePostTagGraph)

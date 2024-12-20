@@ -14,13 +14,6 @@ import {
 import { getDatasetById, setTagsForDataset } from "../../db/model/Dataset.js"
 import { logErrorAndMaybeSendToBugsnag } from "../../serverUtils/errorLog.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import { apiRouter } from "../apiRouter.js"
-import {
-    getRouteWithROTransaction,
-    putRouteWithRWTransaction,
-    postRouteWithRWTransaction,
-    deleteRouteWithRWTransaction,
-} from "../functionalRouterHelpers.js"
 import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
@@ -413,19 +406,3 @@ export async function republishCharts(
 
     return { success: true }
 }
-
-getRouteWithROTransaction(apiRouter, "/datasets.json", getDatasets)
-getRouteWithROTransaction(apiRouter, "/datasets/:datasetId.json", getDataset)
-putRouteWithRWTransaction(apiRouter, "/datasets/:datasetId", updateDataset)
-postRouteWithRWTransaction(
-    apiRouter,
-    "/datasets/:datasetId/setArchived",
-    setArchived
-)
-postRouteWithRWTransaction(apiRouter, "/datasets/:datasetId/setTags", setTags)
-deleteRouteWithRWTransaction(apiRouter, "/datasets/:datasetId", deleteDataset)
-postRouteWithRWTransaction(
-    apiRouter,
-    "/datasets/:datasetId/charts",
-    republishCharts
-)

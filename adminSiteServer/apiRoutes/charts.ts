@@ -45,7 +45,6 @@ import {
     BAKED_BASE_URL,
     ADMIN_BASE_URL,
 } from "../../settings/clientSettings.js"
-import { apiRouter } from "../apiRouter.js"
 import {
     retrieveChartConfigFromDbAndSaveToR2,
     updateChartConfigInDbAndR2,
@@ -55,12 +54,6 @@ import {
     deleteGrapherConfigFromR2ByUUID,
     saveGrapherConfigToR2ByUUID,
 } from "../chartConfigR2Helpers.js"
-import {
-    deleteRouteWithRWTransaction,
-    getRouteWithROTransaction,
-    postRouteWithRWTransaction,
-    putRouteWithRWTransaction,
-} from "../functionalRouterHelpers.js"
 import { triggerStaticBuild } from "./routeUtils.js"
 import * as db from "../../db/db.js"
 import { getLogsByChartId } from "../getLogsByChartId.js"
@@ -503,7 +496,7 @@ export async function updateGrapherConfigsInR2(
     }
 }
 
-async function getChartsJson(
+export async function getChartsJson(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
@@ -529,7 +522,7 @@ async function getChartsJson(
     return { charts }
 }
 
-async function getChartsCsv(
+export async function getChartsCsv(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
@@ -589,7 +582,7 @@ async function getChartsCsv(
     return csv
 }
 
-async function getChartConfigJson(
+export async function getChartConfigJson(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
@@ -597,7 +590,7 @@ async function getChartConfigJson(
     return expectChartById(trx, req.params.chartId)
 }
 
-async function getChartParentJson(
+export async function getChartParentJson(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
@@ -615,7 +608,7 @@ async function getChartParentJson(
     })
 }
 
-async function getChartPatchConfigJson(
+export async function getChartPatchConfigJson(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
@@ -625,7 +618,7 @@ async function getChartPatchConfigJson(
     return config
 }
 
-async function getChartLogsJson(
+export async function getChartLogsJson(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
@@ -638,7 +631,7 @@ async function getChartLogsJson(
     }
 }
 
-async function getChartReferencesJson(
+export async function getChartReferencesJson(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
@@ -652,7 +645,7 @@ async function getChartReferencesJson(
     return references
 }
 
-async function getChartRedirectsJson(
+export async function getChartRedirectsJson(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
@@ -665,7 +658,7 @@ async function getChartRedirectsJson(
     }
 }
 
-async function getChartPageviewsJson(
+export async function getChartPageviewsJson(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
@@ -692,7 +685,7 @@ async function getChartPageviewsJson(
     }
 }
 
-async function createChart(
+export async function createChart(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadWriteTransaction
@@ -715,7 +708,7 @@ async function createChart(
     }
 }
 
-async function setChartTagsHandler(
+export async function setChartTagsHandler(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadWriteTransaction
@@ -727,7 +720,7 @@ async function setChartTagsHandler(
     return { success: true }
 }
 
-async function updateChart(
+export async function updateChart(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadWriteTransaction
@@ -762,7 +755,7 @@ async function updateChart(
     }
 }
 
-async function deleteChart(
+export async function deleteChart(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadWriteTransaction
@@ -814,49 +807,3 @@ async function deleteChart(
 
     return { success: true }
 }
-
-getRouteWithROTransaction(apiRouter, "/charts.json", getChartsJson)
-getRouteWithROTransaction(apiRouter, "/charts.csv", getChartsCsv)
-getRouteWithROTransaction(
-    apiRouter,
-    "/charts/:chartId.config.json",
-    getChartConfigJson
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/charts/:chartId.parent.json",
-    getChartParentJson
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/charts/:chartId.patchConfig.json",
-    getChartPatchConfigJson
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/charts/:chartId.logs.json",
-    getChartLogsJson
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/charts/:chartId.references.json",
-    getChartReferencesJson
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/charts/:chartId.redirects.json",
-    getChartRedirectsJson
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/charts/:chartId.pageviews.json",
-    getChartPageviewsJson
-)
-postRouteWithRWTransaction(apiRouter, "/charts", createChart)
-postRouteWithRWTransaction(
-    apiRouter,
-    "/charts/:chartId/setTags",
-    setChartTagsHandler
-)
-putRouteWithRWTransaction(apiRouter, "/charts/:chartId", updateChart)
-deleteRouteWithRWTransaction(apiRouter, "/charts/:chartId", deleteChart)

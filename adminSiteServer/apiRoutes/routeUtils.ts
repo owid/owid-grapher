@@ -1,13 +1,6 @@
 import { DbPlainUser } from "@ourworldindata/types"
 import { DeployQueueServer } from "../../baker/DeployQueueServer.js"
 import { BAKE_ON_CHANGE } from "../../settings/serverSettings.js"
-import { References } from "../../adminSiteClient/AbstractChartEditor.js"
-import { ChartViewMinimalInformation } from "../../adminSiteClient/ChartEditor.js"
-import * as db from "../../db/db.js"
-import {
-    getWordpressPostReferencesByChartId,
-    getGdocsPostReferencesByChartId,
-} from "../../db/model/Post.js"
 
 // Call this to trigger build and deployment of static charts on change
 export const triggerStaticBuild = async (
