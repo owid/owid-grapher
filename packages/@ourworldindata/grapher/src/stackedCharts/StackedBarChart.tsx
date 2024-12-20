@@ -20,6 +20,7 @@ import {
     VerticalColorLegend,
     LegendItem,
 } from "../verticalColorLegend/VerticalColorLegend"
+import { VerticalColorLegendComponent } from "../verticalColorLegend/VerticalColorLegendComponent"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -313,14 +314,12 @@ export class StackedBarChart
         )
     }
 
-    @computed private get verticalColorLegend(): {
-        width: number
-        height: number
-    } {
-        return VerticalColorLegend.dimensions({
+    @computed private get verticalColorLegend(): VerticalColorLegend {
+        return new VerticalColorLegend({
             maxLegendWidth: this.maxLegendWidth,
             fontSize: this.fontSize,
             legendItems: this.legendItems,
+            activeColors: this.activeColors,
         })
     }
 
@@ -480,6 +479,13 @@ export class StackedBarChart
 
         if (!showLegend) return
 
+        const eventListeners = this.manager.isStatic
+            ? undefined
+            : {
+                  onLegendMouseOver: this.onLegendMouseOver,
+                  onLegendMouseLeave: this.onLegendMouseLeave,
+              }
+
         return showHorizontalLegend ? (
             <HorizontalCategoricalColorLegend
                 fontSize={this.fontSize}
@@ -494,16 +500,11 @@ export class StackedBarChart
                 isStatic={this.isStatic}
             />
         ) : (
-            <VerticalColorLegend
-                legendItems={this.legendItems}
-                maxLegendWidth={this.maxLegendWidth}
-                fontSize={this.fontSize}
-                onLegendMouseOver={this.onLegendMouseOver}
-                onLegendMouseLeave={this.onLegendMouseLeave}
-                legendX={this.legendX}
-                legendY={this.legendY}
-                activeColors={this.activeColors}
-                isStatic={this.isStatic}
+            <VerticalColorLegendComponent
+                x={this.legendX}
+                y={this.legendY}
+                state={this.verticalColorLegend}
+                eventListeners={eventListeners}
             />
         )
     }

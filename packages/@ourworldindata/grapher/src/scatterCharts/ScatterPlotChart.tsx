@@ -62,6 +62,7 @@ import {
     ConnectedScatterLegendManager,
 } from "./ConnectedScatterLegend"
 import { VerticalColorLegend } from "../verticalColorLegend/VerticalColorLegend"
+import { VerticalColorLegendComponent } from "../verticalColorLegend/VerticalColorLegendComponent"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
@@ -506,15 +507,14 @@ export class ScatterPlotChart
         return this.tooltipState.target?.series
     }
 
-    @computed private get verticalColorLegend(): {
-        width: number
-        height: number
-    } {
-        return VerticalColorLegend.dimensions({
+    @computed private get verticalColorLegend(): VerticalColorLegend {
+        return new VerticalColorLegend({
             maxLegendWidth: this.maxLegendWidth,
             fontSize: this.fontSize,
             legendItems: this.legendItems,
             legendTitle: this.legendTitle,
+            activeColors: this.activeColors,
+            focusColors: this.focusColors,
         })
     }
 
@@ -832,18 +832,15 @@ export class ScatterPlotChart
                         />
                     ))}
                 {this.points}
-                <VerticalColorLegend
-                    maxLegendWidth={this.maxLegendWidth}
-                    fontSize={this.fontSize}
-                    legendItems={this.legendItems}
-                    legendTitle={this.legendTitle}
-                    onLegendMouseOver={this.onLegendMouseOver}
-                    onLegendClick={this.onLegendClick}
-                    onLegendMouseLeave={this.onLegendMouseLeave}
-                    legendX={this.legendX}
-                    legendY={this.legendY}
-                    activeColors={this.activeColors}
-                    focusColors={this.focusColors}
+                <VerticalColorLegendComponent
+                    x={this.legendX}
+                    y={this.legendY}
+                    state={this.verticalColorLegend}
+                    eventListeners={{
+                        onLegendMouseOver: this.onLegendMouseOver,
+                        onLegendMouseLeave: this.onLegendMouseLeave,
+                        onLegendClick: this.onLegendClick,
+                    }}
                 />
                 {sizeLegend && (
                     <>
