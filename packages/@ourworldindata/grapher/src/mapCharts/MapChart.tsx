@@ -18,7 +18,6 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
     HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { MapProjectionGeos } from "./MapProjections"
@@ -163,7 +162,7 @@ const renderFeaturesFor = (
 @observer
 export class MapChart
     extends React.Component<MapChartProps>
-    implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
+    implements ChartInterface, ColorScaleManager
 {
     @observable focusEntity?: MapEntity
     @observable focusBracket?: MapBracket
@@ -525,50 +524,72 @@ export class MapChart
         return this.categoryLegendHeight + this.numericLegendHeight + 10
     }
 
-    @computed get numericLegendHeight(): number {
-        return this.numericLegend ? this.numericLegend.height : 0
+    @computed private get hasCategoryLegend(): boolean {
+        return this.categoricalLegendData.length > 1
+    }
+
+    @computed private get hasNumericLegend(): boolean {
+        return this.numericLegendData.length > 1
     }
 
     @computed get categoryLegendHeight(): number {
-        return this.categoryLegend ? this.categoryLegend.height + 5 : 0
+        return this.hasCategoryLegend
+            ? HorizontalCategoricalColorLegend.height({
+                  fontSize: this.fontSize,
+                  legendAlign: this.legendAlign,
+                  legendMaxWidth: this.legendMaxWidth,
+                  categoricalLegendData: this.categoricalLegendData,
+              }) + 5
+            : 0
     }
 
-    @computed get categoryLegend():
-        | HorizontalCategoricalColorLegend
-        | undefined {
-        return this.categoricalLegendData.length > 1
-            ? new HorizontalCategoricalColorLegend({ manager: this })
-            : undefined
+    @computed get categoryLegendNumLines(): number {
+        return this.hasCategoryLegend
+            ? HorizontalCategoricalColorLegend.numLines({
+                  fontSize: this.fontSize,
+                  legendMaxWidth: this.legendMaxWidth,
+                  categoricalLegendData: this.categoricalLegendData,
+              })
+            : 0
     }
 
-    @computed get numericLegend(): HorizontalNumericColorLegend | undefined {
-        return this.numericLegendData.length > 1
-            ? new HorizontalNumericColorLegend({ manager: this })
-            : undefined
+    @computed get numericLegendHeight(): number {
+        return this.hasNumericLegend
+            ? HorizontalNumericColorLegend.height({
+                  fontSize: this.fontSize,
+                  legendX: this.legendX,
+                  legendAlign: this.legendAlign,
+                  legendMaxWidth: this.legendMaxWidth,
+                  numericLegendData: this.numericLegendData,
+                  equalSizeBins: this.equalSizeBins,
+              })
+            : 0
     }
 
     @computed get categoryLegendY(): number {
-        const { categoryLegend, bounds, categoryLegendHeight } = this
+        const { hasCategoryLegend, bounds, categoryLegendHeight } = this
 
-        if (categoryLegend) return bounds.bottom - categoryLegendHeight
+        if (hasCategoryLegend) return bounds.bottom - categoryLegendHeight
         return 0
     }
 
     @computed get legendAlign(): HorizontalAlign {
-        if (this.numericLegend) return HorizontalAlign.center
-        const { numLines = 0 } = this.categoryLegend ?? {}
-        return numLines > 1 ? HorizontalAlign.left : HorizontalAlign.center
+        if (this.hasNumericLegend) return HorizontalAlign.center
+
+        return this.categoryLegendNumLines > 1
+            ? HorizontalAlign.left
+            : HorizontalAlign.center
     }
 
     @computed get numericLegendY(): number {
         const {
-            numericLegend,
+            hasNumericLegend,
             numericLegendHeight,
             bounds,
             categoryLegendHeight,
         } = this
 
-        if (numericLegend)
+        if (hasNumericLegend)
             return (
                 bounds.bottom - categoryLegendHeight - numericLegendHeight - 4
             )
@@ -588,15 +609,37 @@ export class MapChart
     }
 
     renderMapLegend(): React.ReactElement {
-        const { numericLegend, categoryLegend } = this
+        const { hasNumericLegend, hasCategoryLegend } = this
 
         return (
             <>
-                {numericLegend && (
-                    <HorizontalNumericColorLegend manager={this} />
+                {hasNumericLegend && (
+                    <HorizontalNumericColorLegend
+                        fontSize={this.fontSize}
+                        legendX={this.legendX}
+                        legendAlign={this.legendAlign}
+                        numericLegendY={this.numericLegendY}
+                        legendMaxWidth={this.legendMaxWidth}
+                        numericLegendData={this.numericLegendData}
+                        numericFocusBracket={this.numericFocusBracket}
+                        equalSizeBins={this.equalSizeBins}
+                        onLegendMouseLeave={this.onLegendMouseLeave}
+                        onLegendMouseOver={this.onLegendMouseOver}
+                    />
                 )}
-                {categoryLegend && (
-                    <HorizontalCategoricalColorLegend manager={this} />
+                {hasCategoryLegend && (
+                    <HorizontalCategoricalColorLegend
+                        fontSize={this.fontSize}
+                        legendX={this.legendX}
+                        legendAlign={this.legendAlign}
+                        categoryLegendY={this.categoryLegendY}
+                        legendMaxWidth={this.legendMaxWidth}
+                        categoricalLegendData={this.categoricalLegendData}
+                        categoricalBinStroke={this.categoricalBinStroke}
+                        onLegendMouseLeave={this.onLegendMouseLeave}
+                        onLegendMouseOver={this.onLegendMouseOver}
+                        isStatic={this.isStatic}
+                    />
                 )}
             </>
         )

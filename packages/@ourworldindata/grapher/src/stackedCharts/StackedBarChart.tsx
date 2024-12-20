@@ -18,9 +18,9 @@ import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     VerticalColorLegend,
-    VerticalColorLegendManager,
     LegendItem,
 } from "../verticalColorLegend/VerticalColorLegend"
+import { VerticalColorLegendComponent } from "../verticalColorLegend/VerticalColorLegendComponent"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -144,7 +144,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 @observer
 export class StackedBarChart
     extends AbstractStackedChart
-    implements VerticalColorLegendManager, ColorScaleManager
+    implements ColorScaleManager
 {
     readonly minBarSpacing = 4
 
@@ -211,7 +211,7 @@ export class StackedBarChart
 
     @computed protected get paddingForLegendTop(): number {
         return this.showHorizontalLegend
-            ? this.horizontalColorLegend.height + 8
+            ? this.horizontalColorLegendHeight + 8
             : 0
     }
 
@@ -307,24 +307,30 @@ export class StackedBarChart
 
     @computed get sidebarWidth(): number {
         if (!this.manager.showLegend) return 0
-        const {
-            sidebarMinWidth,
-            sidebarMaxWidth,
-            verticalColorLegend: legendDimensions,
-        } = this
+        const { sidebarMinWidth, sidebarMaxWidth, verticalColorLegend } = this
         return Math.max(
-            Math.min(legendDimensions.width, sidebarMaxWidth),
+            Math.min(verticalColorLegend.width, sidebarMaxWidth),
             sidebarMinWidth
         )
     }
 
     @computed private get verticalColorLegend(): VerticalColorLegend {
-        return new VerticalColorLegend({ manager: this })
+        return new VerticalColorLegend({
+            maxLegendWidth: this.maxLegendWidth,
+            fontSize: this.fontSize,
+            legendItems: this.legendItems,
+            activeColors: this.activeColors,
+        })
     }
 
     @computed
-    private get horizontalColorLegend(): HorizontalCategoricalColorLegend {
-        return new HorizontalCategoricalColorLegend({ manager: this })
+    private get horizontalColorLegendHeight(): number {
+        return HorizontalCategoricalColorLegend.height({
+            fontSize: this.fontSize,
+            legendAlign: this.legendAlign,
+            legendWidth: this.legendWidth,
+            categoricalLegendData: this.categoricalLegendData,
+        })
     }
 
     @computed get formatColumn(): CoreColumn {
@@ -473,10 +479,33 @@ export class StackedBarChart
 
         if (!showLegend) return
 
+        const eventListeners = this.manager.isStatic
+            ? undefined
+            : {
+                  onLegendMouseOver: this.onLegendMouseOver,
+                  onLegendMouseLeave: this.onLegendMouseLeave,
+              }
+
         return showHorizontalLegend ? (
-            <HorizontalCategoricalColorLegend manager={this} />
+            <HorizontalCategoricalColorLegend
+                fontSize={this.fontSize}
+                legendX={this.legendX}
+                legendAlign={this.legendAlign}
+                categoryLegendY={this.categoryLegendY}
+                legendWidth={this.legendWidth}
+                categoricalLegendData={this.categoricalLegendData}
+                onLegendMouseLeave={this.onLegendMouseLeave}
+                onLegendMouseOver={this.onLegendMouseOver}
+                activeColors={this.activeColors}
+                isStatic={this.isStatic}
+            />
         ) : (
-            <VerticalColorLegend manager={this} />
+            <VerticalColorLegendComponent
+                x={this.legendX}
+                y={this.legendY}
+                state={this.verticalColorLegend}
+                eventListeners={eventListeners}
+            />
         )
     }
 
