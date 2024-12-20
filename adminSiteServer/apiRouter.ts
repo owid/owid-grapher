@@ -3241,6 +3241,7 @@ putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
 
     const originalCloudflareId = image.cloudflareId
     const originalFilename = image.filename
+    const originalAltText = image.defaultAlt
 
     if (!originalCloudflareId) {
         throw new JsonError(
@@ -3262,6 +3263,7 @@ putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
         cloudflareId: newCloudflareId,
         updatedAt: new Date().getTime(),
         userId: res.locals.user.id,
+        defaultAlt: originalAltText,
         hash,
         version: image.version + 1,
     })
