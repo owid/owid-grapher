@@ -35,6 +35,7 @@ import {
     VerticalAlign,
     FacetStrategy,
     InteractionState,
+    HorizontalAlign,
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
@@ -1127,6 +1128,7 @@ export class SlopeChart
             <NoDataSection
                 seriesNames={seriesNames}
                 bounds={bounds}
+                align={HorizontalAlign.right}
                 baseFontSize={this.fontSize}
             />
         )

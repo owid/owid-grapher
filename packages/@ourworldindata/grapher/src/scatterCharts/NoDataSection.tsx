@@ -1,5 +1,5 @@
 import React from "react"
-import { Bounds } from "@ourworldindata/utils"
+import { Bounds, HorizontalAlign } from "@ourworldindata/utils"
 import {
     GRAPHER_FONT_SCALE_11,
     GRAPHER_FONT_SCALE_12,
@@ -9,10 +9,12 @@ import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
 export function NoDataSection({
     seriesNames,
     bounds,
+    align = HorizontalAlign.left,
     baseFontSize = 16,
 }: {
     seriesNames: string[]
     bounds: Bounds
+    align?: HorizontalAlign
     baseFontSize?: number
 }): React.ReactElement {
     {
@@ -30,7 +32,8 @@ export function NoDataSection({
                 className="NoDataSection"
                 {...bounds.toProps()}
                 style={{
-                    textAlign: "right",
+                    textAlign:
+                        align === HorizontalAlign.right ? "right" : "left",
                     color: GRAPHER_LIGHT_TEXT,
                 }}
             >
