@@ -177,6 +177,7 @@ import {
     GrapherInterface,
     DimensionProperty,
     GRAPHER_CHART_TYPES,
+    DbPlainTag,
 } from "@ourworldindata/types"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -1924,6 +1925,19 @@ export function commafyNumber(value: number): string {
 
 export function isFiniteWithGuard(value: unknown): value is number {
     return isFinite(value as any)
+}
+
+// Use with getParentTagArraysByChildName to collapse all paths to the child into a single array of unique parent tag names
+export function getUniqueNamesFromParentTagArrays(
+    parentTagArrays: DbPlainTag[][]
+): string[] {
+    const tagNames = new Set<string>(
+        parentTagArrays.flatMap((parentTagArray) =>
+            parentTagArray.map((tag) => tag.name)
+        )
+    )
+
+    return [...tagNames]
 }
 
 export function createTagGraph(
