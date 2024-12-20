@@ -16,6 +16,7 @@ const SITE_TOOLS_CLASS = "site-tools"
 
 const SiteTools = () => {
     const scrollDirection = useScrollDirection()
+    const isDonatePage = window.location.pathname === "/donate"
 
     return (
         <div
@@ -23,14 +24,16 @@ const SiteTools = () => {
                 hide: scrollDirection === ScrollDirection.Down,
             })}
         >
-            <a
-                className="prompt prompt-donate"
-                data-track-note="page_open_donate"
-                href="/donate"
-            >
-                <FontAwesomeIcon icon={faHeart} />
-                Donate
-            </a>
+            {!isDonatePage && (
+                <a
+                    className="prompt prompt-donate"
+                    data-track-note="page_open_donate"
+                    href="/donate"
+                >
+                    <FontAwesomeIcon icon={faHeart} />
+                    Donate
+                </a>
+            )}
             {/* <NewsletterSubscription
                 context={NewsletterSubscriptionContext.Floating}
             /> */}
