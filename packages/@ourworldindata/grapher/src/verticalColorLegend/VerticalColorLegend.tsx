@@ -9,20 +9,25 @@ import {
 } from "../core/GrapherConstants"
 import { Color } from "@ourworldindata/types"
 
-export interface VerticalColorLegendManager {
+export interface VerticalColorLegendProps {
+    legendItems: LegendItem[]
     maxLegendWidth?: number
     fontSize?: number
-    legendItems: LegendItem[]
     legendTitle?: string
     onLegendMouseOver?: (color: string) => void
     onLegendClick?: (color: string) => void
     onLegendMouseLeave?: () => void
     legendX?: number
     legendY?: number
-    activeColors: Color[]
+    activeColors?: Color[]
     focusColors?: Color[]
     isStatic?: boolean
 }
+
+type VerticalColorLegendPropsMinimal = Pick<
+    VerticalColorLegendProps,
+    "legendItems" | "maxLegendWidth" | "fontSize" | "legendTitle"
+>
 
 export interface LegendItem {
     label?: string
@@ -40,37 +45,41 @@ interface SizedLegendSeries {
 }
 
 @observer
-export class VerticalColorLegend extends React.Component<{
-    manager: VerticalColorLegendManager
-}> {
-    @computed get manager(): VerticalColorLegendManager {
-        return this.props.manager
+export class VerticalColorLegend extends React.Component<VerticalColorLegendProps> {
+    private rectPadding = 5
+    private lineHeight = 5
+
+    static dimensions(props: VerticalColorLegendPropsMinimal): {
+        width: number
+        height: number
+    } {
+        const legend = new VerticalColorLegend(props)
+        return {
+            width: legend.width,
+            height: legend.height,
+        }
     }
 
     @computed private get maxLegendWidth(): number {
-        return this.manager.maxLegendWidth ?? 100
+        return this.props.maxLegendWidth ?? 100
     }
 
     @computed private get fontSize(): number {
-        return (
-            GRAPHER_FONT_SCALE_11_2 * (this.manager.fontSize ?? BASE_FONT_SIZE)
-        )
+        return GRAPHER_FONT_SCALE_11_2 * (this.props.fontSize ?? BASE_FONT_SIZE)
     }
+
     @computed private get rectSize(): number {
         return Math.round(this.fontSize / 1.4)
     }
 
-    private rectPadding = 5
-    private lineHeight = 5
-
     @computed private get title(): TextWrap | undefined {
-        if (!this.manager.legendTitle) return undefined
+        if (!this.props.legendTitle) return undefined
         return new TextWrap({
             maxWidth: this.maxLegendWidth,
             fontSize: this.fontSize,
             fontWeight: 700,
             lineHeight: 1,
-            text: this.manager.legendTitle,
+            text: this.props.legendTitle,
         })
     }
 
@@ -80,17 +89,11 @@ export class VerticalColorLegend extends React.Component<{
     }
 
     @computed private get series(): SizedLegendSeries[] {
-        const {
-            manager,
-            fontSize,
-            rectSize,
-            rectPadding,
-            titleHeight,
-            lineHeight,
-        } = this
+        const { fontSize, rectSize, rectPadding, titleHeight, lineHeight } =
+            this
 
         let runningYOffset = titleHeight
-        return manager.legendItems.map((series) => {
+        return this.props.legendItems.map((series) => {
             let label = series.label
             // infer label for numeric bins
             if (!label && series.minText && series.maxText) {
@@ -133,16 +136,16 @@ export class VerticalColorLegend extends React.Component<{
     }
 
     @computed get legendX(): number {
-        return this.manager.legendX ?? 0
+        return this.props.legendX ?? 0
     }
 
     @computed get legendY(): number {
-        return this.manager.legendY ?? 0
+        return this.props.legendY ?? 0
     }
 
     renderLabels(): React.ReactElement {
-        const { series, manager, rectSize, rectPadding } = this
-        const { focusColors } = manager
+        const { series, rectSize, rectPadding } = this
+        const { focusColors } = this.props
 
         return (
             <g id={makeIdForHumanConsumption("labels")}>
@@ -173,8 +176,8 @@ export class VerticalColorLegend extends React.Component<{
     }
 
     renderSwatches(): React.ReactElement {
-        const { manager, series, rectSize, rectPadding } = this
-        const { activeColors } = manager
+        const { series, rectSize, rectPadding } = this
+        const { activeColors = [] } = this.props
 
         return (
             <g>
@@ -204,8 +207,9 @@ export class VerticalColorLegend extends React.Component<{
     }
 
     renderInteractiveElements(): React.ReactElement {
-        const { series, manager, lineHeight } = this
-        const { onLegendClick, onLegendMouseOver, onLegendMouseLeave } = manager
+        const { series, lineHeight } = this
+        const { onLegendClick, onLegendMouseOver, onLegendMouseLeave } =
+            this.props
         return (
             <g>
                 {series.map((series) => {
@@ -261,7 +265,7 @@ export class VerticalColorLegend extends React.Component<{
                     })}
                 {this.renderLabels()}
                 {this.renderSwatches()}
-                {!this.manager.isStatic && this.renderInteractiveElements()}
+                {!this.props.isStatic && this.renderInteractiveElements()}
             </g>
         )
     }

@@ -61,10 +61,7 @@ import {
     ConnectedScatterLegend,
     ConnectedScatterLegendManager,
 } from "./ConnectedScatterLegend"
-import {
-    VerticalColorLegend,
-    VerticalColorLegendManager,
-} from "../verticalColorLegend/VerticalColorLegend"
+import { VerticalColorLegend } from "../verticalColorLegend/VerticalColorLegend"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
@@ -127,7 +124,6 @@ export class ScatterPlotChart
         ConnectedScatterLegendManager,
         ScatterSizeLegendManager,
         ChartInterface,
-        VerticalColorLegendManager,
         ColorScaleManager
 {
     // currently hovered legend color
@@ -510,8 +506,16 @@ export class ScatterPlotChart
         return this.tooltipState.target?.series
     }
 
-    @computed private get legendDimensions(): VerticalColorLegend {
-        return new VerticalColorLegend({ manager: this })
+    @computed private get verticalColorLegend(): {
+        width: number
+        height: number
+    } {
+        return VerticalColorLegend.dimensions({
+            maxLegendWidth: this.maxLegendWidth,
+            fontSize: this.fontSize,
+            legendItems: this.legendItems,
+            legendTitle: this.legendTitle,
+        })
     }
 
     @computed get maxLegendWidth(): number {
@@ -527,10 +531,10 @@ export class ScatterPlotChart
     }
 
     @computed.struct get sidebarWidth(): number {
-        const { legendDimensions, sidebarMinWidth, sidebarMaxWidth } = this
+        const { verticalColorLegend, sidebarMinWidth, sidebarMaxWidth } = this
 
         return Math.max(
-            Math.min(legendDimensions.width, sidebarMaxWidth),
+            Math.min(verticalColorLegend.width, sidebarMaxWidth),
             sidebarMinWidth
         )
     }
@@ -762,12 +766,12 @@ export class ScatterPlotChart
             sizeLegend,
             sidebarWidth,
             comparisonLines,
-            legendDimensions,
+            verticalColorLegend,
         } = this
 
         const hasLegendItems = this.legendItems.length > 0
         const verticalLegendHeight = hasLegendItems
-            ? legendDimensions.height
+            ? verticalColorLegend.height
             : 0
         const sizeLegendHeight = sizeLegend?.height ?? 0
         const arrowLegendHeight = arrowLegend?.height ?? 0
