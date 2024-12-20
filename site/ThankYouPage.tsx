@@ -3,7 +3,11 @@ import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faFacebook, faXTwitter } from "@fortawesome/free-brands-svg-icons"
+import {
+    faBluesky,
+    faFacebook,
+    faXTwitter,
+} from "@fortawesome/free-brands-svg-icons"
 import { Html } from "./Html.js"
 
 const shareMessage =
@@ -54,6 +58,16 @@ export const ThankYouPage = (props: { baseUrl: string }) => (
                         <div className="share-message__content">
                             “{shareMessage} <a href="/donate">{donateLink}</a>”
                             <div className="share-message__buttons">
+                                <a
+                                    href={`https://bsky.app/intent/compose?text=${encodeURIComponent(
+                                        shareMessage + " " + donateLink
+                                    )}`}
+                                    className="share-message__button"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    <FontAwesomeIcon icon={faBluesky} />
+                                </a>
                                 <a
                                     href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
                                         shareMessage
