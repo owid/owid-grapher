@@ -7,17 +7,23 @@ import {
 } from "../functionalRouterHelpers.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
+import { Request } from "../authentication.js"
+import e from "express"
 
-getRouteWithROTransaction(
-    apiRouter,
-    "/flatTagGraph.json",
-    async (req, res, trx) => {
-        const flatTagGraph = await db.getFlatTagGraph(trx)
-        return flatTagGraph
-    }
-)
+export async function handleGetFlatTagGraph(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const flatTagGraph = await db.getFlatTagGraph(trx)
+    return flatTagGraph
+}
 
-postRouteWithRWTransaction(apiRouter, "/tagGraph", async (req, res, trx) => {
+export async function handlePostTagGraph(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
     const tagGraph = req.body?.tagGraph as unknown
     if (!tagGraph) {
         throw new JsonError("No tagGraph provided", 400)
@@ -51,10 +57,19 @@ postRouteWithRWTransaction(apiRouter, "/tagGraph", async (req, res, trx) => {
 
         return true
     }
+
     const isValid = validateFlatTagGraph(tagGraph)
     if (!isValid) {
         throw new JsonError("Invalid tag graph provided", 400)
     }
     await db.updateTagGraph(trx, tagGraph)
     res.send({ success: true })
-})
+}
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/flatTagGraph.json",
+    handleGetFlatTagGraph
+)
+
+postRouteWithRWTransaction(apiRouter, "/tagGraph", handlePostTagGraph)

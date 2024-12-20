@@ -11,108 +11,134 @@ import {
     postRouteWithRWTransaction,
 } from "../functionalRouterHelpers.js"
 import * as db from "../../db/db.js"
-
-getRouteWithROTransaction(apiRouter, "/users.json", async (req, res, trx) => ({
-    users: await trx
-        .select(
-            "id" satisfies keyof DbPlainUser,
-            "email" satisfies keyof DbPlainUser,
-            "fullName" satisfies keyof DbPlainUser,
-            "isActive" satisfies keyof DbPlainUser,
-            "isSuperuser" satisfies keyof DbPlainUser,
-            "createdAt" satisfies keyof DbPlainUser,
-            "updatedAt" satisfies keyof DbPlainUser,
-            "lastLogin" satisfies keyof DbPlainUser,
-            "lastSeen" satisfies keyof DbPlainUser
-        )
-        .from<DbPlainUser>(UsersTableName)
-        .orderBy("lastSeen", "desc"),
-}))
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/users/:userId.json",
-    async (req, res, trx) => {
-        const id = parseIntOrUndefined(req.params.userId)
-        if (!id) throw new JsonError("No user id given")
-        const user = await getUserById(trx, id)
-        return { user }
+import { Request } from "../authentication.js"
+import e from "express"
+export async function getUsers(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    return {
+        users: await trx
+            .select(
+                "id" satisfies keyof DbPlainUser,
+                "email" satisfies keyof DbPlainUser,
+                "fullName" satisfies keyof DbPlainUser,
+                "isActive" satisfies keyof DbPlainUser,
+                "isSuperuser" satisfies keyof DbPlainUser,
+                "createdAt" satisfies keyof DbPlainUser,
+                "updatedAt" satisfies keyof DbPlainUser,
+                "lastLogin" satisfies keyof DbPlainUser,
+                "lastSeen" satisfies keyof DbPlainUser
+            )
+            .from<DbPlainUser>(UsersTableName)
+            .orderBy("lastSeen", "desc"),
     }
-)
+}
 
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/users/:userId",
-    async (req, res, trx) => {
-        if (!res.locals.user.isSuperuser)
-            throw new JsonError("Permission denied", 403)
+export async function getUserByIdHandler(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const id = parseIntOrUndefined(req.params.userId)
+    if (!id) throw new JsonError("No user id given")
+    const user = await getUserById(trx, id)
+    return { user }
+}
 
-        const userId = expectInt(req.params.userId)
-        await db.knexRaw(trx, `DELETE FROM users WHERE id=?`, [userId])
+export async function deleteUser(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    if (!res.locals.user.isSuperuser)
+        throw new JsonError("Permission denied", 403)
 
-        return { success: true }
-    }
-)
+    const userId = expectInt(req.params.userId)
+    await db.knexRaw(trx, `DELETE FROM users WHERE id=?`, [userId])
 
-putRouteWithRWTransaction(
-    apiRouter,
-    "/users/:userId",
-    async (req, res, trx: db.KnexReadWriteTransaction) => {
-        if (!res.locals.user.isSuperuser)
-            throw new JsonError("Permission denied", 403)
+    return { success: true }
+}
 
-        const userId = parseIntOrUndefined(req.params.userId)
-        const user =
-            userId !== undefined ? await getUserById(trx, userId) : null
-        if (!user) throw new JsonError("No such user", 404)
+export async function updateUserHandler(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    if (!res.locals.user.isSuperuser)
+        throw new JsonError("Permission denied", 403)
 
-        user.fullName = req.body.fullName
-        user.isActive = req.body.isActive
+    const userId = parseIntOrUndefined(req.params.userId)
+    const user = userId !== undefined ? await getUserById(trx, userId) : null
+    if (!user) throw new JsonError("No such user", 404)
 
-        await updateUser(trx, userId!, pick(user, ["fullName", "isActive"]))
+    user.fullName = req.body.fullName
+    user.isActive = req.body.isActive
 
-        return { success: true }
-    }
-)
+    await updateUser(trx, userId!, pick(user, ["fullName", "isActive"]))
 
-postRouteWithRWTransaction(
-    apiRouter,
-    "/users/add",
-    async (req, res, trx: db.KnexReadWriteTransaction) => {
-        if (!res.locals.user.isSuperuser)
-            throw new JsonError("Permission denied", 403)
+    return { success: true }
+}
 
-        const { email, fullName } = req.body
+export async function addUser(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    if (!res.locals.user.isSuperuser)
+        throw new JsonError("Permission denied", 403)
 
-        await insertUser(trx, {
-            email,
-            fullName,
-        })
+    const { email, fullName } = req.body
 
-        return { success: true }
-    }
-)
+    await insertUser(trx, {
+        email,
+        fullName,
+    })
+
+    return { success: true }
+}
+
+export async function addImageToUser(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const userId = expectInt(req.params.userId)
+    const imageId = expectInt(req.params.imageId)
+    await trx("images").where({ id: imageId }).update({ userId })
+    return { success: true }
+}
+
+export async function removeUserImage(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const userId = expectInt(req.params.userId)
+    const imageId = expectInt(req.params.imageId)
+    await trx("images").where({ id: imageId, userId }).update({ userId: null })
+    return { success: true }
+}
+
+getRouteWithROTransaction(apiRouter, "/users.json", getUsers)
+
+getRouteWithROTransaction(apiRouter, "/users/:userId.json", getUserByIdHandler)
+
+deleteRouteWithRWTransaction(apiRouter, "/users/:userId", deleteUser)
+
+putRouteWithRWTransaction(apiRouter, "/users/:userId", updateUserHandler)
+
+postRouteWithRWTransaction(apiRouter, "/users/add", addUser)
 
 postRouteWithRWTransaction(
     apiRouter,
     "/users/:userId/images/:imageId",
-    async (req, res, trx) => {
-        const userId = expectInt(req.params.userId)
-        const imageId = expectInt(req.params.imageId)
-        await trx("images").where({ id: imageId }).update({ userId })
-        return { success: true }
-    }
+    addImageToUser
 )
 
 deleteRouteWithRWTransaction(
     apiRouter,
     "/users/:userId/images/:imageId",
-    async (req, res, trx) => {
-        const userId = expectInt(req.params.userId)
-        const imageId = expectInt(req.params.imageId)
-        await trx("images")
-            .where({ id: imageId, userId })
-            .update({ userId: null })
-        return { success: true }
-    }
+    removeUserImage
 )

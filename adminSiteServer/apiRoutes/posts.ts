@@ -19,8 +19,13 @@ import {
     postRouteWithRWTransaction,
 } from "../functionalRouterHelpers.js"
 import * as db from "../../db/db.js"
-
-getRouteWithROTransaction(apiRouter, "/posts.json", async (req, res, trx) => {
+import { Request } from "../authentication.js"
+import e from "express"
+export async function handleGetPostsJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
     const raw_rows = await db.knexRaw(
         trx,
         `-- sql
@@ -88,133 +93,150 @@ getRouteWithROTransaction(apiRouter, "/posts.json", async (req, res, trx) => {
     }))
 
     return { posts: rows }
-})
+}
 
-postRouteWithRWTransaction(
-    apiRouter,
-    "/posts/:postId/setTags",
-    async (req, res, trx) => {
-        const postId = expectInt(req.params.postId)
+export async function handleSetTagsForPost(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const postId = expectInt(req.params.postId)
+    await setTagsForPost(trx, postId, req.body.tagIds)
+    return { success: true }
+}
 
-        await setTagsForPost(trx, postId, req.body.tagIds)
+export async function handleGetPostById(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const postId = expectInt(req.params.postId)
+    const post = (await trx
+        .table(PostsTableName)
+        .where({ id: postId })
+        .select("*")
+        .first()) as DbRawPost | undefined
+    return camelCaseProperties({ ...post })
+}
 
-        return { success: true }
-    }
-)
+export async function handleCreateGdoc(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const postId = expectInt(req.params.postId)
+    const allowRecreate = !!req.body.allowRecreate
+    const post = (await trx
+        .table("posts_with_gdoc_publish_status")
+        .where({ id: postId })
+        .select("*")
+        .first()) as DbRawPostWithGdocPublishStatus | undefined
 
-getRouteWithROTransaction(
-    apiRouter,
-    "/posts/:postId.json",
-    async (req, res, trx) => {
-        const postId = expectInt(req.params.postId)
-        const post = (await trx
-            .table(PostsTableName)
-            .where({ id: postId })
-            .select("*")
-            .first()) as DbRawPost | undefined
-        return camelCaseProperties({ ...post })
-    }
-)
-
-postRouteWithRWTransaction(
-    apiRouter,
-    "/posts/:postId/createGdoc",
-    async (req, res, trx) => {
-        const postId = expectInt(req.params.postId)
-        const allowRecreate = !!req.body.allowRecreate
-        const post = (await trx
-            .table("posts_with_gdoc_publish_status")
-            .where({ id: postId })
-            .select("*")
-            .first()) as DbRawPostWithGdocPublishStatus | undefined
-
-        if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
-        const existingGdocId = post.gdocSuccessorId
-        if (!allowRecreate && existingGdocId)
-            throw new JsonError("A gdoc already exists for this post", 400)
-        if (allowRecreate && existingGdocId && post.isGdocPublished) {
-            throw new JsonError(
-                "A gdoc already exists for this post and it is already published",
-                400
-            )
-        }
-        if (post.archieml === null)
-            throw new JsonError(
-                `ArchieML was not present for post with id ${postId}`,
-                500
-            )
-        const tagsByPostId = await getTagsByPostId(trx)
-        const tags = tagsByPostId.get(postId) || []
-        const archieMl = JSON.parse(
-            // Google Docs interprets &region in grapher URLS as ®ion
-            // So we escape them here
-            post.archieml.replaceAll("&", "&amp;")
-        ) as OwidGdocPostInterface
-        const gdocId = await createGdocAndInsertOwidGdocPostContent(
-            archieMl.content,
-            post.gdocSuccessorId
+    if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
+    const existingGdocId = post.gdocSuccessorId
+    if (!allowRecreate && existingGdocId)
+        throw new JsonError("A gdoc already exists for this post", 400)
+    if (allowRecreate && existingGdocId && post.isGdocPublished) {
+        throw new JsonError(
+            "A gdoc already exists for this post and it is already published",
+            400
         )
-        // If we did not yet have a gdoc associated with this post, we need to register
-        // the gdocSuccessorId and create an entry in the posts_gdocs table. Otherwise
-        // we don't need to make changes to the DB (only the gdoc regeneration was required)
-        if (!existingGdocId) {
-            post.gdocSuccessorId = gdocId
-            // This is not ideal - we are using knex for on thing and typeorm for another
-            // which means that we can't wrap this in a transaction. We should probably
-            // move posts to use typeorm as well or at least have a typeorm alternative for it
-            await trx
-                .table(PostsTableName)
-                .where({ id: postId })
-                .update("gdocSuccessorId", gdocId)
-
-            const gdoc = new GdocPost(gdocId)
-            gdoc.slug = post.slug
-            gdoc.content.title = post.title
-            gdoc.content.type = archieMl.content.type || OwidGdocType.Article
-            gdoc.published = false
-            gdoc.createdAt = new Date()
-            gdoc.publishedAt = post.published_at
-            await upsertGdoc(trx, gdoc)
-            await setTagsForGdoc(trx, gdocId, tags)
-        }
-        return { googleDocsId: gdocId }
     }
-)
-
-postRouteWithRWTransaction(
-    apiRouter,
-    "/posts/:postId/unlinkGdoc",
-    async (req, res, trx) => {
-        const postId = expectInt(req.params.postId)
-        const post = (await trx
-            .table("posts_with_gdoc_publish_status")
-            .where({ id: postId })
-            .select("*")
-            .first()) as DbRawPostWithGdocPublishStatus | undefined
-
-        if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
-        const existingGdocId = post.gdocSuccessorId
-        if (!existingGdocId)
-            throw new JsonError("No gdoc exists for this post", 400)
-        if (existingGdocId && post.isGdocPublished) {
-            throw new JsonError(
-                "The GDoc is already published - you can't unlink it",
-                400
-            )
-        }
+    if (post.archieml === null)
+        throw new JsonError(
+            `ArchieML was not present for post with id ${postId}`,
+            500
+        )
+    const tagsByPostId = await getTagsByPostId(trx)
+    const tags = tagsByPostId.get(postId) || []
+    const archieMl = JSON.parse(
+        // Google Docs interprets &region in grapher URLS as ®ion
+        // So we escape them here
+        post.archieml.replaceAll("&", "&amp;")
+    ) as OwidGdocPostInterface
+    const gdocId = await createGdocAndInsertOwidGdocPostContent(
+        archieMl.content,
+        post.gdocSuccessorId
+    )
+    // If we did not yet have a gdoc associated with this post, we need to register
+    // the gdocSuccessorId and create an entry in the posts_gdocs table. Otherwise
+    // we don't need to make changes to the DB (only the gdoc regeneration was required)
+    if (!existingGdocId) {
+        post.gdocSuccessorId = gdocId
         // This is not ideal - we are using knex for on thing and typeorm for another
         // which means that we can't wrap this in a transaction. We should probably
         // move posts to use typeorm as well or at least have a typeorm alternative for it
         await trx
             .table(PostsTableName)
             .where({ id: postId })
-            .update("gdocSuccessorId", null)
+            .update("gdocSuccessorId", gdocId)
 
-        await trx
-            .table(PostsGdocsTableName)
-            .where({ id: existingGdocId })
-            .delete()
-
-        return { success: true }
+        const gdoc = new GdocPost(gdocId)
+        gdoc.slug = post.slug
+        gdoc.content.title = post.title
+        gdoc.content.type = archieMl.content.type || OwidGdocType.Article
+        gdoc.published = false
+        gdoc.createdAt = new Date()
+        gdoc.publishedAt = post.published_at
+        await upsertGdoc(trx, gdoc)
+        await setTagsForGdoc(trx, gdocId, tags)
     }
+    return { googleDocsId: gdocId }
+}
+
+export async function handleUnlinkGdoc(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const postId = expectInt(req.params.postId)
+    const post = (await trx
+        .table("posts_with_gdoc_publish_status")
+        .where({ id: postId })
+        .select("*")
+        .first()) as DbRawPostWithGdocPublishStatus | undefined
+
+    if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
+    const existingGdocId = post.gdocSuccessorId
+    if (!existingGdocId)
+        throw new JsonError("No gdoc exists for this post", 400)
+    if (existingGdocId && post.isGdocPublished) {
+        throw new JsonError(
+            "The GDoc is already published - you can't unlink it",
+            400
+        )
+    }
+    // This is not ideal - we are using knex for on thing and typeorm for another
+    // which means that we can't wrap this in a transaction. We should probably
+    // move posts to use typeorm as well or at least have a typeorm alternative for it
+    await trx
+        .table(PostsTableName)
+        .where({ id: postId })
+        .update("gdocSuccessorId", null)
+
+    await trx.table(PostsGdocsTableName).where({ id: existingGdocId }).delete()
+
+    return { success: true }
+}
+
+getRouteWithROTransaction(apiRouter, "/posts.json", handleGetPostsJson)
+
+postRouteWithRWTransaction(
+    apiRouter,
+    "/posts/:postId/setTags",
+    handleSetTagsForPost
+)
+
+getRouteWithROTransaction(apiRouter, "/posts/:postId.json", handleGetPostById)
+
+postRouteWithRWTransaction(
+    apiRouter,
+    "/posts/:postId/createGdoc",
+    handleCreateGdoc
+)
+
+postRouteWithRWTransaction(
+    apiRouter,
+    "/posts/:postId/unlinkGdoc",
+    handleUnlinkGdoc
 )

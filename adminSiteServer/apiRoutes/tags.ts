@@ -21,57 +21,54 @@ import {
 } from "../functionalRouterHelpers.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
+import e from "express"
 import { Request } from "../authentication.js"
 
-getRouteWithROTransaction(
-    apiRouter,
-    "/tags/:tagId.json",
-    async (req, res, trx) => {
-        const tagId = expectInt(req.params.tagId) as number | null
+export async function getTagById(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const tagId = expectInt(req.params.tagId) as number | null
 
-        // NOTE (Mispy): The "uncategorized" tag is special -- it represents all untagged stuff
-        // Bit fiddly to handle here but more true to normalized schema than having to remember to add the special tag
-        // every time we create a new chart etcs
-        const uncategorized = tagId === UNCATEGORIZED_TAG_ID
+    // NOTE (Mispy): The "uncategorized" tag is special -- it represents all untagged stuff
+    // Bit fiddly to handle here but more true to normalized schema than having to remember to add the special tag
+    // every time we create a new chart etcs
+    const uncategorized = tagId === UNCATEGORIZED_TAG_ID
 
-        // TODO: when we have types for our endpoints, make tag of that type instead of any
-        const tag: any = await db.knexRawFirst<
-            Pick<
-                DbPlainTag,
-                | "id"
-                | "name"
-                | "specialType"
-                | "updatedAt"
-                | "parentId"
-                | "slug"
-            >
-        >(
-            trx,
-            `-- sql
+    // TODO: when we have types for our endpoints, make tag of that type instead of any
+    const tag: any = await db.knexRawFirst<
+        Pick<
+            DbPlainTag,
+            "id" | "name" | "specialType" | "updatedAt" | "parentId" | "slug"
+        >
+    >(
+        trx,
+        `-- sql
         SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, t.slug
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
         WHERE t.id = ?
     `,
-            [tagId]
-        )
+        [tagId]
+    )
 
-        // Datasets tagged with this tag
-        const datasets = await db.knexRaw<
-            Pick<
-                DbPlainDataset,
-                | "id"
-                | "namespace"
-                | "name"
-                | "description"
-                | "createdAt"
-                | "updatedAt"
-                | "dataEditedAt"
-                | "isPrivate"
-                | "nonRedistributable"
-            > & { dataEditedByUserName: string }
-        >(
-            trx,
-            `-- sql
+    // Datasets tagged with this tag
+    const datasets = await db.knexRaw<
+        Pick<
+            DbPlainDataset,
+            | "id"
+            | "namespace"
+            | "name"
+            | "description"
+            | "createdAt"
+            | "updatedAt"
+            | "dataEditedAt"
+            | "isPrivate"
+            | "nonRedistributable"
+        > & { dataEditedByUserName: string }
+    >(
+        trx,
+        `-- sql
         SELECT
             d.id,
             d.namespace,
@@ -89,44 +86,44 @@ getRouteWithROTransaction(
         WHERE dt.tagId ${uncategorized ? "IS NULL" : "= ?"}
         ORDER BY d.dataEditedAt DESC
     `,
-            uncategorized ? [] : [tagId]
-        )
-        tag.datasets = datasets
+        uncategorized ? [] : [tagId]
+    )
+    tag.datasets = datasets
 
-        // The other tags for those datasets
-        if (tag.datasets.length) {
-            if (uncategorized) {
-                for (const dataset of tag.datasets) dataset.tags = []
-            } else {
-                const datasetTags = await db.knexRaw<{
-                    datasetId: number
-                    id: number
-                    name: string
-                }>(
-                    trx,
-                    `-- sql
+    // The other tags for those datasets
+    if (tag.datasets.length) {
+        if (uncategorized) {
+            for (const dataset of tag.datasets) dataset.tags = []
+        } else {
+            const datasetTags = await db.knexRaw<{
+                datasetId: number
+                id: number
+                name: string
+            }>(
+                trx,
+                `-- sql
                 SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
                 JOIN tags t ON dt.tagId = t.id
                 WHERE dt.datasetId IN (?)
             `,
-                    [tag.datasets.map((d: any) => d.id)]
+                [tag.datasets.map((d: any) => d.id)]
+            )
+            const tagsByDatasetId = lodash.groupBy(
+                datasetTags,
+                (t) => t.datasetId
+            )
+            for (const dataset of tag.datasets) {
+                dataset.tags = tagsByDatasetId[dataset.id].map((t) =>
+                    lodash.omit(t, "datasetId")
                 )
-                const tagsByDatasetId = lodash.groupBy(
-                    datasetTags,
-                    (t) => t.datasetId
-                )
-                for (const dataset of tag.datasets) {
-                    dataset.tags = tagsByDatasetId[dataset.id].map((t) =>
-                        lodash.omit(t, "datasetId")
-                    )
-                }
             }
         }
+    }
 
-        // Charts using datasets under this tag
-        const charts = await db.knexRaw<OldChartFieldList>(
-            trx,
-            `-- sql
+    // Charts using datasets under this tag
+    const charts = await db.knexRaw<OldChartFieldList>(
+        trx,
+        `-- sql
                 SELECT ${oldChartFieldList} FROM charts
                 JOIN chart_configs ON chart_configs.id = charts.configId
                 LEFT JOIN chart_tags ct ON ct.chartId=charts.id
@@ -136,134 +133,142 @@ getRouteWithROTransaction(
                 GROUP BY charts.id
                 ORDER BY charts.updatedAt DESC
             `,
-            uncategorized ? [] : [tagId]
-        )
-        tag.charts = charts
+        uncategorized ? [] : [tagId]
+    )
+    tag.charts = charts
 
-        await assignTagsForCharts(trx, charts)
+    await assignTagsForCharts(trx, charts)
 
-        // Subcategories
-        const children = await db.knexRaw<{ id: number; name: string }>(
-            trx,
-            `-- sql
+    // Subcategories
+    const children = await db.knexRaw<{ id: number; name: string }>(
+        trx,
+        `-- sql
         SELECT t.id, t.name FROM tags t
         WHERE t.parentId = ?
     `,
-            [tag.id]
-        )
-        tag.children = children
+        [tag.id]
+    )
+    tag.children = children
 
-        // Possible parents to choose from
-        const possibleParents = await db.knexRaw<{ id: number; name: string }>(
-            trx,
-            `-- sql
+    const possibleParents = await db.knexRaw<{ id: number; name: string }>(
+        trx,
+        `-- sql
         SELECT t.id, t.name FROM tags t
         WHERE t.parentId IS NULL
     `
-        )
-        tag.possibleParents = possibleParents
+    )
+    tag.possibleParents = possibleParents
 
-        return {
-            tag,
-        }
+    return {
+        tag,
     }
-)
+}
 
-putRouteWithRWTransaction(
-    apiRouter,
-    "/tags/:tagId",
-    async (req: Request, res, trx) => {
-        const tagId = expectInt(req.params.tagId)
-        const tag = (req.body as { tag: any }).tag
-        await db.knexRaw(
+export async function updateTag(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const tagId = expectInt(req.params.tagId)
+    const tag = (req.body as { tag: any }).tag
+    await db.knexRaw(
+        trx,
+        `UPDATE tags SET name=?, updatedAt=?, slug=? WHERE id=?`,
+        [tag.name, new Date(), tag.slug, tagId]
+    )
+    if (tag.slug) {
+        // See if there's a published gdoc with a matching slug.
+        // We're not enforcing that the gdoc be a topic page, as there are cases like /human-development-index,
+        // where the page for the topic is just an article.
+        const gdoc = await db.knexRaw<Pick<DbRawPostGdoc, "slug">>(
             trx,
-            `UPDATE tags SET name=?, updatedAt=?, slug=? WHERE id=?`,
-            [tag.name, new Date(), tag.slug, tagId]
-        )
-        if (tag.slug) {
-            // See if there's a published gdoc with a matching slug.
-            // We're not enforcing that the gdoc be a topic page, as there are cases like /human-development-index,
-            // where the page for the topic is just an article.
-            const gdoc = await db.knexRaw<Pick<DbRawPostGdoc, "slug">>(
-                trx,
-                `-- sql
+            `-- sql
                 SELECT slug FROM posts_gdocs pg
                 WHERE EXISTS (
                         SELECT 1
                         FROM posts_gdocs_x_tags gt
                         WHERE pg.id = gt.gdocId AND gt.tagId = ?
                 ) AND pg.published = TRUE AND pg.slug = ?`,
-                [tagId, tag.slug]
-            )
-            if (!gdoc.length) {
-                return {
-                    success: true,
-                    tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug.
+            [tagId, tag.slug]
+        )
+        if (!gdoc.length) {
+            return {
+                success: true,
+                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug.
 
 Are you sure you haven't made a typo?`,
-                }
             }
         }
-        return { success: true }
     }
-)
+    return { success: true }
+}
 
-postRouteWithRWTransaction(
-    apiRouter,
-    "/tags/new",
-    async (req: Request, res, trx) => {
-        const tag = req.body
-        function validateTag(
-            tag: unknown
-        ): tag is { name: string; slug: string | null } {
-            return (
-                checkIsPlainObjectWithGuard(tag) &&
-                typeof tag.name === "string" &&
-                (tag.slug === null ||
-                    (typeof tag.slug === "string" && tag.slug !== ""))
-            )
-        }
-        if (!validateTag(tag)) throw new JsonError("Invalid tag", 400)
-
-        const conflictingTag = await db.knexRawFirst<{
-            name: string
-            slug: string | null
-        }>(
-            trx,
-            `SELECT name, slug FROM tags WHERE name = ? OR (slug IS NOT NULL AND slug = ?)`,
-            [tag.name, tag.slug]
+export async function createTag(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const tag = req.body
+    function validateTag(
+        tag: unknown
+    ): tag is { name: string; slug: string | null } {
+        return (
+            checkIsPlainObjectWithGuard(tag) &&
+            typeof tag.name === "string" &&
+            (tag.slug === null ||
+                (typeof tag.slug === "string" && tag.slug !== ""))
         )
-        if (conflictingTag)
-            throw new JsonError(
-                conflictingTag.name === tag.name
-                    ? `Tag with name ${tag.name} already exists`
-                    : `Tag with slug ${tag.slug} already exists`,
-                400
-            )
-
-        const now = new Date()
-        const result = await db.knexRawInsert(
-            trx,
-            `INSERT INTO tags (name, slug, createdAt, updatedAt) VALUES (?, ?, ?, ?)`,
-            // parentId will be deprecated soon once we migrate fully to the tag graph
-            [tag.name, tag.slug, now, now]
-        )
-        return { success: true, tagId: result.insertId }
     }
-)
+    if (!validateTag(tag)) throw new JsonError("Invalid tag", 400)
 
-getRouteWithROTransaction(apiRouter, "/tags.json", async (req, res, trx) => {
+    const conflictingTag = await db.knexRawFirst<{
+        name: string
+        slug: string | null
+    }>(
+        trx,
+        `SELECT name, slug FROM tags WHERE name = ? OR (slug IS NOT NULL AND slug = ?)`,
+        [tag.name, tag.slug]
+    )
+    if (conflictingTag)
+        throw new JsonError(
+            conflictingTag.name === tag.name
+                ? `Tag with name ${tag.name} already exists`
+                : `Tag with slug ${tag.slug} already exists`,
+            400
+        )
+
+    const now = new Date()
+    const result = await db.knexRawInsert(
+        trx,
+        `INSERT INTO tags (name, slug, createdAt, updatedAt) VALUES (?, ?, ?, ?)`,
+        // parentId will be deprecated soon once we migrate fully to the tag graph
+        [tag.name, tag.slug, now, now]
+    )
+    return { success: true, tagId: result.insertId }
+}
+
+export async function getAllTags(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
     return { tags: await db.getMinimalTagsWithIsTopic(trx) }
-})
+}
 
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/tags/:tagId/delete",
-    async (req, res, trx) => {
-        const tagId = expectInt(req.params.tagId)
+export async function deleteTag(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const tagId = expectInt(req.params.tagId)
 
-        await db.knexRaw(trx, `DELETE FROM tags WHERE id=?`, [tagId])
+    await db.knexRaw(trx, `DELETE FROM tags WHERE id=?`, [tagId])
 
-        return { success: true }
-    }
-)
+    return { success: true }
+}
+
+getRouteWithROTransaction(apiRouter, "/tags/:tagId.json", getTagById)
+putRouteWithRWTransaction(apiRouter, "/tags/:tagId", updateTag)
+postRouteWithRWTransaction(apiRouter, "/tags/new", createTag)
+getRouteWithROTransaction(apiRouter, "/tags.json", getAllTags)
+deleteRouteWithRWTransaction(apiRouter, "/tags/:tagId/delete", deleteTag)

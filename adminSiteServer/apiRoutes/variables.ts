@@ -48,24 +48,27 @@ import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "./routeUtils.js"
 import * as lodash from "lodash"
 import { updateGrapherConfigsInR2 } from "./charts.js"
+import { Request } from "../authentication.js"
+import e from "express"
 
-getRouteWithROTransaction(
-    apiRouter,
-    "/editorData/variables.json",
-    async (req, res, trx) => {
-        const datasets = []
-        const rows = await db.knexRaw<
-            Pick<DbRawVariable, "name" | "id"> & {
-                datasetId: number
-                datasetName: string
-                datasetVersion: string
-            } & Pick<
-                    DbPlainDataset,
-                    "namespace" | "isPrivate" | "nonRedistributable"
-                >
-        >(
-            trx,
-            `-- sql
+export async function getEditorVariablesJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const datasets = []
+    const rows = await db.knexRaw<
+        Pick<DbRawVariable, "name" | "id"> & {
+            datasetId: number
+            datasetName: string
+            datasetVersion: string
+        } & Pick<
+                DbPlainDataset,
+                "namespace" | "isPrivate" | "nonRedistributable"
+            >
+    >(
+        trx,
+        `-- sql
         SELECT
                 v.name,
                 v.id,
@@ -78,47 +81,50 @@ getRouteWithROTransaction(
             FROM variables as v JOIN active_datasets as d ON v.datasetId = d.id
             ORDER BY d.updatedAt DESC
             `
-        )
+    )
 
-        let dataset:
-            | {
-                  id: number
-                  name: string
-                  version: string
-                  namespace: string
-                  isPrivate: boolean
-                  nonRedistributable: boolean
-                  variables: { id: number; name: string }[]
-              }
-            | undefined
-        for (const row of rows) {
-            if (!dataset || row.datasetName !== dataset.name) {
-                if (dataset) datasets.push(dataset)
+    let dataset:
+        | {
+              id: number
+              name: string
+              version: string
+              namespace: string
+              isPrivate: boolean
+              nonRedistributable: boolean
+              variables: { id: number; name: string }[]
+          }
+        | undefined
+    for (const row of rows) {
+        if (!dataset || row.datasetName !== dataset.name) {
+            if (dataset) datasets.push(dataset)
 
-                dataset = {
-                    id: row.datasetId,
-                    name: row.datasetName,
-                    version: row.datasetVersion,
-                    namespace: row.namespace,
-                    isPrivate: !!row.isPrivate,
-                    nonRedistributable: !!row.nonRedistributable,
-                    variables: [],
-                }
+            dataset = {
+                id: row.datasetId,
+                name: row.datasetName,
+                version: row.datasetVersion,
+                namespace: row.namespace,
+                isPrivate: !!row.isPrivate,
+                nonRedistributable: !!row.nonRedistributable,
+                variables: [],
             }
-
-            dataset.variables.push({
-                id: row.id,
-                name: row.name ?? "",
-            })
         }
 
-        if (dataset) datasets.push(dataset)
-
-        return { datasets: datasets }
+        dataset.variables.push({
+            id: row.id,
+            name: row.name ?? "",
+        })
     }
-)
 
-apiRouter.get("/data/variables/data/:variableStr.json", async (req, res) => {
+    if (dataset) datasets.push(dataset)
+
+    return { datasets: datasets }
+}
+
+export async function getVariableDataJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    _trx: db.KnexReadonlyTransaction
+) {
     const variableStr = req.params.variableStr as string
     if (!variableStr) throw new JsonError("No variable id given")
     if (variableStr.includes("+"))
@@ -130,40 +136,42 @@ apiRouter.get("/data/variables/data/:variableStr.json", async (req, res) => {
     return await fetchS3DataValuesByPath(
         getVariableDataRoute(DATA_API_URL, variableId) + "?nocache"
     )
-})
+}
 
-apiRouter.get(
-    "/data/variables/metadata/:variableStr.json",
-    async (req, res) => {
-        const variableStr = req.params.variableStr as string
-        if (!variableStr) throw new JsonError("No variable id given")
-        if (variableStr.includes("+"))
-            throw new JsonError(
-                "Requesting multiple variables at the same time is no longer supported"
-            )
-        const variableId = parseInt(variableStr)
-        if (isNaN(variableId)) throw new JsonError("Invalid variable id")
-        return await fetchS3MetadataByPath(
-            getVariableMetadataRoute(DATA_API_URL, variableId) + "?nocache"
+export async function getVariableMetadataJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    _trx: db.KnexReadonlyTransaction
+) {
+    const variableStr = req.params.variableStr as string
+    if (!variableStr) throw new JsonError("No variable id given")
+    if (variableStr.includes("+"))
+        throw new JsonError(
+            "Requesting multiple variables at the same time is no longer supported"
         )
-    }
-)
+    const variableId = parseInt(variableStr)
+    if (isNaN(variableId)) throw new JsonError("Invalid variable id")
+    return await fetchS3MetadataByPath(
+        getVariableMetadataRoute(DATA_API_URL, variableId) + "?nocache"
+    )
+}
 
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables.json",
-    async (req, res, trx) => {
-        const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
-        const query = req.query.search as string
-        return await searchVariables(query, limit, trx)
-    }
-)
+export async function getVariablesJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
+    const query = req.query.search as string
+    return await searchVariables(query, limit, trx)
+}
 
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables.usages.json",
-    async (req, res, trx) => {
-        const query = `-- sql
+export async function getVariablesUsagesJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const query = `-- sql
     SELECT
         variableId,
         COUNT(DISTINCT chartId) AS usageCount
@@ -174,74 +182,73 @@ getRouteWithROTransaction(
     ORDER BY
         usageCount DESC`
 
-        const rows = await db.knexRaw(trx, query)
+    const rows = await db.knexRaw(trx, query)
 
-        return rows
+    return rows
+}
+
+export async function getVariablesGrapherConfigETLPatchConfigJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const variableId = expectInt(req.params.variableId)
+    const variable = await getGrapherConfigsForVariable(trx, variableId)
+    if (!variable) {
+        throw new JsonError(`Variable with id ${variableId} not found`, 500)
     }
-)
+    return variable.etl?.patchConfig ?? {}
+}
 
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/grapherConfigETL/:variableId.patchConfig.json",
-    async (req, res, trx) => {
-        const variableId = expectInt(req.params.variableId)
-        const variable = await getGrapherConfigsForVariable(trx, variableId)
-        if (!variable) {
-            throw new JsonError(`Variable with id ${variableId} not found`, 500)
+export async function getVariablesGrapherConfigAdminPatchConfigJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const variableId = expectInt(req.params.variableId)
+    const variable = await getGrapherConfigsForVariable(trx, variableId)
+    if (!variable) {
+        throw new JsonError(`Variable with id ${variableId} not found`, 500)
+    }
+    return variable.admin?.patchConfig ?? {}
+}
+
+export async function getVariablesMergedGrapherConfigJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const variableId = expectInt(req.params.variableId)
+    const config = await getMergedGrapherConfigForVariable(trx, variableId)
+    return config ?? {}
+}
+
+export async function getVariablesVariableIdJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const variableId = expectInt(req.params.variableId)
+
+    const variable = await fetchS3MetadataByPath(
+        getVariableMetadataRoute(DATA_API_URL, variableId) + "?nocache"
+    )
+
+    // XXX: Patch shortName onto the end of catalogPath when it's missing,
+    //      a temporary hack since our S3 metadata is out of date with our DB.
+    //      See: https://github.com/owid/etl/issues/2135
+    if (variable.catalogPath && !variable.catalogPath.includes("#")) {
+        variable.catalogPath += `#${variable.shortName}`
+    }
+
+    const rawCharts = await db.knexRaw<
+        OldChartFieldList & {
+            isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
+            config: DbRawChartConfig["full"]
         }
-        return variable.etl?.patchConfig ?? {}
-    }
-)
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/grapherConfigAdmin/:variableId.patchConfig.json",
-    async (req, res, trx) => {
-        const variableId = expectInt(req.params.variableId)
-        const variable = await getGrapherConfigsForVariable(trx, variableId)
-        if (!variable) {
-            throw new JsonError(`Variable with id ${variableId} not found`, 500)
-        }
-        return variable.admin?.patchConfig ?? {}
-    }
-)
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/mergedGrapherConfig/:variableId.json",
-    async (req, res, trx) => {
-        const variableId = expectInt(req.params.variableId)
-        const config = await getMergedGrapherConfigForVariable(trx, variableId)
-        return config ?? {}
-    }
-)
-
-// Used in VariableEditPage
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/:variableId.json",
-    async (req, res, trx) => {
-        const variableId = expectInt(req.params.variableId)
-
-        const variable = await fetchS3MetadataByPath(
-            getVariableMetadataRoute(DATA_API_URL, variableId) + "?nocache"
-        )
-
-        // XXX: Patch shortName onto the end of catalogPath when it's missing,
-        //      a temporary hack since our S3 metadata is out of date with our DB.
-        //      See: https://github.com/owid/etl/issues/2135
-        if (variable.catalogPath && !variable.catalogPath.includes("#")) {
-            variable.catalogPath += `#${variable.shortName}`
-        }
-
-        const rawCharts = await db.knexRaw<
-            OldChartFieldList & {
-                isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
-                config: DbRawChartConfig["full"]
-            }
-        >(
-            trx,
-            `-- sql
+    >(
+        trx,
+        `-- sql
                 SELECT ${oldChartFieldList}, charts.isInheritanceEnabled, chart_configs.full AS config
                 FROM charts
                 JOIN chart_configs ON chart_configs.id = charts.configId
@@ -251,297 +258,374 @@ getRouteWithROTransaction(
                 WHERE cd.variableId = ?
                 GROUP BY charts.id
             `,
-            [variableId]
+        [variableId]
+    )
+
+    // check for parent indicators
+    const charts = rawCharts.map((chart) => {
+        const parentIndicatorId = getParentVariableIdFromChartConfig(
+            parseChartConfig(chart.config)
         )
+        const hasParentIndicator = parentIndicatorId !== undefined
+        return omit({ ...chart, hasParentIndicator }, "config")
+    })
 
-        // check for parent indicators
-        const charts = rawCharts.map((chart) => {
-            const parentIndicatorId = getParentVariableIdFromChartConfig(
-                parseChartConfig(chart.config)
-            )
-            const hasParentIndicator = parentIndicatorId !== undefined
-            return omit({ ...chart, hasParentIndicator }, "config")
-        })
+    await assignTagsForCharts(trx, charts)
 
-        await assignTagsForCharts(trx, charts)
+    const variableWithConfigs = await getGrapherConfigsForVariable(
+        trx,
+        variableId
+    )
+    const grapherConfigETL = variableWithConfigs?.etl?.patchConfig
+    const grapherConfigAdmin = variableWithConfigs?.admin?.patchConfig
+    const mergedGrapherConfig =
+        variableWithConfigs?.admin?.fullConfig ??
+        variableWithConfigs?.etl?.fullConfig
 
-        const variableWithConfigs = await getGrapherConfigsForVariable(
-            trx,
-            variableId
+    // add the variable's display field to the merged grapher config
+    if (mergedGrapherConfig) {
+        const [varDims, otherDims] = lodash.partition(
+            mergedGrapherConfig.dimensions ?? [],
+            (dim) => dim.variableId === variableId
         )
-        const grapherConfigETL = variableWithConfigs?.etl?.patchConfig
-        const grapherConfigAdmin = variableWithConfigs?.admin?.patchConfig
-        const mergedGrapherConfig =
-            variableWithConfigs?.admin?.fullConfig ??
-            variableWithConfigs?.etl?.fullConfig
+        const varDimsWithDisplay = varDims.map((dim) => ({
+            display: variable.display,
+            ...dim,
+        }))
+        mergedGrapherConfig.dimensions = [...varDimsWithDisplay, ...otherDims]
+    }
 
-        // add the variable's display field to the merged grapher config
-        if (mergedGrapherConfig) {
-            const [varDims, otherDims] = lodash.partition(
-                mergedGrapherConfig.dimensions ?? [],
-                (dim) => dim.variableId === variableId
-            )
-            const varDimsWithDisplay = varDims.map((dim) => ({
-                display: variable.display,
-                ...dim,
-            }))
-            mergedGrapherConfig.dimensions = [
-                ...varDimsWithDisplay,
-                ...otherDims,
-            ]
-        }
+    const variableWithCharts: OwidVariableWithSource & {
+        charts: Record<string, any>
+        grapherConfig: GrapherInterface | undefined
+        grapherConfigETL: GrapherInterface | undefined
+        grapherConfigAdmin: GrapherInterface | undefined
+    } = {
+        ...variable,
+        charts,
+        grapherConfig: mergedGrapherConfig,
+        grapherConfigETL,
+        grapherConfigAdmin,
+    }
 
-        const variableWithCharts: OwidVariableWithSource & {
-            charts: Record<string, any>
-            grapherConfig: GrapherInterface | undefined
-            grapherConfigETL: GrapherInterface | undefined
-            grapherConfigAdmin: GrapherInterface | undefined
-        } = {
-            ...variable,
-            charts,
-            grapherConfig: mergedGrapherConfig,
-            grapherConfigETL,
-            grapherConfigAdmin,
-        }
+    return {
+        variable: variableWithCharts,
+    } /*, vardata: await getVariableData([variableId]) }*/
+}
 
+export async function putVariablesVariableIdGrapherConfigETL(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const variableId = expectInt(req.params.variableId)
+
+    let validConfig: GrapherInterface
+    try {
+        validConfig = migrateGrapherConfigToLatestVersion(req.body)
+    } catch (err) {
         return {
-            variable: variableWithCharts,
-        } /*, vardata: await getVariableData([variableId]) }*/
+            success: false,
+            error: String(err),
+        }
     }
-)
 
-// inserts a new config or updates an existing one
-putRouteWithRWTransaction(
-    apiRouter,
-    "/variables/:variableId/grapherConfigETL",
-    async (req, res, trx) => {
-        const variableId = expectInt(req.params.variableId)
-
-        let validConfig: GrapherInterface
-        try {
-            validConfig = migrateGrapherConfigToLatestVersion(req.body)
-        } catch (err) {
-            return {
-                success: false,
-                error: String(err),
-            }
-        }
-
-        const variable = await getGrapherConfigsForVariable(trx, variableId)
-        if (!variable) {
-            throw new JsonError(`Variable with id ${variableId} not found`, 500)
-        }
-
-        const { savedPatch, updatedCharts, updatedMultiDimViews } =
-            await updateGrapherConfigETLOfVariable(trx, variable, validConfig)
-
-        await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
-        const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
-
-        if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
-            await triggerStaticBuild(
-                res.locals.user,
-                `Updating ETL config for variable ${variableId}`
-            )
-        }
-
-        return { success: true, savedPatch }
+    const variable = await getGrapherConfigsForVariable(trx, variableId)
+    if (!variable) {
+        throw new JsonError(`Variable with id ${variableId} not found`, 500)
     }
-)
 
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/variables/:variableId/grapherConfigETL",
-    async (req, res, trx) => {
-        const variableId = expectInt(req.params.variableId)
+    const { savedPatch, updatedCharts, updatedMultiDimViews } =
+        await updateGrapherConfigETLOfVariable(trx, variable, validConfig)
 
-        const variable = await getGrapherConfigsForVariable(trx, variableId)
-        if (!variable) {
-            throw new JsonError(`Variable with id ${variableId} not found`, 500)
-        }
+    await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
+    const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
 
-        // no-op if the variable doesn't have an ETL config
-        if (!variable.etl) return { success: true }
+    if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
+        await triggerStaticBuild(
+            res.locals.user,
+            `Updating ETL config for variable ${variableId}`
+        )
+    }
 
-        const now = new Date()
+    return { success: true, savedPatch }
+}
 
-        // remove reference in the variables table
-        await db.knexRaw(
-            trx,
-            `-- sql
+export async function deleteVariablesVariableIdGrapherConfigETL(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const variableId = expectInt(req.params.variableId)
+
+    const variable = await getGrapherConfigsForVariable(trx, variableId)
+    if (!variable) {
+        throw new JsonError(`Variable with id ${variableId} not found`, 500)
+    }
+
+    // no-op if the variable doesn't have an ETL config
+    if (!variable.etl) return { success: true }
+
+    const now = new Date()
+
+    // remove reference in the variables table
+    await db.knexRaw(
+        trx,
+        `-- sql
                 UPDATE variables
                 SET grapherConfigIdETL = NULL
                 WHERE id = ?
             `,
-            [variableId]
-        )
+        [variableId]
+    )
 
-        // delete row in the chart_configs table
-        await db.knexRaw(
-            trx,
-            `-- sql
+    // delete row in the chart_configs table
+    await db.knexRaw(
+        trx,
+        `-- sql
                 DELETE FROM chart_configs
                 WHERE id = ?
             `,
-            [variable.etl.configId]
-        )
+        [variable.etl.configId]
+    )
 
-        // update admin config if there is one
-        if (variable.admin) {
-            await updateExistingFullConfig(trx, {
-                configId: variable.admin.configId,
-                config: variable.admin.patchConfig,
-                updatedAt: now,
-            })
-        }
-
-        const updates = {
-            patchConfigAdmin: variable.admin?.patchConfig,
+    // update admin config if there is one
+    if (variable.admin) {
+        await updateExistingFullConfig(trx, {
+            configId: variable.admin.configId,
+            config: variable.admin.patchConfig,
             updatedAt: now,
-        }
-        const updatedCharts = await updateAllChartsThatInheritFromIndicator(
+        })
+    }
+
+    const updates = {
+        patchConfigAdmin: variable.admin?.patchConfig,
+        updatedAt: now,
+    }
+    const updatedCharts = await updateAllChartsThatInheritFromIndicator(
+        trx,
+        variableId,
+        updates
+    )
+    const updatedMultiDimViews =
+        await updateAllMultiDimViewsThatInheritFromIndicator(
             trx,
             variableId,
             updates
         )
-        const updatedMultiDimViews =
-            await updateAllMultiDimViewsThatInheritFromIndicator(
-                trx,
-                variableId,
-                updates
-            )
-        await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
-        const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
+    await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
+    const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
 
-        if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
-            await triggerStaticBuild(
-                res.locals.user,
-                `Updating ETL config for variable ${variableId}`
-            )
-        }
-
-        return { success: true }
+    if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
+        await triggerStaticBuild(
+            res.locals.user,
+            `Updating ETL config for variable ${variableId}`
+        )
     }
+
+    return { success: true }
+}
+
+export async function putVariablesVariableIdGrapherConfigAdmin(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const variableId = expectInt(req.params.variableId)
+
+    let validConfig: GrapherInterface
+    try {
+        validConfig = migrateGrapherConfigToLatestVersion(req.body)
+    } catch (err) {
+        return {
+            success: false,
+            error: String(err),
+        }
+    }
+
+    const variable = await getGrapherConfigsForVariable(trx, variableId)
+    if (!variable) {
+        throw new JsonError(`Variable with id ${variableId} not found`, 500)
+    }
+
+    const { savedPatch, updatedCharts, updatedMultiDimViews } =
+        await updateGrapherConfigAdminOfVariable(trx, variable, validConfig)
+
+    await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
+    const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
+
+    if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
+        await triggerStaticBuild(
+            res.locals.user,
+            `Updating admin-authored config for variable ${variableId}`
+        )
+    }
+
+    return { success: true, savedPatch }
+}
+
+export async function deleteVariablesVariableIdGrapherConfigAdmin(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const variableId = expectInt(req.params.variableId)
+
+    const variable = await getGrapherConfigsForVariable(trx, variableId)
+    if (!variable) {
+        throw new JsonError(`Variable with id ${variableId} not found`, 500)
+    }
+
+    // no-op if the variable doesn't have an admin-authored config
+    if (!variable.admin) return { success: true }
+
+    const now = new Date()
+
+    // remove reference in the variables table
+    await db.knexRaw(
+        trx,
+        `-- sql
+                UPDATE variables
+                SET grapherConfigIdAdmin = NULL
+                WHERE id = ?
+            `,
+        [variableId]
+    )
+
+    // delete row in the chart_configs table
+    await db.knexRaw(
+        trx,
+        `-- sql
+                DELETE FROM chart_configs
+                WHERE id = ?
+            `,
+        [variable.admin.configId]
+    )
+
+    const updates = {
+        patchConfigETL: variable.etl?.patchConfig,
+        updatedAt: now,
+    }
+    const updatedCharts = await updateAllChartsThatInheritFromIndicator(
+        trx,
+        variableId,
+        updates
+    )
+    const updatedMultiDimViews =
+        await updateAllMultiDimViewsThatInheritFromIndicator(
+            trx,
+            variableId,
+            updates
+        )
+    await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
+    const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
+
+    if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
+        await triggerStaticBuild(
+            res.locals.user,
+            `Updating admin-authored config for variable ${variableId}`
+        )
+    }
+
+    return { success: true }
+}
+
+export async function getVariablesVariableIdChartsJson(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const variableId = expectInt(req.params.variableId)
+    const charts = await getAllChartsForIndicator(trx, variableId)
+    return charts.map((chart) => ({
+        id: chart.chartId,
+        title: chart.config.title,
+        variantName: chart.config.variantName,
+        isChild: chart.isChild,
+        isInheritanceEnabled: chart.isInheritanceEnabled,
+        isPublished: chart.isPublished,
+    }))
+}
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/editorData/variables.json",
+    getEditorVariablesJson
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/data/variables/data/:variableStr.json",
+    getVariableDataJson
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/data/variables/metadata/:variableStr.json",
+    getVariableMetadataJson
+)
+
+getRouteWithROTransaction(apiRouter, "/variables.json", getVariablesJson)
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables.usages.json",
+    getVariablesUsagesJson
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables/grapherConfigETL/:variableId.patchConfig.json",
+    getVariablesGrapherConfigETLPatchConfigJson
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables/grapherConfigAdmin/:variableId.patchConfig.json",
+    getVariablesGrapherConfigAdminPatchConfigJson
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables/mergedGrapherConfig/:variableId.json",
+    getVariablesMergedGrapherConfigJson
+)
+
+// Used in VariableEditPage
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables/:variableId.json",
+    getVariablesVariableIdJson
+)
+
+// inserts a new config or updates an existing one
+putRouteWithRWTransaction(
+    apiRouter,
+    "/variables/:variableId/grapherConfigETL",
+    putVariablesVariableIdGrapherConfigETL
+)
+
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/variables/:variableId/grapherConfigETL",
+    deleteVariablesVariableIdGrapherConfigETL
 )
 
 // inserts a new config or updates an existing one
 putRouteWithRWTransaction(
     apiRouter,
     "/variables/:variableId/grapherConfigAdmin",
-    async (req, res, trx) => {
-        const variableId = expectInt(req.params.variableId)
-
-        let validConfig: GrapherInterface
-        try {
-            validConfig = migrateGrapherConfigToLatestVersion(req.body)
-        } catch (err) {
-            return {
-                success: false,
-                error: String(err),
-            }
-        }
-
-        const variable = await getGrapherConfigsForVariable(trx, variableId)
-        if (!variable) {
-            throw new JsonError(`Variable with id ${variableId} not found`, 500)
-        }
-
-        const { savedPatch, updatedCharts, updatedMultiDimViews } =
-            await updateGrapherConfigAdminOfVariable(trx, variable, validConfig)
-
-        await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
-        const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
-
-        if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
-            await triggerStaticBuild(
-                res.locals.user,
-                `Updating admin-authored config for variable ${variableId}`
-            )
-        }
-
-        return { success: true, savedPatch }
-    }
+    putVariablesVariableIdGrapherConfigAdmin
 )
 
 deleteRouteWithRWTransaction(
     apiRouter,
     "/variables/:variableId/grapherConfigAdmin",
-    async (req, res, trx) => {
-        const variableId = expectInt(req.params.variableId)
-
-        const variable = await getGrapherConfigsForVariable(trx, variableId)
-        if (!variable) {
-            throw new JsonError(`Variable with id ${variableId} not found`, 500)
-        }
-
-        // no-op if the variable doesn't have an admin-authored config
-        if (!variable.admin) return { success: true }
-
-        const now = new Date()
-
-        // remove reference in the variables table
-        await db.knexRaw(
-            trx,
-            `-- sql
-                UPDATE variables
-                SET grapherConfigIdAdmin = NULL
-                WHERE id = ?
-            `,
-            [variableId]
-        )
-
-        // delete row in the chart_configs table
-        await db.knexRaw(
-            trx,
-            `-- sql
-                DELETE FROM chart_configs
-                WHERE id = ?
-            `,
-            [variable.admin.configId]
-        )
-
-        const updates = {
-            patchConfigETL: variable.etl?.patchConfig,
-            updatedAt: now,
-        }
-        const updatedCharts = await updateAllChartsThatInheritFromIndicator(
-            trx,
-            variableId,
-            updates
-        )
-        const updatedMultiDimViews =
-            await updateAllMultiDimViewsThatInheritFromIndicator(
-                trx,
-                variableId,
-                updates
-            )
-        await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
-        const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
-
-        if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
-            await triggerStaticBuild(
-                res.locals.user,
-                `Updating admin-authored config for variable ${variableId}`
-            )
-        }
-
-        return { success: true }
-    }
+    deleteVariablesVariableIdGrapherConfigAdmin
 )
 
 getRouteWithROTransaction(
     apiRouter,
     "/variables/:variableId/charts.json",
-    async (req, res, trx) => {
-        const variableId = expectInt(req.params.variableId)
-        const charts = await getAllChartsForIndicator(trx, variableId)
-        return charts.map((chart) => ({
-            id: chart.chartId,
-            title: chart.config.title,
-            variantName: chart.config.variantName,
-            isChild: chart.isChild,
-            isInheritanceEnabled: chart.isInheritanceEnabled,
-            isPublished: chart.isPublished,
-        }))
-    }
+    getVariablesVariableIdChartsJson
 )

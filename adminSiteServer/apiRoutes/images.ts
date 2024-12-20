@@ -19,24 +19,30 @@ import { triggerStaticBuild } from "./routeUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
 
-getRouteNonIdempotentWithRWTransaction(
-    apiRouter,
-    "/images.json",
-    async (_, res, trx) => {
-        try {
-            const images = await db.getCloudflareImages(trx)
-            res.set("Cache-Control", "no-store")
-            res.send({ images })
-        } catch (error) {
-            console.error("Error fetching images", error)
-            res.status(500).json({
-                error: { message: String(error), status: 500 },
-            })
-        }
+import { Request } from "../authentication.js"
+import e from "express"
+export async function getImagesHandler(
+    _: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    try {
+        const images = await db.getCloudflareImages(trx)
+        res.set("Cache-Control", "no-store")
+        res.send({ images })
+    } catch (error) {
+        console.error("Error fetching images", error)
+        res.status(500).json({
+            error: { message: String(error), status: 500 },
+        })
     }
-)
+}
 
-postRouteWithRWTransaction(apiRouter, "/images", async (req, res, trx) => {
+export async function postImageHandler(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
     const { filename, type, content } = validateImagePayload(req.body)
 
     const { asBlob, dimensions, hash } = await processImageContent(
@@ -94,14 +100,17 @@ postRouteWithRWTransaction(apiRouter, "/images", async (req, res, trx) => {
         success: true,
         image,
     }
-})
-
+}
 /**
  * Similar to the POST route, but for updating an existing image.
  * Creates a new image entry in the database and uploads the new image to Cloudflare.
  * The old image is marked as replaced by the new image.
  */
-putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
+export async function putImageHandler(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
     const { type, content } = validateImagePayload(req.body)
     const { asBlob, dimensions, hash } = await processImageContent(
         content,
@@ -175,10 +184,13 @@ putRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
         success: true,
         image: updated,
     }
-})
-
+}
 // Update alt text via patch
-patchRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
+export async function patchImageHandler(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
     const { id } = req.params
 
     const image = await trx<DbEnrichedImage>("images")
@@ -206,9 +218,13 @@ patchRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
         success: true,
         image: updated,
     }
-})
+}
 
-deleteRouteWithRWTransaction(apiRouter, "/images/:id", async (req, _, trx) => {
+export async function deleteImageHandler(
+    req: Request,
+    _: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
     const { id } = req.params
 
     const image = await trx<DbEnrichedImage>("images")
@@ -240,13 +256,34 @@ deleteRouteWithRWTransaction(apiRouter, "/images/:id", async (req, _, trx) => {
     return {
         success: true,
     }
-})
+}
 
-getRouteWithROTransaction(apiRouter, "/images/usage", async (_, __, trx) => {
+export async function getImageUsageHandler(
+    _: Request,
+    __: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
     const usage = await db.getImageUsage(trx)
 
     return {
         success: true,
         usage,
     }
-})
+}
+
+getRouteNonIdempotentWithRWTransaction(
+    apiRouter,
+    "/images.json",
+    getImagesHandler
+)
+
+postRouteWithRWTransaction(apiRouter, "/images", postImageHandler)
+
+putRouteWithRWTransaction(apiRouter, "/images/:id", putImageHandler)
+
+// Update alt text via patch
+patchRouteWithRWTransaction(apiRouter, "/images/:id", patchImageHandler)
+
+deleteRouteWithRWTransaction(apiRouter, "/images/:id", deleteImageHandler)
+
+getRouteWithROTransaction(apiRouter, "/images/usage", getImageUsageHandler)
