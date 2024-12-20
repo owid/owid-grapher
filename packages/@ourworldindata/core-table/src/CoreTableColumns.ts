@@ -26,6 +26,7 @@ import {
     IndicatorTitleWithFragments,
     max,
     min,
+    capitalize,
 } from "@ourworldindata/utils"
 import { CoreTable } from "./CoreTable.js"
 import {
@@ -836,6 +837,10 @@ export abstract class TimeColumn extends AbstractCoreColumn<number> {
     jsType = JsTypes.number
 
     abstract preposition: string
+
+    @imemo get displayName(): string {
+        return capitalize(this.name)
+    }
 
     formatTime(time: number): string {
         return this.formatValue(time)
