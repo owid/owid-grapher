@@ -66,6 +66,8 @@ import * as db from "../../db/db.js"
 import { getLogsByChartId } from "../getLogsByChartId.js"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
 
+import { Request } from "../authentication.js"
+import e from "express"
 export const getReferencesByChartId = async (
     chartId: number,
     knex: db.KnexReadonlyTransaction
@@ -501,7 +503,11 @@ export async function updateGrapherConfigsInR2(
     }
 }
 
-getRouteWithROTransaction(apiRouter, "/charts.json", async (req, res, trx) => {
+async function getChartsJson(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
     const charts = await db.knexRaw<OldChartFieldList>(
         trx,
@@ -521,9 +527,13 @@ getRouteWithROTransaction(apiRouter, "/charts.json", async (req, res, trx) => {
     await assignTagsForCharts(trx, charts)
 
     return { charts }
-})
+}
 
-getRouteWithROTransaction(apiRouter, "/charts.csv", async (req, res, trx) => {
+async function getChartsCsv(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
 
     // note: this query is extended from OldChart.listFields.
@@ -577,106 +587,116 @@ getRouteWithROTransaction(apiRouter, "/charts.csv", async (req, res, trx) => {
     res.setHeader("content-type", "text/csv")
     const csv = Papa.unparse(charts)
     return csv
-})
+}
 
-getRouteWithROTransaction(
-    apiRouter,
-    "/charts/:chartId.config.json",
-    async (req, res, trx) => expectChartById(trx, req.params.chartId)
-)
+async function getChartConfigJson(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    return expectChartById(trx, req.params.chartId)
+}
 
-getRouteWithROTransaction(
-    apiRouter,
-    "/charts/:chartId.parent.json",
-    async (req, res, trx) => {
-        const chartId = expectInt(req.params.chartId)
-        const parent = await getParentByChartId(trx, chartId)
-        const isInheritanceEnabled = await isInheritanceEnabledForChart(
-            trx,
-            chartId
-        )
-        return omitUndefinedValues({
-            variableId: parent?.variableId,
-            config: parent?.config,
-            isActive: isInheritanceEnabled,
-        })
-    }
-)
+async function getChartParentJson(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const chartId = expectInt(req.params.chartId)
+    const parent = await getParentByChartId(trx, chartId)
+    const isInheritanceEnabled = await isInheritanceEnabledForChart(
+        trx,
+        chartId
+    )
+    return omitUndefinedValues({
+        variableId: parent?.variableId,
+        config: parent?.config,
+        isActive: isInheritanceEnabled,
+    })
+}
 
-getRouteWithROTransaction(
-    apiRouter,
-    "/charts/:chartId.patchConfig.json",
-    async (req, res, trx) => {
-        const chartId = expectInt(req.params.chartId)
-        const config = await expectPatchConfigByChartId(trx, chartId)
-        return config
-    }
-)
+async function getChartPatchConfigJson(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const chartId = expectInt(req.params.chartId)
+    const config = await expectPatchConfigByChartId(trx, chartId)
+    return config
+}
 
-getRouteWithROTransaction(
-    apiRouter,
-    "/charts/:chartId.logs.json",
-    async (req, res, trx) => ({
+async function getChartLogsJson(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    return {
         logs: await getLogsByChartId(
             trx,
             parseInt(req.params.chartId as string)
         ),
-    })
-)
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/charts/:chartId.references.json",
-    async (req, res, trx) => {
-        const references = {
-            references: await getReferencesByChartId(
-                parseInt(req.params.chartId as string),
-                trx
-            ),
-        }
-        return references
     }
-)
+}
 
-getRouteWithROTransaction(
-    apiRouter,
-    "/charts/:chartId.redirects.json",
-    async (req, res, trx) => ({
+async function getChartReferencesJson(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const references = {
+        references: await getReferencesByChartId(
+            parseInt(req.params.chartId as string),
+            trx
+        ),
+    }
+    return references
+}
+
+async function getChartRedirectsJson(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    return {
         redirects: await getRedirectsByChartId(
             trx,
             parseInt(req.params.chartId as string)
         ),
-    })
-)
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/charts/:chartId.pageviews.json",
-    async (req, res, trx) => {
-        const slug = await getChartSlugById(
-            trx,
-            parseInt(req.params.chartId as string)
-        )
-        if (!slug) return {}
-
-        const pageviewsByUrl = await db.knexRawFirst(
-            trx,
-            `-- sql
-            SELECT *
-            FROM
-                analytics_pageviews
-            WHERE
-                url = ?`,
-            [`https://ourworldindata.org/grapher/${slug}`]
-        )
-
-        return {
-            pageviews: pageviewsByUrl ?? undefined,
-        }
     }
-)
+}
 
-postRouteWithRWTransaction(apiRouter, "/charts", async (req, res, trx) => {
+async function getChartPageviewsJson(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const slug = await getChartSlugById(
+        trx,
+        parseInt(req.params.chartId as string)
+    )
+    if (!slug) return {}
+
+    const pageviewsByUrl = await db.knexRawFirst(
+        trx,
+        `-- sql
+        SELECT *
+        FROM
+            analytics_pageviews
+        WHERE
+            url = ?`,
+        [`https://ourworldindata.org/grapher/${slug}`]
+    )
+
+    return {
+        pageviews: pageviewsByUrl ?? undefined,
+    }
+}
+
+async function createChart(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
     let shouldInherit: boolean | undefined
     if (req.query.inheritance) {
         shouldInherit = req.query.inheritance === "enable"
@@ -693,109 +713,150 @@ postRouteWithRWTransaction(apiRouter, "/charts", async (req, res, trx) => {
     } catch (err) {
         return { success: false, error: String(err) }
     }
-})
+}
 
+async function setChartTagsHandler(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const chartId = expectInt(req.params.chartId)
+
+    await setChartTags(trx, chartId, req.body.tags)
+
+    return { success: true }
+}
+
+async function updateChart(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    let shouldInherit: boolean | undefined
+    if (req.query.inheritance) {
+        shouldInherit = req.query.inheritance === "enable"
+    }
+
+    const existingConfig = await expectChartById(trx, req.params.chartId)
+
+    try {
+        const { chartId, savedPatch } = await saveGrapher(trx, {
+            user: res.locals.user,
+            newConfig: req.body,
+            existingConfig,
+            shouldInherit,
+        })
+
+        const logs = await getLogsByChartId(trx, existingConfig.id as number)
+        return {
+            success: true,
+            chartId,
+            savedPatch,
+            newLog: logs[0],
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: String(err),
+        }
+    }
+}
+
+async function deleteChart(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const chart = await expectChartById(trx, req.params.chartId)
+    if (chart.slug) {
+        const links = await getPublishedLinksTo(trx, [chart.slug])
+        if (links.length) {
+            const sources = links.map((link) => link.sourceSlug).join(", ")
+            throw new Error(
+                `Cannot delete chart in-use in the following published documents: ${sources}`
+            )
+        }
+    }
+
+    await db.knexRaw(trx, `DELETE FROM chart_dimensions WHERE chartId=?`, [
+        chart.id,
+    ])
+    await db.knexRaw(trx, `DELETE FROM chart_slug_redirects WHERE chart_id=?`, [
+        chart.id,
+    ])
+
+    const row = await db.knexRawFirst<Pick<DbPlainChart, "configId">>(
+        trx,
+        `SELECT configId FROM charts WHERE id = ?`,
+        [chart.id]
+    )
+    if (!row || !row.configId)
+        throw new JsonError(`No chart config found for id ${chart.id}`, 404)
+    if (row) {
+        await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
+        await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id=?`, [
+            row.configId,
+        ])
+    }
+
+    if (chart.isPublished)
+        await triggerStaticBuild(
+            res.locals.user,
+            `Deleting chart ${chart.slug}`
+        )
+
+    await deleteGrapherConfigFromR2ByUUID(row.configId)
+    if (chart.isPublished)
+        await deleteGrapherConfigFromR2(
+            R2GrapherConfigDirectory.publishedGrapherBySlug,
+            `${chart.slug}.json`
+        )
+
+    return { success: true }
+}
+
+getRouteWithROTransaction(apiRouter, "/charts.json", getChartsJson)
+getRouteWithROTransaction(apiRouter, "/charts.csv", getChartsCsv)
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId.config.json",
+    getChartConfigJson
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId.parent.json",
+    getChartParentJson
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId.patchConfig.json",
+    getChartPatchConfigJson
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId.logs.json",
+    getChartLogsJson
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId.references.json",
+    getChartReferencesJson
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId.redirects.json",
+    getChartRedirectsJson
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId.pageviews.json",
+    getChartPageviewsJson
+)
+postRouteWithRWTransaction(apiRouter, "/charts", createChart)
 postRouteWithRWTransaction(
     apiRouter,
     "/charts/:chartId/setTags",
-    async (req, res, trx) => {
-        const chartId = expectInt(req.params.chartId)
-
-        await setChartTags(trx, chartId, req.body.tags)
-
-        return { success: true }
-    }
+    setChartTagsHandler
 )
-
-putRouteWithRWTransaction(
-    apiRouter,
-    "/charts/:chartId",
-    async (req, res, trx) => {
-        let shouldInherit: boolean | undefined
-        if (req.query.inheritance) {
-            shouldInherit = req.query.inheritance === "enable"
-        }
-
-        const existingConfig = await expectChartById(trx, req.params.chartId)
-
-        try {
-            const { chartId, savedPatch } = await saveGrapher(trx, {
-                user: res.locals.user,
-                newConfig: req.body,
-                existingConfig,
-                shouldInherit,
-            })
-
-            const logs = await getLogsByChartId(
-                trx,
-                existingConfig.id as number
-            )
-            return {
-                success: true,
-                chartId,
-                savedPatch,
-                newLog: logs[0],
-            }
-        } catch (err) {
-            return {
-                success: false,
-                error: String(err),
-            }
-        }
-    }
-)
-
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/charts/:chartId",
-    async (req, res, trx) => {
-        const chart = await expectChartById(trx, req.params.chartId)
-        if (chart.slug) {
-            const links = await getPublishedLinksTo(trx, [chart.slug])
-            if (links.length) {
-                const sources = links.map((link) => link.sourceSlug).join(", ")
-                throw new Error(
-                    `Cannot delete chart in-use in the following published documents: ${sources}`
-                )
-            }
-        }
-
-        await db.knexRaw(trx, `DELETE FROM chart_dimensions WHERE chartId=?`, [
-            chart.id,
-        ])
-        await db.knexRaw(
-            trx,
-            `DELETE FROM chart_slug_redirects WHERE chart_id=?`,
-            [chart.id]
-        )
-
-        const row = await db.knexRawFirst<Pick<DbPlainChart, "configId">>(
-            trx,
-            `SELECT configId FROM charts WHERE id = ?`,
-            [chart.id]
-        )
-        if (!row || !row.configId)
-            throw new JsonError(`No chart config found for id ${chart.id}`, 404)
-        if (row) {
-            await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
-            await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id=?`, [
-                row.configId,
-            ])
-        }
-
-        if (chart.isPublished)
-            await triggerStaticBuild(
-                res.locals.user,
-                `Deleting chart ${chart.slug}`
-            )
-
-        await deleteGrapherConfigFromR2ByUUID(row.configId)
-        if (chart.isPublished)
-            await deleteGrapherConfigFromR2(
-                R2GrapherConfigDirectory.publishedGrapherBySlug,
-                `${chart.slug}.json`
-            )
-
-        return { success: true }
-    }
-)
+putRouteWithRWTransaction(apiRouter, "/charts/:chartId", updateChart)
+deleteRouteWithRWTransaction(apiRouter, "/charts/:chartId", deleteChart)

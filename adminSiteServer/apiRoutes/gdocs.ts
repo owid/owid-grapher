@@ -53,38 +53,44 @@ import {
 import { triggerStaticBuild, enqueueLightningChange } from "./routeUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
+import { Request } from "../authentication.js"
+import e from "express"
 
-getRouteWithROTransaction(apiRouter, "/gdocs", (req, res, trx) => {
+export async function getAllGdocIndexItems(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
     return getAllGdocIndexItemsOrderedByUpdatedAt(trx)
-})
+}
 
-getRouteNonIdempotentWithRWTransaction(
-    apiRouter,
-    "/gdocs/:id",
-    async (req, res, trx) => {
-        const id = req.params.id
-        const contentSource = req.query.contentSource as
-            | GdocsContentSource
-            | undefined
+export async function getIndividualGdoc(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const id = req.params.id
+    const contentSource = req.query.contentSource as
+        | GdocsContentSource
+        | undefined
 
-        try {
-            // Beware: if contentSource=gdocs this will update images in the DB+S3 even if the gdoc is published
-            const gdoc = await getAndLoadGdocById(trx, id, contentSource)
+    try {
+        // Beware: if contentSource=gdocs this will update images in the DB+S3 even if the gdoc is published
+        const gdoc = await getAndLoadGdocById(trx, id, contentSource)
 
-            if (!gdoc.published) {
-                await updateGdocContentOnly(trx, id, gdoc)
-            }
-
-            res.set("Cache-Control", "no-store")
-            res.send(gdoc)
-        } catch (error) {
-            console.error("Error fetching gdoc", error)
-            res.status(500).json({
-                error: { message: String(error), status: 500 },
-            })
+        if (!gdoc.published) {
+            await updateGdocContentOnly(trx, id, gdoc)
         }
+
+        res.set("Cache-Control", "no-store")
+        res.send(gdoc)
+    } catch (error) {
+        console.error("Error fetching gdoc", error)
+        res.status(500).json({
+            error: { message: String(error), status: 500 },
+        })
     }
-)
+}
 
 /**
  * Handles all four `GdocPublishingAction` cases
@@ -152,7 +158,11 @@ async function indexAndBakeGdocIfNeccesary(
  * support creating a new Gdoc from an existing one. Relevant updates will
  * trigger a deploy.
  */
-putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
+export async function createOrUpdateGdoc(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
     const { id } = req.params
 
     if (isEmpty(req.body)) {
@@ -181,7 +191,7 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     await indexAndBakeGdocIfNeccesary(trx, res.locals.user, prevGdoc, nextGdoc)
 
     return nextGdoc
-})
+}
 
 async function validateTombstoneRelatedLinkUrl(
     trx: db.KnexReadonlyTransaction,
@@ -201,7 +211,11 @@ async function validateTombstoneRelatedLinkUrl(
     }
 }
 
-deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
+export async function deleteGdoc(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
     const { id } = req.params
 
     const gdoc = await getGdocBaseObjectById(trx, id, false)
@@ -264,20 +278,34 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
         await triggerStaticBuild(res.locals.user, `Deleting ${gdocSlug}`)
     }
     return {}
-})
+}
 
-postRouteWithRWTransaction(
+export async function setGdocTags(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const { gdocId } = req.params
+    const { tagIds } = req.body
+    const tagIdsAsObjects: { id: number }[] = tagIds.map((id: number) => ({
+        id: id,
+    }))
+
+    await setTagsForGdoc(trx, gdocId, tagIdsAsObjects)
+
+    return { success: true }
+}
+
+getRouteWithROTransaction(apiRouter, "/gdocs", getAllGdocIndexItems)
+
+getRouteNonIdempotentWithRWTransaction(
     apiRouter,
-    "/gdocs/:gdocId/setTags",
-    async (req, res, trx) => {
-        const { gdocId } = req.params
-        const { tagIds } = req.body
-        const tagIdsAsObjects: { id: number }[] = tagIds.map((id: number) => ({
-            id: id,
-        }))
-
-        await setTagsForGdoc(trx, gdocId, tagIdsAsObjects)
-
-        return { success: true }
-    }
+    "/gdocs/:id",
+    getIndividualGdoc
 )
+
+putRouteWithRWTransaction(apiRouter, "/gdocs/:id", createOrUpdateGdoc)
+
+deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", deleteGdoc)
+
+postRouteWithRWTransaction(apiRouter, "/gdocs/:gdocId/setTags", setGdocTags)

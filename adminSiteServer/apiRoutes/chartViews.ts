@@ -34,6 +34,8 @@ import {
 
 import * as db from "../../db/db.js"
 import { expectChartById } from "./charts.js"
+import { Request } from "../authentication.js"
+import e from "express"
 const createPatchConfigAndQueryParamsForChartView = async (
     knex: db.KnexReadonlyTransaction,
     parentChartId: number,
@@ -65,7 +67,11 @@ const createPatchConfigAndQueryParamsForChartView = async (
     return { patchConfig: patchConfigToSave, fullConfig, queryParams }
 }
 
-getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
+export async function getChartViews(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
     type ChartViewRow = Pick<DbPlainChartView, "id" | "name" | "updatedAt"> & {
         lastEditedByUser: string
         chartConfigId: string
@@ -109,30 +115,28 @@ getRouteWithROTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
     }))
 
     return { chartViews }
-})
+}
 
-getRouteWithROTransaction(
-    apiRouter,
-    "/chartViews/:id",
-    async (req, res, trx) => {
-        const id = expectInt(req.params.id)
+export async function getChartViewById(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const id = expectInt(req.params.id)
 
-        type ChartViewRow = Pick<
-            DbPlainChartView,
-            "id" | "name" | "updatedAt"
-        > & {
-            lastEditedByUser: string
-            chartConfigId: string
-            configFull: JsonString
-            configPatch: JsonString
-            parentChartId: number
-            parentConfigFull: JsonString
-            queryParamsForParentChart: JsonString
-        }
+    type ChartViewRow = Pick<DbPlainChartView, "id" | "name" | "updatedAt"> & {
+        lastEditedByUser: string
+        chartConfigId: string
+        configFull: JsonString
+        configPatch: JsonString
+        parentChartId: number
+        parentConfigFull: JsonString
+        queryParamsForParentChart: JsonString
+    }
 
-        const row = await db.knexRawFirst<ChartViewRow>(
-            trx,
-            `-- sql
+    const row = await db.knexRawFirst<ChartViewRow>(
+        trx,
+        `-- sql
         SELECT
             cv.id,
             cv.name,
@@ -151,28 +155,29 @@ getRouteWithROTransaction(
         JOIN users u ON cv.lastEditedByUserId = u.id
         WHERE cv.id = ?
         `,
-            [id]
-        )
+        [id]
+    )
 
-        if (!row) {
-            throw new JsonError(`No chart view found for id ${id}`, 404)
-        }
-
-        const chartView = {
-            ...row,
-            configFull: parseChartConfig(row.configFull),
-            configPatch: parseChartConfig(row.configPatch),
-            parentConfigFull: parseChartConfig(row.parentConfigFull),
-            queryParamsForParentChart: JSON.parse(
-                row.queryParamsForParentChart
-            ),
-        }
-
-        return chartView
+    if (!row) {
+        throw new JsonError(`No chart view found for id ${id}`, 404)
     }
-)
 
-postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
+    const chartView = {
+        ...row,
+        configFull: parseChartConfig(row.configFull),
+        configPatch: parseChartConfig(row.configPatch),
+        parentConfigFull: parseChartConfig(row.parentConfigFull),
+        queryParamsForParentChart: JSON.parse(row.queryParamsForParentChart),
+    }
+
+    return chartView
+}
+
+export async function createChartView(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
     const { name, parentChartId } = req.body as Pick<
         DbPlainChartView,
         "name" | "parentChartId"
@@ -195,7 +200,6 @@ postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
         patchConfig,
         fullConfig
     )
-
     // insert into chart_views
     const insertRow: DbInsertChartView = {
         name,
@@ -208,83 +212,89 @@ postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
     const [resultId] = result
 
     return { chartViewId: resultId, success: true }
-})
+}
 
-putRouteWithRWTransaction(
-    apiRouter,
-    "/chartViews/:id",
-    async (req, res, trx) => {
-        const id = expectInt(req.params.id)
-        const rawConfig = req.body.config as GrapherInterface
-        if (!rawConfig) {
-            throw new JsonError("Invalid request", 400)
-        }
+export async function updateChartView(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const id = expectInt(req.params.id)
+    const rawConfig = req.body.config as GrapherInterface
+    if (!rawConfig) {
+        throw new JsonError("Invalid request", 400)
+    }
 
-        const existingRow: Pick<
-            DbPlainChartView,
-            "chartConfigId" | "parentChartId"
-        > = await trx(ChartViewsTableName)
-            .select("parentChartId", "chartConfigId")
-            .where({ id })
-            .first()
+    const existingRow: Pick<
+        DbPlainChartView,
+        "chartConfigId" | "parentChartId"
+    > = await trx(ChartViewsTableName)
+        .select("parentChartId", "chartConfigId")
+        .where({ id })
+        .first()
 
-        if (!existingRow) {
-            throw new JsonError(`No chart view found for id ${id}`, 404)
-        }
+    if (!existingRow) {
+        throw new JsonError(`No chart view found for id ${id}`, 404)
+    }
 
-        const { patchConfig, fullConfig, queryParams } =
-            await createPatchConfigAndQueryParamsForChartView(
-                trx,
-                existingRow.parentChartId,
-                rawConfig
-            )
-
-        await updateChartConfigInDbAndR2(
+    const { patchConfig, fullConfig, queryParams } =
+        await createPatchConfigAndQueryParamsForChartView(
             trx,
-            existingRow.chartConfigId as Base64String,
-            patchConfig,
-            fullConfig
+            existingRow.parentChartId,
+            rawConfig
         )
 
-        // update chart_views
-        await trx
-            .table(ChartViewsTableName)
-            .where({ id })
-            .update({
-                updatedAt: new Date(),
-                lastEditedByUserId: res.locals.user.id,
-                queryParamsForParentChart: JSON.stringify(queryParams),
-            })
+    await updateChartConfigInDbAndR2(
+        trx,
+        existingRow.chartConfigId as Base64String,
+        patchConfig,
+        fullConfig
+    )
 
-        return { success: true }
+    await trx
+        .table(ChartViewsTableName)
+        .where({ id })
+        .update({
+            updatedAt: new Date(),
+            lastEditedByUserId: res.locals.user.id,
+            queryParamsForParentChart: JSON.stringify(queryParams),
+        })
+
+    return { success: true }
+}
+
+export async function deleteChartView(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const id = expectInt(req.params.id)
+
+    const chartConfigId: string | undefined = await trx(ChartViewsTableName)
+        .select("chartConfigId")
+        .where({ id })
+        .first()
+        .then((row) => row?.chartConfigId)
+
+    if (!chartConfigId) {
+        throw new JsonError(`No chart view found for id ${id}`, 404)
     }
-)
 
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/chartViews/:id",
-    async (req, res, trx) => {
-        const id = expectInt(req.params.id)
+    await trx.table(ChartViewsTableName).where({ id }).delete()
 
-        const chartConfigId: string | undefined = await trx(ChartViewsTableName)
-            .select("chartConfigId")
-            .where({ id })
-            .first()
-            .then((row) => row?.chartConfigId)
+    await deleteGrapherConfigFromR2ByUUID(chartConfigId)
 
-        if (!chartConfigId) {
-            throw new JsonError(`No chart view found for id ${id}`, 404)
-        }
+    await trx.table(ChartConfigsTableName).where({ id: chartConfigId }).delete()
 
-        await trx.table(ChartViewsTableName).where({ id }).delete()
+    return { success: true }
+}
 
-        await deleteGrapherConfigFromR2ByUUID(chartConfigId)
+getRouteWithROTransaction(apiRouter, "/chartViews", getChartViews)
 
-        await trx
-            .table(ChartConfigsTableName)
-            .where({ id: chartConfigId })
-            .delete()
+getRouteWithROTransaction(apiRouter, "/chartViews/:id", getChartViewById)
 
-        return { success: true }
-    }
-)
+postRouteWithRWTransaction(apiRouter, "/chartViews", createChartView)
+
+putRouteWithRWTransaction(apiRouter, "/chartViews/:id", updateChartView)
+
+deleteRouteWithRWTransaction(apiRouter, "/chartViews/:id", deleteChartView)
