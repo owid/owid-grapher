@@ -38,12 +38,12 @@ import { select } from "d3-selection"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CategoricalBin } from "../color/ColorScaleBin"
-import { HorizontalCategoricalColorLegendProps } from "../horizontalColorLegend/HorizontalColorLegends"
 import {
     CategoricalColorAssigner,
     CategoricalColorMap,
 } from "../color/CategoricalColorAssigner.js"
 import { BinaryMapPaletteE } from "../color/CustomSchemes"
+import { HorizontalCategoricalColorLegendProps } from "../horizontalColorLegend/HorizontalCategoricalColorLegend"
 
 // used in StackedBar charts to color negative and positive bars
 const POSITIVE_COLOR = BinaryMapPaletteE.colorSets[0][0] // orange

@@ -86,7 +86,6 @@ import {
 } from "../lineCharts/LineChartHelpers"
 import { SelectionArray } from "../selection/SelectionArray"
 import { Halo } from "@ourworldindata/components"
-import { HorizontalCategoricalColorLegendProps } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import {
     OWID_NON_FOCUSED_GRAY,
@@ -94,6 +93,7 @@ import {
     GRAPHER_DARK_TEXT,
 } from "../color/ColorConstants"
 import { FocusArray } from "../focus/FocusArray"
+import { HorizontalCategoricalColorLegendProps } from "../horizontalColorLegend/HorizontalCategoricalColorLegend"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>

@@ -1,11 +1,11 @@
 #! /usr/bin/env jest
 
 import { CategoricalBin, NumericBin } from "../color/ColorScaleBin"
+import { HorizontalCategoricalColorLegend } from "./HorizontalCategoricalColorLegend"
 import {
-    HorizontalCategoricalColorLegend,
     HorizontalNumericColorLegend,
     PositionedBin,
-} from "./HorizontalColorLegends"
+} from "./HorizontalNumericColorLegend"
 
 describe(HorizontalNumericColorLegend, () => {
     it("can create one", () => {

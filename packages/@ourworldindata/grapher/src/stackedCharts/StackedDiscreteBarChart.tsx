@@ -66,10 +66,6 @@ import {
 } from "../tooltip/Tooltip"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalCategoricalColorLegendProps,
-} from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { isDarkColor } from "../color/ColorUtils"
 import { HorizontalAxis } from "../axis/Axis"
@@ -80,6 +76,11 @@ import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { TextWrap } from "@ourworldindata/components"
+import {
+    HorizontalCategoricalColorLegend,
+    HorizontalCategoricalColorLegendProps,
+} from "../horizontalColorLegend/HorizontalCategoricalColorLegend"
+import { HorizontalCategoricalColorLegendComponent } from "../horizontalColorLegend/HorizontalCategoricalColorLegendComponent"
 
 // if an entity name exceeds this width, we use the short name instead (if available)
 const SOFT_MAX_LABEL_WIDTH = 90
@@ -548,11 +549,22 @@ export class StackedDiscreteBarChart
         this.focusSeriesName = undefined
     }
 
+    @computed private get legend(): HorizontalCategoricalColorLegend {
+        return new HorizontalCategoricalColorLegend({
+            fontSize: this.fontSize,
+            legendX: this.legendX,
+            legendAlign: this.legendAlign,
+            categoryLegendY: this.categoryLegendY,
+            legendMaxWidth: this.legendWidth,
+            categoricalLegendData: this.categoricalLegendData,
+        })
+    }
+
     @computed private get legendHeight(): number {
         return HorizontalCategoricalColorLegend.height({
             fontSize: this.fontSize,
             legendAlign: this.legendAlign,
-            legendWidth: this.legendWidth,
+            legendMaxWidth: this.legendWidth,
             categoricalLegendData: this.categoricalLegendData,
         })
     }
@@ -732,16 +744,10 @@ export class StackedDiscreteBarChart
     renderLegend(): React.ReactElement | void {
         if (!this.showLegend) return
         return (
-            <HorizontalCategoricalColorLegend
-                fontSize={this.fontSize}
-                legendX={this.legendX}
-                legendAlign={this.legendAlign}
-                categoryLegendY={this.categoryLegendY}
-                legendWidth={this.legendWidth}
-                categoricalLegendData={this.categoricalLegendData}
+            <HorizontalCategoricalColorLegendComponent
+                legend={this.legend}
                 onLegendMouseLeave={this.onLegendMouseLeave}
                 onLegendMouseOver={this.onLegendMouseOver}
-                isStatic={this.isStatic}
             />
         )
     }

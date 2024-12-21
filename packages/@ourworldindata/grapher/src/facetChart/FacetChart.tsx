@@ -54,19 +54,22 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
-    HorizontalCategoricalColorLegend,
-    HorizontalCategoricalColorLegendProps,
-    HorizontalColorLegend,
-    HorizontalColorLegendProps,
-    HorizontalNumericColorLegend,
-    HorizontalNumericColorLegendProps,
-} from "../horizontalColorLegend/HorizontalColorLegends"
-import {
     CategoricalBin,
     ColorScaleBin,
     NumericBin,
 } from "../color/ColorScaleBin"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
+import {
+    HorizontalCategoricalColorLegend,
+    HorizontalCategoricalColorLegendProps,
+} from "../horizontalColorLegend/HorizontalCategoricalColorLegend"
+import {
+    HorizontalNumericColorLegend,
+    HorizontalNumericColorLegendProps,
+} from "../horizontalColorLegend/HorizontalNumericColorLegend"
+import { HorizontalColorLegendProps } from "../horizontalColorLegend/AbstractHorizontalColorLegend"
+import { HorizontalNumericColorLegendComponent } from "../horizontalColorLegend/HorizontalNumericColorLegendComponent"
+import { HorizontalCategoricalColorLegendComponent } from "../horizontalColorLegend/HorizontalCategoricalColorLegendComponent"
 
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
 
@@ -688,8 +691,6 @@ export class FacetChart
             legendX: this.bounds.x,
             legendMaxWidth: this.bounds.width,
             legendAlign: HorizontalAlign.left,
-            onLegendMouseOver: this.onLegendMouseOver,
-            onLegendMouseLeave: this.onLegendMouseLeave,
         }
     }
 
@@ -721,10 +722,7 @@ export class FacetChart
             categoricalBinStroke: this.getCategoricalExternalLegendProp(
                 "categoricalBinStroke"
             ),
-            hoverColors: this.hoverColors,
-            activeColors: this.activeColors,
             categoricalLegendData: this.categoricalLegendData,
-            onLegendClick: this.onLegendClick,
         }
     }
 
@@ -813,10 +811,18 @@ export class FacetChart
 
     // end of legend props
 
-    @computed private get legend(): HorizontalColorLegend {
-        return this.isNumericLegend
-            ? new HorizontalNumericColorLegend(this.numericLegendProps)
-            : new HorizontalCategoricalColorLegend(this.categoricalLegendProps)
+    @computed private get categoryLegend(): HorizontalCategoricalColorLegend {
+        return new HorizontalCategoricalColorLegend(this.categoricalLegendProps)
+    }
+
+    @computed private get numericLegend(): HorizontalNumericColorLegend {
+        return new HorizontalNumericColorLegend(this.numericLegendProps)
+    }
+
+    @computed private get legend():
+        | HorizontalNumericColorLegend
+        | HorizontalCategoricalColorLegend {
+        return this.isNumericLegend ? this.numericLegend : this.categoryLegend
     }
 
     @computed private get isFocusModeSupported(): boolean {
@@ -869,10 +875,19 @@ export class FacetChart
 
     private renderLegend(): React.ReactElement {
         return this.isNumericLegend ? (
-            <HorizontalNumericColorLegend {...this.numericLegendProps} />
+            <HorizontalNumericColorLegendComponent
+                legend={this.numericLegend}
+                onLegendMouseOver={this.onLegendMouseOver}
+                onLegendMouseLeave={this.onLegendMouseLeave}
+            />
         ) : (
-            <HorizontalCategoricalColorLegend
-                {...this.categoricalLegendProps}
+            <HorizontalCategoricalColorLegendComponent
+                legend={this.categoryLegend}
+                onLegendMouseOver={this.onLegendMouseOver}
+                onLegendMouseLeave={this.onLegendMouseLeave}
+                hoverColors={this.hoverColors}
+                activeColors={this.activeColors}
+                onLegendClick={this.onLegendClick}
             />
         )
     }

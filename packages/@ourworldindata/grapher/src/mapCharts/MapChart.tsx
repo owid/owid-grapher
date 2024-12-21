@@ -16,10 +16,8 @@ import {
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+import { HorizontalCategoricalColorLegend } from "../horizontalColorLegend/HorizontalCategoricalColorLegend"
+import { HorizontalNumericColorLegend } from "../horizontalColorLegend/HorizontalNumericColorLegend"
 import { MapProjectionGeos } from "./MapProjections"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import { select } from "d3-selection"
@@ -70,6 +68,8 @@ import {
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SelectionArray } from "../selection/SelectionArray"
+import { HorizontalCategoricalColorLegendComponent } from "../horizontalColorLegend/HorizontalCategoricalColorLegendComponent"
+import { HorizontalNumericColorLegendComponent } from "../horizontalColorLegend/HorizontalNumericColorLegendComponent"
 
 const DEFAULT_STROKE_COLOR = "#333"
 const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
@@ -532,6 +532,39 @@ export class MapChart
         return this.numericLegendData.length > 1
     }
 
+    @computed private get categoryLegend():
+        | HorizontalCategoricalColorLegend
+        | undefined {
+        return this.hasCategoryLegend
+            ? new HorizontalCategoricalColorLegend({
+                  fontSize: this.fontSize,
+                  legendX: this.legendX,
+                  legendAlign: this.legendAlign,
+                  categoryLegendY: this.categoryLegendY,
+                  legendMaxWidth: this.legendMaxWidth,
+                  categoricalLegendData: this.categoricalLegendData,
+                  categoricalBinStroke: this.categoricalBinStroke,
+              })
+            : undefined
+    }
+
+    @computed private get numericLegend():
+        | HorizontalNumericColorLegend
+        | undefined {
+        return this.hasNumericLegend
+            ? new HorizontalNumericColorLegend({
+                  fontSize: this.fontSize,
+                  legendX: this.legendX,
+                  legendAlign: this.legendAlign,
+                  numericLegendY: this.numericLegendY,
+                  legendMaxWidth: this.legendMaxWidth,
+                  numericLegendData: this.numericLegendData,
+                  numericFocusBracket: this.numericFocusBracket,
+                  equalSizeBins: this.equalSizeBins,
+              })
+            : undefined
+    }
+
     @computed get categoryLegendHeight(): number {
         return this.hasCategoryLegend
             ? HorizontalCategoricalColorLegend.height({
@@ -609,36 +642,20 @@ export class MapChart
     }
 
     renderMapLegend(): React.ReactElement {
-        const { hasNumericLegend, hasCategoryLegend } = this
-
         return (
             <>
-                {hasNumericLegend && (
-                    <HorizontalNumericColorLegend
-                        fontSize={this.fontSize}
-                        legendX={this.legendX}
-                        legendAlign={this.legendAlign}
-                        numericLegendY={this.numericLegendY}
-                        legendMaxWidth={this.legendMaxWidth}
-                        numericLegendData={this.numericLegendData}
-                        numericFocusBracket={this.numericFocusBracket}
-                        equalSizeBins={this.equalSizeBins}
+                {this.numericLegend && (
+                    <HorizontalNumericColorLegendComponent
+                        legend={this.numericLegend}
                         onLegendMouseLeave={this.onLegendMouseLeave}
                         onLegendMouseOver={this.onLegendMouseOver}
                     />
                 )}
-                {hasCategoryLegend && (
-                    <HorizontalCategoricalColorLegend
-                        fontSize={this.fontSize}
-                        legendX={this.legendX}
-                        legendAlign={this.legendAlign}
-                        categoryLegendY={this.categoryLegendY}
-                        legendMaxWidth={this.legendMaxWidth}
-                        categoricalLegendData={this.categoricalLegendData}
-                        categoricalBinStroke={this.categoricalBinStroke}
+                {this.categoryLegend && (
+                    <HorizontalCategoricalColorLegendComponent
+                        legend={this.categoryLegend}
                         onLegendMouseLeave={this.onLegendMouseLeave}
                         onLegendMouseOver={this.onLegendMouseOver}
-                        isStatic={this.isStatic}
                     />
                 )}
             </>

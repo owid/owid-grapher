@@ -58,7 +58,6 @@ import {
     makeTooltipRoundingNotice,
     makeTooltipToleranceNotice,
 } from "../tooltip/Tooltip"
-import { HorizontalCategoricalColorLegend } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
@@ -85,6 +84,8 @@ import {
     LabelCandidateWithElement,
     MarimekkoBarProps,
 } from "./MarimekkoChartConstants"
+import { HorizontalCategoricalColorLegend } from "../horizontalColorLegend/HorizontalCategoricalColorLegend"
+import { HorizontalCategoricalColorLegendComponent } from "../horizontalColorLegend/HorizontalCategoricalColorLegendComponent"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
@@ -898,7 +899,18 @@ export class MarimekkoChart
         return HorizontalCategoricalColorLegend.height({
             fontSize: this.fontSize,
             legendAlign: this.legendAlign,
-            legendWidth: this.legendWidth,
+            legendMaxWidth: this.legendWidth,
+            categoricalLegendData: this.categoricalLegendData,
+        })
+    }
+
+    @computed get legend(): HorizontalCategoricalColorLegend {
+        return new HorizontalCategoricalColorLegend({
+            fontSize: this.fontSize,
+            legendX: this.legendX,
+            legendAlign: this.legendAlign,
+            categoryLegendY: this.categoryLegendY,
+            legendMaxWidth: this.legendWidth,
             categoricalLegendData: this.categoricalLegendData,
         })
     }
@@ -1055,17 +1067,11 @@ export class MarimekkoChart
                     }
                     detailsMarker={manager.detailsMarkerInSvg}
                 />
-                <HorizontalCategoricalColorLegend
-                    fontSize={this.fontSize}
-                    legendX={this.legendX}
-                    legendAlign={this.legendAlign}
-                    categoryLegendY={this.categoryLegendY}
-                    legendWidth={this.legendWidth}
+                <HorizontalCategoricalColorLegendComponent
+                    legend={this.legend}
                     legendOpacity={this.legendOpacity}
-                    categoricalLegendData={this.categoricalLegendData}
                     onLegendMouseLeave={this.onLegendMouseLeave}
                     onLegendMouseOver={this.onLegendMouseOver}
-                    isStatic={this.isStatic}
                 />
                 {this.renderBars()}
                 {target && (

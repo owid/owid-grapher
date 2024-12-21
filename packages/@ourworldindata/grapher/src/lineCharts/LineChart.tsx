@@ -104,11 +104,6 @@ import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import { darkenColorForLine } from "../color/ColorUtils"
 import {
-    HorizontalCategoricalColorLegendProps,
-    HorizontalNumericColorLegend,
-    HorizontalNumericColorLegendProps,
-} from "../horizontalColorLegend/HorizontalColorLegends"
-import {
     AnnotationsMap,
     getAnnotationsForSeries,
     getAnnotationsMap,
@@ -116,6 +111,12 @@ import {
     getSeriesName,
 } from "./LineChartHelpers"
 import { FocusArray } from "../focus/FocusArray.js"
+import {
+    HorizontalNumericColorLegend,
+    HorizontalNumericColorLegendProps,
+} from "../horizontalColorLegend/HorizontalNumericColorLegend"
+import { HorizontalCategoricalColorLegendProps } from "../horizontalColorLegend/HorizontalCategoricalColorLegend"
+import { HorizontalNumericColorLegendComponent } from "../horizontalColorLegend/HorizontalNumericColorLegendComponent"
 
 const LINE_CHART_CLASS_NAME = "LineChart"
 
@@ -928,7 +929,11 @@ export class LineChart
 
     renderColorLegend(): React.ReactElement | void {
         if (this.hasColorLegend)
-            return <HorizontalNumericColorLegend {...this.colorLegendProps} />
+            return (
+                <HorizontalNumericColorLegendComponent
+                    legend={this.colorLegend}
+                />
+            )
     }
 
     /**
@@ -1154,13 +1159,17 @@ export class LineChart
         return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
     }
 
+    @computed get colorLegend(): HorizontalNumericColorLegend {
+        return new HorizontalNumericColorLegend(this.colorLegendProps)
+    }
+
     @computed get colorLegendHeight(): number {
         return this.hasColorScale && this.manager.showLegend
             ? HorizontalNumericColorLegend.height(this.colorLegendProps)
             : 0
     }
 
-    get colorLegendProps(): HorizontalNumericColorLegendProps {
+    @computed get colorLegendProps(): HorizontalNumericColorLegendProps {
         return {
             fontSize: this.fontSize,
             legendX: this.legendX,

@@ -70,12 +70,13 @@ import {
     OWID_NO_DATA_GRAY,
 } from "../color/ColorConstants"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
+import { BaseType, Selection } from "d3"
+import { TextWrap } from "@ourworldindata/components"
 import {
     HorizontalNumericColorLegend,
     HorizontalNumericColorLegendProps,
-} from "../horizontalColorLegend/HorizontalColorLegends"
-import { BaseType, Selection } from "d3"
-import { TextWrap } from "@ourworldindata/components"
+} from "../horizontalColorLegend/HorizontalNumericColorLegend"
+import { HorizontalNumericColorLegendComponent } from "../horizontalColorLegend/HorizontalNumericColorLegendComponent"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -505,7 +506,9 @@ export class DiscreteBarChart
             <>
                 {this.renderDefs()}
                 {this.showColorLegend && (
-                    <HorizontalNumericColorLegend {...this.legendProps} />
+                    <HorizontalNumericColorLegendComponent
+                        legend={this.legend}
+                    />
                 )}
                 {!this.isLogScale && (
                     <HorizontalAxisZeroLine
@@ -832,6 +835,10 @@ export class DiscreteBarChart
             legendTextColor: this.legendTextColor,
             legendTickSize: this.legendTickSize,
         }
+    }
+
+    @computed private get legend(): HorizontalNumericColorLegend {
+        return new HorizontalNumericColorLegend(this.legendProps)
     }
 
     @computed get projectedDataColorInLegend(): string {

@@ -52,9 +52,10 @@ import {
 import { makeClipPath } from "../chart/ChartUtils"
 import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
 import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
-import { HorizontalCategoricalColorLegend } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { AxisConfig } from "../axis/AxisConfig.js"
+import { HorizontalCategoricalColorLegend } from "../horizontalColorLegend/HorizontalCategoricalColorLegend"
+import { HorizontalCategoricalColorLegendComponent } from "../horizontalColorLegend/HorizontalCategoricalColorLegendComponent"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     id: string
@@ -329,7 +330,18 @@ export class StackedBarChart
         return HorizontalCategoricalColorLegend.height({
             fontSize: this.fontSize,
             legendAlign: this.legendAlign,
-            legendWidth: this.legendWidth,
+            legendMaxWidth: this.legendWidth,
+            categoricalLegendData: this.categoricalLegendData,
+        })
+    }
+
+    @computed get colorLegend(): HorizontalCategoricalColorLegend {
+        return new HorizontalCategoricalColorLegend({
+            fontSize: this.fontSize,
+            legendX: this.legendX,
+            legendAlign: this.legendAlign,
+            categoryLegendY: this.categoryLegendY,
+            legendMaxWidth: this.legendWidth,
             categoricalLegendData: this.categoricalLegendData,
         })
     }
@@ -485,18 +497,15 @@ export class StackedBarChart
             : this.bounds.right - this.sidebarWidth
         const y = this.bounds.top
 
+        const onMouseOver = !isStatic ? this.onLegendMouseOver : undefined
+        const onMouseLeave = !isStatic ? this.onLegendMouseLeave : undefined
+
         return showHorizontalLegend ? (
-            <HorizontalCategoricalColorLegend
-                fontSize={this.fontSize}
-                legendX={this.legendX}
-                legendAlign={this.legendAlign}
-                categoryLegendY={this.categoryLegendY}
-                legendWidth={this.legendWidth}
-                categoricalLegendData={this.categoricalLegendData}
-                onLegendMouseLeave={this.onLegendMouseLeave}
-                onLegendMouseOver={this.onLegendMouseOver}
+            <HorizontalCategoricalColorLegendComponent
+                legend={this.colorLegend}
                 activeColors={this.activeColors}
-                isStatic={this.isStatic}
+                onLegendMouseOver={onMouseOver}
+                onLegendMouseLeave={onMouseLeave}
             />
         ) : (
             <VerticalColorLegendComponent
@@ -504,8 +513,8 @@ export class StackedBarChart
                 x={x}
                 y={y}
                 activeColors={this.activeColors}
-                onMouseOver={!isStatic ? this.onLegendMouseOver : undefined}
-                onMouseLeave={!isStatic ? this.onLegendMouseLeave : undefined}
+                onMouseOver={onMouseOver}
+                onMouseLeave={onMouseLeave}
             />
         )
     }

@@ -7,10 +7,9 @@ import {
 } from "@ourworldindata/types"
 import { ColorScale } from "../color/ColorScale"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import {
-    HorizontalCategoricalColorLegendProps,
-    HorizontalNumericColorLegendProps,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+import { HorizontalCategoricalColorLegendProps } from "../horizontalColorLegend/HorizontalCategoricalColorLegend"
+import { HorizontalNumericColorLegendProps } from "../horizontalColorLegend/HorizontalNumericColorLegend"
+
 // The idea of this interface is to try and start reusing more code across our Chart classes and make it easier
 // for a dev to work on a chart type they haven't touched before if they've worked with another that implements
 // this interface.
