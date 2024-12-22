@@ -7,53 +7,67 @@ import {
 } from "../core/GrapherConstants"
 import { Color } from "@ourworldindata/types"
 
-export interface VerticalColorLegendProps {
-    legendItems: LegendItem[]
-    maxLegendWidth?: number
-    fontSize?: number
-    legendTitle?: string
-}
-
-export interface LegendItem {
-    label?: string
-    minText?: string
-    maxText?: string
+interface Bin {
     color: Color
 }
 
-interface SizedLegendSeries {
+export interface VerticalColorLegendCategoricalBin extends Bin {
+    type: "categorical"
+    label: string
+}
+
+export interface VerticalColorLegendNumericBin extends Bin {
+    type: "numeric"
+    minLabel: string
+    maxLabel: string
+}
+
+export type VerticalColorLegendBin =
+    | VerticalColorLegendCategoricalBin
+    | VerticalColorLegendNumericBin
+
+interface PlacedBin extends Bin {
     textWrap: TextWrap
-    color: Color
     width: number
     height: number
     yOffset: number
 }
 
-export class VerticalColorLegend {
-    rectPadding = 5
-    lineHeight = 5
+export interface VerticalColorLegendProps {
+    bins: VerticalColorLegendBin[]
+    maxWidth?: number
+    fontSize?: number
+    legendTitle?: string
+}
 
-    props: VerticalColorLegendProps
+export class VerticalColorLegend {
+    /** Margin between the swatch and the label */
+    swatchMarginRight = 5
+
+    /** Vertical space between two bins */
+    verticalBinMargin = 5
+
+    private props: VerticalColorLegendProps
     constructor(props: VerticalColorLegendProps) {
         this.props = props
     }
 
-    @computed private get maxLegendWidth(): number {
-        return this.props.maxLegendWidth ?? 100
+    @computed private get maxWidth(): number {
+        return this.props.maxWidth ?? 100
     }
 
     @computed private get fontSize(): number {
         return GRAPHER_FONT_SCALE_11_2 * (this.props.fontSize ?? BASE_FONT_SIZE)
     }
 
-    @computed get rectSize(): number {
+    @computed get swatchSize(): number {
         return Math.round(this.fontSize / 1.4)
     }
 
     @computed get title(): TextWrap | undefined {
         if (!this.props.legendTitle) return undefined
         return new TextWrap({
-            maxWidth: this.maxLegendWidth,
+            maxWidth: this.maxWidth,
             fontSize: this.fontSize,
             fontWeight: 700,
             lineHeight: 1,
@@ -66,28 +80,35 @@ export class VerticalColorLegend {
         return this.title.height + 5
     }
 
-    @computed get series(): SizedLegendSeries[] {
-        const { fontSize, rectSize, rectPadding, titleHeight, lineHeight } =
-            this
+    @computed get placedBins(): PlacedBin[] {
+        const {
+            fontSize,
+            swatchSize,
+            swatchMarginRight,
+            titleHeight,
+            verticalBinMargin,
+        } = this
 
         let runningYOffset = titleHeight
-        return this.props.legendItems.map((series) => {
-            let label = series.label
-            // infer label for numeric bins
-            if (!label && series.minText && series.maxText) {
-                label = `${series.minText} – ${series.maxText}`
+        return this.props.bins.map((series) => {
+            let label
+            if (series.type === "categorical") {
+                label = series.label
+            } else {
+                // infer label for numeric bins
+                label = `${series.minLabel} – ${series.maxLabel}`
             }
             const textWrap = new TextWrap({
-                maxWidth: this.maxLegendWidth,
+                maxWidth: this.maxWidth,
                 fontSize,
                 lineHeight: 1,
                 text: label ?? "",
             })
-            const width = rectSize + rectPadding + textWrap.width
-            const height = Math.max(textWrap.height, rectSize)
+            const width = swatchSize + swatchMarginRight + textWrap.width
+            const height = Math.max(textWrap.height, swatchSize)
             const yOffset = runningYOffset
 
-            runningYOffset += height + lineHeight
+            runningYOffset += height + verticalBinMargin
 
             return {
                 textWrap,
@@ -100,7 +121,7 @@ export class VerticalColorLegend {
     }
 
     @computed get width(): number {
-        const widths = this.series.map((series) => series.width)
+        const widths = this.placedBins.map((series) => series.width)
         if (this.title) widths.push(this.title.width)
         return max(widths) ?? 0
     }
@@ -108,8 +129,8 @@ export class VerticalColorLegend {
     @computed get height(): number {
         return (
             this.titleHeight +
-            sum(this.series.map((series) => series.height)) +
-            this.lineHeight * this.series.length
+            sum(this.placedBins.map((series) => series.height)) +
+            this.verticalBinMargin * this.placedBins.length
         )
     }
 }

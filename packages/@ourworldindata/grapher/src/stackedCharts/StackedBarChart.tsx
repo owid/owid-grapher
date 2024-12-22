@@ -18,7 +18,7 @@ import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     VerticalColorLegend,
-    LegendItem,
+    VerticalColorLegendCategoricalBin,
 } from "../verticalColorLegend/VerticalColorLegend"
 import { VerticalColorLegendComponent } from "../verticalColorLegend/VerticalColorLegendComponent"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
@@ -259,12 +259,12 @@ export class StackedBarChart
         )
     }
 
-    // used by <VerticalColorLegend />
-    @computed get legendItems(): (LegendItem &
-        Required<Pick<LegendItem, "label">>)[] {
+    @computed
+    get verticalColorLegendBins(): VerticalColorLegendCategoricalBin[] {
         return this.series
             .map((series) => {
                 return {
+                    type: "categorical" as const,
                     label: series.seriesName,
                     color: series.color,
                 }
@@ -274,7 +274,7 @@ export class StackedBarChart
 
     // used by <HorizontalCategoricalColorLegend />
     @computed get categoricalLegendData(): CategoricalBin[] {
-        return this.legendItems.map(
+        return this.verticalColorLegendBins.map(
             (legendItem, index) =>
                 new CategoricalBin({
                     index,
@@ -320,9 +320,11 @@ export class StackedBarChart
 
     @computed private get verticalColorLegend(): VerticalColorLegend {
         return new VerticalColorLegend({
-            maxLegendWidth: this.maxLegendWidth,
+            bins: this.verticalColorLegendBins,
+            maxWidth: this.showHorizontalLegend
+                ? this.bounds.width
+                : this.sidebarMaxWidth,
             fontSize: this.fontSize,
-            legendItems: this.legendItems,
         })
     }
 
@@ -477,20 +479,21 @@ export class StackedBarChart
 
         if (!showLegend) return
 
+        const x = this.showHorizontalLegend
+            ? this.bounds.left
+            : this.bounds.right - this.sidebarWidth
+        const y = this.bounds.top
+
         return showHorizontalLegend ? (
             <HorizontalCategoricalColorLegend manager={this} />
         ) : (
             <VerticalColorLegendComponent
                 legend={this.verticalColorLegend}
-                x={this.legendX}
-                y={this.legendY}
+                x={x}
+                y={y}
                 activeColors={this.activeColors}
-                onLegendMouseOver={
-                    !isStatic ? this.onLegendMouseOver : undefined
-                }
-                onLegendMouseLeave={
-                    !isStatic ? this.onLegendMouseLeave : undefined
-                }
+                onMouseOver={!isStatic ? this.onLegendMouseOver : undefined}
+                onMouseLeave={!isStatic ? this.onLegendMouseLeave : undefined}
             />
         )
     }

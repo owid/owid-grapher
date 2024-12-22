@@ -3,27 +3,34 @@ import React from "react"
 import { Color, makeIdForHumanConsumption } from "@ourworldindata/utils"
 import { VerticalColorLegend } from "./VerticalColorLegend"
 
+interface VerticalColorLegendComponentProps {
+    legend: VerticalColorLegend
+
+    // positioning
+    x?: number
+    y?: number
+
+    // state
+    activeColors?: Color[] // inactive colors are grayed out
+    focusColors?: Color[] // focused colors are bolded
+
+    // interaction
+    onClick?: (color: string) => void
+    onMouseOver?: (color: string) => void
+    onMouseLeave?: () => void
+}
+
 export function VerticalColorLegendComponent({
     legend,
     x = 0,
     y = 0,
     activeColors,
     focusColors,
-    onLegendClick,
-    onLegendMouseOver,
-    onLegendMouseLeave,
-}: {
-    legend: VerticalColorLegend
-    x?: number
-    y?: number
-    activeColors?: Color[] // inactive colors are grayed out
-    focusColors?: Color[] // focused colors are bolded
-    onLegendClick?: (color: string) => void
-    onLegendMouseOver?: (color: string) => void
-    onLegendMouseLeave?: () => void
-}): React.ReactElement {
-    const isInteractive =
-        onLegendClick || onLegendMouseOver || onLegendMouseLeave
+    onClick,
+    onMouseOver,
+    onMouseLeave,
+}: VerticalColorLegendComponentProps): React.ReactElement {
+    const isInteractive = onClick || onMouseOver || onMouseLeave
 
     return (
         <g
@@ -37,15 +44,15 @@ export function VerticalColorLegendComponent({
                     },
                 })}
             <Labels legend={legend} x={x} y={y} focusColors={focusColors} />
-            <Swatches x={x} y={y} legend={legend} activeColors={activeColors} />
+            <Swatches legend={legend} x={x} y={y} activeColors={activeColors} />
             {isInteractive && (
                 <InteractiveElement
+                    legend={legend}
                     x={x}
                     y={y}
-                    legend={legend}
-                    onLegendClick={onLegendClick}
-                    onLegendMouseOver={onLegendMouseOver}
-                    onLegendMouseLeave={onLegendMouseLeave}
+                    onClick={onClick}
+                    onMouseOver={onMouseOver}
+                    onMouseLeave={onMouseLeave}
                 />
             )}
         </g>
@@ -65,10 +72,10 @@ function Labels({
 }): React.ReactElement {
     return (
         <g id={makeIdForHumanConsumption("labels")}>
-            {legend.series.map((series) => {
+            {legend.placedBins.map((series) => {
                 const isFocus = focusColors?.includes(series.color) ?? false
 
-                const textX = x + legend.rectSize + legend.rectPadding
+                const textX = x + legend.swatchSize + legend.swatchMarginRight
                 const textY = y + series.yOffset
 
                 return (
@@ -104,10 +111,10 @@ function Swatches({
 }): React.ReactElement {
     return (
         <g>
-            {legend.series.map((series) => {
+            {legend.placedBins.map((series) => {
                 const isActive = activeColors?.includes(series.color)
 
-                const textX = x + legend.rectSize + legend.rectPadding
+                const textX = x + legend.swatchSize + legend.swatchMarginRight
                 const textY = y + series.yOffset
 
                 const renderedTextPosition =
@@ -118,9 +125,9 @@ function Swatches({
                         id={makeIdForHumanConsumption(series.textWrap.text)}
                         key={series.textWrap.text}
                         x={x}
-                        y={renderedTextPosition[1] - legend.rectSize}
-                        width={legend.rectSize}
-                        height={legend.rectSize}
+                        y={renderedTextPosition[1] - legend.swatchSize}
+                        width={legend.swatchSize}
+                        height={legend.swatchSize}
                         fill={isActive ? series.color : "#ccc"}
                     />
                 )
@@ -133,26 +140,26 @@ function InteractiveElement({
     x,
     y,
     legend,
-    onLegendClick,
-    onLegendMouseOver,
-    onLegendMouseLeave,
+    onClick,
+    onMouseOver,
+    onMouseLeave,
 }: {
     x: number
     y: number
     legend: VerticalColorLegend
-    onLegendClick?: (color: string) => void
-    onLegendMouseOver?: (color: string) => void
-    onLegendMouseLeave?: () => void
+    onClick?: (color: string) => void
+    onMouseOver?: (color: string) => void
+    onMouseLeave?: () => void
 }): React.ReactElement {
     return (
         <g>
-            {legend.series.map((series) => {
-                const mouseOver = onLegendMouseOver
-                    ? (): void => onLegendMouseOver(series.color)
+            {legend.placedBins.map((series) => {
+                const mouseOver = onMouseOver
+                    ? (): void => onMouseOver(series.color)
                     : undefined
-                const mouseLeave = onLegendMouseLeave
-                const click = onLegendClick
-                    ? (): void => onLegendClick(series.color)
+                const mouseLeave = onMouseLeave
+                const click = onClick
+                    ? (): void => onClick(series.color)
                     : undefined
 
                 const cursor = click ? "pointer" : "default"
@@ -168,9 +175,13 @@ function InteractiveElement({
                     >
                         <rect
                             x={x}
-                            y={y + series.yOffset - legend.lineHeight / 2}
+                            y={
+                                y +
+                                series.yOffset -
+                                legend.verticalBinMargin / 2
+                            }
                             width={series.width}
-                            height={series.height + legend.lineHeight}
+                            height={series.height + legend.verticalBinMargin}
                             fill="#fff"
                             fillOpacity={0}
                         />

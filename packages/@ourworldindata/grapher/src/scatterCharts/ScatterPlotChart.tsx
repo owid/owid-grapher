@@ -61,7 +61,10 @@ import {
     ConnectedScatterLegend,
     ConnectedScatterLegendManager,
 } from "./ConnectedScatterLegend"
-import { VerticalColorLegend } from "../verticalColorLegend/VerticalColorLegend"
+import {
+    VerticalColorLegend,
+    VerticalColorLegendBin,
+} from "../verticalColorLegend/VerticalColorLegend"
 import { VerticalColorLegendComponent } from "../verticalColorLegend/VerticalColorLegendComponent"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
@@ -95,7 +98,7 @@ import {
     ColorScaleConfigDefaults,
 } from "../color/ColorScaleConfig"
 import { SelectionArray } from "../selection/SelectionArray"
-import { ColorScaleBin } from "../color/ColorScaleBin"
+import { CategoricalBin } from "../color/ColorScaleBin"
 import {
     ScatterSizeLegend,
     ScatterSizeLegendManager,
@@ -509,15 +512,11 @@ export class ScatterPlotChart
 
     @computed private get verticalColorLegend(): VerticalColorLegend {
         return new VerticalColorLegend({
-            maxLegendWidth: this.maxLegendWidth,
+            bins: this.verticalColorLegendBins,
+            maxWidth: this.sidebarMaxWidth,
+            legendTitle: this.colorScale.legendDescription,
             fontSize: this.fontSize,
-            legendItems: this.legendItems,
-            legendTitle: this.legendTitle,
         })
-    }
-
-    @computed get maxLegendWidth(): number {
-        return this.sidebarMaxWidth
     }
 
     @computed private get sidebarMinWidth(): number {
@@ -687,16 +686,27 @@ export class ScatterPlotChart
         return this.transformedTable.get(this.colorColumnSlug)
     }
 
-    @computed get legendItems(): ColorScaleBin[] {
-        return this.colorScale.legendBins.filter(
+    @computed get verticalColorLegendBins(): VerticalColorLegendBin[] {
+        const bins = this.colorScale.legendBins.filter(
             (bin) =>
                 this.colorsInUse.includes(bin.color) &&
                 bin.label !== NO_DATA_LABEL
         )
-    }
 
-    @computed get legendTitle(): string | undefined {
-        return this.colorScale.legendDescription
+        return bins.map((bin) =>
+            bin instanceof CategoricalBin
+                ? {
+                      type: "categorical",
+                      color: bin.color,
+                      label: bin.label ?? "",
+                  }
+                : {
+                      type: "numeric",
+                      color: bin.color,
+                      minLabel: bin.minText,
+                      maxLabel: bin.maxText,
+                  }
+        )
     }
 
     @computed get sizeScale(): ScaleLinear<number, number> {
@@ -767,7 +777,7 @@ export class ScatterPlotChart
             verticalColorLegend,
         } = this
 
-        const hasLegendItems = this.legendItems.length > 0
+        const hasLegendItems = this.verticalColorLegendBins.length > 0
         const verticalLegendHeight = hasLegendItems
             ? verticalColorLegend.height
             : 0
@@ -789,7 +799,7 @@ export class ScatterPlotChart
             (arrowLegendHeight > 0 ? legendPadding : 0)
 
         const noDataSectionBounds = new Bounds(
-            this.legendX,
+            this.verticalColorLegendX,
             yNoDataSection,
             sidebarWidth,
             bounds.height - yNoDataSection
@@ -798,7 +808,7 @@ export class ScatterPlotChart
         const separatorLine = (y: number): React.ReactElement | null =>
             y > bounds.top ? (
                 <line
-                    x1={this.legendX}
+                    x1={this.verticalColorLegendX}
                     y1={y - 0.5 * legendPadding}
                     x2={bounds.right}
                     y2={y - 0.5 * legendPadding}
@@ -832,18 +842,21 @@ export class ScatterPlotChart
                 {this.points}
                 <VerticalColorLegendComponent
                     legend={this.verticalColorLegend}
-                    x={this.legendX}
-                    y={this.legendY}
+                    x={this.verticalColorLegendX}
+                    y={this.verticalColorLegendY}
                     activeColors={this.activeColors}
                     focusColors={this.focusColors}
-                    onLegendMouseOver={this.onLegendMouseOver}
-                    onLegendMouseLeave={this.onLegendMouseLeave}
-                    onLegendClick={this.onLegendClick}
+                    onMouseOver={this.onLegendMouseOver}
+                    onMouseLeave={this.onLegendMouseLeave}
+                    onClick={this.onLegendClick}
                 />
                 {sizeLegend && (
                     <>
                         {separatorLine(ySizeLegend)}
-                        {sizeLegend.render(this.legendX, ySizeLegend)}
+                        {sizeLegend.render(
+                            this.verticalColorLegendX,
+                            ySizeLegend
+                        )}
                     </>
                 )}
                 {arrowLegend && (
@@ -853,7 +866,10 @@ export class ScatterPlotChart
                             className="clickable"
                             onClick={this.onToggleEndpoints}
                         >
-                            {arrowLegend.render(this.legendX, yArrowLegend)}
+                            {arrowLegend.render(
+                                this.verticalColorLegendX,
+                                yArrowLegend
+                            )}
                         </g>
                     </>
                 )}
@@ -999,11 +1015,11 @@ export class ScatterPlotChart
         )
     }
 
-    @computed get legendY(): number {
+    @computed get verticalColorLegendY(): number {
         return this.bounds.top
     }
 
-    @computed get legendX(): number {
+    @computed get verticalColorLegendX(): number {
         return this.bounds.right - this.sidebarWidth
     }
 

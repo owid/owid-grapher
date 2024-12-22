@@ -11,26 +11,30 @@ export default {
 }
 
 const props: VerticalColorLegendProps = {
-    maxLegendWidth: 500,
+    maxWidth: 500,
     legendTitle: "Legend Title",
-    legendItems: [
+    bins: [
         {
+            type: "categorical",
             label: "Canada",
             color: "red",
         },
         {
+            type: "categorical",
             label: "Mexico",
             color: "green",
         },
     ],
-    activeColors: ["red", "green"],
 }
 
 export const CategoricalBins = (): React.ReactElement => {
     const verticalColorLegend = new VerticalColorLegend(props)
     return (
         <svg width={600} height={400}>
-            <VerticalColorLegendComponent legend={verticalColorLegend} />
+            <VerticalColorLegendComponent
+                legend={verticalColorLegend}
+                activeColors={["red", "green"]}
+            />
         </svg>
     )
 }
