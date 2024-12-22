@@ -19,6 +19,9 @@ import {
     Tippy,
     excludeUndefined,
     intersection,
+    getUserNavigatorLanguagesNonEnglish,
+    getRegionAlternativeNames,
+    uniqBy,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -81,9 +84,19 @@ interface SortConfig {
 
 type SearchableEntity = {
     name: string
+    // TODO: Add `regionIfApplicable: Region` property, should be useful
+    alternativeNames?: string[] | undefined
     local?: boolean
     isWorld?: boolean
-} & Record<ColumnSlug, CoreValueType | undefined>
+
+    // TODO test that this still works?
+    sortColumnValues: Record<ColumnSlug, CoreValueType | undefined>
+}
+
+// TODO get rid of this
+type SearchableEntityForFuzzy = SearchableEntity & {
+    nameForFuzzy: string
+}
 
 interface PartitionedEntities {
     selected: SearchableEntity[]
@@ -442,10 +455,13 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get availableEntities(): SearchableEntity[] {
+        const langs = getUserNavigatorLanguagesNonEnglish()
         return this.availableEntityNames.map((entityName) => {
             const searchableEntity: SearchableEntity = {
                 name: entityName,
+                alternativeNames: getRegionAlternativeNames(entityName, langs),
                 isWorld: entityName === "World",
+                sortColumnValues: {},
             }
 
             if (this.localEntityNames) {
@@ -455,7 +471,7 @@ export class EntitySelector extends React.Component<{
 
             for (const column of this.sortColumns) {
                 const rows = column.owidRowsByEntityName.get(entityName) ?? []
-                searchableEntity[column.slug] = maxBy(
+                searchableEntity.sortColumnValues[column.slug] = maxBy(
                     rows,
                     (row) => row.originalTime
                 )?.value
@@ -520,11 +536,12 @@ export class EntitySelector extends React.Component<{
         const [withValues, withoutValues] = partition(
             entities,
             (entity: SearchableEntity) =>
-                isFiniteWithGuard(entity[sortConfig.slug])
+                isFiniteWithGuard(entity.sortColumnValues[sortConfig.slug])
         )
         const sortedEntitiesWithValues = orderBy(
             withValues,
-            (entity: SearchableEntity) => entity[sortConfig.slug],
+            (entity: SearchableEntity) =>
+                entity.sortColumnValues[sortConfig.slug],
             sortConfig.order
         )
         const sortedEntitiesWithoutValues = orderBy(
@@ -544,13 +561,38 @@ export class EntitySelector extends React.Component<{
         return !this.manager.canChangeEntity
     }
 
-    @computed get fuzzy(): FuzzySearch<SearchableEntity> {
-        return new FuzzySearch(this.sortedAvailableEntities, "name")
+    // TODO This is super duper hacky, but currently fuzzy only supports a single key for each entry :(
+    // TODO So, need to rework FuzzySearch to support multiple keys
+    @computed
+    get sortedAvailableEntitiesPreparedForFuzzy(): SearchableEntityForFuzzy[] {
+        const entities = this.sortedAvailableEntities.map((entity) => ({
+            ...entity,
+            nameForFuzzy: entity.name,
+        }))
+        entities.forEach((entity) => {
+            entity.alternativeNames?.forEach((name) => {
+                entities.push({
+                    ...entity,
+                    nameForFuzzy: name,
+                })
+            })
+        })
+        return entities
+    }
+
+    @computed get fuzzy(): FuzzySearch<SearchableEntityForFuzzy> {
+        return new FuzzySearch(
+            this.sortedAvailableEntitiesPreparedForFuzzy,
+            "nameForFuzzy"
+        )
     }
 
     @computed get searchResults(): SearchableEntity[] | undefined {
         if (!this.searchInput) return undefined
-        return this.fuzzy.search(this.searchInput)
+        return uniqBy(
+            this.fuzzy.search(this.searchInput),
+            (entity) => entity.name
+        )
     }
 
     @computed get partitionedSearchResults(): PartitionedEntities | undefined {
@@ -849,7 +891,7 @@ export class EntitySelector extends React.Component<{
 
         if (!displayColumn) return undefined
 
-        const value = entity[displayColumn.slug]
+        const value = entity.sortColumnValues[displayColumn.slug]
 
         if (!isFiniteWithGuard(value)) return { formattedValue: "No data" }
 
