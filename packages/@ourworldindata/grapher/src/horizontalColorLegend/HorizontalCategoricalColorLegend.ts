@@ -1,15 +1,16 @@
 import { computed } from "mobx"
 import { max, Bounds, Color, HorizontalAlign } from "@ourworldindata/utils"
 import { CategoricalBin } from "../color/ColorScaleBin"
-import { GRAPHER_FONT_SCALE_12_8 } from "../core/GrapherConstants"
-import { SPACE_BETWEEN_CATEGORICAL_BINS } from "./HorizontalColorLegendConstants"
 import {
-    AbstractHorizontalColorLegend,
-    HorizontalColorLegendProps,
-} from "./AbstractHorizontalColorLegend"
+    BASE_FONT_SIZE,
+    GRAPHER_FONT_SCALE_12_8,
+} from "../core/GrapherConstants"
+import { SPACE_BETWEEN_CATEGORICAL_BINS } from "./HorizontalColorLegendConstants"
 
-export interface HorizontalCategoricalColorLegendProps
-    extends HorizontalColorLegendProps {
+export interface HorizontalCategoricalColorLegendProps {
+    fontSize?: number
+    align?: HorizontalAlign
+    maxWidth?: number
     categoricalLegendData: CategoricalBin[]
     categoricalBinStroke?: Color
     categoryLegendY?: number
@@ -33,9 +34,14 @@ interface MarkLine {
     marks: CategoricalMark[]
 }
 
-export class HorizontalCategoricalColorLegend extends AbstractHorizontalColorLegend<HorizontalCategoricalColorLegendProps> {
+export class HorizontalCategoricalColorLegend {
     rectPadding = 5
     private markPadding = 5
+
+    props: HorizontalCategoricalColorLegendProps
+    constructor(props: HorizontalCategoricalColorLegendProps) {
+        this.props = props
+    }
 
     static height(props: HorizontalCategoricalColorLegendProps): number {
         const legend = new HorizontalCategoricalColorLegend(props)
@@ -52,7 +58,16 @@ export class HorizontalCategoricalColorLegend extends AbstractHorizontalColorLeg
     }
 
     @computed get width(): number {
-        return this.legendMaxWidth ?? 200
+        return this.props.maxWidth ?? 200
+    }
+
+    @computed private get fontSize(): number {
+        return this.props.fontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed protected get align(): HorizontalAlign {
+        // Assume center alignment if none specified, for backwards-compatibility
+        return this.props.align ?? HorizontalAlign.center
     }
 
     @computed private get categoricalLegendData(): CategoricalBin[] {
@@ -129,7 +144,7 @@ export class HorizontalCategoricalColorLegend extends AbstractHorizontalColorLeg
 
     @computed get marks(): CategoricalMark[] {
         const lines = this.markLines
-        const align = this.legendAlign
+        const align = this.align
         const width = this.containerWidth
 
         // Center each line

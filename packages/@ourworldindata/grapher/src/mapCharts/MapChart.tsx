@@ -538,10 +538,9 @@ export class MapChart
         return this.hasCategoryLegend
             ? new HorizontalCategoricalColorLegend({
                   fontSize: this.fontSize,
-                  legendX: this.legendX,
-                  legendAlign: this.legendAlign,
+                  align: this.legendAlign,
                   categoryLegendY: this.categoryLegendY,
-                  legendMaxWidth: this.legendMaxWidth,
+                  maxWidth: this.legendMaxWidth,
                   categoricalLegendData: this.categoricalLegendData,
                   categoricalBinStroke: this.categoricalBinStroke,
               })
@@ -554,10 +553,10 @@ export class MapChart
         return this.hasNumericLegend
             ? new HorizontalNumericColorLegend({
                   fontSize: this.fontSize,
-                  legendX: this.legendX,
-                  legendAlign: this.legendAlign,
+                  x: this.legendX,
+                  align: this.legendAlign,
                   numericLegendY: this.numericLegendY,
-                  legendMaxWidth: this.legendMaxWidth,
+                  maxWidth: this.legendMaxWidth,
                   numericLegendData: this.numericLegendData,
                   numericFocusBracket: this.numericFocusBracket,
                   equalSizeBins: this.equalSizeBins,
@@ -569,8 +568,8 @@ export class MapChart
         return this.hasCategoryLegend
             ? HorizontalCategoricalColorLegend.height({
                   fontSize: this.fontSize,
-                  legendAlign: this.legendAlign,
-                  legendMaxWidth: this.legendMaxWidth,
+                  align: this.legendAlign,
+                  maxWidth: this.legendMaxWidth,
                   categoricalLegendData: this.categoricalLegendData,
               }) + 5
             : 0
@@ -580,7 +579,7 @@ export class MapChart
         return this.hasCategoryLegend
             ? HorizontalCategoricalColorLegend.numLines({
                   fontSize: this.fontSize,
-                  legendMaxWidth: this.legendMaxWidth,
+                  maxWidth: this.legendMaxWidth,
                   categoricalLegendData: this.categoricalLegendData,
               })
             : 0
@@ -590,9 +589,9 @@ export class MapChart
         return this.hasNumericLegend
             ? HorizontalNumericColorLegend.height({
                   fontSize: this.fontSize,
-                  legendX: this.legendX,
-                  legendAlign: this.legendAlign,
-                  legendMaxWidth: this.legendMaxWidth,
+                  x: this.legendX,
+                  align: this.legendAlign,
+                  maxWidth: this.legendMaxWidth,
                   numericLegendData: this.numericLegendData,
                   equalSizeBins: this.equalSizeBins,
               })
@@ -654,6 +653,7 @@ export class MapChart
                 {this.categoryLegend && (
                     <HorizontalCategoricalColorLegendComponent
                         legend={this.categoryLegend}
+                        x={this.legendX}
                         onLegendMouseLeave={this.onLegendMouseLeave}
                         onLegendMouseOver={this.onLegendMouseOver}
                     />

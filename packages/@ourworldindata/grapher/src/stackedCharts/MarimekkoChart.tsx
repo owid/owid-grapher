@@ -898,8 +898,8 @@ export class MarimekkoChart
     @computed private get legendHeight(): number {
         return HorizontalCategoricalColorLegend.height({
             fontSize: this.fontSize,
-            legendAlign: this.legendAlign,
-            legendMaxWidth: this.legendWidth,
+            align: this.legendAlign,
+            maxWidth: this.legendWidth,
             categoricalLegendData: this.categoricalLegendData,
         })
     }
@@ -907,10 +907,9 @@ export class MarimekkoChart
     @computed get legend(): HorizontalCategoricalColorLegend {
         return new HorizontalCategoricalColorLegend({
             fontSize: this.fontSize,
-            legendX: this.legendX,
-            legendAlign: this.legendAlign,
+            align: this.legendAlign,
             categoryLegendY: this.categoryLegendY,
-            legendMaxWidth: this.legendWidth,
+            maxWidth: this.legendWidth,
             categoricalLegendData: this.categoricalLegendData,
         })
     }
@@ -1069,6 +1068,7 @@ export class MarimekkoChart
                 />
                 <HorizontalCategoricalColorLegendComponent
                     legend={this.legend}
+                    x={this.legendX}
                     legendOpacity={this.legendOpacity}
                     onLegendMouseLeave={this.onLegendMouseLeave}
                     onLegendMouseOver={this.onLegendMouseOver}

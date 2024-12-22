@@ -4,10 +4,6 @@ import {
     ColorScaleBin,
     NumericBin,
 } from "../color/ColorScaleBin"
-import {
-    AbstractHorizontalColorLegend,
-    HorizontalColorLegendProps,
-} from "./AbstractHorizontalColorLegend"
 import { computed } from "mobx"
 import {
     CATEGORICAL_BIN_MIN_WIDTH,
@@ -19,14 +15,18 @@ import {
     MINIMUM_LABEL_DISTANCE,
 } from "./HorizontalColorLegendConstants"
 import {
+    BASE_FONT_SIZE,
     GRAPHER_FONT_SCALE_12,
     GRAPHER_FONT_SCALE_14,
 } from "../core/GrapherConstants"
 import { Bounds, last, max, min, sum } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 
-export interface HorizontalNumericColorLegendProps
-    extends HorizontalColorLegendProps {
+export interface HorizontalNumericColorLegendProps {
+    fontSize?: number
+    x?: number
+    align?: HorizontalAlign
+    maxWidth?: number
     numericLegendData: ColorScaleBin[]
     numericBinSize?: number
     numericBinStroke?: Color
@@ -55,7 +55,12 @@ export interface PositionedBin {
     bin: ColorScaleBin
 }
 
-export class HorizontalNumericColorLegend extends AbstractHorizontalColorLegend<HorizontalNumericColorLegendProps> {
+export class HorizontalNumericColorLegend {
+    props: HorizontalNumericColorLegendProps
+    constructor(props: HorizontalNumericColorLegendProps) {
+        this.props = props
+    }
+
     static height(props: HorizontalNumericColorLegendProps): number {
         const legend = new HorizontalNumericColorLegend(props)
         return legend.height
@@ -101,6 +106,10 @@ export class HorizontalNumericColorLegend extends AbstractHorizontalColorLegend<
         )
     }
 
+    @computed protected get fontSize(): number {
+        return this.props.fontSize ?? BASE_FONT_SIZE
+    }
+
     @computed private get tickFontSize(): number {
         return GRAPHER_FONT_SCALE_12 * this.fontSize
     }
@@ -122,7 +131,7 @@ export class HorizontalNumericColorLegend extends AbstractHorizontalColorLegend<
     }
 
     @computed private get maxWidth(): number {
-        return this.props.legendMaxWidth ?? this.props.legendWidth ?? 200
+        return this.props.maxWidth ?? this.props.legendWidth ?? 200
     }
 
     private getTickLabelWidth(label: string): number {
@@ -151,7 +160,7 @@ export class HorizontalNumericColorLegend extends AbstractHorizontalColorLegend<
     @computed private get isAutoWidth(): boolean {
         return (
             this.props.legendWidth === undefined &&
-            this.props.legendMaxWidth !== undefined
+            this.props.maxWidth !== undefined
         )
     }
 
@@ -223,14 +232,15 @@ export class HorizontalNumericColorLegend extends AbstractHorizontalColorLegend<
     // Since we calculate the width automatically in some cases (when `isAutoWidth` is true),
     // we need to shift X to align the legend horizontally (`legendAlign`).
     @computed get x(): number {
-        const { width, maxWidth, legendAlign, legendX } = this
+        const { width, maxWidth, x } = this
+        const { align } = this.props
         const widthDiff = maxWidth - width
-        if (legendAlign === HorizontalAlign.center) {
-            return legendX + widthDiff / 2
-        } else if (legendAlign === HorizontalAlign.right) {
-            return legendX + widthDiff
+        if (align === HorizontalAlign.center) {
+            return x + widthDiff / 2
+        } else if (align === HorizontalAlign.right) {
+            return x + widthDiff
         } else {
-            return legendX // left align
+            return x // left align
         }
     }
 

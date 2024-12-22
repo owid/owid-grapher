@@ -67,7 +67,6 @@ import {
     HorizontalNumericColorLegend,
     HorizontalNumericColorLegendProps,
 } from "../horizontalColorLegend/HorizontalNumericColorLegend"
-import { HorizontalColorLegendProps } from "../horizontalColorLegend/AbstractHorizontalColorLegend"
 import { HorizontalNumericColorLegendComponent } from "../horizontalColorLegend/HorizontalNumericColorLegendComponent"
 import { HorizontalCategoricalColorLegendComponent } from "../horizontalColorLegend/HorizontalCategoricalColorLegendComponent"
 
@@ -668,12 +667,13 @@ export class FacetChart
 
     // legend props
 
-    @computed private get commonLegendProps(): HorizontalColorLegendProps {
+    @computed
+    private get commonLegendProps(): ExternalLegendProps {
         return {
             fontSize: this.fontSize,
-            legendX: this.bounds.x,
-            legendMaxWidth: this.bounds.width,
-            legendAlign: HorizontalAlign.left,
+            x: this.bounds.x,
+            maxWidth: this.bounds.width,
+            align: HorizontalAlign.left,
         }
     }
 

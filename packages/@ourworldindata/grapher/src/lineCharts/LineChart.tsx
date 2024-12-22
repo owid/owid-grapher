@@ -1172,9 +1172,9 @@ export class LineChart
     @computed get colorLegendProps(): HorizontalNumericColorLegendProps {
         return {
             fontSize: this.fontSize,
-            legendX: this.legendX,
-            legendAlign: this.legendAlign,
-            legendMaxWidth: this.legendMaxWidth,
+            x: this.legendX,
+            align: this.legendAlign,
+            maxWidth: this.legendMaxWidth,
             numericLegendData: this.numericLegendData,
             numericBinSize: this.numericBinSize,
             numericBinStroke: this.numericBinStroke,

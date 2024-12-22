@@ -12,6 +12,7 @@ import { ColorScaleBin } from "../color/ColorScaleBin"
 
 interface HorizontalCategoricalColorLegendProps {
     legend: HorizontalCategoricalColorLegend
+    x?: number
     legendOpacity?: number
     onLegendMouseLeave?: () => void
     onLegendMouseOver?: (d: ColorScaleBin) => void
@@ -25,6 +26,7 @@ interface HorizontalCategoricalColorLegendProps {
 export function HorizontalCategoricalColorLegendComponent({
     legend,
     legendOpacity,
+    x = 0,
     onLegendClick,
     onLegendMouseOver,
     onLegendMouseLeave,
@@ -42,17 +44,20 @@ export function HorizontalCategoricalColorLegendComponent({
         >
             <Swatches
                 legend={legend}
+                x={x}
                 activeColors={activeColors}
                 hoverColors={hoverColors}
                 legendOpacity={legendOpacity}
             />
             <Labels
                 legend={legend}
+                x={x}
                 focusColors={focusColors}
                 hoverColors={hoverColors}
             />
             {isInteractive && (
                 <InteractiveElements
+                    x={x}
                     legend={legend}
                     onLegendClick={onLegendClick}
                     onLegendMouseOver={onLegendMouseOver}
@@ -64,10 +69,12 @@ export function HorizontalCategoricalColorLegendComponent({
 }
 
 function Labels({
+    x,
     legend,
     focusColors,
     hoverColors = [],
 }: {
+    x: number
     legend: HorizontalCategoricalColorLegend
     focusColors?: string[] // focused colors are bolded
     hoverColors?: string[] // non-hovered colors are muted
@@ -85,7 +92,7 @@ function Labels({
                 return (
                     <text
                         key={`${mark.label}-${index}`}
-                        x={legend.legendX + mark.label.bounds.x}
+                        x={x + mark.label.bounds.x}
                         y={legend.categoryLegendY + mark.label.bounds.y}
                         // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
                         // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
@@ -105,11 +112,13 @@ function Labels({
 
 function Swatches({
     legend,
+    x,
     activeColors,
     hoverColors = [],
     legendOpacity,
 }: {
     legend: HorizontalCategoricalColorLegend
+    x: number
     activeColors?: string[] // inactive colors are grayed out
     hoverColors?: string[] // non-hovered colors are muted
     legendOpacity?: number
@@ -143,7 +152,7 @@ function Swatches({
                     <rect
                         id={makeIdForHumanConsumption(mark.label.text)}
                         key={`${mark.label}-${index}`}
-                        x={legend.legendX + mark.x}
+                        x={x + mark.x}
                         y={legend.categoryLegendY + mark.y}
                         width={mark.rectSize}
                         height={mark.rectSize}
@@ -160,11 +169,13 @@ function Swatches({
 
 function InteractiveElements({
     legend,
+    x,
     onLegendClick,
     onLegendMouseOver,
     onLegendMouseLeave,
 }: {
     legend: HorizontalCategoricalColorLegend
+    x: number
     onLegendMouseLeave?: () => void
     onLegendMouseOver?: (d: ColorScaleBin) => void
     onLegendClick?: (d: ColorScaleBin) => void
@@ -194,7 +205,7 @@ function InteractiveElements({
                     >
                         {/* for hover interaction */}
                         <rect
-                            x={legend.legendX + mark.x}
+                            x={x + mark.x}
                             y={
                                 legend.categoryLegendY +
                                 mark.y -
