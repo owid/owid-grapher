@@ -604,7 +604,7 @@ export class SlopeChart
                         color: series.color,
                     })
             )
-            return { categoricalLegendData }
+            return { categoricalBins: categoricalLegendData }
         }
         return undefined
     }

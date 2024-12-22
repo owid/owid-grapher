@@ -531,7 +531,7 @@ export class StackedDiscreteBarChart
         | undefined {
         if (!this.showLegend) {
             return {
-                categoricalLegendData: this.legendBins,
+                categoricalBins: this.legendBins,
             }
         }
         return undefined
@@ -553,9 +553,8 @@ export class StackedDiscreteBarChart
         return new HorizontalCategoricalColorLegend({
             fontSize: this.fontSize,
             align: this.legendAlign,
-            categoryLegendY: this.categoryLegendY,
             maxWidth: this.legendWidth,
-            categoricalLegendData: this.categoricalLegendData,
+            categoricalBins: this.categoricalLegendData,
         })
     }
 
@@ -564,7 +563,7 @@ export class StackedDiscreteBarChart
             fontSize: this.fontSize,
             align: this.legendAlign,
             maxWidth: this.legendWidth,
-            categoricalLegendData: this.categoricalLegendData,
+            categoricalBins: this.categoricalLegendData,
         })
     }
 
@@ -746,8 +745,9 @@ export class StackedDiscreteBarChart
             <HorizontalCategoricalColorLegendComponent
                 legend={this.legend}
                 x={this.legendX}
-                onLegendMouseLeave={this.onLegendMouseLeave}
-                onLegendMouseOver={this.onLegendMouseOver}
+                y={this.categoryLegendY}
+                onMouseLeave={this.onLegendMouseLeave}
+                onMouseOver={this.onLegendMouseOver}
             />
         )
     }

@@ -508,6 +508,8 @@ export class DiscreteBarChart
                 {this.showColorLegend && (
                     <HorizontalNumericColorLegendComponent
                         legend={this.legend}
+                        binStrokeColor={this.numericBinStroke}
+                        textColor={this.legendTextColor}
                     />
                 )}
                 {!this.isLogScale && (
@@ -826,14 +828,12 @@ export class DiscreteBarChart
             x: this.legendX,
             align: this.legendAlign,
             maxWidth: this.legendMaxWidth,
-            numericLegendData: this.numericLegendData,
-            numericBinSize: this.numericBinSize,
-            numericBinStroke: this.numericBinStroke,
+            numericBins: this.numericLegendData,
+            binSize: this.numericBinSize,
             equalSizeBins: this.equalSizeBins,
-            legendTitle: this.legendTitle,
-            numericLegendY: this.numericLegendY,
-            legendTextColor: this.legendTextColor,
-            legendTickSize: this.legendTickSize,
+            title: this.legendTitle,
+            y: this.numericLegendY,
+            tickSize: this.legendTickSize,
         }
     }
 
@@ -853,7 +853,7 @@ export class DiscreteBarChart
         | undefined {
         if (this.hasColorLegend) {
             return {
-                numericLegendData: this.numericLegendData,
+                numericBins: this.numericLegendData,
             }
         }
         return undefined

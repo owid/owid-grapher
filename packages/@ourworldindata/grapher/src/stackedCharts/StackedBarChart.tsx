@@ -331,7 +331,7 @@ export class StackedBarChart
             fontSize: this.fontSize,
             align: this.legendAlign,
             maxWidth: this.legendWidth,
-            categoricalLegendData: this.categoricalLegendData,
+            categoricalBins: this.categoricalLegendData,
         })
     }
 
@@ -339,9 +339,8 @@ export class StackedBarChart
         return new HorizontalCategoricalColorLegend({
             fontSize: this.fontSize,
             align: this.legendAlign,
-            categoryLegendY: this.categoryLegendY,
             maxWidth: this.legendWidth,
-            categoricalLegendData: this.categoricalLegendData,
+            categoricalBins: this.categoricalLegendData,
         })
     }
 
@@ -503,9 +502,10 @@ export class StackedBarChart
             <HorizontalCategoricalColorLegendComponent
                 legend={this.colorLegend}
                 x={this.legendX}
+                y={this.categoryLegendY}
                 activeColors={this.activeColors}
-                onLegendMouseOver={onMouseOver}
-                onLegendMouseLeave={onMouseLeave}
+                onMouseOver={onMouseOver}
+                onMouseLeave={onMouseLeave}
             />
         ) : (
             <VerticalColorLegendComponent

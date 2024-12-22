@@ -21,14 +21,14 @@ describe(HorizontalNumericColorLegend, () => {
         })
 
         const legend = new HorizontalNumericColorLegend({
-            numericLegendData: [bin],
+            numericBins: [bin],
         })
         expect(legend.height).toBeGreaterThan(0)
     })
 
     it("adds margins between categorical but not numeric bins", () => {
         const legend = new HorizontalNumericColorLegend({
-            numericLegendData: [
+            numericBins: [
                 new CategoricalBin({
                     index: 0,
                     value: "a",
@@ -98,7 +98,7 @@ describe(HorizontalCategoricalColorLegend, () => {
         })
 
         const legend = new HorizontalCategoricalColorLegend({
-            categoricalLegendData: [bin],
+            categoricalBins: [bin],
         })
         expect(legend.height).toBeGreaterThan(0)
     })

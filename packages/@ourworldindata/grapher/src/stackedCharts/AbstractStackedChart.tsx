@@ -451,7 +451,7 @@ export class AbstractStackedChart
                         })
                 )
                 .reverse()
-            return { categoricalLegendData }
+            return { categoricalBins: categoricalLegendData }
         }
         return undefined
     }

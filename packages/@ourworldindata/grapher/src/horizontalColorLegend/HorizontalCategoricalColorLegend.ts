@@ -1,5 +1,5 @@
 import { computed } from "mobx"
-import { max, Bounds, Color, HorizontalAlign } from "@ourworldindata/utils"
+import { max, Bounds, HorizontalAlign } from "@ourworldindata/utils"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import {
     BASE_FONT_SIZE,
@@ -8,18 +8,15 @@ import {
 import { SPACE_BETWEEN_CATEGORICAL_BINS } from "./HorizontalColorLegendConstants"
 
 export interface HorizontalCategoricalColorLegendProps {
-    fontSize?: number
-    align?: HorizontalAlign
+    categoricalBins: CategoricalBin[]
     maxWidth?: number
-    categoricalLegendData: CategoricalBin[]
-    categoricalBinStroke?: Color
-    categoryLegendY?: number
+    align?: HorizontalAlign
+    fontSize?: number
 }
 
 interface CategoricalMark {
     x: number
     y: number
-    rectSize: number
     width: number
     label: {
         text: string
@@ -35,8 +32,11 @@ interface MarkLine {
 }
 
 export class HorizontalCategoricalColorLegend {
-    rectPadding = 5
-    private markPadding = 5
+    /** Margin between the swatch and the label */
+    swatchMarginRight = 5
+
+    /** Horizontal space between two bins */
+    horizontalBinMargin = 5
 
     props: HorizontalCategoricalColorLegendProps
     constructor(props: HorizontalCategoricalColorLegendProps) {
@@ -53,55 +53,53 @@ export class HorizontalCategoricalColorLegend {
         return legend.numLines
     }
 
-    @computed get categoryLegendY(): number {
-        return this.props.categoryLegendY ?? 0
-    }
-
-    @computed get width(): number {
+    @computed private get maxWidth(): number {
         return this.props.maxWidth ?? 200
     }
 
     @computed private get fontSize(): number {
-        return this.props.fontSize ?? BASE_FONT_SIZE
+        return GRAPHER_FONT_SCALE_12_8 * (this.props.fontSize ?? BASE_FONT_SIZE)
     }
 
-    @computed protected get align(): HorizontalAlign {
-        // Assume center alignment if none specified, for backwards-compatibility
+    @computed get swatchSize(): number {
+        return this.fontSize * 0.75
+    }
+
+    @computed private get align(): HorizontalAlign {
         return this.props.align ?? HorizontalAlign.center
     }
 
-    @computed private get categoricalLegendData(): CategoricalBin[] {
-        return this.props.categoricalLegendData ?? []
+    @computed private get bins(): CategoricalBin[] {
+        return this.props.categoricalBins ?? []
     }
 
-    @computed private get visibleCategoricalBins(): CategoricalBin[] {
-        return this.categoricalLegendData.filter((bin) => !bin.isHidden)
+    @computed private get visibleBins(): CategoricalBin[] {
+        return this.bins.filter((bin) => !bin.isHidden)
     }
 
     @computed private get markLines(): MarkLine[] {
-        const fontSize = this.fontSize * GRAPHER_FONT_SCALE_12_8
-        const rectSize = this.fontSize * 0.75
-
         const lines: MarkLine[] = []
         let marks: CategoricalMark[] = []
         let xOffset = 0
         let yOffset = 0
-        this.visibleCategoricalBins.forEach((bin) => {
-            const labelBounds = Bounds.forText(bin.text, { fontSize })
+        this.visibleBins.forEach((bin) => {
+            const labelBounds = Bounds.forText(bin.text, {
+                fontSize: this.fontSize,
+            })
             const markWidth =
-                rectSize +
-                this.rectPadding +
+                this.swatchSize +
+                this.swatchMarginRight +
                 labelBounds.width +
-                this.markPadding
+                this.horizontalBinMargin
 
-            if (xOffset + markWidth > this.width && marks.length > 0) {
+            if (xOffset + markWidth > this.maxWidth && marks.length > 0) {
                 lines.push({
-                    totalWidth: xOffset - this.markPadding,
+                    totalWidth: xOffset - this.horizontalBinMargin,
                     marks: marks,
                 })
                 marks = []
                 xOffset = 0
-                yOffset += rectSize + this.rectPadding
+                yOffset += this.swatchSize + this.swatchMarginRight
             }
 
             const markX = xOffset
@@ -110,17 +108,16 @@ export class HorizontalCategoricalColorLegend {
             const label = {
                 text: bin.text,
                 bounds: labelBounds.set({
-                    x: markX + rectSize + this.rectPadding,
-                    y: markY + rectSize / 2,
+                    x: markX + this.swatchSize + this.swatchMarginRight,
+                    y: markY + this.swatchSize / 2,
                 }),
-                fontSize,
+                fontSize: this.fontSize,
             }
 
             marks.push({
                 x: markX,
                 y: markY,
                 width: markWidth,
-                rectSize,
                 label,
                 bin,
             })
@@ -129,7 +126,10 @@ export class HorizontalCategoricalColorLegend {
         })
 
         if (marks.length > 0)
-            lines.push({ totalWidth: xOffset - this.markPadding, marks: marks })
+            lines.push({
+                totalWidth: xOffset - this.horizontalBinMargin,
+                marks: marks,
+            })
 
         return lines
     }
@@ -139,7 +139,7 @@ export class HorizontalCategoricalColorLegend {
     }
 
     @computed private get containerWidth(): number {
-        return this.width ?? this.contentWidth
+        return this.maxWidth ?? this.contentWidth
     }
 
     @computed get marks(): CategoricalMark[] {
@@ -168,7 +168,7 @@ export class HorizontalCategoricalColorLegend {
     }
 
     @computed get height(): number {
-        return max(this.marks.map((mark) => mark.y + mark.rectSize)) ?? 0
+        return max(this.marks.map((mark) => mark.y + this.swatchSize)) ?? 0
     }
 
     @computed get numLines(): number {

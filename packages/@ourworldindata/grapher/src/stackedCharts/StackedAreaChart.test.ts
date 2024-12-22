@@ -232,6 +232,6 @@ describe("externalLegendBins", () => {
         const chart = new StackedAreaChart({
             manager: { ...baseManager, showLegend: false },
         })
-        expect(chart.externalLegend?.categoricalLegendData?.length).toEqual(2)
+        expect(chart.externalLegend?.categoricalBins?.length).toEqual(2)
     })
 })

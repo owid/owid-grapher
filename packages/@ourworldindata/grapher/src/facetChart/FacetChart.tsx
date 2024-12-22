@@ -607,7 +607,7 @@ export class FacetChart
 
     @computed private get isNumericLegend(): boolean {
         return this.externalLegends.some((legend) =>
-            legend.numericLegendData?.some((bin) => bin instanceof NumericBin)
+            legend.numericBins?.some((bin) => bin instanceof NumericBin)
         )
     }
 
@@ -681,17 +681,12 @@ export class FacetChart
     private get numericLegendProps(): HorizontalNumericColorLegendProps {
         return {
             ...this.commonLegendProps,
-            numericLegendY: this.bounds.top,
-            legendTitle: this.getExternalLegendProp("legendTitle"),
-            legendTextColor: this.getExternalLegendProp("legendTextColor"),
-            legendTickSize: this.getExternalLegendProp("legendTickSize"),
-            numericBinSize: this.getExternalLegendProp("numericBinSize"),
-            numericBinStroke: this.getExternalLegendProp("numericBinStroke"),
-            numericBinStrokeWidth: this.getExternalLegendProp(
-                "numericBinStrokeWidth"
-            ),
+            y: this.bounds.top,
+            title: this.getExternalLegendProp("title"),
+            tickSize: this.getExternalLegendProp("tickSize"),
+            binSize: this.getExternalLegendProp("binSize"),
             equalSizeBins: this.getExternalLegendProp("equalSizeBins"),
-            numericLegendData: this.numericLegendData,
+            numericBins: this.numericLegendData,
         }
     }
 
@@ -699,11 +694,7 @@ export class FacetChart
     private get categoricalLegendProps(): HorizontalCategoricalColorLegendProps {
         return {
             ...this.commonLegendProps,
-            categoryLegendY: this.bounds.top,
-            categoricalBinStroke: this.getExternalLegendProp(
-                "categoricalBinStroke"
-            ),
-            categoricalLegendData: this.categoricalLegendData,
+            categoricalBins: this.categoricalLegendData,
         }
     }
 
@@ -732,8 +723,8 @@ export class FacetChart
         if (!this.isNumericLegend || !this.hideFacetLegends) return []
         const allBins: ColorScaleBin[] = this.externalLegends.flatMap(
             (legend) => [
-                ...(legend.numericLegendData ?? []),
-                ...(legend.categoricalLegendData ?? []),
+                ...(legend.numericBins ?? []),
+                ...(legend.categoricalBins ?? []),
             ]
         )
         const uniqBins = this.getUniqBins(allBins)
@@ -748,8 +739,8 @@ export class FacetChart
         if (this.isNumericLegend || !this.hideFacetLegends) return []
         const allBins: CategoricalBin[] = this.externalLegends
             .flatMap((legend) => [
-                ...(legend.numericLegendData ?? []),
-                ...(legend.categoricalLegendData ?? []),
+                ...(legend.numericBins ?? []),
+                ...(legend.categoricalBins ?? []),
             ])
             .filter((bin) => bin instanceof CategoricalBin) as CategoricalBin[]
         const uniqBins = this.getUniqBins(allBins)
@@ -860,17 +851,20 @@ export class FacetChart
         return this.isNumericLegend ? (
             <HorizontalNumericColorLegendComponent
                 legend={this.numericLegend}
-                onLegendMouseOver={this.onLegendMouseOver}
-                onLegendMouseLeave={this.onLegendMouseLeave}
+                x={this.bounds.x}
+                onMouseOver={this.onLegendMouseOver}
+                onMouseLeave={this.onLegendMouseLeave}
             />
         ) : (
             <HorizontalCategoricalColorLegendComponent
                 legend={this.categoryLegend}
-                onLegendMouseOver={this.onLegendMouseOver}
-                onLegendMouseLeave={this.onLegendMouseLeave}
+                x={this.bounds.x}
+                y={this.bounds.top}
+                onMouseOver={this.onLegendMouseOver}
+                onMouseLeave={this.onLegendMouseLeave}
                 hoverColors={this.hoverColors}
                 activeColors={this.activeColors}
-                onLegendClick={this.onLegendClick}
+                onClick={this.onLegendClick}
             />
         )
     }

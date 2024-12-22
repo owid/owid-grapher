@@ -900,7 +900,7 @@ export class MarimekkoChart
             fontSize: this.fontSize,
             align: this.legendAlign,
             maxWidth: this.legendWidth,
-            categoricalLegendData: this.categoricalLegendData,
+            categoricalBins: this.categoricalLegendData,
         })
     }
 
@@ -908,9 +908,8 @@ export class MarimekkoChart
         return new HorizontalCategoricalColorLegend({
             fontSize: this.fontSize,
             align: this.legendAlign,
-            categoryLegendY: this.categoryLegendY,
             maxWidth: this.legendWidth,
-            categoricalLegendData: this.categoricalLegendData,
+            categoricalBins: this.categoricalLegendData,
         })
     }
 
@@ -1069,9 +1068,10 @@ export class MarimekkoChart
                 <HorizontalCategoricalColorLegendComponent
                     legend={this.legend}
                     x={this.legendX}
-                    legendOpacity={this.legendOpacity}
-                    onLegendMouseLeave={this.onLegendMouseLeave}
-                    onLegendMouseOver={this.onLegendMouseOver}
+                    y={this.categoryLegendY}
+                    opacity={this.legendOpacity}
+                    onMouseLeave={this.onLegendMouseLeave}
+                    onMouseOver={this.onLegendMouseOver}
                 />
                 {this.renderBars()}
                 {target && (

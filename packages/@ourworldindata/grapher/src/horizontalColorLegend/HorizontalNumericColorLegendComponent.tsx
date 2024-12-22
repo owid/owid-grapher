@@ -2,6 +2,7 @@ import React from "react"
 import { HorizontalNumericColorLegend } from "./HorizontalNumericColorLegend"
 import { action, computed } from "mobx"
 import {
+    Color,
     dyFromAlign,
     getRelativeMouse,
     makeIdForHumanConsumption,
@@ -12,15 +13,25 @@ import {
 import { ColorScaleBin, NumericBin } from "../color/ColorScaleBin"
 import { darkenColorForLine } from "../color/ColorUtils"
 import { observer } from "mobx-react"
+import {
+    DEFAULT_NUMERIC_BIN_STROKE,
+    DEFAULT_NUMERIC_BIN_STROKE_WIDTH,
+    DEFAULT_TEXT_COLOR,
+} from "./HorizontalColorLegendConstants"
 
 const FOCUS_BORDER_COLOR = "#111"
 
 @observer
 export class HorizontalNumericColorLegendComponent extends React.Component<{
     legend: HorizontalNumericColorLegend
-    legendOpacity?: number
-    onLegendMouseLeave?: () => void
-    onLegendMouseOver?: (d: ColorScaleBin) => void
+    x?: number
+    focusBin?: ColorScaleBin
+    textColor?: Color
+    binStrokeColor?: Color
+    binStrokeWidth?: number
+    opacity?: number
+    onMouseLeave?: () => void
+    onMouseOver?: (d: ColorScaleBin) => void
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
@@ -28,11 +39,26 @@ export class HorizontalNumericColorLegendComponent extends React.Component<{
         return this.props.legend
     }
 
+    @computed get binStrokeColor(): Color {
+        return this.props.binStrokeColor ?? DEFAULT_NUMERIC_BIN_STROKE
+    }
+
+    @computed get binStrokeWidth(): number {
+        return this.props.binStrokeWidth ?? DEFAULT_NUMERIC_BIN_STROKE_WIDTH
+    }
+
+    @computed get textColor(): Color {
+        return this.props.textColor ?? DEFAULT_TEXT_COLOR
+    }
+
     @action.bound private onMouseMove(ev: MouseEvent | TouchEvent): void {
         const { base } = this
         const { positionedBins } = this.legend
-        const { numericFocusBracket } = this.props.legend.props // TODO
-        const { onLegendMouseLeave, onLegendMouseOver } = this.props
+        const { focusBin } = this.props
+        const {
+            onMouseLeave: onLegendMouseLeave,
+            onMouseOver: onLegendMouseOver,
+        } = this.props
         if (base.current) {
             const mouse = getRelativeMouse(base.current, ev)
 
@@ -45,20 +71,18 @@ export class HorizontalNumericColorLegendComponent extends React.Component<{
 
             // If outside legend bounds, trigger onMouseLeave if there is an existing bin in focus.
             if (!this.legend.bounds.contains(mouse)) {
-                if (numericFocusBracket && onLegendMouseLeave)
-                    return onLegendMouseLeave()
+                if (focusBin && onLegendMouseLeave) return onLegendMouseLeave()
                 return
             }
 
             // If inside legend bounds, trigger onMouseOver with the bin closest to the cursor.
-            let newFocusBracket: ColorScaleBin | undefined
+            let newFocusBin: ColorScaleBin | undefined
             positionedBins.forEach((bin) => {
                 if (mouse.x >= bin.x && mouse.x <= bin.x + bin.width)
-                    newFocusBracket = bin.bin
+                    newFocusBin = bin.bin
             })
 
-            if (newFocusBracket && onLegendMouseOver)
-                onLegendMouseOver(newFocusBracket)
+            if (newFocusBin && onLegendMouseOver) onLegendMouseOver(newFocusBin)
         }
     }
 
@@ -79,14 +103,11 @@ export class HorizontalNumericColorLegendComponent extends React.Component<{
     }
 
     render(): React.ReactElement {
-        const { numericLabels, numericBinSize, positionedBins, height } =
-            this.legend
-        const { numericFocusBracket } = this.legend.props
-        const { legendOpacity } = this.props
+        const { binStrokeColor, binStrokeWidth } = this
+        const { numericLabels, binSize, positionedBins, height } = this.legend
+        const { focusBin, opacity } = this.props
 
-        const stroke = this.legend.numericBinStroke
-        const strokeWidth = this.legend.numericBinStrokeWidth
-        const bottomY = this.legend.numericLegendY + height
+        const bottomY = this.legend.y + height
 
         return (
             <g
@@ -100,17 +121,17 @@ export class HorizontalNumericColorLegendComponent extends React.Component<{
                             key={index}
                             id={makeIdForHumanConsumption(label.text)}
                             x1={label.bounds.x + label.bounds.width / 2}
-                            y1={bottomY - numericBinSize}
+                            y1={bottomY - binSize}
                             x2={label.bounds.x + label.bounds.width / 2}
                             y2={bottomY + label.bounds.y + label.bounds.height}
                             // if we use a light color for stroke (e.g. white), we want it to stay
                             // "invisible", except for raised labels, where we want *some* contrast.
                             stroke={
                                 label.raised
-                                    ? darkenColorForLine(stroke)
-                                    : stroke
+                                    ? darkenColorForLine(binStrokeColor)
+                                    : binStrokeColor
                             }
-                            strokeWidth={strokeWidth}
+                            strokeWidth={binStrokeWidth}
                         />
                     ))}
                 </g>
@@ -118,26 +139,26 @@ export class HorizontalNumericColorLegendComponent extends React.Component<{
                     {sortBy(
                         positionedBins.map((positionedBin, index) => {
                             const bin = positionedBin.bin
-                            const isFocus =
-                                numericFocusBracket &&
-                                bin.equals(numericFocusBracket)
+                            const isFocus = focusBin && bin.equals(focusBin)
                             return (
                                 <NumericBinRect
                                     key={index}
                                     x={positionedBin.x}
-                                    y={bottomY - numericBinSize}
+                                    y={bottomY - binSize}
                                     width={positionedBin.width}
-                                    height={numericBinSize}
+                                    height={binSize}
                                     fill={
                                         bin.patternRef
                                             ? `url(#${bin.patternRef})`
                                             : bin.color
                                     }
-                                    opacity={legendOpacity} // defaults to undefined which removes the prop
+                                    opacity={opacity} // defaults to undefined which removes the prop
                                     stroke={
-                                        isFocus ? FOCUS_BORDER_COLOR : stroke
+                                        isFocus
+                                            ? FOCUS_BORDER_COLOR
+                                            : binStrokeColor
                                     }
-                                    strokeWidth={isFocus ? 2 : strokeWidth}
+                                    strokeWidth={isFocus ? 2 : binStrokeWidth}
                                     isOpenLeft={
                                         bin instanceof NumericBin
                                             ? bin.props.isOpenLeft
@@ -165,7 +186,7 @@ export class HorizontalNumericColorLegendComponent extends React.Component<{
                             // do with some rough positioning.
                             dy={dyFromAlign(VerticalAlign.bottom)}
                             fontSize={label.fontSize}
-                            fill={this.legend.legendTextColor}
+                            fill={this.textColor}
                         >
                             {label.text}
                         </text>
@@ -174,11 +195,11 @@ export class HorizontalNumericColorLegendComponent extends React.Component<{
                 {this.legend.legendTitle?.render(
                     this.legend.x,
                     // Align legend title baseline with bottom of color bins
-                    this.legend.numericLegendY +
+                    this.legend.y +
                         height -
                         this.legend.legendTitle.height +
                         this.legend.legendTitleFontSize * 0.2,
-                    { textProps: { fill: this.legend.legendTextColor } }
+                    { textProps: { fill: this.textColor } }
                 )}
             </g>
         )

@@ -382,8 +382,6 @@ describe("showLegend", () => {
         })
         expect(chart["legendHeight"]).toEqual(0)
         expect(chart["categoricalLegendData"].length).toEqual(0)
-        expect(chart["externalLegend"]?.categoricalLegendData?.length).toEqual(
-            2
-        )
+        expect(chart["externalLegend"]?.categoricalBins?.length).toEqual(2)
     })
 })

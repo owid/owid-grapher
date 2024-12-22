@@ -1,4 +1,4 @@
-import { Color, HorizontalAlign } from "@ourworldindata/types"
+import { HorizontalAlign } from "@ourworldindata/types"
 import {
     CategoricalBin,
     ColorScaleBin,
@@ -8,9 +8,6 @@ import { computed } from "mobx"
 import {
     CATEGORICAL_BIN_MIN_WIDTH,
     DEFAULT_NUMERIC_BIN_SIZE,
-    DEFAULT_NUMERIC_BIN_STROKE,
-    DEFAULT_NUMERIC_BIN_STROKE_WIDTH,
-    DEFAULT_TEXT_COLOR,
     DEFAULT_TICK_SIZE,
     MINIMUM_LABEL_DISTANCE,
 } from "./HorizontalColorLegendConstants"
@@ -23,21 +20,17 @@ import { Bounds, last, max, min, sum } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 
 export interface HorizontalNumericColorLegendProps {
-    fontSize?: number
+    numericBins: ColorScaleBin[]
     x?: number
-    align?: HorizontalAlign
+    y?: number
+    width?: number
     maxWidth?: number
-    numericLegendData: ColorScaleBin[]
-    numericBinSize?: number
-    numericBinStroke?: Color
-    numericBinStrokeWidth?: number
+    align?: HorizontalAlign
+    fontSize?: number
+    binSize?: number
     equalSizeBins?: boolean
-    legendWidth?: number
-    legendTitle?: string
-    numericFocusBracket?: ColorScaleBin
-    numericLegendY?: number
-    legendTextColor?: Color
-    legendTickSize?: number
+    title?: string
+    tickSize?: number
 }
 
 interface NumericLabel {
@@ -66,24 +59,20 @@ export class HorizontalNumericColorLegend {
         return legend.height
     }
 
-    @computed get numericLegendY(): number {
-        return this.props.numericLegendY ?? 0
+    @computed get y(): number {
+        return this.props.y ?? 0
     }
 
-    @computed get legendTextColor(): Color {
-        return this.props.legendTextColor ?? DEFAULT_TEXT_COLOR
+    @computed private get tickSize(): number {
+        return this.props.tickSize ?? DEFAULT_TICK_SIZE
     }
 
-    @computed private get legendTickSize(): number {
-        return this.props.legendTickSize ?? DEFAULT_TICK_SIZE
-    }
-
-    @computed private get numericLegendData(): ColorScaleBin[] {
-        return this.props.numericLegendData ?? []
+    @computed private get bins(): ColorScaleBin[] {
+        return this.props.numericBins ?? []
     }
 
     @computed private get visibleBins(): ColorScaleBin[] {
-        return this.numericLegendData.filter((bin) => !bin.isHidden)
+        return this.bins.filter((bin) => !bin.isHidden)
     }
 
     @computed private get numericBins(): NumericBin[] {
@@ -92,18 +81,8 @@ export class HorizontalNumericColorLegend {
         )
     }
 
-    @computed get numericBinSize(): number {
-        return this.props.numericBinSize ?? DEFAULT_NUMERIC_BIN_SIZE
-    }
-
-    @computed get numericBinStroke(): Color {
-        return this.props.numericBinStroke ?? DEFAULT_NUMERIC_BIN_STROKE
-    }
-
-    @computed get numericBinStrokeWidth(): number {
-        return (
-            this.props.numericBinStrokeWidth ?? DEFAULT_NUMERIC_BIN_STROKE_WIDTH
-        )
+    @computed get binSize(): number {
+        return this.props.binSize ?? DEFAULT_NUMERIC_BIN_SIZE
     }
 
     @computed protected get fontSize(): number {
@@ -131,7 +110,7 @@ export class HorizontalNumericColorLegend {
     }
 
     @computed private get maxWidth(): number {
-        return this.props.maxWidth ?? this.props.legendWidth ?? 200
+        return this.props.maxWidth ?? this.props.width ?? 200
     }
 
     private getTickLabelWidth(label: string): number {
@@ -159,8 +138,7 @@ export class HorizontalNumericColorLegend {
 
     @computed private get isAutoWidth(): boolean {
         return (
-            this.props.legendWidth === undefined &&
-            this.props.maxWidth !== undefined
+            this.props.width === undefined && this.props.maxWidth !== undefined
         )
     }
 
@@ -232,7 +210,8 @@ export class HorizontalNumericColorLegend {
     // Since we calculate the width automatically in some cases (when `isAutoWidth` is true),
     // we need to shift X to align the legend horizontally (`legendAlign`).
     @computed get x(): number {
-        const { width, maxWidth, x } = this
+        const { x = 0 } = this.props
+        const { width, maxWidth } = this
         const { align } = this.props
         const widthDiff = maxWidth - width
         if (align === HorizontalAlign.center) {
@@ -294,7 +273,7 @@ export class HorizontalNumericColorLegend {
     }
 
     @computed get legendTitle(): TextWrap | undefined {
-        const { legendTitle } = this.props
+        const { title: legendTitle } = this.props
         return legendTitle
             ? new TextWrap({
                   text: legendTitle,
@@ -311,7 +290,7 @@ export class HorizontalNumericColorLegend {
     }
 
     @computed get numericLabels(): NumericLabel[] {
-        const { numericBinSize, positionedBins, tickFontSize } = this
+        const { binSize: numericBinSize, positionedBins, tickFontSize } = this
 
         const makeBoundaryLabel = (
             bin: PositionedBin,
@@ -323,7 +302,7 @@ export class HorizontalNumericColorLegend {
                 bin.x +
                 (minOrMax === "min" ? 0 : bin.width) -
                 labelBounds.width / 2
-            const y = -numericBinSize - labelBounds.height - this.legendTickSize
+            const y = -numericBinSize - labelBounds.height - this.tickSize
 
             return {
                 text: text,
@@ -339,7 +318,7 @@ export class HorizontalNumericColorLegend {
                 fontSize: tickFontSize,
             })
             const x = bin.x + bin.width / 2 - labelBounds.width / 2
-            const y = -numericBinSize - labelBounds.height - this.legendTickSize
+            const y = -numericBinSize - labelBounds.height - this.tickSize
 
             return {
                 text: bin.bin.text,
@@ -414,6 +393,6 @@ export class HorizontalNumericColorLegend {
     }
 
     @computed get bounds(): Bounds {
-        return new Bounds(this.x, this.numericLegendY, this.width, this.height)
+        return new Bounds(this.x, this.y, this.width, this.height)
     }
 }

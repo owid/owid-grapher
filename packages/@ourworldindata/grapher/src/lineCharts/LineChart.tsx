@@ -932,6 +932,9 @@ export class LineChart
             return (
                 <HorizontalNumericColorLegendComponent
                     legend={this.colorLegend}
+                    binStrokeColor={this.numericBinStroke}
+                    binStrokeWidth={this.numericBinStrokeWidth}
+                    textColor={this.legendTextColor}
                 />
             )
     }
@@ -1175,15 +1178,12 @@ export class LineChart
             x: this.legendX,
             align: this.legendAlign,
             maxWidth: this.legendMaxWidth,
-            numericLegendData: this.numericLegendData,
-            numericBinSize: this.numericBinSize,
-            numericBinStroke: this.numericBinStroke,
-            numericBinStrokeWidth: this.numericBinStrokeWidth,
+            numericBins: this.numericLegendData,
+            binSize: this.numericBinSize,
             equalSizeBins: this.equalSizeBins,
-            legendTitle: this.legendTitle,
-            numericLegendY: this.numericLegendY,
-            legendTextColor: this.legendTextColor,
-            legendTickSize: this.legendTickSize,
+            title: this.legendTitle,
+            y: this.numericLegendY,
+            tickSize: this.legendTickSize,
         }
     }
 
@@ -1488,8 +1488,8 @@ export class LineChart
     }
 
     @computed get externalLegend():
-        | (HorizontalNumericColorLegendProps &
-              HorizontalCategoricalColorLegendProps)
+        | HorizontalCategoricalColorLegendProps
+        | HorizontalNumericColorLegendProps
         | undefined {
         if (!this.manager.showLegend) {
             const numericLegendData = this.hasColorScale
@@ -1507,15 +1507,12 @@ export class LineChart
                           })
                   )
             return {
-                legendTitle: this.legendTitle,
-                legendTextColor: this.legendTextColor,
-                legendTickSize: this.legendTickSize,
+                categoricalBins: categoricalLegendData,
+                numericBins: numericLegendData,
+                title: this.legendTitle,
+                tickSize: this.legendTickSize,
                 equalSizeBins: this.equalSizeBins,
-                numericBinSize: this.numericBinSize,
-                numericBinStroke: this.numericBinStroke,
-                numericBinStrokeWidth: this.numericBinStrokeWidth,
-                numericLegendData,
-                categoricalLegendData,
+                binSize: this.numericBinSize,
             }
         }
         return undefined

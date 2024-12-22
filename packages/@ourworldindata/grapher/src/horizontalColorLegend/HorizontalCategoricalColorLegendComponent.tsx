@@ -1,6 +1,7 @@
 import React from "react"
 import { HorizontalCategoricalColorLegend } from "./HorizontalCategoricalColorLegend"
 import {
+    Color,
     dyFromAlign,
     makeIdForHumanConsumption,
     VerticalAlign,
@@ -12,30 +13,40 @@ import { ColorScaleBin } from "../color/ColorScaleBin"
 
 interface HorizontalCategoricalColorLegendProps {
     legend: HorizontalCategoricalColorLegend
-    x?: number
-    legendOpacity?: number
-    onLegendMouseLeave?: () => void
-    onLegendMouseOver?: (d: ColorScaleBin) => void
-    onLegendClick?: (d: ColorScaleBin) => void
 
+    // positioning
+    x?: number
+    y?: number
+
+    // presentation
+    opacity?: number
+    swatchStrokeColor?: Color
+
+    // state
     focusColors?: string[] // focused colors are bolded
     hoverColors?: string[] // non-hovered colors are muted
     activeColors?: string[] // inactive colors are grayed out
+
+    // interaction
+    onMouseLeave?: () => void
+    onMouseOver?: (d: ColorScaleBin) => void
+    onClick?: (d: ColorScaleBin) => void
 }
 
 export function HorizontalCategoricalColorLegendComponent({
     legend,
-    legendOpacity,
     x = 0,
-    onLegendClick,
-    onLegendMouseOver,
-    onLegendMouseLeave,
+    y = 0,
+    opacity,
+    swatchStrokeColor,
     focusColors,
     hoverColors,
     activeColors,
+    onClick,
+    onMouseOver,
+    onMouseLeave,
 }: HorizontalCategoricalColorLegendProps): React.ReactElement {
-    const isInteractive =
-        onLegendClick || onLegendMouseOver || onLegendMouseLeave
+    const isInteractive = onClick || onMouseOver || onMouseLeave
 
     return (
         <g
@@ -45,23 +56,27 @@ export function HorizontalCategoricalColorLegendComponent({
             <Swatches
                 legend={legend}
                 x={x}
+                y={y}
+                opacity={opacity}
+                swatchStrokeColor={swatchStrokeColor}
                 activeColors={activeColors}
                 hoverColors={hoverColors}
-                legendOpacity={legendOpacity}
             />
             <Labels
                 legend={legend}
                 x={x}
+                y={y}
                 focusColors={focusColors}
                 hoverColors={hoverColors}
             />
             {isInteractive && (
                 <InteractiveElements
-                    x={x}
                     legend={legend}
-                    onLegendClick={onLegendClick}
-                    onLegendMouseOver={onLegendMouseOver}
-                    onLegendMouseLeave={onLegendMouseLeave}
+                    x={x}
+                    y={y}
+                    onClick={onClick}
+                    onMouseOver={onMouseOver}
+                    onMouseLeave={onMouseLeave}
                 />
             )}
         </g>
@@ -70,11 +85,13 @@ export function HorizontalCategoricalColorLegendComponent({
 
 function Labels({
     x,
+    y,
     legend,
     focusColors,
     hoverColors = [],
 }: {
     x: number
+    y: number
     legend: HorizontalCategoricalColorLegend
     focusColors?: string[] // focused colors are bolded
     hoverColors?: string[] // non-hovered colors are muted
@@ -93,7 +110,7 @@ function Labels({
                     <text
                         key={`${mark.label}-${index}`}
                         x={x + mark.label.bounds.x}
-                        y={legend.categoryLegendY + mark.label.bounds.y}
+                        y={y + mark.label.bounds.y}
                         // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
                         // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
                         // do with some rough positioning.
@@ -113,18 +130,21 @@ function Labels({
 function Swatches({
     legend,
     x,
+    y,
     activeColors,
     hoverColors = [],
-    legendOpacity,
+    opacity,
+    swatchStrokeColor,
 }: {
     legend: HorizontalCategoricalColorLegend
     x: number
+    y: number
     activeColors?: string[] // inactive colors are grayed out
     hoverColors?: string[] // non-hovered colors are muted
-    legendOpacity?: number
+    opacity?: number
+    swatchStrokeColor?: Color
 }): React.ReactElement {
     const { marks } = legend
-    const { categoricalBinStroke } = legend.props
 
     return (
         <g id={makeIdForHumanConsumption("swatches")}>
@@ -144,22 +164,18 @@ function Swatches({
                         ? color
                         : OWID_NON_FOCUSED_GRAY
 
-                const opacity = isNotHovered
-                    ? GRAPHER_OPACITY_MUTE
-                    : legendOpacity
-
                 return (
                     <rect
                         id={makeIdForHumanConsumption(mark.label.text)}
                         key={`${mark.label}-${index}`}
                         x={x + mark.x}
-                        y={legend.categoryLegendY + mark.y}
-                        width={mark.rectSize}
-                        height={mark.rectSize}
+                        y={y + mark.y}
+                        width={legend.swatchSize}
+                        height={legend.swatchSize}
                         fill={fill}
-                        stroke={categoricalBinStroke}
+                        stroke={swatchStrokeColor}
                         strokeWidth={0.4}
-                        opacity={opacity}
+                        opacity={isNotHovered ? GRAPHER_OPACITY_MUTE : opacity}
                     />
                 )
             })}
@@ -170,15 +186,17 @@ function Swatches({
 function InteractiveElements({
     legend,
     x,
-    onLegendClick,
-    onLegendMouseOver,
-    onLegendMouseLeave,
+    y,
+    onClick,
+    onMouseOver,
+    onMouseLeave,
 }: {
     legend: HorizontalCategoricalColorLegend
     x: number
-    onLegendMouseLeave?: () => void
-    onLegendMouseOver?: (d: ColorScaleBin) => void
-    onLegendClick?: (d: ColorScaleBin) => void
+    y: number
+    onMouseLeave?: () => void
+    onMouseOver?: (d: ColorScaleBin) => void
+    onClick?: (d: ColorScaleBin) => void
 }): React.ReactElement {
     const { marks } = legend
 
@@ -186,11 +204,11 @@ function InteractiveElements({
         <g>
             {marks.map((mark, index) => {
                 const mouseOver = (): void =>
-                    onLegendMouseOver ? onLegendMouseOver(mark.bin) : undefined
+                    onMouseOver ? onMouseOver(mark.bin) : undefined
                 const mouseLeave = (): void =>
-                    onLegendMouseLeave ? onLegendMouseLeave() : undefined
-                const click = onLegendClick
-                    ? (): void => onLegendClick?.(mark.bin)
+                    onMouseLeave ? onMouseLeave() : undefined
+                const click = onClick
+                    ? (): void => onClick?.(mark.bin)
                     : undefined
 
                 const cursor = click ? "pointer" : "default"
@@ -206,12 +224,10 @@ function InteractiveElements({
                         {/* for hover interaction */}
                         <rect
                             x={x + mark.x}
-                            y={
-                                legend.categoryLegendY +
-                                mark.y -
-                                legend.rectPadding / 2
+                            y={y + mark.y - legend.swatchMarginRight / 2}
+                            height={
+                                legend.swatchSize + legend.swatchMarginRight
                             }
-                            height={mark.rectSize + legend.rectPadding}
                             width={mark.width + SPACE_BETWEEN_CATEGORICAL_BINS}
                             fill="#fff"
                             opacity={0}
