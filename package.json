@@ -4,7 +4,7 @@
     "engines": {
         "node": ">=22.0"
     },
-    "packageManager": "yarn@4.1.1",
+    "packageManager": "yarn@4.6.0",
     "scripts": {
         "batchTagWithGpt": "tsx --tsconfig tsconfig.tsx.json baker/batchTagWithGpt.ts",
         "buildCoverage": "jest --coverage=true --coverageProvider=v8",
