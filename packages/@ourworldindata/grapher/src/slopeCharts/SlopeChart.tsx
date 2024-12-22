@@ -591,7 +591,7 @@ export class SlopeChart
             : 0
     }
 
-    @computed get externalCategoricalLegend():
+    @computed get externalLegend():
         | HorizontalCategoricalColorLegendProps
         | undefined {
         if (!this.manager.showLegend) {

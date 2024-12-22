@@ -225,15 +225,13 @@ describe("externalLegendBins", () => {
         const chart = new StackedAreaChart({
             manager: { ...baseManager, showLegend: true },
         })
-        expect(chart.externalCategoricalLegend).toBeUndefined()
+        expect(chart.externalLegend).toBeUndefined()
     })
 
     it("exposes externalLegendBins when legend is hidden", () => {
         const chart = new StackedAreaChart({
             manager: { ...baseManager, showLegend: false },
         })
-        expect(
-            chart.externalCategoricalLegend?.categoricalLegendData?.length
-        ).toEqual(2)
+        expect(chart.externalLegend?.categoricalLegendData?.length).toEqual(2)
     })
 })

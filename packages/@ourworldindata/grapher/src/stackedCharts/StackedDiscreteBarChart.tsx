@@ -526,7 +526,7 @@ export class StackedDiscreteBarChart
         return this.showLegend ? this.legendBins : []
     }
 
-    @computed get externalCategoricalLegend():
+    @computed get externalLegend():
         | HorizontalCategoricalColorLegendProps
         | undefined {
         if (!this.showLegend) {

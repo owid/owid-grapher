@@ -1487,10 +1487,14 @@ export class LineChart
         return this.dualAxis.horizontalAxis
     }
 
-    @computed get externalCategoricalLegend():
-        | HorizontalCategoricalColorLegendProps
+    @computed get externalLegend():
+        | (HorizontalNumericColorLegendProps &
+              HorizontalCategoricalColorLegendProps)
         | undefined {
         if (!this.manager.showLegend) {
+            const numericLegendData = this.hasColorScale
+                ? this.numericLegendData
+                : []
             const categoricalLegendData = this.hasColorScale
                 ? []
                 : this.series.map(
@@ -1503,20 +1507,6 @@ export class LineChart
                           })
                   )
             return {
-                categoricalLegendData,
-            }
-        }
-        return undefined
-    }
-
-    @computed get externalNumericLegend():
-        | HorizontalNumericColorLegendProps
-        | undefined {
-        if (!this.manager.showLegend) {
-            const numericLegendData = this.hasColorScale
-                ? this.numericLegendData
-                : []
-            return {
                 legendTitle: this.legendTitle,
                 legendTextColor: this.legendTextColor,
                 legendTickSize: this.legendTickSize,
@@ -1525,6 +1515,7 @@ export class LineChart
                 numericBinStroke: this.numericBinStroke,
                 numericBinStrokeWidth: this.numericBinStrokeWidth,
                 numericLegendData,
+                categoricalLegendData,
             }
         }
         return undefined

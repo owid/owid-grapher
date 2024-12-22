@@ -436,7 +436,7 @@ export class AbstractStackedChart
         return this.unstackedSeries
     }
 
-    @computed get externalCategoricalLegend():
+    @computed get externalLegend():
         | HorizontalCategoricalColorLegendProps
         | undefined {
         if (!this.manager.showLegend) {

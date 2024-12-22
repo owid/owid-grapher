@@ -373,7 +373,7 @@ describe("showLegend", () => {
         })
         expect(chart["legendHeight"]).toBeGreaterThan(0)
         expect(chart["categoricalLegendData"].length).toBeGreaterThan(0)
-        expect(chart["externalCategoricalLegend"]).toBeUndefined()
+        expect(chart["externalLegend"]).toBeUndefined()
     })
 
     it("exposes externalLegendBins when showLegend is false", () => {
@@ -382,8 +382,8 @@ describe("showLegend", () => {
         })
         expect(chart["legendHeight"]).toEqual(0)
         expect(chart["categoricalLegendData"].length).toEqual(0)
-        expect(
-            chart["externalCategoricalLegend"]?.categoricalLegendData?.length
-        ).toEqual(2)
+        expect(chart["externalLegend"]?.categoricalLegendData?.length).toEqual(
+            2
+        )
     })
 })
