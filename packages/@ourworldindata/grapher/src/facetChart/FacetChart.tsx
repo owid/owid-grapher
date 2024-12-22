@@ -799,7 +799,8 @@ export class FacetChart
     }
 
     @action.bound onLegendClick(bin: ColorScaleBin): void {
-        if (!this.manager.focusArray) return
+        if (!this.manager.focusArray || !this.isFocusModeSupported) return
+
         // find all series (of all facets) that are contained in the bin
         const seriesNames = uniq(
             this.intermediateChartInstances.flatMap((chartInstance) =>
@@ -815,6 +816,13 @@ export class FacetChart
 
     @computed private get legend(): HorizontalColorLegend {
         return new this.LegendClass({ manager: this })
+    }
+
+    @computed private get isFocusModeSupported(): boolean {
+        return (
+            this.chartTypeName === GRAPHER_CHART_TYPES.LineChart ||
+            this.chartTypeName === GRAPHER_CHART_TYPES.SlopeChart
+        )
     }
 
     /**
