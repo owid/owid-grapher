@@ -14,7 +14,7 @@ export interface HorizontalCategoricalColorLegendProps {
     fontSize?: number
 }
 
-interface CategoricalMark {
+export interface CategoricalMark {
     x: number
     y: number
     width: number
