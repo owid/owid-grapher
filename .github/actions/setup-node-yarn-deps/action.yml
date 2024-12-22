@@ -3,6 +3,11 @@ description: Runs all the setup steps required to have the proper Node version a
 runs:
     using: composite
     steps:
+        # Corepack must be enabled _before_ running setup-node, otherwise the caching setup will error
+        - name: Enable corepack
+          run: corepack enable
+          shell: bash
+
         - name: Use Node.js (.nvmrc)
           uses: actions/setup-node@v4
           with:
