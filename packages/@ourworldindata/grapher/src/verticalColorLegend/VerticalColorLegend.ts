@@ -26,7 +26,7 @@ export type VerticalColorLegendBin =
     | VerticalColorLegendCategoricalBin
     | VerticalColorLegendNumericBin
 
-interface PlacedBin extends Bin {
+export interface PlacedBin extends Bin {
     textWrap: TextWrap
     width: number
     height: number

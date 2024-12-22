@@ -1,7 +1,7 @@
 import React from "react"
 
 import { Color, makeIdForHumanConsumption } from "@ourworldindata/utils"
-import { VerticalColorLegend } from "./VerticalColorLegend"
+import { PlacedBin, VerticalColorLegend } from "./VerticalColorLegend"
 
 interface VerticalColorLegendComponentProps {
     legend: VerticalColorLegend
@@ -38,156 +38,167 @@ export function VerticalColorLegendComponent({
             className="ScatterColorLegend clickable"
         >
             {legend.title &&
-                legend.title.render(x, y, {
-                    textProps: {
-                        fontWeight: 700,
-                    },
-                })}
-            <Labels legend={legend} x={x} y={y} focusColors={focusColors} />
-            <Swatches legend={legend} x={x} y={y} activeColors={activeColors} />
+                legend.title.render(x, y, { textProps: { fontWeight: 700 } })}
+
+            <g id={makeIdForHumanConsumption("labels")}>
+                {legend.placedBins.map((bin) => (
+                    <Label
+                        key={bin.textWrap.text}
+                        x={x}
+                        y={y}
+                        bin={bin}
+                        swatchSize={legend.swatchSize}
+                        swatchMarginRight={legend.swatchMarginRight}
+                        focusColors={focusColors}
+                    />
+                ))}
+            </g>
+
+            <g>
+                {legend.placedBins.map((bin) => (
+                    <Swatch
+                        key={bin.textWrap.text}
+                        bin={bin}
+                        x={x}
+                        y={y}
+                        swatchSize={legend.swatchSize}
+                        swatchMarginRight={legend.swatchMarginRight}
+                        activeColors={activeColors}
+                    />
+                ))}
+            </g>
+
             {isInteractive && (
-                <InteractiveElement
-                    legend={legend}
-                    x={x}
-                    y={y}
-                    onClick={onClick}
-                    onMouseOver={onMouseOver}
-                    onMouseLeave={onMouseLeave}
-                />
+                <g>
+                    {legend.placedBins.map((bin) => (
+                        <InteractiveElement
+                            key={bin.textWrap.text}
+                            bin={bin}
+                            x={x}
+                            y={y}
+                            verticalBinMargin={legend.verticalBinMargin}
+                            onClick={onClick}
+                            onMouseOver={onMouseOver}
+                            onMouseLeave={onMouseLeave}
+                        />
+                    ))}
+                </g>
             )}
         </g>
     )
 }
 
-function Labels({
-    legend,
+function Label({
+    bin,
     x,
     y,
     focusColors,
+    swatchSize,
+    swatchMarginRight,
 }: {
-    legend: VerticalColorLegend
+    bin: PlacedBin
     x: number
     y: number
+    swatchSize: number
+    swatchMarginRight: number
     focusColors?: Color[]
 }): React.ReactElement {
-    return (
-        <g id={makeIdForHumanConsumption("labels")}>
-            {legend.placedBins.map((series) => {
-                const isFocus = focusColors?.includes(series.color) ?? false
+    const isFocus = focusColors?.includes(bin.color) ?? false
 
-                const textX = x + legend.swatchSize + legend.swatchMarginRight
-                const textY = y + series.yOffset
+    const textX = x + swatchSize + swatchMarginRight
+    const textY = y + bin.yOffset
 
-                return (
-                    <React.Fragment key={series.textWrap.text}>
-                        {series.textWrap.render(
-                            textX,
-                            textY,
-                            isFocus
-                                ? {
-                                      textProps: {
-                                          style: { fontWeight: "bold" },
-                                      },
-                                  }
-                                : undefined
-                        )}
-                    </React.Fragment>
-                )
-            })}
-        </g>
+    return bin.textWrap.render(
+        textX,
+        textY,
+        isFocus
+            ? {
+                  textProps: {
+                      style: { fontWeight: "bold" },
+                  },
+              }
+            : undefined
     )
 }
 
-function Swatches({
-    legend,
+function Swatch({
+    bin,
     x,
     y,
+    swatchSize,
+    swatchMarginRight,
     activeColors,
 }: {
-    legend: VerticalColorLegend
+    bin: PlacedBin
     x: number
     y: number
+    swatchSize: number
+    swatchMarginRight: number
     activeColors?: Color[]
 }): React.ReactElement {
+    const isActive = activeColors?.includes(bin.color)
+
+    const textX = x + swatchSize + swatchMarginRight
+    const textY = y + bin.yOffset
+
+    const renderedTextPosition = bin.textWrap.getPositionForSvgRendering(
+        textX,
+        textY
+    )
+
     return (
-        <g>
-            {legend.placedBins.map((series) => {
-                const isActive = activeColors?.includes(series.color)
-
-                const textX = x + legend.swatchSize + legend.swatchMarginRight
-                const textY = y + series.yOffset
-
-                const renderedTextPosition =
-                    series.textWrap.getPositionForSvgRendering(textX, textY)
-
-                return (
-                    <rect
-                        id={makeIdForHumanConsumption(series.textWrap.text)}
-                        key={series.textWrap.text}
-                        x={x}
-                        y={renderedTextPosition[1] - legend.swatchSize}
-                        width={legend.swatchSize}
-                        height={legend.swatchSize}
-                        fill={isActive ? series.color : "#ccc"}
-                    />
-                )
-            })}
-        </g>
+        <rect
+            id={makeIdForHumanConsumption(bin.textWrap.text)}
+            x={x}
+            y={renderedTextPosition[1] - swatchSize}
+            width={swatchSize}
+            height={swatchSize}
+            fill={isActive ? bin.color : "#ccc"}
+        />
     )
 }
 
 function InteractiveElement({
+    bin,
     x,
     y,
-    legend,
+    verticalBinMargin,
     onClick,
     onMouseOver,
     onMouseLeave,
 }: {
+    bin: PlacedBin
     x: number
     y: number
-    legend: VerticalColorLegend
+    verticalBinMargin: number
     onClick?: (color: string) => void
     onMouseOver?: (color: string) => void
     onMouseLeave?: () => void
 }): React.ReactElement {
+    const mouseOver = onMouseOver
+        ? (): void => onMouseOver(bin.color)
+        : undefined
+    const mouseLeave = onMouseLeave
+    const click = onClick ? (): void => onClick(bin.color) : undefined
+
+    const cursor = click ? "pointer" : "default"
+
     return (
-        <g>
-            {legend.placedBins.map((series) => {
-                const mouseOver = onMouseOver
-                    ? (): void => onMouseOver(series.color)
-                    : undefined
-                const mouseLeave = onMouseLeave
-                const click = onClick
-                    ? (): void => onClick(series.color)
-                    : undefined
-
-                const cursor = click ? "pointer" : "default"
-
-                return (
-                    <g
-                        key={series.textWrap.text}
-                        className="legendMark"
-                        onMouseOver={mouseOver}
-                        onMouseLeave={mouseLeave}
-                        onClick={click}
-                        style={{ cursor }}
-                    >
-                        <rect
-                            x={x}
-                            y={
-                                y +
-                                series.yOffset -
-                                legend.verticalBinMargin / 2
-                            }
-                            width={series.width}
-                            height={series.height + legend.verticalBinMargin}
-                            fill="#fff"
-                            fillOpacity={0}
-                        />
-                    </g>
-                )
-            })}
+        <g
+            className="legendMark"
+            onMouseOver={mouseOver}
+            onMouseLeave={mouseLeave}
+            onClick={click}
+            style={{ cursor }}
+        >
+            <rect
+                x={x}
+                y={y + bin.yOffset - verticalBinMargin / 2}
+                width={bin.width}
+                height={bin.height + verticalBinMargin}
+                fill="#fff"
+                fillOpacity={0}
+            />
         </g>
     )
 }
