@@ -37,7 +37,7 @@ import {
     InteractionState,
     HorizontalAlign,
 } from "@ourworldindata/types"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartInterface, ExternalLegendProps } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { select } from "d3-selection"
@@ -591,9 +591,7 @@ export class SlopeChart
             : 0
     }
 
-    @computed get externalLegend():
-        | HorizontalCategoricalColorLegendProps
-        | undefined {
+    @computed get externalLegend(): ExternalLegendProps | undefined {
         if (!this.manager.showLegend) {
             const categoricalLegendData = this.series.map(
                 (series, index) =>

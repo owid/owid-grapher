@@ -21,6 +21,10 @@ export interface ChartSeries {
 
 export type ChartTableTransformer = (inputTable: OwidTable) => OwidTable
 
+export type ExternalLegendProps =
+    Partial<HorizontalCategoricalColorLegendProps> &
+        Partial<HorizontalNumericColorLegendProps>
+
 export interface ChartInterface {
     failMessage: string // We require every chart have some fail message(s) to show to the user if something went wrong
 
@@ -45,9 +49,7 @@ export interface ChartInterface {
      * The legend that has been hidden from the chart plot (using `manager.hideLegend`).
      * Used to create a global categorical legend for faceted charts.
      */
-    externalLegend?:
-        | HorizontalCategoricalColorLegendProps
-        | HorizontalNumericColorLegendProps
+    externalLegend?: ExternalLegendProps
 
     /**
      * Which facet strategies the chart type finds reasonable in its current setting, if any.

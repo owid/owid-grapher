@@ -63,7 +63,7 @@ import {
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartInterface, ExternalLegendProps } from "../chart/ChartInterface"
 import {
     LinesProps,
     LineChartSeries,
@@ -115,7 +115,6 @@ import {
     HorizontalNumericColorLegend,
     HorizontalNumericColorLegendProps,
 } from "../horizontalColorLegend/HorizontalNumericColorLegend"
-import { HorizontalCategoricalColorLegendProps } from "../horizontalColorLegend/HorizontalCategoricalColorLegend"
 import { HorizontalNumericColorLegendComponent } from "../horizontalColorLegend/HorizontalNumericColorLegendComponent"
 
 const LINE_CHART_CLASS_NAME = "LineChart"
@@ -1487,10 +1486,7 @@ export class LineChart
         return this.dualAxis.horizontalAxis
     }
 
-    @computed get externalLegend():
-        | HorizontalCategoricalColorLegendProps
-        | HorizontalNumericColorLegendProps
-        | undefined {
+    @computed get externalLegend(): ExternalLegendProps | undefined {
         if (!this.manager.showLegend) {
             const numericLegendData = this.hasColorScale
                 ? this.numericLegendData

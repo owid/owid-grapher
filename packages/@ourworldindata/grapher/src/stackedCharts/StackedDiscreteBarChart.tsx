@@ -44,7 +44,7 @@ import {
 } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartInterface, ExternalLegendProps } from "../chart/ChartInterface"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
     autoDetectYColumnSlugs,
@@ -76,10 +76,7 @@ import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { TextWrap } from "@ourworldindata/components"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalCategoricalColorLegendProps,
-} from "../horizontalColorLegend/HorizontalCategoricalColorLegend"
+import { HorizontalCategoricalColorLegend } from "../horizontalColorLegend/HorizontalCategoricalColorLegend"
 import { HorizontalCategoricalColorLegendComponent } from "../horizontalColorLegend/HorizontalCategoricalColorLegendComponent"
 
 // if an entity name exceeds this width, we use the short name instead (if available)
@@ -526,9 +523,7 @@ export class StackedDiscreteBarChart
         return this.showLegend ? this.legendBins : []
     }
 
-    @computed get externalLegend():
-        | HorizontalCategoricalColorLegendProps
-        | undefined {
+    @computed get externalLegend(): ExternalLegendProps | undefined {
         if (!this.showLegend) {
             return {
                 categoricalBins: this.legendBins,

@@ -300,7 +300,7 @@ describe("externalLegendBins", () => {
         const chart = new LineChart({
             manager: { ...baseManager, showLegend: false },
         })
-        expect(chart.externalLegend?.bins?.length).toEqual(2)
+        expect(chart.externalLegend?.categoricalBins?.length).toEqual(2)
     })
 })
 

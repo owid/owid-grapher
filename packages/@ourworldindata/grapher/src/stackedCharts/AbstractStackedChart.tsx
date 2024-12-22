@@ -1,6 +1,6 @@
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartInterface, ExternalLegendProps } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import {
     ColorSchemeName,
@@ -43,7 +43,6 @@ import {
     CategoricalColorMap,
 } from "../color/CategoricalColorAssigner.js"
 import { BinaryMapPaletteE } from "../color/CustomSchemes"
-import { HorizontalCategoricalColorLegendProps } from "../horizontalColorLegend/HorizontalCategoricalColorLegend"
 
 // used in StackedBar charts to color negative and positive bars
 const POSITIVE_COLOR = BinaryMapPaletteE.colorSets[0][0] // orange
@@ -436,9 +435,7 @@ export class AbstractStackedChart
         return this.unstackedSeries
     }
 
-    @computed get externalLegend():
-        | HorizontalCategoricalColorLegendProps
-        | undefined {
+    @computed get externalLegend(): ExternalLegendProps | undefined {
         if (!this.manager.showLegend) {
             const categoricalLegendData = this.series
                 .map(

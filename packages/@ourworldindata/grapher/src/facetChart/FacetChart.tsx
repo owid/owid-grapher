@@ -36,7 +36,7 @@ import {
     DefaultChartClass,
 } from "../chart/ChartTypeMap"
 import { ChartManager } from "../chart/ChartManager"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartInterface, ExternalLegendProps } from "../chart/ChartInterface"
 import {
     getChartPadding,
     getFontSize,
@@ -73,9 +73,6 @@ import { HorizontalCategoricalColorLegendComponent } from "../horizontalColorLeg
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
 
 const facetBackgroundColor = "none" // we don't use color yet but may use it for background later
-
-type ExternalLegendProps = Partial<HorizontalCategoricalColorLegendProps> &
-    Partial<HorizontalNumericColorLegendProps>
 
 const getContentBounds = (
     containerBounds: Bounds,
