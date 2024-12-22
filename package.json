@@ -249,7 +249,8 @@
         "wrangler": "^3.81.0"
     },
     "resolutions": {
-        "@types/node": "20.8.3"
+        "@types/node": "20.8.3",
+        "whatwg-url": "14.1.0"
     },
     "prettier": {
         "trailingComma": "es5",
