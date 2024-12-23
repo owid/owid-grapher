@@ -478,6 +478,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Vaccination",
                         },
                         {
+                            slug: "antibiotics",
+                            title: "Antibiotics & Antibiotic Resistance",
+                        },
+                        {
                             slug: "financing-healthcare",
                             title: "Healthcare Spending",
                         },
