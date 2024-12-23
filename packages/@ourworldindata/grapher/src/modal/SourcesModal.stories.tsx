@@ -1,5 +1,5 @@
 import { SynthesizeGDPTable } from "@ourworldindata/core-table"
-import React from "react"
+import * as React from "react"
 import { SourcesModal } from "./SourcesModal"
 
 export default {

@@ -1,4 +1,3 @@
-import React from "react"
 import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { IconDefinition, faArrowRight } from "@fortawesome/free-solid-svg-icons"

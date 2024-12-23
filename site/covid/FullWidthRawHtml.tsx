@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 
 export const RawHtml = ({ url }: { url: string }) => {
     const [html, setHtml] = useState<null | string>(null)

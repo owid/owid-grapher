@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect } from "react"
 import ReactDOM from "react-dom"
 import {
     faListUl,
@@ -46,8 +46,8 @@ export const SiteNavigation = ({
     hideDonationFlag?: boolean
     isOnHomepage?: boolean
 }) => {
-    const [menu, setActiveMenu] = React.useState<Menu | null>(null)
-    const [query, setQuery] = React.useState<string>("")
+    const [menu, setActiveMenu] = useState<Menu | null>(null)
+    const [query, setQuery] = useState<string>("")
 
     const isActiveMobileMenu =
         menu !== null &&

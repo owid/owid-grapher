@@ -1,5 +1,4 @@
 import { EnrichedBlockText, Span } from "@ourworldindata/utils"
-import React from "react"
 import { renderSpans } from "../utils.js"
 
 function isOnlyEmptySpans(spans: Span[]) {

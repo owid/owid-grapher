@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, action } from "mobx"
 import * as lodash from "lodash"
@@ -81,7 +81,7 @@ class DatasetEditable {
 }
 
 @observer
-class DatasetTagEditor extends React.Component<{
+class DatasetTagEditor extends Component<{
     newDataset: DatasetEditable
     availableTags: { id: number; name: string; parentName: string }[]
 }> {
@@ -106,7 +106,7 @@ class DatasetTagEditor extends React.Component<{
 }
 
 @observer
-class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
+class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     @observable newDataset!: DatasetEditable
@@ -449,7 +449,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
 }
 
 @observer
-export class DatasetEditPage extends React.Component<{ datasetId: number }> {
+export class DatasetEditPage extends Component<{ datasetId: number }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     @observable dataset?: DatasetPageData

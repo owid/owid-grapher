@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { TocHeadingWithTitleSupertitle } from "@ourworldindata/utils"
 import { faArrowDown, faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"

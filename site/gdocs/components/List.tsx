@@ -1,4 +1,3 @@
-import React from "react"
 import { EnrichedBlockList, EnrichedBlockText } from "@ourworldindata/utils"
 import { renderSpans } from "../utils.js"
 export default function List({

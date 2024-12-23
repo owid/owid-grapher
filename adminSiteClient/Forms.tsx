@@ -4,7 +4,7 @@
  * Reusable React components to keep admin UI succint and consistent
  */
 
-import React from "react"
+import * as React from "react"
 import { bind } from "decko"
 import { action } from "mobx"
 import { observer } from "mobx-react"

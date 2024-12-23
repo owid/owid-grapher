@@ -1,4 +1,5 @@
-import React, { useState } from "react"
+import { useState } from "react"
+import * as React from "react"
 import { faTimes, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"

@@ -1,6 +1,6 @@
 import { EnrichedBlockExplorerTiles } from "@ourworldindata/types"
 import { Button } from "@ourworldindata/components"
-import React, { useContext } from "react"
+import { useContext } from "react"
 import { useLinkedChart } from "../utils.js"
 import { DocumentContext } from "../OwidGdoc.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"

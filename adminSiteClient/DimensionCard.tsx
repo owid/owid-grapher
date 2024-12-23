@@ -1,4 +1,4 @@
-import React from "react"
+import { Component, Fragment } from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartDimension } from "@ourworldindata/grapher"
@@ -27,7 +27,7 @@ import { AbstractChartEditor } from "./AbstractChartEditor.js"
 @observer
 export class DimensionCard<
     Editor extends AbstractChartEditor,
-> extends React.Component<{
+> extends Component<{
     dimension: ChartDimension
     editor: Editor
     isDndEnabled?: boolean
@@ -70,7 +70,7 @@ export class DimensionCard<
     private get tableDisplaySettings() {
         const { tableDisplay = {} } = this.props.dimension.display
         return (
-            <React.Fragment>
+            <Fragment>
                 <hr className="ui divider" />
                 Table:
                 <Toggle
@@ -96,7 +96,7 @@ export class DimensionCard<
                     }}
                 />
                 <hr className="ui divider" />
-            </React.Fragment>
+            </Fragment>
         )
     }
 

@@ -1,4 +1,3 @@
-import * as React from "react"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { OwidGdocType } from "@ourworldindata/types"
 import { useLinkedAuthor } from "../utils.js"

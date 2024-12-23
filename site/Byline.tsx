@@ -1,4 +1,3 @@
-import React from "react"
 import { formatAuthors } from "./clientFormatting.js"
 
 export const Byline = ({

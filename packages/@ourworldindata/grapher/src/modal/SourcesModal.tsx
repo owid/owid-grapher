@@ -25,7 +25,7 @@ import {
     CLOSE_BUTTON_WIDTH,
     CloseButton,
 } from "@ourworldindata/components"
-import React from "react"
+import * as React from "react"
 import cx from "classnames"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"

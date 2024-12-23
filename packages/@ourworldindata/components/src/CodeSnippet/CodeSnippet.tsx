@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import ReactDOMServer from "react-dom/server.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"

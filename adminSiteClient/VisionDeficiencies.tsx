@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import Select, { GroupBase, components, OptionProps } from "react-select"
 import classNames from "classnames"
 import { observer } from "mobx-react"
@@ -119,7 +119,7 @@ const VisionDeficiencyOption = (
 )
 
 @observer
-export class VisionDeficiencyDropdown extends React.Component<VisionDeficiencyDropdownProps> {
+export class VisionDeficiencyDropdown extends Component<VisionDeficiencyDropdownProps> {
     noDeficiencyOption = {
         label: "No deficiencies",
         value: "none",

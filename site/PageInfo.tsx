@@ -1,5 +1,3 @@
-import React from "react"
-
 export const PageInfo = ({ info }: { info: string }) => {
     return (
         <div

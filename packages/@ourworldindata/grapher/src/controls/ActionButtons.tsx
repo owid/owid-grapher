@@ -1,4 +1,5 @@
-import React, { useState } from "react"
+import { useState } from "react"
+import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"

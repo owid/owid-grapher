@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { CodeSnippet } from "./CodeSnippet.js"
 
 export default {

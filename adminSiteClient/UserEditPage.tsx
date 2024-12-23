@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, runInAction } from "mobx"
 import { BindString, Toggle } from "./Forms.js"
@@ -8,7 +8,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { UserIndexMeta } from "./UserMeta.js"
 
 @observer
-export class UserEditPage extends React.Component<{ userId: number }> {
+export class UserEditPage extends Component<{ userId: number }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

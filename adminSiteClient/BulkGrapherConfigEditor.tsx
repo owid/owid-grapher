@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import {
     chartBulkUpdateAllowedColumnNamesAndTypes,
     WHITELISTED_SQL_COLUMN_NAMES,
@@ -130,7 +130,7 @@ const config: GrapherConfigGridEditorConfig = {
     finalVariableLayerModificationFn: () => ({}),
 }
 
-export class BulkGrapherConfigEditorPage extends React.Component {
+export class BulkGrapherConfigEditorPage extends Component {
     render() {
         return (
             <AdminLayout title="Bulk chart editor">
