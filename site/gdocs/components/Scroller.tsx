@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react"
+import { useState, useRef } from "react"
 import { InView } from "react-intersection-observer"
 import {
     EnrichedBlockScroller,

@@ -1,4 +1,3 @@
-import React from "react"
 import { simpleGit } from "simple-git"
 import express, { NextFunction } from "express"
 // eslint-disable-next-line @typescript-eslint/no-require-imports

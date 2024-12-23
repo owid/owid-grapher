@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 
@@ -15,7 +15,7 @@ import {
 import { sortNumeric, SortOrder } from "@ourworldindata/utils"
 
 @observer
-export class ChartIndexPage extends React.Component {
+export class ChartIndexPage extends Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

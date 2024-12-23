@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import {
     REUSE_THIS_WORK_SECTION_ID,
@@ -73,7 +73,7 @@ export const DataPageV2Content = ({
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
 }) => {
-    const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
+    const [grapher, setGrapher] = useState<Grapher | undefined>(undefined)
 
     const titleFragments = joinTitleFragments(
         datapageData.attributionShort,

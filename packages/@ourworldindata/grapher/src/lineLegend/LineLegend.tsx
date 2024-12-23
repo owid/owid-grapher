@@ -1,5 +1,5 @@
 // This implements the line labels that appear to the right of the lines/polygons in LineCharts/StackedAreas.
-import React from "react"
+import * as React from "react"
 import {
     Bounds,
     noop,

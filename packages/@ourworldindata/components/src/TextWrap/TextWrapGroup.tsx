@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { computed } from "mobx"
 import { TextWrap } from "./TextWrap"
 import { splitIntoFragments } from "./TextWrapUtils"

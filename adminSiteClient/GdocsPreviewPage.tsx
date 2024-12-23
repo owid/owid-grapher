@@ -1,10 +1,5 @@
-import React, {
-    useCallback,
-    useContext,
-    useEffect,
-    useRef,
-    useState,
-} from "react"
+import { useCallback, useContext, useEffect, useRef, useState } from "react"
+import * as React from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import {

@@ -1,4 +1,3 @@
-import React from "react"
 import { Help } from "./Forms.js"
 import { OwidGdocErrorMessage } from "@ourworldindata/utils"
 

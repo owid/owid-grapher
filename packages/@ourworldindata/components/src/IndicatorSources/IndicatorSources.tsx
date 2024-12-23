@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import cx from "classnames"
 import { ExpandableToggle } from "../ExpandableToggle/ExpandableToggle.js"
 import { DisplaySource, uniqBy, formatSourceDate } from "@ourworldindata/utils"

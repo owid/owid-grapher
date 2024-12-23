@@ -17,7 +17,6 @@ import {
     Url,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
-import React from "react"
 import urljoin from "url-join"
 import {
     ADMIN_BASE_URL,

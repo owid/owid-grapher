@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { LineChart } from "../lineCharts/LineChart"
 import { OwidTableSlugs, ScaleType } from "@ourworldindata/types"
 import {

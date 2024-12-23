@@ -1,4 +1,3 @@
-import React from "react"
 import { dictionary } from "./runDataTokens.js"
 
 export const DataToken_name = "DataToken"
