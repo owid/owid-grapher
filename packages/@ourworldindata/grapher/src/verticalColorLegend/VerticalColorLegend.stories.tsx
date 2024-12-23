@@ -1,15 +1,16 @@
 import React from "react"
 import {
     VerticalColorLegend,
-    VerticalColorLegendManager,
+    VerticalColorLegendProps,
 } from "./VerticalColorLegend"
+import { VerticalColorLegendComponent } from "./VerticalColorLegendComponent"
 
 export default {
     title: "VerticalColorLegend",
     component: VerticalColorLegend,
 }
 
-const manager: VerticalColorLegendManager = {
+const props: VerticalColorLegendProps = {
     maxLegendWidth: 500,
     legendTitle: "Legend Title",
     legendItems: [
@@ -26,9 +27,10 @@ const manager: VerticalColorLegendManager = {
 }
 
 export const CategoricalBins = (): React.ReactElement => {
+    const verticalColorLegend = new VerticalColorLegend(props)
     return (
         <svg width={600} height={400}>
-            <VerticalColorLegend manager={manager} />
+            <VerticalColorLegendComponent state={verticalColorLegend} />
         </svg>
     )
 }
