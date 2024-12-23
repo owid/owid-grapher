@@ -1149,6 +1149,12 @@ export class Grapher
             json,
             legacyConfig.dimensions ?? []
         )
+        const tableWithColors = legacyConfig.selectedEntityColors
+            ? addSelectedEntityColorsToTable(
+                  table,
+                  legacyConfig.selectedEntityColors
+              )
+            : table
         const dimensions = legacyConfig.dimensions ?? []
         this.createPerformanceMeasurement(
             "legacyToOwidTableAndDimensions",
@@ -1156,8 +1162,8 @@ export class Grapher
         )
 
         if (inputTableTransformer)
-            this.inputTable = inputTableTransformer(table)
-        else this.inputTable = table
+            this.inputTable = inputTableTransformer(tableWithColors)
+        else this.inputTable = tableWithColors
 
         // We need to reset the dimensions because some of them may have changed slugs in the legacy
         // transformation (can happen when columns use targetTime)
