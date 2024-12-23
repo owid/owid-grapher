@@ -1,4 +1,3 @@
-import * as React from "react"
 import { match } from "ts-pattern"
 
 import { OwidEnrichedGdocBlock } from "@ourworldindata/types"

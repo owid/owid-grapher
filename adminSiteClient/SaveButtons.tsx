@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
@@ -19,9 +19,7 @@ import {
 } from "./ChartViewEditor.js"
 
 @observer
-export class SaveButtons<
-    Editor extends AbstractChartEditor,
-> extends React.Component<{
+export class SaveButtons<Editor extends AbstractChartEditor> extends Component<{
     editor: Editor
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions
@@ -50,7 +48,7 @@ export class SaveButtons<
 }
 
 @observer
-class SaveButtonsForChart extends React.Component<{
+class SaveButtonsForChart extends Component<{
     editor: ChartEditor
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions
@@ -140,7 +138,7 @@ class SaveButtonsForChart extends React.Component<{
 }
 
 @observer
-class SaveButtonsForIndicatorChart extends React.Component<{
+class SaveButtonsForIndicatorChart extends Component<{
     editor: IndicatorChartEditor
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions
@@ -189,7 +187,7 @@ class SaveButtonsForIndicatorChart extends React.Component<{
 }
 
 @observer
-class SaveButtonsForChartView extends React.Component<{
+class SaveButtonsForChartView extends Component<{
     editor: ChartViewEditor
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions

@@ -1,4 +1,4 @@
-import React from "react"
+import { Fragment } from "react"
 import cx from "classnames"
 import { OwidProcessingLevel, chunk, excludeNull } from "@ourworldindata/utils"
 import {
@@ -59,7 +59,7 @@ export const SourcesKeyDataTable = (props: SourcesKeyDataTableProps) => {
                 </div>
             )}
             {rows.map(([first, second]) => (
-                <React.Fragment key={first.label}>
+                <Fragment key={first.label}>
                     <div
                         className={cx("key-data", {
                             "key-data--span": !second,
@@ -78,7 +78,7 @@ export const SourcesKeyDataTable = (props: SourcesKeyDataTableProps) => {
                             </div>
                         </div>
                     )}
-                </React.Fragment>
+                </Fragment>
             ))}
         </div>
     )

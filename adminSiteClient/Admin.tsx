@@ -1,4 +1,3 @@
-import React from "react"
 import ReactDOM from "react-dom"
 import * as lodash from "lodash"
 import { observable, computed, action } from "mobx"

@@ -1,5 +1,3 @@
-import React from "react"
-
 export const SiteLogos = ({ baseUrl }: { baseUrl: string }) => {
     return (
         <div className="site-logos">

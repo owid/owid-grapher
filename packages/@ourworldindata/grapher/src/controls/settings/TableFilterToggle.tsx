@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL } from "../../core/GrapherConstants"

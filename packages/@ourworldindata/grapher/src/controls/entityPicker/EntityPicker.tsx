@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { action, computed, observable, runInAction, reaction } from "mobx"
 import { observer } from "mobx-react"
 import { Flipper, Flipped } from "react-flip-toolkit"

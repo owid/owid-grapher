@@ -5,7 +5,7 @@ import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
 import { slugify } from "@ourworldindata/utils"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
-import React from "react"
+import { Component } from "react"
 import { isChartEditorInstance } from "./ChartEditor.js"
 import {
     AutoTextField,
@@ -23,7 +23,7 @@ import { ErrorMessages } from "./ChartEditorTypes.js"
 @observer
 export class EditorTextTab<
     Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor; errorMessages: ErrorMessages }> {
+> extends Component<{ editor: Editor; errorMessages: ErrorMessages }> {
     @action.bound onSlug(slug: string) {
         this.props.editor.grapher.slug = slugify(slug)
     }

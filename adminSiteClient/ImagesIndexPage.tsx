@@ -1,4 +1,5 @@
-import React, {
+import {
+    createContext,
     useCallback,
     useContext,
     useEffect,
@@ -503,7 +504,7 @@ function PutImageButton({
     )
 }
 
-const NotificationContext = React.createContext(null)
+const NotificationContext = createContext(null)
 
 export function ImageIndexPage() {
     const { admin } = useContext(AdminAppContext)

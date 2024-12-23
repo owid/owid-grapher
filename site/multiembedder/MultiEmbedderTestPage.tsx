@@ -2,7 +2,6 @@ import {
     GLOBAL_ENTITY_SELECTOR_DATA_ATTR,
     GRAPHER_EMBEDDED_FIGURE_ATTR,
 } from "@ourworldindata/grapher"
-import React from "react"
 import { EXPLORER_EMBEDDED_FIGURE_SELECTOR } from "@ourworldindata/explorer"
 import { Head } from "../../site/Head.js"
 import { SiteFooter } from "../../site/SiteFooter.js"

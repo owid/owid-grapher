@@ -1,5 +1,5 @@
 import cx from "classnames"
-import React from "react"
+import * as React from "react"
 import ReactDOM from "react-dom"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { DYNAMIC_COLLECTION_PAGE_CONTAINER_ID } from "@ourworldindata/utils"

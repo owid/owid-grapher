@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { action, computed, observable, runInAction } from "mobx"
 
@@ -19,7 +19,7 @@ type ExplorerWithTags = {
 }
 
 @observer
-export class ExplorerTagsPage extends React.Component {
+export class ExplorerTagsPage extends Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     @observable explorersWithTags: ExplorerWithTags[] = []

@@ -1,5 +1,6 @@
 import ReactDOM from "react-dom"
-import React, { useCallback, useEffect, useMemo } from "react"
+import { useCallback, useEffect, useMemo } from "react"
+import * as React from "react"
 import cx from "classnames"
 import {
     keyBy,

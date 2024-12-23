@@ -4,7 +4,7 @@ import {
     SynthesizeFruitTable,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
-import React from "react"
+import * as React from "react"
 import { StackedAreaChart } from "./StackedAreaChart"
 
 export default {

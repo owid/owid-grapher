@@ -23,7 +23,6 @@ import {
     fetchWithRetry,
 } from "@ourworldindata/utils"
 import { action } from "mobx"
-import React from "react"
 import ReactDOM from "react-dom"
 import {
     Explorer,

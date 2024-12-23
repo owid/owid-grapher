@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { SelectionArray } from "../../selection/SelectionArray"
 import { GlobalEntitySelector } from "./GlobalEntitySelector"
 

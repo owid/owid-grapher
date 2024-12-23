@@ -1,5 +1,5 @@
 import cx from "classnames"
-import React, { useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"

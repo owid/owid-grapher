@@ -1,7 +1,4 @@
-#! /usr/bin/env jest
-
-import React from "react"
-import { KEY_INSIGHTS_INSIGHT_PARAM } from "./KeyInsights.js"
+#! /usr/bin/env jestimport { KEY_INSIGHTS_INSIGHT_PARAM } from "./KeyInsights.js"
 
 import {
     EnrichedBlockKeyInsights,

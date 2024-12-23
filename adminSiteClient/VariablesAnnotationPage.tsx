@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { DimensionProperty } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
 import { GrapherConfigGridEditor } from "./GrapherConfigGridEditor.js"
@@ -148,7 +148,7 @@ const config: GrapherConfigGridEditorConfig = {
     }),
 }
 
-export class VariablesAnnotationPage extends React.Component {
+export class VariablesAnnotationPage extends Component {
     render() {
         return (
             <AdminLayout title="Indicators">

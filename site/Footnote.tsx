@@ -1,5 +1,4 @@
 import { isNil, parseIntOrUndefined, Tippy } from "@ourworldindata/utils"
-import React from "react"
 import ReactDOM from "react-dom"
 
 export const Footnote = ({

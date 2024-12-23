@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import {
     observable,
@@ -16,7 +16,7 @@ import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
-export class VariablesIndexPage extends React.Component {
+export class VariablesIndexPage extends Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

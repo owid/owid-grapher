@@ -1,4 +1,3 @@
-import React from "react"
 import { Head } from "../Head.js"
 import { IFrameDetector } from "../IframeDetector.js"
 import { SiteHeader } from "../SiteHeader.js"

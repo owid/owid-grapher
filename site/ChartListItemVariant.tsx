@@ -1,4 +1,3 @@
-import React from "react"
 import { BasicChartInformation } from "@ourworldindata/utils"
 
 export const ChartListItemVariant = ({

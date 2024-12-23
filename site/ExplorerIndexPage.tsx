@@ -1,4 +1,3 @@
-import React from "react"
 import { Head } from "./Head.js"
 import { Html } from "./Html.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"

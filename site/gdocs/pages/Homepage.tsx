@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
-import React from "react"
+import * as React from "react"
 import { NewsletterSubscriptionContext } from "../../newsletter.js"
 import { NewsletterSubscriptionForm } from "../../NewsletterSubscription.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"

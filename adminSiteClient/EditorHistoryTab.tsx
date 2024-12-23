@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor.js"
 import { Timeago } from "./Forms.js"
@@ -51,7 +51,7 @@ function LogCompareModal({
 }
 
 @observer
-class LogRenderer extends React.Component<{
+class LogRenderer extends Component<{
     log: Log
     previousLog: Log | undefined
 }> {
@@ -102,7 +102,7 @@ class LogRenderer extends React.Component<{
 }
 
 @observer
-export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
+export class EditorHistoryTab extends Component<{ editor: ChartEditor }> {
     @computed get logs() {
         return this.props.editor.logs || []
     }

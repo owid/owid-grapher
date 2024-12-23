@@ -1,4 +1,3 @@
-import React from "react"
 import ArticleBlock, { Container } from "./ArticleBlock.js"
 import {
     OwidEnrichedGdocBlock,

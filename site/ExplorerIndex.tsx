@@ -1,4 +1,4 @@
-import React from "react"
+import { useState } from "react"
 import ReactDOM from "react-dom"
 import { MinimalExplorerInfo } from "@ourworldindata/types"
 import { EXPLORER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
@@ -11,7 +11,7 @@ function ExplorerIndexPageCard(props: {
     explorer: MinimalExplorerInfo
 }) {
     const { baseUrl, explorer } = props
-    const [hasError, setHasError] = React.useState(false)
+    const [hasError, setHasError] = useState(false)
     return (
         <li key={explorer.slug}>
             <a

@@ -1,4 +1,3 @@
-import React from "react"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 import { stringify } from "safe-stable-stringify"
 import { omit, OwidGdoc } from "@ourworldindata/utils"

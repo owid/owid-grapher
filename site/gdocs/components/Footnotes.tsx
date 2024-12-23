@@ -1,5 +1,4 @@
 import { ENDNOTES_ID, RefDictionary } from "@ourworldindata/utils"
-import React from "react"
 import ArticleBlock from "./ArticleBlock.js"
 import cx from "classnames"
 

@@ -1,4 +1,4 @@
-import React from "react"
+import { Fragment } from "react"
 import { Head } from "./Head.js"
 import { CitationMeta } from "./CitationMeta.js"
 import { SiteHeader } from "./SiteHeader.js"
@@ -258,7 +258,7 @@ export const LongFormPage = (props: {
                                                     />
                                                 )}
                                                 {post.footnotes.length ? (
-                                                    <React.Fragment>
+                                                    <Fragment>
                                                         <h3
                                                             id={endNotes.slug}
                                                             className="h3-bold"
@@ -287,7 +287,7 @@ export const LongFormPage = (props: {
                                                                 )
                                                             )}
                                                         </ol>
-                                                    </React.Fragment>
+                                                    </Fragment>
                                                 ) : undefined}
                                                 {withCitation && (
                                                     <>

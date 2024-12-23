@@ -1,4 +1,3 @@
-import * as React from "react"
 import { EnrichedBlockCallout } from "@ourworldindata/types"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

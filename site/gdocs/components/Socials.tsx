@@ -1,5 +1,4 @@
 import { EnrichedSocialLink, SocialLinkType } from "@ourworldindata/types"
-import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     IconDefinition,

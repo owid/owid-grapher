@@ -1,4 +1,4 @@
-import React, { createRef } from "react"
+import { Component, createRef } from "react"
 import cx from "classnames"
 import { throttle } from "@ourworldindata/utils"
 
@@ -36,7 +36,7 @@ interface StickyNavProps {
     links: StickyNavLink[]
     className?: string
 }
-class StickyNav extends React.Component<
+class StickyNav extends Component<
     StickyNavProps,
     {
         headingPositions: HeadingPosition[]

@@ -1,7 +1,7 @@
 import { BodyDiv } from "../bodyDiv/BodyDiv"
 import { sortBy } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
-import React from "react"
+import * as React from "react"
 
 declare type keyboardCombo = string
 

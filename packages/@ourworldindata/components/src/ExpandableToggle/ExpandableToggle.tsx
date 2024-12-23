@@ -1,6 +1,7 @@
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import React, { useState } from "react"
+import { useState } from "react"
+import * as React from "react"
 import cx from "classnames"
 
 export const ExpandableToggle = ({
