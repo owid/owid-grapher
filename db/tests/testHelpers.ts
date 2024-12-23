@@ -7,6 +7,8 @@ import {
     MultiDimDataPagesTableName,
     MultiDimXChartConfigsTableName,
     PostsGdocsTableName,
+    TagGraphTableName,
+    TagsTableName,
     UsersTableName,
     VariablesTableName,
 } from "@ourworldindata/types"
@@ -24,6 +26,8 @@ export const TABLES_IN_USE = [
     DatasetsTableName,
     PostsGdocsTableName,
     UsersTableName,
+    TagGraphTableName,
+    TagsTableName,
 ]
 
 export async function cleanTestDb(

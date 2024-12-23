@@ -49,6 +49,7 @@ import {
     ChartRecord,
     ChartRecordType,
 } from "../../../site/search/searchTypes.js"
+import { getUniqueNamesFromParentTagArrays } from "@ourworldindata/utils/dist/Util.js"
 
 export function explorerViewRecordToChartRecord(
     e: ExplorerViewFinalRecord
@@ -698,7 +699,7 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
     // The DB query gets the tags for the explorer, but we need to add the parent tags as well.
     // This isn't done in the query because it would require a recursive CTE.
     // It's easier to write that query once, separately, and reuse it.
-    const parentTags = await db.getParentTagsByChildName(trx)
+    const parentTagArrays = await db.getParentTagArraysByChildName(trx)
     const publishedExplorersWithTags = []
 
     for (const explorer of Object.values(explorersBySlug)) {
@@ -709,10 +710,14 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
             })
         }
         const tags = new Set<string>()
-        for (const tag of explorer.tags) {
-            tags.add(tag)
-            for (const parentTag of parentTags[tag]) {
-                tags.add(parentTag)
+
+        for (const tagName of explorer.tags) {
+            tags.add(tagName)
+            const parentTagNames = getUniqueNamesFromParentTagArrays(
+                parentTagArrays[tagName]
+            )
+            for (const parentTagName of parentTagNames) {
+                tags.add(parentTagName)
             }
         }
 
