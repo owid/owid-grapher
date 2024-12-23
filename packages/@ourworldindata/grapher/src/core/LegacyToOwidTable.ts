@@ -61,12 +61,7 @@ export const legacyToOwidTableAndDimensions = (
 
     // We need to create a column for each unique [variable, targetTime] pair. So there can be
     // multiple columns for a single variable.
-    const newDimensions = dimensions.map((dimension) => ({
-        ...dimension,
-        slug: dimension.targetYear
-            ? `${dimension.variableId}-${dimension.targetYear}`
-            : `${dimension.variableId}`,
-    }))
+    const newDimensions = computeActualDimensions(dimensions)
     const dimensionColumns = uniqBy(newDimensions, (dim) => dim.slug)
 
     const variableTablesToJoinByYear: OwidTable[] = []
@@ -333,16 +328,16 @@ export const legacyToOwidTableAndDimensions = (
 
 export const addSelectedEntityColorsToTable = (
     table: OwidTable,
-    selectedEntityColors: { [entityName: string]: string }
+    selectedEntityColors: { [entityName: string]: string | undefined }
 ): OwidTable => {
     const entityColorColumnSlug = OwidTableSlugs.entityColor
 
     const valueFn = (entityId: EntityId | undefined) => {
-        // see comment above about entityMetaById[id]
         if (!entityId) return ErrorValueTypes.UndefinedButShouldBeString
         const entityName = table.entityIdToNameMap.get(entityId)
         return entityName && selectedEntityColors
-            ? selectedEntityColors[entityName]
+            ? (selectedEntityColors[entityName] ??
+                  ErrorValueTypes.UndefinedButShouldBeString)
             : ErrorValueTypes.UndefinedButShouldBeString
     }
 
@@ -741,6 +736,17 @@ const annotationsToMap = (annotations: string): Map<string, string> => {
         entityAnnotationsMap.set(key.trim(), words.join(delimiter).trim())
     })
     return entityAnnotationsMap
+}
+
+export function computeActualDimensions(
+    dimensions: OwidChartDimensionInterface[]
+): OwidChartDimensionInterface[] {
+    return dimensions.map((dimension) => ({
+        ...dimension,
+        slug: dimension.targetYear
+            ? `${dimension.variableId}-${dimension.targetYear}`
+            : `${dimension.variableId}`,
+    }))
 }
 
 /**
