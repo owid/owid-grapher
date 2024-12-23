@@ -1,4 +1,3 @@
-import React from "react"
 import { KeyChartLevel } from "@ourworldindata/utils"
 
 export const TagBucketSortingIcon = ({ level }: { level?: number }) => {

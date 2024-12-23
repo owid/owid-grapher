@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import cx from "classnames"
 import { AdminLayout } from "./AdminLayout.js"
 import { Modal, SearchField } from "./Forms.js"

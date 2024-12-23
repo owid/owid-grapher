@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 
@@ -29,7 +29,7 @@ export interface ControlsRowManager
 }
 
 @observer
-export class ControlsRow extends React.Component<{
+export class ControlsRow extends Component<{
     manager: ControlsRowManager
     maxWidth?: number
     settingsMenuTop?: number

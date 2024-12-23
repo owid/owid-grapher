@@ -1,12 +1,9 @@
-#! /usr/bin/env jest
-
-import { GrapherInterface } from "@ourworldindata/types"
+#! /usr/bin/env jestimport { GrapherInterface } from "@ourworldindata/types"
 import {
     DimensionProperty,
     KeyChartLevel,
     RelatedChart,
 } from "@ourworldindata/utils"
-import React from "react"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
 import { GrapherPage } from "./GrapherPage.js"
 import { SiteFooter } from "./SiteFooter.js"

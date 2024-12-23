@@ -1,4 +1,3 @@
-import React from "react"
 import { viteAssetsForSite } from "./viteUtils.js"
 import { GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.js"
 import { NoJSDetector } from "./NoJSDetector.js"

@@ -1,4 +1,3 @@
-import React from "react"
 import { SiteNavigation } from "./SiteNavigation.js"
 
 interface SiteHeaderProps {

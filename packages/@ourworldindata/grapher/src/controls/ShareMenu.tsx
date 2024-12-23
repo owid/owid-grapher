@@ -1,5 +1,5 @@
 import { observer } from "mobx-react"
-import React from "react"
+import * as React from "react"
 import { computed, action } from "mobx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faXTwitter, faFacebook } from "@fortawesome/free-brands-svg-icons"

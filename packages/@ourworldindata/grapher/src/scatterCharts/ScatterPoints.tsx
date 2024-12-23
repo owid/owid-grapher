@@ -5,7 +5,7 @@ import {
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
-import React from "react"
+import * as React from "react"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import {
     ScatterRenderSeries,

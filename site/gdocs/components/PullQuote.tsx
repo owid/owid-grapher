@@ -1,4 +1,3 @@
-import React from "react"
 import { EnrichedBlockPullQuote } from "@ourworldindata/utils"
 export default function PullQuote({
     d,

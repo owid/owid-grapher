@@ -1,7 +1,4 @@
-#! /usr/bin/env jest
-
-import React from "react"
-import { ExplorerCreatePage } from "./ExplorerCreatePage.js"
+#! /usr/bin/env jestimport { ExplorerCreatePage } from "./ExplorerCreatePage.js"
 
 import Enzyme from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"

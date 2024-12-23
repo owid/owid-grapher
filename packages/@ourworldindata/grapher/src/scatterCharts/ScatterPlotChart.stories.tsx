@@ -5,7 +5,7 @@ import {
 } from "@ourworldindata/core-table"
 import { ScaleType } from "@ourworldindata/types"
 import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
-import React from "react"
+import * as React from "react"
 import { ScatterPlotChart } from "./ScatterPlotChart"
 import { ScatterPlotManager } from "./ScatterPlotChartConstants"
 

@@ -1,4 +1,4 @@
-import React from "react"
+import { createRef, Component } from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
 import { DbChartTagJoin } from "@ourworldindata/utils"
@@ -9,7 +9,7 @@ import {
 } from "react-tag-autocomplete"
 
 @observer
-export class EditTags extends React.Component<{
+export class EditTags extends Component<{
     tags: DbChartTagJoin[]
     suggestions: DbChartTagJoin[]
     onDelete: (index: number) => void
@@ -17,7 +17,7 @@ export class EditTags extends React.Component<{
     onSave: () => void
 }> {
     dismissable: boolean = true
-    reactTagsApi = React.createRef<ReactTagsAPI>()
+    reactTagsApi = createRef<ReactTagsAPI>()
 
     @action.bound onClickSomewhere() {
         if (this.dismissable) this.props.onSave()

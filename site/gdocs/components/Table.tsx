@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { EnrichedBlockTable } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 

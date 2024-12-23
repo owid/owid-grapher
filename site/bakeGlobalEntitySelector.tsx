@@ -4,7 +4,6 @@ import {
     GLOBAL_ENTITY_SELECTOR_ELEMENT,
     SelectionArray,
 } from "@ourworldindata/grapher"
-import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import { ENV } from "../settings/serverSettings.js"
 

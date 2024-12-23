@@ -1,7 +1,4 @@
-#! /usr/bin/env jest
-
-import React from "react"
-import { Grapher } from "../core/Grapher"
+#! /usr/bin/env jestimport { Grapher } from "../core/Grapher"
 import { legacyMapGrapher } from "./MapChart.sample"
 
 import Enzyme from "enzyme"

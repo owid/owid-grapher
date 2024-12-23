@@ -1,4 +1,3 @@
-import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faLightbulb } from "@fortawesome/free-solid-svg-icons"

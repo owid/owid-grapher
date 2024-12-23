@@ -1,21 +1,3 @@
-import React from "react"
-
-/**
- * For more details about these components, see `browser-support.md`.
- */
-
-// Detect if JavaScript is enabled and set a class on the HTML element.
-// Also detect if the browser doesn't support `<script type="module">`, or if there's a parsing error
-// happening in old browsers because "relatively new" syntax is being used.
-// Sets the `js-enabled` class if JavaScript is enabled, and `js-disabled` if not or if an error ocurred.
-
-// The `"noModule" in HTMLScriptElement` check serves as a good proxy to disregard
-// any browsers that will _definitely_ throw a SyntaxError early:
-// See https://caniuse.com/mdn-api_htmlscriptelement_nomodule:
-// - Chrome/Edge <61
-// - Safari <11
-// - Firefox <60
-// - All Internet Explorer
 export const NoJSDetector = ({ baseUrl }: { baseUrl: string }) => (
     <script
         dangerouslySetInnerHTML={{

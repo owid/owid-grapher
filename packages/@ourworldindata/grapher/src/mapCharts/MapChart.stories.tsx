@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { MapChart } from "./MapChart"
 import { SynthesizeGDPTable } from "@ourworldindata/core-table"
 

@@ -1,5 +1,5 @@
 import { drop, escapeRegExp, sortBy } from "@ourworldindata/utils"
-import React from "react"
+import * as React from "react"
 
 export interface SearchWord {
     regex: RegExp

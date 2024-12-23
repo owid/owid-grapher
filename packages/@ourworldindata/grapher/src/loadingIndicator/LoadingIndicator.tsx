@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { Bounds } from "@ourworldindata/utils"
 
 const DEFAULT_COLOR = "#333"

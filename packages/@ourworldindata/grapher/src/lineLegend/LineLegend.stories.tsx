@@ -1,6 +1,6 @@
 import { DualAxis } from "../axis/Axis"
 import { AxisConfig } from "../axis/AxisConfig"
-import React from "react"
+import * as React from "react"
 import { LineLegend, LineLegendManager } from "./LineLegend"
 
 export default {

@@ -1,4 +1,4 @@
-import React from "react"
+import { Component, Fragment } from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
 import { SketchPicker } from "react-color"
@@ -16,7 +16,7 @@ interface ColorpickerProps {
 }
 
 @observer
-export class Colorpicker extends React.Component<ColorpickerProps> {
+export class Colorpicker extends Component<ColorpickerProps> {
     @action.bound onColor(color: string) {
         if (color === "") {
             this.props.onColor(undefined)
@@ -39,7 +39,7 @@ export class Colorpicker extends React.Component<ColorpickerProps> {
         }
 
         return (
-            <React.Fragment>
+            <Fragment>
                 <SketchPicker
                     disableAlpha
                     presetColors={availableColors.map((color) => ({
@@ -49,7 +49,7 @@ export class Colorpicker extends React.Component<ColorpickerProps> {
                     color={this.props.color}
                     onChange={(color) => this.onColor(color.hex)}
                 />
-            </React.Fragment>
+            </Fragment>
         )
     }
 }

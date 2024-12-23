@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { SubNavId } from "@ourworldindata/types"
 import { getSubnavItem, subnavs } from "./SiteSubnavigation.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"

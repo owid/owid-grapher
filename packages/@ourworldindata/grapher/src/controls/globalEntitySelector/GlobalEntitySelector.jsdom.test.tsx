@@ -1,8 +1,4 @@
-#! /usr/bin/env jest
-
-import React from "react"
-
-import Enzyme from "enzyme"
+#! /usr/bin/env jestimport Enzyme from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
 import { GlobalEntitySelector } from "./GlobalEntitySelector"
 import { SelectionArray } from "../../selection/SelectionArray"

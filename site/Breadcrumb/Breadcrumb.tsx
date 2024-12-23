@@ -1,4 +1,4 @@
-import React from "react"
+import { Fragment } from "react"
 import { BreadcrumbItem } from "@ourworldindata/utils"
 import { SubNavId } from "@ourworldindata/types"
 import { getSubnavItem, SubnavItem, subnavs } from "../SiteSubnavigation.js"
@@ -80,10 +80,10 @@ export const Breadcrumbs = ({
                 )
 
             return (
-                <React.Fragment key={item.label}>
+                <Fragment key={item.label}>
                     {breadcrumb}
                     {!isLast && <BreadcrumbSeparator />}
-                </React.Fragment>
+                </Fragment>
             )
         })}
     </div>

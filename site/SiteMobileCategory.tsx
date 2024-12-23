@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react"
+import { useEffect, useRef } from "react"
 import { CategoryWithEntries } from "@ourworldindata/utils"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import { SiteNavigationTopic } from "./SiteNavigationTopic.js"

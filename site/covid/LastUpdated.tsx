@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { dayjs, Dayjs } from "@ourworldindata/utils"
 
 export interface LastUpdatedTokenProps {

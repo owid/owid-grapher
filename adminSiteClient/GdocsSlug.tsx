@@ -1,5 +1,5 @@
 import { Col, Input, Row, Space, Switch } from "antd"
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { slugify, OwidGdocErrorMessage, OwidGdoc } from "@ourworldindata/utils"
 import { Help } from "./Forms.js"
 import { getPropertyMostCriticalError } from "./gdocsValidation.js"

@@ -1,4 +1,5 @@
-import React, { useContext, createContext, useState } from "react"
+import { useContext, createContext, useState } from "react"
+import * as React from "react"
 import { action, observable } from "mobx"
 import {
     getOwidGdocFromJSON,

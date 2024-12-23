@@ -1,5 +1,4 @@
 import { GRAPHER_IS_IN_IFRAME_CLASS } from "@ourworldindata/grapher"
-import React from "react"
 
 export const IFrameDetector = () => (
     <script

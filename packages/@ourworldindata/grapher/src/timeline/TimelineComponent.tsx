@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { select } from "d3-selection"
 import cx from "classnames"
 import {

@@ -12,13 +12,13 @@ import {
 import { ColumnSlug, isEmpty, ToleranceStrategy } from "@ourworldindata/utils"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
-import React from "react"
+import { Component, Fragment } from "react"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 @observer
-class VariableSection extends React.Component<{
+class VariableSection extends Component<{
     mapConfig: MapConfig
     filledDimensions: ChartDimension[]
     parentConfig?: GrapherInterface
@@ -77,7 +77,7 @@ class VariableSection extends React.Component<{
 }
 
 @observer
-class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
+class TimelineSection extends Component<{ mapConfig: MapConfig }> {
     @action.bound onToggleHideTimeline(value: boolean) {
         this.props.mapConfig.hideTimeline = value || undefined
     }
@@ -150,7 +150,7 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
 }
 
 @observer
-class TooltipSection extends React.Component<{ mapConfig: MapConfig }> {
+class TooltipSection extends Component<{ mapConfig: MapConfig }> {
     @action.bound onTooltipUseCustomLabels(tooltipUseCustomLabels: boolean) {
         this.props.mapConfig.tooltipUseCustomLabels = tooltipUseCustomLabels
             ? true
@@ -176,7 +176,7 @@ class TooltipSection extends React.Component<{ mapConfig: MapConfig }> {
 @observer
 export class EditorMapTab<
     Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
+> extends Component<{ editor: Editor }> {
     @computed get grapher() {
         return this.props.editor.grapher
     }
@@ -198,7 +198,7 @@ export class EditorMapTab<
                     parentConfig={this.props.editor.activeParentConfig}
                 />
                 {isReady && (
-                    <React.Fragment>
+                    <Fragment>
                         <TimelineSection mapConfig={mapConfig} />
                         <EditorColorScaleSection
                             scale={colorScale}
@@ -210,7 +210,7 @@ export class EditorMapTab<
                             }}
                         />
                         <TooltipSection mapConfig={mapConfig} />
-                    </React.Fragment>
+                    </Fragment>
                 )}
             </div>
         )

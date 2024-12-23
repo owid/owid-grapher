@@ -1,4 +1,3 @@
-import React from "react"
 import { PostReference } from "@ourworldindata/utils"
 
 export const RelatedArticles = ({

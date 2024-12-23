@@ -1,8 +1,4 @@
-#! /usr/bin/env jest
-
-import React from "react"
-
-import { DataTable } from "./DataTable"
+#! /usr/bin/env jestimport { DataTable } from "./DataTable"
 import { GRAPHER_CHART_TYPES, GRAPHER_TAB_OPTIONS } from "@ourworldindata/types"
 import {
     childMortalityGrapher,

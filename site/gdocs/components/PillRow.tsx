@@ -1,5 +1,5 @@
 import { EnrichedBlockPillRow } from "@ourworldindata/types"
-import React, { useContext } from "react"
+import { useContext } from "react"
 import { useLinkedDocument } from "../utils.js"
 import { DocumentContext } from "../OwidGdoc.js"
 

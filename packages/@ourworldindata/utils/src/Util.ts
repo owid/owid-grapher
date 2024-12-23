@@ -179,7 +179,7 @@ import {
     GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
 import { PointVector } from "./PointVector.js"
-import React from "react"
+import * as React from "react"
 import { match, P } from "ts-pattern"
 
 export type NoUndefinedValues<T> = {

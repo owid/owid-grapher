@@ -1,4 +1,5 @@
-import React, { CSSProperties, useRef, useState } from "react"
+import { CSSProperties, useRef, useState } from "react"
+import * as React from "react"
 import cx from "classnames"
 
 export const ExpandableParagraph = (

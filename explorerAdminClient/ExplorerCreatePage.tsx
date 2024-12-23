@@ -11,7 +11,7 @@ import Handsontable from "handsontable"
 import { registerAllModules } from "handsontable/registry"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import React from "react"
+import { Component, createRef } from "react"
 import { Prompt } from "react-router-dom"
 import {
     DefaultNewExplorerSlug,
@@ -39,7 +39,7 @@ const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don
 registerAllModules()
 
 @observer
-export class ExplorerCreatePage extends React.Component<{
+export class ExplorerCreatePage extends Component<{
     slug: string
     gitCmsBranchName: string
     manager?: AdminManager
@@ -325,12 +325,12 @@ export class ExplorerCreatePage extends React.Component<{
     }
 }
 
-class HotEditor extends React.Component<{
+class HotEditor extends Component<{
     onChange: (code: string) => void
     program: ExplorerProgram
     programOnDisk: ExplorerProgram
 }> {
-    private hotTableComponent = React.createRef<HotTableClass>()
+    private hotTableComponent = createRef<HotTableClass>()
 
     @computed private get program() {
         return this.props.program
@@ -467,7 +467,7 @@ class HotEditor extends React.Component<{
     }
 }
 
-class PictureInPicture extends React.Component<{
+class PictureInPicture extends Component<{
     previewLink: string
 }> {
     render() {
@@ -480,7 +480,7 @@ class PictureInPicture extends React.Component<{
     }
 }
 
-class TemplatesComponent extends React.Component<{
+class TemplatesComponent extends Component<{
     isNewFile: boolean
     onChange: (code: string) => void
 }> {

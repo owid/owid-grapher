@@ -1,5 +1,5 @@
 import { observer } from "mobx-react"
-import React from "react"
+import * as React from "react"
 import { computed, action } from "mobx"
 import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { Modal } from "./Modal"
