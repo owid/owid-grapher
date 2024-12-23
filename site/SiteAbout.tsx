@@ -1,5 +1,3 @@
-import * as React from "react"
-
 export const ABOUT_LINKS = [
     { title: "About Us", href: "/about" },
     { title: "Organization", href: "/organization" },

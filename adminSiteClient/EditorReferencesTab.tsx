@@ -1,4 +1,4 @@
-import React from "react"
+import { Component, Fragment } from "react"
 import { observer } from "mobx-react"
 import {
     ChartEditor,
@@ -28,7 +28,7 @@ const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
 @observer
 export class EditorReferencesTab<
     Editor extends AbstractChartEditor,
-> extends React.Component<{
+> extends Component<{
     editor: Editor
 }> {
     render() {
@@ -163,7 +163,7 @@ export const ReferencesSection = (props: {
 }
 
 @observer
-export class EditorReferencesTabForChart extends React.Component<{
+export class EditorReferencesTabForChart extends Component<{
     editor: ChartEditor
 }> {
     @computed get isPersisted() {
@@ -232,7 +232,7 @@ export class EditorReferencesTabForChart extends React.Component<{
                 <section>
                     <h5>Alternative URLs for this chart</h5>
                     {this.redirects.length ? (
-                        <React.Fragment>
+                        <Fragment>
                             <p>The following URLs redirect to this chart:</p>
                             <ul className="list-group">
                                 {this.redirects.map((redirect) => (
@@ -254,7 +254,7 @@ export class EditorReferencesTabForChart extends React.Component<{
                                 ))}
                             </ul>
                             <hr />
-                        </React.Fragment>
+                        </Fragment>
                     ) : null}
                     {this.isPersisted && (
                         <AddRedirectForm
@@ -269,9 +269,7 @@ export class EditorReferencesTabForChart extends React.Component<{
 }
 
 @observer
-class AddRedirectForm<
-    Editor extends AbstractChartEditor,
-> extends React.Component<{
+class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<{
     editor: Editor
     onSuccess: (redirect: ChartRedirect) => void
 }> {
@@ -356,7 +354,7 @@ class AddRedirectForm<
 }
 
 @observer
-export class EditorReferencesTabForIndicator extends React.Component<{
+export class EditorReferencesTabForIndicator extends Component<{
     editor: IndicatorChartEditor
 }> {
     render() {

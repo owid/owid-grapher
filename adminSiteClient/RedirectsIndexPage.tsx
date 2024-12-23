@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, action, runInAction } from "mobx"
 import { AdminLayout } from "./AdminLayout.js"
@@ -14,7 +14,7 @@ interface RedirectListItem {
 }
 
 @observer
-class RedirectRow extends React.Component<{
+class RedirectRow extends Component<{
     redirect: RedirectListItem
     onDelete: (redirect: RedirectListItem) => void
 }> {
@@ -46,7 +46,7 @@ class RedirectRow extends React.Component<{
 }
 
 @observer
-export class RedirectsIndexPage extends React.Component {
+export class RedirectsIndexPage extends Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

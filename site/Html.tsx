@@ -1,5 +1,5 @@
 import cx from "classnames"
-import React, { HtmlHTMLAttributes } from "react"
+import { HtmlHTMLAttributes } from "react"
 
 /**
  * Renders a <html> element with the class "js-disabled" to indicate that JavaScript is disabled.

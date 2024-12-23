@@ -1,5 +1,5 @@
 import { GDOCS_URL_PLACEHOLDER, gdocUrlRegex } from "@ourworldindata/utils"
-import React from "react"
+import * as React from "react"
 import {
     GDOCS_BASIC_ARTICLE_TEMPLATE_URL,
     GDOCS_CLIENT_EMAIL,

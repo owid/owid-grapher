@@ -1,4 +1,3 @@
-import React from "react"
 import cx from "classnames"
 import { useIntersectionObserver } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

@@ -6,7 +6,7 @@ import {
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
-import React from "react"
+import * as React from "react"
 import {
     CaptionedChart,
     CaptionedChartManager,
