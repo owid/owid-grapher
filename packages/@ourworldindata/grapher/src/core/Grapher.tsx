@@ -192,7 +192,11 @@ import {
     DefaultChartClass,
 } from "../chart/ChartTypeMap"
 import { Entity, SelectionArray } from "../selection/SelectionArray"
-import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
+import {
+    addSelectedEntityColorsToTable,
+    computeActualDimensions,
+    legacyToOwidTableAndDimensions,
+} from "./LegacyToOwidTable"
 import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
 import {
     autoDetectSeriesStrategy,
@@ -1167,7 +1171,9 @@ export class Grapher
                   legacyConfig.selectedEntityColors
               )
             : table
-        const dimensions = legacyConfig.dimensions ?? []
+        const dimensions = legacyConfig.dimensions
+            ? computeActualDimensions(legacyConfig.dimensions)
+            : []
         this.createPerformanceMeasurement(
             "legacyToOwidTableAndDimensions",
             startMark
