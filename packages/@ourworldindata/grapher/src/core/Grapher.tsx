@@ -1145,10 +1145,11 @@ export class Grapher
         // TODO grapher model: switch this to downloading multiple data and metadata files
 
         const startMark = performance.now()
-        const { dimensions, table } = legacyToOwidTableAndDimensions(
+        const table = legacyToOwidTableAndDimensions(
             json,
-            legacyConfig
+            legacyConfig.dimensions ?? []
         )
+        const dimensions = legacyConfig.dimensions ?? []
         this.createPerformanceMeasurement(
             "legacyToOwidTableAndDimensions",
             startMark
