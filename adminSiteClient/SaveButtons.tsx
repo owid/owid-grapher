@@ -63,8 +63,8 @@ class SaveButtonsForChart extends React.Component<{
         void this.props.editor.saveAsNewGrapher()
     }
 
-    @action.bound onSaveAsNarrativeView() {
-        void this.props.editor.saveAsNarrativeView()
+    @action.bound onSaveAsChartView() {
+        void this.props.editor.saveAsChartView()
     }
 
     @action.bound onPublishToggle() {
@@ -122,10 +122,10 @@ class SaveButtonsForChart extends React.Component<{
                     <div className="mt-2">
                         <button
                             className="btn btn-primary"
-                            onClick={this.onSaveAsNarrativeView}
+                            onClick={this.onSaveAsChartView}
                             disabled={isSavingDisabled}
                         >
-                            Save as narrative view
+                            Save as narrative chart
                         </button>
                     </div>
                 )}
