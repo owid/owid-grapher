@@ -212,7 +212,6 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         const { dataset } = this.props
         const { newDataset } = this
         const isBulkImport = dataset.namespace !== "owid"
-
         return (
             <main className="DatasetEditPage">
                 <Prompt
@@ -374,6 +373,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                         </p>
                     ) : (
                         <p>
+                            {dataset.isArchived}
                             <strong>Before archiving, ensure that:</strong>
                             <ul>
                                 <li>
