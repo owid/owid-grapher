@@ -86,7 +86,8 @@ export const legacyToOwidTableAndDimensions = (
         const valueColumnColor = dimension.display?.color
         // Ensure the column slug is unique by copying it from the dimensions
         // (there can be two columns of the same variable with different targetTimes)
-        valueColumnDef.slug = dimension.slug
+        if (dimension.slug) valueColumnDef.slug = dimension.slug
+        else throw new Error("Dimension slug was undefined")
         // Because database columns can contain mixed types, we want to avoid
         // parsing for Grapher data until we fix that.
         valueColumnDef.skipParsing = true
