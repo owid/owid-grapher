@@ -1,4 +1,5 @@
-#! /usr/bin/env jestimport { GrapherInterface } from "@ourworldindata/types"
+#! /usr/bin/env jest
+import { GrapherInterface } from "@ourworldindata/types"
 import {
     DimensionProperty,
     KeyChartLevel,

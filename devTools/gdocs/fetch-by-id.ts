@@ -1,9 +1,5 @@
 #! /usr/bin/env node
 
-import { TransactionCloseMode, knexReadonlyTransaction } from "../../db/db.js"
-
-import fs from "fs-extra"
-
 import parseArgs from "minimist"
 
 import { OwidGoogleAuth } from "../../db/OwidGoogleAuth.js"
@@ -19,7 +15,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
         })
         // Remove the Authorization header from the response before printing it
-        delete response.config.headers.Authorization
+        delete response.config?.headers?.Authorization
         process.stdout.write(JSON.stringify(response, null, 2))
     } catch (error) {
         console.error("Encountered an error: ", error)
@@ -40,5 +36,5 @@ Usage:
     `)
     process.exit(0)
 } else {
-    main(parsedArgs)
+    void main(parsedArgs)
 }

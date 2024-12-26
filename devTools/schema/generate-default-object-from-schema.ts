@@ -20,13 +20,17 @@ function generateDefaultObjectFromSchema(
 ) {
     const defaultObject: Record<string, any> = {}
     if (schema.type === "object") {
-        for (let key in schema.properties) {
+        for (const key in schema.properties) {
             // substitute $ref with the actual definition
             const ref = schema.properties[key].$ref
+            // FIXME: Not sure whether != is necessary here.
+            // eslint-disable-next-line eqeqeq
             if (ref != undefined) {
                 const regex = /#\/\$defs\/([a-zA-Z]+)/
                 const [_, defKey] = ref.match(regex) ?? []
                 const def = defs[defKey]
+                // FIXME: Not sure whether == is necessary here.
+                // eslint-disable-next-line eqeqeq
                 if (def == undefined)
                     throw new Error(`Definition "${ref}" not found`)
                 schema.properties[key] = def
@@ -38,6 +42,8 @@ function generateDefaultObjectFromSchema(
                     defs
                 )
                 if (Object.keys(defaults).length) defaultObject[key] = defaults
+                // FIXME: Not sure whether != is necessary here.
+                // eslint-disable-next-line eqeqeq
             } else if (schema.properties[key].default != undefined) {
                 defaultObject[key] = schema.properties[key].default
             }
@@ -48,12 +54,14 @@ function generateDefaultObjectFromSchema(
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     const schemaFilename = parsedArgs._[0]
+    // FIXME: Not sure whether == is necessary here.
+    // eslint-disable-next-line eqeqeq
     if (schemaFilename == undefined) {
         help()
         process.exit(0)
     }
 
-    let schema = fs.readJSONSync(schemaFilename)
+    const schema = fs.readJSONSync(schemaFilename)
     const defs = schema.$defs || {}
     const defaultConfig = generateDefaultObjectFromSchema(schema, defs)
     const defaultConfigJSON = JSON.stringify(defaultConfig, undefined, 2)
@@ -96,5 +104,5 @@ if (parsedArgs["h"] || parsedArgs["help"]) {
     help()
     process.exit(0)
 } else {
-    main(parsedArgs)
+    void main(parsedArgs)
 }

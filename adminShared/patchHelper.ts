@@ -71,7 +71,10 @@ export function setValueRecursive(
             let newObject: any = {}
             if (json !== undefined && checkIsPlainObjectWithGuard(json))
                 newObject = { ...json }
-            const currentValue = newObject.hasOwnProperty(currentPart)
+            const currentValue = Object.prototype.hasOwnProperty.call(
+                newObject,
+                currentPart
+            )
                 ? newObject[currentPart]
                 : undefined
             const updatedValue = setValueRecursive(

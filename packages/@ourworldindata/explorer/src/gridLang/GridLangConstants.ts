@@ -149,7 +149,7 @@ export const SubTableValueCellDef: CellDef = {
 }
 
 const MatchUrlsOnlyRegex =
-    /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/
+    /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)((?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)/
 
 export const UrlCellDef: CellDef = {
     keyword: "",
@@ -175,7 +175,7 @@ export const CommentCellDef: CellDef = {
     keyword: "",
     cssClass: "CommentType",
     description: "Just a comment.",
-    regex: /^(\#\#|💬)/,
+    regex: /^(##|💬)/,
 }
 
 export const WorkInProgressCellDef: CellDef = {
@@ -207,7 +207,7 @@ export const EtlPathCellDef: CellDef = {
     keyword: "",
     cssClass: "IndicatorIdOrEtlPath",
     description: "Path to an ETL indicator.",
-    regex: /^$|^[\w\d_/\-]+#[\w\d_/\-]+$/,
+    regex: /^$|^[\w\d_/-]+#[\w\d_/-]+$/,
     requirementsDescription: `Can only contain the characters a-zA-Z0-9-_/#`,
 }
 
@@ -215,7 +215,7 @@ export const IndicatorIdOrEtlPathCellDef: CellDef = {
     keyword: "",
     cssClass: "IndicatorIdOrEtlPath",
     description: "A single indicator ID or a path to an ETL indicator.",
-    regex: /^\d+|[\w\d_/\-]+#[\w\d_/\-]+$/,
+    regex: /^\d+|[\w\d_/-]+#[\w\d_/-]+$/,
     requirementsDescription: `Can only contain the characters a-zA-Z0-9-_/#`,
 }
 
@@ -223,7 +223,7 @@ export const IndicatorIdsOrEtlPathsCellDef: CellDef = {
     keyword: "",
     cssClass: "IndicatorIdOrEtlPath",
     description: "One or more indicator IDs or paths to an ETL indicator.",
-    regex: /^((\d+|[\w\d_/\-]*#[\w\d_/\-]+)( +|$))+$/,
+    regex: /^((\d+|[\w\d_/-]*#[\w\d_/-]+)( +|$))+$/,
     requirementsDescription: `Can only contain the characters a-zA-Z0-9-_/# `,
 }
 

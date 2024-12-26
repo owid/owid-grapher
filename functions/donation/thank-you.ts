@@ -157,7 +157,7 @@ export const onRequestPost: PagesFunction = async ({
         )
 
         switch (event.type) {
-            case "checkout.session.completed":
+            case "checkout.session.completed": {
                 const session = event.data.object
                 await sendThankYouEmail(
                     {
@@ -183,7 +183,11 @@ export const onRequestPost: PagesFunction = async ({
                     env
                 )
                 break
-            default: // do not process other event types
+            }
+            default: {
+                // do not process other event types
+                break
+            }
         }
 
         return new Response(null, {
