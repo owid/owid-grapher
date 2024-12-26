@@ -606,6 +606,7 @@ export class Grapher
 
     @action.bound downloadData(): void {
         if (this.manuallyProvideData) {
+            // ignore
         } else if (this.owidDataset) {
             this._receiveOwidDataAndApplySelection(this.owidDataset)
         } else void this.downloadLegacyDataFromOwidVariableIds()

@@ -11,7 +11,7 @@ import { ThankYouPage } from "../site/ThankYouPage.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import ReactDOMServer from "react-dom/server.js"
-import * as lodash from "lodash"
+import lodash from "lodash"
 import { formatCountryProfile, isCanonicalInternalUrl } from "./formatting.js"
 import {
     bakeGrapherUrls,
@@ -621,9 +621,9 @@ export const renderProminentLinks = async (
                         )
                     )
                     $block.remove()
-                    return
                 }
             }
+            if (!title) return
 
             const image =
                 $block.find("figure").html() ||

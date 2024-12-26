@@ -158,7 +158,9 @@ const getInitialState = (): State => {
         cookieValue = parseRawCookieValue(
             Cookies.get(COOKIE_PREFERENCES_COOKIE_NAME)
         )
-    } catch {}
+    } catch {
+        // ignore
+    }
 
     if (!cookieValue || arePreferencesOutdated(cookieValue.date, POLICY_DATE))
         return defaultState

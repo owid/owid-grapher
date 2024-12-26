@@ -37,7 +37,7 @@ export const transformQueryParams = (
 export const getExplorerSlugFromUrl = (url: Url): string | undefined => {
     if (!url.pathname) return undefined
     const match = url.pathname.match(
-        new RegExp(`^\/+${EXPLORERS_ROUTE_FOLDER}\/+([^\/]+)`)
+        new RegExp(`^/+${EXPLORERS_ROUTE_FOLDER}/+([^/]+)`)
     )
     if (match && match[1]) return match[1]
     return undefined

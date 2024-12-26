@@ -1,7 +1,9 @@
-#! /usr/bin/env jestimport { ExplorerCreatePage } from "./ExplorerCreatePage.js"
+#! /usr/bin/env jest
 
 import Enzyme from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
+import { ExplorerCreatePage } from "./ExplorerCreatePage.js"
+
 Enzyme.configure({ adapter: new Adapter() })
 
 describe(ExplorerCreatePage, () => {
