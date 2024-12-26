@@ -39,7 +39,7 @@ jest.mock("googleapis", () => {
 import { OwidAdminApp } from "./appClass.js"
 
 import { logInAsUser } from "./authentication.js"
-import knex, { Knex } from "knex"
+import { Knex, knex } from "knex"
 import { dbTestConfig } from "../db/tests/dbTestConfig.js"
 import {
     TransactionCloseMode,

@@ -152,7 +152,7 @@ export class GitCmsServer {
         globStr: string,
         folder: string
     ): Promise<GitCmsGlobResponse> {
-        const query = globStr.replace(/[^a-zA-Z\*]/, "")
+        const query = globStr.replace(/[^a-zA-Z*]/, "")
         const cwd = this.baseDir + folder
         const results = sync(query, {
             cwd,
@@ -173,7 +173,7 @@ export class GitCmsServer {
         authorName = GIT_DEFAULT_USERNAME,
         authorEmail = GIT_DEFAULT_EMAIL
     ): Promise<GitCmsResponse> {
-        const filepath = rawFilepath.replace(/\~/g, "/")
+        const filepath = rawFilepath.replace(/~/g, "/")
         try {
             ensureNoParentLinksInFilePath(filepath)
 
@@ -258,7 +258,7 @@ export class GitCmsServer {
         } = {}
 
         routes[GIT_CMS_PULL_ROUTE] = async (
-            req: Request,
+            _req: Request,
             res: ResponseWithUserInfo
         ) => res.send(await this.pullCommand()) // Pull latest from github
 

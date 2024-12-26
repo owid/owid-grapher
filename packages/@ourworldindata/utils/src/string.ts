@@ -1,5 +1,5 @@
 const snakeToCamel = (str: string): string =>
-    str.replace(/(\_\w)/g, (char) => char[1].toUpperCase())
+    str.replace(/(_\w)/g, (char) => char[1].toUpperCase())
 
 export const camelCaseProperties = (
     obj: Record<string, unknown>

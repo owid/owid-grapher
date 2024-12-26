@@ -1,13 +1,9 @@
 import parseArgs from "minimist"
 import { knexRaw, knexReadWriteTransaction } from "../../db/db.js"
-import {
-    DbInsertPostGdocComponent,
-    DbRawPostGdoc,
-    parsePostGdocContent,
-} from "@ourworldindata/types"
+import { DbRawPostGdoc, parsePostGdocContent } from "@ourworldindata/types"
 import { getGdocComponentsWithoutChildren } from "../../db/model/Gdoc/extractGdocComponentInfo.js"
 
-async function main(parsedArgs: parseArgs.ParsedArgs) {
+async function main() {
     await knexReadWriteTransaction(async (trx) => {
         await knexRaw(trx, `DELETE FROM posts_gdocs_components`)
         console.log("Deleted all rows from posts_gdocs_components")
@@ -47,5 +43,5 @@ if (parsedArgs["h"]) {
         `reconstructPostsGdocsComponents - Reconstruct posts_gdocs_components table from posts_gdocs table`
     )
 } else {
-    main(parsedArgs)
+    void main()
 }

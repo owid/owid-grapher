@@ -213,7 +213,9 @@ export class EntitySelector extends React.Component<{
             )
 
             if (localEntityNames) this.set({ localEntityNames })
-        } catch {}
+        } catch {
+            // ignore
+        }
     }
 
     private clearSearchInput(): void {

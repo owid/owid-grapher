@@ -317,7 +317,7 @@ interface ParseContext {
     to some html tags like <br />
     */
 const wpTagRegex =
-    /wp:(?<tag>([\w\/-]+))\s*(?<attributes>{.*})?\s*(?<isVoidElement>\/)?$/
+    /wp:(?<tag>([\w/-]+))\s*(?<attributes>{.*})?\s*(?<isVoidElement>\/)?$/
 
 /** Unwraps a CheerioElement in the sense that it applies
     cheerioElementsToArchieML on the children, returning the result. In effect
