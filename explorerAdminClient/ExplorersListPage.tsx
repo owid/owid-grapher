@@ -225,7 +225,7 @@ export class ExplorersIndexPage extends Component<{
                 const html = text.replace(
                     new RegExp(
                         this.highlightSearch.replace(
-                            /[-\/\\^$*+?.()|[\]{}]/g,
+                            /[-/\\^$*+?.()|[\]{}]/g,
                             "\\$&"
                         ),
                         "i"

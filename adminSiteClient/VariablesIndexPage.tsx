@@ -8,7 +8,7 @@ import {
     reaction,
     IReactionDisposer,
 } from "mobx"
-import * as lodash from "lodash"
+import lodash from "lodash"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow } from "./Forms.js"
@@ -42,7 +42,7 @@ export class VariablesIndexPage extends Component {
                 const html = text.replace(
                     new RegExp(
                         this.highlightSearch.replace(
-                            /[-\/\\^$*+?.()|[\]{}]/g,
+                            /[-/\\^$*+?.()|[\]{}]/g,
                             "\\$&"
                         ),
                         "i"
