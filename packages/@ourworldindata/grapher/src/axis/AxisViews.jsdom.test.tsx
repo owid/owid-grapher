@@ -1,4 +1,6 @@
-#! /usr/bin/env jestimport { AxisConfig } from "./AxisConfig"
+#! /usr/bin/env jest
+
+import { AxisConfig } from "./AxisConfig"
 import { DualAxisComponent, HorizontalAxisGridLines } from "./AxisViews"
 import { ScaleType } from "@ourworldindata/types"
 import { DualAxis } from "./Axis"

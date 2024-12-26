@@ -196,7 +196,9 @@ export class GlobalEntitySelector extends React.Component<{
                 (entity): boolean => entity.code === localCountryCode.code
             )
             if (country) this.localEntityName = country.name
-        } catch {}
+        } catch {
+            // ignore
+        }
     }
 
     @action.bound private prepareOptionGroups(): GroupBase<DropdownEntity>[] {

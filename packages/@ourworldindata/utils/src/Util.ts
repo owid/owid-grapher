@@ -474,7 +474,7 @@ export const slugifySameCase = (
     let slug = str
         .trim()
         .replace(/\s*\*.+\*/, "")
-        .replace(/[^\w\- \/]+/g, "")
+        .replace(/[^\w\- /]+/g, "")
         .replace(/ +/g, "-")
     if (!allowSlashes) {
         slug = slug.replace(/\//g, "")
@@ -559,7 +559,7 @@ export interface Json {
 export const csvEscape = (value: unknown): string => {
     const valueStr = toString(value)
     return valueStr.includes(",")
-        ? `"${valueStr.replace(/\"/g, '""')}"`
+        ? `"${valueStr.replace(/"/g, '""')}"`
         : valueStr
 }
 
@@ -581,6 +581,7 @@ export const trimObject = <Obj>(
         if (isObject(val) && isEmpty(val)) {
             // Drop empty objects
         } else if (trimStringEmptyStrings && val === "") {
+            // ignore
         } else if (val !== undefined) clone[key] = obj[key]
     }
     return clone
@@ -1256,7 +1257,7 @@ export function stringifyUnknownError(error: unknown): string | undefined {
     }
 
     if (typeof error === "object" && !Array.isArray(error) && error !== null) {
-        if (error.hasOwnProperty("message")) {
+        if (Object.prototype.hasOwnProperty.call(error, "message")) {
             // Within this branch, `error` is an object with the `message`
             // property, so we can access the object's `message` property.
             return (error as any).message
@@ -1385,7 +1386,9 @@ export const canWriteToClipboard = async (): Promise<boolean> => {
 
             // Asking permission was successful, we may use clipboard-write methods if permission wasn't denied.
             return ["granted", "prompt"].includes(res.state)
-        } catch {}
+        } catch {
+            // ignore
+        }
     }
     // navigator.clipboard is available, but we couldn't check for permissions -- assume we can use it.
     return true
@@ -1438,7 +1441,7 @@ export function findDuplicates<T>(arr: T[]): T[] {
 
 // Memoization for immutable getters. Run the function once for this instance and cache the result.
 export const imemo = <Type>(
-    target: unknown,
+    _target: unknown,
     propertyName: string,
     descriptor: TypedPropertyDescriptor<Type>
 ): void => {

@@ -177,13 +177,14 @@ function TabIcon({
             return <FontAwesomeIcon icon={faTable} />
         case GRAPHER_TAB_NAMES.WorldMap:
             return <FontAwesomeIcon icon={faEarthAmericas} />
-        default:
+        default: {
             const chartIcon =
                 tab === GRAPHER_TAB_NAMES.LineChart &&
                 isLineChartThatTurnedIntoDiscreteBar
                     ? chartIcons[GRAPHER_CHART_TYPES.DiscreteBar]
                     : chartIcons[tab]
             return chartIcon
+        }
     }
 }
 

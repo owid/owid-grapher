@@ -71,7 +71,7 @@ const dumpGraphers = async () => {
         JSON.stringify(mapToObjectLiteral(graphersById), null, 2),
         "utf8"
     )
-    closeTypeOrmAndKnexConnections()
+    void closeTypeOrmAndKnexConnections()
 }
 
 // If an author changes the map variable then removes that variable, we don't remove it from map config.
@@ -205,7 +205,7 @@ const dumpComplexSelections = async () => {
             }),
         "utf8"
     )
-    closeTypeOrmAndKnexConnections()
+    void closeTypeOrmAndKnexConnections()
 }
 
 const getArgsOrErrorMessage = () => {
@@ -240,4 +240,4 @@ const tasks = [
     dumpColorScales,
 ]
 
-main()
+void main()

@@ -1,4 +1,5 @@
-#! /usr/bin/env jestimport { ExplorerControlType } from "./ExplorerConstants.js"
+#! /usr/bin/env jest
+import { ExplorerControlType } from "./ExplorerConstants.js"
 import { ExplorerControlPanel } from "./ExplorerControls.js"
 
 import Enzyme from "enzyme"
