@@ -110,11 +110,11 @@ export function buildSvgOutFilepath(
 
 export async function grapherToSVG(
     jsonConfig: GrapherInterface,
-    vardata: MultipleOwidVariableDataDimensionsMap
+    _vardata: MultipleOwidVariableDataDimensionsMap
 ): Promise<string> {
     const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
     grapher.isExportingToSvgOrPng = true
     grapher.shouldIncludeDetailsInStaticExport = false
-    grapher.receiveOwidData(vardata)
+    // grapher.receiveOwidData(vardata)
     return grapher.staticSVG
 }

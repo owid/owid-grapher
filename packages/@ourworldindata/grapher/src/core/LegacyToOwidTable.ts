@@ -10,6 +10,7 @@ import {
     OwidVariableDataMetadataDimensions,
     ErrorValue,
     OwidChartDimensionInterfaceWithMandatorySlug,
+    OwidChartDimensionInterface,
     EntityName,
 } from "@ourworldindata/types"
 import {
@@ -40,6 +41,27 @@ import {
     isEmpty,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
+import { getDimensionColumnSlug } from "../chart/ChartDimension.js"
+
+export const legacyToOwidTableAndDimensionsWithMandatorySlug = (
+    json: MultipleOwidVariableDataDimensionsMap,
+    dimensions: OwidChartDimensionInterface[],
+    selectedEntityColors:
+        | { [entityName: string]: string | undefined }
+        | undefined
+): OwidTable => {
+    const dimensionsWithSlug = dimensions?.map((dimension) => ({
+        ...dimension,
+        slug:
+            dimension.slug ??
+            getDimensionColumnSlug(dimension.variableId, dimension.targetYear),
+    }))
+    return legacyToOwidTableAndDimensions(
+        json,
+        dimensionsWithSlug,
+        selectedEntityColors
+    )
+}
 
 export const legacyToOwidTableAndDimensions = (
     json: MultipleOwidVariableDataDimensionsMap,
@@ -90,7 +112,8 @@ export const legacyToOwidTableAndDimensions = (
         const valueColumnColor = dimension.display?.color
         // Ensure the column slug is unique by copying it from the dimensions
         // (there can be two columns of the same variable with different targetTimes)
-        valueColumnDef.slug = dimension.slug
+        if (dimension.slug) valueColumnDef.slug = dimension.slug
+        else throw new Error("Dimension slug was undefined")
         // Because database columns can contain mixed types, we want to avoid
         // parsing for Grapher data until we fix that.
         valueColumnDef.skipParsing = true
@@ -336,8 +359,8 @@ export const legacyToOwidTableAndDimensions = (
         ): string | ErrorValue => {
             if (!entityName) return ErrorValueTypes.UndefinedButShouldBeString
             return entityName && selectedEntityColors
-                ? (selectedEntityColors[entityName] ??
-                      ErrorValueTypes.UndefinedButShouldBeString)
+                ? selectedEntityColors[entityName] ??
+                      ErrorValueTypes.UndefinedButShouldBeString
                 : ErrorValueTypes.UndefinedButShouldBeString
         }
 
@@ -432,7 +455,7 @@ const fullJoinTables = (
     // not exist in the first table
     const firstTableDuplicateForIndices: [
         OwidTable | undefined,
-        string[] | undefined,
+        string[] | undefined
     ] = [tables[0], sharedColumnNames]
     const defsToAddPerTable = [firstTableDuplicateForIndices]
         .concat(zip(tables, columnsToAddPerTable))
@@ -622,8 +645,8 @@ const columnDefFromOwidVariable = (
     const type = isContinent
         ? ColumnTypeNames.Continent
         : variable.type
-          ? variableTypeToColumnType(variable.type)
-          : ColumnTypeNames.NumberOrString
+        ? variableTypeToColumnType(variable.type)
+        : ColumnTypeNames.NumberOrString
 
     // Sorted values for ordinal columns
     const sort =

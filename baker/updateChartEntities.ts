@@ -87,13 +87,14 @@ const obtainAvailableEntitiesForGrapherConfig = async (
 
     // Manually fetch data for grapher, so we can employ caching
     const variableIds = uniq(grapher.dimensions.map((d) => d.variableId))
-    const variableData: MultipleOwidVariableDataDimensionsMap = new Map(
+    const _variableData: MultipleOwidVariableDataDimensionsMap = new Map(
         await pMap(variableIds, async (variableId) => [
             variableId,
             await getVariableDataUsingCache(variableId),
         ])
     )
-    grapher.receiveOwidData(variableData)
+    // TODO: make sure that data is loaded here
+    // grapher.receiveOwidData(variableData)
 
     // If the grapher has a chart tab, then the available entities there are the "most interesting" ones to us
     if (grapher.hasChartTab) {

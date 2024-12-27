@@ -28,9 +28,6 @@ import {
     differenceObj,
     QueryParams,
     MultipleOwidVariableDataDimensionsMap,
-    OwidVariableDataMetadataDimensions,
-    OwidVariableMixedData,
-    OwidVariableWithSourceAndDimension,
     Bounds,
     DEFAULT_BOUNDS,
     minTimeBoundFromJSONOrNegativeInfinity,
@@ -139,7 +136,6 @@ import {
     latestGrapherConfigSchema,
     GRAPHER_SQUARE_SIZE,
 } from "../core/GrapherConstants"
-import { loadVariableDataAndMetadata } from "./loadVariable"
 import Cookies from "js-cookie"
 import {
     ChartDimension,
@@ -207,7 +203,7 @@ import {
 import classnames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
-import { ChartInterface, ChartTableTransformer } from "../chart/ChartInterface"
+import { ChartInterface } from "../chart/ChartInterface"
 import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
 import { FacetChartManager } from "../facetChart/FacetChartConstants"
 import {
@@ -237,55 +233,6 @@ declare global {
         details?: DetailDictionary
         admin?: any // TODO: use stricter type
     }
-}
-
-async function loadVariablesDataAdmin(
-    variableFetchBaseUrl: string | undefined,
-    variableIds: number[]
-): Promise<MultipleOwidVariableDataDimensionsMap> {
-    const dataFetchPath = (variableId: number): string =>
-        variableFetchBaseUrl
-            ? `${variableFetchBaseUrl}/v1/variableById/data/${variableId}`
-            : `/api/data/variables/data/${variableId}.json`
-    const metadataFetchPath = (variableId: number): string =>
-        variableFetchBaseUrl
-            ? `${variableFetchBaseUrl}/v1/variableById/metadata/${variableId}`
-            : `/api/data/variables/metadata/${variableId}.json`
-
-    const loadVariableDataPromises = variableIds.map(async (variableId) => {
-        const dataPromise = window.admin.getJSON(
-            dataFetchPath(variableId)
-        ) as Promise<OwidVariableMixedData>
-        const metadataPromise = window.admin.getJSON(
-            metadataFetchPath(variableId)
-        ) as Promise<OwidVariableWithSourceAndDimension>
-        const [data, metadata] = await Promise.all([
-            dataPromise,
-            metadataPromise,
-        ])
-        return { data, metadata: { ...metadata, id: variableId } }
-    })
-    const variablesData: OwidVariableDataMetadataDimensions[] =
-        await Promise.all(loadVariableDataPromises)
-    const variablesDataMap = new Map(
-        variablesData.map((data) => [data.metadata.id, data])
-    )
-    return variablesDataMap
-}
-
-async function loadVariablesDataSite(
-    variableIds: number[],
-    dataApiUrl: string
-): Promise<MultipleOwidVariableDataDimensionsMap> {
-    const loadVariableDataPromises = variableIds.map((variableId) =>
-        loadVariableDataAndMetadata(variableId, dataApiUrl)
-    )
-    const variablesData: OwidVariableDataMetadataDimensions[] =
-        await Promise.all(loadVariableDataPromises)
-    const variablesDataMap = new Map(
-        variablesData.map((data) => [data.metadata.id, data])
-    )
-    return variablesDataMap
 }
 
 const DEFAULT_MS_PER_TICK = 100
@@ -570,8 +517,6 @@ export class Grapher
             this.updateFromObject(props)
         }
 
-        if (!props.table) this.downloadData()
-
         this.populateFromQueryParams(
             legacyToCurrentGrapherQueryParams(props.queryStr ?? "")
         )
@@ -615,14 +560,6 @@ export class Grapher
         //     obj.dimensions = this.legacyConfigAsAuthored.dimensions
 
         return obj
-    }
-
-    @action.bound downloadData(): void {
-        if (this.manuallyProvideData) {
-            // ignore
-        } else if (this.owidDataset) {
-            this._receiveOwidDataAndApplySelection(this.owidDataset)
-        } else void this.downloadLegacyDataFromOwidVariableIds()
     }
 
     @action.bound updateFromObject(obj?: GrapherProgrammaticInterface): void {
@@ -1134,49 +1071,9 @@ export class Grapher
             // In old browsers, the above may throw an error - just ignore it
         }
     }
-
-    @action.bound
-    async downloadLegacyDataFromOwidVariableIds(
-        inputTableTransformer?: ChartTableTransformer
-    ): Promise<void> {
-        if (this.variableIds.length === 0)
-            // No data to download
-            return
-
-        let variablesDataMap: MultipleOwidVariableDataDimensionsMap
-
-        const startMark = performance.now()
-        if (this.useAdminAPI) {
-            // TODO grapher model: switch this to downloading multiple data and metadata files
-            variablesDataMap = await loadVariablesDataAdmin(
-                this.dataApiUrlForAdmin,
-                this.variableIds
-            )
-        } else {
-            variablesDataMap = await loadVariablesDataSite(
-                this.variableIds,
-                this.dataApiUrl
-            )
-        }
-        this.createPerformanceMeasurement("downloadVariablesData", startMark)
-
-        this._receiveOwidDataAndApplySelection(
-            variablesDataMap,
-            inputTableTransformer
-        )
-    }
-
-    @action.bound receiveOwidData(
-        json: MultipleOwidVariableDataDimensionsMap
-    ): void {
-        // TODO grapher model: switch this to downloading multiple data and metadata files
-        this._receiveOwidDataAndApplySelection(json)
-    }
-
     @action.bound private _setInputTable(
         json: MultipleOwidVariableDataDimensionsMap,
-        legacyConfig: Partial<LegacyGrapherInterface>,
-        inputTableTransformer?: ChartTableTransformer
+        legacyConfig: Partial<LegacyGrapherInterface>
     ): void {
         // TODO grapher model: switch this to downloading multiple data and metadata files
 
@@ -1201,9 +1098,7 @@ export class Grapher
             startMark
         )
 
-        if (inputTableTransformer)
-            this.inputTable = inputTableTransformer(tableWithColors)
-        else this.inputTable = tableWithColors
+        this.inputTable = tableWithColors
 
         // We need to reset the dimensions because some of them may have changed slugs in the legacy
         // transformation (can happen when columns use targetTime)
@@ -1218,30 +1113,17 @@ export class Grapher
         } else this.applyOriginalSelectionAsAuthored()
     }
 
-    @action rebuildInputOwidTable(
-        inputTableTransformer?: ChartTableTransformer
-    ): void {
+    @action rebuildInputOwidTable(): void {
         // TODO grapher model: switch this to downloading multiple data and metadata files
         if (!this.legacyVariableDataJson) return
         this._setInputTable(
             this.legacyVariableDataJson,
-            this.legacyConfigAsAuthored,
-            inputTableTransformer
+            this.legacyConfigAsAuthored
         )
     }
 
     @observable
     private legacyVariableDataJson?: MultipleOwidVariableDataDimensionsMap
-
-    @action.bound private _receiveOwidDataAndApplySelection(
-        json: MultipleOwidVariableDataDimensionsMap,
-        inputTableTransformer?: ChartTableTransformer
-    ): void {
-        this.legacyVariableDataJson = json
-
-        this.rebuildInputOwidTable(inputTableTransformer)
-    }
-
     @action.bound appendNewEntitySelectionOptions(): void {
         const { selection } = this
         const currentEntities = selection.availableEntityNameSet
@@ -1470,12 +1352,6 @@ export class Grapher
     // todo: can we remove this?
     // I believe these states can only occur during editing.
     @action.bound private ensureValidConfigWhenEditing(): void {
-        this.disposers.push(
-            reaction(
-                () => this.variableIds,
-                () => this.downloadLegacyDataFromOwidVariableIds()
-            )
-        )
         const disposers = [
             autorun(() => {
                 if (!this.availableTabs.includes(this.activeTab))
@@ -1641,8 +1517,8 @@ export class Grapher
         return !isStatic
             ? "underline"
             : shouldIncludeDetailsInStaticExport
-              ? "superscript"
-              : "none"
+            ? "superscript"
+            : "none"
     }
 
     // Used for static exports. Defined at this level because they need to
@@ -2101,7 +1977,7 @@ export class Grapher
     get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): GrapherChartType {
         return this.isLineChartThatTurnedIntoDiscreteBarActive
             ? GRAPHER_CHART_TYPES.DiscreteBar
-            : (this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart)
+            : this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart
     }
 
     @computed get isLineChart(): boolean {
