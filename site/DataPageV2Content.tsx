@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo } from "react"
-import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
+import { useMemo } from "react"
+import {
+    FetchingGrapher,
+    GrapherProgrammaticInterface,
+} from "@ourworldindata/grapher"
 import {
     REUSE_THIS_WORK_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
 } from "@ourworldindata/components"
-import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
@@ -15,6 +17,13 @@ import {
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import StickyNav from "./blocks/StickyNav.js"
+import {
+    ADMIN_BASE_URL,
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
+    DATA_API_URL,
+} from "../settings/clientSettings.js"
+import Image from "./gdocs/components/Image.js"
 import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
@@ -41,8 +50,6 @@ export const DataPageV2Content = ({
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
 }) => {
-    const [grapher, setGrapher] = useState<Grapher | undefined>(undefined)
-
     const titleFragments = joinTitleFragments(
         datapageData.attributionShort,
         datapageData.titleVariant
@@ -57,10 +64,6 @@ export const DataPageV2Content = ({
         }),
         [grapherConfig]
     )
-
-    useEffect(() => {
-        setGrapher(new Grapher(mergedGrapherConfig))
-    }, [mergedGrapherConfig])
 
     const stickyNavLinks = [
         {
@@ -97,10 +100,11 @@ export const DataPageV2Content = ({
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
                 <div className="DataPageContent__grapher-for-embed">
-                    <GrapherWithFallback
-                        grapher={grapher}
-                        slug={grapherConfig.slug}
-                        enablePopulatingUrlParams
+                    <FetchingGrapher
+                        config={mergedGrapherConfig}
+                        dataApiUrl={DATA_API_URL}
+                        adminBaseUrl={ADMIN_BASE_URL}
+                        bakedGrapherURL={BAKED_GRAPHER_URL}
                     />
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
@@ -132,15 +136,11 @@ export const DataPageV2Content = ({
                     </nav>
                     <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
                         <div className="chart-key-info col-start-2 span-cols-12">
-                            <GrapherWithFallback
-                                grapher={grapher}
-                                slug={grapherConfig.slug} // TODO: On grapher pages,
-                                // there will always be a slug, but if we just show a data page preview for an indicator in the admin, there will be no slug
-                                // and then thumbnails will be broken for those. When we consider baking data pages for
-                                // non-grapher pages then we need to make sure that there are thunbnails that are generated for the these non-chart graphers and
-                                // then this piece will have to change anyhow and know how to provide the thumbnail.
-                                id="explore-the-data"
-                                enablePopulatingUrlParams
+                            <FetchingGrapher
+                                config={mergedGrapherConfig}
+                                dataApiUrl={DATA_API_URL}
+                                adminBaseUrl={ADMIN_BASE_URL}
+                                bakedGrapherURL={BAKED_GRAPHER_URL}
                             />
                             <AboutThisData
                                 datapageData={datapageData}

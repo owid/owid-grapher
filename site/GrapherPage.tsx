@@ -1,8 +1,8 @@
 import {
+    FetchingGrapher,
     getVariableDataRoute,
     getVariableMetadataRoute,
     GRAPHER_PAGE_BODY_CLASS,
-    LoadingIndicator,
 } from "@ourworldindata/grapher"
 import {
     PostReference,
@@ -115,13 +115,13 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
-                    <figure
-                        className={HIDE_IF_JS_DISABLED_CLASSNAME}
-                        data-grapher-src={`/grapher/${grapher.slug}`}
-                    >
-                        <LoadingIndicator />
-                    </figure>
-                    <div className={HIDE_IF_JS_ENABLED_CLASSNAME} id="fallback">
+                    <FetchingGrapher
+                        config={grapher}
+                        dataApiUrl={DATA_API_URL}
+                        adminBaseUrl={ADMIN_BASE_URL}
+                        bakedGrapherURL={BAKED_GRAPHER_URL}
+                    />
+                    <div className="js--hide-if-js-enabled" id="fallback">
                         {grapher.slug && (
                             <GrapherImage
                                 slug={grapher.slug}

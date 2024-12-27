@@ -115,6 +115,6 @@ export async function grapherToSVG(
     const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
     grapher.isExportingToSvgOrPng = true
     grapher.shouldIncludeDetailsInStaticExport = false
-    grapher.receiveOwidData(vardata)
+    // grapher.receiveOwidData(vardata)
     return grapher.staticSVG
 }

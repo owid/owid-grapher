@@ -93,7 +93,8 @@ const obtainAvailableEntitiesForGrapherConfig = async (
             await getVariableDataUsingCache(variableId),
         ])
     )
-    grapher.receiveOwidData(variableData)
+    // TODO: make sure that data is loaded here
+    // grapher.receiveOwidData(variableData)
 
     // If the grapher has a chart tab, then the available entities there are the "most interesting" ones to us
     if (grapher.hasChartTab) {

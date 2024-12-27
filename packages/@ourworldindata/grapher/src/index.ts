@@ -7,6 +7,7 @@ export {
     type ColorScaleBin,
 } from "./color/ColorScaleBin"
 export { ChartDimension } from "./chart/ChartDimension"
+export { FetchingGrapher } from "./core/FetchingGrapher"
 export {
     GRAPHER_EMBEDDED_FIGURE_ATTR,
     GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR,
