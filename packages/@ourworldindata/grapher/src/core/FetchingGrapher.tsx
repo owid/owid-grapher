@@ -14,14 +14,17 @@ export interface FetchingGrapherProps {
     configUrl?: string
     queryString?: string
     dataApiUrl: string
+    adminBaseUrl: string
+    bakedGrapherURL: string
 }
-export async function FetchingGrapher(
+export function FetchingGrapher(
     props: FetchingGrapherProps
-): Promise<React.JSX.Element | null> {
+): JSX.Element | null {
     // if config is not provided, fetch it from configUrl
+    console.log("FetchingGrapher")
 
     const [config, setConfig] = React.useState<GrapherInterface | undefined>(
-        undefined
+        props.config
     )
 
     const [inputTable, setInputTable] = React.useState<OwidTable | undefined>(
@@ -30,12 +33,14 @@ export async function FetchingGrapher(
 
     React.useEffect(() => {
         async function fetchConfigAndLoadData(): Promise<void> {
+            console.log("fetchConfigAndLoadData", props.configUrl)
             if (!config && props.configUrl) {
                 const fetchedConfig = await fetch(props.configUrl).then((res) =>
                     res.json()
                 )
                 setConfig(fetchedConfig)
             }
+            console.log("fetchConfigAndLoadData: config", config)
             if (!config) return
             const dimensions = config.dimensions || []
             if (dimensions.length === 0) return
@@ -48,6 +53,7 @@ export async function FetchingGrapher(
                 variablesDataMap,
                 dimensions
             )
+            console.log("setting input table")
             setInputTable(inputTable)
         }
         void fetchConfigAndLoadData()
@@ -55,7 +61,15 @@ export async function FetchingGrapher(
 
     if (!config) return null
     if (!inputTable) return null
-    return <Grapher table={inputTable} queryStr={props.queryString} />
+    return (
+        <Grapher
+            table={inputTable}
+            queryStr={props.queryString}
+            dataApiUrl={props.dataApiUrl}
+            adminBaseUrl={props.adminBaseUrl}
+            bakedGrapherURL={props.bakedGrapherURL}
+        />
+    )
 }
 
 // async function loadVariablesDataAdmin(
