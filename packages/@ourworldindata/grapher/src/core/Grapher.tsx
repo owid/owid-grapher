@@ -112,6 +112,7 @@ import {
     GRAPHER_TAB_QUERY_PARAMS,
     GrapherTabOption,
     SeriesName,
+    ChartViewInfo,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -332,6 +333,11 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     isEmbeddedInAnOwidPage?: boolean
     isEmbeddedInADataPage?: boolean
 
+    chartViewInfo?: Pick<
+        ChartViewInfo,
+        "parentChartSlug" | "queryParamsForParentChart"
+    >
+
     manager?: GrapherManager
     instanceRef?: React.RefObject<Grapher>
 }
@@ -505,6 +511,11 @@ export class Grapher
     isEmbeddedInAnOwidPage?: boolean = this.props.isEmbeddedInAnOwidPage
     isEmbeddedInADataPage?: boolean = this.props.isEmbeddedInADataPage
 
+    chartViewInfo?: Pick<
+        ChartViewInfo,
+        "parentChartSlug" | "queryParamsForParentChart"
+    > = undefined
+
     selection =
         this.manager?.selection ??
         new SelectionArray(
@@ -605,6 +616,7 @@ export class Grapher
 
     @action.bound downloadData(): void {
         if (this.manuallyProvideData) {
+            // ignore
         } else if (this.owidDataset) {
             this._receiveOwidDataAndApplySelection(this.owidDataset)
         } else void this.downloadLegacyDataFromOwidVariableIds()
@@ -3503,10 +3515,27 @@ export class Grapher
         return this.props.manager
     }
 
+    @computed get canonicalUrlIfIsChartView(): string | undefined {
+        if (!this.chartViewInfo) return undefined
+
+        const { parentChartSlug, queryParamsForParentChart } =
+            this.chartViewInfo
+
+        const combinedQueryParams = {
+            ...queryParamsForParentChart,
+            ...this.changedParams,
+        }
+
+        return `${this.bakedGrapherURL}/${parentChartSlug}${queryParamsToStr(
+            combinedQueryParams
+        )}`
+    }
+
     // Get the full url representing the canonical location of this grapher state
     @computed get canonicalUrl(): string | undefined {
         return (
             this.manager?.canonicalUrl ??
+            this.canonicalUrlIfIsChartView ??
             (this.baseUrl ? this.baseUrl + this.queryStr : undefined)
         )
     }

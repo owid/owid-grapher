@@ -436,7 +436,7 @@ export class StackedDiscreteBarChart
             case SortBy.entityName:
                 sortByFunc = (item: Item): string => item.entityName
                 break
-            case SortBy.column:
+            case SortBy.column: {
                 const owidRowsByEntityName =
                     this.sortColumn?.owidRowsByEntityName
                 sortByFunc = (item: Item): number => {
@@ -444,6 +444,7 @@ export class StackedDiscreteBarChart
                     return rows?.[0]?.value ?? 0
                 }
                 break
+            }
             default:
             case SortBy.total:
                 sortByFunc = (item: Item): number => {

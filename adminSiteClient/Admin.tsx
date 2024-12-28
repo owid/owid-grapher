@@ -162,7 +162,6 @@ export class Admin {
     }
 
     @action.bound private removeRequest(request: Promise<Response>): void {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.currentRequests = this.currentRequests.filter(
             (req) => req !== request
         )

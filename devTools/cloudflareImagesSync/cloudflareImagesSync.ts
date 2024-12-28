@@ -9,7 +9,7 @@ import {
     CLOUDFLARE_IMAGES_API_KEY,
     IMAGE_HOSTING_R2_CDN_URL,
 } from "../../settings/serverSettings.js"
-import { excludeNullish, keyBy } from "@ourworldindata/utils"
+import { keyBy } from "@ourworldindata/utils"
 
 type CloudflareImageDirectory = Record<string, { id: string; filename: string }>
 
@@ -89,6 +89,7 @@ async function validateDirectory(
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function purgeRecords(trx: db.KnexReadWriteTransaction) {
     await new Promise<void>((resolve) => {
         const readlineInterface = readline.createInterface({
@@ -449,4 +450,9 @@ You need to set "CLOUDFLARE_IMAGES_ACCOUNT_ID" and "CLOUDFLARE_IMAGES_API_KEY" i
     })
 }
 
-main().then(() => process.exit(0))
+main()
+    .then(() => process.exit(0))
+    .catch((e) => {
+        console.error(e)
+        process.exit(1)
+    })

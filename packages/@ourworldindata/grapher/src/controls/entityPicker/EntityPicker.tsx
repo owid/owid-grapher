@@ -197,7 +197,9 @@ export class EntityPicker extends React.Component<{
             ).map((region) => region.name)
 
             if (userRegionNames) this.localEntityNames = userRegionNames
-        } catch {}
+        } catch {
+            // ignore
+        }
     }
 
     @computed
@@ -324,7 +326,7 @@ export class EntityPicker extends React.Component<{
         // The hover will be unblocked iff the user moves the mouse (relative to the menu).
         this.blockHover()
         switch (event.key) {
-            case "Enter":
+            case "Enter": {
                 if (event.keyCode === 229) {
                     // ignore the keydown event from an Input Method Editor(IME)
                     // ref. https://www.w3.org/TR/uievents/#determine-keydown-keyup-keyCode
@@ -336,6 +338,7 @@ export class EntityPicker extends React.Component<{
                 this.clearSearchInput()
                 this.manager.analytics?.logEntityPickerEvent("enter", name)
                 break
+            }
             case "ArrowUp":
                 this.focusOptionDirection(FocusDirection.up)
                 break

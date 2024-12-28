@@ -129,6 +129,8 @@ import {
     EnrichedBlockPerson,
     RawBlockPeopleRows,
     EnrichedBlockPeopleRows,
+    RawBlockNarrativeChart,
+    EnrichedBlockNarrativeChart,
     RawBlockCode,
     EnrichedBlockCode,
 } from "@ourworldindata/types"
@@ -172,6 +174,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "blockquote" }, parseBlockquote)
         .with({ type: "callout" }, parseCallout)
         .with({ type: "chart" }, parseChart)
+        .with({ type: "narrative-chart" }, parseNarrativeChart)
         .with({ type: "code" }, parseCode)
         .with({ type: "donors" }, parseDonorList)
         .with({ type: "scroller" }, parseScroller)
@@ -493,6 +496,67 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
             tabs: tabs.length > 0 ? tabs : undefined,
             parseErrors: [],
         }) as EnrichedBlockChart
+    }
+}
+
+const parseNarrativeChart = (
+    raw: RawBlockNarrativeChart
+): EnrichedBlockNarrativeChart => {
+    const createError = (
+        error: ParseError,
+        name: string,
+        caption: Span[] = []
+    ): EnrichedBlockNarrativeChart => ({
+        type: "narrative-chart",
+        name,
+        caption,
+        parseErrors: [error],
+    })
+
+    const val = raw.value
+
+    if (typeof val === "string") {
+        return {
+            type: "narrative-chart",
+            name: val,
+            parseErrors: [],
+        }
+    } else {
+        if (!val.name)
+            return createError(
+                {
+                    message: "name property is missing",
+                },
+                ""
+            )
+
+        const warnings: ParseError[] = []
+
+        const height = val.height
+        const row = val.row
+        const column = val.column
+        // This property is currently unused, a holdover from @mathisonian's gdocs demo.
+        // We will decide soon™️ if we want to use it for something
+        let position: ChartPositionChoice | undefined = undefined
+        if (val.position)
+            if (val.position === "featured") position = val.position
+            else {
+                warnings.push({
+                    message: "position must be 'featured' or unset",
+                })
+            }
+        const caption = val.caption ? htmlToSpans(val.caption) : []
+
+        return omitUndefinedValues({
+            type: "narrative-chart",
+            name: val.name,
+            height,
+            row,
+            column,
+            position,
+            caption: caption.length > 0 ? caption : undefined,
+            parseErrors: [],
+        }) as EnrichedBlockNarrativeChart
     }
 }
 
