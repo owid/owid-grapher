@@ -331,7 +331,13 @@ export class Grapher
         MapChartManager,
         SlopeChartManager
 {
-    // Properties from GrapherInterface
+    // #region SortConfig props
+    @observable sortBy?: SortBy = SortBy.total
+    @observable sortOrder?: SortOrder = SortOrder.desc
+    @observable sortColumnSlug?: string
+    // #endregion
+
+    // #region GrapherInterface props
     @observable.ref $schema = latestGrapherConfigSchema
     @observable.ref chartTypes: GrapherChartType[] = [
         GRAPHER_CHART_TYPES.LineChart,
@@ -413,9 +419,9 @@ export class Grapher
     @observable colorSlug?: ColumnSlug = undefined
     @observable tableSlugs?: ColumnSlugs = undefined
 
-    // End GrapherInterface properties
+    // #endregion GrapherInterface properties
 
-    // Properties from GrapherProgrammaticInterface
+    // #region GrapherProgrammaticInterface props
 
     owidDataset?: MultipleOwidVariableDataDimensionsMap = undefined // This is used for passing data for testing
     manuallyProvideData? = false // This will be removed.
@@ -425,14 +431,16 @@ export class Grapher
             ...this.externalQueryParams,
         })
     }
-    // Missing from GrapherProgrammaticInterface:
-    // bounds
-    // table
+    // bounds defined in interface but not on Grapher
+    @computed get table(): OwidTable {
+        return this.tableAfterAuthorTimelineFilter
+    }
+
     @observable bakedGrapherURL = this.props.bakedGrapherURL
     adminBaseUrl = this.props.adminBaseUrl
     dataApiUrl =
         this.props.dataApiUrl ?? "https://api.ourworldindata.org/v1/indicators/"
-    // Missing from GrapherProgrammaticInterface: env
+    // env defined in interface but not on Grapher
     @computed get dataApiUrlForAdmin(): string | undefined {
         return this.props.dataApiUrlForAdmin
     }
@@ -487,7 +495,11 @@ export class Grapher
     @observable hideRelatedQuestion = false
 
     @observable.ref isSocialMediaExport = false
-    // Missing from GrapherProgrammaticInterface: getGrapherInstance
+    // getGrapherInstance defined in interface but not on Grapher (as a property - it is set in the constructor)
+
+    enableKeyboardShortcuts?: boolean
+
+    bindUrlToWindow?: boolean
 
     isEmbeddedInAnOwidPage?: boolean = this.props.isEmbeddedInAnOwidPage
     isEmbeddedInADataPage?: boolean = this.props.isEmbeddedInADataPage
@@ -500,135 +512,68 @@ export class Grapher
     @computed private get manager(): GrapherManager | undefined {
         return this.props.manager
     }
-    // Missing from GrapherProgrammaticInterface: instanceRef
-    // End GrapherProgrammaticInterface properties
+    // instanceRef defined in interface but not on Grapher
 
-    enableKeyboardShortcuts?: boolean
+    // #endregion GrapherProgrammaticInterface properties
 
-    bindUrlToWindow?: boolean
+    // #region Start TimelineManager propertes
 
-    @observable sortBy?: SortBy = SortBy.total
-    @observable sortOrder?: SortOrder = SortOrder.desc
-    @observable sortColumnSlug?: string
-
-    @observable.ref _isInFullScreenMode = false
-
-    @observable.ref windowInnerWidth?: number
-    @observable.ref windowInnerHeight?: number
-    @observable.ref chartTab?: GrapherChartType
-
-    @observable.ref showSelectionOnlyInDataTable?: boolean = undefined
-    // TODO: Pass these 5 in as options, don't get them as globals.
-    isDev = this.props.env === "development"
-    analytics = new GrapherAnalytics(this.props.env ?? "")
-    isEditor =
-        typeof window !== "undefined" && (window as any).isEditor === true
-
-    @observable.ref externalQueryParams: QueryParams
-
-    private framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
-    private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
-
-    @observable.ref inputTable: OwidTable
-
-    @observable.ref legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
-
-    // stored on Grapher so state is preserved when switching to full-screen mode
-    @observable entitySelectorState: Partial<EntitySelectorState> = {}
-
-    @computed get dataTableSlugs(): ColumnSlug[] {
-        return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
+    @computed get disablePlay(): boolean {
+        return false
     }
 
-    selection =
-        this.manager?.selection ??
-        new SelectionArray(
-            this.props.selectedEntityNames ?? [],
-            this.props.table?.availableEntities ?? []
-        )
-
-    focusArray = new FocusArray()
-
-    @observable.ref renderToStatic = false
-    @observable.ref isExportingToSvgOrPng = false
-
-    tooltip?: TooltipManager["tooltip"] = observable.box(undefined, {
-        deep: false,
-    })
+    formatTimeFn(time: Time): string {
+        return this.inputTable.timeColumn.formatTime(time)
+    }
 
     @observable.ref isPlaying = false
     @observable.ref isTimelineAnimationActive = false // true if the timeline animation is either playing or paused but not finished
-    @observable.ref animationStartTime?: Time
+
+    @computed get times(): Time[] {
+        const columnSlugs = this.isOnMapTab
+            ? [this.mapColumnSlug]
+            : this.yColumnSlugs
+
+        // Generate the times only after the chart transform has been applied, so that we don't show
+        // times on the timeline for which data may not exist, e.g. when the selected entity
+        // doesn't contain data for all years in the table.
+        // -@danielgavrilov, 2020-10-22
+        return this.tableAfterAuthorTimelineAndActiveChartTransform.getTimesUniqSortedAscForColumns(
+            columnSlugs
+        )
+    }
+    @computed get startHandleTimeBound(): TimeBound {
+        if (this.isSingleTimeSelectionActive) return this.endHandleTimeBound
+        return this.timelineHandleTimeBounds[0]
+    }
+    @computed get endHandleTimeBound(): TimeBound {
+        return this.timelineHandleTimeBounds[1]
+    }
+
     @observable.ref areHandlesOnSameTimeBeforeAnimation?: boolean
+    msPerTick = DEFAULT_MS_PER_TICK
+    // missing from TimelineManager: onPlay
+    @action.bound onTimelineClick(): void {
+        const tooltip = this.tooltip?.get()
+        if (tooltip) tooltip.dismiss?.()
+    }
+    // #endregion TimelineManager properties
 
-    @observable.ref isEntitySelectorModalOrDrawerOpen = false
-
-    @observable.ref isSourcesModalOpen = false
-    @observable.ref isDownloadModalOpen = false
-    @observable.ref isEmbedModalOpen = false
-
-    @observable
-    private legacyVariableDataJson?: MultipleOwidVariableDataDimensionsMap
-    @observable shouldIncludeDetailsInStaticExport = true
-    private hasLoggedGAViewEvent = false
-    @observable private hasBeenVisible = false
-    @observable private uncaughtError?: Error
-    @observable slideShow?: SlideShowController<any>
-    @observable isShareMenuActive = false
-
-    seriesColorMap: SeriesColorMap = new Map()
+    // #region ChartManager properties
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    msPerTick = DEFAULT_MS_PER_TICK
+    @computed get fontSize(): number {
+        return this.props.baseFontSize ?? this.baseFontSize
+    }
+    // table defined in interface but not on Grapher
 
-    timelineController = new TimelineController(this)
-
-    @computed get activeTab(): GrapherTabName {
-        if (this.tab === GRAPHER_TAB_OPTIONS.table)
-            return GRAPHER_TAB_NAMES.Table
-        if (this.tab === GRAPHER_TAB_OPTIONS.map)
-            return GRAPHER_TAB_NAMES.WorldMap
-        if (this.chartTab) return this.chartTab
-        return this.chartType ?? GRAPHER_TAB_NAMES.LineChart
+    @computed get transformedTable(): OwidTable {
+        return this.tableAfterAllTransformsAndFilters
     }
 
-    @computed get activeChartType(): GrapherChartType | undefined {
-        if (!this.isOnChartTab) return undefined
-        return this.activeTab as GrapherChartType
-    }
+    @observable.ref isExportingToSvgOrPng = false
 
-    @computed get chartType(): GrapherChartType | undefined {
-        return this.validChartTypes[0]
-    }
-
-    @computed get hasChartTab(): boolean {
-        return this.validChartTypes.length > 0
-    }
-
-    @computed get isOnChartTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.chart
-    }
-
-    @computed get isOnMapTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.map
-    }
-
-    @computed get isOnTableTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.table
-    }
-
-    @computed get isOnChartOrMapTab(): boolean {
-        return this.isOnChartTab || this.isOnMapTab
-    }
-
-    @computed get yAxisConfig(): Readonly<AxisConfigInterface> {
-        return this.yAxis.toObject()
-    }
-
-    @computed get xAxisConfig(): Readonly<AxisConfigInterface> {
-        return this.xAxis.toObject()
-    }
-
+    // comparisonLines defined previously
     @computed get showLegend(): boolean {
         // hide the legend for stacked bar charts
         // if the legend only ever shows a single entity
@@ -646,6 +591,423 @@ export class Grapher
         return !this.hideLegend
     }
 
+    tooltip?: TooltipManager["tooltip"] = observable.box(undefined, {
+        deep: false,
+    })
+    // baseColorScheme defined previously
+    // invertColorScheme defined previously
+    // compareEndPointsOnly defined previously
+    // zoomToSelection defined previously
+    // matchingEntitiesOnly defined previously
+    // colorScale defined previously
+    // colorScaleColumnOverride defined in interface but not on Grapher
+    // colorScaleOverride defined in interface but not on Grapher
+    // useValueBasedColorScheme defined in interface but not on Grapher
+
+    @computed get yAxisConfig(): Readonly<AxisConfigInterface> {
+        return this.yAxis.toObject()
+    }
+
+    @computed get xAxisConfig(): Readonly<AxisConfigInterface> {
+        return this.xAxis.toObject()
+    }
+
+    @computed get yColumnSlugs(): string[] {
+        return this.ySlugs
+            ? this.ySlugs.split(" ")
+            : this.dimensions
+                  .filter((dim) => dim.property === DimensionProperty.y)
+                  .map((dim) => dim.columnSlug)
+    }
+
+    @computed get yColumnSlug(): string | undefined {
+        return this.ySlugs
+            ? this.ySlugs.split(" ")[0]
+            : this.getSlugForProperty(DimensionProperty.y)
+    }
+
+    @computed get xColumnSlug(): string | undefined {
+        return this.xSlug ?? this.getSlugForProperty(DimensionProperty.x)
+    }
+
+    @computed get sizeColumnSlug(): string | undefined {
+        return this.sizeSlug ?? this.getSlugForProperty(DimensionProperty.size)
+    }
+
+    @computed get colorColumnSlug(): string | undefined {
+        return (
+            this.colorSlug ?? this.getSlugForProperty(DimensionProperty.color)
+        )
+    }
+
+    selection =
+        this.manager?.selection ??
+        new SelectionArray(
+            this.props.selectedEntityNames ?? [],
+            this.props.table?.availableEntities ?? []
+        )
+    // entityType defined previously
+    // focusArray defined previously
+    // hidePoints defined in interface but not on Grapher
+    // startHandleTimeBound defined previously
+    // hideNoDataSection defined in interface but not on Grapher
+    @computed get startTime(): Time | undefined {
+        return findClosestTime(this.times, this.startHandleTimeBound)
+    }
+
+    @computed get endTime(): Time | undefined {
+        return findClosestTime(this.times, this.endHandleTimeBound)
+    }
+    // facetStrategy defined previously
+    // seriesStrategy defined in interface but not on Grapher
+    @computed get _sortConfig(): Readonly<SortConfig> {
+        return {
+            sortBy: this.sortBy ?? SortBy.total,
+            sortOrder: this.sortOrder ?? SortOrder.desc,
+            sortColumnSlug: this.sortColumnSlug,
+        }
+    }
+
+    @computed get sortConfig(): SortConfig {
+        const sortConfig = { ...this._sortConfig }
+        // In relative mode, where the values for every entity sum up to 100%, sorting by total
+        // doesn't make sense. It's also jumpy because of some rounding errors. For this reason,
+        // we sort by entity name instead.
+        // Marimekko charts are special and there we don't do this forcing of sort order
+        if (
+            !this.isMarimekko &&
+            this.isRelativeMode &&
+            sortConfig.sortBy === SortBy.total
+        ) {
+            sortConfig.sortBy = SortBy.entityName
+            sortConfig.sortOrder = SortOrder.asc
+        }
+        return sortConfig
+    }
+    // showNoDataArea defined previously
+    // externalLegendHoverBin defined in interface but not on Grapher
+    @computed get disableIntroAnimation(): boolean {
+        return this.isStatic
+    }
+    // missingDataStrategy defined previously
+    @computed get isNarrow(): boolean {
+        if (this.isStatic) return false
+        return this.frameBounds.width <= 420
+    }
+
+    @computed get isStatic(): boolean {
+        return this.renderToStatic || this.isExportingToSvgOrPng
+    }
+
+    @computed get isSemiNarrow(): boolean {
+        if (this.isStatic) return false
+        return this.frameBounds.width <= 550
+    }
+
+    @computed get isStaticAndSmall(): boolean {
+        if (!this.isStatic) return false
+        return this.areStaticBoundsSmall
+    }
+    // isExportingForSocialMedia defined previously
+    @computed get backgroundColor(): Color {
+        return this.isExportingForSocialMedia
+            ? GRAPHER_BACKGROUND_BEIGE
+            : GRAPHER_BACKGROUND_DEFAULT
+    }
+
+    @computed get shouldPinTooltipToBottom(): boolean {
+        return this.isNarrow && this.isTouchDevice
+    }
+
+    // Used for superscript numbers in static exports
+    @computed get detailsOrderedByReference(): string[] {
+        if (typeof window === "undefined") return []
+
+        // extract details from supporting text
+        const subtitleDetails = !this.hideSubtitle
+            ? extractDetailsFromSyntax(this.currentSubtitle)
+            : []
+        const noteDetails = !this.hideNote
+            ? extractDetailsFromSyntax(this.note ?? "")
+            : []
+
+        // extract details from axis labels
+        const yAxisDetails = extractDetailsFromSyntax(
+            this.yAxisConfig.label || ""
+        )
+        const xAxisDetails = extractDetailsFromSyntax(
+            this.xAxisConfig.label || ""
+        )
+
+        // text fragments are ordered by appearance
+        const uniqueDetails = uniq([
+            ...subtitleDetails,
+            ...yAxisDetails,
+            ...xAxisDetails,
+            ...noteDetails,
+        ])
+
+        return uniqueDetails
+    }
+
+    @computed get detailsMarkerInSvg(): DetailsMarker {
+        const { isStatic, shouldIncludeDetailsInStaticExport } = this
+        return !isStatic
+            ? "underline"
+            : shouldIncludeDetailsInStaticExport
+              ? "superscript"
+              : "none"
+    }
+    // #endregion ChartManager properties
+
+    // #region AxisManager
+    // fontSize defined previously
+    // detailsOrderedByReference defined previously
+    // #endregion
+
+    // CaptionedChartManager interface ommited (only used for testing)
+
+    // #region SourcesModalManager props
+
+    // Ready to go iff we have retrieved data for every variable associated with the chart
+    @computed get isReady(): boolean {
+        return this.whatAreWeWaitingFor === ""
+    }
+    // adminBaseUrl defined previously
+    @computed get columnsWithSourcesExtensive(): CoreColumn[] {
+        const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
+            this
+
+        // sort y-columns by their display name
+        const sortedYColumnSlugs = sortBy(
+            yColumnSlugs,
+            (slug) => this.inputTable.get(slug).titlePublicOrDisplayName.title
+        )
+
+        const columnSlugs = excludeUndefined([
+            ...sortedYColumnSlugs,
+            xColumnSlug,
+            sizeColumnSlug,
+            colorColumnSlug,
+        ])
+
+        return this.inputTable
+            .getColumns(uniq(columnSlugs))
+            .filter(
+                (column) => !!column.source.name || !isEmpty(column.def.origins)
+            )
+    }
+
+    @computed get showAdminControls(): boolean {
+        return (
+            this.isUserLoggedInAsAdmin ||
+            this.isDev ||
+            this.isLocalhost ||
+            this.isStaging
+        )
+    }
+    // isSourcesModalOpen defined previously
+
+    @computed get frameBounds(): Bounds {
+        return this.useIdealBounds
+            ? new Bounds(0, 0, this.idealWidth, this.idealHeight)
+            : new Bounds(0, 0, this.availableWidth, this.availableHeight)
+    }
+
+    // isEmbeddedInAnOwidPage defined previously
+    // isNarrow defined previously
+    // fontSize defined previously
+    // #endregion
+
+    // #region DownloadModalManager
+    @computed get displaySlug(): string {
+        return this.slug ?? slugify(this.displayTitle)
+    }
+
+    rasterize(): Promise<GrapherExport> {
+        const { width, height } = this.staticBoundsWithDetails
+        const staticSVG = this.generateStaticSvg()
+
+        return new StaticChartRasterizer(staticSVG, width, height).render()
+    }
+    // staticBounds defined previously
+
+    @computed get staticBoundsWithDetails(): Bounds {
+        const includeDetails =
+            this.shouldIncludeDetailsInStaticExport &&
+            !isEmpty(this.detailRenderers)
+
+        let height = this.staticBounds.height
+        if (includeDetails) {
+            height +=
+                2 * this.framePaddingVertical +
+                sumTextWrapHeights(
+                    this.detailRenderers,
+                    STATIC_EXPORT_DETAIL_SPACING
+                )
+        }
+
+        return new Bounds(0, 0, this.staticBounds.width, height)
+    }
+
+    @computed get staticFormat(): GrapherStaticFormat {
+        if (this.props.staticFormat) return this.props.staticFormat
+        return this._staticFormat
+    }
+
+    @computed get baseUrl(): string | undefined {
+        return this.isPublished
+            ? `${this.bakedGrapherURL ?? "/grapher"}/${this.displaySlug}`
+            : undefined
+    }
+    // queryStr defined previously
+    // table defined previously
+    // transformedTable defined previously
+
+    // todo: remove when we remove dimensions
+    @computed get yColumnsFromDimensionsOrSlugsOrAuto(): CoreColumn[] {
+        return this.yColumnsFromDimensions.length
+            ? this.yColumnsFromDimensions
+            : this.table.getColumns(autoDetectYColumnSlugs(this))
+    }
+    // shouldIncludeDetailsInStaticExport defined previously
+    // detailsOrderedByReference defined previously
+    // isDownloadModalOpen defined previously
+    // frameBounds defined previously
+
+    @computed get captionedChartBounds(): Bounds {
+        // if there's no panel, the chart takes up the whole frame
+        if (!this.isEntitySelectorPanelActive) return this.frameBounds
+
+        return new Bounds(
+            0,
+            0,
+            // the chart takes up 9 columns in 12-column grid
+            (9 / 12) * this.frameBounds.width,
+            this.frameBounds.height - 2 // 2px accounts for the border
+        )
+    }
+
+    @computed get isOnChartOrMapTab(): boolean {
+        return this.isOnChartTab || this.isOnMapTab
+    }
+    // showAdminControls defined previously
+    // isSocialMediaExport defined previously
+    // isPublished defined previously
+    // Columns that are used as a dimension in the currently active view
+    @computed get activeColumnSlugs(): string[] {
+        const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
+            this
+
+        // sort y columns by their display name
+        const sortedYColumnSlugs = sortBy(
+            yColumnSlugs,
+            (slug) => this.inputTable.get(slug).titlePublicOrDisplayName.title
+        )
+
+        return excludeUndefined([
+            ...sortedYColumnSlugs,
+            xColumnSlug,
+            sizeColumnSlug,
+            colorColumnSlug,
+        ])
+    }
+
+    // #endregion
+
+    // #region DiscreteBarChartManager props
+
+    // showYearLabels defined previously
+    // endTime defined previously
+
+    @computed get isOnLineChartTab(): boolean {
+        return this.activeChartType === GRAPHER_CHART_TYPES.LineChart
+    }
+    // #endregion
+
+    // LegacyDimensionsManager omitted (only defines table)
+
+    // #region ShareMenuManager props
+    // slug defined previously
+
+    @computed get currentTitle(): string {
+        let text = this.displayTitle.trim()
+        if (text.length === 0) return text
+
+        // helper function to add an annotation fragment to the title
+        // only adds a comma if the text does not end with a question mark
+        const appendAnnotationField = (
+            text: string,
+            annotation: string
+        ): string => {
+            const separator = text.endsWith("?") ? "" : ","
+            return `${text}${separator} ${annotation}`
+        }
+
+        if (this.shouldAddEntitySuffixToTitle) {
+            const selectedEntityNames = this.selection.selectedEntityNames
+            const entityStr = selectedEntityNames[0]
+            if (entityStr?.length) text = appendAnnotationField(text, entityStr)
+        }
+
+        if (this.shouldAddChangeInPrefixToTitle)
+            text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
+
+        if (this.shouldAddTimeSuffixToTitle && this.timeTitleSuffix)
+            text = appendAnnotationField(text, this.timeTitleSuffix)
+
+        return text.trim()
+    }
+
+    // Get the full url representing the canonical location of this grapher state
+    @computed get canonicalUrl(): string | undefined {
+        return (
+            this.manager?.canonicalUrl ??
+            this.canonicalUrlIfIsChartView ??
+            (this.baseUrl ? this.baseUrl + this.queryStr : undefined)
+        )
+    }
+
+    @computed get editUrl(): string | undefined {
+        if (this.showAdminControls) {
+            return `${this.adminBaseUrl}/admin/${
+                this.manager?.editUrl ?? `charts/${this.id}/edit`
+            }`
+        }
+        return undefined
+    }
+    // isEmbedModalOpen defined previously
+    // #endregion
+
+    // #region EmbedModalManager props
+    // canonicalUrl defined previously
+    @computed get embedUrl(): string | undefined {
+        const url = this.manager?.embedDialogUrl ?? this.canonicalUrl
+        if (!url) return
+
+        // We want to preserve the tab in the embed URL so that if we change the
+        // default view of the chart, it won't change existing embeds.
+        // See https://github.com/owid/owid-grapher/issues/2805
+        let urlObj = Url.fromURL(url)
+        if (!urlObj.queryParams.tab) {
+            urlObj = urlObj.updateQueryParams({ tab: this.allParams.tab })
+        }
+        return urlObj.fullUrl
+    }
+
+    @computed get embedDialogAdditionalElements():
+        | React.ReactElement
+        | undefined {
+        return this.manager?.embedDialogAdditionalElements
+    }
+    // isEmbedModalOpen defined previously
+    // frameBounds defined previously
+    // #endregion
+
+    // TooltipManager omitted (only defines tooltip)
+
+    // #region DataTableManager props
+    // table defined previously
     // table that is used for display in the table tab
     @computed get tableForDisplay(): OwidTable {
         const table = this.table
@@ -654,7 +1016,484 @@ export class Grapher
             ? this.chartInstance.transformTableForDisplay(table)
             : table
     }
+    // entityType defined previously
+    // endTime defined previously
+    // startTime defined previously
 
+    @computed get dataTableSlugs(): ColumnSlug[] {
+        return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
+    }
+
+    @observable.ref showSelectionOnlyInDataTable?: boolean = undefined
+
+    @computed get entitiesAreCountryLike(): boolean {
+        return !!this.entityType.match(/\bcountry\b/i)
+    }
+    // Small charts are rendered into 6 or 7 columns in a 12-column grid layout
+    // (e.g. side-by-side charts or charts in the All Charts block)
+    @computed get isSmall(): boolean {
+        if (this.isStatic) return false
+        return this.frameBounds.width <= 740
+    }
+
+    // Medium charts are rendered into 8 columns in a 12-column grid layout
+    // (e.g. stand-alone charts in the main text of an article)
+    @computed get isMedium(): boolean {
+        if (this.isStatic) return false
+        return this.frameBounds.width <= 845
+    }
+    // isNarrow defined previoulsy
+    // selection defined previously
+
+    @computed get canChangeAddOrHighlightEntities(): boolean {
+        return (
+            this.canChangeEntity ||
+            this.canAddEntities ||
+            this.canHighlightEntities
+        )
+    }
+    // hasMapTab defined previously
+    @computed get hasChartTab(): boolean {
+        return this.validChartTypes.length > 0
+    }
+    // #endregion DataTableManager props
+
+    // #region ScatterPlotManager props
+    // hideConnectedScatterLines defined previously
+    // scatterPointLabelStrategy defined previously
+    // addCountryMode defined previously
+
+    // todo: this is only relevant for scatter plots and Marimekko. move to scatter plot class?
+    // todo: remove this. Should be done as a simple column transform at the data level.
+    // Possible to override the x axis dimension to target a special year
+    // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
+    @computed get xOverrideTime(): number | undefined {
+        return this.xDimension?.targetYear
+    }
+    // tableAfterAuthorTimelineAndActiveChartTransform defined below (together with other table transforms)
+
+    /**
+     * Uses some explicit and implicit information to decide whether a timeline is shown.
+     */
+    @computed get hasTimeline(): boolean {
+        // we don't have more than one distinct time point in our data, so it doesn't make sense to show a timeline
+        if (this.times.length <= 1) return false
+
+        switch (this.tab) {
+            // the map tab has its own `hideTimeline` option
+            case GRAPHER_TAB_OPTIONS.map:
+                return !this.map.hideTimeline
+
+            // use the chart-level `hideTimeline` option
+            case GRAPHER_TAB_OPTIONS.chart:
+                return !this.hideTimeline
+
+            // use the chart-level `hideTimeline` option for the table, with some exceptions
+            case GRAPHER_TAB_OPTIONS.table:
+                // always show the timeline for charts that plot time on the x-axis
+                if (this.hasTimeDimension) return true
+                return !this.hideTimeline
+
+            default:
+                return false
+        }
+    }
+
+    @computed get isModalOpen(): boolean {
+        return (
+            this.isEntitySelectorModalOpen ||
+            this.isSourcesModalOpen ||
+            this.isEmbedModalOpen ||
+            this.isDownloadModalOpen
+        )
+    }
+
+    @computed get isSingleTimeScatterAnimationActive(): boolean {
+        return (
+            this.isTimelineAnimationActive &&
+            this.isOnScatterTab &&
+            !this.isRelativeMode &&
+            !!this.areHandlesOnSameTimeBeforeAnimation
+        )
+    }
+
+    @observable.ref animationStartTime?: Time
+    @computed get animationEndTime(): Time {
+        const { timeColumn } = this.tableAfterAuthorTimelineFilter
+        if (this.timelineMaxTime) {
+            return (
+                findClosestTime(timeColumn.uniqValues, this.timelineMaxTime) ??
+                timeColumn.maxTime
+            )
+        }
+        return timeColumn.maxTime
+    }
+    // #endregion ScatterPlotManager props
+
+    // #region MarimekkoChartManager props
+    // endTime defined previously
+    // excludedEntities defined previously
+    // matchingEntitiesOnly defined previously
+    // xOverrideTime defined previously
+    // tableAfterAuthorTimelineAndActiveChartTransform defined below (together with other table transforms)
+    // sortConfig defined previously
+    // hideNoDataArea defined previously
+    // includedEntities defined previously
+    // #endregion
+
+    // #region FacetChartManager
+
+    @computed get canSelectMultipleEntities(): boolean {
+        if (this.numSelectableEntityNames < 2) return false
+        if (this.addCountryMode === EntitySelectionMode.MultipleEntities)
+            return true
+
+        if (
+            // we force multi-entity selection mode when the chart is faceted
+            this.addCountryMode === EntitySelectionMode.SingleEntity &&
+            this.facetStrategy !== FacetStrategy.none &&
+            // unless the author explicitly configured the chart to be split
+            // by metric and hid the facet control
+            !(
+                this.facetStrategy === FacetStrategy.metric &&
+                this.hideFacetControl
+            )
+        )
+            return true
+
+        return false
+    }
+
+    // #endregion
+
+    // #region EntitySelectorModalManager
+
+    @observable entitySelectorState: Partial<EntitySelectorState> = {}
+    // tableForSeleciton defined below (together with other table transforms)
+    // selection defined previously
+    // entityType defined previously
+    // entityTypePlural defined previously
+    // activeColumnSlugs defined previously
+    // dataApiUrl defined previously
+
+    @observable.ref isEntitySelectorModalOrDrawerOpen = false
+
+    @computed get canChangeEntity(): boolean {
+        return (
+            this.hasChartTab &&
+            !this.isOnScatterTab &&
+            !this.canSelectMultipleEntities &&
+            this.addCountryMode === EntitySelectionMode.SingleEntity &&
+            this.numSelectableEntityNames > 1
+        )
+    }
+
+    @computed get canHighlightEntities(): boolean {
+        return (
+            this.hasChartTab &&
+            this.addCountryMode !== EntitySelectionMode.Disabled &&
+            this.numSelectableEntityNames > 1 &&
+            !this.canAddEntities &&
+            !this.canChangeEntity
+        )
+    }
+
+    focusArray = new FocusArray()
+
+    // frameBounds defined previously
+    // #endregion
+
+    // #region SettingsMenuManager
+
+    // stackMode defined previously
+
+    @computed get relativeToggleLabel(): string {
+        if (this.isOnScatterTab) return "Display average annual change"
+        else if (this.isOnLineChartTab || this.isOnSlopeChartTab)
+            return "Display relative change"
+        return "Display relative values"
+    }
+
+    // showNoDataArea defined previously
+
+    // facetStrategy defined previously
+    // yAxis defined previously
+    // zoomToSelection defined previously
+    // showSelectedEntitiesOnly defined previously
+    // entityTypePlural defined previously
+
+    @computed get availableFacetStrategies(): FacetStrategy[] {
+        return this.chartInstance.availableFacetStrategies?.length
+            ? this.chartInstance.availableFacetStrategies
+            : [FacetStrategy.none]
+    }
+
+    // entityType defined previously
+    // facettingLabelByYVariables defined previously
+    // hideFacetControl defined previously
+    // hideRelativeToggle defined previously
+    // hideEntityControls defined previously
+    // hideZoomToggle defined previously
+    // hideNoDataAreaToggle defined previously
+    // hideFacetYDomainToggle defined previously
+    // hideXScaleToggle defined previously
+    // hideYScaleToggle defined previously
+    // hideTableFilterToggle defined previously
+
+    @computed get activeChartType(): GrapherChartType | undefined {
+        if (!this.isOnChartTab) return undefined
+        return this.activeTab as GrapherChartType
+    }
+
+    // NB: The timeline scatterplot in relative mode calculates changes relative
+    // to the lower bound year rather than creating an arrow chart
+    @computed get isRelativeMode(): boolean {
+        // don't allow relative mode in some cases
+        if (
+            this.hasSingleMetricInFacets ||
+            this.hasSingleEntityInFacets ||
+            this.isStackedChartSplitByMetric
+        )
+            return false
+        return this.stackMode === StackMode.relative
+    }
+
+    // selection defined previously
+    // canChangeAddOrHighlightEntities defined previously
+
+    @computed.struct get filledDimensions(): ChartDimension[] {
+        return this.isReady ? this.dimensions : []
+    }
+
+    // xColumnSlug defined previously
+    // xOverrideTime defined previously
+    // hasTimeline defined previously
+    @computed get canToggleRelativeMode(): boolean {
+        const {
+            isOnLineChartTab,
+            isOnSlopeChartTab,
+            hideRelativeToggle,
+            areHandlesOnSameTime,
+            yScaleType,
+            hasSingleEntityInFacets,
+            hasSingleMetricInFacets,
+            xColumnSlug,
+            isOnMarimekkoTab,
+            isStackedChartSplitByMetric,
+        } = this
+
+        if (isOnLineChartTab || isOnSlopeChartTab)
+            return (
+                !hideRelativeToggle &&
+                !areHandlesOnSameTime &&
+                yScaleType !== ScaleType.log
+            )
+
+        // actually trying to exclude relative mode with just one metric or entity
+        if (
+            hasSingleEntityInFacets ||
+            hasSingleMetricInFacets ||
+            isStackedChartSplitByMetric
+        )
+            return false
+
+        if (isOnMarimekkoTab && xColumnSlug === undefined) return false
+        return !hideRelativeToggle
+    }
+
+    @computed get isOnChartTab(): boolean {
+        return this.tab === GRAPHER_TAB_OPTIONS.chart
+    }
+
+    @computed get isOnMapTab(): boolean {
+        return this.tab === GRAPHER_TAB_OPTIONS.map
+    }
+
+    @computed get isOnTableTab(): boolean {
+        return this.tab === GRAPHER_TAB_OPTIONS.table
+    }
+
+    // yAxis defined previously
+    // xAxis defined previously
+    // compareEndPointsOnly defined previously
+
+    // availableFacetStrategies defined previously
+    // the actual facet setting used by a chart, potentially overriding selectedFacetStrategy
+    @computed get facetStrategy(): FacetStrategy {
+        if (
+            this.selectedFacetStrategy &&
+            this.availableFacetStrategies.includes(this.selectedFacetStrategy)
+        )
+            return this.selectedFacetStrategy
+
+        if (
+            this.addCountryMode === EntitySelectionMode.SingleEntity &&
+            this.selection.selectedEntityNames.length > 1
+        ) {
+            return FacetStrategy.entity
+        }
+
+        return firstOfNonEmptyArray(this.availableFacetStrategies)
+    }
+    // entityType defined previously
+    // facettingLabelByYVariables defined previously
+
+    // hideFacetControl defined previously
+    // hideRelativeToggle defined previously
+    // hideEntityControls defined previously
+    // hideZoomToggle defined previously
+    // hideNoDataAreaToggle defined previously
+    // hideFacetYDomainToggle defined previously
+    // hideXScaleToggle defined previously
+    // hideYScaleToggle defined previously
+    // hideTableFilterToggle defined previously
+    // activeChartType defined previously
+    // isRelativeMode defined previously
+    // selection defined previously
+    // canChangeAddOrHighlightEntities defined previously
+    // filledDimensions defined previously
+    // xColumnSlug defined previously
+    // xOverrideTime defined previously
+    // hasTimeline defined previously
+    // canToggleRelativeMode defined previously
+    // isOnChartTab defined previously
+    // isOnMapTab defined previously
+    // isOnTableTab defined previously
+    // yAxis defined previously
+    // xAxis defined previously
+    // compareEndPointsOnly defined previously
+
+    // #endregion
+
+    // #region MapChartManager props
+
+    @computed get mapColumnSlug(): string {
+        const mapColumnSlug = this.map.columnSlug
+        // If there's no mapColumnSlug or there is one but it's not in the dimensions array, use the first ycolumn
+        if (
+            !mapColumnSlug ||
+            !this.dimensions.some((dim) => dim.columnSlug === mapColumnSlug)
+        )
+            return this.yColumnSlug!
+        return mapColumnSlug
+    }
+
+    @computed get mapIsClickable(): boolean {
+        return (
+            this.hasChartTab &&
+            (this.hasLineChart || this.isScatter) &&
+            !isMobile()
+        )
+    }
+
+    // tab defined previously
+    // type defined in interface but not on Grapher
+
+    @computed get isLineChartThatTurnedIntoDiscreteBar(): boolean {
+        if (!this.isLineChart) return false
+
+        let { minTime, maxTime } = this
+
+        // if we have a time dimension but the timeline is hidden,
+        // we always want to use the authored `minTime` and `maxTime`,
+        // irrespective of the time range the user might have selected
+        // on the table tab
+        if (this.hasTimeDimensionButTimelineIsHidden) {
+            minTime = this.authorsVersion.minTime
+            maxTime = this.authorsVersion.maxTime
+        }
+
+        // This is the easy case: minTime and maxTime are the same, no need to do
+        // more fancy checks
+        if (minTime === maxTime) return true
+
+        // We can have cases where minTime = Infinity and/or maxTime = -Infinity,
+        // but still only a single year is selected.
+        // To check for that we need to look at the times array.
+        const times = this.tableAfterAuthorTimelineFilter.timeColumn.uniqValues
+        const closestMinTime = findClosestTime(times, minTime ?? -Infinity)
+        const closestMaxTime = findClosestTime(times, maxTime ?? Infinity)
+        return closestMinTime !== undefined && closestMinTime === closestMaxTime
+    }
+
+    // hasTimeline defined previously
+
+    @action.bound resetHandleTimeBounds(): void {
+        this.startHandleTimeBound = this.timelineMinTime ?? -Infinity
+        this.endHandleTimeBound = this.timelineMaxTime ?? Infinity
+    }
+
+    @computed get mapConfig(): MapConfig {
+        return this.map
+    }
+
+    // endTime defined previously
+    // title defined previously
+    // #endregion
+
+    // #region SlopeChartManager props
+    // canSelectMultipleEntities defined previously
+    // hasTimeline defined previously
+    // hideNoDataSection defined in interface but not on Grapher
+    // #endregion
+
+    // #region Observable props not in any interface
+
+    @observable.ref _isInFullScreenMode = false
+
+    @observable.ref windowInnerWidth?: number
+    @observable.ref windowInnerHeight?: number
+    @observable.ref chartTab?: GrapherChartType
+
+    // TODO: Pass these 5 in as options, don't get them as globals.
+    isDev = this.props.env === "development"
+    analytics = new GrapherAnalytics(this.props.env ?? "")
+    isEditor =
+        typeof window !== "undefined" && (window as any).isEditor === true
+
+    seriesColorMap: SeriesColorMap = new Map()
+    @observable.ref externalQueryParams: QueryParams
+
+    private framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
+    private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
+
+    @observable.ref inputTable: OwidTable
+
+    @observable.ref legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
+
+    // stored on Grapher so state is preserved when switching to full-screen mode
+
+    @observable.ref renderToStatic = false
+
+    @observable.ref isSourcesModalOpen = false
+    @observable.ref isDownloadModalOpen = false
+    @observable.ref isEmbedModalOpen = false
+
+    @observable
+    private legacyVariableDataJson?: MultipleOwidVariableDataDimensionsMap
+    @observable shouldIncludeDetailsInStaticExport = true
+    private hasLoggedGAViewEvent = false
+    @observable private hasBeenVisible = false
+    @observable private uncaughtError?: Error
+    @observable slideShow?: SlideShowController<any>
+    @observable isShareMenuActive = false
+
+    timelineController = new TimelineController(this)
+
+    // #endregion
+
+    @computed get activeTab(): GrapherTabName {
+        if (this.tab === GRAPHER_TAB_OPTIONS.table)
+            return GRAPHER_TAB_NAMES.Table
+        if (this.tab === GRAPHER_TAB_OPTIONS.map)
+            return GRAPHER_TAB_NAMES.WorldMap
+        if (this.chartTab) return this.chartTab
+        return this.chartType ?? GRAPHER_TAB_NAMES.LineChart
+    }
+
+    @computed get chartType(): GrapherChartType | undefined {
+        return this.validChartTypes[0]
+    }
     @computed get tableForSelection(): OwidTable {
         // This table specifies which entities can be selected in the charts EntitySelectorModal.
         // It should contain all entities that can be selected, and none more.
@@ -781,10 +1620,6 @@ export class Grapher
         return this.chartInstance.series.map((series) => series.seriesName)
     }
 
-    @computed get table(): OwidTable {
-        return this.tableAfterAuthorTimelineFilter
-    }
-
     @computed
     private get tableAfterAllTransformsAndFilters(): OwidTable {
         const { startTime, endTime } = this
@@ -818,14 +1653,6 @@ export class Grapher
         return table.filterByTimeRange(startTime, endTime)
     }
 
-    @computed get transformedTable(): OwidTable {
-        return this.tableAfterAllTransformsAndFilters
-    }
-
-    @computed get isStatic(): boolean {
-        return this.renderToStatic || this.isExportingToSvgOrPng
-    }
-
     private get isStaging(): boolean {
         if (typeof location === "undefined") return false
         return location.host.includes("staging")
@@ -834,15 +1661,6 @@ export class Grapher
     private get isLocalhost(): boolean {
         if (typeof location === "undefined") return false
         return location.host.includes("localhost")
-    }
-
-    @computed get editUrl(): string | undefined {
-        if (this.showAdminControls) {
-            return `${this.adminBaseUrl}/admin/${
-                this.manager?.editUrl ?? `charts/${this.id}/edit`
-            }`
-        }
-        return undefined
     }
 
     /**
@@ -871,22 +1689,8 @@ export class Grapher
         }
     }
 
-    @computed get showAdminControls(): boolean {
-        return (
-            this.isUserLoggedInAsAdmin ||
-            this.isDev ||
-            this.isLocalhost ||
-            this.isStaging
-        )
-    }
-
     @computed get hasData(): boolean {
         return this.dimensions.length > 0 || this.newSlugs.length > 0
-    }
-
-    // Ready to go iff we have retrieved data for every variable associated with the chart
-    @computed get isReady(): boolean {
-        return this.whatAreWeWaitingFor === ""
     }
 
     @computed get whatAreWeWaitingFor(): string {
@@ -923,20 +1727,6 @@ export class Grapher
         return isInIFrame()
     }
 
-    @computed get times(): Time[] {
-        const columnSlugs = this.isOnMapTab
-            ? [this.mapColumnSlug]
-            : this.yColumnSlugs
-
-        // Generate the times only after the chart transform has been applied, so that we don't show
-        // times on the timeline for which data may not exist, e.g. when the selected entity
-        // doesn't contain data for all years in the table.
-        // -@danielgavrilov, 2020-10-22
-        return this.tableAfterAuthorTimelineAndActiveChartTransform.getTimesUniqSortedAscForColumns(
-            columnSlugs
-        )
-    }
-
     /**
      * Plots time on the x-axis.
      */
@@ -946,11 +1736,6 @@ export class Grapher
 
     @computed private get hasTimeDimensionButTimelineIsHidden(): boolean {
         return this.hasTimeDimension && !!this.hideTimeline
-    }
-
-    @computed get startHandleTimeBound(): TimeBound {
-        if (this.isSingleTimeSelectionActive) return this.endHandleTimeBound
-        return this.timelineHandleTimeBounds[0]
     }
 
     @computed private get validDimensions(): ChartDimension[] {
@@ -1009,23 +1794,6 @@ export class Grapher
         ]
     }
 
-    @computed get startTime(): Time | undefined {
-        return findClosestTime(this.times, this.startHandleTimeBound)
-    }
-
-    @computed get endTime(): Time | undefined {
-        return findClosestTime(this.times, this.endHandleTimeBound)
-    }
-
-    @computed get isSingleTimeScatterAnimationActive(): boolean {
-        return (
-            this.isTimelineAnimationActive &&
-            this.isOnScatterTab &&
-            !this.isRelativeMode &&
-            !!this.areHandlesOnSameTimeBeforeAnimation
-        )
-    }
-
     @computed private get onlySingleTimeSelectionPossible(): boolean {
         return (
             this.isDiscreteBar ||
@@ -1071,10 +1839,6 @@ export class Grapher
         )
     }
 
-    @computed get endHandleTimeBound(): TimeBound {
-        return this.timelineHandleTimeBounds[1]
-    }
-
     // Get the dimension slots appropriate for this type of chart
     @computed get dimensionSlots(): DimensionSlot[] {
         const xAxis = new DimensionSlot(this, DimensionProperty.x)
@@ -1086,54 +1850,6 @@ export class Grapher
         else if (this.isScatter) return [yAxis, xAxis, size, color]
         else if (this.isMarimekko) return [yAxis, xAxis, color]
         return [yAxis]
-    }
-
-    @computed.struct get filledDimensions(): ChartDimension[] {
-        return this.isReady ? this.dimensions : []
-    }
-
-    @computed get displaySlug(): string {
-        return this.slug ?? slugify(this.displayTitle)
-    }
-
-    // Used for superscript numbers in static exports
-    @computed get detailsOrderedByReference(): string[] {
-        if (typeof window === "undefined") return []
-
-        // extract details from supporting text
-        const subtitleDetails = !this.hideSubtitle
-            ? extractDetailsFromSyntax(this.currentSubtitle)
-            : []
-        const noteDetails = !this.hideNote
-            ? extractDetailsFromSyntax(this.note ?? "")
-            : []
-
-        // extract details from axis labels
-        const yAxisDetails = extractDetailsFromSyntax(
-            this.yAxisConfig.label || ""
-        )
-        const xAxisDetails = extractDetailsFromSyntax(
-            this.xAxisConfig.label || ""
-        )
-
-        // text fragments are ordered by appearance
-        const uniqueDetails = uniq([
-            ...subtitleDetails,
-            ...yAxisDetails,
-            ...xAxisDetails,
-            ...noteDetails,
-        ])
-
-        return uniqueDetails
-    }
-
-    @computed get detailsMarkerInSvg(): DetailsMarker {
-        const { isStatic, shouldIncludeDetailsInStaticExport } = this
-        return !isStatic
-            ? "underline"
-            : shouldIncludeDetailsInStaticExport
-              ? "superscript"
-              : "none"
     }
 
     // Used for static exports. Defined at this level because they need to
@@ -1268,62 +1984,6 @@ export class Grapher
         )
     }
 
-    @computed get currentTitle(): string {
-        let text = this.displayTitle.trim()
-        if (text.length === 0) return text
-
-        // helper function to add an annotation fragment to the title
-        // only adds a comma if the text does not end with a question mark
-        const appendAnnotationField = (
-            text: string,
-            annotation: string
-        ): string => {
-            const separator = text.endsWith("?") ? "" : ","
-            return `${text}${separator} ${annotation}`
-        }
-
-        if (this.shouldAddEntitySuffixToTitle) {
-            const selectedEntityNames = this.selection.selectedEntityNames
-            const entityStr = selectedEntityNames[0]
-            if (entityStr?.length) text = appendAnnotationField(text, entityStr)
-        }
-
-        if (this.shouldAddChangeInPrefixToTitle)
-            text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
-
-        if (this.shouldAddTimeSuffixToTitle && this.timeTitleSuffix)
-            text = appendAnnotationField(text, this.timeTitleSuffix)
-
-        return text.trim()
-    }
-
-    /**
-     * Uses some explicit and implicit information to decide whether a timeline is shown.
-     */
-    @computed get hasTimeline(): boolean {
-        // we don't have more than one distinct time point in our data, so it doesn't make sense to show a timeline
-        if (this.times.length <= 1) return false
-
-        switch (this.tab) {
-            // the map tab has its own `hideTimeline` option
-            case GRAPHER_TAB_OPTIONS.map:
-                return !this.map.hideTimeline
-
-            // use the chart-level `hideTimeline` option
-            case GRAPHER_TAB_OPTIONS.chart:
-                return !this.hideTimeline
-
-            // use the chart-level `hideTimeline` option for the table, with some exceptions
-            case GRAPHER_TAB_OPTIONS.table:
-                // always show the timeline for charts that plot time on the x-axis
-                if (this.hasTimeDimension) return true
-                return !this.hideTimeline
-
-            default:
-                return false
-        }
-    }
-
     @computed private get areHandlesOnSameTime(): boolean {
         const times = this.tableAfterAuthorTimelineFilter.timeColumn.uniqValues
         const [start, end] = this.timelineHandleTimeBounds.map((time) =>
@@ -1332,49 +1992,10 @@ export class Grapher
         return start === end
     }
 
-    @computed get mapColumnSlug(): string {
-        const mapColumnSlug = this.map.columnSlug
-        // If there's no mapColumnSlug or there is one but it's not in the dimensions array, use the first ycolumn
-        if (
-            !mapColumnSlug ||
-            !this.dimensions.some((dim) => dim.columnSlug === mapColumnSlug)
-        )
-            return this.yColumnSlug!
-        return mapColumnSlug
-    }
-
     @computed get yColumnsFromDimensions(): CoreColumn[] {
         return this.filledDimensions
             .filter((dim) => dim.property === DimensionProperty.y)
             .map((dim) => dim.column)
-    }
-
-    @computed get yColumnSlugs(): string[] {
-        return this.ySlugs
-            ? this.ySlugs.split(" ")
-            : this.dimensions
-                  .filter((dim) => dim.property === DimensionProperty.y)
-                  .map((dim) => dim.columnSlug)
-    }
-
-    @computed get yColumnSlug(): string | undefined {
-        return this.ySlugs
-            ? this.ySlugs.split(" ")[0]
-            : this.getSlugForProperty(DimensionProperty.y)
-    }
-
-    @computed get xColumnSlug(): string | undefined {
-        return this.xSlug ?? this.getSlugForProperty(DimensionProperty.x)
-    }
-
-    @computed get sizeColumnSlug(): string | undefined {
-        return this.sizeSlug ?? this.getSlugForProperty(DimensionProperty.size)
-    }
-
-    @computed get colorColumnSlug(): string | undefined {
-        return (
-            this.colorSlug ?? this.getSlugForProperty(DimensionProperty.color)
-        )
     }
 
     @computed get yScaleType(): ScaleType | undefined {
@@ -1403,49 +2024,6 @@ export class Grapher
 
     @computed get sourcesLine(): string {
         return this.sourceDesc ?? this.defaultSourcesLine
-    }
-
-    // Columns that are used as a dimension in the currently active view
-    @computed get activeColumnSlugs(): string[] {
-        const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
-            this
-
-        // sort y columns by their display name
-        const sortedYColumnSlugs = sortBy(
-            yColumnSlugs,
-            (slug) => this.inputTable.get(slug).titlePublicOrDisplayName.title
-        )
-
-        return excludeUndefined([
-            ...sortedYColumnSlugs,
-            xColumnSlug,
-            sizeColumnSlug,
-            colorColumnSlug,
-        ])
-    }
-
-    @computed get columnsWithSourcesExtensive(): CoreColumn[] {
-        const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
-            this
-
-        // sort y-columns by their display name
-        const sortedYColumnSlugs = sortBy(
-            yColumnSlugs,
-            (slug) => this.inputTable.get(slug).titlePublicOrDisplayName.title
-        )
-
-        const columnSlugs = excludeUndefined([
-            ...sortedYColumnSlugs,
-            xColumnSlug,
-            sizeColumnSlug,
-            colorColumnSlug,
-        ])
-
-        return this.inputTable
-            .getColumns(uniq(columnSlugs))
-            .filter(
-                (column) => !!column.source.name || !isEmpty(column.def.origins)
-            )
     }
 
     @computed get columnsWithSourcesCondensed(): CoreColumn[] {
@@ -1496,13 +2074,6 @@ export class Grapher
                 dim.property === DimensionProperty.y ||
                 dim.property === DimensionProperty.x
         )
-    }
-
-    // todo: remove when we remove dimensions
-    @computed get yColumnsFromDimensionsOrSlugsOrAuto(): CoreColumn[] {
-        return this.yColumnsFromDimensions.length
-            ? this.yColumnsFromDimensions
-            : this.table.getColumns(autoDetectYColumnSlugs(this))
     }
 
     @computed private get defaultTitle(): string {
@@ -1580,42 +2151,12 @@ export class Grapher
         return this.chartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
     }
 
-    @computed get isLineChartThatTurnedIntoDiscreteBar(): boolean {
-        if (!this.isLineChart) return false
-
-        let { minTime, maxTime } = this
-
-        // if we have a time dimension but the timeline is hidden,
-        // we always want to use the authored `minTime` and `maxTime`,
-        // irrespective of the time range the user might have selected
-        // on the table tab
-        if (this.hasTimeDimensionButTimelineIsHidden) {
-            minTime = this.authorsVersion.minTime
-            maxTime = this.authorsVersion.maxTime
-        }
-
-        // This is the easy case: minTime and maxTime are the same, no need to do
-        // more fancy checks
-        if (minTime === maxTime) return true
-
-        // We can have cases where minTime = Infinity and/or maxTime = -Infinity,
-        // but still only a single year is selected.
-        // To check for that we need to look at the times array.
-        const times = this.tableAfterAuthorTimelineFilter.timeColumn.uniqValues
-        const closestMinTime = findClosestTime(times, minTime ?? -Infinity)
-        const closestMaxTime = findClosestTime(times, maxTime ?? Infinity)
-        return closestMinTime !== undefined && closestMinTime === closestMaxTime
-    }
-
     @computed get isLineChartThatTurnedIntoDiscreteBarActive(): boolean {
         return (
             this.isOnLineChartTab && this.isLineChartThatTurnedIntoDiscreteBar
         )
     }
 
-    @computed get isOnLineChartTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.LineChart
-    }
     @computed get isOnScatterTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.ScatterPlot
     }
@@ -1655,14 +2196,6 @@ export class Grapher
         )
     }
 
-    // todo: this is only relevant for scatter plots and Marimekko. move to scatter plot class?
-    // todo: remove this. Should be done as a simple column transform at the data level.
-    // Possible to override the x axis dimension to target a special year
-    // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
-    @computed get xOverrideTime(): number | undefined {
-        return this.xDimension?.targetYear
-    }
-
     @computed get defaultBounds(): Bounds {
         return new Bounds(0, 0, DEFAULT_GRAPHER_WIDTH, DEFAULT_GRAPHER_HEIGHT)
     }
@@ -1671,100 +2204,8 @@ export class Grapher
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
-    @computed get staticFormat(): GrapherStaticFormat {
-        if (this.props.staticFormat) return this.props.staticFormat
-        return this._staticFormat
-    }
-
-    @computed get staticBoundsWithDetails(): Bounds {
-        const includeDetails =
-            this.shouldIncludeDetailsInStaticExport &&
-            !isEmpty(this.detailRenderers)
-
-        let height = this.staticBounds.height
-        if (includeDetails) {
-            height +=
-                2 * this.framePaddingVertical +
-                sumTextWrapHeights(
-                    this.detailRenderers,
-                    STATIC_EXPORT_DETAIL_SPACING
-                )
-        }
-
-        return new Bounds(0, 0, this.staticBounds.width, height)
-    }
-
-    @computed get disableIntroAnimation(): boolean {
-        return this.isStatic
-    }
-
-    @computed get mapConfig(): MapConfig {
-        return this.map
-    }
-
     @computed get cacheTag(): string {
         return this.version.toString()
-    }
-
-    @computed get mapIsClickable(): boolean {
-        return (
-            this.hasChartTab &&
-            (this.hasLineChart || this.isScatter) &&
-            !isMobile()
-        )
-    }
-
-    @computed get relativeToggleLabel(): string {
-        if (this.isOnScatterTab) return "Display average annual change"
-        else if (this.isOnLineChartTab || this.isOnSlopeChartTab)
-            return "Display relative change"
-        return "Display relative values"
-    }
-
-    // NB: The timeline scatterplot in relative mode calculates changes relative
-    // to the lower bound year rather than creating an arrow chart
-    @computed get isRelativeMode(): boolean {
-        // don't allow relative mode in some cases
-        if (
-            this.hasSingleMetricInFacets ||
-            this.hasSingleEntityInFacets ||
-            this.isStackedChartSplitByMetric
-        )
-            return false
-        return this.stackMode === StackMode.relative
-    }
-
-    @computed get canToggleRelativeMode(): boolean {
-        const {
-            isOnLineChartTab,
-            isOnSlopeChartTab,
-            hideRelativeToggle,
-            areHandlesOnSameTime,
-            yScaleType,
-            hasSingleEntityInFacets,
-            hasSingleMetricInFacets,
-            xColumnSlug,
-            isOnMarimekkoTab,
-            isStackedChartSplitByMetric,
-        } = this
-
-        if (isOnLineChartTab || isOnSlopeChartTab)
-            return (
-                !hideRelativeToggle &&
-                !areHandlesOnSameTime &&
-                yScaleType !== ScaleType.log
-            )
-
-        // actually trying to exclude relative mode with just one metric or entity
-        if (
-            hasSingleEntityInFacets ||
-            hasSingleMetricInFacets ||
-            isStackedChartSplitByMetric
-        )
-            return false
-
-        if (isOnMarimekkoTab && xColumnSlug === undefined) return false
-        return !hideRelativeToggle
     }
 
     // Filter data to what can be display on the map (across all times)
@@ -1913,25 +2354,6 @@ export class Grapher
         )
     }
 
-    @computed get frameBounds(): Bounds {
-        return this.useIdealBounds
-            ? new Bounds(0, 0, this.idealWidth, this.idealHeight)
-            : new Bounds(0, 0, this.availableWidth, this.availableHeight)
-    }
-
-    @computed get captionedChartBounds(): Bounds {
-        // if there's no panel, the chart takes up the whole frame
-        if (!this.isEntitySelectorPanelActive) return this.frameBounds
-
-        return new Bounds(
-            0,
-            0,
-            // the chart takes up 9 columns in 12-column grid
-            (9 / 12) * this.frameBounds.width,
-            this.frameBounds.height - 2 // 2px accounts for the border
-        )
-    }
-
     @computed get sidePanelBounds(): Bounds | undefined {
         if (!this.isEntitySelectorPanelActive) return
 
@@ -1949,32 +2371,6 @@ export class Grapher
     @computed get availableEntities(): Entity[] {
         return this.tableForSelection.availableEntities
     }
-
-    @computed get _sortConfig(): Readonly<SortConfig> {
-        return {
-            sortBy: this.sortBy ?? SortBy.total,
-            sortOrder: this.sortOrder ?? SortOrder.desc,
-            sortColumnSlug: this.sortColumnSlug,
-        }
-    }
-
-    @computed get sortConfig(): SortConfig {
-        const sortConfig = { ...this._sortConfig }
-        // In relative mode, where the values for every entity sum up to 100%, sorting by total
-        // doesn't make sense. It's also jumpy because of some rounding errors. For this reason,
-        // we sort by entity name instead.
-        // Marimekko charts are special and there we don't do this forcing of sort order
-        if (
-            !this.isMarimekko &&
-            this.isRelativeMode &&
-            sortConfig.sortBy === SortBy.total
-        ) {
-            sortConfig.sortBy = SortBy.entityName
-            sortConfig.sortOrder = SortOrder.asc
-        }
-        return sortConfig
-    }
-
     @computed get hasMultipleYColumns(): boolean {
         return this.yColumnSlugs.length > 1
     }
@@ -2036,30 +2432,6 @@ export class Grapher
         )
     }
 
-    @computed get availableFacetStrategies(): FacetStrategy[] {
-        return this.chartInstance.availableFacetStrategies?.length
-            ? this.chartInstance.availableFacetStrategies
-            : [FacetStrategy.none]
-    }
-
-    // the actual facet setting used by a chart, potentially overriding selectedFacetStrategy
-    @computed get facetStrategy(): FacetStrategy {
-        if (
-            this.selectedFacetStrategy &&
-            this.availableFacetStrategies.includes(this.selectedFacetStrategy)
-        )
-            return this.selectedFacetStrategy
-
-        if (
-            this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.selection.selectedEntityNames.length > 1
-        ) {
-            return FacetStrategy.entity
-        }
-
-        return firstOfNonEmptyArray(this.availableFacetStrategies)
-    }
-
     @computed get isFaceted(): boolean {
         const hasFacetStrategy = this.facetStrategy !== FacetStrategy.none
         return this.isOnChartTab && hasFacetStrategy
@@ -2069,51 +2441,9 @@ export class Grapher
         return this._isInFullScreenMode
     }
 
-    @computed get isModalOpen(): boolean {
-        return (
-            this.isEntitySelectorModalOpen ||
-            this.isSourcesModalOpen ||
-            this.isEmbedModalOpen ||
-            this.isDownloadModalOpen
-        )
-    }
-
     // the header and footer don't rely on the base font size unless explicitly specified
     @computed get useBaseFontSize(): boolean {
         return this.props.baseFontSize !== undefined || this.isStatic
-    }
-
-    @computed get fontSize(): number {
-        return this.props.baseFontSize ?? this.baseFontSize
-    }
-
-    @computed get isNarrow(): boolean {
-        if (this.isStatic) return false
-        return this.frameBounds.width <= 420
-    }
-
-    @computed get isSemiNarrow(): boolean {
-        if (this.isStatic) return false
-        return this.frameBounds.width <= 550
-    }
-
-    // Small charts are rendered into 6 or 7 columns in a 12-column grid layout
-    // (e.g. side-by-side charts or charts in the All Charts block)
-    @computed get isSmall(): boolean {
-        if (this.isStatic) return false
-        return this.frameBounds.width <= 740
-    }
-
-    // Medium charts are rendered into 8 columns in a 12-column grid layout
-    // (e.g. stand-alone charts in the main text of an article)
-    @computed get isMedium(): boolean {
-        if (this.isStatic) return false
-        return this.frameBounds.width <= 845
-    }
-
-    @computed get isStaticAndSmall(): boolean {
-        if (!this.isStatic) return false
-        return this.areStaticBoundsSmall
     }
 
     @computed get areStaticBoundsSmall(): boolean {
@@ -2133,16 +2463,6 @@ export class Grapher
             this.isStaticAndSmall &&
             this.isSocialMediaExport
         )
-    }
-
-    @computed get backgroundColor(): Color {
-        return this.isExportingForSocialMedia
-            ? GRAPHER_BACKGROUND_BEIGE
-            : GRAPHER_BACKGROUND_DEFAULT
-    }
-
-    @computed get shouldPinTooltipToBottom(): boolean {
-        return this.isNarrow && this.isTouchDevice
     }
 
     @computed get hasRelatedQuestion(): boolean {
@@ -2227,12 +2547,6 @@ export class Grapher
         })
     }
 
-    @computed get baseUrl(): string | undefined {
-        return this.isPublished
-            ? `${this.bakedGrapherURL ?? "/grapher"}/${this.displaySlug}`
-            : undefined
-    }
-
     @computed get canonicalUrlIfIsChartView(): string | undefined {
         if (!this.chartViewInfo) return undefined
 
@@ -2249,40 +2563,11 @@ export class Grapher
         )}`
     }
 
-    // Get the full url representing the canonical location of this grapher state
-    @computed get canonicalUrl(): string | undefined {
-        return (
-            this.manager?.canonicalUrl ??
-            this.canonicalUrlIfIsChartView ??
-            (this.baseUrl ? this.baseUrl + this.queryStr : undefined)
-        )
-    }
-
     @computed get isOnCanonicalUrl(): boolean {
         if (!this.canonicalUrl) return false
         return (
             getWindowUrl().pathname === Url.fromURL(this.canonicalUrl).pathname
         )
-    }
-
-    @computed get embedUrl(): string | undefined {
-        const url = this.manager?.embedDialogUrl ?? this.canonicalUrl
-        if (!url) return
-
-        // We want to preserve the tab in the embed URL so that if we change the
-        // default view of the chart, it won't change existing embeds.
-        // See https://github.com/owid/owid-grapher/issues/2805
-        let urlObj = Url.fromURL(url)
-        if (!urlObj.queryParams.tab) {
-            urlObj = urlObj.updateQueryParams({ tab: this.allParams.tab })
-        }
-        return urlObj.fullUrl
-    }
-
-    @computed get embedDialogAdditionalElements():
-        | React.ReactElement
-        | undefined {
-        return this.manager?.embedDialogAdditionalElements
     }
 
     @computed private get hasUserChangedTimeHandles(): boolean {
@@ -2319,52 +2604,6 @@ export class Grapher
         return startTime === endTime ? startTime : `${startTime}..${endTime}`
     }
 
-    @computed get disablePlay(): boolean {
-        return false
-    }
-
-    @computed get animationEndTime(): Time {
-        const { timeColumn } = this.tableAfterAuthorTimelineFilter
-        if (this.timelineMaxTime) {
-            return (
-                findClosestTime(timeColumn.uniqValues, this.timelineMaxTime) ??
-                timeColumn.maxTime
-            )
-        }
-        return timeColumn.maxTime
-    }
-
-    @computed get canSelectMultipleEntities(): boolean {
-        if (this.numSelectableEntityNames < 2) return false
-        if (this.addCountryMode === EntitySelectionMode.MultipleEntities)
-            return true
-
-        if (
-            // we force multi-entity selection mode when the chart is faceted
-            this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.facetStrategy !== FacetStrategy.none &&
-            // unless the author explicitly configured the chart to be split
-            // by metric and hid the facet control
-            !(
-                this.facetStrategy === FacetStrategy.metric &&
-                this.hideFacetControl
-            )
-        )
-            return true
-
-        return false
-    }
-
-    @computed get canChangeEntity(): boolean {
-        return (
-            this.hasChartTab &&
-            !this.isOnScatterTab &&
-            !this.canSelectMultipleEntities &&
-            this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.numSelectableEntityNames > 1
-        )
-    }
-
     @computed get canAddEntities(): boolean {
         return (
             this.hasChartTab &&
@@ -2375,24 +2614,6 @@ export class Grapher
                 this.isOnStackedBarTab ||
                 this.isOnDiscreteBarTab ||
                 this.isOnStackedDiscreteBarTab)
-        )
-    }
-
-    @computed get canHighlightEntities(): boolean {
-        return (
-            this.hasChartTab &&
-            this.addCountryMode !== EntitySelectionMode.Disabled &&
-            this.numSelectableEntityNames > 1 &&
-            !this.canAddEntities &&
-            !this.canChangeEntity
-        )
-    }
-
-    @computed get canChangeAddOrHighlightEntities(): boolean {
-        return (
-            this.canChangeEntity ||
-            this.canAddEntities ||
-            this.canHighlightEntities
         )
     }
 
@@ -2451,10 +2672,6 @@ export class Grapher
     // hide the Add Entity button as the user drags the timeline.
     @computed private get numSelectableEntityNames(): number {
         return this.selection.numAvailableEntityNames
-    }
-
-    @computed get entitiesAreCountryLike(): boolean {
-        return !!this.entityType.match(/\bcountry\b/i)
     }
 
     /**
@@ -2785,11 +3002,6 @@ export class Grapher
             ]
     }
 
-    @action.bound resetHandleTimeBounds(): void {
-        this.startHandleTimeBound = this.timelineMinTime ?? -Infinity
-        this.endHandleTimeBound = this.timelineMaxTime ?? Infinity
-    }
-
     // Keeps a running cache of series colors at the Grapher level.
 
     disposers: (() => void)[] = []
@@ -2964,13 +3176,6 @@ export class Grapher
         return this.generateStaticSvg()
     }
 
-    rasterize(): Promise<GrapherExport> {
-        const { width, height } = this.staticBoundsWithDetails
-        const staticSVG = this.generateStaticSvg()
-
-        return new StaticChartRasterizer(staticSVG, width, height).render()
-    }
-
     static renderGrapherIntoContainer(
         config: GrapherProgrammaticInterface,
         containerNode: Element
@@ -3065,10 +3270,6 @@ export class Grapher
         return this.props.enableKeyboardShortcuts ? (
             <CommandPalette commands={this.keyboardShortcuts} display="none" />
         ) : null
-    }
-
-    formatTimeFn(time: Time): string {
-        return this.inputTable.timeColumn.formatTime(time)
     }
 
     @action.bound private toggleTabCommand(): void {
@@ -3655,11 +3856,6 @@ export class Grapher
         if (!this.hasMultipleChartTypes) return GRAPHER_TAB_QUERY_PARAMS.chart
 
         return mapChartTypeNameToQueryParam(tab)
-    }
-
-    @action.bound onTimelineClick(): void {
-        const tooltip = this.tooltip?.get()
-        if (tooltip) tooltip.dismiss?.()
     }
 
     // todo: restore this behavior??
