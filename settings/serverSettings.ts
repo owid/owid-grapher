@@ -127,8 +127,6 @@ export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
     serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ??
     "194PNSFjgSlt9Zm5xYuDOF0l_GLKZbVxH2co3zCok_cE"
 
-export const GDOCS_SHARED_DRIVE_ID = serverSettings.GDOCS_SHARED_DRIVE_ID ?? ""
-
 export const GDOCS_DETAILS_ON_DEMAND_ID =
     serverSettings.GDOCS_DETAILS_ON_DEMAND_ID ?? ""
 
