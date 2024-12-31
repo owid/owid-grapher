@@ -124,8 +124,7 @@ export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
     serverSettings.GDOCS_BACKPORTING_TARGET_FOLDER ?? ""
 
 export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
-    serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ??
-    "194PNSFjgSlt9Zm5xYuDOF0l_GLKZbVxH2co3zCok_cE"
+    serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ?? ""
 
 export const GDOCS_DETAILS_ON_DEMAND_ID =
     serverSettings.GDOCS_DETAILS_ON_DEMAND_ID ?? ""
