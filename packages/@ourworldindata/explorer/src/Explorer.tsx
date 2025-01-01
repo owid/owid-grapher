@@ -27,6 +27,7 @@ import {
     SlideShowManager,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     GrapherAnalytics,
+    GrapherState,
 } from "@ourworldindata/grapher"
 import {
     Bounds,
@@ -194,15 +195,19 @@ export class Explorer
         GrapherManager
 {
     analytics = new GrapherAnalytics()
+    grapherState: GrapherState
 
     constructor(props: ExplorerProps) {
         super(props)
         this.explorerProgram = ExplorerProgram.fromJson(
             props
         ).initDecisionMatrix(this.initialQueryParams)
-        this.grapher = new Grapher({
-            bounds: props.bounds,
+        this.grapherState = new GrapherState({
             staticBounds: props.staticBounds,
+            bounds: props.bounds,
+        })
+        this.grapher = new Grapher({
+            grapherState: this.grapherState,
         })
     }
     // caution: do a ctrl+f to find untyped usages
@@ -350,7 +355,7 @@ export class Explorer
             this.explorerProgram.indexViewsSeparately &&
             document.location.search
         ) {
-            document.title = `${this.grapher.displayTitle} - Our World in Data`
+            document.title = `${this.grapher.grapherState.displayTitle} - Our World in Data`
         }
     }
 
@@ -428,7 +433,7 @@ export class Explorer
             return // todo: can we remove this?
         this.initSlideshow()
 
-        const oldGrapherParams = this.grapher.changedParams
+        const oldGrapherParams = this.grapher.grapherState.changedParams
         this.persistedGrapherQueryParamsBySelectedRow.set(
             oldSelectedRow,
             oldGrapherParams
@@ -440,23 +445,24 @@ export class Explorer
             ),
             country: oldGrapherParams.country,
             region: oldGrapherParams.region,
-            time: this.grapher.timeParam,
+            time: this.grapher.grapherState.timeParam,
         }
 
-        const previousTab = this.grapher.activeTab
+        const previousTab = this.grapher.grapherState.activeTab
 
         this.updateGrapherFromExplorer()
 
-        if (this.grapher.availableTabs.includes(previousTab)) {
+        if (this.grapher.grapherState.availableTabs.includes(previousTab)) {
             // preserve the previous tab if that's still available in the new view
             newGrapherParams.tab =
-                this.grapher.mapGrapherTabToQueryParam(previousTab)
-        } else if (this.grapher.validChartTypes.length > 0) {
+                this.grapher.grapherState.mapGrapherTabToQueryParam(previousTab)
+        } else if (this.grapher.grapherState.validChartTypes.length > 0) {
             // otherwise, switch to the first chart tab
-            newGrapherParams.tab = this.grapher.mapGrapherTabToQueryParam(
-                this.grapher.validChartTypes[0]
-            )
-        } else if (this.grapher.hasMapTab) {
+            newGrapherParams.tab =
+                this.grapher.grapherState.mapGrapherTabToQueryParam(
+                    this.grapher.grapherState.validChartTypes[0]
+                )
+        } else if (this.grapher.grapherState.hasMapTab) {
             // or switch to the map, if there is one
             newGrapherParams.tab = GRAPHER_TAB_QUERY_PARAMS.map
         } else {
@@ -474,7 +480,7 @@ export class Explorer
 
     @action.bound private setGrapherTable(table: OwidTable) {
         if (this.grapher) {
-            this.grapher.inputTable = table
+            this.grapher.grapherState.inputTable = table
             this.grapher.appendNewEntitySelectionOptions()
         }
     }
@@ -805,7 +811,7 @@ export class Explorer
 
         let url = Url.fromQueryParams(
             omitUndefinedValues({
-                ...this.grapher.changedParams,
+                ...this.grapher.grapherState.changedParams,
                 pickerSort: this.entityPickerSort,
                 pickerMetric: this.entityPickerMetric,
                 hideControls: this.initialQueryParams.hideControls || undefined,
@@ -1035,6 +1041,7 @@ export class Explorer
                         isEmbeddedInAnOwidPage={
                             this.props.isEmbeddedInAnOwidPage
                         }
+                        grapherState={this.grapherState}
                     />
                 </div>
             </div>
@@ -1076,7 +1083,7 @@ export class Explorer
     }
 
     @computed get grapherTable() {
-        return this.grapher?.tableAfterAuthorTimelineFilter
+        return this.grapher?.grapherState?.tableAfterAuthorTimelineFilter
     }
 
     @observable entityPickerMetric? = this.initialQueryParams.pickerMetric
@@ -1191,6 +1198,6 @@ export class Explorer
     }
 
     @computed get requiredColumnSlugs() {
-        return this.grapher?.newSlugs ?? []
+        return this.grapher?.grapherState?.newSlugs ?? []
     }
 }

@@ -15,7 +15,7 @@ export class DimensionSlot {
 
     @computed get name(): string {
         const names = {
-            y: this.grapher.isDiscreteBar ? "X axis" : "Y axis",
+            y: this.grapher.grapherState.isDiscreteBar ? "X axis" : "Y axis",
             x: "X axis",
             size: "Size",
             color: "Color",
@@ -28,7 +28,7 @@ export class DimensionSlot {
     @computed get allowMultiple(): boolean {
         return (
             this.property === DimensionProperty.y &&
-            this.grapher.supportsMultipleYColumns
+            this.grapher.grapherState.supportsMultipleYColumns
         )
     }
 
@@ -37,7 +37,7 @@ export class DimensionSlot {
     }
 
     @computed get dimensions(): ChartDimension[] {
-        return this.grapher.dimensions.filter(
+        return this.grapher.grapherState.dimensions.filter(
             (d) => d.property === this.property
         )
     }

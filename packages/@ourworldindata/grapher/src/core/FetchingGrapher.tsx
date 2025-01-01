@@ -4,7 +4,7 @@ import {
     OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/types"
 import React from "react"
-import { Grapher } from "./Grapher.js"
+import { Grapher, GrapherState } from "./Grapher.js"
 import { loadVariableDataAndMetadata } from "./loadVariable.js"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -58,9 +58,13 @@ export function FetchingGrapher(
         }
         void fetchConfigAndLoadData()
     }, [props.configUrl, config, props.dataApiUrl])
+    const [grapherState, setGrapherState] = React.useState<GrapherState>(
+        new GrapherState({})
+    )
 
     if (!config) return null
     if (!inputTable) return null
+
     return (
         <Grapher
             table={inputTable}
@@ -68,6 +72,7 @@ export function FetchingGrapher(
             dataApiUrl={props.dataApiUrl}
             adminBaseUrl={props.adminBaseUrl}
             bakedGrapherURL={props.bakedGrapherURL}
+            grapherState={grapherState}
         />
     )
 }
