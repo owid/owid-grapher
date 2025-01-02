@@ -55,7 +55,7 @@ export {
 export { GlobalEntitySelector } from "./controls/globalEntitySelector/GlobalEntitySelector"
 export {
     Grapher,
-    type GrapherState,
+    GrapherState,
     type GrapherProgrammaticInterface,
     type GrapherManager,
     getErrorMessageRelatedQuestionUrl,

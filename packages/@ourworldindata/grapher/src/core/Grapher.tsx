@@ -481,6 +481,36 @@ export class GrapherState {
         }
     }
 
+    toObject(): GrapherInterface {
+        const obj: GrapherInterface = objectWithPersistablesToObject(
+            this,
+            grapherKeysToSerialize
+        )
+
+        obj.selectedEntityNames = this.selection.selectedEntityNames
+        obj.focusedSeriesNames = this.focusArray.seriesNames
+
+        deleteRuntimeAndUnchangedProps(obj, defaultObject)
+
+        // always include the schema, even if it's the default
+        obj.$schema = this.$schema || latestGrapherConfigSchema
+
+        // JSON doesn't support Infinity, so we use strings instead.
+        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
+        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
+
+        if (obj.timelineMinTime)
+            obj.timelineMinTime = minTimeToJSON(this.timelineMinTime) as any
+        if (obj.timelineMaxTime)
+            obj.timelineMaxTime = maxTimeToJSON(this.timelineMaxTime) as any
+
+        // todo: remove dimensions concept
+        // if (this.legacyConfigAsAuthored?.dimensions)
+        //     obj.dimensions = this.legacyConfigAsAuthored.dimensions
+
+        return obj
+    }
+
     // todo: can we remove this?
     // I believe these states can only occur during editing.
     @action.bound private ensureValidConfigWhenEditing(): void {
@@ -1277,7 +1307,7 @@ export class GrapherState {
         )
     }
 
-    selection: SelectionArray
+    selection: SelectionArray = new SelectionArray()
     // entityType defined previously
     // focusArray defined previously
     // hidePoints defined in interface but not on Grapher
@@ -2800,6 +2830,38 @@ export class GrapherState {
             originalFocusedSeriesNames
         )
     }
+
+    // Properties here are moved here so they can be used in tests
+    timelineController = new TimelineController(this)
+    @action.bound clearQueryParams(): void {
+        const { authorsVersion } = this
+        this.tab = authorsVersion.tab
+        this.xAxis.scaleType = authorsVersion.xAxis.scaleType
+        this.yAxis.scaleType = authorsVersion.yAxis.scaleType
+        this.stackMode = authorsVersion.stackMode
+        this.zoomToSelection = authorsVersion.zoomToSelection
+        this.compareEndPointsOnly = authorsVersion.compareEndPointsOnly
+        this.minTime = authorsVersion.minTime
+        this.maxTime = authorsVersion.maxTime
+        this.map.time = authorsVersion.map.time
+        this.map.projection = authorsVersion.map.projection
+        this.showSelectionOnlyInDataTable =
+            authorsVersion.showSelectionOnlyInDataTable
+        this.showNoDataArea = authorsVersion.showNoDataArea
+        this.clearSelection()
+    }
+    @action.bound clearSelection(): void {
+        this.selection.clearSelection()
+        this.applyOriginalSelectionAsAuthored()
+    }
+
+    @action.bound applyOriginalSelectionAsAuthored(): void {
+        if (this.selectedEntityNames?.length)
+            this.selection.setSelectedEntities(this.selectedEntityNames)
+    }
+    @computed get availableEntities(): Entity[] {
+        return this.tableForSelection.availableEntities
+    }
 }
 
 export interface GrapherProps {
@@ -2828,8 +2890,6 @@ export class Grapher extends React.Component<GrapherProps> {
     @observable private uncaughtError?: Error
     @observable slideShow?: SlideShowController<any>
     @observable isShareMenuActive = false
-
-    timelineController = new TimelineController(this.grapherState)
 
     @computed get chartSeriesNames(): SeriesName[] {
         if (!this.grapherState.isReady) return []
@@ -2962,7 +3022,7 @@ export class Grapher extends React.Component<GrapherProps> {
 
     // Returns an object ready to be serialized to JSON
     @computed get object(): GrapherInterface {
-        return this.toObject()
+        return this.grapherState.toObject()
     }
 
     @computed get hasYDimension(): boolean {
@@ -3009,9 +3069,6 @@ export class Grapher extends React.Component<GrapherProps> {
         return this.grapherState.base.current || undefined
     }
 
-    @computed get availableEntities(): Entity[] {
-        return this.grapherState.tableForSelection.availableEntities
-    }
     @computed get isFaceted(): boolean {
         const hasFacetStrategy = this.facetStrategy !== FacetStrategy.none
         return this.grapherState.isOnChartTab && hasFacetStrategy
@@ -3096,43 +3153,6 @@ export class Grapher extends React.Component<GrapherProps> {
         super(props)
     }
 
-    toObject(): GrapherInterface {
-        const obj: GrapherInterface = objectWithPersistablesToObject(
-            this.grapherState,
-            grapherKeysToSerialize
-        )
-
-        obj.selectedEntityNames =
-            this.grapherState.selection.selectedEntityNames
-        obj.focusedSeriesNames = this.grapherState.focusArray.seriesNames
-
-        deleteRuntimeAndUnchangedProps(obj, defaultObject)
-
-        // always include the schema, even if it's the default
-        obj.$schema = this.grapherState.$schema || latestGrapherConfigSchema
-
-        // JSON doesn't support Infinity, so we use strings instead.
-        if (obj.minTime)
-            obj.minTime = minTimeToJSON(this.grapherState.minTime) as any
-        if (obj.maxTime)
-            obj.maxTime = maxTimeToJSON(this.grapherState.maxTime) as any
-
-        if (obj.timelineMinTime)
-            obj.timelineMinTime = minTimeToJSON(
-                this.grapherState.timelineMinTime
-            ) as any
-        if (obj.timelineMaxTime)
-            obj.timelineMaxTime = maxTimeToJSON(
-                this.grapherState.timelineMaxTime
-            ) as any
-
-        // todo: remove dimensions concept
-        // if (this.legacyConfigAsAuthored?.dimensions)
-        //     obj.dimensions = this.legacyConfigAsAuthored.dimensions
-
-        return obj
-    }
-
     // Convenience method for debugging
     windowQueryParams(str = location.search): QueryParams {
         return strToQueryParams(str)
@@ -3176,7 +3196,7 @@ export class Grapher extends React.Component<GrapherProps> {
             // Selection is managed externally, do nothing.
         } else if (this.grapherState.selection.hasSelection) {
             // User has changed the selection, use theris
-        } else this.applyOriginalSelectionAsAuthored()
+        } else this.grapherState.applyOriginalSelectionAsAuthored()
     }
 
     @action rebuildInputOwidTable(): void {
@@ -3191,17 +3211,10 @@ export class Grapher extends React.Component<GrapherProps> {
     @action.bound appendNewEntitySelectionOptions(): void {
         const { selection } = this.grapherState
         const currentEntities = selection.availableEntityNameSet
-        const missingEntities = this.availableEntities.filter(
+        const missingEntities = this.grapherState.availableEntities.filter(
             (entity) => !currentEntities.has(entity.entityName)
         )
         selection.addAvailableEntityNames(missingEntities)
-    }
-
-    @action.bound private applyOriginalSelectionAsAuthored(): void {
-        if (this.grapherState.selectedEntityNames?.length)
-            this.grapherState.selection.setSelectedEntities(
-                this.grapherState.selectedEntityNames
-            )
     }
 
     // Keeps a running cache of series colors at the Grapher level.
@@ -3392,7 +3405,7 @@ export class Grapher extends React.Component<GrapherProps> {
     }
 
     @action.bound private togglePlayingCommand(): void {
-        void this.timelineController.togglePlay()
+        void this.grapherState.timelineController.togglePlay()
     }
 
     private get keyboardShortcuts(): Command[] {
@@ -3484,7 +3497,7 @@ export class Grapher extends React.Component<GrapherProps> {
             },
             {
                 combo: "shift+o",
-                fn: (): void => this.clearQueryParams(),
+                fn: (): void => this.grapherState.clearQueryParams(),
                 title: "Reset to original",
                 category: "Navigation",
             },
@@ -3895,30 +3908,6 @@ export class Grapher extends React.Component<GrapherProps> {
     componentDidCatch(error: Error): void {
         this.setError(error)
         this.analytics.logGrapherViewError(error)
-    }
-
-    @action.bound clearSelection(): void {
-        this.grapherState.selection.clearSelection()
-        this.applyOriginalSelectionAsAuthored()
-    }
-
-    @action.bound clearQueryParams(): void {
-        const { authorsVersion } = this.grapherState
-        this.grapherState.tab = authorsVersion.tab
-        this.grapherState.xAxis.scaleType = authorsVersion.xAxis.scaleType
-        this.grapherState.yAxis.scaleType = authorsVersion.yAxis.scaleType
-        this.grapherState.stackMode = authorsVersion.stackMode
-        this.grapherState.zoomToSelection = authorsVersion.zoomToSelection
-        this.grapherState.compareEndPointsOnly =
-            authorsVersion.compareEndPointsOnly
-        this.grapherState.minTime = authorsVersion.minTime
-        this.grapherState.maxTime = authorsVersion.maxTime
-        this.grapherState.map.time = authorsVersion.map.time
-        this.grapherState.map.projection = authorsVersion.map.projection
-        this.grapherState.showSelectionOnlyInDataTable =
-            authorsVersion.showSelectionOnlyInDataTable
-        this.grapherState.showNoDataArea = authorsVersion.showNoDataArea
-        this.clearSelection()
     }
 
     // Todo: come up with a more general pattern?

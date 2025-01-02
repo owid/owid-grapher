@@ -359,7 +359,7 @@ export class Explorer
             this.explorerProgram.indexViewsSeparately &&
             document.location.search
         ) {
-            document.title = `${this.grapher.grapherState.displayTitle} - Our World in Data`
+            document.title = `${this.grapher?.grapherState.displayTitle} - Our World in Data`
         }
     }
 
@@ -437,7 +437,7 @@ export class Explorer
             return // todo: can we remove this?
         this.initSlideshow()
 
-        const oldGrapherParams = this.grapher.grapherState.changedParams
+        const oldGrapherParams = this.grapher?.grapherState.changedParams
         this.persistedGrapherQueryParamsBySelectedRow.set(
             oldSelectedRow,
             oldGrapherParams
@@ -449,24 +449,26 @@ export class Explorer
             ),
             country: oldGrapherParams.country,
             region: oldGrapherParams.region,
-            time: this.grapher.grapherState.timeParam,
+            time: this.grapher?.grapherState.timeParam,
         }
 
-        const previousTab = this.grapher.grapherState.activeTab
+        const previousTab = this.grapher?.grapherState.activeTab
 
         this.updateGrapherFromExplorer()
 
-        if (this.grapher.grapherState.availableTabs.includes(previousTab)) {
+        if (this.grapher?.grapherState.availableTabs.includes(previousTab)) {
             // preserve the previous tab if that's still available in the new view
             newGrapherParams.tab =
-                this.grapher.grapherState.mapGrapherTabToQueryParam(previousTab)
-        } else if (this.grapher.grapherState.validChartTypes.length > 0) {
+                this.grapher?.grapherState.mapGrapherTabToQueryParam(
+                    previousTab
+                )
+        } else if (this.grapher?.grapherState.validChartTypes.length > 0) {
             // otherwise, switch to the first chart tab
             newGrapherParams.tab =
-                this.grapher.grapherState.mapGrapherTabToQueryParam(
-                    this.grapher.grapherState.validChartTypes[0]
+                this.grapher?.grapherState.mapGrapherTabToQueryParam(
+                    this.grapher?.grapherState.validChartTypes[0]
                 )
-        } else if (this.grapher.grapherState.hasMapTab) {
+        } else if (this.grapher?.grapherState.hasMapTab) {
             // or switch to the map, if there is one
             newGrapherParams.tab = GRAPHER_TAB_QUERY_PARAMS.map
         } else {
@@ -474,7 +476,7 @@ export class Explorer
             newGrapherParams.tab = GRAPHER_TAB_QUERY_PARAMS.table
         }
 
-        this.grapher.grapherState.populateFromQueryParams(newGrapherParams)
+        this.grapher?.grapherState.populateFromQueryParams(newGrapherParams)
 
         this.analytics.logExplorerView(
             this.explorerProgram.slug,
@@ -582,9 +584,9 @@ export class Explorer
             config.selectedEntityNames = this.selection.selectedEntityNames
         }
 
-        grapher.grapherState.setAuthoredVersion(config)
+        grapher?.grapherState.setAuthoredVersion(config)
         grapher.reset()
-        grapher.grapherState.updateFromObject(config)
+        grapher?.grapherState.updateFromObject(config)
         // grapher.downloadData()
     }
 
@@ -746,9 +748,9 @@ export class Explorer
             return table
         }
 
-        grapher.grapherState.setAuthoredVersion(config)
+        grapher?.grapherState.setAuthoredVersion(config)
         grapher.reset()
-        grapher.grapherState.updateFromObject(config)
+        grapher?.grapherState.updateFromObject(config)
         if (dimensions.length === 0) {
             // If dimensions are empty, explicitly set the table to an empty table
             // so we don't end up confusingly showing stale data from a previous chart
@@ -779,9 +781,9 @@ export class Explorer
             config.selectedEntityNames = this.selection.selectedEntityNames
         }
 
-        grapher.grapherState.setAuthoredVersion(config)
+        grapher?.grapherState.setAuthoredVersion(config)
         grapher.reset()
-        grapher.grapherState.updateFromObject(config)
+        grapher?.grapherState.updateFromObject(config)
 
         // Clear any error messages, they are likely to be related to dataset loading.
         this.grapher?.clearErrors()
@@ -815,7 +817,7 @@ export class Explorer
 
         let url = Url.fromQueryParams(
             omitUndefinedValues({
-                ...this.grapher.grapherState.changedParams,
+                ...this.grapher?.grapherState.changedParams,
                 pickerSort: this.entityPickerSort,
                 pickerMetric: this.entityPickerMetric,
                 hideControls: this.initialQueryParams.hideControls || undefined,

@@ -30,6 +30,9 @@ export function FetchingGrapher(
     const [inputTable, setInputTable] = React.useState<OwidTable | undefined>(
         undefined
     )
+    const [grapherState, setGrapherState] = React.useState<
+        GrapherState | undefined
+    >(undefined)
 
     React.useEffect(() => {
         async function fetchConfigAndLoadData(): Promise<void> {
@@ -55,21 +58,28 @@ export function FetchingGrapher(
             )
             console.log("setting input table")
             setInputTable(inputTable)
+            setGrapherState(
+                new GrapherState({
+                    ...config,
+                    table: inputTable,
+                    queryStr: props.queryString,
+                    dataApiUrl: props.dataApiUrl,
+                    adminBaseUrl: props.adminBaseUrl,
+                    bakedGrapherURL: props.bakedGrapherURL,
+                })
+            )
         }
         void fetchConfigAndLoadData()
-    }, [props.configUrl, config, props.dataApiUrl])
-    const [grapherState, setGrapherState] = React.useState<GrapherState>(
-        new GrapherState({
-            table: inputTable,
-            queryStr: props.queryString,
-            dataApiUrl: props.dataApiUrl,
-            adminBaseUrl: props.adminBaseUrl,
-            bakedGrapherURL: props.bakedGrapherURL,
-        })
-    )
+    }, [
+        props.configUrl,
+        config,
+        props.dataApiUrl,
+        props.queryString,
+        props.adminBaseUrl,
+        props.bakedGrapherURL,
+    ])
 
-    if (!config) return null
-    if (!inputTable) return null
+    if (!grapherState) return null
 
     return <Grapher grapherState={grapherState} />
 }
