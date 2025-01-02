@@ -205,6 +205,10 @@ export class Explorer
         this.grapherState = new GrapherState({
             staticBounds: props.staticBounds,
             bounds: props.bounds,
+            enableKeyboardShortcuts: true,
+            manager: this,
+            isEmbeddedInAnOwidPage: this.props.isEmbeddedInAnOwidPage,
+            adminBaseUrl: this.adminBaseUrl,
         })
         this.grapher = new Grapher({
             grapherState: this.grapherState,
@@ -334,7 +338,7 @@ export class Explorer
 
         if (this.props.isInStandalonePage) this.setCanonicalUrl()
 
-        this.grapher?.populateFromQueryParams(url.queryParams)
+        this.grapher?.grapherState?.populateFromQueryParams(url.queryParams)
 
         exposeInstanceOnWindow(this, "explorer")
         this.setUpIntersectionObserver()
@@ -470,7 +474,7 @@ export class Explorer
             newGrapherParams.tab = GRAPHER_TAB_QUERY_PARAMS.table
         }
 
-        this.grapher.populateFromQueryParams(newGrapherParams)
+        this.grapher.grapherState.populateFromQueryParams(newGrapherParams)
 
         this.analytics.logExplorerView(
             this.explorerProgram.slug,
@@ -578,9 +582,9 @@ export class Explorer
             config.selectedEntityNames = this.selection.selectedEntityNames
         }
 
-        grapher.setAuthoredVersion(config)
+        grapher.grapherState.setAuthoredVersion(config)
         grapher.reset()
-        grapher.updateFromObject(config)
+        grapher.grapherState.updateFromObject(config)
         // grapher.downloadData()
     }
 
@@ -742,9 +746,9 @@ export class Explorer
             return table
         }
 
-        grapher.setAuthoredVersion(config)
+        grapher.grapherState.setAuthoredVersion(config)
         grapher.reset()
-        grapher.updateFromObject(config)
+        grapher.grapherState.updateFromObject(config)
         if (dimensions.length === 0) {
             // If dimensions are empty, explicitly set the table to an empty table
             // so we don't end up confusingly showing stale data from a previous chart
@@ -775,9 +779,9 @@ export class Explorer
             config.selectedEntityNames = this.selection.selectedEntityNames
         }
 
-        grapher.setAuthoredVersion(config)
+        grapher.grapherState.setAuthoredVersion(config)
         grapher.reset()
-        grapher.updateFromObject(config)
+        grapher.grapherState.updateFromObject(config)
 
         // Clear any error messages, they are likely to be related to dataset loading.
         this.grapher?.clearErrors()
@@ -1032,17 +1036,7 @@ export class Explorer
                     this.isNarrow &&
                     this.mobileCustomizeButton}
                 <div className="ExplorerFigure" ref={this.grapherContainerRef}>
-                    <Grapher
-                        adminBaseUrl={this.adminBaseUrl}
-                        bounds={this.grapherBounds}
-                        enableKeyboardShortcuts={true}
-                        manager={this}
-                        ref={this.grapherRef}
-                        isEmbeddedInAnOwidPage={
-                            this.props.isEmbeddedInAnOwidPage
-                        }
-                        grapherState={this.grapherState}
-                    />
+                    <Grapher grapherState={this.grapherState} />
                 </div>
             </div>
         )

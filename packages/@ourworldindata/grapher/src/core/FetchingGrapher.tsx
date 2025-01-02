@@ -59,22 +59,19 @@ export function FetchingGrapher(
         void fetchConfigAndLoadData()
     }, [props.configUrl, config, props.dataApiUrl])
     const [grapherState, setGrapherState] = React.useState<GrapherState>(
-        new GrapherState({})
+        new GrapherState({
+            table: inputTable,
+            queryStr: props.queryString,
+            dataApiUrl: props.dataApiUrl,
+            adminBaseUrl: props.adminBaseUrl,
+            bakedGrapherURL: props.bakedGrapherURL,
+        })
     )
 
     if (!config) return null
     if (!inputTable) return null
 
-    return (
-        <Grapher
-            table={inputTable}
-            queryStr={props.queryString}
-            dataApiUrl={props.dataApiUrl}
-            adminBaseUrl={props.adminBaseUrl}
-            bakedGrapherURL={props.bakedGrapherURL}
-            grapherState={grapherState}
-        />
-    )
+    return <Grapher grapherState={grapherState} />
 }
 
 // async function loadVariablesDataAdmin(

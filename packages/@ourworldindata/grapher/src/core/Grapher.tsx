@@ -297,9 +297,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     instanceRef?: React.RefObject<Grapher>
 }
 
-export type GrapherProgrammaticInterfaceWithState =
-    GrapherProgrammaticInterface & { grapherState: GrapherState }
-
 export interface GrapherManager {
     canonicalUrl?: string
     embedDialogUrl?: string
@@ -308,53 +305,302 @@ export interface GrapherManager {
     editUrl?: string
 }
 
-export interface GrapherStateInitOptions {
-    bakedGrapherURL?: string
-    adminBaseUrl?: string
-    dataApiUrl?: string
-    dataApiUrlForAdmin?: string
-    staticBounds?: Bounds // assing this or call getStaticBounds
-    staticFormat?: GrapherStaticFormat
-    env?: string
-    isEmbeddedInAnOwidPage?: boolean
-    isEmbeddedInADataPage?: boolean
-    manager?: GrapherManager
-    queryStr?: string
-    inputTable?: OwidTable
-    selectedEntityNames?: EntityName[]
-    bounds?: Bounds
-}
+// export interface GrapherStateInitOptions {
+//     bakedGrapherURL?: string
+//     adminBaseUrl?: string
+//     dataApiUrl?: string
+//     dataApiUrlForAdmin?: string
+//     staticBounds?: Bounds // assing this or call getStaticBounds
+//     staticFormat?: GrapherStaticFormat
+//     env?: string
+//     isEmbeddedInAnOwidPage?: boolean
+//     isEmbeddedInADataPage?: boolean
+//     manager?: GrapherManager
+//     queryStr?: string
+//     inputTable?: OwidTable
+//     selectedEntityNames?: EntityName[]
+//     bounds?: Bounds
+// }
 
 export class GrapherState {
-    constructor(options: GrapherStateInitOptions) {
-        this.bakedGrapherURL = options.bakedGrapherURL
-        this.adminBaseUrl = options.adminBaseUrl
+    constructor(options: GrapherProgrammaticInterface) {
+        // prefer the manager's selection over the config's selectedEntityNames
+        // if both are passed in and the manager's selection is not empty.
+        // this is necessary for the global entity selector to work correctly.
+        if (options.manager?.selection?.hasSelection) {
+            this.updateFromObject(omit(options, "selectedEntityNames"))
+        } else {
+            this.updateFromObject(options)
+        }
         if (options.dataApiUrl) this.dataApiUrl = options.dataApiUrl
-        this.dataApiUrlForAdmin = options.dataApiUrlForAdmin
+
         if (options.staticFormat) this._staticFormat = options.staticFormat
         this.staticBounds =
             options.staticBounds ?? this.getStaticBounds(this._staticFormat)
-        this.isEmbeddedInAnOwidPage = options.isEmbeddedInAnOwidPage ?? false
-        this.isEmbeddedInADataPage = options.isEmbeddedInADataPage ?? false
-        this.manager = options.manager
 
         this.externalQueryParams = omit(
             Url.fromQueryStr(options.queryStr ?? "").queryParams,
             GRAPHER_QUERY_PARAM_KEYS
         )
-        this.inputTable =
-            options.inputTable ?? BlankOwidTable(`initialGrapherTable`)
+        this.inputTable = options.table ?? BlankOwidTable(`initialGrapherTable`)
         this.initialOptions = options
         this.selection =
             this.manager?.selection ??
             new SelectionArray(
                 this.initialOptions.selectedEntityNames ?? [],
-                // TODO: 2025-01-01 this was referencing .table - do we need both, .table and .inputTable?
-                this.initialOptions.inputTable?.availableEntities ?? []
+                this.initialOptions.table?.availableEntities ?? []
             )
+        this.setAuthoredVersion(options)
+
+        this.populateFromQueryParams(
+            legacyToCurrentGrapherQueryParams(
+                this.initialOptions.queryStr ?? ""
+            )
+        )
+        if (this.isEditor) {
+            this.ensureValidConfigWhenEditing()
+        }
     }
 
-    initialOptions: GrapherStateInitOptions
+    @action.bound updateFromObject(obj?: GrapherProgrammaticInterface): void {
+        if (!obj) return
+
+        updatePersistables(this, obj)
+
+        // Regression fix: some legacies have this set to Null. Todo: clean DB.
+        if (obj.originUrl === null) this.originUrl = ""
+
+        // update selection
+        if (obj.selectedEntityNames)
+            this.selection.setSelectedEntities(obj.selectedEntityNames)
+
+        // update focus
+        if (obj.focusedSeriesNames)
+            this.focusArray.clearAllAndAdd(...obj.focusedSeriesNames)
+
+        // JSON doesn't support Infinity, so we use strings instead.
+        this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
+        this.maxTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.maxTime)
+
+        this.timelineMinTime = minTimeBoundFromJSONOrNegativeInfinity(
+            obj.timelineMinTime
+        )
+        this.timelineMaxTime = maxTimeBoundFromJSONOrPositiveInfinity(
+            obj.timelineMaxTime
+        )
+
+        // Todo: remove once we are more RAII.
+        if (obj?.dimensions?.length)
+            this.setDimensionsFromConfigs(obj.dimensions)
+    }
+
+    @action.bound populateFromQueryParams(params: GrapherQueryParams): void {
+        // Set tab if specified
+        if (params.tab) {
+            const tab = this.mapQueryParamToGrapherTab(params.tab)
+            if (tab) this.setTab(tab)
+            else console.error("Unexpected tab: " + params.tab)
+        }
+
+        // Set overlay if specified
+        const overlay = params.overlay
+        if (overlay) {
+            if (overlay === "sources") {
+                this.isSourcesModalOpen = true
+            } else if (overlay === "download") {
+                this.isDownloadModalOpen = true
+            } else {
+                console.error("Unexpected overlay: " + overlay)
+            }
+        }
+
+        // Stack mode for bar and stacked area charts
+        this.stackMode = (params.stackMode ?? this.stackMode) as StackMode
+
+        this.zoomToSelection =
+            params.zoomToSelection === "true" ? true : this.zoomToSelection
+
+        // Axis scale mode
+        const xScaleType = params.xScale
+        if (xScaleType) {
+            if (xScaleType === ScaleType.linear || xScaleType === ScaleType.log)
+                this.xAxis.scaleType = xScaleType
+            else console.error("Unexpected xScale: " + xScaleType)
+        }
+
+        const yScaleType = params.yScale
+        if (yScaleType) {
+            if (yScaleType === ScaleType.linear || yScaleType === ScaleType.log)
+                this.yAxis.scaleType = yScaleType
+            else console.error("Unexpected xScale: " + yScaleType)
+        }
+
+        const time = params.time
+        if (time !== undefined && time !== "")
+            this.setTimeFromTimeQueryParam(time)
+
+        const endpointsOnly = params.endpointsOnly
+        if (endpointsOnly !== undefined)
+            this.compareEndPointsOnly = endpointsOnly === "1" ? true : undefined
+
+        const region = params.region
+        if (region !== undefined)
+            this.map.projection = region as MapProjectionName
+
+        // selection
+        const selection = getSelectedEntityNamesParam(
+            Url.fromQueryParams(params)
+        )
+        if (this.addCountryMode !== EntitySelectionMode.Disabled && selection)
+            this.selection.setSelectedEntities(selection)
+
+        // focus
+        const focusedSeriesNames = getFocusedSeriesNamesParam(params.focus)
+        if (focusedSeriesNames) {
+            this.focusArray.clearAllAndAdd(...focusedSeriesNames)
+        }
+
+        // faceting
+        if (params.facet && params.facet in FacetStrategy) {
+            this.selectedFacetStrategy = params.facet as FacetStrategy
+        }
+        if (params.uniformYAxis === "0") {
+            this.yAxis.facetDomain = FacetAxisDomain.independent
+        } else if (params.uniformYAxis === "1") {
+            this.yAxis.facetDomain = FacetAxisDomain.shared
+        }
+
+        // only relevant for the table
+        if (params.showSelectionOnlyInTable) {
+            this.showSelectionOnlyInDataTable =
+                params.showSelectionOnlyInTable === "1" ? true : undefined
+        }
+
+        if (params.showNoDataArea) {
+            this.showNoDataArea = params.showNoDataArea === "1"
+        }
+    }
+
+    // todo: can we remove this?
+    // I believe these states can only occur during editing.
+    @action.bound private ensureValidConfigWhenEditing(): void {
+        const disposers = [
+            autorun(() => {
+                if (!this.availableTabs.includes(this.activeTab))
+                    runInAction(() => this.setTab(this.availableTabs[0]))
+            }),
+            autorun(() => {
+                const validDimensions = this.validDimensions
+                if (!isEqual(this.dimensions, validDimensions))
+                    this.dimensions = validDimensions
+            }),
+        ]
+        this.disposers.push(...disposers)
+    }
+    disposers: (() => void)[] = []
+    private mapQueryParamToGrapherTab(tab: string): GrapherTabName | undefined {
+        const {
+            chartType: defaultChartType,
+            validChartTypeSet,
+            hasMapTab,
+        } = this
+
+        if (tab === GRAPHER_TAB_QUERY_PARAMS.table) {
+            return GRAPHER_TAB_NAMES.Table
+        }
+        if (tab === GRAPHER_TAB_QUERY_PARAMS.map) {
+            return GRAPHER_TAB_NAMES.WorldMap
+        }
+
+        if (tab === GRAPHER_TAB_QUERY_PARAMS.chart) {
+            if (defaultChartType) {
+                return defaultChartType
+            } else if (hasMapTab) {
+                return GRAPHER_TAB_NAMES.WorldMap
+            } else {
+                return GRAPHER_TAB_NAMES.Table
+            }
+        }
+
+        const chartTypeName = mapQueryParamToChartTypeName(tab)
+
+        if (!chartTypeName) return undefined
+
+        if (validChartTypeSet.has(chartTypeName)) {
+            return chartTypeName
+        } else if (defaultChartType) {
+            return defaultChartType
+        } else if (hasMapTab) {
+            return GRAPHER_TAB_NAMES.WorldMap
+        } else {
+            return GRAPHER_TAB_NAMES.Table
+        }
+    }
+
+    @action.bound setTimeFromTimeQueryParam(time: string): void {
+        this.timelineHandleTimeBounds = getTimeDomainFromQueryString(time).map(
+            (time) => findClosestTime(this.times, time) ?? time
+        ) as TimeBounds
+    }
+
+    @computed private get validDimensions(): ChartDimension[] {
+        const { dimensions } = this
+        const validProperties = this.dimensionSlots.map((d) => d.property)
+        let validDimensions = dimensions.filter((dim) =>
+            validProperties.includes(dim.property)
+        )
+
+        this.dimensionSlots.forEach((slot) => {
+            if (!slot.allowMultiple)
+                validDimensions = uniqWith(
+                    validDimensions,
+                    (
+                        a: OwidChartDimensionInterface,
+                        b: OwidChartDimensionInterface
+                    ) =>
+                        a.property === slot.property &&
+                        a.property === b.property
+                )
+        })
+
+        return validDimensions
+    }
+
+    // Get the dimension slots appropriate for this type of chart
+    @computed get dimensionSlots(): DimensionSlot[] {
+        const xAxis = new DimensionSlot(this, DimensionProperty.x)
+        const yAxis = new DimensionSlot(this, DimensionProperty.y)
+        const color = new DimensionSlot(this, DimensionProperty.color)
+        const size = new DimensionSlot(this, DimensionProperty.size)
+
+        if (this.isLineChart || this.isDiscreteBar) return [yAxis, color]
+        else if (this.isScatter) return [yAxis, xAxis, size, color]
+        else if (this.isMarimekko) return [yAxis, xAxis, color]
+        return [yAxis]
+    }
+
+    /**
+     * todo: factor this out and make more RAII.
+     *
+     * Explorers create 1 Grapher instance, but as the user clicks around the Explorer loads other author created Graphers.
+     * But currently some Grapher features depend on knowing how the current state is different than the "authored state".
+     * So when an Explorer updates the grapher, it also needs to update this "original state".
+     */
+    @action.bound setAuthoredVersion(
+        config: Partial<LegacyGrapherInterface>
+    ): void {
+        this.legacyConfigAsAuthored = config
+    }
+
+    initialOptions: GrapherProgrammaticInterface
+    @action.bound setDimensionsFromConfigs(
+        configs: OwidChartDimensionInterface[]
+    ): void {
+        this.dimensions = configs.map(
+            (config) => new ChartDimension(config, this)
+        )
+    }
+
     // #region SortConfig props
     @observable sortBy?: SortBy = SortBy.total
     @observable sortOrder?: SortOrder = SortOrder.desc
@@ -2556,15 +2802,21 @@ export class GrapherState {
     }
 }
 
+export interface GrapherProps {
+    grapherState: GrapherState
+}
+
 @observer
-export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithState> {
+export class Grapher extends React.Component<GrapherProps> {
     @computed get grapherState(): GrapherState {
         return this.props.grapherState
     }
 
     // #region Observable props not in any interface
 
-    analytics = new GrapherAnalytics(this.props.env ?? "")
+    analytics = new GrapherAnalytics(
+        this.props.grapherState.initialOptions.env ?? ""
+    )
     seriesColorMap: SeriesColorMap = new Map()
 
     // stored on Grapher so state is preserved when switching to full-screen mode
@@ -2619,29 +2871,6 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
         )
     }
 
-    @computed private get validDimensions(): ChartDimension[] {
-        const { dimensions } = this.grapherState
-        const validProperties = this.dimensionSlots.map((d) => d.property)
-        let validDimensions = dimensions.filter((dim) =>
-            validProperties.includes(dim.property)
-        )
-
-        this.dimensionSlots.forEach((slot) => {
-            if (!slot.allowMultiple)
-                validDimensions = uniqWith(
-                    validDimensions,
-                    (
-                        a: OwidChartDimensionInterface,
-                        b: OwidChartDimensionInterface
-                    ) =>
-                        a.property === slot.property &&
-                        a.property === b.property
-                )
-        })
-
-        return validDimensions
-    }
-
     // todo: do we need this?
     @computed get originUrlWithProtocol(): string {
         if (!this.grapherState.originUrl) return ""
@@ -2679,20 +2908,6 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
         return relatedQuestions.some(
             (question) => !!getErrorMessageRelatedQuestionUrl(question)
         )
-    }
-
-    // Get the dimension slots appropriate for this type of chart
-    @computed get dimensionSlots(): DimensionSlot[] {
-        const xAxis = new DimensionSlot(this, DimensionProperty.x)
-        const yAxis = new DimensionSlot(this, DimensionProperty.y)
-        const color = new DimensionSlot(this, DimensionProperty.color)
-        const size = new DimensionSlot(this, DimensionProperty.size)
-
-        if (this.grapherState.isLineChart || this.grapherState.isDiscreteBar)
-            return [yAxis, color]
-        else if (this.grapherState.isScatter) return [yAxis, xAxis, size, color]
-        else if (this.grapherState.isMarimekko) return [yAxis, xAxis, color]
-        return [yAxis]
     }
 
     @computed get xScaleType(): ScaleType | undefined {
@@ -2805,7 +3020,8 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
     // the header and footer don't rely on the base font size unless explicitly specified
     @computed get useBaseFontSize(): boolean {
         return (
-            this.props.baseFontSize !== undefined || this.grapherState.isStatic
+            this.props.grapherState.initialOptions.baseFontSize !== undefined ||
+            this.grapherState.isStatic
         )
     }
 
@@ -2867,19 +3083,6 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
         )
     }
 
-    /**
-     * todo: factor this out and make more RAII.
-     *
-     * Explorers create 1 Grapher instance, but as the user clicks around the Explorer loads other author created Graphers.
-     * But currently some Grapher features depend on knowing how the current state is different than the "authored state".
-     * So when an Explorer updates the grapher, it also needs to update this "original state".
-     */
-    @action.bound setAuthoredVersion(
-        config: Partial<LegacyGrapherInterface>
-    ): void {
-        this.grapherState.legacyConfigAsAuthored = config
-    }
-
     @action.bound updateAuthoredVersion(
         config: Partial<LegacyGrapherInterface>
     ): void {
@@ -2889,35 +3092,8 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
         }
     }
 
-    constructor(
-        propsWithGrapherInstanceGetter: GrapherProgrammaticInterfaceWithState
-    ) {
-        super(propsWithGrapherInstanceGetter)
-
-        const { getGrapherInstance, ...props } = propsWithGrapherInstanceGetter
-
-        this.grapherState.inputTable =
-            props.table ?? BlankOwidTable(`initialGrapherTable`)
-
-        if (props) this.setAuthoredVersion(props)
-
-        // prefer the manager's selection over the config's selectedEntityNames
-        // if both are passed in and the manager's selection is not empty.
-        // this is necessary for the global entity selector to work correctly.
-        if (props.manager?.selection?.hasSelection) {
-            this.updateFromObject(omit(props, "selectedEntityNames"))
-        } else {
-            this.updateFromObject(props)
-        }
-
-        this.populateFromQueryParams(
-            legacyToCurrentGrapherQueryParams(props.queryStr ?? "")
-        )
-        if (this.grapherState.isEditor) {
-            this.ensureValidConfigWhenEditing()
-        }
-
-        if (getGrapherInstance) getGrapherInstance(this) // todo: possibly replace with more idiomatic ref
+    constructor(props: { grapherState: GrapherState }) {
+        super(props)
     }
 
     toObject(): GrapherInterface {
@@ -2957,146 +3133,6 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
         return obj
     }
 
-    @action.bound updateFromObject(obj?: GrapherProgrammaticInterface): void {
-        if (!obj) return
-
-        updatePersistables(this, obj)
-
-        // Regression fix: some legacies have this set to Null. Todo: clean DB.
-        if (obj.originUrl === null) this.grapherState.originUrl = ""
-
-        // update selection
-        if (obj.selectedEntityNames)
-            this.grapherState.selection.setSelectedEntities(
-                obj.selectedEntityNames
-            )
-
-        // update focus
-        if (obj.focusedSeriesNames)
-            this.grapherState.focusArray.clearAllAndAdd(
-                ...obj.focusedSeriesNames
-            )
-
-        // JSON doesn't support Infinity, so we use strings instead.
-        this.grapherState.minTime = minTimeBoundFromJSONOrNegativeInfinity(
-            obj.minTime
-        )
-        this.grapherState.maxTime = maxTimeBoundFromJSONOrPositiveInfinity(
-            obj.maxTime
-        )
-
-        this.grapherState.timelineMinTime =
-            minTimeBoundFromJSONOrNegativeInfinity(obj.timelineMinTime)
-        this.grapherState.timelineMaxTime =
-            maxTimeBoundFromJSONOrPositiveInfinity(obj.timelineMaxTime)
-
-        // Todo: remove once we are more RAII.
-        if (obj?.dimensions?.length)
-            this.setDimensionsFromConfigs(obj.dimensions)
-    }
-
-    @action.bound populateFromQueryParams(params: GrapherQueryParams): void {
-        // Set tab if specified
-        if (params.tab) {
-            const tab = this.mapQueryParamToGrapherTab(params.tab)
-            if (tab) this.grapherState.setTab(tab)
-            else console.error("Unexpected tab: " + params.tab)
-        }
-
-        // Set overlay if specified
-        const overlay = params.overlay
-        if (overlay) {
-            if (overlay === "sources") {
-                this.grapherState.isSourcesModalOpen = true
-            } else if (overlay === "download") {
-                this.grapherState.isDownloadModalOpen = true
-            } else {
-                console.error("Unexpected overlay: " + overlay)
-            }
-        }
-
-        // Stack mode for bar and stacked area charts
-        this.grapherState.stackMode = (params.stackMode ??
-            this.grapherState.stackMode) as StackMode
-
-        this.grapherState.zoomToSelection =
-            params.zoomToSelection === "true"
-                ? true
-                : this.grapherState.zoomToSelection
-
-        // Axis scale mode
-        const xScaleType = params.xScale
-        if (xScaleType) {
-            if (xScaleType === ScaleType.linear || xScaleType === ScaleType.log)
-                this.grapherState.xAxis.scaleType = xScaleType
-            else console.error("Unexpected xScale: " + xScaleType)
-        }
-
-        const yScaleType = params.yScale
-        if (yScaleType) {
-            if (yScaleType === ScaleType.linear || yScaleType === ScaleType.log)
-                this.grapherState.yAxis.scaleType = yScaleType
-            else console.error("Unexpected xScale: " + yScaleType)
-        }
-
-        const time = params.time
-        if (time !== undefined && time !== "")
-            this.setTimeFromTimeQueryParam(time)
-
-        const endpointsOnly = params.endpointsOnly
-        if (endpointsOnly !== undefined)
-            this.grapherState.compareEndPointsOnly =
-                endpointsOnly === "1" ? true : undefined
-
-        const region = params.region
-        if (region !== undefined)
-            this.grapherState.map.projection = region as MapProjectionName
-
-        // selection
-        const selection = getSelectedEntityNamesParam(
-            Url.fromQueryParams(params)
-        )
-        if (
-            this.grapherState.addCountryMode !== EntitySelectionMode.Disabled &&
-            selection
-        )
-            this.grapherState.selection.setSelectedEntities(selection)
-
-        // focus
-        const focusedSeriesNames = getFocusedSeriesNamesParam(params.focus)
-        if (focusedSeriesNames) {
-            this.grapherState.focusArray.clearAllAndAdd(...focusedSeriesNames)
-        }
-
-        // faceting
-        if (params.facet && params.facet in FacetStrategy) {
-            this.grapherState.selectedFacetStrategy =
-                params.facet as FacetStrategy
-        }
-        if (params.uniformYAxis === "0") {
-            this.grapherState.yAxis.facetDomain = FacetAxisDomain.independent
-        } else if (params.uniformYAxis === "1") {
-            this.grapherState.yAxis.facetDomain = FacetAxisDomain.shared
-        }
-
-        // only relevant for the table
-        if (params.showSelectionOnlyInTable) {
-            this.grapherState.showSelectionOnlyInDataTable =
-                params.showSelectionOnlyInTable === "1" ? true : undefined
-        }
-
-        if (params.showNoDataArea) {
-            this.grapherState.showNoDataArea = params.showNoDataArea === "1"
-        }
-    }
-
-    @action.bound private setTimeFromTimeQueryParam(time: string): void {
-        this.grapherState.timelineHandleTimeBounds =
-            getTimeDomainFromQueryString(time).map(
-                (time) => findClosestTime(this.grapherState.times, time) ?? time
-            ) as TimeBounds
-    }
-
     // Convenience method for debugging
     windowQueryParams(str = location.search): QueryParams {
         return strToQueryParams(str)
@@ -3132,7 +3168,7 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
 
         // We need to reset the dimensions because some of them may have changed slugs in the legacy
         // transformation (can happen when columns use targetTime)
-        this.setDimensionsFromConfigs(dimensions)
+        this.grapherState.setDimensionsFromConfigs(dimensions)
 
         this.appendNewEntitySelectionOptions()
 
@@ -3170,36 +3206,10 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
 
     // Keeps a running cache of series colors at the Grapher level.
 
-    disposers: (() => void)[] = []
-
     @bind dispose(): void {
-        this.disposers.forEach((dispose) => dispose())
+        this.grapherState.disposers.forEach((dispose) => dispose())
     }
 
-    // todo: can we remove this?
-    // I believe these states can only occur during editing.
-    @action.bound private ensureValidConfigWhenEditing(): void {
-        const disposers = [
-            autorun(() => {
-                if (
-                    !this.grapherState.availableTabs.includes(
-                        this.grapherState.activeTab
-                    )
-                )
-                    runInAction(() =>
-                        this.grapherState.setTab(
-                            this.grapherState.availableTabs[0]
-                        )
-                    )
-            }),
-            autorun(() => {
-                const validDimensions = this.validDimensions
-                if (!isEqual(this.grapherState.dimensions, validDimensions))
-                    this.grapherState.dimensions = validDimensions
-            }),
-        ]
-        this.disposers.push(...disposers)
-    }
     @action.bound addDimension(config: OwidChartDimensionInterface): void {
         this.grapherState.dimensions.push(
             new ChartDimension(config, this.grapherState)
@@ -3211,7 +3221,7 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
         newConfigs: OwidChartDimensionInterface[]
     ): void {
         let newDimensions: ChartDimension[] = []
-        this.dimensionSlots.forEach((slot) => {
+        this.grapherState.dimensionSlots.forEach((slot) => {
             if (slot.property === property)
                 newDimensions = newDimensions.concat(
                     newConfigs.map(
@@ -3222,14 +3232,6 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
             else newDimensions = newDimensions.concat(slot.dimensions)
         })
         this.grapherState.dimensions = newDimensions
-    }
-
-    @action.bound setDimensionsFromConfigs(
-        configs: OwidChartDimensionInterface[]
-    ): void {
-        this.grapherState.dimensions = configs.map(
-            (config) => new ChartDimension(config, this.grapherState)
-        )
     }
 
     getColumnForProperty(property: DimensionProperty): CoreColumn | undefined {
@@ -3310,14 +3312,18 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
             // see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetParent
             if ((entry.target as HTMLElement).offsetParent === null) return
 
-            const props: GrapherProgrammaticInterfaceWithState = {
+            const grapherState = new GrapherState({
                 ...config,
                 bounds: Bounds.fromRect(entry.contentRect),
-                grapherState: new GrapherState({}), // TODO: 2025-01-01 fill props from config in here
-            }
+            })
+
             ReactDOM.render(
                 <ErrorBoundary>
-                    <Grapher /* ref={grapherInstanceRef} */ {...props} />
+                    <Grapher
+                        /* ref={grapherInstanceRef} */ grapherState={
+                            grapherState
+                        }
+                    />
                 </ErrorBoundary>,
                 containerNode
             )
@@ -3374,7 +3380,7 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
     }
 
     private get commandPalette(): React.ReactElement | null {
-        return this.props.enableKeyboardShortcuts ? (
+        return this.props.grapherState.enableKeyboardShortcuts ? (
             <CommandPalette commands={this.keyboardShortcuts} display="none" />
         ) : null
     }
@@ -3505,7 +3511,7 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
 
     @action.bound private toggleTimelineCommand(): void {
         // Todo: add tests for this
-        this.setTimeFromTimeQueryParam(
+        this.grapherState.setTimeFromTimeQueryParam(
             next(["latest", "earliest", ".."], this.grapherState.timeParam!)
         )
     }
@@ -3771,7 +3777,7 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
                 { threshold: [0, 0.66] }
             )
             observer.observe(this.containerElement!)
-            this.disposers.push(() => observer.disconnect())
+            this.grapherState.disposers.push(() => observer.disconnect())
         } else {
             // IntersectionObserver not available; we may be in a Node environment, just render
             this.hasBeenVisible = true
@@ -3817,7 +3823,7 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
         if (typeof window !== "undefined") {
             updateWindowDimensions()
             window.addEventListener("resize", onResize)
-            this.disposers.push(() => {
+            this.grapherState.disposers.push(() => {
                 window.removeEventListener("resize", onResize)
             })
         }
@@ -3830,7 +3836,7 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
         exposeInstanceOnWindow(this, "grapher")
         // Emit a custom event when the grapher is ready
         // We can use this in global scripts that depend on the grapher e.g. the site-screenshots tool
-        this.disposers.push(
+        this.grapherState.disposers.push(
             reaction(
                 () => this.grapherState.isReady,
                 () => {
@@ -3848,8 +3854,9 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
                 () => this.grapherState.focusArray.clear()
             )
         )
-        if (this.props.bindUrlToWindow) this.bindToWindow()
-        if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
+        if (this.grapherState.bindUrlToWindow) this.bindToWindow()
+        if (this.grapherState.enableKeyboardShortcuts)
+            this.bindKeyboardShortcuts()
     }
 
     private _shortcutsBound = false
@@ -3933,45 +3940,6 @@ export class Grapher extends React.Component<GrapherProgrammaticInterfaceWithSta
     }
 
     debounceMode = false
-
-    private mapQueryParamToGrapherTab(tab: string): GrapherTabName | undefined {
-        const {
-            chartType: defaultChartType,
-            validChartTypeSet,
-            hasMapTab,
-        } = this.grapherState
-
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.table) {
-            return GRAPHER_TAB_NAMES.Table
-        }
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.map) {
-            return GRAPHER_TAB_NAMES.WorldMap
-        }
-
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.chart) {
-            if (defaultChartType) {
-                return defaultChartType
-            } else if (hasMapTab) {
-                return GRAPHER_TAB_NAMES.WorldMap
-            } else {
-                return GRAPHER_TAB_NAMES.Table
-            }
-        }
-
-        const chartTypeName = mapQueryParamToChartTypeName(tab)
-
-        if (!chartTypeName) return undefined
-
-        if (validChartTypeSet.has(chartTypeName)) {
-            return chartTypeName
-        } else if (defaultChartType) {
-            return defaultChartType
-        } else if (hasMapTab) {
-            return GRAPHER_TAB_NAMES.WorldMap
-        } else {
-            return GRAPHER_TAB_NAMES.Table
-        }
-    }
 
     // todo: restore this behavior??
     onStartPlayOrDrag(): void {
