@@ -133,20 +133,28 @@ export const DataPageV2Content = ({
                 grapher1State.inputTable = inputTable
                 grapher2State.inputTable = inputTable
             }
+            console.log(
+                "focused entity",
+                (grapher2State.chartInstance as MapChart).focusEntity
+            )
+            console.log(
+                "chart projection",
+                (grapher2State.chartInstance as MapChart).projection
+            )
             reaction(
-                () => grapher2State.yAxis.scaleType,
+                () => (grapher2State.chartInstance as MapChart).projection,
                 () => {
-                    console.log("rerunning reaction")
+                    console.log(
+                        "rerunning reaction",
+                        (grapher2State.chartInstance as MapChart).projection
+                    )
 
-                    // const focusedEntity = (
-                    //     grapher2State.chartInstance as MapChart
-                    // ).focusEntity?.id
-                    // if (focusedEntity)
-                    //     grapher1State.selection.addToSelection([
-                    //         focusedEntity.toString(),
-                    //     ])
-                    grapher1State.yAxis.scaleType =
-                        grapher2State.yAxis.scaleType
+                    const focusedEntity = (
+                        grapher2State.chartInstance as MapChart
+                    ).projection
+                    grapher1State.selection.clearSelection()
+                    if (focusedEntity)
+                        grapher1State.selection.addToSelection([projection])
                 }
             )
         }
