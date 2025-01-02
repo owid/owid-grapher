@@ -23,16 +23,19 @@ export function FetchingGrapher(
     // if config is not provided, fetch it from configUrl
     console.log("FetchingGrapher")
 
-    const [config, setConfig] = React.useState<GrapherInterface | undefined>(
-        props.config
+    const [config, setConfig] = React.useState<GrapherInterface>(
+        props.config ?? {}
     )
 
-    const [inputTable, setInputTable] = React.useState<OwidTable | undefined>(
-        undefined
+    const [grapherState, setGrapherState] = React.useState<GrapherState>(
+        new GrapherState({
+            ...config,
+            queryStr: props.queryString,
+            dataApiUrl: props.dataApiUrl,
+            adminBaseUrl: props.adminBaseUrl,
+            bakedGrapherURL: props.bakedGrapherURL,
+        })
     )
-    const [grapherState, setGrapherState] = React.useState<
-        GrapherState | undefined
-    >(undefined)
 
     React.useEffect(() => {
         async function fetchConfigAndLoadData(): Promise<void> {
@@ -45,29 +48,11 @@ export function FetchingGrapher(
             }
             console.log("fetchConfigAndLoadData: config", config)
             if (!config) return
-            const dimensions = config.dimensions || []
-            if (dimensions.length === 0) return
-            const variables = dimensions.map((d) => d.variableId)
-            const variablesDataMap = await loadVariablesDataSite(
-                variables,
+            const inputTable = await fetchInputTableForConfig(
+                config,
                 props.dataApiUrl
             )
-            const inputTable = legacyToOwidTableAndDimensions(
-                variablesDataMap,
-                dimensions
-            )
-            console.log("setting input table")
-            setInputTable(inputTable)
-            setGrapherState(
-                new GrapherState({
-                    ...config,
-                    table: inputTable,
-                    queryStr: props.queryString,
-                    dataApiUrl: props.dataApiUrl,
-                    adminBaseUrl: props.adminBaseUrl,
-                    bakedGrapherURL: props.bakedGrapherURL,
-                })
-            )
+            if (inputTable) grapherState.inputTable = inputTable
         }
         void fetchConfigAndLoadData()
     }, [
@@ -77,11 +62,26 @@ export function FetchingGrapher(
         props.queryString,
         props.adminBaseUrl,
         props.bakedGrapherURL,
+        grapherState,
     ])
 
-    if (!grapherState) return null
-
     return <Grapher grapherState={grapherState} />
+}
+
+export async function fetchInputTableForConfig(
+    config: GrapherInterface,
+    dataApiUrl: string
+): Promise<OwidTable | undefined> {
+    const dimensions = config.dimensions || []
+    if (dimensions.length === 0) return undefined
+    const variables = dimensions.map((d) => d.variableId)
+    const variablesDataMap = await loadVariablesDataSite(variables, dataApiUrl)
+    const inputTable = legacyToOwidTableAndDimensions(
+        variablesDataMap,
+        dimensions
+    )
+
+    return inputTable
 }
 
 // async function loadVariablesDataAdmin(
