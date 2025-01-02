@@ -93,7 +93,6 @@ import {
     GRAPHER_DARK_TEXT,
 } from "../color/ColorConstants"
 import { FocusArray } from "../focus/FocusArray"
-import { HorizontalCategoricalColorLegendProps } from "../horizontalColorLegend/HorizontalCategoricalColorLegend"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
