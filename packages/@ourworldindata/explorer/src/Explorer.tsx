@@ -27,6 +27,7 @@ import {
     SlideShowManager,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     GrapherAnalytics,
+    FocusArray,
 } from "@ourworldindata/grapher"
 import {
     Bounds,
@@ -276,6 +277,8 @@ export class Explorer
     selection = this.props.selection?.hasSelection
         ? this.props.selection
         : new SelectionArray(this.explorerProgram.selection)
+
+    focusArray = new FocusArray()
 
     entityType = this.explorerProgram.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
 
