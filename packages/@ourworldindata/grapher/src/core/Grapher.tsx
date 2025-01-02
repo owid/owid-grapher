@@ -1210,6 +1210,11 @@ export class Grapher
             this.selection.setSelectedEntities(this.selectedEntityNames)
     }
 
+    @action.bound private applyOriginalFocusAsAuthored(): void {
+        if (this.focusedSeriesNames?.length)
+            this.focusArray.clearAllAndAdd(...this.focusedSeriesNames)
+    }
+
     @computed get hasData(): boolean {
         return this.dimensions.length > 0 || this.newSlugs.length > 0
     }
@@ -2641,10 +2646,14 @@ export class Grapher
             },
             {
                 combo: "a",
-                fn: (): void | SelectionArray =>
-                    this.selection.hasSelection
-                        ? this.selection.clearSelection()
-                        : this.selection.selectAll(),
+                fn: (): void => {
+                    if (this.selection.hasSelection) {
+                        this.selection.clearSelection()
+                        this.focusArray.clear()
+                    } else {
+                        this.selection.selectAll()
+                    }
+                },
                 title: this.selection.hasSelection
                     ? `Select None`
                     : `Select All`,
@@ -3354,6 +3363,11 @@ export class Grapher
         this.applyOriginalSelectionAsAuthored()
     }
 
+    @action.bound clearFocus(): void {
+        this.focusArray.clear()
+        this.applyOriginalFocusAsAuthored()
+    }
+
     @action.bound clearQueryParams(): void {
         const { authorsVersion } = this
         this.tab = authorsVersion.tab
@@ -3370,6 +3384,7 @@ export class Grapher
             authorsVersion.showSelectionOnlyInDataTable
         this.showNoDataArea = authorsVersion.showNoDataArea
         this.clearSelection()
+        this.clearFocus()
     }
 
     // Todo: come up with a more general pattern?
@@ -3388,6 +3403,7 @@ export class Grapher
         this.sizeSlug = grapher.sizeSlug
 
         this.selection.clearSelection()
+        this.focusArray.clear()
     }
 
     debounceMode = false
