@@ -713,7 +713,7 @@ export class StackedDiscreteBarChart
                 <HorizontalAxisZeroLine
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
-                    strokeWidth={axisLineWidth}
+                    strokeWidth={0.5 * axisLineWidth}
                     // moves the zero line a little to the left to avoid
                     // overlap with the bars
                     align={HorizontalAlign.right}
