@@ -341,6 +341,7 @@ export interface GrapherManager {
     embedDialogUrl?: string
     embedDialogAdditionalElements?: React.ReactElement
     selection?: SelectionArray
+    focusArray?: FocusArray
     editUrl?: string
 }
 
@@ -512,7 +513,7 @@ export class Grapher
             this.props.table?.availableEntities ?? []
         )
 
-    focusArray = new FocusArray()
+    focusArray = this.manager?.focusArray ?? new FocusArray()
 
     /**
      * todo: factor this out and make more RAII.

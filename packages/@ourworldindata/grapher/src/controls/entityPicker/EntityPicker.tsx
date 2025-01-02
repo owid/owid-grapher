@@ -95,6 +95,11 @@ export class EntityPicker extends React.Component<{
     ): void {
         this.manager.selection.toggleSelection(name)
 
+        // Remove focus from an entity that has been removed from the selection
+        if (!this.manager.selection.selectedSet.has(name)) {
+            this.manager.focusArray?.remove(name)
+        }
+
         // Clear search input
         this.searchInput = ""
         this.manager.analytics?.logEntityPickerEvent(
@@ -644,9 +649,10 @@ export class EntityPicker extends React.Component<{
                                     title={selectedDebugMessage}
                                     className="ClearSelectionButton"
                                     data-track-note="entity_picker_clear_selection"
-                                    onClick={(): void =>
+                                    onClick={(): void => {
                                         selection.clearSelection()
-                                    }
+                                        this.manager.focusArray?.clear()
+                                    }}
                                 >
                                     <FontAwesomeIcon icon={faTimes} /> Clear
                                     selection

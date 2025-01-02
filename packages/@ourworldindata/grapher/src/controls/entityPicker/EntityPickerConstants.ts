@@ -3,6 +3,7 @@ import { GrapherAnalytics } from "../../core/GrapherAnalytics"
 import { OwidTable } from "@ourworldindata/core-table"
 import { CoreColumnDef, SortOrder } from "@ourworldindata/types"
 import { SelectionArray } from "../../selection/SelectionArray"
+import { FocusArray } from "../../focus/FocusArray"
 
 export interface EntityPickerManager {
     entityPickerMetric?: ColumnSlug
@@ -19,4 +20,5 @@ export interface EntityPickerManager {
     selection: SelectionArray
     entityType?: string
     analytics?: GrapherAnalytics
+    focusArray?: FocusArray
 }
