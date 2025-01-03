@@ -20,9 +20,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload, faHatWizard } from "@fortawesome/free-solid-svg-icons"
 import { faGithub } from "@fortawesome/free-brands-svg-icons"
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
-import {
-    Button,
-} from "antd"
+import { Button } from "antd"
 interface DatasetPageData {
     id: number
     name: string
@@ -225,11 +223,14 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
 
                 {/* HEADER */}
                 <section>
-                    {dataset.isArchived?
-                    <h1>
-                        <span style={{ color: "red" }}>Archived:</span> {dataset.name}
-                    </h1>: <h1>{dataset.name}</h1>
-                    }
+                    {dataset.isArchived ? (
+                        <h1>
+                            <span style={{ color: "red" }}>Archived:</span>{" "}
+                            {dataset.name}
+                        </h1>
+                    ) : (
+                        <h1>{dataset.name}</h1>
+                    )}
                     {dataset.shortName && (
                         <h4 style={{ color: "gray" }}>
                             {dataset.namespace}/{dataset.version}/
@@ -377,7 +378,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             <SourceList sources={dataset.variableSources} />
                         </section>
                     )}
-                
+
                 {/* INDICATORS */}
                 <section>
                     <h3>Indicators</h3>
@@ -399,46 +400,49 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 {/* ARCHIVE DATASET */}
                 {!dataset.isArchived && (
                     <section>
-                    <h3>Archive</h3>
-                    <p>
-                        Archive this grapher dataset to remove it from the main
-                        list of active datasets.
-                    </p>
-                    {dataset.charts && dataset.charts.length > 0 ? (
+                        <h3>Archive</h3>
                         <p>
-                            <strong>
-                                This dataset cannot be archived because it
-                                contains charts.
-                            </strong>
+                            Archive this grapher dataset to remove it from the
+                            main list of active datasets.
                         </p>
-                    ) : (
-                        <p>
-                            {dataset.isArchived}
-                            <strong>Before archiving, ensure that:</strong>
-                            <ul>
-                                <li>
-                                    The corresponding ETL grapher step has been
-                                    archived:{" "}
-                                    <code>
-                                        grapher/{dataset.namespace}/
-                                        {dataset.version}/{dataset.shortName}
-                                    </code>
-                                </li>
-                                <li>
-                                    The dataset is not used in any
-                                    indicator-based explorers.
-                                </li>
-                            </ul>
-                        </p>
-                    )}
-                    <button
-                        className="btn btn-outline-danger"
-                        onClick={() => this.archive()}
-                        disabled={dataset.charts && dataset.charts.length > 0}
-                    >
-                        Archive dataset
-                    </button>
-                </section>
+                        {dataset.charts && dataset.charts.length > 0 ? (
+                            <p>
+                                <strong>
+                                    This dataset cannot be archived because it
+                                    contains charts.
+                                </strong>
+                            </p>
+                        ) : (
+                            <p>
+                                {dataset.isArchived}
+                                <strong>Before archiving, ensure that:</strong>
+                                <ul>
+                                    <li>
+                                        The corresponding ETL grapher step has
+                                        been archived:{" "}
+                                        <code>
+                                            grapher/{dataset.namespace}/
+                                            {dataset.version}/
+                                            {dataset.shortName}
+                                        </code>
+                                    </li>
+                                    <li>
+                                        The dataset is not used in any
+                                        indicator-based explorers.
+                                    </li>
+                                </ul>
+                            </p>
+                        )}
+                        <button
+                            className="btn btn-outline-danger"
+                            onClick={() => this.archive()}
+                            disabled={
+                                dataset.charts && dataset.charts.length > 0
+                            }
+                        >
+                            Archive dataset
+                        </button>
+                    </section>
                 )}
             </main>
         )
