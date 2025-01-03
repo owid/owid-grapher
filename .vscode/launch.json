@@ -94,7 +94,7 @@
         },
         {
             "name": "Launch admin server",
-            "program": "${workspaceFolder}/adminSiteServer/app.tsx",
+            "program": "${workspaceFolder}/adminSiteServer/app.ts",
             "request": "launch",
             "type": "node",
             "runtimeExecutable": "yarn",
@@ -113,7 +113,7 @@
         },
         {
             "name": "Launch admin server (via fnm)",
-            "program": "${workspaceFolder}/adminSiteServer/app.tsx",
+            "program": "${workspaceFolder}/adminSiteServer/app.ts",
             "request": "launch",
             "type": "node",
             "runtimeExecutable": "fnm",
