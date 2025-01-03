@@ -1,21 +1,21 @@
 // todo: remove
 
-import { Grapher } from "../core/Grapher"
+import { Grapher, GrapherState } from "../core/Grapher"
 import { computed } from "mobx"
 import { ChartDimension } from "./ChartDimension"
 import { DimensionProperty } from "@ourworldindata/utils"
 
 export class DimensionSlot {
-    private grapher: Grapher
+    private grapherState: GrapherState
     property: DimensionProperty
-    constructor(grapher: Grapher, property: DimensionProperty) {
-        this.grapher = grapher
+    constructor(grapher: GrapherState, property: DimensionProperty) {
+        this.grapherState = grapher
         this.property = property
     }
 
     @computed get name(): string {
         const names = {
-            y: this.grapher.isDiscreteBar ? "X axis" : "Y axis",
+            y: this.grapherState.isDiscreteBar ? "X axis" : "Y axis",
             x: "X axis",
             size: "Size",
             color: "Color",
@@ -28,7 +28,7 @@ export class DimensionSlot {
     @computed get allowMultiple(): boolean {
         return (
             this.property === DimensionProperty.y &&
-            this.grapher.supportsMultipleYColumns
+            this.grapherState.supportsMultipleYColumns
         )
     }
 
@@ -37,7 +37,7 @@ export class DimensionSlot {
     }
 
     @computed get dimensions(): ChartDimension[] {
-        return this.grapher.dimensions.filter(
+        return this.grapherState.dimensions.filter(
             (d) => d.property === this.property
         )
     }

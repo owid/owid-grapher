@@ -27,7 +27,7 @@ import {
 import { ContinentColors } from "../color/CustomSchemes"
 import { sortBy, uniq, uniqBy } from "@ourworldindata/utils"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
-import { Grapher } from "../core/Grapher"
+import { Grapher, GrapherState } from "../core/Grapher"
 
 it("can create a new chart", () => {
     const manager: ScatterPlotManager = {
@@ -142,7 +142,7 @@ describe("interpolation defaults", () => {
         ]
     )
 
-    const grapher = new Grapher({
+    const grapher = new GrapherState({
         table,
         chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
         xSlug: "x",
@@ -199,7 +199,7 @@ describe("basic scatterplot", () => {
         ]
     )
 
-    const grapher = new Grapher({
+    const grapher = new GrapherState({
         chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
         xSlug: "x",
         ySlugs: "y",
@@ -429,7 +429,7 @@ describe("entity exclusion", () => {
         ]
     )
 
-    const grapher = new Grapher({
+    const grapher = new GrapherState({
         chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
         xSlug: "x",
         ySlugs: "y",
@@ -819,7 +819,7 @@ describe("x/y tolerance", () => {
         ]
     )
 
-    const grapher = new Grapher({
+    const grapher = new GrapherState({
         chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
         xSlug: "x",
         ySlugs: "y",
@@ -1064,7 +1064,7 @@ it("applies color tolerance before applying the author timeline filter", () => {
         ]
     )
 
-    const grapher = new Grapher({
+    const grapher = new GrapherState({
         table,
         chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
         xSlug: "x",

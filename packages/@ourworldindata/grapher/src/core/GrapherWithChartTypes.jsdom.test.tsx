@@ -5,14 +5,18 @@ import {
     SynthesizeGDPTable,
     SampleColumnSlugs,
 } from "@ourworldindata/core-table"
-import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
+import {
+    Grapher,
+    GrapherProgrammaticInterface,
+    GrapherState,
+} from "../core/Grapher"
 import { MapChart } from "../mapCharts/MapChart"
 import { legacyMapGrapher } from "../mapCharts/MapChart.sample"
 import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
 describe("grapher and map charts", () => {
     describe("map time tolerance plus query string works with a map chart", () => {
-        const grapher = new Grapher(legacyMapGrapher)
+        const grapher = new GrapherState(legacyMapGrapher)
         expect(grapher.mapColumnSlug).toBe("3512")
         expect(grapher.inputTable.minTime).toBe(2000)
         expect(grapher.inputTable.maxTime).toBe(2010)
@@ -26,7 +30,7 @@ describe("grapher and map charts", () => {
     })
 
     it("can change time and see more points", () => {
-        const manager = new Grapher(legacyMapGrapher)
+        const manager = new GrapherState(legacyMapGrapher)
         const chart = new MapChart({ manager })
 
         expect(Object.keys(chart.series).length).toEqual(1)
@@ -49,7 +53,7 @@ const basicGrapherConfig: GrapherProgrammaticInterface = {
 }
 
 describe("grapher and discrete bar charts", () => {
-    const grapher = new Grapher({
+    const grapher = new GrapherState({
         chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
         ...basicGrapherConfig,
     })

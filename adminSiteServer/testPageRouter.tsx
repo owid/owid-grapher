@@ -41,6 +41,7 @@ import {
     ColorSchemes,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
+import { DATA_API_URL } from "../settings/clientSettings.js"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"
@@ -800,6 +801,72 @@ getPlainRouteWithROTransaction(
         const vardata = await getChartVariableData(grapher.config)
         const svg = await grapherToSVG(grapher.config, vardata)
         res.send(svg)
+    }
+)
+
+getPlainRouteWithROTransaction(
+    testPageRouter,
+    "/experiment",
+    async (req, res, trx) => {
+        const style = `
+
+        .row {
+            padding: 10px;
+            margin: 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .side-by-side {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            width: 100%;
+        }
+
+        .side-by-side + .side-by-side {
+            margin-top: 64px;
+        }
+
+`
+        const script = `
+        const grapher = new FetchingGrapher();
+        const container = document.getElementById('graphers');
+        const root = ReactDOM.createRoot(container);
+        const grapher1Props = {
+            configUrl: "https://ourworldindata.org/grapher/life-expectancy.config.json",
+            dataApiUrl: "${DATA_API_URL}"
+};
+        root.render(
+        React.createElement(
+            React.Fragment,
+            null,
+            React.createElement(FetchingGrapher, grapher1Props),
+            React.createElement(FetchingGrapher, grapher1Props)
+        )
+        );
+                        `
+        const html = (
+            <html>
+                <Head
+                    canonicalUrl=""
+                    pageTitle="Experiment"
+                    baseUrl={BAKED_BASE_URL}
+                >
+                    <style dangerouslySetInnerHTML={{ __html: style }} />
+                </Head>
+                <body>
+                    <div className="row">
+                        <div id="graphers" className="side-by-side"></div>
+                    </div>
+                    <script src={`${BAKED_BASE_URL}/assets/embedCharts.js`} />
+                    <script
+                        dangerouslySetInnerHTML={{ __html: script }}
+                    ></script>
+                </body>
+            </html>
+        )
+
+        res.send(renderToHtmlPage(html))
     }
 )
 

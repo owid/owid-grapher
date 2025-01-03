@@ -9,7 +9,11 @@ import {
     generateSelectedEntityNamesParam,
 } from "./EntityUrlBuilder.js"
 import { match } from "ts-pattern"
-import { Grapher } from "./Grapher.js"
+import {
+    Grapher,
+    GrapherProgrammaticInterface,
+    GrapherState,
+} from "./Grapher.js"
 
 // This function converts a (potentially partial) GrapherInterface to the query params this translates to.
 // This is helpful for when we have a patch config to a parent chart, and we want to know which query params we need to get the parent chart as close as possible to the patched child chart.
@@ -78,12 +82,12 @@ export const grapherConfigToQueryParams = (
 }
 
 export const grapherObjectToQueryParams = (
-    grapher: Grapher
+    grapher: GrapherState
 ): GrapherQueryParams => {
     const params: GrapherQueryParams = {
         tab: grapher.mapGrapherTabToQueryParam(grapher.activeTab),
-        xScale: grapher.xAxis.scaleType,
-        yScale: grapher.yAxis.scaleType,
+        xScale: grapher.xAxis?.scaleType,
+        yScale: grapher.yAxis?.scaleType,
         stackMode: grapher.stackMode,
         zoomToSelection: grapher.zoomToSelection ? "true" : undefined,
         endpointsOnly: grapher.compareEndPointsOnly ? "1" : "0",
