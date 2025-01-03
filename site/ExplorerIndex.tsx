@@ -1,5 +1,4 @@
 import { useState } from "react"
-import ReactDOM from "react-dom"
 import { MinimalExplorerInfo } from "@ourworldindata/types"
 import { EXPLORER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
 import { faHeartBroken } from "@fortawesome/free-solid-svg-icons"
@@ -72,15 +71,3 @@ export function ExplorerIndex(props: ExplorerIndexPageProps) {
 
 export const __OWID_EXPLORER_INDEX_PAGE_PROPS =
     "__OWID_EXPLORER_INDEX_PAGE_PROPS"
-
-export function hydrateExplorerIndex() {
-    const explorerIndexPageProps = (window as any)[
-        __OWID_EXPLORER_INDEX_PAGE_PROPS
-    ]
-
-    if (!explorerIndexPageProps) return
-    ReactDOM.hydrate(
-        <ExplorerIndex {...explorerIndexPageProps} />,
-        document.querySelector(".explorer-index-page")
-    )
-}

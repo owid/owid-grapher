@@ -2,10 +2,13 @@ import { useState, useRef } from "react"
 import * as React from "react"
 import { orderBy, RelatedChart } from "@ourworldindata/utils"
 import { useEmbedChart } from "../hooks.js"
-import { GalleryArrow, GalleryArrowDirection } from "./GalleryArrow.js"
+import { GalleryArrow } from "./GalleryArrow.js"
+import {
+    GalleryArrowDirection,
+    GRAPHER_PREVIEW_CLASS,
+} from "../SiteConstants.js"
 import { AllChartsListItem } from "./AllChartsListItem.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
-import { GRAPHER_PREVIEW_CLASS } from "../SiteConstants.js"
 import GrapherImage from "../GrapherImage.js"
 
 export const RELATED_CHARTS_CLASS_NAME = "related-charts"

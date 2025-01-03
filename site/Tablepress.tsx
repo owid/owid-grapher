@@ -1,5 +1,3 @@
-import ReactDOMServer from "react-dom/server.js"
-
 interface Cell {
     data: string
     colspan: number
@@ -49,10 +47,6 @@ function parseTable(table: string[][]): Cell[][] {
         resultTable.push(resultRow)
     })
     return resultTable
-}
-
-export const renderTablePress = (table: string[][]) => {
-    return ReactDOMServer.renderToStaticMarkup(<Tablepress data={table} />)
 }
 
 export default function Tablepress(props: { data: string[][] }) {

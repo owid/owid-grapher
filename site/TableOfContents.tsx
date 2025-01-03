@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from "react"
-import ReactDOM from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { useTriggerWhenClickOutside } from "./hooks.js"
-import { wrapInDiv, TocHeading } from "@ourworldindata/utils"
+import { TocHeading } from "@ourworldindata/utils"
 import classNames from "classnames"
 
-const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
+export const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
 
-interface TableOfContentsData {
+export interface TableOfContentsData {
     headings: TocHeading[]
     pageTitle: string
     hideSubheadings?: boolean
@@ -219,14 +218,4 @@ export const TableOfContents = ({
             </aside>
         </div>
     )
-}
-
-export const runTableOfContents = (tocData: TableOfContentsData) => {
-    const tocWrapperEl = document.querySelector<HTMLElement>(
-        `.${TOC_WRAPPER_CLASSNAME}`
-    )
-    if (!tocWrapperEl) return
-
-    const sidebarRootEl = wrapInDiv(tocWrapperEl, ["sidebar-root"])
-    ReactDOM.hydrate(<TableOfContents {...tocData} />, sidebarRootEl)
 }

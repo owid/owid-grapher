@@ -5,10 +5,7 @@ import {
 } from "../../settings/clientSettings.js"
 import insightsClient, { InsightsClient } from "search-insights"
 import type { InsightsSearchClickEvent } from "search-insights/dist/click.js"
-import {
-    getPreferenceValue,
-    PreferenceType,
-} from "../CookiePreferencesManager.js"
+import { getPreferenceValue, PreferenceType } from "../cookiePreferences.js"
 import { SearchIndexName } from "./searchTypes.js"
 
 let insightsInitialized = false

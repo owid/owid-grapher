@@ -31,7 +31,7 @@ import { Head } from "./Head.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
-import { DebugProvider } from "./gdocs/DebugContext.js"
+import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
 
 export const DataPageV2 = (props: {

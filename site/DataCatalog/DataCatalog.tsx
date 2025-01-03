@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react"
 import * as React from "react"
-import ReactDOM from "react-dom"
 import cx from "classnames"
 import {
     countriesByName,
@@ -963,15 +962,4 @@ export function DataCatalogInstantSearchWrapper({
             searchClient={searchClient}
         />
     )
-}
-
-export function hydrateDataCatalogPage() {
-    const root = document.getElementById("data-catalog-page-root")
-    const tagGraph = window._OWID_TAG_GRAPH as TagGraphRoot
-    if (root) {
-        ReactDOM.hydrate(
-            <DataCatalogInstantSearchWrapper tagGraph={tagGraph} />,
-            root
-        )
-    }
 }

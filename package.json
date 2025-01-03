@@ -230,6 +230,7 @@
         "eslint-plugin-import": "^2.31.0",
         "eslint-plugin-react": "^7.37.2",
         "eslint-plugin-react-hooks": "^5.1.0",
+        "eslint-plugin-react-refresh": "^0.4.16",
         "flag-icons": "^7.2.3",
         "http-server": "^14.1.1",
         "husky": "^9.0.11",
