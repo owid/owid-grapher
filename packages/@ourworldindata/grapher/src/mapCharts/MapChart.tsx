@@ -244,6 +244,7 @@ export class MapChart
             id: feature.id,
             series: series || { value: "No data" },
         }
+        console.log("Changing focusEntity")
 
         if (feature.id !== undefined) {
             const featureId = feature.id as string,

@@ -1,6 +1,10 @@
 import { useRef } from "react"
 
-import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
+import {
+    Grapher,
+    GrapherProgrammaticInterface,
+    GrapherState,
+} from "@ourworldindata/grapher"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
@@ -19,28 +23,25 @@ export const GrapherFigureView = ({
     const base = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(base)
 
-    const grapherProps: GrapherProgrammaticInterface = {
-        ...grapher.toObject(),
-        isEmbeddedInADataPage: grapher.isEmbeddedInADataPage,
-        bindUrlToWindow: grapher.props.bindUrlToWindow,
-        queryStr: grapher.props.bindUrlToWindow
+    const grapherState: GrapherState = new GrapherState({
+        ...grapher.grapherState.toObject(),
+        isEmbeddedInADataPage: grapher.grapherState.isEmbeddedInADataPage,
+        bindUrlToWindow: grapher.grapherState.initialOptions.bindUrlToWindow,
+        queryStr: grapher.grapherState.initialOptions.bindUrlToWindow
             ? window.location.search
-            : undefined,
+            : "", // TODO: 2025-01-03 changed this from undefined to empty string - is this a problem?
         bounds,
         dataApiUrl: DATA_API_URL,
         enableKeyboardShortcuts: true,
+        adminBaseUrl: ADMIN_BASE_URL,
+        bakedGrapherURL: BAKED_GRAPHER_URL,
         ...extraProps,
-    }
+    })
     return (
         // They key= in here makes it so that the chart is re-loaded when the slug changes.
         <figure data-grapher-src ref={base}>
             {bounds && (
-                <Grapher
-                    key={grapherProps.slug}
-                    {...grapherProps}
-                    adminBaseUrl={ADMIN_BASE_URL}
-                    bakedGrapherURL={BAKED_GRAPHER_URL}
-                />
+                <Grapher key={grapherState.slug} grapherState={grapherState} />
             )}
         </figure>
     )
