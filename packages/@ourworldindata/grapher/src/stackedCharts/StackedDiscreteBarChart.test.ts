@@ -371,17 +371,17 @@ describe("showLegend", () => {
         const chart = new StackedDiscreteBarChart({
             manager: { ...baseManager, showLegend: true },
         })
-        expect(chart["legendHeight"]).toBeGreaterThan(0)
-        expect(chart["categoricalLegendData"].length).toBeGreaterThan(0)
-        expect(chart["externalLegend"]).toBeUndefined()
+        expect(chart.legend.height).toBeGreaterThan(0)
+        expect(chart.categoricalLegendData.length).toBeGreaterThan(0)
+        expect(chart.externalLegend).toBeUndefined()
     })
 
     it("exposes externalLegendBins when showLegend is false", () => {
         const chart = new StackedDiscreteBarChart({
             manager: { ...baseManager, showLegend: false },
         })
-        expect(chart["legendHeight"]).toEqual(0)
-        expect(chart["categoricalLegendData"].length).toEqual(0)
-        expect(chart["externalLegend"]?.categoricalBins?.length).toEqual(2)
+        expect(chart.legend.height).toEqual(0)
+        expect(chart.categoricalLegendData.length).toEqual(0)
+        expect(chart.externalLegend?.categoricalBins?.length).toEqual(2)
     })
 })

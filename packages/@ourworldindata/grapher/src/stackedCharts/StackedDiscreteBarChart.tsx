@@ -544,7 +544,7 @@ export class StackedDiscreteBarChart
         this.focusSeriesName = undefined
     }
 
-    @computed private get legend(): HorizontalCategoricalColorLegend {
+    @computed get legend(): HorizontalCategoricalColorLegend {
         return new HorizontalCategoricalColorLegend({
             fontSize: this.fontSize,
             align: this.legendAlign,
