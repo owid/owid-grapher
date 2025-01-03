@@ -17,9 +17,12 @@ import { SourceList } from "./SourceList.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faDownload } from "@fortawesome/free-solid-svg-icons"
+import { faDownload, faHatWizard } from "@fortawesome/free-solid-svg-icons"
 import { faGithub } from "@fortawesome/free-brands-svg-icons"
-
+import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
+import {
+    Button,
+} from "antd"
 interface DatasetPageData {
     id: number
     name: string
@@ -28,6 +31,7 @@ interface DatasetPageData {
     shortName: string
     version: string
     isPrivate: boolean
+    isArchived: boolean
     nonRedistributable: boolean
     updatePeriodDays: number
 
@@ -218,8 +222,14 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     when={this.isModified}
                     message="Are you sure you want to leave? Unsaved changes will be lost."
                 />
+
+                {/* HEADER */}
                 <section>
-                    <h1>{dataset.name}</h1>
+                    {dataset.isArchived?
+                    <h1>
+                        <span style={{ color: "red" }}>Archived:</span> {dataset.name}
+                    </h1>: <h1>{dataset.name}</h1>
+                    }
                     {dataset.shortName && (
                         <h4 style={{ color: "gray" }}>
                             {dataset.namespace}/{dataset.version}/
@@ -233,6 +243,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             by={dataset.dataEditedByUserName}
                         />
                     </p>
+
                     <Link
                         native
                         to={`/datasets/${dataset.id}.csv`}
@@ -240,6 +251,21 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     >
                         <FontAwesomeIcon icon={faDownload} /> Download CSV
                     </Link>
+                    {/* Link to Wizard dataset preview */}
+                    <a
+                        href={`${ETL_WIZARD_URL}datasets?datasetId=${dataset.id}`}
+                        target="_blank"
+                        className="btn btn-tertiary"
+                        rel="noopener"
+                    >
+                        <Button
+                            type="default"
+                            icon={<FontAwesomeIcon icon={faHatWizard} />}
+                        >
+                            Explore in Wizard
+                        </Button>
+                    </a>
+                    {/* View on GitHub link (old) */}
                     {!isBulkImport && !dataset.isPrivate && (
                         <a
                             href={this.gitHistoryUrl}
@@ -250,6 +276,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             <FontAwesomeIcon icon={faGithub} /> View on GitHub
                         </a>
                     )}
+                    {/* Download additional content (old) */}
                     {dataset.zipFile && (
                         <Link
                             native
@@ -261,6 +288,8 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                         </Link>
                     )}
                 </section>
+
+                {/* DATASET METADATA */}
                 <section>
                     <h3>Dataset metadata</h3>
                     <form
@@ -333,10 +362,14 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                         />
                     </form>
                 </section>
+
+                {/* ORIGINS */}
                 <section>
                     <h3>Origins</h3>
                     <OriginList origins={dataset.origins || []} />
                 </section>
+
+                {/* SOURCES */}
                 {dataset.variableSources &&
                     dataset.variableSources.length > 0 && (
                         <section>
@@ -344,10 +377,14 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             <SourceList sources={dataset.variableSources} />
                         </section>
                     )}
+                
+                {/* INDICATORS */}
                 <section>
                     <h3>Indicators</h3>
                     <VariableList variables={dataset.variables} fields={[]} />
                 </section>
+
+                {/* CHARTS */}
                 <section>
                     <button
                         className="btn btn-primary float-right"
@@ -358,7 +395,10 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     <h3>Charts</h3>
                     <ChartList charts={dataset.charts} />
                 </section>
-                <section>
+
+                {/* ARCHIVE DATASET */}
+                {!dataset.isArchived && (
+                    <section>
                     <h3>Archive</h3>
                     <p>
                         Archive this grapher dataset to remove it from the main
@@ -399,6 +439,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                         Archive dataset
                     </button>
                 </section>
+                )}
             </main>
         )
     }
