@@ -549,7 +549,7 @@ export class MarimekkoChart
         return this.bounds
             .padBottom(this.longestLabelHeight + 2)
             .padBottom(labelLinesHeight)
-            .padTop(this.legendHeight + this.legendPaddingTop)
+            .padTop(this.legend.height + this.legendPaddingTop)
             .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
     }
 
@@ -836,7 +836,7 @@ export class MarimekkoChart
     // legend props
 
     @computed get legendPaddingTop(): number {
-        return this.legendHeight > 0 ? this.baseFontSize : 0
+        return this.legend.height > 0 ? this.baseFontSize : 0
     }
 
     @computed get legendX(): number {
@@ -895,16 +895,7 @@ export class MarimekkoChart
         this.focusColorBin = undefined
     }
 
-    @computed private get legendHeight(): number {
-        return HorizontalCategoricalColorLegend.height({
-            fontSize: this.fontSize,
-            align: this.legendAlign,
-            maxWidth: this.legendWidth,
-            categoricalBins: this.categoricalLegendData,
-        })
-    }
-
-    @computed get legend(): HorizontalCategoricalColorLegend {
+    @computed private get legend(): HorizontalCategoricalColorLegend {
         return new HorizontalCategoricalColorLegend({
             fontSize: this.fontSize,
             align: this.legendAlign,
