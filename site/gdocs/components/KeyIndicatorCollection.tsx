@@ -21,7 +21,7 @@ import { Url, urlToSlug, commafyNumber } from "@ourworldindata/utils"
 
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"
-import { AttachmentsContext } from "../OwidGdoc.js"
+import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"
 
 // keep in sync with $duration in KeyIndicatorCollection.scss

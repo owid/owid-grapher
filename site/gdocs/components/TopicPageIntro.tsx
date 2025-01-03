@@ -4,7 +4,7 @@ import {
 } from "@ourworldindata/utils"
 import { useContext } from "react"
 import { useLinkedDocument } from "../utils.js"
-import { DocumentContext } from "../OwidGdoc.js"
+import { DocumentContext } from "../DocumentContext.js"
 import Paragraph from "./Paragraph.js"
 
 type TopicPageIntroProps = EnrichedBlockTopicPageIntro & {

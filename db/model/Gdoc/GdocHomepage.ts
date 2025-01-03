@@ -12,7 +12,7 @@ import {
     OwidGdocBaseInterface,
     OwidGdocHomepageMetadata,
 } from "@ourworldindata/types"
-import { getUniqueTopicCount } from "../../../site/SiteNavigation.js"
+import { getUniqueTopicCount } from "../../../site/gdocs/utils.js"
 import { getLatestDataInsights } from "./GdocFactory.js"
 
 export class GdocHomepage

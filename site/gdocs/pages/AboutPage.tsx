@@ -3,7 +3,7 @@ import { isEmpty } from "lodash"
 import { useEffect, useRef } from "react"
 
 import { OwidGdocAboutInterface } from "@ourworldindata/types"
-import { ABOUT_LINKS } from "../../SiteAbout.js"
+import { ABOUT_LINKS } from "../../SiteConstants.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import Footnotes from "../components/Footnotes.js"
 
@@ -50,16 +50,16 @@ function AboutNav({ slug }: { slug: string }) {
     return (
         <nav className="about-nav grid grid-cols-12-full-width col-start-1 col-end-limit">
             <ul className="about-nav-list col-start-2 col-end-14 col-sm-start-1">
-                {ABOUT_LINKS.map(({ title, href }) => {
-                    const isActive = href === `/${slug}`
+                {ABOUT_LINKS.map(({ title, url }) => {
+                    const isActive = url === `/${slug}`
                     return (
-                        <li key={href}>
+                        <li key={url}>
                             <a
                                 className={cx("about-nav-link", {
                                     "about-nav-link--is-active": isActive,
                                 })}
                                 ref={isActive ? activeLinkRef : undefined}
-                                href={href}
+                                href={url}
                                 aria-current={isActive ? "page" : undefined}
                             >
                                 {title}

@@ -1,5 +1,5 @@
 import { Span } from "@ourworldindata/utils"
-import { renderSpans } from "../utils.js"
+import SpanElements from "./SpanElements.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
@@ -11,7 +11,7 @@ function AdditionalChartsLink({ item }: { item: Span[] }) {
     if (item.length === 1 && item[0].spanType === "span-link") {
         return (
             <a href={item[0].url}>
-                {renderSpans(item[0].children)}{" "}
+                <SpanElements spans={item[0].children} />{" "}
                 <FontAwesomeIcon icon={faArrowRight} />
             </a>
         )

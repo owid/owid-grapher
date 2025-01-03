@@ -1,6 +1,7 @@
 import cx from "classnames"
 import { LARGEST_IMAGE_WIDTH, Span } from "@ourworldindata/utils"
-import { renderSpans, useImage } from "../utils.js"
+import { useImage } from "../utils.js"
+import SpanElements from "./SpanElements.js"
 import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
 
 interface VideoProps {
@@ -31,7 +32,11 @@ export default function Video(props: VideoProps) {
             >
                 <source src={url} type="video/mp4" />
             </video>
-            {caption ? <figcaption>{renderSpans(caption)}</figcaption> : null}
+            {caption ? (
+                <figcaption>
+                    <SpanElements spans={caption} />
+                </figcaption>
+            ) : null}
         </figure>
     )
 }

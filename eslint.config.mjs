@@ -10,6 +10,7 @@ import react from "eslint-plugin-react"
 // https://github.com/facebook/react/issues/30119
 // @ts-ignore
 import reactHooks from "eslint-plugin-react-hooks"
+import reactRefresh from "eslint-plugin-react-refresh"
 import tseslint from "typescript-eslint"
 
 export default tseslint.config(
@@ -21,7 +22,25 @@ export default tseslint.config(
     react.configs.flat.recommended,
     // @ts-ignore
     react.configs.flat["jsx-runtime"],
-    prettier,
+    {
+        files: [
+            // TODO: Apply to all React files when we move off class components,
+            // since they are not supported.
+            "adminSiteClient/**/*.tsx",
+            "explorerAdminClient/**/*.tsx",
+            "packages/@ourworldindata/components/src/**/*.tsx",
+            "site/**/*.tsx",
+        ],
+        plugins: {
+            "react-refresh": reactRefresh,
+        },
+        rules: {
+            "react-refresh/only-export-components": [
+                "error",
+                { allowConstantExport: true },
+            ],
+        },
+    },
     {
         plugins: {
             // They don't have a compatible flat config at the moment. Update to
@@ -165,6 +184,7 @@ export default tseslint.config(
             "@typescript-eslint/explicit-module-boundary-types": "warn",
         },
     },
+    prettier,
     {
         ignores: [
             "**/.*",

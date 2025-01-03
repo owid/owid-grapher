@@ -17,11 +17,13 @@ import {
     OwidEnrichedGdocBlock,
     LatestDataInsight,
 } from "@ourworldindata/utils"
-import { dataInsightIndexToIdMap } from "../pages/DataInsight.js"
+import {
+    dataInsightIndexToIdMap,
+    SMALL_BREAKPOINT_MEDIA_QUERY,
+} from "../../SiteConstants.js"
 import Image from "./Image.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import DataInsightDateline from "./DataInsightDateline.js"
-import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
 
 export default function LatestDataInsights({
     className,

@@ -7,7 +7,7 @@ import {
 import { formatAuthors, groupBy } from "@ourworldindata/utils"
 import { Button } from "@ourworldindata/components"
 import { useLinkedDocument } from "../utils.js"
-import { DocumentContext } from "../OwidGdoc.js"
+import { DocumentContext } from "../DocumentContext.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
