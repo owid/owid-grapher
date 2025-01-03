@@ -498,8 +498,8 @@ export class DiscreteBarChart
         const { manager, yAxis, innerBounds } = this
 
         const axisLineWidth = manager.isStaticAndSmall
-            ? GRAPHER_AXIS_LINE_WIDTH_THICK
-            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+            ? 0.5 * GRAPHER_AXIS_LINE_WIDTH_THICK
+            : 0.5 * GRAPHER_AXIS_LINE_WIDTH_DEFAULT
 
         return (
             <>
@@ -512,6 +512,14 @@ export class DiscreteBarChart
                         horizontalAxis={yAxis}
                         bounds={innerBounds}
                         strokeWidth={axisLineWidth}
+                        // if the chart doesn't have negative values, then we
+                        // move the zero line a little to the left to avoid
+                        // overlap with the bars
+                        align={
+                            this.hasNegative
+                                ? HorizontalAlign.center
+                                : HorizontalAlign.right
+                        }
                     />
                 )}
                 {this.renderBars()}
