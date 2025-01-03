@@ -11,6 +11,7 @@ import {
     ColorSchemeName,
     ValueRange,
     ColumnSlug,
+    AxisAlign,
 } from "@ourworldindata/types"
 import { ComparisonLine } from "../scatterCharts/ComparisonLine"
 import { observable, computed, action } from "mobx"
@@ -339,10 +340,14 @@ export class ScatterPlotChart
             this.bounds
                 .padRight(this.sidebarWidth + 20)
                 // top padding leaves room for tick labels
-                .padTop(6)
+                .padTop(this.currentVerticalAxisLabel ? 0 : 6)
                 // bottom padding makes sure the x-axis label doesn't overflow
                 .padBottom(2)
         )
+    }
+
+    @computed get axisBounds(): Bounds {
+        return this.innerBounds
     }
 
     @computed private get canAddCountry(): boolean {
@@ -538,7 +543,7 @@ export class ScatterPlotChart
     @computed get dualAxis(): DualAxis {
         const { horizontalAxisPart, verticalAxisPart } = this
         return new DualAxis({
-            bounds: this.innerBounds,
+            bounds: this.axisBounds,
             horizontalAxis: horizontalAxisPart,
             verticalAxis: verticalAxisPart,
         })
@@ -774,7 +779,7 @@ export class ScatterPlotChart
 
         const legendPadding = 16
         const ySizeLegend =
-            bounds.top +
+            this.legendY +
             verticalLegendHeight +
             (verticalLegendHeight > 0 ? legendPadding : 0)
         const yArrowLegend =
@@ -989,7 +994,7 @@ export class ScatterPlotChart
     }
 
     @computed get legendY(): number {
-        return this.bounds.top
+        return this.bounds.top + this.yAxis.labelHeight
     }
 
     @computed get legendX(): number {
@@ -1029,15 +1034,20 @@ export class ScatterPlotChart
 
     @computed private get yAxisConfig(): AxisConfig {
         const { yAxisConfig = {} } = this.manager
-        const labelPadding = this.manager.isNarrow ? 2 : undefined
-        const config = { ...yAxisConfig, labelPadding }
+        const config = {
+            ...yAxisConfig,
+            labelPosition: AxisAlign.end,
+            labelPadding: this.manager.isNarrow ? 10 : 14,
+        }
         return new AxisConfig(config, this)
     }
 
     @computed private get xAxisConfig(): AxisConfig {
         const { xAxisConfig = {} } = this.manager
-        const labelPadding = this.manager.isNarrow ? 2 : undefined
-        const config = { ...xAxisConfig, labelPadding }
+        const config = {
+            ...xAxisConfig,
+            labelPadding: this.manager.isNarrow ? 6 : undefined,
+        }
         return new AxisConfig(config, this)
     }
 
