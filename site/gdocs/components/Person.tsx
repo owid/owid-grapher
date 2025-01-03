@@ -1,4 +1,3 @@
-import * as React from "react"
 import { useMediaQuery } from "usehooks-ts"
 
 import { getCanonicalUrl } from "@ourworldindata/components"

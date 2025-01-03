@@ -1,5 +1,5 @@
 import cx from "classnames"
-import React, { useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
@@ -7,10 +7,10 @@ import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
 
-const SOURCE_PATTERN = /^\/$|^\/.*[^\/]+$/
+const SOURCE_PATTERN = /^\/$|^\/.*[^/]+$/
 const INVALID_SOURCE_MESSAGE =
     "URL must start with a slash and cannot end with a slash, unless it's the root."
-const TARGET_PATTERN = /^\/$|^(https?:\/\/|\/).*[^\/]+$/
+const TARGET_PATTERN = /^\/$|^(https?:\/\/|\/).*[^/]+$/
 const INVALID_TARGET_MESSAGE =
     "URL must start with a slash or http(s):// and cannot end with a slash, unless it's the root."
 

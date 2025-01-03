@@ -1,4 +1,3 @@
-import React from "react"
 import { EntryMeta } from "@ourworldindata/utils"
 
 export const SiteNavigationTopic = ({ topic }: { topic: EntryMeta }) => {

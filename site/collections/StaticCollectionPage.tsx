@@ -1,5 +1,4 @@
 import cx from "classnames"
-import React from "react"
 import { Head } from "../Head.js"
 import { GRAPHER_PREVIEW_CLASS } from "../SiteConstants.js"
 import { SiteHeader } from "../SiteHeader.js"

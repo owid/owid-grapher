@@ -14,7 +14,7 @@ import findAndReplace from "mdast-util-find-and-replace"
 //       period should not be part of the URL)
 //       Finally, the very last part is a lone forward slash which would not be matched by the previous subgroup.
 export const urlRegex =
-    /https?:\/\/([\w-]+\.)+[\w-]+((\/[\p{L}\p{N}_\-.\+/?:%&=~#]*[\p{L}\p{N}_\-\+/%&=~#])|\/)?/gu
+    /https?:\/\/([\w-]+\.)+[\w-]+((\/[\p{L}\p{N}_\-.+/?:%&=~#]*[\p{L}\p{N}_\-+/%&=~#])|\/)?/gu
 
 export function remarkPlainLinks() {
     const turnIntoLink = (value: any, _match: string) => {

@@ -149,6 +149,8 @@ try {
             }
         }
     }
-} catch {}
+} catch {
+    // ignore
+}
 
 analytics.startClickTracking()

@@ -86,11 +86,14 @@ export const runSiteFooterScripts = (
         case SiteFooterContext.dynamicCollectionPage:
             // Don't break, run default case too
             hydrateDynamicCollectionPage()
+        // falls through
         case SiteFooterContext.dataInsightsIndexPage:
             // Don't break, run default case too
             hydrateDataInsightsIndexPage()
+        // falls through
         case SiteFooterContext.dataCatalogPage:
             hydrateDataCatalogPage()
+        // falls through
         default:
             // Features that were not ported over to gdocs, are only being run on WP pages:
             // - global entity selector

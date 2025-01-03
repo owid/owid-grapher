@@ -1,8 +1,5 @@
 #! /usr/bin/env jest
 
-import React from "react"
-import { KEY_INSIGHTS_INSIGHT_PARAM } from "./KeyInsights.js"
-
 import {
     EnrichedBlockKeyInsights,
     EnrichedBlockKeyInsightsSlide,
@@ -14,6 +11,7 @@ import "@testing-library/jest-dom"
 
 import { jest } from "@jest/globals"
 import ArticleBlock from "./ArticleBlock.js"
+import { KEY_INSIGHTS_INSIGHT_PARAM } from "./KeyInsights.js"
 
 const KEY_INSIGHTS_SLUG = "key-insights"
 

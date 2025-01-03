@@ -36,7 +36,6 @@ import {
     EditorOption,
     FieldDescription,
 } from "../adminShared/schemaProcessing.js"
-import React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
@@ -137,7 +136,7 @@ export function fetchVariablesParametersFromQueryString(
     sExpressionContext: OperationContext
 ): FetchVariablesParameters {
     let filterQuery: Operation | undefined = undefined
-    if (params.hasOwnProperty("filter")) {
+    if (Object.prototype.hasOwnProperty.call(params, "filter")) {
         filterQuery = parseToOperation(params.filter!, sExpressionContext)
     }
     return {

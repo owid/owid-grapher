@@ -1,4 +1,3 @@
-import React from "react"
 import { DimensionProperty } from "@ourworldindata/utils"
 import { GRAPHER_TAB_OPTIONS } from "@ourworldindata/types"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"

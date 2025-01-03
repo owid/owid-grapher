@@ -14,13 +14,11 @@ export const getPostBySlugLogToSlackNoThrow = async (
     knex: KnexReadonlyTransaction,
     slug: string
 ) => {
-    let post
     try {
-        post = await getFullPostBySlugFromSnapshot(knex, slug)
+        return await getFullPostBySlugFromSnapshot(knex, slug)
     } catch (err) {
         void logErrorAndMaybeSendToBugsnag(err)
-    } finally {
-        return post
+        return undefined
     }
 }
 

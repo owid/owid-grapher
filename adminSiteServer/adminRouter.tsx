@@ -2,7 +2,7 @@
 import express, { Request, Response, Router } from "express"
 import rateLimit from "express-rate-limit"
 import filenamify from "filenamify"
-import React from "react"
+import * as React from "react"
 import { Writable } from "stream"
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { logInWithCredentials, logOut } from "./authentication.js"

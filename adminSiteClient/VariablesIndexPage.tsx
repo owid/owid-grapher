@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import {
     observable,
@@ -8,7 +8,7 @@ import {
     reaction,
     IReactionDisposer,
 } from "mobx"
-import * as lodash from "lodash"
+import lodash from "lodash"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow } from "./Forms.js"
@@ -16,7 +16,7 @@ import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
-export class VariablesIndexPage extends React.Component {
+export class VariablesIndexPage extends Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -42,7 +42,7 @@ export class VariablesIndexPage extends React.Component {
                 const html = text.replace(
                     new RegExp(
                         this.highlightSearch.replace(
-                            /[-\/\\^$*+?.()|[\]{}]/g,
+                            /[-/\\^$*+?.()|[\]{}]/g,
                             "\\$&"
                         ),
                         "i"

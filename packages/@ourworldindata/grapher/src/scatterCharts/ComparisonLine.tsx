@@ -5,7 +5,7 @@ import {
     PointVector,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
-import React from "react"
+import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { DualAxis } from "../axis/Axis"

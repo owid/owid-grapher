@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { Section, Toggle } from "./Forms.js"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
@@ -26,7 +26,7 @@ import { stringify } from "safe-stable-stringify"
 @observer
 export class EditorDebugTab<
     Editor extends AbstractChartEditor,
-> extends React.Component<{
+> extends Component<{
     editor: Editor
 }> {
     render() {
@@ -42,7 +42,7 @@ export class EditorDebugTab<
 }
 
 @observer
-class EditorDebugTabForChart extends React.Component<{
+class EditorDebugTabForChart extends Component<{
     editor: ChartEditor
 }> {
     @action.bound copyYamlToClipboard() {
@@ -200,7 +200,7 @@ class EditorDebugTabForChart extends React.Component<{
 }
 
 @observer
-class EditorDebugTabForChartView extends React.Component<{
+class EditorDebugTabForChartView extends Component<{
     editor: ChartViewEditor
 }> {
     @action.bound copyYamlToClipboard() {
@@ -340,7 +340,7 @@ class EditorDebugTabForChartView extends React.Component<{
 }
 
 @observer
-class EditorDebugTabForIndicatorChart extends React.Component<{
+class EditorDebugTabForIndicatorChart extends Component<{
     editor: IndicatorChartEditor
 }> {
     render() {

@@ -1,11 +1,11 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { OwidOrigin } from "@ourworldindata/utils"
 import { BindString, FieldsRow } from "./Forms.js"
 
 @observer
-export class OriginList extends React.Component<{
+export class OriginList extends Component<{
     origins: OwidOrigin[]
 }> {
     static contextType = AdminAppContext

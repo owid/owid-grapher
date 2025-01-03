@@ -1,5 +1,4 @@
 import { Grapher } from "@ourworldindata/grapher"
-import React from "react"
 import { GrapherFigureView } from "./GrapherFigureView.js"
 import cx from "classnames"
 import { GRAPHER_PREVIEW_CLASS } from "./SiteConstants.js"

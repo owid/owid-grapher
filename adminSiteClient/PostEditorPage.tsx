@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, runInAction } from "mobx"
 
@@ -15,7 +15,7 @@ interface Post {
     content: string
 }
 
-class PostEditor extends React.Component<{ post: Post }> {
+class PostEditor extends Component<{ post: Post }> {
     render() {
         const { post } = this.props
         return (
@@ -29,7 +29,7 @@ class PostEditor extends React.Component<{ post: Post }> {
 }
 
 @observer
-export class PostEditorPage extends React.Component<{ postId?: number }> {
+export class PostEditorPage extends Component<{ postId?: number }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

@@ -128,9 +128,9 @@ function extractSchemaRecursive(
         // then do not emit anything directly and recurse over the
         // described properties
         if (
-            schema.hasOwnProperty("type") &&
+            Object.prototype.hasOwnProperty.call(schema, "type") &&
             schema.type === "object" &&
-            schema.hasOwnProperty("properties") &&
+            Object.prototype.hasOwnProperty.call(schema, "properties") &&
             checkIsPlainObjectWithGuard(schema.properties)
         ) {
             // Color scales are complex objects that are treated as opaque objects with a special
@@ -166,15 +166,15 @@ function extractSchemaRecursive(
             // paternProperties is ".*" and the type of those
             // is string (interpreted as a color)
             // We yield something like this as a single entry
-            schema.hasOwnProperty("type") &&
+            Object.prototype.hasOwnProperty.call(schema, "type") &&
             schema.type === "object" &&
-            schema.hasOwnProperty("patternProperties") &&
+            Object.prototype.hasOwnProperty.call(schema, "patternProperties") &&
             Object.values(
                 schema.patternProperties as Record<string, any>
             ).every(
                 (item: any) =>
                     checkIsPlainObjectWithGuard(item) &&
-                    item.hasOwnProperty("type") &&
+                    Object.prototype.hasOwnProperty.call(item, "type") &&
                     isPlainTypeString((item as any).type)
             )
         ) {
@@ -234,7 +234,7 @@ function extractSchemaRecursive(
             // a primitive type. If so we collect all the types
             // and yield a single FieldDefinition with the merged
             // type
-            schema.hasOwnProperty("oneOf") &&
+            Object.prototype.hasOwnProperty.call(schema, "oneOf") &&
             isArray(schema.oneOf) &&
             schema.oneOf.map((item) => item.type).every(isPlainTypeStringOrNull)
         ) {
@@ -264,13 +264,13 @@ function recursiveDereference(
         schema !== undefined &&
         checkIsPlainObjectWithGuard(schema)
     ) {
-        if (schema.hasOwnProperty("$ref")) {
+        if (Object.prototype.hasOwnProperty.call(schema, "$ref")) {
             const ref = schema["$ref"] as string
             const localPrefix = "#/$defs/"
             if (!ref.startsWith(localPrefix))
                 throw "Only local refs are supported at the moment!"
             const refName = ref.substring(localPrefix.length)
-            if (!defs.hasOwnProperty(refName)) {
+            if (!Object.prototype.hasOwnProperty.call(defs, refName)) {
                 console.error("Reference not found", refName)
                 return schema
             } else return defs[refName] // Note: we are not using recursive dereferencing, i.e. if there are refs in the $defs section we don't resolve them here
@@ -281,7 +281,7 @@ function recursiveDereference(
 }
 
 function dereference(schema: Record<string, unknown>): any {
-    if (!schema.hasOwnProperty("$defs")) return
+    if (!Object.prototype.hasOwnProperty.call(schema, "$defs")) return
     const defs = schema["$defs"] as Record<string, unknown>
 
     const dereferenced = recursiveDereference(schema, defs)

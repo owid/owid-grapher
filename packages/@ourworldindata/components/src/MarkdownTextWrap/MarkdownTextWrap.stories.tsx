@@ -1,4 +1,5 @@
-import React, { createRef } from "react"
+import { createRef } from "react"
+import * as React from "react"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import {

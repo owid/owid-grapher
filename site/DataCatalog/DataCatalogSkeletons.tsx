@@ -1,4 +1,3 @@
-import React from "react"
 import cx from "classnames"
 
 // 💀 Beware! Spooky skeletons for the data catalog 💀

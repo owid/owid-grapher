@@ -1,5 +1,5 @@
 import { BasicChartInformation } from "@ourworldindata/utils"
-import React from "react"
+import * as React from "react"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import GrapherImage from "../GrapherImage.js"
 

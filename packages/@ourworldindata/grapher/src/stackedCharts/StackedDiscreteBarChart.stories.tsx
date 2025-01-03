@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { StackedDiscreteBarChart } from "./StackedDiscreteBarChart"
 import { SynthesizeFruitTable } from "@ourworldindata/core-table"
 

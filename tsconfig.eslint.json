@@ -1,13 +1,12 @@
 {
     "extends": "./tsconfig.json",
     "include": [
-        ".eslintrc.cjs",
-        "**/*.ts",
-        "**/*.tsx",
+        "**/*.cts",
+        "**/*.ctsx",
         "**/*.mts",
         "**/*.mtsx",
-        "**/*.cts",
-        "**/*.ctsx"
+        "**/*.ts",
+        "**/*.tsx"
     ],
     "compilerOptions": {
         // ensure that nobody can accidentally use this config for a build

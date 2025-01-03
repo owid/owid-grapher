@@ -1,5 +1,3 @@
-import React from "react"
-
 export const AlertBanner = () => {
     // 2023-03-23: This banner is now disabled, since we no longer want to highlight
     // the COVID-19 data this way. If we don't reuse this banner later for something

@@ -5,7 +5,8 @@ import {
     copyToClipboard,
     MinimalTag,
 } from "@ourworldindata/utils"
-import React, { useContext, useState } from "react"
+import { useContext, useState } from "react"
+import * as React from "react"
 import {
     faArrowRight,
     faChevronRight,

@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -549,7 +549,9 @@ export class StaticCaptionedChart extends CaptionedChart {
         try {
             if (this.manager.bakedGrapherURL)
                 origin = new URL(this.manager.bakedGrapherURL).origin
-        } catch {}
+        } catch {
+            // ignore
+        }
         const css = `@import url(${origin}/fonts.css)`
         return (
             <defs>

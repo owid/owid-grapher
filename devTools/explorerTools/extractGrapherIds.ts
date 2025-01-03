@@ -35,4 +35,4 @@ async function main(): Promise<void> {
     console.log(csvRows.join("\n"))
 }
 
-main()
+void main()

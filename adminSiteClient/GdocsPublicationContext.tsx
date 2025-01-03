@@ -3,7 +3,6 @@ import {
     OwidGdocPublicationContext,
     OwidGdocPostInterface,
 } from "@ourworldindata/utils"
-import React from "react"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 
 export const GdocsPublicationContext = ({

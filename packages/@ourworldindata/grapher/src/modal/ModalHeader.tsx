@@ -1,4 +1,3 @@
-import React from "react"
 import { CloseButton } from "@ourworldindata/components"
 
 export function ModalHeader({

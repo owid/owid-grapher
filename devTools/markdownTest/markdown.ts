@@ -1,16 +1,9 @@
-import {
-    TransactionCloseMode,
-    knexReadWriteTransaction,
-    knexReadonlyTransaction,
-} from "../../db/db.js"
+import { TransactionCloseMode, knexReadonlyTransaction } from "../../db/db.js"
 import { getPostRawBySlug } from "../../db/model/Post.js"
 import { enrichedBlocksToMarkdown } from "../../db/model/Gdoc/enrichedToMarkdown.js"
 
-import fs from "fs-extra"
-
 import parseArgs from "minimist"
-import { OwidEnrichedGdocBlock } from "@ourworldindata/utils"
-import { parsePostArchieml } from "@ourworldindata/utils"
+import { OwidEnrichedGdocBlock, parsePostArchieml } from "@ourworldindata/utils"
 import { getAndLoadGdocBySlug } from "../../db/model/Gdoc/GdocFactory.js"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
@@ -58,4 +51,4 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 }
 
 const parsedArgs = parseArgs(process.argv.slice(2))
-main(parsedArgs)
+void main(parsedArgs)

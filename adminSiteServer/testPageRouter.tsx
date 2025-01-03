@@ -1,7 +1,6 @@
 // Testing pages for comparing local charts against live versions
 
 import { Router } from "express"
-import React from "react"
 
 import { renderToHtmlPage, expectInt } from "../serverUtils/serverUtil.js"
 import {

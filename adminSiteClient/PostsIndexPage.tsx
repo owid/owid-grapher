@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 
@@ -54,7 +54,7 @@ interface PostRowProps {
 }
 
 @observer
-class PostRow extends React.Component<PostRowProps> {
+class PostRow extends Component<PostRowProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -240,7 +240,7 @@ class PostRow extends React.Component<PostRowProps> {
 }
 
 @observer
-export class PostsIndexPage extends React.Component {
+export class PostsIndexPage extends Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

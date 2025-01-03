@@ -76,7 +76,6 @@ const main = async (): Promise<void> => {
         )
     } catch (e) {
         console.error(e)
-    } finally {
     }
 }
 

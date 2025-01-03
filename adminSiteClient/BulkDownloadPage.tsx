@@ -1,10 +1,10 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
-export class BulkDownloadPage extends React.Component {
+export class BulkDownloadPage extends Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -20,7 +20,7 @@ export class BulkDownloadPage extends React.Component {
     }
 }
 
-export class DownloadChartsSection extends React.Component {
+export class DownloadChartsSection extends Component {
     render() {
         return (
             <section>

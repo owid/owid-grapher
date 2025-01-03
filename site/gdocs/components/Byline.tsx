@@ -1,4 +1,4 @@
-import React from "react"
+import { Fragment } from "react"
 import LinkedAuthor from "./LinkedAuthor.js"
 
 export const Byline = ({ names }: { names: string[] }) => {
@@ -6,14 +6,14 @@ export const Byline = ({ names }: { names: string[] }) => {
         <>
             {"By: "}
             {names.map((name, idx) => (
-                <React.Fragment key={name}>
+                <Fragment key={name}>
                     <LinkedAuthor name={name} />
                     {idx === names.length - 1
                         ? ""
                         : idx === names.length - 2
                           ? " and "
                           : ", "}
-                </React.Fragment>
+                </Fragment>
             ))}
         </>
     )

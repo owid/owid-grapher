@@ -1,4 +1,3 @@
-import React from "react"
 import { CodeSnippet } from "../CodeSnippet/CodeSnippet.js"
 
 export const DataCitation = (props: {

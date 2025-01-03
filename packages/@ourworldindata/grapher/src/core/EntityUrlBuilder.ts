@@ -89,7 +89,7 @@ const migrateV1Delimited: UrlMigration = (url) => {
  */
 
 // Pattern for a entity name - number pair, where the entity name contains at least one non-digit character.
-const LegacyDimensionRegex = /^(.*\D.*)\-\d+$/
+const LegacyDimensionRegex = /^(.*\D.*)-\d+$/
 
 const injectEntityNamesInLegacyDimension = (
     entityNames: EntityName[]

@@ -62,7 +62,9 @@ it("handles clearing pending promise", async () => {
     selector.clear()
     try {
         await reject
-    } catch {}
+    } catch {
+        // ignore
+    }
 
     expect(onResolve).not.toHaveBeenCalled()
     expect(onReject).not.toHaveBeenCalled()

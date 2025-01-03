@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import findBaseDir from "../settings/findBaseDir.js"
 import fs from "fs-extra"
 import {

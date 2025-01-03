@@ -1,5 +1,3 @@
-import React from "react"
-
 import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,

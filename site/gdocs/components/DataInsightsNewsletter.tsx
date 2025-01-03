@@ -1,4 +1,3 @@
-import * as React from "react"
 import cx from "classnames"
 import { faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

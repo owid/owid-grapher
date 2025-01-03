@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import ReactDOM from "react-dom"
 import { action, observable, IReactionDisposer, reaction, computed } from "mobx"
 import { observer } from "mobx-react"
@@ -196,7 +196,9 @@ export class GlobalEntitySelector extends React.Component<{
                 (entity): boolean => entity.code === localCountryCode.code
             )
             if (country) this.localEntityName = country.name
-        } catch {}
+        } catch {
+            // ignore
+        }
     }
 
     @action.bound private prepareOptionGroups(): GroupBase<DropdownEntity>[] {

@@ -1,5 +1,4 @@
 import cx from "classnames"
-import * as React from "react"
 import urljoin from "url-join"
 
 import { TombstonePageData } from "@ourworldindata/types"

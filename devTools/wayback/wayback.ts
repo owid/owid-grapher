@@ -20,7 +20,7 @@ const needsRewrite = (mimeType: string) =>
     mimeType === "image/svg+xml"
 
 const fixPaths = (fileContent: string) =>
-    fileContent.replace(/https?\:\/\/ourworldindata\.org\//g, "/")
+    fileContent.replace(/https?:\/\/ourworldindata\.org\//g, "/")
 
 app.get("*", async (req, res) => {
     const filepath = path.resolve(staticFolder + req.path)
@@ -33,7 +33,7 @@ app.get("*", async (req, res) => {
 
     const mimeType = mime.lookup(filepath) || "text/plain"
 
-    if (needsRewrite(mimeType)) {
+    if (typeof mimeType === "string" && needsRewrite(mimeType)) {
         const fileContent = await fs.readFile(filepath, "utf8")
         const rewritten = fixPaths(fileContent)
         res.setHeader("Content-Type", mimeType)
