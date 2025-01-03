@@ -14,7 +14,7 @@ import {
     runInAction,
 } from "mobx"
 import { observer } from "mobx-react"
-import React from "react"
+import { Component } from "react"
 import {
     DefaultNewExplorerSlug,
     ExplorersRouteResponse,
@@ -35,7 +35,7 @@ import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { AdminManager } from "./AdminManager.js"
 
 @observer
-class ExplorerRow extends React.Component<{
+class ExplorerRow extends Component<{
     explorer: ExplorerProgram
     indexPage: ExplorersIndexPage
     gitCmsBranchName: string
@@ -148,7 +148,7 @@ class ExplorerRow extends React.Component<{
 }
 
 @observer
-class ExplorerList extends React.Component<{
+class ExplorerList extends Component<{
     explorers: ExplorerProgram[]
     searchHighlight?: (text: string) => any
     indexPage: ExplorersIndexPage
@@ -185,7 +185,7 @@ class ExplorerList extends React.Component<{
 }
 
 @observer
-export class ExplorersIndexPage extends React.Component<{
+export class ExplorersIndexPage extends Component<{
     manager?: AdminManager
 }> {
     @observable explorers: ExplorerProgram[] = []
@@ -225,7 +225,7 @@ export class ExplorersIndexPage extends React.Component<{
                 const html = text.replace(
                     new RegExp(
                         this.highlightSearch.replace(
-                            /[-\/\\^$*+?.()|[\]{}]/g,
+                            /[-/\\^$*+?.()|[\]{}]/g,
                             "\\$&"
                         ),
                         "i"

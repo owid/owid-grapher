@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import * as lodash from "lodash"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"

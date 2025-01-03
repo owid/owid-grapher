@@ -1,8 +1,6 @@
 #! /usr/bin/env jest
-
-import React from "react"
-import { Grapher } from "../core/Grapher"
-import { legacyMapGrapher } from "./MapChart.sample"
+import { Grapher } from "../core/Grapher.js"
+import { legacyMapGrapher } from "./MapChart.sample.js"
 
 import Enzyme from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"

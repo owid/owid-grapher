@@ -1,4 +1,5 @@
-import React, { useContext } from "react"
+import { useContext } from "react"
+import * as React from "react"
 
 import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import {
@@ -145,6 +146,11 @@ export const useImage = (
 export function useDonors(): string[] | undefined {
     const { donors } = useContext(AttachmentsContext)
     return donors
+}
+
+export const useLinkedChartView = (name: string) => {
+    const { linkedChartViews } = useContext(AttachmentsContext)
+    return linkedChartViews?.[name]
 }
 
 const LinkedA = ({ span }: { span: SpanLink }): React.ReactElement => {

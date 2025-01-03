@@ -18,4 +18,4 @@ const rewriteAllExplorers = async () => {
     console.log("Finished rewriting", allExplorers.length, "explorers")
 }
 
-rewriteAllExplorers()
+void rewriteAllExplorers()

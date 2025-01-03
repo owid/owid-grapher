@@ -1,8 +1,4 @@
 #! /usr/bin/env jest
-
-import React from "react"
-
-import { DataTable } from "./DataTable"
 import { GRAPHER_CHART_TYPES, GRAPHER_TAB_OPTIONS } from "@ourworldindata/types"
 import {
     childMortalityGrapher,
@@ -14,6 +10,8 @@ import {
 import Enzyme, { ReactWrapper } from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
 import { LifeExpectancyGrapher } from "../testData/OwidTestData.sample.js"
+import { DataTable } from "./DataTable.js"
+
 Enzyme.configure({ adapter: new Adapter() })
 
 describe("when you render a table", () => {

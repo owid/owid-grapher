@@ -24,7 +24,7 @@
         "allowJs": false,
         "sourceMap": true,
         "moduleResolution": "node",
-        "jsx": "react",
+        "jsx": "react-jsx",
 
         "experimentalDecorators": true,
         "useDefineForClassFields": false,

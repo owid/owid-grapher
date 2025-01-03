@@ -1,4 +1,5 @@
-import React, { useState } from "react"
+import { useState } from "react"
+import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -304,7 +305,7 @@ export class ActionButtons extends React.Component<{
                     {this.hasExploreTheDataButton && (
                         <li style={{ width: this.exploreTheDataButtonWidth }}>
                             <div
-                                className="ActionButton"
+                                className="ActionButton ActionButton--exploreData"
                                 style={{ width: "100%" }}
                             >
                                 <a

@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useReducer, useRef, useState } from "react"
+import { useEffect, useMemo, useReducer, useRef, useState } from "react"
+import * as React from "react"
 import ReactDOM from "react-dom"
 import cx from "classnames"
 import {

@@ -160,5 +160,5 @@ Other options:
     `)
     process.exit(0)
 } else {
-    main(parsedArgs)
+    void main(parsedArgs)
 }

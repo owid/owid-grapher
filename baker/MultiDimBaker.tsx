@@ -16,7 +16,6 @@ import {
 import * as db from "../db/db.js"
 import { renderToHtmlPage } from "./siteRenderers.js"
 import { MultiDimDataPage } from "../site/multiDim/MultiDimDataPage.js"
-import React from "react"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,

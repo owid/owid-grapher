@@ -1,5 +1,3 @@
-import React from "react"
-
 export const DownloadIconFullDataset = () => (
     <svg
         width="34"

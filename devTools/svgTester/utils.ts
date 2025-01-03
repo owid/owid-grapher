@@ -3,6 +3,7 @@ import {
     GrapherChartType,
     GrapherTabName,
     ALL_GRAPHER_CHART_TYPES,
+    GrapherInterface,
 } from "@ourworldindata/types"
 import {
     MultipleOwidVariableDataDimensionsMap,
@@ -20,7 +21,6 @@ import {
 } from "../../baker/GrapherImageBaker.js"
 import { getVariableData } from "../../db/model/Variable.js"
 
-import { GrapherInterface } from "@ourworldindata/types"
 import _ from "lodash"
 import util from "util"
 import { getHeapStatistics } from "v8"
@@ -121,7 +121,7 @@ export function logIfVerbose(verbose: boolean, message: string, param?: any) {
 }
 
 function findFirstDiffIndex(a: string, b: string): number {
-    var i = 0
+    let i = 0
     while (i < a.length && i < b.length && a[i] === b[i]) i++
     if (a.length === b.length && a.length === i) {
         console.warn("No difference found even though hash was different!")
@@ -165,11 +165,14 @@ export async function verifySvg(
     return resultDifference({
         chartId: newSvgRecord.chartId,
         startIndex: firstDiffIndex,
-        referenceSvgFragment: preparedReferenceSvg.substr(
+        referenceSvgFragment: preparedReferenceSvg.substring(
             firstDiffIndex - 20,
-            40
+            firstDiffIndex + 20
         ),
-        newSvgFragment: preparedNewSvg.substr(firstDiffIndex - 20, 40),
+        newSvgFragment: preparedNewSvg.substring(
+            firstDiffIndex - 20,
+            firstDiffIndex + 20
+        ),
     })
 }
 
@@ -620,7 +623,7 @@ export async function renderAndVerifySvg({
         // verifySvg returns a Result type - if it is success we don't care any further
         // but if there was an error then we write the svg and a message to stderr
         switch (validationResult.kind) {
-            case "difference":
+            case "difference": {
                 if (verbose)
                     logDifferencesToConsole(svgRecord, validationResult)
                 const pathFragments = path.parse(svgRecord.svgFilename)
@@ -630,6 +633,8 @@ export async function renderAndVerifySvg({
                 )
                 const cleanedSvg = prepareSvgForComparision(svg)
                 await fs.writeFile(outputPath, cleanedSvg)
+                break
+            }
         }
         return Promise.resolve(validationResult)
     } catch (err) {

@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { notification } from "antd"
 import { OwidGdocErrorMessageType } from "@ourworldindata/utils"
 import { match } from "ts-pattern"

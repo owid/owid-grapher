@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
@@ -33,7 +33,7 @@ class TagEditable {
 }
 
 @observer
-class TagEditor extends React.Component<{ tag: TagPageData }> {
+class TagEditor extends Component<{ tag: TagPageData }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -177,7 +177,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
 }
 
 @observer
-export class TagEditPage extends React.Component<{ tagId: number }> {
+export class TagEditPage extends Component<{ tagId: number }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

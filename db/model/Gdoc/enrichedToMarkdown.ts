@@ -127,6 +127,17 @@ ${items}
                 exportComponents
             )
         )
+        .with({ type: "narrative-chart" }, (b): string | undefined =>
+            markdownComponent(
+                "NarrativeChart",
+                {
+                    name: b.name,
+                    caption: b.caption ? spansToMarkdown(b.caption) : undefined,
+                    // Note: truncated
+                },
+                exportComponents
+            )
+        )
         .with({ type: "code" }, (b): string | undefined => {
             return (
                 "```\n" +

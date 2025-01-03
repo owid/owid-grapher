@@ -2,7 +2,6 @@
 
 import { AxisConfig } from "./AxisConfig"
 import { DualAxisComponent, HorizontalAxisGridLines } from "./AxisViews"
-import React from "react"
 import { ScaleType } from "@ourworldindata/types"
 import { DualAxis } from "./Axis"
 

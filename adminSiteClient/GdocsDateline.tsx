@@ -1,7 +1,6 @@
 import { Col, DatePicker } from "antd"
 import { Dayjs } from "dayjs"
 import { dayjs, OwidGdocErrorMessage, OwidGdoc } from "@ourworldindata/utils"
-import React from "react"
 import { PUBLISHED_AT_FORMAT } from "../settings/clientSettings"
 import { getPropertyMostCriticalError } from "./gdocsValidation.js"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"

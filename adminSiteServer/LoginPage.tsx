@@ -1,5 +1,3 @@
-import React from "react"
-
 export const LoginPage = (props: { next?: string; errorMessage?: string }) => {
     const style = `
         html, body {

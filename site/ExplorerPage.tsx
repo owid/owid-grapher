@@ -7,7 +7,6 @@ import {
     SiteFooterContext,
     GrapherInterface,
 } from "@ourworldindata/utils"
-import React from "react"
 import {
     EMBEDDED_EXPLORER_DELIMITER,
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,

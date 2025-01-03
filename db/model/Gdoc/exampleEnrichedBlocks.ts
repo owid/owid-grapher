@@ -121,6 +121,16 @@ export const enrichedBlockExamples: Record<
         caption: boldLinkExampleText,
         parseErrors: [],
     },
+    "narrative-chart": {
+        type: "narrative-chart",
+        name: "world-has-become-less-democratic",
+        height: "400",
+        row: "1",
+        column: "1",
+        position: "featured",
+        caption: boldLinkExampleText,
+        parseErrors: [],
+    },
     code: {
         type: "code",
         text: [

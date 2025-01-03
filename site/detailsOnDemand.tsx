@@ -1,4 +1,3 @@
-import React from "react"
 import { tippy } from "@tippyjs/react"
 import { Instance } from "tippy.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"

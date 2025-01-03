@@ -9,11 +9,11 @@ import { Grapher } from "@ourworldindata/grapher"
 import { debounce, excludeUndefined } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import React from "react"
+import { Component } from "react"
 import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
 
 @observer
-export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
+export class EditorScatterTab extends Component<{ grapher: Grapher }> {
     @observable comparisonLine: ComparisonLineConfig = { yEquals: undefined }
 
     constructor(props: { grapher: Grapher }) {

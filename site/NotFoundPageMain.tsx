@@ -1,4 +1,3 @@
-import * as React from "react"
 import { hydrate } from "react-dom"
 import NotFoundPageForm from "./NotFoundPageForm.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"

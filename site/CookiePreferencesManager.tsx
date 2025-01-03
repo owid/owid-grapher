@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom"
-import React, { useEffect, useMemo, useReducer } from "react"
+import { useEffect, useMemo, useReducer } from "react"
 import Cookies from "js-cookie"
 import { CookiePreferences } from "../site/blocks/CookiePreferences.js"
 import { CookieNotice } from "../site/CookieNotice.js"
@@ -158,7 +158,9 @@ const getInitialState = (): State => {
         cookieValue = parseRawCookieValue(
             Cookies.get(COOKIE_PREFERENCES_COOKIE_NAME)
         )
-    } catch {}
+    } catch {
+        // ignore
+    }
 
     if (!cookieValue || arePreferencesOutdated(cookieValue.date, POLICY_DATE))
         return defaultState

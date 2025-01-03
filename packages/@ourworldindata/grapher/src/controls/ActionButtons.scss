@@ -26,10 +26,20 @@ $paddingX: 12px; // keep in sync with PADDING_X
     }
 }
 
-.ActionButton {
-    $light-fill: $gray-10;
-    $hover-fill: $gray-20;
-    $active-fill: $blue-20;
+div.ActionButton {
+    --light-fill: #{$gray-10};
+    --hover-fill: #{$gray-20};
+    --active-fill: #{$blue-20};
+    --text-color: #{$dark-text};
+
+    &.ActionButton--exploreData {
+        --light-fill: #{$blue-20};
+        --hover-fill: #{$blue-20};
+        --active-fill: #{$blue-10};
+        --text-color: #{$blue-90};
+
+        --hover-decoration: underline;
+    }
 
     height: 100%;
     border-radius: 4px;
@@ -43,12 +53,12 @@ $paddingX: 12px; // keep in sync with PADDING_X
         height: 100%;
         width: 100%;
         cursor: pointer;
-        color: $dark-text;
+        color: var(--text-color);
         font-size: 13px;
         font-weight: 500;
         padding: 0 $paddingX;
         border-radius: inherit;
-        background-color: $light-fill;
+        background-color: var(--light-fill);
         position: relative;
         letter-spacing: 0.01em;
 
@@ -62,13 +72,14 @@ $paddingX: 12px; // keep in sync with PADDING_X
         }
 
         &:hover {
-            background-color: $hover-fill;
+            background-color: var(--hover-fill);
+            text-decoration: var(--hover-decoration);
         }
 
         &:active,
         &.active {
             color: $active-text;
-            background-color: $active-fill;
+            background-color: var(--active-fill);
         }
     }
 

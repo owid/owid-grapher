@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
@@ -177,13 +177,14 @@ function TabIcon({
             return <FontAwesomeIcon icon={faTable} />
         case GRAPHER_TAB_NAMES.WorldMap:
             return <FontAwesomeIcon icon={faEarthAmericas} />
-        default:
+        default: {
             const chartIcon =
                 tab === GRAPHER_TAB_NAMES.LineChart &&
                 isLineChartThatTurnedIntoDiscreteBar
                     ? chartIcons[GRAPHER_CHART_TYPES.DiscreteBar]
                     : chartIcons[tab]
             return chartIcon
+        }
     }
 }
 

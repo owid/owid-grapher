@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { CategoryWithEntries } from "@ourworldindata/utils"
 import classnames from "classnames"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"

@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import Select, { Props } from "react-select"
 import cx from "classnames"
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import ReactDOM from "react-dom"
 import Select from "react-select"
 import { countries, sortBy } from "@ourworldindata/utils"

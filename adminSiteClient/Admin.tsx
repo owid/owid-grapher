@@ -1,4 +1,3 @@
-import React from "react"
 import ReactDOM from "react-dom"
 import * as lodash from "lodash"
 import { observable, computed, action } from "mobx"
@@ -163,7 +162,6 @@ export class Admin {
     }
 
     @action.bound private removeRequest(request: Promise<Response>): void {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.currentRequests = this.currentRequests.filter(
             (req) => req !== request
         )

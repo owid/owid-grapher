@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { areSetsEqual, Box, getCountryByName } from "@ourworldindata/utils"
 import {
     SeriesStrategy,

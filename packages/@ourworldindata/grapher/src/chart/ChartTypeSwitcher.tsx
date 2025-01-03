@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import {
     ALL_GRAPHER_CHART_TYPES,
     GrapherChartType,

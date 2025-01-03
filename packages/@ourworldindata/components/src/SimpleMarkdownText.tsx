@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { computed } from "mobx"
 import { Remark, useRemarkSync, UseRemarkSyncOptions } from "react-remark"
 import { remarkPlainLinks } from "./markdown/remarkPlainLinks.js"

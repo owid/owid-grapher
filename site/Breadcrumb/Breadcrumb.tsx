@@ -1,4 +1,4 @@
-import React from "react"
+import { Fragment } from "react"
 import { BreadcrumbItem } from "@ourworldindata/utils"
 import { SubNavId } from "@ourworldindata/types"
 import { getSubnavItem, SubnavItem, subnavs } from "../SiteSubnavigation.js"
@@ -70,20 +70,19 @@ export const Breadcrumbs = ({
         {items.map((item, idx) => {
             const isLast = idx === items.length - 1
 
-            const breadcrumb =
-                !isLast && item.href ? (
-                    <a href={item.href} data-track-note="breadcrumb">
-                        {item.label}
-                    </a>
-                ) : (
-                    <span>{item.label}</span>
-                )
+            const breadcrumb = item.href ? (
+                <a href={item.href} data-track-note="breadcrumb">
+                    {item.label}
+                </a>
+            ) : (
+                <span>{item.label}</span>
+            )
 
             return (
-                <React.Fragment key={item.label}>
+                <Fragment key={item.label}>
                     {breadcrumb}
                     {!isLast && <BreadcrumbSeparator />}
-                </React.Fragment>
+                </Fragment>
             )
         })}
     </div>

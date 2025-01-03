@@ -1,4 +1,3 @@
-import React from "react"
 import cx from "classnames"
 import { LARGEST_IMAGE_WIDTH, Span } from "@ourworldindata/utils"
 import { renderSpans, useImage } from "../utils.js"

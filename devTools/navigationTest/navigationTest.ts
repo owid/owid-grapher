@@ -17,7 +17,7 @@ const testSiteNavigation = async () => {
         return categorySlugs
     })
 
-    let promises = slugs.map((slug) => {
+    const promises = slugs.map((slug) => {
         return fetch(`https://ourworldindata.org/${slug}`, {
             method: "HEAD",
         })
@@ -36,4 +36,4 @@ const testSiteNavigation = async () => {
     console.log("✅ All fetches completed")
 }
 
-testSiteNavigation()
+void testSiteNavigation()

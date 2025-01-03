@@ -1,5 +1,5 @@
 import { OwidGdocPostInterface } from "@ourworldindata/utils"
-import React from "react"
+import * as React from "react"
 
 /**
  * We would like to handle Fragments better in the future

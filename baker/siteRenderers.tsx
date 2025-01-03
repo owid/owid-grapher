@@ -10,9 +10,8 @@ import { ExplorerIndexPage } from "../site/ExplorerIndexPage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
-import React from "react"
 import ReactDOMServer from "react-dom/server.js"
-import * as lodash from "lodash"
+import lodash from "lodash"
 import { formatCountryProfile, isCanonicalInternalUrl } from "./formatting.js"
 import {
     bakeGrapherUrls,
@@ -439,6 +438,7 @@ ${dataInsights
                     latestDataInsights: get(post, "latestDataInsights", []),
                     homepageMetadata: get(post, "homepageMetadata", {}),
                     latestWorkLinks: get(post, "latestWorkLinks", []),
+                    linkedChartViews: get(post, "linkedChartViews", {}),
                 }}
             >
                 <AtomArticleBlocks blocks={post.content.body} />
@@ -622,9 +622,9 @@ export const renderProminentLinks = async (
                         )
                     )
                     $block.remove()
-                    return
                 }
             }
+            if (!title) return
 
             const image =
                 $block.find("figure").html() ||

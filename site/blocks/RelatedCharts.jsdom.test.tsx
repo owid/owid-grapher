@@ -1,8 +1,5 @@
 #! /usr/bin/env jest
 
-import React from "react"
-import { RelatedCharts } from "./RelatedCharts.js"
-
 import Enzyme from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
 import {
@@ -10,6 +7,7 @@ import {
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../../settings/clientSettings.js"
 import { KeyChartLevel } from "@ourworldindata/utils"
+import { RelatedCharts } from "./RelatedCharts.js"
 Enzyme.configure({ adapter: new Adapter() })
 
 const charts = [

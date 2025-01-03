@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { action, observable, runInAction } from "mobx"
 
@@ -16,7 +16,7 @@ const statusLabel: Record<DeployStatus, string> = {
 }
 
 @observer
-export class DeployStatusPage extends React.Component {
+export class DeployStatusPage extends Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

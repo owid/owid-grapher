@@ -78,7 +78,7 @@ Options:
     --compare-url   Base URL to compare against prod [default: ${LOCAL_URL}]
     `)
 } else {
-    main(parsedArgs)
+    void main(parsedArgs)
 }
 
 function createComparisonView(

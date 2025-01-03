@@ -1,4 +1,3 @@
-import React from "react"
 import { IndexPost, formatDate } from "@ourworldindata/utils"
 import { formatUrls } from "../formatting.js"
 import { formatAuthors } from "../clientFormatting.js"

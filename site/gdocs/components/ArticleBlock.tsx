@@ -1,4 +1,3 @@
-import React from "react"
 import cx from "classnames"
 
 import Callout from "./Callout.js"
@@ -46,6 +45,7 @@ import { HomepageSearch } from "./HomepageSearch.js"
 import LatestDataInsightsBlock from "./LatestDataInsightsBlock.js"
 import { Socials } from "./Socials.js"
 import Person from "./Person.js"
+import NarrativeChart from "./NarrativeChart.js"
 
 export type Container =
     | "default"
@@ -241,6 +241,15 @@ export default function ArticleBlock({
             return (
                 <Chart
                     className={getLayout(layoutSubtype, containerType)}
+                    d={block}
+                    fullWidthOnMobile={true}
+                />
+            )
+        })
+        .with({ type: "narrative-chart" }, (block) => {
+            return (
+                <NarrativeChart
+                    className={getLayout("chart", containerType)}
                     d={block}
                     fullWidthOnMobile={true}
                 />

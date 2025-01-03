@@ -1,4 +1,3 @@
-import React from "react"
 import {
     ENV,
     GITHUB_USERNAME,
