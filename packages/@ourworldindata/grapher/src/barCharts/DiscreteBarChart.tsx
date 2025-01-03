@@ -37,11 +37,7 @@ import {
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
-import {
-    HorizontalAxisComponent,
-    HorizontalAxisGridLines,
-    HorizontalAxisZeroLine,
-} from "../axis/AxisViews"
+import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ColorSchemes } from "../color/ColorSchemes"
@@ -305,7 +301,6 @@ export class DiscreteBarChart
     @computed private get innerBounds(): Bounds {
         return this.boundsWithoutColorLegend
             .padLeft(Math.max(this.seriesLegendWidth, this.leftValueLabelWidth))
-            .padBottom(this.showHorizontalAxis ? this.yAxis.height : 0)
             .padRight(this.rightValueLabelWidth)
     }
 
@@ -348,10 +343,6 @@ export class DiscreteBarChart
 
     @computed private get barWidths(): number[] {
         return this.barPlacements.map((b) => b.width)
-    }
-
-    @computed private get showHorizontalAxis(): boolean | undefined {
-        return this.manager.isRelativeMode
     }
 
     private d3Bars(): Selection<
@@ -504,7 +495,7 @@ export class DiscreteBarChart
     }
 
     renderChartArea(): React.ReactElement {
-        const { manager, boundsWithoutColorLegend, yAxis, innerBounds } = this
+        const { manager, yAxis, innerBounds } = this
 
         const axisLineWidth = manager.isStaticAndSmall
             ? GRAPHER_AXIS_LINE_WIDTH_THICK
@@ -515,22 +506,6 @@ export class DiscreteBarChart
                 {this.renderDefs()}
                 {this.showColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
-                )}
-                {this.showHorizontalAxis && (
-                    <>
-                        <HorizontalAxisComponent
-                            bounds={boundsWithoutColorLegend}
-                            axis={yAxis}
-                            preferredAxisPosition={innerBounds.bottom}
-                            labelColor={manager.secondaryColorInStaticCharts}
-                            tickMarkWidth={axisLineWidth}
-                        />
-                        <HorizontalAxisGridLines
-                            horizontalAxis={yAxis}
-                            bounds={innerBounds}
-                            strokeWidth={axisLineWidth}
-                        />
-                    </>
                 )}
                 {!this.isLogScale && (
                     <HorizontalAxisZeroLine
