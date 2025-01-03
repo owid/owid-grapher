@@ -212,7 +212,7 @@ export class StackedBarChart
 
     @computed protected get paddingForLegendTop(): number {
         return this.showHorizontalLegend
-            ? this.horizontalColorLegendHeight + 8
+            ? this.horizontalColorLegend.height + 8
             : 0
     }
 
@@ -326,16 +326,7 @@ export class StackedBarChart
     }
 
     @computed
-    private get horizontalColorLegendHeight(): number {
-        return HorizontalCategoricalColorLegend.height({
-            fontSize: this.fontSize,
-            align: this.legendAlign,
-            maxWidth: this.legendWidth,
-            categoricalBins: this.categoricalLegendData,
-        })
-    }
-
-    @computed get colorLegend(): HorizontalCategoricalColorLegend {
+    private get horizontalColorLegend(): HorizontalCategoricalColorLegend {
         return new HorizontalCategoricalColorLegend({
             fontSize: this.fontSize,
             align: this.legendAlign,
@@ -500,7 +491,7 @@ export class StackedBarChart
 
         return showHorizontalLegend ? (
             <HorizontalCategoricalColorLegendComponent
-                legend={this.colorLegend}
+                legend={this.horizontalColorLegend}
                 x={this.legendX}
                 y={this.categoryLegendY}
                 activeColors={this.activeColors}

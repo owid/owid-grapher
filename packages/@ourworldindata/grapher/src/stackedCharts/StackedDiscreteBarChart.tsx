@@ -328,8 +328,8 @@ export class StackedDiscreteBarChart
 
     @computed private get boundsWithoutLegend(): Bounds {
         return this.bounds.padTop(
-            this.showLegend && this.legendHeight > 0
-                ? this.legendHeight + this.legendPaddingTop
+            this.showLegend && this.legend.height > 0
+                ? this.legend.height + this.legendPaddingTop
                 : 0
         )
     }
@@ -546,15 +546,6 @@ export class StackedDiscreteBarChart
 
     @computed private get legend(): HorizontalCategoricalColorLegend {
         return new HorizontalCategoricalColorLegend({
-            fontSize: this.fontSize,
-            align: this.legendAlign,
-            maxWidth: this.legendWidth,
-            categoricalBins: this.categoricalLegendData,
-        })
-    }
-
-    @computed private get legendHeight(): number {
-        return HorizontalCategoricalColorLegend.height({
             fontSize: this.fontSize,
             align: this.legendAlign,
             maxWidth: this.legendWidth,
