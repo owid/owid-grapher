@@ -3,6 +3,7 @@ import { max, Bounds, HorizontalAlign } from "@ourworldindata/utils"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import {
     BASE_FONT_SIZE,
+    GRAPHER_FONT_SCALE_12,
     GRAPHER_FONT_SCALE_12_8,
 } from "../core/GrapherConstants"
 import { SPACE_BETWEEN_CATEGORICAL_BINS } from "./HorizontalColorLegendConstants"
@@ -53,11 +54,15 @@ export class HorizontalCategoricalColorLegend {
     }
 
     @computed private get fontSize(): number {
-        return GRAPHER_FONT_SCALE_12_8 * (this.props.fontSize ?? BASE_FONT_SIZE)
+        return this.props.fontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed private get labelFontSize(): number {
+        return GRAPHER_FONT_SCALE_12_8 * this.fontSize
     }
 
     @computed get swatchSize(): number {
-        return this.fontSize * 0.75
+        return GRAPHER_FONT_SCALE_12 * this.fontSize
     }
 
     @computed private get align(): HorizontalAlign {
@@ -79,7 +84,7 @@ export class HorizontalCategoricalColorLegend {
         let yOffset = 0
         this.visibleBins.forEach((bin) => {
             const labelBounds = Bounds.forText(bin.text, {
-                fontSize: this.fontSize,
+                fontSize: this.labelFontSize,
             })
             const markWidth =
                 this.swatchSize +
@@ -106,7 +111,7 @@ export class HorizontalCategoricalColorLegend {
                     x: markX + this.swatchSize + this.swatchMarginRight,
                     y: markY + this.swatchSize / 2,
                 }),
-                fontSize: this.fontSize,
+                fontSize: this.labelFontSize,
             }
 
             marks.push({
