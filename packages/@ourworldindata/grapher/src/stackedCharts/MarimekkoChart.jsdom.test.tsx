@@ -3,7 +3,7 @@
 import { Bounds, ColumnTypeNames, omit } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import { DefaultColorScheme } from "../color/CustomSchemes"
-import { Grapher } from "../core/Grapher"
+import { Grapher, GrapherState } from "../core/Grapher"
 import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 import { MarimekkoChart } from "./MarimekkoChart"
 import { BarShape, PlacedItem } from "./MarimekkoChartConstants"
@@ -30,7 +30,7 @@ it("can filter years correctly", () => {
         xSlug: "population",
         endTime: 2001,
     }
-    const grapher = new Grapher(manager)
+    const grapher = new GrapherState(manager)
     const chart = new MarimekkoChart({
         manager: grapher,
         bounds: new Bounds(0, 0, 1000, 1000),
@@ -140,7 +140,7 @@ it("shows no data points at the end", () => {
         xSlug: "population",
         endTime: 2001,
     }
-    const grapher = new Grapher(manager)
+    const grapher = new GrapherState(manager)
     const chart = new MarimekkoChart({
         manager: grapher,
         bounds: new Bounds(0, 0, 1001, 1000),
@@ -240,7 +240,7 @@ test("interpolation works as expected", () => {
         xSlug: "population",
         endTime: 2001,
     }
-    const grapher = new Grapher(manager)
+    const grapher = new GrapherState(manager)
     const chart = new MarimekkoChart({
         manager: grapher,
         bounds: new Bounds(0, 0, 1000, 1000),
@@ -351,7 +351,7 @@ it("can deal with y columns with missing values", () => {
         xSlug: "population",
         endTime: 2001,
     }
-    const grapher = new Grapher(manager)
+    const grapher = new GrapherState(manager)
     const chart = new MarimekkoChart({
         manager: grapher,
         bounds: new Bounds(0, 0, 1000, 1000),
