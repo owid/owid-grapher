@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { Bounds, ColumnTypeNames } from "@ourworldindata/utils"
+import { Bounds, ColumnTypeNames, omit } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import { DefaultColorScheme } from "../color/CustomSchemes"
 import { Grapher } from "../core/Grapher"
@@ -408,8 +408,15 @@ it("can deal with y columns with missing values", () => {
     expect(chart.series[0].points).toEqual(expectedYPoints1)
     expect(chart.series[1].points).toEqual(expectedYPoints2)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
+
+    const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
+        omit(placedItem, "xPosition")
+    )
+    const xPositions = chart.placedItems.map(
+        (placedItem) => placedItem.xPosition
+    )
     // placedItems should be in default sort order
-    expect(chart.placedItems.map(roundXPosition)).toEqual([
+    expect(placedItemsWithoutXPosition).toEqual([
         {
             entityName: "medium",
             entityColor: undefined,
@@ -428,7 +435,6 @@ it("can deal with y columns with missing values", () => {
                 },
             ],
             xPoint: expectedXPoints[0],
-            xPosition: 0,
         },
         {
             entityName: "small",
@@ -448,7 +454,6 @@ it("can deal with y columns with missing values", () => {
                 },
             ],
             xPoint: expectedXPoints[2],
-            xPosition: Math.round(xAxisRange * 0.4),
         },
         {
             entityName: "big",
@@ -462,9 +467,12 @@ it("can deal with y columns with missing values", () => {
                 },
             ],
             xPoint: expectedXPoints[1],
-            xPosition: Math.round(xAxisRange * 0.5),
         },
     ])
+
+    expect(xPositions[0]).toEqual(0)
+    expect(xPositions[1]).toBeCloseTo(xAxisRange * 0.4, 0)
+    expect(xPositions[2]).toBeCloseTo(xAxisRange * 0.5, 0)
 })
 
 function roundXPosition(item: PlacedItem): PlacedItem {
