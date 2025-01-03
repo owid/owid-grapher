@@ -1,5 +1,5 @@
 import { DimensionProperty } from "@ourworldindata/utils"
-import { Grapher } from "../core/Grapher"
+import { Grapher, GrapherState } from "../core/Grapher"
 import { GRAPHER_TAB_OPTIONS, GrapherInterface } from "@ourworldindata/types"
 import {
     TestMetadata,
@@ -9,7 +9,7 @@ import {
 
 export const childMortalityGrapher = (
     props: Partial<GrapherInterface> = {}
-): Grapher => {
+): GrapherState => {
     const childMortalityId = 104402
     const childMortalityMetadata: TestMetadata = {
         id: childMortalityId,
@@ -36,7 +36,7 @@ export const childMortalityGrapher = (
             property: DimensionProperty.y,
         },
     ]
-    return new Grapher({
+    return new GrapherState({
         hasMapTab: true,
         tab: GRAPHER_TAB_OPTIONS.map,
         dimensions,
@@ -52,7 +52,7 @@ export const childMortalityGrapher = (
 
 export const GrapherWithIncompleteData = (
     props: Partial<GrapherInterface> = {}
-): Grapher => {
+): GrapherState => {
     const indicatorId = 3512
     const metadata = { id: indicatorId, shortUnit: "%" }
     const data = [
@@ -84,7 +84,7 @@ export const GrapherWithIncompleteData = (
             },
         },
     ]
-    return new Grapher({
+    return new GrapherState({
         tab: GRAPHER_TAB_OPTIONS.table,
         selectedEntityNames: ["Iceland", "France", "Afghanistan"],
         dimensions,
@@ -95,7 +95,7 @@ export const GrapherWithIncompleteData = (
 
 export const GrapherWithAggregates = (
     props: Partial<GrapherInterface> = {}
-): Grapher => {
+): GrapherState => {
     const childMortalityId = 104402
     const childMortalityMetadata: TestMetadata = {
         id: childMortalityId,
@@ -125,7 +125,7 @@ export const GrapherWithAggregates = (
             property: DimensionProperty.y,
         },
     ]
-    return new Grapher({
+    return new GrapherState({
         tab: GRAPHER_TAB_OPTIONS.table,
         dimensions,
         selectedEntityNames: ["Afghanistan", "Iceland", "World"],
@@ -138,7 +138,7 @@ export const GrapherWithAggregates = (
 
 export const GrapherWithMultipleVariablesAndMultipleYears = (
     props: Partial<GrapherInterface> = {}
-): Grapher => {
+): GrapherState => {
     const abovePovertyLineId = 514050
     const belowPovertyLineId = 472265
 
@@ -170,7 +170,7 @@ export const GrapherWithMultipleVariablesAndMultipleYears = (
         ],
     }
 
-    return new Grapher({
+    return new GrapherState({
         tab: GRAPHER_TAB_OPTIONS.table,
         dimensions,
         ...props,
