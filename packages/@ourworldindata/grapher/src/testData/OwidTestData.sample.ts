@@ -1,5 +1,9 @@
 import { DimensionProperty } from "@ourworldindata/utils"
-import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
+import {
+    Grapher,
+    GrapherProgrammaticInterface,
+    GrapherState,
+} from "../core/Grapher"
 import {
     TestMetadata,
     createOwidTestDataset,
@@ -13,7 +17,7 @@ Grapher properties:
  */
 export const LifeExpectancyGrapher = (
     props: Partial<GrapherProgrammaticInterface> = {}
-): Grapher => {
+): GrapherState => {
     const lifeExpectancyId = 815383
     const lifeExpectancyMetadata: TestMetadata = {
         id: lifeExpectancyId,
@@ -55,7 +59,7 @@ export const LifeExpectancyGrapher = (
             property: DimensionProperty.y,
         },
     ]
-    return new Grapher({
+    return new GrapherState({
         ...props,
         dimensions,
         owidDataset: createOwidTestDataset([
