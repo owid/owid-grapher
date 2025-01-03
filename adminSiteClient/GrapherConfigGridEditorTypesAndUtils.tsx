@@ -1,3 +1,5 @@
+// FIXME: Don't mix components and business logic in this file.
+/* eslint-disable react-refresh/only-export-components */
 import {
     checkIsPlainObjectWithGuard,
     excludeUndefined,
@@ -43,8 +45,6 @@ import { GrapherInterface } from "@ourworldindata/types"
 import {
     AntdConfig,
     BasicConfig,
-    Builder,
-    BuilderProps,
     JsonTree,
     SimpleField,
     Utils as QbUtils,
@@ -549,16 +549,6 @@ export function fieldDescriptionToFilterPanelFieldConfig(
             },
         ]
     } else return undefined
-}
-
-export function renderBuilder(props: BuilderProps) {
-    return (
-        <div className="query-builder-container" style={{ padding: "0" }}>
-            <div className="query-builder qb-lite">
-                <Builder {...props} />
-            </div>
-        </div>
-    )
 }
 
 export interface GrapherConfigGridEditorConfig {

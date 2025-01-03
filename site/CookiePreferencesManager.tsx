@@ -1,52 +1,22 @@
-import ReactDOM from "react-dom"
 import { useEffect, useMemo, useReducer } from "react"
 import Cookies from "js-cookie"
 import { CookiePreferences } from "../site/blocks/CookiePreferences.js"
 import { CookieNotice } from "../site/CookieNotice.js"
-import { dayjs } from "@ourworldindata/utils"
+import {
+    Action,
+    arePreferencesOutdated,
+    COOKIE_PREFERENCES_COOKIE_NAME,
+    defaultState,
+    getPreferenceValue,
+    POLICY_DATE,
+    PreferenceType,
+    serializeState,
+    State,
+    updatePreference,
+} from "./cookiePreferences.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
-export enum PreferenceType {
-    Analytics = "a",
-    Marketing = "m", // not used
-}
-
-export enum Action {
-    Accept,
-    TogglePreference,
-    Reset,
-    Persist,
-    Reject,
-}
-
-export interface Preference {
-    type: PreferenceType
-    value: boolean
-}
-
-export const POLICY_DATE: number = 20201009
-export const DATE_FORMAT = "YYYYMMDD"
-export const COOKIE_PREFERENCES_COOKIE_NAME = "cookie_preferences"
-const PREFERENCES_SEPARATOR = "|"
-const DATE_SEPARATOR = "-"
-const PREFERENCE_KEY_VALUE_SEPARATOR = ":"
-// e.g. p:1-20200910
-
-interface State {
-    date?: number
-    preferences: Preference[]
-}
-
 const analytics = new SiteAnalytics()
-
-const defaultState: State = {
-    preferences: [
-        {
-            type: PreferenceType.Analytics,
-            value: false,
-        },
-    ],
-}
 
 export const CookiePreferencesManager = ({
     initialState,
@@ -147,126 +117,4 @@ const reducer = (
         default:
             return state
     }
-}
-
-const getInitialState = (): State => {
-    let cookieValue = undefined
-    try {
-        // Cookie access can be restricted by iframe sandboxing, in which case the below code will throw an error
-        // see https://github.com/owid/owid-grapher/pull/2452
-
-        cookieValue = parseRawCookieValue(
-            Cookies.get(COOKIE_PREFERENCES_COOKIE_NAME)
-        )
-    } catch {
-        // ignore
-    }
-
-    if (!cookieValue || arePreferencesOutdated(cookieValue.date, POLICY_DATE))
-        return defaultState
-    return cookieValue
-}
-
-export const parseRawCookieValue = (cookieValue?: string) => {
-    if (!cookieValue) return
-
-    const [preferencesRaw, dateRaw] = cookieValue.split(DATE_SEPARATOR)
-    const date = parseDate(dateRaw)
-    if (!date) return
-
-    const preferences = parsePreferences(preferencesRaw)
-    if (!preferences.length) return
-
-    return {
-        preferences,
-        date,
-    }
-}
-
-export const parsePreferences = (preferences?: string): Preference[] => {
-    if (!preferences) return []
-
-    return preferences
-        .split(PREFERENCES_SEPARATOR)
-        .map((preference) => {
-            const [type, , value] = preference // only supports 1 digit values
-            return {
-                type: type as PreferenceType,
-                value: value === "1",
-            }
-        })
-        .filter((preference) => isValidPreference(preference))
-}
-
-export const isValidPreference = ({ type, value }: Preference) => {
-    return (
-        Object.values(PreferenceType).includes(type as PreferenceType) &&
-        typeof value === "boolean"
-    )
-}
-
-export const parseDate = (date?: string): number | undefined => {
-    if (!date) return
-
-    return dayjs(date, DATE_FORMAT, true).isValid()
-        ? parseInt(date, 10)
-        : undefined
-}
-
-export const getPreferenceValue = (
-    type: PreferenceType,
-    preferences: Preference[] = getInitialState().preferences
-) => {
-    return (
-        preferences.find((preference) => {
-            return preference.type === type
-        })?.value ?? false
-    )
-}
-
-export const updatePreference = (
-    type: PreferenceType,
-    value: boolean,
-    preferences: Preference[]
-) => {
-    return preferences.map((preference) => {
-        if (preference.type !== type) return preference
-
-        return {
-            ...preference,
-            value,
-        }
-    })
-}
-
-export const arePreferencesOutdated = (
-    preferencesDate: number | undefined,
-    policyDate: number
-) => {
-    if (!preferencesDate) return false
-    return preferencesDate < policyDate
-}
-
-export const serializeState = (state: State) => {
-    const serializedPreferences = state.preferences
-        .map((preference) => {
-            return `${preference.type}${PREFERENCE_KEY_VALUE_SEPARATOR}${
-                preference.value ? 1 : 0
-            }`
-        })
-        .join(PREFERENCES_SEPARATOR)
-
-    return `${serializedPreferences}${DATE_SEPARATOR}${state.date}`
-}
-
-export const getTodayDate = () => dayjs().format(DATE_FORMAT)
-
-export const runCookiePreferencesManager = () => {
-    const div = document.createElement("div")
-    document.body.appendChild(div)
-
-    ReactDOM.render(
-        <CookiePreferencesManager initialState={getInitialState()} />,
-        div
-    )
 }

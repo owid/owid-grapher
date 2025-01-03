@@ -33,11 +33,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { match as tsMatch, P } from "ts-pattern"
 
+import { useGdocsChanged, useLightningUpdate } from "./gdocsHooks.js"
 import { getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
+import { useGdocsStore } from "./GdocsStoreContext.js"
 import { IconBadge } from "./IconBadge.js"
-import { useGdocsStore } from "./GdocsStore.js"
-import { useGdocsChanged, useLightningUpdate } from "./gdocsHooks.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"

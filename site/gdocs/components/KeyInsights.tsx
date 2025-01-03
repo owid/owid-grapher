@@ -26,7 +26,7 @@ const KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME = "content"
 
 type scrollVisibilityApiType = React.ContextType<typeof VisibilityContext>
 
-export enum ArrowDirection {
+enum ArrowDirection {
     prev = "prev",
     next = "next",
 }

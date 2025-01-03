@@ -12,7 +12,7 @@ import {
     get,
 } from "@ourworldindata/utils"
 import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
-import { DebugProvider } from "./DebugContext.js"
+import { DebugProvider } from "./DebugProvider.js"
 import { match, P } from "ts-pattern"
 import {
     ARCHVED_THUMBNAIL_FILENAME,

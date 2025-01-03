@@ -6,6 +6,8 @@ import { computed, observable } from "mobx"
 import { Modal } from "antd"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
 function LogCompareModal({
     log,
     previousLog,

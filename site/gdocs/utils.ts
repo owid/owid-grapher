@@ -1,20 +1,20 @@
 import { useContext } from "react"
-import * as React from "react"
 
 import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import {
-    Span,
-    SpanLink,
     ImageMetadata,
     LinkedChart,
     OwidGdocPostContent,
     OwidGdocMinimalPostInterface,
     OwidGdocType,
     LinkedIndicator,
+    CategoryWithEntries,
+    EntryMeta,
+    SubNavId,
 } from "@ourworldindata/types"
 import { formatAuthors, Url } from "@ourworldindata/utils"
-import { match } from "ts-pattern"
-import { AttachmentsContext } from "./OwidGdoc.js"
+import { AttachmentsContext } from "./AttachmentsContext.js"
+import { SiteNavigationStatic, SubnavItem, subnavs } from "../SiteConstants.js"
 
 export const breadcrumbColorForCoverColor = (
     coverColor: OwidGdocPostContent["cover-color"]
@@ -148,110 +148,6 @@ export function useDonors(): string[] | undefined {
     return donors
 }
 
-const LinkedA = ({ span }: { span: SpanLink }): React.ReactElement => {
-    const linkType = getLinkType(span.url)
-    const { linkedDocument } = useLinkedDocument(span.url)
-    const { linkedChart } = useLinkedChart(span.url)
-
-    if (linkType === "url") {
-        // Don't open in new tab if it's an anchor link
-        const linkProps = !span.url.startsWith("#")
-            ? { target: "_blank", rel: "noopener" }
-            : {}
-        return (
-            <a href={span.url} className="span-link" {...linkProps}>
-                {renderSpans(span.children)}
-            </a>
-        )
-    }
-    if (linkedChart) {
-        return (
-            <a href={linkedChart.resolvedUrl} className="span-link">
-                {renderSpans(span.children)}
-            </a>
-        )
-    }
-    if (linkedDocument && linkedDocument.published && linkedDocument.slug) {
-        return (
-            <a href={`/${linkedDocument.slug}`} className="span-link">
-                {renderSpans(span.children)}
-            </a>
-        )
-    }
-    return <>{renderSpans(span.children)}</>
-}
-
-export function renderSpan(
-    span: Span,
-    key: React.Key | null | undefined = undefined,
-    shouldRenderLinks: boolean = true
-): React.ReactElement {
-    return match(span)
-        .with({ spanType: "span-simple-text" }, (span) => (
-            <span key={key}>{span.text}</span>
-        ))
-        .with({ spanType: "span-link" }, (span) =>
-            shouldRenderLinks ? (
-                <LinkedA span={span} key={key} />
-            ) : (
-                <span key={key}>{renderSpans(span.children)}</span>
-            )
-        )
-        .with({ spanType: "span-ref" }, (span) =>
-            shouldRenderLinks ? (
-                <a key={key} href={span.url} className="ref">
-                    {renderSpans(span.children)}
-                </a>
-            ) : (
-                <span key={key} className="ref">
-                    {renderSpans(span.children)}
-                </span>
-            )
-        )
-        .with({ spanType: "span-dod" }, (span) => (
-            <span
-                key={key}
-                className="dod-span"
-                data-id={`${span.id}`}
-                tabIndex={0}
-            >
-                {renderSpans(span.children)}
-            </span>
-        ))
-        .with({ spanType: "span-newline" }, () => <br key={key} />)
-        .with({ spanType: "span-italic" }, (span) => (
-            <em key={key}>{renderSpans(span.children)}</em>
-        ))
-        .with({ spanType: "span-bold" }, (span) => (
-            <strong key={key}>{renderSpans(span.children)}</strong>
-        ))
-        .with({ spanType: "span-underline" }, (span) => (
-            <u key={key}>{renderSpans(span.children)}</u>
-        ))
-        .with({ spanType: "span-subscript" }, (span) => (
-            <sub key={key}>{renderSpans(span.children)}</sub>
-        ))
-        .with({ spanType: "span-superscript" }, (span) => (
-            <sup key={key}>{renderSpans(span.children)}</sup>
-        ))
-        .with({ spanType: "span-quote" }, (span) => (
-            <q key={key}>{renderSpans(span.children)}</q>
-        ))
-        .with({ spanType: "span-fallback" }, (span) => (
-            <span key={key}>{renderSpans(span.children)}</span>
-        ))
-        .exhaustive()
-}
-
-export function renderSpans(
-    spans: Span[],
-    shouldRenderLinks: boolean = true
-): React.ReactElement[] {
-    return spans.map((span, index) =>
-        renderSpan(span, index, shouldRenderLinks)
-    )
-}
-
 export function getShortPageCitation(
     authors: string[],
     title: string,
@@ -260,4 +156,43 @@ export function getShortPageCitation(
     return `${formatAuthors({
         authors: authors,
     })} (${publishedAt?.getFullYear()}) - “${title}”`
+}
+
+export const allTopicsInCategory = (
+    category: CategoryWithEntries
+): EntryMeta[] => {
+    return [
+        ...category.entries,
+        ...(category.subcategories ?? []).flatMap(
+            (subcategory) => subcategory.entries
+        ),
+    ]
+}
+
+export const getUniqueTopicCount = () =>
+    SiteNavigationStatic.categories
+        .flatMap((category) => {
+            const subcategoryEntries =
+                category?.subcategories?.flatMap(
+                    (subcategory) => subcategory.entries || []
+                ) || []
+            return [...category.entries, ...subcategoryEntries]
+        })
+        .map((entry) => entry.slug)
+        .filter((value, index, array) => array.indexOf(value) === index).length
+
+export const getSubnavItem = (
+    id: string | undefined,
+    subnavItems: SubnavItem[]
+) => {
+    // We want to avoid matching elements with potentially undefined id.
+    // Static typing prevents id from being undefined but this might not be
+    // the case in a future API powered version.
+    return id ? subnavItems.find((item) => item.id === id) : undefined
+}
+
+export const getTopSubnavigationParentItem = (
+    subnavId: SubNavId
+): SubnavItem | undefined => {
+    return subnavs[subnavId]?.[0]
 }

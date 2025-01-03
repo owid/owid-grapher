@@ -1,5 +1,4 @@
 import cx from "classnames"
-import ReactDOM from "react-dom"
 import {
     ImageMetadata,
     LinkedChart,
@@ -9,15 +8,13 @@ import {
     uniqBy,
     getPaginationPageNumbers,
 } from "@ourworldindata/utils"
-import {
-    DataInsightBody,
-    dataInsightIndexToIdMap,
-} from "./gdocs/pages/DataInsight.js"
-import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
+import { DataInsightBody } from "./gdocs/pages/DataInsight.js"
+import { dataInsightIndexToIdMap } from "./SiteConstants.js"
+import { DocumentContext } from "./gdocs/DocumentContext.js"
+import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
-import { DebugProvider } from "./gdocs/DebugContext.js"
 import DataInsightsNewsletterBanner from "./DataInsightsNewsletterBanner.js"
 
 const Pagination = (props: { pageNumber: number; totalPageCount: number }) => {
@@ -153,19 +150,3 @@ export const DataInsightsIndexPageContent = (
 
 export const _OWID_DATA_INSIGHTS_INDEX_PAGE_DATA =
     "_OWID_DATA_INSIGHTS_INDEX_PAGE_DATA"
-
-export function hydrateDataInsightsIndexPage() {
-    const props = (window as any)[_OWID_DATA_INSIGHTS_INDEX_PAGE_DATA]
-    const container = document.querySelector(
-        `#data-insights-index-page-container`
-    )
-
-    if (container && props) {
-        ReactDOM.hydrate(
-            <DebugProvider>
-                <DataInsightsIndexPageContent {...props} />
-            </DebugProvider>,
-            container
-        )
-    }
-}

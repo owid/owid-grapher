@@ -12,8 +12,8 @@ import {
     OwidGdocHomepageContent,
     OwidGdocAuthorContent,
 } from "@ourworldindata/types"
-import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./GdocsDiff.js"
 import { match } from "ts-pattern"
+import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./constants.js"
 
 /**
  * This function checks if the article has changed in a way that is compatible

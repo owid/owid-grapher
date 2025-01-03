@@ -9,8 +9,11 @@ import {
     EntryMeta,
     OwidGdocHomepageContent,
 } from "@ourworldindata/types"
-import { SiteNavigationStatic } from "../../SiteNavigation.js"
-import { RSS_FEEDS, SOCIALS } from "../../SiteConstants.js"
+import {
+    SiteNavigationStatic,
+    RSS_FEEDS,
+    SOCIALS,
+} from "../../SiteConstants.js"
 
 export interface HomepageProps {
     content: OwidGdocHomepageContent
