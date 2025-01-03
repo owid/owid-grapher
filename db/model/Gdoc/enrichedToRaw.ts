@@ -48,6 +48,7 @@ import {
     RawBlockPeople,
     RawBlockPeopleRows,
     RawBlockPerson,
+    RawBlockNarrativeChart,
     RawBlockCode,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
@@ -115,6 +116,20 @@ export function enrichedBlockToRawBlock(
                 type: b.type,
                 value: {
                     url: b.url,
+                    height: b.height,
+                    row: b.row,
+                    column: b.column,
+                    position: b.position,
+                    caption: b.caption ? spansToHtmlText(b.caption) : undefined,
+                },
+            })
+        )
+        .with(
+            { type: "narrative-chart" },
+            (b): RawBlockNarrativeChart => ({
+                type: b.type,
+                value: {
+                    name: b.name,
                     height: b.height,
                     row: b.row,
                     column: b.column,
