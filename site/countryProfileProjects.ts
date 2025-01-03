@@ -1,4 +1,4 @@
-import { landingPageSlugs } from "./SiteSubnavigation.js"
+import { landingPageSlugs } from "./SiteConstants.js"
 
 enum CountryProfileProject {
     coronavirus = "coronavirus",

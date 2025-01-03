@@ -6,7 +6,7 @@ import {
 } from "@ourworldindata/utils"
 
 import { useEmbedChart } from "../../hooks.js"
-import { renderSpans } from "../utils.js"
+import SpanElements from "./SpanElements.js"
 import cx from "classnames"
 export default function Scroller({
     d,
@@ -39,7 +39,7 @@ export default function Scroller({
                             }}
                         >
                             <p className="scroller__paragraph">
-                                {renderSpans(value.text.value)}
+                                <SpanElements spans={value.text.value} />
                             </p>
                         </InView>
                     )

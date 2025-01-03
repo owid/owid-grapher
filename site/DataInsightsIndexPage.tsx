@@ -11,7 +11,7 @@ import {
     _OWID_DATA_INSIGHTS_INDEX_PAGE_DATA,
 } from "./DataInsightsIndexPageContent.js"
 import { DATA_INSIGHT_ATOM_FEED_PROPS } from "./SiteConstants.js"
-import { DebugProvider } from "./gdocs/DebugContext.js"
+import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
 
 export interface DataInsightsIndexPageProps {

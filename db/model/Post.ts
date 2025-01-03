@@ -40,7 +40,7 @@ import {
     CLOUDFLARE_IMAGES_URL,
 } from "../../settings/clientSettings.js"
 import { BLOG_SLUG } from "../../settings/serverSettings.js"
-import { SiteNavigationStatic } from "../../site/SiteNavigation.js"
+import { SiteNavigationStatic } from "../../site/SiteConstants.js"
 import { decodeHTML } from "entities"
 import { getAndLoadListedGdocPosts } from "./Gdoc/GdocFactory.js"
 

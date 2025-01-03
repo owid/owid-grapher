@@ -99,7 +99,10 @@ import {
     getAndLoadPublishedDataInsightsPage,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerBaker.js"
-import { Attachments, AttachmentsContext } from "../site/gdocs/OwidGdoc.js"
+import {
+    Attachments,
+    AttachmentsContext,
+} from "../site/gdocs/AttachmentsContext.js"
 import AtomArticleBlocks from "../site/gdocs/components/AtomArticleBlocks.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 

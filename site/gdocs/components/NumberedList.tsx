@@ -2,7 +2,8 @@ import {
     EnrichedBlockNumberedList,
     EnrichedBlockText,
 } from "@ourworldindata/utils"
-import { renderSpans } from "../utils.js"
+import SpanElements from "./SpanElements.js"
+
 export default function NumberedList({
     d,
     className = "",
@@ -13,7 +14,11 @@ export default function NumberedList({
     return (
         <ol className={className}>
             {d.items.map((_d: EnrichedBlockText, i: number) => {
-                return <li key={i}>{renderSpans(_d.value)}</li>
+                return (
+                    <li key={i}>
+                        <SpanElements spans={_d.value} />
+                    </li>
+                )
             })}
         </ol>
     )

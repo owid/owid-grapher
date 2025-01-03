@@ -9,7 +9,7 @@ import { SiteFooter } from "./SiteFooter"
 import { SiteHeader } from "./SiteHeader"
 import NotFoundPageIcon from "./NotFoundPageIcon"
 import { ProminentLink } from "./gdocs/components/ProminentLink.js"
-import { getLayout } from "./gdocs/components/ArticleBlock.js"
+import { getLayout } from "./gdocs/components/layout.js"
 
 export default function TombstonePage({
     baseUrl,

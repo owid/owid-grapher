@@ -5,7 +5,6 @@ import {
     GrapherProgrammaticInterface,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
-import ReactDOM from "react-dom"
 import {
     DataPageDataV2,
     GrapherInterface,
@@ -18,7 +17,6 @@ import {
     OwidVariableWithSourceAndDimension,
     memoize,
     setWindowQueryStr,
-    getWindowQueryStr,
     compact,
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromQueryStr,
@@ -28,7 +26,6 @@ import {
     fetchWithRetry,
 } from "@ourworldindata/utils"
 import cx from "classnames"
-import { DebugProvider } from "../gdocs/DebugContext.js"
 import { ADMIN_BASE_URL, DATA_API_URL } from "../../settings/clientSettings.js"
 import {
     FaqEntryKeyedByGdocIdAndFragmentId,
@@ -481,22 +478,5 @@ export const MultiDimDataPageContent = ({
                 />
             )}
         </div>
-    )
-}
-
-export const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
-    const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
-    const props: MultiDimDataPageContentProps = window._OWID_MULTI_DIM_PROPS!
-    const initialQueryStr = getWindowQueryStr()
-
-    ReactDOM.hydrate(
-        <DebugProvider debug={isPreviewing}>
-            <MultiDimDataPageContent
-                {...props}
-                isPreviewing={isPreviewing}
-                initialQueryStr={initialQueryStr}
-            />
-        </DebugProvider>,
-        wrapper
     )
 }

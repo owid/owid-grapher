@@ -1,6 +1,6 @@
 import { useContext } from "react"
 import { Autocomplete } from "../../search/Autocomplete.js"
-import { AttachmentsContext } from "../OwidGdoc.js"
+import { AttachmentsContext } from "../AttachmentsContext.js"
 import { commafyNumber } from "@ourworldindata/utils"
 
 export function HomepageSearch(props: { className?: string }) {
