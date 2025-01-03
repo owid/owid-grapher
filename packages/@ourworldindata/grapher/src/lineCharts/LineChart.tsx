@@ -111,10 +111,7 @@ import {
     getSeriesName,
 } from "./LineChartHelpers"
 import { FocusArray } from "../focus/FocusArray.js"
-import {
-    HorizontalNumericColorLegend,
-    HorizontalNumericColorLegendProps,
-} from "../horizontalColorLegend/HorizontalNumericColorLegend"
+import { HorizontalNumericColorLegend } from "../horizontalColorLegend/HorizontalNumericColorLegend"
 import { HorizontalNumericColorLegendComponent } from "../horizontalColorLegend/HorizontalNumericColorLegendComponent"
 
 const LINE_CHART_CLASS_NAME = "LineChart"
@@ -927,7 +924,7 @@ export class LineChart
     }
 
     renderColorLegend(): React.ReactElement | void {
-        if (this.hasColorLegend)
+        if (this.colorLegend)
             return (
                 <HorizontalNumericColorLegendComponent
                     legend={this.colorLegend}
@@ -1161,29 +1158,21 @@ export class LineChart
         return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
     }
 
-    @computed get colorLegend(): HorizontalNumericColorLegend {
-        return new HorizontalNumericColorLegend(this.colorLegendProps)
-    }
-
-    @computed get colorLegendHeight(): number {
+    @computed get colorLegend(): HorizontalNumericColorLegend | undefined {
         return this.hasColorScale && this.manager.showLegend
-            ? HorizontalNumericColorLegend.height(this.colorLegendProps)
-            : 0
-    }
-
-    @computed get colorLegendProps(): HorizontalNumericColorLegendProps {
-        return {
-            fontSize: this.fontSize,
-            x: this.legendX,
-            align: this.legendAlign,
-            maxWidth: this.legendMaxWidth,
-            numericBins: this.numericLegendData,
-            binSize: this.numericBinSize,
-            equalSizeBins: this.equalSizeBins,
-            title: this.legendTitle,
-            y: this.numericLegendY,
-            tickSize: this.legendTickSize,
-        }
+            ? new HorizontalNumericColorLegend({
+                  fontSize: this.fontSize,
+                  x: this.legendX,
+                  align: this.legendAlign,
+                  maxWidth: this.legendMaxWidth,
+                  numericBins: this.numericLegendData,
+                  binSize: this.numericBinSize,
+                  equalSizeBins: this.equalSizeBins,
+                  title: this.legendTitle,
+                  y: this.numericLegendY,
+                  tickSize: this.legendTickSize,
+              })
+            : undefined
     }
 
     @computed get numericLegendY(): number {
@@ -1194,6 +1183,10 @@ export class LineChart
         return this.hasColorScale
             ? this.colorScale.legendDescription
             : undefined
+    }
+
+    @computed get colorLegendHeight(): number {
+        return this.colorLegend?.height ?? 0
     }
 
     // End of color legend props

@@ -47,7 +47,7 @@ export interface ChartInterface {
 
     /**
      * The legend that has been hidden from the chart plot (using `manager.hideLegend`).
-     * Used to create a global categorical legend for faceted charts.
+     * Used to create a global legend for faceted charts.
      */
     externalLegend?: ExternalLegendProps
 
