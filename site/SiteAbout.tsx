@@ -1,18 +1,11 @@
-export const ABOUT_LINKS = [
-    { title: "About Us", href: "/about" },
-    { title: "Organization", href: "/organization" },
-    { title: "Funding", href: "/funding" },
-    { title: "Team", href: "/team" },
-    { title: "Jobs", href: "/jobs" },
-    { title: "FAQs", href: "/faqs" },
-]
+import { ABOUT_LINKS } from "./SiteConstants.js"
 
 export function SiteAbout() {
     return (
         <ul>
-            {ABOUT_LINKS.map(({ title, href }) => (
-                <li key={href}>
-                    <a href={href}>{title}</a>
+            {ABOUT_LINKS.map(({ title, url }) => (
+                <li key={url}>
+                    <a href={url}>{title}</a>
                 </li>
             ))}
         </ul>

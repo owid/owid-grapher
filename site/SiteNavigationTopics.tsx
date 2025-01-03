@@ -1,10 +1,11 @@
 import { useLayoutEffect, useState } from "react"
 import * as React from "react"
-import { CategoryWithEntries, EntryMeta } from "@ourworldindata/utils"
+import { CategoryWithEntries } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import classnames from "classnames"
 import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
+import { allTopicsInCategory } from "./gdocs/utils.js"
 
 export const SiteNavigationTopics = ({
     topics,
@@ -82,15 +83,4 @@ export const SiteNavigationTopics = ({
             )}
         </div>
     ) : null
-}
-
-export const allTopicsInCategory = (
-    category: CategoryWithEntries
-): EntryMeta[] => {
-    return [
-        ...category.entries,
-        ...(category.subcategories ?? []).flatMap(
-            (subcategory) => subcategory.entries
-        ),
-    ]
 }

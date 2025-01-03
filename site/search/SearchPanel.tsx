@@ -1,4 +1,3 @@
-import ReactDOM from "react-dom"
 import { useCallback, useEffect, useMemo } from "react"
 import * as React from "react"
 import cx from "classnames"
@@ -51,10 +50,7 @@ import {
     getIndexName,
     logSiteSearchClickToAlgoliaInsights,
 } from "./searchClient.js"
-import {
-    PreferenceType,
-    getPreferenceValue,
-} from "../CookiePreferencesManager.js"
+import { PreferenceType, getPreferenceValue } from "../cookiePreferences.js"
 import type { SearchResults as AlgoliaSearchResultsType } from "algoliasearch-helper"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import {
@@ -65,6 +61,8 @@ import { ChartHit } from "./ChartHit.js"
 
 const siteAnalytics = new SiteAnalytics()
 
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
 function PagesHit({ hit }: { hit: IPageHit }) {
     return (
         <a
@@ -122,6 +120,8 @@ interface GroupedExplorerViews {
 const getNumberOfExplorerHits = (rawHits: IExplorerViewHit[]) =>
     uniqBy(rawHits, "explorerSlug").length
 
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
 function ExplorerViewHits({
     countriesRegionsToSelect,
 }: {
@@ -172,6 +172,8 @@ function ExplorerViewHits({
     )
 }
 
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
 function ExplorerHit({
     groupedHit,
     cardPosition,
@@ -286,6 +288,8 @@ function ExplorerHit({
     )
 }
 
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
 function ShowMore({
     category,
     cutoffNumber,
@@ -334,6 +338,8 @@ function ShowMore({
     )
 }
 
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
 function Filters({
     isHidden,
     categoryFilterContainerRef,
@@ -401,6 +407,8 @@ function Filters({
     )
 }
 
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
 function NoResultsBoundary({ children }: { children: React.ReactElement }) {
     const { results } = useInstantSearch()
 
@@ -429,6 +437,8 @@ const PAGES_ATTRIBUTES_TO_SEARCH_NO_FULLTEXT: (keyof PageRecord)[] = [
     "authors",
 ] // Should be a subset of the `searchableAttributes` set up in `configureAlgolia` for the `pages` index; minus the "content" attribute
 
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
 const SearchResults = (props: SearchResultsProps) => {
     const { scopedResults } = useInstantSearch()
     const { activeCategoryFilter, isHidden, handleCategoryFilterClick } = props
@@ -799,8 +809,4 @@ export class InstantSearchContainer extends React.Component {
             </InstantSearch>
         )
     }
-}
-
-export function runSearchPage() {
-    ReactDOM.render(<InstantSearchContainer />, document.querySelector("main"))
 }

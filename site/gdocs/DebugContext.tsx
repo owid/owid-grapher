@@ -1,22 +1,9 @@
-import { createContext } from "react"
-import * as React from "react"
+import { createContext, useContext } from "react"
 
-const DebugContext = createContext<boolean | undefined>(undefined)
-
-export const DebugProvider = ({
-    children,
-    debug = false,
-}: {
-    children: React.ReactNode
-    debug?: boolean
-}) => {
-    return (
-        <DebugContext.Provider value={debug}>{children}</DebugContext.Provider>
-    )
-}
+export const DebugContext = createContext<boolean | undefined>(undefined)
 
 export const useDebug = () => {
-    const context = React.useContext(DebugContext)
+    const context = useContext(DebugContext)
 
     if (context === undefined) {
         throw new Error("useDebug must be used within a DebugProvider")

@@ -2,7 +2,7 @@ import { PageOverrides } from "../site/LongFormPage.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { urlToSlug, FullPost, JsonError } from "@ourworldindata/utils"
 import { FormattingOptions } from "@ourworldindata/types"
-import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation.js"
+import { getTopSubnavigationParentItem } from "../site/gdocs/utils.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import {
     getFullPostBySlugFromSnapshot,
