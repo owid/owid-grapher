@@ -14,6 +14,9 @@ interface TextWrapProps {
     firstLineOffset?: number
     separators?: string[]
     rawHtml?: boolean
+
+    // for testing
+    font?: string
 }
 
 interface WrapLine {
@@ -155,6 +158,7 @@ export class TextWrap {
             let nextBounds = Bounds.forText(text, {
                 fontSize,
                 fontWeight,
+                fontFamily: this.props.font as any,
             })
 
             // add offset to the first line if given

@@ -98,6 +98,7 @@ export class Header<
 
         const makeTitle = (fontSize: number): TextWrap =>
             new TextWrap({
+                font: "avenir", // TODO: for testing
                 text: this.titleText,
                 maxWidth: this.maxWidth - this.logoWidth - logoPadding,
                 fontWeight: this.titleFontWeight,
