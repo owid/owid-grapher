@@ -633,14 +633,21 @@ export class MapChart
     }
 
     renderMapLegend(): React.ReactElement {
+        const onMouseLeave = this.manager.isStatic
+            ? undefined
+            : this.onLegendMouseLeave
+        const onMouseOver = this.manager.isStatic
+            ? undefined
+            : this.onLegendMouseOver
+
         return (
             <>
                 {this.numericLegend && (
                     <HorizontalNumericColorLegendComponent
                         legend={this.numericLegend}
                         focusBin={this.numericFocusBracket}
-                        onMouseLeave={this.onLegendMouseLeave}
-                        onMouseOver={this.onLegendMouseOver}
+                        onMouseLeave={onMouseLeave}
+                        onMouseOver={onMouseOver}
                     />
                 )}
                 {this.categoryLegend && (
@@ -649,8 +656,8 @@ export class MapChart
                         x={this.legendX}
                         y={this.categoryLegendY}
                         swatchStrokeColor={this.categoricalBinStroke}
-                        onMouseLeave={this.onLegendMouseLeave}
-                        onMouseOver={this.onLegendMouseOver}
+                        onMouseLeave={onMouseLeave}
+                        onMouseOver={onMouseOver}
                     />
                 )}
             </>

@@ -1030,6 +1030,13 @@ export class MarimekkoChart
 
         const footer = excludeUndefined([toleranceNotice, roundingNotice])
 
+        const onLegendMouseLeave = this.manager.isStatic
+            ? undefined
+            : this.onLegendMouseLeave
+        const onLegendMouseOver = this.manager.isStatic
+            ? undefined
+            : this.onLegendMouseOver
+
         return (
             <g
                 ref={this.base}
@@ -1061,8 +1068,8 @@ export class MarimekkoChart
                     x={this.legendX}
                     y={this.categoryLegendY}
                     opacity={this.legendOpacity}
-                    onMouseLeave={this.onLegendMouseLeave}
-                    onMouseOver={this.onLegendMouseOver}
+                    onMouseLeave={onLegendMouseLeave}
+                    onMouseOver={onLegendMouseOver}
                 />
                 {this.renderBars()}
                 {target && (

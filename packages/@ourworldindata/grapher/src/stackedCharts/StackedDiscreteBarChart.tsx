@@ -727,13 +727,21 @@ export class StackedDiscreteBarChart
 
     renderLegend(): React.ReactElement | void {
         if (!this.showLegend) return
+
+        const onMouseLeave = this.manager.isStatic
+            ? undefined
+            : this.onLegendMouseLeave
+        const onMouseOver = this.manager.isStatic
+            ? undefined
+            : this.onLegendMouseOver
+
         return (
             <HorizontalCategoricalColorLegendComponent
                 legend={this.legend}
                 x={this.legendX}
                 y={this.categoryLegendY}
-                onMouseLeave={this.onLegendMouseLeave}
-                onMouseOver={this.onLegendMouseOver}
+                onMouseLeave={onMouseLeave}
+                onMouseOver={onMouseOver}
             />
         )
     }
