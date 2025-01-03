@@ -312,6 +312,17 @@ export class GdocBase implements OwidGdocBaseInterface {
         block: OwidEnrichedGdocBlock
     ): DbInsertPostGdocLink[] | void {
         const links: DbInsertPostGdocLink[] = match(block)
+            .with({ type: "image" }, (block) => {
+                const links: DbInsertPostGdocLink[] = []
+                if (!block.caption) return links
+                for (const span of block.caption) {
+                    traverseEnrichedSpan(span, (span) => {
+                        const link = this.extractLinkFromSpan(span)
+                        if (link) links.push(link)
+                    })
+                }
+                return links
+            })
             .with({ type: "person" }, (block) => {
                 if (!block.url) return []
                 return [
@@ -563,7 +574,6 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "heading",
                         "horizontal-rule",
                         "html",
-                        "image",
                         "key-indicator-collection",
                         "list",
                         "missing-data",
