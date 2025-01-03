@@ -43,11 +43,6 @@ export class HorizontalCategoricalColorLegend {
         this.props = props
     }
 
-    static height(props: HorizontalCategoricalColorLegendProps): number {
-        const legend = new HorizontalCategoricalColorLegend(props)
-        return legend.height
-    }
-
     static numLines(props: HorizontalCategoricalColorLegendProps): number {
         const legend = new HorizontalCategoricalColorLegend(props)
         return legend.numLines

@@ -532,6 +532,24 @@ export class MapChart
         return this.numericLegendData.length > 1
     }
 
+    @computed get numericLegendHeight(): number {
+        // can't use numericLegend due to a circular dependency
+        return this.hasNumericLegend
+            ? HorizontalNumericColorLegend.height({
+                  fontSize: this.fontSize,
+                  x: this.legendX,
+                  align: this.legendAlign,
+                  maxWidth: this.legendMaxWidth,
+                  numericBins: this.numericLegendData,
+                  equalSizeBins: this.equalSizeBins,
+              })
+            : 0
+    }
+
+    @computed get categoryLegendHeight(): number {
+        return this.categoryLegend ? this.categoryLegend.height + 5 : 0
+    }
+
     @computed private get categoryLegend():
         | HorizontalCategoricalColorLegend
         | undefined {
@@ -561,36 +579,13 @@ export class MapChart
             : undefined
     }
 
-    @computed get categoryLegendHeight(): number {
-        return this.hasCategoryLegend
-            ? HorizontalCategoricalColorLegend.height({
-                  fontSize: this.fontSize,
-                  align: this.legendAlign,
-                  maxWidth: this.legendMaxWidth,
-                  categoricalBins: this.categoricalLegendData,
-              }) + 5
-            : 0
-    }
-
     @computed get categoryLegendNumLines(): number {
+        // can't use categoryLegend due to a circular dependency
         return this.hasCategoryLegend
             ? HorizontalCategoricalColorLegend.numLines({
                   fontSize: this.fontSize,
                   maxWidth: this.legendMaxWidth,
                   categoricalBins: this.categoricalLegendData,
-              })
-            : 0
-    }
-
-    @computed get numericLegendHeight(): number {
-        return this.hasNumericLegend
-            ? HorizontalNumericColorLegend.height({
-                  fontSize: this.fontSize,
-                  x: this.legendX,
-                  align: this.legendAlign,
-                  maxWidth: this.legendMaxWidth,
-                  numericBins: this.numericLegendData,
-                  equalSizeBins: this.equalSizeBins,
               })
             : 0
     }
