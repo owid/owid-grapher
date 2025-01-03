@@ -86,6 +86,8 @@ const DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND = "#787878"
 // if an entity name exceeds this width, we use the short name instead (if available)
 const SOFT_MAX_LABEL_WIDTH = 90
 
+const BAR_SPACING_FACTOR = 0.4
+
 export interface Label {
     valueString: string
     timeString: string
@@ -312,18 +314,30 @@ export class DiscreteBarChart
         return this.series.length
     }
 
-    @computed private get barHeight(): number {
+    @computed private get maxBarHeight(): number {
         return (0.8 * this.innerBounds.height) / this.barCount
+    }
+
+    @computed private get barHeight(): number {
+        const totalWhiteSpace = this.barCount * this.barSpacing
+        return (this.innerBounds.height - totalWhiteSpace) / this.barCount
+    }
+
+    @computed private get barSpacing(): number {
+        return this.maxBarHeight * BAR_SPACING_FACTOR
     }
 
     // useful if `this.barHeight` can't be used due to a cyclic dependency
     // keep in mind though that this is not exactly the same as `this.barHeight`
     @computed private get approximateBarHeight(): number {
-        return (0.8 * this.boundsWithoutColorLegend.height) / this.barCount
-    }
-
-    @computed private get barSpacing(): number {
-        return this.innerBounds.height / this.barCount - this.barHeight
+        const barSpacing =
+            ((0.8 * this.boundsWithoutColorLegend.height) / this.barCount) *
+            BAR_SPACING_FACTOR
+        const totalWhiteSpace = this.barCount * barSpacing
+        return (
+            (this.boundsWithoutColorLegend.height - totalWhiteSpace) /
+            this.barCount
+        )
     }
 
     @computed private get barPlacements(): { x: number; width: number }[] {
