@@ -212,6 +212,7 @@ class VariableEditor extends React.Component<{
                                         target="_blank"
                                         rel="noopener"
                                     >
+                                        {" "}
                                         garden level
                                     </a>
                                     ,{" "}
