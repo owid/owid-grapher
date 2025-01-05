@@ -38,9 +38,9 @@ export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEdit
     @computed
     get availableTabs(): EditorTab[] {
         const tabs: EditorTab[] = ["basic", "data", "text", "customize"]
-        if (this.grapher.hasMapTab) tabs.push("map")
-        if (this.grapher.isScatter) tabs.push("scatter")
-        if (this.grapher.isMarimekko) tabs.push("marimekko")
+        if (this.grapherState.hasMapTab) tabs.push("map")
+        if (this.grapherState.isScatter) tabs.push("scatter")
+        if (this.grapherState.isMarimekko) tabs.push("marimekko")
         tabs.push("refs")
         tabs.push("debug")
         return tabs

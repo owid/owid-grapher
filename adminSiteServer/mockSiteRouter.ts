@@ -189,8 +189,9 @@ getPlainRouteWithROTransaction(
 
         const { migrationId, baseQueryStr } = explorerRedirect
         const { explorerSlug } = explorerUrlMigrationsById[migrationId]
-        const program =
-            await explorerAdminServer.getExplorerFromSlug(explorerSlug)
+        const program = await explorerAdminServer.getExplorerFromSlug(
+            explorerSlug
+        )
         const explorerPage = await renderExplorerPage(program, trx, {
             urlMigrationSpec: {
                 explorerUrlMigrationId: migrationId,
@@ -472,8 +473,9 @@ getPlainRouteWithROTransaction(
     "/dods.json",
     async (_, res, trx) => {
         res.set("Access-Control-Allow-Origin", "*")
-        const { details, parseErrors } =
-            await GdocPost.getDetailsOnDemandGdoc(trx)
+        const { details, parseErrors } = await GdocPost.getDetailsOnDemandGdoc(
+            trx
+        )
 
         if (parseErrors.length) {
             console.error(

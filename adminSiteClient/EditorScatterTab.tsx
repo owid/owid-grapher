@@ -5,7 +5,7 @@ import {
     ComparisonLineConfig,
     ScatterPointLabelStrategy,
 } from "@ourworldindata/types"
-import { Grapher } from "@ourworldindata/grapher"
+import { Grapher, GrapherState } from "@ourworldindata/grapher"
 import { debounce, excludeUndefined } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -13,27 +13,29 @@ import { Component } from "react"
 import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
 
 @observer
-export class EditorScatterTab extends Component<{ grapher: Grapher }> {
+export class EditorScatterTab extends Component<{
+    grapherState: GrapherState
+}> {
     @observable comparisonLine: ComparisonLineConfig = { yEquals: undefined }
 
-    constructor(props: { grapher: Grapher }) {
+    constructor(props: { grapherState: GrapherState }) {
         super(props)
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
-        this.props.grapher.hideTimeline = value || undefined
+        this.props.grapherState.hideTimeline = value || undefined
     }
 
     @action.bound onToggleHideScatterLabels(value: boolean) {
-        this.props.grapher.hideScatterLabels = value || undefined
+        this.props.grapherState.hideScatterLabels = value || undefined
     }
 
     @action.bound onXOverrideYear(value: number | undefined) {
-        this.props.grapher.xOverrideTime = value
+        this.props.grapherState.xOverrideTime = value
     }
 
     @computed private get includedEntityNames(): EntityName[] {
-        const { includedEntities, inputTable } = this.props.grapher
+        const { includedEntities, inputTable } = this.props.grapherState
         const { entityIdToNameMap } = inputTable
         const includedEntityIds = includedEntities ?? []
         return excludeUndefined(
@@ -42,7 +44,7 @@ export class EditorScatterTab extends Component<{ grapher: Grapher }> {
     }
 
     @computed private get excludedEntityNames(): EntityName[] {
-        const { excludedEntities, inputTable } = this.props.grapher
+        const { excludedEntities, inputTable } = this.props.grapherState
         const { entityIdToNameMap } = inputTable
         const excludedEntityIds = excludedEntities ?? []
         return excludeUndefined(
@@ -51,7 +53,7 @@ export class EditorScatterTab extends Component<{ grapher: Grapher }> {
     }
 
     @computed private get includedEntityChoices() {
-        const { inputTable } = this.props.grapher
+        const { inputTable } = this.props.grapherState
         return inputTable.availableEntityNames
             .filter(
                 (entityName) => !this.includedEntityNames.includes(entityName)
@@ -60,7 +62,7 @@ export class EditorScatterTab extends Component<{ grapher: Grapher }> {
     }
 
     @computed private get excludedEntityChoices() {
-        const { inputTable } = this.props.grapher
+        const { inputTable } = this.props.grapherState
         return inputTable.availableEntityNames
             .filter(
                 (entityName) => !this.excludedEntityNames.includes(entityName)
@@ -69,94 +71,94 @@ export class EditorScatterTab extends Component<{ grapher: Grapher }> {
     }
 
     @action.bound onExcludeEntity(entity: string) {
-        const { grapher } = this.props
-        if (grapher.excludedEntities === undefined) {
-            grapher.excludedEntities = []
+        const { grapherState } = this.props
+        if (grapherState.excludedEntities === undefined) {
+            grapherState.excludedEntities = []
         }
 
-        const entityId = grapher.table.entityNameToIdMap.get(entity)!
-        if (grapher.excludedEntities.indexOf(entityId) === -1)
-            grapher.excludedEntities.push(entityId)
+        const entityId = grapherState.table.entityNameToIdMap.get(entity)!
+        if (grapherState.excludedEntities.indexOf(entityId) === -1)
+            grapherState.excludedEntities.push(entityId)
     }
 
     @action.bound onUnexcludeEntity(entity: string) {
-        const { grapher } = this.props
-        if (!grapher.excludedEntities) return
+        const { grapherState } = this.props
+        if (!grapherState.excludedEntities) return
 
-        const entityId = grapher.table.entityNameToIdMap.get(entity)
-        grapher.excludedEntities = grapher.excludedEntities.filter(
+        const entityId = grapherState.table.entityNameToIdMap.get(entity)
+        grapherState.excludedEntities = grapherState.excludedEntities.filter(
             (e) => e !== entityId
         )
     }
 
     @action.bound onIncludeEntity(entity: string) {
-        const { grapher } = this.props
-        if (grapher.includedEntities === undefined) {
-            grapher.includedEntities = []
+        const { grapherState } = this.props
+        if (grapherState.includedEntities === undefined) {
+            grapherState.includedEntities = []
         }
 
-        const entityId = grapher.table.entityNameToIdMap.get(entity)!
-        if (grapher.includedEntities.indexOf(entityId) === -1)
-            grapher.includedEntities.push(entityId)
+        const entityId = grapherState.table.entityNameToIdMap.get(entity)!
+        if (grapherState.includedEntities.indexOf(entityId) === -1)
+            grapherState.includedEntities.push(entityId)
     }
 
     @action.bound onUnincludeEntity(entity: string) {
-        const { grapher } = this.props
-        if (!grapher.includedEntities) return
+        const { grapherState } = this.props
+        if (!grapherState.includedEntities) return
 
-        const entityId = grapher.table.entityNameToIdMap.get(entity)
-        grapher.includedEntities = grapher.includedEntities.filter(
+        const entityId = grapherState.table.entityNameToIdMap.get(entity)
+        grapherState.includedEntities = grapherState.includedEntities.filter(
             (e) => e !== entityId
         )
     }
 
     @action.bound onClearExcludedEntities() {
-        const { grapher } = this.props
-        grapher.excludedEntities = []
+        const { grapherState } = this.props
+        grapherState.excludedEntities = []
     }
 
     @action.bound onClearIncludedEntities() {
-        const { grapher } = this.props
-        grapher.includedEntities = []
+        const { grapherState } = this.props
+        grapherState.includedEntities = []
     }
 
     @action.bound onToggleConnection(value: boolean) {
-        const { grapher } = this.props
-        grapher.hideConnectedScatterLines = value
+        const { grapherState } = this.props
+        grapherState.hideConnectedScatterLines = value
     }
 
     @action.bound onChangeScatterPointLabelStrategy(value: string) {
-        this.props.grapher.scatterPointLabelStrategy =
+        this.props.grapherState.scatterPointLabelStrategy =
             value as ScatterPointLabelStrategy
     }
 
     render() {
         const { includedEntityChoices, excludedEntityChoices } = this
-        const { grapher } = this.props
+        const { grapherState } = this.props
 
         return (
             <div className="EditorScatterTab">
                 <Section name="Timeline">
                     <Toggle
                         label="Hide timeline"
-                        value={!!grapher.hideTimeline}
+                        value={!!grapherState.hideTimeline}
                         onValue={this.onToggleHideTimeline}
                     />
                     <Toggle
                         label="Hide connected scatter lines"
-                        value={!!grapher.hideConnectedScatterLines}
+                        value={!!grapherState.hideConnectedScatterLines}
                         onValue={this.onToggleConnection}
                     />
                     <NumberField
                         label="Override X axis target year"
-                        value={grapher.xOverrideTime}
+                        value={grapherState.xOverrideTime}
                         onValue={debounce(this.onXOverrideYear, 300)}
                         allowNegative
                     />
                 </Section>
                 <Section name="Point Labels">
                     <SelectField
-                        value={grapher.scatterPointLabelStrategy}
+                        value={grapherState.scatterPointLabelStrategy}
                         onValue={this.onChangeScatterPointLabelStrategy}
                         options={Object.keys(ScatterPointLabelStrategy).map(
                             (entry) => ({ value: entry })
@@ -164,17 +166,17 @@ export class EditorScatterTab extends Component<{ grapher: Grapher }> {
                     />
                     <Toggle
                         label="Hide point labels (except when hovering)"
-                        value={!!grapher.hideScatterLabels}
+                        value={!!grapherState.hideScatterLabels}
                         onValue={this.onToggleHideScatterLabels}
                     />
                 </Section>
                 <Section name="Filtering">
                     <Toggle
                         label="Exclude entities that do not belong in any color group"
-                        value={!!grapher.matchingEntitiesOnly}
+                        value={!!grapherState.matchingEntitiesOnly}
                         onValue={action(
                             (value: boolean) =>
-                                (grapher.matchingEntitiesOnly =
+                                (grapherState.matchingEntitiesOnly =
                                     value || undefined)
                         )}
                     />

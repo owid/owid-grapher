@@ -40,7 +40,7 @@ import {
     GRAPHER_DYNAMIC_CONFIG_URL,
     MULTI_DIM_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
-import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
+// import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
 import { match } from "ts-pattern"
 
 type EmbedType = "grapher" | "explorer" | "multiDim" | "chartView"
@@ -213,9 +213,9 @@ class MultiEmbedder {
         const grapherRef = Grapher.renderGrapherIntoContainer(config, figure)
 
         // Special handling for shared collections
-        if (window.location.pathname.startsWith("/collection/custom")) {
-            embedDynamicCollectionGrapher(grapherRef, figure)
-        }
+        // if (window.location.pathname.startsWith("/collection/custom")) {
+        //     embedDynamicCollectionGrapher(grapherRef, figure)
+        // }
     }
     async renderGrapherIntoFigure(figure: Element) {
         const embedUrlRaw = figure.getAttribute(GRAPHER_EMBEDDED_FIGURE_ATTR)
@@ -286,10 +286,10 @@ class MultiEmbedder {
         const embedType: EmbedType = isExplorer
             ? "explorer"
             : isMultiDim
-              ? "multiDim"
-              : isChartView
-                ? "chartView"
-                : "grapher"
+            ? "multiDim"
+            : isChartView
+            ? "chartView"
+            : "grapher"
 
         // Stop observing visibility as soon as possible
         this.figuresObserver?.unobserve(figure)

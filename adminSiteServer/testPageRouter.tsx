@@ -802,8 +802,8 @@ getPlainRouteWithROTransaction(
     "/:slug.svg",
     async (req, res, trx) => {
         const grapher = await getChartConfigBySlug(trx, req.params.slug)
-        const vardata = await getChartVariableData(grapher.config)
-        const svg = await grapherToSVG(grapher.config, vardata)
+        // const vardata = await getChartVariableData(grapher.config)
+        const svg = await grapherToSVG(grapher.config)
         res.send(svg)
     }
 )
