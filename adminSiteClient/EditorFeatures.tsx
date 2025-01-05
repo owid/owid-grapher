@@ -9,29 +9,31 @@ export class EditorFeatures {
         this.editor = editor
     }
 
-    @computed get grapher() {
-        return this.editor.grapher
+    @computed get grapherState() {
+        return this.editor.grapherState
     }
 
     @computed get canCustomizeYAxisScale() {
-        return !this.grapher.isStackedArea && !this.grapher.isStackedBar
+        return (
+            !this.grapherState.isStackedArea && !this.grapherState.isStackedBar
+        )
     }
 
     @computed get canCustomizeXAxisScale() {
-        return this.grapher.isScatter || this.grapher.isMarimekko
+        return this.grapherState.isScatter || this.grapherState.isMarimekko
     }
 
     @computed get canCustomizeYAxisLabel() {
-        return this.grapher.isScatter || this.grapher.isMarimekko
+        return this.grapherState.isScatter || this.grapherState.isMarimekko
     }
 
     @computed get canCustomizeXAxisLabel() {
         return (
-            this.grapher.isLineChart ||
-            this.grapher.isScatter ||
-            this.grapher.isMarimekko ||
-            this.grapher.isStackedArea ||
-            this.grapher.isStackedBar
+            this.grapherState.isLineChart ||
+            this.grapherState.isScatter ||
+            this.grapherState.isMarimekko ||
+            this.grapherState.isStackedArea ||
+            this.grapherState.isStackedBar
         )
     }
 
@@ -44,7 +46,7 @@ export class EditorFeatures {
     }
 
     @computed get canRemovePointsOutsideAxisDomain() {
-        return this.grapher.isScatter
+        return this.grapherState.isScatter
     }
 
     @computed get canEnableLogLinearToggle() {
@@ -52,84 +54,87 @@ export class EditorFeatures {
     }
 
     @computed get timeDomain() {
-        return !this.grapher.isDiscreteBar
+        return !this.grapherState.isDiscreteBar
     }
 
     @computed get timelineRange() {
-        return !this.grapher.isDiscreteBar
+        return !this.grapherState.isDiscreteBar
     }
 
     @computed get showYearLabels() {
-        return this.grapher.isDiscreteBar
+        return this.grapherState.isDiscreteBar
     }
 
     @computed get hideLegend() {
         return (
-            this.grapher.isLineChart ||
-            this.grapher.isSlopeChart ||
-            this.grapher.isStackedArea ||
-            this.grapher.isStackedDiscreteBar
+            this.grapherState.isLineChart ||
+            this.grapherState.isSlopeChart ||
+            this.grapherState.isStackedArea ||
+            this.grapherState.isStackedDiscreteBar
         )
     }
 
     @computed get stackedArea() {
-        return this.grapher.isStackedArea
+        return this.grapherState.isStackedArea
     }
 
     @computed get relativeModeToggle() {
         return (
-            this.grapher.isStackedArea ||
-            this.grapher.isStackedBar ||
-            this.grapher.isStackedDiscreteBar ||
-            this.grapher.isLineChart ||
-            this.grapher.isSlopeChart ||
-            this.grapher.isScatter ||
-            this.grapher.isMarimekko
+            this.grapherState.isStackedArea ||
+            this.grapherState.isStackedBar ||
+            this.grapherState.isStackedDiscreteBar ||
+            this.grapherState.isLineChart ||
+            this.grapherState.isSlopeChart ||
+            this.grapherState.isScatter ||
+            this.grapherState.isMarimekko
         )
     }
 
     @computed get comparisonLine() {
-        return this.grapher.isLineChart || this.grapher.isScatter
+        return this.grapherState.isLineChart || this.grapherState.isScatter
     }
 
     @computed get canSpecifySortOrder() {
         return (
-            this.grapher.isStackedDiscreteBar ||
-            this.grapher.isLineChart ||
-            this.grapher.isDiscreteBar ||
-            this.grapher.isMarimekko
+            this.grapherState.isStackedDiscreteBar ||
+            this.grapherState.isLineChart ||
+            this.grapherState.isDiscreteBar ||
+            this.grapherState.isMarimekko
         )
     }
 
     @computed get canSortByColumn() {
-        return this.grapher.isStackedDiscreteBar || this.grapher.isMarimekko
+        return (
+            this.grapherState.isStackedDiscreteBar ||
+            this.grapherState.isMarimekko
+        )
     }
 
     @computed get canHideTotalValueLabel() {
-        return this.grapher.isStackedDiscreteBar
+        return this.grapherState.isStackedDiscreteBar
     }
 
     @computed get canCustomizeVariableType() {
-        return this.grapher.hasMultipleYColumns
+        return this.grapherState.hasMultipleYColumns
     }
 
     @computed get canSpecifyMissingDataStrategy() {
-        if (!this.grapher.hasMultipleYColumns) return false
+        if (!this.grapherState.hasMultipleYColumns) return false
 
         if (
-            this.grapher.isStackedArea ||
-            this.grapher.isStackedBar ||
-            this.grapher.isStackedDiscreteBar
+            this.grapherState.isStackedArea ||
+            this.grapherState.isStackedBar ||
+            this.grapherState.isStackedDiscreteBar
         ) {
             return true
         }
 
         // for line and slope charts, specifying a missing data strategy only makes sense
         // if there are multiple entities
-        if (this.grapher.isLineChart || this.grapher.isSlopeChart) {
+        if (this.grapherState.isLineChart || this.grapherState.isSlopeChart) {
             return (
-                this.grapher.canChangeEntity ||
-                this.grapher.canSelectMultipleEntities
+                this.grapherState.canChangeEntity ||
+                this.grapherState.canSelectMultipleEntities
             )
         }
 
@@ -138,33 +143,35 @@ export class EditorFeatures {
 
     @computed get showChangeInPrefixToggle() {
         return (
-            (this.grapher.isLineChart || this.grapher.isSlopeChart) &&
-            (this.grapher.isRelativeMode || this.grapher.canToggleRelativeMode)
+            (this.grapherState.isLineChart || this.grapherState.isSlopeChart) &&
+            (this.grapherState.isRelativeMode ||
+                this.grapherState.canToggleRelativeMode)
         )
     }
 
     @computed get showEntityAnnotationInTitleToggle() {
         return (
-            !this.grapher.canChangeEntity &&
-            !this.grapher.canSelectMultipleEntities
+            !this.grapherState.canChangeEntity &&
+            !this.grapherState.canSelectMultipleEntities
         )
     }
 
     @computed get showTimeAnnotationInTitleToggle() {
         return (
-            !this.grapher.hasTimeline ||
+            !this.grapherState.hasTimeline ||
             !(
-                this.grapher.isDiscreteBar ||
-                this.grapher.isStackedDiscreteBar ||
-                this.grapher.isMarimekko
+                this.grapherState.isDiscreteBar ||
+                this.grapherState.isStackedDiscreteBar ||
+                this.grapherState.isMarimekko
             )
         )
     }
 
     @computed get canHighlightSeries() {
         return (
-            (this.grapher.hasLineChart || this.grapher.hasSlopeChart) &&
-            this.grapher.isOnChartTab
+            (this.grapherState.hasLineChart ||
+                this.grapherState.hasSlopeChart) &&
+            this.grapherState.isOnChartTab
         )
     }
 }

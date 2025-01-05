@@ -2,7 +2,7 @@ import { IReactionDisposer, action, autorun, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { Section, Toggle } from "./Forms.js"
-import { Grapher } from "@ourworldindata/grapher"
+import { Grapher, GrapherState } from "@ourworldindata/grapher"
 import {
     triggerDownloadFromBlob,
     GrapherStaticFormat,
@@ -15,7 +15,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 type ExportSettings = Required<
     Pick<
-        Grapher,
+        GrapherState,
         | "hideTitle"
         | "forceHideAnnotationFieldsInTitle"
         | "hideSubtitle"
@@ -26,7 +26,7 @@ type ExportSettings = Required<
 >
 
 type OriginalGrapher = Pick<
-    Grapher,
+    GrapherState,
     | "currentTitle"
     | "shouldAddEntitySuffixToTitle"
     | "shouldAddTimeSuffixToTitle"
@@ -115,52 +115,54 @@ export class EditorExportTab<
 
     private saveOriginalSettings() {
         this.originalSettings = {
-            hideTitle: this.grapher.hideTitle,
+            hideTitle: this.grapherState.hideTitle,
             forceHideAnnotationFieldsInTitle:
-                this.grapher.forceHideAnnotationFieldsInTitle,
-            hideSubtitle: this.grapher.hideSubtitle,
-            hideNote: this.grapher.hideNote,
-            hideOriginUrl: this.grapher.hideOriginUrl,
+                this.grapherState.forceHideAnnotationFieldsInTitle,
+            hideSubtitle: this.grapherState.hideSubtitle,
+            hideNote: this.grapherState.hideNote,
+            hideOriginUrl: this.grapherState.hideOriginUrl,
             shouldIncludeDetailsInStaticExport:
-                this.grapher.shouldIncludeDetailsInStaticExport,
+                this.grapherState.shouldIncludeDetailsInStaticExport,
         }
     }
 
     // a deep clone of Grapher would be simpler and cleaner, but takes too long
     private grabRelevantPropertiesFromGrapher(): OriginalGrapher {
         return {
-            currentTitle: this.grapher.currentTitle,
+            currentTitle: this.grapherState.currentTitle,
             shouldAddEntitySuffixToTitle:
-                this.grapher.shouldAddEntitySuffixToTitle,
-            shouldAddTimeSuffixToTitle: this.grapher.shouldAddTimeSuffixToTitle,
-            currentSubtitle: this.grapher.currentSubtitle,
-            note: this.grapher.note,
-            originUrl: this.grapher.originUrl,
+                this.grapherState.shouldAddEntitySuffixToTitle,
+            shouldAddTimeSuffixToTitle:
+                this.grapherState.shouldAddTimeSuffixToTitle,
+            currentSubtitle: this.grapherState.currentSubtitle,
+            note: this.grapherState.note,
+            originUrl: this.grapherState.originUrl,
             shouldIncludeDetailsInStaticExport:
-                this.grapher.shouldIncludeDetailsInStaticExport,
-            detailsOrderedByReference: this.grapher.detailsOrderedByReference,
+                this.grapherState.shouldIncludeDetailsInStaticExport,
+            detailsOrderedByReference:
+                this.grapherState.detailsOrderedByReference,
         }
     }
 
     private resetGrapher() {
-        Object.assign(this.grapher, this.originalSettings)
+        Object.assign(this.grapherState, this.originalSettings)
     }
 
     private updateGrapher() {
-        Object.assign(this.grapher, this.settings)
+        Object.assign(this.grapherState, this.settings)
     }
 
-    @computed private get grapher(): Grapher {
-        return this.props.editor.grapher
+    @computed private get grapherState(): GrapherState {
+        return this.props.editor.grapherState
     }
 
     @computed private get chartId(): number {
         // the id is undefined for unsaved charts
-        return this.grapher.id ?? 0
+        return this.grapherState.id ?? 0
     }
 
     @computed private get baseFilename(): string {
-        return this.props.editor.grapher.displaySlug
+        return this.props.editor.grapherState.displaySlug
     }
 
     @action.bound private onDownloadDesktopSVG() {
@@ -205,21 +207,21 @@ export class EditorExportTab<
         }
     ) {
         try {
-            let grapher = this.grapher
+            let grapherState = this.grapherState
             if (
-                this.grapher.staticFormat !== format ||
-                this.grapher.isSocialMediaExport !== isSocialMediaExport
+                this.grapherState.staticFormat !== format ||
+                this.grapherState.isSocialMediaExport !== isSocialMediaExport
             ) {
-                grapher = new Grapher({
-                    ...this.grapher,
+                grapherState = new GrapherState({
+                    ...this.grapherState,
                     staticFormat: format,
                     selectedEntityNames:
-                        this.grapher.selection.selectedEntityNames,
-                    focusedSeriesNames: this.grapher.focusedSeriesNames,
+                        this.grapherState.selection.selectedEntityNames,
+                    focusedSeriesNames: this.grapherState.focusedSeriesNames,
                     isSocialMediaExport,
                 })
             }
-            const { blob: pngBlob, svgBlob } = await grapher.rasterize()
+            const { blob: pngBlob, svgBlob } = await grapherState.rasterize()
             if (filename.endsWith("svg") && svgBlob) {
                 triggerDownloadFromBlob(filename, svgBlob)
             } else if (filename.endsWith("png") && pngBlob) {

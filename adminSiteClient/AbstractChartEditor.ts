@@ -11,9 +11,14 @@ import {
 import { action, computed, observable, when } from "mobx"
 import { EditorFeatures } from "./EditorFeatures.js"
 import { Admin } from "./Admin.js"
-import { defaultGrapherConfig, Grapher } from "@ourworldindata/grapher"
+import {
+    defaultGrapherConfig,
+    getCachingInputTableFetcher,
+    GrapherState,
+} from "@ourworldindata/grapher"
 import { ChartViewMinimalInformation } from "./ChartEditor.js"
 import { IndicatorChartInfo } from "./IndicatorChartEditor.js"
+import { DATA_API_URL } from "../settings/clientSettings.js"
 
 export type EditorTab =
     | "basic"
@@ -48,7 +53,8 @@ export abstract class AbstractChartEditor<
 > {
     manager: Manager
 
-    @observable.ref grapher = new Grapher()
+    @observable.ref grapherState = new GrapherState({})
+    cachingGrapherDataLoader = getCachingInputTableFetcher(DATA_API_URL)
     @observable.ref currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
     @observable.ref tab: EditorTab = "basic"
     @observable.ref errorMessage?: { title: string; content: string }
@@ -58,7 +64,7 @@ export abstract class AbstractChartEditor<
 
     // parent config derived from the current chart config
     @observable.ref parentConfig: GrapherInterface | undefined = undefined
-    // if inheritance is enabled, the parent config is applied to grapher
+    // if inheritance is enabled, the parent config is applied to grapherState
     @observable.ref isInheritanceEnabled: boolean | undefined = undefined
 
     constructor(props: { manager: Manager }) {
@@ -80,14 +86,14 @@ export abstract class AbstractChartEditor<
         )
 
         when(
-            () => this.grapher.hasData && this.grapher.isReady,
+            () => this.grapherState.hasData && this.grapherState.isReady,
             () => (this.savedPatchConfig = this.patchConfig)
         )
     }
 
     abstract get references(): References | undefined
 
-    /** original grapher config used to init the grapher instance */
+    /** original grapher config used to init the grapherState instance */
     @computed get originalGrapherConfig(): GrapherInterface {
         const { patchConfig, parentConfig, isInheritanceEnabled } = this.manager
         if (!isInheritanceEnabled) return patchConfig
@@ -96,7 +102,7 @@ export abstract class AbstractChartEditor<
 
     /** live-updating config */
     @computed get liveConfig(): GrapherInterface {
-        return this.grapher.object
+        return this.grapherState.object
     }
 
     @computed get liveConfigWithDefaults(): GrapherInterface {
@@ -144,9 +150,9 @@ export abstract class AbstractChartEditor<
     }
 
     @action.bound updateLiveGrapher(config: GrapherInterface): void {
-        this.grapher.reset()
-        this.grapher.updateFromObject(config)
-        this.grapher.updateAuthoredVersion(config)
+        this.grapherState.reset()
+        this.grapherState.updateFromObject(config)
+        this.grapherState.updateAuthoredVersion(config)
     }
 
     // only works for top-level properties
@@ -166,21 +172,21 @@ export abstract class AbstractChartEditor<
     }
 
     @computed get invalidFocusedSeriesNames(): SeriesName[] {
-        const { grapher } = this
+        const { grapherState } = this
 
         // if focusing is not supported, then all focused series are invalid
         if (!this.features.canHighlightSeries) {
-            return grapher.focusArray.seriesNames
+            return grapherState.focusArray.seriesNames
         }
 
         // find invalid focused series
-        const availableSeriesNames = grapher.chartSeriesNames
-        const focusedSeriesNames = grapher.focusArray.seriesNames
+        const availableSeriesNames = grapherState.chartSeriesNames
+        const focusedSeriesNames = grapherState.focusArray.seriesNames
         return difference(focusedSeriesNames, availableSeriesNames)
     }
 
     @action.bound removeInvalidFocusedSeriesNames(): void {
-        this.grapher.focusArray.remove(...this.invalidFocusedSeriesNames)
+        this.grapherState.focusArray.remove(...this.invalidFocusedSeriesNames)
     }
 
     abstract get isNewGrapher(): boolean

@@ -183,49 +183,50 @@ export class GrapherAnalytics {
         // this is helpful for tracking clicks on charts that are embedded in articles, where we would like to know
         // which chart the user is interacting with
         const dataGrapherUrlAttr = "data-grapher-url"
-        document.addEventListener(
-            "click",
-            async (ev) => {
-                const targetElement = ev.target as HTMLElement
-                const trackedElement = findDOMParent(
-                    targetElement,
-                    (el: HTMLElement) => el.getAttribute(dataTrackAttr) !== null
-                )
-                if (!trackedElement) return
+        // TODO: 2025-01-05 Daniel - re-enable this before deploying
+        // document.addEventListener(
+        //     "click",
+        //     async (ev) => {
+        //         const targetElement = ev.target as HTMLElement
+        //         const trackedElement = findDOMParent(
+        //             targetElement,
+        //             (el: HTMLElement) => el.getAttribute(dataTrackAttr) !== null
+        //         )
+        //         if (!trackedElement) return
 
-                const grapherUrlRaw = trackedElement
-                    .closest(`[${dataGrapherUrlAttr}]`)
-                    ?.getAttribute(dataGrapherUrlAttr)
+        //             const grapherUrlRaw = trackedElement
+        //                 .closest(`[${dataGrapherUrlAttr}]`)
+        //                 ?.getAttribute(dataGrapherUrlAttr)
 
-                if (grapherUrlRaw) {
-                    let grapherUrlObj:
-                        | {
-                              grapherUrl: string
-                              chartViewName: string
-                          }
-                        | undefined
-                    try {
-                        grapherUrlObj = JSON.parse(grapherUrlRaw)
-                    } catch (e) {
-                        console.warn("failed to parse grapherUrl", e)
-                    }
+        //             if (grapherUrlRaw) {
+        //                 let grapherUrlObj:
+        //                     | {
+        //                           grapherUrl: string
+        //                           chartViewName: string
+        //                       }
+        //                     | undefined
+        //                 try {
+        //                     grapherUrlObj = JSON.parse(grapherUrlRaw)
+        //                 } catch (e) {
+        //                     console.warn("failed to parse grapherUrl", e)
+        //                 }
 
-                    this.logGrapherClick(
-                        trackedElement.getAttribute(dataTrackAttr) || undefined,
-                        {
-                            label: trackedElement.innerText,
-                            grapherUrl: grapherUrlObj?.grapherUrl,
-                            chartViewName: grapherUrlObj?.chartViewName,
-                        }
-                    )
-                } else
-                    this.logSiteClick(
-                        trackedElement.getAttribute(dataTrackAttr) || undefined,
-                        trackedElement.innerText
-                    )
-            },
-            { capture: true, passive: true }
-        )
+        //                 this.logGrapherClick(
+        //                     trackedElement.getAttribute(dataTrackAttr) || undefined,
+        //                     {
+        //                         label: trackedElement.innerText,
+        //                         grapherUrl: grapherUrlObj?.grapherUrl,
+        //                         chartViewName: grapherUrlObj?.chartViewName,
+        //                     }
+        //                 )
+        //             } else
+        //                 this.logSiteClick(
+        //                     trackedElement.getAttribute(dataTrackAttr) || undefined,
+        //                     trackedElement.innerText
+        //                 )
+        //         },
+        //         { capture: true, passive: true }
+        //     )
     }
 
     protected logToGA(event: GAEvent): void {

@@ -28,6 +28,7 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE,
     GrapherAnalytics,
     GrapherState,
+    fetchInputTableForConfig,
     FocusArray,
 } from "@ourworldindata/grapher"
 import {
@@ -586,7 +587,7 @@ export class Explorer
         }
 
         grapher?.grapherState.setAuthoredVersion(config)
-        grapher.reset()
+        grapher.grapherState.reset()
         grapher?.grapherState.updateFromObject(config)
         // grapher.downloadData()
     }
@@ -750,16 +751,22 @@ export class Explorer
         }
 
         grapher?.grapherState.setAuthoredVersion(config)
-        grapher.reset()
+        grapher.grapherState.reset()
         grapher?.grapherState.updateFromObject(config)
         if (dimensions.length === 0) {
             // If dimensions are empty, explicitly set the table to an empty table
             // so we don't end up confusingly showing stale data from a previous chart
             // grapher.receiveOwidData(new Map())
+            grapher.grapherState.inputTable = BlankOwidTable()
         } else {
             // await grapher.downloadLegacyDataFromOwidVariableIds(
             //     inputTableTransformer
             // )
+            const inputTable = await fetchInputTableForConfig(
+                config,
+                this.props.dataApiUrl
+            )
+            if (inputTable) grapher.grapherState.inputTable = inputTable
         }
     }
 
@@ -783,7 +790,7 @@ export class Explorer
         }
 
         grapher?.grapherState.setAuthoredVersion(config)
-        grapher.reset()
+        grapher.grapherState.reset()
         grapher?.grapherState.updateFromObject(config)
 
         // Clear any error messages, they are likely to be related to dataset loading.

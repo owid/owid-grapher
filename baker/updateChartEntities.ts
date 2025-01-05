@@ -4,7 +4,11 @@
  * To do this, we need to instantiate a grapher, download its data, and then look at the available entities.
  */
 
-import { Grapher } from "@ourworldindata/grapher"
+import {
+    Grapher,
+    GrapherState,
+    legacyToOwidTableAndDimensions,
+} from "@ourworldindata/grapher"
 import {
     ChartsXEntitiesTableName,
     DbPlainChart,
@@ -83,7 +87,10 @@ const getVariableDataUsingCache = async (
 const obtainAvailableEntitiesForGrapherConfig = async (
     grapherConfig: GrapherInterface
 ) => {
-    const grapher = new Grapher({ ...grapherConfig, manuallyProvideData: true })
+    const grapher = new GrapherState({
+        ...grapherConfig,
+        manuallyProvideData: true,
+    })
 
     // Manually fetch data for grapher, so we can employ caching
     const variableIds = uniq(grapher.dimensions.map((d) => d.variableId))
@@ -93,8 +100,12 @@ const obtainAvailableEntitiesForGrapherConfig = async (
             await getVariableDataUsingCache(variableId),
         ])
     )
-    // TODO: make sure that data is loaded here
-    // grapher.receiveOwidData(variableData)
+    // TODO: Daniel grapher state refactoring: check if this works as expected
+    grapher.inputTable = legacyToOwidTableAndDimensions(
+        variableData,
+        grapher.dimensions,
+        grapher.selectedEntityColors
+    )
 
     // If the grapher has a chart tab, then the available entities there are the "most interesting" ones to us
     if (grapher.hasChartTab) {
