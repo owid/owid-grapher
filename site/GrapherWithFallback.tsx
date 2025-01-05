@@ -1,20 +1,44 @@
-import { Grapher } from "@ourworldindata/grapher"
 import { GrapherFigureView } from "./GrapherFigureView.js"
 import cx from "classnames"
 import { GRAPHER_PREVIEW_CLASS } from "./SiteConstants.js"
 import GrapherImage from "./GrapherImage.js"
+import { useEffect, useState } from "react"
+import { useInView } from "react-intersection-observer"
 
 export const GrapherWithFallback = ({
-    grapher,
+    // grapher,
     slug,
     className,
     id,
 }: {
-    grapher?: Grapher | undefined
-    slug?: string
+    // grapher?: Grapher | undefined
+    slug: string
     className?: string
     id?: string
 }) => {
+    const [isClient, setIsClient] = useState(false)
+    const { ref, inView } = useInView({
+        rootMargin: "400px",
+        // Only trigger once
+        triggerOnce: true,
+    })
+    useEffect(() => {
+        setIsClient(true)
+    }, [])
+
+    // Render fallback svg when javascript disabled or while
+    // grapher is loading
+    const imageFallback = (
+        <figure
+            className={cx(
+                GRAPHER_PREVIEW_CLASS,
+                "GrapherWithFallback__fallback"
+            )}
+        >
+            <GrapherImage slug={slug} />
+        </figure>
+    )
+
     return (
         <div
             className={cx(
@@ -23,24 +47,16 @@ export const GrapherWithFallback = ({
                 className
             )}
             id={id}
+            ref={ref}
         >
-            <>
-                {grapher ? (
-                    <GrapherFigureView grapher={grapher} />
-                ) : (
-                    // Render fallback svg when javascript disabled or while
-                    // grapher is loading
-                    <figure
-                        data-grapher-src
-                        className={cx(
-                            GRAPHER_PREVIEW_CLASS,
-                            "GrapherWithFallback__fallback"
-                        )}
-                    >
-                        {slug && <GrapherImage slug={slug} />}
-                    </figure>
-                )}
-            </>
+            {!isClient ? (
+                imageFallback
+            ) : inView ? (
+                <GrapherFigureView slug={slug} />
+            ) : (
+                // Optional loading placeholder while waiting to come into view
+                imageFallback
+            )}
         </div>
     )
 }

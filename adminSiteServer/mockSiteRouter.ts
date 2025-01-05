@@ -444,9 +444,9 @@ getPlainRouteWithROTransaction(
     "/grapher/exports/:slug.svg",
     async (req, res, trx) => {
         const grapher = await getChartConfigBySlug(trx, req.params.slug)
-        const vardata = await getChartVariableData(grapher.config)
+        // const vardata = await getChartVariableData(grapher.config)
         res.setHeader("Content-Type", "image/svg+xml")
-        res.send(await grapherToSVG(grapher.config, vardata))
+        res.send(await grapherToSVG(grapher.config))
     }
 )
 

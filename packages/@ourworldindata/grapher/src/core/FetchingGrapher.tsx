@@ -1,6 +1,7 @@
 import {
     GrapherInterface,
     MultipleOwidVariableDataDimensionsMap,
+    OwidChartDimensionInterface,
     OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/types"
 import React from "react"
@@ -11,6 +12,7 @@ import {
     legacyToOwidTableAndDimensionsWithMandatorySlug,
 } from "./LegacyToOwidTable.js"
 import { OwidTable } from "@ourworldindata/core-table"
+import { isEqual } from "@ourworldindata/utils"
 
 export interface FetchingGrapherProps {
     config?: GrapherInterface
@@ -25,13 +27,13 @@ export function FetchingGrapher(
 ): JSX.Element | null {
     // if config is not provided, fetch it from configUrl
 
-    const [config, setConfig] = React.useState<GrapherInterface>(
-        props.config ?? {}
-    )
+    const [downloadedConfig, setdownloadedConfig] = React.useState<
+        GrapherInterface | undefined
+    >(undefined)
 
-    const [grapherState, setGrapherState] = React.useState<GrapherState>(
+    const grapherState = React.useRef<GrapherState>(
         new GrapherState({
-            ...config,
+            ...props.config,
             queryStr: props.queryString,
             dataApiUrl: props.dataApiUrl,
             adminBaseUrl: props.adminBaseUrl,
@@ -41,31 +43,35 @@ export function FetchingGrapher(
 
     React.useEffect(() => {
         async function fetchConfigAndLoadData(): Promise<void> {
-            if (!config && props.configUrl) {
+            if (props.configUrl) {
                 const fetchedConfig = await fetch(props.configUrl).then((res) =>
                     res.json()
                 )
-                setConfig(fetchedConfig)
+                setdownloadedConfig(fetchedConfig)
+                grapherState.current.updateFromObject(fetchedConfig)
             }
-            if (!config) return
-            const inputTable = await fetchInputTableForConfig(
-                config,
-                props.dataApiUrl
-            )
-            if (inputTable) grapherState.inputTable = inputTable
         }
         void fetchConfigAndLoadData()
     }, [
         props.configUrl,
-        config,
         props.dataApiUrl,
         props.queryString,
         props.adminBaseUrl,
         props.bakedGrapherURL,
-        grapherState,
     ])
 
-    return <Grapher grapherState={grapherState} />
+    React.useEffect(() => {
+        async function fetchData(): Promise<void> {
+            const inputTable = await fetchInputTableForConfig(
+                { ...props.config, ...downloadedConfig },
+                props.dataApiUrl
+            )
+            if (inputTable) grapherState.current.inputTable = inputTable
+        }
+        void fetchData()
+    }, [props.config, props.dataApiUrl, downloadedConfig])
+
+    return <Grapher grapherState={grapherState.current} />
 }
 
 export async function fetchInputTableForConfig(
@@ -85,39 +91,48 @@ export async function fetchInputTableForConfig(
     return inputTable
 }
 
-// async function loadVariablesDataAdmin(
-//     variableFetchBaseUrl: string | undefined,
-//     variableIds: number[]
-// ): Promise<MultipleOwidVariableDataDimensionsMap> {
-//     const dataFetchPath = (variableId: number): string =>
-//         variableFetchBaseUrl
-//             ? `${variableFetchBaseUrl}/v1/variableById/data/${variableId}`
-//             : `/api/data/variables/data/${variableId}.json`
-//     const metadataFetchPath = (variableId: number): string =>
-//         variableFetchBaseUrl
-//             ? `${variableFetchBaseUrl}/v1/variableById/metadata/${variableId}`
-//             : `/api/data/variables/metadata/${variableId}.json`
+export function getCachingInputTableFetcher(
+    dataApiUrl: string
+): (
+    dimensions: OwidChartDimensionInterface[]
+) => Promise<OwidTable | undefined> {
+    const cache: Map<number, OwidVariableDataMetadataDimensions> = new Map()
+    let previousDimensions: OwidChartDimensionInterface[] = []
 
-//     const loadVariableDataPromises = variableIds.map(async (variableId) => {
-//         const dataPromise = window.admin.getJSON(
-//             dataFetchPath(variableId)
-//         ) as Promise<OwidVariableMixedData>
-//         const metadataPromise = window.admin.getJSON(
-//             metadataFetchPath(variableId)
-//         ) as Promise<OwidVariableWithSourceAndDimension>
-//         const [data, metadata] = await Promise.all([
-//             dataPromise,
-//             metadataPromise,
-//         ])
-//         return { data, metadata: { ...metadata, id: variableId } }
-//     })
-//     const variablesData: OwidVariableDataMetadataDimensions[] =
-//         await Promise.all(loadVariableDataPromises)
-//     const variablesDataMap = new Map(
-//         variablesData.map((data) => [data.metadata.id, data])
-//     )
-//     return variablesDataMap
-// }
+    return async (dimensions: OwidChartDimensionInterface[]) => {
+        // Check if dimensions have changed
+
+        if (isEqual(previousDimensions, dimensions)) {
+            return undefined // No changes in dimensions
+        }
+        previousDimensions = dimensions
+
+        if (dimensions.length === 0) return undefined
+
+        const variables = dimensions.map((d) => d.variableId)
+        const variablesToFetch = variables.filter((v) => !cache.has(v))
+
+        if (variablesToFetch.length > 0) {
+            const fetchedData = await Promise.all(
+                variablesToFetch.map((variableId) =>
+                    loadVariableDataAndMetadata(variableId, dataApiUrl)
+                )
+            )
+            fetchedData.forEach((data) => cache.set(data.metadata.id, data))
+        }
+
+        const variablesDataMap = new Map(
+            variables.map((v) => [v, cache.get(v)!])
+        )
+
+        const inputTable = legacyToOwidTableAndDimensions(
+            variablesDataMap,
+            dimensions
+        )
+
+        return inputTable
+    }
+}
 
 async function loadVariablesDataSite(
     variableIds: number[],
@@ -133,51 +148,3 @@ async function loadVariablesDataSite(
     )
     return variablesDataMap
 }
-
-// function downloadData(): void {
-//     if (this.manuallyProvideData) {
-//     } else if (this.owidDataset) {
-//         this._receiveOwidDataAndApplySelection(this.owidDataset)
-//     } else void this.downloadLegacyDataFromOwidVariableIds()
-// }
-
-// async function downloadLegacyDataFromOwidVariableIds(
-//     inputTableTransformer?: ChartTableTransformer
-// ): Promise<void> {
-//     if (this.variableIds.length === 0)
-//         // No data to download
-//         return
-
-//     try {
-//         let variablesDataMap: MultipleOwidVariableDataDimensionsMap
-
-//         const startMark = performance.now()
-//         if (this.useAdminAPI) {
-//             // TODO grapher model: switch this to downloading multiple data and metadata files
-//             variablesDataMap = await loadVariablesDataAdmin(
-//                 this.dataApiUrlForAdmin,
-//                 this.variableIds
-//             )
-//         } else {
-//             variablesDataMap = await loadVariablesDataSite(
-//                 this.variableIds,
-//                 this.dataApiUrl
-//             )
-//         }
-//         this.createPerformanceMeasurement("downloadVariablesData", startMark)
-
-//         this._receiveOwidDataAndApplySelection(
-//             variablesDataMap,
-//             inputTableTransformer
-//         )
-//     } catch (err) {
-//         // eslint-disable-next-line no-console
-//         console.log(`Error fetching '${err}'`)
-//         console.error(err)
-//         Bugsnag?.notify(`Error fetching variables: ${err}`, (event) => {
-//             event.addMetadata("context", {
-//                 variableIds: this.variableIds,
-//             })
-//         })
-//     }
-// }

@@ -21,6 +21,7 @@ import cx from "classnames"
 import { GRAPHER_PREVIEW_CLASS } from "../../SiteConstants.js"
 import InteractionNotice from "../../InteractionNotice.js"
 import GrapherImage from "../../GrapherImage.js"
+import { GrapherWithFallback } from "../../GrapherWithFallback.js"
 
 export default function Chart({
     d,
@@ -108,38 +109,50 @@ export default function Chart({
             style={{ gridRow: d.row, gridColumn: d.column }}
             ref={refChartContainer}
         >
-            <figure
-                // Use unique `key` to force React to re-render tree
-                key={resolvedUrl}
-                className={cx(
-                    { [GRAPHER_PREVIEW_CLASS]: !isExplorer },
-                    isExplorerWithControls ? "explorer" : "chart"
-                )}
-                data-is-multi-dim={isMultiDim || undefined}
-                data-grapher-src={isExplorer ? undefined : resolvedUrl}
-                data-grapher-config={
-                    isExplorer || isEmpty(chartConfig)
-                        ? undefined
-                        : JSON.stringify(chartConfig)
-                }
-                data-explorer-src={isExplorer ? resolvedUrl : undefined}
-                style={{
-                    width: "100%",
-                    border: "0px none",
-                    height: d.height,
-                }}
-            >
-                {isExplorer || isMultiDim ? (
-                    <div className="js--show-warning-block-if-js-disabled" />
-                ) : (
-                    resolvedSlug && (
-                        <a href={resolvedUrl} target="_blank" rel="noopener">
-                            <GrapherImage slug={resolvedSlug} alt={d.title} />
-                            <InteractionNotice />
-                        </a>
-                    )
-                )}
-            </figure>
+            {isExplorer || isMultiDim ? (
+                <figure
+                    // Use unique `key` to force React to re-render tree
+                    key={resolvedUrl}
+                    className={cx(
+                        { [GRAPHER_PREVIEW_CLASS]: !isExplorer },
+                        isExplorerWithControls ? "explorer" : "chart"
+                    )}
+                    data-is-multi-dim={isMultiDim || undefined}
+                    data-grapher-src={isExplorer ? undefined : resolvedUrl}
+                    data-grapher-config={
+                        isExplorer || isEmpty(chartConfig)
+                            ? undefined
+                            : JSON.stringify(chartConfig)
+                    }
+                    data-explorer-src={isExplorer ? resolvedUrl : undefined}
+                    style={{
+                        width: "100%",
+                        border: "0px none",
+                        height: d.height,
+                    }}
+                >
+                    {isExplorer || isMultiDim ? (
+                        <div className="js--show-warning-block-if-js-disabled" />
+                    ) : (
+                        resolvedSlug && (
+                            <a
+                                href={resolvedUrl}
+                                target="_blank"
+                                rel="noopener"
+                            >
+                                <GrapherImage
+                                    slug={resolvedSlug}
+                                    alt={d.title}
+                                />
+                                <InteractionNotice />
+                            </a>
+                        )
+                    )}
+                </figure>
+            ) : (
+                // TODO: 2025-01-05 Daniel - this is a crude first version, this entire control has to be touched again
+                <GrapherWithFallback slug={resolvedSlug!} />
+            )}
             {d.caption ? (
                 <figcaption>
                     <SpanElements spans={d.caption} />

@@ -10,6 +10,7 @@ export { ChartDimension } from "./chart/ChartDimension"
 export {
     FetchingGrapher,
     fetchInputTableForConfig,
+    getCachingInputTableFetcher,
 } from "./core/FetchingGrapher"
 export {
     GRAPHER_EMBEDDED_FIGURE_ATTR,

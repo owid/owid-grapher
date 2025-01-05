@@ -1105,7 +1105,7 @@ export class GrapherState {
     get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): GrapherChartType {
         return this.isLineChartThatTurnedIntoDiscreteBarActive
             ? GRAPHER_CHART_TYPES.DiscreteBar
-            : (this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart)
+            : this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart
     }
 
     @computed get isLineChart(): boolean {
@@ -1414,8 +1414,8 @@ export class GrapherState {
         return !isStatic
             ? "underline"
             : shouldIncludeDetailsInStaticExport
-              ? "superscript"
-              : "none"
+            ? "superscript"
+            : "none"
     }
 
     // required derived properties
@@ -2868,42 +2868,48 @@ export class GrapherState {
     @computed get availableEntities(): Entity[] {
         return this.tableForSelection.availableEntities
     }
-}
-
-export interface GrapherProps {
-    grapherState: GrapherState
-}
-
-@observer
-export class Grapher extends React.Component<GrapherProps> {
-    @computed get grapherState(): GrapherState {
-        return this.props.grapherState
+    // The below properties are here so the admin can access them
+    @computed get hasData(): boolean {
+        return this.dimensions.length > 0 || this.newSlugs.length > 0
+    }
+    // Returns an object ready to be serialized to JSON
+    @computed get object(): GrapherInterface {
+        return this.toObject()
     }
 
-    // #region Observable props not in any interface
+    // Todo: come up with a more general pattern?
+    // The idea here is to reset the Grapher to a blank slate, so that if you updateFromObject and the object contains some blanks, those blanks
+    // won't overwrite defaults (like type == LineChart). RAII would probably be better, but this works for now.
+    @action.bound reset(): void {
+        const grapherState = new GrapherState({})
+        for (const key of grapherKeysToSerialize) {
+            // @ts-expect-error grapherKeysToSerialize is not properly typed
+            this[key] = grapherState[key]
+        }
 
-    analytics = new GrapherAnalytics(
-        this.props.grapherState.initialOptions.env ?? ""
-    )
-    seriesColorMap: SeriesColorMap = new Map()
+        this.ySlugs = grapherState.ySlugs
+        this.xSlug = grapherState.xSlug
+        this.colorSlug = grapherState.colorSlug
+        this.sizeSlug = grapherState.sizeSlug
 
-    // stored on Grapher so state is preserved when switching to full-screen mode
-
-    @observable
-    private legacyVariableDataJson?: MultipleOwidVariableDataDimensionsMap
-    private hasLoggedGAViewEvent = false
-    @observable private hasBeenVisible = false
-    @observable private uncaughtError?: Error
-    @observable slideShow?: SlideShowController<any>
-    @observable isShareMenuActive = false
-
+        this.selection.clearSelection()
+        this.grapherState.focusArray.clear()
+    }
+    @action.bound updateAuthoredVersion(
+        config: Partial<LegacyGrapherInterface>
+    ): void {
+        this.legacyConfigAsAuthored = {
+            ...this.legacyConfigAsAuthored,
+            ...config,
+        }
+    }
     @computed get chartSeriesNames(): SeriesName[] {
-        if (!this.grapherState.isReady) return []
+        if (!this.isReady) return []
 
         // collect series names from all chart instances when faceted
         if (this.isFaceted) {
             const facetChartInstance = new FacetChart({
-                manager: this.grapherState,
+                manager: this,
             })
             return uniq(
                 facetChartInstance.intermediateChartInstances.flatMap(
@@ -2913,90 +2919,39 @@ export class Grapher extends React.Component<GrapherProps> {
             )
         }
 
-        return this.grapherState.chartInstance.series.map(
-            (series) => series.seriesName
-        )
+        return this.chartInstance.series.map((series) => series.seriesName)
     }
 
-    /**
-     * Whether the chart is rendered in an Admin context (e.g. on owid.cloud).
-     */
-    @computed get useAdminAPI(): boolean {
-        if (typeof window === "undefined") return false
-        return (
-            window.admin !== undefined &&
-            // Ensure that we're not accidentally matching on a DOM element with an ID of "admin"
-            typeof window.admin.isSuperuser === "boolean"
-        )
+    @computed get isFaceted(): boolean {
+        const hasFacetStrategy = this.facetStrategy !== FacetStrategy.none
+        return this.isOnChartTab && hasFacetStrategy
+    }
+    // todo: this is only relevant for scatter plots and Marimekko. move to scatter plot class?
+    set xOverrideTime(value: number | undefined) {
+        this.xDimension!.targetYear = value
+    }
+    @action.bound setDimensionsForProperty(
+        property: DimensionProperty,
+        newConfigs: OwidChartDimensionInterface[]
+    ): void {
+        let newDimensions: ChartDimension[] = []
+        this.dimensionSlots.forEach((slot) => {
+            if (slot.property === property)
+                newDimensions = newDimensions.concat(
+                    newConfigs.map((config) => new ChartDimension(config, this))
+                )
+            else newDimensions = newDimensions.concat(slot.dimensions)
+        })
+        this.dimensions = newDimensions
+    }
+    @action.bound addDimension(config: OwidChartDimensionInterface): void {
+        this.dimensions.push(new ChartDimension(config, this))
     }
 
-    @computed get hasData(): boolean {
-        return (
-            this.grapherState.dimensions.length > 0 ||
-            this.grapherState.newSlugs.length > 0
-        )
-    }
-
-    // todo: do we need this?
-    @computed get originUrlWithProtocol(): string {
-        if (!this.grapherState.originUrl) return ""
-        let url = this.grapherState.originUrl
-        if (!url.startsWith("http")) url = `https://${url}`
-        return url
-    }
-
-    @computed get shouldLinkToOwid(): boolean {
-        if (
-            this.grapherState.isEmbeddedInAnOwidPage ||
-            this.grapherState.isExportingToSvgOrPng ||
-            !this.grapherState.isInIFrame
-        )
-            return false
-
-        return true
-    }
-
-    @computed.struct private get variableIds(): number[] {
-        return uniq(this.grapherState.dimensions.map((d) => d.variableId))
-    }
-
-    @computed get hasOWIDLogo(): boolean {
-        return (
-            !this.grapherState.hideLogo &&
-            (this.grapherState.logo === undefined ||
-                this.grapherState.logo === "owid")
-        )
-    }
-
-    // todo: did this name get botched in a merge?
-    @computed get hasFatalErrors(): boolean {
-        const { relatedQuestions = [] } = this.grapherState
-        return relatedQuestions.some(
-            (question) => !!getErrorMessageRelatedQuestionUrl(question)
-        )
-    }
-
-    @computed get xScaleType(): ScaleType | undefined {
-        return this.grapherState.xAxis.scaleType
-    }
-
+    seriesColorMap: SeriesColorMap = new Map()
     @computed get sourcesLine(): string {
-        return this.grapherState.sourceDesc ?? this.defaultSourcesLine
+        return this.sourceDesc ?? this.defaultSourcesLine
     }
-
-    @computed get columnsWithSourcesCondensed(): CoreColumn[] {
-        const { yColumnSlugs } = this.grapherState
-
-        const columnSlugs = [...yColumnSlugs]
-        columnSlugs.push(...this.getColumnSlugsForCondensedSources())
-
-        return this.grapherState.inputTable
-            .getColumns(uniq(columnSlugs))
-            .filter(
-                (column) => !!column.source.name || !isEmpty(column.def.origins)
-            )
-    }
-
     @computed private get defaultSourcesLine(): string {
         const attributions = this.columnsWithSourcesCondensed.flatMap(
             (column) => {
@@ -3026,9 +2981,130 @@ export class Grapher extends React.Component<GrapherProps> {
         return uniqueAttributions.join("; ")
     }
 
-    // Returns an object ready to be serialized to JSON
-    @computed get object(): GrapherInterface {
-        return this.grapherState.toObject()
+    @computed get columnsWithSourcesCondensed(): CoreColumn[] {
+        const { yColumnSlugs } = this
+
+        const columnSlugs = [...yColumnSlugs]
+        columnSlugs.push(...this.getColumnSlugsForCondensedSources())
+
+        return this.inputTable
+            .getColumns(uniq(columnSlugs))
+            .filter(
+                (column) => !!column.source.name || !isEmpty(column.def.origins)
+            )
+    }
+
+    getColumnSlugsForCondensedSources(): string[] {
+        const { xColumnSlug, sizeColumnSlug, colorColumnSlug, isMarimekko } =
+            this
+        const columnSlugs: string[] = []
+
+        // exclude "Countries Continent" if it's used as the color dimension in a scatter plot, slope chart etc.
+        if (
+            colorColumnSlug !== undefined &&
+            !isContinentsVariableId(colorColumnSlug)
+        )
+            columnSlugs.push(colorColumnSlug)
+
+        if (xColumnSlug !== undefined) {
+            const xColumn = this.inputTable.get(xColumnSlug)
+                .def as OwidColumnDef
+            // exclude population variable if it's used as the x dimension in a marimekko
+            if (
+                !isMarimekko ||
+                !isPopulationVariableETLPath(xColumn?.catalogPath ?? "")
+            )
+                columnSlugs.push(xColumnSlug)
+        }
+
+        // exclude population variable if it's used as the size dimension in a scatter plot
+        if (sizeColumnSlug !== undefined) {
+            const sizeColumn = this.inputTable.get(sizeColumnSlug)
+                .def as OwidColumnDef
+            if (!isPopulationVariableETLPath(sizeColumn?.catalogPath ?? ""))
+                columnSlugs.push(sizeColumnSlug)
+        }
+        return columnSlugs
+    }
+    // todo: do we need this?
+    @computed get originUrlWithProtocol(): string {
+        if (!this.originUrl) return ""
+        let url = this.originUrl
+        if (!url.startsWith("http")) url = `https://${url}`
+        return url
+    }
+    // todo: did this name get botched in a merge?
+    @computed get hasFatalErrors(): boolean {
+        const { relatedQuestions = [] } = this
+        return relatedQuestions.some(
+            (question) => !!getErrorMessageRelatedQuestionUrl(question)
+        )
+    }
+}
+
+export interface GrapherProps {
+    grapherState: GrapherState
+}
+
+@observer
+export class Grapher extends React.Component<GrapherProps> {
+    @computed get grapherState(): GrapherState {
+        return this.props.grapherState
+    }
+
+    // #region Observable props not in any interface
+
+    analytics = new GrapherAnalytics(
+        this.props.grapherState.initialOptions.env ?? ""
+    )
+
+    // stored on Grapher so state is preserved when switching to full-screen mode
+
+    @observable
+    private legacyVariableDataJson?: MultipleOwidVariableDataDimensionsMap
+    private hasLoggedGAViewEvent = false
+    @observable private hasBeenVisible = false
+    @observable private uncaughtError?: Error
+    @observable slideShow?: SlideShowController<any>
+    @observable isShareMenuActive = false
+
+    /**
+     * Whether the chart is rendered in an Admin context (e.g. on owid.cloud).
+     */
+    @computed get useAdminAPI(): boolean {
+        if (typeof window === "undefined") return false
+        return (
+            window.admin !== undefined &&
+            // Ensure that we're not accidentally matching on a DOM element with an ID of "admin"
+            typeof window.admin.isSuperuser === "boolean"
+        )
+    }
+
+    @computed get shouldLinkToOwid(): boolean {
+        if (
+            this.grapherState.isEmbeddedInAnOwidPage ||
+            this.grapherState.isExportingToSvgOrPng ||
+            !this.grapherState.isInIFrame
+        )
+            return false
+
+        return true
+    }
+
+    @computed.struct private get variableIds(): number[] {
+        return uniq(this.grapherState.dimensions.map((d) => d.variableId))
+    }
+
+    @computed get hasOWIDLogo(): boolean {
+        return (
+            !this.grapherState.hideLogo &&
+            (this.grapherState.logo === undefined ||
+                this.grapherState.logo === "owid")
+        )
+    }
+
+    @computed get xScaleType(): ScaleType | undefined {
+        return this.grapherState.xAxis.scaleType
     }
 
     @computed get hasYDimension(): boolean {
@@ -3077,11 +3153,6 @@ export class Grapher extends React.Component<GrapherProps> {
     }
     @computed get containerElement(): HTMLDivElement | undefined {
         return this.grapherState.base.current || undefined
-    }
-
-    @computed get isFaceted(): boolean {
-        const hasFacetStrategy = this.facetStrategy !== FacetStrategy.none
-        return this.grapherState.isOnChartTab && hasFacetStrategy
     }
 
     // the header and footer don't rely on the base font size unless explicitly specified
@@ -3150,15 +3221,6 @@ export class Grapher extends React.Component<GrapherProps> {
         )
     }
 
-    @action.bound updateAuthoredVersion(
-        config: Partial<LegacyGrapherInterface>
-    ): void {
-        this.grapherState.legacyConfigAsAuthored = {
-            ...this.grapherState.legacyConfigAsAuthored,
-            ...config,
-        }
-    }
-
     constructor(props: { grapherState: GrapherState }) {
         super(props)
     }
@@ -3221,72 +3283,10 @@ export class Grapher extends React.Component<GrapherProps> {
         this.grapherState.disposers.forEach((dispose) => dispose())
     }
 
-    @action.bound addDimension(config: OwidChartDimensionInterface): void {
-        this.grapherState.dimensions.push(
-            new ChartDimension(config, this.grapherState)
-        )
-    }
-
-    @action.bound setDimensionsForProperty(
-        property: DimensionProperty,
-        newConfigs: OwidChartDimensionInterface[]
-    ): void {
-        let newDimensions: ChartDimension[] = []
-        this.grapherState.dimensionSlots.forEach((slot) => {
-            if (slot.property === property)
-                newDimensions = newDimensions.concat(
-                    newConfigs.map(
-                        (config) =>
-                            new ChartDimension(config, this.grapherState)
-                    )
-                )
-            else newDimensions = newDimensions.concat(slot.dimensions)
-        })
-        this.grapherState.dimensions = newDimensions
-    }
-
     getColumnForProperty(property: DimensionProperty): CoreColumn | undefined {
         return this.grapherState.dimensions.find(
             (dim) => dim.property === property
         )?.column
-    }
-
-    getColumnSlugsForCondensedSources(): string[] {
-        const { xColumnSlug, sizeColumnSlug, colorColumnSlug, isMarimekko } =
-            this.grapherState
-        const columnSlugs: string[] = []
-
-        // exclude "Countries Continent" if it's used as the color dimension in a scatter plot, slope chart etc.
-        if (
-            colorColumnSlug !== undefined &&
-            !isContinentsVariableId(colorColumnSlug)
-        )
-            columnSlugs.push(colorColumnSlug)
-
-        if (xColumnSlug !== undefined) {
-            const xColumn = this.grapherState.inputTable.get(xColumnSlug)
-                .def as OwidColumnDef
-            // exclude population variable if it's used as the x dimension in a marimekko
-            if (
-                !isMarimekko ||
-                !isPopulationVariableETLPath(xColumn?.catalogPath ?? "")
-            )
-                columnSlugs.push(xColumnSlug)
-        }
-
-        // exclude population variable if it's used as the size dimension in a scatter plot
-        if (sizeColumnSlug !== undefined) {
-            const sizeColumn = this.grapherState.inputTable.get(sizeColumnSlug)
-                .def as OwidColumnDef
-            if (!isPopulationVariableETLPath(sizeColumn?.catalogPath ?? ""))
-                columnSlugs.push(sizeColumnSlug)
-        }
-        return columnSlugs
-    }
-
-    // todo: this is only relevant for scatter plots and Marimekko. move to scatter plot class?
-    set xOverrideTime(value: number | undefined) {
-        this.grapherState.xDimension!.targetYear = value
     }
 
     set staticFormat(format: GrapherStaticFormat) {
@@ -3910,25 +3910,6 @@ export class Grapher extends React.Component<GrapherProps> {
     componentDidCatch(error: Error): void {
         this.setError(error)
         this.analytics.logGrapherViewError(error)
-    }
-
-    // Todo: come up with a more general pattern?
-    // The idea here is to reset the Grapher to a blank slate, so that if you updateFromObject and the object contains some blanks, those blanks
-    // won't overwrite defaults (like type == LineChart). RAII would probably be better, but this works for now.
-    @action.bound reset(): void {
-        const grapherState = new GrapherState({})
-        for (const key of grapherKeysToSerialize) {
-            // @ts-expect-error grapherKeysToSerialize is not properly typed
-            this.grapherState[key] = grapherState[key]
-        }
-
-        this.grapherState.ySlugs = grapherState.ySlugs
-        this.grapherState.xSlug = grapherState.xSlug
-        this.grapherState.colorSlug = grapherState.colorSlug
-        this.grapherState.sizeSlug = grapherState.sizeSlug
-
-        this.grapherState.selection.clearSelection()
-        this.grapherState.focusArray.clear()
     }
 
     debounceMode = false

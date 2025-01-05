@@ -4,7 +4,12 @@ import {
     GrapherInterface,
     DbRawChartConfig,
 } from "@ourworldindata/types"
-import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
+import {
+    fetchInputTableForConfig,
+    Grapher,
+    GrapherProgrammaticInterface,
+    GrapherState,
+} from "@ourworldindata/grapher"
 import { MultipleOwidVariableDataDimensionsMap } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import path from "path"
@@ -18,6 +23,7 @@ import {
 } from "./GrapherBakingUtils.js"
 import pMap from "p-map"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
+import { DATA_API_URL } from "../settings/serverSettings.js"
 
 interface SvgFilenameFragments {
     slug: string
@@ -34,8 +40,10 @@ export async function bakeGrapherToSvgAndPng(
     optimizeSvgs = false
 ) {
     const grapher = initGrapherForSvgExport(jsonConfig)
+    const inputTable = await fetchInputTableForConfig(jsonConfig, DATA_API_URL)
+    if (inputTable) grapher.grapherState.inputTable = inputTable
     // grapher.receiveOwidData(vardata)
-    const outPath = path.join(outDir, grapher.slug as string)
+    const outPath = path.join(outDir, grapher.grapherState.slug as string)
 
     let svgCode = grapher.staticSVG
     if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
@@ -46,7 +54,10 @@ export async function bakeGrapherToSvgAndPng(
             .then(() => console.log(`${outPath}.svg`)),
         sharp(Buffer.from(grapher.staticSVG), { density: 144 })
             .png()
-            .resize(grapher.defaultBounds.width, grapher.defaultBounds.height)
+            .resize(
+                grapher.grapherState.defaultBounds.width,
+                grapher.grapherState.defaultBounds.height
+            )
             .flatten({ background: "#ffffff" })
             .toFile(`${outPath}.png`),
     ])
@@ -55,8 +66,9 @@ export async function bakeGrapherToSvgAndPng(
 export async function getGraphersAndRedirectsBySlug(
     knex: db.KnexReadonlyTransaction
 ) {
-    const { graphersBySlug, graphersById } =
-        await getPublishedGraphersBySlug(knex)
+    const { graphersBySlug, graphersById } = await getPublishedGraphersBySlug(
+        knex
+    )
 
     const redirectQuery = await db.knexRaw<
         Pick<DbPlainChartSlugRedirect, "slug" | "chart_id">
@@ -109,7 +121,7 @@ export async function bakeGrapherToSvg(
     verbose = true
 ) {
     const grapher = initGrapherForSvgExport(jsonConfig, queryStr)
-    const { width, height } = grapher.defaultBounds
+    const { width, height } = grapher.grapherState.defaultBounds
     const outPath = buildSvgOutFilepath(
         outDir,
         {
@@ -123,8 +135,8 @@ export async function bakeGrapherToSvg(
     )
 
     if (fs.existsSync(outPath) && !overwriteExisting) return
-    const variableIds = grapher.dimensions.map((d) => d.variableId)
-    const _vardata = await getDataForMultipleVariables(variableIds)
+    const inputTable = await fetchInputTableForConfig(jsonConfig, DATA_API_URL)
+    if (inputTable) grapher.grapherState.inputTable = inputTable
     // grapher.receiveOwidData(vardata)
 
     let svgCode = grapher.staticSVG
@@ -139,13 +151,15 @@ export function initGrapherForSvgExport(
     queryStr: string = ""
 ) {
     const grapher = new Grapher({
-        bakedGrapherURL: BAKED_GRAPHER_URL,
-        ...jsonConfig,
-        manuallyProvideData: true,
-        queryStr,
+        grapherState: new GrapherState({
+            bakedGrapherURL: BAKED_GRAPHER_URL,
+            ...jsonConfig,
+            manuallyProvideData: true,
+            queryStr,
+        }),
     })
-    grapher.isExportingToSvgOrPng = true
-    grapher.shouldIncludeDetailsInStaticExport = false
+    grapher.grapherState.isExportingToSvgOrPng = true
+    grapher.grapherState.shouldIncludeDetailsInStaticExport = false
     return grapher
 }
 
@@ -228,12 +242,19 @@ async function optimizeSvg(svgString: string): Promise<string> {
 }
 
 export async function grapherToSVG(
-    jsonConfig: GrapherInterface,
-    vardata: MultipleOwidVariableDataDimensionsMap
+    jsonConfig: GrapherInterface
+    // vardata: MultipleOwidVariableDataDimensionsMap
 ): Promise<string> {
-    const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
-    grapher.isExportingToSvgOrPng = true
-    grapher.shouldIncludeDetailsInStaticExport = false
+    const grapher = new Grapher({
+        grapherState: new GrapherState({
+            ...jsonConfig,
+            manuallyProvideData: true,
+        }),
+    })
+    grapher.grapherState.isExportingToSvgOrPng = true
+    grapher.grapherState.shouldIncludeDetailsInStaticExport = false
     // grapher.receiveOwidData(vardata)
+    const inputTable = await fetchInputTableForConfig(jsonConfig, DATA_API_URL)
+    if (inputTable) grapher.grapherState.inputTable = inputTable
     return grapher.staticSVG
 }

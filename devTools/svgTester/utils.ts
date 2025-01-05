@@ -26,6 +26,7 @@ import util from "util"
 import { getHeapStatistics } from "v8"
 import { queryStringsByChartType } from "./chart-configurations.js"
 import * as d3 from "d3"
+import { legacyToOwidTableAndDimensions } from "@ourworldindata/grapher"
 
 // the owid-grapher-svgs repo is usually cloned as a sibling to the owid-grapher repo
 export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/configs"
@@ -373,7 +374,7 @@ export async function saveGrapherSchemaAndData(
     const promise1 = writeToFile(config, configPath)
 
     const grapher = initGrapherForSvgExport(config)
-    const variableIds = grapher.dimensions.map((d) => d.variableId)
+    const variableIds = grapher.grapherState.dimensions.map((d) => d.variableId)
 
     const writeVariablePromises = variableIds.map(async (variableId) => {
         const dataPath = path.join(dataDir, `${variableId}.data.json`)
@@ -407,7 +408,7 @@ export async function renderSvg(
         },
         queryStr
     )
-    const { width, height } = grapher.defaultBounds
+    const { width, height } = grapher.grapherState.defaultBounds
     const outFilename = buildSvgOutFilename(
         {
             slug: configAndData.config.slug!,
@@ -419,7 +420,11 @@ export async function renderSvg(
         { shouldHashQueryStr: false, separator: "?" }
     )
 
-    // grapher.receiveOwidData(configAndData.variableData)
+    grapher.grapherState.inputTable = legacyToOwidTableAndDimensions(
+        configAndData.variableData,
+        grapher.grapherState.dimensions,
+        grapher.grapherState.selectedEntityColors
+    )
     const durationReceiveData = Date.now() - timeStart
 
     const svg = grapher.staticSVG
@@ -428,7 +433,7 @@ export async function renderSvg(
     const svgRecord = {
         chartId: configAndData.config.id!,
         slug: configAndData.config.slug!,
-        chartType: grapher.activeTab,
+        chartType: grapher.grapherState.activeTab,
         queryStr,
         md5: processSvgAndCalculateHash(svg),
         svgFilename: outFilename,

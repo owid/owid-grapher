@@ -63,7 +63,7 @@ class SaveButtonsForChart extends Component<{
     }
 
     @action.bound onPublishToggle() {
-        if (this.props.editor.grapher.isPublished)
+        if (this.props.editor.grapherState.isPublished)
             this.props.editor.unpublishGrapher()
         else this.props.editor.publishGrapher()
     }
@@ -77,7 +77,7 @@ class SaveButtonsForChart extends Component<{
     }
 
     @computed get initialNarrativeChartName(): string {
-        return slugify(this.props.editor.grapher.title ?? "")
+        return slugify(this.props.editor.grapherState.title ?? "")
     }
 
     @observable narrativeChartNameModalOpen:
@@ -102,10 +102,10 @@ class SaveButtonsForChart extends Component<{
     render() {
         const { editingErrors } = this
         const { editor } = this.props
-        const { grapher } = editor
+        const { grapherState } = editor
 
         const hasEditingErrors = editingErrors.length > 0
-        const isSavingDisabled = grapher.hasFatalErrors || hasEditingErrors
+        const isSavingDisabled = grapherState.hasFatalErrors || hasEditingErrors
 
         return (
             <div className="SaveButtons">
@@ -115,9 +115,9 @@ class SaveButtonsForChart extends Component<{
                         onClick={this.onSaveChart}
                         disabled={isSavingDisabled}
                     >
-                        {grapher.isPublished
+                        {grapherState.isPublished
                             ? "Update chart"
-                            : grapher.id
+                            : grapherState.id
                               ? "Save draft"
                               : "Create draft"}
                     </button>{" "}
@@ -133,7 +133,7 @@ class SaveButtonsForChart extends Component<{
                         onClick={this.onPublishToggle}
                         disabled={isSavingDisabled}
                     >
-                        {grapher.isPublished ? "Unpublish" : "Publish"}
+                        {grapherState.isPublished ? "Unpublish" : "Publish"}
                     </button>
                 </div>
                 {chartViewsFeatureEnabled && (
@@ -193,12 +193,12 @@ class SaveButtonsForIndicatorChart extends Component<{
     render() {
         const { editingErrors } = this
         const { editor } = this.props
-        const { grapher } = editor
+        const { grapherState } = editor
 
         const isTrivial = editor.isNewGrapher && !editor.isModified
         const hasEditingErrors = editingErrors.length > 0
         const isSavingDisabled =
-            grapher.hasFatalErrors || hasEditingErrors || isTrivial
+            grapherState.hasFatalErrors || hasEditingErrors || isTrivial
 
         return (
             <div className="SaveButtons">
@@ -242,10 +242,10 @@ class SaveButtonsForChartView extends Component<{
     render() {
         const { editingErrors } = this
         const { editor } = this.props
-        const { grapher } = editor
+        const { grapherState } = editor
 
         const hasEditingErrors = editingErrors.length > 0
-        const isSavingDisabled = grapher.hasFatalErrors || hasEditingErrors
+        const isSavingDisabled = grapherState.hasFatalErrors || hasEditingErrors
 
         return (
             <div className="SaveButtons">

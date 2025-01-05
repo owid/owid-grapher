@@ -1,7 +1,7 @@
 import { faMinus, faTrash } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { EntityName } from "@ourworldindata/types"
-import { Grapher } from "@ourworldindata/grapher"
+import { Grapher, GrapherState } from "@ourworldindata/grapher"
 import { excludeUndefined } from "@ourworldindata/utils"
 import lodash from "lodash"
 import { action, computed, IReactionDisposer, observable, reaction } from "mobx"
@@ -10,15 +10,17 @@ import { Component } from "react"
 import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
 
 @observer
-export class EditorMarimekkoTab extends Component<{ grapher: Grapher }> {
+export class EditorMarimekkoTab extends Component<{
+    grapherState: GrapherState
+}> {
     @observable xOverrideTimeInputField: number | undefined
-    constructor(props: { grapher: Grapher }) {
+    constructor(props: { grapherState: GrapherState }) {
         super(props)
-        this.xOverrideTimeInputField = props.grapher.xOverrideTime
+        this.xOverrideTimeInputField = props.grapherState.xOverrideTime
     }
 
     @computed private get includedEntityNames(): EntityName[] {
-        const { includedEntities, inputTable } = this.props.grapher
+        const { includedEntities, inputTable } = this.props.grapherState
         const { entityIdToNameMap } = inputTable
         const includedEntityIds = includedEntities ?? []
         return excludeUndefined(
@@ -27,7 +29,7 @@ export class EditorMarimekkoTab extends Component<{ grapher: Grapher }> {
     }
 
     @computed private get includedEntityChoices() {
-        const { inputTable } = this.props.grapher
+        const { inputTable } = this.props.grapherState
         return inputTable.availableEntityNames
             .filter(
                 (entityName) => !this.includedEntityNames.includes(entityName)
@@ -36,28 +38,28 @@ export class EditorMarimekkoTab extends Component<{ grapher: Grapher }> {
     }
 
     @action.bound onIncludeEntity(entity: string) {
-        const { grapher } = this.props
-        if (grapher.includedEntities === undefined) {
-            grapher.includedEntities = []
+        const { grapherState } = this.props
+        if (grapherState.includedEntities === undefined) {
+            grapherState.includedEntities = []
         }
 
-        const entityId = grapher.table.entityNameToIdMap.get(entity)!
-        if (grapher.includedEntities.indexOf(entityId) === -1)
-            grapher.includedEntities.push(entityId)
+        const entityId = grapherState.table.entityNameToIdMap.get(entity)!
+        if (grapherState.includedEntities.indexOf(entityId) === -1)
+            grapherState.includedEntities.push(entityId)
     }
 
     @action.bound onUnincludeEntity(entity: string) {
-        const { grapher } = this.props
-        if (!grapher.includedEntities) return
+        const { grapherState } = this.props
+        if (!grapherState.includedEntities) return
 
-        const entityId = grapher.table.entityNameToIdMap.get(entity)
-        grapher.includedEntities = grapher.includedEntities.filter(
+        const entityId = grapherState.table.entityNameToIdMap.get(entity)
+        grapherState.includedEntities = grapherState.includedEntities.filter(
             (e) => e !== entityId
         )
     }
 
     @computed private get excludedEntityNames(): EntityName[] {
-        const { excludedEntities, inputTable } = this.props.grapher
+        const { excludedEntities, inputTable } = this.props.grapherState
         const { entityIdToNameMap } = inputTable
         const excludedEntityIds = excludedEntities ?? []
         return excludeUndefined(
@@ -66,7 +68,7 @@ export class EditorMarimekkoTab extends Component<{ grapher: Grapher }> {
     }
 
     @computed private get excludedEntityChoices() {
-        const { inputTable } = this.props.grapher
+        const { inputTable } = this.props.grapherState
         return inputTable.availableEntityNames
             .filter(
                 (entityName) => !this.excludedEntityNames.includes(entityName)
@@ -75,34 +77,34 @@ export class EditorMarimekkoTab extends Component<{ grapher: Grapher }> {
     }
 
     @action.bound onExcludeEntity(entity: string) {
-        const { grapher } = this.props
-        if (grapher.excludedEntities === undefined) {
-            grapher.excludedEntities = []
+        const { grapherState } = this.props
+        if (grapherState.excludedEntities === undefined) {
+            grapherState.excludedEntities = []
         }
 
-        const entityId = grapher.table.entityNameToIdMap.get(entity)!
-        if (grapher.excludedEntities.indexOf(entityId) === -1)
-            grapher.excludedEntities.push(entityId)
+        const entityId = grapherState.table.entityNameToIdMap.get(entity)!
+        if (grapherState.excludedEntities.indexOf(entityId) === -1)
+            grapherState.excludedEntities.push(entityId)
     }
 
     @action.bound onUnexcludeEntity(entity: string) {
-        const { grapher } = this.props
-        if (!grapher.excludedEntities) return
+        const { grapherState } = this.props
+        if (!grapherState.excludedEntities) return
 
-        const entityId = grapher.table.entityNameToIdMap.get(entity)
-        grapher.excludedEntities = grapher.excludedEntities.filter(
+        const entityId = grapherState.table.entityNameToIdMap.get(entity)
+        grapherState.excludedEntities = grapherState.excludedEntities.filter(
             (e) => e !== entityId
         )
     }
 
     @action.bound onClearExcludedEntities() {
-        const { grapher } = this.props
-        grapher.excludedEntities = []
+        const { grapherState } = this.props
+        grapherState.excludedEntities = []
     }
 
     @action.bound onClearIncludedEntities() {
-        const { grapher } = this.props
-        grapher.includedEntities = []
+        const { grapherState } = this.props
+        grapherState.includedEntities = []
     }
 
     @action.bound onXOverrideYear(value: number | undefined) {
@@ -110,7 +112,7 @@ export class EditorMarimekkoTab extends Component<{ grapher: Grapher }> {
     }
     render() {
         const { excludedEntityChoices, includedEntityChoices } = this
-        const { grapher } = this.props
+        const { grapherState } = this.props
 
         return (
             <div className="EditorMarimekkoTab">
@@ -124,10 +126,10 @@ export class EditorMarimekkoTab extends Component<{ grapher: Grapher }> {
 
                     <Toggle
                         label="Exclude entities that do not belong in any color group"
-                        value={!!grapher.matchingEntitiesOnly}
+                        value={!!grapherState.matchingEntitiesOnly}
                         onValue={action(
                             (value: boolean) =>
-                                (grapher.matchingEntitiesOnly =
+                                (grapherState.matchingEntitiesOnly =
                                     value || undefined)
                         )}
                     />
@@ -215,7 +217,7 @@ export class EditorMarimekkoTab extends Component<{ grapher: Grapher }> {
             () => this.xOverrideTimeInputField,
             lodash.debounce(
                 () =>
-                    (this.props.grapher.xOverrideTime =
+                    (this.props.grapherState.xOverrideTime =
                         this.xOverrideTimeInputField),
                 800
             )
