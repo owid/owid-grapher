@@ -1,7 +1,8 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class HousekeepingSuggestedReviews1736188395813 implements MigrationInterface {
-
+export class HousekeepingSuggestedReviews1736188395813
+    implements MigrationInterface
+{
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             ALTER TABLE housekeeping_suggested_reviews
@@ -10,9 +11,6 @@ export class HousekeepingSuggestedReviews1736188395813 implements MigrationInter
     }
 
     public async down(): Promise<void> {}
-
 }
 
-
 // ALTER TABLE employees
-
