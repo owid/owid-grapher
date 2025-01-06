@@ -152,7 +152,7 @@
         "s-expression": "^3.1.1",
         "safe-stable-stringify": "^2.4.1",
         "search-insights": "^2.14.0",
-        "sharp": "^0.32.5",
+        "sharp": "^0.33.5",
         "shell-quote": "^1.7.3",
         "shelljs": "^0.8.5",
         "simple-git": "^3.16.1",
