@@ -414,7 +414,6 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             </p>
                         ) : (
                             <p>
-                                {dataset.isArchived}
                                 <strong>Before archiving, ensure that:</strong>
                                 <ul>
                                     <li>
