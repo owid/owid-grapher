@@ -934,7 +934,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
     })
 })
 
-describe.only("OwidAdminApp: tag graph", () => {
+describe("OwidAdminApp: tag graph", () => {
     // prettier-ignore
     const dummyTags: DbInsertTag[] = [
         { name: TagGraphRootName, id: 1  },
