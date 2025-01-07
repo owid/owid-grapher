@@ -36,8 +36,10 @@ import { ExplorerChartCreationMode } from "@ourworldindata/explorer"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import {
     ColorSchemes,
+    FetchingGrapher,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
+import { GrapherFigureView } from "../site/GrapherFigureView.js"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"
@@ -127,8 +129,8 @@ async function propsFromQueryParams(
     const page = params.page
         ? expectInt(params.page)
         : params.random
-        ? Math.floor(1 + Math.random() * 180) // Sample one of 180 pages. Some charts won't ever get picked but good enough.
-        : 1
+          ? Math.floor(1 + Math.random() * 180) // Sample one of 180 pages. Some charts won't ever get picked but good enough.
+          : 1
     const perPage = parseIntOrUndefined(params.perPage) ?? 20
     const ids = parseIntArrayOrUndefined(params.ids)
     const datasetIds = parseIntArrayOrUndefined(params.datasetIds)
@@ -420,9 +422,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                                     loading="lazy"
                                 />
                             )}
-                            <figure
-                                data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
-                            />
+                            <GrapherFigureView slug={chart.slug} />
                         </div>
                     </div>
                 ))}
@@ -618,9 +618,7 @@ function EmbedVariantsTestPage(
                                     src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
                                 />
                             )}
-                            <figure
-                                data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
-                            />
+                            <GrapherFigureView slug={chart.slug} />
                         </div>
                     </div>
                 ))}
