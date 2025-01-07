@@ -91,15 +91,22 @@ export async function fetchInputTableForConfig(
     return inputTable
 }
 
-export function getCachingInputTableFetcher(
-    dataApiUrl: string
-): (
-    dimensions: OwidChartDimensionInterface[]
+export function getCachingInputTableFetcher(dataApiUrl: string): (
+    dimensions: OwidChartDimensionInterface[],
+
+    selectedEntityColors:
+        | { [entityName: string]: string | undefined }
+        | undefined
 ) => Promise<OwidTable | undefined> {
     const cache: Map<number, OwidVariableDataMetadataDimensions> = new Map()
     let previousDimensions: OwidChartDimensionInterface[] = []
 
-    return async (dimensions: OwidChartDimensionInterface[]) => {
+    return async (
+        dimensions: OwidChartDimensionInterface[],
+        selectedEntityColors:
+            | { [entityName: string]: string | undefined }
+            | undefined
+    ) => {
         // Check if dimensions have changed
 
         if (isEqual(previousDimensions, dimensions)) {
@@ -125,9 +132,10 @@ export function getCachingInputTableFetcher(
             variables.map((v) => [v, cache.get(v)!])
         )
 
-        const inputTable = legacyToOwidTableAndDimensions(
+        const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
             variablesDataMap,
-            dimensions
+            dimensions,
+            selectedEntityColors
         )
 
         return inputTable

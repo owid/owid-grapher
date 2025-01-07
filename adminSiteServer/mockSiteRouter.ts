@@ -35,10 +35,7 @@ import {
     countriesIndexPage,
 } from "../baker/countryProfiles.js"
 import { makeSitemap } from "../baker/sitemap.js"
-import {
-    getChartConfigBySlug,
-    getChartVariableData,
-} from "../db/model/Chart.js"
+import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"

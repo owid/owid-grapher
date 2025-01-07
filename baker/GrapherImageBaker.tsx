@@ -16,7 +16,6 @@ import path from "path"
 import sharp from "sharp"
 import svgo from "svgo"
 import * as db from "../db/db.js"
-import { getDataForMultipleVariables } from "../db/model/Variable.js"
 import {
     grapherSlugToExportFileKey,
     grapherUrlToSlugAndQueryStr,

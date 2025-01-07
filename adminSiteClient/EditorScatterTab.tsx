@@ -5,7 +5,7 @@ import {
     ComparisonLineConfig,
     ScatterPointLabelStrategy,
 } from "@ourworldindata/types"
-import { Grapher, GrapherState } from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import { debounce, excludeUndefined } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"

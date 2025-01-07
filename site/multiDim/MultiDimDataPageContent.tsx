@@ -27,7 +27,7 @@ import {
     fetchWithRetry,
 } from "@ourworldindata/utils"
 import cx from "classnames"
-import { ADMIN_BASE_URL, DATA_API_URL } from "../../settings/clientSettings.js"
+import { DATA_API_URL } from "../../settings/clientSettings.js"
 import {
     FaqEntryKeyedByGdocIdAndFragmentId,
     MultiDimDataPageConfigEnriched,

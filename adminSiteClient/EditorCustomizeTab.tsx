@@ -8,7 +8,7 @@ import {
     FacetStrategy,
     GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
-import { Grapher, GrapherState } from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import {
     NumberField,
     Toggle,

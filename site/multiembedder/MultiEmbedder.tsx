@@ -221,7 +221,7 @@ class MultiEmbedder {
         if (config.manager?.selection)
             this.graphersAndExplorersToUpdate.add(config.manager.selection)
 
-        const grapherRef = Grapher.renderGrapherIntoContainer(config, figure)
+        const _grapherRef = Grapher.renderGrapherIntoContainer(config, figure)
 
         // Special handling for shared collections
         // if (window.location.pathname.startsWith("/collection/custom")) {

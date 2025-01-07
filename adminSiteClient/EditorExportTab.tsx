@@ -2,7 +2,7 @@ import { IReactionDisposer, action, autorun, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { Section, Toggle } from "./Forms.js"
-import { Grapher, GrapherState } from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import {
     triggerDownloadFromBlob,
     GrapherStaticFormat,

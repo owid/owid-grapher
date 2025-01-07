@@ -14,7 +14,7 @@ import {
     EntityName,
     SeriesName,
 } from "@ourworldindata/types"
-import { Grapher, GrapherState } from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import { ColorBox, SelectField, Section, FieldsRow } from "./Forms.js"
 import {
     faArrowsAltV,

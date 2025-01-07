@@ -1,4 +1,3 @@
-import React from "react"
 import {
     Bounds,
     DEFAULT_BOUNDS,
@@ -71,6 +70,7 @@ import {
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SelectionArray } from "../selection/SelectionArray"
+import { Component, createRef } from "react"
 
 const DEFAULT_STROKE_COLOR = "#333"
 const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
@@ -162,7 +162,7 @@ const renderFeaturesFor = (
 
 @observer
 export class MapChart
-    extends React.Component<MapChartProps>
+    extends Component<MapChartProps>
     implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
 {
     @observable focusEntity?: MapEntity
@@ -234,7 +234,7 @@ export class MapChart
         return this.seriesMap
     }
 
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base: React.RefObject<SVGGElement> = createRef()
     @action.bound onMapMouseOver(feature: GeoFeature): void {
         const series =
             feature.id === undefined
@@ -244,7 +244,6 @@ export class MapChart
             id: feature.id,
             series: series || { value: "No data" },
         }
-        console.log("Changing focusEntity")
 
         if (feature.id !== undefined) {
             const featureId = feature.id as string,
@@ -674,10 +673,10 @@ export class MapChart
 declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
 @observer
-class ChoroplethMap extends React.Component<{
+class ChoroplethMap extends Component<{
     manager: ChoroplethMapManager
 }> {
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base: React.RefObject<SVGGElement> = createRef()
 
     private focusStrokeColor = "#111"
 

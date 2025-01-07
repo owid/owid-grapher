@@ -5,7 +5,6 @@
  */
 
 import {
-    Grapher,
     GrapherState,
     legacyToOwidTableAndDimensions,
 } from "@ourworldindata/grapher"
