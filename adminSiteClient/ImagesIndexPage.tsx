@@ -657,7 +657,11 @@ export function ImageIndexPage() {
                         />
                         <PostImageButton postImage={api.postImage} />
                     </Flex>
-                    <Table columns={columns} dataSource={filteredImages} />
+                    <Table
+                        columns={columns}
+                        dataSource={filteredImages}
+                        rowKey={(x) => x.id}
+                    />
                 </main>
             </NotificationContext.Provider>
         </AdminLayout>
