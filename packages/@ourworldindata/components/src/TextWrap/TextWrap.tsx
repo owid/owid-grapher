@@ -1,6 +1,6 @@
 import { max, stripHTML, Bounds, FontFamily, last } from "@ourworldindata/utils"
 import { computed } from "mobx"
-import React from "react"
+import * as React from "react"
 import { Fragment, joinFragments, splitIntoFragments } from "./TextWrapUtils"
 
 declare type FontSize = number

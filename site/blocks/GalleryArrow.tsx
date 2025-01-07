@@ -1,11 +1,6 @@
 import { faArrowLeftLong } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import React from "react"
-
-export enum GalleryArrowDirection {
-    prev = "prev",
-    next = "next",
-}
+import { GalleryArrowDirection } from "../SiteConstants.js"
 
 export const GalleryArrow = ({
     disabled,

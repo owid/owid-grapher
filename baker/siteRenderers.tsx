@@ -10,9 +10,8 @@ import { ExplorerIndexPage } from "../site/ExplorerIndexPage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
-import React from "react"
 import ReactDOMServer from "react-dom/server.js"
-import * as lodash from "lodash"
+import lodash from "lodash"
 import { formatCountryProfile, isCanonicalInternalUrl } from "./formatting.js"
 import {
     bakeGrapherUrls,
@@ -100,7 +99,10 @@ import {
     getAndLoadPublishedDataInsightsPage,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerBaker.js"
-import { Attachments, AttachmentsContext } from "../site/gdocs/OwidGdoc.js"
+import {
+    Attachments,
+    AttachmentsContext,
+} from "../site/gdocs/AttachmentsContext.js"
 import AtomArticleBlocks from "../site/gdocs/components/AtomArticleBlocks.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
@@ -622,9 +624,9 @@ export const renderProminentLinks = async (
                         )
                     )
                     $block.remove()
-                    return
                 }
             }
+            if (!title) return
 
             const image =
                 $block.find("figure").html() ||

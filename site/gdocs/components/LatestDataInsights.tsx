@@ -1,4 +1,3 @@
-import * as React from "react"
 import { memo, useState, useCallback, useEffect, useMemo } from "react"
 import { useMediaQuery } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -18,11 +17,13 @@ import {
     OwidEnrichedGdocBlock,
     LatestDataInsight,
 } from "@ourworldindata/utils"
-import { dataInsightIndexToIdMap } from "../pages/DataInsight.js"
+import {
+    dataInsightIndexToIdMap,
+    SMALL_BREAKPOINT_MEDIA_QUERY,
+} from "../../SiteConstants.js"
 import Image from "./Image.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import DataInsightDateline from "./DataInsightDateline.js"
-import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
 
 export default function LatestDataInsights({
     className,

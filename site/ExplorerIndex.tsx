@@ -1,5 +1,4 @@
-import React from "react"
-import ReactDOM from "react-dom"
+import { useState } from "react"
 import { MinimalExplorerInfo } from "@ourworldindata/types"
 import { EXPLORER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
 import { faHeartBroken } from "@fortawesome/free-solid-svg-icons"
@@ -11,7 +10,7 @@ function ExplorerIndexPageCard(props: {
     explorer: MinimalExplorerInfo
 }) {
     const { baseUrl, explorer } = props
-    const [hasError, setHasError] = React.useState(false)
+    const [hasError, setHasError] = useState(false)
     return (
         <li key={explorer.slug}>
             <a
@@ -72,15 +71,3 @@ export function ExplorerIndex(props: ExplorerIndexPageProps) {
 
 export const __OWID_EXPLORER_INDEX_PAGE_PROPS =
     "__OWID_EXPLORER_INDEX_PAGE_PROPS"
-
-export function hydrateExplorerIndex() {
-    const explorerIndexPageProps = (window as any)[
-        __OWID_EXPLORER_INDEX_PAGE_PROPS
-    ]
-
-    if (!explorerIndexPageProps) return
-    ReactDOM.hydrate(
-        <ExplorerIndex {...explorerIndexPageProps} />,
-        document.querySelector(".explorer-index-page")
-    )
-}

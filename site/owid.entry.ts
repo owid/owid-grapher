@@ -5,12 +5,12 @@ import "./owid.scss"
 // from a very large icon down to a properly sized one a moment later."
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
-import { runSearchPage } from "./search/SearchPanel.js"
+import { runSearchPage } from "./search/runSearchPage.js"
 import { runNotFoundPage } from "./NotFoundPageMain.js"
 import { runFeedbackPage } from "./Feedback.js"
 import { runDonateForm } from "./DonateForm.js"
 import { runCountryProfilePage } from "./runCountryProfilePage.js"
-import { runTableOfContents } from "./TableOfContents.js"
+import { runTableOfContents } from "./runTableOfContents.js"
 import { Explorer } from "@ourworldindata/explorer"
 import {
     ENV,
@@ -28,10 +28,7 @@ import BugsnagPluginReact from "@bugsnag/plugin-react"
 import * as Sentry from "@sentry/react"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks.js"
 import { runSiteFooterScripts } from "./runSiteFooterScripts.js"
-import {
-    PreferenceType,
-    getPreferenceValue,
-} from "./CookiePreferencesManager.js"
+import { PreferenceType, getPreferenceValue } from "./cookiePreferences.js"
 
 declare let window: any
 window.Grapher = Grapher
@@ -149,6 +146,8 @@ try {
             }
         }
     }
-} catch {}
+} catch {
+    // ignore
+}
 
 analytics.startClickTracking()

@@ -72,6 +72,7 @@ export {
     MapProjectionGeos,
 } from "./mapCharts/MapProjections"
 export { SelectionArray } from "./selection/SelectionArray"
+export { FocusArray } from "./focus/FocusArray"
 export {
     setSelectedEntityNamesParam,
     migrateSelectedEntityNamesParam,

@@ -1,5 +1,5 @@
 export const EMBEDDED_FONTS_CSS = "/fonts/embedded.css"
-export const IMPORT_FONTS_REGEX = /@import url\([^\)]*?fonts\.css\)/
+export const IMPORT_FONTS_REGEX = /@import url\([^)]*?fonts\.css\)/
 
 export interface GrapherExport {
     url: string
@@ -92,7 +92,7 @@ export class StaticChartRasterizer {
             // otherwise, keep retrying until we reach the time limit
             console.warn(
                 "preloading fonts...",
-                faces.filter((f, i) => !outcomes[i]).map((f) => f.font)
+                faces.filter((_f, i) => !outcomes[i]).map((f) => f.font)
             )
             await new Promise((res) =>
                 setTimeout(res, RETRY_DELAY_MS + (retry * RETRY_DELAY_MS) / 2)

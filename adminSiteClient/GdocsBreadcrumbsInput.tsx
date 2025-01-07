@@ -6,7 +6,6 @@ import {
     OwidGdocPostInterface,
 } from "@ourworldindata/utils"
 import { Button, Col, Input, Row } from "antd"
-import React from "react"
 import { getPropertyMostCriticalError } from "./gdocsValidation.js"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 

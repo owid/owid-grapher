@@ -1,4 +1,4 @@
-import React, { useContext } from "react"
+import { useContext } from "react"
 import cx from "classnames"
 import {
     EnrichedBlockAllCharts,
@@ -7,7 +7,7 @@ import {
     ALL_CHARTS_ID,
     KeyChartLevel,
 } from "@ourworldindata/utils"
-import { AttachmentsContext } from "../OwidGdoc.js"
+import { AttachmentsContext } from "../AttachmentsContext.js"
 import { RelatedCharts } from "../../blocks/RelatedCharts.js"
 
 type AllChartsProps = EnrichedBlockAllCharts & {

@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
-import React from "react"
+import * as React from "react"
 import { NewsletterSubscriptionContext } from "../../newsletter.js"
 import { NewsletterSubscriptionForm } from "../../NewsletterSubscription.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
@@ -9,8 +9,11 @@ import {
     EntryMeta,
     OwidGdocHomepageContent,
 } from "@ourworldindata/types"
-import { SiteNavigationStatic } from "../../SiteNavigation.js"
-import { RSS_FEEDS, SOCIALS } from "../../SiteConstants.js"
+import {
+    SiteNavigationStatic,
+    RSS_FEEDS,
+    SOCIALS,
+} from "../../SiteConstants.js"
 
 export interface HomepageProps {
     content: OwidGdocHomepageContent

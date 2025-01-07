@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import classnames from "classnames"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { NO_DATA_LABEL } from "../color/ColorScale.js"

@@ -17,7 +17,6 @@ import {
     Url,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
-import React from "react"
 import urljoin from "url-join"
 import {
     ADMIN_BASE_URL,
@@ -32,7 +31,7 @@ import { Head } from "./Head.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
-import { DebugProvider } from "./gdocs/DebugContext.js"
+import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
 
 export const DataPageV2 = (props: {

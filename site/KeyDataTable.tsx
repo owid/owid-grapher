@@ -1,5 +1,3 @@
-import * as React from "react"
-
 import { DataPageDataV2, joinTitleFragments } from "@ourworldindata/types"
 import {
     makeSource,

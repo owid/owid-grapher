@@ -6,11 +6,11 @@ import { excludeUndefined } from "@ourworldindata/utils"
 import lodash from "lodash"
 import { action, computed, IReactionDisposer, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
-import React from "react"
+import { Component } from "react"
 import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
 
 @observer
-export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
+export class EditorMarimekkoTab extends Component<{ grapher: Grapher }> {
     @observable xOverrideTimeInputField: number | undefined
     constructor(props: { grapher: Grapher }) {
         super(props)

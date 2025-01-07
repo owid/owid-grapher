@@ -1,4 +1,3 @@
-import React from "react"
 import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
@@ -13,7 +12,7 @@ import {
     get,
 } from "@ourworldindata/utils"
 import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
-import { DebugProvider } from "./DebugContext.js"
+import { DebugProvider } from "./DebugProvider.js"
 import { match, P } from "ts-pattern"
 import {
     ARCHVED_THUMBNAIL_FILENAME,

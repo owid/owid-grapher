@@ -1,5 +1,5 @@
-import React from "react"
-import ArticleBlock, { Container } from "./ArticleBlock.js"
+import ArticleBlock from "./ArticleBlock.js"
+import { Container } from "./layout.js"
 import {
     OwidEnrichedGdocBlock,
     TocHeadingWithTitleSupertitle,

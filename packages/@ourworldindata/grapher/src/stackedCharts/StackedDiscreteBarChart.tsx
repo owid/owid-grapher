@@ -84,6 +84,8 @@ import { TextWrap } from "@ourworldindata/components"
 // if an entity name exceeds this width, we use the short name instead (if available)
 const SOFT_MAX_LABEL_WIDTH = 90
 
+const BAR_SPACING_FACTOR = 0.35
+
 const labelToBarPadding = 5
 
 export interface StackedDiscreteBarChartManager extends ChartManager {
@@ -436,7 +438,7 @@ export class StackedDiscreteBarChart
             case SortBy.entityName:
                 sortByFunc = (item: Item): string => item.entityName
                 break
-            case SortBy.column:
+            case SortBy.column: {
                 const owidRowsByEntityName =
                     this.sortColumn?.owidRowsByEntityName
                 sortByFunc = (item: Item): number => {
@@ -444,6 +446,7 @@ export class StackedDiscreteBarChart
                     return rows?.[0]?.value ?? 0
                 }
                 break
+            }
             default:
             case SortBy.total:
                 sortByFunc = (item: Item): number => {
@@ -470,18 +473,29 @@ export class StackedDiscreteBarChart
         }))
     }
 
-    // useful if `this.barHeight` can't be used due to a cyclic dependency
-    // keep in mind though that this is not exactly the same as `this.barHeight`
-    @computed private get approximateBarHeight(): number {
-        return (0.8 * this.boundsWithoutLegend.height) / this.barCount
-    }
-
-    @computed private get barHeight(): number {
-        return (0.8 * this.innerBounds.height) / this.barCount
+    /** The total height of the series, i.e. the height of the bar + the white space around it */
+    @computed private get seriesHeight(): number {
+        return this.innerBounds.height / this.barCount
     }
 
     @computed private get barSpacing(): number {
-        return this.innerBounds.height / this.barCount - this.barHeight
+        return this.seriesHeight * BAR_SPACING_FACTOR
+    }
+
+    @computed private get barHeight(): number {
+        const totalWhiteSpace = this.barCount * this.barSpacing
+        return (this.innerBounds.height - totalWhiteSpace) / this.barCount
+    }
+
+    // useful if `barHeight` can't be used due to a cyclic dependency
+    // keep in mind though that this is not exactly the same as `barHeight`
+    @computed private get approximateBarHeight(): number {
+        const { height } = this.boundsWithoutLegend
+        const approximateMaxBarHeight = height / this.barCount
+        const approximateBarSpacing =
+            approximateMaxBarHeight * BAR_SPACING_FACTOR
+        const totalWhiteSpace = this.barCount * approximateBarSpacing
+        return (height - totalWhiteSpace) / this.barCount
     }
 
     // legend props
@@ -713,7 +727,7 @@ export class StackedDiscreteBarChart
                 <HorizontalAxisZeroLine
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
-                    strokeWidth={axisLineWidth}
+                    strokeWidth={0.5 * axisLineWidth}
                     // moves the zero line a little to the left to avoid
                     // overlap with the bars
                     align={HorizontalAlign.right}

@@ -1,9 +1,9 @@
-import * as React from "react"
 import { match } from "ts-pattern"
 
 import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
 import { useImage } from "../utils.js"
-import ArticleBlock, { Container, getLayout } from "./ArticleBlock.js"
+import ArticleBlock from "./ArticleBlock.js"
+import { Container, getLayout } from "./layout.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { LARGEST_IMAGE_WIDTH } from "@ourworldindata/utils"
 import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"

@@ -1,6 +1,4 @@
-import { isNil, parseIntOrUndefined, Tippy } from "@ourworldindata/utils"
-import React from "react"
-import ReactDOM from "react-dom"
+import { Tippy } from "@ourworldindata/utils"
 
 export const Footnote = ({
     index,
@@ -41,40 +39,4 @@ export const Footnote = ({
             <sup>{index}</sup>
         </Tippy>
     )
-}
-
-interface FootnoteContent {
-    index: number
-    href: string
-    htmlContent: string
-}
-
-function getFootnoteContent(element: Element): FootnoteContent | null {
-    const href = element.closest("a.ref")?.getAttribute("href")
-    if (!href) return null
-
-    const index = parseIntOrUndefined(href.split("-")[1])
-    if (index === undefined) return null
-
-    const referencedEl = document.querySelector(href)
-    if (!referencedEl?.innerHTML) return null
-    return { index, href, htmlContent: referencedEl.innerHTML }
-}
-
-export function runFootnotes() {
-    const footnotes = document.querySelectorAll("a.ref")
-
-    footnotes.forEach((f) => {
-        const footnoteContent = getFootnoteContent(f)
-        if (isNil(footnoteContent)) return
-
-        ReactDOM.hydrate(
-            <Footnote
-                index={footnoteContent.index}
-                htmlContent={footnoteContent.htmlContent}
-                triggerTarget={f}
-            />,
-            f
-        )
-    })
 }

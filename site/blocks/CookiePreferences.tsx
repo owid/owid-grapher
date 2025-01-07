@@ -1,5 +1,6 @@
 import { dayjs, slugify } from "@ourworldindata/utils"
-import React, { ReactPortal } from "react"
+import { ReactPortal } from "react"
+import * as React from "react"
 import ReactDOM from "react-dom"
 import {
     Action,
@@ -8,10 +9,10 @@ import {
     getTodayDate,
     Preference,
     PreferenceType,
-} from "../../site/CookiePreferencesManager.js"
+} from "../cookiePreferences.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCheck } from "@fortawesome/free-solid-svg-icons"
-import { SiteAnalytics } from "../../site/SiteAnalytics.js"
+import { SiteAnalytics } from "../SiteAnalytics.js"
 
 const ANALYTICS_ACTION = "cookie_preferences"
 const analytics = new SiteAnalytics()

@@ -1,4 +1,4 @@
-import React, { useContext } from "react"
+import { useContext } from "react"
 import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons"
@@ -6,7 +6,7 @@ import { getLinkType } from "@ourworldindata/components"
 
 import Image from "./Image.js"
 import { useLinkedChart, useLinkedDocument } from "../utils.js"
-import { DocumentContext } from "../OwidGdoc.js"
+import { DocumentContext } from "../DocumentContext.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../../settings/clientSettings.js"
 import {

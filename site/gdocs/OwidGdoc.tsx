@@ -1,21 +1,10 @@
-import React, { createContext } from "react"
-import ReactDOM from "react-dom"
+import * as React from "react"
 import {
-    LatestDataInsight,
-    LinkedAuthor,
-    LinkedChart,
-    LinkedIndicator,
-    ImageMetadata,
-    RelatedChart,
     OwidGdocType,
     OwidGdoc as OwidGdocInterface,
     OwidGdocAboutInterface,
-    OwidGdocMinimalPostInterface,
-    OwidGdocHomepageMetadata,
-    DbEnrichedLatestWork,
 } from "@ourworldindata/types"
-import { get, getOwidGdocFromJSON } from "@ourworldindata/utils"
-import { DebugProvider } from "./DebugContext.js"
+import { get } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import { GdocPost } from "./pages/GdocPost.js"
 import { DataInsightPage } from "./pages/DataInsight.js"
@@ -23,35 +12,8 @@ import { Fragment } from "./pages/Fragment.js"
 import { Homepage } from "./pages/Homepage.js"
 import { Author } from "./pages/Author.js"
 import AboutPage from "./pages/AboutPage.js"
-
-export type Attachments = {
-    donors?: string[]
-    linkedAuthors?: LinkedAuthor[]
-    linkedCharts: Record<string, LinkedChart>
-    linkedIndicators: Record<number, LinkedIndicator>
-    linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
-    imageMetadata: Record<string, ImageMetadata>
-    relatedCharts: RelatedChart[]
-    latestDataInsights?: LatestDataInsight[]
-    homepageMetadata?: OwidGdocHomepageMetadata
-    latestWorkLinks?: DbEnrichedLatestWork[]
-}
-
-export const AttachmentsContext = createContext<Attachments>({
-    linkedAuthors: [],
-    linkedDocuments: {},
-    imageMetadata: {},
-    linkedCharts: {},
-    linkedIndicators: {},
-    relatedCharts: [],
-    latestDataInsights: [],
-    homepageMetadata: {},
-    latestWorkLinks: [],
-})
-
-export const DocumentContext = createContext<{ isPreviewing: boolean }>({
-    isPreviewing: false,
-})
+import { AttachmentsContext } from "./AttachmentsContext.js"
+import { DocumentContext } from "./DocumentContext.js"
 
 function AdminLinks() {
     return (
@@ -138,18 +100,5 @@ export function OwidGdoc({
                 {content}
             </DocumentContext.Provider>
         </AttachmentsContext.Provider>
-    )
-}
-
-export const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
-    const wrapper = document.querySelector("#owid-document-root")
-    const props = getOwidGdocFromJSON(window._OWID_GDOC_PROPS)
-    ReactDOM.hydrate(
-        <React.StrictMode>
-            <DebugProvider debug={debug}>
-                <OwidGdoc {...props} isPreviewing={isPreviewing} />
-            </DebugProvider>
-        </React.StrictMode>,
-        wrapper
     )
 }

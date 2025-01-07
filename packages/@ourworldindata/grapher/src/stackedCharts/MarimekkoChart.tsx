@@ -784,7 +784,7 @@ export class MarimekkoChart
             case SortBy.entityName:
                 sortByFuncs = [(item: Item): string => item.entityName]
                 break
-            case SortBy.column:
+            case SortBy.column: {
                 const sortColumnSlug = sortConfig.sortColumnSlug
                 sortByFuncs = [
                     (item: Item): number =>
@@ -793,6 +793,7 @@ export class MarimekkoChart
                     (item: Item): string => item.entityName,
                 ]
                 break
+            }
             default:
             case SortBy.total:
                 sortByFuncs = [

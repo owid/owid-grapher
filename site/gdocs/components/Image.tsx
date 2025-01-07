@@ -1,20 +1,20 @@
-import React, { useCallback, useContext } from "react"
+import { useCallback, useContext } from "react"
 import {
     generateSourceProps,
     ImageMetadata,
     triggerDownloadFromBlob,
 } from "@ourworldindata/utils"
 import cx from "classnames"
-import { LIGHTBOX_IMAGE_CLASS } from "../../Lightbox.js"
+import { LIGHTBOX_IMAGE_CLASS } from "../../lightboxUtils.js"
 import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
-import { DocumentContext } from "../OwidGdoc.js"
-import { Container } from "./ArticleBlock.js"
+import { DocumentContext } from "../DocumentContext.js"
 import { useImage } from "../utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
 import { useMediaQuery } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
+import { Container } from "./layout.js"
 
 // generates rules that tell the browser:
 // below the medium breakpoint, the image will be 95vw wide

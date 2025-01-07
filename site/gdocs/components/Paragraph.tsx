@@ -1,6 +1,5 @@
 import { EnrichedBlockText, Span } from "@ourworldindata/utils"
-import React from "react"
-import { renderSpans } from "../utils.js"
+import SpanElements from "./SpanElements.js"
 
 function isOnlyEmptySpans(spans: Span[]) {
     return spans.every((span) => {
@@ -24,6 +23,11 @@ export default function Paragraph({
         return null
     }
     return (
-        <p className={className}>{renderSpans(d.value, shouldRenderLinks)}</p>
+        <p className={className}>
+            <SpanElements
+                spans={d.value}
+                shouldRenderLinks={shouldRenderLinks}
+            />
+        </p>
     )
 }

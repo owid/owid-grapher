@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react"
+import { useState, useRef } from "react"
 import {
     faCircleArrowRight,
     faCircleArrowLeft,
@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 import { useEmbedChart } from "../../hooks.js"
 import { EnrichedBlockChartStory } from "@ourworldindata/utils"
-import { renderSpans } from "../utils.js"
+import SpanElements from "./SpanElements.js"
 import Chart from "./Chart.js"
 import cx from "classnames"
 
@@ -56,7 +56,7 @@ export default function ChartStory({
                     "chart-story__narrative-text span-cols-6 h3-bold align-center"
                 }
             >
-                {renderSpans(currentSlide.narrative.value)}
+                <SpanElements spans={currentSlide.narrative.value} />
             </div>
             <button
                 aria-label="Go to next slide"
@@ -96,7 +96,7 @@ export default function ChartStory({
                             {currentSlide.technical.map((d: any, i: number) => {
                                 return (
                                     <li className="body-3-medium" key={i}>
-                                        {renderSpans(d.value)}
+                                        <SpanElements spans={d.value} />
                                     </li>
                                 )
                             })}

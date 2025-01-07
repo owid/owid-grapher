@@ -37,11 +37,7 @@ import {
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
-import {
-    HorizontalAxisComponent,
-    HorizontalAxisGridLines,
-    HorizontalAxisZeroLine,
-} from "../axis/AxisViews"
+import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ColorSchemes } from "../color/ColorSchemes"
@@ -89,6 +85,8 @@ const DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND = "#787878"
 
 // if an entity name exceeds this width, we use the short name instead (if available)
 const SOFT_MAX_LABEL_WIDTH = 90
+
+const BAR_SPACING_FACTOR = 0.35
 
 export interface Label {
     valueString: string
@@ -305,7 +303,6 @@ export class DiscreteBarChart
     @computed private get innerBounds(): Bounds {
         return this.boundsWithoutColorLegend
             .padLeft(Math.max(this.seriesLegendWidth, this.leftValueLabelWidth))
-            .padBottom(this.showHorizontalAxis ? this.yAxis.height : 0)
             .padRight(this.rightValueLabelWidth)
     }
 
@@ -317,18 +314,29 @@ export class DiscreteBarChart
         return this.series.length
     }
 
-    @computed private get barHeight(): number {
-        return (0.8 * this.innerBounds.height) / this.barCount
-    }
-
-    // useful if `this.barHeight` can't be used due to a cyclic dependency
-    // keep in mind though that this is not exactly the same as `this.barHeight`
-    @computed private get approximateBarHeight(): number {
-        return (0.8 * this.boundsWithoutColorLegend.height) / this.barCount
+    /** The total height of the series, i.e. the height of the bar + the white space around it */
+    @computed private get seriesHeight(): number {
+        return this.innerBounds.height / this.barCount
     }
 
     @computed private get barSpacing(): number {
-        return this.innerBounds.height / this.barCount - this.barHeight
+        return this.seriesHeight * BAR_SPACING_FACTOR
+    }
+
+    @computed private get barHeight(): number {
+        const totalWhiteSpace = this.barCount * this.barSpacing
+        return (this.innerBounds.height - totalWhiteSpace) / this.barCount
+    }
+
+    // useful if `barHeight` can't be used due to a cyclic dependency
+    // keep in mind though that this is not exactly the same as `barHeight`
+    @computed private get approximateBarHeight(): number {
+        const { height } = this.boundsWithoutColorLegend
+        const approximateMaxBarHeight = height / this.barCount
+        const approximateBarSpacing =
+            approximateMaxBarHeight * BAR_SPACING_FACTOR
+        const totalWhiteSpace = this.barCount * approximateBarSpacing
+        return (height - totalWhiteSpace) / this.barCount
     }
 
     @computed private get barPlacements(): { x: number; width: number }[] {
@@ -348,10 +356,6 @@ export class DiscreteBarChart
 
     @computed private get barWidths(): number[] {
         return this.barPlacements.map((b) => b.width)
-    }
-
-    @computed private get showHorizontalAxis(): boolean | undefined {
-        return this.manager.isRelativeMode
     }
 
     private d3Bars(): Selection<
@@ -504,11 +508,11 @@ export class DiscreteBarChart
     }
 
     renderChartArea(): React.ReactElement {
-        const { manager, boundsWithoutColorLegend, yAxis, innerBounds } = this
+        const { manager, yAxis, innerBounds } = this
 
         const axisLineWidth = manager.isStaticAndSmall
-            ? GRAPHER_AXIS_LINE_WIDTH_THICK
-            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+            ? 0.5 * GRAPHER_AXIS_LINE_WIDTH_THICK
+            : 0.5 * GRAPHER_AXIS_LINE_WIDTH_DEFAULT
 
         return (
             <>
@@ -516,27 +520,19 @@ export class DiscreteBarChart
                 {this.showColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
-                {this.showHorizontalAxis && (
-                    <>
-                        <HorizontalAxisComponent
-                            bounds={boundsWithoutColorLegend}
-                            axis={yAxis}
-                            preferredAxisPosition={innerBounds.bottom}
-                            labelColor={manager.secondaryColorInStaticCharts}
-                            tickMarkWidth={axisLineWidth}
-                        />
-                        <HorizontalAxisGridLines
-                            horizontalAxis={yAxis}
-                            bounds={innerBounds}
-                            strokeWidth={axisLineWidth}
-                        />
-                    </>
-                )}
                 {!this.isLogScale && (
                     <HorizontalAxisZeroLine
                         horizontalAxis={yAxis}
                         bounds={innerBounds}
                         strokeWidth={axisLineWidth}
+                        // if the chart doesn't have negative values, then we
+                        // move the zero line a little to the left to avoid
+                        // overlap with the bars
+                        align={
+                            this.hasNegative
+                                ? HorizontalAlign.center
+                                : HorizontalAlign.right
+                        }
                     />
                 )}
                 {this.renderBars()}

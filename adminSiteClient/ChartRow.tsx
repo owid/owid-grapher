@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { observer } from "mobx-react"
 import { action, runInAction } from "mobx"
 import * as lodash from "lodash"
@@ -127,6 +127,8 @@ export class ChartRow extends React.Component<{
     }
 }
 
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
 function InheritanceStatus({ chart }: { chart: ChartListItem }) {
     // if no information is available, return an empty cell
     if (

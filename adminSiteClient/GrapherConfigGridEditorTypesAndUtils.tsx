@@ -1,3 +1,5 @@
+// FIXME: Don't mix components and business logic in this file.
+/* eslint-disable react-refresh/only-export-components */
 import {
     checkIsPlainObjectWithGuard,
     excludeUndefined,
@@ -36,7 +38,6 @@ import {
     EditorOption,
     FieldDescription,
 } from "../adminShared/schemaProcessing.js"
-import React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
@@ -44,8 +45,6 @@ import { GrapherInterface } from "@ourworldindata/types"
 import {
     AntdConfig,
     BasicConfig,
-    Builder,
-    BuilderProps,
     JsonTree,
     SimpleField,
     Utils as QbUtils,
@@ -137,7 +136,7 @@ export function fetchVariablesParametersFromQueryString(
     sExpressionContext: OperationContext
 ): FetchVariablesParameters {
     let filterQuery: Operation | undefined = undefined
-    if (params.hasOwnProperty("filter")) {
+    if (Object.prototype.hasOwnProperty.call(params, "filter")) {
         filterQuery = parseToOperation(params.filter!, sExpressionContext)
     }
     return {
@@ -550,16 +549,6 @@ export function fieldDescriptionToFilterPanelFieldConfig(
             },
         ]
     } else return undefined
-}
-
-export function renderBuilder(props: BuilderProps) {
-    return (
-        <div className="query-builder-container" style={{ padding: "0" }}>
-            <div className="query-builder qb-lite">
-                <Builder {...props} />
-            </div>
-        </div>
-    )
 }
 
 export interface GrapherConfigGridEditorConfig {

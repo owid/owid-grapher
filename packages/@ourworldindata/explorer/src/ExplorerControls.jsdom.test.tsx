@@ -1,6 +1,4 @@
 #! /usr/bin/env jest
-
-import React from "react"
 import { ExplorerControlType } from "./ExplorerConstants.js"
 import { ExplorerControlPanel } from "./ExplorerControls.js"
 

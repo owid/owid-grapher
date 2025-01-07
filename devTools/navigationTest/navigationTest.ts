@@ -1,7 +1,7 @@
 // Test all the slugs in the SiteNavigationStatic object and makes sure
 // https://ourworldindata.org/{slug} returns a 200
 
-import { SiteNavigationStatic } from "../../site/SiteNavigation.js"
+import { SiteNavigationStatic } from "../../site/SiteConstants.js"
 
 const testSiteNavigation = async () => {
     const slugs = SiteNavigationStatic.categories.flatMap((category) => {
@@ -17,7 +17,7 @@ const testSiteNavigation = async () => {
         return categorySlugs
     })
 
-    let promises = slugs.map((slug) => {
+    const promises = slugs.map((slug) => {
         return fetch(`https://ourworldindata.org/${slug}`, {
             method: "HEAD",
         })
@@ -36,4 +36,4 @@ const testSiteNavigation = async () => {
     console.log("✅ All fetches completed")
 }
 
-testSiteNavigation()
+void testSiteNavigation()

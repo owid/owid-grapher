@@ -341,6 +341,7 @@ export interface GrapherManager {
     embedDialogUrl?: string
     embedDialogAdditionalElements?: React.ReactElement
     selection?: SelectionArray
+    focusArray?: FocusArray
     editUrl?: string
 }
 
@@ -512,7 +513,7 @@ export class Grapher
             this.props.table?.availableEntities ?? []
         )
 
-    focusArray = new FocusArray()
+    focusArray = this.manager?.focusArray ?? new FocusArray()
 
     /**
      * todo: factor this out and make more RAII.
@@ -605,6 +606,7 @@ export class Grapher
 
     @action.bound downloadData(): void {
         if (this.manuallyProvideData) {
+            // ignore
         } else if (this.owidDataset) {
             this._receiveOwidDataAndApplySelection(this.owidDataset)
         } else void this.downloadLegacyDataFromOwidVariableIds()
@@ -1207,6 +1209,11 @@ export class Grapher
     @action.bound private applyOriginalSelectionAsAuthored(): void {
         if (this.selectedEntityNames?.length)
             this.selection.setSelectedEntities(this.selectedEntityNames)
+    }
+
+    @action.bound private applyOriginalFocusAsAuthored(): void {
+        if (this.focusedSeriesNames?.length)
+            this.focusArray.clearAllAndAdd(...this.focusedSeriesNames)
     }
 
     @computed get hasData(): boolean {
@@ -2640,10 +2647,14 @@ export class Grapher
             },
             {
                 combo: "a",
-                fn: (): void | SelectionArray =>
-                    this.selection.hasSelection
-                        ? this.selection.clearSelection()
-                        : this.selection.selectAll(),
+                fn: (): void => {
+                    if (this.selection.hasSelection) {
+                        this.selection.clearSelection()
+                        this.focusArray.clear()
+                    } else {
+                        this.selection.selectAll()
+                    }
+                },
                 title: this.selection.hasSelection
                     ? `Select None`
                     : `Select All`,
@@ -3353,6 +3364,11 @@ export class Grapher
         this.applyOriginalSelectionAsAuthored()
     }
 
+    @action.bound clearFocus(): void {
+        this.focusArray.clear()
+        this.applyOriginalFocusAsAuthored()
+    }
+
     @action.bound clearQueryParams(): void {
         const { authorsVersion } = this
         this.tab = authorsVersion.tab
@@ -3369,6 +3385,7 @@ export class Grapher
             authorsVersion.showSelectionOnlyInDataTable
         this.showNoDataArea = authorsVersion.showNoDataArea
         this.clearSelection()
+        this.clearFocus()
     }
 
     // Todo: come up with a more general pattern?
@@ -3387,6 +3404,7 @@ export class Grapher
         this.sizeSlug = grapher.sizeSlug
 
         this.selection.clearSelection()
+        this.focusArray.clear()
     }
 
     debounceMode = false

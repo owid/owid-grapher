@@ -1,10 +1,10 @@
 import { GDOCS_URL_PLACEHOLDER, gdocUrlRegex } from "@ourworldindata/utils"
-import React from "react"
+import * as React from "react"
 import {
     GDOCS_BASIC_ARTICLE_TEMPLATE_URL,
     GDOCS_CLIENT_EMAIL,
 } from "../settings/clientSettings.js"
-import { useGdocsStore } from "./GdocsStore.js"
+import { useGdocsStore } from "./GdocsStoreContext.js"
 
 export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
     const [documentUrl, setDocumentUrl] = React.useState("")

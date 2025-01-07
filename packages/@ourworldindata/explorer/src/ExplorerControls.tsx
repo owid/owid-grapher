@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { action, computed } from "mobx"
 import Select, { components, SingleValueProps } from "react-select"
@@ -17,7 +17,7 @@ const SELECTED_OPTION_CLASS = "SelectedOption"
 const EXPLORER_DROPDOWN_CLASS = "ExplorerDropdown"
 const HIDDEN_CONTROL_HEADER_CLASS = "HiddenControlHeader"
 
-export class ExplorerControlBar extends React.Component<{
+export class ExplorerControlBar extends Component<{
     isMobile?: boolean
     showControls?: boolean
     closeControls?: () => void
@@ -105,7 +105,7 @@ const ExplorerDropdown = (props: {
 }
 
 @observer
-export class ExplorerControlPanel extends React.Component<{
+export class ExplorerControlPanel extends Component<{
     choice: ExplorerChoice
     explorerSlug?: string
     onChange?: (value: string) => void

@@ -1,6 +1,6 @@
-import React from "react"
 import { EnrichedBlockList, EnrichedBlockText } from "@ourworldindata/utils"
-import { renderSpans } from "../utils.js"
+import SpanElements from "./SpanElements.js"
+
 export default function List({
     d,
     className = "",
@@ -11,7 +11,11 @@ export default function List({
     return (
         <ul className={className}>
             {d.items.map((_d: EnrichedBlockText, i: number) => {
-                return <li key={i}>{renderSpans(_d.value)}</li>
+                return (
+                    <li key={i}>
+                        <SpanElements spans={_d.value} />
+                    </li>
+                )
             })}
         </ul>
     )

@@ -1,4 +1,3 @@
-import React, { useContext, createContext, useState } from "react"
 import { action, observable } from "mobx"
 import {
     getOwidGdocFromJSON,
@@ -8,7 +7,6 @@ import {
     DbPlainTag,
     OwidGdocIndexItem,
 } from "@ourworldindata/utils"
-import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
 import {
     CreateTombstoneData,
@@ -96,33 +94,4 @@ export class GdocsStore {
             if (gdocToUpdate) gdocToUpdate.tags = tags
         }
     }
-}
-
-export const GdocsStoreContext = createContext<GdocsStore | undefined>(
-    undefined
-)
-
-export const GdocsStoreProvider = ({
-    children,
-}: {
-    children: React.ReactNode
-}) => {
-    const { admin } = useContext(AdminAppContext)
-    const [store] = useState(() => new GdocsStore(admin))
-
-    return (
-        <GdocsStoreContext.Provider value={store}>
-            {children}
-        </GdocsStoreContext.Provider>
-    )
-}
-
-export const useGdocsStore = () => {
-    const context = React.useContext(GdocsStoreContext)
-    if (context === undefined) {
-        throw new Error(
-            "useGdocsStore must be used within a GdocsStoreProvider"
-        )
-    }
-    return context
 }

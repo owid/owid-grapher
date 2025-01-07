@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, action, runInAction, toJS, computed } from "mobx"
 import * as lodash from "lodash"
@@ -25,6 +25,8 @@ import { AutoComplete, Button, Popconfirm } from "antd"
 import { FlatTagGraph, FlatTagGraphNode } from "@ourworldindata/types"
 import { Link } from "react-router-dom"
 
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
 function DraggableDroppable(props: {
     id: string
     children: React.ReactNode

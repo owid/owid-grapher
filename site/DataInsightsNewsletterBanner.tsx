@@ -1,8 +1,7 @@
-import * as React from "react"
 import { useState, useEffect } from "react"
 import Cookies from "js-cookie"
 import cx from "classnames"
-import { COOKIE_PREFERENCES_COOKIE_NAME } from "./CookiePreferencesManager.js"
+import { COOKIE_PREFERENCES_COOKIE_NAME } from "./cookiePreferences.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import DataInsightsNewsletter from "./gdocs/components/DataInsightsNewsletter.js"
 

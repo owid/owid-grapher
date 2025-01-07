@@ -1,6 +1,6 @@
 import { IReactionDisposer, action, autorun, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import React from "react"
+import { Component } from "react"
 import { Section, Toggle } from "./Forms.js"
 import { Grapher } from "@ourworldindata/grapher"
 import {
@@ -59,7 +59,7 @@ interface EditorExportTabProps<Editor> {
 @observer
 export class EditorExportTab<
     Editor extends AbstractChartEditor,
-> extends React.Component<EditorExportTabProps<Editor>> {
+> extends Component<EditorExportTabProps<Editor>> {
     @observable private settings = DEFAULT_SETTINGS
     private originalSettings: Partial<ExportSettings> = DEFAULT_SETTINGS
     private originalGrapher: OriginalGrapher

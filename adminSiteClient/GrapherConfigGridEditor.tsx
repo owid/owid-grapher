@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import {
     Bounds,
     stringifyUnknownError,
@@ -81,7 +81,6 @@ import {
     initialFilterQueryValue,
     fieldDescriptionToFilterPanelFieldConfig,
     simpleColumnToFilterPanelFieldConfig,
-    renderBuilder,
     GrapherConfigGridEditorProps,
     GrapherConfigGridEditorConfig,
     ColumnDataSource,
@@ -93,6 +92,7 @@ import {
     fetchVariablesParametersToQueryParameters,
     postprocessJsonLogicTree,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
+import QueryBuilderContainer from "./QueryBuilderContainer.js"
 import {
     Query,
     Utils as QbUtils,
@@ -107,6 +107,8 @@ import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { Operation } from "../adminShared/SqlFilterSExpression.js"
 
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
 function HotColorScaleRenderer() {
     return <div style={{ color: "gray" }}>Color scale</div>
 }
@@ -1409,7 +1411,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                             {...FilterPanelConfig}
                             value={filterState.tree}
                             onChange={this.updateFilterState}
-                            renderBuilder={renderBuilder}
+                            renderBuilder={QueryBuilderContainer}
                         />
                     )}
                     <small className="form-text text-muted">

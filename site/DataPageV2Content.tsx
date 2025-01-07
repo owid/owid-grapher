@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import {
     REUSE_THIS_WORK_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
 } from "@ourworldindata/components"
-import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
@@ -16,9 +15,9 @@ import {
     ImageMetadata,
     DEFAULT_THUMBNAIL_FILENAME,
 } from "@ourworldindata/utils"
-import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
+import { DocumentContext } from "./gdocs/DocumentContext.js"
+import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import StickyNav from "./blocks/StickyNav.js"
-import { DebugProvider } from "./gdocs/DebugContext.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import Image from "./gdocs/components/Image.js"
 import AboutThisData from "./AboutThisData.js"
@@ -73,7 +72,7 @@ export const DataPageV2Content = ({
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
 }) => {
-    const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
+    const [grapher, setGrapher] = useState<Grapher | undefined>(undefined)
 
     const titleFragments = joinTitleFragments(
         datapageData.attributionShort,
@@ -272,22 +271,5 @@ export const DataPageV2Content = ({
                 </div>
             </DocumentContext.Provider>
         </AttachmentsContext.Provider>
-    )
-}
-
-export const hydrateDataPageV2Content = (isPreviewing?: boolean) => {
-    const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
-    const props: DataPageV2ContentFields = window._OWID_DATAPAGEV2_PROPS
-    const grapherConfig = window._OWID_GRAPHER_CONFIG
-
-    ReactDOM.hydrate(
-        <DebugProvider debug={isPreviewing}>
-            <DataPageV2Content
-                {...props}
-                grapherConfig={grapherConfig}
-                isPreviewing={isPreviewing}
-            />
-        </DebugProvider>,
-        wrapper
     )
 }

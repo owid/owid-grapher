@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { DataTable, DataTableManager } from "./DataTable"
 import { SynthesizeGDPTable } from "@ourworldindata/core-table"
 import { GRAPHER_CHART_TYPES, GRAPHER_TAB_OPTIONS } from "@ourworldindata/types"

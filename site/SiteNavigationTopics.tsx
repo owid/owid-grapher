@@ -1,18 +1,11 @@
-import React, { useLayoutEffect, useState } from "react"
-import { CategoryWithEntries, EntryMeta } from "@ourworldindata/utils"
+import { useLayoutEffect, useState } from "react"
+import * as React from "react"
+import { CategoryWithEntries } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import classnames from "classnames"
 import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
-
-// suppress useLayoutEffect (and its warnings) when not running in a browser
-// https://gist.github.com/gaearon/e7d97cdf38a2907924ea12e4ebdf3c85?permalink_comment_id=4150784#gistcomment-4150784
-
-// this is ok here because the layout effect below doesn't do anything until an
-// other effect already triggered a paint, so there is no mismatch between the
-// server and client on first paint (which is what the warning is about)
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-if (typeof window === "undefined") React.useLayoutEffect = () => {}
+import { allTopicsInCategory } from "./gdocs/utils.js"
 
 export const SiteNavigationTopics = ({
     topics,
@@ -90,15 +83,4 @@ export const SiteNavigationTopics = ({
             )}
         </div>
     ) : null
-}
-
-export const allTopicsInCategory = (
-    category: CategoryWithEntries
-): EntryMeta[] => {
-    return [
-        ...category.entries,
-        ...(category.subcategories ?? []).flatMap(
-            (subcategory) => subcategory.entries
-        ),
-    ]
 }

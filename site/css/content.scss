@@ -124,27 +124,6 @@ figure[data-explorer-src] {
     }
 }
 
-.tablepress {
-    margin: 1em 0;
-    color: #000;
-}
-
-.tablepress th {
-    border-bottom: 1px solid #333;
-    background: $blue-20;
-}
-
-.tablepress th,
-.tablepress td {
-    padding: 0.4rem;
-    border: 1px solid #ddd;
-    text-align: center;
-}
-
-.tablepress tr {
-    background-color: $white;
-}
-
 /* Fix for title on really small screens */
 @media (max-width: 400px) {
     .logo {

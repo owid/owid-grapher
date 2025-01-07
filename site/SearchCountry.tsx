@@ -1,8 +1,6 @@
-import React, { useState } from "react"
-import ReactDOM from "react-dom"
+import { useState } from "react"
 import Select from "react-select"
 import { countries, sortBy } from "@ourworldindata/utils"
-import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
 interface CountrySelectOption {
@@ -12,7 +10,9 @@ interface CountrySelectOption {
 
 const analytics = new SiteAnalytics()
 
-const SearchCountry = (props: { countryProfileRootPath: string }) => {
+export default function SearchCountry(props: {
+    countryProfileRootPath: string
+}) {
     const [isLoading, setIsLoading] = useState(false)
     const sorted = sortBy(countries, "name")
     return (
@@ -32,27 +32,3 @@ const SearchCountry = (props: { countryProfileRootPath: string }) => {
         />
     )
 }
-
-export function runSearchCountry() {
-    const searchElements = document.querySelectorAll(
-        ".wp-block-search-country-profile"
-    )
-    searchElements.forEach((element) => {
-        const project = element.getAttribute("data-project")
-        if (project) {
-            const profileSpec = countryProfileSpecs.find(
-                (spec) => spec.project === project
-            )
-            if (profileSpec) {
-                ReactDOM.render(
-                    <SearchCountry
-                        countryProfileRootPath={profileSpec.rootPath}
-                    />,
-                    element
-                )
-            }
-        }
-    })
-}
-
-export default SearchCountry

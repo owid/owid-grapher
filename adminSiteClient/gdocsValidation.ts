@@ -33,7 +33,7 @@ function validatePublishedAt(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
 }
 
 function validateSlug(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
-    if (!gdoc.slug.match(/^[a-z0-9-\/]+$/)) {
+    if (!gdoc.slug.match(/^[a-z0-9-/]+$/)) {
         errors.push({
             property: "slug",
             type: OwidGdocErrorMessageType.Error,

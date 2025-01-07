@@ -27,7 +27,7 @@ import {
 } from "../../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { ArticleBlocks } from "../../../site/gdocs/components/ArticleBlocks.js"
-import React from "react"
+import { createElement } from "react"
 import {
     getFullPost,
     getPostTags,
@@ -224,10 +224,10 @@ function generateGdocRecords(
         if (!gdoc.content.body) continue
         // Only rendering the blocks - not the page nav, title, byline, etc
         const renderedPostContent = ReactDOMServer.renderToStaticMarkup(
-            React.createElement(
+            createElement(
                 "div",
                 null,
-                React.createElement(ArticleBlocks, {
+                createElement(ArticleBlocks, {
                     blocks: gdoc.content.body,
                 })
             )

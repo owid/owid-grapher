@@ -1,4 +1,4 @@
-import React from "react"
+import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, action } from "mobx"
 import * as lodash from "lodash"
@@ -17,9 +17,10 @@ import { SourceList } from "./SourceList.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faDownload } from "@fortawesome/free-solid-svg-icons"
+import { faDownload, faHatWizard } from "@fortawesome/free-solid-svg-icons"
 import { faGithub } from "@fortawesome/free-brands-svg-icons"
-
+import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
+import { Button } from "antd"
 interface DatasetPageData {
     id: number
     name: string
@@ -28,6 +29,7 @@ interface DatasetPageData {
     shortName: string
     version: string
     isPrivate: boolean
+    isArchived: boolean
     nonRedistributable: boolean
     updatePeriodDays: number
 
@@ -79,7 +81,7 @@ class DatasetEditable {
 }
 
 @observer
-class DatasetTagEditor extends React.Component<{
+class DatasetTagEditor extends Component<{
     newDataset: DatasetEditable
     availableTags: { id: number; name: string; parentName: string }[]
 }> {
@@ -104,7 +106,7 @@ class DatasetTagEditor extends React.Component<{
 }
 
 @observer
-class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
+class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     @observable newDataset!: DatasetEditable
@@ -212,15 +214,23 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         const { dataset } = this.props
         const { newDataset } = this
         const isBulkImport = dataset.namespace !== "owid"
-
         return (
             <main className="DatasetEditPage">
                 <Prompt
                     when={this.isModified}
                     message="Are you sure you want to leave? Unsaved changes will be lost."
                 />
+
+                {/* HEADER */}
                 <section>
-                    <h1>{dataset.name}</h1>
+                    {dataset.isArchived ? (
+                        <h1>
+                            <span style={{ color: "red" }}>Archived:</span>{" "}
+                            {dataset.name}
+                        </h1>
+                    ) : (
+                        <h1>{dataset.name}</h1>
+                    )}
                     {dataset.shortName && (
                         <h4 style={{ color: "gray" }}>
                             {dataset.namespace}/{dataset.version}/
@@ -234,6 +244,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             by={dataset.dataEditedByUserName}
                         />
                     </p>
+
                     <Link
                         native
                         to={`/datasets/${dataset.id}.csv`}
@@ -241,6 +252,21 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     >
                         <FontAwesomeIcon icon={faDownload} /> Download CSV
                     </Link>
+                    {/* Link to Wizard dataset preview */}
+                    <a
+                        href={`${ETL_WIZARD_URL}datasets?datasetId=${dataset.id}`}
+                        target="_blank"
+                        className="btn btn-tertiary"
+                        rel="noopener"
+                    >
+                        <Button
+                            type="default"
+                            icon={<FontAwesomeIcon icon={faHatWizard} />}
+                        >
+                            Explore in Wizard
+                        </Button>
+                    </a>
+                    {/* View on GitHub link (old) */}
                     {!isBulkImport && !dataset.isPrivate && (
                         <a
                             href={this.gitHistoryUrl}
@@ -251,6 +277,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             <FontAwesomeIcon icon={faGithub} /> View on GitHub
                         </a>
                     )}
+                    {/* Download additional content (old) */}
                     {dataset.zipFile && (
                         <Link
                             native
@@ -262,6 +289,8 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                         </Link>
                     )}
                 </section>
+
+                {/* DATASET METADATA */}
                 <section>
                     <h3>Dataset metadata</h3>
                     <form
@@ -334,10 +363,14 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                         />
                     </form>
                 </section>
+
+                {/* ORIGINS */}
                 <section>
                     <h3>Origins</h3>
                     <OriginList origins={dataset.origins || []} />
                 </section>
+
+                {/* SOURCES */}
                 {dataset.variableSources &&
                     dataset.variableSources.length > 0 && (
                         <section>
@@ -345,10 +378,14 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             <SourceList sources={dataset.variableSources} />
                         </section>
                     )}
+
+                {/* INDICATORS */}
                 <section>
                     <h3>Indicators</h3>
                     <VariableList variables={dataset.variables} fields={[]} />
                 </section>
+
+                {/* CHARTS */}
                 <section>
                     <button
                         className="btn btn-primary float-right"
@@ -359,53 +396,60 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     <h3>Charts</h3>
                     <ChartList charts={dataset.charts} />
                 </section>
-                <section>
-                    <h3>Archive</h3>
-                    <p>
-                        Archive this grapher dataset to remove it from the main
-                        list of active datasets.
-                    </p>
-                    {dataset.charts && dataset.charts.length > 0 ? (
+
+                {/* ARCHIVE DATASET */}
+                {!dataset.isArchived && (
+                    <section>
+                        <h3>Archive</h3>
                         <p>
-                            <strong>
-                                This dataset cannot be archived because it
-                                contains charts.
-                            </strong>
+                            Archive this grapher dataset to remove it from the
+                            main list of active datasets.
                         </p>
-                    ) : (
-                        <p>
-                            <strong>Before archiving, ensure that:</strong>
-                            <ul>
-                                <li>
-                                    The corresponding ETL grapher step has been
-                                    archived:{" "}
-                                    <code>
-                                        grapher/{dataset.namespace}/
-                                        {dataset.version}/{dataset.shortName}
-                                    </code>
-                                </li>
-                                <li>
-                                    The dataset is not used in any
-                                    indicator-based explorers.
-                                </li>
-                            </ul>
-                        </p>
-                    )}
-                    <button
-                        className="btn btn-outline-danger"
-                        onClick={() => this.archive()}
-                        disabled={dataset.charts && dataset.charts.length > 0}
-                    >
-                        Archive dataset
-                    </button>
-                </section>
+                        {dataset.charts && dataset.charts.length > 0 ? (
+                            <p>
+                                <strong>
+                                    This dataset cannot be archived because it
+                                    contains charts.
+                                </strong>
+                            </p>
+                        ) : (
+                            <p>
+                                <strong>Before archiving, ensure that:</strong>
+                                <ul>
+                                    <li>
+                                        The corresponding ETL grapher step has
+                                        been archived:{" "}
+                                        <code>
+                                            grapher/{dataset.namespace}/
+                                            {dataset.version}/
+                                            {dataset.shortName}
+                                        </code>
+                                    </li>
+                                    <li>
+                                        The dataset is not used in any
+                                        indicator-based explorers.
+                                    </li>
+                                </ul>
+                            </p>
+                        )}
+                        <button
+                            className="btn btn-outline-danger"
+                            onClick={() => this.archive()}
+                            disabled={
+                                dataset.charts && dataset.charts.length > 0
+                            }
+                        >
+                            Archive dataset
+                        </button>
+                    </section>
+                )}
             </main>
         )
     }
 }
 
 @observer
-export class DatasetEditPage extends React.Component<{ datasetId: number }> {
+export class DatasetEditPage extends Component<{ datasetId: number }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     @observable dataset?: DatasetPageData

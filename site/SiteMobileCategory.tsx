@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from "react"
+import { useEffect, useRef } from "react"
 import { CategoryWithEntries } from "@ourworldindata/utils"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
-import { allTopicsInCategory } from "./SiteNavigationTopics.js"
+import { allTopicsInCategory } from "./gdocs/utils.js"
 
 export const SiteMobileCategory = ({
     category,

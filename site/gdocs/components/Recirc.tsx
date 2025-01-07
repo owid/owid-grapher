@@ -1,6 +1,6 @@
-import React from "react"
 import { EnrichedBlockRecirc } from "@ourworldindata/utils"
-import { renderSpan, useLinkedDocument } from "../utils.js"
+import { useLinkedDocument } from "../utils.js"
+import SpanElement from "./SpanElement.js"
 import { formatAuthors } from "../../clientFormatting.js"
 
 function RecircItem({ url }: { url: string }) {
@@ -34,7 +34,7 @@ export default function Recirc({
         <div className={className}>
             <div className="recirc-content">
                 <span className="recirc-content__heading overline-black-caps">
-                    {renderSpan(d.title)}
+                    <SpanElement span={d.title} />
                 </span>
                 {d.links.map(({ url }) => {
                     return <RecircItem url={url} key={url} />

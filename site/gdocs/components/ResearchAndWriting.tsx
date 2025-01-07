@@ -1,4 +1,4 @@
-import React, { useContext } from "react"
+import { useContext } from "react"
 import cx from "classnames"
 import {
     EnrichedBlockResearchAndWriting,
@@ -10,7 +10,8 @@ import {
 import { useLinkedDocument } from "../utils.js"
 import { formatAuthors } from "../../clientFormatting.js"
 import Image from "./Image.js"
-import { AttachmentsContext, DocumentContext } from "../OwidGdoc.js"
+import { DocumentContext } from "../DocumentContext.js"
+import { AttachmentsContext } from "../AttachmentsContext.js"
 import {
     DEFAULT_GDOC_FEATURED_IMAGE,
     DbEnrichedLatestWork,

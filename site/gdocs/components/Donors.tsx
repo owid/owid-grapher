@@ -1,4 +1,3 @@
-import * as React from "react"
 import { groupBy, removeDiacritics } from "@ourworldindata/utils"
 import { useDonors } from "../utils.js"
 

@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from "react"
-import ReactDOM from "react-dom"
-import ReactDOMServer from "react-dom/server.js"
+import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCopy } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard } from "@ourworldindata/utils"
@@ -74,30 +72,4 @@ export const CodeSnippet = ({
             )}
         </div>
     )
-}
-
-export const hydrateCodeSnippets = () => {
-    const codeSnippets = document.querySelectorAll("div.wp-code-snippet")
-
-    codeSnippets.forEach((snippet) => {
-        const code =
-            snippet.querySelector(".wp-block-code code")?.textContent || ""
-        ReactDOM.hydrate(<CodeSnippet code={code} />, snippet.parentElement)
-    })
-}
-
-export const renderCodeSnippets = ($: CheerioStatic) => {
-    const codeSnippets = $("div.wp-code-snippet")
-    codeSnippets.each((_, snippet) => {
-        const $el = $(snippet)
-        const $dry = $(
-            ReactDOMServer.renderToStaticMarkup(
-                <div>
-                    <CodeSnippet code={$el.text().trim()} />
-                </div>
-            )
-        )
-        $el.after($dry)
-        $el.remove()
-    })
 }

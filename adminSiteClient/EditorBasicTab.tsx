@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import {
     observable,
     action,
@@ -498,6 +498,8 @@ export class EditorBasicTab<
     }
 }
 
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
 function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
     const { variableId, grapher } = props.editor
 

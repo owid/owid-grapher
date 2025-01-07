@@ -309,5 +309,5 @@ if (parsedArgs["h"]) {
 --dry-run: Don't make any actual changes to R2`
     )
 } else {
-    main(parsedArgs, parsedArgs["dry-run"])
+    void main(parsedArgs, parsedArgs["dry-run"])
 }

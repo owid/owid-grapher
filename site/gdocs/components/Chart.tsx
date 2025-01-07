@@ -1,4 +1,4 @@
-import React, { useRef } from "react"
+import { useRef } from "react"
 import { useEmbedChart } from "../../hooks.js"
 import {
     grapherInterfaceWithHiddenControls,
@@ -15,7 +15,8 @@ import {
     isEmpty,
 } from "@ourworldindata/utils"
 import { ChartConfigType } from "@ourworldindata/types"
-import { renderSpans, useLinkedChart } from "../utils.js"
+import { useLinkedChart } from "../utils.js"
+import SpanElements from "./SpanElements.js"
 import cx from "classnames"
 import { GRAPHER_PREVIEW_CLASS } from "../../SiteConstants.js"
 import InteractionNotice from "../../InteractionNotice.js"
@@ -140,7 +141,9 @@ export default function Chart({
                 )}
             </figure>
             {d.caption ? (
-                <figcaption>{renderSpans(d.caption)}</figcaption>
+                <figcaption>
+                    <SpanElements spans={d.caption} />
+                </figcaption>
             ) : null}
         </div>
     )

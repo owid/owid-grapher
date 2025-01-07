@@ -1,6 +1,5 @@
 import cheerio from "cheerio"
 import urlSlug from "url-slug"
-import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import { HTTPS_ONLY } from "../settings/serverSettings.js"
 import { GrapherExports } from "../baker/GrapherBakingUtils.js"
@@ -14,11 +13,9 @@ import { DataToken } from "../site/DataToken.js"
 import { DEEP_LINK_CLASS, formatImages } from "./formatting.js"
 import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
-import {
-    ADDITIONAL_INFORMATION_CLASS_NAME,
-    renderAdditionalInformation,
-} from "../site/blocks/AdditionalInformation.js"
-import { renderHelp } from "../site/blocks/Help.js"
+import { ADDITIONAL_INFORMATION_CLASS_NAME } from "../site/blocks/AdditionalInformation.js"
+import { renderAdditionalInformation } from "../site/blocks/renderAdditionalInformation.js"
+import { renderHelp } from "../site/blocks/renderHelp.js"
 import { renderCodeSnippets } from "@ourworldindata/components"
 import { formatUrls, getBodyHtml } from "../site/formatting.js"
 import { GRAPHER_PREVIEW_CLASS } from "../site/SiteConstants.js"

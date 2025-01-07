@@ -1,7 +1,7 @@
-import React, { useContext } from "react"
+import { useContext } from "react"
 import cx from "classnames"
 
-import { AttachmentsContext } from "../OwidGdoc.js"
+import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"
 import { NewsletterSubscriptionContext } from "../../newsletter.js"
 import LatestDataInsights from "./LatestDataInsights.js"
