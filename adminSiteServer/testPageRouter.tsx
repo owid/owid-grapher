@@ -36,6 +36,7 @@ import { ExplorerChartCreationMode } from "@ourworldindata/explorer"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import {
     ColorSchemes,
+    FetchingGrapher,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
@@ -421,9 +422,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                                     loading="lazy"
                                 />
                             )}
-                            <figure
-                                data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
-                            />
+                            <GrapherFigureView slug={chart.slug} />
                         </div>
                     </div>
                 ))}
@@ -623,9 +622,7 @@ function EmbedVariantsTestPage(
                                     src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
                                 />
                             )}
-                            <figure
-                                data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
-                            />
+                            <GrapherFigureView slug={chart.slug} />
                         </div>
                     </div>
                 ))}
