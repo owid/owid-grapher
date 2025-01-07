@@ -50,7 +50,10 @@ export class EditorFeatures {
     }
 
     @computed get canEnableLogLinearToggle() {
-        return !this.grapher.isDiscreteBar && !this.grapher.isStackedDiscreteBar
+        return (
+            !this.grapherState.isDiscreteBar &&
+            !this.grapherState.isStackedDiscreteBar
+        )
     }
 
     @computed get timeDomain() {

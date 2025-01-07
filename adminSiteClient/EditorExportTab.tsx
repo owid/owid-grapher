@@ -2,7 +2,7 @@ import { IReactionDisposer, action, autorun, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { Section, Toggle } from "./Forms.js"
-import { Grapher, GrapherState } from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import {
     triggerDownloadFromBlob,
     GrapherStaticFormat,
@@ -234,10 +234,10 @@ export class EditorExportTab<
 
     render() {
         const chartAnimationUrl = new URL(`${ETL_WIZARD_URL}chart-animation`)
-        if (this.grapher.canonicalUrl)
+        if (this.grapherState.canonicalUrl)
             chartAnimationUrl.searchParams.set(
                 "animation_chart_url",
-                this.grapher.canonicalUrl
+                this.grapherState.canonicalUrl
             )
         chartAnimationUrl.searchParams.set("animation_skip_button", "True")
         // chartAnimationUrl.searchParams.set(
@@ -369,7 +369,7 @@ export class EditorExportTab<
                 </Section>
 
                 {/* Link to Wizard dataset preview */}
-                {this.grapher.isPublished && (
+                {this.grapherState.isPublished && (
                     <Section name="Animate chart">
                         <a
                             href={chartAnimationUrl.toString()}

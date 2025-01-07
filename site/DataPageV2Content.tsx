@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useEffect } from "react"
 import {
     FetchingGrapher,
     fetchInputTableForConfig,
@@ -11,7 +11,6 @@ import {
     REUSE_THIS_WORK_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
 } from "@ourworldindata/components"
-import ReactDOM from "react-dom"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
@@ -19,9 +18,7 @@ import {
     joinTitleFragments,
     ImageMetadata,
 } from "@ourworldindata/utils"
-import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
-import { DebugProvider } from "./gdocs/DebugContext.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
@@ -67,6 +64,52 @@ export const DataPageV2Content = ({
         }),
         [grapherConfig]
     )
+    const grapher1State = useMemo(
+        () =>
+            new GrapherState({
+                ...mergedGrapherConfig,
+                queryStr: "",
+                dataApiUrl: DATA_API_URL,
+                adminBaseUrl: ADMIN_BASE_URL,
+                bakedGrapherURL: BAKED_GRAPHER_URL,
+            }),
+        [mergedGrapherConfig]
+    )
+    const grapher2State = useMemo(
+        () =>
+            new GrapherState({
+                ...mergedGrapherConfig,
+                tab: "map",
+                queryStr: "",
+                dataApiUrl: DATA_API_URL,
+                adminBaseUrl: ADMIN_BASE_URL,
+                bakedGrapherURL: BAKED_GRAPHER_URL,
+            }),
+        [mergedGrapherConfig]
+    )
+    useEffect(() => {
+        async function fetchTable(): Promise<void> {
+            const inputTable = await fetchInputTableForConfig(
+                mergedGrapherConfig,
+                DATA_API_URL
+            )
+            if (inputTable) {
+                grapher1State.inputTable = inputTable
+                grapher2State.inputTable = inputTable
+            }
+            reaction(
+                () => (grapher2State.chartInstance as MapChart).projection,
+                () => {
+                    const projection = (grapher2State.chartInstance as MapChart)
+                        .projection
+                    grapher1State.selection.clearSelection()
+                    if (projection)
+                        grapher1State.selection.addToSelection([projection])
+                }
+            )
+        }
+        void fetchTable()
+    }, [grapher1State, grapher2State, mergedGrapherConfig])
 
     const stickyNavLinks = [
         {
@@ -188,22 +231,5 @@ export const DataPageV2Content = ({
                 </div>
             </DocumentContext.Provider>
         </AttachmentsContext.Provider>
-    )
-}
-
-export const hydrateDataPageV2Content = (isPreviewing?: boolean) => {
-    const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
-    const props: DataPageV2ContentFields = window._OWID_DATAPAGEV2_PROPS
-    const grapherConfig = window._OWID_GRAPHER_CONFIG
-
-    ReactDOM.hydrate(
-        <DebugProvider debug={isPreviewing}>
-            <DataPageV2Content
-                {...props}
-                grapherConfig={grapherConfig}
-                isPreviewing={isPreviewing}
-            />
-        </DebugProvider>,
-        wrapper
     )
 }

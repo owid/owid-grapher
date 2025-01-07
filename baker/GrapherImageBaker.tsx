@@ -13,7 +13,10 @@ import {
 import { MultipleOwidVariableDataDimensionsMap } from "@ourworldindata/utils"
 import path from "path"
 import * as db from "../db/db.js"
-import { grapherSlugToExportFileKey } from "./GrapherBakingUtils.js"
+import {
+    grapherSlugToExportFileKey,
+    grapherUrlToSlugAndQueryStr,
+} from "./GrapherBakingUtils.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { DATA_API_URL } from "../settings/serverSettings.js"
 

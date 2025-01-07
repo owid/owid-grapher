@@ -28,7 +28,6 @@ import {
 } from "@ourworldindata/utils"
 import cx from "classnames"
 import {
-    ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     DATA_API_URL,
 } from "../../settings/clientSettings.js"

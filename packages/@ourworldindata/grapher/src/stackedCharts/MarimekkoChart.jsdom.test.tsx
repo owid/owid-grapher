@@ -3,7 +3,7 @@
 import { Bounds, ColumnTypeNames, omit } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import { DefaultColorScheme } from "../color/CustomSchemes"
-import { Grapher, GrapherState } from "../core/Grapher"
+import { GrapherState } from "../core/Grapher"
 import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 import { MarimekkoChart } from "./MarimekkoChart"
 import { BarShape, PlacedItem } from "./MarimekkoChartConstants"

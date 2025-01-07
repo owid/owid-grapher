@@ -137,11 +137,7 @@ import {
     GRAPHER_SQUARE_SIZE,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
-import {
-    ChartDimension,
-    getDimensionColumnSlug,
-    LegacyDimensionsManager,
-} from "../chart/ChartDimension"
+import { ChartDimension } from "../chart/ChartDimension"
 import { TooltipManager } from "../tooltip/TooltipProps"
 
 import { DimensionSlot } from "../chart/DimensionSlot"
@@ -149,41 +145,29 @@ import {
     getFocusedSeriesNamesParam,
     getSelectedEntityNamesParam,
 } from "./EntityUrlBuilder"
-import { AxisConfig, AxisManager } from "../axis/AxisConfig"
+import { AxisConfig } from "../axis/AxisConfig"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { FullScreen } from "../fullScreen/FullScreen"
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
-import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 import { SettingsMenu, SettingsMenuManager } from "../controls/SettingsMenu"
 import { TooltipContainer } from "../tooltip/Tooltip"
-import {
-    EntitySelectorModal,
-    EntitySelectorModalManager,
-} from "../modal/EntitySelectorModal"
-import { DownloadModal, DownloadModalManager } from "../modal/DownloadModal"
+import { EntitySelectorModal } from "../modal/EntitySelectorModal"
+import { DownloadModal } from "../modal/DownloadModal"
 import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
-import { SourcesModal, SourcesModalManager } from "../modal/SourcesModal"
-import { DataTableManager } from "../dataTable/DataTable"
-import { MapChartManager } from "../mapCharts/MapChartConstants"
+import { SourcesModal } from "../modal/SourcesModal"
 import { MapChart } from "../mapCharts/MapChart"
-import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "../controls/CommandPalette"
-import { ShareMenuManager } from "../controls/ShareMenu"
-import { EmbedModalManager, EmbedModal } from "../modal/EmbedModal"
+import { EmbedModal } from "../modal/EmbedModal"
 import {
     CaptionedChart,
-    CaptionedChartManager,
     StaticCaptionedChart,
 } from "../captionedChart/CaptionedChart"
-import {
-    TimelineController,
-    TimelineManager,
-} from "../timeline/TimelineController"
+import { TimelineController } from "../timeline/TimelineController"
 import Mousetrap from "mousetrap"
 import { SlideShowController } from "../slideshowController/SlideShowController"
 import {
@@ -213,7 +197,6 @@ import {
     StaticChartRasterizer,
     type GrapherExport,
 } from "../captionedChart/StaticChartRasterizer.js"
-import { SlopeChartManager } from "../slopeCharts/SlopeChart"
 import { SidePanel } from "../sidePanel/SidePanel"
 import {
     EntitySelector,
@@ -1106,7 +1089,7 @@ export class GrapherState {
     get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): GrapherChartType {
         return this.isLineChartThatTurnedIntoDiscreteBarActive
             ? GRAPHER_CHART_TYPES.DiscreteBar
-            : (this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart)
+            : this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart
     }
 
     @computed get isLineChart(): boolean {
@@ -1415,8 +1398,8 @@ export class GrapherState {
         return !isStatic
             ? "underline"
             : shouldIncludeDetailsInStaticExport
-              ? "superscript"
-              : "none"
+            ? "superscript"
+            : "none"
     }
 
     // required derived properties
@@ -2924,7 +2907,7 @@ export class GrapherState {
         this.sizeSlug = grapherState.sizeSlug
 
         this.selection.clearSelection()
-        grapherState.focusArray.clear()
+        this.focusArray.clear()
     }
     @action.bound updateAuthoredVersion(
         config: Partial<LegacyGrapherInterface>

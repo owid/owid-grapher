@@ -131,7 +131,7 @@ export function getCachingInputTableFetcher(
             variables.map((v) => [v, cache.get(v)!])
         )
 
-        const inputTable = legacyToOwidTableAndDimensions(
+        const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
             variablesDataMap,
             dimensions,
             selectedEntityColors

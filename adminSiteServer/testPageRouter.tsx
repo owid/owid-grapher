@@ -3,10 +3,7 @@
 import { Router } from "express"
 
 import { renderToHtmlPage, expectInt } from "../serverUtils/serverUtil.js"
-import {
-    getChartConfigBySlug,
-    getChartVariableData,
-} from "../db/model/Chart.js"
+import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { Head } from "../site/Head.js"
 import * as db from "../db/db.js"
 import {

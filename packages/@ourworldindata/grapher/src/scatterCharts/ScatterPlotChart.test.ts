@@ -27,7 +27,7 @@ import {
 import { ContinentColors } from "../color/CustomSchemes"
 import { sortBy, uniq, uniqBy } from "@ourworldindata/utils"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
-import { Grapher, GrapherState } from "../core/Grapher"
+import { GrapherState } from "../core/Grapher"
 
 it("can create a new chart", () => {
     const manager: ScatterPlotManager = {

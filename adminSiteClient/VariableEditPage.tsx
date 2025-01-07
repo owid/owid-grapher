@@ -36,7 +36,6 @@ import {
     stringifyUnknownError,
     startCase,
 } from "@ourworldindata/utils"
-import { GrapherFigureView } from "../site/GrapherFigureView.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"

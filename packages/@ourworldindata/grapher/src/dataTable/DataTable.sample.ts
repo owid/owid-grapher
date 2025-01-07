@@ -1,5 +1,5 @@
 import { DimensionProperty } from "@ourworldindata/utils"
-import { Grapher, GrapherState } from "../core/Grapher"
+import { GrapherState } from "../core/Grapher"
 import { GRAPHER_TAB_OPTIONS, GrapherInterface } from "@ourworldindata/types"
 import {
     TestMetadata,

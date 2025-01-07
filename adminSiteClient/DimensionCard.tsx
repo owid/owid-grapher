@@ -257,7 +257,7 @@ export class DimensionCard<
                                 onValue={this.onIsProjection}
                             />
                         )}
-                        {grapher.isLineChart && (
+                        {grapherState.isLineChart && (
                             <Toggle
                                 label="Plot markers only"
                                 value={

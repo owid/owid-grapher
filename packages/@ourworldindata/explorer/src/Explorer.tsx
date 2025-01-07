@@ -708,47 +708,48 @@ export class Explorer
         config.dimensions = dimensions
         if (ySlugs && yVariableIds) config.ySlugs = ySlugs + " " + yVariableIds
 
-        const _inputTableTransformer = (table: OwidTable) => {
-            // add transformed (and intermediate) columns to the grapher table
-            if (uniqueSlugsInGrapherRow.length) {
-                const allColumnSlugs = uniq(
-                    uniqueSlugsInGrapherRow.flatMap((slug) => [
-                        ...this.getBaseColumnsForColumnWithTransform(slug),
-                        slug,
-                    ])
-                )
-                const existingColumnSlugs = table.columnSlugs
-                const outstandingColumnSlugs = allColumnSlugs.filter(
-                    (slug) => !existingColumnSlugs.includes(slug)
-                )
-                const requiredColumnDefs = outstandingColumnSlugs
-                    .map(
-                        (slug) =>
-                            this.columnDefsWithoutTableSlugByIdOrSlug[slug]
-                    )
-                    .filter(identity)
-                table = table.appendColumns(requiredColumnDefs)
-            }
+        // TODO: 2025-01-07 Daniel - do we still need this?
+        // const inputTableTransformer = (table: OwidTable) => {
+        //     // add transformed (and intermediate) columns to the grapher table
+        //     if (uniqueSlugsInGrapherRow.length) {
+        //         const allColumnSlugs = uniq(
+        //             uniqueSlugsInGrapherRow.flatMap((slug) => [
+        //                 ...this.getBaseColumnsForColumnWithTransform(slug),
+        //                 slug,
+        //             ])
+        //         )
+        //         const existingColumnSlugs = table.columnSlugs
+        //         const outstandingColumnSlugs = allColumnSlugs.filter(
+        //             (slug) => !existingColumnSlugs.includes(slug)
+        //         )
+        //         const requiredColumnDefs = outstandingColumnSlugs
+        //             .map(
+        //                 (slug) =>
+        //                     this.columnDefsWithoutTableSlugByIdOrSlug[slug]
+        //             )
+        //             .filter(identity)
+        //         table = table.appendColumns(requiredColumnDefs)
+        //     }
 
-            // update column definitions with manually provided properties
-            table = table.updateDefs((def: OwidColumnDef) => {
-                const manuallyProvidedDef =
-                    this.columnDefsWithoutTableSlugByIdOrSlug[def.slug] ?? {}
-                const mergedDef = { ...def, ...manuallyProvidedDef }
+        //     // update column definitions with manually provided properties
+        //     table = table.updateDefs((def: OwidColumnDef) => {
+        //         const manuallyProvidedDef =
+        //             this.columnDefsWithoutTableSlugByIdOrSlug[def.slug] ?? {}
+        //         const mergedDef = { ...def, ...manuallyProvidedDef }
 
-                // update display properties
-                mergedDef.display ??= {}
-                if (manuallyProvidedDef.name)
-                    mergedDef.display.name = manuallyProvidedDef.name
-                if (manuallyProvidedDef.unit)
-                    mergedDef.display.unit = manuallyProvidedDef.unit
-                if (manuallyProvidedDef.shortUnit)
-                    mergedDef.display.shortUnit = manuallyProvidedDef.shortUnit
+        //         // update display properties
+        //         mergedDef.display ??= {}
+        //         if (manuallyProvidedDef.name)
+        //             mergedDef.display.name = manuallyProvidedDef.name
+        //         if (manuallyProvidedDef.unit)
+        //             mergedDef.display.unit = manuallyProvidedDef.unit
+        //         if (manuallyProvidedDef.shortUnit)
+        //             mergedDef.display.shortUnit = manuallyProvidedDef.shortUnit
 
-                return mergedDef
-            })
-            return table
-        }
+        //         return mergedDef
+        //     })
+        //     return table
+        // }
 
         grapher?.grapherState.setAuthoredVersion(config)
         grapher.grapherState.reset()
