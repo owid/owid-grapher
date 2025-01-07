@@ -1,9 +1,5 @@
 #! /usr/bin/env jest
-import {
-    Grapher,
-    GrapherProgrammaticInterface,
-    GrapherState,
-} from "../core/Grapher"
+import { GrapherProgrammaticInterface, GrapherState } from "../core/Grapher"
 import {
     GRAPHER_CHART_TYPES,
     EntitySelectionMode,

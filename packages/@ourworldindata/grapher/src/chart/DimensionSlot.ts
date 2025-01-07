@@ -1,6 +1,6 @@
 // todo: remove
 
-import { Grapher, GrapherState } from "../core/Grapher"
+import { GrapherState } from "../core/Grapher"
 import { computed } from "mobx"
 import { ChartDimension } from "./ChartDimension"
 import { DimensionProperty } from "@ourworldindata/utils"

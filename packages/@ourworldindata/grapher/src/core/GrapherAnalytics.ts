@@ -1,5 +1,3 @@
-import { findDOMParent } from "@ourworldindata/utils"
-
 const DEBUG = false
 
 // Add type information for dataLayer global provided by Google Tag Manager
@@ -177,12 +175,11 @@ export class GrapherAnalytics {
 
     startClickTracking(): void {
         // we use a data-track-note attr on elements to indicate that clicks on them should be tracked, and what to send
-        const dataTrackAttr = "data-track-note"
-
+        // const _dataTrackAttr = "data-track-note"
         // we set a data-grapher-url attr on grapher charts to indicate the URL of the chart.
         // this is helpful for tracking clicks on charts that are embedded in articles, where we would like to know
         // which chart the user is interacting with
-        const dataGrapherUrlAttr = "data-grapher-url"
+        // const _dataGrapherUrlAttr = "data-grapher-url"
         // TODO: 2025-01-05 Daniel - re-enable this before deploying
         // document.addEventListener(
         //     "click",
@@ -193,11 +190,9 @@ export class GrapherAnalytics {
         //             (el: HTMLElement) => el.getAttribute(dataTrackAttr) !== null
         //         )
         //         if (!trackedElement) return
-
         //             const grapherUrlRaw = trackedElement
         //                 .closest(`[${dataGrapherUrlAttr}]`)
         //                 ?.getAttribute(dataGrapherUrlAttr)
-
         //             if (grapherUrlRaw) {
         //                 let grapherUrlObj:
         //                     | {
@@ -210,7 +205,6 @@ export class GrapherAnalytics {
         //                 } catch (e) {
         //                     console.warn("failed to parse grapherUrl", e)
         //                 }
-
         //                 this.logGrapherClick(
         //                     trackedElement.getAttribute(dataTrackAttr) || undefined,
         //                     {

@@ -1,9 +1,5 @@
 import { DimensionProperty } from "@ourworldindata/utils"
-import {
-    Grapher,
-    GrapherProgrammaticInterface,
-    GrapherState,
-} from "../core/Grapher"
+import { GrapherProgrammaticInterface, GrapherState } from "../core/Grapher"
 import {
     TestMetadata,
     createOwidTestDataset,
