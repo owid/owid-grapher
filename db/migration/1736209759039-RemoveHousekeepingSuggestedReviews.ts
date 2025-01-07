@@ -9,7 +9,6 @@ export class RemoveHousekeepingSuggestedReviews1736209759039
         )
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     public async down(_queryRunner: QueryRunner): Promise<void> {
         return
     }
