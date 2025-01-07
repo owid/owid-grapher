@@ -22,7 +22,7 @@ import { Menu, SiteNavigationStatic } from "./SiteConstants.js"
 
 // Note: tranforming the flag from an env string to a boolean in
 // clientSettings.ts is convoluted due to the two-pass SSR/Vite build process.
-const HAS_DONATION_FLAG = true
+const HAS_DONATION_FLAG = false
 
 export const SiteNavigation = ({
     baseUrl,
