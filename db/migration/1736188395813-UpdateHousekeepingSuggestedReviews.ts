@@ -10,7 +10,6 @@ export class HousekeepingSuggestedReviews1736188395813
         `)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     public async down(): Promise<void> {}
 }
-
-// ALTER TABLE employees

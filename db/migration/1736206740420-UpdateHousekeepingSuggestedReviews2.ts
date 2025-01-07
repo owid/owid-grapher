@@ -9,5 +9,6 @@ export class UpdateHousekeepingSuggestedReviews21736206740420
         `)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     public async down(): Promise<void> {}
 }
