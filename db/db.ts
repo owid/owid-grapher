@@ -544,18 +544,23 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
 // Use this with getUniqueNamesFromParentTagArrays to get Record<string, string[]> instead
 export async function getParentTagArraysByChildName(
     trx: KnexReadonlyTransaction
-): Promise<Record<DbPlainTag["name"], DbPlainTag[][]>> {
+): Promise<
+    Record<DbPlainTag["name"], Pick<DbPlainTag, "id" | "name" | "slug">[][]>
+> {
     const { __rootId, ...flatTagGraph } = await getFlatTagGraph(trx)
     const tagGraph = createTagGraph(flatTagGraph, __rootId)
-    const tagsById = await trx("tags")
+    const tagsById = await trx<DbPlainTag>("tags")
         .select("id", "name", "slug")
         .then((tags) => keyBy(tags, "id"))
 
-    const pathsByChildName: Record<DbPlainTag["name"], DbPlainTag[][]> = {}
+    const pathsByChildName: Record<
+        DbPlainTag["name"],
+        Pick<DbPlainTag, "id" | "name" | "slug">[][]
+    > = {}
 
     function trackAllPaths(
         node: TagGraphNode,
-        currentPath: DbPlainTag[] = []
+        currentPath: Pick<DbPlainTag, "id" | "name" | "slug">[] = []
     ): void {
         const currentTag = tagsById[node.id]
         const newPath = [...currentPath, currentTag]
