@@ -50,10 +50,10 @@ Note: on Windows we strongly recommend using the [Windows Subsystem for Linux](h
 
     (this will pick up the right version from `.nvmrc`)
 
-5. Install yarn:
+5. Enable [Corepack](https://nodejs.org/docs/latest-v22.x/api/corepack.html), which provides `yarn` versions:
 
     ```sh
-    npm install -g yarn
+    corepack enable
     ```
 
 6. Run yarn inside the repo folder to install dependencies:
