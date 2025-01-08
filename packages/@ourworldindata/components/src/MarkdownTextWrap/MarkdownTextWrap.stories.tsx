@@ -179,7 +179,7 @@ const RenderCurrentAndLegacy = ({
                     }}
                 />
                 <g style={{ fill: RED, opacity: 0.75 }}>
-                    {legacy.render(0, 0)}
+                    {legacy.renderSVG(0, 0)}
                 </g>
                 <g style={{ fill: GREEN, opacity: 0.75 }}>
                     {current.renderSVG(0, 0)}

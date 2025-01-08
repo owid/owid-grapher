@@ -235,7 +235,7 @@ export class ScatterSizeLegend {
         return (
             <g id={makeIdForHumanConsumption("size-legend")} {...renderOptions}>
                 {this.renderLegend(targetX, targetY)}
-                {this.label.render(
+                {this.label.renderSVG(
                     centerX,
                     targetY + this.legendSize + LEGEND_PADDING,
                     {
@@ -245,7 +245,7 @@ export class ScatterSizeLegend {
                         },
                     }
                 )}
-                {this.title.render(
+                {this.title.renderSVG(
                     centerX,
                     targetY +
                         this.legendSize +

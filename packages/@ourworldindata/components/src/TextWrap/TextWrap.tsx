@@ -11,7 +11,6 @@ interface TextWrapProps {
     lineHeight?: number
     fontSize: FontSize
     fontWeight?: number
-    firstLineOffset?: number
     separators?: string[]
     rawHtml?: boolean
 }
@@ -25,6 +24,11 @@ interface WrapLine {
 interface OpenHtmlTag {
     tag: string // e.g. "a" for an <a> tag, or "span" for a <span> tag
     fullTag: string // e.g. "<a href='https://ourworldindata.org'>"
+}
+
+interface SVGRenderProps {
+    textProps?: React.SVGProps<SVGTextElement>
+    id?: string
 }
 
 const HTML_OPENING_CLOSING_TAG_REGEX = /<(\/?)([A-Za-z]+)( [^<>]*)?>/g
@@ -80,9 +84,6 @@ export class TextWrap {
     }
     @computed get separators(): string[] {
         return this.props.separators ?? [" "]
-    }
-    @computed get firstLineOffset(): number {
-        return this.props.firstLineOffset ?? 0
     }
 
     // We need to take care that HTML tags are not split across lines.
@@ -152,27 +153,15 @@ export class TextWrap {
                 ? stripHTML(joinFragments(nextLine))
                 : joinFragments(nextLine)
 
-            let nextBounds = Bounds.forText(text, {
+            const nextBounds = Bounds.forText(text, {
                 fontSize,
                 fontWeight,
             })
 
-            // add offset to the first line if given
-            if (lines.length === 0 && this.firstLineOffset) {
-                nextBounds = nextBounds.set({
-                    width: nextBounds.width + this.firstLineOffset,
-                })
-            }
-
-            // start a new line before the current word if the max-width is exceeded.
-            // usually breaking into a new line doesn't make sense if the current line is empty.
-            // but if the first line is offset (which is useful in grouped text wraps),
-            // we might want to break into a new line anyway.
-            const startNewLineBeforeWord =
-                nextBounds.width + 10 > maxWidth &&
-                (line.length >= 1 || this.firstLineOffset)
-
-            if (startsWithNewline(fragment.text) || startNewLineBeforeWord) {
+            if (
+                startsWithNewline(fragment.text) ||
+                (nextBounds.width + 10 > maxWidth && line.length >= 1)
+            ) {
                 // Introduce a newline _before_ this word
                 lines.push({
                     text: joinFragments(line),
@@ -241,6 +230,24 @@ export class TextWrap {
         }
     }
 
+    getPositionForSvgRendering(x: number, y: number): [number, number] {
+        const { lines, fontSize, lineHeight } = this
+
+        // Magic number set through experimentation.
+        // The HTML and SVG renderers need to position lines identically.
+        // This number was tweaked until the overlaid HTML and SVG outputs
+        // overlap (see storybook of this component).
+        const HEIGHT_CORRECTION_FACTOR = 0.74
+
+        const textHeight = max(lines.map((line) => line.height)) ?? 0
+        const correctedTextHeight = textHeight * HEIGHT_CORRECTION_FACTOR
+        const containerHeight = lineHeight * fontSize
+        const yOffset =
+            y + (containerHeight - (containerHeight - correctedTextHeight) / 2)
+
+        return [x, yOffset]
+    }
+
     renderHTML(): React.ReactElement | null {
         const { props, lines } = this
 
@@ -269,40 +276,12 @@ export class TextWrap {
         )
     }
 
-    getPositionForSvgRendering(x: number, y: number): [number, number] {
-        const { lines, fontSize, lineHeight } = this
-
-        // Magic number set through experimentation.
-        // The HTML and SVG renderers need to position lines identically.
-        // This number was tweaked until the overlaid HTML and SVG outputs
-        // overlap (see storybook of this component).
-        const HEIGHT_CORRECTION_FACTOR = 0.74
-
-        const textHeight = max(lines.map((line) => line.height)) ?? 0
-        const correctedTextHeight = textHeight * HEIGHT_CORRECTION_FACTOR
-        const containerHeight = lineHeight * fontSize
-        const yOffset =
-            y + (containerHeight - (containerHeight - correctedTextHeight) / 2)
-
-        return [x, yOffset]
-    }
-
-    render(
+    renderSVG(
         x: number,
         y: number,
-        {
-            textProps,
-            id,
-        }: { textProps?: React.SVGProps<SVGTextElement>; id?: string } = {}
+        options: SVGRenderProps = {}
     ): React.ReactElement {
-        const {
-            props,
-            lines,
-            fontSize,
-            fontWeight,
-            lineHeight,
-            firstLineOffset,
-        } = this
+        const { props, lines, fontSize, fontWeight, lineHeight } = this
 
         if (lines.length === 0) return <></>
 
@@ -310,15 +289,15 @@ export class TextWrap {
 
         return (
             <text
-                id={id}
+                id={options.id}
                 fontSize={fontSize.toFixed(2)}
                 fontWeight={fontWeight}
                 x={correctedX.toFixed(1)}
                 y={correctedY.toFixed(1)}
-                {...textProps}
+                {...options.textProps}
             >
                 {lines.map((line, i) => {
-                    const x = correctedX + (i === 0 ? firstLineOffset : 0)
+                    const x = correctedX
                     const y = correctedY + lineHeight * fontSize * i
 
                     if (props.rawHtml)

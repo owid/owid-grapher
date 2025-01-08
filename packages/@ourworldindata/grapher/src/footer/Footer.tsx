@@ -777,12 +777,12 @@ export class StaticFooter extends Footer<StaticFooterProps> {
                         }
                     )}
                 {showLicenseNextToSources
-                    ? licenseAndOriginUrl.render(
+                    ? licenseAndOriginUrl.renderSVG(
                           targetX + maxWidth - licenseAndOriginUrl.width,
                           targetY,
                           { id: makeIdForHumanConsumption("origin-url") }
                       )
-                    : licenseAndOriginUrl.render(
+                    : licenseAndOriginUrl.renderSVG(
                           targetX,
                           targetY +
                               sources.height +

@@ -154,7 +154,7 @@ export class VerticalColorLegend extends React.Component<{
 
                     return (
                         <React.Fragment key={series.textWrap.text}>
-                            {series.textWrap.render(
+                            {series.textWrap.renderSVG(
                                 textX,
                                 textY,
                                 isFocus
@@ -254,7 +254,7 @@ export class VerticalColorLegend extends React.Component<{
                 className="ScatterColorLegend clickable"
             >
                 {this.title &&
-                    this.title.render(this.legendX, this.legendY, {
+                    this.title.renderSVG(this.legendX, this.legendY, {
                         textProps: {
                             fontWeight: 700,
                         },
