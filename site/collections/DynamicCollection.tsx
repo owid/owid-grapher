@@ -15,6 +15,7 @@ import { WindowGraphers } from "./DynamicCollectionPage.js"
 import { Grapher } from "@ourworldindata/grapher"
 import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import GrapherImage from "../GrapherImage.js"
+import { Grapher } from "@ourworldindata/grapher"
 
 interface DynamicCollectionProps {
     baseUrl: string
@@ -27,28 +28,29 @@ interface DynamicCollectionProps {
  *
  * This is what allows us to use a reaction in the DynamicCollection component to update the URL whenever a Grapher is updated.
  */
-// export function embedDynamicCollectionGrapher(
-//     grapherRef: React.RefObject<Grapher>,
-//     figure: Element
-// ) {
-//     const interval = setInterval(() => {
-//         if (grapherRef.current) {
-//             const originalSlug =
-//                 grapherRef.current.slug + grapherRef.current.queryStr
+export function embedDynamicCollectionGrapher(
+    grapherRef: React.RefObject<Grapher>,
+    figure: Element
+) {
+    const interval = setInterval(() => {
+        if (grapherRef.current) {
+            const originalSlug =
+                grapherRef.current.grapherState.slug +
+                grapherRef.current.grapherState.queryStr
 
-//             const index = figure.getAttribute("data-grapher-index")
+            const index = figure.getAttribute("data-grapher-index")
 
-//             const windowGrapher = window.graphers.get(
-//                 `${originalSlug}-${index}`
-//             )
+            const windowGrapher = window.graphers.get(
+                `${originalSlug}-${index}`
+            )
 
-//             if (windowGrapher) {
-//                 windowGrapher.grapher = grapherRef.current
-//             }
-//             clearInterval(interval)
-//         }
-//     }, 1000)
-// }
+            if (windowGrapher) {
+                windowGrapher.grapher = grapherRef.current
+            }
+            clearInterval(interval)
+        }
+    }, 1000)
+}
 
 @observer
 export class DynamicCollection extends React.Component<DynamicCollectionProps> {
@@ -63,21 +65,21 @@ export class DynamicCollection extends React.Component<DynamicCollectionProps> {
         // // If the grapher hasn't mounted yet, we use the original slugAndQueryString
         // // This allows us to update the URL if users interact with graphers that have mounted
         // // while still keeping the unmounted graphers in the URL in the right place
-        // const slugsAndQueryStrings = new Array(this.graphers.size)
+        const slugsAndQueryStrings = new Array(this.graphers.size)
 
-        // for (const [originalSlugAndUrl, { index, grapher }] of this.graphers) {
-        //     if (!grapher) {
-        //         // Strip index suffix from originalSlugAndUrl
-        //         const withoutIndex = originalSlugAndUrl.replace(/-\d+$/, "")
-        //         slugsAndQueryStrings[index] = encodeURIComponent(withoutIndex)
-        //     } else {
-        //         slugsAndQueryStrings[index] = encodeURIComponent(
-        //             `${grapher.slug}${grapher.queryStr}`
-        //         )
-        //     }
-        // }
+        for (const [originalSlugAndUrl, { index, grapher }] of this.graphers) {
+            if (!grapher) {
+                // Strip index suffix from originalSlugAndUrl
+                const withoutIndex = originalSlugAndUrl.replace(/-\d+$/, "")
+                slugsAndQueryStrings[index] = encodeURIComponent(withoutIndex)
+            } else {
+                slugsAndQueryStrings[index] = encodeURIComponent(
+                    `${grapher.grapherState.slug}${grapher.grapherState.queryStr}`
+                )
+            }
+        }
 
-        // return slugsAndQueryStrings
+        return slugsAndQueryStrings
         return []
     }
 
