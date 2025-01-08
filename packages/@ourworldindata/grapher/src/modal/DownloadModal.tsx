@@ -875,9 +875,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                         onClick={() => onDownloadClick(CsvDownloadType.Full)}
                         tracking={
                             "chart_download_full_data--" +
-                            serverSideDownloadAvailable
-                                ? "server"
-                                : "client"
+                            (serverSideDownloadAvailable ? "server" : "client")
                         }
                     />
                     <DownloadButton
@@ -889,9 +887,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                         }
                         tracking={
                             "chart_download_filtered_data--" +
-                            serverSideDownloadAvailable
-                                ? "server"
-                                : "client"
+                            (serverSideDownloadAvailable ? "server" : "client")
                         }
                     />
                 </div>
