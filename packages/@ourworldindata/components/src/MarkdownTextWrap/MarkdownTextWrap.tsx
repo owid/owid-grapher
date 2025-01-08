@@ -566,7 +566,11 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         const secondaryTextWrap = new MarkdownTextWrap({
             text: secondaryMarkdownText,
             ...textWrapProps,
-            maxWidth: mainTextWrap.maxWidth - mainTextWrap.lastLineWidth,
+            maxWidth:
+                mainTextWrap.maxWidth -
+                mainTextWrap.lastLineWidth -
+                Bounds.forText(" ", textWrapProps).width -
+                10, // arbitrary wiggle room
         })
 
         const secondaryTextFitsOnSameLine =
