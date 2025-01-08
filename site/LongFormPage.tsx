@@ -95,13 +95,11 @@ export const LongFormPage = (props: {
 
     const citationText = `${formatAuthors({
         authors: citationAuthors,
-        requireMax: true,
     })} (${citationPublishedYear}) - "${citationTitle}". Published online at OurWorldinData.org. Retrieved from: '${citationCanonicalUrl}' [Online Resource]`
 
     const bibtex = `@article{owid${citationSlug.replace(/-/g, "")},
     author = {${formatAuthors({
         authors: citationAuthors,
-        requireMax: true,
         forBibtex: true,
     })}},
     title = {${citationTitle}},
@@ -169,7 +167,6 @@ export const LongFormPage = (props: {
                                         {!formattingOptions.hideAuthors && (
                                             <Byline
                                                 authors={post.authors}
-                                                withMax={withCitation}
                                                 override={post.byline}
                                             />
                                         )}

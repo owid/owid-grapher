@@ -162,17 +162,17 @@ describe(formatAuthors, () => {
             "Author 1, Author 2 and Author 3"
         )
 
-        expect(formatAuthors({ authors, requireMax: true })).toEqual(
-            "Author 1, Author 2, Author 3 and Max Roser"
-        )
-
         expect(formatAuthors({ authors: ["Author 1"] })).toEqual("Author 1")
         expect(formatAuthors({ authors: ["Author 1", "Author 2"] })).toEqual(
             "Author 1 and Author 2"
         )
 
-        expect(
-            formatAuthors({ authors, requireMax: true, forBibtex: true })
-        ).toEqual("Author 1 and Author 2 and Author 3 and Max Roser")
+        expect(formatAuthors({ authors, forBibtex: true })).toEqual(
+            "Author 1 and Author 2 and Author 3"
+        )
+
+        expect(formatAuthors({ authors, forBibtex: false })).toEqual(
+            "Author 1, Author 2 and Author 3"
+        )
     })
 })
