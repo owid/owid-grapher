@@ -1,5 +1,6 @@
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
+import * as Sentry from "@sentry/react"
 import {
     observable,
     computed,
@@ -206,7 +207,6 @@ import { GrapherAnalytics } from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { ChartInterface, ChartTableTransformer } from "../chart/ChartInterface"
 import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
-import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants"
 import {
     StaticChartRasterizer,
@@ -1106,41 +1106,27 @@ export class Grapher
             // No data to download
             return
 
-        try {
-            let variablesDataMap: MultipleOwidVariableDataDimensionsMap
+        let variablesDataMap: MultipleOwidVariableDataDimensionsMap
 
-            const startMark = performance.now()
-            if (this.useAdminAPI) {
-                // TODO grapher model: switch this to downloading multiple data and metadata files
-                variablesDataMap = await loadVariablesDataAdmin(
-                    this.dataApiUrlForAdmin,
-                    this.variableIds
-                )
-            } else {
-                variablesDataMap = await loadVariablesDataSite(
-                    this.variableIds,
-                    this.dataApiUrl
-                )
-            }
-            this.createPerformanceMeasurement(
-                "downloadVariablesData",
-                startMark
+        const startMark = performance.now()
+        if (this.useAdminAPI) {
+            // TODO grapher model: switch this to downloading multiple data and metadata files
+            variablesDataMap = await loadVariablesDataAdmin(
+                this.dataApiUrlForAdmin,
+                this.variableIds
             )
-
-            this._receiveOwidDataAndApplySelection(
-                variablesDataMap,
-                inputTableTransformer
+        } else {
+            variablesDataMap = await loadVariablesDataSite(
+                this.variableIds,
+                this.dataApiUrl
             )
-        } catch (err) {
-            // eslint-disable-next-line no-console
-            console.log(`Error fetching '${err}'`)
-            console.error(err)
-            Bugsnag?.notify(`Error fetching variables: ${err}`, (event) => {
-                event.addMetadata("context", {
-                    variableIds: this.variableIds,
-                })
-            })
         }
+        this.createPerformanceMeasurement("downloadVariablesData", startMark)
+
+        this._receiveOwidDataAndApplySelection(
+            variablesDataMap,
+            inputTableTransformer
+        )
     }
 
     @action.bound receiveOwidData(
@@ -2350,13 +2336,6 @@ export class Grapher
     ): React.RefObject<Grapher> {
         const grapherInstanceRef = React.createRef<Grapher>()
 
-        let ErrorBoundary = React.Fragment as React.ComponentType // use React.Fragment as a sort of default error boundary if Bugsnag is not available
-        if (Bugsnag && (Bugsnag as any)._client) {
-            ErrorBoundary =
-                Bugsnag.getPlugin("react")?.createErrorBoundary(React) ??
-                React.Fragment
-        }
-
         const setBoundsFromContainerAndRender = (
             entries: ResizeObserverEntry[]
         ): void => {
@@ -2375,9 +2354,9 @@ export class Grapher
                 bounds: Bounds.fromRect(entry.contentRect),
             }
             ReactDOM.render(
-                <ErrorBoundary>
+                <Sentry.ErrorBoundary>
                     <Grapher ref={grapherInstanceRef} {...props} />
-                </ErrorBoundary>,
+                </Sentry.ErrorBoundary>,
                 containerNode
             )
         }
@@ -2399,7 +2378,6 @@ export class Grapher
             console.warn(
                 "ResizeObserver not available; grapher will not be able to render"
             )
-            Bugsnag?.notify("ResizeObserver not available")
         }
 
         return grapherInstanceRef

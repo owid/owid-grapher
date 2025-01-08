@@ -184,7 +184,7 @@ export class ExplorerCreatePage extends Component<{
 
     @action.bound private async save() {
         let commitMessage
-        if (ENV === "production") {
+        if (ENV !== "development") {
             commitMessage = prompt(
                 `Enter a message describing this change. Your change will be pushed to the '${this.props.gitCmsBranchName}' on GitHub.`,
                 `Updated ${this.program.slug}`

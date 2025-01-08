@@ -100,7 +100,7 @@ export async function authCloudflareSSOMiddleware(
     res.cookie("sessionid", sessionId, {
         httpOnly: true,
         sameSite: "lax",
-        secure: ENV === "production",
+        secure: ENV !== "development",
     })
 
     // Prevents redirect to external URLs
@@ -327,7 +327,7 @@ export async function tailscaleAuthMiddleware(
     res.cookie("sessionid", sessionId, {
         httpOnly: true,
         sameSite: "lax",
-        secure: ENV === "production",
+        secure: ENV !== "development",
     })
 
     // Save the sessionid in cookies for `authMiddleware` to log us in

@@ -9,7 +9,6 @@ import { BAKED_SITE_EXPORTS_BASE_URL } from "../settings/clientSettings.js"
 
 import * as db from "../db/db.js"
 import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker.js"
-import { warn } from "../serverUtils/errorLog.js"
 import { mapSlugsToIds } from "../db/model/Chart.js"
 import md5 from "md5"
 import { DbPlainTag, Url } from "@ourworldindata/utils"
@@ -70,13 +69,13 @@ export const bakeGrapherUrls = async (
 
         const slug = lodash.last(Url.fromURL(url).pathname?.split("/"))
         if (!slug) {
-            warn(`Invalid chart url ${url}`)
+            console.warn(`Invalid chart url ${url}`)
             continue
         }
 
         const chartId = slugToId[slug]
         if (chartId === undefined) {
-            warn(`Couldn't find chart with slug ${slug}`)
+            console.warn(`Couldn't find chart with slug ${slug}`)
             continue
         }
 
@@ -91,7 +90,7 @@ export const bakeGrapherUrls = async (
             [chartId]
         )
         if (!rows.length) {
-            warn(`Mysteriously missing chart by id ${chartId}`)
+            console.warn(`Mysteriously missing chart by id ${chartId}`)
             continue
         }
 
@@ -167,7 +166,7 @@ export async function getTagToSlugMap(
 
 /**
  * Given a topic tag's name or ID, return its slug
- * Throws an error if no slug is found so we can log it in Bugsnag
+ * Throws an error if no slug is found so we can log it in Sentry
  */
 export async function getSlugForTopicTag(
     knex: db.KnexReadonlyTransaction,

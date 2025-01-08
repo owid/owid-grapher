@@ -7,7 +7,7 @@ import {
 } from "@ourworldindata/explorer"
 import { at, get, groupBy, mapValues, orderBy, partition, uniq } from "lodash"
 import { MarkdownTextWrap } from "@ourworldindata/components"
-import { logErrorAndMaybeSendToBugsnag } from "../../../serverUtils/errorLog.js"
+import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import { obtainAvailableEntitiesForGraphers } from "../../updateChartEntities.js"
 import { fetchS3MetadataByPath } from "../../../db/model/Variable.js"
 import { getVariableMetadataRoute } from "@ourworldindata/grapher"
@@ -379,7 +379,7 @@ async function enrichRecordWithGrapherInfo(
 ): Promise<GrapherEnrichedExplorerViewRecord | undefined> {
     const grapher = grapherInfo[record.viewGrapherId]
     if (!grapher) {
-        await logErrorAndMaybeSendToBugsnag({
+        await logErrorAndMaybeCaptureInSentry({
             name: "ExplorerViewGrapherMissing",
             message: `Explorer with slug "${explorerInfo.slug}" has a view with a missing grapher: ${record.viewQueryParams}.`,
         })
@@ -433,7 +433,7 @@ async function enrichRecordWithTableData(
 ): Promise<CsvEnrichedExplorerViewRecord | undefined> {
     const { tableSlug, ySlugs, viewTitle } = record
     if (!tableSlug || !ySlugs?.length || !viewTitle) {
-        await logErrorAndMaybeSendToBugsnag({
+        await logErrorAndMaybeCaptureInSentry({
             name: "ExplorerViewMissingData",
             message: `Explorer with slug "${record.explorerSlug}" has a view with missing data: ${record.viewQueryParams}.`,
         })
@@ -543,7 +543,7 @@ async function processAvailableEntities(
             record.availableEntities
         )
         if (!availableEntities) {
-            await logErrorAndMaybeSendToBugsnag({
+            await logErrorAndMaybeCaptureInSentry({
                 name: "ExplorerViewMissingData",
                 message: `Explorer with slug "${record.explorerSlug}" has a view with missing entities: ${record.viewQueryParams}.`,
             })
@@ -703,7 +703,7 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
 
     for (const explorer of Object.values(explorersBySlug)) {
         if (!explorer.tags.length) {
-            await logErrorAndMaybeSendToBugsnag({
+            await logErrorAndMaybeCaptureInSentry({
                 name: "ExplorerTagMissing",
                 message: `Explorer "${explorer.slug}" has no tags.`,
             })

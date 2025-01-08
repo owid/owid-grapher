@@ -1,3 +1,7 @@
+// This should be imported as early as possible so the global error handler is
+// set up before any errors are thrown.
+import "./instrument.js"
+
 import "./admin.scss"
 import "@ourworldindata/grapher/src/core/grapher.scss"
 import "../explorerAdminClient/ExplorerCreatePage.scss"

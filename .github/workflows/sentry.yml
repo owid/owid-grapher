@@ -1,0 +1,21 @@
+name: Sentry Release
+on: push
+
+jobs:
+    create-release:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Clone repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Create Sentry release
+              uses: getsentry/action-release@v1
+              env:
+                  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+                  SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+              with:
+                  environment: ${{ github.ref_name == 'master' && 'production' || 'staging' }}
+                  projects: admin website

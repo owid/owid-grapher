@@ -1,4 +1,4 @@
-import Bugsnag from "@bugsnag/js"
+import * as Sentry from "@sentry/react"
 
 /**
  * React and the browser-integrated Google Translate don't love each other:
@@ -30,13 +30,13 @@ export const runMonkeyPatchForGoogleTranslate = (): void => {
                     child,
                     this
                 )
-                Bugsnag?.notify(
+                Sentry.captureMessage(
                     "removeChild: Cannot remove a child from a different parent",
-                    (event) => {
-                        event.addMetadata("context", {
+                    {
+                        extra: {
                             child: nodeToString(child),
                             this: nodeToString(this),
-                        })
+                        },
                     }
                 )
                 return child
@@ -55,13 +55,13 @@ export const runMonkeyPatchForGoogleTranslate = (): void => {
                     referenceNode,
                     this
                 )
-                Bugsnag?.notify(
+                Sentry.captureMessage(
                     "insertBefore: Cannot insert before a reference node from a different parent",
-                    (event) => {
-                        event.addMetadata("context", {
+                    {
+                        extra: {
                             child: nodeToString(referenceNode),
                             this: nodeToString(this as Element),
-                        })
+                        },
                     }
                 )
                 return newNode

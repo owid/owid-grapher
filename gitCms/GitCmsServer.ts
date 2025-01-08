@@ -22,7 +22,7 @@ import {
     GIT_CMS_PULL_ROUTE,
 } from "./GitCmsConstants.js"
 import { sync } from "glob"
-import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import _ from "lodash"
 
 // todo: cleanup typings
@@ -188,8 +188,6 @@ export class GitCmsServer {
             // eslint-disable-next-line no-console
             console.log(`Deleted ${filepath}`)
 
-            // do not push in dev
-            // XXX: we should not push in staging either!
             if (ENV === "production") {
                 await this.commitFile(
                     filepath,
@@ -203,7 +201,7 @@ export class GitCmsServer {
             return { success: true }
         } catch (error) {
             const err = error as Error
-            void logErrorAndMaybeSendToBugsnag(err)
+            void logErrorAndMaybeCaptureInSentry(err)
             return { success: false, error: err.toString() }
         }
     }
@@ -227,8 +225,6 @@ export class GitCmsServer {
             const pull = await this.autopull()
             if (!pull.success) throw pull.error
 
-            // do not push in dev
-            // XXX: we should not push in staging either!
             if (ENV === "production") {
                 const commitMsg = commitMessage
                     ? commitMessage
@@ -247,7 +243,7 @@ export class GitCmsServer {
             return { success: true }
         } catch (error) {
             const err = error as Error
-            void logErrorAndMaybeSendToBugsnag(err)
+            void logErrorAndMaybeCaptureInSentry(err)
             return { success: false, error: err.toString() }
         }
     }

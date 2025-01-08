@@ -1,16 +1,11 @@
 import { simpleGit } from "simple-git"
 import express, { NextFunction } from "express"
+import * as Sentry from "@sentry/node"
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require("express-async-errors") // todo: why the require?
 import cookieParser from "cookie-parser"
 import http from "http"
-import Bugsnag from "@bugsnag/js"
-import BugsnagPluginExpress from "@bugsnag/plugin-express"
-import {
-    BAKED_BASE_URL,
-    BUGSNAG_NODE_API_KEY,
-    ENV_IS_STAGING,
-} from "../settings/serverSettings.js"
+import { BAKED_BASE_URL, ENV_IS_STAGING } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import { IndexPage } from "./IndexPage.js"
 import {
@@ -66,22 +61,8 @@ export class OwidAdminApp {
 
     async startListening(adminServerPort: number, adminServerHost: string) {
         this.gitCmsBranchName = await this.getGitCmsBranchName()
-        let bugsnagMiddleware
 
         const { app } = this
-
-        if (BUGSNAG_NODE_API_KEY) {
-            Bugsnag.start({
-                apiKey: BUGSNAG_NODE_API_KEY,
-                context: "admin-server",
-                plugins: [BugsnagPluginExpress],
-                autoTrackSessions: false,
-            })
-            bugsnagMiddleware = Bugsnag.getPlugin("express")
-            // From the docs: "this must be the first piece of middleware in the
-            // stack. It can only capture errors in downstream middleware"
-            if (bugsnagMiddleware) app.use(bugsnagMiddleware.requestHandler)
-        }
 
         // since the server is running behind a reverse proxy (nginx), we need to "trust"
         // the X-Forwarded-For header in order to get the real request IP
@@ -157,11 +138,6 @@ export class OwidAdminApp {
             }
         })
 
-        // From the docs: "this handles any errors that Express catches. This
-        // needs to go before other error handlers. BugSnag will call the `next`
-        // error handler if it exists.
-        if (bugsnagMiddleware) app.use(bugsnagMiddleware.errorHandler)
-
         if (this.options.isDev) {
             if (!this.options.isTest) {
                 // https://vitejs.dev/guide/ssr
@@ -178,6 +154,10 @@ export class OwidAdminApp {
             // todo (DB): we probably always want to have this
             app.use("/", mockSiteRouter)
         }
+
+        // Add this after all routes,
+        // but before any and other error-handling middlewares are defined
+        Sentry.setupExpressErrorHandler(app)
 
         // Give full error messages, including in production
         app.use(this.errorHandler)
