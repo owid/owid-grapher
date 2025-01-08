@@ -455,7 +455,6 @@ export class ChartEditorView<
                 </div>
                 <div className="chart-editor-view">
                     <figure
-                        data-grapher-src
                         style={{
                             minHeight: editor.showStaticPreview
                                 ? grapherState.staticBoundsWithDetails.height

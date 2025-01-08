@@ -422,7 +422,9 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                                     loading="lazy"
                                 />
                             )}
-                            <GrapherFigureView slug={chart.slug} />
+                            <figure
+                                data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
+                            />
                         </div>
                     </div>
                 ))}
@@ -618,7 +620,9 @@ function EmbedVariantsTestPage(
                                     src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
                                 />
                             )}
-                            <GrapherFigureView slug={chart.slug} />
+                            <figure
+                                data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
+                            />
                         </div>
                     </div>
                 ))}

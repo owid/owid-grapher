@@ -35,6 +35,7 @@ import TopicTags from "./TopicTags.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { reaction } from "mobx"
+import { GrapherWithFallback } from "./GrapherWithFallback.js"
 
 declare global {
     interface Window {
@@ -98,53 +99,6 @@ export const DataPageV2Content = ({
         }),
         [grapherConfig]
     )
-    const grapher1State = useMemo(
-        () =>
-            new GrapherState({
-                ...mergedGrapherConfig,
-                queryStr: "",
-                dataApiUrl: DATA_API_URL,
-                adminBaseUrl: ADMIN_BASE_URL,
-                bakedGrapherURL: BAKED_GRAPHER_URL,
-            }),
-        [mergedGrapherConfig]
-    )
-    const grapher2State = useMemo(
-        () =>
-            new GrapherState({
-                ...mergedGrapherConfig,
-                tab: "map",
-                queryStr: "",
-                dataApiUrl: DATA_API_URL,
-                adminBaseUrl: ADMIN_BASE_URL,
-                bakedGrapherURL: BAKED_GRAPHER_URL,
-            }),
-        [mergedGrapherConfig]
-    )
-    useEffect(() => {
-        async function fetchTable(): Promise<void> {
-            const inputTable = await fetchInputTableForConfig(
-                mergedGrapherConfig,
-                DATA_API_URL
-            )
-            if (inputTable) {
-                grapher1State.inputTable = inputTable
-                grapher2State.inputTable = inputTable
-            }
-            reaction(
-                () => (grapher2State.chartInstance as MapChart).projection,
-                () => {
-                    const projection = (grapher2State.chartInstance as MapChart)
-                        .projection
-                    grapher1State.selection.clearSelection()
-                    if (projection)
-                        grapher1State.selection.addToSelection([projection])
-                }
-            )
-        }
-        void fetchTable()
-    }, [grapher1State, grapher2State, mergedGrapherConfig])
-
     const stickyNavLinks = [
         {
             text: "Explore the Data",
@@ -235,8 +189,11 @@ export const DataPageV2Content = ({
                     </nav>
                     <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
                         <div className="chart-key-info col-start-2 span-cols-12">
-                            <Grapher grapherState={grapher1State} />
-                            <Grapher grapherState={grapher2State} />
+                            {grapherConfig.slug && (
+                                <GrapherWithFallback
+                                    slug={grapherConfig.slug}
+                                />
+                            )}
                             <AboutThisData
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}

@@ -5,6 +5,7 @@ import GrapherImage from "./GrapherImage.js"
 import { useEffect, useState } from "react"
 import { useInView } from "react-intersection-observer"
 
+// TODO: change this so it's possible to hand a full grapher config down (and maybe an extra config?)
 export const GrapherWithFallback = ({
     // grapher,
     slug,
