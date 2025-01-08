@@ -3467,7 +3467,7 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
     >
     type GdocRecord = Pick<DbRawPostGdoc, "id" | "publishedAt">
 
-    const author = req.query.author || "Max Roser"
+    const author = req.query.author
     const gdocs = await db.knexRaw<GdocRecord>(
         trx,
         `-- sql

@@ -2,11 +2,9 @@ import { formatAuthors } from "./clientFormatting.js"
 
 export const Byline = ({
     authors,
-    withMax,
     override,
 }: {
     authors: string[]
-    withMax: boolean
     override?: string
 }) => {
     return (
@@ -20,7 +18,6 @@ export const Byline = ({
             ) : (
                 <a href="/team">{`by ${formatAuthors({
                     authors,
-                    requireMax: withMax,
                 })}`}</a>
             )}
         </div>
