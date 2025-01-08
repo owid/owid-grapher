@@ -507,18 +507,83 @@ export const sumTextWrapHeights = (
     sum(elements.map((element) => element.height)) +
     (elements.length - 1) * spacer
 
-type MarkdownTextWrapProps = {
-    text: string
-    fontSize: number
+type MarkdownTextWrapOptions = {
+    maxWidth?: number
     fontFamily?: FontFamily
+    fontSize: number
     fontWeight?: number
     lineHeight?: number
-    maxWidth?: number
     style?: CSSProperties
     detailsOrderedByReference?: string[]
 }
 
+type MarkdownTextWrapProps = { text: string } & MarkdownTextWrapOptions
+
+type TextFragment = { text: string; bold?: boolean }
+
 export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
+    static fromFragments({
+        main,
+        secondary,
+        newLine = "continue-line",
+        textWrapProps,
+    }: {
+        main: TextFragment
+        secondary: TextFragment
+        newLine?: "continue-line" | "always" | "avoid-wrap"
+        textWrapProps: Omit<MarkdownTextWrapOptions, "fontWeight">
+    }) {
+        const mainMarkdownText = maybeBoldMarkdownText(main)
+        const secondaryMarkdownText = maybeBoldMarkdownText(secondary)
+
+        const combinedTextContinued = [
+            mainMarkdownText,
+            secondaryMarkdownText,
+        ].join(" ")
+        const combinedTextNewLine = [
+            mainMarkdownText,
+            secondaryMarkdownText,
+        ].join("\n")
+
+        if (newLine === "always") {
+            return new MarkdownTextWrap({
+                text: combinedTextNewLine,
+                ...textWrapProps,
+            })
+        }
+
+        if (newLine === "continue-line") {
+            return new MarkdownTextWrap({
+                text: combinedTextContinued,
+                ...textWrapProps,
+            })
+        }
+
+        // if newLine is set to 'avoid-wrap', we first try to fit the secondary text
+        // on the same line as the main text. If it doesn't fit, we place it on a new line.
+
+        const mainTextWrap = new MarkdownTextWrap({ ...main, ...textWrapProps })
+        const secondaryTextWrap = new MarkdownTextWrap({
+            text: secondaryMarkdownText,
+            ...textWrapProps,
+            maxWidth: mainTextWrap.maxWidth - mainTextWrap.lastLineWidth,
+        })
+
+        const secondaryTextFitsOnSameLine =
+            secondaryTextWrap.svgLines.length === 1
+        if (secondaryTextFitsOnSameLine) {
+            return new MarkdownTextWrap({
+                text: combinedTextContinued,
+                ...textWrapProps,
+            })
+        } else {
+            return new MarkdownTextWrap({
+                text: combinedTextNewLine,
+                ...textWrapProps,
+            })
+        }
+    }
+
     @computed get maxWidth(): number {
         return this.props.maxWidth ?? Infinity
     }
@@ -602,10 +667,18 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         return max(lineLengths) ?? 0
     }
 
+    @computed get singleLineHeight(): number {
+        return this.fontSize * this.lineHeight
+    }
+
+    @computed get lastLineWidth(): number {
+        return sumBy(last(this.htmlLines), (token) => token.width) ?? 0
+    }
+
     @computed get height(): number {
-        const { htmlLines, lineHeight, fontSize } = this
+        const { htmlLines } = this
         if (htmlLines.length === 0) return 0
-        return htmlLines.length * lineHeight * fontSize
+        return htmlLines.length * this.singleLineHeight
     }
 
     @computed get style(): any {
@@ -648,13 +721,13 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
             detailsMarker?: DetailsMarker
             id?: string
         } = {}
-    ): React.ReactElement | null {
+    ): React.ReactElement {
         const { fontSize, lineHeight } = this
         const lines =
             detailsMarker === "superscript"
                 ? this.svgLinesWithDodReferenceNumbers
                 : this.svgLines
-        if (lines.length === 0) return null
+        if (lines.length === 0) return <></>
 
         // Magic number set through experimentation.
         // The HTML and SVG renderers need to position lines identically.
@@ -1091,4 +1164,14 @@ function appendReferenceNumbers(
     )
 
     return appendedTokens
+}
+
+function maybeBoldMarkdownText({
+    text,
+    bold,
+}: {
+    text: string
+    bold?: boolean
+}): string {
+    return bold ? `**${text}**` : text
 }
