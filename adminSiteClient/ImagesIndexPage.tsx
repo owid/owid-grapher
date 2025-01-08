@@ -281,12 +281,13 @@ function createColumns({
             title: "Filename",
             dataIndex: "filename",
             key: "filename",
-            width: 300,
+            width: 200,
         },
         {
             title: "Alt text",
             dataIndex: "defaultAlt",
             key: "defaultAlt",
+            width: "auto",
             sorter: (a, b) =>
                 a.defaultAlt && b.defaultAlt
                     ? a.defaultAlt.localeCompare(b.defaultAlt)
@@ -309,7 +310,7 @@ function createColumns({
                 a.originalWidth && b.originalWidth
                     ? a.originalWidth - b.originalWidth
                     : 0,
-            width: 100,
+            width: 50,
         },
         {
             title: "Height",
@@ -319,13 +320,13 @@ function createColumns({
                 a.originalHeight && b.originalHeight
                     ? a.originalHeight - b.originalHeight
                     : 0,
-            width: 100,
+            width: 50,
         },
         {
             title: "Last updated",
             dataIndex: "updatedAt",
             key: "updatedAt",
-            width: 150,
+            width: 50,
             defaultSortOrder: "descend",
             sorter: (a, b) =>
                 a.updatedAt && b.updatedAt ? a.updatedAt - b.updatedAt : 0,
@@ -334,7 +335,7 @@ function createColumns({
         {
             title: "Owner",
             key: "userId",
-            width: 200,
+            width: 100,
             filters: [
                 {
                     text: "Unassigned",
@@ -375,7 +376,7 @@ function createColumns({
         {
             title: "Action",
             key: "action",
-            width: 100,
+            width: 50,
             render: (_, image) => {
                 const isDeleteDisabled = !!(usage && usage[image.id]?.length)
                 return (
@@ -658,6 +659,7 @@ export function ImageIndexPage() {
                         <PostImageButton postImage={api.postImage} />
                     </Flex>
                     <Table
+                        size="small"
                         columns={columns}
                         dataSource={filteredImages}
                         rowKey={(x) => x.id}

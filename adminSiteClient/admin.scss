@@ -1224,6 +1224,14 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 }
 
 .ImageIndexPage {
+    @media (max-width: 1300px) {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        .ant-table-cell {
+            padding-left: 4px !important;
+            padding-right: 4px !important;
+        }
+    }
     .ImageIndexPage__delete-user-button {
         border-radius: 50%;
         margin-left: 8px;
