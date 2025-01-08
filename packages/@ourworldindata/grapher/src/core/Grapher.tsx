@@ -3032,6 +3032,30 @@ export class GrapherState {
             (question) => !!getErrorMessageRelatedQuestionUrl(question)
         )
     }
+    set facetStrategy(facet: FacetStrategy) {
+        this.selectedFacetStrategy = facet
+    }
+    set staticFormat(format: GrapherStaticFormat) {
+        this._staticFormat = format
+    }
+    set baseFontSize(val: number) {
+        this._baseFontSize = val
+    }
+    set isInFullScreenMode(newValue: boolean) {
+        // prevent scrolling when in full-screen mode
+        if (newValue) {
+            document.documentElement.classList.add("no-scroll")
+        } else {
+            document.documentElement.classList.remove("no-scroll")
+        }
+
+        // dismiss the share menu
+        this.isShareMenuActive = false
+
+        this._isInFullScreenMode = newValue
+    }
+
+    @observable isShareMenuActive = false
 }
 
 export interface GrapherProps {
@@ -3058,7 +3082,6 @@ export class Grapher extends React.Component<GrapherProps> {
     @observable private hasBeenVisible = false
     @observable private uncaughtError?: Error
     @observable slideShow?: SlideShowController<any>
-    @observable isShareMenuActive = false
 
     /**
      * Whether the chart is rendered in an Admin context (e.g. on owid.cloud).
@@ -3125,7 +3148,7 @@ export class Grapher extends React.Component<GrapherProps> {
     }
 
     @computed get hideFullScreenButton(): boolean {
-        if (this.isInFullScreenMode) return false
+        if (this.grapherState.isInFullScreenMode) return false
         // hide the full screen button if the full screen height
         // is barely larger than the current chart height
         const fullScreenHeight = this.grapherState.windowInnerHeight!
@@ -3279,10 +3302,6 @@ export class Grapher extends React.Component<GrapherProps> {
         return this.grapherState.dimensions.find(
             (dim) => dim.property === property
         )?.column
-    }
-
-    set staticFormat(format: GrapherStaticFormat) {
-        this.grapherState._staticFormat = format
     }
 
     get staticSVG(): string {
@@ -3530,10 +3549,6 @@ export class Grapher extends React.Component<GrapherProps> {
         )
     }
 
-    set facetStrategy(facet: FacetStrategy) {
-        this.grapherState.selectedFacetStrategy = facet
-    }
-
     @action.bound randomSelection(num: number): void {
         // Continent, Population, GDP PC, GDP, PopDens, UN, Language, etc.
         this.clearErrors()
@@ -3549,34 +3564,24 @@ export class Grapher extends React.Component<GrapherProps> {
         )
     }
 
-    set isInFullScreenMode(newValue: boolean) {
-        // prevent scrolling when in full-screen mode
-        if (newValue) {
-            document.documentElement.classList.add("no-scroll")
-        } else {
-            document.documentElement.classList.remove("no-scroll")
-        }
-
-        // dismiss the share menu
-        this.isShareMenuActive = false
-
-        this.grapherState._isInFullScreenMode = newValue
-    }
-
     @action.bound toggleFullScreenMode(): void {
-        this.isInFullScreenMode = !this.isInFullScreenMode
+        this.grapherState.isInFullScreenMode =
+            !this.grapherState.isInFullScreenMode
     }
 
     @action.bound dismissFullScreen(): void {
         // if a modal is open, dismiss it instead of exiting full-screen mode
-        if (this.grapherState.isModalOpen || this.isShareMenuActive) {
+        if (
+            this.grapherState.isModalOpen ||
+            this.grapherState.isShareMenuActive
+        ) {
             this.grapherState.isEntitySelectorModalOrDrawerOpen = false
             this.grapherState.isSourcesModalOpen = false
             this.grapherState.isEmbedModalOpen = false
             this.grapherState.isDownloadModalOpen = false
-            this.isShareMenuActive = false
+            this.grapherState.isShareMenuActive = false
         } else {
-            this.isInFullScreenMode = false
+            this.grapherState.isInFullScreenMode = false
         }
     }
 
@@ -3663,7 +3668,7 @@ export class Grapher extends React.Component<GrapherProps> {
         if (this.grapherState.isExportingToSvgOrPng)
             return <CaptionedChart manager={this.grapherState} />
 
-        if (this.isInFullScreenMode) {
+        if (this.grapherState.isInFullScreenMode) {
             return (
                 <FullScreen
                     onDismiss={this.dismissFullScreen}
@@ -3791,14 +3796,11 @@ export class Grapher extends React.Component<GrapherProps> {
         }
     }
 
-    set baseFontSize(val: number) {
-        this.grapherState._baseFontSize = val
-    }
-
     @action.bound private setBaseFontSize(): void {
-        this.baseFontSize = this.grapherState.computeBaseFontSizeFromWidth(
-            this.grapherState.captionedChartBounds
-        )
+        this.grapherState.baseFontSize =
+            this.grapherState.computeBaseFontSizeFromWidth(
+                this.grapherState.captionedChartBounds
+            )
     }
 
     // Binds chart properties to global window title and URL. This should only
@@ -3857,7 +3859,7 @@ export class Grapher extends React.Component<GrapherProps> {
                 }
             ),
             reaction(
-                () => this.facetStrategy,
+                () => this.grapherState.facetStrategy,
                 () => this.grapherState.focusArray.clear()
             )
         )
