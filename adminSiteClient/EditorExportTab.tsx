@@ -367,21 +367,23 @@ export class EditorExportTab<
                 </Section>
 
                 {/* Link to Wizard dataset preview */}
-                <Section name="Export mobile static chart">
-                    <a
-                        href={chartAnimationUrl.toString()}
-                        target="_blank"
-                        className="btn btn-tertiary"
-                        rel="noopener"
-                    >
-                        <Button
-                            type="default"
-                            icon={<FontAwesomeIcon icon={faHatWizard} />}
+                {this.grapher.isPublished && (
+                    <Section name="Animate chart">
+                        <a
+                            href={chartAnimationUrl.toString()}
+                            target="_blank"
+                            className="btn btn-tertiary"
+                            rel="noopener"
                         >
-                            Animate with Wizard
-                        </Button>
-                    </a>
-                </Section>
+                            <Button
+                                type="default"
+                                icon={<FontAwesomeIcon icon={faHatWizard} />}
+                            >
+                                Animate with Wizard
+                            </Button>
+                        </a>
+                    </Section>
+                )}
             </div>
         )
     }
