@@ -7,6 +7,7 @@ import {
 import { ToleranceStrategy } from "@ourworldindata/utils"
 import {
     BooleanCellDef,
+    ColumnCellDef,
     EnumCellDef,
     EtlPathCellDef,
     Grammar,
@@ -17,7 +18,7 @@ import {
     UrlCellDef,
 } from "./gridLang/GridLangConstants.js"
 
-export const ColumnGrammar: Grammar = {
+export const ColumnGrammar: Grammar<ColumnCellDef> = {
     variableId: {
         ...IntegerCellDef,
         keyword: "variableId",
@@ -205,5 +206,11 @@ export const ColumnGrammar: Grammar = {
             "  Format: [data value],[color],[label]; [data value],[color],[label]; ...",
             "  Example: one,#ccc,uno; two,,dos",
         ].join("\n"),
+    },
+    plotMarkersOnlyInLineChart: {
+        ...BooleanCellDef,
+        keyword: "plotMarkersOnlyInLineChart",
+        description: "Should data points be connected by a line?",
+        display: true,
     },
 } as const
