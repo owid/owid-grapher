@@ -238,10 +238,10 @@ export class EditorExportTab<
                 this.grapher.canonicalUrl
             )
         chartAnimationUrl.searchParams.set("animation_skip_button", "True")
-        chartAnimationUrl.searchParams.set(
-            "animation_chart_tab",
-            this.grapher.tab ?? ""
-        )
+        // chartAnimationUrl.searchParams.set(
+        //     "animation_chart_tab",
+        //     this.grapher.tab ?? ""
+        // )
 
         return (
             <div className="EditorExportTab">
