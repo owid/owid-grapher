@@ -8,6 +8,10 @@ import {
     GrapherStaticFormat,
 } from "@ourworldindata/utils"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
+import { faHatWizard, faDownload } from "@fortawesome/free-solid-svg-icons"
+import { Button } from "antd"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 type ExportSettings = Required<
     Pick<
@@ -227,6 +231,14 @@ export class EditorExportTab<
     }
 
     render() {
+        const chartAnimationUrl = new URL(`${ETL_WIZARD_URL}chart-animation`)
+        if (this.grapher.canonicalUrl)
+            chartAnimationUrl.searchParams.set(
+                "animation_chart_url",
+                this.grapher.canonicalUrl
+            )
+        chartAnimationUrl.searchParams.set("animation_skip_button", "True")
+
         return (
             <div className="EditorExportTab">
                 <Section name="Displayed elements">
@@ -309,39 +321,62 @@ export class EditorExportTab<
                         />
                     )}
                 </Section>
+
                 <Section name="Export static chart">
                     <div className="DownloadButtons">
                         <button
                             className="btn btn-primary"
                             onClick={this.onDownloadDesktopPNG}
                         >
-                            Download Desktop PNG
+                            {<FontAwesomeIcon icon={faDownload} />} Download
+                            Desktop PNG
                         </button>
                         <button
                             className="btn btn-primary"
                             onClick={this.onDownloadDesktopSVG}
                         >
-                            Download Desktop SVG
+                            {<FontAwesomeIcon icon={faDownload} />} Download
+                            Desktop SVG
                         </button>
                         <button
                             className="btn btn-primary"
                             onClick={this.onDownloadMobilePNG}
                         >
-                            Download Mobile PNG
+                            {<FontAwesomeIcon icon={faDownload} />} Download
+                            Mobile PNG
                         </button>
                         <button
                             className="btn btn-primary"
                             onClick={this.onDownloadMobileSVG}
                         >
-                            Download Mobile SVG
+                            {<FontAwesomeIcon icon={faDownload} />} Download
+                            Mobile SVG
                         </button>
                         <button
                             className="btn btn-primary"
                             onClick={this.onDownloadMobileSVGForSocialMedia}
                         >
-                            Download Mobile SVG for Social Media
+                            {<FontAwesomeIcon icon={faDownload} />} Download
+                            Mobile SVG for Social Media
                         </button>
                     </div>
+                </Section>
+
+                {/* Link to Wizard dataset preview */}
+                <Section name="Export mobile static chart">
+                    <a
+                        href={chartAnimationUrl.toString()}
+                        target="_blank"
+                        className="btn btn-tertiary"
+                        rel="noopener"
+                    >
+                        <Button
+                            type="default"
+                            icon={<FontAwesomeIcon icon={faHatWizard} />}
+                        >
+                            Animate with Wizard
+                        </Button>
+                    </a>
                 </Section>
             </div>
         )
