@@ -84,7 +84,7 @@ export default function OwidGdocPage({
     debug?: boolean
     isPreviewing?: boolean
 }) {
-    const { content, createdAt, updatedAt } = gdoc
+    const { content, createdAt, publishedAt } = gdoc
 
     const pageDesc = getPageDesc(gdoc)
     const featuredImageFilename = getFeaturedImageFilename(gdoc)
@@ -125,7 +125,7 @@ export default function OwidGdocPage({
                     <CitationMeta
                         title={content.title || ""}
                         authors={content.authors}
-                        date={updatedAt || createdAt}
+                        date={publishedAt || createdAt}
                         canonicalUrl={canonicalUrl}
                     />
                 )}
