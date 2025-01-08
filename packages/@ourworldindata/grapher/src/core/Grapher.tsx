@@ -1620,8 +1620,20 @@ export class GrapherState {
 
     isEditor =
         typeof window !== "undefined" && (window as any).isEditor === true
-    @computed private get externalBounds(): Bounds {
-        return this.initialOptions.bounds ?? DEFAULT_BOUNDS
+
+    @observable _externalBounds: Bounds | undefined = undefined
+    /** externalBounds should be set to the available plotting area for a
+        Grapher that resizes itself to fit. When this area changes,
+        externalBounds should be updated. Updating externalBounds can
+        trigger a bunch of somewhat expensive recalculations so it might
+        be worth debouncing updates (e.g. when drag-resizing) */
+    @computed get externalBounds(): Bounds {
+        const { _externalBounds, initialOptions } = this
+        return _externalBounds ?? initialOptions.bounds ?? DEFAULT_BOUNDS
+    }
+
+    set externalBounds(bounds: Bounds) {
+        this._externalBounds = bounds
     }
 
     @computed get isInIFrame(): boolean {
