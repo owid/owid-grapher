@@ -315,7 +315,7 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                         target="_blank"
                         rel="noopener"
                     >
-                        {title.render(x, y, {
+                        {title.renderSVG(x, y, {
                             textProps: { fill: GRAPHER_DARK_TEXT },
                         })}
                     </a>

@@ -40,7 +40,7 @@ const HTMLAndSVG = ({
             ></div>
             <svg width={width} height={height} style={{ position: "absolute" }}>
                 <g style={{ fill: RED, opacity: 0.75 }}>
-                    {textwrap.render(0, 0)}
+                    {textwrap.renderSVG(0, 0)}
                 </g>
             </svg>
             <div

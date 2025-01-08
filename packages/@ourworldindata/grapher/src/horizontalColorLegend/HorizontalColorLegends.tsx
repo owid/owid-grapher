@@ -642,7 +642,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                         </text>
                     ))}
                 </g>
-                {this.legendTitle?.render(
+                {this.legendTitle?.renderSVG(
                     this.x,
                     // Align legend title baseline with bottom of color bins
                     this.numericLegendY +

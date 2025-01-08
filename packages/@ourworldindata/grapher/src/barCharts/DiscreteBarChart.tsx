@@ -409,7 +409,7 @@ export class DiscreteBarChart
                     return (
                         series.label && (
                             <React.Fragment key={series.seriesName}>
-                                {series.label.render(
+                                {series.label.renderSVG(
                                     series.entityLabelX,
                                     series.barY - series.label.height / 2,
                                     { textProps: style }

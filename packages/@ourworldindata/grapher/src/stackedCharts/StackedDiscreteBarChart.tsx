@@ -673,7 +673,7 @@ export class StackedDiscreteBarChart
                         onMouseLeave={this.onEntityMouseLeave}
                     />
                 ))}
-                {label.render(
+                {label.renderSVG(
                     yAxis.place(this.x0) - labelToBarPadding,
                     -label.height / 2,
                     {
