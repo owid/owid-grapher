@@ -46,6 +46,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import Handsontable from "handsontable"
 import { GRAPHER_CHART_TYPES, GRAPHER_MAP_TYPE } from "@ourworldindata/types"
 import {
+    fetchInputTableForConfig,
     Grapher,
     GrapherProgrammaticInterface,
     GrapherState,
@@ -107,6 +108,7 @@ import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { Operation } from "../adminShared/SqlFilterSExpression.js"
+import { DATA_API_URL } from "../settings/clientSettings.js"
 
 // The rule doesn't support class components in the same file.
 // eslint-disable-next-line react-refresh/only-export-components
@@ -310,7 +312,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         this.redoStack = []
         this.selectedRow = undefined
     }
-    @action.bound private loadGrapherJson(json: any): void {
+    @action.bound private async loadGrapherJson(json: any): Promise<void> {
         const newConfig: GrapherProgrammaticInterface = {
             ...json,
             isEmbeddedInAnOwidPage: true,
@@ -327,11 +329,14 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             // the same country selection as you zap through the variables
             this.grapherState.clearSelection()
         this.grapherState.updateFromObject(newConfig)
-        // TODO: ensure data is downloaded
-        // this.grapher.downloadData()
+        const inputTable = await fetchInputTableForConfig(
+            newConfig,
+            this.context.admin.settings.DATA_API_FOR_ADMIN_UI || DATA_API_URL
+        )
+        if (inputTable) this.grapherState.inputTable = inputTable
     }
 
-    @action private updatePreviewToRow(): void {
+    @action private async updatePreviewToRow(): Promise<void> {
         const { selectedRowContent } = this
         if (selectedRowContent === undefined) return
 
@@ -347,7 +352,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             grapherConfig,
             finalConfigLayer
         )
-        this.loadGrapherJson(mergedConfig)
+        void this.loadGrapherJson(mergedConfig)
     }
 
     @computed private get columnDataSource(): ColumnDataSource | undefined {
