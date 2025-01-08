@@ -493,17 +493,31 @@ abstract class AbstractAxis {
     }
 
     @computed get labelTextWrap(): MarkdownTextWrap | undefined {
-        const text = this.label
-        return text
-            ? new MarkdownTextWrap({
-                  maxWidth: this.labelMaxWidth,
-                  fontSize: this.labelFontSize,
-                  text,
-                  lineHeight: 1,
-                  detailsOrderedByReference:
-                      this.axisManager?.detailsOrderedByReference,
-              })
-            : undefined
+        if (!this.label) return
+
+        const textWrapProps = {
+            maxWidth: this.labelMaxWidth,
+            fontSize: this.labelFontSize,
+            lineHeight: 1,
+            detailsOrderedByReference:
+                this.axisManager?.detailsOrderedByReference,
+        }
+
+        const displayUnit = this.formatColumn?.displayUnit
+        if (displayUnit) {
+            return MarkdownTextWrap.fromFragments({
+                main: { text: this.label, bold: true },
+                secondary: { text: `(${displayUnit})` },
+                newLine: "avoid-wrap",
+                textWrapProps,
+            })
+        } else {
+            return new MarkdownTextWrap({
+                text: this.label,
+                fontWeight: 700,
+                ...textWrapProps,
+            })
+        }
     }
 
     @computed get labelHeight(): number {
