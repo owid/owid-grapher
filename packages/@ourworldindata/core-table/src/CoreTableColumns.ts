@@ -269,6 +269,12 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return undefined
     }
 
+    @imemo get displayUnit(): string | undefined {
+        return this.unit && this.unit !== this.shortUnit
+            ? this.unit.replace(/^\((.*)\)$/, "$1")
+            : undefined
+    }
+
     // Returns a map where the key is a series slug such as "name" and the value is a set
     // of all the unique values that this column has for that particular series.
     getUniqueValuesGroupedBy(
