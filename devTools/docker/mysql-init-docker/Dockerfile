@@ -7,4 +7,5 @@ RUN rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2023 \
     curl \
     rsync \
     unzip \
-    gzip
+    gzip \
+ && microdnf clean all
