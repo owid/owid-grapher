@@ -197,6 +197,7 @@ export class Explorer
 {
     analytics = new GrapherAnalytics()
     grapherState: GrapherState
+    inputTableTransformer = (table: OwidTable) => table
 
     constructor(props: ExplorerProps) {
         super(props)
@@ -488,7 +489,8 @@ export class Explorer
 
     @action.bound private setGrapherTable(table: OwidTable) {
         if (this.grapher) {
-            this.grapher.grapherState.inputTable = table
+            this.grapher.grapherState.inputTable =
+                this.inputTableTransformer(table)
             this.grapher.appendNewEntitySelectionOptions()
         }
     }
@@ -562,7 +564,7 @@ export class Explorer
         )
     }
 
-    @action.bound updateGrapherFromExplorerUsingGrapherId() {
+    @action.bound async updateGrapherFromExplorerUsingGrapherId() {
         const grapher = this.grapher
         if (!grapher) return
 
@@ -589,7 +591,13 @@ export class Explorer
         grapher?.grapherState.setAuthoredVersion(config)
         grapher.grapherState.reset()
         grapher?.grapherState.updateFromObject(config)
-        // grapher.downloadData()
+        const inputTable = await fetchInputTableForConfig(
+            config,
+            this.props.dataApiUrl
+        )
+        if (inputTable)
+            grapher.grapherState.inputTable =
+                this.inputTableTransformer(inputTable)
     }
 
     @action.bound async updateGrapherFromExplorerUsingVariableIds() {
@@ -709,47 +717,47 @@ export class Explorer
         if (ySlugs && yVariableIds) config.ySlugs = ySlugs + " " + yVariableIds
 
         // TODO: 2025-01-07 Daniel - do we still need this?
-        // const inputTableTransformer = (table: OwidTable) => {
-        //     // add transformed (and intermediate) columns to the grapher table
-        //     if (uniqueSlugsInGrapherRow.length) {
-        //         const allColumnSlugs = uniq(
-        //             uniqueSlugsInGrapherRow.flatMap((slug) => [
-        //                 ...this.getBaseColumnsForColumnWithTransform(slug),
-        //                 slug,
-        //             ])
-        //         )
-        //         const existingColumnSlugs = table.columnSlugs
-        //         const outstandingColumnSlugs = allColumnSlugs.filter(
-        //             (slug) => !existingColumnSlugs.includes(slug)
-        //         )
-        //         const requiredColumnDefs = outstandingColumnSlugs
-        //             .map(
-        //                 (slug) =>
-        //                     this.columnDefsWithoutTableSlugByIdOrSlug[slug]
-        //             )
-        //             .filter(identity)
-        //         table = table.appendColumns(requiredColumnDefs)
-        //     }
+        this.inputTableTransformer = (table: OwidTable) => {
+            // add transformed (and intermediate) columns to the grapher table
+            if (uniqueSlugsInGrapherRow.length) {
+                const allColumnSlugs = uniq(
+                    uniqueSlugsInGrapherRow.flatMap((slug) => [
+                        ...this.getBaseColumnsForColumnWithTransform(slug),
+                        slug,
+                    ])
+                )
+                const existingColumnSlugs = table.columnSlugs
+                const outstandingColumnSlugs = allColumnSlugs.filter(
+                    (slug) => !existingColumnSlugs.includes(slug)
+                )
+                const requiredColumnDefs = outstandingColumnSlugs
+                    .map(
+                        (slug) =>
+                            this.columnDefsWithoutTableSlugByIdOrSlug[slug]
+                    )
+                    .filter(identity)
+                table = table.appendColumns(requiredColumnDefs)
+            }
 
-        //     // update column definitions with manually provided properties
-        //     table = table.updateDefs((def: OwidColumnDef) => {
-        //         const manuallyProvidedDef =
-        //             this.columnDefsWithoutTableSlugByIdOrSlug[def.slug] ?? {}
-        //         const mergedDef = { ...def, ...manuallyProvidedDef }
+            // update column definitions with manually provided properties
+            table = table.updateDefs((def: OwidColumnDef) => {
+                const manuallyProvidedDef =
+                    this.columnDefsWithoutTableSlugByIdOrSlug[def.slug] ?? {}
+                const mergedDef = { ...def, ...manuallyProvidedDef }
 
-        //         // update display properties
-        //         mergedDef.display ??= {}
-        //         if (manuallyProvidedDef.name)
-        //             mergedDef.display.name = manuallyProvidedDef.name
-        //         if (manuallyProvidedDef.unit)
-        //             mergedDef.display.unit = manuallyProvidedDef.unit
-        //         if (manuallyProvidedDef.shortUnit)
-        //             mergedDef.display.shortUnit = manuallyProvidedDef.shortUnit
+                // update display properties
+                mergedDef.display ??= {}
+                if (manuallyProvidedDef.name)
+                    mergedDef.display.name = manuallyProvidedDef.name
+                if (manuallyProvidedDef.unit)
+                    mergedDef.display.unit = manuallyProvidedDef.unit
+                if (manuallyProvidedDef.shortUnit)
+                    mergedDef.display.shortUnit = manuallyProvidedDef.shortUnit
 
-        //         return mergedDef
-        //     })
-        //     return table
-        // }
+                return mergedDef
+            })
+            return table
+        }
 
         grapher?.grapherState.setAuthoredVersion(config)
         grapher.grapherState.reset()
@@ -767,7 +775,9 @@ export class Explorer
                 config,
                 this.props.dataApiUrl
             )
-            if (inputTable) grapher.grapherState.inputTable = inputTable
+            if (inputTable)
+                grapher.grapherState.inputTable =
+                    this.inputTableTransformer(inputTable)
         }
     }
 
@@ -994,7 +1004,7 @@ export class Explorer
     private updateGrapherBounds() {
         const grapherContainer = this.grapherContainerRef.current
         if (grapherContainer)
-            this.grapherBounds = new Bounds(
+            this.grapherState.externalBounds = new Bounds(
                 0,
                 0,
                 grapherContainer.clientWidth,
@@ -1047,7 +1057,10 @@ export class Explorer
                     this.isNarrow &&
                     this.mobileCustomizeButton}
                 <div className="ExplorerFigure" ref={this.grapherContainerRef}>
-                    <Grapher grapherState={this.grapherState} />
+                    <Grapher
+                        ref={this.grapherRef}
+                        grapherState={this.grapherState}
+                    />
                 </div>
             </div>
         )
