@@ -44,7 +44,7 @@ import {
     BAKED_BASE_URL,
     CLOUDFLARE_IMAGES_URL,
 } from "../../../settings/clientSettings.js"
-import { logErrorAndMaybeSendToBugsnag } from "../../../serverUtils/errorLog.js"
+import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
@@ -176,7 +176,7 @@ const getThumbnailUrl = (
     const cloudflareId = cloudflareImages[thumbnailFilename]?.cloudflareId
 
     if (!cloudflareId) {
-        void logErrorAndMaybeSendToBugsnag(
+        void logErrorAndMaybeCaptureInSentry(
             new Error(
                 `Gdoc ${gdoc.id} has no cloudflare image with filename ${thumbnailFilename}`
             )

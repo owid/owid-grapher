@@ -19,7 +19,7 @@ import { parseIntOrUndefined } from "@ourworldindata/utils"
 const serverSettings = process.env ?? {}
 
 export const BASE_DIR: string = baseDir
-export const ENV: "development" | "production" = clientSettings.ENV
+export const ENV = clientSettings.ENV
 
 export const ADMIN_SERVER_PORT: number = clientSettings.ADMIN_SERVER_PORT
 export const ADMIN_SERVER_HOST: string = clientSettings.ADMIN_SERVER_HOST
@@ -43,11 +43,6 @@ export const GIT_DEFAULT_USERNAME: string =
     serverSettings.GIT_DEFAULT_USERNAME ?? "Our World in Data"
 export const GIT_DEFAULT_EMAIL: string =
     serverSettings.GIT_DEFAULT_EMAIL ?? "info@ourworldindata.org"
-
-export const BUGSNAG_API_KEY: string | undefined =
-    serverSettings.BUGSNAG_API_KEY
-export const BUGSNAG_NODE_API_KEY: string | undefined =
-    serverSettings.BUGSNAG_NODE_API_KEY
 
 export const BLOG_POSTS_PER_PAGE: number =
     parseIntOrUndefined(serverSettings.BLOG_POSTS_PER_PAGE) ?? 21

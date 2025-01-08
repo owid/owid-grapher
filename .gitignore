@@ -45,3 +45,6 @@ dist/
 **/tsup.config.bundled*.mjs
 cfstorage/
 vite.*.mjs
+
+# Sentry Config File
+.env.sentry-build-plugin

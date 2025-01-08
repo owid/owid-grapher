@@ -1,3 +1,6 @@
+// This must be imported first for Sentry instrumentation to work.
+import "../serverUtils/instrument.js"
+
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
     ADMIN_SERVER_HOST,

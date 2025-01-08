@@ -1,9 +1,9 @@
 import { PageOverrides } from "../site/LongFormPage.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
-import { urlToSlug, FullPost, JsonError } from "@ourworldindata/utils"
+import { urlToSlug, FullPost } from "@ourworldindata/utils"
 import { FormattingOptions } from "@ourworldindata/types"
 import { getTopSubnavigationParentItem } from "../site/gdocs/utils.js"
-import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import {
     getFullPostBySlugFromSnapshot,
     isPostSlugCitable,
@@ -17,7 +17,7 @@ export const getPostBySlugLogToSlackNoThrow = async (
     try {
         return await getFullPostBySlugFromSnapshot(knex, slug)
     } catch (err) {
-        void logErrorAndMaybeSendToBugsnag(err)
+        void logErrorAndMaybeCaptureInSentry(err)
         return undefined
     }
 }
@@ -45,8 +45,8 @@ export const getLandingOnlyIfParent = async (
         // todo: the concept of "citation overrides" does not belong to that
         // generic function. Logging this message should be the responsibility
         // of the caller function.
-        await logErrorAndMaybeSendToBugsnag(
-            new JsonError(
+        await logErrorAndMaybeCaptureInSentry(
+            new Error(
                 // This error often shows up intermittently as a false-positive (DB unavailable when calling getPostBySlug()?)
                 // If it happens systematically, please check
                 // the href of the "subnavs[${formattingOptions.subnavId}]"

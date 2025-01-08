@@ -194,7 +194,7 @@ const prodAssets = (entrypoint: ViteEntryPoint, baseUrl: string): Assets => {
     }
 }
 
-const useProductionAssets = ENV === "production" || VITE_PREVIEW
+const useProductionAssets = ENV !== "development" || VITE_PREVIEW
 
 const viteAssets = (entrypoint: ViteEntryPoint, prodBaseUrl?: string) =>
     useProductionAssets

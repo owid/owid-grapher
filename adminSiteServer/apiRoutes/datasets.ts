@@ -12,7 +12,7 @@ import {
     assignTagsForCharts,
 } from "../../db/model/Chart.js"
 import { getDatasetById, setTagsForDataset } from "../../db/model/Dataset.js"
-import { logErrorAndMaybeSendToBugsnag } from "../../serverUtils/errorLog.js"
+import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
     syncDatasetToGitRepo,
@@ -299,7 +299,7 @@ export async function updateDataset(
             commitEmail: _res.locals.user.email,
         })
     } catch (err) {
-        await logErrorAndMaybeSendToBugsnag(err, req)
+        await logErrorAndMaybeCaptureInSentry(err)
         // Continue
     }
 
@@ -363,7 +363,7 @@ export async function deleteDataset(
             commitEmail: _res.locals.user.email,
         })
     } catch (err: any) {
-        await logErrorAndMaybeSendToBugsnag(err, req)
+        await logErrorAndMaybeCaptureInSentry(err)
         // Continue
     }
 

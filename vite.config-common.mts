@@ -1,6 +1,7 @@
 import { defineConfig } from "vite"
 import pluginReact from "@vitejs/plugin-react"
 import pluginChecker from "vite-plugin-checker"
+import { sentryVitePlugin } from "@sentry/vite-plugin"
 import * as clientSettings from "./settings/clientSettings.js"
 import {
     VITE_ASSET_SITE_ENTRY,
@@ -34,7 +35,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             devSourcemap: true,
         },
         define: {
-            // Replace all clientSettings with their respective values, i.e. assign e.g. BUGSNAG_API_KEY to process.env.BUGSNAG_API_KEY
+            // Replace all clientSettings with their respective values, i.e. assign e.g. EXAMPLE_ENV_VAR to process.env.EXAMPLE_ENV_VAR
             // it's important to note that we only expose values that are present in the clientSettings file - not any other things that are stored in .env
             ...Object.fromEntries(
                 Object.entries(clientSettings).map(([key, value]) => [
@@ -72,6 +73,12 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                     buildMode: true,
                     tsconfigPath: "tsconfig.vite-checker.json",
                 },
+            }),
+            // Put the Sentry vite plugin after all other plugins.
+            sentryVitePlugin({
+                authToken: process.env.SENTRY_AUTH_TOKEN,
+                org: process.env.SENTRY_ORG,
+                project: entrypoint === "admin" ? "admin" : "website",
             }),
         ],
         server: {

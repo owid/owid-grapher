@@ -1,8 +1,8 @@
 import * as db from "../db/db.js"
-import { memoize, JsonError, Url } from "@ourworldindata/utils"
+import { memoize, Url } from "@ourworldindata/utils"
 import { isCanonicalInternalUrl } from "./formatting.js"
 import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
-import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import {
     // deleteExpiredRedirects,
     getRedirectsFromDb,
@@ -148,8 +148,8 @@ export const resolveRedirectFromMap = async (
     const _resolveRedirectFromMap = async (url: Url): Promise<Url> => {
         ++recursionDepth
         if (recursionDepth > MAX_RECURSION_DEPTH) {
-            void logErrorAndMaybeSendToBugsnag(
-                new JsonError(
+            void logErrorAndMaybeCaptureInSentry(
+                new Error(
                     `A circular redirect (/a -> /b -> /a) has been detected for ${originalUrl.pathname} and is ignored.`
                 )
             )
@@ -164,8 +164,8 @@ export const resolveRedirectFromMap = async (
         const targetUrl = Url.fromURL(target)
 
         if (targetUrl.pathname === url.pathname) {
-            void logErrorAndMaybeSendToBugsnag(
-                new JsonError(
+            void logErrorAndMaybeCaptureInSentry(
+                new Error(
                     `A self redirect (/a -> /a) has been detected for ${originalUrl.pathname} and is ignored.`
                 )
             )

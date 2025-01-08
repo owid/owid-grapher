@@ -15,11 +15,13 @@ if (typeof __dirname !== "undefined") {
 
 import { parseIntOrUndefined } from "@ourworldindata/utils"
 
-export const ENV: "development" | "production" =
-    process.env.ENV === "production" ? "production" : "development"
+type Environment = "development" | "staging" | "production"
+export const ENV: Environment =
+    (process.env.ENV as Environment) || "development"
+export const COMMIT_SHA = process.env.COMMIT_SHA
 
-export const BUGSNAG_API_KEY: string | undefined = process.env.BUGSNAG_API_KEY
 export const SENTRY_DSN: string | undefined = process.env.SENTRY_DSN
+export const SENTRY_ADMIN_DSN: string | undefined = process.env.SENTRY_ADMIN_DSN
 export const ADMIN_SERVER_PORT: number =
     parseIntOrUndefined(process.env.ADMIN_SERVER_PORT) ?? 3030
 export const ADMIN_SERVER_HOST: string =

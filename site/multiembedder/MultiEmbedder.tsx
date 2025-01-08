@@ -39,7 +39,6 @@ import {
     GRAPHER_DYNAMIC_CONFIG_URL,
     MULTI_DIM_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
-import Bugsnag from "@bugsnag/js"
 import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
 
 const figuresFromDOM = (
@@ -86,7 +85,6 @@ class MultiEmbedder {
             console.warn(
                 "IntersectionObserver not available; interactive embeds won't load on this page"
             )
-            Bugsnag?.notify("IntersectionObserver not available")
         }
     }
 

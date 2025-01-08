@@ -1,5 +1,6 @@
 import * as React from "react"
 import ReactDOM from "react-dom"
+import * as Sentry from "@sentry/react"
 import cx from "classnames"
 import { observable, action, computed } from "mobx"
 import { observer } from "mobx-react"
@@ -26,7 +27,6 @@ import {
 import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
-import Bugsnag from "@bugsnag/js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const ONETIME_DONATION_AMOUNTS = [20, 50, 100, 500, 1000]
@@ -203,14 +203,14 @@ export class DonateForm extends React.Component {
             this.setIsSubmitting(false)
 
             const prefixedErrorMessage = stringifyUnknownError(error)
-            // Send all errors to Bugsnag. This will help surface issues
+            // Send all errors to Sentry. This will help surface issues
             // with our aging reCAPTCHA setup, and pull the trigger on a
             // (hook-based?) rewrite if it starts failing. This reporting
             // also includes form validation errors, which are useful to
             // identify possible UX improvements or validate UX experiments
             // (such as the combination of the name field and the "include
             // my name on the list" checkbox).
-            Bugsnag.notify(
+            Sentry.captureException(
                 error instanceof Error ? error : new Error(prefixedErrorMessage)
             )
 
