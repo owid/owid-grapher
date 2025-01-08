@@ -213,7 +213,7 @@ describe("OwidAdminApp", () => {
         )
         expect(nodeVersion.status).toBe(200)
         const text = await nodeVersion.text()
-        expect(text).toBe("v22.12.0")
+        expect(text).toBe("v22.13.0")
     })
 
     it("should be able to edit a chart via the api", async () => {
