@@ -634,7 +634,7 @@ export class SiteBaker {
             publishedGdoc.linkedIndicators = attachments.linkedIndicators
 
             if (
-                !publishedGdoc.breadcrumbs?.length &&
+                !publishedGdoc.manualBreadcrumbs?.length &&
                 publishedGdoc.tags?.length
             ) {
                 publishedGdoc.breadcrumbs = db.getBestBreadcrumbs(

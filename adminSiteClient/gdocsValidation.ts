@@ -140,12 +140,12 @@ function validateExcerpt(
     }
 }
 
-function validateBreadcrumbs(
+function validateManualBreadcrumbs(
     gdoc: OwidGdocPostInterface,
     errors: OwidGdocErrorMessage[]
 ) {
-    if (gdoc.breadcrumbs) {
-        for (const [i, breadcrumb] of gdoc.breadcrumbs.entries()) {
+    if (gdoc.manualBreadcrumbs) {
+        for (const [i, breadcrumb] of gdoc.manualBreadcrumbs.entries()) {
             if (!breadcrumb.label) {
                 errors.push({
                     property: `breadcrumbs[${i}].label`,
@@ -155,7 +155,7 @@ function validateBreadcrumbs(
             }
 
             // Last item can be missing a href
-            if (!breadcrumb.href && i !== gdoc.breadcrumbs.length - 1) {
+            if (!breadcrumb.href && i !== gdoc.manualBreadcrumbs.length - 1) {
                 errors.push({
                     property: `breadcrumbs[${i}].href`,
                     type: OwidGdocErrorMessageType.Error,
@@ -292,7 +292,7 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
     if (checkIsGdocPost(gdoc)) {
         validateRefs(gdoc, errors)
         validateExcerpt(gdoc, errors)
-        validateBreadcrumbs(gdoc, errors)
+        validateManualBreadcrumbs(gdoc, errors)
         validateAtomFields(gdoc, errors)
     } else if (checkIsDataInsight(gdoc)) {
         validateApprovedBy(gdoc, errors)

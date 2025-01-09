@@ -207,7 +207,7 @@ export async function getGdocBaseObjectById(
         )
         gdoc.tags = tags
 
-        if (!gdoc.breadcrumbs?.length && tags.length) {
+        if (tags.length) {
             const parentTagArraysByChildName =
                 await getParentTagArraysByChildName(knex)
             gdoc.breadcrumbs = getBestBreadcrumbs(
@@ -304,7 +304,7 @@ export async function getPublishedGdocBaseObjectBySlug(
             [gdoc.id]
         )
         gdoc.tags = tags
-        if (!gdoc.breadcrumbs?.length && tags.length) {
+        if (tags.length) {
             const parentTagArraysByChildName =
                 await getParentTagArraysByChildName(knex)
             gdoc.breadcrumbs = getBestBreadcrumbs(
@@ -595,7 +595,7 @@ export function getDbEnrichedGdocFromOwidGdoc(
     gdoc: OwidGdoc | GdocBase
 ): DbEnrichedPostGdoc {
     const enrichedGdoc = {
-        breadcrumbs: gdoc.breadcrumbs,
+        manualBreadcrumbs: gdoc.manualBreadcrumbs,
         content: gdoc.content,
         createdAt: gdoc.createdAt,
         id: gdoc.id,
