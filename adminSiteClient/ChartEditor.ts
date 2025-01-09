@@ -13,7 +13,6 @@ import {
     getParentVariableIdFromChartConfig,
     mergeGrapherConfigs,
     isEmpty,
-    slugify,
     omit,
     CHART_VIEW_PROPS_TO_OMIT,
 } from "@ourworldindata/utils"
@@ -26,8 +25,6 @@ import {
     References,
 } from "./AbstractChartEditor.js"
 import { Admin } from "./Admin.js"
-import { Form, Input, Modal } from "antd"
-import React, { useState } from "react"
 
 export interface Log {
     userId: number
@@ -200,11 +197,6 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
             w.location.assign(
                 this.manager.admin.url(`charts/${json.chartId}/edit`)
             )
-    }
-
-    openNarrativeChartNameModal(): void {
-        const { grapher } = this
-        const suggestedName = grapher.title ? slugify(grapher.title) : undefined
     }
 
     async saveAsChartView(
