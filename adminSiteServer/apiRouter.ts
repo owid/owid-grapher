@@ -3762,6 +3762,18 @@ postRouteWithRWTransaction(apiRouter, "/chartViews", async (req, res, trx) => {
         throw new JsonError("Invalid request", 400)
     }
 
+    const chartViewWithName = await trx
+        .table(ChartViewsTableName)
+        .where({ name })
+        .first()
+
+    if (chartViewWithName) {
+        return {
+            success: false,
+            errorMsg: `Narrative chart with name "${name}" already exists`,
+        }
+    }
+
     const { patchConfig, fullConfig, queryParams } =
         await createPatchConfigAndQueryParamsForChartView(
             trx,
