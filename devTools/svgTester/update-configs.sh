@@ -43,7 +43,6 @@ main() {
     node itsJustJavascript/devTools/svgTester/export-graphs.js \
         -i $CONFIGS_DIR \
         -o $REFERENCES_DIR
-    yarn prettier --write --parser html $REFERENCES_DIR
 
     echo "=> Committing reference SVGs (default views)"
     cd $SVGS_REPO \
@@ -58,7 +57,6 @@ main() {
         -o $ALL_VIEWS_SVG_DIR \
         -f $CHART_IDS_FILE \
         --all-views
-    yarn prettier --write --parser html $ALL_VIEWS_SVG_DIR
 
     echo "=> Committing reference SVGs (all views)"
     cd $SVGS_REPO \
