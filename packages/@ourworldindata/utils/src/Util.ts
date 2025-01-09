@@ -1933,7 +1933,7 @@ export function isFiniteWithGuard(value: unknown): value is number {
 
 // Use with getParentTagArraysByChildName to collapse all paths to the child into a single array of unique parent tag names
 export function getUniqueNamesFromParentTagArrays(
-    parentTagArrays: DbPlainTag[][]
+    parentTagArrays: Pick<DbPlainTag, "id" | "name" | "slug">[][]
 ): string[] {
     const tagNames = new Set<string>(
         parentTagArrays.flatMap((parentTagArray) =>

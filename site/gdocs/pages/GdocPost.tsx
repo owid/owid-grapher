@@ -47,6 +47,7 @@ export function GdocPost({
     publishedAt,
     slug,
     breadcrumbs,
+    manualBreadcrumbs,
 }: OwidGdocPostInterface & {
     isPreviewing?: boolean
 }) {
@@ -90,7 +91,7 @@ export function GdocPost({
             <OwidGdocHeader
                 content={content}
                 publishedAt={publishedAt}
-                breadcrumbs={breadcrumbs ?? undefined}
+                breadcrumbs={manualBreadcrumbs ?? breadcrumbs ?? undefined}
                 isDeprecated={isDeprecated}
             />
             {isDeprecated && content["deprecation-notice"] && (

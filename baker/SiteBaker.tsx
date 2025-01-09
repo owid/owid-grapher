@@ -651,7 +651,7 @@ export class SiteBaker {
             publishedGdoc.linkedChartViews = attachments.linkedChartViews
 
             if (
-                !publishedGdoc.breadcrumbs?.length &&
+                !publishedGdoc.manualBreadcrumbs?.length &&
                 publishedGdoc.tags?.length
             ) {
                 publishedGdoc.breadcrumbs = db.getBestBreadcrumbs(

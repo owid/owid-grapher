@@ -70,7 +70,7 @@ export const BreadcrumbLine = ({
     )
 }
 
-export const GdocsBreadcrumbsInput = ({
+export const GdocsManualBreadcrumbsInput = ({
     gdoc,
     setCurrentGdoc,
     errors,
@@ -85,56 +85,63 @@ export const GdocsBreadcrumbsInput = ({
             breadcrumbs[breadcrumbs.length - 1].href = undefined
         } else breadcrumbs = undefined
 
-        setCurrentGdoc({ ...gdoc, breadcrumbs: breadcrumbs ?? null })
+        setCurrentGdoc({ ...gdoc, manualBreadcrumbs: breadcrumbs ?? null })
     }
 
     const setItemAtIndex = (item: BreadcrumbItem, i: number) => {
-        const breadcrumbs = [...(gdoc.breadcrumbs ?? [])]
+        const breadcrumbs = [...(gdoc.manualBreadcrumbs ?? [])]
         breadcrumbs[i] = item
         setBreadcrumbs(breadcrumbs)
     }
 
     const removeItemAtIndex = (i: number) => {
-        const breadcrumbs = [...(gdoc.breadcrumbs ?? [])]
+        const breadcrumbs = [...(gdoc.manualBreadcrumbs ?? [])]
         breadcrumbs.splice(i, 1)
         setBreadcrumbs(breadcrumbs)
     }
 
     return (
         <div className="form-group">
-            <div className="d-flex justify-content-between">
-                Breadcrumbs
-                <Button
-                    type="dashed"
-                    onClick={() =>
-                        setBreadcrumbs([
-                            { label: "" },
-                            ...(gdoc.breadcrumbs ?? []),
-                        ])
-                    }
-                >
-                    <FontAwesomeIcon icon={faPlus} className="mr-1" /> Add
-                    breadcrumb
-                </Button>
-            </div>
-            {gdoc.breadcrumbs?.map((item, i) => (
+            <div className="d-flex justify-content-between">Breadcrumbs</div>
+            {!!gdoc.breadcrumbs?.length && !gdoc.manualBreadcrumbs?.length && (
+                <p>
+                    The breadcrumbs for this article will be automatically
+                    generated, based on this article's tags and the tag graph.
+                    If you want to override these breadcrumbs, you can do so
+                    here.
+                </p>
+            )}
+            <Button
+                type="dashed"
+                onClick={() =>
+                    setBreadcrumbs([
+                        { label: "" },
+                        ...(gdoc.manualBreadcrumbs ?? []),
+                    ])
+                }
+            >
+                <FontAwesomeIcon icon={faPlus} className="mr-1" /> Add
+                breadcrumb
+            </Button>
+            {gdoc.manualBreadcrumbs?.map((item, i) => (
                 <BreadcrumbLine
                     item={item}
                     setItem={(item) => setItemAtIndex(item, i)}
                     removeItem={() => removeItemAtIndex(i)}
                     key={i}
                     labelError={getPropertyMostCriticalError(
-                        `breadcrumbs[${i}].label`,
+                        `manualBreadcrumbs[${i}].label`,
                         errors
                     )}
                     hrefError={getPropertyMostCriticalError(
-                        `breadcrumbs[${i}].href`,
+                        `manualBreadcrumbs[${i}].href`,
                         errors
                     )}
-                    isLastBreadcrumbItem={i === gdoc.breadcrumbs!.length - 1}
+                    isLastBreadcrumbItem={
+                        i === gdoc.manualBreadcrumbs!.length - 1
+                    }
                 />
             ))}
-            {!gdoc.breadcrumbs?.length && <i>No breadcrumbs</i>}
         </div>
     )
 }

@@ -15,7 +15,7 @@ import {
 import { GdocsPublishedAt } from "./GdocsDateline.js"
 import { GdocsPublicationContext } from "./GdocsPublicationContext.js"
 import { Alert } from "antd"
-import { GdocsBreadcrumbsInput } from "./GdocsBreadcrumbsInput.js"
+import { GdocsManualBreadcrumbsInput } from "./GdocsManualBreadcrumbsInput.js"
 
 const GdocCommonErrors = ({
     errors,
@@ -155,7 +155,7 @@ export const GdocPostSettings = ({
                     errors={errors}
                     description="An optional property to override the excerpt of this post in our atom feed, which is used for the newsletter"
                 />
-                <GdocsBreadcrumbsInput
+                <GdocsManualBreadcrumbsInput
                     gdoc={gdoc}
                     errors={errors}
                     setCurrentGdoc={setCurrentGdoc}

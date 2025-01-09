@@ -46,7 +46,8 @@ export const checkIsLightningUpdate = (
         Exclude<keyof OwidGdocBaseInterface, "content">,
         boolean
     > = {
-        breadcrumbs: true,
+        breadcrumbs: true, // automatically generated, not actually possible to change via the admin preview
+        manualBreadcrumbs: true,
         errors: true,
         linkedAuthors: false,
         linkedCharts: true,

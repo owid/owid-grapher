@@ -390,7 +390,7 @@ export const getPublishedGdocPosts = async (
         knex,
         `-- sql
         SELECT
-        g.breadcrumbs,
+        g.manualBreadcrumbs,
         g.content,
         g.createdAt,
         g.id,
@@ -426,7 +426,7 @@ export const getPublishedGdocPostsWithTags = async (
         knex,
         `-- sql
         SELECT
-        g.breadcrumbs,
+        g.manualBreadcrumbs,
         g.content,
         g.createdAt,
         g.id,

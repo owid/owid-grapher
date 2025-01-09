@@ -82,6 +82,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     publicationContext: OwidGdocPublicationContext =
         OwidGdocPublicationContext.unlisted
     breadcrumbs: BreadcrumbItem[] | null = null
+    manualBreadcrumbs: BreadcrumbItem[] | null = null
     tags: DbPlainTag[] | null = null
     errors: OwidGdocErrorMessage[] = []
     donors: string[] = []
