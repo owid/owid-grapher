@@ -38,3 +38,12 @@ jobs:
               with:
                   add-labels: "needs triage"
                   repo-token: ${{ secrets.GITHUB_TOKEN }}
+    staging_viz:
+        name: Add "staging-viz" label to Sophia's PRs
+        runs-on: ubuntu-latest
+        if: github.event_name == 'pull_request' && github.event.action == 'opened' && github.actor == 'sophiamersmann'
+        steps:
+            - uses: andymckay/labeler@e6c4322d0397f3240f0e7e30a33b5c5df2d39e90
+              with:
+                  add-labels: "staging-viz"
+                  repo-token: ${{ secrets.GITHUB_TOKEN }}
