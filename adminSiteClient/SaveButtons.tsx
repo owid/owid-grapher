@@ -1,8 +1,8 @@
-import { Component } from "react"
+import { Component, useEffect, useMemo, useRef, useState } from "react"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
-import { action, computed } from "mobx"
+import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { excludeUndefined, omit } from "@ourworldindata/utils"
+import { excludeUndefined, omit, slugify } from "@ourworldindata/utils"
 import {
     IndicatorChartEditor,
     isIndicatorChartEditorInstance,
@@ -17,6 +17,7 @@ import {
     chartViewsFeatureEnabled,
     isChartViewEditorInstance,
 } from "./ChartViewEditor.js"
+import { Form, Input, InputRef, Modal, Spin } from "antd"
 
 @observer
 export class SaveButtons<Editor extends AbstractChartEditor> extends Component<{
@@ -61,10 +62,6 @@ class SaveButtonsForChart extends Component<{
         void this.props.editor.saveAsNewGrapher()
     }
 
-    @action.bound onSaveAsChartView() {
-        void this.props.editor.saveAsChartView()
-    }
-
     @action.bound onPublishToggle() {
         if (this.props.editor.grapher.isPublished)
             this.props.editor.unpublishGrapher()
@@ -77,6 +74,29 @@ class SaveButtonsForChart extends Component<{
             ...Object.values(errorMessages),
             ...Object.values(errorMessagesForDimensions).flat(),
         ])
+    }
+
+    @computed get initialNarrativeChartName(): string {
+        return slugify(this.props.editor.grapher.title ?? "")
+    }
+
+    @observable narrativeChartNameModalOpen:
+        | "open"
+        | "open-loading"
+        | "closed" = "closed"
+    @observable narrativeChartNameModalError: string | undefined = undefined
+
+    @action.bound async onSubmitNarrativeChartButton(name: string) {
+        const { editor } = this.props
+
+        this.narrativeChartNameModalOpen = "open-loading"
+        const res = await editor.saveAsChartView(name)
+        if (res.success) {
+            this.narrativeChartNameModalOpen = "closed"
+        } else {
+            this.narrativeChartNameModalOpen = "open"
+            this.narrativeChartNameModalError = res.errorMsg
+        }
     }
 
     render() {
@@ -117,15 +137,30 @@ class SaveButtonsForChart extends Component<{
                     </button>
                 </div>
                 {chartViewsFeatureEnabled && (
-                    <div className="mt-2">
-                        <button
-                            className="btn btn-primary"
-                            onClick={this.onSaveAsChartView}
-                            disabled={isSavingDisabled}
-                        >
-                            Save as narrative chart
-                        </button>
-                    </div>
+                    <>
+                        <div className="mt-2">
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => {
+                                    this.narrativeChartNameModalOpen = "open"
+                                    this.narrativeChartNameModalError =
+                                        undefined
+                                }}
+                                disabled={isSavingDisabled}
+                            >
+                                Save as narrative chart
+                            </button>
+                        </div>
+                        <NarrativeChartNameModal
+                            open={this.narrativeChartNameModalOpen}
+                            initialName={this.initialNarrativeChartName}
+                            errorMsg={this.narrativeChartNameModalError}
+                            onSubmit={this.onSubmitNarrativeChartButton}
+                            onCancel={() =>
+                                (this.narrativeChartNameModalOpen = "closed")
+                            }
+                        />
+                    </>
                 )}
                 {editingErrors.map((error, i) => (
                     <div key={i} className="alert alert-danger mt-2">
@@ -237,4 +272,66 @@ class SaveButtonsForChartView extends Component<{
             </div>
         )
     }
+}
+
+const NarrativeChartNameModal = (props: {
+    initialName: string
+    open: "open" | "open-loading" | "closed"
+    errorMsg?: string
+    onSubmit: (name: string) => void
+    onCancel?: () => void
+}) => {
+    const [name, setName] = useState<string>(props.initialName)
+    const inputField = useRef<InputRef>(null)
+    const isLoading = useMemo(() => props.open === "open-loading", [props.open])
+    const isOpen = useMemo(() => props.open !== "closed", [props.open])
+
+    useEffect(() => setName(props.initialName), [props.initialName])
+
+    useEffect(() => {
+        if (isOpen) {
+            inputField.current?.focus({ cursor: "all" })
+        }
+    }, [isOpen])
+
+    return (
+        <Modal
+            title="Save as narrative chart"
+            open={isOpen}
+            onOk={() => props.onSubmit(name)}
+            onCancel={props.onCancel}
+            onClose={props.onCancel}
+            okButtonProps={{ disabled: !name || isLoading }}
+            cancelButtonProps={{ disabled: isLoading }}
+        >
+            <div>
+                <p>
+                    This will create a new narrative chart that is linked to
+                    this chart. Any currently pending changes will be applied to
+                    the narrative chart.
+                </p>
+                <p>
+                    Please enter a programmatic name for the narrative chart.{" "}
+                    <i>Note that this name cannot be changed later.</i>
+                </p>
+                <Form.Item label="Name">
+                    <Input
+                        ref={inputField}
+                        onChange={(e) => setName(e.target.value)}
+                        value={name}
+                        disabled={isLoading}
+                    />
+                </Form.Item>
+                {isLoading && <Spin />}
+                {props.errorMsg && (
+                    <div
+                        className="alert alert-danger"
+                        style={{ whiteSpace: "pre-wrap" }}
+                    >
+                        {props.errorMsg}
+                    </div>
+                )}
+            </div>
+        </Modal>
+    )
 }
