@@ -279,8 +279,8 @@ class Lines extends React.Component<LinesProps> {
     private renderLines(): React.ReactElement {
         return (
             <>
-                {this.props.series.map((series) => (
-                    <React.Fragment key={getSeriesKey(series)}>
+                {this.props.series.map((series, index) => (
+                    <React.Fragment key={getSeriesKey(series, index)}>
                         {this.renderLine(series)}
                         {this.renderLineMarkers(series)}
                     </React.Fragment>
@@ -556,7 +556,7 @@ export class LineChart
                     y2={verticalAxis.range[1]}
                     stroke="rgba(180,180,180,.4)"
                 />
-                {this.renderSeries.map((series) => {
+                {this.renderSeries.map((series, index) => {
                     const value = series.points.find(
                         (point) => point.x === activeX
                     )
@@ -574,7 +574,7 @@ export class LineChart
 
                     return (
                         <circle
-                            key={getSeriesKey(series)}
+                            key={getSeriesKey(series, index)}
                             cx={horizontalAxis.place(value.x)}
                             cy={verticalAxis.place(value.y)}
                             r={this.lineStrokeWidth / 2 + 3.5}
