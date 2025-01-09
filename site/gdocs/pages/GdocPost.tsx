@@ -179,6 +179,8 @@ export function GdocPost({
                                 src={`${BAKED_BASE_URL}/owid-logo.svg`}
                                 className="img-raw"
                                 alt="Our World in Data logo"
+                                width={104}
+                                height={57}
                             />
                             <h3>Reuse this work freely</h3>
                         </>
