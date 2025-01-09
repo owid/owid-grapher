@@ -39,6 +39,7 @@ import {
     MARKER_MARGIN,
     NON_FOCUSED_TEXT_COLOR,
 } from "./LineLegendConstants.js"
+import { getSeriesKey } from "./LineLegendHelpers"
 
 export interface LineLabelSeries extends ChartSeries {
     label: string
@@ -150,7 +151,7 @@ class LineLabels extends React.Component<{
     @computed private get textLabels(): React.ReactElement {
         return (
             <g id={makeIdForHumanConsumption("text-labels")}>
-                {this.markers.map(({ series, labelText }) => {
+                {this.markers.map(({ series, labelText }, index) => {
                     const textColor =
                         !series.focus?.background || series.hover?.active
                             ? darkenColorForText(series.color)
@@ -164,7 +165,7 @@ class LineLabels extends React.Component<{
                     return series.textWrap instanceof TextWrap ? (
                         <Halo
                             id={series.seriesName}
-                            key={series.seriesName}
+                            key={getSeriesKey(series, index)}
                             show={this.showTextOutline}
                             outlineColor={this.textOutlineColor}
                         >
@@ -197,12 +198,12 @@ class LineLabels extends React.Component<{
         if (!markersWithAnnotations) return
         return (
             <g id={makeIdForHumanConsumption("text-annotations")}>
-                {markersWithAnnotations.map(({ series, labelText }) => {
+                {markersWithAnnotations.map(({ series, labelText }, index) => {
                     if (!series.annotationTextWrap) return
                     return (
                         <Halo
                             id={series.seriesName}
-                            key={series.seriesName}
+                            key={getSeriesKey(series, index)}
                             show={this.showTextOutline}
                             outlineColor={this.textOutlineColor}
                         >
@@ -232,7 +233,7 @@ class LineLabels extends React.Component<{
         if (!this.props.needsConnectorLines) return
         return (
             <g id={makeIdForHumanConsumption("connectors")}>
-                {this.markers.map(({ series, connectorLine }) => {
+                {this.markers.map(({ series, connectorLine }, index) => {
                     const { x1, x2 } = connectorLine
                     const {
                         level,
@@ -253,7 +254,7 @@ class LineLabels extends React.Component<{
                     return (
                         <path
                             id={makeIdForHumanConsumption(series.seriesName)}
-                            key={series.seriesName}
+                            key={getSeriesKey(series, index)}
                             d={d}
                             stroke={lineColor}
                             strokeWidth={0.5}
@@ -268,14 +269,14 @@ class LineLabels extends React.Component<{
     @computed private get interactions(): React.ReactElement | void {
         return (
             <g>
-                {this.props.series.map((series) => {
+                {this.props.series.map((series, index) => {
                     const x =
                         this.anchor === "start"
                             ? series.origBounds.x
                             : series.origBounds.x - series.bounds.width
                     return (
                         <g
-                            key={series.seriesName}
+                            key={getSeriesKey(series, index)}
                             onMouseOver={() => this.props.onMouseOver?.(series)}
                             onMouseLeave={() =>
                                 this.props.onMouseLeave?.(series)

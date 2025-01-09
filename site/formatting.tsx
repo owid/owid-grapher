@@ -336,11 +336,7 @@ const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
         ReactDOMServer.renderToStaticMarkup(
             <div className="article-meta">
                 {post.excerpt && <div className="excerpt">{post.excerpt}</div>}
-                <Byline
-                    authors={post.authors}
-                    withMax={false}
-                    override={post.byline}
-                />
+                <Byline authors={post.authors} override={post.byline} />
 
                 <div className="published-updated">
                     <time>{publishedDate}</time>

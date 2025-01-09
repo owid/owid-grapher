@@ -245,3 +245,7 @@ export function computeCandidateScores(
 
     return scoreMap
 }
+
+export function getSeriesKey(series: PlacedSeries, index: number): string {
+    return `${series.seriesName}-${index}`
+}

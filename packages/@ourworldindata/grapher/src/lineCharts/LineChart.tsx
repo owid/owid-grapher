@@ -279,8 +279,8 @@ class Lines extends React.Component<LinesProps> {
     private renderLines(): React.ReactElement {
         return (
             <>
-                {this.props.series.map((series) => (
-                    <React.Fragment key={getSeriesKey(series)}>
+                {this.props.series.map((series, index) => (
+                    <React.Fragment key={getSeriesKey(series, index)}>
                         {this.renderLine(series)}
                         {this.renderLineMarkers(series)}
                     </React.Fragment>
@@ -556,7 +556,7 @@ export class LineChart
                     y2={verticalAxis.range[1]}
                     stroke="rgba(180,180,180,.4)"
                 />
-                {this.renderSeries.map((series) => {
+                {this.renderSeries.map((series, index) => {
                     const value = series.points.find(
                         (point) => point.x === activeX
                     )
@@ -574,7 +574,7 @@ export class LineChart
 
                     return (
                         <circle
-                            key={getSeriesKey(series)}
+                            key={getSeriesKey(series, index)}
                             cx={horizontalAxis.place(value.x)}
                             cy={verticalAxis.place(value.y)}
                             r={this.lineStrokeWidth / 2 + 3.5}
@@ -1363,13 +1363,21 @@ export class LineChart
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed get lineLegendSeries(): LineLabelSeries[] {
-        // If there are any projections, ignore non-projection legends
-        // Bit of a hack
-        let seriesToShow = this.series
-        if (seriesToShow.some((series) => !!series.isProjection))
-            seriesToShow = seriesToShow.filter((series) => series.isProjection)
+        // If there are any projections, ignore non-projection legends (bit of a hack)
+        let series = this.series
+        if (series.some((series) => !!series.isProjection))
+            series = series.filter((series) => series.isProjection)
 
-        return seriesToShow.map((series) => {
+        // Deduplicate series by seriesName to avoid showing the same label multiple times
+        const deduplicatedSeries: LineChartSeries[] = []
+        const seriesGroupedByName = groupBy(series, "seriesName")
+        for (const duplicates of Object.values(seriesGroupedByName)) {
+            // keep only the label for the series with the most recent data
+            // (series are sorted by time, so we can just take the last one)
+            deduplicatedSeries.push(last(duplicates)!)
+        }
+
+        return deduplicatedSeries.map((series) => {
             const { seriesName, color } = series
             const lastValue = last(series.points)!.y
             return {

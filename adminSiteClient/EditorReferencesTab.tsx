@@ -127,7 +127,7 @@ export const ReferencesSection = (props: {
 
     const chartViews = !!props.references?.chartViews?.length && (
         <>
-            <p>Narrative views based on this chart</p>
+            <p>Narrative charts based on this chart</p>
             <ul className="list-group">
                 {props.references.chartViews.map((chartView) => (
                     <li key={chartView.id} className="list-group-item">

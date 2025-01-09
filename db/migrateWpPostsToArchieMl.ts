@@ -20,7 +20,7 @@ import {
     adjustHeadingLevels,
     findMinimumHeadingLevel,
 } from "./model/Gdoc/htmlToEnriched.js"
-import { getPostRelatedCharts, isPostSlugCitable } from "./model/Post.js"
+import { getPostRelatedCharts } from "./model/Post.js"
 import { enrichedBlocksToMarkdown } from "./model/Gdoc/enrichedToMarkdown.js"
 
 // slugs from all the linear entries we want to migrate from @edomt
@@ -129,15 +129,6 @@ const migrate = async (trx: db.KnexReadWriteTransaction): Promise<void> => {
             let relatedCharts: RelatedChart[] = []
             if (isEntry) {
                 relatedCharts = await getPostRelatedCharts(trx, post.id)
-            }
-
-            const shouldIncludeMaxAsAuthor = isPostSlugCitable(post.slug)
-            if (
-                shouldIncludeMaxAsAuthor &&
-                post.authors &&
-                !post.authors.includes("Max Roser")
-            ) {
-                post.authors.push("Max Roser")
             }
 
             // We don't get the first and last nodes if they are comments.

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useReducer, useRef, useState } from "react"
 import * as React from "react"
 import cx from "classnames"
 import {
+    commafyNumber,
     countriesByName,
     Country,
     Region,
@@ -419,7 +420,7 @@ const DataCatalogRibbon = ({
                 <div className="data-catalog-ribbon__header">
                     <h2 className="body-1-regular">{result.title}</h2>
                     <span className="data-catalog-ribbon__hit-count body-2-semibold">
-                        {result.nbHits}{" "}
+                        {commafyNumber(result.nbHits)}{" "}
                         {result.nbHits === 1 ? "chart" : "charts"}
                         <FontAwesomeIcon icon={faArrowRight} />
                     </span>
@@ -455,7 +456,7 @@ const DataCatalogRibbon = ({
             >
                 {result.nbHits === 1
                     ? `See 1 chart`
-                    : `See ${result.nbHits} charts`}
+                    : `See ${commafyNumber(result.nbHits)} charts`}
                 <FontAwesomeIcon icon={faArrowRight} />
             </button>
         </div>
@@ -562,7 +563,8 @@ const DataCatalogResults = ({
             <div className="span-cols-12 col-start-2 data-catalog-search-hits">
                 {nbHits && (
                     <p className="data-catalog-search-list__results-count body-3-medium">
-                        {nbHits} {nbHits === 1 ? "indicator" : "indicators"}
+                        {commafyNumber(nbHits)}{" "}
+                        {nbHits === 1 ? "indicator" : "indicators"}
                     </p>
                 )}
                 <ul className="data-catalog-search-list grid grid-cols-4 grid-sm-cols-1">
@@ -673,7 +675,7 @@ const TopicsRefinementList = ({
                                     onClick={() => addTopic(facetName)}
                                 >
                                     <span className="body-3-medium">
-                                        {facetName} ({count})
+                                        {facetName} ({commafyNumber(count)})
                                     </span>
                                 </button>
                             </li>

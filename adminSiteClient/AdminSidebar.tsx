@@ -37,7 +37,7 @@ export const AdminSidebar = (): React.ReactElement => (
             {chartViewsFeatureEnabled && (
                 <li>
                     <Link to="/chartViews">
-                        <FontAwesomeIcon icon={faPanorama} /> Narrative views
+                        <FontAwesomeIcon icon={faPanorama} /> Narrative charts
                     </Link>
                 </li>
             )}

@@ -8,12 +8,7 @@ export const CitationMeta = (props: {
     date: Date
     canonicalUrl: string
 }) => {
-    const { title, date, canonicalUrl } = props
-    let { authors } = props
-
-    if (authors.indexOf("Max Roser") === -1)
-        authors = authors.concat(["Max Roser"])
-
+    const { authors, title, date, canonicalUrl } = props
     return (
         <Fragment>
             <meta name="citation_title" content={title} />

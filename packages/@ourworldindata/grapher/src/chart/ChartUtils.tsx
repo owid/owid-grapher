@@ -43,11 +43,11 @@ export const getDefaultFailMessage = (manager: ChartManager): string => {
 
 export const getSeriesKey = (
     series: LineChartSeries,
-    suffix?: string
+    index: number
 ): string => {
     return `${series.seriesName}-${series.color}-${
         series.isProjection ? "projection" : ""
-    }${suffix ? "-" + suffix : ""}`
+    }-${index}`
 }
 
 export const autoDetectSeriesStrategy = (

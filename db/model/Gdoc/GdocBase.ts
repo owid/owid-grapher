@@ -48,7 +48,7 @@ import {
     getVariableMetadata,
     getVariableOfDatapageIfApplicable,
 } from "../Variable.js"
-import { createLinkFromUrl } from "../Link.js"
+import { createLinkForChartView, createLinkFromUrl } from "../Link.js"
 import {
     getMultiDimDataPageBySlug,
     isMultiDimDataPagePublished,
@@ -56,6 +56,7 @@ import {
 import {
     ARCHVED_THUMBNAIL_FILENAME,
     ChartConfigType,
+    ChartViewInfo,
     DEFAULT_THUMBNAIL_FILENAME,
     GrapherInterface,
     LatestDataInsight,
@@ -66,6 +67,7 @@ import {
     OwidGdocLinkType,
     OwidGdocType,
 } from "@ourworldindata/types"
+import { getChartViewsInfo } from "../ChartView.js"
 
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
@@ -89,6 +91,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     linkedIndicators: Record<number, LinkedIndicator> = {}
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     latestDataInsights: LatestDataInsight[] = []
+    linkedChartViews?: Record<string, ChartViewInfo> = {}
     _omittableFields: string[] = []
 
     constructor(id?: string) {
@@ -292,6 +295,14 @@ export class GdocBase implements OwidGdocBaseInterface {
         return { grapher: [...grapher], explorer: [...explorer] }
     }
 
+    get linkedChartViewNames(): string[] {
+        const filteredLinks = this.links
+            .filter((link) => link.linkType === OwidGdocLinkType.ChartView)
+            .map((link) => link.target)
+
+        return filteredLinks
+    }
+
     get hasAllChartsBlock(): boolean {
         let hasAllChartsBlock = false
         for (const enrichedBlockSource of this.enrichedBlockSources) {
@@ -345,6 +356,13 @@ export class GdocBase implements OwidGdocBaseInterface {
             .with({ type: "chart" }, (block) => [
                 createLinkFromUrl({
                     url: block.url,
+                    source: this,
+                    componentType: block.type,
+                }),
+            ])
+            .with({ type: "narrative-chart" }, (block) => [
+                createLinkForChartView({
+                    name: block.name,
                     source: this,
                     componentType: block.type,
                 }),
@@ -710,6 +728,11 @@ export class GdocBase implements OwidGdocBaseInterface {
         }
     }
 
+    async loadChartViewsInfo(knex: db.KnexReadonlyTransaction): Promise<void> {
+        const result = await getChartViewsInfo(knex, this.linkedChartViewNames)
+        this.linkedChartViews = keyBy(result, "name")
+    }
+
     async fetchAndEnrichGdoc(): Promise<void> {
         const docsClient = google.docs({
             version: "v1",
@@ -855,6 +878,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadImageMetadataFromDB(knex)
         await this.loadLinkedCharts(knex)
         await this.loadLinkedIndicators() // depends on linked charts
+        await this.loadChartViewsInfo(knex)
         await this._loadSubclassAttachments(knex)
         await this.validate(knex)
     }

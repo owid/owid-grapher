@@ -31,16 +31,20 @@ export default function Person({ person }: { person: EnrichedBlockPerson }) {
         </div>
     )
 
+    const image = person.image ? (
+        <Image
+            className="person-image"
+            filename={person.image}
+            containerType="person"
+            shouldLightbox={false}
+        />
+    ) : null
+
     return (
         <div className="person">
             {person.image && (
                 <div className="person-image-container">
-                    <Image
-                        className="person-image"
-                        filename={person.image}
-                        containerType="person"
-                        shouldLightbox={false}
-                    />
+                    {url ? <a href={url}>{image}</a> : image}
                     {isSmallScreen && header}
                 </div>
             )}
