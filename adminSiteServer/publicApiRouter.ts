@@ -1,14 +1,13 @@
-import { FunctionalRouter } from "./FunctionalRouter.js"
-import { Request, Response } from "./authentication.js"
+import { Router, Request, Response } from "express"
 import * as db from "../db/db.js"
 
-export const publicApiRouter = new FunctionalRouter()
+export const publicApiRouter = Router()
 
 function rejectAfterDelay(ms: number) {
     return new Promise((resolve, reject) => setTimeout(reject, ms))
 }
 
-publicApiRouter.router.get("/health", async (req: Request, res: Response) => {
+publicApiRouter.get("/health", async (req: Request, res: Response) => {
     try {
         const sqlPromise = db.knexRaw(
             db.knexInstance() as db.KnexReadonlyTransaction,

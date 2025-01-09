@@ -8,8 +8,7 @@ import {
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "./routeUtils.js"
 import * as db from "../../db/db.js"
-import { Request } from "../authentication.js"
-import e from "express"
+import e, { Request } from "express"
 export async function handleGetSiteRedirects(
     req: Request,
     res: e.Response<any, Record<string, any>>,

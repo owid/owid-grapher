@@ -27,8 +27,7 @@ import { deleteGrapherConfigFromR2ByUUID } from "../chartConfigR2Helpers.js"
 
 import * as db from "../../db/db.js"
 import { expectChartById } from "./charts.js"
-import { Request } from "../authentication.js"
-import e from "express"
+import e, { Request } from "express"
 const createPatchConfigAndQueryParamsForChartView = async (
     knex: db.KnexReadonlyTransaction,
     parentChartId: number,

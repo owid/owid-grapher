@@ -42,8 +42,7 @@ import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "./routeUtils.js"
 import * as lodash from "lodash"
 import { updateGrapherConfigsInR2 } from "./charts.js"
-import { Request } from "../authentication.js"
-import e from "express"
+import e, { Request } from "express"
 
 export async function getEditorVariablesJson(
     req: Request,

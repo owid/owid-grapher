@@ -99,7 +99,6 @@ import {
     deleteVariablesVariableIdGrapherConfigAdmin,
     getVariablesVariableIdChartsJson,
 } from "./apiRoutes/variables.js"
-import { FunctionalRouter } from "./FunctionalRouter.js"
 import {
     patchRouteWithRWTransaction,
     getRouteWithROTransaction,
@@ -123,8 +122,9 @@ import {
     updateChart,
     deleteChart,
 } from "./apiRoutes/charts.js"
+import e, { Router } from "express"
 
-const apiRouter = new FunctionalRouter()
+const apiRouter = Router()
 
 // Bulk chart update routes
 patchRouteWithRWTransaction(
@@ -428,8 +428,11 @@ apiRouter.get("/deploys.json", async () => ({
     deploys: await new DeployQueueServer().getDeploys(),
 }))
 
-apiRouter.put("/deploy", async (req, res) => {
-    return triggerStaticBuild(res.locals.user, "Manually triggered deploy")
-})
+apiRouter.put(
+    "/deploy",
+    async (_req: e.Request, res: e.Response<any, Record<string, any>>) => {
+        return triggerStaticBuild(res.locals.user, "Manually triggered deploy")
+    }
+)
 
 export { apiRouter }

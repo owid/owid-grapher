@@ -2,8 +2,7 @@ import { JsonError, FlatTagGraph } from "@ourworldindata/types"
 import { checkIsPlainObjectWithGuard } from "@ourworldindata/utils"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
-import { Request } from "../authentication.js"
-import e from "express"
+import e, { Request } from "express"
 
 export async function handleGetFlatTagGraph(
     req: Request,

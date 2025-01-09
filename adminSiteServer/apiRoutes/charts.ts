@@ -59,8 +59,7 @@ import * as db from "../../db/db.js"
 import { getLogsByChartId } from "../getLogsByChartId.js"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
 
-import { Request } from "../authentication.js"
-import e from "express"
+import e, { Request } from "express"
 export const getReferencesByChartId = async (
     chartId: number,
     knex: db.KnexReadonlyTransaction

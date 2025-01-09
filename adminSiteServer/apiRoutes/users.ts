@@ -4,8 +4,7 @@ import { pick } from "lodash"
 import { getUserById, updateUser, insertUser } from "../../db/model/User.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import * as db from "../../db/db.js"
-import { Request } from "../authentication.js"
-import e from "express"
+import e, { Request } from "express"
 export async function getUsers(
     req: Request,
     _res: e.Response<any, Record<string, any>>,

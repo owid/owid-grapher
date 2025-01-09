@@ -10,8 +10,7 @@ import { triggerStaticBuild } from "./routeUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
 
-import { Request } from "../authentication.js"
-import e from "express"
+import e, { Request } from "express"
 export async function getImagesHandler(
     _: Request,
     res: e.Response<any, Record<string, any>>,
