@@ -20,29 +20,51 @@ Make sure to run \`make refresh\` and \`make refresh.pageviews\` before running 
 
 main() {
     echo "=> Resetting owid-grapher-svgs to origin/master"
-    cd $SVGS_REPO\
-        && git fetch\
-        && git checkout -f master\
-        && git reset --hard origin/master\
-        && git clean -fd\
+    cd $SVGS_REPO \
+        && git fetch \
+        && git checkout -f master \
+        && git reset --hard origin/master \
+        && git clean -fdx \
         && cd -
 
-    echo "=> Removing existing configs and reference svgs"
-    rm -rf $CONFIGS_DIR $REFERENCES_DIR $ALL_VIEWS_DIR
-
     echo "=> Dumping new configs and data"
+    rm -rf $CONFIGS_DIR
     node itsJustJavascript/devTools/svgTester/dump-data.js -o $CONFIGS_DIR
     node itsJustJavascript/devTools/svgTester/dump-chart-ids.js -o $CHART_IDS_FILE
 
-    echo "=> Generating reference SVGs"
-    node itsJustJavascript/devTools/svgTester/export-graphs.js\
-        -i $CONFIGS_DIR\
+    echo "=> Committing new configs and chart ids"
+    cd $SVGS_REPO \
+        && git add --all \
+        && git commit -m "chore: update configs and chart ids" \
+        && cd -
+
+    echo "=> Generating reference SVGs (default views)"
+    rm -rf $REFERENCES_DIR
+    node itsJustJavascript/devTools/svgTester/export-graphs.js \
+        -i $CONFIGS_DIR \
         -o $REFERENCES_DIR
-    node itsJustJavascript/devTools/svgTester/export-graphs.js\
-        -i $CONFIGS_DIR\
-        -o $ALL_VIEWS_SVG_DIR\
-        -f $CHART_IDS_FILE\
+    yarn prettier --write --parser html $REFERENCES_DIR
+
+    echo "=> Committing reference SVGs (default views)"
+    cd $SVGS_REPO \
+        && git add --all \
+        && git commit -m 'chore: update reference svgs (default views)' \
+        && cd -
+
+    echo "=> Generating reference SVGs (all views)"
+    rm -rf $ALL_VIEWS_DIR
+    node itsJustJavascript/devTools/svgTester/export-graphs.js \
+        -i $CONFIGS_DIR \
+        -o $ALL_VIEWS_SVG_DIR \
+        -f $CHART_IDS_FILE \
         --all-views
+    yarn prettier --write --parser html $ALL_VIEWS_SVG_DIR
+
+    echo "=> Committing reference SVGs (all views)"
+    cd $SVGS_REPO \
+        && git add --all \
+        && git commit -m 'chore: update reference svgs (all views)' \
+        && cd -
 }
 
 # show help
