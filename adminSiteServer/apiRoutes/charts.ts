@@ -764,7 +764,7 @@ export async function deleteChart(
     if (chart.slug) {
         const links = await getPublishedLinksTo(trx, [chart.slug])
         if (links.length) {
-            const sources = links.map((link) => link.sourceSlug).join(", ")
+            const sources = links.map((link) => link.slug).join(", ")
             throw new Error(
                 `Cannot delete chart in-use in the following published documents: ${sources}`
             )

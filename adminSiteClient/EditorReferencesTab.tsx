@@ -22,6 +22,10 @@ import {
     isIndicatorChartEditorInstance,
 } from "./IndicatorChartEditor.js"
 import { Section } from "./Forms.js"
+import {
+    ChartViewEditor,
+    isChartViewEditorInstance,
+} from "./ChartViewEditor.js"
 
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
 
@@ -37,6 +41,8 @@ export class EditorReferencesTab<
             return <EditorReferencesTabForChart editor={editor} />
         else if (isIndicatorChartEditorInstance(editor))
             return <EditorReferencesTabForIndicator editor={editor} />
+        else if (isChartViewEditorInstance(editor))
+            return <EditorReferencesTabForChartView editor={editor} />
         else return null
     }
 }
@@ -262,6 +268,24 @@ export class EditorReferencesTabForChart extends Component<{
                             onSuccess={this.appendRedirect}
                         />
                     )}
+                </section>
+            </div>
+        )
+    }
+}
+
+export class EditorReferencesTabForChartView extends Component<{
+    editor: ChartViewEditor
+}> {
+    @computed get references() {
+        return this.props.editor.references
+    }
+
+    render() {
+        return (
+            <div>
+                <section>
+                    <ReferencesSection references={this.references} />
                 </section>
             </div>
         )

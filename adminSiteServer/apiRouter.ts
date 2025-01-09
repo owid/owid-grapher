@@ -14,6 +14,7 @@ import {
     createChartView,
     updateChartView,
     deleteChartView,
+    getChartViewReferences,
 } from "./apiRoutes/chartViews.js"
 import {
     getDatasets,
@@ -193,10 +194,19 @@ deleteRouteWithRWTransaction(apiRouter, "/charts/:chartId", deleteChart)
 
 // Chart view routes
 getRouteWithROTransaction(apiRouter, "/chartViews", getChartViews)
-getRouteWithROTransaction(apiRouter, "/chartViews/:id", getChartViewById)
+getRouteWithROTransaction(
+    apiRouter,
+    "/chartViews/:id.config.json",
+    getChartViewById
+)
 postRouteWithRWTransaction(apiRouter, "/chartViews", createChartView)
 putRouteWithRWTransaction(apiRouter, "/chartViews/:id", updateChartView)
 deleteRouteWithRWTransaction(apiRouter, "/chartViews/:id", deleteChartView)
+getRouteWithROTransaction(
+    apiRouter,
+    "/chartViews/:id.references.json",
+    getChartViewReferences
+)
 
 // Dataset routes
 getRouteWithROTransaction(apiRouter, "/datasets.json", getDatasets)

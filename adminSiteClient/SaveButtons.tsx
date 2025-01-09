@@ -254,7 +254,7 @@ class SaveButtonsForChartView extends Component<{
                     onClick={this.onSaveChart}
                     disabled={isSavingDisabled}
                 >
-                    Save chart view
+                    Save narrative chart
                 </button>{" "}
                 <a
                     className="btn btn-secondary"

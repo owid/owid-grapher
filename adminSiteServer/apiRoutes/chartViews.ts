@@ -14,8 +14,13 @@ import {
     ChartViewsTableName,
     Base64String,
     ChartConfigsTableName,
+    OwidGdocLinkType,
 } from "@ourworldindata/types"
-import { diffGrapherConfigs, mergeGrapherConfigs } from "@ourworldindata/utils"
+import {
+    diffGrapherConfigs,
+    mergeGrapherConfigs,
+    uniqBy,
+} from "@ourworldindata/utils"
 import { omit, pick } from "lodash"
 import { ApiChartViewOverview } from "../../adminShared/AdminTypes.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
@@ -29,6 +34,7 @@ import * as db from "../../db/db.js"
 import { expectChartById } from "./charts.js"
 import { Request } from "../authentication.js"
 import e from "express"
+import { getPublishedLinksTo } from "../../db/model/Link.js"
 const createPatchConfigAndQueryParamsForChartView = async (
     knex: db.KnexReadonlyTransaction,
     parentChartId: number,
@@ -275,14 +281,33 @@ export async function deleteChartView(
 ) {
     const id = expectInt(req.params.id)
 
-    const chartConfigId: string | undefined = await trx(ChartViewsTableName)
-        .select("chartConfigId")
-        .where({ id })
-        .first()
-        .then((row) => row?.chartConfigId)
+    const {
+        name,
+        chartConfigId,
+    }: { name: string | undefined; chartConfigId: string | undefined } =
+        await trx(ChartViewsTableName)
+            .select("name", "chartConfigId")
+            .where({ id })
+            .first()
+            .then((row) => row ?? {})
 
-    if (!chartConfigId) {
+    if (!chartConfigId || !name) {
         throw new JsonError(`No chart view found for id ${id}`, 404)
+    }
+
+    const references = await getPublishedLinksTo(
+        trx,
+        [name],
+        OwidGdocLinkType.ChartView
+    )
+
+    if (references.length) {
+        throw new JsonError(
+            `Cannot delete chart view "${name}" because it is referenced by the following posts: ${references
+                .map((r) => r.slug)
+                .join(", ")}`,
+            400
+        )
     }
 
     await trx.table(ChartViewsTableName).where({ id }).delete()
@@ -292,4 +317,32 @@ export async function deleteChartView(
     await trx.table(ChartConfigsTableName).where({ id: chartConfigId }).delete()
 
     return { success: true }
+}
+
+export async function getChartViewReferences(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const id = expectInt(req.params.id)
+    const name: string | undefined = await trx(ChartViewsTableName)
+        .select("name")
+        .where({ id })
+        .first()
+        .then((row) => row?.name)
+
+    if (!name) {
+        throw new JsonError(`No chart view found for id ${id}`, 404)
+    }
+
+    const references = {
+        references: {
+            postsGdocs: await getPublishedLinksTo(
+                trx,
+                [name],
+                OwidGdocLinkType.ChartView
+            ).then((refs) => uniqBy(refs, "slug")),
+        },
+    }
+    return references
 }

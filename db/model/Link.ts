@@ -8,23 +8,41 @@ import {
     OwidGdocLinkType,
 } from "@ourworldindata/types"
 import { KnexReadonlyTransaction, knexRaw } from "../db.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
 export async function getPublishedLinksTo(
     knex: KnexReadonlyTransaction,
     ids: string[],
     linkType?: OwidGdocLinkType
-): Promise<(DbPlainPostGdocLink & { sourceSlug: string })[]> {
+): Promise<
+    (DbPlainPostGdocLink & {
+        title: string
+        slug: string
+        id: string
+        url: string
+    })[]
+> {
     const linkTypeClause = linkType ? "AND linkType = ?" : ""
     const params = linkType ? [ids, linkType] : [ids]
-    const rows = await knexRaw<DbPlainPostGdocLink & { sourceSlug: string }>(
+    const rows = await knexRaw<
+        DbPlainPostGdocLink & {
+            title: string
+            slug: string
+            id: string
+            url: string
+        }
+    >(
         knex,
         `-- sql
         SELECT
-            posts_gdocs_links.*,
-            posts_gdocs.slug AS sourceSlug
+            pg.content ->> '$.title' AS title,
+            pg.slug AS slug,
+            pg.id AS id,
+            CONCAT("${BAKED_BASE_URL}","/",pg.slug) as url,
+            pgl.*
         FROM
-            posts_gdocs_links
-            JOIN posts_gdocs ON posts_gdocs_links.sourceId = posts_gdocs.id
+            posts_gdocs_links pgl
+            JOIN posts_gdocs pg ON pgl.sourceId = pg.id
         WHERE
             target IN (?)
             ${linkTypeClause}

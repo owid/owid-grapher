@@ -29,6 +29,7 @@ export interface Chart {
 export interface ChartViewEditorManager extends AbstractChartEditorManager {
     chartViewId: number
     parentChartId: number
+    references: References | undefined
 }
 
 export class ChartViewEditor extends AbstractChartEditor<ChartViewEditorManager> {
@@ -48,9 +49,8 @@ export class ChartViewEditor extends AbstractChartEditor<ChartViewEditorManager>
         return tabs
     }
 
-    @computed get references(): References | undefined {
-        // Not yet implemented for chart views
-        return undefined
+    @computed get references() {
+        return this.manager.references
     }
 
     @computed override get patchConfig(): GrapherInterface {
