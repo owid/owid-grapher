@@ -588,11 +588,14 @@ export async function getParentTagArraysByChildName(
 
 export function getBestBreadcrumbs(
     tags: MinimalTag[],
-    parentTagArraysByChildName: Record<string, DbPlainTag[][]>
+    parentTagArraysByChildName: Record<
+        string,
+        Pick<DbPlainTag, "id" | "name" | "slug">[][]
+    >
 ): BreadcrumbItem[] {
     // For each tag, find the best path according to our criteria
     // e.g. { "Nuclear Energy ": ["Energy and Environment", "Energy"], "Air Pollution": ["Energy and Environment"] }
-    const result = new Map<number, DbPlainTag[]>()
+    const result = new Map<number, Pick<DbPlainTag, "id" | "name" | "slug">[]>()
 
     for (const tag of tags) {
         const paths = parentTagArraysByChildName[tag.name]
@@ -604,9 +607,12 @@ export function getBestBreadcrumbs(
     }
 
     // Only keep the topics in the paths, because only topics are clickable as breadcrumbs
-    const topicsOnly = Array.from(result.values()).reduce((acc, path) => {
-        return [...acc, path.filter((tag) => tag.slug)]
-    }, [] as DbPlainTag[][])
+    const topicsOnly = Array.from(result.values()).reduce(
+        (acc, path) => {
+            return [...acc, path.filter((tag) => tag.slug)]
+        },
+        [] as Pick<DbPlainTag, "id" | "name" | "slug">[][]
+    )
 
     // Pick the longest path from result, assuming that the longest path is the best
     const longestPath = topicsOnly.reduce((best, path) => {
