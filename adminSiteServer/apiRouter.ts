@@ -125,7 +125,9 @@ import {
 import e, { Router } from "express"
 
 const apiRouter = Router()
-
+apiRouter.use(e.urlencoded({ extended: true }))
+// Parse incoming requests with JSON payloads http://expressjs.com/en/api.html
+apiRouter.use(e.json({ limit: "50mb" }))
 // Bulk chart update routes
 patchRouteWithRWTransaction(
     apiRouter,
