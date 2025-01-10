@@ -23,7 +23,8 @@
     }
 }
 
-.person-image {
+.person-image,
+.person-image--link-wrapper {
     picture {
         display: flex; // Fix extra padding at the bottom.
     }

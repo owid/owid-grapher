@@ -44,7 +44,13 @@ export default function Person({ person }: { person: EnrichedBlockPerson }) {
         <div className="person">
             {person.image && (
                 <div className="person-image-container">
-                    {url ? <a href={url}>{image}</a> : image}
+                    {url ? (
+                        <a href={url} className="person-image--link-wrapper">
+                            {image}
+                        </a>
+                    ) : (
+                        image
+                    )}
                     {isSmallScreen && header}
                 </div>
             )}
