@@ -123,9 +123,6 @@ export class DiscreteBarChart
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
 
-        if (this.isLogScale)
-            table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
-
         table = table.dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
 
         this.yColumnSlugs.forEach((slug) => {
@@ -160,10 +157,6 @@ export class DiscreteBarChart
 
     @computed private get targetTime(): Time | undefined {
         return this.manager.endTime
-    }
-
-    @computed private get isLogScale(): boolean {
-        return this.yAxisConfig.scaleType === ScaleType.log
     }
 
     @computed private get bounds(): Bounds {
@@ -253,10 +246,7 @@ export class DiscreteBarChart
     }
 
     @computed private get x0(): number {
-        if (!this.isLogScale) return 0
-
-        const minValue = min(this.series.map((d) => d.value))
-        return minValue !== undefined ? Math.min(1, minValue) : 1
+        return 0
     }
 
     // Now we can work out the main x axis scale
@@ -294,6 +284,7 @@ export class DiscreteBarChart
         const axis = this.yAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
+        axis.scaleType = ScaleType.linear
         axis.formatColumn = this.yColumns[0] // todo: does this work for columns as series?
         axis.range = this.xRange
         axis.label = ""
@@ -520,21 +511,19 @@ export class DiscreteBarChart
                 {this.showColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
-                {!this.isLogScale && (
-                    <HorizontalAxisZeroLine
-                        horizontalAxis={yAxis}
-                        bounds={innerBounds}
-                        strokeWidth={axisLineWidth}
-                        // if the chart doesn't have negative values, then we
-                        // move the zero line a little to the left to avoid
-                        // overlap with the bars
-                        align={
-                            this.hasNegative
-                                ? HorizontalAlign.center
-                                : HorizontalAlign.right
-                        }
-                    />
-                )}
+                <HorizontalAxisZeroLine
+                    horizontalAxis={yAxis}
+                    bounds={innerBounds}
+                    strokeWidth={axisLineWidth}
+                    // if the chart doesn't have negative values, then we
+                    // move the zero line a little to the left to avoid
+                    // overlap with the bars
+                    align={
+                        this.hasNegative
+                            ? HorizontalAlign.center
+                            : HorizontalAlign.right
+                    }
+                />
                 {this.renderBars()}
                 {this.renderValueLabels()}
                 {this.renderEntityLabels()}

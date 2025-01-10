@@ -27,6 +27,7 @@ import {
     ColorSchemeName,
     FacetStrategy,
     MissingDataStrategy,
+    ScaleType,
     SeriesName,
     VerticalAlign,
 } from "@ourworldindata/types"
@@ -324,6 +325,7 @@ export class StackedDiscreteBarChart
         const axis = this.yAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
+        axis.scaleType = ScaleType.linear
         axis.formatColumn = this.yColumns[0] // todo: does this work for columns as series?
         axis.range = this.xRange
         axis.label = ""

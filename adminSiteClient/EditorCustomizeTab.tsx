@@ -619,19 +619,21 @@ export class EditorCustomizeTab<
                                         />
                                     </FieldsRow>
                                 )}
-                                <FieldsRow>
-                                    <Toggle
-                                        label={`Enable log/linear selector`}
-                                        value={
-                                            yAxisConfig.canChangeScaleType ||
-                                            false
-                                        }
-                                        onValue={(value) =>
-                                            (yAxisConfig.canChangeScaleType =
-                                                value || undefined)
-                                        }
-                                    />
-                                </FieldsRow>
+                                {features.canEnableLogLinearToggle && (
+                                    <FieldsRow>
+                                        <Toggle
+                                            label={`Enable log/linear selector`}
+                                            value={
+                                                yAxisConfig.canChangeScaleType ||
+                                                false
+                                            }
+                                            onValue={(value) =>
+                                                (yAxisConfig.canChangeScaleType =
+                                                    value || undefined)
+                                            }
+                                        />
+                                    </FieldsRow>
+                                )}
                             </React.Fragment>
                         )}
                         {features.canCustomizeYAxisLabel && (
@@ -704,19 +706,21 @@ export class EditorCustomizeTab<
                                         />
                                     </FieldsRow>
                                 )}
-                                <FieldsRow>
-                                    <Toggle
-                                        label={`Enable log/linear selector`}
-                                        value={
-                                            xAxisConfig.canChangeScaleType ||
-                                            false
-                                        }
-                                        onValue={(value) =>
-                                            (xAxisConfig.canChangeScaleType =
-                                                value || undefined)
-                                        }
-                                    />
-                                </FieldsRow>
+                                {features.canEnableLogLinearToggle && (
+                                    <FieldsRow>
+                                        <Toggle
+                                            label={`Enable log/linear selector`}
+                                            value={
+                                                xAxisConfig.canChangeScaleType ||
+                                                false
+                                            }
+                                            onValue={(value) =>
+                                                (xAxisConfig.canChangeScaleType =
+                                                    value || undefined)
+                                            }
+                                        />
+                                    </FieldsRow>
+                                )}
                             </React.Fragment>
                         )}
                         {features.canCustomizeXAxisLabel && (
