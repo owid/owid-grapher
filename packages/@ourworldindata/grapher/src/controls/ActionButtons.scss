@@ -71,6 +71,10 @@ div.ActionButton {
             padding: 0;
         }
 
+        &:visited {
+            color: var(--text-color);
+        }
+
         &:hover {
             background-color: var(--hover-fill);
             text-decoration: var(--hover-decoration);
