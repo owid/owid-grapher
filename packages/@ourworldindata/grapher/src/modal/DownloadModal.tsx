@@ -601,7 +601,7 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
     const fullProcessingPhrase = processingLevelPhrase ? (
         <>
             {" "}
-            – <i>{processingLevelPhrase} by Our World In Data</i>
+            – <i>{processingLevelPhrase} by Our World in Data</i>
         </>
     ) : undefined
 

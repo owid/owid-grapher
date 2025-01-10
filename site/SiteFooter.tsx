@@ -241,7 +241,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             </p>
                             <p className="legal--last-paragraph">
                                 <span>
-                                    Our World In Data is a project of the{" "}
+                                    Our World in Data is a project of the{" "}
                                     <a href="https://global-change-data-lab.org/">
                                         Global Change Data Lab
                                     </a>
