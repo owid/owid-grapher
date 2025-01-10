@@ -42,3 +42,8 @@ export interface OwidChartDimensionInterface {
     variableId: OwidVariableId
     slug?: ColumnSlug
 }
+
+export interface OwidChartDimensionInterfaceWithMandatorySlug
+    extends OwidChartDimensionInterface {
+    slug: ColumnSlug
+}

@@ -9,6 +9,8 @@ import {
     OwidVariableDimensions,
     OwidVariableDataMetadataDimensions,
     EntityId,
+    ErrorValue,
+    OwidChartDimensionInterfaceWithMandatorySlug,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -33,15 +35,18 @@ import {
     OwidVariableWithSourceAndDimension,
     ColumnSlug,
     EPOCH_DATE,
-    OwidChartDimensionInterface,
     OwidVariableType,
     memoize,
+    isEmpty,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
 
 export const legacyToOwidTableAndDimensions = (
     json: MultipleOwidVariableDataDimensionsMap,
-    dimensions: OwidChartDimensionInterface[]
+    dimensions: OwidChartDimensionInterfaceWithMandatorySlug[],
+    selectedEntityColors:
+        | { [entityName: string]: string | undefined }
+        | undefined
 ): OwidTable => {
     // Entity meta map
 
@@ -61,8 +66,7 @@ export const legacyToOwidTableAndDimensions = (
 
     // We need to create a column for each unique [variable, targetTime] pair. So there can be
     // multiple columns for a single variable.
-    const newDimensions = computeActualDimensions(dimensions)
-    const dimensionColumns = uniqBy(newDimensions, (dim) => dim.slug)
+    const dimensionColumns = uniqBy(dimensions, (dim) => dim.slug)
 
     const variableTablesToJoinByYear: OwidTable[] = []
     const variableTablesToJoinByDay: OwidTable[] = []
@@ -323,34 +327,36 @@ export const legacyToOwidTableAndDimensions = (
         }
     }
 
-    return joinedVariablesTable
-}
+    // Append the entity color column if we have selected entity colors
+    if (!isEmpty(selectedEntityColors)) {
+        const entityColorColumnSlug = OwidTableSlugs.entityColor
 
-export const addSelectedEntityColorsToTable = (
-    table: OwidTable,
-    selectedEntityColors: { [entityName: string]: string | undefined }
-): OwidTable => {
-    const entityColorColumnSlug = OwidTableSlugs.entityColor
+        const valueFn = (
+            entityId: EntityId | undefined
+        ): string | ErrorValue => {
+            if (!entityId) return ErrorValueTypes.UndefinedButShouldBeString
+            const entityName =
+                joinedVariablesTable.entityIdToNameMap.get(entityId)
+            return entityName && selectedEntityColors
+                ? (selectedEntityColors[entityName] ??
+                      ErrorValueTypes.UndefinedButShouldBeString)
+                : ErrorValueTypes.UndefinedButShouldBeString
+        }
 
-    const valueFn = (entityId: EntityId | undefined) => {
-        if (!entityId) return ErrorValueTypes.UndefinedButShouldBeString
-        const entityName = table.entityIdToNameMap.get(entityId)
-        return entityName && selectedEntityColors
-            ? (selectedEntityColors[entityName] ??
-                  ErrorValueTypes.UndefinedButShouldBeString)
-            : ErrorValueTypes.UndefinedButShouldBeString
+        const values = joinedVariablesTable.rows.map((row) =>
+            valueFn(row.entityId)
+        )
+
+        joinedVariablesTable = joinedVariablesTable.appendColumns([
+            {
+                slug: entityColorColumnSlug,
+                name: entityColorColumnSlug,
+                type: ColumnTypeNames.Color,
+                values: values,
+            },
+        ])
     }
-
-    const values = table.rows.map((row) => valueFn(row.entityId))
-
-    return table.appendColumns([
-        {
-            slug: entityColorColumnSlug,
-            name: entityColorColumnSlug,
-            type: ColumnTypeNames.Color,
-            values: values,
-        },
-    ])
+    return joinedVariablesTable
 }
 
 const fullJoinTables = (
@@ -736,17 +742,6 @@ const annotationsToMap = (annotations: string): Map<string, string> => {
         entityAnnotationsMap.set(key.trim(), words.join(delimiter).trim())
     })
     return entityAnnotationsMap
-}
-
-export function computeActualDimensions(
-    dimensions: OwidChartDimensionInterface[]
-): OwidChartDimensionInterface[] {
-    return dimensions.map((dimension) => ({
-        ...dimension,
-        slug: dimension.targetYear
-            ? `${dimension.variableId}-${dimension.targetYear}`
-            : `${dimension.variableId}`,
-    }))
 }
 
 /**
