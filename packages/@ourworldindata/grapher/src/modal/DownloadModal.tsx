@@ -56,6 +56,7 @@ export interface DownloadModalManager {
     queryStr?: string
     table?: OwidTable
     transformedTable?: OwidTable
+    tableForDisplay?: OwidTable
     yColumnsFromDimensionsOrSlugsOrAuto?: CoreColumn[]
     shouldIncludeDetailsInStaticExport?: boolean
     detailsOrderedByReference?: string[]
@@ -63,6 +64,7 @@ export interface DownloadModalManager {
     frameBounds?: Bounds
     captionedChartBounds?: Bounds
     isOnChartOrMapTab?: boolean
+    isOnTableTab?: boolean
     showAdminControls?: boolean
     isSocialMediaExport?: boolean
     isPublished?: boolean
@@ -432,19 +434,20 @@ interface DataDownloadContextClientSide extends DataDownloadContextBase {
     shortColNames: boolean
 
     // Only needed for local CSV generation
-    table: OwidTable
-    transformedTable: OwidTable
+    fullTable: OwidTable
+    filteredTable: OwidTable
     activeColumnSlugs: string[] | undefined
 }
 
 const createCsvBlobLocally = async (ctx: DataDownloadContextClientSide) => {
-    const csv =
+    const downloadTable =
         ctx.csvDownloadType === CsvDownloadType.Full
-            ? ctx.table.toPrettyCsv(ctx.shortColNames, ctx.activeColumnSlugs)
-            : ctx.transformedTable.toPrettyCsv(
-                  ctx.shortColNames,
-                  ctx.activeColumnSlugs
-              )
+            ? ctx.fullTable
+            : ctx.filteredTable
+    const csv = downloadTable.toPrettyCsv(
+        ctx.shortColNames,
+        ctx.activeColumnSlugs
+    )
 
     return new Blob([csv], { type: "text/csv;charset=utf-8" })
 }
@@ -768,17 +771,21 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                 props.manager.baseUrl ??
                 `/grapher/${props.manager.displaySlug}`,
 
-            table: props.manager.table ?? BlankOwidTable(),
-            transformedTable:
-                props.manager.transformedTable ?? BlankOwidTable(),
+            fullTable: props.manager.table ?? BlankOwidTable(),
+            filteredTable:
+                (props.manager.isOnTableTab
+                    ? props.manager.tableForDisplay
+                    : props.manager.transformedTable) ?? BlankOwidTable(),
             activeColumnSlugs: props.manager.activeColumnSlugs,
         }),
         [
             props.manager.baseUrl,
             props.manager.displaySlug,
             props.manager.queryStr,
+            props.manager.isOnTableTab,
             props.manager.table,
             props.manager.transformedTable,
+            props.manager.tableForDisplay,
             props.manager.activeColumnSlugs,
         ]
     )

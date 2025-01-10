@@ -68,10 +68,12 @@ export async function fetchZipForGrapher(
 }
 function assembleCsv(grapher: Grapher, searchParams: URLSearchParams): string {
     const useShortNames = searchParams.get("useColumnShortNames") === "true"
+    const fullTable = grapher.inputTable
+    const filteredTable = grapher.isOnTableTab
+        ? grapher.tableForDisplay
+        : grapher.transformedTable
     const table =
-        searchParams.get("csvType") === "filtered"
-            ? grapher.transformedTable
-            : grapher.inputTable
+        searchParams.get("csvType") === "filtered" ? filteredTable : fullTable
     return table.toPrettyCsv(useShortNames)
 }
 
