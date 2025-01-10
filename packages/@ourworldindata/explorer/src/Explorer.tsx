@@ -507,7 +507,7 @@ export class Explorer
     @action.bound updateGrapherFromExplorer() {
         switch (this.explorerProgram.chartCreationMode) {
             case ExplorerChartCreationMode.FromGrapherId:
-                this.updateGrapherFromExplorerUsingGrapherId()
+                void this.updateGrapherFromExplorerUsingGrapherId()
                 break
             case ExplorerChartCreationMode.FromVariableIds:
                 void this.updateGrapherFromExplorerUsingVariableIds()
@@ -592,7 +592,8 @@ export class Explorer
         grapher.grapherState.reset()
         grapher?.grapherState.updateFromObject(config)
         const inputTable = await fetchInputTableForConfig(
-            config,
+            config.dimensions ?? [],
+            config.selectedEntityColors,
             this.props.dataApiUrl
         )
         if (inputTable)
@@ -772,7 +773,8 @@ export class Explorer
             //     inputTableTransformer
             // )
             const inputTable = await fetchInputTableForConfig(
-                config,
+                config.dimensions,
+                config.selectedEntityColors,
                 this.props.dataApiUrl
             )
             if (inputTable)

@@ -175,11 +175,7 @@ import {
     DefaultChartClass,
 } from "../chart/ChartTypeMap"
 import { Entity, SelectionArray } from "../selection/SelectionArray"
-import {
-    legacyToOwidTableAndDimensions,
-    legacyToOwidTableAndDimensionsWithMandatorySlug,
-} from "./LegacyToOwidTable"
-import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
+import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
@@ -1089,7 +1085,7 @@ export class GrapherState {
     get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): GrapherChartType {
         return this.isLineChartThatTurnedIntoDiscreteBarActive
             ? GRAPHER_CHART_TYPES.DiscreteBar
-            : this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart
+            : (this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart)
     }
 
     @computed get isLineChart(): boolean {
@@ -1398,8 +1394,8 @@ export class GrapherState {
         return !isStatic
             ? "underline"
             : shouldIncludeDetailsInStaticExport
-            ? "superscript"
-            : "none"
+              ? "superscript"
+              : "none"
     }
 
     // required derived properties

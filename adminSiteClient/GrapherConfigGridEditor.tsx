@@ -330,7 +330,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             this.grapherState.clearSelection()
         this.grapherState.updateFromObject(newConfig)
         const inputTable = await fetchInputTableForConfig(
-            newConfig,
+            newConfig.dimensions ?? [],
+            newConfig.selectedEntityColors,
             this.context.admin.settings.DATA_API_FOR_ADMIN_UI || DATA_API_URL
         )
         if (inputTable) this.grapherState.inputTable = inputTable
@@ -595,7 +596,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 )
             }
         }
-        if (this.selectedRow) this.updatePreviewToRow()
+        if (this.selectedRow) void this.updatePreviewToRow()
         await this.sendPatches(action.patches)
     }
 
@@ -848,7 +849,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         if (row1 !== this.selectedRow) {
             this.hasUncommitedRichEditorChanges = false
             this.selectedRow = row1
-            this.updatePreviewToRow()
+            void this.updatePreviewToRow()
         }
         this.selectionEndRow = row2
         if (column1 !== this.selectedColumn) {

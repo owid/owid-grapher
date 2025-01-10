@@ -359,8 +359,8 @@ export const legacyToOwidTableAndDimensions = (
         ): string | ErrorValue => {
             if (!entityName) return ErrorValueTypes.UndefinedButShouldBeString
             return entityName && selectedEntityColors
-                ? selectedEntityColors[entityName] ??
-                      ErrorValueTypes.UndefinedButShouldBeString
+                ? (selectedEntityColors[entityName] ??
+                      ErrorValueTypes.UndefinedButShouldBeString)
                 : ErrorValueTypes.UndefinedButShouldBeString
         }
 
@@ -455,7 +455,7 @@ const fullJoinTables = (
     // not exist in the first table
     const firstTableDuplicateForIndices: [
         OwidTable | undefined,
-        string[] | undefined
+        string[] | undefined,
     ] = [tables[0], sharedColumnNames]
     const defsToAddPerTable = [firstTableDuplicateForIndices]
         .concat(zip(tables, columnsToAddPerTable))
@@ -645,8 +645,8 @@ const columnDefFromOwidVariable = (
     const type = isContinent
         ? ColumnTypeNames.Continent
         : variable.type
-        ? variableTypeToColumnType(variable.type)
-        : ColumnTypeNames.NumberOrString
+          ? variableTypeToColumnType(variable.type)
+          : ColumnTypeNames.NumberOrString
 
     // Sorted values for ordinal columns
     const sort =

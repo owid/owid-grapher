@@ -345,7 +345,8 @@ $nav-height: 45px;
         }
     }
 
-    figure[data-grapher-src] {
+    figure[data-grapher-src],
+    figure[data-grapher-component] {
         line-height: 0; // remove extra space on the bottom
     }
 }

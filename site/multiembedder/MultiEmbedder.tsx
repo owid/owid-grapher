@@ -219,7 +219,11 @@ class MultiEmbedder {
             embedDynamicCollectionGrapher(grapherRef, figure)
         }
 
-        const inputTable = await fetchInputTableForConfig(config, DATA_API_URL)
+        const inputTable = await fetchInputTableForConfig(
+            config.dimensions,
+            config.selectedEntityColors,
+            DATA_API_URL
+        )
         if (inputTable && grapherRef.current)
             grapherRef.current.grapherState.inputTable = inputTable
     }

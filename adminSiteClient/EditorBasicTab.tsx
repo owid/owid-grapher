@@ -54,7 +54,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
 class DimensionSlotView<
-    Editor extends AbstractChartEditor
+    Editor extends AbstractChartEditor,
 > extends React.Component<{
     slot: DimensionSlot
     editor: Editor
@@ -338,7 +338,7 @@ class DimensionSlotView<
 
 @observer
 class VariablesSection<
-    Editor extends AbstractChartEditor
+    Editor extends AbstractChartEditor,
 > extends React.Component<{
     editor: Editor
     database: EditorDatabase
@@ -412,7 +412,7 @@ const TagsSection = (props: {
 
 @observer
 export class EditorBasicTab<
-    Editor extends AbstractChartEditor
+    Editor extends AbstractChartEditor,
 > extends React.Component<{
     editor: Editor
     database: EditorDatabase
