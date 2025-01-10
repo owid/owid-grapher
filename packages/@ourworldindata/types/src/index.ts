@@ -411,6 +411,7 @@ export {
     type OwidVariableDataTableConfigInterface,
     OwidVariableRoundingMode,
     type OwidChartDimensionInterface,
+    type OwidChartDimensionInterfaceWithMandatorySlug,
 } from "./OwidVariableDisplayConfigInterface.js"
 
 export {
