@@ -6,17 +6,40 @@ import {
     OwidTableSlugs,
     StandardOwidColumnDefs,
     LegacyGrapherInterface,
+    OwidChartDimensionInterface,
 } from "@ourworldindata/types"
-import { ColumnTypeMap, ErrorValueTypes } from "@ourworldindata/core-table"
 import {
-    addSelectedEntityColorsToTable,
-    legacyToOwidTableAndDimensions,
-} from "./LegacyToOwidTable"
+    ColumnTypeMap,
+    ErrorValueTypes,
+    OwidTable,
+} from "@ourworldindata/core-table"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
     DimensionProperty,
 } from "@ourworldindata/utils"
+import { getDimensionColumnSlug } from "../chart/ChartDimension.js"
+
+export const legacyToOwidTableAndDimensionsWithMandatorySlug = (
+    json: MultipleOwidVariableDataDimensionsMap,
+    dimensions: OwidChartDimensionInterface[],
+    selectedEntityColors:
+        | { [entityName: string]: string | undefined }
+        | undefined
+): OwidTable => {
+    const dimensionsWithSlug = dimensions?.map((dimension) => ({
+        ...dimension,
+        slug:
+            dimension.slug ??
+            getDimensionColumnSlug(dimension.variableId, dimension.targetYear),
+    }))
+    return legacyToOwidTableAndDimensions(
+        json,
+        dimensionsWithSlug,
+        selectedEntityColors
+    )
+}
 
 describe(legacyToOwidTableAndDimensions, () => {
     const legacyVariableEntry: OwidVariableDataMetadataDimensions = {
@@ -46,9 +69,10 @@ describe(legacyToOwidTableAndDimensions, () => {
     }
 
     it("contains the standard entity columns", () => {
-        const table = legacyToOwidTableAndDimensions(
+        const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
             legacyVariableConfig,
-            legacyGrapherConfig.dimensions ?? []
+            legacyGrapherConfig.dimensions ?? [],
+            legacyGrapherConfig.selectedEntityColors
         )
         expect(table.columnSlugs).toEqual(
             expect.arrayContaining(
@@ -65,22 +89,27 @@ describe(legacyToOwidTableAndDimensions, () => {
 
     describe("conversionFactor", () => {
         it("applies the more specific chart-level conversionFactor", () => {
-            const table = legacyToOwidTableAndDimensions(legacyVariableConfig, [
-                {
-                    variableId: 2,
-                    display: { conversionFactor: 10 },
-                    property: DimensionProperty.y,
-                },
-            ])
+            const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+                legacyVariableConfig,
+                [
+                    {
+                        variableId: 2,
+                        display: { conversionFactor: 10 },
+                        property: DimensionProperty.y,
+                    },
+                ],
+                legacyGrapherConfig.selectedEntityColors
+            )
 
             // Apply the chart-level conversionFactor (10)
             expect(table.rows[0]["2"]).toEqual(80)
         })
 
         it("applies the more variable-level conversionFactor if a chart-level one is not present", () => {
-            const table = legacyToOwidTableAndDimensions(
+            const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
                 legacyVariableConfig,
-                legacyGrapherConfig.dimensions ?? []
+                legacyGrapherConfig.dimensions ?? [],
+                legacyGrapherConfig.selectedEntityColors
             )
 
             // Apply the variable-level conversionFactor (100)
@@ -170,9 +199,10 @@ describe(legacyToOwidTableAndDimensions, () => {
             ],
         }
 
-        const table = legacyToOwidTableAndDimensions(
+        const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
             legacyVariableConfig,
-            legacyGrapherConfig.dimensions ?? []
+            legacyGrapherConfig.dimensions ?? [],
+            legacyGrapherConfig.selectedEntityColors
         )
 
         it("leaves ErrorValues when there were no values to join to", () => {
@@ -313,9 +343,10 @@ describe(legacyToOwidTableAndDimensions, () => {
             ],
         }
 
-        const table = legacyToOwidTableAndDimensions(
+        const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
             legacyVariableConfig,
-            legacyGrapherConfig.dimensions ?? []
+            legacyGrapherConfig.dimensions ?? [],
+            {}
         )
 
         it("shifts values in days array when zeroDay is is not EPOCH_DATE", () => {
@@ -436,9 +467,10 @@ describe(legacyToOwidTableAndDimensions, () => {
             ],
         }
 
-        const table = legacyToOwidTableAndDimensions(
+        const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
             legacyVariableConfig,
-            legacyGrapherConfig.dimensions ?? []
+            legacyGrapherConfig.dimensions ?? [],
+            legacyGrapherConfig.selectedEntityColors
         )
 
         it("duplicates 'day' column into 'time'", () => {
@@ -467,9 +499,10 @@ describe(legacyToOwidTableAndDimensions, () => {
                     chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
                 }
 
-                const table = legacyToOwidTableAndDimensions(
+                const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
                     legacyVariableConfig,
-                    scatterLegacyGrapherConfig.dimensions ?? []
+                    scatterLegacyGrapherConfig.dimensions ?? [],
+                    legacyGrapherConfig.selectedEntityColors
                 )
 
                 expect(table.rows.length).toEqual(3)
@@ -625,9 +658,10 @@ describe("variables with mixed days & years with missing overlap and multiple po
         ],
     }
 
-    const table = legacyToOwidTableAndDimensions(
+    const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
         legacyVariableConfig,
-        legacyGrapherConfig.dimensions ?? []
+        legacyGrapherConfig.dimensions ?? [],
+        legacyGrapherConfig.selectedEntityColors
     )
 
     it("duplicates 'day' column into 'time'", () => {
@@ -644,9 +678,10 @@ describe("variables with mixed days & years with missing overlap and multiple po
 
     describe("join behaviour without target times is sane", () => {
         it("creates a sane table join", () => {
-            const table = legacyToOwidTableAndDimensions(
+            const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
                 legacyVariableConfig,
-                legacyGrapherConfig.dimensions ?? []
+                legacyGrapherConfig.dimensions ?? [],
+                legacyGrapherConfig.selectedEntityColors
             )
 
             // A sane join between years and days would create 5 days for the given input
@@ -766,11 +801,9 @@ describe("creating a table from legacy", () => {
         ...getLegacyGrapherConfig(),
         selectedEntityColors: { "Cape Verde": "blue" },
     }
-    const table = addSelectedEntityColorsToTable(
-        legacyToOwidTableAndDimensions(
-            getOwidVarSet(),
-            config.dimensions ?? []
-        ),
+    const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        getOwidVarSet(),
+        config.dimensions ?? [],
         config.selectedEntityColors
     )
 
@@ -783,20 +816,20 @@ describe("creating a table from legacy", () => {
             "entityName",
             "entityId",
             "entityCode",
-            "entityColor",
             "year",
             "3512",
             "time", // todo: what is the best design here?
+            "entityColor",
         ])
 
         expect(table.columnNames).toEqual([
             "Entity",
             "entityId",
             "Code",
-            "entityColor",
             "Year",
             name,
             "time",
+            "entityColor",
         ])
 
         expect(table.get("3512").displayName).toBe("Some Display Name")
@@ -806,9 +839,10 @@ describe("creating a table from legacy", () => {
         const varSet = getOwidVarSet()
         varSet.get(3512)!.metadata.display!.conversionFactor = 100
         expect(
-            legacyToOwidTableAndDimensions(
+            legacyToOwidTableAndDimensionsWithMandatorySlug(
                 varSet,
-                getLegacyGrapherConfig().dimensions ?? []
+                getLegacyGrapherConfig().dimensions ?? [],
+                config.selectedEntityColors
             ).get("3512")!.values
         ).toEqual([550, 420, 1260])
     })
@@ -829,9 +863,10 @@ Papua New Guinea,PNG,1983,5.5`
     it("passes on the non-redistributable flag", () => {
         const varSet = getOwidVarSet()
         varSet.get(3512)!.metadata.nonRedistributable = true
-        const columnDef = legacyToOwidTableAndDimensions(
+        const columnDef = legacyToOwidTableAndDimensionsWithMandatorySlug(
             varSet,
-            getLegacyGrapherConfig().dimensions ?? []
+            getLegacyGrapherConfig().dimensions ?? [],
+            config.selectedEntityColors
         ).get("3512").def as OwidColumnDef
         expect(columnDef.nonRedistributable).toEqual(true)
     })
