@@ -28,7 +28,7 @@ import {
 
 @observer
 export class EditorTextTab<
-    Editor extends AbstractChartEditor
+    Editor extends AbstractChartEditor,
 > extends Component<{ editor: Editor; errorMessages: ErrorMessages }> {
     @action.bound onSlug(slug: string) {
         this.props.editor.grapherState.slug = slugify(slug)

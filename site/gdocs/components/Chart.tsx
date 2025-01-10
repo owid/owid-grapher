@@ -147,7 +147,10 @@ export default function Chart({
                 </figure>
             ) : (
                 // TODO: 2025-01-05 Daniel - this is a crude first version, this entire control has to be touched again
-                <GrapherWithFallback slug={resolvedSlug!} />
+                <GrapherWithFallback
+                    slug={resolvedSlug!}
+                    config={chartConfig}
+                />
             )}
             {d.caption ? (
                 <figcaption>

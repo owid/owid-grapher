@@ -133,7 +133,11 @@ export async function grapherToSVG(
     grapher.grapherState.isExportingToSvgOrPng = true
     grapher.grapherState.shouldIncludeDetailsInStaticExport = false
     // grapher.receiveOwidData(vardata)
-    const inputTable = await fetchInputTableForConfig(jsonConfig, DATA_API_URL)
+    const inputTable = await fetchInputTableForConfig(
+        jsonConfig.dimensions ?? [],
+        jsonConfig.selectedEntityColors,
+        DATA_API_URL
+    )
     if (inputTable) grapher.grapherState.inputTable = inputTable
     return grapher.staticSVG
 }
