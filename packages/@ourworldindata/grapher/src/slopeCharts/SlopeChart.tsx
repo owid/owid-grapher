@@ -520,7 +520,13 @@ export class SlopeChart
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        return new AxisConfig(this.manager.yAxisConfig, this)
+        return new AxisConfig(
+            {
+                nice: this.manager.yAxisConfig?.scaleType !== ScaleType.log,
+                ...this.manager.yAxisConfig,
+            },
+            this
+        )
     }
 
     @computed get allYValues(): number[] {

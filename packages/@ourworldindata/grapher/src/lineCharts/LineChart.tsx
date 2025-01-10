@@ -1462,9 +1462,9 @@ export class LineChart
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        // TODO: enable nice axis ticks for linear scales
         return new AxisConfig(
             {
+                nice: this.manager.yAxisConfig?.scaleType !== ScaleType.log,
                 // if we only have a single y value (probably 0), we want the
                 // horizontal axis to be at the bottom of the chart.
                 // see https://github.com/owid/owid-grapher/pull/975#issuecomment-890798547

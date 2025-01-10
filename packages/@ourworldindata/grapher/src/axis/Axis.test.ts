@@ -7,7 +7,7 @@ import {
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
 import { AxisConfig } from "./AxisConfig"
-import { AxisAlign } from "@ourworldindata/utils"
+import { AxisAlign, last } from "@ourworldindata/utils"
 
 it("can create an axis", () => {
     const axisConfig = new AxisConfig({
@@ -88,7 +88,21 @@ it("respects nice parameter", () => {
     axis.range = [0, 300]
     const tickValues = axis.getTickValues()
     expect(tickValues[0].value).toEqual(0)
-    expect(tickValues[tickValues.length - 1].value).toEqual(100)
+    expect(last(tickValues)?.value).toEqual(100)
+})
+
+it("doesn't add 'nice' ticks to eagerly", () => {
+    const config: AxisConfigInterface = {
+        min: 0.0001,
+        max: 90.0001,
+        maxTicks: 10,
+        nice: true,
+    }
+    const axis = new AxisConfig(config).toVerticalAxis()
+    axis.range = [0, 300]
+    const tickValues = axis.getTickValues()
+    expect(tickValues[0].value).toEqual(0)
+    expect(last(tickValues)?.value).toEqual(90)
 })
 
 it("creates compact labels", () => {
