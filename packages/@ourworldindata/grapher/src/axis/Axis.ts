@@ -21,6 +21,7 @@ import {
     ValueRange,
     cloneDeep,
     OwidVariableRoundingMode,
+    last,
 } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "./AxisConfig"
 import { MarkdownTextWrap } from "@ourworldindata/components"
@@ -218,11 +219,48 @@ abstract class AbstractAxis {
         })
     }
 
+    private static makeScaleNice(
+        scale: ScaleLinear<number, number>,
+        totalTicksTarget: number
+    ): { scale: ScaleLinear<number, number>; ticks?: number[] } {
+        let ticks = scale.ticks(totalTicksTarget)
+
+        // use d3's nice function when there is only one tick
+        if (ticks.length < 2) return { scale: scale.nice(totalTicksTarget) }
+
+        const tickStep = ticks[1] - ticks[0]
+        const firstTick = ticks[0]
+        const lastTick = last(ticks)!
+
+        // if the the max or min value exceeds the last grid line by more than 25%,
+        // expand the domain to include an additional grid line
+        const [minValue, maxValue] = scale.domain()
+        if (maxValue > lastTick + 0.25 * tickStep) {
+            scale.domain([scale.domain()[0], lastTick + tickStep])
+            ticks = [...ticks, lastTick + tickStep]
+        }
+        if (minValue < firstTick - 0.25 * tickStep) {
+            scale.domain([firstTick - tickStep, scale.domain()[1]])
+            ticks = [firstTick - tickStep, ...ticks]
+        }
+
+        return { scale, ticks }
+    }
+
+    private niceTicks?: number[]
     @computed private get d3_scale(): Scale {
-        const d3Scale =
-            this.scaleType === ScaleType.log ? scaleLog : scaleLinear
+        const isLogScale = this.scaleType === ScaleType.log
+        const d3Scale = isLogScale ? scaleLog : scaleLinear
         let scale = d3Scale().domain(this.domain).range(this.range)
-        scale = this.nice ? scale.nice(this.totalTicksTarget) : scale
+
+        if (this.nice && !isLogScale) {
+            const { scale: niceScale, ticks: niceTicks } =
+                AbstractAxis.makeScaleNice(scale, this.totalTicksTarget)
+            scale = niceScale
+            this.niceTicks = niceTicks
+        } else {
+            this.niceTicks = undefined
+        }
 
         if (this.config.domainValues) {
             // compute bandwidth and adjust the scale
@@ -363,9 +401,12 @@ abstract class AbstractAxis {
                 }
             }
         } else {
+            const d3_ticks =
+                this.niceTicks ?? d3_scale.ticks(this.totalTicksTarget)
+
             // Only use priority 2 here because we want the start / end ticks
             // to be priority 1
-            ticks = d3_scale.ticks(this.totalTicksTarget).map((tickValue) => ({
+            ticks = d3_ticks.map((tickValue) => ({
                 value: tickValue,
                 priority: 2,
             }))

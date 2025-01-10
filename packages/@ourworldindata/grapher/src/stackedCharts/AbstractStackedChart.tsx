@@ -253,8 +253,13 @@ export class AbstractStackedChart
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        // TODO: enable nice axis ticks for linear scales
-        return new AxisConfig(this.manager.yAxisConfig, this)
+        return new AxisConfig(
+            {
+                nice: true,
+                ...this.manager.yAxisConfig,
+            },
+            this
+        )
     }
 
     // implemented in subclasses
