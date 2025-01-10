@@ -51,6 +51,11 @@ export class DimensionCard<
         this.onChange()
     }
 
+    @action.bound onIsConnected(value: boolean) {
+        this.props.dimension.display.isConnected = value
+        this.onChange()
+    }
+
     @action.bound onColor(color: string | undefined) {
         this.props.dimension.display.color = color
         this.onChange()
@@ -250,6 +255,13 @@ export class DimensionCard<
                                 label="Is projection"
                                 value={column.isProjection}
                                 onValue={this.onIsProjection}
+                            />
+                        )}
+                        {grapher.isLineChart && (
+                            <Toggle
+                                label="Is connected"
+                                value={column.display?.isConnected ?? true}
+                                onValue={this.onIsConnected}
                             />
                         )}
                         <hr className="ui divider" />

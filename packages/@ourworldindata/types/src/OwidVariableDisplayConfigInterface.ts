@@ -21,6 +21,7 @@ export interface OwidVariableDisplayConfigInterface {
     includeInTable?: boolean
     tableDisplay?: OwidVariableDataTableConfigInterface
     color?: string
+    isConnected?: boolean
 }
 
 // todo: flatten onto the above
