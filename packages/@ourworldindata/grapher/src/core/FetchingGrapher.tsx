@@ -5,22 +5,20 @@ import {
     OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/types"
 import React from "react"
-import { Grapher, GrapherState } from "./Grapher.js"
-import { loadVariableDataAndMetadata } from "./loadVariable.js"
 import {
-    legacyToOwidTableAndDimensions,
-    legacyToOwidTableAndDimensionsWithMandatorySlug,
-} from "./LegacyToOwidTable.js"
+    Grapher,
+    GrapherProgrammaticInterface,
+    GrapherState,
+} from "./Grapher.js"
+import { loadVariableDataAndMetadata } from "./loadVariable.js"
+import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
 import { OwidTable } from "@ourworldindata/core-table"
 import { isEqual } from "@ourworldindata/utils"
 
 export interface FetchingGrapherProps {
-    config?: GrapherInterface
+    config?: GrapherProgrammaticInterface
     configUrl?: string
-    queryString?: string
     dataApiUrl: string
-    adminBaseUrl: string
-    bakedGrapherURL: string
 }
 export function FetchingGrapher(
     props: FetchingGrapherProps
@@ -34,12 +32,15 @@ export function FetchingGrapher(
     const grapherState = React.useRef<GrapherState>(
         new GrapherState({
             ...props.config,
-            queryStr: props.queryString,
             dataApiUrl: props.dataApiUrl,
-            adminBaseUrl: props.adminBaseUrl,
-            bakedGrapherURL: props.bakedGrapherURL,
         })
     )
+
+    // update grapherState when the config from props changes
+    React.useEffect(() => {
+        if (props.config?.bounds)
+            grapherState.current.externalBounds = props.config.bounds
+    }, [props.config?.bounds])
 
     React.useEffect(() => {
         async function fetchConfigAndLoadData(): Promise<void> {
@@ -52,40 +53,44 @@ export function FetchingGrapher(
             }
         }
         void fetchConfigAndLoadData()
-    }, [
-        props.configUrl,
-        props.dataApiUrl,
-        props.queryString,
-        props.adminBaseUrl,
-        props.bakedGrapherURL,
-    ])
+    }, [props.configUrl])
 
     React.useEffect(() => {
         async function fetchData(): Promise<void> {
             const inputTable = await fetchInputTableForConfig(
-                { ...props.config, ...downloadedConfig },
+                downloadedConfig?.dimensions ?? props.config?.dimensions ?? [],
+                downloadedConfig?.selectedEntityColors ??
+                    props.config?.selectedEntityColors,
                 props.dataApiUrl
             )
             if (inputTable) grapherState.current.inputTable = inputTable
         }
         void fetchData()
-    }, [props.config, props.dataApiUrl, downloadedConfig])
+    }, [
+        props.config?.dimensions,
+        props.dataApiUrl,
+        downloadedConfig?.dimensions,
+        downloadedConfig?.selectedEntityColors,
+        props.config?.selectedEntityColors,
+    ])
 
     return <Grapher grapherState={grapherState.current} />
 }
 
 export async function fetchInputTableForConfig(
-    config: GrapherInterface,
+    dimensions: OwidChartDimensionInterface[],
+    selectedEntityColors:
+        | { [entityName: string]: string | undefined }
+        | undefined,
     dataApiUrl: string
 ): Promise<OwidTable | undefined> {
-    const dimensions = config.dimensions || []
     if (dimensions.length === 0) return undefined
     const variables = dimensions.map((d) => d.variableId)
     const variablesDataMap = await loadVariablesDataSite(variables, dataApiUrl)
     const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
         variablesDataMap,
         dimensions,
-        config.selectedEntityColors
+        selectedEntityColors
     )
 
     return inputTable

@@ -39,7 +39,11 @@ export async function bakeGrapherToSvgAndPng(
     optimizeSvgs = false
 ) {
     const grapher = initGrapherForSvgExport(jsonConfig)
-    const inputTable = await fetchInputTableForConfig(jsonConfig, DATA_API_URL)
+    const inputTable = await fetchInputTableForConfig(
+        jsonConfig.dimensions ?? [],
+        jsonConfig.selectedEntityColors,
+        DATA_API_URL
+    )
     if (inputTable) grapher.grapherState.inputTable = inputTable
     // grapher.receiveOwidData(vardata)
     const outPath = path.join(outDir, grapher.grapherState.slug as string)
@@ -65,9 +69,8 @@ export async function bakeGrapherToSvgAndPng(
 export async function getGraphersAndRedirectsBySlug(
     knex: db.KnexReadonlyTransaction
 ) {
-    const { graphersBySlug, graphersById } = await getPublishedGraphersBySlug(
-        knex
-    )
+    const { graphersBySlug, graphersById } =
+        await getPublishedGraphersBySlug(knex)
 
     const redirectQuery = await db.knexRaw<
         Pick<DbPlainChartSlugRedirect, "slug" | "chart_id">
@@ -134,7 +137,11 @@ export async function bakeGrapherToSvg(
     )
 
     if (fs.existsSync(outPath) && !overwriteExisting) return
-    const inputTable = await fetchInputTableForConfig(jsonConfig, DATA_API_URL)
+    const inputTable = await fetchInputTableForConfig(
+        jsonConfig.dimensions ?? [],
+        jsonConfig.selectedEntityColors,
+        DATA_API_URL
+    )
     if (inputTable) grapher.grapherState.inputTable = inputTable
     // grapher.receiveOwidData(vardata)
 
@@ -253,7 +260,11 @@ export async function grapherToSVG(
     grapher.grapherState.isExportingToSvgOrPng = true
     grapher.grapherState.shouldIncludeDetailsInStaticExport = false
     // grapher.receiveOwidData(vardata)
-    const inputTable = await fetchInputTableForConfig(jsonConfig, DATA_API_URL)
+    const inputTable = await fetchInputTableForConfig(
+        jsonConfig.dimensions ?? [],
+        jsonConfig.selectedEntityColors,
+        DATA_API_URL
+    )
     if (inputTable) grapher.grapherState.inputTable = inputTable
     return grapher.staticSVG
 }

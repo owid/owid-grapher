@@ -36,10 +36,8 @@ import { ExplorerChartCreationMode } from "@ourworldindata/explorer"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import {
     ColorSchemes,
-    FetchingGrapher,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
-import { GrapherFigureView } from "../site/GrapherFigureView.js"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"

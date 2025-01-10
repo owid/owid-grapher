@@ -3,7 +3,6 @@ import { useRef } from "react"
 import {
     FetchingGrapher,
     GrapherProgrammaticInterface,
-    GrapherState,
 } from "@ourworldindata/grapher"
 import {
     ADMIN_BASE_URL,
@@ -13,34 +12,37 @@ import {
 } from "../settings/clientSettings.js"
 import { useElementBounds } from "./hooks.js"
 
-// Wrapper for Grapher that uses css on figure element to determine the bounds
-export const GrapherFigureView = ({
-    slug,
-    extraProps,
-}: {
-    slug: string
-    extraProps?: Partial<GrapherProgrammaticInterface>
-}) => {
+export interface GrapherFigureViewProps {
+    slug?: string
+    config?: Partial<GrapherProgrammaticInterface>
+    queryStr?: string
+}
+
+export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
+    const slug = props.slug
+
     const base = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(base)
 
-    // TODO: Question - should FetchingGrapher take either a full config or a slug plus extra config?
-
-    const grapherState: GrapherState = new GrapherState({
+    const config: GrapherProgrammaticInterface = {
+        ...props.config,
+        bakedGrapherURL: BAKED_GRAPHER_URL,
+        adminBaseUrl: ADMIN_BASE_URL,
         bounds,
+        queryStr: props.queryStr ?? window.location.search,
         enableKeyboardShortcuts: true,
-        ...extraProps,
-    })
+    }
+
     return (
-        // They key= in here makes it so that the chart is re-loaded when the slug changes.
-        <figure ref={base}>
+        <figure data-grapher-component ref={base}>
             {bounds && (
                 <FetchingGrapher
-                    key={grapherState.slug}
-                    //config={grapherState}
-                    configUrl={`${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`}
-                    adminBaseUrl={ADMIN_BASE_URL}
-                    bakedGrapherURL={BAKED_GRAPHER_URL}
+                    config={config}
+                    configUrl={
+                        slug
+                            ? `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
+                            : undefined
+                    }
                     dataApiUrl={DATA_API_URL}
                 />
             )}

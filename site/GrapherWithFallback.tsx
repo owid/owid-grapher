@@ -4,19 +4,25 @@ import { GRAPHER_PREVIEW_CLASS } from "./SiteConstants.js"
 import GrapherImage from "./GrapherImage.js"
 import { useEffect, useState } from "react"
 import { useInView } from "react-intersection-observer"
+import { GrapherInterface } from "@ourworldindata/types"
 
-// TODO: change this so it's possible to hand a full grapher config down (and maybe an extra config?)
-export const GrapherWithFallback = ({
-    // grapher,
-    slug,
-    className,
-    id,
-}: {
-    // grapher?: Grapher | undefined
+export interface GrapherWithFallbackProps {
     slug: string
     className?: string
     id?: string
-}) => {
+    config: Partial<GrapherInterface>
+    queryStr?: string
+    fetchConfigForSlug?: boolean
+}
+
+// TODO: change this so it's possible to hand a full grapher config down (and maybe an extra config?)
+
+export function GrapherWithFallback(
+    props: GrapherWithFallbackProps
+): JSX.Element {
+    const { slug, className, id, config, queryStr, fetchConfigForSlug } = props
+    const fetchConfig = fetchConfigForSlug ?? true
+
     const [isClient, setIsClient] = useState(false)
     const { ref, inView } = useInView({
         rootMargin: "400px",
@@ -53,7 +59,11 @@ export const GrapherWithFallback = ({
             {!isClient ? (
                 imageFallback
             ) : inView ? (
-                <GrapherFigureView slug={slug} />
+                <GrapherFigureView
+                    slug={fetchConfig ? slug : undefined}
+                    config={config}
+                    queryStr={queryStr}
+                />
             ) : (
                 // Optional loading placeholder while waiting to come into view
                 imageFallback
