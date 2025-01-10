@@ -35,11 +35,11 @@ export async function getPublishedLinksTo(
         knex,
         `-- sql
         SELECT
+            pgl.*,
             pg.content ->> '$.title' AS title,
             pg.slug AS slug,
             pg.id AS id,
-            CONCAT("${BAKED_BASE_URL}","/",pg.slug) as url,
-            pgl.*
+            CONCAT("${BAKED_BASE_URL}","/",pg.slug) as url
         FROM
             posts_gdocs_links pgl
             JOIN posts_gdocs pg ON pgl.sourceId = pg.id

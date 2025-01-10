@@ -87,7 +87,7 @@ export const ReferencesSection = (props: {
                         </a>{" "}
                         (
                         <a
-                            href={`/admin/gdocs/${post.id}`}
+                            href={`/admin/gdocs/${post.id}/preview`}
                             target="_blank"
                             rel="noopener"
                         >
