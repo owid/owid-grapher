@@ -332,7 +332,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 // the same country selection as you zap through the variables
                 this.grapher.clearSelection()
             this.grapher.updateFromObject(newConfig)
-            this.grapher.downloadData()
+            // TODO: ensure data is downloaded
+            // this.grapher.downloadData()
         } else this.grapherElement = <Grapher {...newConfig} />
     }
 
