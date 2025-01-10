@@ -47,6 +47,10 @@ export class EditorFeatures {
         return this.grapher.isScatter
     }
 
+    @computed get canEnableLogLinearToggle() {
+        return !this.grapher.isDiscreteBar && !this.grapher.isStackedDiscreteBar
+    }
+
     @computed get timeDomain() {
         return !this.grapher.isDiscreteBar
     }
