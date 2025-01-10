@@ -7,7 +7,10 @@ export {
     type ColorScaleBin,
 } from "./color/ColorScaleBin"
 export { ChartDimension } from "./chart/ChartDimension"
-export { FetchingGrapher } from "./core/FetchingGrapher"
+export {
+    FetchingGrapher,
+    fetchInputTableForConfig,
+} from "./core/FetchingGrapher"
 export {
     GRAPHER_EMBEDDED_FIGURE_ATTR,
     GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR,
@@ -55,6 +58,7 @@ export {
 export { GlobalEntitySelector } from "./controls/globalEntitySelector/GlobalEntitySelector"
 export {
     Grapher,
+    GrapherState,
     type GrapherProgrammaticInterface,
     type GrapherManager,
     getErrorMessageRelatedQuestionUrl,
