@@ -1,0 +1,9 @@
+{
+    "extends": "../devTools/tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../itsJustJavascript/.storybook",
+        "rootDir": ".",
+        "allowJs": true
+    },
+    "exclude": ["./build"]
+}

@@ -51,7 +51,7 @@
             "path": "./devTools/syncGraphersToR2"
         },
         {
-            "path": "./tsconfig.storybook.json"
+            "path": "./.storybook"
         }
     ],
     "ts-node": {
