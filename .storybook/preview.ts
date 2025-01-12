@@ -1,7 +1,7 @@
 import { Preview } from "@storybook/react"
 
 import "site/owid.scss"
-// import "@ourworldindata/grapher/dist/index.css"
+import "@ourworldindata/grapher/src/core/grapher.scss"
 import "handsontable/dist/handsontable.full.css"
 
 const preview: Preview = {
