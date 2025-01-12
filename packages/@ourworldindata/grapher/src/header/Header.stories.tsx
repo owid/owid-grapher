@@ -1,15 +1,17 @@
-import * as React from "react"
+import type { Meta, StoryObj } from "@storybook/react"
+
 import { Header } from "./Header"
-import { HeaderManager } from "./HeaderManager"
 
-export default {
-    title: "Header",
+const meta: Meta<typeof Header> = {
     component: Header,
+    title: "Header",
 }
 
-const manager: HeaderManager = {
-    currentTitle: "Hello world",
-    subtitle: "This is my chart subtitle",
-}
+export default meta
+type Story = StoryObj<typeof Header>
 
-export const Default = (): React.ReactElement => <Header manager={manager} />
+export const Primary: Story = {
+    args: {
+        manager: { currentTitle: "hi" },
+    },
+}

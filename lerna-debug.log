@@ -1,0 +1,25 @@
+0 silly argv {
+0 silly argv   _: [ 'run' ],
+0 silly argv   lernaVersion: '8.1.6',
+0 silly argv   '$0': 'node_modules/lerna/dist/cli.js',
+0 silly argv   script: 'build'
+0 silly argv }
+1 notice cli v8.1.6
+2 verbose packageConfigs Resolving packages based on package.json "workspaces" configuration.
+3 verbose rootPath /Users/sophia/code/owid/owid-grapher
+4 error Failed to process project graph. Run "nx reset" to fix this. Please report the issue if you keep seeing it.
+4 error   MultipleProjectsWithSameNameError: The following projects are defined in multiple locations:
+4 error   - grapher:
+4 error     - storybook-static
+4 error     - .
+4 error
+4 error   To fix this, set a unique name for each project in a project.json inside the project's root. If the project does not currently have a project.json, you can create one that contains only a name.
+4 error       at validateAndNormalizeProjectRootMap (/Users/sophia/code/owid/owid-grapher/node_modules/nx/src/project-graph/utils/project-configuration-utils.js:459:15)
+4 error       at mergeCreateNodesResults (/Users/sophia/code/owid/owid-grapher/node_modules/nx/src/project-graph/utils/project-configuration-utils.js:327:9)
+4 error       at /Users/sophia/code/owid/owid-grapher/node_modules/nx/src/project-graph/utils/project-configuration-utils.js:268:85
+4 error       at processTicksAndRejections (node:internal/process/task_queues:95:5)
+4 error       at processFilesAndCreateAndSerializeProjectGraph (/Users/sophia/code/owid/owid-grapher/node_modules/nx/src/daemon/server/project-graph-incremental-recomputation.js:148:43)
+4 error       at getCachedSerializedProjectGraphPromise (/Users/sophia/code/owid/owid-grapher/node_modules/nx/src/daemon/server/project-graph-incremental-recomputation.js:46:16)
+4 error       at handleRequestProjectGraph (/Users/sophia/code/owid/owid-grapher/node_modules/nx/src/daemon/server/handle-request-project-graph.js:12:24)
+4 error       at handleResult (/Users/sophia/code/owid/owid-grapher/node_modules/nx/src/daemon/server/server.js:139:16)
+4 error       at handleMessage (/Users/sophia/code/owid/owid-grapher/node_modules/nx/src/daemon/server/server.js:92:9)

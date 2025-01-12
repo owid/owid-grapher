@@ -3,7 +3,8 @@
     "compilerOptions": {
         "outDir": "./itsJustJavascript",
         "composite": false,
-        "baseUrl": "./"
+        "baseUrl": "./",
+        "skipLibCheck": true
     },
     "files": [],
     "references": [
@@ -48,6 +49,20 @@
         },
         {
             "path": "./devTools/syncGraphersToR2"
+        },
+        {
+            "path": "./tsconfig.storybook.json"
         }
+    ],
+    "ts-node": {
+        "compilerOptions": {
+            "module": "commonjs"
+        }
+    },
+    "exclude": [
+        "**/*.stories.ts",
+        "**/*.stories.js",
+        "**/*.stories.jsx",
+        "**/*.stories.tsx"
     ]
 }
