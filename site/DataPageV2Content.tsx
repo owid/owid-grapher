@@ -189,6 +189,7 @@ export const DataPageV2Content = ({
                                     slug={grapherConfig.slug}
                                     config={mergedGrapherConfig}
                                     id="explore-the-data"
+                                    fetchConfigForSlug={false}
                                 />
                             )}
                             <AboutThisData
