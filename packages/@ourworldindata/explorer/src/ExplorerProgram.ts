@@ -533,13 +533,21 @@ const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
             "Keep only column defs with a slug or variable id"
         )
     return columnsTable.rows.map((row) => {
-        // ignore slug if variable id is given
-        if (
-            row.owidVariableId &&
-            isNotErrorValue(row.owidVariableId) &&
-            row.slug
-        )
-            delete row.slug
+        // ignore slug if a variable id is given
+        const hasValidVariableId =
+            row.owidVariableId && isNotErrorValue(row.owidVariableId)
+        if (hasValidVariableId && row.slug) delete row.slug
+
+        for (const field in row) {
+            const cellDef = ColumnGrammar[field]
+            if (cellDef?.display) {
+                // move field into 'display' object
+                row.display = row.display || {}
+                row.display[field] = row[field]
+                delete row[field]
+            }
+        }
+
         return trimAndParseObject(row, ColumnGrammar)
     })
 }

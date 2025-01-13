@@ -38,6 +38,10 @@ export interface GrapherCellDef extends CellDef {
     toGrapherObject: (value: any) => GrapherInterface // map to a partial config that is a valid GrapherInterface
 }
 
+export interface ColumnCellDef extends CellDef {
+    display?: boolean
+}
+
 export interface ParsedCell {
     errorMessage?: string
     cssClasses?: string[]
