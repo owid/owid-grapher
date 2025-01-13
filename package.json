@@ -2,7 +2,7 @@
     "private": true,
     "version": "3.0.0",
     "engines": {
-        "node": ">=18.16"
+        "node": ">=22.0"
     },
     "packageManager": "yarn@4.1.1",
     "scripts": {
