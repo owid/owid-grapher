@@ -85,6 +85,7 @@ export interface SettingsMenuManager
     isOnMapTab?: boolean
     isOnChartTab?: boolean
     isOnTableTab?: boolean
+    isLineChartThatTurnedIntoDiscreteBar?: boolean
 
     // linear/log scales
     yAxis: AxisConfig
@@ -121,8 +122,16 @@ export class SettingsMenu extends React.Component<{
     @computed get showYScaleToggle(): boolean | undefined {
         if (this.manager.hideYScaleToggle) return false
         if (this.manager.isRelativeMode) return false
-        if ([StackedArea, StackedBar].includes(this.chartType as any))
+        if (
+            [
+                GRAPHER_CHART_TYPES.StackedArea,
+                GRAPHER_CHART_TYPES.StackedBar,
+                GRAPHER_CHART_TYPES.DiscreteBar,
+                GRAPHER_CHART_TYPES.StackedDiscreteBar,
+            ].includes(this.chartType as any)
+        )
             return false // We currently do not have these charts with log scale
+        if (this.manager.isLineChartThatTurnedIntoDiscreteBar) return false
         return this.manager.yAxis.canChangeScaleType
     }
 
