@@ -207,6 +207,12 @@ export const ColumnGrammar: Grammar<ColumnCellDef> = {
             "  Example: one,#ccc,uno; two,,dos",
         ].join("\n"),
     },
+    isProjection: {
+        ...BooleanCellDef,
+        keyword: "isProjection",
+        description: "Is the time series a forward projection?",
+        display: true,
+    },
     plotMarkersOnlyInLineChart: {
         ...BooleanCellDef,
         keyword: "plotMarkersOnlyInLineChart",
