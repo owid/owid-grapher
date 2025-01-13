@@ -15,6 +15,7 @@ import {
     joinTitleFragments,
     getCitationShort,
     getCitationLong,
+    uniqBy,
 } from "@ourworldindata/utils"
 import {
     IndicatorSources,
@@ -113,27 +114,51 @@ export class SourcesModal extends React.Component<
         return this.manager.columnsWithSourcesExtensive
     }
 
+    private makeTabLabelElement(
+        title: string,
+        attribution?: string
+    ): React.ReactElement {
+        return (
+            <>
+                {title}
+                {attribution && (
+                    <span className="attribution">{attribution}</span>
+                )}
+            </>
+        )
+    }
+
+    @computed private get tabs(): {
+        column: CoreColumn
+        label: { element: React.ReactElement }
+    }[] {
+        const tabs = uniqBy(
+            this.columns.map((column) => {
+                const title = column.titlePublicOrDisplayName.title
+                const attribution = joinTitleFragments(
+                    column.titlePublicOrDisplayName.attributionShort,
+                    column.titlePublicOrDisplayName.titleVariant
+                )
+                return { column, title, attribution }
+            }),
+            // deduplicate tabs by their label
+            (tab) => `${tab.title} ${tab.attribution}`
+        )
+
+        return tabs.map((tab) => ({
+            column: tab.column,
+            label: {
+                element: this.makeTabLabelElement(tab.title, tab.attribution),
+            },
+        }))
+    }
+
     @computed private get tabLabels(): TabLabel[] {
-        return this.columns.map((column) => {
-            const attribution = joinTitleFragments(
-                column.titlePublicOrDisplayName.attributionShort,
-                column.titlePublicOrDisplayName.titleVariant
-            )
-            return {
-                element: (
-                    <React.Fragment key={column.slug}>
-                        {column.titlePublicOrDisplayName.title}
-                        {attribution && (
-                            <span className="attribution">{attribution}</span>
-                        )}
-                    </React.Fragment>
-                ),
-            }
-        })
+        return this.tabs.map(({ label }) => label)
     }
 
     @computed private get tabLabelWidths(): number[] {
-        return this.columns.map((column) => {
+        return this.tabs.map(({ column }) => {
             const title = `${column.titlePublicOrDisplayName.title}`
             const fragments = joinTitleFragments(
                 column.titlePublicOrDisplayName.attributionShort,
@@ -265,14 +290,14 @@ export class SourcesModal extends React.Component<
                     indicator for more information.
                 </p>
                 {this.renderTabs()}
-                {this.renderSource(this.columns[this.state.activeTabIndex])}
+                {this.renderSource(this.tabs[this.state.activeTabIndex].column)}
             </>
         )
     }
 
     private renderModalContent(): React.ReactElement | null {
-        return this.columns.length === 1
-            ? this.renderSource(this.columns[0])
+        return this.tabs.length === 1
+            ? this.renderSource(this.tabs[0].column)
             : this.renderMultipleSources()
     }
 
