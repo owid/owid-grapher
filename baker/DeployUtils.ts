@@ -1,6 +1,5 @@
 import fs from "fs-extra"
 import { BuildkiteTrigger } from "../baker/BuildkiteTrigger.js"
-import { logErrorAndMaybeSendToBugsnag, warn } from "../serverUtils/errorLog.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import {
     BAKED_SITE_DIR,
@@ -24,7 +23,7 @@ export const defaultCommitMessage = async (): Promise<string> => {
         const sha = await fs.readFile("public/head.txt", "utf8")
         message += `\nowid/owid-grapher@${sha}`
     } catch (err) {
-        warn(err)
+        console.warn(err)
     }
 
     return message
@@ -43,16 +42,12 @@ const triggerBakeAndDeploy = async (
     if (BUILDKITE_API_ACCESS_TOKEN) {
         const buildkite = new BuildkiteTrigger()
         if (lightningQueue?.length) {
-            await buildkite
-                .runLightningBuild(
-                    lightningQueue.map((change) => change.slug!),
-                    deployMetadata
-                )
-                .catch(logErrorAndMaybeSendToBugsnag)
+            await buildkite.runLightningBuild(
+                lightningQueue.map((change) => change.slug!),
+                deployMetadata
+            )
         } else {
-            await buildkite
-                .runFullBuild(deployMetadata)
-                .catch(logErrorAndMaybeSendToBugsnag)
+            await buildkite.runFullBuild(deployMetadata)
         }
     } else {
         // otherwise, bake locally. This is used for local development or staging servers
@@ -143,11 +138,8 @@ const getSlackMentionByEmail = async (
         const response = await slackClient.users.lookupByEmail({ email })
         return response.user?.id ? `<@${response.user.id}>` : undefined
     } catch (error) {
-        await logErrorAndMaybeSendToBugsnag(
-            `Error looking up email "${email}" in slack: ${error}`
-        )
+        throw new Error(`Error looking up email "${email}" in slack: ${error}`)
     }
-    return
 }
 
 const MAX_SUCCESSIVE_FAILURES = 2

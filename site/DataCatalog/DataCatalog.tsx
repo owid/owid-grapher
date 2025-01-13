@@ -63,7 +63,6 @@ import {
     TOUCH_DEVICE_MEDIA_QUERY,
 } from "../SiteConstants.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import Bugsnag from "@bugsnag/js"
 
 const analytics = new SiteAnalytics()
 
@@ -871,9 +870,7 @@ export const DataCatalog = ({
         if (cache[cacheKey].has(stateAsUrl)) return
 
         setIsLoading(true)
-        fetchData()
-            .catch(Bugsnag.notify)
-            .finally(() => setIsLoading(false))
+        void fetchData().then(() => setIsLoading(false))
         return () => setIsLoading(false)
     }, [
         state,

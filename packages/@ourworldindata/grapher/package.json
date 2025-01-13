@@ -19,9 +19,6 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "@bugsnag/core": "^8.0.0",
-    "@bugsnag/js": "^8.0.0",
-    "@bugsnag/plugin-react": "^8.0.0",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-brands-svg-icons": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
@@ -30,6 +27,7 @@
     "@ourworldindata/core-table": "workspace:^",
     "@ourworldindata/types": "workspace:^",
     "@ourworldindata/utils": "workspace:^",
+    "@sentry/react": "^8.48.0",
     "@tippyjs/react": "^4.2.6",
     "classnames": "^2.5.1",
     "colorbrewer": "^1.3.0",

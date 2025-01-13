@@ -15,7 +15,6 @@ import {
 } from "@aws-sdk/client-s3"
 import { JsonError, lazy } from "@ourworldindata/utils"
 import { Base64String, R2GrapherConfigDirectory } from "@ourworldindata/types"
-import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 const getS3Client: () => S3Client = lazy(
     () =>
@@ -116,7 +115,6 @@ async function saveConfigToR2(
             `Successfully uploaded object: ${params.Bucket}/${params.Key}`
         )
     } catch (err) {
-        await logErrorAndMaybeSendToBugsnag(err)
         throw new JsonError(
             `Failed to save the config to R2. Inner error: ${err}`
         )
@@ -162,7 +160,6 @@ export async function deleteGrapherConfigFromR2(
             `Successfully deleted object: ${params.Bucket}/${params.Key}`
         )
     } catch (err) {
-        await logErrorAndMaybeSendToBugsnag(err)
         throw new JsonError(
             `Failed to delete the grapher config to R2 at ${directory}/${filename}. Inner error: ${err}`
         )
