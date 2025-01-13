@@ -1,23 +1,26 @@
-import { useLayoutEffect, useState } from "react"
-import * as React from "react"
-import { CategoryWithEntries } from "@ourworldindata/utils"
+import React, { useState, useLayoutEffect } from "react"
+import {
+    TagGraphNode,
+    TagGraphRoot,
+    getAllTopicsInArea,
+} from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import classnames from "classnames"
 import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
-import { allTopicsInCategory } from "./gdocs/utils.js"
 
 export const SiteNavigationTopics = ({
-    topics,
+    tagGraph,
     onClose,
     className,
 }: {
-    topics: CategoryWithEntries[]
+    tagGraph: TagGraphRoot | null
     onClose: () => void
     className?: string
 }) => {
-    const [activeCategory, setActiveCategory] =
-        useState<CategoryWithEntries | null>(topics[0])
+    const [activeCategory, setActiveCategory] = useState<TagGraphNode | null>(
+        tagGraph?.children[0] || null
+    )
 
     const [numTopicColumns, setNumTopicColumns] = useState(1)
 
@@ -25,7 +28,7 @@ export const SiteNavigationTopics = ({
     // using useLayoutEffect to avoid a flash of the wrong number of columns when switching categories
     useLayoutEffect(() => {
         if (activeCategory) {
-            const topics = allTopicsInCategory(activeCategory)
+            const topics = getAllTopicsInArea(activeCategory)
             const numColumns = Math.ceil(topics.length / 10)
             setNumTopicColumns(numColumns)
         }
@@ -35,7 +38,7 @@ export const SiteNavigationTopics = ({
         e.stopPropagation()
     }
 
-    return topics.length > 0 ? (
+    return tagGraph?.children ? (
         <div
             className={classnames("SiteNavigationTopics", className)}
             // hack: this is to make sure the overlay is closed when clicking
@@ -50,7 +53,7 @@ export const SiteNavigationTopics = ({
             <div className="categories" onClick={stopPropagation}>
                 <div className="heading">Browse by topic</div>
                 <ul>
-                    {topics.map((category) => (
+                    {tagGraph.children.map((category) => (
                         <li key={category.slug}>
                             <button
                                 aria-label={`Toggle ${category.name} sub-menu`}
@@ -76,7 +79,7 @@ export const SiteNavigationTopics = ({
                     })}
                     onClick={stopPropagation}
                 >
-                    {allTopicsInCategory(activeCategory).map((topic) => (
+                    {getAllTopicsInArea(activeCategory).map((topic) => (
                         <SiteNavigationTopic key={topic.slug} topic={topic} />
                     ))}
                 </ul>
