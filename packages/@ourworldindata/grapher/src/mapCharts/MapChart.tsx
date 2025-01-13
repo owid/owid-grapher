@@ -514,11 +514,13 @@ export class MapChart
     }
 
     @computed get legendMaxWidth(): number {
-        return this.bounds.width
+        // it seems nice to have just a little bit of
+        // extra padding left and right
+        return this.bounds.width * 0.95
     }
 
     @computed get legendX(): number {
-        return this.bounds.x
+        return this.bounds.x + (this.bounds.width - this.legendMaxWidth) / 2
     }
 
     @computed get legendHeight(): number {
@@ -555,9 +557,7 @@ export class MapChart
     }
 
     @computed get legendAlign(): HorizontalAlign {
-        if (this.numericLegend) return HorizontalAlign.center
-        const { numLines = 0 } = this.categoryLegend ?? {}
-        return numLines > 1 ? HorizontalAlign.left : HorizontalAlign.center
+        return HorizontalAlign.center
     }
 
     @computed get numericLegendY(): number {
