@@ -127,6 +127,7 @@ export {
 
 export {
     TagGraphRootName,
+    TagGraphTableName,
     type CategoryWithEntries,
     type EntryMeta,
     type FlatTagGraph,

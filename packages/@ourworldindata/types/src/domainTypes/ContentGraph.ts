@@ -12,6 +12,8 @@ export interface CategoryWithEntries {
     subcategories?: CategoryWithEntries[]
 }
 
+export const TagGraphTableName = "tag_graph"
+
 export type DbInsertTagGraphNode = {
     parentId: number
     childId: number

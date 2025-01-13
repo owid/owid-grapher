@@ -490,11 +490,15 @@ h3.article-block__heading.has-supertitle {
 
 .centered-article-header__breadcrumbs-container {
     .centered-article-header__breadcrumbs {
+        @include body-3-regular;
+        @include sm-only {
+            font-size: 0.75rem;
+        }
         &.breadcrumbs-white {
             color: $white;
         }
         &.breadcrumbs-blue {
-            color: $blue-100;
+            color: $blue-90;
         }
 
         // Idea here: By using this positioning, we can have the breadcrumbs
@@ -510,7 +514,6 @@ h3.article-block__heading.has-supertitle {
         margin-top: var(--header-breadcrumb-margin-top);
         margin-bottom: calc(-1.6em - var(--header-breadcrumb-margin-top));
 
-        font-size: 1rem;
         a {
             @include owid-link-90;
             color: inherit;
@@ -523,8 +526,9 @@ h3.article-block__heading.has-supertitle {
 
         .separator {
             margin: 0 0.5rem;
-            vertical-align: -0.0625em;
-            opacity: 0.7;
+            vertical-align: -0.05em;
+            opacity: 0.6;
+            color: inherit;
         }
     }
 }

@@ -87,7 +87,7 @@ export interface OwidGdocBaseInterface {
     updatedAt: Date | null
     revisionId: string | null
     publicationContext: OwidGdocPublicationContext
-    breadcrumbs: BreadcrumbItem[] | null
+    manualBreadcrumbs: BreadcrumbItem[] | null
     linkedAuthors?: LinkedAuthor[]
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     linkedCharts?: Record<string, LinkedChart>
@@ -96,6 +96,7 @@ export interface OwidGdocBaseInterface {
     relatedCharts?: RelatedChart[]
     tags?: MinimalTag[] | null
     errors?: OwidGdocErrorMessage[]
+    breadcrumbs?: BreadcrumbItem[] | null
     markdown: string | null
 }
 

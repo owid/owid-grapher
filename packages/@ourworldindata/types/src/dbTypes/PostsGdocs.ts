@@ -8,7 +8,7 @@ import { MinimalTag } from "./Tags.js"
 
 export const PostsGdocsTableName = "posts_gdocs"
 export interface DbInsertPostGdoc {
-    breadcrumbs?: JsonString | null
+    manualBreadcrumbs?: JsonString | null
     content: JsonString
     createdAt: Date
     id: string
@@ -23,10 +23,10 @@ export interface DbInsertPostGdoc {
 export type DbRawPostGdoc = Required<DbInsertPostGdoc>
 export type DbEnrichedPostGdoc = Omit<
     DbRawPostGdoc,
-    "content" | "breadcrumbs" | "published"
+    "content" | "manualBreadcrumbs" | "published"
 > & {
     content: OwidGdocContent
-    breadcrumbs: BreadcrumbItem[] | null
+    manualBreadcrumbs: BreadcrumbItem[] | null
     published: boolean
 }
 
@@ -62,7 +62,7 @@ export function parsePostsGdocsRow(row: DbRawPostGdoc): DbEnrichedPostGdoc {
     return {
         ...row,
         content: parsePostGdocContent(row.content),
-        breadcrumbs: parsePostsGdocsBreadcrumbs(row.breadcrumbs),
+        manualBreadcrumbs: parsePostsGdocsBreadcrumbs(row.manualBreadcrumbs),
         published: !!row.published,
     }
 }
@@ -77,10 +77,17 @@ export function parsePostsGdocsWithTagsRow(
 }
 
 export function serializePostsGdocsRow(row: DbEnrichedPostGdoc): DbRawPostGdoc {
+    // Kind of awkward, but automatic breadcrumbs are part of OwidGdocBaseInterface,
+    // but not part of the DB schema. So we remove them here.
+    if ("breadcrumbs" in row) {
+        delete row.breadcrumbs
+    }
     return {
         ...row,
         content: serializePostGdocContent(row.content),
-        breadcrumbs: serializePostsGdocsBreadcrumbs(row.breadcrumbs),
+        manualBreadcrumbs: serializePostsGdocsBreadcrumbs(
+            row.manualBreadcrumbs
+        ),
         published: row.published ? 1 : 0,
     }
 }
