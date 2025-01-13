@@ -514,7 +514,7 @@ export class Grapher
 
     chartViewInfo?: Pick<
         ChartViewInfo,
-        "parentChartSlug" | "queryParamsForParentChart"
+        "name" | "parentChartSlug" | "queryParamsForParentChart"
     > = undefined
 
     selection =
@@ -3008,7 +3008,10 @@ export class Grapher
                 ref={this.base}
                 className={containerClasses}
                 style={containerStyle}
-                data-grapher-url={this.canonicalUrl}
+                data-grapher-url={JSON.stringify({
+                    grapherUrl: this.canonicalUrl,
+                    chartViewName: this.chartViewInfo?.name,
+                })}
             >
                 {this.commandPalette}
                 {this.uncaughtError ? this.renderError() : this.renderReady()}
@@ -3102,9 +3105,22 @@ export class Grapher
                         if (entry.isIntersecting) {
                             this.hasBeenVisible = true
 
-                            if (this.slug && !this.hasLoggedGAViewEvent) {
-                                this.analytics.logGrapherView(this.slug)
+                            if (!this.hasLoggedGAViewEvent) {
                                 this.hasLoggedGAViewEvent = true
+
+                                if (this.chartViewInfo) {
+                                    this.analytics.logGrapherView(
+                                        this.chartViewInfo.parentChartSlug,
+                                        {
+                                            chartViewName:
+                                                this.chartViewInfo.name,
+                                        }
+                                    )
+                                    this.hasLoggedGAViewEvent = true
+                                } else if (this.slug) {
+                                    this.analytics.logGrapherView(this.slug)
+                                    this.hasLoggedGAViewEvent = true
+                                }
                             }
                         }
 
