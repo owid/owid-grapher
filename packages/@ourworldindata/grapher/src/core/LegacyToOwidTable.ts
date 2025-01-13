@@ -1,15 +1,16 @@
 // todo: Remove this file when we've migrated OWID data and OWID charts to next version
 
 import {
-    GRAPHER_CHART_TYPES,
     ColumnTypeNames,
     CoreColumnDef,
     StandardOwidColumnDefs,
     OwidTableSlugs,
     OwidColumnDef,
-    LegacyGrapherInterface,
     OwidVariableDimensions,
     OwidVariableDataMetadataDimensions,
+    EntityId,
+    ErrorValue,
+    OwidChartDimensionInterfaceWithMandatorySlug,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -34,16 +35,19 @@ import {
     OwidVariableWithSourceAndDimension,
     ColumnSlug,
     EPOCH_DATE,
-    OwidChartDimensionInterface,
     OwidVariableType,
     memoize,
+    isEmpty,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
 
 export const legacyToOwidTableAndDimensions = (
     json: MultipleOwidVariableDataDimensionsMap,
-    grapherConfig: Partial<LegacyGrapherInterface>
-): { dimensions: OwidChartDimensionInterface[]; table: OwidTable } => {
+    dimensions: OwidChartDimensionInterfaceWithMandatorySlug[],
+    selectedEntityColors:
+        | { [entityName: string]: string | undefined }
+        | undefined
+): OwidTable => {
     // Entity meta map
 
     const entityMeta = [...json.values()].flatMap(
@@ -53,8 +57,6 @@ export const legacyToOwidTableAndDimensions = (
         entityMeta.map((entity) => [entity.id.toString(), entity])
     )
 
-    const dimensions = grapherConfig.dimensions || []
-
     // Base column defs, shared by all variable tables
 
     const baseColumnDefs: Map<ColumnSlug, CoreColumnDef> = new Map()
@@ -62,26 +64,9 @@ export const legacyToOwidTableAndDimensions = (
         baseColumnDefs.set(def.slug, def)
     })
 
-    const entityColorColumnSlug = grapherConfig.selectedEntityColors
-        ? OwidTableSlugs.entityColor
-        : undefined
-    if (entityColorColumnSlug) {
-        baseColumnDefs.set(entityColorColumnSlug, {
-            slug: entityColorColumnSlug,
-            type: ColumnTypeNames.Color,
-            name: entityColorColumnSlug,
-        })
-    }
-
     // We need to create a column for each unique [variable, targetTime] pair. So there can be
     // multiple columns for a single variable.
-    const newDimensions = dimensions.map((dimension) => ({
-        ...dimension,
-        slug: dimension.targetYear
-            ? `${dimension.variableId}-${dimension.targetYear}`
-            : `${dimension.variableId}`,
-    }))
-    const dimensionColumns = uniqBy(newDimensions, (dim) => dim.slug)
+    const dimensionColumns = uniqBy(dimensions, (dim) => dim.slug)
 
     const variableTablesToJoinByYear: OwidTable[] = []
     const variableTablesToJoinByDay: OwidTable[] = []
@@ -174,18 +159,6 @@ export const legacyToOwidTableAndDimensions = (
             )
             columnDefs.set(annotationColumnDef.slug, annotationColumnDef)
         }
-
-        if (entityColorColumnSlug) {
-            columnStore[entityColorColumnSlug] = entityIds.map((entityId) => {
-                // see comment above about entityMetaById[id]
-                const entityName = entityMetaById[entityId]?.name
-                const selectedEntityColors = grapherConfig.selectedEntityColors
-                return entityName && selectedEntityColors
-                    ? selectedEntityColors[entityName]
-                    : undefined
-            })
-        }
-
         // Build the tables
 
         let variableTable = new OwidTable(
@@ -198,12 +171,7 @@ export const legacyToOwidTableAndDimensions = (
         // We do this by dropping the column. We interpolate before which adds an originalTime
         // column which can be used to recover the time.
         const targetTime = dimension?.targetYear
-        const chartType = grapherConfig.chartTypes?.[0]
-        if (
-            (chartType === GRAPHER_CHART_TYPES.ScatterPlot ||
-                chartType === GRAPHER_CHART_TYPES.Marimekko) &&
-            isNumber(targetTime)
-        ) {
+        if (isNumber(targetTime)) {
             variableTable = variableTable
                 // interpolateColumnWithTolerance() won't handle injecting times beyond the current
                 // allTimes. So if targetYear is 2018, and we have data up to 2017, the
@@ -359,7 +327,36 @@ export const legacyToOwidTableAndDimensions = (
         }
     }
 
-    return { dimensions: newDimensions, table: joinedVariablesTable }
+    // Append the entity color column if we have selected entity colors
+    if (!isEmpty(selectedEntityColors)) {
+        const entityColorColumnSlug = OwidTableSlugs.entityColor
+
+        const valueFn = (
+            entityId: EntityId | undefined
+        ): string | ErrorValue => {
+            if (!entityId) return ErrorValueTypes.UndefinedButShouldBeString
+            const entityName =
+                joinedVariablesTable.entityIdToNameMap.get(entityId)
+            return entityName && selectedEntityColors
+                ? (selectedEntityColors[entityName] ??
+                      ErrorValueTypes.UndefinedButShouldBeString)
+                : ErrorValueTypes.UndefinedButShouldBeString
+        }
+
+        const values = joinedVariablesTable.rows.map((row) =>
+            valueFn(row.entityId)
+        )
+
+        joinedVariablesTable = joinedVariablesTable.appendColumns([
+            {
+                slug: entityColorColumnSlug,
+                name: entityColorColumnSlug,
+                type: ColumnTypeNames.Color,
+                values: values,
+            },
+        ])
+    }
+    return joinedVariablesTable
 }
 
 const fullJoinTables = (
