@@ -17,7 +17,7 @@ jobs:
 
             - uses: hustcer/setup-nu@v3
               with:
-                  version: "0.80" # Don't use 0.80 here, as it was a float number and will be convert to 0.8, you can use v0.80/0.80.0 or '0.80'
+                  version: "0.101" # Don't use 0.101 here, as it was a float number and will be convert to 0.101, you can use v0.101/0.101.0 or '0.101'
             # Turn all yaml files in the schema directory into json (should only be one)
             - run: |
                   (ls packages/@ourworldindata/grapher/src/schema/*.yaml
