@@ -263,11 +263,21 @@ export interface AxisConfigInterface {
     minSize?: number
 
     /**
-     * The padding between:
-     * - an axis tick and an axis gridline
-     * - an axis label and an axis tick
+     * Position of the axis label.
+     * For vertical axes, 'middle' rotates the label and places it to the left of the axis,
+     * 'end' places the label above the axis.
+     */
+    labelPosition?: AxisAlign
+
+    /**
+     * The padding between an axis label and an axis tick
      */
     labelPadding?: number
+
+    /**
+     * The padding between an axis tick and an axis gridline
+     */
+    tickPadding?: number
 
     /**
      * Extend scale to start & end on "nicer" round values.

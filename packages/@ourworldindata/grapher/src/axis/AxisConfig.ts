@@ -7,6 +7,7 @@ import {
     AxisAlign,
     Position,
     TickFormattingOptions,
+    Bounds,
 } from "@ourworldindata/utils"
 import { observable, computed } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
@@ -20,6 +21,7 @@ import {
 
 export interface AxisManager {
     fontSize: number
+    axisBounds?: Bounds
     detailsOrderedByReference?: string[]
 }
 
@@ -33,7 +35,9 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref hideAxis?: boolean = undefined
     @observable.ref hideGridlines?: boolean = undefined
     @observable.ref hideTickLabels?: boolean = undefined
+    @observable.ref labelPosition?: AxisAlign = AxisAlign.middle
     @observable.ref labelPadding?: number = undefined
+    @observable.ref tickPadding?: number = undefined
     @observable.ref nice?: boolean = undefined
     @observable.ref maxTicks?: number = undefined
     @observable.ref tickFormattingOptions?: TickFormattingOptions = undefined

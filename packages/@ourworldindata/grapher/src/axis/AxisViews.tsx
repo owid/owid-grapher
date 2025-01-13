@@ -14,7 +14,7 @@ import {
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
-import { ScaleType, DetailsMarker } from "@ourworldindata/types"
+import { ScaleType, DetailsMarker, AxisAlign } from "@ourworldindata/types"
 
 const dasharrayFromFontSize = (fontSize: number): string => {
     const dashLength = Math.round((fontSize / 16) * 3)
@@ -265,27 +265,27 @@ export class VerticalAxisComponent extends React.Component<{
         } = this.props
         const { tickLabels, labelTextWrap, config } = verticalAxis
 
+        const isLabelCentered = verticalAxis.labelPosition === AxisAlign.middle
+        const labelX = isLabelCentered ? -verticalAxis.rangeCenter : bounds.left
+        const labelY = isLabelCentered ? bounds.left : bounds.top
+
         return (
             <g
                 id={makeIdForHumanConsumption("vertical-axis")}
                 className="VerticalAxis"
             >
                 {labelTextWrap &&
-                    labelTextWrap.renderSVG(
-                        -verticalAxis.rangeCenter,
-                        bounds.left,
-                        {
-                            id: makeIdForHumanConsumption(
-                                "vertical-axis-label"
-                            ),
-                            textProps: {
-                                transform: "rotate(-90)",
-                                fill: labelColor || GRAPHER_DARK_TEXT,
-                                textAnchor: "middle",
-                            },
-                            detailsMarker,
-                        }
-                    )}
+                    labelTextWrap.renderSVG(labelX, labelY, {
+                        id: makeIdForHumanConsumption("vertical-axis-label"),
+                        textProps: {
+                            transform: isLabelCentered
+                                ? "rotate(-90)"
+                                : undefined,
+                            fill: labelColor || GRAPHER_DARK_TEXT,
+                            textAnchor: isLabelCentered ? "middle" : "start",
+                        },
+                        detailsMarker,
+                    })}
                 {showTickMarks && (
                     <g id={makeIdForHumanConsumption("tick-marks")}>
                         {tickLabels.map((label, i) => (
@@ -315,7 +315,7 @@ export class VerticalAxisComponent extends React.Component<{
                                     x={(
                                         bounds.left +
                                         verticalAxis.width -
-                                        verticalAxis.labelPadding
+                                        verticalAxis.tickPadding
                                     ).toFixed(2)}
                                     y={y}
                                     dy={dyFromAlign(
@@ -392,17 +392,20 @@ export class HorizontalAxisComponent extends React.Component<{
 
         const showTickLabels = !axis.config.hideTickLabels
 
+        const isLabelCentered = axis.labelPosition === AxisAlign.middle
+        const labelX = isLabelCentered ? axis.rangeCenter : bounds.right
+
         return (
             <g
                 id={makeIdForHumanConsumption("horizontal-axis")}
                 className="HorizontalAxis"
             >
                 {label &&
-                    label.renderSVG(axis.rangeCenter, labelYPosition, {
+                    label.renderSVG(labelX, labelYPosition, {
                         id: makeIdForHumanConsumption("horizontal-axis-label"),
                         textProps: {
                             fill: labelColor || GRAPHER_DARK_TEXT,
-                            textAnchor: "middle",
+                            textAnchor: isLabelCentered ? "middle" : "end",
                         },
                         detailsMarker,
                     })}
