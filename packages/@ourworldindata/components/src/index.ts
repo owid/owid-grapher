@@ -1,5 +1,4 @@
 export { TextWrap, shortenForTargetWidth } from "./TextWrap/TextWrap.js"
-export { TextWrapGroup } from "./TextWrap/TextWrapGroup.js"
 
 export {
     MarkdownTextWrap,

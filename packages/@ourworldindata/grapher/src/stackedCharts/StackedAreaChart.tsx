@@ -29,7 +29,7 @@ import {
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis } from "../axis/Axis"
-import { LineLabelSeries, LineLegend } from "../lineLegend/LineLegend"
+import { LineLegend } from "../lineLegend/LineLegend"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
@@ -57,6 +57,7 @@ import {
 } from "../chart/ChartUtils"
 import { bind } from "decko"
 import { AxisConfig } from "../axis/AxisConfig.js"
+import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
