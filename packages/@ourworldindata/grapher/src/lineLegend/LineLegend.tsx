@@ -18,12 +18,10 @@ import { VerticalAxis } from "../axis/Axis"
 import {
     Color,
     EntityName,
-    InteractionState,
     SeriesName,
     VerticalAlign,
 } from "@ourworldindata/types"
 import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
-import { ChartSeries } from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import { GRAPHER_BACKGROUND_DEFAULT, GRAY_30 } from "../color/ColorConstants"
@@ -40,35 +38,7 @@ import {
     NON_FOCUSED_TEXT_COLOR,
 } from "./LineLegendConstants.js"
 import { getSeriesKey } from "./LineLegendHelpers"
-
-export interface LineLabelSeries extends ChartSeries {
-    label: string
-    yValue: number
-    annotation?: string
-    formattedValue?: string
-    placeFormattedValueInNewLine?: boolean
-    yRange?: [number, number]
-    hover?: InteractionState
-    focus?: InteractionState
-}
-
-interface SizedSeries extends LineLabelSeries {
-    textWrap: TextWrap | MarkdownTextWrap
-    textWrapForRendering: TextWrap | MarkdownTextWrap
-    annotationTextWrap?: TextWrap
-    width: number
-    height: number
-    fontWeight?: number
-}
-
-interface PlacedSeries extends SizedSeries {
-    origBounds: Bounds
-    bounds: Bounds
-    repositions: number
-    level: number
-    totalLevels: number
-    midY: number
-}
+import { LineLabelSeries, PlacedSeries, SizedSeries } from "./LineLegendTypes"
 
 function groupBounds(group: PlacedSeries[]): Bounds {
     const first = group[0]

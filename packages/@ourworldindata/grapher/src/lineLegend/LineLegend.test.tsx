@@ -2,8 +2,9 @@
 
 import { PartialBy } from "@ourworldindata/utils"
 import { AxisConfig } from "../axis/AxisConfig"
-import { LineLabelSeries, LineLegend } from "./LineLegend"
+import { LineLegend } from "./LineLegend"
 import { LEGEND_ITEM_MIN_SPACING } from "./LineLegendConstants"
+import { LineLabelSeries } from "./LineLegendTypes"
 
 const makeAxis = ({
     min = 0,
