@@ -21,7 +21,7 @@ export interface OwidVariableDisplayConfigInterface {
     includeInTable?: boolean
     tableDisplay?: OwidVariableDataTableConfigInterface
     color?: string
-    isConnected?: boolean
+    plotMarkersOnlyInLineChart?: boolean
 }
 
 // todo: flatten onto the above

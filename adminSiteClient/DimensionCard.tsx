@@ -51,8 +51,8 @@ export class DimensionCard<
         this.onChange()
     }
 
-    @action.bound onIsConnected(value: boolean) {
-        this.props.dimension.display.isConnected = value
+    @action.bound onPlotMarkersOnly(value: boolean) {
+        this.props.dimension.display.plotMarkersOnlyInLineChart = value
         this.onChange()
     }
 
@@ -259,9 +259,12 @@ export class DimensionCard<
                         )}
                         {grapher.isLineChart && (
                             <Toggle
-                                label="Is connected"
-                                value={column.display?.isConnected ?? true}
-                                onValue={this.onIsConnected}
+                                label="Plot markers only"
+                                value={
+                                    column.display
+                                        ?.plotMarkersOnlyInLineChart ?? false
+                                }
+                                onValue={this.onPlotMarkersOnly}
                             />
                         )}
                         <hr className="ui divider" />

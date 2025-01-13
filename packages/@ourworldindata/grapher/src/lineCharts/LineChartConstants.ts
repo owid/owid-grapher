@@ -23,7 +23,7 @@ export interface PlacedPoint {
 
 export interface LineChartSeries extends ChartSeries {
     isProjection?: boolean
-    isConnected?: boolean
+    plotMarkersOnly?: boolean
     points: LinePoint[]
 }
 

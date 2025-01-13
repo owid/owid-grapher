@@ -172,17 +172,17 @@ class Lines extends React.Component<LinesProps> {
         return totalPoints < 500
     }
 
-    @computed private get hasDisconnectedSeries(): boolean {
-        return this.props.series.some((series) => !series.isConnected)
+    @computed private get hasMarkersOnlySeries(): boolean {
+        return this.props.series.some((series) => series.plotMarkersOnly)
     }
 
     private seriesHasMarkers(series: RenderLineChartSeries): boolean {
         if (
             series.hover.background ||
             series.isProjection ||
-            // if the series is connected, but there is another one that isn't connected,
-            // don't show markers since the connected series is likely a smoothed version
-            (this.hasDisconnectedSeries && series.isConnected)
+            // if the series has a line, but there is another one that hasn't, then
+            // don't show markers since the plotted line is likely a smoothed version
+            (this.hasMarkersOnlySeries && !series.plotMarkersOnly)
         )
             return false
         return !series.focus.background || series.hover.active
@@ -193,7 +193,7 @@ class Lines extends React.Component<LinesProps> {
     ): React.ReactElement | void {
         const { hover, focus } = series
 
-        if (!series.isConnected) return
+        if (series.plotMarkersOnly) return
 
         const seriesColor = series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR
         const color =
@@ -262,7 +262,7 @@ class Lines extends React.Component<LinesProps> {
             // show a marker/circle because we can't draw a line.
             series.placedPoints.length === 1 ||
             // If no line is plotted, we'll always want to show markers
-            !series.isConnected
+            series.plotMarkersOnly
 
         // check if we should hide markers on the chart and series level
         const hideMarkers = !this.hasMarkers || !this.seriesHasMarkers(series)
@@ -272,8 +272,12 @@ class Lines extends React.Component<LinesProps> {
         const opacity =
             hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
 
-        const outlineColor = !series.isConnected ? this.outlineColor : undefined
-        const outlineWidth = !series.isConnected ? this.outlineWidth : undefined
+        const outlineColor = series.plotMarkersOnly
+            ? this.outlineColor
+            : undefined
+        const outlineWidth = series.plotMarkersOnly
+            ? this.outlineWidth
+            : undefined
 
         return (
             <g id={makeIdForHumanConsumption("markers", series.seriesName)}>
@@ -548,7 +552,7 @@ export class LineChart
     }
 
     @computed private get markerRadius(): number {
-        if (this.hasDisconnectedSeries) return DISCONNECTED_DOTS_MARKER_RADIUS
+        if (this.hasMarkersOnlySeries) return DISCONNECTED_DOTS_MARKER_RADIUS
         if (this.hasColorScale) return VARIABLE_COLOR_MARKER_RADIUS
         return DEFAULT_MARKER_RADIUS
     }
@@ -1316,7 +1320,7 @@ export class LineChart
             points,
             seriesName,
             isProjection: column.isProjection,
-            isConnected: column.display?.isConnected ?? true,
+            plotMarkersOnly: column.display?.plotMarkersOnlyInLineChart,
             color: seriesColor,
         }
     }
@@ -1330,8 +1334,8 @@ export class LineChart
         )
     }
 
-    @computed private get hasDisconnectedSeries(): boolean {
-        return this.series.some((series) => !series.isConnected)
+    @computed private get hasMarkersOnlySeries(): boolean {
+        return this.series.some((series) => series.plotMarkersOnly)
     }
 
     // TODO: remove, seems unused
@@ -1387,8 +1391,8 @@ export class LineChart
             }
         )
 
-        // draw connected series on top of disconnected ones
-        series = sortBy(series, (series) => series.isConnected)
+        // draw lines on top of markers-only series
+        series = sortBy(series, (series) => !series.plotMarkersOnly)
 
         // sort by interaction state so that foreground series
         // are drawn on top of background series

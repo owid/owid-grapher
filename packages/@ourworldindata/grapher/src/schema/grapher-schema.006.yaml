@@ -266,11 +266,11 @@ properties:
                             description: |
                                 Indicates if this time series is a forward projection (if yes then this is rendered
                                 differently in e.g. line charts)
-                        isConnected:
+                        plotMarkersOnlyInLineChart:
                             type: boolean
                             default: false
                             description: |
-                                Indicates if this time series should be connected with a line. Only relevant for line charts.
+                                Indicates if data points should be connected with a line in a line chart
                         name:
                             type: string
                             description: The display string for this variable

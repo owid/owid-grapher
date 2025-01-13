@@ -29,7 +29,7 @@ class OwidVariableDisplayConfigDefaults {
     @observable includeInTable? = true
     @observable tableDisplay?: OwidVariableDataTableConfigInterface
     @observable color?: string = undefined
-    @observable isConnected?: boolean = undefined
+    @observable plotMarkersOnlyInLineChart?: boolean = undefined
 }
 
 export class OwidVariableDisplayConfig
