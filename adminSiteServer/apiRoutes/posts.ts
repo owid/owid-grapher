@@ -14,8 +14,7 @@ import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { setTagsForPost, getTagsByPostId } from "../../db/model/Post.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import * as db from "../../db/db.js"
-import { Request } from "../authentication.js"
-import e from "express"
+import e, { Request } from "express"
 export async function handleGetPostsJson(
     req: Request,
     _res: e.Response<any, Record<string, any>>,

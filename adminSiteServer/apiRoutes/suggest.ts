@@ -8,8 +8,7 @@ import { getGptTopicSuggestions } from "../../db/model/Chart.js"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import { fetchGptGeneratedAltText } from "../imagesHelpers.js"
 import * as db from "../../db/db.js"
-import e from "express"
-import { Request } from "../authentication.js"
+import e, { Request } from "express"
 
 export async function suggestGptTopics(
     req: Request,

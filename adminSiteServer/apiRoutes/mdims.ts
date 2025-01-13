@@ -7,9 +7,8 @@ import {
 } from "../../settings/clientSettings.js"
 import { createMultiDimConfig } from "../multiDim.js"
 import { triggerStaticBuild } from "./routeUtils.js"
-import { Request } from "../authentication.js"
 import * as db from "../../db/db.js"
-import e from "express"
+import e, { Request } from "express"
 
 export async function handleMultiDimDataPageRequest(
     req: Request,

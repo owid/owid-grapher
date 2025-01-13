@@ -9,8 +9,7 @@ import * as db from "../../db/db.js"
 import * as lodash from "lodash"
 import path from "path"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import { Request } from "../authentication.js"
-import e from "express"
+import e, { Request } from "express"
 // using the alternate template, which highlights topics rather than articles.
 export async function fetchAllWork(
     req: Request,

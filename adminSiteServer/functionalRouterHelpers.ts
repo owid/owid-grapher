@@ -1,8 +1,7 @@
-import { FunctionalRouter } from "./FunctionalRouter.js"
-import { Request, Response } from "express"
+import { Request, Response, Router } from "express"
 import * as db from "../db/db.js"
 export function getRouteWithROTransaction<T>(
-    router: FunctionalRouter,
+    router: Router,
     targetPath: string,
     handler: (
         req: Request,
@@ -22,7 +21,7 @@ export function getRouteWithROTransaction<T>(
     fetching it from the google API.
  */
 export function getRouteNonIdempotentWithRWTransaction<T>(
-    router: FunctionalRouter,
+    router: Router,
     targetPath: string,
     handler: (
         req: Request,
@@ -38,7 +37,7 @@ export function getRouteNonIdempotentWithRWTransaction<T>(
 }
 
 export function postRouteWithRWTransaction<T>(
-    router: FunctionalRouter,
+    router: Router,
     targetPath: string,
     handler: (
         req: Request,
@@ -54,7 +53,7 @@ export function postRouteWithRWTransaction<T>(
 }
 
 export function putRouteWithRWTransaction<T>(
-    router: FunctionalRouter,
+    router: Router,
     targetPath: string,
     handler: (
         req: Request,
@@ -70,7 +69,7 @@ export function putRouteWithRWTransaction<T>(
 }
 
 export function patchRouteWithRWTransaction<T>(
-    router: FunctionalRouter,
+    router: Router,
     targetPath: string,
     handler: (
         req: Request,
@@ -86,7 +85,7 @@ export function patchRouteWithRWTransaction<T>(
 }
 
 export function deleteRouteWithRWTransaction<T>(
-    router: FunctionalRouter,
+    router: Router,
     targetPath: string,
     handler: (
         req: Request,

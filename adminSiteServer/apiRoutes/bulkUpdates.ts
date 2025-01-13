@@ -23,10 +23,9 @@ import {
     updateGrapherConfigAdminOfVariable,
 } from "../../db/model/Variable.js"
 import { saveGrapher } from "./charts.js"
+import e, { Request } from "express"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
-import { Request } from "../authentication.js"
-import e from "express"
 
 export async function getChartBulkUpdate(
     req: Request,

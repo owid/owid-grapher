@@ -1,6 +1,5 @@
 import { JsonError } from "@ourworldindata/types"
-import { Request } from "express"
-import * as e from "express"
+import e, { Request } from "express"
 
 import * as db from "../../db/db.js"
 export async function addExplorerTags(

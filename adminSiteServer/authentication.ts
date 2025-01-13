@@ -14,12 +14,6 @@ import { Secret, verify } from "jsonwebtoken"
 import { DbPlainSession, DbPlainUser, JsonError } from "@ourworldindata/utils"
 import { exec } from "child_process"
 
-export type Request = express.Request
-
-export interface Response extends express.Response {
-    locals: { user: DbPlainUser; session: Session }
-}
-
 interface Session {
     id: string
     expiryDate: Date

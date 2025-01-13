@@ -45,8 +45,7 @@ import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { triggerStaticBuild, enqueueLightningChange } from "./routeUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
-import { Request } from "../authentication.js"
-import e from "express"
+import e, { Request } from "express"
 
 export async function getAllGdocIndexItems(
     req: Request,
