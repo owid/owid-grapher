@@ -19,6 +19,7 @@ import {
     TooltipValueRangeProps,
     TooltipContext,
 } from "./TooltipProps"
+import { makeAxisLabel } from "../chart/ChartUtils.js"
 
 export const NO_DATA_COLOR = "#999"
 
@@ -132,22 +133,25 @@ class Variable extends React.Component<{
 
         if (column.isMissing || column.name === "time") return null
 
-        const { displayUnit, displayName } = column,
-            displayNotice =
-                uniq((notice ?? []).filter((t) => t !== undefined))
-                    .map((time) =>
-                        typeof time === "number"
-                            ? column.formatTime(time)
-                            : time
-                    )
-                    .join("\u2013") || null
+        const { mainLabel: label, unit } = makeAxisLabel({
+            label: column.displayName,
+            unit: column.unit,
+            shortUnit: column.shortUnit,
+        })
+
+        const displayNotice =
+            uniq((notice ?? []).filter((t) => t !== undefined))
+                .map((time) =>
+                    typeof time === "number" ? column.formatTime(time) : time
+                )
+                .join("\u2013") || null
 
         return (
             <div className="variable">
                 <div className="definition">
-                    {displayName && <span className="name">{displayName}</span>}
-                    {displayUnit && displayUnit.length > 1 && (
-                        <span className="unit">{displayUnit}</span>
+                    {label && <span className="name">{label}</span>}
+                    {unit && unit.length > 1 && (
+                        <span className="unit">{unit}</span>
                     )}
                 </div>
                 <div className="values" style={{ color }}>

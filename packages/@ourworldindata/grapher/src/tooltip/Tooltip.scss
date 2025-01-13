@@ -117,14 +117,6 @@
                         .unit {
                             font-weight: $medium;
                             font-style: normal;
-
-                            &::before {
-                                content: "(";
-                            }
-
-                            &::after {
-                                content: ")";
-                            }
                         }
                     }
 
