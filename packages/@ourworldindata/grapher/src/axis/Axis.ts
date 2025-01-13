@@ -26,6 +26,7 @@ import { AxisConfig, AxisManager } from "./AxisConfig"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
 import { GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants.js"
+import { makeAxisLabel } from "../chart/ChartUtils"
 
 interface TickLabelPlacement {
     value: number
@@ -503,21 +504,26 @@ abstract class AbstractAxis {
                 this.axisManager?.detailsOrderedByReference,
         }
 
-        const displayUnit = this.formatColumn?.displayUnit
-        if (displayUnit) {
+        const axisLabel = makeAxisLabel({
+            label: this.label,
+            unit: this.formatColumn?.unit,
+            shortUnit: this.formatColumn?.shortUnit,
+        })
+
+        if (axisLabel.unit) {
             return MarkdownTextWrap.fromFragments({
-                main: { text: this.label, bold: true },
-                secondary: { text: `(${displayUnit})` },
+                main: { text: axisLabel.mainLabel, bold: true },
+                secondary: { text: axisLabel.unit },
                 newLine: "avoid-wrap",
                 textWrapProps,
             })
-        } else {
-            return new MarkdownTextWrap({
-                text: this.label,
-                fontWeight: 700,
-                ...textWrapProps,
-            })
         }
+
+        return new MarkdownTextWrap({
+            text: axisLabel.mainLabel,
+            fontWeight: 700,
+            ...textWrapProps,
+        })
     }
 
     @computed get labelHeight(): number {

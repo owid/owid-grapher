@@ -228,3 +228,35 @@ export function byHoverThenFocusState(series: {
     // background series rank lowest
     return 1
 }
+
+export function makeAxisLabel({
+    label,
+    unit,
+    shortUnit,
+}: {
+    label: string
+    unit?: string
+    shortUnit?: string
+}): {
+    mainLabel: string // shown in bold
+    unit?: string // shown in normal weight, usually in parens
+} {
+    const displayUnit = unit && unit !== shortUnit ? unit : undefined
+    const unitInParens = displayUnit ? `(${displayUnit})` : undefined
+
+    if (unitInParens) {
+        // extract text in parens at the end of the label,
+        // e.g. "Population (millions)" is split into "Population " and "(millions)"
+        const [_fullMatch, untrimmedMainLabelText, labelTextInParens] =
+            label.trim().match(/^(.*?)(\([^()]*\))?$/) ?? []
+        const mainLabelText = untrimmedMainLabelText.trim()
+
+        // don't show unit twice if it's contained in the label
+        const displayLabel =
+            labelTextInParens === unitInParens ? mainLabelText : label
+
+        return { mainLabel: displayLabel, unit: unitInParens }
+    }
+
+    return { mainLabel: label }
+}
