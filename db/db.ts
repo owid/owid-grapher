@@ -890,12 +890,12 @@ export function getImageUsage(trx: KnexReadonlyTransaction): Promise<
 export async function generateTopicTagGraph(
     knex: KnexReadonlyTransaction
 ): Promise<TagGraphRoot> {
-    const { __rootId: rootId, ...parents } = await getFlatTagGraph(knex)
+    const { __rootId, ...parents } = await getFlatTagGraph(knex)
 
     const tagGraphTopicsOnly = Object.entries(parents).reduce(
         (acc: FlatTagGraph, [parentId, children]) => {
             acc[Number(parentId)] = children.filter((child) => {
-                if (child.parentId === rootId) return true
+                if (child.parentId === __rootId) return true
                 return child.isTopic
             })
             return acc
@@ -903,7 +903,7 @@ export async function generateTopicTagGraph(
         {} as FlatTagGraph
     )
 
-    return createTagGraph(tagGraphTopicsOnly, rootId)
+    return createTagGraph(tagGraphTopicsOnly, __rootId)
 }
 
 export const getUniqueTopicCount = (

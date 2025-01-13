@@ -183,8 +183,7 @@ export const getFullPostByIdFromSnapshot = async (
     return getFullPost(trx, postEnriched.wpApiSnapshot)
 }
 
-// kicking this can till WP posts kick the bucket
-// COVID pages are the only WP pages left that are citable, grep "pageOverrides" to see more
+// This function used to be more complicated, but now the only citable WP post is the COVID page
 export const isPostSlugCitable = (slug: string): boolean => {
     return slug === "coronavirus"
 }

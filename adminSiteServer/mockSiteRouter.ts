@@ -531,7 +531,7 @@ async function getTombstoneAttachments(
     }
 }
 
-getPlainRouteNonIdempotentWithRWTransaction(
+getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/deleted/:tombstoneSlug",
     async (req, res, trx) => {
