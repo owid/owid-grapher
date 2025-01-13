@@ -503,17 +503,24 @@ abstract class AbstractAxis {
                 this.axisManager?.detailsOrderedByReference,
         }
 
+        // extract text in parens at the end of the label
+        const [_m, labelText, labelTextInParens] =
+            this.label.trim().match(/^(.*?)(\([^()]*\))?$/) ?? []
+
         const displayUnit = this.formatColumn?.displayUnit
-        if (displayUnit) {
+        if (displayUnit || labelTextInParens) {
+            const secondaryText = displayUnit
+                ? `(${displayUnit})`
+                : labelTextInParens
             return MarkdownTextWrap.fromFragments({
-                main: { text: this.label, bold: true },
-                secondary: { text: `(${displayUnit})` },
+                main: { text: labelText.trim(), bold: true },
+                secondary: { text: secondaryText },
                 newLine: "avoid-wrap",
                 textWrapProps,
             })
         } else {
             return new MarkdownTextWrap({
-                text: this.label,
+                text: labelText.trim(),
                 fontWeight: 700,
                 ...textWrapProps,
             })
