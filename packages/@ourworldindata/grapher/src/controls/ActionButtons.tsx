@@ -305,7 +305,7 @@ export class ActionButtons extends React.Component<{
                     {this.hasExploreTheDataButton && (
                         <li style={{ width: this.exploreTheDataButtonWidth }}>
                             <div
-                                className="ActionButton"
+                                className="ActionButton ActionButton--exploreData"
                                 style={{ width: "100%" }}
                             >
                                 <a

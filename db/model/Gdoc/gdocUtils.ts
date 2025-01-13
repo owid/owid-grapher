@@ -237,6 +237,7 @@ export function extractFilenamesFromBlock(
                     "latest-data-insights",
                     "list",
                     "missing-data",
+                    "narrative-chart",
                     "numbered-list",
                     "people",
                     "people-rows",

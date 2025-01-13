@@ -51,6 +51,7 @@ interface GAEvent {
     eventTarget?: string
     grapherPath?: string
     grapherView?: string // specifies a view in a multi-dim data page
+    chartViewName?: string // specifies the name of a chart view / narrative chart
     explorerPath?: string
     explorerView?: string
 }
@@ -76,11 +77,15 @@ export class GrapherAnalytics {
     private version: string // Ideally the Git hash commit
     private isDev: boolean
 
-    logGrapherView(slug: string, view?: Record<string, string>): void {
+    logGrapherView(
+        slug: string,
+        ctx?: { view?: Record<string, string>; chartViewName?: string }
+    ): void {
         this.logToGA({
             event: EventCategory.GrapherView,
             grapherPath: `/grapher/${slug}`,
-            grapherView: view ? JSON.stringify(view) : undefined,
+            grapherView: ctx?.view ? JSON.stringify(ctx.view) : undefined,
+            chartViewName: ctx?.chartViewName,
         })
     }
 
@@ -126,19 +131,23 @@ export class GrapherAnalytics {
 
     logGrapherClick(
         action: string = "unknown-action",
-        label?: string,
-        grapherUrl?: string
+        ctx: {
+            label?: string
+            grapherUrl?: string
+            chartViewName?: string
+        }
     ): void {
         // GA4 trims metadata fields down to 100 characters, so we want to be concise and only send
         // the pathname, e.g. `/grapher/life-expectancy` or `/explorers/migration`
         const grapherUrlObj =
-            grapherUrl !== undefined ? new URL(grapherUrl) : undefined
+            ctx.grapherUrl !== undefined ? new URL(ctx.grapherUrl) : undefined
 
         this.logToGA({
             event: EventCategory.GrapherClick,
             eventAction: action,
-            eventTarget: label,
+            eventTarget: ctx.label,
             grapherPath: grapherUrlObj?.pathname,
+            chartViewName: ctx.chartViewName,
         })
     }
 
@@ -184,17 +193,32 @@ export class GrapherAnalytics {
                 )
                 if (!trackedElement) return
 
-                const grapherUrl = trackedElement
+                const grapherUrlRaw = trackedElement
                     .closest(`[${dataGrapherUrlAttr}]`)
                     ?.getAttribute(dataGrapherUrlAttr)
 
-                if (grapherUrl)
+                if (grapherUrlRaw) {
+                    let grapherUrlObj:
+                        | {
+                              grapherUrl: string
+                              chartViewName: string
+                          }
+                        | undefined
+                    try {
+                        grapherUrlObj = JSON.parse(grapherUrlRaw)
+                    } catch (e) {
+                        console.warn("failed to parse grapherUrl", e)
+                    }
+
                     this.logGrapherClick(
                         trackedElement.getAttribute(dataTrackAttr) || undefined,
-                        trackedElement.innerText,
-                        grapherUrl
+                        {
+                            label: trackedElement.innerText,
+                            grapherUrl: grapherUrlObj?.grapherUrl,
+                            chartViewName: grapherUrlObj?.chartViewName,
+                        }
                     )
-                else
+                } else
                     this.logSiteClick(
                         trackedElement.getAttribute(dataTrackAttr) || undefined,
                         trackedElement.innerText

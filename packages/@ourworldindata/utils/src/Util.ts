@@ -1711,6 +1711,7 @@ export function traverseEnrichedBlock(
                 type: P.union(
                     "chart-story",
                     "chart",
+                    "narrative-chart",
                     "code",
                     "donors",
                     "horizontal-rule",

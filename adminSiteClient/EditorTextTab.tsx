@@ -19,6 +19,7 @@ import {
 } from "./Forms.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
+import { isChartViewEditorInstance } from "./ChartViewEditor.js"
 
 @observer
 export class EditorTextTab<
@@ -72,6 +73,10 @@ export class EditorTextTab<
 
     @computed get errorMessages() {
         return this.props.errorMessages
+    }
+
+    @computed get showChartSlug() {
+        return !isChartViewEditorInstance(this.props.editor)
     }
 
     @computed get showAnyAnnotationFieldInTitleToggle() {
@@ -139,19 +144,21 @@ export class EditorTextTab<
                         />
                     )}
                     {this.showAnyAnnotationFieldInTitleToggle && <hr />}
-                    <AutoTextField
-                        label="/grapher"
-                        value={grapher.displaySlug}
-                        onValue={this.onSlug}
-                        isAuto={grapher.slug === undefined}
-                        onToggleAuto={() =>
-                            (grapher.slug =
-                                grapher.slug === undefined
-                                    ? grapher.displaySlug
-                                    : undefined)
-                        }
-                        helpText="Human-friendly URL for this chart"
-                    />
+                    {this.showChartSlug && (
+                        <AutoTextField
+                            label="/grapher"
+                            value={grapher.displaySlug}
+                            onValue={this.onSlug}
+                            isAuto={grapher.slug === undefined}
+                            onToggleAuto={() =>
+                                (grapher.slug =
+                                    grapher.slug === undefined
+                                        ? grapher.displaySlug
+                                        : undefined)
+                            }
+                            helpText="Human-friendly URL for this chart"
+                        />
+                    )}
                     <BindAutoStringExt
                         label="Subtitle"
                         readFn={(grapher) => grapher.currentSubtitle}

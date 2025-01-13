@@ -148,6 +148,11 @@ export function useDonors(): string[] | undefined {
     return donors
 }
 
+export const useLinkedChartView = (name: string) => {
+    const { linkedChartViews } = useContext(AttachmentsContext)
+    return linkedChartViews?.[name]
+}
+
 export function getShortPageCitation(
     authors: string[],
     title: string,
