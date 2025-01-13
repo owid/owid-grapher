@@ -44,7 +44,6 @@ import {
     IndicatorTitleWithFragments,
     joinTitleFragments,
 } from "@ourworldindata/utils"
-import { makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
 
@@ -86,7 +85,6 @@ export interface DataTableManager {
     endTime?: Time
     startTime?: Time
     dataTableSlugs?: ColumnSlug[]
-    showSelectionOnlyInDataTable?: boolean
     entitiesAreCountryLike?: boolean
     isSmall?: boolean
     isMedium?: boolean
@@ -138,36 +136,8 @@ export class DataTable extends React.Component<{
         }
     }
 
-    @computed get showSelectionOnlyInDataTable(): boolean {
-        const {
-            showSelectionOnlyInDataTable,
-            canChangeAddOrHighlightEntities,
-            hasChartTab,
-            hasMapTab,
-        } = this.manager
-        const { selectionArray } = this
-
-        // filter the table if the "Show selection only" toggle is hidden
-        if (
-            !canChangeAddOrHighlightEntities &&
-            selectionArray.hasSelection &&
-            hasChartTab &&
-            // if we have a map tab, we want to show all entities
-            !hasMapTab
-        )
-            return true
-
-        return !!showSelectionOnlyInDataTable
-    }
-
     @computed get table(): OwidTable {
-        let table = this.manager.tableForDisplay
-        if (this.showSelectionOnlyInDataTable) {
-            table = table.filterByEntityNames(
-                this.selectionArray.selectedEntityNames
-            )
-        }
-        return table
+        return this.manager.tableForDisplay
     }
 
     @computed get manager(): DataTableManager {
@@ -691,10 +661,6 @@ export class DataTable extends React.Component<{
                 //  dim.property !== "color" &&
                 (column.display?.includeInTable ?? true)
         )
-    }
-
-    @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.selection)
     }
 
     @computed private get entityNames(): string[] {
