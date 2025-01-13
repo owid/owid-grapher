@@ -35,10 +35,7 @@ import {
     countriesIndexPage,
 } from "../baker/countryProfiles.js"
 import { makeSitemap } from "../baker/sitemap.js"
-import {
-    getChartConfigBySlug,
-    getChartVariableData,
-} from "../db/model/Chart.js"
+import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"
@@ -444,9 +441,9 @@ getPlainRouteWithROTransaction(
     "/grapher/exports/:slug.svg",
     async (req, res, trx) => {
         const grapher = await getChartConfigBySlug(trx, req.params.slug)
-        const vardata = await getChartVariableData(grapher.config)
+        // const vardata = await getChartVariableData(grapher.config)
         res.setHeader("Content-Type", "image/svg+xml")
-        res.send(await grapherToSVG(grapher.config, vardata))
+        res.send(await grapherToSVG(grapher.config))
     }
 )
 

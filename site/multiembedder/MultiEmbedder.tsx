@@ -11,6 +11,7 @@ import {
     SelectionArray,
     migrateGrapherConfigToLatestVersion,
     GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR,
+    fetchInputTableForConfig,
 } from "@ourworldindata/grapher"
 import {
     fetchText,
@@ -42,8 +43,9 @@ import {
     MULTI_DIM_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
 import Bugsnag from "@bugsnag/js"
-import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
+// import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
 import { match } from "ts-pattern"
+import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
 
 type EmbedType = "grapher" | "explorer" | "multiDim" | "chartView"
 
@@ -227,6 +229,14 @@ class MultiEmbedder {
         if (window.location.pathname.startsWith("/collection/custom")) {
             embedDynamicCollectionGrapher(grapherRef, figure)
         }
+
+        const inputTable = await fetchInputTableForConfig(
+            config.dimensions,
+            config.selectedEntityColors,
+            DATA_API_URL
+        )
+        if (inputTable && grapherRef.current)
+            grapherRef.current.grapherState.inputTable = inputTable
     }
     async renderGrapherIntoFigure(figure: Element) {
         const embedUrlRaw = figure.getAttribute(GRAPHER_EMBEDDED_FIGURE_ATTR)

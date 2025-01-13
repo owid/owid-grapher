@@ -12,10 +12,10 @@ import {
 } from "mobx"
 import { observer } from "mobx-react"
 import { WindowGraphers } from "./DynamicCollectionPage.js"
-import { Grapher } from "@ourworldindata/grapher"
 import { GRAPHER_PREVIEW_CLASS } from "../SiteConstants.js"
 import InteractionNotice from "../InteractionNotice.js"
 import GrapherImage from "../GrapherImage.js"
+import { Grapher } from "@ourworldindata/grapher"
 
 interface DynamicCollectionProps {
     baseUrl: string
@@ -35,7 +35,8 @@ export function embedDynamicCollectionGrapher(
     const interval = setInterval(() => {
         if (grapherRef.current) {
             const originalSlug =
-                grapherRef.current.slug + grapherRef.current.queryStr
+                grapherRef.current.grapherState.slug +
+                grapherRef.current.grapherState.queryStr
 
             const index = figure.getAttribute("data-grapher-index")
 
@@ -61,9 +62,9 @@ export class DynamicCollection extends React.Component<DynamicCollectionProps> {
     @computed get allGrapherSlugsAndQueryStrings() {
         if (!this.graphers) return []
 
-        // If the grapher hasn't mounted yet, we use the original slugAndQueryString
-        // This allows us to update the URL if users interact with graphers that have mounted
-        // while still keeping the unmounted graphers in the URL in the right place
+        // // If the grapher hasn't mounted yet, we use the original slugAndQueryString
+        // // This allows us to update the URL if users interact with graphers that have mounted
+        // // while still keeping the unmounted graphers in the URL in the right place
         const slugsAndQueryStrings = new Array(this.graphers.size)
 
         for (const [originalSlugAndUrl, { index, grapher }] of this.graphers) {
@@ -73,12 +74,13 @@ export class DynamicCollection extends React.Component<DynamicCollectionProps> {
                 slugsAndQueryStrings[index] = encodeURIComponent(withoutIndex)
             } else {
                 slugsAndQueryStrings[index] = encodeURIComponent(
-                    `${grapher.slug}${grapher.queryStr}`
+                    `${grapher.grapherState.slug}${grapher.grapherState.queryStr}`
                 )
             }
         }
 
         return slugsAndQueryStrings
+        return []
     }
 
     componentDidMount() {

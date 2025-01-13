@@ -65,8 +65,8 @@ class DimensionSlotView<
         return this.props.editor
     }
 
-    private get grapher() {
-        return this.props.editor.grapher
+    private get grapherState() {
+        return this.props.editor.grapherState
     }
 
     @computed
@@ -74,7 +74,7 @@ class DimensionSlotView<
         return this.props.errorMessagesForDimensions
     }
 
-    @action.bound private onAddVariables(variableIds: OwidVariableId[]) {
+    @action.bound private async onAddVariables(variableIds: OwidVariableId[]) {
         const { slot } = this.props
 
         const dimensionConfigs = variableIds.map((id) => {
@@ -91,12 +91,12 @@ class DimensionSlotView<
 
         this.isSelectingVariables = false
 
-        this.updateDimensionsAndRebuildTable(dimensionConfigs)
+        await this.updateDimensionsAndRebuildTable(dimensionConfigs)
         this.updateParentConfig()
     }
 
-    @action.bound private onRemoveDimension(variableId: OwidVariableId) {
-        this.updateDimensionsAndRebuildTable(
+    @action.bound private async onRemoveDimension(variableId: OwidVariableId) {
+        await this.updateDimensionsAndRebuildTable(
             this.props.slot.dimensions.filter(
                 (d) => d.variableId !== variableId
             )
@@ -104,24 +104,24 @@ class DimensionSlotView<
         this.updateParentConfig()
     }
 
-    @action.bound private onChangeDimension() {
-        this.updateDimensionsAndRebuildTable()
+    @action.bound private async onChangeDimension() {
+        await this.updateDimensionsAndRebuildTable()
         this.updateParentConfig()
     }
 
     @action.bound private updateDefaultSelection() {
-        const { grapher } = this.props.editor
-        const { selection } = grapher
+        const { grapherState } = this.props.editor
+        const { selection } = grapherState
         const { availableEntityNames, availableEntityNameSet } = selection
 
-        if (grapher.isScatter || grapher.isMarimekko) {
+        if (grapherState.isScatter || grapherState.isMarimekko) {
             // chart types that display all entities by default shouldn't select any by default
             selection.clearSelection()
         } else if (
-            grapher.yColumnsFromDimensions.length > 1 &&
-            !grapher.isStackedArea &&
-            !grapher.isStackedBar &&
-            !grapher.isStackedDiscreteBar
+            grapherState.yColumnsFromDimensions.length > 1 &&
+            !grapherState.isStackedArea &&
+            !grapherState.isStackedBar &&
+            !grapherState.isStackedDiscreteBar
         ) {
             // non-stacked charts with multiple y-dimensions should select a single entity by default.
             // if possible, the currently selected entity is persisted, otherwise "World" is preferred
@@ -131,7 +131,7 @@ class DimensionSlotView<
                     : sample(availableEntityNames)
                 if (entity) selection.setSelectedEntities([entity])
             }
-            grapher.addCountryMode = EntitySelectionMode.SingleEntity
+            grapherState.addCountryMode = EntitySelectionMode.SingleEntity
         } else {
             // stacked charts or charts with a single y-dimension should select multiple entities by default.
             // if possible, the currently selected entities are persisted, otherwise a random sample is selected
@@ -142,26 +142,26 @@ class DimensionSlotView<
                         : availableEntityNames
                 )
             }
-            grapher.addCountryMode = EntitySelectionMode.MultipleEntities
+            grapherState.addCountryMode = EntitySelectionMode.MultipleEntities
         }
     }
 
     componentDidMount() {
-        // We want to add the reaction only after the grapher is loaded,
+        // We want to add the reaction only after the grapherState is loaded,
         // so we don't update the initial chart (as configured) by accident.
         when(
-            () => this.grapher.isReady,
+            () => this.grapherState.isReady,
             () => {
                 this.disposers.push(
                     reaction(
-                        () => this.grapher.validChartTypes,
+                        () => this.grapherState.validChartTypes,
                         () => {
                             this.updateDefaultSelection()
                             this.editor.removeInvalidFocusedSeriesNames()
                         }
                     ),
                     reaction(
-                        () => this.grapher.yColumnsFromDimensions.length,
+                        () => this.grapherState.yColumnsFromDimensions.length,
                         () => {
                             this.updateDefaultSelection()
                             this.editor.removeInvalidFocusedSeriesNames()
@@ -170,29 +170,43 @@ class DimensionSlotView<
                 )
             }
         )
+        if (this.grapherState.dimensions.length > 0)
+            void this.editor
+                .cachingGrapherDataLoader(
+                    this.grapherState.dimensions,
+                    this.grapherState.selectedEntityColors
+                )
+                .then((inputTable) => {
+                    if (inputTable) this.grapherState.inputTable = inputTable
+                })
     }
 
     componentWillUnmount() {
         this.disposers.forEach((dispose) => dispose())
     }
 
-    @action.bound private updateDimensionsAndRebuildTable(
+    @action.bound private async updateDimensionsAndRebuildTable(
         updatedDimensions?: OwidChartDimensionInterface[]
     ) {
-        const { grapher } = this.props.editor
+        const { grapherState } = this.props.editor
 
         if (updatedDimensions) {
-            grapher.setDimensionsForProperty(
+            grapherState.setDimensionsForProperty(
                 this.props.slot.property,
                 updatedDimensions
             )
         }
 
-        this.grapher.updateAuthoredVersion({
-            dimensions: grapher.dimensions.map((dim) => dim.toObject()),
+        this.grapherState.updateAuthoredVersion({
+            dimensions: grapherState.dimensions.map((dim) => dim.toObject()),
         })
-        grapher.seriesColorMap?.clear()
-        this.grapher.rebuildInputOwidTable()
+        grapherState.seriesColorMap?.clear()
+        const inputTable = await this.props.editor.cachingGrapherDataLoader(
+            grapherState.dimensions,
+            grapherState.selectedEntityColors
+        )
+
+        if (inputTable) this.grapherState.inputTable = inputTable
     }
 
     @action.bound private updateParentConfig() {
@@ -202,7 +216,7 @@ class DimensionSlotView<
         }
     }
 
-    @action.bound private onDragEnd(result: DropResult) {
+    @action.bound private async onDragEnd(result: DropResult) {
         const { source, destination } = result
         if (!destination) return
 
@@ -212,7 +226,7 @@ class DimensionSlotView<
             destination.index
         )
 
-        this.updateDimensionsAndRebuildTable(dimensions)
+        await this.updateDimensionsAndRebuildTable(dimensions)
         this.updateParentConfig()
     }
 
@@ -331,7 +345,7 @@ class VariablesSection<
 
     render() {
         const { props } = this
-        const { dimensionSlots } = props.editor.grapher
+        const { dimensionSlots } = props.editor.grapherState
 
         return (
             <Section name="Add indicators">
@@ -371,34 +385,34 @@ export class EditorBasicTab<
     }
 
     @action.bound onChartTypeChange(value: string) {
-        const { grapher } = this.props.editor
+        const { grapherState } = this.props.editor
 
-        grapher.chartTypes =
+        grapherState.chartTypes =
             value === this.chartTypeOptionNone
                 ? []
                 : [value as GrapherChartType]
 
-        if (grapher.isMarimekko) {
-            grapher.hideRelativeToggle = false
-            grapher.stackMode = StackMode.relative
+        if (grapherState.isMarimekko) {
+            grapherState.hideRelativeToggle = false
+            grapherState.stackMode = StackMode.relative
         }
 
         // Give scatterplots a default color and size dimensions
-        if (grapher.isScatter) {
-            const hasColor = grapher.dimensions.find(
+        if (grapherState.isScatter) {
+            const hasColor = grapherState.dimensions.find(
                 (d) => d.property === DimensionProperty.color
             )
             if (!hasColor)
-                grapher.addDimension({
+                grapherState.addDimension({
                     variableId: CONTINENTS_INDICATOR_ID,
                     property: DimensionProperty.color,
                 })
 
-            const hasSize = grapher.dimensions.find(
+            const hasSize = grapherState.dimensions.find(
                 (d) => d.property === DimensionProperty.size
             )
             if (!hasSize)
-                grapher.addDimension({
+                grapherState.addDimension({
                     variableId: POPULATION_INDICATOR_ID_USED_IN_ADMIN,
                     property: DimensionProperty.size,
                 })
@@ -426,17 +440,17 @@ export class EditorBasicTab<
     }
 
     private addSlopeChart(): void {
-        const { grapher } = this.props.editor
-        if (grapher.hasSlopeChart) return
-        grapher.chartTypes = [
-            ...grapher.chartTypes,
+        const { grapherState } = this.props.editor
+        if (grapherState.hasSlopeChart) return
+        grapherState.chartTypes = [
+            ...grapherState.chartTypes,
             GRAPHER_CHART_TYPES.SlopeChart,
         ]
     }
 
     private removeSlopeChart(): void {
-        const { grapher } = this.props.editor
-        grapher.chartTypes = grapher.chartTypes.filter(
+        const { grapherState } = this.props.editor
+        grapherState.chartTypes = grapherState.chartTypes.filter(
             (type) => type !== GRAPHER_CHART_TYPES.SlopeChart
         )
     }
@@ -453,7 +467,7 @@ export class EditorBasicTab<
 
     render() {
         const { editor } = this.props
-        const { grapher } = editor
+        const { grapherState } = editor
         const isIndicatorChart = isIndicatorChartEditorInstance(editor)
 
         return (
@@ -463,22 +477,24 @@ export class EditorBasicTab<
                 <Section name="Tabs">
                     <SelectField
                         label="Type of chart"
-                        value={grapher.chartType ?? this.chartTypeOptionNone}
+                        value={
+                            grapherState.chartType ?? this.chartTypeOptionNone
+                        }
                         onValue={this.onChartTypeChange}
                         options={this.chartTypeOptions}
                     />
                     <FieldsRow>
                         <Toggle
                             label="Map tab"
-                            value={grapher.hasMapTab}
+                            value={grapherState.hasMapTab}
                             onValue={(shouldHaveMapTab) =>
-                                (grapher.hasMapTab = shouldHaveMapTab)
+                                (grapherState.hasMapTab = shouldHaveMapTab)
                             }
                         />
-                        {grapher.isLineChart && (
+                        {grapherState.isLineChart && (
                             <Toggle
                                 label="Slope chart"
-                                value={grapher.hasSlopeChart}
+                                value={grapherState.hasSlopeChart}
                                 onValue={this.toggleSecondarySlopeChart}
                             />
                         )}
@@ -501,9 +517,9 @@ export class EditorBasicTab<
 // The rule doesn't support class components in the same file.
 // eslint-disable-next-line react-refresh/only-export-components
 function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
-    const { variableId, grapher } = props.editor
+    const { variableId, grapherState } = props.editor
 
-    const column = grapher.inputTable.get(variableId?.toString())
+    const column = grapherState.inputTable.get(variableId?.toString())
     const variableLink = (
         <a
             href={`/admin/variables/${variableId}`}

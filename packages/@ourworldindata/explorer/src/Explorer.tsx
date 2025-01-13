@@ -28,6 +28,7 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE,
     GrapherAnalytics,
     GrapherState,
+    fetchInputTableForConfig,
     FocusArray,
 } from "@ourworldindata/grapher"
 import {
@@ -197,6 +198,7 @@ export class Explorer
 {
     analytics = new GrapherAnalytics()
     grapherState: GrapherState
+    inputTableTransformer = (table: OwidTable) => table
 
     constructor(props: ExplorerProps) {
         super(props)
@@ -489,7 +491,8 @@ export class Explorer
 
     @action.bound private setGrapherTable(table: OwidTable) {
         if (this.grapher) {
-            this.grapher.grapherState.inputTable = table
+            this.grapher.grapherState.inputTable =
+                this.inputTableTransformer(table)
             this.grapher.appendNewEntitySelectionOptions()
         }
     }
@@ -506,7 +509,7 @@ export class Explorer
     @action.bound updateGrapherFromExplorer() {
         switch (this.explorerProgram.chartCreationMode) {
             case ExplorerChartCreationMode.FromGrapherId:
-                this.updateGrapherFromExplorerUsingGrapherId()
+                void this.updateGrapherFromExplorerUsingGrapherId()
                 break
             case ExplorerChartCreationMode.FromVariableIds:
                 void this.updateGrapherFromExplorerUsingVariableIds()
@@ -563,7 +566,7 @@ export class Explorer
         )
     }
 
-    @action.bound updateGrapherFromExplorerUsingGrapherId() {
+    @action.bound async updateGrapherFromExplorerUsingGrapherId() {
         const grapher = this.grapher
         if (!grapher) return
 
@@ -588,9 +591,16 @@ export class Explorer
         }
 
         grapher?.grapherState.setAuthoredVersion(config)
-        grapher.reset()
+        grapher.grapherState.reset()
         grapher?.grapherState.updateFromObject(config)
-        // grapher.downloadData()
+        const inputTable = await fetchInputTableForConfig(
+            config.dimensions ?? [],
+            config.selectedEntityColors,
+            this.props.dataApiUrl
+        )
+        if (inputTable)
+            grapher.grapherState.inputTable =
+                this.inputTableTransformer(inputTable)
     }
 
     @action.bound async updateGrapherFromExplorerUsingVariableIds() {
@@ -709,7 +719,8 @@ export class Explorer
         config.dimensions = dimensions
         if (ySlugs && yVariableIds) config.ySlugs = ySlugs + " " + yVariableIds
 
-        const _inputTableTransformer = (table: OwidTable) => {
+        // TODO: 2025-01-07 Daniel - do we still need this?
+        this.inputTableTransformer = (table: OwidTable) => {
             // add transformed (and intermediate) columns to the grapher table
             if (uniqueSlugsInGrapherRow.length) {
                 const allColumnSlugs = uniq(
@@ -752,16 +763,25 @@ export class Explorer
         }
 
         grapher?.grapherState.setAuthoredVersion(config)
-        grapher.reset()
+        grapher.grapherState.reset()
         grapher?.grapherState.updateFromObject(config)
         if (dimensions.length === 0) {
             // If dimensions are empty, explicitly set the table to an empty table
             // so we don't end up confusingly showing stale data from a previous chart
             // grapher.receiveOwidData(new Map())
+            grapher.grapherState.inputTable = BlankOwidTable()
         } else {
             // await grapher.downloadLegacyDataFromOwidVariableIds(
             //     inputTableTransformer
             // )
+            const inputTable = await fetchInputTableForConfig(
+                config.dimensions,
+                config.selectedEntityColors,
+                this.props.dataApiUrl
+            )
+            if (inputTable)
+                grapher.grapherState.inputTable =
+                    this.inputTableTransformer(inputTable)
         }
     }
 
@@ -785,7 +805,7 @@ export class Explorer
         }
 
         grapher?.grapherState.setAuthoredVersion(config)
-        grapher.reset()
+        grapher.grapherState.reset()
         grapher?.grapherState.updateFromObject(config)
 
         // Clear any error messages, they are likely to be related to dataset loading.
@@ -988,7 +1008,7 @@ export class Explorer
     private updateGrapherBounds() {
         const grapherContainer = this.grapherContainerRef.current
         if (grapherContainer)
-            this.grapherBounds = new Bounds(
+            this.grapherState.externalBounds = new Bounds(
                 0,
                 0,
                 grapherContainer.clientWidth,
@@ -1041,7 +1061,10 @@ export class Explorer
                     this.isNarrow &&
                     this.mobileCustomizeButton}
                 <div className="ExplorerFigure" ref={this.grapherContainerRef}>
-                    <Grapher grapherState={this.grapherState} />
+                    <Grapher
+                        ref={this.grapherRef}
+                        grapherState={this.grapherState}
+                    />
                 </div>
             </div>
         )

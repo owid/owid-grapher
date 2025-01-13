@@ -5,11 +5,7 @@ import {
     SynthesizeGDPTable,
     SampleColumnSlugs,
 } from "@ourworldindata/core-table"
-import {
-    Grapher,
-    GrapherProgrammaticInterface,
-    GrapherState,
-} from "../core/Grapher"
+import { GrapherProgrammaticInterface, GrapherState } from "../core/Grapher"
 import { MapChart } from "../mapCharts/MapChart"
 import { legacyMapGrapher } from "../mapCharts/MapChart.sample"
 import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
