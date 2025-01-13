@@ -127,6 +127,7 @@ const VARIABLE_COLOR_STROKE_WIDTH = 2.5
 // marker radius
 const DEFAULT_MARKER_RADIUS = 1.8
 const VARIABLE_COLOR_MARKER_RADIUS = 2.2
+const DISCONNECTED_DOTS_MARKER_RADIUS = 2.6
 // line outline
 const DEFAULT_LINE_OUTLINE_WIDTH = 0.5
 const VARIABLE_COLOR_LINE_OUTLINE_WIDTH = 1.0
@@ -151,8 +152,12 @@ class Lines extends React.Component<LinesProps> {
         return this.props.lineStrokeWidth ?? DEFAULT_STROKE_WIDTH
     }
 
-    @computed private get lineOutlineWidth(): number {
+    @computed private get outlineWidth(): number {
         return this.props.lineOutlineWidth ?? DEFAULT_LINE_OUTLINE_WIDTH
+    }
+
+    @computed private get outlineColor(): string {
+        return this.props.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
     }
 
     // Don't display point markers if there are very many of them for performance reasons
@@ -167,13 +172,28 @@ class Lines extends React.Component<LinesProps> {
         return totalPoints < 500
     }
 
+    @computed private get hasMarkersOnlySeries(): boolean {
+        return this.props.series.some((series) => series.plotMarkersOnly)
+    }
+
     private seriesHasMarkers(series: RenderLineChartSeries): boolean {
-        if (series.hover.background || series.isProjection) return false
+        if (
+            series.hover.background ||
+            series.isProjection ||
+            // if the series has a line, but there is another one that hasn't, then
+            // don't show markers since the plotted line is likely a smoothed version
+            (this.hasMarkersOnlySeries && !series.plotMarkersOnly)
+        )
+            return false
         return !series.focus.background || series.hover.active
     }
 
-    private renderLine(series: RenderLineChartSeries): React.ReactElement {
+    private renderLine(
+        series: RenderLineChartSeries
+    ): React.ReactElement | void {
         const { hover, focus } = series
+
+        if (series.plotMarkersOnly) return
 
         const seriesColor = series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR
         const color =
@@ -190,9 +210,8 @@ class Lines extends React.Component<LinesProps> {
             hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
 
         const showOutline = !focus.background || hover.active
-        const outlineColor =
-            this.props.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
-        const outlineWidth = strokeWidth + this.lineOutlineWidth * 2
+        const outlineColor = this.outlineColor
+        const outlineWidth = strokeWidth + this.outlineWidth * 2
 
         const outline = (
             <LinePath
@@ -238,9 +257,12 @@ class Lines extends React.Component<LinesProps> {
         const { horizontalAxis } = this.props.dualAxis
         const { hover, focus } = series
 
-        // If the series only contains one point, then we will always want to
-        // show a marker/circle because we can't draw a line.
-        const forceMarkers = series.placedPoints.length === 1
+        const forceMarkers =
+            // If the series only contains one point, then we will always want to
+            // show a marker/circle because we can't draw a line.
+            series.placedPoints.length === 1 ||
+            // If no line is plotted, we'll always want to show markers
+            series.plotMarkersOnly
 
         // check if we should hide markers on the chart and series level
         const hideMarkers = !this.hasMarkers || !this.seriesHasMarkers(series)
@@ -249,6 +271,13 @@ class Lines extends React.Component<LinesProps> {
 
         const opacity =
             hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
+
+        const outlineColor = series.plotMarkersOnly
+            ? this.outlineColor
+            : undefined
+        const outlineWidth = series.plotMarkersOnly
+            ? this.outlineWidth
+            : undefined
 
         return (
             <g id={makeIdForHumanConsumption("markers", series.seriesName)}>
@@ -268,6 +297,8 @@ class Lines extends React.Component<LinesProps> {
                             cy={value.y}
                             r={this.markerRadius}
                             fill={color}
+                            stroke={outlineColor}
+                            strokeWidth={outlineWidth}
                             opacity={opacity}
                         />
                     )
@@ -521,9 +552,9 @@ export class LineChart
     }
 
     @computed private get markerRadius(): number {
-        return this.hasColorScale
-            ? VARIABLE_COLOR_MARKER_RADIUS
-            : DEFAULT_MARKER_RADIUS
+        if (this.hasMarkersOnlySeries) return DISCONNECTED_DOTS_MARKER_RADIUS
+        if (this.hasColorScale) return VARIABLE_COLOR_MARKER_RADIUS
+        return DEFAULT_MARKER_RADIUS
     }
 
     @computed get selectionArray(): SelectionArray {
@@ -845,6 +876,10 @@ export class LineChart
         return this.hasColorScale ? 700 : 400
     }
 
+    @computed get hidePoints(): boolean {
+        return !!this.manager.hidePoints || !!this.manager.isStaticAndSmall
+    }
+
     @computed get lineLegendX(): number {
         return this.bounds.right - this.lineLegendWidth
     }
@@ -975,7 +1010,7 @@ export class LineChart
                     dualAxis={this.dualAxis}
                     series={this.renderSeries}
                     multiColor={this.hasColorScale}
-                    hidePoints={manager.hidePoints || manager.isStaticAndSmall}
+                    hidePoints={this.hidePoints}
                     lineStrokeWidth={this.lineStrokeWidth}
                     lineOutlineWidth={this.lineOutlineWidth}
                     backgroundColor={this.manager.backgroundColor}
@@ -1285,6 +1320,7 @@ export class LineChart
             points,
             seriesName,
             isProjection: column.isProjection,
+            plotMarkersOnly: column.display?.plotMarkersOnlyInLineChart,
             color: seriesColor,
         }
     }
@@ -1296,6 +1332,10 @@ export class LineChart
                     this.constructSingleSeries(entityName, col)
             )
         )
+    }
+
+    @computed private get hasMarkersOnlySeries(): boolean {
+        return this.series.some((series) => series.plotMarkersOnly)
     }
 
     // TODO: remove, seems unused
@@ -1341,7 +1381,7 @@ export class LineChart
     }
 
     @computed get renderSeries(): RenderLineChartSeries[] {
-        const series: RenderLineChartSeries[] = this.placedSeries.map(
+        let series: RenderLineChartSeries[] = this.placedSeries.map(
             (series) => {
                 return {
                     ...series,
@@ -1351,10 +1391,13 @@ export class LineChart
             }
         )
 
+        // draw lines on top of markers-only series
+        series = sortBy(series, (series) => !series.plotMarkersOnly)
+
         // sort by interaction state so that foreground series
         // are drawn on top of background series
         if (this.isHoverModeActive || this.isFocusModeActive) {
-            return sortBy(series, byHoverThenFocusState)
+            series = sortBy(series, byHoverThenFocusState)
         }
 
         return series

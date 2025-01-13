@@ -51,6 +51,11 @@ export class DimensionCard<
         this.onChange()
     }
 
+    @action.bound onPlotMarkersOnly(value: boolean) {
+        this.props.dimension.display.plotMarkersOnlyInLineChart = value
+        this.onChange()
+    }
+
     @action.bound onColor(color: string | undefined) {
         this.props.dimension.display.color = color
         this.onChange()
@@ -250,6 +255,16 @@ export class DimensionCard<
                                 label="Is projection"
                                 value={column.isProjection}
                                 onValue={this.onIsProjection}
+                            />
+                        )}
+                        {grapher.isLineChart && (
+                            <Toggle
+                                label="Plot markers only"
+                                value={
+                                    column.display
+                                        ?.plotMarkersOnlyInLineChart ?? false
+                                }
+                                onValue={this.onPlotMarkersOnly}
                             />
                         )}
                         <hr className="ui divider" />
