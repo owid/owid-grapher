@@ -64,11 +64,7 @@ import { NoDataSection } from "../scatterCharts/NoDataSection"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorSchemes } from "../color/ColorSchemes"
-import {
-    LineLabelSeries,
-    LineLegend,
-    LineLegendProps,
-} from "../lineLegend/LineLegend"
+import { LineLegend, LineLegendProps } from "../lineLegend/LineLegend"
 import {
     makeTooltipRoundingNotice,
     makeTooltipToleranceNotice,
@@ -94,6 +90,7 @@ import {
     GRAPHER_DARK_TEXT,
 } from "../color/ColorConstants"
 import { FocusArray } from "../focus/FocusArray"
+import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>

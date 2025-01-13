@@ -31,7 +31,7 @@ import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { LineLegend, LineLabelSeries } from "../lineLegend/LineLegend"
+import { LineLegend } from "../lineLegend/LineLegend"
 import { ComparisonLine } from "../scatterCharts/ComparisonLine"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
@@ -115,6 +115,7 @@ import {
     getSeriesName,
 } from "./LineChartHelpers"
 import { FocusArray } from "../focus/FocusArray.js"
+import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
 
 const LINE_CHART_CLASS_NAME = "LineChart"
 
