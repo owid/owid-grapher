@@ -17,7 +17,7 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
 } from "../core/GrapherConstants"
-import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
+import { GRAPHER_LIGHT_TEXT, GRAY_90 } from "../color/ColorConstants"
 
 interface HeaderProps {
     manager: HeaderManager
@@ -28,6 +28,8 @@ interface HeaderProps {
 export class Header<
     Props extends HeaderProps = HeaderProps,
 > extends React.Component<Props> {
+    protected verticalPadding = 4
+
     @computed protected get manager(): HeaderManager {
         return this.props.manager
     }
@@ -105,13 +107,15 @@ export class Header<
                 fontSize,
             })
 
-        const initialFontSize = this.useBaseFontSize
-            ? (22 / BASE_FONT_SIZE) * this.baseFontSize
-            : this.manager.isNarrow
-              ? 18
-              : this.manager.isMedium
-                ? 20
-                : 24
+        const initialFontSize = this.manager.isStaticAndSmall
+            ? 25
+            : this.useBaseFontSize
+              ? (25 / BASE_FONT_SIZE) * this.baseFontSize
+              : this.manager.isNarrow
+                ? 18
+                : this.manager.isMedium
+                  ? 20
+                  : 24
 
         let title = makeTitle(initialFontSize)
 
@@ -152,7 +156,7 @@ export class Header<
     }
 
     @computed get subtitleMarginTop(): number {
-        let padding = 4
+        let padding = this.verticalPadding
 
         // make sure the subtitle doesn't overlap with the logo
         if (
@@ -172,8 +176,9 @@ export class Header<
     }
 
     @computed get subtitleFontSize(): number {
+        if (this.manager.isStaticAndSmall) return 16
         if (this.useBaseFontSize) {
-            return (13 / BASE_FONT_SIZE) * this.baseFontSize
+            return (15 / BASE_FONT_SIZE) * this.baseFontSize
         }
         return this.manager.isSmall ? 12 : this.manager.isMedium ? 13 : 14
     }
@@ -288,6 +293,8 @@ interface StaticHeaderProps extends HeaderProps {
 
 @observer
 export class StaticHeader extends Header<StaticHeaderProps> {
+    protected verticalPadding = 6
+
     @computed get titleLineHeight(): number {
         return this.manager.isStaticAndSmall ? 1.1 : 1.2
     }
@@ -316,7 +323,11 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                         rel="noopener"
                     >
                         {title.render(x, y, {
-                            textProps: { fill: GRAPHER_DARK_TEXT },
+                            textProps: {
+                                fill: this.manager.isSocialMediaExport
+                                    ? "#2d2e2d"
+                                    : GRAY_90,
+                            },
                         })}
                     </a>
                 )}
@@ -329,9 +340,7 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                                 : 0),
                         {
                             id: makeIdForHumanConsumption("subtitle"),
-                            textProps: {
-                                fill: manager.secondaryColorInStaticCharts,
-                            },
+                            textProps: { fill: GRAPHER_LIGHT_TEXT },
                             detailsMarker: this.manager.detailsMarkerInSvg,
                         }
                     )}

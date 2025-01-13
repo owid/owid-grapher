@@ -19,7 +19,7 @@ export interface FooterManager extends TooltipManager, ActionButtonsManager {
     isEmbeddedInADataPage?: boolean
     hideNote?: boolean
     hideOriginUrl?: boolean
-    secondaryColorInStaticCharts?: string
     isStaticAndSmall?: boolean
+    isSocialMediaExport?: boolean
     detailsMarkerInSvg?: DetailsMarker
 }

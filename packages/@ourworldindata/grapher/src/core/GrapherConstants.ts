@@ -26,12 +26,6 @@ export const GRAPHER_FRAME_PADDING_HORIZONTAL = 16
 
 export const STATIC_EXPORT_DETAIL_SPACING = 8
 
-export const GRAPHER_BACKGROUND_DEFAULT = "#ffffff"
-export const GRAPHER_BACKGROUND_BEIGE = "#fbf9f3"
-
-export const GRAPHER_DARK_TEXT = "#5b5b5b"
-export const GRAPHER_LIGHT_TEXT = "#858585"
-
 export const GRAPHER_OPACITY_MUTE = 0.3
 
 export const GRAPHER_AXIS_LINE_WIDTH_DEFAULT = 1

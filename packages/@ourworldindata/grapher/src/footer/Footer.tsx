@@ -20,7 +20,7 @@ import {
     BASE_FONT_SIZE,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
 } from "../core/GrapherConstants"
-import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
+import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
 
 /*
 
@@ -632,15 +632,13 @@ interface StaticFooterProps extends FooterProps {
 
 @observer
 export class StaticFooter extends Footer<StaticFooterProps> {
-    verticalPadding = 2
-
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     componentDidMount(): void {}
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     componentWillUnmount(): void {}
 
     @computed private get textColor(): string {
-        return this.manager.secondaryColorInStaticCharts ?? GRAPHER_DARK_TEXT
+        return GRAPHER_LIGHT_TEXT
     }
 
     @computed protected get showLicenseNextToSources(): boolean {
@@ -687,36 +685,10 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     }
 
     @computed protected get fontSize(): number {
-        if (this.useBaseFontSize) {
-            let fontSize = (12 / BASE_FONT_SIZE) * this.baseFontSize
-
-            // for small charts, reduce the font size if the footer text is long
-            if (this.manager.isStaticAndSmall) {
-                const sources = new MarkdownTextWrap({
-                    text: this.sourcesText,
-                    maxWidth: this.sourcesMaxWidth,
-                    lineHeight: this.lineHeight,
-                    fontSize,
-                })
-                const note = new MarkdownTextWrap({
-                    text: this.markdownNoteText,
-                    maxWidth: this.noteMaxWidth,
-                    lineHeight: this.lineHeight,
-                    fontSize,
-                })
-
-                const lineCount =
-                    sources.svgLines.length +
-                    (this.showNote ? note.svgLines.length : 0)
-                if (lineCount > 2) {
-                    fontSize = (10 / BASE_FONT_SIZE) * this.baseFontSize
-                }
-            }
-
-            return fontSize
-        }
-
-        return 13
+        if (this.manager.isStaticAndSmall) return 14
+        return this.useBaseFontSize
+            ? (13 / BASE_FONT_SIZE) * this.baseFontSize
+            : 13
     }
 
     @computed protected get sourcesFontSize(): number {
@@ -752,7 +724,6 @@ export class StaticFooter extends Footer<StaticFooterProps> {
             licenseAndOriginUrl,
             showLicenseNextToSources,
             maxWidth,
-            textColor,
         } = this
         const { targetX, targetY } = this.props
 
@@ -760,9 +731,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
             <g
                 id={makeIdForHumanConsumption("footer")}
                 className="SourcesFooter"
-                style={{
-                    fill: textColor,
-                }}
+                style={{ fill: this.textColor }}
             >
                 {sources.renderSVG(targetX, targetY, {
                     id: makeIdForHumanConsumption("sources"),
