@@ -280,8 +280,7 @@ export class FacetChart
 
         // We infer that the user cares about the trend if the axis is not uniform
         // and the metrics on all facets are the same
-        const careAboutTrend =
-            !this.uniformYAxis && this.facetStrategy === FacetStrategy.entity
+        const careAboutTrend = !this.uniformYAxis
         if (careAboutTrend) {
             // Force disable nice axes if we care about the trend,
             // because nice axes misrepresent trends.
