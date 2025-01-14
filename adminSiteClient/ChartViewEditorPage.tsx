@@ -1,11 +1,12 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { computed, action } from "mobx"
+import { computed, action, runInAction, observable } from "mobx"
 import { GrapherInterface } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
 import { ChartViewEditor, ChartViewEditorManager } from "./ChartViewEditor.js"
+import { References } from "./AbstractChartEditor.js"
 
 @observer
 export class ChartViewEditorPage
@@ -26,9 +27,11 @@ export class ChartViewEditorPage
 
     isInheritanceEnabled: boolean | undefined = true
 
+    @observable references: References | undefined = undefined
+
     async fetchChartViewData(): Promise<void> {
         const data = await this.context.admin.getJSON(
-            `/api/chartViews/${this.chartViewId}`
+            `/api/chartViews/${this.chartViewId}.config.json`
         )
 
         this.idAndName = { id: data.id, name: data.name }
@@ -50,8 +53,20 @@ export class ChartViewEditorPage
         return new ChartViewEditor({ manager: this })
     }
 
+    async fetchRefs(): Promise<void> {
+        const { admin } = this.context
+        const json =
+            this.chartViewId === undefined
+                ? {}
+                : await admin.getJSON(
+                      `/api/chartViews/${this.chartViewId}.references.json`
+                  )
+        runInAction(() => (this.references = json.references))
+    }
+
     @action.bound refresh(): void {
         void this.fetchChartViewData()
+        void this.fetchRefs()
     }
 
     componentDidMount(): void {

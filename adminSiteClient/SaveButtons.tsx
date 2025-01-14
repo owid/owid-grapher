@@ -1,8 +1,8 @@
 import { Component } from "react"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
-import { action, computed } from "mobx"
+import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { excludeUndefined, omit } from "@ourworldindata/utils"
+import { excludeUndefined, omit, slugify } from "@ourworldindata/utils"
 import {
     IndicatorChartEditor,
     isIndicatorChartEditorInstance,
@@ -14,9 +14,9 @@ import {
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import {
     ChartViewEditor,
-    chartViewsFeatureEnabled,
     isChartViewEditorInstance,
 } from "./ChartViewEditor.js"
+import { NarrativeChartNameModal } from "./NarrativeChartNameModal.js"
 
 @observer
 export class SaveButtons<Editor extends AbstractChartEditor> extends Component<{
@@ -61,10 +61,6 @@ class SaveButtonsForChart extends Component<{
         void this.props.editor.saveAsNewGrapher()
     }
 
-    @action.bound onSaveAsNarrativeView() {
-        void this.props.editor.saveAsNarrativeView()
-    }
-
     @action.bound onPublishToggle() {
         if (this.props.editor.grapher.isPublished)
             this.props.editor.unpublishGrapher()
@@ -77,6 +73,29 @@ class SaveButtonsForChart extends Component<{
             ...Object.values(errorMessages),
             ...Object.values(errorMessagesForDimensions).flat(),
         ])
+    }
+
+    @computed get initialNarrativeChartName(): string {
+        return slugify(this.props.editor.grapher.title ?? "")
+    }
+
+    @observable narrativeChartNameModalOpen:
+        | "open"
+        | "open-loading"
+        | "closed" = "closed"
+    @observable narrativeChartNameModalError: string | undefined = undefined
+
+    @action.bound async onSubmitNarrativeChartButton(name: string) {
+        const { editor } = this.props
+
+        this.narrativeChartNameModalOpen = "open-loading"
+        const res = await editor.saveAsChartView(name)
+        if (res.success) {
+            this.narrativeChartNameModalOpen = "closed"
+        } else {
+            this.narrativeChartNameModalOpen = "open"
+            this.narrativeChartNameModalError = res.errorMsg
+        }
     }
 
     render() {
@@ -116,17 +135,27 @@ class SaveButtonsForChart extends Component<{
                         {grapher.isPublished ? "Unpublish" : "Publish"}
                     </button>
                 </div>
-                {chartViewsFeatureEnabled && (
-                    <div className="mt-2">
-                        <button
-                            className="btn btn-primary"
-                            onClick={this.onSaveAsNarrativeView}
-                            disabled={isSavingDisabled}
-                        >
-                            Save as narrative view
-                        </button>
-                    </div>
-                )}
+                <div className="mt-2">
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => {
+                            this.narrativeChartNameModalOpen = "open"
+                            this.narrativeChartNameModalError = undefined
+                        }}
+                        disabled={isSavingDisabled}
+                    >
+                        Save as narrative chart
+                    </button>
+                </div>
+                <NarrativeChartNameModal
+                    open={this.narrativeChartNameModalOpen}
+                    initialName={this.initialNarrativeChartName}
+                    errorMsg={this.narrativeChartNameModalError}
+                    onSubmit={this.onSubmitNarrativeChartButton}
+                    onCancel={() =>
+                        (this.narrativeChartNameModalOpen = "closed")
+                    }
+                />
                 {editingErrors.map((error, i) => (
                     <div key={i} className="alert alert-danger mt-2">
                         {error}
@@ -219,7 +248,7 @@ class SaveButtonsForChartView extends Component<{
                     onClick={this.onSaveChart}
                     disabled={isSavingDisabled}
                 >
-                    Save chart view
+                    Save narrative chart
                 </button>{" "}
                 <a
                     className="btn btn-secondary"

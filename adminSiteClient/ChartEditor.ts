@@ -13,7 +13,6 @@ import {
     getParentVariableIdFromChartConfig,
     mergeGrapherConfigs,
     isEmpty,
-    slugify,
     omit,
     CHART_VIEW_PROPS_TO_OMIT,
 } from "@ourworldindata/utils"
@@ -200,22 +199,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
             )
     }
 
-    async saveAsNarrativeView(): Promise<void> {
+    async saveAsChartView(
+        name: string
+    ): Promise<{ success: boolean; errorMsg?: string }> {
         const { patchConfig, grapher } = this
 
         const chartJson = omit(patchConfig, CHART_VIEW_PROPS_TO_OMIT)
-
-        const suggestedName = grapher.title ? slugify(grapher.title) : undefined
-
-        const name = prompt(
-            "Please enter a programmatic name for the narrative view. Note that this name cannot be changed later.",
-            suggestedName
-        )
-
-        if (name === null) return
-
-        // Need to open intermediary tab before AJAX to avoid popup blockers
-        const w = window.open("/", "_blank") as Window
 
         const body = {
             name,
@@ -228,11 +217,14 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
             body,
             "POST"
         )
-
-        if (json.success)
-            w.location.assign(
+        if (json.success) {
+            window.open(
                 this.manager.admin.url(`chartViews/${json.chartViewId}/edit`)
             )
+            return { success: true }
+        } else {
+            return { success: false, errorMsg: json.errorMsg }
+        }
     }
 
     publishGrapher(): void {

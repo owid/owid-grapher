@@ -5,18 +5,12 @@ import {
     References,
     type EditorTab,
 } from "./AbstractChartEditor.js"
-import { ENV } from "../settings/clientSettings.js"
 import {
     CHART_VIEW_PROPS_TO_OMIT,
     CHART_VIEW_PROPS_TO_PERSIST,
     GrapherInterface,
 } from "@ourworldindata/types"
 import { diffGrapherConfigs, omit, pick } from "@ourworldindata/utils"
-
-// Don't yet show chart views in the admin interface
-// This is low-stakes - if it shows up anyhow (e.g. on staging servers), it's not a big deal.
-// TODO: Remove this flag once we're launching this feature
-export const chartViewsFeatureEnabled = ENV === "development"
 
 export interface Chart {
     id: number
@@ -28,6 +22,7 @@ export interface Chart {
 export interface ChartViewEditorManager extends AbstractChartEditorManager {
     chartViewId: number
     parentChartId: number
+    references: References | undefined
 }
 
 export class ChartViewEditor extends AbstractChartEditor<ChartViewEditorManager> {
@@ -47,9 +42,8 @@ export class ChartViewEditor extends AbstractChartEditor<ChartViewEditorManager>
         return tabs
     }
 
-    @computed get references(): References | undefined {
-        // Not yet implemented for chart views
-        return undefined
+    @computed get references() {
+        return this.manager.references
     }
 
     @computed override get patchConfig(): GrapherInterface {
