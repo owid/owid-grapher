@@ -1858,6 +1858,13 @@ export class GrapherState {
     }
 
     @computed get isEntitySelectorPanelActive(): boolean {
+        console.log("isEntitySelectorPanelActive", {
+            hideEntityControls: this.hideEntityControls,
+            canChangeAddOrHighlightEntities:
+                this.canChangeAddOrHighlightEntities,
+            isOnChartTab: this.isOnChartTab,
+            showEntitySelectorAs: this.showEntitySelectorAs,
+        })
         return (
             !this.hideEntityControls &&
             this.canChangeAddOrHighlightEntities &&
@@ -1870,12 +1877,20 @@ export class GrapherState {
     private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
 
     @computed get showEntitySelectorAs(): GrapherWindowType {
+        console.log("showEntitySelectorAs", {
+            isEmbeddedInAnOwidPage: this.isEmbeddedInAnOwidPage,
+            isEmbeddedInADataPage: this.isEmbeddedInADataPage,
+            isSemiNarrow: this.isSemiNarrow,
+            isInFullScreenMode: this.isInFullScreenMode,
+            frameBounds: this.frameBounds,
+            isIFrame: this.isInIFrame,
+        })
         if (
-            this.frameBounds.width > 940 &&
+            //this.frameBounds.width > 940 &&
             // don't use the panel if the grapher is embedded
-            ((!this.isInIFrame && !this.isEmbeddedInAnOwidPage) ||
-                // unless we're in full-screen mode
-                this.isInFullScreenMode)
+            (!this.isInIFrame && !this.isEmbeddedInAnOwidPage) ||
+            // unless we're in full-screen mode
+            this.isInFullScreenMode
         )
             return GrapherWindowType.panel
 
