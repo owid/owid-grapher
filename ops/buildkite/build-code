@@ -82,6 +82,7 @@ build_grapher() {
     # the bakedSite folder
     (
         cd owid-grapher
+        corepack install
         yarn install
         git rev-parse HEAD > /home/owid/live-data/bakedSite/head.txt
         yarn cleanTsc
