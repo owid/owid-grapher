@@ -6,7 +6,7 @@ This local environment requires some manual setup. For a faster way to get start
 
 You need the following to be able to compile the grapher project and run the tests or use our Storybook:
 
-- [Node 18](https://nodejs.org/en/)
+- [Node 22](https://nodejs.org/en/)
 - [Yarn](https://yarnpkg.com/)
 
 All further dependencies will be automatically installed by the yarn package manager.
