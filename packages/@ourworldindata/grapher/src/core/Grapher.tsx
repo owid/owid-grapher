@@ -158,7 +158,7 @@ import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
-import { SettingsMenuManager } from "../controls/SettingsMenu"
+import { SettingsMenu, SettingsMenuManager } from "../controls/SettingsMenu"
 import { TooltipContainer } from "../tooltip/Tooltip"
 import {
     EntitySelectorModal,
@@ -811,13 +811,48 @@ export class Grapher
         return !this.hideLegend
     }
 
+    @computed private get showsAllEntitiesInChart(): boolean {
+        return this.isScatter || this.isMarimekko
+    }
+
+    @computed private get settingsMenu(): SettingsMenu {
+        return new SettingsMenu({ manager: this, top: 0, bottom: 0, right: 0 })
+    }
+
+    /**
+     * If the table filter toggle isn't offered, then we default to
+     * to showing only the selected entities – unless there is a view
+     * that displays all data points, like a map or a scatter plot.
+     */
+    @computed get forceShowSelectionOnlyInDataTable(): boolean {
+        return (
+            !this.settingsMenu.showTableFilterToggle &&
+            this.hasChartTab &&
+            !this.showsAllEntitiesInChart &&
+            !this.hasMapTab
+        )
+    }
+
     // table that is used for display in the table tab
     @computed get tableForDisplay(): OwidTable {
-        const table = this.table
+        let table = this.table
+
         if (!this.isReady || !this.isOnTableTab) return table
-        return this.chartInstance.transformTableForDisplay
-            ? this.chartInstance.transformTableForDisplay(table)
-            : table
+
+        if (this.chartInstance.transformTableForDisplay) {
+            table = this.chartInstance.transformTableForDisplay(table)
+        }
+
+        if (
+            this.forceShowSelectionOnlyInDataTable ||
+            this.showSelectionOnlyInDataTable
+        ) {
+            table = table.filterByEntityNames(
+                this.selection.selectedEntityNames
+            )
+        }
+
+        return table
     }
 
     @computed get tableForSelection(): OwidTable {

@@ -86,6 +86,7 @@ export const GrapherWithIncompleteData = (
     ]
     return new Grapher({
         tab: GRAPHER_TAB_OPTIONS.table,
+        selectedEntityNames: ["Iceland", "France", "Afghanistan"],
         dimensions,
         ...props,
         owidDataset: createOwidTestDataset([{ metadata, data }]),
@@ -127,6 +128,7 @@ export const GrapherWithAggregates = (
     return new Grapher({
         tab: GRAPHER_TAB_OPTIONS.table,
         dimensions,
+        selectedEntityNames: ["Afghanistan", "Iceland", "World"],
         ...props,
         owidDataset: createOwidTestDataset([
             { metadata: childMortalityMetadata, data: childMortalityData },
