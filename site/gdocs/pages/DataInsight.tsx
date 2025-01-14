@@ -54,7 +54,7 @@ const RelatedTopicsList = ({
     if (!tags?.length) return null
     return (
         <div className={cx(className, "data-insights-related-topics")}>
-            <p className="body-2-semibold">Related topic pages:</p>
+            <p className="body-3-regular">Related topic pages:</p>
             <ul>
                 {tags.map((tag) => (
                     <li key={tag.name}>
