@@ -240,7 +240,7 @@ getRouteNonIdempotentWithRWTransaction(
     "/gdocs/:id",
     getIndividualGdoc
 )
-putRouteWithRWTransaction(apiRouter, "/gdocs/:id", createOrUpdateGdoc)
+apiRouter.put("/gdocs/:id", createOrUpdateGdoc)
 deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", deleteGdoc)
 postRouteWithRWTransaction(apiRouter, "/gdocs/:gdocId/setTags", setGdocTags)
 

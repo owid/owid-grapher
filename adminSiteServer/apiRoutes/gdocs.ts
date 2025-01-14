@@ -1,10 +1,10 @@
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     GdocsContentSource,
-    DbInsertUser,
     JsonError,
     GDOCS_BASE_URL,
     gdocUrlRegex,
+    OwidGdocPostInterface,
     PostsGdocsLinksTableName,
     PostsGdocsXImagesTableName,
     PostsGdocsTableName,
@@ -23,10 +23,7 @@ import {
     indexIndividualGdocPost,
     removeIndividualGdocPostFromIndex,
 } from "../../baker/algolia/utils/pages.js"
-import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
-import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
 import { getMinimalGdocPostsByIds } from "../../db/model/Gdoc/GdocBase.js"
-import { GdocDataInsight } from "../../db/model/Gdoc/GdocDataInsight.js"
 import {
     getAllGdocIndexItemsOrderedByUpdatedAt,
     getAndLoadGdocById,
@@ -40,8 +37,6 @@ import {
     getGdocBaseObjectById,
     setTagsForGdoc,
 } from "../../db/model/Gdoc/GdocFactory.js"
-import { GdocHomepage } from "../../db/model/Gdoc/GdocHomepage.js"
-import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { triggerStaticBuild, enqueueLightningChange } from "./routeUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
@@ -85,102 +80,99 @@ export async function getIndividualGdoc(
 }
 
 /**
- * Handles all four `GdocPublishingAction` cases
- * - SavingDraft (no action)
- * - Publishing (index and bake)
- * - Updating (index and bake (potentially via lightning deploy))
- * - Unpublishing (remove from index and bake)
- */
-async function indexAndBakeGdocIfNeccesary(
-    trx: db.KnexReadWriteTransaction,
-    user: Required<DbInsertUser>,
-    prevGdoc:
-        | GdocPost
-        | GdocDataInsight
-        | GdocHomepage
-        | GdocAbout
-        | GdocAuthor,
-    nextGdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAbout | GdocAuthor
-) {
-    const prevJson = prevGdoc.toJSON()
-    const nextJson = nextGdoc.toJSON()
-    const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
-    const action = getPublishingAction(prevJson, nextJson)
-    const isGdocPost = checkIsGdocPostExcludingFragments(nextJson)
-
-    await match(action)
-        .with(GdocPublishingAction.SavingDraft, lodash.noop)
-        .with(GdocPublishingAction.Publishing, async () => {
-            if (isGdocPost) {
-                await indexIndividualGdocPost(
-                    nextJson,
-                    trx,
-                    // If the gdoc is being published for the first time, prevGdoc.slug will be undefined
-                    // In that case, we pass nextJson.slug to see if it has any page views (i.e. from WP)
-                    prevGdoc.slug || nextJson.slug
-                )
-            }
-            await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
-        })
-        .with(GdocPublishingAction.Updating, async () => {
-            if (isGdocPost) {
-                await indexIndividualGdocPost(nextJson, trx, prevGdoc.slug)
-            }
-            if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
-                await enqueueLightningChange(
-                    user,
-                    `Lightning update ${nextJson.slug}`,
-                    nextJson.slug
-                )
-            } else {
-                await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
-            }
-        })
-        .with(GdocPublishingAction.Unpublishing, async () => {
-            if (isGdocPost) {
-                await removeIndividualGdocPostFromIndex(nextJson)
-            }
-            await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
-        })
-        .exhaustive()
-}
-
-/**
  * Only supports creating a new empty Gdoc or updating an existing one. Does not
  * support creating a new Gdoc from an existing one. Relevant updates will
  * trigger a deploy.
  */
 export async function createOrUpdateGdoc(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
-    trx: db.KnexReadWriteTransaction
+    res: e.Response<any, Record<string, any>>
 ) {
     const { id } = req.params
 
     if (isEmpty(req.body)) {
-        return createOrLoadGdocById(trx, id)
+        return await db.knexReadWriteTransaction(async (trx) => {
+            return await createOrLoadGdocById(trx, id)
+        })
     }
 
-    const prevGdoc = await getAndLoadGdocById(trx, id)
-    if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+    const user = res.locals.user
+    let build: "full" | "lightning" | undefined
+    let buildMessage = ""
 
-    const nextGdoc = gdocFromJSON(req.body)
-    await nextGdoc.loadState(trx)
+    const nextGdoc = await db.knexReadWriteTransaction(async (trx) => {
+        const prevGdoc = await getAndLoadGdocById(trx, id)
+        if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    await addImagesToContentGraph(trx, nextGdoc)
+        const nextGdoc = gdocFromJSON(req.body)
+        await nextGdoc.loadState(trx)
 
-    await setLinksForGdoc(
-        trx,
-        nextGdoc.id,
-        nextGdoc.links,
-        nextGdoc.published
-            ? GdocLinkUpdateMode.DeleteAndInsert
-            : GdocLinkUpdateMode.DeleteOnly
-    )
+        await addImagesToContentGraph(trx, nextGdoc)
 
-    await upsertGdoc(trx, nextGdoc)
+        await setLinksForGdoc(
+            trx,
+            nextGdoc.id,
+            nextGdoc.links,
+            nextGdoc.published
+                ? GdocLinkUpdateMode.DeleteAndInsert
+                : GdocLinkUpdateMode.DeleteOnly
+        )
 
-    await indexAndBakeGdocIfNeccesary(trx, res.locals.user, prevGdoc, nextGdoc)
+        await upsertGdoc(trx, nextGdoc)
+
+        const prevJson = prevGdoc.toJSON()
+        const nextJson = nextGdoc.toJSON()
+        const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
+        const action = getPublishingAction(prevJson, nextJson)
+        const isGdocPost = checkIsGdocPostExcludingFragments(nextJson)
+
+        await match(action)
+            .with(GdocPublishingAction.SavingDraft, lodash.noop)
+            .with(GdocPublishingAction.Publishing, async () => {
+                if (isGdocPost) {
+                    await indexIndividualGdocPost(
+                        nextJson as OwidGdocPostInterface,
+                        trx,
+                        // If the gdoc is being published for the first time, prevGdoc.slug will be undefined
+                        // In that case, we pass nextJson.slug to see if it has any page views (i.e. from WP)
+                        prevGdoc.slug || nextJson.slug
+                    )
+                }
+                build = "full"
+                buildMessage = `${action} ${nextJson.slug}`
+            })
+            .with(GdocPublishingAction.Updating, async () => {
+                if (isGdocPost) {
+                    await indexIndividualGdocPost(nextJson, trx, prevGdoc.slug)
+                }
+                if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
+                    build = "lightning"
+                    buildMessage = `Lightning update ${nextJson.slug}`
+                } else {
+                    build = "full"
+                    buildMessage = `${action} ${nextJson.slug}`
+                }
+            })
+            .with(GdocPublishingAction.Unpublishing, async () => {
+                if (isGdocPost) {
+                    await removeIndividualGdocPostFromIndex(nextJson)
+                }
+                build = "full"
+                buildMessage = `${action} ${nextJson.slug}`
+            })
+            .exhaustive()
+
+        return nextGdoc
+    })
+
+    // The build must be triggered after the transaction has been committed
+    // otherwise the deploy-queue process can get stale data from the DB.
+    // https://github.com/owid/owid-grapher/issues/3908
+    if (build === "full") {
+        await triggerStaticBuild(user, buildMessage)
+    } else if (build === "lightning") {
+        await enqueueLightningChange(user, buildMessage, nextGdoc.slug)
+    }
 
     return nextGdoc
 }
