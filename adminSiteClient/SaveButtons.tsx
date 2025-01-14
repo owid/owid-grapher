@@ -14,7 +14,6 @@ import {
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import {
     ChartViewEditor,
-    chartViewsFeatureEnabled,
     isChartViewEditorInstance,
 } from "./ChartViewEditor.js"
 import { NarrativeChartNameModal } from "./NarrativeChartNameModal.js"
@@ -136,32 +135,27 @@ class SaveButtonsForChart extends Component<{
                         {grapher.isPublished ? "Unpublish" : "Publish"}
                     </button>
                 </div>
-                {chartViewsFeatureEnabled && (
-                    <>
-                        <div className="mt-2">
-                            <button
-                                className="btn btn-primary"
-                                onClick={() => {
-                                    this.narrativeChartNameModalOpen = "open"
-                                    this.narrativeChartNameModalError =
-                                        undefined
-                                }}
-                                disabled={isSavingDisabled}
-                            >
-                                Save as narrative chart
-                            </button>
-                        </div>
-                        <NarrativeChartNameModal
-                            open={this.narrativeChartNameModalOpen}
-                            initialName={this.initialNarrativeChartName}
-                            errorMsg={this.narrativeChartNameModalError}
-                            onSubmit={this.onSubmitNarrativeChartButton}
-                            onCancel={() =>
-                                (this.narrativeChartNameModalOpen = "closed")
-                            }
-                        />
-                    </>
-                )}
+                <div className="mt-2">
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => {
+                            this.narrativeChartNameModalOpen = "open"
+                            this.narrativeChartNameModalError = undefined
+                        }}
+                        disabled={isSavingDisabled}
+                    >
+                        Save as narrative chart
+                    </button>
+                </div>
+                <NarrativeChartNameModal
+                    open={this.narrativeChartNameModalOpen}
+                    initialName={this.initialNarrativeChartName}
+                    errorMsg={this.narrativeChartNameModalError}
+                    onSubmit={this.onSubmitNarrativeChartButton}
+                    onCancel={() =>
+                        (this.narrativeChartNameModalOpen = "closed")
+                    }
+                />
                 {editingErrors.map((error, i) => (
                     <div key={i} className="alert alert-danger mt-2">
                         {error}
