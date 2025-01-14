@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 import { Button, Flex, Input, Space, Table } from "antd"
 
@@ -15,11 +15,12 @@ import {
     highlightFunctionForSearchWords,
 } from "../adminShared/search.js"
 
-function createColumns(
+function createColumns(ctx: {
     highlightFn: (
         text: string | null | undefined
     ) => React.ReactElement | string
-): ColumnsType<ApiChartViewOverview> {
+    deleteFn: (chartViewId: number) => void
+}): ColumnsType<ApiChartViewOverview> {
     return [
         {
             title: "Preview",
@@ -38,13 +39,13 @@ function createColumns(
             dataIndex: "name",
             key: "name",
             width: 150,
-            render: (name) => highlightFn(name),
+            render: (name) => ctx.highlightFn(name),
         },
         {
             title: "Title",
             dataIndex: "title",
             key: "title",
-            render: (title) => highlightFn(title),
+            render: (title) => ctx.highlightFn(title),
         },
         {
             title: "ID",
@@ -58,7 +59,7 @@ function createColumns(
             key: "parent",
             render: (parent) => (
                 <Link to={`/charts/${parent.id}/edit`}>
-                    {highlightFn(parent.title)}
+                    {ctx.highlightFn(parent.title)}
                 </Link>
             ),
             width: 200,
@@ -89,6 +90,13 @@ function createColumns(
                         href={`/admin/chartViews/${chartView.id}/edit`}
                     >
                         Edit
+                    </Button>
+                    <Button
+                        type="dashed"
+                        danger
+                        onClick={() => ctx.deleteFn(chartView.id)}
+                    >
+                        Delete
                     </Button>
                 </Space>
             ),
@@ -123,7 +131,21 @@ export function ChartViewIndexPage() {
         () => highlightFunctionForSearchWords(searchWords),
         [searchWords]
     )
-    const columns = useMemo(() => createColumns(highlightFn), [highlightFn])
+    const deleteFn = useCallback(
+        async (chartViewId: number) => {
+            if (confirm("Are you sure you want to delete this chart view?")) {
+                await admin
+                    .requestJSON(`/api/chartViews/${chartViewId}`, {}, "DELETE")
+                    .then(() => alert("Chart view deleted"))
+                    .then(() => window.location.reload())
+            }
+        },
+        [admin]
+    )
+    const columns = useMemo(
+        () => createColumns({ highlightFn, deleteFn }),
+        [highlightFn, deleteFn]
+    )
 
     useEffect(() => {
         const getChartViews = async () =>
