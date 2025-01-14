@@ -96,7 +96,9 @@ export function OwidGdoc({
                 linkedChartViews: get(props, "linkedChartViews", {}),
             }}
         >
-            <DocumentContext.Provider value={{ isPreviewing }}>
+            <DocumentContext.Provider
+                value={{ isPreviewing, documentType: props.content.type }}
+            >
                 <AdminLinks />
                 {content}
             </DocumentContext.Provider>
