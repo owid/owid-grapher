@@ -701,9 +701,19 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     ): string {
         let table
         if (activeColumnSlugs?.length) {
-            table = this.select([
+            const timeColumnToInclude = [
                 OwidTableSlugs.year,
                 OwidTableSlugs.day,
+                this.timeColumn.slug, // needed for explorers, where the time column may be called anything
+            ].find((colSlug) => this.has(colSlug))
+
+            if (!timeColumnToInclude)
+                throw new Error(
+                    "Expected to find a time column to include in the CSV"
+                )
+
+            table = this.select([
+                timeColumnToInclude,
                 this.entityNameSlug,
                 ...activeColumnSlugs,
             ])
