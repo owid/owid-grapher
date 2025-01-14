@@ -40,7 +40,7 @@ const OPEN_GRAPH_OPTIONS: ImageOptions = {
     details: false,
     fontSize: 21,
 }
-const SOCIAL_MEDIA_SQUARE_OPTIONS: ImageOptions = {
+const SQUARE_OPTIONS: ImageOptions = {
     pngWidth: 4 * GRAPHER_SQUARE_SIZE,
     pngHeight: 4 * GRAPHER_SQUARE_SIZE,
     svgWidth: GRAPHER_SQUARE_SIZE,
@@ -48,7 +48,7 @@ const SOCIAL_MEDIA_SQUARE_OPTIONS: ImageOptions = {
     details: false,
     fontSize: undefined,
     grapherProps: {
-        isSocialMediaExport: true,
+        isSocialMediaExport: false,
         staticFormat: GrapherStaticFormat.square,
     },
 }
@@ -57,8 +57,14 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
     // We have two special images types specified via the `imType` query param:
     if (params.get("imType") === "twitter") return TWITTER_OPTIONS
     else if (params.get("imType") === "og") return OPEN_GRAPH_OPTIONS
-    else if (params.get("imType") === "social-media-square") {
-        const squareOptions = SOCIAL_MEDIA_SQUARE_OPTIONS
+    else if (
+        params.get("imType") === "square" ||
+        params.get("imType") === "social-media-square"
+    ) {
+        const squareOptions = SQUARE_OPTIONS
+        if (params.get("imType") === "social-media-square") {
+            squareOptions.grapherProps.isSocialMediaExport = true
+        }
         if (params.has("imSquareSize")) {
             const size = parseInt(params.get("imSquareSize")!)
             squareOptions.pngWidth = size
