@@ -54,7 +54,7 @@ export interface DownloadModalManager {
     staticFormat?: GrapherStaticFormat
     baseUrl?: string
     queryStr?: string
-    table?: OwidTable
+    inputTable?: OwidTable
     transformedTable?: OwidTable
     tableForDisplay?: OwidTable
     yColumnsFromDimensionsOrSlugsOrAuto?: CoreColumn[]
@@ -751,7 +751,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     const { yColumnsFromDimensionsOrSlugsOrAuto: yColumns } = props.manager
 
     const { cols: nonRedistributableCols, sourceLinks } =
-        getNonRedistributableInfo(props.manager.table)
+        getNonRedistributableInfo(props.manager.inputTable)
 
     // Server-side download is not necessarily available for:
     // - Explorers
@@ -771,7 +771,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                 props.manager.baseUrl ??
                 `/grapher/${props.manager.displaySlug}`,
 
-            fullTable: props.manager.table ?? BlankOwidTable(),
+            fullTable: props.manager.inputTable ?? BlankOwidTable(),
             filteredTable:
                 (props.manager.isOnTableTab
                     ? props.manager.tableForDisplay
@@ -783,7 +783,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
             props.manager.displaySlug,
             props.manager.queryStr,
             props.manager.isOnTableTab,
-            props.manager.table,
+            props.manager.inputTable,
             props.manager.transformedTable,
             props.manager.tableForDisplay,
             props.manager.activeColumnSlugs,
@@ -868,7 +868,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
 
     return (
         <>
-            <SourceAndCitationSection table={props.manager.table} />
+            <SourceAndCitationSection table={props.manager.inputTable} />
             <div className="download-modal__data-section">
                 <div className="download-modal__heading-with-caption">
                     <h3 className="grapher_h3-semibold">Quick download</h3>
