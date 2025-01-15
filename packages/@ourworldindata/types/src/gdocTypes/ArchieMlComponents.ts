@@ -245,6 +245,10 @@ export type EnrichedBlockImage = {
     originalWidth?: number
     size: BlockImageSize
     hasOutline: boolean
+    // Not a real ArchieML prop - we set this to true for Data Insights, as a way to migrate
+    // first generation data insights to only use their small image
+    // See https://github.com/owid/owid-grapher/issues/4416
+    preferSmallFilename?: boolean
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockVideo = {

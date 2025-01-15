@@ -105,9 +105,7 @@ export const DataInsightsIndexPageContent = (
             }
         )
     return (
-        <DocumentContext.Provider
-            value={{ isPreviewing, documentType: OwidGdocType.DataInsight }}
-        >
+        <DocumentContext.Provider value={{ isPreviewing }}>
             <AttachmentsContext.Provider
                 value={{
                     imageMetadata,

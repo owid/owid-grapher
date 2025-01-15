@@ -2,7 +2,6 @@ import { useCallback, useContext } from "react"
 import {
     generateSourceProps,
     ImageMetadata,
-    OwidGdocType,
     triggerDownloadFromBlob,
 } from "@ourworldindata/utils"
 import cx from "classnames"
@@ -72,6 +71,7 @@ export default function Image(props: {
     className?: string
     containerType?: ImageParentContainer
     shouldLightbox?: boolean
+    preferSmallFilename?: boolean
 }) {
     const {
         filename,
@@ -79,20 +79,19 @@ export default function Image(props: {
         hasOutline,
         containerType = "default",
         shouldLightbox = true,
+        preferSmallFilename,
     } = props
 
     const className = cx("image", props.className, {
         "image--has-outline": hasOutline,
     })
 
-    const { isPreviewing, documentType } = useContext(DocumentContext)
-    const preferSmallimage = documentType === OwidGdocType.DataInsight
+    const { isPreviewing } = useContext(DocumentContext)
     const isSmall = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const image = useImage(filename)
     const smallImage = useImage(smallFilename)
     const activeImage =
-        // If we're in a data insight, we always want to use the small image
-        (isSmall || preferSmallimage) && smallImage ? smallImage : image
+        (isSmall || preferSmallFilename) && smallImage ? smallImage : image
 
     const renderImageError = (name: string) => (
         <BlockErrorFallback

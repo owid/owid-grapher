@@ -156,6 +156,7 @@ export default function ArticleBlock({
                     alt={block.alt}
                     hasOutline={block.hasOutline}
                     containerType={containerType as ImageParentContainer}
+                    preferSmallFilename={block.preferSmallFilename}
                 />
                 {block.caption ? (
                     <figcaption
