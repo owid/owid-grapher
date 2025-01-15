@@ -178,11 +178,10 @@ export async function createOrUpdateGdoc(
             : GdocLinkUpdateMode.DeleteOnly
     )
 
-    await upsertGdoc(trx, nextGdoc)
-
+    const upserted = await upsertGdoc(trx, nextGdoc)
     await indexAndBakeGdocIfNeccesary(trx, res.locals.user, prevGdoc, nextGdoc)
 
-    return nextGdoc
+    return upserted
 }
 
 async function validateTombstoneRelatedLinkUrl(

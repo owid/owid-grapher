@@ -612,20 +612,22 @@ export function getDbEnrichedGdocFromOwidGdoc(
 export async function upsertGdoc(
     knex: KnexReadWriteTransaction,
     gdoc: OwidGdoc | GdocBase
-): Promise<number[]> {
+): Promise<DbEnrichedPostGdoc> {
     let sql = undefined
     try {
         const enrichedGdoc = getDbEnrichedGdocFromOwidGdoc(gdoc)
-        const rawPost = serializePostsGdocsRow(enrichedGdoc)
+        const { updatedAt: _, ...rawPost } =
+            serializePostsGdocsRow(enrichedGdoc)
         const query = knex
             .table(PostsGdocsTableName)
             .insert(rawPost)
             .onConflict("id")
             .merge()
         sql = query.toSQL()
-        const indices = await query
+        await query
         await updateDerivedGdocPostsComponents(knex, gdoc.id, gdoc.content.body)
-        return indices
+        const upserted = await getAndLoadGdocById(knex, gdoc.id)
+        return upserted
     } catch (e) {
         console.error(`Error occured in sql: ${sql}`, e)
         throw e
