@@ -728,6 +728,7 @@ export {
 } from "./domainTypes/Author.js"
 
 export type {
+    IndicatorConfig,
     IndicatorEntryBeforePreProcessing,
     IndicatorsAfterPreProcessing,
     MultiDimDataPageConfigEnriched,
@@ -742,3 +743,5 @@ export type {
     View,
     ViewEnriched,
 } from "./siteTypes/MultiDimDataPage.js"
+
+export { isIndicatorConfig } from "./siteTypes/MultiDimDataPage.js"

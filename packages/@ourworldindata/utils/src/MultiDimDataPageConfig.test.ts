@@ -51,7 +51,7 @@ const CONFIG: MultiDimDataPageConfigEnriched = {
                 interval: "yearly",
             },
             indicators: {
-                y: [111, 222],
+                y: [{ id: 111 }, { id: 222 }],
             },
             fullConfigId: uuidv7(),
         },
@@ -61,7 +61,7 @@ const CONFIG: MultiDimDataPageConfigEnriched = {
                 interval: "yearly",
             },
             indicators: {
-                y: [819727],
+                y: [{ id: 819727 }],
             },
             fullConfigId: uuidv7(),
         },

@@ -11,7 +11,9 @@ import {
     DbPlainMultiDimXChartConfig,
     DbRawChartConfig,
     GrapherInterface,
+    IndicatorConfig,
     IndicatorEntryBeforePreProcessing,
+    isIndicatorConfig,
     MultiDimDataPageConfigEnriched,
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageConfigRaw,
@@ -84,12 +86,27 @@ async function resolveMultiDimDataPageCatalogPathsToIndicatorIds(
         )
     }
 
-    function resolveSingleField(indicator?: IndicatorEntryBeforePreProcessing) {
-        if (typeof indicator === "string") {
-            const indicatorId = catalogPathToIndicatorIdMap.get(indicator)
-            return indicatorId ?? undefined
+    function resolveSingleField(
+        indicator?: IndicatorEntryBeforePreProcessing
+    ): IndicatorConfig | undefined {
+        switch (typeof indicator) {
+            case "number":
+                return { id: indicator }
+            case "string": {
+                const id = catalogPathToIndicatorIdMap.get(indicator)
+                return id ? { id } : undefined
+            }
+            case "object": {
+                if (isIndicatorConfig(indicator)) return indicator
+                if (typeof indicator.id === "string") {
+                    const id = catalogPathToIndicatorIdMap.get(indicator.id)
+                    return id ? { ...indicator, id } : undefined
+                }
+                return undefined
+            }
+            default:
+                return undefined
         }
-        return indicator
     }
 
     function resolveSingleOrArrayField(
@@ -202,7 +219,7 @@ export async function createMultiDimConfig(
     )
     const variableConfigs = await getMergedGrapherConfigsForVariables(
         knex,
-        uniq(config.views.map((view) => view.indicators.y[0]))
+        uniq(config.views.map((view) => view.indicators.y[0].id))
     )
     const existingViewIdsToChartConfigIds = await getViewIdToChartConfigIdMap(
         knex,
@@ -215,7 +232,7 @@ export async function createMultiDimConfig(
 
     const enrichedViews = await Promise.all(
         config.views.map(async (view) => {
-            const variableId = view.indicators.y[0]
+            const variableId = view.indicators.y[0].id
             // Main config for each view.
             const mainGrapherConfig: GrapherInterface = {
                 $schema: defaultGrapherConfig.$schema,
@@ -283,7 +300,7 @@ export async function createMultiDimConfig(
         await upsertMultiDimXChartConfigs(knex, {
             multiDimId,
             viewId: dimensionsToViewId(view.dimensions),
-            variableId: view.indicators.y[0],
+            variableId: view.indicators.y[0].id,
             chartConfigId: view.fullConfigId,
         })
     }
