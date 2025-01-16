@@ -44,6 +44,8 @@ import {
     KnexReadWriteTransaction,
     getImageMetadataByFilenames,
     getPublishedGdocPostsWithTags,
+    getParentTagArraysByChildName,
+    getBestBreadcrumbs,
 } from "../../db.js"
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { GdocAbout } from "./GdocAbout.js"
@@ -204,7 +206,17 @@ export async function getGdocBaseObjectById(
             [id]
         )
         gdoc.tags = tags
+
+        if (tags.length) {
+            const parentTagArraysByChildName =
+                await getParentTagArraysByChildName(knex)
+            gdoc.breadcrumbs = getBestBreadcrumbs(
+                gdoc.tags,
+                parentTagArraysByChildName
+            )
+        }
     }
+
     return gdoc
 }
 
@@ -292,6 +304,14 @@ export async function getPublishedGdocBaseObjectBySlug(
             [gdoc.id]
         )
         gdoc.tags = tags
+        if (tags.length) {
+            const parentTagArraysByChildName =
+                await getParentTagArraysByChildName(knex)
+            gdoc.breadcrumbs = getBestBreadcrumbs(
+                gdoc.tags,
+                parentTagArraysByChildName
+            )
+        }
     }
     return gdoc
 }
@@ -575,7 +595,7 @@ export function getDbEnrichedGdocFromOwidGdoc(
     gdoc: OwidGdoc | GdocBase
 ): DbEnrichedPostGdoc {
     const enrichedGdoc = {
-        breadcrumbs: gdoc.breadcrumbs,
+        manualBreadcrumbs: gdoc.manualBreadcrumbs,
         content: gdoc.content,
         createdAt: gdoc.createdAt,
         id: gdoc.id,
@@ -592,20 +612,22 @@ export function getDbEnrichedGdocFromOwidGdoc(
 export async function upsertGdoc(
     knex: KnexReadWriteTransaction,
     gdoc: OwidGdoc | GdocBase
-): Promise<number[]> {
+): Promise<DbEnrichedPostGdoc> {
     let sql = undefined
     try {
         const enrichedGdoc = getDbEnrichedGdocFromOwidGdoc(gdoc)
-        const rawPost = serializePostsGdocsRow(enrichedGdoc)
+        const { updatedAt: _, ...rawPost } =
+            serializePostsGdocsRow(enrichedGdoc)
         const query = knex
             .table(PostsGdocsTableName)
             .insert(rawPost)
             .onConflict("id")
             .merge()
         sql = query.toSQL()
-        const indices = await query
+        await query
         await updateDerivedGdocPostsComponents(knex, gdoc.id, gdoc.content.body)
-        return indices
+        const upserted = await getAndLoadGdocById(knex, gdoc.id)
+        return upserted
     } catch (e) {
         console.error(`Error occured in sql: ${sql}`, e)
         throw e

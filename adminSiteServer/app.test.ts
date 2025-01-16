@@ -1,5 +1,5 @@
 import { google } from "googleapis"
-import { jest } from "@jest/globals"
+import { beforeAll, jest } from "@jest/globals"
 // Mock the google docs api to retrieve files from the test-files directory
 // AFAICT, we have to do this directly after the import
 // and before any other code that might import googleapis
@@ -43,7 +43,10 @@ import { Knex, knex } from "knex"
 import { dbTestConfig } from "../db/tests/dbTestConfig.js"
 import {
     TransactionCloseMode,
+    getBestBreadcrumbs,
+    getParentTagArraysByChildName,
     knexReadWriteTransaction,
+    knexReadonlyTransaction,
     setKnexInstance,
 } from "../db/db.js"
 import { cleanTestDb, TABLES_IN_USE } from "../db/tests/testHelpers.js"
@@ -51,9 +54,19 @@ import {
     ChartConfigsTableName,
     ChartsTableName,
     DatasetsTableName,
+    DbInsertTag,
+    DbInsertTagGraphNode,
     MultiDimDataPagesTableName,
     MultiDimXChartConfigsTableName,
+    TagsTableName,
+    TagGraphTableName,
     VariablesTableName,
+    TagGraphRootName,
+    PostsGdocsTableName,
+    OwidGdocType,
+    DbInsertPostGdoc,
+    DbInsertPostGdocXTag,
+    PostsGdocsXTagsTableName,
 } from "@ourworldindata/types"
 import path from "path"
 import fs from "fs"
@@ -918,5 +931,272 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             { verifySuccess: false }
         )
         expect(json.success).toBe(false)
+    })
+})
+
+describe("OwidAdminApp: tag graph", () => {
+    // prettier-ignore
+    const dummyTags: DbInsertTag[] = [
+        { name: TagGraphRootName, id: 1  },
+        { name: "Energy and Environment", id: 2  },
+        { name: "Energy", slug: "energy", id: 3 },
+        { name: "Nuclear Energy", slug: "nuclear-energy", id: 4 },
+        { name: "CO2 & Greenhouse Gas Emissions", slug: "co2-and-greenhouse-gas-emissions", id: 5 },
+      ]
+
+    const dummyTagGraph: DbInsertTagGraphNode[] = [
+        { parentId: 1, childId: 2 },
+        { parentId: 2, childId: 3, weight: 110 },
+        { parentId: 2, childId: 5 },
+        { parentId: 3, childId: 4 },
+        { parentId: 5, childId: 4 },
+    ]
+
+    function makeDummyTopicPage(slug: string): DbInsertPostGdoc {
+        return {
+            slug,
+            content: JSON.stringify({
+                type: OwidGdocType.TopicPage,
+                authors: [] as string[],
+            }),
+            id: slug,
+            published: 1,
+            createdAt: new Date(),
+            publishedAt: new Date(),
+            markdown: "",
+        }
+    }
+    const dummyTopicPages: DbInsertPostGdoc[] = [
+        makeDummyTopicPage("energy"),
+        makeDummyTopicPage("nuclear-energy"),
+        makeDummyTopicPage("co2-and-greenhouse-gas-emissions"),
+    ]
+
+    const dummyPostTags: DbInsertPostGdocXTag[] = [
+        { gdocId: "energy", tagId: 3 },
+        { gdocId: "nuclear-energy", tagId: 4 },
+        { gdocId: "co2-and-greenhouse-gas-emissions", tagId: 5 },
+    ]
+
+    beforeEach(async () => {
+        await testKnexInstance!(TagsTableName).insert(dummyTags)
+        await testKnexInstance!(TagGraphTableName).insert(dummyTagGraph)
+        await testKnexInstance!(PostsGdocsTableName).insert(dummyTopicPages)
+        await testKnexInstance!(PostsGdocsXTagsTableName).insert(dummyPostTags)
+    })
+    it("should be able to see all the tags", async () => {
+        const tags = await fetchJsonFromAdminApi("/tags.json")
+        expect(tags).toEqual({
+            tags: [
+                {
+                    id: 5,
+                    isTopic: 1,
+                    name: "CO2 & Greenhouse Gas Emissions",
+                    slug: "co2-and-greenhouse-gas-emissions",
+                },
+                {
+                    id: 3,
+                    isTopic: 1,
+                    name: "Energy",
+                    slug: "energy",
+                },
+                {
+                    id: 2,
+                    isTopic: 0,
+                    name: "Energy and Environment",
+                    slug: null,
+                },
+                {
+                    id: 4,
+                    isTopic: 1,
+                    name: "Nuclear Energy",
+                    slug: "nuclear-energy",
+                },
+                {
+                    id: 1,
+                    isTopic: 0,
+                    name: "tag-graph-root",
+                    slug: null,
+                },
+            ],
+        })
+    })
+
+    it("should be able to generate a tag graph", async () => {
+        const json = await fetchJsonFromAdminApi("/flatTagGraph.json")
+        expect(json).toEqual({
+            "1": [
+                {
+                    childId: 2,
+                    isTopic: 0,
+                    name: "Energy and Environment",
+                    parentId: 1,
+                    weight: 100,
+                },
+            ],
+            "2": [
+                {
+                    childId: 3,
+                    isTopic: 1,
+                    name: "Energy",
+                    parentId: 2,
+                    weight: 110,
+                },
+                {
+                    childId: 5,
+                    isTopic: 1,
+                    name: "CO2 & Greenhouse Gas Emissions",
+                    parentId: 2,
+                    weight: 100,
+                },
+            ],
+            "3": [
+                {
+                    childId: 4,
+                    isTopic: 1,
+                    name: "Nuclear Energy",
+                    parentId: 3,
+                    weight: 100,
+                },
+            ],
+            "5": [
+                {
+                    childId: 4,
+                    isTopic: 1,
+                    name: "Nuclear Energy",
+                    parentId: 5,
+                    weight: 100,
+                },
+            ],
+            __rootId: 1,
+        })
+    })
+
+    it("should be able to generate a set of breadcrumbs for a tag", async () => {
+        await knexReadonlyTransaction(
+            async (trx) => {
+                const parentTagArraysByChildName =
+                    await getParentTagArraysByChildName(trx)
+                const breadcrumbs = getBestBreadcrumbs(
+                    [
+                        {
+                            id: 4,
+                            name: "Nuclear Energy",
+                            slug: "nuclear-energy",
+                        },
+                    ],
+                    parentTagArraysByChildName
+                )
+                // breadcrumb hrefs are env-dependent, so we just assert on the labels
+                const labelsOnly = breadcrumbs.map((b) => b.label)
+                expect(labelsOnly).toEqual(["Energy", "Nuclear Energy"])
+            },
+            TransactionCloseMode.KeepOpen,
+            testKnexInstance
+        )
+    })
+
+    it("should generate an optimal set of breadcrumbs when given multiple tags", async () => {
+        await knexReadonlyTransaction(
+            async (trx) => {
+                const parentTagArraysByChildName =
+                    await getParentTagArraysByChildName(trx)
+                const breadcrumbs = getBestBreadcrumbs(
+                    [
+                        {
+                            id: 4,
+                            name: "Nuclear Energy",
+                            slug: "nuclear-energy",
+                        },
+                        {
+                            id: 5,
+                            name: "CO2 & Greenhouse Gas Emissions",
+                            slug: "co2-and-greenhouse-gas-emissions",
+                        },
+                    ],
+                    parentTagArraysByChildName
+                )
+                // breadcrumb hrefs are env-dependent, so we just assert on the labels
+                const labelsOnly = breadcrumbs.map((b) => b.label)
+                expect(labelsOnly).toEqual(["Energy", "Nuclear Energy"])
+            },
+            TransactionCloseMode.KeepOpen,
+            testKnexInstance
+        )
+    })
+    it("should return an empty array when there are no topic tags in any of the tags' ancestors", async () => {
+        await knexReadonlyTransaction(
+            async (trx) => {
+                const parentTagArraysByChildName =
+                    await getParentTagArraysByChildName(trx)
+                const breadcrumbs = getBestBreadcrumbs(
+                    [
+                        {
+                            id: 2,
+                            name: "Energy and Environment",
+                            slug: "",
+                        },
+                    ],
+                    parentTagArraysByChildName
+                )
+                // breadcrumb hrefs are env-dependent, so we just assert on the labels
+                const labelsOnly = breadcrumbs.map((b) => b.label)
+                expect(labelsOnly).toEqual([])
+            },
+            TransactionCloseMode.KeepOpen,
+            testKnexInstance
+        )
+    })
+    it("when there are two valid paths to a given tag, it selects the longest one", async () => {
+        await knexReadonlyTransaction(
+            async (trx) => {
+                // Here, Women's Employment has 2 paths:
+                // 1. Poverty and Economic Development > Women's Employment
+                // 2. Human Rights > Women's Rights > Women's Employment
+                // prettier-ignore
+                await testKnexInstance!(TagsTableName).insert([
+                    { name: "Human Rights", id: 6 },
+                    { name: "Women's Rights", slug: "womens-rights", id: 7 },
+                    { name: "Women's Employment", slug: "womens-employment", id: 8 },
+                    { name: "Poverty and Economic Development", id: 9 },
+                ])
+                await testKnexInstance!(TagGraphTableName).insert([
+                    { parentId: 1, childId: 6 },
+                    { parentId: 6, childId: 7 },
+                    { parentId: 7, childId: 8 },
+                    { parentId: 1, childId: 9 },
+                    { parentId: 9, childId: 8 },
+                ])
+                await testKnexInstance!(PostsGdocsTableName).insert([
+                    makeDummyTopicPage("womens-rights"),
+                    makeDummyTopicPage("womens-employment"),
+                ])
+                await testKnexInstance!(PostsGdocsXTagsTableName).insert([
+                    { gdocId: "womens-rights", tagId: 7 },
+                    { gdocId: "womens-employment", tagId: 8 },
+                ])
+
+                const parentTagArraysByChildName =
+                    await getParentTagArraysByChildName(trx)
+                const breadcrumbs = getBestBreadcrumbs(
+                    [
+                        {
+                            id: 8,
+                            name: "Women's Employment",
+                            slug: "womens-employment",
+                        },
+                    ],
+                    parentTagArraysByChildName
+                )
+                // breadcrumb hrefs are env-dependent, so we just assert on the labels
+                const labelsOnly = breadcrumbs.map((b) => b.label)
+                expect(labelsOnly).toEqual([
+                    "Women's Rights",
+                    "Women's Employment",
+                ])
+            },
+            TransactionCloseMode.KeepOpen,
+            testKnexInstance
+        )
     })
 })

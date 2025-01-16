@@ -313,11 +313,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     size="large"
                     onClose={onSettingsClose}
                     open={isSettingsOpen}
-                    extra={
-                        <Button type="primary" onClick={onSettingsClose}>
-                            Done
-                        </Button>
-                    }
                 >
                     {tsMatch(currentGdoc)
                         .with(

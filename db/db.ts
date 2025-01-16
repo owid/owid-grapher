@@ -5,6 +5,7 @@ import {
     GRAPHER_DB_PASS,
     GRAPHER_DB_NAME,
     GRAPHER_DB_PORT,
+    BAKED_BASE_URL,
 } from "../settings/serverSettings.js"
 import { registerExitHandler } from "./cleanup.js"
 import { createTagGraph, keyBy } from "@ourworldindata/utils"
@@ -30,8 +31,10 @@ import {
     MinimalExplorerInfo,
     DbEnrichedImage,
     DbEnrichedImageWithUserId,
+    MinimalTag,
+    BreadcrumbItem,
 } from "@ourworldindata/types"
-import { groupBy, uniq } from "lodash"
+import { groupBy } from "lodash"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
 
 // Return the first match from a mysql query
@@ -387,7 +390,7 @@ export const getPublishedGdocPosts = async (
         knex,
         `-- sql
         SELECT
-        g.breadcrumbs,
+        g.manualBreadcrumbs,
         g.content,
         g.createdAt,
         g.id,
@@ -423,7 +426,7 @@ export const getPublishedGdocPostsWithTags = async (
         knex,
         `-- sql
         SELECT
-        g.breadcrumbs,
+        g.manualBreadcrumbs,
         g.content,
         g.createdAt,
         g.id,
@@ -536,43 +539,92 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
     return { ...tagGraphByParentId, __rootId: tagGraphRootIdResult.id }
 }
 
-// DFS through the tag graph and create a map of parent tags for each child tag
-// e.g. { "Child": [ "Parent", "Grandparent" ], "Parent": [ "Grandparent" ] }
-// parent tags are listed in no particular order
-export async function getParentTagsByChildName(
+// DFS through the tag graph and track all paths from a child to the root
+// e.g. { "childTag": [ [parentTag1, parentTag2], [parentTag3] ] }
+// Use this with getUniqueNamesFromParentTagArrays to get Record<string, string[]> instead
+export async function getParentTagArraysByChildName(
     trx: KnexReadonlyTransaction
-): Promise<Record<DbPlainTag["name"], DbPlainTag["name"][]>> {
+): Promise<
+    Record<DbPlainTag["name"], Pick<DbPlainTag, "id" | "name" | "slug">[][]>
+> {
     const { __rootId, ...flatTagGraph } = await getFlatTagGraph(trx)
     const tagGraph = createTagGraph(flatTagGraph, __rootId)
-
-    const tagsById = await trx("tags")
-        .select("id", "name")
+    const tagsById = await trx<DbPlainTag>("tags")
+        .select("id", "name", "slug")
         .then((tags) => keyBy(tags, "id"))
 
-    const parentTagsByChildName: Record<
+    const pathsByChildName: Record<
         DbPlainTag["name"],
-        DbPlainTag["name"][]
+        Pick<DbPlainTag, "id" | "name" | "slug">[][]
     > = {}
 
-    function trackParents(node: TagGraphNode): void {
-        for (const child of node.children) {
-            trackParents(child)
+    function trackAllPaths(
+        node: TagGraphNode,
+        currentPath: Pick<DbPlainTag, "id" | "name" | "slug">[] = []
+    ): void {
+        const currentTag = tagsById[node.id]
+        const newPath = [...currentPath, currentTag]
+
+        // Don't add paths for root node
+        if (node.id !== __rootId) {
+            const nodeName = currentTag.name
+            if (!pathsByChildName[nodeName]) {
+                pathsByChildName[nodeName] = []
+            }
+
+            // Add the complete path (excluding root)
+            pathsByChildName[nodeName].push(newPath.slice(1))
         }
 
-        const preexistingParents = parentTagsByChildName[node.name] ?? []
-        // node.path is an array of tag ids from the root to the current node
-        // slice to remove the root node and the current node, then map them into tag names
-        const newParents = node.path.slice(1, -1).map((id) => tagsById[id].name)
-
-        parentTagsByChildName[node.name] = uniq([
-            ...preexistingParents,
-            ...newParents,
-        ])
+        for (const child of node.children) {
+            trackAllPaths(child, newPath)
+        }
     }
 
-    trackParents(tagGraph)
+    trackAllPaths(tagGraph)
 
-    return parentTagsByChildName
+    return pathsByChildName
+}
+
+export function getBestBreadcrumbs(
+    tags: MinimalTag[],
+    parentTagArraysByChildName: Record<
+        string,
+        Pick<DbPlainTag, "id" | "name" | "slug">[][]
+    >
+): BreadcrumbItem[] {
+    // For each tag, find the best path according to our criteria
+    // e.g. { "Nuclear Energy ": ["Energy and Environment", "Energy"], "Air Pollution": ["Energy and Environment"] }
+    const result = new Map<number, Pick<DbPlainTag, "id" | "name" | "slug">[]>()
+
+    for (const tag of tags) {
+        const paths = parentTagArraysByChildName[tag.name]
+        if (paths && paths.length > 0) {
+            // Since getFlatTagGraph already orders by weight DESC and name ASC,
+            // the first path in the array will be our best path
+            result.set(tag.id, paths[0])
+        }
+    }
+
+    // Only keep the topics in the paths, because only topics are clickable as breadcrumbs
+    const topicsOnly = Array.from(result.values()).reduce(
+        (acc, path) => {
+            return [...acc, path.filter((tag) => tag.slug)]
+        },
+        [] as Pick<DbPlainTag, "id" | "name" | "slug">[][]
+    )
+
+    // Pick the longest path from result, assuming that the longest path is the best
+    const longestPath = topicsOnly.reduce((best, path) => {
+        return path.length > best.length ? path : best
+    }, [])
+
+    const breadcrumbs = longestPath.map((tag) => ({
+        label: tag.name,
+        href: `${BAKED_BASE_URL}/${tag.slug}`,
+    }))
+
+    return breadcrumbs
 }
 
 export async function updateTagGraph(

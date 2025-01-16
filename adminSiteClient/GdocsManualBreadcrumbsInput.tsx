@@ -13,14 +13,12 @@ export const BreadcrumbLine = ({
     item,
     setItem,
     removeItem,
-    isLastBreadcrumbItem,
     labelError,
     hrefError,
 }: {
     item: BreadcrumbItem
     setItem: (item: BreadcrumbItem) => void
     removeItem: () => void
-    isLastBreadcrumbItem?: boolean
     labelError?: OwidGdocErrorMessage
     hrefError?: OwidGdocErrorMessage
 }) => {
@@ -30,15 +28,10 @@ export const BreadcrumbLine = ({
                 <Col span={11}>
                     <Input
                         addonBefore="URL"
-                        value={
-                            isLastBreadcrumbItem
-                                ? "The last breadcrumb isn't clickable"
-                                : item.href
-                        }
+                        value={item.href}
                         onChange={(e) =>
                             setItem({ ...item, href: e.target.value })
                         }
-                        disabled={isLastBreadcrumbItem}
                         status={hrefError?.type}
                         placeholder="e.g. /poverty"
                     />
@@ -51,11 +44,7 @@ export const BreadcrumbLine = ({
                         onChange={(e) =>
                             setItem({ ...item, label: e.target.value })
                         }
-                        placeholder={
-                            isLastBreadcrumbItem
-                                ? "Concise version of the article's title"
-                                : undefined
-                        }
+                        placeholder={"A topic name"}
                         status={labelError?.type}
                     />
                     {labelError && <GdocsErrorHelp error={labelError} />}
@@ -70,7 +59,7 @@ export const BreadcrumbLine = ({
     )
 }
 
-export const GdocsBreadcrumbsInput = ({
+export const GdocsManualBreadcrumbsInput = ({
     gdoc,
     setCurrentGdoc,
     errors,
@@ -79,62 +68,76 @@ export const GdocsBreadcrumbsInput = ({
     setCurrentGdoc: (gdoc: OwidGdocPostInterface) => void
     errors?: OwidGdocErrorMessage[]
 }) => {
-    const setBreadcrumbs = (breadcrumbs: BreadcrumbItem[] | undefined) => {
-        if (breadcrumbs?.length) {
-            // The last breadcrumb is not clickable, so we don't need a URL
-            breadcrumbs[breadcrumbs.length - 1].href = undefined
-        } else breadcrumbs = undefined
-
-        setCurrentGdoc({ ...gdoc, breadcrumbs: breadcrumbs ?? null })
+    const setBreadcrumbs = (breadcrumbs: BreadcrumbItem[] | null) => {
+        setCurrentGdoc({ ...gdoc, manualBreadcrumbs: breadcrumbs })
     }
 
     const setItemAtIndex = (item: BreadcrumbItem, i: number) => {
-        const breadcrumbs = [...(gdoc.breadcrumbs ?? [])]
+        if (!gdoc.manualBreadcrumbs) return
+
+        const breadcrumbs = [...gdoc.manualBreadcrumbs]
         breadcrumbs[i] = item
         setBreadcrumbs(breadcrumbs)
     }
 
     const removeItemAtIndex = (i: number) => {
-        const breadcrumbs = [...(gdoc.breadcrumbs ?? [])]
+        if (!gdoc.manualBreadcrumbs) return
+
+        const breadcrumbs = [...gdoc.manualBreadcrumbs]
         breadcrumbs.splice(i, 1)
-        setBreadcrumbs(breadcrumbs)
+
+        setBreadcrumbs(breadcrumbs.length ? breadcrumbs : null)
     }
 
     return (
         <div className="form-group">
-            <div className="d-flex justify-content-between">
-                Breadcrumbs
-                <Button
-                    type="dashed"
-                    onClick={() =>
-                        setBreadcrumbs([
-                            { label: "" },
-                            ...(gdoc.breadcrumbs ?? []),
-                        ])
-                    }
-                >
-                    <FontAwesomeIcon icon={faPlus} className="mr-1" /> Add
-                    breadcrumb
-                </Button>
-            </div>
-            {gdoc.breadcrumbs?.map((item, i) => (
+            <div className="d-flex justify-content-between">Breadcrumbs</div>
+            {!!gdoc.breadcrumbs?.length && !gdoc.manualBreadcrumbs?.length ? (
+                <div>
+                    <p>
+                        The breadcrumbs for this article will be automatically
+                        generated, based on this article's tags and the tag
+                        graph.
+                    </p>
+                    <p>
+                        If you want to override these breadcrumbs, you can do so
+                        here:
+                    </p>
+                </div>
+            ) : (
+                <strong>
+                    Unless you are editing an SDG page, each breadcrumb should
+                    have a URL and label.
+                </strong>
+            )}
+            <Button
+                type="dashed"
+                onClick={() =>
+                    setBreadcrumbs([
+                        { href: "", label: "" },
+                        ...(gdoc.manualBreadcrumbs || []),
+                    ])
+                }
+            >
+                <FontAwesomeIcon icon={faPlus} className="mr-1" /> Add
+                breadcrumb
+            </Button>
+            {gdoc.manualBreadcrumbs?.map((item, i) => (
                 <BreadcrumbLine
                     item={item}
                     setItem={(item) => setItemAtIndex(item, i)}
                     removeItem={() => removeItemAtIndex(i)}
                     key={i}
                     labelError={getPropertyMostCriticalError(
-                        `breadcrumbs[${i}].label`,
+                        `manualBreadcrumbs[${i}].label`,
                         errors
                     )}
                     hrefError={getPropertyMostCriticalError(
-                        `breadcrumbs[${i}].href`,
+                        `manualBreadcrumbs[${i}].href`,
                         errors
                     )}
-                    isLastBreadcrumbItem={i === gdoc.breadcrumbs!.length - 1}
                 />
             ))}
-            {!gdoc.breadcrumbs?.length && <i>No breadcrumbs</i>}
         </div>
     )
 }
