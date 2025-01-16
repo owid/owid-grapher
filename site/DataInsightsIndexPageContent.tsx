@@ -7,7 +7,6 @@ import {
     LinkedAuthor,
     uniqBy,
     getPaginationPageNumbers,
-    OwidGdocType,
 } from "@ourworldindata/utils"
 import { DataInsightBody } from "./gdocs/pages/DataInsight.js"
 import { dataInsightIndexToIdMap } from "./SiteConstants.js"
