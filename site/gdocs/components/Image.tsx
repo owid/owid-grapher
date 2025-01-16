@@ -71,6 +71,7 @@ export default function Image(props: {
     className?: string
     containerType?: ImageParentContainer
     shouldLightbox?: boolean
+    preferSmallFilename?: boolean
 }) {
     const {
         filename,
@@ -78,17 +79,19 @@ export default function Image(props: {
         hasOutline,
         containerType = "default",
         shouldLightbox = true,
+        preferSmallFilename,
     } = props
 
     const className = cx("image", props.className, {
         "image--has-outline": hasOutline,
     })
 
-    const isPreviewing = useContext(DocumentContext).isPreviewing
+    const { isPreviewing } = useContext(DocumentContext)
     const isSmall = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const image = useImage(filename)
     const smallImage = useImage(smallFilename)
-    const activeImage = isSmall && smallImage ? smallImage : image
+    const activeImage =
+        (isSmall || preferSmallFilename) && smallImage ? smallImage : image
 
     const renderImageError = (name: string) => (
         <BlockErrorFallback

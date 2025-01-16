@@ -11,8 +11,13 @@ import {
     CategoryWithEntries,
     EntryMeta,
     SubNavId,
+    OwidGdocDataInsightContent,
 } from "@ourworldindata/types"
-import { formatAuthors, Url } from "@ourworldindata/utils"
+import {
+    formatAuthors,
+    traverseEnrichedBlock,
+    Url,
+} from "@ourworldindata/utils"
 import { AttachmentsContext } from "./AttachmentsContext.js"
 import { SiteNavigationStatic, SubnavItem, subnavs } from "../SiteConstants.js"
 
@@ -200,4 +205,20 @@ export const getTopSubnavigationParentItem = (
     subnavId: SubNavId
 ): SubnavItem | undefined => {
     return subnavs[subnavId]?.[0]
+}
+
+// Always use the smallFilename for old data insights, where two filenames were always provided
+// Doing this in code was simpler than migrating all the DI gdocs themselves
+// See https://github.com/owid/owid-grapher/issues/4416
+export function addPreferSmallFilenameToDataInsightImages(
+    content: OwidGdocDataInsightContent
+): OwidGdocDataInsightContent {
+    content.body.forEach((node) =>
+        traverseEnrichedBlock(node, (block) => {
+            if (block.type === "image") {
+                block.preferSmallFilename = true
+            }
+        })
+    )
+    return content
 }

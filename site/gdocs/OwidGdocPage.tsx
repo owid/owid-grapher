@@ -21,6 +21,7 @@ import {
 import { DATA_INSIGHT_ATOM_FEED_PROPS } from "../SiteConstants.js"
 import { Html } from "../Html.js"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
+import { addPreferSmallFilenameToDataInsightImages } from "../gdocs/utils.js"
 
 declare global {
     interface Window {
@@ -109,6 +110,10 @@ export default function OwidGdocPage({
             // "public" is a hard-coded variant that doesn't need to know the image's width
             imageUrl = `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/public`
         }
+    }
+
+    if (gdoc.content.type === OwidGdocType.DataInsight) {
+        addPreferSmallFilenameToDataInsightImages(gdoc.content)
     }
 
     return (

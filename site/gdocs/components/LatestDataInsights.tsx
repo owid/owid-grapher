@@ -161,8 +161,10 @@ const DataInsightCard = memo(function DataInsightCard({
             {firstImageBlock && (
                 <Image
                     className="latest-data-insights__card-left"
-                    filename={firstImageBlock.filename}
-                    smallFilename={firstImageBlock.smallFilename}
+                    filename={
+                        firstImageBlock.smallFilename ||
+                        firstImageBlock.filename
+                    }
                     containerType="span-5"
                     shouldLightbox={false}
                 />

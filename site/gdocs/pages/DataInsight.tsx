@@ -54,7 +54,7 @@ const RelatedTopicsList = ({
     if (!tags?.length) return null
     return (
         <div className={cx(className, "data-insights-related-topics")}>
-            <p className="body-2-semibold">Related topic pages:</p>
+            <p className="body-3-regular">Related topic pages:</p>
             <ul>
                 {tags.map((tag) => (
                     <li key={tag.name}>
@@ -109,7 +109,7 @@ export const DataInsightBody = (
             <div
                 id={props.anchor}
                 className={cx(
-                    "span-cols-8 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-14 col-sm-start-1 data-insight-body",
+                    "span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1 data-insight-body",
                     {
                         "data-insight-body--has-tags": !!props.tags?.length,
                     }
@@ -163,7 +163,7 @@ export const DataInsightPage = (
 
     return (
         <div className="grid grid-cols-12-full-width data-insight-page">
-            <div className="span-cols-8 col-start-4 span-md-cols-10 col-md-start-3 col-sm-start-2 span-sm-cols-12 data-insight-breadcrumbs">
+            <div className="span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 col-sm-start-2 span-sm-cols-12 data-insight-breadcrumbs">
                 <a href="/data-insights">Daily Data Insights</a>
                 <FontAwesomeIcon icon={faChevronRight} />
                 <span>{props.content.title}</span>
