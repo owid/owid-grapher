@@ -83,11 +83,14 @@ html:not(.js-enabled) .latest-data-insights__card,
     padding: 257px 0;
 }
 
+// Sizing flex child picture elements is finnicky on Safari.
+// Make sure you test all 3 browsers if you're making changes here.
 .latest-data-insights__card-left {
     display: flex;
+    height: 100%;
 
     picture {
-        display: flex; // Fix extra padding at the bottom.
+        height: 100%;
     }
 
     img {

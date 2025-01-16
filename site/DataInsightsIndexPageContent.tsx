@@ -134,6 +134,7 @@ export const DataInsightsIndexPageContent = (
                         <DataInsightBody
                             key={dataInsight.id}
                             anchor={id}
+                            shouldLinkTitle
                             {...dataInsight}
                         />
                     )
