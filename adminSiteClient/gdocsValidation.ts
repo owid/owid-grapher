@@ -211,7 +211,7 @@ function validateDataInsightImage(
             message: `Data insight is missing an image.`,
         })
     } else {
-        for (const property of ["filename", "smallFilename"] as const) {
+        for (const property of ["filename"] as const) {
             if (!image[property]) {
                 errors.push({
                     property: "body",
