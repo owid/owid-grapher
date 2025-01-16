@@ -101,8 +101,10 @@ export const DataInsightBody = (
     props: OwidGdocDataInsightInterface & {
         anchor?: string
         publishedAt: Date | string | null
+        shouldLinkTitle?: boolean
     }
 ) => {
+    const shouldLinkTitle = props.shouldLinkTitle
     const publishedAt = props.publishedAt ? new Date(props.publishedAt) : null
     return (
         <div className="grid grid-cols-12-full-width span-cols-14">
@@ -124,7 +126,20 @@ export const DataInsightBody = (
                         day: "2-digit",
                     }}
                 />
-                <h1 className="display-3-semibold">{props.content.title}</h1>
+                {shouldLinkTitle ? (
+                    <a
+                        href={`${BAKED_BASE_URL}/data-insights/${props.slug}`}
+                        className="data-insight-heading-link"
+                    >
+                        <h1 className="display-3-semibold">
+                            {props.content.title}
+                        </h1>
+                    </a>
+                ) : (
+                    <h1 className="display-3-semibold">
+                        {props.content.title}
+                    </h1>
+                )}
                 <div className="data-insight-authors body-3-medium">
                     {props.content.authors.map((author, index) => (
                         <LinkedAuthor
