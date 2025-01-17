@@ -13,13 +13,14 @@ import {
     GrapherInterface,
     IndicatorConfig,
     IndicatorEntryBeforePreProcessing,
-    isIndicatorConfig,
+    IndicatorsBeforePreProcessing,
     MultiDimDataPageConfigEnriched,
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageConfigRaw,
     MultiDimDataPagesTableName,
     MultiDimDimensionChoices,
     MultiDimXChartConfigsTableName,
+    View,
 } from "@ourworldindata/types"
 import {
     mergeGrapherConfigs,
@@ -53,19 +54,39 @@ function dimensionsToViewId(dimensions: MultiDimDimensionChoices) {
         .toLowerCase()
 }
 
+function catalogPathFromIndicatorEntry(
+    entry: IndicatorEntryBeforePreProcessing
+): string | undefined {
+    if (typeof entry === "string") return entry
+    if (typeof entry === "object" && "catalogPath" in entry) {
+        return entry.catalogPath
+    }
+    return undefined
+}
+
+function getAllCatalogPaths(views: View<IndicatorsBeforePreProcessing>[]) {
+    const paths = []
+    for (const view of views) {
+        const { y, x, size, color } = view.indicators
+        if (y) {
+            if (Array.isArray(y)) {
+                paths.push(...y.map(catalogPathFromIndicatorEntry))
+            } else {
+                paths.push(catalogPathFromIndicatorEntry(y))
+            }
+        }
+        for (const entry of [x, size, color]) {
+            if (entry) paths.push(catalogPathFromIndicatorEntry(entry))
+        }
+    }
+    return paths.filter((path) => path !== undefined)
+}
+
 async function resolveMultiDimDataPageCatalogPathsToIndicatorIds(
     knex: db.KnexReadonlyTransaction,
     rawConfig: MultiDimDataPageConfigRaw
 ): Promise<MultiDimDataPageConfigPreProcessed> {
-    const allCatalogPaths = rawConfig.views
-        .flatMap((view) =>
-            Object.values(view.indicators).flatMap((indicatorOrIndicators) =>
-                Array.isArray(indicatorOrIndicators)
-                    ? indicatorOrIndicators
-                    : [indicatorOrIndicators]
-            )
-        )
-        .filter((indicator) => typeof indicator === "string")
+    const allCatalogPaths = getAllCatalogPaths(rawConfig.views)
 
     const catalogPathToIndicatorIdMap = await getVariableIdsByCatalogPath(
         allCatalogPaths,
@@ -97,9 +118,11 @@ async function resolveMultiDimDataPageCatalogPathsToIndicatorIds(
                 return id ? { id } : undefined
             }
             case "object": {
-                if (isIndicatorConfig(indicator)) return indicator
-                if (typeof indicator.id === "string") {
-                    const id = catalogPathToIndicatorIdMap.get(indicator.id)
+                if ("id" in indicator) return indicator
+                if ("catalogPath" in indicator) {
+                    const id = catalogPathToIndicatorIdMap.get(
+                        indicator.catalogPath
+                    )
                     return id ? { ...indicator, id } : undefined
                 }
                 return undefined

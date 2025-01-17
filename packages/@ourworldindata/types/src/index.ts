@@ -731,6 +731,7 @@ export type {
     IndicatorConfig,
     IndicatorEntryBeforePreProcessing,
     IndicatorsAfterPreProcessing,
+    IndicatorsBeforePreProcessing,
     MultiDimDataPageConfigEnriched,
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageConfigRaw,
@@ -743,5 +744,3 @@ export type {
     View,
     ViewEnriched,
 } from "./siteTypes/MultiDimDataPage.js"
-
-export { isIndicatorConfig } from "./siteTypes/MultiDimDataPage.js"

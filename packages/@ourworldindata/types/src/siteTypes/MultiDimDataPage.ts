@@ -7,11 +7,13 @@ import {
 } from "../OwidVariable.js"
 
 export type IndicatorConfig = Pick<OwidVariableWithSource, "id" | "display">
-
-type IndicatorConfigBeforePreProcessing = Omit<IndicatorConfig, "id"> & {
-    // Indicator ID or catalog path
-    id: number | string
+type IndicatorConfigByPath = Pick<IndicatorConfig, "display"> & {
+    catalogPath: string
 }
+
+type IndicatorConfigBeforePreProcessing =
+    | IndicatorConfig
+    | IndicatorConfigByPath
 
 // Indicator ID, catalog path or a an object
 export type IndicatorEntryBeforePreProcessing =
@@ -21,12 +23,6 @@ export type IndicatorEntryBeforePreProcessing =
 
 // Catalog paths have been resolved to indicator IDs
 export type IndicatorEntryAfterPreProcessing = IndicatorConfig
-
-export function isIndicatorConfig(
-    indicator: IndicatorEntryBeforePreProcessing | IndicatorConfig
-): indicator is IndicatorConfig {
-    return typeof indicator === "object" && typeof indicator.id === "number"
-}
 
 type Metadata = Omit<OwidVariableWithSource, "id">
 
