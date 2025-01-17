@@ -13,9 +13,6 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
             "type": "node"
         },
         {
@@ -28,11 +25,8 @@
                 "${fileBasenameNoExtension}.js",
                 "--watch"
             ],
-            "args": [
-                "${fileBasenameNoExtension}.js",
-                "--watch"
-            ],
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "runtimeExecutable": "/run/user/1000/fnm_multishells/4944_1737025638170/bin/node"
             // "internalConsoleOptions": "neverOpen"
         },
         {
