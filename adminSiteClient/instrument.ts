@@ -1,7 +1,12 @@
 import * as Sentry from "@sentry/react"
+import {
+    COMMIT_SHA,
+    ENV,
+    SENTRY_ADMIN_DSN,
+} from "../settings/clientSettings.js"
 
 Sentry.init({
-    dsn: process.env.SENTRY_ADMIN_DSN,
-    environment: process.env.ENV,
-    release: process.env.COMMIT_SHA,
+    dsn: SENTRY_ADMIN_DSN,
+    environment: ENV,
+    release: COMMIT_SHA,
 })

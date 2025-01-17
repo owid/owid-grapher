@@ -155,8 +155,8 @@ export class OwidAdminApp {
             app.use("/", mockSiteRouter)
         }
 
-        // Add this after all routes,
-        // but before any and other error-handling middlewares are defined
+        // Add this after all routes, but before any other error-handling
+        // middlewares are defined.
         Sentry.setupExpressErrorHandler(app)
 
         // Give full error messages, including in production

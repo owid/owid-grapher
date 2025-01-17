@@ -1,4 +1,5 @@
-// This must be imported first for Sentry instrumentation to work.
+// This should be imported as early as possible so the global error handler is
+// set up before any errors are thrown.
 import "../serverUtils/instrument.js"
 
 import fs from "fs-extra"
@@ -211,13 +212,6 @@ export class SiteBaker {
             }
         )
         this.explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-        // if (BUGSNAG_NODE_API_KEY) {
-        //     Bugsnag.start({
-        //         apiKey: BUGSNAG_NODE_API_KEY,
-        //         context: "site-baker",
-        //         autoTrackSessions: false,
-        //     })
-        // }
     }
 
     private async bakeEmbeds(knex: db.KnexReadonlyTransaction) {

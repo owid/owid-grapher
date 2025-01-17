@@ -5,7 +5,7 @@ import { getPreferenceValue, PreferenceType } from "./cookiePreferences.js"
 
 const analyticsConsent = getPreferenceValue(PreferenceType.Analytics)
 
-let sentryOpts: Sentry.BrowserOptions
+let sentryOpts: Sentry.BrowserOptions = {}
 if (analyticsConsent && !isInIFrame()) {
     // only collect session replays from: users that have consented to analytics
     // AND where page isn't embedded in an iframe
@@ -19,11 +19,6 @@ if (analyticsConsent && !isInIFrame()) {
             }),
         ],
         replaysSessionSampleRate: ENV === "development" ? 1 : 0.1,
-        replaysOnErrorSampleRate: 0,
-    }
-} else {
-    sentryOpts = {
-        replaysSessionSampleRate: 0,
         replaysOnErrorSampleRate: 0,
     }
 }
