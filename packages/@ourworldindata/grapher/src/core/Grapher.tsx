@@ -318,7 +318,8 @@ export class GrapherState {
             Url.fromQueryStr(options.queryStr ?? "").queryParams,
             GRAPHER_QUERY_PARAM_KEYS
         )
-        this.inputTable = options.table ?? BlankOwidTable(`initialGrapherTable`)
+        this._inputTable =
+            options.table ?? BlankOwidTable(`initialGrapherTable`)
         this.initialOptions = options
         this.selection =
             this.manager?.selection ??
@@ -1032,7 +1033,30 @@ export class GrapherState {
         return this.validChartTypes[0]
     }
     @observable.ref chartTab?: GrapherChartType
-    @observable.ref inputTable: OwidTable
+    @observable.ref _inputTable: OwidTable = new OwidTable()
+
+    get inputTable(): OwidTable {
+        return this._inputTable
+    }
+
+    set inputTable(table: OwidTable) {
+        this._inputTable = table
+        this.appendNewEntitySelectionOptions()
+
+        if (this.manager?.selection?.hasSelection) {
+            // Selection is managed externally, do nothing.
+        } else if (this.selection.hasSelection) {
+            // User has changed the selection, use theris
+        } else this.applyOriginalSelectionAsAuthored()
+    }
+    @action.bound appendNewEntitySelectionOptions(): void {
+        const { selection } = this
+        const currentEntities = selection.availableEntityNameSet
+        const missingEntities = this.availableEntities.filter(
+            (entity) => !currentEntities.has(entity.entityName)
+        )
+        selection.addAvailableEntityNames(missingEntities)
+    }
     @computed get chartInstance(): ChartInterface {
         // Note: when timeline handles on a LineChart are collapsed into a single handle, the
         // LineChart turns into a DiscreteBar.
@@ -2831,7 +2855,7 @@ export class GrapherState {
     }
 
     @computed private get hasUserChangedTimeHandles(): boolean {
-        const authorsVersion = this.authorsVersion
+        const authorsVersion = this.legacyConfigAsAuthored
         return (
             this.minTime !== authorsVersion.minTime ||
             this.maxTime !== authorsVersion.maxTime
@@ -3284,6 +3308,7 @@ export class Grapher extends React.Component<GrapherProps> {
     }
 
     // Exclusively used for the performance.measurement API, so that DevTools can show some context
+    // TODO: 2025-01-17 Daniel this is now obsolete - the selection update happens in the inputTable setter
     @action.bound private _setInputTable(
         json: MultipleOwidVariableDataDimensionsMap,
         legacyConfig: Partial<LegacyGrapherInterface>
@@ -3302,14 +3327,6 @@ export class Grapher extends React.Component<GrapherProps> {
         )
 
         this.grapherState.inputTable = tableWithColors
-
-        this.appendNewEntitySelectionOptions()
-
-        if (this.grapherState.manager?.selection?.hasSelection) {
-            // Selection is managed externally, do nothing.
-        } else if (this.grapherState.selection.hasSelection) {
-            // User has changed the selection, use theris
-        } else this.grapherState.applyOriginalSelectionAsAuthored()
     }
 
     @action rebuildInputOwidTable(): void {
@@ -3319,15 +3336,6 @@ export class Grapher extends React.Component<GrapherProps> {
             this.legacyVariableDataJson,
             this.grapherState.legacyConfigAsAuthored
         )
-    }
-
-    @action.bound appendNewEntitySelectionOptions(): void {
-        const { selection } = this.grapherState
-        const currentEntities = selection.availableEntityNameSet
-        const missingEntities = this.grapherState.availableEntities.filter(
-            (entity) => !currentEntities.has(entity.entityName)
-        )
-        selection.addAvailableEntityNames(missingEntities)
     }
 
     // Keeps a running cache of series colors at the Grapher level.
