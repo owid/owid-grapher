@@ -6,6 +6,7 @@ import {
     createOwidTestDataset,
     fakeEntities,
 } from "../testData/OwidTestData"
+import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "../core/LegacyToOwidTable.js"
 
 export const childMortalityGrapher = (
     props: Partial<GrapherInterface> = {}
@@ -36,18 +37,25 @@ export const childMortalityGrapher = (
             property: DimensionProperty.y,
         },
     ]
-    return new GrapherState({
+    const owidDataset = createOwidTestDataset([
+        {
+            metadata: childMortalityMetadata,
+            data: childMortalityData,
+        },
+    ])
+    const state = new GrapherState({
         hasMapTab: true,
         tab: GRAPHER_TAB_OPTIONS.map,
         dimensions,
         ...props,
-        owidDataset: createOwidTestDataset([
-            {
-                metadata: childMortalityMetadata,
-                data: childMortalityData,
-            },
-        ]),
+        owidDataset,
     })
+    state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        owidDataset,
+        dimensions,
+        {}
+    )
+    return state
 }
 
 export const GrapherWithIncompleteData = (
@@ -84,12 +92,17 @@ export const GrapherWithIncompleteData = (
             },
         },
     ]
+    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        createOwidTestDataset([{ metadata, data }]),
+        dimensions,
+        {}
+    )
     return new GrapherState({
         tab: GRAPHER_TAB_OPTIONS.table,
         selectedEntityNames: ["Iceland", "France", "Afghanistan"],
         dimensions,
         ...props,
-        owidDataset: createOwidTestDataset([{ metadata, data }]),
+        table: inputTable,
     })
 }
 

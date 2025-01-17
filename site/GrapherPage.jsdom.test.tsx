@@ -83,8 +83,7 @@ describe("when the page is rendered", () => {
     })
 
     it("renders a figure", () => {
-        const selector =
-            'figure[data-grapher-src="/grapher/share-of-children-with-a-weight-too-low-for-their-height-wasting"]'
+        const selector = "figure[data-grapher-component]"
         expect(view.find(selector)).toHaveLength(1)
     })
 
