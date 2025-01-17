@@ -48,7 +48,7 @@ jobs:
                   ( ls packages/@ourworldindata/grapher/src/schema/*
                      | where name =~ '\d+.(json|yaml)$'
                      | get name
-                     | each { |it| cp $it ($it | str replace '\d+.(json|yaml)$' 'latest.$1') })
+                     | each { |it| cp $it ($it | str replace -r '\d+.(json|yaml)$' 'latest.$1') })
               shell: nu {0}
             - run: ls packages/@ourworldindata/grapher/src/schema
               shell: nu {0}
