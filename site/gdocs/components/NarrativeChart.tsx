@@ -1,9 +1,11 @@
 import { useContext, useRef } from "react"
 import { useEmbedChart } from "../../hooks.js"
-import { EnrichedBlockNarrativeChart } from "@ourworldindata/types"
+import {
+    EnrichedBlockNarrativeChart,
+    GRAPHER_PREVIEW_CLASS,
+} from "@ourworldindata/types"
 import { useLinkedChartView } from "../utils.js"
 import cx from "classnames"
-import { GRAPHER_PREVIEW_CLASS } from "../../SiteConstants.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import SpanElements from "./SpanElements.js"
 import { DocumentContext } from "../DocumentContext.js"
