@@ -7,6 +7,12 @@ export function HomepageSearch(props: { className?: string }) {
     const { homepageMetadata } = useContext(AttachmentsContext)
     const chartCount = homepageMetadata?.chartCount
     const topicCount = homepageMetadata?.topicCount
+
+    const x = [1].toSorted()
+    // @ts-expect-error
+    const y = new Set(x).union(x)
+
+    console.log(y)
     const message =
         chartCount && topicCount ? (
             <>

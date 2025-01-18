@@ -1,12 +1,18 @@
 import { defineConfig } from "vite"
 import pluginReact from "@vitejs/plugin-react"
 import pluginChecker from "vite-plugin-checker"
+import pluginLegacy from "@vitejs/plugin-legacy"
 import * as clientSettings from "./settings/clientSettings.js"
 import {
     VITE_ASSET_SITE_ENTRY,
     VITE_ENTRYPOINT_INFO,
     ViteEntryPoint,
 } from "./site/viteUtils.js"
+
+// see docs/browser-support.md
+const BROWSER_TARGETS_BROWSERSLIST =
+    "chrome>=80, firefox>=78, safari>=13.1, last 2 versions, not dead"
+const BROWSER_TARGETS_ESBUILD = ["chrome80", "firefox78", "safari13.1"]
 
 // https://vitejs.dev/config/
 export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
@@ -48,14 +54,14 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             emptyOutDir: true,
             outDir: `dist/${entrypointInfo.outDir}`,
             sourcemap: true,
-            target: ["chrome80", "firefox78", "safari13.1"], // see docs/browser-support.md
+            target: BROWSER_TARGETS_ESBUILD,
             rollupOptions: {
                 input: {
                     [entrypointInfo.outName]: entrypointInfo.entryPointFile,
                 },
                 output: {
                     assetFileNames: `${entrypointInfo.outName}.css`,
-                    entryFileNames: `${entrypointInfo.outName}.mjs`,
+                    entryFileNames: (chunk) => `${chunk.name}.mjs`,
                 },
             },
         },
@@ -72,6 +78,11 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                     buildMode: true,
                     tsconfigPath: "tsconfig.vite-checker.json",
                 },
+            }),
+            pluginLegacy({
+                modernTargets: BROWSER_TARGETS_BROWSERSLIST,
+                modernPolyfills: true,
+                renderLegacyChunks: false,
             }),
         ],
         server: {
