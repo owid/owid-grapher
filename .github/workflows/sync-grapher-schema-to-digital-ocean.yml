@@ -5,6 +5,8 @@ on:
             - master
         paths:
             - "packages/@ourworldindata/grapher/src/schema/**"
+    workflow_dispatch:
+
 jobs:
     upload:
         runs-on: ubuntu-latest
