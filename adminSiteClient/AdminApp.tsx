@@ -45,6 +45,7 @@ import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
 import { ChartViewEditorPage } from "./ChartViewEditorPage.js"
 import { ChartViewIndexPage } from "./ChartViewIndexPage.js"
 import { ImageIndexPage } from "./ImagesIndexPage.js"
+import { TestFigmaUpload } from "./TestFigmaUpload.js"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -117,6 +118,11 @@ export class AdminApp extends React.Component<{
                         <AdminErrorMessage admin={admin} />
                         <AdminLoader admin={admin} />
                         <Switch>
+                            <Route
+                                exact
+                                path="/test-figma-upload"
+                                render={() => <TestFigmaUpload />}
+                            />
                             <Route
                                 exact
                                 path="/charts/create/:config"
