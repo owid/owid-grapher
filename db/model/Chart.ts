@@ -607,6 +607,32 @@ export const getRelatedChartsForVariable = async (
     )
 }
 
+export const getRelatedChartsForChart = async (
+    knex: db.KnexReadonlyTransaction,
+    chartId: number
+): Promise<RelatedChart[]> => {
+    return db.knexRaw<RelatedChart>(
+        knex,
+        `-- sql
+            SELECT
+                chart_configs.slug,
+                chart_configs.full->>"$.title" AS title,
+                chart_configs.full->>"$.variantName" AS variantName,
+                MAX(chart_tags.keyChartLevel) as keyChartLevel
+            FROM charts
+            JOIN chart_configs ON charts.configId=chart_configs.id
+            INNER JOIN chart_tags ON charts.id=chart_tags.chartId
+            INNER JOIN related_charts ON charts.id=related_charts.relatedChartId
+            WHERE related_charts.chartId = ${chartId}
+                AND related_charts.reviewer = 'production'
+                AND related_charts.label = 'good'
+                AND chart_configs.full->>"$.isPublished" = "true"
+            GROUP BY charts.id
+            ORDER BY title ASC
+        `
+    )
+}
+
 export const getChartEmbedUrlsInPublishedWordpressPosts = async (
     knex: db.KnexReadonlyTransaction
 ): Promise<string[]> => {
