@@ -37,7 +37,7 @@ import {
 const getRelevantVariableIds = (config: MultiDimDataPageConfigPreProcessed) => {
     // A "relevant" variable id is the first y indicator of each view
     const allIndicatorIds = config.views
-        .map((view) => view.indicators.y?.[0])
+        .map((view) => view.indicators.y?.[0]?.id)
         .filter((id) => id !== undefined)
 
     return new Set(allIndicatorIds)

@@ -729,8 +729,10 @@ export {
 } from "./domainTypes/Author.js"
 
 export type {
+    IndicatorConfig,
     IndicatorEntryBeforePreProcessing,
     IndicatorsAfterPreProcessing,
+    IndicatorsBeforePreProcessing,
     MultiDimDataPageConfigEnriched,
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageConfigRaw,

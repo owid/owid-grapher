@@ -150,10 +150,7 @@ const useVarDatapageData = (
         setGrapherConfigIsReady(false)
         setGrapherConfig(null)
         setVarDatapageData(null)
-        const yIndicatorOrIndicators = currentView?.indicators?.["y"]
-        const variableId = Array.isArray(yIndicatorOrIndicators)
-            ? yIndicatorOrIndicators[0]
-            : yIndicatorOrIndicators
+        const variableId = currentView?.indicators?.["y"]?.[0]?.id
         if (!variableId) return
 
         const datapageDataPromise = cachedGetVariableMetadata(variableId).then(
@@ -297,7 +294,7 @@ export const MultiDimDataPageContent = ({
         const variables = currentView?.indicators?.["y"]
         const editUrl =
             variables?.length === 1
-                ? `variables/${variables[0]}/config`
+                ? `variables/${variables[0].id}/config`
                 : undefined
         return {
             ...varGrapherConfig,

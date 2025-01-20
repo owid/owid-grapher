@@ -156,27 +156,41 @@ export class MultiDimDataPageConfig {
     }
 
     static viewToDimensionsConfig(
-        view: View<IndicatorsAfterPreProcessing> | undefined
+        view?: View<IndicatorsAfterPreProcessing>
     ): OwidChartDimensionInterface[] {
-        if (!view?.indicators) return []
-
-        return Object.entries(view.indicators)
-            .flatMap(([property, variableIdOrIds]) => {
-                if (Array.isArray(variableIdOrIds)) {
-                    return variableIdOrIds.map((variableId) => ({
-                        property: property as DimensionProperty,
-                        variableId,
-                    }))
-                } else {
-                    return [
-                        {
-                            property: property as DimensionProperty,
-                            variableId: variableIdOrIds,
-                        },
-                    ]
-                }
+        const dimensions: OwidChartDimensionInterface[] = []
+        if (!view?.indicators) return dimensions
+        if (view.indicators.y) {
+            dimensions.push(
+                ...view.indicators.y.map(({ id, display }) => ({
+                    property: DimensionProperty.y,
+                    variableId: id,
+                    display,
+                }))
+            )
+        }
+        if (view.indicators.x) {
+            dimensions.push({
+                property: DimensionProperty.x,
+                variableId: view.indicators.x.id,
+                display: view.indicators.x.display,
             })
-            .filter((dim) => dim.variableId !== undefined)
+        }
+        if (view.indicators.size) {
+            dimensions.push({
+                property: DimensionProperty.size,
+                variableId: view.indicators.size.id,
+                display: view.indicators.size.display,
+            })
+        }
+        if (view.indicators.color) {
+            dimensions.push({
+                property: DimensionProperty.color,
+                variableId: view.indicators.color.id,
+                display: view.indicators.color.display,
+            })
+        }
+        return dimensions
     }
 }
 
