@@ -7,6 +7,7 @@ import urljoin from "url-join"
 import { AdminApp } from "./AdminApp.js"
 import {
     Json,
+    JsonError,
     stringifyUnknownError,
     queryParamsToStr,
 } from "@ourworldindata/utils"
@@ -140,7 +141,9 @@ export class Admin {
             text = await response.text()
 
             json = JSON.parse(text)
-            if (json.error) throw json.error
+            if (json.error) {
+                throw new JsonError(json.error.message, json.error.status)
+            }
         } catch (err) {
             if (onFailure === "show")
                 this.setErrorMessage({
