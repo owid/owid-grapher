@@ -906,16 +906,24 @@ export async function generateTopicTagGraph(
     return createTagGraph(tagGraphTopicsOnly, __rootId)
 }
 
-export const getUniqueTopicCount = (
+export const getUniqueTopicCount = async (
     trx: KnexReadonlyTransaction
 ): Promise<number> => {
-    const count = knexRawFirst<{ count: number }>(
+    const count = await knexRawFirst<{ count: number }>(
         trx,
         `-- sql
-        SELECT COUNT(DISTINCT(t.slug))
+        SELECT COUNT(DISTINCT(t.slug)) AS count
         FROM tags t
         LEFT JOIN posts_gdocs p ON t.slug = p.slug
-        WHERE t.slug IS NOT NULL AND p.published IS TRUE`
+        WHERE t.slug IS NOT NULL AND p.published IS true
+        AND p.type IN (:types)`,
+        {
+            types: [
+                OwidGdocType.TopicPage,
+                OwidGdocType.LinearTopicPage,
+                OwidGdocType.Article,
+            ],
+        }
     )
         .then((res) => (res ? res.count : 0))
         .catch((e) => {

@@ -18,7 +18,7 @@ export const SiteNavigationTopics = ({
     onClose: () => void
     className?: string
 }) => {
-    const [activeCategory, setActiveCategory] = useState<TagGraphNode | null>(
+    const [activeArea, setActiveArea] = useState<TagGraphNode | null>(
         tagGraph?.children[0] || null
     )
 
@@ -27,12 +27,12 @@ export const SiteNavigationTopics = ({
     // calculate the number of 10 topic columns we need based on the number of topics
     // using useLayoutEffect to avoid a flash of the wrong number of columns when switching categories
     useLayoutEffect(() => {
-        if (activeCategory) {
-            const topics = getAllTopicsInArea(activeCategory)
+        if (activeArea) {
+            const topics = getAllTopicsInArea(activeArea)
             const numColumns = Math.ceil(topics.length / 10)
             setNumTopicColumns(numColumns)
         }
-    }, [activeCategory])
+    }, [activeArea])
 
     const stopPropagation = (e: React.MouseEvent) => {
         e.stopPropagation()
@@ -53,25 +53,25 @@ export const SiteNavigationTopics = ({
             <div className="categories" onClick={stopPropagation}>
                 <div className="heading">Browse by topic</div>
                 <ul>
-                    {tagGraph.children.map((category) => (
-                        <li key={category.slug}>
+                    {tagGraph.children.map((area) => (
+                        <li key={area.slug}>
                             <button
-                                aria-label={`Toggle ${category.name} sub-menu`}
+                                aria-label={`Toggle ${area.name} sub-menu`}
                                 onClick={() => {
-                                    setActiveCategory(category)
+                                    setActiveArea(area)
                                 }}
                                 className={classnames({
-                                    active: category === activeCategory,
+                                    active: area === activeArea,
                                 })}
                             >
-                                <span>{category.name}</span>
+                                <span>{area.name}</span>
                                 <FontAwesomeIcon icon={faArrowRight} />
                             </button>
                         </li>
                     ))}
                 </ul>
             </div>
-            {activeCategory && (
+            {activeArea && (
                 <ul
                     className={classnames("topics", {
                         "columns-medium": numTopicColumns === 2,
@@ -79,7 +79,7 @@ export const SiteNavigationTopics = ({
                     })}
                     onClick={stopPropagation}
                 >
-                    {getAllTopicsInArea(activeCategory).map((topic) => (
+                    {getAllTopicsInArea(activeArea).map((topic) => (
                         <SiteNavigationTopic key={topic.slug} topic={topic} />
                     ))}
                 </ul>

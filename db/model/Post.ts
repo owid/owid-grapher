@@ -183,9 +183,10 @@ export const getFullPostByIdFromSnapshot = async (
     return getFullPost(trx, postEnriched.wpApiSnapshot)
 }
 
-// This function used to be more complicated, but now the only citable WP post is the COVID page
-export const isPostSlugCitable = (slug: string): boolean => {
-    return slug === "coronavirus"
+// There are no longer any citable WP posts.
+// Will remove this and related code in the future.
+export const isPostSlugCitable = (_: string): boolean => {
+    return false
 }
 
 export const getPostsFromSnapshots = async (
