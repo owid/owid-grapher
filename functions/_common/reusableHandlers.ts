@@ -15,12 +15,19 @@ export async function handleThumbnailRequest(
 
     const cache = caches.default
     console.log("Handling", env.url, ctx.request.headers.get("User-Agent"))
+
     if (shouldCache) {
         console.log("Checking cache")
         const maybeCached = await cache.match(ctx.request)
         console.log("Cache check result", maybeCached ? "hit" : "miss")
-        if (maybeCached) return maybeCached
+        if (maybeCached) {
+            // Cached responses are immutable, so we have to clone them,
+            // so that the corsify middleware can add CORS headers
+            const newResponse = new Response(maybeCached.body, maybeCached)
+            return newResponse
+        }
     }
+
     const resp = await fetchAndRenderGrapher(id, searchParams, extension, env)
     if (shouldCache) {
         resp.headers.set("Cache-Control", "s-maxage=3600, max-age=3600")
