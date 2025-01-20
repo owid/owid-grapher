@@ -100,6 +100,7 @@ export class OwidAdminApp {
             res.send(
                 renderToHtmlPage(
                     <IndexPage
+                        email={res.locals.user.email}
                         username={res.locals.user.fullName}
                         isSuperuser={res.locals.user.isSuperuser}
                         gitCmsBranchName={this.gitCmsBranchName}

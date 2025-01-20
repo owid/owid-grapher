@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node"
 import express from "express"
 import crypto from "crypto"
 import randomstring from "randomstring"
@@ -194,6 +195,13 @@ export async function authMiddleware(
     if (user?.isActive) {
         res.locals.session = session
         res.locals.user = user
+
+        Sentry.setUser({
+            id: user.id,
+            email: user.email,
+            username: user.fullName,
+        })
+
         return next()
     } else if (!req.path.startsWith("/admin") || req.path === "/admin/login")
         return next()

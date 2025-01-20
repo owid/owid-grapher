@@ -6,6 +6,7 @@ import {
 import { viteAssetsForAdmin } from "../site/viteUtils.js"
 
 export const IndexPage = (props: {
+    email: string
     username: string
     isSuperuser: boolean
     gitCmsBranchName: string
@@ -13,11 +14,12 @@ export const IndexPage = (props: {
     const assets = viteAssetsForAdmin()
     const script = `
         window.isEditor = true
-        window.admin = new Admin({ username: "${
-            props.username
-        }", isSuperuser: ${props.isSuperuser.toString()}, settings: ${JSON.stringify(
-            { ENV, GITHUB_USERNAME, DATA_API_FOR_ADMIN_UI }
-        )}})
+        window.admin = new Admin({
+          username: "${props.username}",
+          email: "${props.email}",
+          isSuperuser: ${props.isSuperuser.toString()},
+          settings: ${JSON.stringify({ ENV, GITHUB_USERNAME, DATA_API_FOR_ADMIN_UI })}
+        })
         admin.start(document.querySelector("#app"), '${props.gitCmsBranchName}')
 `
 

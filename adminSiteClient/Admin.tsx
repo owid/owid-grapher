@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react"
 import ReactDOM from "react-dom"
 import * as lodash from "lodash"
 import { observable, computed, action } from "mobx"
@@ -30,18 +31,26 @@ export class Admin {
     @observable errorMessage?: ErrorMessage
     basePath: string
     username: string
+    email: string
     isSuperuser: boolean
     settings: ClientSettings
 
     constructor(props: {
         username: string
+        email: string
         isSuperuser: boolean
         settings: ClientSettings
     }) {
         this.basePath = "/admin"
         this.username = props.username
+        this.email = props.email
         this.isSuperuser = props.isSuperuser
         this.settings = props.settings
+
+        Sentry.setUser({
+            username: this.username,
+            email: this.email,
+        })
     }
 
     @observable currentRequests: Promise<Response>[] = []
