@@ -978,11 +978,9 @@ function convertMarkdownNodeToIRTokens(
                 type: "paragraph",
             },
             (item) => {
-                return [
-                    ...item.children.flatMap((child) =>
-                        convertMarkdownNodeToIRTokens(child, fontParams)
-                    ),
-                ]
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
             }
         )
         .with(
