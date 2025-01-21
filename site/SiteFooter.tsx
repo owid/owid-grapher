@@ -237,7 +237,10 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             </p>
                             <p>
                                 Please consult our full{" "}
-                                <a href="/about#legal">legal disclaimer</a>.
+                                <a href="/organization#legal-disclaimer">
+                                    legal disclaimer
+                                </a>
+                                .
                             </p>
                             <p className="legal--last-paragraph">
                                 <span>
