@@ -108,6 +108,11 @@
         a {
             color: $blue-90;
             font-weight: bold;
+
+            .icon {
+                display: inline-block;
+                width: 25px;
+            }
         }
         svg {
             margin-right: 8px;
