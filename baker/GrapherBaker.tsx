@@ -29,7 +29,6 @@ import {
     getRelatedResearchAndWritingForVariable,
 } from "../db/model/Post.js"
 import {
-    JsonError,
     GrapherInterface,
     OwidVariableDataMetadataDimensions,
     DimensionProperty,
@@ -54,7 +53,7 @@ import {
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
 import { getAllImages } from "../db/model/Image.js"
-import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
 import { getTagToSlugMap } from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
@@ -159,8 +158,8 @@ export async function renderDataPageV2(
 
     if (faqResolveErrors.length > 0) {
         for (const error of faqResolveErrors) {
-            await logErrorAndMaybeSendToBugsnag(
-                new JsonError(
+            await logErrorAndMaybeCaptureInSentry(
+                new Error(
                     `Data page error in finding FAQs for variable ${variableId}: ${error.error}`
                 )
             )

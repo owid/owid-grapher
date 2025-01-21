@@ -8,7 +8,6 @@ import {
 } from "@ourworldindata/types"
 import {
     MultiDimDataPageConfig,
-    JsonError,
     keyBy,
     OwidVariableWithSource,
     pick,
@@ -28,7 +27,7 @@ import {
     getPrimaryTopic,
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
-import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import {
     getAllMultiDimDataPages,
     getMultiDimDataPageBySlug,
@@ -37,7 +36,7 @@ import {
 const getRelevantVariableIds = (config: MultiDimDataPageConfigPreProcessed) => {
     // A "relevant" variable id is the first y indicator of each view
     const allIndicatorIds = config.views
-        .map((view) => view.indicators.y?.[0])
+        .map((view) => view.indicators.y?.[0]?.id)
         .filter((id) => id !== undefined)
 
     return new Set(allIndicatorIds)
@@ -83,8 +82,8 @@ const getFaqEntries = async (
 
         if (faqResolveErrors.length > 0) {
             for (const error of faqResolveErrors) {
-                void logErrorAndMaybeSendToBugsnag(
-                    new JsonError(
+                void logErrorAndMaybeCaptureInSentry(
+                    new Error(
                         `MDD baking error for page "${config.title}" in finding FAQs for variable ${metadata.id}: ${error.error}`
                     )
                 )

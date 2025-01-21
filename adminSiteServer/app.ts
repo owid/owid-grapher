@@ -1,3 +1,7 @@
+// This should be imported as early as possible so the global error handler is
+// set up before any errors are thrown.
+import "../serverUtils/instrument.js"
+
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
     ADMIN_SERVER_HOST,

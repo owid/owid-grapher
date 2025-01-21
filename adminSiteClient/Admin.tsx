@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react"
 import ReactDOM from "react-dom"
 import * as lodash from "lodash"
 import { observable, computed, action } from "mobx"
@@ -6,6 +7,7 @@ import urljoin from "url-join"
 import { AdminApp } from "./AdminApp.js"
 import {
     Json,
+    JsonError,
     stringifyUnknownError,
     queryParamsToStr,
 } from "@ourworldindata/utils"
@@ -30,18 +32,26 @@ export class Admin {
     @observable errorMessage?: ErrorMessage
     basePath: string
     username: string
+    email: string
     isSuperuser: boolean
     settings: ClientSettings
 
     constructor(props: {
         username: string
+        email: string
         isSuperuser: boolean
         settings: ClientSettings
     }) {
         this.basePath = "/admin"
         this.username = props.username
+        this.email = props.email
         this.isSuperuser = props.isSuperuser
         this.settings = props.settings
+
+        Sentry.setUser({
+            username: this.username,
+            email: this.email,
+        })
     }
 
     @observable currentRequests: Promise<Response>[] = []
@@ -131,7 +141,9 @@ export class Admin {
             text = await response.text()
 
             json = JSON.parse(text)
-            if (json.error) throw json.error
+            if (json.error) {
+                throw new JsonError(json.error.message, json.error.status)
+            }
         } catch (err) {
             if (onFailure === "show")
                 this.setErrorMessage({

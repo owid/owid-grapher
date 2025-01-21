@@ -6,9 +6,23 @@ import {
     OwidVariableWithSource,
 } from "../OwidVariable.js"
 
-// Indicator ID, catalog path, or maybe an array of those
-export type IndicatorEntryBeforePreProcessing = string | number
-export type IndicatorEntryAfterPreProcessing = number // catalog paths have been resolved to indicator IDs
+export type IndicatorConfig = Pick<OwidVariableWithSource, "id" | "display">
+type IndicatorConfigByPath = Pick<IndicatorConfig, "display"> & {
+    catalogPath: string
+}
+
+type IndicatorConfigBeforePreProcessing =
+    | IndicatorConfig
+    | IndicatorConfigByPath
+
+// Indicator ID, catalog path or a an object
+export type IndicatorEntryBeforePreProcessing =
+    | string
+    | number
+    | IndicatorConfigBeforePreProcessing
+
+// Catalog paths have been resolved to indicator IDs
+export type IndicatorEntryAfterPreProcessing = IndicatorConfig
 
 type Metadata = Omit<OwidVariableWithSource, "id">
 

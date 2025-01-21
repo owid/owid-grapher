@@ -1,3 +1,7 @@
+// This should be imported as early as possible so the global error handler is
+// set up before any errors are thrown.
+import "./instrument.js"
+
 import "@ourworldindata/grapher/src/core/grapher.scss"
 import "./owid.scss"
 // From https://fontawesome.com/how-to-use/on-the-web/other-topics/server-side-rendering:
@@ -12,23 +16,13 @@ import { runDonateForm } from "./DonateForm.js"
 import { runCountryProfilePage } from "./runCountryProfilePage.js"
 import { runTableOfContents } from "./runTableOfContents.js"
 import { Explorer } from "@ourworldindata/explorer"
-import {
-    ENV,
-    BUGSNAG_API_KEY,
-    ADMIN_BASE_URL,
-    SENTRY_DSN,
-} from "../settings/clientSettings.js"
+import { ENV, ADMIN_BASE_URL } from "../settings/clientSettings.js"
 import { Grapher, CookieKey } from "@ourworldindata/grapher"
 import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder.js"
 import { CoreTable } from "@ourworldindata/core-table"
-import { isInIFrame } from "@ourworldindata/utils"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import Bugsnag, { BrowserConfig } from "@bugsnag/js"
-import BugsnagPluginReact from "@bugsnag/plugin-react"
-import * as Sentry from "@sentry/react"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks.js"
 import { runSiteFooterScripts } from "./runSiteFooterScripts.js"
-import { PreferenceType, getPreferenceValue } from "./cookiePreferences.js"
 
 declare let window: any
 window.Grapher = Grapher
@@ -46,78 +40,6 @@ window.MultiEmbedderSingleton = MultiEmbedderSingleton
 window.runSiteFooterScripts = runSiteFooterScripts
 
 runMonkeyPatchForGoogleTranslate()
-
-if (BUGSNAG_API_KEY) {
-    try {
-        const analyticsConsent = getPreferenceValue(PreferenceType.Analytics)
-
-        let bugsnagUserInformation: Pick<
-            BrowserConfig,
-            "generateAnonymousId" | "user"
-        >
-        if (analyticsConsent) {
-            bugsnagUserInformation = {
-                generateAnonymousId: true, // gets saved to localStorage, which we only want if the user has consented to analytics
-            }
-        } else {
-            bugsnagUserInformation = {
-                generateAnonymousId: false,
-                user: {
-                    // generates a random 10-character string
-                    // we use it so we can at least identify multiple errors from the same user on a single page, albeit not across pages
-                    id: Math.random().toString(36).substring(2, 12),
-                },
-            }
-        }
-
-        Bugsnag.start({
-            apiKey: BUGSNAG_API_KEY,
-            plugins: [new BugsnagPluginReact()],
-            autoTrackSessions: false,
-            collectUserIp: false,
-            ...bugsnagUserInformation,
-        })
-    } catch {
-        console.error("Failed to initialize Bugsnag")
-    }
-}
-
-if (SENTRY_DSN) {
-    try {
-        const analyticsConsent = getPreferenceValue(PreferenceType.Analytics)
-
-        let sentryOpts: Sentry.BrowserOptions
-        if (analyticsConsent && !isInIFrame()) {
-            // only collect session replays from: users that have consented to analytics
-            // AND where page isn't embedded in an iframe
-            sentryOpts = {
-                integrations: [
-                    Sentry.replayIntegration({
-                        maskAllText: false,
-                        maskAllInputs: false,
-                        blockAllMedia: false,
-                        mask: [".sentry-mask"],
-                    }),
-                ],
-                replaysSessionSampleRate: ENV === "development" ? 1 : 0.1,
-                replaysOnErrorSampleRate: 0,
-            }
-        } else {
-            sentryOpts = {
-                replaysSessionSampleRate: 0,
-                replaysOnErrorSampleRate: 0,
-            }
-        }
-        Sentry.init({
-            dsn: SENTRY_DSN,
-            debug: ENV === "development",
-            environment: ENV,
-            ...sentryOpts,
-        })
-    } catch {
-        console.error("Failed to initialize Sentry")
-    }
-}
 
 const analytics = new SiteAnalytics(ENV)
 
