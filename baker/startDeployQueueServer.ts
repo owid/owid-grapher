@@ -1,9 +1,9 @@
+// This should be imported as early as possible so the global error handler is
+// set up before any errors are thrown.
+import "../serverUtils/instrument.js"
+
 import fs from "fs-extra"
-import Bugsnag from "@bugsnag/js"
-import {
-    DEPLOY_QUEUE_FILE_PATH,
-    BUGSNAG_NODE_API_KEY,
-} from "../settings/serverSettings.js"
+import { DEPLOY_QUEUE_FILE_PATH } from "../settings/serverSettings.js"
 import { deployIfQueueIsNotEmpty } from "./DeployUtils.js"
 import * as db from "../db/db.js"
 // Ensure db is cleaned up on PM2 stop / restart / reload and cmd/ctrl + c
@@ -23,14 +23,6 @@ const main = async () => {
             `No deploy queue file found in: ${DEPLOY_QUEUE_FILE_PATH}`
         )
         process.exit(1)
-    }
-
-    if (BUGSNAG_NODE_API_KEY) {
-        Bugsnag.start({
-            apiKey: BUGSNAG_NODE_API_KEY,
-            context: "deploy-queue",
-            autoTrackSessions: false,
-        })
     }
 
     // Listen for file changes

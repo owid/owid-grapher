@@ -76,7 +76,6 @@ import {
     explorerUrlMigrationsById,
     migrateExplorerUrl,
 } from "./urlMigrations/ExplorerUrlMigrations.js"
-import Bugsnag from "@bugsnag/js"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -385,7 +384,6 @@ export class Explorer
             console.warn(
                 "ResizeObserver not available; the explorer will not be responsive to window resizes"
             )
-            Bugsnag?.notify("ResizeObserver not available")
 
             this.onResize() // fire once to initialize, at least
         }

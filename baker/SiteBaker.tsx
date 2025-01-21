@@ -1,3 +1,7 @@
+// This should be imported as early as possible so the global error handler is
+// set up before any errors are thrown.
+import "../serverUtils/instrument.js"
+
 import fs from "fs-extra"
 import path from "path"
 import { glob } from "glob"
@@ -82,7 +86,7 @@ import {
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getAllImages } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
-import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import {
     getChartEmbedUrlsInPublishedWordpressPosts,
     mapSlugsToConfigs,
@@ -208,16 +212,6 @@ export class SiteBaker {
             }
         )
         this.explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-        // As of 10-10-2024, baking sends too many events to Bugsnag which causes us to hit the rate limit.
-        // We'll have to find a way to be more selective about how we log baking errors/warnings.
-        // (Only sending errors probably isn't sufficient, because there are some warnings that we want to know about.)
-        // if (BUGSNAG_NODE_API_KEY) {
-        //     Bugsnag.start({
-        //         apiKey: BUGSNAG_NODE_API_KEY,
-        //         context: "site-baker",
-        //         autoTrackSessions: false,
-        //     })
-        // }
     }
 
     private async bakeEmbeds(knex: db.KnexReadonlyTransaction) {
@@ -666,22 +660,13 @@ export class SiteBaker {
             }
 
             await publishedGdoc.validate(knex)
-            for (const errorOrWarning of publishedGdoc.errors) {
-                const announcement =
-                    errorOrWarning.type === OwidGdocErrorMessageType.Error
-                        ? `Error baking "${publishedGdoc.slug}"`
-                        : `Warning baking "${publishedGdoc.slug}"`
-                await logErrorAndMaybeSendToBugsnag(
-                    `${announcement}: ${errorOrWarning.message}`,
-                    undefined,
-                    errorOrWarning.message
-                )
-            }
             try {
                 await this.bakeOwidGdoc(publishedGdoc)
             } catch (e) {
-                await logErrorAndMaybeSendToBugsnag(
-                    `Error baking gdoc post with id "${publishedGdoc.id}" and slug "${publishedGdoc.slug}": ${e}`
+                await logErrorAndMaybeCaptureInSentry(
+                    new Error(
+                        `Error baking gdoc post with id "${publishedGdoc.id}" and slug "${publishedGdoc.slug}": ${e}`
+                    )
                 )
             }
         }
@@ -700,16 +685,20 @@ export class SiteBaker {
             if (linkedGdocId) {
                 const linkedDocument = attachments.linkedDocuments[linkedGdocId]
                 if (!linkedDocument) {
-                    await logErrorAndMaybeSendToBugsnag(
-                        `Tombstone with id "${tombstone.id}" references a gdoc with id "${linkedGdocId}" which was not found`
+                    await logErrorAndMaybeCaptureInSentry(
+                        new Error(
+                            `Tombstone with id "${tombstone.id}" references a gdoc with id "${linkedGdocId}" which was not found`
+                        )
                     )
                 }
             }
             try {
                 await this.bakeOwidGdocTombstone(tombstone, attachments)
             } catch (e) {
-                await logErrorAndMaybeSendToBugsnag(
-                    `Error baking gdoc tombstone with id "${tombstone.id}" and slug "${tombstone.slug}": ${e}`
+                await logErrorAndMaybeCaptureInSentry(
+                    new Error(
+                        `Error baking gdoc tombstone with id "${tombstone.id}" and slug "${tombstone.slug}": ${e}`
+                    )
                 )
             }
         }
@@ -836,8 +825,10 @@ export class SiteBaker {
             )
             for (const detailId of detailIds) {
                 if (!details[detailId]) {
-                    await logErrorAndMaybeSendToBugsnag(
-                        `Grapher with slug ${chart.slug} references dod "${detailId}" which does not exist`
+                    await logErrorAndMaybeCaptureInSentry(
+                        new Error(
+                            `Grapher with slug ${chart.slug} references dod "${detailId}" which does not exist`
+                        )
                     )
                 }
             }
@@ -872,10 +863,12 @@ export class SiteBaker {
         const { details, parseErrors } =
             await GdocPost.getDetailsOnDemandGdoc(knex)
         if (parseErrors.length) {
-            await logErrorAndMaybeSendToBugsnag(
-                `Error(s) baking details: ${parseErrors
-                    .map((e) => e.message)
-                    .join(", ")}`
+            await logErrorAndMaybeCaptureInSentry(
+                new Error(
+                    `Error(s) baking details: ${parseErrors
+                        .map((e) => e.message)
+                        .join(", ")}`
+                )
             )
         }
 
@@ -920,22 +913,13 @@ export class SiteBaker {
             dataInsight.latestDataInsights = latestDataInsights
 
             await dataInsight.validate(knex)
-            for (const errorOrWarning of dataInsight.errors) {
-                const announcement =
-                    errorOrWarning.type === OwidGdocErrorMessageType.Error
-                        ? `Error baking "data-insight/${dataInsight.slug}"`
-                        : `Warning baking "data-insight/${dataInsight.slug}"`
-                await logErrorAndMaybeSendToBugsnag(
-                    `${announcement}: ${errorOrWarning.message}`,
-                    undefined,
-                    errorOrWarning.message
-                )
-            }
             try {
                 await this.bakeOwidGdoc(dataInsight)
             } catch (e) {
-                await logErrorAndMaybeSendToBugsnag(
-                    `Error baking gdoc post with id "${dataInsight.id}" and slug "${dataInsight.slug}": ${e}`
+                await logErrorAndMaybeCaptureInSentry(
+                    new Error(
+                        `Error baking gdoc post with id "${dataInsight.id}" and slug "${dataInsight.slug}": ${e}`
+                    )
                 )
             }
             // We don't need the latest data insights nor their images in the
@@ -1007,19 +991,23 @@ export class SiteBaker {
                     (e) => e.type === OwidGdocErrorMessageType.Error
                 ).length
             ) {
-                await logErrorAndMaybeSendToBugsnag(
-                    `Error(s) baking "${
-                        publishedAuthor.slug
-                    }" :\n  ${publishedAuthor.errors
-                        .map((error) => error.message)
-                        .join("\n  ")}`
+                await logErrorAndMaybeCaptureInSentry(
+                    new Error(
+                        `Error(s) baking "${
+                            publishedAuthor.slug
+                        }" :\n  ${publishedAuthor.errors
+                            .map((error) => error.message)
+                            .join("\n  ")}`
+                    )
                 )
             }
             try {
                 await this.bakeOwidGdoc(publishedAuthor)
             } catch (e) {
-                await logErrorAndMaybeSendToBugsnag(
-                    `Error baking author with id "${publishedAuthor.id}" and slug "${publishedAuthor.slug}": ${e}`
+                await logErrorAndMaybeCaptureInSentry(
+                    new Error(
+                        `Error baking author with id "${publishedAuthor.id}" and slug "${publishedAuthor.slug}": ${e}`
+                    )
                 )
             }
         }
@@ -1072,8 +1060,10 @@ export class SiteBaker {
         for (const icon of tagIcons) {
             const iconName = icon.split(".")[0]
             if (!tagNames.has(iconName)) {
-                await logErrorAndMaybeSendToBugsnag(
-                    `Tag icon "${icon}" does not have a corresponding tag in the database.`
+                await logErrorAndMaybeCaptureInSentry(
+                    new Error(
+                        `Tag icon "${icon}" does not have a corresponding tag in the database.`
+                    )
                 )
             }
         }

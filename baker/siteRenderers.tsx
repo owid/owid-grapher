@@ -92,7 +92,7 @@ import {
     isPostSlugCitable,
 } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
-import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import {
     getAndLoadGdocBySlug,
     getAndLoadGdocById,
@@ -250,12 +250,9 @@ export const renderFrontPage = async (knex: KnexReadonlyTransaction) => {
         await gdocHomepage.loadState(knex)
         return renderGdoc(gdocHomepage)
     } else {
-        await logErrorAndMaybeSendToBugsnag(
-            new JsonError(
-                `Failed to find homepage Gdoc with type "${OwidGdocType.Homepage}"`
-            )
+        throw new Error(
+            `Failed to find homepage Gdoc with type "${OwidGdocType.Homepage}"`
         )
-        return ""
     }
 }
 
@@ -619,8 +616,8 @@ export const renderProminentLinks = async (
                               ).title)
             } finally {
                 if (!title) {
-                    void logErrorAndMaybeSendToBugsnag(
-                        new JsonError(
+                    void logErrorAndMaybeCaptureInSentry(
+                        new Error(
                             `No fallback title found for prominent link ${resolvedUrlString} in wordpress post with id ${containerPostId}. Block removed.`
                         )
                     )
@@ -704,11 +701,11 @@ export const renderExplorerPage = async (
     const { program: transformedProgram, unresolvedCatalogPaths } =
         transformResult
     if (unresolvedCatalogPaths?.size) {
-        const errMessage = new JsonError(
+        const errMessage = new Error(
             `${unresolvedCatalogPaths.size} catalog paths cannot be found for explorer ${transformedProgram.slug}: ${[...unresolvedCatalogPaths].join(", ")}.`
         )
         if (opts?.isPreviewing) console.error(errMessage)
-        else void logErrorAndMaybeSendToBugsnag(errMessage)
+        else void logErrorAndMaybeCaptureInSentry(errMessage)
     }
 
     // This needs to run after transformExplorerProgramToResolveCatalogPaths, so that the catalog paths
@@ -758,8 +755,8 @@ export const renderExplorerPage = async (
             (id) => !partialGrapherConfigRows.find((row) => row.id === id)
         )
         if (missingIds.length > 0) {
-            void logErrorAndMaybeSendToBugsnag(
-                new JsonError(
+            void logErrorAndMaybeCaptureInSentry(
+                new Error(
                     `Referenced variable IDs do not exist in the database for explorer ${transformedProgram.slug}: ${missingIds.join(", ")}.`
                 )
             )

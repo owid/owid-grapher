@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node"
 import express from "express"
 import crypto from "crypto"
 import randomstring from "randomstring"
@@ -100,7 +101,7 @@ export async function authCloudflareSSOMiddleware(
     res.cookie("sessionid", sessionId, {
         httpOnly: true,
         sameSite: "lax",
-        secure: ENV === "production",
+        secure: ENV !== "development",
     })
 
     // Prevents redirect to external URLs
@@ -194,6 +195,13 @@ export async function authMiddleware(
     if (user?.isActive) {
         res.locals.session = session
         res.locals.user = user
+
+        Sentry.setUser({
+            id: user.id,
+            email: user.email,
+            username: user.fullName,
+        })
+
         return next()
     } else if (!req.path.startsWith("/admin") || req.path === "/admin/login")
         return next()
@@ -327,7 +335,7 @@ export async function tailscaleAuthMiddleware(
     res.cookie("sessionid", sessionId, {
         httpOnly: true,
         sameSite: "lax",
-        secure: ENV === "production",
+        secure: ENV !== "development",
     })
 
     // Save the sessionid in cookies for `authMiddleware` to log us in
