@@ -98,10 +98,18 @@
 .homepage-social-ribbon__social-list {
     grid-template-columns: 1fr; // fallback for browsers that don't support `max()` below.
 
-    // A bunch of magic numbers!
-    // The 40% ensures that auto-fit creates at most 2 columns. We can't use the more sensible 50%, because grid gaps need to be accounted for.
-    // The 120px ensures that a column is at least 120px wide, i.e. we only get 2 columns if the container is at least 240px (+gap) wide.
-    grid-template-columns: repeat(auto-fit, minmax(max(40%, 120px), 1fr));
+    // A bunch of magic CSS! Let me explain.
+    // The goal here is to span the social links over 1 or 2 columns, ensuring that each column is at least 120px wide.
+
+    // The width of a column if there are precisely 2 columns - we don't want to have more than 2 columns here.
+    --half-width: calc(50% - var(--grid-gap) / 2);
+    // A column should be at least 128px wide, but can grow to fill the available space to ensure we don't create more than 2 columns.
+    --min-column-width: max(var(--half-width), 128px);
+    // We want to fit 1 or 2 columns into the available space, depending on available width.
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(var(--min-column-width), 1fr)
+    );
 
     margin-top: 16px;
     li {
