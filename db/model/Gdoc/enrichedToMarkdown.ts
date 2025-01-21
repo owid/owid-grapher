@@ -275,7 +275,13 @@ ${b.url}`
                             { url: insight.url },
                             exportComponents
                         )
-                      : undefined
+                      : insight.narrativeChartName
+                        ? markdownComponent(
+                              "NarrativeChart",
+                              { name: insight.narrativeChartName },
+                              exportComponents
+                          )
+                        : undefined
                 const content =
                     enrichedBlocksToMarkdown(
                         insight.content,

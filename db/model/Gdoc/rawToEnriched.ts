@@ -1597,16 +1597,25 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
         if (!rawInsight.title) {
             parseErrors.push({ message: "Key insight is missing a title" })
         }
-        if (!rawInsight.url && !rawInsight.filename) {
+        if (
+            !rawInsight.url &&
+            !rawInsight.filename &&
+            !rawInsight.narrativeChartName
+        ) {
             parseErrors.push({
                 message:
-                    "Key insight is missing a url or filename. One of these two fields must be specified.",
+                    "Key insight is missing a url, filename or narrativeChartName. One of these two fields must be specified.",
             })
         }
-        if (rawInsight.url && rawInsight.filename) {
+        if (
+            Number(!!rawInsight.url) +
+                Number(!!rawInsight.filename) +
+                Number(!!rawInsight.narrativeChartName) >
+            1
+        ) {
             parseErrors.push({
                 message:
-                    "Key insight has both a url and a filename. Only one of these two fields can be specified.",
+                    "Key insight has more than just one of the fields url, filename, narrativeChartName. Only one of these fields can be specified.",
             })
         }
         const url = Url.fromURL(extractUrl(rawInsight.url))
@@ -1639,6 +1648,10 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
             }
             if (rawInsight.filename) {
                 enrichedInsight.filename = rawInsight.filename
+            }
+            if (rawInsight.narrativeChartName) {
+                enrichedInsight.narrativeChartName =
+                    rawInsight.narrativeChartName
             }
             enrichedInsights.push(enrichedInsight)
         }

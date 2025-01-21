@@ -491,6 +491,13 @@ export class GdocBase implements OwidGdocBaseInterface {
                             text: insight.title,
                         })
                         links.push(insightLink)
+                    } else if (insight.narrativeChartName) {
+                        const insightLink = createLinkForChartView({
+                            name: insight.narrativeChartName,
+                            source: this,
+                            componentType: block.type,
+                        })
+                        links.push(insightLink)
                     }
                 })
 

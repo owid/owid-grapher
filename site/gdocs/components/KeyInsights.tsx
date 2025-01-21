@@ -15,6 +15,7 @@ import {
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import Image from "./Image.js"
 import Chart from "./Chart.js"
+import NarrativeChart from "./NarrativeChart.js"
 
 export const KEY_INSIGHTS_CLASS_NAME = "key-insights"
 export const KEY_INSIGHTS_INSIGHT_PARAM = "insight"
@@ -293,9 +294,11 @@ export const KeyInsights = ({
     function renderAssetForInsight({
         filename,
         url,
+        narrativeChartName,
     }: {
         filename?: string
         url?: string
+        narrativeChartName?: string
     }): React.ReactElement | null {
         if (filename) {
             return (
@@ -309,6 +312,18 @@ export const KeyInsights = ({
             return (
                 <Chart
                     d={{ url, type: "chart", parseErrors: [] }}
+                    fullWidthOnMobile={true}
+                />
+            )
+        }
+        if (narrativeChartName) {
+            return (
+                <NarrativeChart
+                    d={{
+                        name: narrativeChartName,
+                        type: "narrative-chart",
+                        parseErrors: [],
+                    }}
                     fullWidthOnMobile={true}
                 />
             )
@@ -336,7 +351,16 @@ export const KeyInsights = ({
                     />
                     <div className={KEY_INSIGHTS_SLIDES_CLASS_NAME}>
                         {insights.map(
-                            ({ title, content, filename, url }, idx) => {
+                            (
+                                {
+                                    title,
+                                    content,
+                                    filename,
+                                    url,
+                                    narrativeChartName,
+                                },
+                                idx
+                            ) => {
                                 return (
                                     <div
                                         key={idx}
@@ -368,6 +392,7 @@ export const KeyInsights = ({
                                                 {renderAssetForInsight({
                                                     filename,
                                                     url,
+                                                    narrativeChartName,
                                                 })}
                                             </div>
                                         </div>
