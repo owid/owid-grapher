@@ -22,7 +22,7 @@ export interface ImageOptions {
     fontSize: number | undefined
     grapherProps?: Partial<GrapherProgrammaticInterface>
 }
-export const TWITTER_OPTIONS: ImageOptions = {
+export const TWITTER_OPTIONS: Readonly<ImageOptions> = {
     // Twitter cards are 1.91:1 in aspect ratio, and 800x418 is the recommended size
     pngWidth: 800,
     pngHeight: 418,
@@ -31,7 +31,7 @@ export const TWITTER_OPTIONS: ImageOptions = {
     details: false,
     fontSize: 21,
 }
-const OPEN_GRAPH_OPTIONS: ImageOptions = {
+const OPEN_GRAPH_OPTIONS: Readonly<ImageOptions> = {
     // Open Graph is used by "everything but Twitter": Facebook, LinkedIn, WhatsApp, Signal, etc.
     pngWidth: 1200,
     pngHeight: 628,
@@ -40,7 +40,7 @@ const OPEN_GRAPH_OPTIONS: ImageOptions = {
     details: false,
     fontSize: 21,
 }
-const SQUARE_OPTIONS: ImageOptions = {
+const SQUARE_OPTIONS: Readonly<ImageOptions> = {
     pngWidth: 4 * GRAPHER_SQUARE_SIZE,
     pngHeight: 4 * GRAPHER_SQUARE_SIZE,
     svgWidth: GRAPHER_SQUARE_SIZE,
@@ -61,7 +61,7 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
         params.get("imType") === "square" ||
         params.get("imType") === "social-media-square"
     ) {
-        const squareOptions = SQUARE_OPTIONS
+        const squareOptions = structuredClone(SQUARE_OPTIONS) as ImageOptions
         if (params.get("imType") === "social-media-square") {
             squareOptions.grapherProps.isSocialMediaExport = true
         }
