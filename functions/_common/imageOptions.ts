@@ -54,15 +54,13 @@ const SQUARE_OPTIONS: Readonly<ImageOptions> = {
 }
 
 export const extractOptions = (params: URLSearchParams): ImageOptions => {
-    // We have two special images types specified via the `imType` query param:
-    if (params.get("imType") === "twitter") return TWITTER_OPTIONS
-    else if (params.get("imType") === "og") return OPEN_GRAPH_OPTIONS
-    else if (
-        params.get("imType") === "square" ||
-        params.get("imType") === "social-media-square"
-    ) {
+    const imType = params.get("imType")
+    // We have some special images types specified via the `imType` query param:
+    if (imType === "twitter") return TWITTER_OPTIONS
+    else if (imType === "og") return OPEN_GRAPH_OPTIONS
+    else if (imType === "square" || imType === "social-media-square") {
         const squareOptions = structuredClone(SQUARE_OPTIONS) as ImageOptions
-        if (params.get("imType") === "social-media-square") {
+        if (imType === "social-media-square") {
             squareOptions.grapherProps.isSocialMediaExport = true
         }
         if (params.has("imSquareSize")) {
