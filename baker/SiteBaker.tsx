@@ -114,7 +114,10 @@ import { getTombstones } from "../db/model/GdocTombstone.js"
 import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
 import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
-import { getChartViewsInfo } from "../db/model/ChartView.js"
+import {
+    getChartViewNameConfigMap,
+    getChartViewsInfo,
+} from "../db/model/ChartView.js"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -152,6 +155,7 @@ const nonWordpressSteps = [
     "dods",
     "dataInsights",
     "authors",
+    "chartViewMap",
 ] as const
 
 const otherSteps = ["removeDeletedPosts"] as const
@@ -1116,6 +1120,18 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked redirects" })
     }
 
+    async bakeChartViewMap(knex: db.KnexReadonlyTransaction) {
+        if (!this.bakeSteps.has("chartViewMap")) return
+
+        const chartViewMap = await getChartViewNameConfigMap(knex)
+        await this.stageWrite(
+            path.join(this.bakedSiteDir, `grapher/_chartViews.json`),
+            JSON.stringify(chartViewMap, null, 2)
+        )
+
+        this.progressBar.tick({ name: "✅ baked chart views" })
+    }
+
     async bakeWordpressPages(knex: db.KnexReadonlyTransaction) {
         await this.bakeRedirects(knex)
         await this.bakeEmbeds(knex)
@@ -1148,6 +1164,7 @@ export class SiteBaker {
         await this.bakeGDocTombstones(knex)
         await this.bakeDataInsights(knex)
         await this.bakeAuthors(knex)
+        await this.bakeChartViewMap(knex)
     }
 
     async bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {

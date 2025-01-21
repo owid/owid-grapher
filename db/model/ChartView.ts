@@ -1,4 +1,8 @@
-import { ChartViewInfo, JsonString } from "@ourworldindata/types"
+import {
+    ChartViewInfo,
+    DbPlainChartView,
+    JsonString,
+} from "@ourworldindata/types"
 import * as db from "../db.js"
 
 export const getChartViewsInfo = async (
@@ -31,4 +35,15 @@ JOIN chart_configs pcc on pc.configId = pcc.id
         ...row,
         queryParamsForParentChart: JSON.parse(row.queryParamsForParentChart),
     }))
+}
+
+export const getChartViewNameConfigMap = async (
+    knex: db.KnexReadonlyTransaction
+): Promise<
+    Record<DbPlainChartView["name"], DbPlainChartView["chartConfigId"]>
+> => {
+    const rows = await db.knexRaw<
+        Pick<DbPlainChartView, "name" | "chartConfigId">
+    >(knex, `SELECT name, chartConfigId FROM chart_views`)
+    return Object.fromEntries(rows.map((row) => [row.name, row.chartConfigId]))
 }

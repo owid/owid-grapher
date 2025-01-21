@@ -35,6 +35,8 @@ import { expectChartById } from "./charts.js"
 import { Request } from "../authentication.js"
 import e from "express"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
+import { triggerStaticBuild } from "./routeUtils.js"
+
 const createPatchConfigAndQueryParamsForChartView = async (
     knex: db.KnexReadonlyTransaction,
     parentChartId: number,
@@ -222,6 +224,8 @@ export async function createChartView(
     const result = await trx.table(ChartViewsTableName).insert(insertRow)
     const [resultId] = result
 
+    await triggerStaticBuild(res.locals.user, `Creating chart view ${name}`)
+
     return { chartViewId: resultId, success: true }
 }
 
@@ -276,7 +280,7 @@ export async function updateChartView(
 
 export async function deleteChartView(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadWriteTransaction
 ) {
     const id = expectInt(req.params.id)
@@ -315,6 +319,8 @@ export async function deleteChartView(
     await deleteGrapherConfigFromR2ByUUID(chartConfigId)
 
     await trx.table(ChartConfigsTableName).where({ id: chartConfigId }).delete()
+
+    await triggerStaticBuild(res.locals.user, `Deleting chart view ${name}`)
 
     return { success: true }
 }
