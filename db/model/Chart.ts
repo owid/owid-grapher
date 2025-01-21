@@ -628,7 +628,8 @@ export const getRelatedChartsForChart = async (
                 AND related_charts.label = 'good'
                 AND chart_configs.full->>"$.isPublished" = "true"
             GROUP BY charts.id
-            ORDER BY title ASC
+            ORDER BY related_charts.score DESC
+            LIMIT 6
         `
     )
 }

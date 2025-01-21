@@ -30,7 +30,7 @@
         "startLocalCloudflareFunctions": "wrangler pages dev",
         "startDeployQueueServer": "node --enable-source-maps ./itsJustJavascript/baker/startDeployQueueServer.js",
         "startLernaWatcher": "lerna watch --scope '@ourworldindata/*' -- lerna run build --scope=\\$LERNA_PACKAGE_NAME --include-dependents",
-        "startTmuxServer": "node_modules/tmex/tmex dev \"yarn startLernaWatcher\" \"yarn startAdminDevServer\" \"yarn startViteServer\"",
+        "startTmuxServer": "node_modules/tmex/tmex dev \"yarn startLernaWatcher\" \"yarn startAdminDevServer\" \"yarn startSiteFront\"",
         "startViteServer": "vite dev",
         "startSiteFront": "./devTools/vite/startVite.sh",
         "startLocalBakeServer": "http-server ./localBake -p 3000",

@@ -10,6 +10,7 @@ export class AddRelatedChartsTable1736933781669 implements MigrationInterface {
                 label VARCHAR(255) NOT NULL,
                 reviewer VARCHAR(255) DEFAULT NULL,
                 reason TEXT DEFAULT NULL,
+                score NUMERIC DEFAULT NULL,
                 updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 CONSTRAINT related_charts_ibfk_1
                     FOREIGN KEY (chartId) REFERENCES charts (id)
