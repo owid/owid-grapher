@@ -96,6 +96,13 @@
 }
 
 .homepage-social-ribbon__social-list {
+    grid-template-columns: 1fr; // fallback for browsers that don't support `max()` below.
+
+    // A bunch of magic numbers!
+    // The 40% ensures that auto-fit creates at most 2 columns. We can't use the more sensible 50%, because grid gaps need to be accounted for.
+    // The 120px ensures that a column is at least 120px wide, i.e. we only get 2 columns if the container is at least 240px (+gap) wide.
+    grid-template-columns: repeat(auto-fit, minmax(max(40%, 120px), 1fr));
+
     margin-top: 16px;
     li {
         list-style: none;
