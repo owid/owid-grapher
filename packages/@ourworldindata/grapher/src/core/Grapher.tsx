@@ -3692,16 +3692,11 @@ export class Grapher
         if (this.addCountryMode === EntitySelectionMode.MultipleEntities)
             return true
 
+        // if the chart is currently faceted by entity, then use multi-entity
+        // selection, even if the author specified single-entity selection
         if (
-            // we force multi-entity selection mode when the chart is faceted
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.facetStrategy !== FacetStrategy.none &&
-            // unless the author explicitly configured the chart to be split
-            // by metric and hid the facet control
-            !(
-                this.facetStrategy === FacetStrategy.metric &&
-                this.hideFacetControl
-            )
+            this.facetStrategy === FacetStrategy.entity
         )
             return true
 
