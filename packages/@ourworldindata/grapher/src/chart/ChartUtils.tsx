@@ -268,12 +268,12 @@ export function makeAxisLabel({
  */
 export function generateGrapherImageSrcSet(defaultSrc: string): string {
     const url = Url.fromURL(defaultSrc)
+    const existingQueryParams = url.queryParams
     const imWidths = ["850", "1700"]
     const srcSet = imWidths
-        .map(
-            (imWidth) =>
-                `${url.setQueryParams({ imWidth }).fullUrl} ${imWidth}w`
-        )
+        .map((imWidth) => {
+            return `${url.setQueryParams({ ...existingQueryParams, imWidth }).fullUrl} ${imWidth}w`
+        })
         .join(", ")
 
     return srcSet
