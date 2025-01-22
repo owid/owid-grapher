@@ -64,7 +64,7 @@ import {
     getRedirects,
     flushCache as redirectsFlushCache,
 } from "./redirects.js"
-import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker.js"
+import { bakeAllChangedGrapherPagesAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
@@ -1102,7 +1102,7 @@ export class SiteBaker {
         await this.bakeCountryProfiles(knex)
         await this.bakeExplorers(knex)
         if (this.bakeSteps.has("charts")) {
-            await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
+            await bakeAllChangedGrapherPagesAndDeleteRemovedGraphers(
                 this.bakedSiteDir,
                 knex
             )
