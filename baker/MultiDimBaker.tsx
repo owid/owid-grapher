@@ -1,6 +1,7 @@
 import fs from "fs-extra"
 import path from "path"
 import {
+    ImageMetadata,
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageProps,
     FaqEntryKeyedByGdocIdAndFragmentId,
@@ -11,8 +12,11 @@ import {
     keyBy,
     OwidVariableWithSource,
     pick,
+    uniq,
 } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
+import { getImagesByFilenames } from "../db/model/Image.js"
+import { getRelatedResearchAndWritingForVariables } from "../db/model/Post.js"
 import { renderToHtmlPage } from "./siteRenderers.js"
 import { MultiDimDataPage } from "../site/multiDim/MultiDimDataPage.js"
 import {
@@ -42,10 +46,7 @@ const getRelevantVariableIds = (config: MultiDimDataPageConfigPreProcessed) => {
     return new Set(allIndicatorIds)
 }
 
-const getRelevantVariableMetadata = async (
-    config: MultiDimDataPageConfigPreProcessed
-) => {
-    const variableIds = getRelevantVariableIds(config)
+async function getRelevantVariableMetadata(variableIds: Iterable<number>) {
     const metadata = await pMap(
         variableIds,
         async (id) => {
@@ -114,24 +115,55 @@ const getFaqEntries = async (
     }
 }
 
-export const renderMultiDimDataPageFromConfig = async (
-    knex: db.KnexReadonlyTransaction,
-    slug: string,
-    config: MultiDimDataPageConfigEnriched,
-    isPreviewing: boolean = false
-) => {
+export async function renderMultiDimDataPageFromConfig({
+    knex,
+    slug,
+    config,
+    imageMetadataDictionary,
+    isPreviewing = false,
+}: {
+    knex: db.KnexReadonlyTransaction
+    slug: string
+    config: MultiDimDataPageConfigEnriched
+    imageMetadataDictionary?: Record<string, ImageMetadata>
+    isPreviewing?: boolean
+}) {
     // TAGS
     const tagToSlugMap = await getTagToSlugMap(knex)
     // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
     const minimalTagToSlugMap = pick(tagToSlugMap, config.topicTags ?? [])
     const pageConfig = MultiDimDataPageConfig.fromObject(config)
+    const variableIds = getRelevantVariableIds(config)
 
     // FAQs
-    const variableMetaDict = await getRelevantVariableMetadata(config)
+    const variableMetaDict = await getRelevantVariableMetadata(variableIds)
     const faqEntries = await getFaqEntries(knex, config, variableMetaDict)
 
     // PRIMARY TOPIC
     const primaryTopic = await getPrimaryTopic(knex, config.topicTags?.[0])
+
+    // Related research
+    const relatedResearchCandidates =
+        variableIds.size > 0
+            ? await getRelatedResearchAndWritingForVariables(knex, [
+                  ...variableIds,
+              ])
+            : []
+
+    const relatedResearchFilenames = uniq(
+        relatedResearchCandidates.map((r) => r.imageUrl).filter(Boolean)
+    )
+
+    let imageMetadata: Record<string, ImageMetadata>
+    if (imageMetadataDictionary) {
+        imageMetadata = pick(imageMetadataDictionary, relatedResearchFilenames)
+    } else {
+        const images = await getImagesByFilenames(
+            knex,
+            relatedResearchFilenames
+        )
+        imageMetadata = keyBy(images, "filename")
+    }
 
     const props = {
         baseUrl: BAKED_BASE_URL,
@@ -141,6 +173,8 @@ export const renderMultiDimDataPageFromConfig = async (
         tagToSlugMap: minimalTagToSlugMap,
         faqEntries,
         primaryTopic,
+        relatedResearchCandidates,
+        imageMetadata,
         isPreviewing,
     }
 
@@ -155,7 +189,11 @@ export const renderMultiDimDataPageBySlug = async (
     const dbRow = await getMultiDimDataPageBySlug(knex, slug, { onlyPublished })
     if (!dbRow) throw new Error(`No multi-dim site found for slug: ${slug}`)
 
-    return renderMultiDimDataPageFromConfig(knex, slug, dbRow.config)
+    return renderMultiDimDataPageFromConfig({
+        knex,
+        slug,
+        config: dbRow.config,
+    })
 }
 
 export const renderMultiDimDataPageFromProps = async (
@@ -168,23 +206,32 @@ export const bakeMultiDimDataPage = async (
     knex: db.KnexReadonlyTransaction,
     bakedSiteDir: string,
     slug: string,
-    config: MultiDimDataPageConfigEnriched
+    config: MultiDimDataPageConfigEnriched,
+    imageMetadata: Record<string, ImageMetadata>
 ) => {
-    const renderedHtml = await renderMultiDimDataPageFromConfig(
+    const renderedHtml = await renderMultiDimDataPageFromConfig({
         knex,
         slug,
-        config
-    )
+        config,
+        imageMetadataDictionary: imageMetadata,
+    })
     const outPath = path.join(bakedSiteDir, `grapher/${slug}.html`)
     await fs.writeFile(outPath, renderedHtml)
 }
 
 export const bakeAllMultiDimDataPages = async (
     knex: db.KnexReadonlyTransaction,
-    bakedSiteDir: string
+    bakedSiteDir: string,
+    imageMetadata: Record<string, ImageMetadata>
 ) => {
     const multiDimsBySlug = await getAllMultiDimDataPages(knex)
     for (const [slug, row] of multiDimsBySlug.entries()) {
-        await bakeMultiDimDataPage(knex, bakedSiteDir, slug, row.config)
+        await bakeMultiDimDataPage(
+            knex,
+            bakedSiteDir,
+            slug,
+            row.config,
+            imageMetadata
+        )
     }
 }

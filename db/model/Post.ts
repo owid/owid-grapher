@@ -513,9 +513,9 @@ export interface RelatedResearchQueryResult {
     tags: string
 }
 
-export const getRelatedResearchAndWritingForVariable = async (
+export const getRelatedResearchAndWritingForVariables = async (
     knex: db.KnexReadonlyTransaction,
-    variableId: number
+    variableIds: Iterable<number>
 ): Promise<DataPageRelatedResearch[]> => {
     const wp_posts: RelatedResearchQueryResult[] = await db.knexRaw(
         knex,
@@ -563,7 +563,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 -- this means that only the links that are of the iframe kind will be kept - normal a href style links will
                 -- be disregarded
                 AND componentType = 'src'
-                AND cd.variableId = ?
+                AND cd.variableId IN (?)
                 AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
                 AND p.status = 'publish' -- only use published wp posts
                 AND p.type != 'wp_block'
@@ -575,7 +575,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 -- but that replace an old wordpress page
 
             `,
-        [variableId]
+        [variableIds]
     )
 
     const gdocs_posts: RelatedResearchQueryResult[] = await db.knexRaw(
@@ -613,11 +613,11 @@ export const getRelatedResearchAndWritingForVariable = async (
         WHERE
             pl.linkType = 'grapher'
             AND componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
-            AND cd.variableId = ?
+            AND cd.variableId IN (?)
             AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
             AND p.published = 1
             AND p.type != 'fragment'`,
-        [variableId]
+        [variableIds]
     )
 
     const combined = [...wp_posts, ...gdocs_posts]
@@ -642,7 +642,7 @@ export const getRelatedResearchAndWritingForVariable = async (
     // the queries above use distinct but because of the information we pull in if the same piece of research
     // uses different charts that all use a single indicator we would get duplicates for the post to link to so
     // here we deduplicate by url. The first item is retained by uniqBy, latter ones are discarded.
-    return uniqBy(allSortedRelatedResearch, "url")
+    return uniqBy(allSortedRelatedResearch, "url").slice(0, 20)
 }
 
 export const getLatestWorkByAuthor = async (

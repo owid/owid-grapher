@@ -1,5 +1,6 @@
 import { OwidEnrichedGdocBlock } from "../gdocTypes/ArchieMlComponents.js"
-import { PrimaryTopic } from "../gdocTypes/Datapage.js"
+import { DataPageRelatedResearch, PrimaryTopic } from "../gdocTypes/Datapage.js"
+import { ImageMetadata } from "../gdocTypes/Image.js"
 import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
 import {
     IndicatorTitleWithFragments,
@@ -115,7 +116,8 @@ export interface MultiDimDataPageProps {
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
-
+    relatedResearchCandidates: DataPageRelatedResearch[]
+    imageMetadata: Record<string, ImageMetadata>
     initialQueryStr?: string
     isPreviewing?: boolean
 }

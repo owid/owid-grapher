@@ -16,6 +16,8 @@ export function MultiDimDataPage({
     tagToSlugMap,
     faqEntries,
     primaryTopic,
+    relatedResearchCandidates,
+    imageMetadata,
     initialQueryStr,
     isPreviewing,
 }: MultiDimDataPageProps) {
@@ -26,6 +28,8 @@ export function MultiDimDataPage({
         configObj,
         faqEntries,
         primaryTopic,
+        relatedResearchCandidates,
+        imageMetadata,
         tagToSlugMap,
         initialQueryStr,
     }

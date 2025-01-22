@@ -26,7 +26,7 @@ import {
     getPostIdFromSlug,
     getPostRelatedCharts,
     getRelatedArticles,
-    getRelatedResearchAndWritingForVariable,
+    getRelatedResearchAndWritingForVariables,
 } from "../db/model/Post.js"
 import {
     GrapherInterface,
@@ -200,7 +200,7 @@ export async function renderDataPageV2(
     )
 
     datapageData.relatedResearch =
-        await getRelatedResearchAndWritingForVariable(knex, variableId)
+        await getRelatedResearchAndWritingForVariables(knex, [variableId])
 
     const relatedResearchFilenames = datapageData.relatedResearch
         .map((r) => r.imageUrl)

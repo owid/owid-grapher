@@ -14,3 +14,15 @@ export async function getAllImages(
         .select<DbRawImage[]>()
     return images.map(parseImageRow)
 }
+
+export async function getImagesByFilenames(
+    knex: KnexReadonlyTransaction,
+    filenames: string[]
+): Promise<DbEnrichedImage[]> {
+    const images = await knex
+        .table("images")
+        .where("replacedBy", null)
+        .whereIn("filename", filenames)
+        .select<DbRawImage[]>()
+    return images.map(parseImageRow)
+}
