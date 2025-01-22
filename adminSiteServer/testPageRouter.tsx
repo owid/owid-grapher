@@ -41,6 +41,7 @@ import {
     ColorSchemes,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
+import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"
@@ -467,7 +468,7 @@ getPlainRouteWithROTransaction(
             Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
         >(
             trx,
-            `--sql
+            `-- sql
                 select ca.id, cc.full as config
                 from charts ca
                 join chart_configs cc
@@ -539,11 +540,15 @@ function PreviewTestPage(props: { charts: any[] }) {
                             href={`https://ourworldindata.org/grapher/${chart.slug}`}
                         >
                             <img
-                                src={`https://ourworldindata.org/grapher/exports/${chart.slug}.svg`}
+                                src={`https://ourworldindata.org/grapher/${chart.slug}.svg`}
                             />
                         </a>
-                        <a href={`/grapher/${chart.slug}`}>
-                            <img src={`/grapher/exports/${chart.slug}.svg`} />
+                        <a
+                            href={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${chart.slug}.svg`}
+                        >
+                            <img
+                                src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${chart.slug}.svg`}
+                            />
                         </a>
                     </div>
                 ))}
@@ -732,7 +737,7 @@ getPlainRouteWithROTransaction(
     async (req, res, trx) => {
         const rows = await db.knexRaw<{ config: DbRawChartConfig["full"] }>(
             trx,
-            `--sql
+            `-- sql
                 SELECT cc.full as config
                 FROM charts ca
                 JOIN chart_configs cc
@@ -752,7 +757,7 @@ getPlainRouteWithROTransaction(
     async (req, res, trx) => {
         const rows = await db.knexRaw<{ config: DbRawChartConfig["full"] }>(
             trx,
-            `--sql
+            `-- sql
                 SELECT cc.full as config
                 FROM charts ca
                 JOIN chart_configs cc

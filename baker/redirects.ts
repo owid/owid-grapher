@@ -66,7 +66,7 @@ export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
 
         // Automatic static grapher exports for every grapher chart
         // Example: https://assets.ourworldindata.org/grapher/exports/absolute-change-co2.svg
-        "/grapher/exports/* https://assets.ourworldindata.org/grapher/exports/:splat 301",
+        "/grapher/exports/* https://ourworldindata.org/grapher/:splat 301",
     ]
 
     // TODO: Fix this transaction locking up the DB for too long.

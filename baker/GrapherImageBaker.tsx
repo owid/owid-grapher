@@ -6,12 +6,8 @@ import {
 } from "@ourworldindata/types"
 import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { MultipleOwidVariableDataDimensionsMap } from "@ourworldindata/utils"
-import fs from "fs-extra"
 import path from "path"
-import sharp from "sharp"
-import svgo from "svgo"
 import * as db from "../db/db.js"
-import { getDataForMultipleVariables } from "../db/model/Variable.js"
 import { grapherSlugToExportFileKey } from "./GrapherBakingUtils.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 
@@ -21,29 +17,6 @@ interface SvgFilenameFragments {
     width: number
     height: number
     queryStr?: string
-}
-
-export async function bakeGrapherToSvgAndPng(
-    outDir: string,
-    jsonConfig: GrapherInterface,
-    vardata: MultipleOwidVariableDataDimensionsMap
-) {
-    const grapher = initGrapherForSvgExport(jsonConfig)
-    grapher.receiveOwidData(vardata)
-    const outPath = path.join(outDir, grapher.slug as string)
-
-    const svgCode = grapher.staticSVG
-
-    return Promise.all([
-        fs
-            .writeFile(`${outPath}.svg`, svgCode)
-            .then(() => console.log(`${outPath}.svg`)),
-        sharp(Buffer.from(grapher.staticSVG), { density: 144 })
-            .png()
-            .resize(grapher.defaultBounds.width, grapher.defaultBounds.height)
-            .flatten({ background: "#ffffff" })
-            .toFile(`${outPath}.png`),
-    ])
 }
 
 export async function getGraphersAndRedirectsBySlug(
@@ -93,41 +66,6 @@ export async function getPublishedGraphersBySlug(
     return { graphersBySlug, graphersById }
 }
 
-export async function bakeGrapherToSvg(
-    jsonConfig: GrapherInterface,
-    outDir: string,
-    slug: string,
-    queryStr = "",
-    optimizeSvgs = false,
-    overwriteExisting = false,
-    verbose = true
-) {
-    const grapher = initGrapherForSvgExport(jsonConfig, queryStr)
-    const { width, height } = grapher.defaultBounds
-    const outPath = buildSvgOutFilepath(
-        outDir,
-        {
-            slug,
-            version: jsonConfig.version ?? 0,
-            width,
-            height,
-            queryStr,
-        },
-        verbose
-    )
-
-    if (fs.existsSync(outPath) && !overwriteExisting) return
-    const variableIds = grapher.dimensions.map((d) => d.variableId)
-    const vardata = await getDataForMultipleVariables(variableIds)
-    grapher.receiveOwidData(vardata)
-
-    let svgCode = grapher.staticSVG
-    if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
-
-    await fs.writeFile(outPath, svgCode)
-    return svgCode
-}
-
 export function initGrapherForSvgExport(
     jsonConfig: GrapherProgrammaticInterface,
     queryStr: string = ""
@@ -168,28 +106,6 @@ export function buildSvgOutFilepath(
     const outPath = path.join(outDir, outFilename)
     if (verbose) console.log(outPath)
     return outPath
-}
-
-const svgoConfig: svgo.Config = {
-    floatPrecision: 2,
-    plugins: [
-        {
-            name: "preset-default",
-            params: {
-                overrides: {
-                    // disable certain plugins
-                    collapseGroups: false, // breaks the "Our World in Data" logo in the upper right
-                    removeUnknownsAndDefaults: false, // would remove hrefs from links (<a>)
-                    removeViewBox: false,
-                },
-            },
-        },
-    ],
-}
-
-async function optimizeSvg(svgString: string): Promise<string> {
-    const optimizedSvg = await svgo.optimize(svgString, svgoConfig)
-    return optimizedSvg.data
 }
 
 export async function grapherToSVG(
