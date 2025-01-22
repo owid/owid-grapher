@@ -360,12 +360,12 @@ getPlainRouteWithROTransaction(
             onlyPublished: false,
         })
         if (mdd) {
-            const renderedPage = await renderMultiDimDataPageFromConfig(
-                trx,
+            const renderedPage = await renderMultiDimDataPageFromConfig({
+                knex: trx,
                 slug,
-                mdd.config,
-                true
-            )
+                config: mdd.config,
+                isPreviewing: true,
+            })
             res.send(renderedPage)
             return
         }

@@ -28,7 +28,9 @@ import {
 import cx from "classnames"
 import { ADMIN_BASE_URL, DATA_API_URL } from "../../settings/clientSettings.js"
 import {
+    DataPageRelatedResearch,
     FaqEntryKeyedByGdocIdAndFragmentId,
+    ImageMetadata,
     MultiDimDataPageConfigEnriched,
     MultiDimDimensionChoices,
     PrimaryTopic,
@@ -39,6 +41,9 @@ import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
 import { useElementBounds, useMobxStateToReactState } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
+import { processRelatedResearch } from "../dataPage.js"
+import DataPageResearchAndWriting from "../DataPageResearchAndWriting.js"
+import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
 
 declare global {
     interface Window {
@@ -207,7 +212,9 @@ export type MultiDimDataPageContentProps = {
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
+    relatedResearchCandidates: DataPageRelatedResearch[]
     initialQueryStr?: string
+    imageMetadata: Record<string, ImageMetadata>
     isPreviewing?: boolean
 }
 
@@ -219,8 +226,9 @@ export const MultiDimDataPageContent = ({
     isPreviewing,
     faqEntries,
     primaryTopic,
+    relatedResearchCandidates,
     tagToSlugMap,
-    // imageMetadata,
+    imageMetadata,
     initialQueryStr,
 }: MultiDimDataPageContentProps) => {
     const grapherFigureRef = useRef<HTMLDivElement>(null)
@@ -315,29 +323,14 @@ export const MultiDimDataPageContent = ({
 
     const hasTopicTags = !!config.config.topicTags?.length
 
-    // TODO
-    // const relatedResearchCandidates = varDatapageData?.relatedResearch ?? []
-    // const relatedResearch =
-    //     relatedResearchCandidates.length > 3 && config.config.topicTags?.length
-    //         ? relatedResearchCandidates.filter((research) => {
-    //               const shared = intersection(
-    //                   research.tags,
-    //                   config.config.topicTags ?? []
-    //               )
-    //               return shared.length > 0
-    //           })
-    //         : relatedResearchCandidates
-    // for (const item of relatedResearch) {
-    //     // TODO: these are workarounds to not link to the (not really existing) template pages for energy or co2
-    //     // country profiles but instead to the topic page at the country selector.
-    //     if (item.url === "/co2-country-profile")
-    //         item.url =
-    //             "/co2-and-greenhouse-gas-emissions#co2-and-greenhouse-gas-emissions-country-profiles"
-    //     else if (item.url === "/energy-country-profile")
-    //         item.url = "/energy#country-profiles"
-    //     else if (item.url === "/coronavirus-country-profile")
-    //         item.url = "/coronavirus#coronavirus-country-profiles"
-    // }
+    const relatedResearch = useMemo(
+        () =>
+            processRelatedResearch(
+                relatedResearchCandidates ?? [],
+                config.config.topicTags ?? []
+            ),
+        [relatedResearchCandidates, config.config.topicTags]
+    )
 
     const faqEntriesForView = useMemo(() => {
         return compact(
@@ -348,132 +341,105 @@ export const MultiDimDataPageContent = ({
     }, [varDatapageData?.faqs, faqEntries])
 
     return (
-        <div className="DataPageContent MultiDimDataPageContent">
-            <div className="bg-blue-10">
-                <div className="header__wrapper wrapper grid grid-cols-12 ">
-                    <div className="header__left span-cols-8 span-sm-cols-12">
-                        <div className="header__supertitle">Data</div>
-                        <h1 className="header__title">
-                            {config.config.title.title}
-                        </h1>
-                        <div className="header__source">{titleFragments}</div>
-                    </div>
-                    {hasTopicTags && tagToSlugMap && (
-                        <TopicTags
-                            className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
-                            topicTagsLinks={config.config.topicTags ?? []}
-                            tagToSlugMap={tagToSlugMap}
-                        />
-                    )}
-                    <div
-                        className={cx(
-                            "settings-row__wrapper",
-                            "span-sm-cols-12",
-                            hasTopicTags ? "span-cols-9" : "span-cols-12"
+        <AttachmentsContext.Provider
+            value={{
+                linkedDocuments: {},
+                imageMetadata,
+                linkedCharts: {},
+                linkedIndicators: {},
+                relatedCharts: [],
+            }}
+        >
+            <div className="DataPageContent MultiDimDataPageContent">
+                <div className="bg-blue-10">
+                    <div className="header__wrapper wrapper grid grid-cols-12 ">
+                        <div className="header__left span-cols-8 span-sm-cols-12">
+                            <div className="header__supertitle">Data</div>
+                            <h1 className="header__title">
+                                {config.config.title.title}
+                            </h1>
+                            <div className="header__source">
+                                {titleFragments}
+                            </div>
+                        </div>
+                        {hasTopicTags && tagToSlugMap && (
+                            <TopicTags
+                                className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
+                                topicTagsLinks={config.config.topicTags ?? []}
+                                tagToSlugMap={tagToSlugMap}
+                            />
                         )}
-                    >
-                        <MultiDimSettingsPanel
-                            config={config}
-                            currentSettings={currentSettings}
-                            updateSettings={setCurrentSettings}
-                        />
-                    </div>
-                </div>
-            </div>
-
-            <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
-                <div className="chart-key-info col-start-2 span-cols-12">
-                    <div
-                        id="explore-the-data"
-                        className="GrapherWithFallback full-width-on-mobile"
-                    >
-                        <figure data-grapher-src ref={grapherFigureRef}>
-                            <Grapher
-                                key={JSON.stringify(
-                                    omit(grapherConfigComputed, ["bounds"])
-                                )}
-                                {...grapherConfigComputed}
-                                queryStr={queryStr}
-                                getGrapherInstance={setGrapherInst}
-                                adminBaseUrl={ADMIN_BASE_URL}
-                            />
-                        </figure>
-                    </div>
-                    {varDatapageData && (
-                        <AboutThisData
-                            datapageData={varDatapageData}
-                            hasFaq={!!faqEntriesForView?.length}
-                        />
-                    )}
-                </div>
-            </div>
-            {/* <div className="col-start-2 span-cols-12">
-                {relatedResearch && relatedResearch.length > 0 && (
-                    <div className="section-wrapper grid">
-                        <h2
-                            className="related-research__title span-cols-3 span-lg-cols-12"
-                            id="research-and-writing"
+                        <div
+                            className={cx(
+                                "settings-row__wrapper",
+                                "span-sm-cols-12",
+                                hasTopicTags ? "span-cols-9" : "span-cols-12"
+                            )}
                         >
-                            Related research and writing
-                        </h2>
-                        <div className="related-research__items grid grid-cols-9 grid-lg-cols-12 span-cols-9 span-lg-cols-12">
-                            {relatedResearch.map((research) => (
-                                <a
-                                    href={research.url}
-                                    key={research.url}
-                                    className="related-research__item grid grid-cols-4 grid-lg-cols-6 grid-sm-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12"
-                                >
-                                    <DatapageResearchThumbnail
-                                        urlOrFilename={research.imageUrl}
-                                    />
-                                    <div className="span-cols-3 span-lg-cols-4 span-sm-cols-9">
-                                        <h3 className="related-article__title">
-                                            {research.title}
-                                        </h3>
-                                        <div className="related-article__authors body-3-medium-italic">
-                                            {research.authors &&
-                                                research.authors.length &&
-                                                formatAuthors({
-                                                    authors: research.authors,
-                                                })}
-                                        </div>
-                                    </div>
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                )}
-                {varDatapageData?.allCharts &&
-                varDatapageData?.allCharts.length > 0 ? (
-                    <div className="section-wrapper section-wrapper__related-charts">
-                        <h2 className="related-charts__title" id="all-charts">
-                            Explore charts that include this data
-                        </h2>
-                        <div>
-                            <RelatedCharts
-                                charts={varDatapageData.allCharts}
+                            <MultiDimSettingsPanel
+                                config={config}
+                                currentSettings={currentSettings}
+                                updateSettings={setCurrentSettings}
                             />
                         </div>
                     </div>
-                ) : null}
-            </div> */}
-            {varDatapageData && (
-                <MetadataSection
-                    attributionShort={varDatapageData.attributionShort}
-                    attributions={varDatapageData.attributions}
-                    canonicalUrl={canonicalUrl}
-                    descriptionProcessing={
-                        varDatapageData.descriptionProcessing
-                    }
-                    faqEntries={{ faqs: faqEntriesForView }}
-                    origins={varDatapageData.origins}
-                    owidProcessingLevel={varDatapageData.owidProcessingLevel}
-                    primaryTopic={primaryTopic}
-                    source={varDatapageData.source}
-                    title={varDatapageData.title}
-                    titleVariant={varDatapageData.titleVariant}
-                />
-            )}
-        </div>
+                </div>
+
+                <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
+                    <div className="chart-key-info col-start-2 span-cols-12">
+                        <div
+                            id="explore-the-data"
+                            className="GrapherWithFallback full-width-on-mobile"
+                        >
+                            <figure data-grapher-src ref={grapherFigureRef}>
+                                <Grapher
+                                    key={JSON.stringify(
+                                        omit(grapherConfigComputed, ["bounds"])
+                                    )}
+                                    {...grapherConfigComputed}
+                                    queryStr={queryStr}
+                                    getGrapherInstance={setGrapherInst}
+                                    adminBaseUrl={ADMIN_BASE_URL}
+                                />
+                            </figure>
+                        </div>
+                        {varDatapageData && (
+                            <AboutThisData
+                                datapageData={varDatapageData}
+                                hasFaq={!!faqEntriesForView?.length}
+                            />
+                        )}
+                    </div>
+                </div>
+                <div className="grid grid-cols-12-full-width">
+                    <div className="col-start-2 span-cols-12">
+                        {relatedResearch && relatedResearch.length > 0 && (
+                            <DataPageResearchAndWriting
+                                relatedResearch={relatedResearch}
+                            />
+                        )}
+                    </div>
+                </div>
+                {varDatapageData && (
+                    <MetadataSection
+                        attributionShort={varDatapageData.attributionShort}
+                        attributions={varDatapageData.attributions}
+                        canonicalUrl={canonicalUrl}
+                        descriptionProcessing={
+                            varDatapageData.descriptionProcessing
+                        }
+                        faqEntries={{ faqs: faqEntriesForView }}
+                        origins={varDatapageData.origins}
+                        owidProcessingLevel={
+                            varDatapageData.owidProcessingLevel
+                        }
+                        primaryTopic={primaryTopic}
+                        source={varDatapageData.source}
+                        title={varDatapageData.title}
+                        titleVariant={varDatapageData.titleVariant}
+                    />
+                )}
+            </div>
+        </AttachmentsContext.Provider>
     )
 }

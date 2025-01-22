@@ -181,7 +181,8 @@ function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
         bakeSteps.has("gdocPosts") ||
         bakeSteps.has("gdocTombstones") ||
         bakeSteps.has("dataInsights") ||
-        bakeSteps.has("authors")
+        bakeSteps.has("authors") ||
+        bakeSteps.has("multiDimPages")
     ) {
         total += 9
     }
@@ -845,8 +846,8 @@ export class SiteBaker {
             )
             return
         }
-
-        await bakeAllMultiDimDataPages(knex, this.bakedSiteDir)
+        const { imageMetadata } = await this.getPrefetchedGdocAttachments(knex)
+        await bakeAllMultiDimDataPages(knex, this.bakedSiteDir, imageMetadata)
 
         this.progressBar.tick({ name: "✅ baked multi-dim pages" })
     }
