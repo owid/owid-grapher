@@ -23,7 +23,6 @@ export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
 
     const base = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(base)
-    console.log("bounds", bounds)
 
     const config: GrapherProgrammaticInterface = {
         ...props.config,

@@ -36,10 +36,7 @@ import {
     OwidDistinctLinesColorScheme,
 } from "../color/CustomSchemes"
 import { latestGrapherConfigSchema } from "./GrapherConstants.js"
-import {
-    legacyToOwidTableAndDimensions,
-    legacyToOwidTableAndDimensionsWithMandatorySlug,
-} from "./LegacyToOwidTable.js"
+import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
 
 const TestGrapherConfig = (): {
     table: OwidTable
