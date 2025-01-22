@@ -16,7 +16,6 @@ import { renderAdditionalInformation } from "../site/blocks/renderAdditionalInfo
 import { renderHelp } from "../site/blocks/renderHelp.js"
 import { renderCodeSnippets } from "@ourworldindata/components"
 import { formatUrls, getBodyHtml } from "../site/formatting.js"
-import { INTERACTIVE_ICON_SVG } from "../site/InteractionNotice.js"
 import { renderProminentLinks } from "./siteRenderers.js"
 import { RELATED_CHARTS_CLASS_NAME } from "../site/blocks/RelatedCharts.js"
 import { KnexReadonlyTransaction } from "../db/db.js"
@@ -160,12 +159,14 @@ export const formatWordpressPost = async (
         const output = `
                 <figure data-grapher-src="${src}" class="${GRAPHER_PREVIEW_CLASS}">
                     <a href="${src}" target="_blank">
-                        <div><img src="${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${url.slug}.png${url.queryStr}" width="850" height="600" loading="lazy" data-no-lightbox /></div>
-                        <div class="interactionNotice">
-                            <span class="icon">${INTERACTIVE_ICON_SVG}</span>
-                            <span class="label">Click to open interactive version</span>
-                        </div>
-                    </a>
+                    <div>
+                        <img
+                          src="${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${url.slug}.png${url.queryStr}"
+                          width="850"
+                          height="600"
+                          loading="lazy"
+                          data-no-lightbox />
+                    </div>
                 </figure>`
         if (el.parent.tagName === "p") {
             // We are about to replace <iframe> with <figure>. However, there cannot be <figure> within <p>,

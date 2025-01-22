@@ -63,36 +63,6 @@ figure[data-explorer-src] {
     position: relative;
 }
 
-.interactionNotice {
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1.6;
-    display: none;
-    background-color: rgba(black, 0.03);
-    padding: 3px 0;
-    color: $controls-color;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-
-    // Anything >680px will get the interactive graphics in-place.
-    // 680px is a breakpoint also used in the JavaScript code – keep it in sync.
-    @media screen and (max-device-width: 680px) {
-        display: flex;
-    }
-
-    .icon {
-        font-size: 21px;
-    }
-}
-
-// Doesn't make sense to show the notice if JavaScript is disabled
-// As the grapher/data page will also be disabled
-.js-disabled .interactionNotice {
-    display: none;
-}
-
 /*******************************************************************************
  * Tables
  */

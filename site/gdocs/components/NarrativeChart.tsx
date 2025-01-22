@@ -19,7 +19,6 @@ import {
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../../../settings/clientSettings.js"
 import { queryParamsToStr } from "@ourworldindata/utils"
-import InteractionNotice from "../../InteractionNotice.js"
 
 export default function NarrativeChart({
     d,
@@ -87,7 +86,6 @@ export default function NarrativeChart({
                         loading="lazy"
                         data-no-lightbox
                     />
-                    <InteractionNotice />
                 </a>
             </figure>
             {d.caption ? (

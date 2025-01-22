@@ -18,7 +18,6 @@ import { ChartConfigType, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { useLinkedChart } from "../utils.js"
 import SpanElements from "./SpanElements.js"
 import cx from "classnames"
-import InteractionNotice from "../../InteractionNotice.js"
 import GrapherImage from "../../GrapherImage.js"
 
 export default function Chart({
@@ -132,7 +131,6 @@ export default function Chart({
                 ) : (
                     <a href={resolvedUrl} target="_blank" rel="noopener">
                         <GrapherImage url={resolvedUrl} alt={d.title} />
-                        <InteractionNotice />
                     </a>
                 )}
             </figure>
