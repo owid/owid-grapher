@@ -1,9 +1,14 @@
 import { generateGrapherImageSrcSet, Grapher } from "@ourworldindata/grapher"
 import {
     GrapherInterface,
+    MultiDimDataPageConfigEnriched,
     R2GrapherConfigDirectory,
 } from "@ourworldindata/types"
-import { excludeUndefined, Bounds } from "@ourworldindata/utils"
+import {
+    excludeUndefined,
+    Bounds,
+    searchParamsToMultiDimView,
+} from "@ourworldindata/utils"
 import { StatusError } from "itty-router"
 import { Env } from "./env.js"
 import { fetchFromR2, grapherBaseUrl } from "./grapherRenderer.js"
@@ -83,11 +88,30 @@ export async function fetchUnparsedGrapherConfig(
     return fetchFromR2(requestUrl, etag, fallbackUrl)
 }
 
-export async function fetchGrapherConfig(
-    identifier: GrapherIdentifier,
-    env: Env,
+async function fetchMultiDimGrapherConfig(
+    multiDimConfig: MultiDimDataPageConfigEnriched,
+    searchParams: URLSearchParams,
+    env: Env
+) {
+    const view = searchParamsToMultiDimView(multiDimConfig, searchParams)
+    const response = await fetchUnparsedGrapherConfig(
+        { type: "uuid", id: view.fullConfigId },
+        env
+    )
+    return await response.json()
+}
+
+export async function fetchGrapherConfig({
+    identifier,
+    env,
+    etag,
+    searchParams,
+}: {
+    identifier: GrapherIdentifier
+    env: Env
     etag?: string
-): Promise<FetchGrapherConfigResult> {
+    searchParams?: URLSearchParams
+}): Promise<FetchGrapherConfigResult> {
     const fetchResponse = await fetchUnparsedGrapherConfig(
         identifier,
         env,
@@ -113,7 +137,17 @@ export async function fetchGrapherConfig(
         }
     }
 
-    const grapherConfig: GrapherInterface = await fetchResponse.json()
+    const config = await fetchResponse.json()
+    let grapherConfig: GrapherInterface
+    if (identifier.type === "multi-dim-slug") {
+        grapherConfig = await fetchMultiDimGrapherConfig(
+            config as MultiDimDataPageConfigEnriched,
+            searchParams,
+            env
+        )
+    } else {
+        grapherConfig = config
+    }
     console.log("grapher title", grapherConfig.title)
     return {
         grapherConfig,
@@ -127,7 +161,11 @@ export async function initGrapher(
     searchParams: URLSearchParams,
     env: Env
 ): Promise<Grapher> {
-    const grapherConfigResponse = await fetchGrapherConfig(identifier, env)
+    const grapherConfigResponse = await fetchGrapherConfig({
+        identifier,
+        env,
+        searchParams,
+    })
 
     if (grapherConfigResponse.status === 404) {
         // we throw 404 errors instad of returning a 404 response so that the router

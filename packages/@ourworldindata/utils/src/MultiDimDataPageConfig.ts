@@ -11,7 +11,7 @@ import {
     DimensionProperty,
     MultiDimDataPageConfigEnriched,
 } from "@ourworldindata/types"
-import { groupBy, keyBy, pick } from "./Util.js"
+import { groupBy, isEmpty, keyBy, pick } from "./Util.js"
 import { Url } from "./urls/Url.js"
 
 interface FilterToAvailableResult {
@@ -216,4 +216,26 @@ export const extractMultiDimChoicesFromQueryStr = (
     ) as MultiDimDimensionChoices
 
     return dimensionChoices
+}
+
+export function searchParamsToMultiDimView(
+    config: MultiDimDataPageConfigEnriched,
+    searchParams: URLSearchParams
+): ViewEnriched {
+    const mdimConfig = MultiDimDataPageConfig.fromObject(config)
+    let dimensions = extractMultiDimChoicesFromQueryStr(
+        searchParams.toString(),
+        mdimConfig
+    )
+    if (isEmpty(dimensions)) {
+        // Get the default dimensions.
+        dimensions = mdimConfig.filterToAvailableChoices({}).selectedChoices
+    }
+    const view = mdimConfig.findViewByDimensions(dimensions)
+    if (!view) {
+        throw new Error(
+            `No view found for dimensions ${JSON.stringify(dimensions)}`
+        )
+    }
+    return view
 }
