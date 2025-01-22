@@ -993,7 +993,7 @@ export async function makeGrapherLinkedChart(
         title: resolvedTitle,
         tab,
         resolvedUrl,
-        thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${resolvedSlug}.svg`,
+        thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${resolvedSlug}.png`,
         tags: [],
         indicatorId: datapageIndicator?.id,
     }
