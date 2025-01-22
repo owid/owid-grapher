@@ -1,3 +1,4 @@
+import urljoin from "url-join"
 import { Head } from "../Head.js"
 import { IFrameDetector } from "../IframeDetector.js"
 import { SiteHeader } from "../SiteHeader.js"
@@ -18,7 +19,6 @@ export function MultiDimDataPage({
     primaryTopic,
     relatedResearchCandidates,
     imageMetadata,
-    initialQueryStr,
     isPreviewing,
 }: MultiDimDataPageProps) {
     const canonicalUrl = `${baseGrapherUrl}/${slug}`
@@ -31,19 +31,24 @@ export function MultiDimDataPage({
         relatedResearchCandidates,
         imageMetadata,
         tagToSlugMap,
-        initialQueryStr,
     }
+    // Due to thumbnails not taking into account URL parameters, they are often inaccurate on
+    // social media. We decided to remove them and use a single thumbnail for all charts.
+    // See https://github.com/owid/owid-grapher/issues/1086
+    const imageUrl: string = urljoin(baseUrl, "default-grapher-thumbnail.png")
+    const imageWidth = "1200"
+    const imageHeight = "628"
     return (
         <Html>
             <Head
                 canonicalUrl={canonicalUrl}
                 // pageTitle={pageTitle}
                 // pageDesc={pageDesc}
-                // imageUrl={imageUrl}
+                imageUrl={imageUrl}
                 baseUrl={baseUrl}
             >
-                {/* <meta property="og:image:width" content={imageWidth} />
-                <meta property="og:image:height" content={imageHeight} /> */}
+                <meta property="og:image:width" content={imageWidth} />
+                <meta property="og:image:height" content={imageHeight} />
                 <IFrameDetector />
                 <noscript>
                     <style>{`
