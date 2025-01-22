@@ -1107,7 +1107,7 @@ export class SiteBaker {
                 knex
             )
             this.progressBar.tick({
-                name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
+                name: "✅ bakeAllChangedGrapherPagesAndDeleteRemovedGraphers",
             })
         }
         await this.bakeMultiDimPages(knex)

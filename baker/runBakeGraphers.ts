@@ -1,5 +1,5 @@
 #! /usr/bin/env node
-import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker.js"
+import { bakeAllChangedGrapherPagesAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import * as db from "../db/db.js"
 
 /**
@@ -11,10 +11,7 @@ import * as db from "../db/db.js"
 const main = async (folder: string) => {
     return db.knexReadonlyTransaction(
         (trx) =>
-            bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-                folder,
-                trx
-            ),
+            bakeAllChangedGrapherPagesAndDeleteRemovedGraphers(folder, trx),
         db.TransactionCloseMode.Close
     )
 }
