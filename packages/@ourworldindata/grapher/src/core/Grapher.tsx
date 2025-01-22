@@ -152,7 +152,7 @@ import { FullScreen } from "../fullScreen/FullScreen"
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
-import { SettingsMenu, SettingsMenuManager } from "../controls/SettingsMenu"
+import { SettingsMenu } from "../controls/SettingsMenu"
 import { TooltipContainer } from "../tooltip/Tooltip"
 import { EntitySelectorModal } from "../modal/EntitySelectorModal"
 import { DownloadModal } from "../modal/DownloadModal"
@@ -1883,13 +1883,13 @@ export class GrapherState {
     }
 
     @computed get isEntitySelectorPanelActive(): boolean {
-        console.log("isEntitySelectorPanelActive", {
-            hideEntityControls: this.hideEntityControls,
-            canChangeAddOrHighlightEntities:
-                this.canChangeAddOrHighlightEntities,
-            isOnChartTab: this.isOnChartTab,
-            showEntitySelectorAs: this.showEntitySelectorAs,
-        })
+        // console.log("isEntitySelectorPanelActive", {
+        //     hideEntityControls: this.hideEntityControls,
+        //     canChangeAddOrHighlightEntities:
+        //         this.canChangeAddOrHighlightEntities,
+        //     isOnChartTab: this.isOnChartTab,
+        //     showEntitySelectorAs: this.showEntitySelectorAs,
+        // })
         return (
             !this.hideEntityControls &&
             this.canChangeAddOrHighlightEntities &&
@@ -1902,14 +1902,14 @@ export class GrapherState {
     private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
 
     @computed get showEntitySelectorAs(): GrapherWindowType {
-        console.log("showEntitySelectorAs", {
-            isEmbeddedInAnOwidPage: this.isEmbeddedInAnOwidPage,
-            isEmbeddedInADataPage: this.isEmbeddedInADataPage,
-            isSemiNarrow: this.isSemiNarrow,
-            isInFullScreenMode: this.isInFullScreenMode,
-            frameBounds: this.frameBounds,
-            isIFrame: this.isInIFrame,
-        })
+        // console.log("showEntitySelectorAs", {
+        //     isEmbeddedInAnOwidPage: this.isEmbeddedInAnOwidPage,
+        //     isEmbeddedInADataPage: this.isEmbeddedInADataPage,
+        //     isSemiNarrow: this.isSemiNarrow,
+        //     isInFullScreenMode: this.isInFullScreenMode,
+        //     frameBounds: this.frameBounds,
+        //     isIFrame: this.isInIFrame,
+        // })
         if (
             //this.frameBounds.width > 940 &&
             // don't use the panel if the grapher is embedded

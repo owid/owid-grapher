@@ -39,7 +39,6 @@ export function FetchingGrapher(
 
     // update grapherState when the config from props changes
     React.useEffect(() => {
-        console.log("updating grapherState bounds", props.config?.bounds)
         if (props.config?.bounds)
             grapherState.current.externalBounds = props.config.bounds
     }, [props.config?.bounds])

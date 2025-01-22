@@ -138,14 +138,19 @@ export const GrapherWithAggregates = (
             property: DimensionProperty.y,
         },
     ]
+    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        createOwidTestDataset([
+            { metadata: childMortalityMetadata, data: childMortalityData },
+        ]),
+        dimensions,
+        {}
+    )
     return new GrapherState({
         tab: GRAPHER_TAB_OPTIONS.table,
         dimensions,
         selectedEntityNames: ["Afghanistan", "Iceland", "World"],
         ...props,
-        owidDataset: createOwidTestDataset([
-            { metadata: childMortalityMetadata, data: childMortalityData },
-        ]),
+        table: inputTable,
     })
 }
 
@@ -182,14 +187,18 @@ export const GrapherWithMultipleVariablesAndMultipleYears = (
             { year: 2019, entity: fakeEntities.World, value: 10 },
         ],
     }
-
+    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        createOwidTestDataset([
+            abovePovertyLineDataset,
+            belowPovertyLineDataset,
+        ]),
+        dimensions,
+        {}
+    )
     return new GrapherState({
         tab: GRAPHER_TAB_OPTIONS.table,
         dimensions,
         ...props,
-        owidDataset: createOwidTestDataset([
-            abovePovertyLineDataset,
-            belowPovertyLineDataset,
-        ]),
+        table: inputTable,
     })
 }
