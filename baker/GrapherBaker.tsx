@@ -262,6 +262,24 @@ const renderGrapherPage = async (
     )
 }
 
+export const bakeSingleGrapherPageForArchival = async (
+    bakedSiteDir: string,
+    imageMetadataDictionary: Record<string, DbEnrichedImage>,
+    grapher: GrapherInterface,
+    knex: db.KnexReadonlyTransaction
+) => {
+    const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
+    await fs.writeFile(
+        outPath,
+        await renderDataPageOrGrapherPage(
+            grapher,
+            knex,
+            imageMetadataDictionary
+        )
+    )
+    console.log(outPath)
+}
+
 const bakeGrapherPage = async (
     bakedSiteDir: string,
     imageMetadataDictionary: Record<string, DbEnrichedImage>,

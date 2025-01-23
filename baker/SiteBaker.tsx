@@ -186,15 +186,18 @@ export class SiteBaker {
     progressBar: ProgressBar
     explorerAdminServer: ExplorerAdminServer
     bakeSteps: BakeStepConfig
+    assetsMap: Record<string, string>
 
     constructor(
         bakedSiteDir: string,
         baseUrl: string,
-        bakeSteps: BakeStepConfig = defaultSteps
+        bakeSteps: BakeStepConfig = defaultSteps,
+        assetsMap = {}
     ) {
         this.bakedSiteDir = bakedSiteDir
         this.baseUrl = baseUrl
         this.bakeSteps = bakeSteps
+        this.assetsMap = assetsMap
         this.progressBar = new ProgressBar(
             "--- BakeAll [:bar] :current/:total :elapseds :name\n",
             {
