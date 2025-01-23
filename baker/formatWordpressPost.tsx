@@ -213,7 +213,7 @@ export const formatWordpressPost = async (
             ReactDOMServer.renderToStaticMarkup(
                 <figure data-explorer-src={src} className={cssClass}>
                     <img
-                        src={`${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${url.slug}.png`}
+                        src={`${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${url.slug}.png${url.queryStr}`}
                     />
                 </figure>
             )

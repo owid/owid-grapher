@@ -67,15 +67,13 @@ export function ChartHit({
         slug: string,
         fullQueryParams: string
     ): string {
-        return `${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${slug}.svg${fullQueryParams}`
+        return `${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${slug}.png${fullQueryParams}`
     }
     function createGrapherThumbnailUrl(
         slug: string,
-        fullQueryParams?: string
+        fullQueryParams = ""
     ): string {
-        return fullQueryParams
-            ? `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.svg${fullQueryParams}`
-            : `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.svg`
+        return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png${fullQueryParams}`
     }
     const previewUrl = isExplorerView
         ? createExplorerViewThumbnailUrl(hit.slug, fullQueryParams)

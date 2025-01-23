@@ -299,9 +299,6 @@ class MultiEmbedder {
                 ? "chartView"
                 : "grapher"
 
-        const hasPreview = isExplorer ? false : !!figure.querySelector("img")
-        if (hasPreview) return
-
         // Stop observing visibility as soon as possible
         this.figuresObserver?.unobserve(figure)
 
