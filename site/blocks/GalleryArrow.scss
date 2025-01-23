@@ -6,6 +6,7 @@ button.gallery-arrow {
     justify-content: center;
     width: $gallery-navigation-button-size;
     height: $gallery-navigation-button-size;
+    padding: 0;
     font-size: 1.2rem;
     border: 2px solid $oxford-blue;
     border-radius: 50%;
@@ -13,10 +14,12 @@ button.gallery-arrow {
     color: $blue-100;
     cursor: pointer;
     background: none;
+
     &:hover {
         color: white;
         background-color: $oxford-blue;
     }
+
     &:disabled {
         color: lightgrey;
         border-color: lightgrey;
