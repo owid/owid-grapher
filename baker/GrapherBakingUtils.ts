@@ -1,8 +1,11 @@
+import fs from "fs-extra"
+import { glob } from "glob"
 import * as lodash from "lodash"
 
 import * as db from "../db/db.js"
 import md5 from "md5"
-import { DbPlainTag, Url } from "@ourworldindata/utils"
+import { DbPlainTag, Url, without } from "@ourworldindata/utils"
+import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 
 // Splits a grapher URL like https://ourworldindata.org/grapher/soil-lifespans?tab=chart
 // into its slug (soil-lifespans) and queryStr (?tab=chart)
@@ -73,4 +76,26 @@ export async function getSlugForTopicTag(
     }
 
     return slug
+}
+
+export async function deleteOldGraphers(
+    bakedSiteDir: string,
+    newSlugs: string[]
+) {
+    // Delete any that are missing from the database
+    const oldSlugs = glob
+        .sync(`${bakedSiteDir}/grapher/*.html`)
+        .map((slug) =>
+            slug.replace(`${bakedSiteDir}/grapher/`, "").replace(".html", "")
+        )
+    const toRemove = without(oldSlugs, ...newSlugs)
+        // do not delete grapher slugs redirected to explorers
+        .filter((slug) => !isPathRedirectedToExplorer(`/grapher/${slug}`))
+    for (const slug of toRemove) {
+        const path = `${bakedSiteDir}/grapher/${slug}.html`
+        console.log(`DELETING ${path}`)
+        fs.unlink(path, (err) => {
+            if (err) console.error(`Error deleting ${path}`, err)
+        })
+    }
 }

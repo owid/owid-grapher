@@ -4,7 +4,6 @@ import { renderToHtmlPage } from "../baker/siteRenderers.js"
 import {
     excludeUndefined,
     urlToSlug,
-    without,
     uniq,
     keyBy,
     compact,
@@ -17,7 +16,6 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
-import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import {
     getPostIdFromSlug,
@@ -50,9 +48,10 @@ import {
 import { getAllImages } from "../db/model/Image.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
-import { getTagToSlugMap } from "./GrapherBakingUtils.js"
+import { deleteOldGraphers, getTagToSlugMap } from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
 import { getRelatedChartsForVariable } from "../db/model/Chart.js"
+import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 
 const renderDatapageIfApplicable = async (
@@ -286,28 +285,6 @@ const bakeGrapherPage = async (
             imageMetadataDictionary
         )
     )
-    console.log(outPath)
-}
-
-const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
-    // Delete any that are missing from the database
-    const oldSlugs = glob
-        .sync(`${bakedSiteDir}/grapher/*.html`)
-        .map((slug) =>
-            slug.replace(`${bakedSiteDir}/grapher/`, "").replace(".html", "")
-        )
-    const toRemove = without(oldSlugs, ...newSlugs)
-        // do not delete grapher slugs redirected to explorers
-        .filter((slug) => !isPathRedirectedToExplorer(`/grapher/${slug}`))
-    for (const slug of toRemove) {
-        const path = `${bakedSiteDir}/grapher/${slug}.html`
-        console.log(`DELETING ${path}`)
-        fs.unlink(path, (err) =>
-            err
-                ? console.error(`Error deleting ${path}`, err)
-                : console.log(`Deleted ${path}`)
-        )
-    }
 }
 
 export interface BakeSingleGrapherChartArguments {
@@ -363,7 +340,6 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         ORDER BY cc.slug ASC`
     )
 
-    const newSlugs = chartsToBake.map((row) => row.slug)
     await fs.mkdirp(bakedSiteDir + "/grapher")
 
     // Prefetch imageMetadata instead of each grapher page fetching
@@ -382,7 +358,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     }))
 
     const progressBar = new ProgressBar(
-        "bake grapher page [:bar] :current/:total :elapseds :rate/s :etas :name\n",
+        "bake grapher page [:bar] :current/:total :elapseds :rate/s :name\n",
         {
             width: 20,
             total: chartsToBake.length + 1,
@@ -401,11 +377,18 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
                 async (knex) => await bakeSingleGrapherChart(job, knex),
                 db.TransactionCloseMode.KeepOpen
             )
-            progressBar.tick({ name: `slug ${job.slug}` })
+            progressBar.tick({ name: job.slug })
         },
         { concurrency: 10 }
     )
 
-    await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
+    // Multi-dim data pages are baked into the same directory as graphers
+    // and they are handled separately.
+    const multiDimSlugs = await getAllMultiDimDataPageSlugs(knex)
+    const newSlugs = excludeUndefined([
+        ...chartsToBake.map((row) => row.slug),
+        ...multiDimSlugs,
+    ])
+    await deleteOldGraphers(bakedSiteDir, newSlugs)
     progressBar.tick({ name: `✅ Deleted old graphers` })
 }

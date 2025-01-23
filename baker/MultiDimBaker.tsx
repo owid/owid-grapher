@@ -1,5 +1,6 @@
 import fs from "fs-extra"
 import path from "path"
+import ProgressBar from "progress"
 import {
     ImageMetadata,
     MultiDimDataPageConfigPreProcessed,
@@ -23,7 +24,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import { getTagToSlugMap } from "./GrapherBakingUtils.js"
+import { deleteOldGraphers, getTagToSlugMap } from "./GrapherBakingUtils.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
 import pMap from "p-map"
 import {
@@ -32,6 +33,7 @@ import {
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
+import { getAllPublishedChartSlugs } from "../db/model/Chart.js"
 import {
     getAllMultiDimDataPages,
     getMultiDimDataPageBySlug,
@@ -225,6 +227,14 @@ export const bakeAllMultiDimDataPages = async (
     imageMetadata: Record<string, ImageMetadata>
 ) => {
     const multiDimsBySlug = await getAllMultiDimDataPages(knex)
+    const progressBar = new ProgressBar(
+        "bake multi-dim page [:bar] :current/:total :elapseds :rate/s :name\n",
+        {
+            width: 20,
+            total: multiDimsBySlug.size + 1,
+            renderThrottle: 0,
+        }
+    )
     for (const [slug, row] of multiDimsBySlug.entries()) {
         await bakeMultiDimDataPage(
             knex,
@@ -233,5 +243,11 @@ export const bakeAllMultiDimDataPages = async (
             row.config,
             imageMetadata
         )
+        progressBar.tick({ name: slug })
     }
+    const publishedSlugs = multiDimsBySlug.keys()
+    const chartSlugs = await getAllPublishedChartSlugs(knex)
+    const newSlugs = [...publishedSlugs, ...chartSlugs]
+    await deleteOldGraphers(bakedSiteDir, newSlugs)
+    progressBar.tick({ name: `✅ Deleted old multi-dim pages` })
 }
