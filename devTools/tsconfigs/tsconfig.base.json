@@ -10,6 +10,7 @@
         "declarationMap": true,
 
         "lib": ["dom", "dom.iterable", "es2020", "es2021", "es2022", "es2023"],
+        "target": "es2021",
 
         "alwaysStrict": true,
         "noImplicitReturns": true,
