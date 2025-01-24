@@ -5,7 +5,7 @@ import {
 } from "instantsearch.js"
 import { getIndexName } from "../search/searchClient.js"
 import { ChartRecordType, SearchIndexName } from "../search/searchTypes.js"
-import { TagGraphRoot } from "@ourworldindata/types"
+import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { DataCatalogState } from "./DataCatalogState.js"
 import { countriesByName, Region } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
@@ -109,6 +109,17 @@ export function setToFacetFilters(
     return Array.from(facetSet).map((facet) => `${attribute}:${facet}`)
 }
 
+function getAllTagsInArea(area: TagGraphNode): string[] {
+    const topics = area.children.reduce((tags, child) => {
+        tags.push(child.name)
+        if (child.children.length > 0) {
+            tags.push(...getAllTagsInArea(child))
+        }
+        return tags
+    }, [] as string[])
+    return Array.from(new Set(topics))
+}
+
 export function getTopicsForRibbons(
     topics: Set<string>,
     tagGraph: TagGraphRoot
@@ -116,7 +127,7 @@ export function getTopicsForRibbons(
     if (topics.size === 0) return tagGraph.children.map((child) => child.name)
     if (topics.size === 1) {
         const area = tagGraph.children.find((child) => topics.has(child.name))
-        if (area) return area.children.map((child) => child.name)
+        if (area) return getAllTagsInArea(area)
     }
     return []
 }
