@@ -12,7 +12,7 @@ import {
 } from "../adminShared/search.js"
 import { GdocsStoreContext } from "./GdocsStoreContext.js"
 import { DbPlainTag, OwidGdocDataInsightIndexItem } from "@ourworldindata/types"
-import { dayjs } from "@ourworldindata/utils"
+import { dayjs, startCase } from "@ourworldindata/utils"
 
 function createColumns(ctx: {
     highlightFn: (
@@ -63,6 +63,13 @@ function createColumns(ctx: {
                         </Tag>
                     </Space>
                 )),
+        },
+        {
+            title: "Chart type",
+            dataIndex: "chartType",
+            key: "chartType",
+            width: 150,
+            render: (chartType) => ctx.highlightFn(startCase(chartType)),
         },
         {
             title: "Published",
@@ -163,6 +170,7 @@ export function DataInsightIndexPage() {
             (dataInsight: OwidGdocDataInsightIndexItem) => [
                 dataInsight.title,
                 dataInsight.slug,
+                startCase(dataInsight.chartType),
                 ...(dataInsight.tags ?? []).map((tag) => tag.name),
                 ...dataInsight.authors,
                 dataInsight.markdown ?? "",
