@@ -6,7 +6,7 @@
 
 The monorepo we use at [Our World in Data](https://ourworldindata.org) to create and publish embeddable, interactive visualizations like this one:
 
-[![A Grapher chart showing world-wide life expectancy at birth. Click for interactive.](https://ourworldindata.org/grapher/exports/life-expectancy.svg)](https://ourworldindata.org/grapher/life-expectancy)
+[![A Grapher chart showing world-wide life expectancy at birth. Click for interactive.](https://ourworldindata.org/grapher/life-expectancy.svg)](https://ourworldindata.org/grapher/life-expectancy)
 
 ## ✋ Disclaimer
 

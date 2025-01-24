@@ -33,7 +33,7 @@ import {
     buildExplorerProps,
     isEmpty,
 } from "@ourworldindata/explorer"
-import { GRAPHER_PREVIEW_CLASS } from "../SiteConstants.js"
+import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
@@ -53,14 +53,6 @@ const figuresFromDOM = (
     Array.from(
         container.querySelectorAll<HTMLElement>(`*[${selector}]`)
     ).filter(isPresent)
-
-// Determine whether this device is powerful enough to handle
-// loading a bunch of inline interactive charts
-// 680px is also used in CSS – keep it in sync if you change this
-const shouldProgressiveEmbed = () => true
-// disabling this behaviour for now until we have a better way to detect low power devices
-// https://github.com/owid/owid-grapher/issues/3661
-// !isMobile() || window.screen.width > 680 || pageContainsGlobalEntitySelector()
 
 // const pageContainsGlobalEntitySelector = () =>
 //     globalEntitySelectorElement() !== null
@@ -307,14 +299,7 @@ class MultiEmbedder {
                 ? "chartView"
                 : "grapher"
 
-        const hasPreview = isExplorer ? false : !!figure.querySelector("img")
-        if (!shouldProgressiveEmbed() && hasPreview) return
-
-        // Stop observing visibility as soon as possible, that is not before
-        // shouldProgressiveEmbed gets a chance to reevaluate a possible change
-        // in screen size on mobile (i.e. after a rotation). Stopping before
-        // shouldProgressiveEmbed would prevent rendering interactive charts
-        // when going from portrait to landscape mode (without page reload).
+        // Stop observing visibility as soon as possible
         this.figuresObserver?.unobserve(figure)
 
         await match(embedType)

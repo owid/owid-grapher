@@ -5,7 +5,6 @@ import {
     excludeUndefined,
     urlToSlug,
     without,
-    deserializeJSONFromHTML,
     uniq,
     keyBy,
     compact,
@@ -13,9 +12,7 @@ import {
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import * as lodash from "lodash"
-import { bakeGrapherToSvgAndPng } from "./GrapherImageBaker.js"
 import {
-    OPTIMIZE_SVG_EXPORTS,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
@@ -30,7 +27,6 @@ import {
 } from "../db/model/Post.js"
 import {
     GrapherInterface,
-    OwidVariableDataMetadataDimensions,
     DimensionProperty,
     OwidVariableWithSource,
     OwidChartDimensionInterface,
@@ -42,7 +38,6 @@ import {
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
-    getVariableData,
     getMergedGrapherConfigForVariable,
     getVariableOfDatapageIfApplicable,
 } from "../db/model/Variable.js"
@@ -268,29 +263,12 @@ const renderGrapherPage = async (
     )
 }
 
-const chartIsSameVersion = async (
-    htmlPath: string,
-    grapherVersion: number | undefined
-): Promise<boolean> => {
-    if (fs.existsSync(htmlPath)) {
-        // If the chart is the same version, we can potentially skip baking the data and exports (which is by far the slowest part)
-        const html = await fs.readFile(htmlPath, "utf8")
-        const savedVersion = deserializeJSONFromHTML(html)
-        return savedVersion?.version === grapherVersion
-    } else {
-        return false
-    }
-}
-
-const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
+const bakeGrapherPage = async (
     bakedSiteDir: string,
     imageMetadataDictionary: Record<string, DbEnrichedImage>,
     grapher: GrapherInterface,
     knex: db.KnexReadonlyTransaction
 ) => {
-    const htmlPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
-    const isSameVersion = await chartIsSameVersion(htmlPath, grapher.version)
-
     // Need to set up the connection for using TypeORM in
     // renderDataPageOrGrapherPage() when baking using multiple worker threads
     // (MAX_NUM_BAKE_PROCESSES > 1). It could be done in
@@ -309,29 +287,6 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
         )
     )
     console.log(outPath)
-
-    const variableIds = lodash.uniq(
-        grapher.dimensions?.map((d) => d.variableId)
-    )
-    if (!variableIds.length) return
-
-    await fs.mkdirp(`${bakedSiteDir}/grapher/exports/`)
-    const svgPath = `${bakedSiteDir}/grapher/exports/${grapher.slug}.svg`
-    const pngPath = `${bakedSiteDir}/grapher/exports/${grapher.slug}.png`
-    if (!isSameVersion || !fs.existsSync(svgPath) || !fs.existsSync(pngPath)) {
-        const loadDataMetadataPromises: Promise<OwidVariableDataMetadataDimensions>[] =
-            variableIds.map(getVariableData)
-        const variableDataMetadata = await Promise.all(loadDataMetadataPromises)
-        const variableDataMedadataMap = new Map(
-            variableDataMetadata.map((item) => [item.metadata.id, item])
-        )
-        await bakeGrapherToSvgAndPng(
-            `${bakedSiteDir}/grapher/exports`,
-            grapher,
-            variableDataMedadataMap,
-            OPTIMIZE_SVG_EXPORTS
-        )
-    }
 }
 
 const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
@@ -345,17 +300,13 @@ const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
         // do not delete grapher slugs redirected to explorers
         .filter((slug) => !isPathRedirectedToExplorer(`/grapher/${slug}`))
     for (const slug of toRemove) {
-        console.log(`DELETING ${slug}`)
-        try {
-            const paths = [
-                `${bakedSiteDir}/grapher/${slug}.html`,
-                `${bakedSiteDir}/grapher/exports/${slug}.png`,
-            ] //, `${BAKED_SITE_DIR}/grapher/exports/${slug}.svg`]
-            await Promise.all(paths.map((p) => fs.unlink(p)))
-            paths.map((p) => console.log(p))
-        } catch (err) {
-            console.error(err)
-        }
+        const path = `${bakedSiteDir}/grapher/${slug}.html`
+        console.log(`DELETING ${path}`)
+        fs.unlink(path, (err) =>
+            err
+                ? console.error(`Error deleting ${path}`, err)
+                : console.log(`Deleted ${path}`)
+        )
     }
 }
 
@@ -381,7 +332,7 @@ export const bakeSingleGrapherChart = async (
         return
     }
 
-    await bakeGrapherPageAndVariablesPngAndSVGIfChanged(
+    await bakeGrapherPage(
         args.bakedSiteDir,
         args.imageMetadataDictionary,
         grapher,
@@ -390,72 +341,71 @@ export const bakeSingleGrapherChart = async (
     return args
 }
 
-export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
-    async (bakedSiteDir: string, knex: db.KnexReadonlyTransaction) => {
-        const chartsToBake = await knexRaw<
-            Pick<DbPlainChart, "id"> & {
-                config: DbRawChartConfig["full"]
-                slug: string
-            }
-        >(
-            knex,
-            `-- sql
-                    SELECT
-                        c.id,
-                        cc.full as config,
-                        cc.slug
-                    FROM charts c
-                    JOIN chart_configs cc ON c.configId = cc.id
-                    WHERE JSON_EXTRACT(cc.full, "$.isPublished")=true
-                    ORDER BY cc.slug ASC
-                `
-        )
+export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
+    bakedSiteDir: string,
+    knex: db.KnexReadonlyTransaction
+) => {
+    const chartsToBake = await knexRaw<
+        Pick<DbPlainChart, "id"> & {
+            config: DbRawChartConfig["full"]
+            slug: string
+        }
+    >(
+        knex,
+        `-- sql
+        SELECT
+            c.id,
+            cc.full as config,
+            cc.slug
+        FROM charts c
+        JOIN chart_configs cc ON c.configId = cc.id
+        WHERE JSON_EXTRACT(cc.full, "$.isPublished")=true
+        ORDER BY cc.slug ASC`
+    )
 
-        const newSlugs = chartsToBake.map((row) => row.slug)
-        await fs.mkdirp(bakedSiteDir + "/grapher")
+    const newSlugs = chartsToBake.map((row) => row.slug)
+    await fs.mkdirp(bakedSiteDir + "/grapher")
 
-        // Prefetch imageMetadata instead of each grapher page fetching
-        // individually. imageMetadata is used by the google docs powering rich
-        // text (including images) in data pages.
-        const imageMetadataDictionary = await getAllImages(knex).then(
-            (images) => keyBy(images, "filename")
-        )
+    // Prefetch imageMetadata instead of each grapher page fetching
+    // individually. imageMetadata is used by the google docs powering rich
+    // text (including images) in data pages.
+    const imageMetadataDictionary = await getAllImages(knex).then((images) =>
+        keyBy(images, "filename")
+    )
 
-        const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map(
-            (row) => ({
-                id: row.id,
-                config: row.config,
-                bakedSiteDir: bakedSiteDir,
-                slug: row.slug,
-                imageMetadataDictionary,
-            })
-        )
+    const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map((row) => ({
+        id: row.id,
+        config: row.config,
+        bakedSiteDir: bakedSiteDir,
+        slug: row.slug,
+        imageMetadataDictionary,
+    }))
 
-        const progressBar = new ProgressBar(
-            "bake grapher page [:bar] :current/:total :elapseds :rate/s :etas :name\n",
-            {
-                width: 20,
-                total: chartsToBake.length + 1,
-                renderThrottle: 0,
-            }
-        )
+    const progressBar = new ProgressBar(
+        "bake grapher page [:bar] :current/:total :elapseds :rate/s :etas :name\n",
+        {
+            width: 20,
+            total: chartsToBake.length + 1,
+            renderThrottle: 0,
+        }
+    )
 
-        await pMap(
-            jobs,
-            async (job) => {
-                // We want to run this code on multiple threads, so we need to
-                // be able to use multiple transactions so that we can use
-                // multiple connections to the database.
-                // Read-write consistency is not a concern here, thankfully.
-                await db.knexReadWriteTransaction(
-                    async (knex) => await bakeSingleGrapherChart(job, knex),
-                    db.TransactionCloseMode.KeepOpen
-                )
-                progressBar.tick({ name: `slug ${job.slug}` })
-            },
-            { concurrency: 10 }
-        )
+    await pMap(
+        jobs,
+        async (job) => {
+            // We want to run this code on multiple threads, so we need to
+            // be able to use multiple transactions so that we can use
+            // multiple connections to the database.
+            // Read-write consistency is not a concern here, thankfully.
+            await db.knexReadWriteTransaction(
+                async (knex) => await bakeSingleGrapherChart(job, knex),
+                db.TransactionCloseMode.KeepOpen
+            )
+            progressBar.tick({ name: `slug ${job.slug}` })
+        },
+        { concurrency: 10 }
+    )
 
-        await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
-        progressBar.tick({ name: `✅ Deleted old graphers` })
-    }
+    await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
+    progressBar.tick({ name: `✅ Deleted old graphers` })
+}

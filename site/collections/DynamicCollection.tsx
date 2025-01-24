@@ -13,8 +13,7 @@ import {
 import { observer } from "mobx-react"
 import { WindowGraphers } from "./DynamicCollectionPage.js"
 import { Grapher } from "@ourworldindata/grapher"
-import { GRAPHER_PREVIEW_CLASS } from "../SiteConstants.js"
-import InteractionNotice from "../InteractionNotice.js"
+import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import GrapherImage from "../GrapherImage.js"
 
 interface DynamicCollectionProps {
@@ -139,7 +138,6 @@ export class DynamicCollection extends React.Component<DynamicCollectionProps> {
                                     rel="noopener"
                                 >
                                     <GrapherImage slug={chartSlug} />
-                                    <InteractionNotice />
                                 </a>
                             </figure>
                         )

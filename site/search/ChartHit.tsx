@@ -6,7 +6,6 @@ import { getEntityQueryStr, pickEntitiesForChartHit } from "./SearchUtils.js"
 import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     BAKED_BASE_URL,
-    BAKED_GRAPHER_EXPORTS_BASE_URL,
     BAKED_GRAPHER_URL,
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
@@ -68,15 +67,13 @@ export function ChartHit({
         slug: string,
         fullQueryParams: string
     ): string {
-        return `${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${slug}.svg${fullQueryParams}`
+        return `${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${slug}.png${fullQueryParams}`
     }
     function createGrapherThumbnailUrl(
         slug: string,
-        fullQueryParams?: string
+        fullQueryParams = ""
     ): string {
-        return fullQueryParams
-            ? `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.svg${fullQueryParams}`
-            : `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${slug}.svg`
+        return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png${fullQueryParams}`
     }
     const previewUrl = isExplorerView
         ? createExplorerViewThumbnailUrl(hit.slug, fullQueryParams)

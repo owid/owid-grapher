@@ -55,13 +55,6 @@ update_env() {
     else
         sed -i "s|^BAKED_SITE_DIR=.*$|BAKED_SITE_DIR=/home/owid/live-data/bakedSite|" owid-grapher/.env
     fi
-    # redirect assets
-    if ! grep -q "^BAKED_GRAPHER_EXPORTS_BASE_URL=" owid-grapher/.env; then
-        echo "BAKED_GRAPHER_EXPORTS_BASE_URL=https://assets.ourworldindata.org/grapher/exports" >> owid-grapher/.env
-    fi
-    if ! grep -q "^BAKED_SITE_EXPORTS_BASE_URL=" owid-grapher/.env; then
-        echo "BAKED_SITE_EXPORTS_BASE_URL=https://assets.ourworldindata.org/exports" >> owid-grapher/.env
-    fi
 }
 
 

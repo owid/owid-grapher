@@ -1,9 +1,8 @@
 import cx from "classnames"
 import { Head } from "../Head.js"
-import { GRAPHER_PREVIEW_CLASS } from "../SiteConstants.js"
+import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
-import InteractionNotice from "../InteractionNotice.js"
 import GrapherImage from "../GrapherImage.js"
 import { Html } from "../Html.js"
 
@@ -56,7 +55,6 @@ export const StaticCollectionPage = (
                                             rel="noopener"
                                         >
                                             <GrapherImage slug={chartSlug} />
-                                            <InteractionNotice />
                                         </a>
                                     </figure>
                                 )

@@ -25,7 +25,6 @@ import {
 import {
     BAKED_BASE_URL,
     BASE_DIR,
-    BAKED_SITE_DIR,
     LEGACY_WORDPRESS_IMAGE_URL,
 } from "../settings/serverSettings.js"
 
@@ -35,13 +34,9 @@ import {
     countriesIndexPage,
 } from "../baker/countryProfiles.js"
 import { makeSitemap } from "../baker/sitemap.js"
-import {
-    getChartConfigBySlug,
-    getChartVariableData,
-} from "../db/model/Chart.js"
+import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { grapherToSVG } from "../baker/GrapherImageBaker.js"
 import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
 import {
@@ -429,26 +424,8 @@ mockSiteRouter.use(
         res.redirect(assetUrl)
     }
 )
-mockSiteRouter.use(
-    "/exports",
-    express.static(path.join(BAKED_SITE_DIR, "exports"))
-)
 
 mockSiteRouter.use("/assets", express.static("dist/assets"))
-
-// TODO: this used to be a mockSiteRouter.use call but otherwise it looked like a route and
-// it didn't look like it was making use of any middleware - if this causese issues then
-// this has to be reverted to a use call
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    "/grapher/exports/:slug.svg",
-    async (req, res, trx) => {
-        const grapher = await getChartConfigBySlug(trx, req.params.slug)
-        const vardata = await getChartVariableData(grapher.config)
-        res.setHeader("Content-Type", "image/svg+xml")
-        res.send(await grapherToSVG(grapher.config, vardata))
-    }
-)
 
 mockSiteRouter.use(
     "/fonts",
