@@ -13,6 +13,7 @@ import {
 import { GdocsStoreContext } from "./GdocsStoreContext.js"
 import { DbPlainTag, OwidGdocDataInsightIndexItem } from "@ourworldindata/types"
 import { dayjs, startCase } from "@ourworldindata/utils"
+import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 
 function createColumns(ctx: {
     highlightFn: (
@@ -20,6 +21,17 @@ function createColumns(ctx: {
     ) => React.ReactElement | string
 }): ColumnsType<OwidGdocDataInsightIndexItem> {
     return [
+        {
+            title: "Preview",
+            key: "preview",
+            render: (_, dataInsight) =>
+                dataInsight.image?.cloudflareId ? (
+                    <img
+                        src={`${CLOUDFLARE_IMAGES_URL}/${dataInsight.image.cloudflareId}/w=${dataInsight.image.originalWidth}`}
+                        style={{ maxWidth: 150 }}
+                    />
+                ) : undefined,
+        },
         {
             title: "Title",
             dataIndex: "title",
