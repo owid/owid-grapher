@@ -634,6 +634,22 @@ export async function upsertGdoc(
     }
 }
 
+export async function getTagsGroupedByGdocId(
+    knex: KnexReadonlyTransaction,
+    gdocIds: string[]
+): Promise<Record<string, DbPlainTag[]>> {
+    const tags = await knexRaw<DbPlainTag & Pick<DbRawPostGdoc, "id">>(
+        knex,
+        `-- sql
+            SELECT gt.gdocId as gdocId, tags.*
+            FROM tags
+            JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
+            WHERE gt.gdocId in (:ids)`,
+        { ids: gdocIds }
+    )
+    return groupBy(tags, "gdocId")
+}
+
 export async function getAllGdocIndexItemsOrderedByUpdatedAt(
     knex: KnexReadonlyTransaction
 ): Promise<OwidGdocIndexItem[]> {
@@ -643,16 +659,10 @@ export async function getAllGdocIndexItemsOrderedByUpdatedAt(
     const gdocs: DbRawPostGdoc[] = await knex
         .table<DbRawPostGdoc>(PostsGdocsTableName)
         .orderBy("updatedAt", "desc")
-    const tagsForGdocs = await knexRaw<DbPlainTag & Pick<DbRawPostGdoc, "id">>(
+    const groupedTags = await getTagsGroupedByGdocId(
         knex,
-        `-- sql
-        SELECT gt.gdocId as gdocId, tags.*
-        FROM tags
-        JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
-        WHERE gt.gdocId in (:ids)`,
-        { ids: gdocs.map((gdoc) => gdoc.id) }
+        gdocs.map((gdoc) => gdoc.id)
     )
-    const groupedTags = groupBy(tagsForGdocs, "gdocId")
     return gdocs.map((gdoc) =>
         extractGdocIndexItem({
             ...parsePostsGdocsRow(gdoc),
