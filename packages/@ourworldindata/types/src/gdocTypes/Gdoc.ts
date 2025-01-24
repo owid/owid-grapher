@@ -1,4 +1,8 @@
-import { GrapherTabOption, RelatedChart } from "../grapherTypes/GrapherTypes.js"
+import {
+    GrapherChartOrMapType,
+    GrapherTabOption,
+    RelatedChart,
+} from "../grapherTypes/GrapherTypes.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { TocHeadingWithTitleSupertitle } from "../domainTypes/Toc.js"
 import { ImageMetadata } from "./Image.js"
@@ -171,7 +175,7 @@ export type OwidGdocDataInsightIndexItem = Pick<
         | "grapher-url"
         | "figma-url"
         | "approved-by"
-    > & { "explorer-url"?: string }
+    > & { "explorer-url"?: string; chartType?: GrapherChartOrMapType }
 
 export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
 
