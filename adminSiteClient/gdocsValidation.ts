@@ -190,11 +190,37 @@ function validateGrapherUrl(
     gdoc: OwidGdocDataInsightInterface,
     errors: OwidGdocErrorMessage[]
 ) {
-    if (!gdoc.content["grapher-url"]) {
+    if (!gdoc.content["narrative-chart"] && !gdoc.content["grapher-url"]) {
         errors.push({
             property: "grapher-url",
             type: OwidGdocErrorMessageType.Warning,
             message: `Missing "grapher-url". This isn't required, but if you're referencing a grapher, it's a good idea to add it so that we can link it to this data insight in the future. Include country selections, if applicable.`,
+        })
+    }
+}
+
+function validateNarrativeChart(
+    gdoc: OwidGdocDataInsightInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    if (!gdoc.content["narrative-chart"] && !gdoc.content["grapher-url"]) {
+        errors.push({
+            property: "narrative-chart",
+            type: OwidGdocErrorMessageType.Warning,
+            message: `Missing "narrative-chart". This isn't required, but if you're referencing a narrative chart, it's a good idea to add it so that we can link it to this data insight.`,
+        })
+    }
+}
+
+function validateFigmaUrl(
+    gdoc: OwidGdocDataInsightInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    if (!gdoc.content["figma-url"]) {
+        errors.push({
+            property: "figma-url",
+            type: OwidGdocErrorMessageType.Warning,
+            message: `Missing "figma-url". This isn't required, but if you edited the chart in Figma, it's a good idea to share the URL so that we can link it to this data insight.`,
         })
     }
 }
@@ -296,7 +322,9 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
         validateAtomFields(gdoc, errors)
     } else if (checkIsDataInsight(gdoc)) {
         validateApprovedBy(gdoc, errors)
+        validateNarrativeChart(gdoc, errors)
         validateGrapherUrl(gdoc, errors)
+        validateFigmaUrl(gdoc, errors)
         validateDataInsightImage(gdoc, errors)
     } else if (checkIsAuthor(gdoc)) {
         validateSocials(gdoc, errors)
