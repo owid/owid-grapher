@@ -334,6 +334,7 @@ export {
     type OwidGdocIndexItem,
     extractGdocIndexItem,
     type ChartViewInfo,
+    type OwidGdocDataInsightIndexItem,
 } from "./gdocTypes/Gdoc.js"
 
 export {
