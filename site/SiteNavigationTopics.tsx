@@ -2,7 +2,7 @@ import React, { useState, useLayoutEffect } from "react"
 import {
     TagGraphNode,
     TagGraphRoot,
-    getAllTopicsInArea,
+    getAllChildrenOfArea,
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
@@ -28,7 +28,7 @@ export const SiteNavigationTopics = ({
     // using useLayoutEffect to avoid a flash of the wrong number of columns when switching categories
     useLayoutEffect(() => {
         if (activeArea) {
-            const topics = getAllTopicsInArea(activeArea)
+            const topics = getAllChildrenOfArea(activeArea)
             const numColumns = Math.ceil(topics.length / 10)
             setNumTopicColumns(numColumns)
         }
@@ -79,7 +79,7 @@ export const SiteNavigationTopics = ({
                     })}
                     onClick={stopPropagation}
                 >
-                    {getAllTopicsInArea(activeArea).map((topic) => (
+                    {getAllChildrenOfArea(activeArea).map((topic) => (
                         <SiteNavigationTopic key={topic.slug} topic={topic} />
                     ))}
                 </ul>

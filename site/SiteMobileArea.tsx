@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
 import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
-import { TagGraphNode, getAllTopicsInArea } from "@ourworldindata/utils"
+import { TagGraphNode, getAllChildrenOfArea } from "@ourworldindata/utils"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 
 export const SiteMobileArea = ({
@@ -30,7 +30,7 @@ export const SiteMobileArea = ({
                 onToggle={() => toggleArea(area)}
                 dropdown={
                     <ul>
-                        {getAllTopicsInArea(area).map((topic) => (
+                        {getAllChildrenOfArea(area).map((topic) => (
                             <SiteNavigationTopic
                                 key={topic.slug}
                                 topic={topic}

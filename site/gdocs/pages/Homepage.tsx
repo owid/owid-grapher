@@ -5,7 +5,7 @@ import { NewsletterSubscriptionForm } from "../../NewsletterSubscription.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import { OwidGdocHomepageContent } from "@ourworldindata/types"
 import { RSS_FEEDS, SOCIALS } from "../../SiteConstants.js"
-import { getAllTopicsInArea } from "@ourworldindata/utils"
+import { getAllChildrenOfArea } from "@ourworldindata/utils"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 
 export interface HomepageProps {
@@ -62,7 +62,7 @@ const AllTopicsSection = () => {
     // We have to flatten the areas because we can't nest <ul> elements and have them render correctly
     const flattenedAreas = tagGraph.children.map((area) => ({
         ...area,
-        children: getAllTopicsInArea(area),
+        children: getAllChildrenOfArea(area),
     }))
 
     return (
@@ -83,14 +83,23 @@ const AllTopicsSection = () => {
                         {area.name}
                     </h2>
                     <ul className="homepage-topic__topic-list display-3-regular">
-                        {area.children.map(({ slug, name }) => (
-                            <li
-                                className="homepage-topic__topic-entry"
-                                key={`topic-entry-${slug}`}
-                            >
-                                <a href={`/${slug}`}>{name}</a>
-                            </li>
-                        ))}
+                        {area.children.map(({ slug, name }) =>
+                            slug ? (
+                                <li
+                                    className="homepage-topic__topic-entry"
+                                    key={`topic-entry-${slug}`}
+                                >
+                                    <a href={`/${slug}`}>{name}</a>
+                                </li>
+                            ) : (
+                                <li
+                                    className="homepage-topic__subtopic"
+                                    key={`subarea-${name}`}
+                                >
+                                    {name}
+                                </li>
+                            )
+                        )}
                     </ul>
                 </section>
             ))}

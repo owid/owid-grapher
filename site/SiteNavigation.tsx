@@ -11,7 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SiteNavigationTopics } from "./SiteNavigationTopics.js"
 import { SiteLogos } from "./SiteLogos.js"
 import { SiteAbout } from "./SiteAbout.js"
-import { TagGraphRoot } from "@ourworldindata/utils"
+import { flattenNonTopicNodes, TagGraphRoot } from "@ourworldindata/utils"
 import { SiteResources } from "./SiteResources.js"
 import { SiteSearchNavigation } from "./SiteSearchNavigation.js"
 import { SiteMobileMenu } from "./SiteMobileMenu.js"
@@ -42,7 +42,7 @@ export const SiteNavigation = ({
         const fetchTagGraph = async () => {
             const response = await fetch("/topicTagGraph.json")
             const tagGraph = await response.json()
-            setTagGraph(tagGraph)
+            setTagGraph(flattenNonTopicNodes(tagGraph))
         }
         if (!tagGraph) fetchTagGraph().catch(console.error)
     }, [tagGraph, setTagGraph])

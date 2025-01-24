@@ -11,8 +11,6 @@ import {
     OwidGdocPostContent,
     OwidGdocMinimalPostInterface,
     LinkedIndicator,
-    CategoryWithEntries,
-    EntryMeta,
     OwidGdocDataInsightContent,
     OwidGdocLinkType,
     SubNavId,
@@ -170,17 +168,6 @@ export function getShortPageCitation(
     return `${formatAuthors({
         authors: authors,
     })} (${publishedAt?.getFullYear()}) - “${title}”`
-}
-
-export const allTopicsInCategory = (
-    category: CategoryWithEntries
-): EntryMeta[] => {
-    return [
-        ...category.entries,
-        ...(category.subcategories ?? []).flatMap(
-            (subcategory) => subcategory.entries
-        ),
-    ]
 }
 
 export const getSubnavItem = (

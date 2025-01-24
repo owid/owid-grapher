@@ -887,6 +887,20 @@ export function getImageUsage(trx: KnexReadonlyTransaction): Promise<
     )
 }
 
+// A topic is any tag that has a slug.
+// We want to keep tags that have topic children (i.e. areas and sub-areas) but not leaf nodes that aren't topics
+function checkDoesFlatTagGraphNodeHaveAnyTopicChildren(
+    node: FlatTagGraphNode,
+    flatTagGraph: FlatTagGraph
+): boolean {
+    if (node.isTopic) return true
+    const children = flatTagGraph[node.childId]
+    if (!children) return false
+    return children.some((child) =>
+        checkDoesFlatTagGraphNodeHaveAnyTopicChildren(child, flatTagGraph)
+    )
+}
+
 export async function generateTopicTagGraph(
     knex: KnexReadonlyTransaction
 ): Promise<TagGraphRoot> {
@@ -896,7 +910,10 @@ export async function generateTopicTagGraph(
         (acc: FlatTagGraph, [parentId, children]) => {
             acc[Number(parentId)] = children.filter((child) => {
                 if (child.parentId === __rootId) return true
-                return child.isTopic
+                return checkDoesFlatTagGraphNodeHaveAnyTopicChildren(
+                    child,
+                    parents
+                )
             })
             return acc
         },
