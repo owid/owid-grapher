@@ -45,6 +45,7 @@ import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
 import { ChartViewEditorPage } from "./ChartViewEditorPage.js"
 import { ChartViewIndexPage } from "./ChartViewIndexPage.js"
 import { ImageIndexPage } from "./ImagesIndexPage.js"
+import { DataInsightIndexPage } from "./DataInsightIndexPage.js"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -334,6 +335,14 @@ export class AdminApp extends React.Component<{
                                 render={(props: GdocsMatchProps) => (
                                     <GdocsStoreProvider>
                                         <GdocsIndexPage {...props} />
+                                    </GdocsStoreProvider>
+                                )}
+                            />
+                            <Route
+                                path="/dataInsights"
+                                component={() => (
+                                    <GdocsStoreProvider>
+                                        <DataInsightIndexPage />
                                     </GdocsStoreProvider>
                                 )}
                             />

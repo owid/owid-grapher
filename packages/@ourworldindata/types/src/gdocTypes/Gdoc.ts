@@ -160,6 +160,19 @@ export interface OwidGdocDataInsightContent {
     type: OwidGdocType.DataInsight
 }
 
+export type OwidGdocDataInsightIndexItem = Pick<
+    OwidGdocBaseInterface,
+    "id" | "slug" | "tags" | "published" | "publishedAt" | "markdown"
+> & { "explorer-url"?: string } & Pick<
+        OwidGdocDataInsightContent,
+        | "title"
+        | "authors"
+        | "narrative-view"
+        | "grapher-url"
+        | "figma-url"
+        | "approved-by"
+    > & { "explorer-url"?: string }
+
 export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
 
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
