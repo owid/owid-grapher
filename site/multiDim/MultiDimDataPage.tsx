@@ -32,9 +32,6 @@ export function MultiDimDataPage({
         imageMetadata,
         tagToSlugMap,
     }
-    // Due to thumbnails not taking into account URL parameters, they are often inaccurate on
-    // social media. We decided to remove them and use a single thumbnail for all charts.
-    // See https://github.com/owid/owid-grapher/issues/1086
     const imageUrl: string = urljoin(baseUrl, "default-grapher-thumbnail.png")
     const imageWidth = "1200"
     const imageHeight = "628"
