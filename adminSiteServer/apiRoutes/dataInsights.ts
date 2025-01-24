@@ -19,6 +19,11 @@ import { getTagsGroupedByGdocId } from "../../db/model/Gdoc/GdocFactory.js"
 import { mapQueryParamToChartTypeName } from "@ourworldindata/grapher"
 import { getTimeDomainFromQueryString } from "@ourworldindata/utils"
 
+type DataInsightRow = DbRawPostGdoc &
+    OwidGdocDataInsightIndexItem["image"] & {
+        chartConfig?: DbRawChartConfig["full"]
+    }
+
 export async function getAllDataInsightIndexItems(
     req: Request,
     res: e.Response<any, Record<string, any>>,
@@ -30,44 +35,68 @@ export async function getAllDataInsightIndexItems(
 async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
     knex: db.KnexReadonlyTransaction
 ): Promise<OwidGdocDataInsightIndexItem[]> {
-    const dataInsights = await db.knexRaw<
-        DbRawPostGdoc & { chartConfig?: DbRawChartConfig["full"] }
-    >(
+    const dataInsights = await db.knexRaw<DataInsightRow>(
         knex,
         `-- sql
-            SELECT
-                pg.*, 
-                COALESCE(cc_narrativeView.full, cc_grapherUrl.full) AS chartConfig
-            FROM posts_gdocs pg
-            -- extract slugs from URLs of the format /grapher/slug
-            LEFT JOIN chart_configs cc_grapherUrl
-                ON cc_grapherUrl.slug = SUBSTRING_INDEX(SUBSTRING_INDEX(content ->> '$."grapher-url"', '/grapher/', -1), '\\?', 1)
-            LEFT JOIN chart_views cw
-                ON cw.name = content ->> '$."narrative-view"'
-            LEFT JOIN chart_configs cc_narrativeView
-                ON cc_narrativeView.id = cw.chartConfigId
-            WHERE type = 'data-insight'
-            ORDER BY pg.updatedAt DESC`
+        WITH latestImages AS (
+            SELECT filename, cloudflareId, originalWidth, originalHeight
+            FROM images
+            WHERE replacedBy IS NULL
+        )
+        SELECT
+            pg.*,
+            COALESCE(cc_narrativeView.full, cc_grapherUrl.full) AS chartConfig,
+            -- only works if the image block comes first, but that's usually the case for data insights
+            COALESCE(pg.content ->> '$.body[0].smallFilename', pg.content ->> '$.body[0].filename') AS filename,
+            i.cloudflareId,
+            i.originalWidth,
+            i.originalHeight
+        FROM posts_gdocs pg
+        -- extract slugs from URLs of the format /grapher/slug
+        LEFT JOIN chart_configs cc_grapherUrl
+            ON cc_grapherUrl.slug = SUBSTRING_INDEX(SUBSTRING_INDEX(content ->> '$."grapher-url"', '/grapher/', -1), '\\?', 1)
+        LEFT JOIN chart_views cw
+            ON cw.name = content ->> '$."narrative-view"'
+        LEFT JOIN chart_configs cc_narrativeView
+            ON cc_narrativeView.id = cw.chartConfigId
+        -- only works if the image block comes first, but that's usually the case for data insights
+        LEFT JOIN latestImages i
+            ON i.filename = COALESCE(pg.content ->> '$.body[0].smallFilename', pg.content ->> '$.body[0].filename')
+        WHERE pg.type = 'data-insight'
+        ORDER BY pg.updatedAt DESC;`
     )
     const groupedTags = await getTagsGroupedByGdocId(
         knex,
         dataInsights.map((gdoc) => gdoc.id)
     )
     return dataInsights.map((gdoc) =>
-        extractDataInsightIndexItem(
-            {
+        extractDataInsightIndexItem({
+            gdoc: {
                 ...(parsePostsGdocsRow(gdoc) as OwidGdocDataInsightInterface),
                 tags: groupedTags[gdoc.id] ? groupedTags[gdoc.id] : null,
             },
-            gdoc.chartConfig ? parseChartConfig(gdoc.chartConfig) : undefined
-        )
+            imageMetadata: {
+                cloudflareId: gdoc.cloudflareId,
+                originalWidth: gdoc.originalWidth,
+                originalHeight: gdoc.originalHeight,
+                filename: gdoc.filename,
+            },
+            chartConfig: gdoc.chartConfig
+                ? parseChartConfig(gdoc.chartConfig)
+                : undefined,
+        })
     )
 }
 
-function extractDataInsightIndexItem(
-    gdoc: OwidGdocDataInsightInterface,
+function extractDataInsightIndexItem({
+    gdoc,
+    imageMetadata,
+    chartConfig,
+}: {
+    gdoc: OwidGdocDataInsightInterface
+    imageMetadata?: OwidGdocDataInsightIndexItem["image"]
     chartConfig?: GrapherInterface
-): OwidGdocDataInsightIndexItem {
+}): OwidGdocDataInsightIndexItem {
     const grapherUrl = gdoc.content["grapher-url"]?.trim()
     const isGrapherUrl = grapherUrl?.startsWith(
         "https://ourworldindata.org/grapher/"
@@ -91,6 +120,7 @@ function extractDataInsightIndexItem(
         "explorer-url": isExplorerUrl ? grapherUrl : undefined,
         "figma-url": gdoc.content["figma-url"],
         chartType: detectChartType(gdoc, chartConfig),
+        image: imageMetadata,
     }
 }
 

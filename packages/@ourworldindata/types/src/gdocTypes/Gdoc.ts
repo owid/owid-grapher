@@ -18,6 +18,7 @@ import {
 import { MinimalTag } from "../dbTypes/Tags.js"
 import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 import { QueryParams } from "../domainTypes/Various.js"
+import { DbRawImage } from "../dbTypes/Images.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -175,7 +176,14 @@ export type OwidGdocDataInsightIndexItem = Pick<
         | "grapher-url"
         | "figma-url"
         | "approved-by"
-    > & { "explorer-url"?: string; chartType?: GrapherChartOrMapType }
+    > & {
+        "explorer-url"?: string
+        chartType?: GrapherChartOrMapType
+        image?: Pick<
+            DbRawImage,
+            "cloudflareId" | "filename" | "originalWidth" | "originalHeight"
+        >
+    }
 
 export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
 
