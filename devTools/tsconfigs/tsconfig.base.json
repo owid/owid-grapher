@@ -10,6 +10,16 @@
         "declarationMap": true,
 
         "lib": ["dom", "dom.iterable", "es2020", "es2021", "es2022", "es2023"],
+        // Using es2022 as a `target` caused the following error in wrangler:
+        // "Uncaught TypeError: PointVector is not a constructor".
+        // This seems to be related to a change in how classes are compiled in
+        // es2022 when used with `experimentalDecorators`. It probably means
+        // that to upgrade to a newer target, we'll either have to stop using
+        // `experimentalDecorators` or this problem might be eventuallly fixed
+        // by upgrading to a newer version of TypeScript or wrangler, or in one
+        // of the higher `target`s. Possibly related TypeScript issues:
+        // https://github.com/microsoft/TypeScript/issues/51570
+        // https://github.com/microsoft/TypeScript/issues/52004
         "target": "es2021",
 
         "alwaysStrict": true,
