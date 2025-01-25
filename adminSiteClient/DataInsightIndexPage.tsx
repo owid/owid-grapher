@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
-import { Button, Flex, Input, Space, Table, Tag } from "antd"
+import { Button, Flex, Input, Select, Space, Table, Tag } from "antd"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { Timeago } from "./Forms.js"
@@ -14,6 +14,10 @@ import { GdocsStoreContext } from "./GdocsStoreContext.js"
 import { DbPlainTag, OwidGdocDataInsightIndexItem } from "@ourworldindata/types"
 import { dayjs, startCase } from "@ourworldindata/utils"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
+
+type PublicationFilter = "all" | "published" | "scheduled" | "draft"
+
+const DEFAULT_PUBLICATION_FILTER: PublicationFilter = "all"
 
 function createColumns(ctx: {
     highlightFn: (
@@ -170,6 +174,8 @@ export function DataInsightIndexPage() {
         OwidGdocDataInsightIndexItem[]
     >([])
     const [searchValue, setSearchValue] = useState("")
+    const [publicationFilter, setPublicationFilter] =
+        useState<PublicationFilter>(DEFAULT_PUBLICATION_FILTER)
 
     const searchWords = useMemo(
         () => buildSearchWordsFromSearchString(searchValue),
@@ -177,7 +183,27 @@ export function DataInsightIndexPage() {
     )
 
     const filteredDataInsights = useMemo(() => {
-        const filterFn = filterFunctionForSearchWords(
+        const publicationFilterFn = (
+            dataInsight: OwidGdocDataInsightIndexItem
+        ) => {
+            switch (publicationFilter) {
+                case "draft":
+                    return !dataInsight.published
+                case "scheduled":
+                    return (
+                        dataInsight.published &&
+                        dayjs(dataInsight.publishedAt).isAfter(dayjs())
+                    )
+                case "published":
+                    return (
+                        dataInsight.published &&
+                        dayjs(dataInsight.publishedAt).isBefore(dayjs())
+                    )
+                default:
+                    return true
+            }
+        }
+        const searchFilterFn = filterFunctionForSearchWords(
             searchWords,
             (dataInsight: OwidGdocDataInsightIndexItem) => [
                 dataInsight.title,
@@ -189,8 +215,8 @@ export function DataInsightIndexPage() {
             ]
         )
 
-        return dataInsights.filter(filterFn)
-    }, [dataInsights, searchWords])
+        return dataInsights.filter(publicationFilterFn).filter(searchFilterFn)
+    }, [dataInsights, publicationFilter, searchWords])
 
     const highlightFn = useMemo(
         () => highlightFunctionForSearchWords(searchWords),
@@ -213,7 +239,7 @@ export function DataInsightIndexPage() {
     return (
         <AdminLayout title="Data insights">
             <main className="DataInsightIndexPage">
-                <Flex justify="space-between">
+                <Flex gap="small">
                     <Input
                         placeholder="Search"
                         value={searchValue}
@@ -223,6 +249,34 @@ export function DataInsightIndexPage() {
                         }}
                         style={{ width: 500, marginBottom: 20 }}
                     />
+                    <Select
+                        value={publicationFilter}
+                        options={[
+                            { value: "all", label: <span>All</span> },
+                            { value: "draft", label: <span>Drafts</span> },
+                            {
+                                value: "published",
+                                label: <span>Published</span>,
+                            },
+                            {
+                                value: "scheduled",
+                                label: <span>Scheduled</span>,
+                            },
+                        ]}
+                        onChange={(value: PublicationFilter) =>
+                            setPublicationFilter(value)
+                        }
+                        popupMatchSelectWidth={false}
+                    />
+                    <Button
+                        type="dashed"
+                        onClick={() => {
+                            setSearchValue("")
+                            setPublicationFilter(DEFAULT_PUBLICATION_FILTER)
+                        }}
+                    >
+                        Reset
+                    </Button>
                 </Flex>
                 <Table columns={columns} dataSource={filteredDataInsights} />
             </main>
