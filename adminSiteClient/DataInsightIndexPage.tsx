@@ -1,6 +1,9 @@
 import { useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 import { Button, Flex, Input, Select, Space, Table, Tag } from "antd"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faPen, faUpRightFromSquare } from "@fortawesome/free-solid-svg-icons"
+import { faFigma } from "@fortawesome/free-brands-svg-icons"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { Timeago } from "./Forms.js"
@@ -18,6 +21,10 @@ import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 type PublicationFilter = "all" | "published" | "scheduled" | "draft"
 
 const DEFAULT_PUBLICATION_FILTER: PublicationFilter = "all"
+
+const editIcon = <FontAwesomeIcon icon={faPen} size="sm" />
+const linkIcon = <FontAwesomeIcon icon={faUpRightFromSquare} size="sm" />
+const figmaIcon = <FontAwesomeIcon icon={faFigma} size="sm" />
 
 function createColumns(ctx: {
     highlightFn: (
@@ -118,6 +125,7 @@ function createColumns(ctx: {
                     <Button
                         href={`/admin/gdocs/${dataInsight.id}/preview`}
                         target="_blank"
+                        icon={linkIcon}
                     >
                         Preview
                     </Button>
@@ -125,6 +133,7 @@ function createColumns(ctx: {
                         <Button
                             href={dataInsight["narrative-chart"]}
                             target="_blank"
+                            icon={linkIcon}
                         >
                             Narrative chart
                         </Button>
@@ -133,6 +142,7 @@ function createColumns(ctx: {
                         <Button
                             href={dataInsight["grapher-url"]}
                             target="_blank"
+                            icon={linkIcon}
                         >
                             Grapher page
                         </Button>
@@ -141,12 +151,17 @@ function createColumns(ctx: {
                         <Button
                             href={dataInsight["explorer-url"]}
                             target="_blank"
+                            icon={linkIcon}
                         >
                             Explorer view
                         </Button>
                     )}
                     {dataInsight["figma-url"] && (
-                        <Button href={dataInsight["figma-url"]} target="_blank">
+                        <Button
+                            href={dataInsight["figma-url"]}
+                            target="_blank"
+                            icon={figmaIcon}
+                        >
                             Figma
                         </Button>
                     )}
@@ -160,6 +175,7 @@ function createColumns(ctx: {
                 <Button
                     type="primary"
                     href={`https://docs.google.com/document/d/${dataInsight.id}/edit`}
+                    icon={editIcon}
                 >
                     Edit GDoc
                 </Button>
