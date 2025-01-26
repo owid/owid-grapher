@@ -1911,9 +1911,10 @@ export class GrapherState {
         //     isIFrame: this.isInIFrame,
         // })
         if (
-            //this.frameBounds.width > 940 &&
-            // don't use the panel if the grapher is embedded
-            (!this.isInIFrame && !this.isEmbeddedInAnOwidPage) ||
+            (this.frameBounds.width > 940 &&
+                // don't use the panel if the grapher is embedded
+                !this.isInIFrame &&
+                !this.isEmbeddedInAnOwidPage) ||
             // unless we're in full-screen mode
             this.isInFullScreenMode
         )
