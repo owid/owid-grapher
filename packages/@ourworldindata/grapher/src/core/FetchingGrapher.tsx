@@ -6,10 +6,7 @@ import {
 import React from "react"
 import { Grapher } from "./Grapher.js"
 import { loadVariableDataAndMetadata } from "./loadVariable.js"
-import {
-    legacyToOwidTableAndDimensions,
-    legacyToOwidTableAndDimensionsWithMandatorySlug,
-} from "./LegacyToOwidTable.js"
+import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
 import { OwidTable } from "@ourworldindata/core-table"
 
 export interface FetchingGrapherProps {

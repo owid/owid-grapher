@@ -87,7 +87,7 @@ const obtainAvailableEntitiesForGrapherConfig = async (
 
     // Manually fetch data for grapher, so we can employ caching
     const variableIds = uniq(grapher.dimensions.map((d) => d.variableId))
-    const variableData: MultipleOwidVariableDataDimensionsMap = new Map(
+    const _variableData: MultipleOwidVariableDataDimensionsMap = new Map(
         await pMap(variableIds, async (variableId) => [
             variableId,
             await getVariableDataUsingCache(variableId),

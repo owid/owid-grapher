@@ -19,11 +19,9 @@ import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import StickyNav from "./blocks/StickyNav.js"
 import {
     ADMIN_BASE_URL,
-    BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     DATA_API_URL,
 } from "../settings/clientSettings.js"
-import Image from "./gdocs/components/Image.js"
 import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
