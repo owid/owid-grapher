@@ -26,6 +26,7 @@ import util from "util"
 import { getHeapStatistics } from "v8"
 import { queryStringsByChartType } from "./chart-configurations.js"
 import * as d3 from "d3"
+import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "@ourworldindata/grapher"
 
 // the owid-grapher-svgs repo is usually cloned as a sibling to the owid-grapher repo
 export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/configs"
@@ -419,7 +420,11 @@ export async function renderSvg(
         { shouldHashQueryStr: false, separator: "?" }
     )
 
-    // grapher.receiveOwidData(configAndData.variableData)
+    grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        configAndData.variableData,
+        configAndData.config.dimensions!,
+        configAndData.config.selectedEntityColors
+    )
     const durationReceiveData = Date.now() - timeStart
 
     const svg = grapher.staticSVG
