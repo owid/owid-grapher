@@ -440,6 +440,33 @@ export const enrichedBlockExamples: Record<
                     },
                 ],
             },
+            {
+                title: "Key insight number 3",
+                type: "key-insight-slide",
+                narrativeChartName: "world-has-become-less-democratic",
+                content: [
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the first paragraph of the third insight.",
+                            },
+                        ],
+                    },
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the second paragraph of the third insight.",
+                            },
+                        ],
+                    },
+                ],
+            },
         ],
         parseErrors: [],
     },

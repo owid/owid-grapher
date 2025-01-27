@@ -562,6 +562,7 @@ function* rawKeyInsightsToArchieMLString(
             yield* propertyToArchieMLString("title", insight)
             yield* propertyToArchieMLString("filename", insight)
             yield* propertyToArchieMLString("url", insight)
+            yield* propertyToArchieMLString("narrativeChartName", insight)
             if (insight.content) {
                 yield "[.+content]"
                 for (const content of insight.content) {

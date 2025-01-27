@@ -491,6 +491,13 @@ export class GdocBase implements OwidGdocBaseInterface {
                             text: insight.title,
                         })
                         links.push(insightLink)
+                    } else if (insight.narrativeChartName) {
+                        const insightLink = createLinkForChartView({
+                            name: insight.narrativeChartName,
+                            source: this,
+                            componentType: block.type,
+                        })
+                        links.push(insightLink)
                     }
                 })
 
@@ -796,6 +803,9 @@ export class GdocBase implements OwidGdocBaseInterface {
         const chartIdsBySlug = await mapSlugsToIds(knex)
         const publishedExplorersBySlug =
             await db.getPublishedExplorersBySlug(knex)
+        const chartViewNames = await getChartViewsInfo(knex)
+            .then((cv) => cv.map((c) => c.name))
+            .then((chartViewNames) => new Set(chartViewNames))
 
         const linkErrors: OwidGdocErrorMessage[] = []
         for (const link of this.links) {
@@ -835,6 +845,16 @@ export class GdocBase implements OwidGdocBaseInterface {
                         linkErrors.push({
                             property: "content",
                             message: `Explorer chart with slug ${link.target} does not exist or is not published`,
+                            type: OwidGdocErrorMessageType.Error,
+                        })
+                    }
+                    break
+                }
+                case OwidGdocLinkType.ChartView: {
+                    if (!chartViewNames.has(link.target)) {
+                        linkErrors.push({
+                            property: "content",
+                            message: `Narrative chart with name ${link.target} does not exist`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }

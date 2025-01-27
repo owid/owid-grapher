@@ -598,6 +598,7 @@ export type RawBlockKeyInsightsSlide = {
     title?: string
     filename?: string
     url?: string
+    narrativeChartName?: string
     content?: OwidRawGdocBlock[]
 }
 
@@ -614,6 +615,7 @@ export type EnrichedBlockKeyInsightsSlide = {
     title: string
     filename?: string
     url?: string
+    narrativeChartName?: string
     content: OwidEnrichedGdocBlock[]
 }
 
