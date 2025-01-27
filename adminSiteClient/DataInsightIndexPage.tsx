@@ -336,7 +336,13 @@ function DataInsightList({
 
     const columns = useMemo(() => createColumns({ highlightFn }), [highlightFn])
 
-    return <Table columns={columns} dataSource={dataInsights} />
+    return (
+        <Table
+            columns={columns}
+            dataSource={dataInsights}
+            rowKey={(dataInsight) => dataInsight.id}
+        />
+    )
 }
 
 function DataInsightGallery({
