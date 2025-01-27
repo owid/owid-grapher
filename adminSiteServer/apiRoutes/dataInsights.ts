@@ -22,6 +22,7 @@ import { getTimeDomainFromQueryString } from "@ourworldindata/utils"
 type DataInsightRow = DbRawPostGdoc &
     OwidGdocDataInsightIndexItem["image"] & {
         chartConfig?: DbRawChartConfig["full"]
+        narrativeChartId?: number
     }
 
 export async function getAllDataInsightIndexItems(
@@ -51,6 +52,7 @@ async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
         )
         SELECT
             pg.*,
+            cw.id AS narrativeChartId,
             -- prefer narrative charts over grapher URLs
             COALESCE(cc_narrativeView.chartConfig, cc_grapherUrl.chartConfig) AS chartConfig,
             -- only works for data insights where the image block comes first
@@ -91,6 +93,7 @@ async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
             chartConfig: gdoc.chartConfig
                 ? parseChartConfig(gdoc.chartConfig)
                 : undefined,
+            narrativeChartId: gdoc.narrativeChartId,
         })
     )
 }
@@ -99,10 +102,12 @@ function extractDataInsightIndexItem({
     gdoc,
     imageMetadata,
     chartConfig,
+    narrativeChartId,
 }: {
     gdoc: OwidGdocDataInsightInterface
     imageMetadata?: OwidGdocDataInsightIndexItem["image"]
     chartConfig?: GrapherInterface
+    narrativeChartId?: number
 }): OwidGdocDataInsightIndexItem {
     const grapherUrl = gdoc.content["grapher-url"]?.trim()
     const isGrapherUrl = grapherUrl?.startsWith(
@@ -126,6 +131,7 @@ function extractDataInsightIndexItem({
         "grapher-url": isGrapherUrl ? grapherUrl : undefined,
         "explorer-url": isExplorerUrl ? grapherUrl : undefined,
         "figma-url": gdoc.content["figma-url"],
+        narrativeChartId: narrativeChartId,
         chartType: detectChartType(gdoc, chartConfig),
         image: imageMetadata,
     }
