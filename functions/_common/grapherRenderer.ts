@@ -1,6 +1,6 @@
 import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
 import { TimeLogger } from "./timeLogger.js"
-import { png, StatusError } from "itty-router"
+import { png } from "itty-router"
 
 import svg2png_wasm from "../../node_modules/svg2png-wasm/svg2png_wasm_bg.wasm"
 
@@ -11,8 +11,7 @@ import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
 import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "./env.js"
 import { ImageOptions, extractOptions } from "./imageOptions.js"
-import { GrapherIdentifier, initGrapher, MultiDimSlug } from "./grapherTools.js"
-import { Grapher } from "@ourworldindata/grapher"
+import { GrapherIdentifier, initGrapher } from "./grapherTools.js"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -63,27 +62,7 @@ async function fetchAndRenderGrapherToSvg(
     env: Env
 ) {
     const grapherLogger = new TimeLogger("grapher")
-    let grapher: Grapher
-    try {
-        grapher = await initGrapher(identifier, options, searchParams, env)
-    } catch (e) {
-        if (
-            identifier.type === "slug" &&
-            e instanceof StatusError &&
-            e.status === 404
-        ) {
-            // Normal graphers and multi-dims have the same URL namespace, but
-            // we have no way of knowing which of them was requested, so we try
-            // again with a multi-dim identifier.
-            const multiDimId: MultiDimSlug = {
-                type: "multi-dim-slug",
-                id: identifier.id,
-            }
-            grapher = await initGrapher(multiDimId, options, searchParams, env)
-        } else {
-            throw e
-        }
-    }
+    const grapher = await initGrapher(identifier, options, searchParams, env)
 
     grapherLogger.log("initGrapher")
     const promises = []
