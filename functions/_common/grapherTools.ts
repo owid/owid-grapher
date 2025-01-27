@@ -16,6 +16,7 @@ import { ImageOptions } from "./imageOptions.js"
 
 interface FetchGrapherConfigResult {
     grapherConfig: GrapherInterface | null
+    multiDimDimensions?: string[]
     status: number
     etag: string | undefined
 }
@@ -139,28 +140,39 @@ export async function fetchGrapherConfig({
 
     const config = await fetchResponse.json()
     let grapherConfig: GrapherInterface
+    let multiDimDimensions: string[]
     if (identifier.type === "multi-dim-slug") {
+        const multiDimConfig = config as MultiDimDataPageConfigEnriched
         grapherConfig = await fetchMultiDimGrapherConfig(
-            config as MultiDimDataPageConfigEnriched,
+            multiDimConfig,
             searchParams,
             env
         )
+        multiDimDimensions = multiDimConfig.dimensions.map((dim) => dim.slug)
     } else {
         grapherConfig = config
     }
     console.log("grapher title", grapherConfig.title)
-    return {
+    const result: FetchGrapherConfigResult = {
         grapherConfig,
         status: 200,
         etag: fetchResponse.headers.get("etag"),
     }
+    if (identifier.type === "multi-dim-slug") {
+        result.multiDimDimensions = multiDimDimensions
+    }
+    return result
 }
+
 export async function initGrapher(
     identifier: GrapherIdentifier,
     options: ImageOptions,
     searchParams: URLSearchParams,
     env: Env
-): Promise<Grapher> {
+): Promise<{
+    grapher: Grapher
+    multiDimDimensions?: string[]
+}> {
     let grapherConfigResponse: FetchGrapherConfigResult
     try {
         grapherConfigResponse = await fetchGrapherConfig({
@@ -211,7 +223,10 @@ export async function initGrapher(
     grapher.isExportingToSvgOrPng = true
     grapher.shouldIncludeDetailsInStaticExport = options.details
 
-    return grapher
+    return {
+        grapher,
+        multiDimDimensions: grapherConfigResponse.multiDimDimensions,
+    }
 }
 
 /**

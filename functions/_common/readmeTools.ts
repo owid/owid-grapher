@@ -230,10 +230,13 @@ function* columnReadmeText(col: CoreColumn) {
     yield ""
 }
 
-function* activeFilterSettings(searchParams: URLSearchParams) {
+function* activeFilterSettings(
+    searchParams: URLSearchParams,
+    multiDimDimensions?: string[]
+) {
     // NOTE: this is filtered by whitelisted grapher query params - if you want other params to be
-    //       inlucded here (e.g. MDIM selection), add them to the whitelist inside getGrapherFilters
-    const filterSettings = getGrapherFilters(searchParams)
+    //       inlucded here, add them to the whitelist inside getGrapherFilters
+    const filterSettings = getGrapherFilters(searchParams, multiDimDimensions)
     if (filterSettings) {
         yield ""
         yield `### Active Filters`
@@ -251,7 +254,8 @@ function* activeFilterSettings(searchParams: URLSearchParams) {
 export function constructReadme(
     grapher: Grapher,
     columns: CoreColumn[],
-    searchParams: URLSearchParams
+    searchParams: URLSearchParams,
+    multiDimDimensions?: string[]
 ): string {
     const isSingleColumn = columns.length === 1
     // Some computed columns have neither a source nor origins - filter these away
@@ -265,10 +269,10 @@ export function constructReadme(
 
     const downloadDate = formatDate(new Date()) // formats the date as "October 10, 2024"
     if (isSingleColumn)
-        readme = `# ${grapher.title} - Data package
+        readme = `# ${grapher.displayTitle} - Data package
 
-This data package contains the data that powers the chart ["${grapher.title}"](${urlWithFilters}) on the Our World in Data website. It was downloaded on ${downloadDate}.
-${[...activeFilterSettings(searchParams)].join("\n")}
+This data package contains the data that powers the chart ["${grapher.displayTitle}"](${urlWithFilters}) on the Our World in Data website. It was downloaded on ${downloadDate}.
+${[...activeFilterSettings(searchParams, multiDimDimensions)].join("\n")}
 ## CSV Structure
 
 The high level structure of the CSV file is that each row is an observation for an entity (usually a country or region) and a timepoint (usually a year).
@@ -293,9 +297,9 @@ ${sources.join("\n")}
 
     `
     else
-        readme = `# ${grapher.title} - Data package
+        readme = `# ${grapher.displayTitle} - Data package
 
-This data package contains the data that powers the chart ["${grapher.title}"](${urlWithFilters}) on the Our World in Data website.
+This data package contains the data that powers the chart ["${grapher.displayTitle}"](${urlWithFilters}) on the Our World in Data website.
 
 ## CSV Structure
 

@@ -2,7 +2,8 @@ import { pick } from "@ourworldindata/utils"
 import { GRAPHER_QUERY_PARAM_KEYS } from "@ourworldindata/types"
 
 export function getGrapherFilters(
-    searchParams: URLSearchParams
+    searchParams: URLSearchParams,
+    multiDimDimensions?: string[]
 ): Record<string, string> | undefined {
     const params = searchParams.size
         ? Object.fromEntries(searchParams)
@@ -12,5 +13,8 @@ export function getGrapherFilters(
     delete params.v1
     delete params.csvType
     delete params.useColumnShortNames
-    return pick(params, GRAPHER_QUERY_PARAM_KEYS)
+    return pick(params, [
+        ...GRAPHER_QUERY_PARAM_KEYS,
+        ...(multiDimDimensions ?? []),
+    ])
 }
