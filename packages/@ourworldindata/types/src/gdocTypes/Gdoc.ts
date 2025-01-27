@@ -19,6 +19,7 @@ import { MinimalTag } from "../dbTypes/Tags.js"
 import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 import { QueryParams } from "../domainTypes/Various.js"
 import { DbRawImage } from "../dbTypes/Images.js"
+import { DbPlainChartView } from "../dbTypes/ChartViews.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -168,7 +169,8 @@ export interface OwidGdocDataInsightContent {
 export type OwidGdocDataInsightIndexItem = Pick<
     OwidGdocBaseInterface,
     "id" | "slug" | "tags" | "published" | "publishedAt" | "markdown"
-> & { "explorer-url"?: string } & Pick<
+> &
+    Pick<
         OwidGdocDataInsightContent,
         | "title"
         | "authors"
@@ -179,6 +181,7 @@ export type OwidGdocDataInsightIndexItem = Pick<
     > & {
         "explorer-url"?: string
         chartType?: GrapherChartOrMapType
+        narrativeChartId?: number
         image?: Pick<
             DbRawImage,
             "cloudflareId" | "filename" | "originalWidth" | "originalHeight"

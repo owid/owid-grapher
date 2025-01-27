@@ -142,15 +142,6 @@ function createColumns(ctx: {
                     >
                         Preview
                     </Button>
-                    {dataInsight["narrative-chart"] && (
-                        <Button
-                            href={dataInsight["narrative-chart"]}
-                            target="_blank"
-                            icon={linkIcon}
-                        >
-                            Narrative chart
-                        </Button>
-                    )}
                     {dataInsight["grapher-url"] && (
                         <Button
                             href={dataInsight["grapher-url"]}
@@ -185,13 +176,26 @@ function createColumns(ctx: {
             title: "Actions",
             key: "actions",
             render: (_, dataInsight) => (
-                <Button
-                    type="primary"
-                    href={makeGDocEditLink(dataInsight)}
-                    icon={editIcon}
-                >
-                    Edit GDoc
-                </Button>
+                <Space size="small" direction="vertical">
+                    <Button
+                        type="primary"
+                        target="_blank"
+                        href={makeGDocEditLink(dataInsight)}
+                        icon={editIcon}
+                    >
+                        Edit GDoc
+                    </Button>
+                    {dataInsight["narrative-chart"] && (
+                        <Button
+                            type="primary"
+                            href={makeNarrativeChartEditLink(dataInsight)}
+                            target="_blank"
+                            icon={editIcon}
+                        >
+                            Edit narrative chart
+                        </Button>
+                    )}
+                </Space>
             ),
         },
     ]
@@ -410,6 +414,10 @@ function makePreviewLink(dataInsight: OwidGdocDataInsightIndexItem) {
 
 function makeGDocEditLink(dataInsight: OwidGdocDataInsightIndexItem) {
     return `https://docs.google.com/document/d/${dataInsight.id}/edit`
+}
+
+function makeNarrativeChartEditLink(dataInsight: OwidGdocDataInsightIndexItem) {
+    return `/admin/chartViews/${dataInsight.narrativeChartId}/edit`
 }
 
 function makePreviewImageSrc(dataInsight: OwidGdocDataInsightIndexItem) {
