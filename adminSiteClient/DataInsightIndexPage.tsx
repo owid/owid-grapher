@@ -364,8 +364,8 @@ function DataInsightCard({
         <img
             src={makePreviewImageSrc(dataInsight)}
             style={{
-                width: 300,
-                height: 300,
+                width: 265,
+                height: 265,
                 border: "1px solid #f0f0f0",
             }}
         />
