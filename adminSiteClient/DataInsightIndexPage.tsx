@@ -268,16 +268,10 @@ export function DataInsightIndexPage() {
                     <Select
                         value={publicationFilter}
                         options={[
-                            { value: "all", label: <span>All</span> },
-                            { value: "draft", label: <span>Drafts</span> },
-                            {
-                                value: "published",
-                                label: <span>Published</span>,
-                            },
-                            {
-                                value: "scheduled",
-                                label: <span>Scheduled</span>,
-                            },
+                            { value: "all", label: "All" },
+                            { value: "draft", label: "Drafts" },
+                            { value: "published", label: "Published" },
+                            { value: "scheduled", label: "Scheduled" },
                         ]}
                         onChange={(value: PublicationFilter) =>
                             setPublicationFilter(value)
