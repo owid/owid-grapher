@@ -1,6 +1,16 @@
 import { useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
-import { Button, Flex, Input, Select, Space, Table, Tag } from "antd"
+import {
+    Button,
+    Card,
+    Flex,
+    Input,
+    Radio,
+    Select,
+    Space,
+    Table,
+    Tag,
+} from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPen, faUpRightFromSquare } from "@fortawesome/free-solid-svg-icons"
 import { faFigma } from "@fortawesome/free-brands-svg-icons"
@@ -12,6 +22,7 @@ import {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     highlightFunctionForSearchWords,
+    SearchWord,
 } from "../adminShared/search.js"
 import { GdocsStoreContext } from "./GdocsStoreContext.js"
 import { DbPlainTag, OwidGdocDataInsightIndexItem } from "@ourworldindata/types"
@@ -19,8 +30,10 @@ import { dayjs, startCase } from "@ourworldindata/utils"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 
 type PublicationFilter = "all" | "published" | "scheduled" | "draft"
+type Layout = "list" | "gallery"
 
 const DEFAULT_PUBLICATION_FILTER: PublicationFilter = "all"
+const DEFAULT_LAYOUT: Layout = "list"
 
 const editIcon = <FontAwesomeIcon icon={faPen} size="sm" />
 const linkIcon = <FontAwesomeIcon icon={faUpRightFromSquare} size="sm" />
@@ -38,7 +51,7 @@ function createColumns(ctx: {
             render: (_, dataInsight) =>
                 dataInsight.image?.cloudflareId ? (
                     <img
-                        src={`${CLOUDFLARE_IMAGES_URL}/${dataInsight.image.cloudflareId}/w=${dataInsight.image.originalWidth}`}
+                        src={makePreviewImageSrc(dataInsight)}
                         style={{ maxWidth: 150 }}
                     />
                 ) : undefined,
@@ -123,7 +136,7 @@ function createColumns(ctx: {
             render: (_, dataInsight) => (
                 <Space size="small" direction="vertical">
                     <Button
-                        href={`/admin/gdocs/${dataInsight.id}/preview`}
+                        href={makePreviewLink(dataInsight)}
                         target="_blank"
                         icon={linkIcon}
                     >
@@ -174,7 +187,7 @@ function createColumns(ctx: {
             render: (_, dataInsight) => (
                 <Button
                     type="primary"
-                    href={`https://docs.google.com/document/d/${dataInsight.id}/edit`}
+                    href={makeGDocEditLink(dataInsight)}
                     icon={editIcon}
                 >
                     Edit GDoc
@@ -192,6 +205,7 @@ export function DataInsightIndexPage() {
     const [searchValue, setSearchValue] = useState("")
     const [publicationFilter, setPublicationFilter] =
         useState<PublicationFilter>(DEFAULT_PUBLICATION_FILTER)
+    const [layout, setLayout] = useState<Layout>(DEFAULT_LAYOUT)
 
     const searchWords = useMemo(
         () => buildSearchWordsFromSearchString(searchValue),
@@ -234,13 +248,6 @@ export function DataInsightIndexPage() {
         return dataInsights.filter(publicationFilterFn).filter(searchFilterFn)
     }, [dataInsights, publicationFilter, searchWords])
 
-    const highlightFn = useMemo(
-        () => highlightFunctionForSearchWords(searchWords),
-        [searchWords]
-    )
-
-    const columns = useMemo(() => createColumns({ highlightFn }), [highlightFn])
-
     useEffect(() => {
         const fetchAllDataInsights = async () =>
             (await context?.admin.getJSON(
@@ -255,41 +262,157 @@ export function DataInsightIndexPage() {
     return (
         <AdminLayout title="Data insights">
             <main className="DataInsightIndexPage">
-                <Flex gap="small">
-                    <Input
-                        placeholder="Search"
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Escape") setSearchValue("")
-                        }}
-                        style={{ width: 500, marginBottom: 20 }}
-                    />
-                    <Select
-                        value={publicationFilter}
-                        options={[
-                            { value: "all", label: "All" },
-                            { value: "draft", label: "Drafts" },
-                            { value: "published", label: "Published" },
-                            { value: "scheduled", label: "Scheduled" },
-                        ]}
-                        onChange={(value: PublicationFilter) =>
-                            setPublicationFilter(value)
-                        }
-                        popupMatchSelectWidth={false}
-                    />
-                    <Button
-                        type="dashed"
-                        onClick={() => {
-                            setSearchValue("")
-                            setPublicationFilter(DEFAULT_PUBLICATION_FILTER)
-                        }}
+                <Flex justify="space-between">
+                    <Flex gap="small">
+                        <Input
+                            placeholder="Search"
+                            value={searchValue}
+                            onChange={(e) => setSearchValue(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Escape") setSearchValue("")
+                            }}
+                            style={{ width: 500, marginBottom: 20 }}
+                        />
+                        <Select
+                            value={publicationFilter}
+                            options={[
+                                { value: "all", label: "All" },
+                                { value: "draft", label: "Drafts" },
+                                { value: "published", label: "Published" },
+                                { value: "scheduled", label: "Scheduled" },
+                            ]}
+                            onChange={(value: PublicationFilter) =>
+                                setPublicationFilter(value)
+                            }
+                            popupMatchSelectWidth={false}
+                        />
+                        <Button
+                            type="dashed"
+                            onClick={() => {
+                                setSearchValue("")
+                                setPublicationFilter(DEFAULT_PUBLICATION_FILTER)
+                            }}
+                        >
+                            Reset
+                        </Button>
+                    </Flex>
+                    <Radio.Group
+                        defaultValue="list"
+                        onChange={(e) => setLayout(e.target.value)}
                     >
-                        Reset
-                    </Button>
+                        <Radio.Button value="list">List</Radio.Button>
+                        <Radio.Button value="gallery">Gallery</Radio.Button>
+                    </Radio.Group>
                 </Flex>
-                <Table columns={columns} dataSource={filteredDataInsights} />
+                {layout === "list" && (
+                    <DataInsightList
+                        dataInsights={filteredDataInsights}
+                        searchWords={searchWords}
+                    />
+                )}
+                {layout === "gallery" && (
+                    <DataInsightGallery dataInsights={filteredDataInsights} />
+                )}
             </main>
         </AdminLayout>
     )
+}
+
+function DataInsightList({
+    dataInsights,
+    searchWords,
+}: {
+    dataInsights: OwidGdocDataInsightIndexItem[]
+    searchWords: SearchWord[]
+}) {
+    const highlightFn = useMemo(
+        () => highlightFunctionForSearchWords(searchWords),
+        [searchWords]
+    )
+
+    const columns = useMemo(() => createColumns({ highlightFn }), [highlightFn])
+
+    return <Table columns={columns} dataSource={dataInsights} />
+}
+
+function DataInsightGallery({
+    dataInsights,
+}: {
+    dataInsights: OwidGdocDataInsightIndexItem[]
+}) {
+    const dataInsightsWithPreview = dataInsights.filter(
+        (dataInsight) => dataInsight.image?.cloudflareId
+    )
+    return (
+        <Flex wrap gap="large">
+            {dataInsightsWithPreview.map((dataInsight, index) => (
+                <DataInsightCard
+                    key={`${dataInsight.id}-${index}`}
+                    dataInsight={dataInsight}
+                />
+            ))}
+        </Flex>
+    )
+}
+
+function DataInsightCard({
+    dataInsight,
+}: {
+    dataInsight: OwidGdocDataInsightIndexItem
+}) {
+    const preview = (
+        <img
+            src={makePreviewImageSrc(dataInsight)}
+            style={{
+                width: 300,
+                height: 300,
+                border: "1px solid #f0f0f0",
+            }}
+        />
+    )
+
+    return (
+        <Card key={dataInsight.id} cover={preview}>
+            <a
+                href={makePreviewLink(dataInsight)}
+                target="_blank"
+                rel="noreferrer noopener"
+            >
+                Preview
+            </a>
+            {" / "}
+            <a
+                href={makeGDocEditLink(dataInsight)}
+                target="_blank"
+                rel="noreferrer noopener"
+            >
+                GDoc
+            </a>
+            {dataInsight["figma-url"] && (
+                <>
+                    {" / "}
+                    <a
+                        href={dataInsight["figma-url"]}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                    >
+                        Figma
+                    </a>
+                </>
+            )}
+        </Card>
+    )
+}
+
+function makePreviewLink(dataInsight: OwidGdocDataInsightIndexItem) {
+    return `/admin/gdocs/${dataInsight.id}/preview`
+}
+
+function makeGDocEditLink(dataInsight: OwidGdocDataInsightIndexItem) {
+    return `https://docs.google.com/document/d/${dataInsight.id}/edit`
+}
+
+function makePreviewImageSrc(dataInsight: OwidGdocDataInsightIndexItem) {
+    const { cloudflareId, originalWidth } = dataInsight.image ?? {}
+    return `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=${originalWidth}`
 }
