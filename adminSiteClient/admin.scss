@@ -740,7 +740,8 @@ $nav-height: 45px;
 }
 
 .errorMessage {
-    z-index: 2000;
+    // 1 above .ant-modal-mask
+    z-index: 2001;
     .modal-dialog {
         max-width: 80%;
     }

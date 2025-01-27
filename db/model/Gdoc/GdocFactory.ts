@@ -661,7 +661,7 @@ export async function getAllGdocIndexItemsOrderedByUpdatedAt(
     )
 }
 
-export async function addImagesToContentGraph(
+export async function setImagesInContentGraph(
     trx: KnexReadWriteTransaction,
     gdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAbout | GdocAuthor
 ): Promise<void> {
