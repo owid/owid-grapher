@@ -38,29 +38,36 @@ async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
     const dataInsights = await db.knexRaw<DataInsightRow>(
         knex,
         `-- sql
-        WITH latestImages AS (
+        WITH latest_images AS (
             SELECT filename, cloudflareId, originalWidth, originalHeight
             FROM images
             WHERE replacedBy IS NULL
+        ),
+        published_charts AS (
+            SELECT cc.id, cc.slug, cc.full as chartConfig
+            FROM chart_configs cc
+            JOIN charts c ON c.configId = cc.id
+            WHERE cc.full ->> '$.isPublished' = 'true'
         )
         SELECT
             pg.*,
-            COALESCE(cc_narrativeView.full, cc_grapherUrl.full) AS chartConfig,
-            -- only works if the image block comes first, but that's usually the case for data insights
+            -- prefer narrative charts over grapher URLs
+            COALESCE(cc_narrativeView.chartConfig, cc_grapherUrl.chartConfig) AS chartConfig,
+            -- only works for data insights where the image block comes first
             COALESCE(pg.content ->> '$.body[0].smallFilename', pg.content ->> '$.body[0].filename') AS filename,
             i.cloudflareId,
             i.originalWidth,
             i.originalHeight
         FROM posts_gdocs pg
-        -- extract slugs from URLs of the format /grapher/slug
-        LEFT JOIN chart_configs cc_grapherUrl
+        -- extract the slug from the given Grapher URL and join by it
+        LEFT JOIN published_charts cc_grapherUrl
             ON cc_grapherUrl.slug = SUBSTRING_INDEX(SUBSTRING_INDEX(content ->> '$."grapher-url"', '/grapher/', -1), '\\?', 1)
         LEFT JOIN chart_views cw
             ON cw.name = content ->> '$."narrative-chart"'
-        LEFT JOIN chart_configs cc_narrativeView
+        LEFT JOIN published_charts cc_narrativeView
             ON cc_narrativeView.id = cw.chartConfigId
-        -- only works if the image block comes first, but that's usually the case for data insights
-        LEFT JOIN latestImages i
+        -- only works for data insights where the image block comes first
+        LEFT JOIN latest_images i
             ON i.filename = COALESCE(pg.content ->> '$.body[0].smallFilename', pg.content ->> '$.body[0].filename')
         WHERE pg.type = 'data-insight'
         ORDER BY pg.updatedAt DESC;`
