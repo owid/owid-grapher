@@ -56,7 +56,7 @@ async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
         LEFT JOIN chart_configs cc_grapherUrl
             ON cc_grapherUrl.slug = SUBSTRING_INDEX(SUBSTRING_INDEX(content ->> '$."grapher-url"', '/grapher/', -1), '\\?', 1)
         LEFT JOIN chart_views cw
-            ON cw.name = content ->> '$."narrative-view"'
+            ON cw.name = content ->> '$."narrative-chart"'
         LEFT JOIN chart_configs cc_narrativeView
             ON cc_narrativeView.id = cw.chartConfigId
         -- only works if the image block comes first, but that's usually the case for data insights
@@ -115,7 +115,7 @@ function extractDataInsightIndexItem({
         authors: gdoc.content.authors,
         markdown: gdoc.markdown,
         "approved-by": gdoc.content["approved-by"],
-        "narrative-view": gdoc.content["narrative-view"],
+        "narrative-chart": gdoc.content["narrative-chart"],
         "grapher-url": isGrapherUrl ? grapherUrl : undefined,
         "explorer-url": isExplorerUrl ? grapherUrl : undefined,
         "figma-url": gdoc.content["figma-url"],
@@ -130,7 +130,7 @@ function detectChartType(
 ): GrapherChartOrMapType | undefined {
     if (!chartConfig) return undefined
 
-    if (gdoc.content["narrative-view"])
+    if (gdoc.content["narrative-chart"])
         return getChartTypeFromConfig(chartConfig)
 
     if (gdoc.content["grapher-url"]) {

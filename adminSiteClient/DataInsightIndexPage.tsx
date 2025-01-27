@@ -121,9 +121,9 @@ function createColumns(ctx: {
                     >
                         Preview
                     </Button>
-                    {dataInsight["narrative-view"] && (
+                    {dataInsight["narrative-chart"] && (
                         <Button
-                            href={dataInsight["narrative-view"]}
+                            href={dataInsight["narrative-chart"]}
                             target="_blank"
                         >
                             Narrative chart

@@ -172,7 +172,7 @@ export type OwidGdocDataInsightIndexItem = Pick<
         OwidGdocDataInsightContent,
         | "title"
         | "authors"
-        | "narrative-view"
+        | "narrative-chart"
         | "grapher-url"
         | "figma-url"
         | "approved-by"
