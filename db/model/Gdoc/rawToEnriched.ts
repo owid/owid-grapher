@@ -1607,12 +1607,12 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
                     "Key insight is missing a url, filename or narrativeChartName. One of these two fields must be specified.",
             })
         }
-        if (
+        const hasMoreThanOneResourceField =
             Number(!!rawInsight.url) +
                 Number(!!rawInsight.filename) +
                 Number(!!rawInsight.narrativeChartName) >
             1
-        ) {
+        if (hasMoreThanOneResourceField) {
             parseErrors.push({
                 message:
                     "Key insight has more than just one of the fields url, filename, narrativeChartName. Only one of these fields can be specified.",
