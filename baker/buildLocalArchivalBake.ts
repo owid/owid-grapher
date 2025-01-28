@@ -22,7 +22,10 @@ const bakeDomainToFolder = async (
     await fs.mkdirp(dir)
     await fs.mkdirp(path.join(dir, "grapher"))
 
-    const assetMap = {}
+    const assetMap = {
+        "owid.mjs": "yeah_this_worked.mjs",
+        "owid.css": "yeah_this_worked.css",
+    }
     const baker = new SiteBaker(dir, baseUrl, bakeSteps, assetMap)
 
     console.log(`Baking site locally with baseUrl '${baseUrl}' to dir '${dir}'`)
@@ -34,12 +37,10 @@ const bakeDomainToFolder = async (
             keyBy(images, "filename")
         )
         const chart = await getChartConfigBySlug(trx, SLUG)
-        await bakeSingleGrapherPageForArchival(
-            dir,
+        await bakeSingleGrapherPageForArchival(dir, chart.config, trx, {
             imageMetadataDictionary,
-            chart.config,
-            trx
-        )
+            assetMap,
+        })
     }, db.TransactionCloseMode.Close)
 }
 
