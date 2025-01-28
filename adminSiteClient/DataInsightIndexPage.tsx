@@ -12,7 +12,11 @@ import {
     Tag,
 } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faPen, faUpRightFromSquare } from "@fortawesome/free-solid-svg-icons"
+import {
+    faCopy,
+    faPen,
+    faUpRightFromSquare,
+} from "@fortawesome/free-solid-svg-icons"
 import { faFigma } from "@fortawesome/free-brands-svg-icons"
 
 import { AdminLayout } from "./AdminLayout.js"
@@ -25,7 +29,12 @@ import {
     SearchWord,
 } from "../adminShared/search.js"
 import { DbPlainTag, OwidGdocDataInsightIndexItem } from "@ourworldindata/types"
-import { dayjs, RequiredBy, startCase } from "@ourworldindata/utils"
+import {
+    copyToClipboard,
+    dayjs,
+    RequiredBy,
+    startCase,
+} from "@ourworldindata/utils"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 
@@ -38,6 +47,7 @@ const DEFAULT_LAYOUT: Layout = "list"
 const editIcon = <FontAwesomeIcon icon={faPen} size="sm" />
 const linkIcon = <FontAwesomeIcon icon={faUpRightFromSquare} size="sm" />
 const figmaIcon = <FontAwesomeIcon icon={faFigma} size="sm" />
+const copyIcon = <FontAwesomeIcon icon={faCopy} size="sm" />
 
 function createColumns(ctx: {
     highlightFn: (
@@ -50,10 +60,22 @@ function createColumns(ctx: {
             key: "preview",
             render: (_, dataInsight) =>
                 hasImage(dataInsight) ? (
-                    <img
-                        src={makePreviewImageSrc(dataInsight)}
-                        style={{ maxWidth: 150 }}
-                    />
+                    <>
+                        <img
+                            src={makePreviewImageSrc(dataInsight)}
+                            style={{ maxWidth: 150 }}
+                        />
+                        <Button
+                            type="text"
+                            size="small"
+                            icon={copyIcon}
+                            onClick={() =>
+                                copyToClipboard(dataInsight.image.filename)
+                            }
+                        >
+                            Copy filename
+                        </Button>
+                    </>
                 ) : undefined,
         },
         {
