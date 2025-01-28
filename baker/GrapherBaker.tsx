@@ -33,6 +33,7 @@ import {
     DbPlainChart,
     DbRawChartConfig,
     DbEnrichedImage,
+    AssetMap,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -58,7 +59,13 @@ const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
     isPreviewing: boolean,
     knex: db.KnexReadonlyTransaction,
-    imageMetadataDictionary?: Record<string, DbEnrichedImage>
+    {
+        imageMetadataDictionary,
+        assetMap,
+    }: {
+        imageMetadataDictionary?: Record<string, DbEnrichedImage>
+        assetMap?: AssetMap
+    } = {}
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
 
@@ -81,6 +88,7 @@ const renderDatapageIfApplicable = async (
             useIndicatorGrapherConfigs: false,
             pageGrapher: grapher,
             imageMetadataDictionary,
+            assetMap,
         },
         knex
     )
@@ -94,14 +102,18 @@ const renderDatapageIfApplicable = async (
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     knex: db.KnexReadonlyTransaction,
-    imageMetadataDictionary?: Record<string, DbEnrichedImage>
+    {
+        imageMetadataDictionary,
+        assetMap,
+    }: {
+        imageMetadataDictionary?: Record<string, DbEnrichedImage>
+        assetMap?: AssetMap
+    } = {}
 ): Promise<string> => {
-    const datapage = await renderDatapageIfApplicable(
-        grapher,
-        false,
-        knex,
-        imageMetadataDictionary
-    )
+    const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
+        imageMetadataDictionary,
+        assetMap,
+    })
     if (datapage) return datapage
     return renderGrapherPage(grapher, knex)
 }
@@ -114,6 +126,7 @@ export async function renderDataPageV2(
         useIndicatorGrapherConfigs,
         pageGrapher,
         imageMetadataDictionary = {},
+        assetMap,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -121,6 +134,7 @@ export async function renderDataPageV2(
         useIndicatorGrapherConfigs: boolean
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
+        assetMap?: AssetMap
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -217,6 +231,7 @@ export async function renderDataPageV2(
             imageMetadata={imageMetadata}
             faqEntries={faqEntries}
             tagToSlugMap={tagToSlugMap}
+            assetMap={assetMap}
         />
     )
 }
@@ -264,18 +279,23 @@ const renderGrapherPage = async (
 
 export const bakeSingleGrapherPageForArchival = async (
     bakedSiteDir: string,
-    imageMetadataDictionary: Record<string, DbEnrichedImage>,
     grapher: GrapherInterface,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    {
+        imageMetadataDictionary,
+        assetMap,
+    }: {
+        imageMetadataDictionary?: Record<string, DbEnrichedImage>
+        assetMap?: AssetMap
+    } = {}
 ) => {
     const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     await fs.writeFile(
         outPath,
-        await renderDataPageOrGrapherPage(
-            grapher,
-            knex,
-            imageMetadataDictionary
-        )
+        await renderDataPageOrGrapherPage(grapher, knex, {
+            imageMetadataDictionary,
+            assetMap,
+        })
     )
     console.log(outPath)
 }
