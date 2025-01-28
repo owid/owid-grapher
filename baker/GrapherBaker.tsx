@@ -33,7 +33,7 @@ import {
     DbPlainChart,
     DbRawChartConfig,
     DbEnrichedImage,
-    AssetMap,
+    AssetMapEntry,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -61,10 +61,10 @@ const renderDatapageIfApplicable = async (
     knex: db.KnexReadonlyTransaction,
     {
         imageMetadataDictionary,
-        assetMap,
+        viteAssetMap,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        assetMap?: AssetMap
+        viteAssetMap?: AssetMapEntry
     } = {}
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
@@ -88,7 +88,7 @@ const renderDatapageIfApplicable = async (
             useIndicatorGrapherConfigs: false,
             pageGrapher: grapher,
             imageMetadataDictionary,
-            assetMap,
+            viteAssetMap,
         },
         knex
     )
@@ -104,15 +104,15 @@ export const renderDataPageOrGrapherPage = async (
     knex: db.KnexReadonlyTransaction,
     {
         imageMetadataDictionary,
-        assetMap,
+        viteAssetMap,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        assetMap?: AssetMap
+        viteAssetMap?: AssetMapEntry
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
         imageMetadataDictionary,
-        assetMap,
+        viteAssetMap,
     })
     if (datapage) return datapage
     return renderGrapherPage(grapher, knex)
@@ -126,7 +126,7 @@ export async function renderDataPageV2(
         useIndicatorGrapherConfigs,
         pageGrapher,
         imageMetadataDictionary = {},
-        assetMap,
+        viteAssetMap,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -134,7 +134,7 @@ export async function renderDataPageV2(
         useIndicatorGrapherConfigs: boolean
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
-        assetMap?: AssetMap
+        viteAssetMap?: AssetMapEntry
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -231,7 +231,7 @@ export async function renderDataPageV2(
             imageMetadata={imageMetadata}
             faqEntries={faqEntries}
             tagToSlugMap={tagToSlugMap}
-            assetMap={assetMap}
+            viteAssetMap={viteAssetMap}
         />
     )
 }
@@ -283,10 +283,10 @@ export const bakeSingleGrapherPageForArchival = async (
     knex: db.KnexReadonlyTransaction,
     {
         imageMetadataDictionary,
-        assetMap,
+        viteAssetMap,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        assetMap?: AssetMap
+        viteAssetMap?: AssetMapEntry
     } = {}
 ) => {
     const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
@@ -294,7 +294,7 @@ export const bakeSingleGrapherPageForArchival = async (
         outPath,
         await renderDataPageOrGrapherPage(grapher, knex, {
             imageMetadataDictionary,
-            assetMap,
+            viteAssetMap,
         })
     )
     console.log(outPath)

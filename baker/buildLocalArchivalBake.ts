@@ -12,40 +12,88 @@ import { getAllImages } from "../db/model/Image.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
 import findProjectBaseDir from "../settings/findBaseDir.js"
 import crypto from "crypto"
-import { AssetMap } from "@ourworldindata/types"
+import { AssetMapEntry } from "@ourworldindata/types"
+import { getVariableData } from "../db/model/Variable.js"
 
 const DIR = "archive"
 
 const HASH_LENGTH = 10
 
-const hashFile = async (file: string) => {
-    const buf = await fs.readFile(file)
-    const hash = crypto.createHash("sha256").update(buf).digest("hex")
+const projBaseDir = findProjectBaseDir(__dirname)
+if (!projBaseDir) throw new Error("Could not find project base directory")
+
+const hashContent = (strOrBuffer: string | Buffer) => {
+    const hash = crypto.createHash("sha256").update(strOrBuffer).digest("hex")
     return hash.substring(0, HASH_LENGTH)
 }
 
-const bakeAssets = async () => {
-    const projBaseDir = findProjectBaseDir(__dirname)
-    if (!projBaseDir) throw new Error("Could not find project base directory")
+const hashFile = async (file: string) => {
+    const buf = await fs.readFile(file)
+    return hashContent(buf)
+}
 
+const hashAndWriteFile = async (filename: string, content: string) => {
+    const hash = hashContent(content)
+    const targetFilename = filename.replace(/^(.*\/)?([^.]+\.)/, `$1$2${hash}.`)
+    console.log(`Writing ${targetFilename}`)
+    await fs.mkdirp(path.dirname(targetFilename))
+    await fs.writeFile(targetFilename, content)
+    return targetFilename
+}
+
+const hashAndCopyFile = async (srcFile: string, targetDir: string) => {
+    const hash = await hashFile(srcFile)
+    const targetFilename = path
+        .basename(srcFile)
+        .replace(/^(.*\/)?([^.]+\.)/, `$1$2${hash}.`)
+    const targetFile = path.join(targetDir, targetFilename)
+    console.log(`Copying ${srcFile} to ${targetFile}`)
+    await fs.copyFile(srcFile, targetFile)
+    return targetFilename
+}
+
+const bakeDods = async () => {
+    const srcFile = path.join(projBaseDir, "localBake/dods.json")
+    const targetDir = path.join(projBaseDir, DIR)
+
+    const newFilename = await hashAndCopyFile(srcFile, targetDir)
+    return { "dods.json": newFilename }
+}
+
+const bakeVariableDataFiles = async (variableId: number) => {
+    const { data, metadata } = await getVariableData(variableId)
+    const dataStringified = JSON.stringify(data)
+    const metadataStringified = JSON.stringify(metadata)
+
+    const dataFilename = `${variableId}.data.json`
+    const metadataFilename = `${variableId}.metadata.json`
+
+    return {
+        [dataFilename]: await hashAndWriteFile(
+            path.join(projBaseDir, DIR, "data/v1/indicators", dataFilename),
+            dataStringified
+        ),
+        [metadataFilename]: await hashAndWriteFile(
+            path.join(projBaseDir, DIR, "data/v1/indicators", metadataFilename),
+            metadataStringified
+        ),
+    }
+}
+
+const bakeAssets = async () => {
     const srcDir = path.join(projBaseDir, "dist/assets")
     const targetDir = path.join(projBaseDir, DIR, "assets")
 
     await fs.mkdirp(targetDir)
 
-    const assetMap: AssetMap = {}
+    const viteAssetMap: AssetMapEntry = {}
 
     for (const dirent of await fs.readdir(srcDir, { withFileTypes: true })) {
         if (!dirent.isFile()) continue
         const srcFile = path.join(srcDir, dirent.name)
-        const hash = await hashFile(srcFile)
-        const targetFilename = dirent.name.replace(/^([^.]+\.)/, `$1${hash}.`)
-        const targetFile = path.join(targetDir, targetFilename)
-        assetMap[dirent.name] = targetFilename
-        console.log(`Copying ${srcFile} to ${targetFile}`)
-        await fs.copyFile(srcFile, targetFile)
+        viteAssetMap[dirent.name] = await hashAndCopyFile(srcFile, targetDir)
     }
-    return { assetMap }
+    return { viteAssetMap }
 }
 
 const bakeDomainToFolder = async (
@@ -57,21 +105,34 @@ const bakeDomainToFolder = async (
     await fs.mkdirp(dir)
     await fs.mkdirp(path.join(dir, "grapher"))
 
-    const { assetMap } = await bakeAssets()
-    const baker = new SiteBaker(dir, baseUrl, bakeSteps, assetMap)
+    const { viteAssetMap } = await bakeAssets()
+    const baker = new SiteBaker(dir, baseUrl, bakeSteps, viteAssetMap)
 
     console.log(`Baking site locally with baseUrl '${baseUrl}' to dir '${dir}'`)
 
     const SLUG = "life-expectancy"
+
+    const commonRuntimeFiles = await bakeDods()
 
     await db.knexReadonlyTransaction(async (trx) => {
         const imageMetadataDictionary = await getAllImages(trx).then((images) =>
             keyBy(images, "filename")
         )
         const chart = await getChartConfigBySlug(trx, SLUG)
+
+        const runtimeFiles = { ...commonRuntimeFiles }
+
+        for (const dim of chart.config.dimensions ?? []) {
+            if (dim.variableId) {
+                const variableId = dim.variableId
+                const variableFiles = await bakeVariableDataFiles(variableId)
+                Object.assign(runtimeFiles, variableFiles)
+            }
+        }
+
         await bakeSingleGrapherPageForArchival(dir, chart.config, trx, {
             imageMetadataDictionary,
-            assetMap,
+            viteAssetMap,
         })
     }, db.TransactionCloseMode.Close)
 }

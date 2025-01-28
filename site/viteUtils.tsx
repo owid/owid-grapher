@@ -10,7 +10,7 @@ import { POLYFILL_URL } from "./SiteConstants.js"
 import type { Manifest, ManifestChunk } from "vite"
 import { sortBy } from "@ourworldindata/utils"
 import urljoin from "url-join"
-import { AssetMap } from "@ourworldindata/types"
+import { AssetMapEntry } from "@ourworldindata/types"
 
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 
@@ -99,7 +99,7 @@ export const createTagsForManifestEntry = (
     manifest: Manifest,
     entry: string,
     assetBaseUrl: string,
-    assetMap?: AssetMap
+    assetMap?: AssetMapEntry
 ): Assets => {
     const createTags = (entry: string): React.ReactElement[] => {
         const manifestEntry =
@@ -172,7 +172,7 @@ export const createTagsForManifestEntry = (
 const prodAssets = (
     entrypoint: ViteEntryPoint,
     baseUrl: string,
-    prodAssetMap?: AssetMap
+    prodAssetMap?: AssetMapEntry
 ): Assets => {
     const baseDir = findBaseDir(__dirname)
     const entrypointInfo = VITE_ENTRYPOINT_INFO[entrypoint]
@@ -210,15 +210,17 @@ const viteAssets = (
     {
         prodBaseUrl,
         prodAssetMap,
-    }: { prodBaseUrl?: string; prodAssetMap?: AssetMap } = {}
+    }: { prodBaseUrl?: string; prodAssetMap?: AssetMapEntry } = {}
 ) =>
     useProductionAssets
         ? prodAssets(entrypoint, prodBaseUrl ?? "", prodAssetMap)
         : devAssets(entrypoint, VITE_DEV_URL)
 
 export const viteAssetsForAdmin = () => viteAssets(ViteEntryPoint.Admin)
-export const viteAssetsForSite = ({ assetMap }: { assetMap?: AssetMap } = {}) =>
-    viteAssets(ViteEntryPoint.Site, { prodAssetMap: assetMap })
+export const viteAssetsForSite = ({
+    viteAssetMap,
+}: { viteAssetMap?: AssetMapEntry } = {}) =>
+    viteAssets(ViteEntryPoint.Site, { prodAssetMap: viteAssetMap })
 
 export const generateEmbedSnippet = () => {
     // Make sure we're using an absolute URL here, since we don't know in what context the embed snippet is used.
