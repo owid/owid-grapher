@@ -117,7 +117,7 @@ export async function putImageHandler(
     if (collision) {
         return {
             success: false,
-            error: `An exact copy of this image already exists (filename: ${collision.filename})`,
+            errorMessage: `An exact copy of this image already exists (filename: ${collision.filename})`,
         }
     }
 
