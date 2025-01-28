@@ -10,8 +10,43 @@ import { bakeSingleGrapherPageForArchival } from "./GrapherBaker.js"
 import { keyBy } from "lodash"
 import { getAllImages } from "../db/model/Image.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
+import findProjectBaseDir from "../settings/findBaseDir.js"
+import crypto from "crypto"
+import { AssetMap } from "@ourworldindata/types"
 
 const DIR = "archive"
+
+const HASH_LENGTH = 10
+
+const hashFile = async (file: string) => {
+    const buf = await fs.readFile(file)
+    const hash = crypto.createHash("sha256").update(buf).digest("hex")
+    return hash.substring(0, HASH_LENGTH)
+}
+
+const bakeAssets = async () => {
+    const projBaseDir = findProjectBaseDir(__dirname)
+    if (!projBaseDir) throw new Error("Could not find project base directory")
+
+    const srcDir = path.join(projBaseDir, "dist/assets")
+    const targetDir = path.join(projBaseDir, DIR, "assets")
+
+    await fs.mkdirp(targetDir)
+
+    const assetMap: AssetMap = {}
+
+    for (const dirent of await fs.readdir(srcDir, { withFileTypes: true })) {
+        if (!dirent.isFile()) continue
+        const srcFile = path.join(srcDir, dirent.name)
+        const hash = await hashFile(srcFile)
+        const targetFilename = dirent.name.replace(/^([^.]+\.)/, `$1${hash}.`)
+        const targetFile = path.join(targetDir, targetFilename)
+        assetMap[dirent.name] = targetFilename
+        console.log(`Copying ${srcFile} to ${targetFile}`)
+        await fs.copyFile(srcFile, targetFile)
+    }
+    return { assetMap }
+}
 
 const bakeDomainToFolder = async (
     baseUrl = "http://localhost:3000/",
@@ -22,10 +57,7 @@ const bakeDomainToFolder = async (
     await fs.mkdirp(dir)
     await fs.mkdirp(path.join(dir, "grapher"))
 
-    const assetMap = {
-        "owid.mjs": "yeah_this_worked.mjs",
-        "owid.css": "yeah_this_worked.css",
-    }
+    const { assetMap } = await bakeAssets()
     const baker = new SiteBaker(dir, baseUrl, bakeSteps, assetMap)
 
     console.log(`Baking site locally with baseUrl '${baseUrl}' to dir '${dir}'`)
