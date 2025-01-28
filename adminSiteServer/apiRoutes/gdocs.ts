@@ -33,7 +33,7 @@ import {
     updateGdocContentOnly,
     createOrLoadGdocById,
     gdocFromJSON,
-    addImagesToContentGraph,
+    setImagesInContentGraph,
     setLinksForGdoc,
     GdocLinkUpdateMode,
     upsertGdoc,
@@ -145,6 +145,20 @@ async function indexAndBakeGdocIfNeccesary(
         .exhaustive()
 }
 
+async function validateSlugCollisionsIfPublishing(
+    trx: db.KnexReadonlyTransaction,
+    gdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAbout | GdocAuthor
+) {
+    if (!gdoc.published) return
+
+    const hasSlugCollision = await db.checkIfSlugCollides(trx, gdoc)
+    if (hasSlugCollision) {
+        throw new JsonError(
+            `You are attempting to publish a Google Doc with a slug that already exists: "${gdoc.slug}"`
+        )
+    }
+}
+
 /**
  * Only supports creating a new empty Gdoc or updating an existing one. Does not
  * support creating a new Gdoc from an existing one. Relevant updates will
@@ -167,7 +181,9 @@ export async function createOrUpdateGdoc(
     const nextGdoc = gdocFromJSON(req.body)
     await nextGdoc.loadState(trx)
 
-    await addImagesToContentGraph(trx, nextGdoc)
+    await validateSlugCollisionsIfPublishing(trx, nextGdoc)
+
+    await setImagesInContentGraph(trx, nextGdoc)
 
     await setLinksForGdoc(
         trx,
