@@ -24,10 +24,10 @@ import {
     highlightFunctionForSearchWords,
     SearchWord,
 } from "../adminShared/search.js"
-import { GdocsStoreContext } from "./GdocsStoreContext.js"
 import { DbPlainTag, OwidGdocDataInsightIndexItem } from "@ourworldindata/types"
 import { dayjs, startCase } from "@ourworldindata/utils"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
+import { AdminAppContext } from "./AdminAppContext.js"
 
 type PublicationFilter = "all" | "published" | "scheduled" | "draft"
 type Layout = "list" | "gallery"
@@ -202,7 +202,8 @@ function createColumns(ctx: {
 }
 
 export function DataInsightIndexPage() {
-    const context = useContext(GdocsStoreContext)
+    const { admin } = useContext(AdminAppContext)
+
     const [dataInsights, setDataInsights] = useState<
         OwidGdocDataInsightIndexItem[]
     >([])
@@ -254,14 +255,14 @@ export function DataInsightIndexPage() {
 
     useEffect(() => {
         const fetchAllDataInsights = async () =>
-            (await context?.admin.getJSON(
+            (await admin.getJSON(
                 "/api/dataInsights"
             )) as OwidGdocDataInsightIndexItem[]
 
         void fetchAllDataInsights().then((dataInsights) =>
             setDataInsights(dataInsights)
         )
-    }, [context?.admin])
+    }, [admin])
 
     return (
         <AdminLayout title="Data insights">
