@@ -16,7 +16,7 @@ import { ImageOptions } from "./imageOptions.js"
 
 interface FetchGrapherConfigResult {
     grapherConfig: GrapherInterface | null
-    multiDimDimensions?: string[]
+    multiDimAvailableDimensions?: string[]
     status: number
     etag: string | undefined
 }
@@ -140,7 +140,7 @@ export async function fetchGrapherConfig({
 
     const config = await fetchResponse.json()
     let grapherConfig: GrapherInterface
-    let multiDimDimensions: string[]
+    let multiDimAvailableDimensions: string[]
     if (identifier.type === "multi-dim-slug") {
         const multiDimConfig = config as MultiDimDataPageConfigEnriched
         grapherConfig = await fetchMultiDimGrapherConfig(
@@ -148,7 +148,9 @@ export async function fetchGrapherConfig({
             searchParams,
             env
         )
-        multiDimDimensions = multiDimConfig.dimensions.map((dim) => dim.slug)
+        multiDimAvailableDimensions = multiDimConfig.dimensions.map(
+            (dim) => dim.slug
+        )
     } else {
         grapherConfig = config
     }
@@ -159,7 +161,7 @@ export async function fetchGrapherConfig({
         etag: fetchResponse.headers.get("etag"),
     }
     if (identifier.type === "multi-dim-slug") {
-        result.multiDimDimensions = multiDimDimensions
+        result.multiDimAvailableDimensions = multiDimAvailableDimensions
     }
     return result
 }
@@ -171,7 +173,7 @@ export async function initGrapher(
     env: Env
 ): Promise<{
     grapher: Grapher
-    multiDimDimensions?: string[]
+    multiDimAvailableDimensions?: string[]
 }> {
     let grapherConfigResponse: FetchGrapherConfigResult
     try {
@@ -225,7 +227,8 @@ export async function initGrapher(
 
     return {
         grapher,
-        multiDimDimensions: grapherConfigResponse.multiDimDimensions,
+        multiDimAvailableDimensions:
+            grapherConfigResponse.multiDimAvailableDimensions,
     }
 }
 

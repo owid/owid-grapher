@@ -232,11 +232,14 @@ function* columnReadmeText(col: CoreColumn) {
 
 function* activeFilterSettings(
     searchParams: URLSearchParams,
-    multiDimDimensions?: string[]
+    multiDimAvailableDimensions?: string[]
 ) {
     // NOTE: this is filtered by whitelisted grapher query params - if you want other params to be
     //       inlucded here, add them to the whitelist inside getGrapherFilters
-    const filterSettings = getGrapherFilters(searchParams, multiDimDimensions)
+    const filterSettings = getGrapherFilters(
+        searchParams,
+        multiDimAvailableDimensions
+    )
     if (filterSettings) {
         yield ""
         yield `### Active Filters`
@@ -255,7 +258,7 @@ export function constructReadme(
     grapher: Grapher,
     columns: CoreColumn[],
     searchParams: URLSearchParams,
-    multiDimDimensions?: string[]
+    multiDimAvailableDimensions?: string[]
 ): string {
     const isSingleColumn = columns.length === 1
     // Some computed columns have neither a source nor origins - filter these away
@@ -272,7 +275,7 @@ export function constructReadme(
         readme = `# ${grapher.displayTitle} - Data package
 
 This data package contains the data that powers the chart ["${grapher.displayTitle}"](${urlWithFilters}) on the Our World in Data website. It was downloaded on ${downloadDate}.
-${[...activeFilterSettings(searchParams, multiDimDimensions)].join("\n")}
+${[...activeFilterSettings(searchParams, multiDimAvailableDimensions)].join("\n")}
 ## CSV Structure
 
 The high level structure of the CSV file is that each row is an observation for an entity (usually a country or region) and a timepoint (usually a year).

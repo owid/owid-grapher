@@ -14,7 +14,7 @@ export async function fetchMetadataForGrapher(
     searchParams?: URLSearchParams
 ) {
     console.log("Initializing grapher")
-    const { grapher, multiDimDimensions } = await initGrapher(
+    const { grapher, multiDimAvailableDimensions } = await initGrapher(
         identifier,
         TWITTER_OPTIONS,
         searchParams ?? new URLSearchParams(""),
@@ -26,7 +26,7 @@ export async function fetchMetadataForGrapher(
     const fullMetadata = assembleMetadata(
         grapher,
         searchParams ?? new URLSearchParams(""),
-        multiDimDimensions
+        multiDimAvailableDimensions
     )
 
     return Response.json(fullMetadata)
@@ -119,7 +119,7 @@ export async function fetchReadmeForGrapher(
     searchParams?: URLSearchParams
 ) {
     console.log("Initializing grapher")
-    const { grapher, multiDimDimensions } = await initGrapher(
+    const { grapher, multiDimAvailableDimensions } = await initGrapher(
         identifier,
         TWITTER_OPTIONS,
         searchParams ?? new URLSearchParams(""),
@@ -128,7 +128,11 @@ export async function fetchReadmeForGrapher(
 
     await grapher.downloadLegacyDataFromOwidVariableIds()
 
-    const readme = assembleReadme(grapher, searchParams, multiDimDimensions)
+    const readme = assembleReadme(
+        grapher,
+        searchParams,
+        multiDimAvailableDimensions
+    )
     return new Response(readme, {
         headers: {
             "Content-Type": "text/markdown; charset=utf-8",
@@ -139,13 +143,13 @@ export async function fetchReadmeForGrapher(
 function assembleReadme(
     grapher: Grapher,
     searchParams: URLSearchParams,
-    multiDimDimensions?: string[]
+    multiDimAvailableDimensions?: string[]
 ): string {
     const metadataCols = getColumnsForMetadata(grapher)
     return constructReadme(
         grapher,
         metadataCols,
         searchParams,
-        multiDimDimensions
+        multiDimAvailableDimensions
     )
 }

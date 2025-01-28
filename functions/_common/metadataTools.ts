@@ -56,7 +56,7 @@ export const getColumnsForMetadata = (grapher: Grapher) => {
 export function assembleMetadata(
     grapher: Grapher,
     searchParams: URLSearchParams,
-    multiDimDimensions?: string[]
+    multiDimAvailableDimensions?: string[]
 ) {
     const useShortNames = searchParams.get("useColumnShortNames") === "true"
 
@@ -193,7 +193,10 @@ export function assembleMetadata(
         dateDownloaded: dateDownloaded.toISOString().split("T")[0],
         // NOTE: this is filtered by whitelisted grapher query params - if you want other params to be
         //       inlucded here (e.g. MDIM selection), add them to the whitelist inside getGrapherFilters
-        activeFilters: getGrapherFilters(searchParams, multiDimDimensions),
+        activeFilters: getGrapherFilters(
+            searchParams,
+            multiDimAvailableDimensions
+        ),
     }
 
     return fullMetadata
