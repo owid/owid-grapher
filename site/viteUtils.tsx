@@ -10,6 +10,7 @@ import { POLYFILL_URL } from "./SiteConstants.js"
 import type { Manifest, ManifestChunk } from "vite"
 import { sortBy } from "@ourworldindata/utils"
 import urljoin from "url-join"
+import { AssetMap } from "@ourworldindata/types"
 
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 
@@ -97,7 +98,8 @@ const devAssets = (entrypoint: ViteEntryPoint, baseUrl: string): Assets => {
 export const createTagsForManifestEntry = (
     manifest: Manifest,
     entry: string,
-    assetBaseUrl: string
+    assetBaseUrl: string,
+    assetMap?: AssetMap
 ): Assets => {
     const createTags = (entry: string): React.ReactElement[] => {
         const manifestEntry =
@@ -108,7 +110,9 @@ export const createTagsForManifestEntry = (
         if (!manifestEntry && !entry.endsWith(".css"))
             throw new Error(`Could not find manifest entry for ${entry}`)
 
-        const assetUrl = urljoin(assetBaseUrl, manifestEntry?.file ?? entry)
+        const assetKey = manifestEntry?.file ?? entry
+        const assetFilename = assetMap?.[assetKey] ?? assetKey
+        const assetUrl = urljoin(assetBaseUrl, assetFilename)
 
         if (entry.endsWith(".css")) {
             assets = [
@@ -165,7 +169,11 @@ export const createTagsForManifestEntry = (
 
 // in prod: we need to make sure that we include <script> and <link> tags that are required for the entry point.
 // this could be, for example: owid.mjs, common.mjs, owid.css, common.css. (plus Google Fonts and polyfills)
-const prodAssets = (entrypoint: ViteEntryPoint, baseUrl: string): Assets => {
+const prodAssets = (
+    entrypoint: ViteEntryPoint,
+    baseUrl: string,
+    prodAssetMap?: AssetMap
+): Assets => {
     const baseDir = findBaseDir(__dirname)
     const entrypointInfo = VITE_ENTRYPOINT_INFO[entrypoint]
     const manifestPath = `${baseDir}/dist/${entrypointInfo.outDir}/.vite/manifest.json`
@@ -184,7 +192,8 @@ const prodAssets = (entrypoint: ViteEntryPoint, baseUrl: string): Assets => {
     const assets = createTagsForManifestEntry(
         manifest,
         entrypointInfo.entryPointFile,
-        assetBaseUrl
+        assetBaseUrl,
+        prodAssetMap
     )
 
     return {
@@ -196,17 +205,26 @@ const prodAssets = (entrypoint: ViteEntryPoint, baseUrl: string): Assets => {
 
 const useProductionAssets = ENV !== "development" || VITE_PREVIEW
 
-const viteAssets = (entrypoint: ViteEntryPoint, prodBaseUrl?: string) =>
+const viteAssets = (
+    entrypoint: ViteEntryPoint,
+    {
+        prodBaseUrl,
+        prodAssetMap,
+    }: { prodBaseUrl?: string; prodAssetMap?: AssetMap } = {}
+) =>
     useProductionAssets
-        ? prodAssets(entrypoint, prodBaseUrl ?? "")
+        ? prodAssets(entrypoint, prodBaseUrl ?? "", prodAssetMap)
         : devAssets(entrypoint, VITE_DEV_URL)
 
 export const viteAssetsForAdmin = () => viteAssets(ViteEntryPoint.Admin)
-export const viteAssetsForSite = () => viteAssets(ViteEntryPoint.Site)
+export const viteAssetsForSite = ({ assetMap }: { assetMap?: AssetMap } = {}) =>
+    viteAssets(ViteEntryPoint.Site, { prodAssetMap: assetMap })
 
 export const generateEmbedSnippet = () => {
     // Make sure we're using an absolute URL here, since we don't know in what context the embed snippet is used.
-    const assets = viteAssets(ViteEntryPoint.Site, BAKED_BASE_URL)
+    const assets = viteAssets(ViteEntryPoint.Site, {
+        prodBaseUrl: BAKED_BASE_URL,
+    })
 
     const serializedAssets = [...assets.forHeader, ...assets.forFooter].map(
         (el) => ({

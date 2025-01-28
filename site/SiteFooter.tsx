@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faRss } from "@fortawesome/free-solid-svg-icons"
-import { SiteFooterContext } from "@ourworldindata/utils"
+import { AssetMap, SiteFooterContext } from "@ourworldindata/utils"
 import { viteAssetsForSite } from "./viteUtils.js"
 import { ScriptLoadErrorDetector } from "./NoJSDetector.js"
 import { ABOUT_LINKS, RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
@@ -14,6 +14,7 @@ interface SiteFooterProps {
     context?: SiteFooterContext
     debug?: boolean
     isPreviewing?: boolean
+    assetMap?: AssetMap
 }
 
 type LinkData = { title: string; url: string }
@@ -183,7 +184,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
             </div>
 
             <div className={SITE_TOOLS_CLASS} />
-            {viteAssetsForSite().forFooter}
+            {viteAssetsForSite({ assetMap: props.assetMap }).forFooter}
             <ScriptLoadErrorDetector />
             <script
                 type="module"
