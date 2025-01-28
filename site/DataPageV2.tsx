@@ -15,7 +15,7 @@ import {
     GrapherInterface,
     ImageMetadata,
     Url,
-    AssetMap,
+    AssetMapEntry,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import urljoin from "url-join"
@@ -44,7 +44,7 @@ export const DataPageV2 = (props: {
     faqEntries?: FaqEntryData
     imageMetadata: Record<string, ImageMetadata>
     tagToSlugMap: Record<string | number, string>
-    assetMap?: AssetMap
+    viteAssetMap?: AssetMapEntry
 }) => {
     const {
         grapher,
@@ -55,7 +55,7 @@ export const DataPageV2 = (props: {
         faqEntries,
         tagToSlugMap,
         imageMetadata,
-        assetMap,
+        viteAssetMap,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title.title
     const canonicalUrl = grapher?.slug
@@ -110,7 +110,7 @@ export const DataPageV2 = (props: {
                 pageDesc={pageDesc}
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
-                assetMap={assetMap}
+                viteAssetMap={viteAssetMap}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
@@ -172,7 +172,7 @@ export const DataPageV2 = (props: {
                     baseUrl={baseUrl}
                     context={SiteFooterContext.dataPageV2}
                     isPreviewing={isPreviewing}
-                    assetMap={assetMap}
+                    viteAssetMap={viteAssetMap}
                 />
                 <script
                     dangerouslySetInnerHTML={{
