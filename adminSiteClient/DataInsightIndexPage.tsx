@@ -82,22 +82,20 @@ function createColumns(ctx: {
             ),
         },
         {
-            title: "Tags",
+            title: "Topic tags",
             dataIndex: "tags",
             key: "tags",
             render: (tags: DbPlainTag[]) =>
                 tags.map((tag) => (
-                    <Space key={tag.name} size="small">
-                        <Tag color="orange">
-                            <a
-                                href={`/admin/tags/${tag.id}`}
-                                target="_blank"
-                                rel="noreferrer noopener"
-                            >
-                                {ctx.highlightFn(tag.name)}
-                            </a>
-                        </Tag>
-                    </Space>
+                    <a
+                        key={tag.name}
+                        href={`/admin/tags/${tag.id}`}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        style={{ display: "block" }}
+                    >
+                        {ctx.highlightFn(tag.name)}
+                    </a>
                 )),
         },
         {
