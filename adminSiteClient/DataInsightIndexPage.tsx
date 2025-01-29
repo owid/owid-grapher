@@ -245,7 +245,7 @@ export function DataInsightIndexPage() {
                         dataInsight.published &&
                         dayjs(dataInsight.publishedAt).isBefore(dayjs())
                     )
-                default:
+                case "all":
                     return true
             }
         }
@@ -367,9 +367,9 @@ function DataInsightGallery({
     )
     return (
         <Flex wrap gap="large">
-            {dataInsightsWithPreviewImage.map((dataInsight, index) => (
+            {dataInsightsWithPreviewImage.map((dataInsight) => (
                 <DataInsightCard
-                    key={`${dataInsight.id}-${index}`}
+                    key={dataInsight.id}
                     dataInsight={dataInsight}
                 />
             ))}
@@ -391,7 +391,7 @@ function DataInsightCard({
     )
 
     return (
-        <Card key={dataInsight.id} cover={preview}>
+        <Card cover={preview}>
             <a
                 href={makePreviewLink(dataInsight)}
                 target="_blank"

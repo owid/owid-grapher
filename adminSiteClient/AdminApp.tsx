@@ -340,11 +340,7 @@ export class AdminApp extends React.Component<{
                             />
                             <Route
                                 path="/dataInsights"
-                                component={() => (
-                                    <GdocsStoreProvider>
-                                        <DataInsightIndexPage />
-                                    </GdocsStoreProvider>
-                                )}
+                                component={DataInsightIndexPage}
                             />
                             <Route
                                 exact
