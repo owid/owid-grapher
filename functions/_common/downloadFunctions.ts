@@ -14,7 +14,7 @@ export async function fetchMetadataForGrapher(
     searchParams?: URLSearchParams
 ) {
     console.log("Initializing grapher")
-    const grapher = await initGrapher(
+    const { grapher, multiDimAvailableDimensions } = await initGrapher(
         identifier,
         TWITTER_OPTIONS,
         searchParams ?? new URLSearchParams(""),
@@ -25,7 +25,8 @@ export async function fetchMetadataForGrapher(
 
     const fullMetadata = assembleMetadata(
         grapher,
-        searchParams ?? new URLSearchParams("")
+        searchParams ?? new URLSearchParams(""),
+        multiDimAvailableDimensions
     )
 
     return Response.json(fullMetadata)
@@ -37,7 +38,7 @@ export async function fetchZipForGrapher(
     searchParams?: URLSearchParams
 ) {
     console.log("preparing to generate zip file")
-    const grapher = await initGrapher(
+    const { grapher } = await initGrapher(
         identifier,
         TWITTER_OPTIONS,
         searchParams ?? new URLSearchParams(""),
@@ -82,7 +83,7 @@ export async function fetchCsvForGrapher(
     env: Env,
     searchParams?: URLSearchParams
 ) {
-    const grapher = await initGrapher(
+    const { grapher } = await initGrapher(
         identifier,
         TWITTER_OPTIONS,
         searchParams ?? new URLSearchParams(""),
@@ -118,7 +119,7 @@ export async function fetchReadmeForGrapher(
     searchParams?: URLSearchParams
 ) {
     console.log("Initializing grapher")
-    const grapher = await initGrapher(
+    const { grapher, multiDimAvailableDimensions } = await initGrapher(
         identifier,
         TWITTER_OPTIONS,
         searchParams ?? new URLSearchParams(""),
@@ -127,17 +128,28 @@ export async function fetchReadmeForGrapher(
 
     await grapher.downloadLegacyDataFromOwidVariableIds()
 
-    const readme = assembleReadme(grapher, searchParams)
+    const readme = assembleReadme(
+        grapher,
+        searchParams,
+        multiDimAvailableDimensions
+    )
     return new Response(readme, {
         headers: {
             "Content-Type": "text/markdown; charset=utf-8",
         },
     })
 }
+
 function assembleReadme(
     grapher: Grapher,
-    searchParams: URLSearchParams
+    searchParams: URLSearchParams,
+    multiDimAvailableDimensions?: string[]
 ): string {
     const metadataCols = getColumnsForMetadata(grapher)
-    return constructReadme(grapher, metadataCols, searchParams)
+    return constructReadme(
+        grapher,
+        metadataCols,
+        searchParams,
+        multiDimAvailableDimensions
+    )
 }

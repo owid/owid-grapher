@@ -26,7 +26,11 @@ import {
     fetchWithRetry,
 } from "@ourworldindata/utils"
 import cx from "classnames"
-import { ADMIN_BASE_URL, DATA_API_URL } from "../../settings/clientSettings.js"
+import {
+    ADMIN_BASE_URL,
+    BAKED_GRAPHER_URL,
+    DATA_API_URL,
+} from "../../settings/clientSettings.js"
 import {
     DataPageRelatedResearch,
     FaqEntryKeyedByGdocIdAndFragmentId,
@@ -295,6 +299,9 @@ export const MultiDimDataPageContent = ({
     const grapherConfigComputed = useMemo(() => {
         const baseConfig: GrapherProgrammaticInterface = {
             bounds,
+            bakedGrapherURL: BAKED_GRAPHER_URL,
+            adminBaseUrl: ADMIN_BASE_URL,
+            dataApiUrl: DATA_API_URL,
             manager: {}, // Don't resize while data is loading.
         }
 
@@ -307,12 +314,11 @@ export const MultiDimDataPageContent = ({
         return {
             ...varGrapherConfig,
             ...baseConfig,
-            dataApiUrl: DATA_API_URL,
             manager: {
                 canonicalUrl,
                 editUrl,
             },
-        } as GrapherProgrammaticInterface
+        }
     }, [
         varGrapherConfig,
         grapherConfigIsReady,
@@ -399,7 +405,6 @@ export const MultiDimDataPageContent = ({
                                     {...grapherConfigComputed}
                                     queryStr={queryStr}
                                     getGrapherInstance={setGrapherInst}
-                                    adminBaseUrl={ADMIN_BASE_URL}
                                 />
                             </figure>
                         </div>

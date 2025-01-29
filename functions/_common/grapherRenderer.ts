@@ -62,7 +62,12 @@ async function fetchAndRenderGrapherToSvg(
     env: Env
 ) {
     const grapherLogger = new TimeLogger("grapher")
-    const grapher = await initGrapher(identifier, options, searchParams, env)
+    const { grapher } = await initGrapher(
+        identifier,
+        options,
+        searchParams,
+        env
+    )
 
     grapherLogger.log("initGrapher")
     const promises = []
