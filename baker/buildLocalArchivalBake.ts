@@ -14,7 +14,9 @@ import findProjectBaseDir from "../settings/findBaseDir.js"
 import crypto from "crypto"
 import { AssetMapEntry } from "@ourworldindata/types"
 import { getVariableData } from "../db/model/Variable.js"
+import dayjs from "dayjs"
 
+const DATE_TIME_FORMAT = "YYYYMMDD-HHmmss"
 const DIR = "archive"
 
 const HASH_LENGTH = 8
@@ -109,7 +111,8 @@ const bakeDomainToFolder = async (
     dir = DIR,
     bakeSteps?: BakeStepConfig
 ) => {
-    dir = normalize(dir)
+    const dateTimeFormatted = dayjs().utc().format(DATE_TIME_FORMAT)
+    dir = path.join(normalize(dir), dateTimeFormatted)
     await fs.mkdirp(dir)
     await fs.mkdirp(path.join(dir, "grapher"))
 
