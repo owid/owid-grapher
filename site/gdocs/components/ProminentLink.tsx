@@ -12,6 +12,7 @@ import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../../settings/clientSettings.
 import {
     ARCHVED_THUMBNAIL_FILENAME,
     DEFAULT_THUMBNAIL_FILENAME,
+    OwidGdocLinkType,
 } from "@ourworldindata/types"
 
 const Thumbnail = ({ thumbnail }: { thumbnail: string }) => {
@@ -63,17 +64,17 @@ export const ProminentLink = (props: {
     let title: string | undefined = props.title
     let description: string | undefined = props.description
     let thumbnail: string | undefined = props.thumbnail
-    if (linkType === "gdoc") {
-        href = `/${linkedDocument?.slug}`
-        title ??= linkedDocument?.title
-        description ??= linkedDocument?.excerpt
-        thumbnail ??= linkedDocument?.["featured-image"]
-    } else if (linkType === "grapher") {
+    if (linkedDocument) {
+        href = linkedDocument.url
+        title ??= linkedDocument.title
+        description ??= linkedDocument.excerpt
+        thumbnail ??= linkedDocument["featured-image"]
+    } else if (linkType === OwidGdocLinkType.Grapher) {
         href = `${linkedChart?.resolvedUrl}`
         title ??= linkedChart?.title
         thumbnail ??= linkedChart?.thumbnail
         description ??= "See the data in our interactive visualization"
-    } else if (linkType === "explorer") {
+    } else if (linkType === OwidGdocLinkType.Explorer) {
         href = `${linkedChart?.resolvedUrl}`
         title ??= `${linkedChart?.title} Data Explorer`
         thumbnail ??= linkedChart?.thumbnail

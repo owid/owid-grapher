@@ -35,7 +35,7 @@ function FeaturedWorkTile({
     const { isPreviewing } = useContext(DocumentContext)
     const linkedDocumentFeaturedImage = linkedDocument?.["featured-image"]
     const thumbnailFilename = filename ?? linkedDocumentFeaturedImage
-    const href = linkedDocument ? `/${linkedDocument.slug}` : url
+    const href = linkedDocument?.url ?? url
 
     if (isPreviewing) {
         if (errorMessage) {

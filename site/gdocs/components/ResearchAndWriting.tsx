@@ -69,7 +69,7 @@ function ResearchAndWritingLink(
     }
 
     if (linkedDocument) {
-        url = `/${linkedDocument.slug}`
+        url = linkedDocument.url
         title = linkedDocument.title || title
         authors = linkedDocument.authors || authors
         subtitle = linkedDocument.excerpt || subtitle

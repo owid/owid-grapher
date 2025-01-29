@@ -1,17 +1,21 @@
 import { useContext } from "react"
 
-import { getLinkType, getUrlTarget } from "@ourworldindata/components"
+import {
+    getCanonicalUrl,
+    getLinkType,
+    getUrlTarget,
+} from "@ourworldindata/components"
 import {
     ImageMetadata,
     LinkedChart,
     OwidGdocPostContent,
     OwidGdocMinimalPostInterface,
-    OwidGdocType,
     LinkedIndicator,
     CategoryWithEntries,
     EntryMeta,
     SubNavId,
     OwidGdocDataInsightContent,
+    OwidGdocLinkType,
 } from "@ourworldindata/types"
 import {
     formatAuthors,
@@ -20,6 +24,7 @@ import {
 } from "@ourworldindata/utils"
 import { AttachmentsContext } from "./AttachmentsContext.js"
 import { SiteNavigationStatic, SubnavItem, subnavs } from "../SiteConstants.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
 export const breadcrumbColorForCoverColor = (
     coverColor: OwidGdocPostContent["cover-color"]
@@ -59,20 +64,19 @@ export const useLinkedAuthor = (
     return author
 }
 
+type LinkedDocument = OwidGdocMinimalPostInterface & { url: string }
+
 export const useLinkedDocument = (
     url: string
-): { linkedDocument?: OwidGdocMinimalPostInterface; errorMessage?: string } => {
+): { linkedDocument?: LinkedDocument; errorMessage?: string } => {
     const { linkedDocuments } = useContext(AttachmentsContext)
     let errorMessage: string | undefined = undefined
     let linkedDocument: OwidGdocMinimalPostInterface | undefined = undefined
     const linkType = getLinkType(url)
-    if (linkType !== "gdoc") {
+    if (linkType !== OwidGdocLinkType.Gdoc) {
         return { linkedDocument }
     }
 
-    const urlObj = Url.fromURL(url)
-    const queryString = urlObj.queryStr
-    const hash = urlObj.hash
     const urlTarget = getUrlTarget(url)
     linkedDocument = linkedDocuments?.[urlTarget] as
         | OwidGdocMinimalPostInterface
@@ -85,13 +89,13 @@ export const useLinkedDocument = (
         errorMessage = `Article with slug "${linkedDocument.slug}" isn't published.`
     }
 
-    //todo replace with getCanonicalUrl
-    const subdirectory =
-        linkedDocument.type === OwidGdocType.DataInsight ? "data-insights/" : ""
     return {
         linkedDocument: {
             ...linkedDocument,
-            slug: `${subdirectory}${linkedDocument.slug}${queryString}${hash}`,
+            url: getCanonicalUrl(BAKED_BASE_URL, {
+                slug: linkedDocument.slug,
+                content: { type: linkedDocument.type },
+            }),
         },
         errorMessage,
     }
