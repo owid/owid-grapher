@@ -1,5 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
+import * as Figma from "figma-api"
 import {
     Button,
     Card,
@@ -50,6 +51,7 @@ import {
     CLOUDFLARE_IMAGES_URL,
     ENV,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
+    FIGMA_API_TOKEN,
 } from "../settings/clientSettings.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
@@ -59,9 +61,31 @@ type NarrativeDataInsightIndexItem = RequiredBy<
     OwidGdocDataInsightIndexItem,
     "image" | "narrativeChart"
 >
+type FigmaDataInsightIndexItem = RequiredBy<
+    OwidGdocDataInsightIndexItem,
+    "image" | "figmaUrl"
+>
 
-type UploadResponse =
+type DataInsightIndexItemThatCanBeUploaded =
+    | NarrativeDataInsightIndexItem
+    | FigmaDataInsightIndexItem
+
+type FigmaUploadImageProps = {
+    mode: "figma"
+    dataInsight: FigmaDataInsightIndexItem
+    imageUrl?: string
+}
+type NarrativeChartUploadImageProps = {
+    mode: "narrative-chart"
+    dataInsight: NarrativeDataInsightIndexItem
+}
+type UploadImageProps = FigmaUploadImageProps | NarrativeChartUploadImageProps
+
+type ImageUploadResponse =
     | { success: true; image: DbEnrichedImageWithUserId }
+    | { success: false; errorMessage: string }
+type FigmaResponse =
+    | { success: true; imageUrl: string }
     | { success: false; errorMessage: string }
 
 type ChartTypeFilter = GrapherChartOrMapType | "all"
@@ -82,11 +106,17 @@ const checkIcon = <FontAwesomeIcon icon={faCheck} />
 
 const NotificationContext = React.createContext(null)
 
+const figmaApi = new Figma.Api({
+    personalAccessToken: FIGMA_API_TOKEN,
+})
+
 function createColumns(ctx: {
     highlightFn: (
         text: string | null | undefined
     ) => React.ReactElement | string
-    triggerImageUploadFlow: (dataInsight: NarrativeDataInsightIndexItem) => void
+    triggerImageUploadFlow: (
+        dataInsight: DataInsightIndexItemThatCanBeUploaded
+    ) => void
 }): ColumnsType<OwidGdocDataInsightIndexItem> {
     return [
         {
@@ -286,9 +316,7 @@ export function DataInsightIndexPage() {
     const [layout, setLayout] = useState<Layout>(DEFAULT_LAYOUT)
 
     const [dataInsightForImageUpload, setDataInsightForImageUpload] =
-        useState<NarrativeDataInsightIndexItem>()
-    const [isImageUploadInProgress, setIsImageUploadInProgress] =
-        useState(false)
+        useState<DataInsightIndexItemThatCanBeUploaded>()
 
     const [notificationApi, notificationContextHolder] =
         notification.useNotification()
@@ -351,7 +379,7 @@ export function DataInsightIndexPage() {
         const highlightFn = highlightFunctionForSearchWords(searchWords)
 
         const triggerImageUploadFlow = (
-            dataInsight: NarrativeDataInsightIndexItem
+            dataInsight: DataInsightIndexItemThatCanBeUploaded
         ) => setDataInsightForImageUpload(dataInsight)
 
         return createColumns({
@@ -359,17 +387,6 @@ export function DataInsightIndexPage() {
             triggerImageUploadFlow,
         })
     }, [searchWords])
-
-    useEffect(() => {
-        const fetchAllDataInsights = async () =>
-            (await admin.getJSON(
-                "/api/dataInsights"
-            )) as OwidGdocDataInsightIndexItem[]
-
-        void fetchAllDataInsights().then((dataInsights) => {
-            setDataInsights(dataInsights)
-        })
-    }, [admin])
 
     const updateDataInsightPreviewAfterImageUpload = (
         dataInsightId: string,
@@ -394,16 +411,21 @@ export function DataInsightIndexPage() {
         )
     }
 
-    const handleImageUpload = async (
-        dataInsight: NarrativeDataInsightIndexItem
-    ) => {
-        setIsImageUploadInProgress(true)
-
-        const response = await uploadChartViewImage(admin, dataInsight)
+    const uploadImage = async (props: UploadImageProps) => {
+        let response: ImageUploadResponse
+        if (props.mode === "figma") {
+            response = await uploadFigmaImage(
+                admin,
+                props.dataInsight,
+                props.imageUrl
+            )
+        } else {
+            response = await uploadNarrativeChartImage(admin, props.dataInsight)
+        }
 
         if (response.success) {
             updateDataInsightPreviewAfterImageUpload(
-                dataInsight.id,
+                props.dataInsight.id,
                 response.image
             )
 
@@ -525,27 +547,13 @@ export function DataInsightIndexPage() {
                         />
                     )}
                     {dataInsightForImageUpload && (
-                        <Modal
-                            title="Upload narrative chart export as DI image"
-                            open={dataInsightForImageUpload !== undefined}
-                            width={765}
-                            okText="Upload"
-                            okButtonProps={{
-                                icon: isImageUploadInProgress
-                                    ? spinnerIcon
-                                    : checkIcon,
-                            }}
-                            onOk={() =>
-                                handleImageUpload(dataInsightForImageUpload)
-                            }
-                            onCancel={() =>
+                        <UploadImageModal
+                            dataInsight={dataInsightForImageUpload}
+                            uploadImage={uploadImage}
+                            closeModal={() =>
                                 setDataInsightForImageUpload(undefined)
                             }
-                        >
-                            <UploadImageModalContent
-                                dataInsight={dataInsightForImageUpload}
-                            />
-                        </Modal>
+                        />
                     )}
                 </main>
             </NotificationContext.Provider>
@@ -619,61 +627,255 @@ function DataInsightCard({
     )
 }
 
-function UploadImageModalContent({
+interface UploadImageModalProps<
+    DataInsightIndexItem = DataInsightIndexItemThatCanBeUploaded,
+    UploadImagePropsType = UploadImageProps,
+> {
+    dataInsight: DataInsightIndexItem
+    uploadImage: (props: UploadImagePropsType) => Promise<void>
+    closeModal: () => void
+}
+
+function UploadImageModal(props: UploadImageModalProps) {
+    const { dataInsight, ...restProps } = props
+
+    // Prefer Figma over narrative charts if both are present
+    if (canReuploadFigmaImage(dataInsight)) {
+        return (
+            <UploadFigmaImageModal dataInsight={dataInsight} {...restProps} />
+        )
+    }
+
+    if (canReuploadNarrativeChartImage(dataInsight)) {
+        return (
+            <UploadNarrativeChartImageModal
+                dataInsight={dataInsight}
+                {...restProps}
+            />
+        )
+    }
+
+    return null
+}
+
+function UploadNarrativeChartImageModal({
     dataInsight,
-}: {
-    dataInsight: NarrativeDataInsightIndexItem
-}) {
-    const narrativeChartUrl = makeChartPngUrlForNarrativeChart(dataInsight)
+    uploadImage,
+    closeModal,
+}: UploadImageModalProps<
+    NarrativeDataInsightIndexItem,
+    NarrativeChartUploadImageProps
+>) {
+    const [isImageUploadInProgress, setIsImageUploadInProgress] =
+        useState(false)
+
+    const handleImageUpload = async (
+        dataInsight: NarrativeDataInsightIndexItem
+    ) => {
+        setIsImageUploadInProgress(true)
+        await uploadImage({ mode: "narrative-chart", dataInsight })
+        setIsImageUploadInProgress(false)
+        closeModal()
+    }
+
     return (
-        <div className="di-modal-content">
-            <div>
-                <b>Data insight</b>
-                <br />
-                {dataInsight.title}
-            </div>
-
-            <div>
-                <b>Narrative chart</b>
-                <br />
-                {dataInsight.narrativeChart.name}
-            </div>
-
-            <div>
-                <b>Filename</b>
-                <br />
-                {dataInsight.image.filename}
-            </div>
-
-            <div>
-                <b>Preview (before/after)</b>
-                <div className="preview">
-                    <Space size="middle">
-                        <img
-                            className="border"
-                            src={makePreviewImageSrc(dataInsight)}
-                            width="350"
-                            height="350"
-                        />
-                        <img
-                            className="border"
-                            src={narrativeChartUrl}
-                            width="350"
-                            height="350"
-                        />
-                    </Space>
+        <Modal
+            title="Upload narrative chart export as DI image"
+            open={true}
+            width={765}
+            okText="Upload"
+            okButtonProps={{
+                icon: isImageUploadInProgress ? spinnerIcon : checkIcon,
+            }}
+            onOk={() => handleImageUpload(dataInsight)}
+            onCancel={() => close()}
+        >
+            <div className="di-modal-content">
+                <div>
+                    <b>Data insight</b>
+                    <br />
+                    {dataInsight.title}
                 </div>
+
+                <div>
+                    <b>Narrative chart</b>
+                    <br />
+                    {dataInsight.narrativeChart.name}
+                </div>
+
+                <div>
+                    <b>Filename</b>
+                    <br />
+                    {dataInsight.image?.filename}
+                </div>
+
+                <ImagePreview
+                    imageBefore={makePreviewImageSrc(dataInsight)}
+                    imageAfter={makeChartPngUrlForNarrativeChart(dataInsight)}
+                />
+            </div>
+        </Modal>
+    )
+}
+
+function UploadFigmaImageModal({
+    dataInsight,
+    closeModal: close,
+    uploadImage,
+}: UploadImageModalProps<FigmaDataInsightIndexItem, FigmaUploadImageProps>) {
+    const [isImageUploadInProgress, setIsImageUploadInProgress] =
+        useState(false)
+
+    const [figmaImageUrl, setFigmaImageUrl] = useState<string | undefined>()
+    const [isLoadingFigmaImageUrl, setIsLoadingFigmaImageUrl] = useState(false)
+    const [figmaLoadingError, setFigmaLoadingError] = useState<
+        string | undefined
+    >()
+
+    const handleImageUpload = async (
+        dataInsight: FigmaDataInsightIndexItem,
+        figmaImageUrl?: string
+    ) => {
+        setIsImageUploadInProgress(true)
+        await uploadImage({
+            mode: "figma",
+            dataInsight,
+            imageUrl: figmaImageUrl,
+        })
+        setIsImageUploadInProgress(false)
+        close()
+    }
+
+    useEffect(() => {
+        const fetchFigmaImage = async () => {
+            setIsLoadingFigmaImageUrl(true)
+            try {
+                const response = await fetchFigmaProvidedImageUrl(
+                    dataInsight.figmaUrl
+                )
+                setFigmaImageUrl(
+                    response.success ? response.imageUrl : undefined
+                )
+                setFigmaLoadingError(
+                    !response.success ? response.errorMessage : undefined
+                )
+            } catch (error) {
+                if (error instanceof Error) setFigmaLoadingError(error.message)
+            } finally {
+                setIsLoadingFigmaImageUrl(false)
+            }
+        }
+        void fetchFigmaImage()
+    }, [dataInsight])
+
+    return (
+        <Modal
+            title="Upload Figma chart as DI image"
+            open={true}
+            width={765}
+            okText="Upload"
+            okButtonProps={{
+                icon: isImageUploadInProgress ? spinnerIcon : checkIcon,
+                disabled:
+                    isImageUploadInProgress ||
+                    isLoadingFigmaImageUrl ||
+                    (!figmaImageUrl && !isLoadingFigmaImageUrl),
+            }}
+            onOk={() => handleImageUpload(dataInsight, figmaImageUrl)}
+            onCancel={() => close()}
+        >
+            <div className="di-modal-content">
+                <div>
+                    <b>Data insight</b>
+                    <br />
+                    {dataInsight.title}
+                </div>
+
+                <div>
+                    <b>Image filename</b>
+                    <br />
+                    {dataInsight.image?.filename}
+                </div>
+
+                <ImagePreview
+                    imageBefore={makePreviewImageSrc(dataInsight)}
+                    imageAfter={figmaImageUrl}
+                    isLoading={isLoadingFigmaImageUrl}
+                    loadingError={figmaLoadingError}
+                />
+            </div>
+        </Modal>
+    )
+}
+
+function ImagePreview({
+    imageBefore,
+    imageAfter,
+    size = 350,
+    isLoading = false,
+    loadingError = "",
+}: {
+    imageBefore: string
+    imageAfter?: string
+    size?: number
+    isLoading?: boolean
+    loadingError?: string
+}) {
+    return (
+        <div>
+            <b>Preview (before/after)</b>
+            <div className="image-preview">
+                <Space size="middle">
+                    <img
+                        className="border"
+                        src={imageBefore}
+                        width={size}
+                        height={size}
+                    />
+                    {isLoading ? (
+                        <div className="placeholder">{spinnerIcon}</div>
+                    ) : imageAfter ? (
+                        <img
+                            className="border"
+                            src={imageAfter}
+                            width={size}
+                            height={size}
+                        />
+                    ) : (
+                        <div className="error">
+                            <b>Loading preview failed</b>
+                            <p>{loadingError}</p>
+                        </div>
+                    )}
+                </Space>
             </div>
         </div>
     )
 }
 
-async function uploadChartViewImage(
+async function uploadNarrativeChartImage(
     admin: Admin,
     dataInsight: NarrativeDataInsightIndexItem
-): Promise<UploadResponse> {
-    const pngUrl = makeChartPngUrlForNarrativeChart(dataInsight)
-    const imageResponse = await fetch(pngUrl)
+): Promise<ImageUploadResponse> {
+    const narrativeChartUrl = makeChartPngUrlForNarrativeChart(dataInsight)
+    return uploadImageForDataInsight(admin, dataInsight, narrativeChartUrl)
+}
+
+async function uploadFigmaImage(
+    admin: Admin,
+    dataInsight: FigmaDataInsightIndexItem,
+    figmaImageUrl?: string
+): Promise<ImageUploadResponse> {
+    if (!figmaImageUrl) return { success: false, errorMessage: "No image URL" }
+    return uploadImageForDataInsight(admin, dataInsight, figmaImageUrl)
+}
+
+async function uploadImageForDataInsight(
+    admin: Admin,
+    dataInsight: DataInsightIndexItemThatCanBeUploaded,
+    imageUrl: string
+): Promise<ImageUploadResponse> {
+    const imageResponse = await fetch(imageUrl)
     const blob = await imageResponse.blob()
 
     const payload = await fileToBase64(blob)
@@ -685,7 +887,7 @@ async function uploadChartViewImage(
     }
     payload.filename = dataInsight.image.filename
 
-    const response = await admin.requestJSON<UploadResponse>(
+    const response = await admin.requestJSON<ImageUploadResponse>(
         `/api/images/${dataInsight.image.id}`,
         payload,
         "PUT"
@@ -706,10 +908,82 @@ function hasImage(
     return dataInsight.image !== undefined
 }
 
-function canReuploadImage(
+function hasFigmaUrl(
+    dataInsight: OwidGdocDataInsightIndexItem
+): dataInsight is RequiredBy<OwidGdocDataInsightIndexItem, "figmaUrl"> {
+    return dataInsight.figmaUrl !== undefined
+}
+
+function canReuploadNarrativeChartImage(
     dataInsight: OwidGdocDataInsightIndexItem
 ): dataInsight is NarrativeDataInsightIndexItem {
     return hasImage(dataInsight) && hasNarrativeChart(dataInsight)
+}
+
+function canReuploadFigmaImage(
+    dataInsight: OwidGdocDataInsightIndexItem
+): dataInsight is FigmaDataInsightIndexItem {
+    return hasImage(dataInsight) && hasFigmaUrl(dataInsight)
+}
+
+function canReuploadImage(
+    dataInsight: OwidGdocDataInsightIndexItem
+): dataInsight is DataInsightIndexItemThatCanBeUploaded {
+    return (
+        canReuploadNarrativeChartImage(dataInsight) ||
+        canReuploadFigmaImage(dataInsight)
+    )
+}
+
+async function fetchFigmaProvidedImageUrl(
+    figmaUrl: string
+): Promise<FigmaResponse> {
+    const { fileId, nodeId } = extractIdsFromFigmaUrl(figmaUrl) ?? {}
+    if (!fileId || !nodeId)
+        return {
+            success: false,
+            errorMessage:
+                "Invalid Figma URL. The provided URL should point to a Figma node.",
+        }
+
+    // Request the image URL from Figma
+    const imageMap = await figmaApi.getImages(
+        { file_key: fileId },
+        { ids: [nodeId], scale: 3 }
+    )
+    if (!imageMap || imageMap.err !== null)
+        return {
+            success: false,
+            errorMessage: "Failed to fetch image map from Figma",
+        }
+
+    // Grab the image URL from the image map
+    const imageUrl = imageMap.images[nodeId]
+    if (!imageUrl) {
+        return {
+            success: false,
+            errorMessage: "Figma's image map does not contain the image",
+        }
+    }
+
+    return {
+        success: true,
+        imageUrl: imageUrl,
+    }
+}
+
+function extractIdsFromFigmaUrl(
+    figmaUrl: string
+): { fileId: string; nodeId: string } | undefined {
+    const regex =
+        /figma\.com\/design\/(?<fileId>[^/]+).*[?&]node-id=(?<nodeId>[^&]+)/
+    const { groups } = figmaUrl.match(regex) ?? {}
+    if (groups) {
+        const fileId = groups.fileId
+        const nodeId = groups.nodeId.replace("-", ":")
+        return { fileId, nodeId }
+    }
+    return undefined
 }
 
 function makePreviewLink(dataInsight: OwidGdocDataInsightIndexItem) {
