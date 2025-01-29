@@ -22,6 +22,8 @@ const HASH_LENGTH = 10
 const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
 
+const archiveDir = path.join(projBaseDir, DIR)
+
 const hashContent = (strOrBuffer: string | Buffer) => {
     const hash = crypto.createHash("sha256").update(strOrBuffer).digest("hex")
     return hash.substring(0, HASH_LENGTH)
@@ -36,9 +38,10 @@ const hashAndWriteFile = async (filename: string, content: string) => {
     const hash = hashContent(content)
     const targetFilename = filename.replace(/^(.*\/)?([^.]+\.)/, `$1$2${hash}.`)
     console.log(`Writing ${targetFilename}`)
-    await fs.mkdirp(path.dirname(targetFilename))
-    await fs.writeFile(targetFilename, content)
-    return targetFilename
+    const fullTargetFilename = path.resolve(archiveDir, targetFilename)
+    await fs.mkdirp(path.dirname(fullTargetFilename))
+    await fs.writeFile(fullTargetFilename, content)
+    return path.relative(archiveDir, fullTargetFilename)
 }
 
 const hashAndCopyFile = async (srcFile: string, targetDir: string) => {
@@ -46,15 +49,15 @@ const hashAndCopyFile = async (srcFile: string, targetDir: string) => {
     const targetFilename = path
         .basename(srcFile)
         .replace(/^(.*\/)?([^.]+\.)/, `$1$2${hash}.`)
-    const targetFile = path.join(targetDir, targetFilename)
+    const targetFile = path.resolve(archiveDir, targetDir, targetFilename)
     console.log(`Copying ${srcFile} to ${targetFile}`)
     await fs.copyFile(srcFile, targetFile)
-    return targetFilename
+    return path.relative(archiveDir, targetFile)
 }
 
 const bakeDods = async () => {
     const srcFile = path.join(projBaseDir, "localBake/dods.json")
-    const targetDir = path.join(projBaseDir, DIR)
+    const targetDir = path.join(archiveDir, "assets")
 
     const newFilename = await hashAndCopyFile(srcFile, targetDir)
     return { "dods.json": `/${newFilename}` }
@@ -65,23 +68,17 @@ const bakeVariableDataFiles = async (variableId: number) => {
     const dataStringified = JSON.stringify(data)
     const metadataStringified = JSON.stringify(metadata)
 
-    const dataFilename = `${variableId}.data.json`
-    const metadataFilename = `${variableId}.metadata.json`
+    const dataFilename = `api/v1/indicators/${variableId}.data.json`
+    const metadataFilename = `api/v1/indicators/${variableId}.metadata.json`
 
     const [dataFilenameWithHash, metadataFilenameWithHash] = await Promise.all([
-        hashAndWriteFile(
-            path.join(projBaseDir, DIR, "data/v1/indicators", dataFilename),
-            dataStringified
-        ),
-        hashAndWriteFile(
-            path.join(projBaseDir, DIR, "data/v1/indicators", metadataFilename),
-            metadataStringified
-        ),
-    ]).then((filenames) => filenames.map((filename) => path.basename(filename)))
+        hashAndWriteFile(dataFilename, dataStringified),
+        hashAndWriteFile(metadataFilename, metadataStringified),
+    ])
 
     return {
-        [dataFilename]: `/data/v1/indicators/${dataFilenameWithHash}`,
-        [metadataFilename]: `/data/v1/indicators/${metadataFilenameWithHash}`,
+        [path.basename(dataFilename)]: `/${dataFilenameWithHash}`,
+        [path.basename(metadataFilename)]: `/${metadataFilenameWithHash}`,
     }
 }
 
@@ -97,7 +94,7 @@ const bakeAssets = async () => {
         if (!dirent.isFile()) continue
         const srcFile = path.join(srcDir, dirent.name)
         const filename = await hashAndCopyFile(srcFile, targetDir)
-        viteAssetMap[dirent.name] = `/assets/${filename}`
+        viteAssetMap[dirent.name] = `/${filename}`
     }
     return { viteAssetMap }
 }
