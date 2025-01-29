@@ -113,3 +113,5 @@ export const FEATURE_FLAGS: Set<FeatureFlagFeature> = new Set(
         featureFlagsRaw.includes(key)
     ) as FeatureFlagFeature[]
 )
+
+export const FIGMA_API_TOKEN: string = process.env.FIGMA_API_TOKEN ?? ""
