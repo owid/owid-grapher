@@ -1,16 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
-import {
-    Button,
-    Card,
-    Flex,
-    Input,
-    Radio,
-    Select,
-    Space,
-    Table,
-    Tag,
-} from "antd"
+import { Button, Card, Flex, Input, Radio, Select, Space, Table } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faCopy,
@@ -62,8 +52,9 @@ function createColumns(ctx: {
                 hasImage(dataInsight) ? (
                     <>
                         <img
+                            className="border"
                             src={makePreviewImageSrc(dataInsight)}
-                            style={{ maxWidth: 150 }}
+                            style={{ maxWidth: 200 }}
                         />
                         <Button
                             type="text"
@@ -393,12 +384,9 @@ function DataInsightCard({
 }) {
     const preview = (
         <img
+            className="border"
             src={makePreviewImageSrc(dataInsight)}
-            style={{
-                width: 265,
-                height: 265,
-                border: "1px solid #f0f0f0",
-            }}
+            style={{ width: 265, height: 265 }}
         />
     )
 
