@@ -300,16 +300,24 @@ export const bakeSingleGrapherPageForArchival = async (
         runtimeAssetMap?: AssetMapEntry
     } = {}
 ) => {
-    const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
+    const outPathHtml = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     await fs.writeFile(
-        outPath,
+        outPathHtml,
         await renderDataPageOrGrapherPage(grapher, knex, {
             imageMetadataDictionary,
             viteAssetMap,
             runtimeAssetMap,
         })
     )
-    console.log(outPath)
+    const outPathManifest = `${bakedSiteDir}/grapher/${grapher.slug}.manifest.json`
+
+    // TODO: right now, this only contains the asset maps. it may in the future also contain input
+    // hashes of the config and data files.
+    await fs.writeFile(
+        outPathManifest,
+        JSON.stringify({ viteAssetMap, runtimeAssetMap }, undefined, 2)
+    )
+    console.log(outPathHtml, outPathManifest)
 }
 
 const bakeGrapherPage = async (
