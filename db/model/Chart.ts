@@ -616,3 +616,20 @@ export const getRedirectsByChartId = async (
         ORDER BY id ASC`,
         [chartId]
     )
+
+export async function getAllPublishedChartSlugs(
+    knex: db.KnexReadonlyTransaction
+): Promise<string[]> {
+    const rows = await db.knexRaw<{
+        slug: string
+    }>(
+        knex,
+        `-- sql
+            SELECT cc.slug
+            FROM charts c
+            JOIN chart_configs cc ON c.configId = cc.id
+            WHERE cc.full->>"$.isPublished" = "true"
+        `
+    )
+    return rows.map((row) => row.slug)
+}
