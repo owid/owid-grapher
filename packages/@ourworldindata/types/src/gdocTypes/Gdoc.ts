@@ -19,6 +19,7 @@ import { MinimalTag } from "../dbTypes/Tags.js"
 import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 import { QueryParams } from "../domainTypes/Various.js"
 import { DbRawImage } from "../dbTypes/Images.js"
+import { DbPlainChartView } from "../dbTypes/ChartViews.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -169,21 +170,16 @@ export type OwidGdocDataInsightIndexItem = Pick<
     OwidGdocBaseInterface,
     "id" | "slug" | "tags" | "published" | "publishedAt" | "markdown"
 > &
-    Pick<
-        OwidGdocDataInsightContent,
-        | "title"
-        | "authors"
-        | "narrative-chart"
-        | "grapher-url"
-        | "figma-url"
-        | "approved-by"
-    > & {
-        "explorer-url"?: string
+    Pick<OwidGdocDataInsightContent, "title" | "authors"> & {
+        approvedBy?: OwidGdocDataInsightContent["approved-by"]
+        grapherUrl?: OwidGdocDataInsightContent["grapher-url"]
+        explorerUrl?: OwidGdocDataInsightContent["grapher-url"]
+        narrativeChart?: Pick<DbPlainChartView, "id" | "name" | "chartConfigId">
         chartType?: GrapherChartOrMapType
-        narrativeChartId?: number
+        figmaUrl?: OwidGdocDataInsightContent["figma-url"]
         image?: Pick<
             DbRawImage,
-            "cloudflareId" | "filename" | "originalWidth" | "originalHeight"
+            "id" | "cloudflareId" | "filename" | "originalWidth"
         >
     }
 

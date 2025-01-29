@@ -1,7 +1,9 @@
 import e from "express"
 import { Request } from "../authentication.js"
 import {
+    DbPlainChartView,
     DbRawChartConfig,
+    DbRawImage,
     DbRawPostGdoc,
     GRAPHER_CHART_TYPES,
     GRAPHER_MAP_TYPE,
@@ -9,20 +11,31 @@ import {
     GrapherChartOrMapType,
     GrapherChartType,
     GrapherInterface,
+    MinimalTag,
+    OwidGdocDataInsightContent,
     OwidGdocDataInsightIndexItem,
-    OwidGdocDataInsightInterface,
     parseChartConfig,
-    parsePostsGdocsRow,
+    parsePostGdocContent,
 } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
 import { getTagsGroupedByGdocId } from "../../db/model/Gdoc/GdocFactory.js"
 import { mapQueryParamToChartTypeName } from "@ourworldindata/grapher"
 import { getTimeDomainFromQueryString } from "@ourworldindata/utils"
 
-type DataInsightRow = DbRawPostGdoc &
-    OwidGdocDataInsightIndexItem["image"] & {
+const GRAPHER_URL_PREFIX = "https://ourworldindata.org/grapher/"
+const EXPLORER_URL_PREFIX = "https://ourworldindata.org/explorers/"
+
+type DataInsightRow = Pick<
+    DbRawPostGdoc,
+    "slug" | "content" | "published" | "publishedAt" | "markdown"
+> &
+    Pick<DbRawImage, "cloudflareId" | "filename" | "originalWidth"> & {
+        gdocId: DbRawPostGdoc["id"]
+        narrativeChartId?: DbPlainChartView["id"]
+        narrativeChartConfigId?: DbPlainChartView["chartConfigId"]
         chartConfig?: DbRawChartConfig["full"]
-        narrativeChartId?: number
+        imageId?: DbRawImage["id"]
+        tags?: MinimalTag[]
     }
 
 export async function getAllDataInsightIndexItems(
@@ -36,126 +49,157 @@ export async function getAllDataInsightIndexItems(
 async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
     knex: db.KnexReadonlyTransaction
 ): Promise<OwidGdocDataInsightIndexItem[]> {
-    const dataInsights = await db.knexRaw<DataInsightRow>(
+    const rows = await db.knexRaw<DataInsightRow>(
         knex,
         `-- sql
-        WITH latest_images AS (
-            SELECT filename, cloudflareId, originalWidth, originalHeight
-            FROM images
-            WHERE replacedBy IS NULL
-        ),
-        published_charts AS (
-            SELECT cc.id, cc.slug, cc.full as chartConfig
+
+        -- only consider published stand-alone charts since we join by slug which is only unique for published charts
+        WITH published_charts AS (
+            SELECT cc.id, cc.slug, cc.full
             FROM chart_configs cc
             JOIN charts c ON c.configId = cc.id
             WHERE cc.full ->> '$.isPublished' = 'true'
         )
+
         SELECT
-            pg.*,
+            -- gdoc fields
+            pg.id AS gdocId,
+            pg.slug,
+            pg.content,
+            pg.published,
+            pg.publishedAt,
+            pg.markdown,
+
+            -- narrative chart fields
             cw.id AS narrativeChartId,
-            -- prefer narrative charts over grapher URLs
-            COALESCE(cc_narrativeView.chartConfig, cc_grapherUrl.chartConfig) AS chartConfig,
-            -- only works for data insights where the image block comes first
-            COALESCE(pg.content ->> '$.body[0].smallFilename', pg.content ->> '$.body[0].filename') AS filename,
+            cw.chartConfigId AS narrativeChartConfigId,
+
+            -- chart config (prefer narrative charts over grapher URLs)
+            COALESCE(cc_chartView.full, cc_grapherUrl.full) AS chartConfig,
+
+            -- image fields
+            i.id AS imageId,
+            i.filename,
             i.cloudflareId,
-            i.originalWidth,
-            i.originalHeight
+            i.originalWidth
         FROM posts_gdocs pg
+
         -- extract the slug from the given Grapher URL and join by it
         LEFT JOIN published_charts cc_grapherUrl
             ON cc_grapherUrl.slug = SUBSTRING_INDEX(SUBSTRING_INDEX(content ->> '$."grapher-url"', '/grapher/', -1), '\\?', 1)
+
+        -- join the chart_views table to get the config of the narrative chart
         LEFT JOIN chart_views cw
             ON cw.name = content ->> '$."narrative-chart"'
-        LEFT JOIN published_charts cc_narrativeView
-            ON cc_narrativeView.id = cw.chartConfigId
-        -- only works for data insights where the image block comes first
-        LEFT JOIN latest_images i
+        LEFT JOIN chart_configs cc_chartView
+            ON cc_chartView.id = cw.chartConfigId
+
+        -- join the images table by filename (only works for data insights where the image block comes first)
+        LEFT JOIN images i
             ON i.filename = COALESCE(pg.content ->> '$.body[0].smallFilename', pg.content ->> '$.body[0].filename')
-        WHERE pg.type = 'data-insight'
-        ORDER BY pg.updatedAt DESC;`
+
+        WHERE
+            pg.type = 'data-insight'
+            AND i.replacedBy IS NULL
+
+        ORDER BY pg.updatedAt DESC`
     )
     const groupedTags = await getTagsGroupedByGdocId(
         knex,
-        dataInsights.map((gdoc) => gdoc.id)
+        rows.map((row) => row.gdocId)
     )
-    return dataInsights.map((gdoc) =>
+    return rows.map((row) =>
         extractDataInsightIndexItem({
-            gdoc: {
-                ...(parsePostsGdocsRow(gdoc) as OwidGdocDataInsightInterface),
-                tags: groupedTags[gdoc.id] ? groupedTags[gdoc.id] : null,
-            },
-            imageMetadata: {
-                cloudflareId: gdoc.cloudflareId,
-                originalWidth: gdoc.originalWidth,
-                originalHeight: gdoc.originalHeight,
-                filename: gdoc.filename,
-            },
-            chartConfig: gdoc.chartConfig
-                ? parseChartConfig(gdoc.chartConfig)
-                : undefined,
-            narrativeChartId: gdoc.narrativeChartId,
+            ...row,
+            tags: groupedTags[row.gdocId] ? groupedTags[row.gdocId] : undefined,
         })
     )
 }
 
-function extractDataInsightIndexItem({
-    gdoc,
-    imageMetadata,
-    chartConfig,
-    narrativeChartId,
-}: {
-    gdoc: OwidGdocDataInsightInterface
-    imageMetadata?: OwidGdocDataInsightIndexItem["image"]
-    chartConfig?: GrapherInterface
-    narrativeChartId?: number
-}): OwidGdocDataInsightIndexItem {
-    const grapherUrl = gdoc.content["grapher-url"]?.trim()
-    const isGrapherUrl = grapherUrl?.startsWith(
-        "https://ourworldindata.org/grapher/"
-    )
-    const isExplorerUrl = grapherUrl?.startsWith(
-        "https://ourworldindata.org/explorers/"
-    )
+function extractDataInsightIndexItem(
+    dataInsight: DataInsightRow
+): OwidGdocDataInsightIndexItem {
+    const content = parsePostGdocContent(
+        dataInsight.content
+    ) as OwidGdocDataInsightContent
+    const chartConfig = dataInsight.chartConfig
+        ? parseChartConfig(dataInsight.chartConfig)
+        : undefined
+
+    // check if the given grapher-url is a valid Grapher or Explorer URL
+    const grapherUrlField = content["grapher-url"]?.trim()
+    const grapherUrl = grapherUrlField?.startsWith(GRAPHER_URL_PREFIX)
+        ? grapherUrlField
+        : undefined
+    const explorerUrl = grapherUrlField?.startsWith(EXPLORER_URL_PREFIX)
+        ? grapherUrlField
+        : undefined
+
+    // collect narrative chart data if it exists
+    const narrativeChart =
+        content["narrative-chart"] && dataInsight.narrativeChartId
+            ? {
+                  id: dataInsight.narrativeChartId,
+                  name: content["narrative-chart"],
+                  chartConfigId: dataInsight.narrativeChartConfigId!,
+              }
+            : undefined
+
+    // detect the chart type from the narrative chart or grapher URL
+    const chartType = detectChartType({
+        narrativeChart: narrativeChart?.name,
+        grapherUrl,
+        chartConfig,
+    })
+
+    // collect the image data if it exists
+    const image = dataInsight.imageId
+        ? {
+              id: dataInsight.imageId,
+              filename: dataInsight.filename,
+              cloudflareId: dataInsight.cloudflareId,
+              originalWidth: dataInsight.originalWidth,
+          }
+        : undefined
 
     return {
-        id: gdoc.id,
-        slug: gdoc.slug,
-        tags: gdoc.tags ?? [],
-        published: gdoc.published,
-        publishedAt: gdoc.publishedAt,
-        title: gdoc.content.title ?? "",
-        authors: gdoc.content.authors,
-        markdown: gdoc.markdown,
-        "approved-by": gdoc.content["approved-by"],
-        "narrative-chart": gdoc.content["narrative-chart"],
-        "grapher-url": isGrapherUrl ? grapherUrl : undefined,
-        "explorer-url": isExplorerUrl ? grapherUrl : undefined,
-        "figma-url": gdoc.content["figma-url"],
-        narrativeChartId: narrativeChartId,
-        chartType: detectChartType(gdoc, chartConfig),
-        image: imageMetadata,
+        id: dataInsight.gdocId,
+        slug: dataInsight.slug,
+        tags: dataInsight.tags ?? [],
+        published: !!dataInsight.published,
+        publishedAt: dataInsight.publishedAt,
+        markdown: dataInsight.markdown,
+        title: content.title ?? "",
+        authors: content.authors,
+        approvedBy: content["approved-by"],
+        narrativeChart,
+        grapherUrl,
+        explorerUrl,
+        figmaUrl: content["figma-url"],
+        chartType,
+        image,
     }
 }
 
-function detectChartType(
-    gdoc: OwidGdocDataInsightInterface,
+function detectChartType({
+    narrativeChart,
+    grapherUrl,
+    chartConfig,
+}: {
+    narrativeChart?: string
+    grapherUrl?: string
     chartConfig?: GrapherInterface
-): GrapherChartOrMapType | undefined {
+}): GrapherChartOrMapType | undefined {
     if (!chartConfig) return undefined
 
-    if (gdoc.content["narrative-chart"])
-        return getChartTypeFromConfig(chartConfig)
+    if (narrativeChart) return getChartTypeFromConfig(chartConfig)
 
-    if (gdoc.content["grapher-url"]) {
-        try {
-            const url = new URL(gdoc.content["grapher-url"])
-            return getChartTypeFromConfigAndQueryParams(
-                chartConfig,
-                url.searchParams
-            )
-        } catch {
-            return getChartTypeFromConfig(chartConfig)
-        }
+    if (grapherUrl) {
+        const url = new URL(grapherUrl)
+        return getChartTypeFromConfigAndQueryParams(
+            chartConfig,
+            url.searchParams
+        )
     }
 
     return undefined
