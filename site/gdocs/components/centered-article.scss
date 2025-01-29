@@ -164,6 +164,40 @@
             }
         }
     }
+
+    // Quick and dirty layout overrides for article printing
+    // Stacks all elements into a single, full-width column
+    // There's lots to improve, but it's better than before!
+    @media print {
+        grid-template-columns: repeat(12, 1fr);
+
+        .centered-article-header {
+            grid-column: 2 / span 10;
+        }
+
+        [class*="article-block__"] {
+            grid-column: 2 / span 10 !important;
+        }
+
+        .article-block__side-by-side,
+        .article-block__sticky-left,
+        .article-block__sticky-right {
+            grid-template-columns: repeat(12, 1fr);
+            grid-column: 1 / span 12 !important;
+            > div {
+                display: grid;
+                grid-column: 1 / span 12 !important;
+                grid-template-columns: repeat(12, 1fr);
+                grid-row-start: auto;
+            }
+        }
+
+        .sticky-column-wrapper {
+            position: relative;
+            grid-column: 1 / span 12 !important;
+            grid-template-columns: repeat(12, 1fr);
+        }
+    }
 }
 
 $banner-height: 200px;
