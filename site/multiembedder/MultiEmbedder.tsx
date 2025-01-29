@@ -19,10 +19,9 @@ import {
     Url,
     GRAPHER_TAB_OPTIONS,
     merge,
-    MultiDimDataPageConfig,
-    extractMultiDimChoicesFromQueryStr,
     fetchWithRetry,
     ChartViewInfo,
+    searchParamsToMultiDimView,
 } from "@ourworldindata/utils"
 import { action } from "mobx"
 import ReactDOM from "react-dom"
@@ -238,20 +237,13 @@ class MultiEmbedder {
         const { queryStr, slug } = embedUrl
 
         const mdimConfigUrl = `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${slug}.json`
-        const mdimJsonConfig = await fetchWithRetry(mdimConfigUrl).then((res) =>
+        const multiDimConfig = await fetchWithRetry(mdimConfigUrl).then((res) =>
             res.json()
         )
-        const mdimConfig = MultiDimDataPageConfig.fromObject(mdimJsonConfig)
-        const dimensions = extractMultiDimChoicesFromQueryStr(
-            queryStr,
-            mdimConfig
+        const view = searchParamsToMultiDimView(
+            multiDimConfig,
+            new URLSearchParams(queryStr)
         )
-        const view = mdimConfig.findViewByDimensions(dimensions)
-        if (!view) {
-            throw new Error(
-                `No view found for dimensions ${JSON.stringify(dimensions)}`
-            )
-        }
 
         const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${view.fullConfigId}.config.json`
 

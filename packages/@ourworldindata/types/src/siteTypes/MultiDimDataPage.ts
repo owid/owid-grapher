@@ -118,6 +118,5 @@ export interface MultiDimDataPageProps {
     primaryTopic?: PrimaryTopic
     relatedResearchCandidates: DataPageRelatedResearch[]
     imageMetadata: Record<string, ImageMetadata>
-    initialQueryStr?: string
     isPreviewing?: boolean
 }

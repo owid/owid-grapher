@@ -74,11 +74,11 @@ async function handleConfigRequest(
     const shouldCache = searchParams.get("nocache") === null
     console.log("Preparing json response for uuid ", uuid)
 
-    const grapherPageResp = await fetchGrapherConfig(
-        { type: "uuid", id: uuid },
+    const grapherPageResp = await fetchGrapherConfig({
+        identifier: { type: "uuid", id: uuid },
         env,
-        etag
-    )
+        etag,
+    })
 
     if (grapherPageResp.status === 304) {
         return new Response(null, { status: 304 })

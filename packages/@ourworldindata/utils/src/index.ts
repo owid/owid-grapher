@@ -350,4 +350,5 @@ export {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromQueryStr,
     multiDimStateToQueryStr,
+    searchParamsToMultiDimView,
 } from "./MultiDimDataPageConfig.js"
