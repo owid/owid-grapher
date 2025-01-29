@@ -111,8 +111,7 @@ export const createTagsForManifestEntry = (
             throw new Error(`Could not find manifest entry for ${entry}`)
 
         const assetKey = manifestEntry?.file ?? entry
-        const assetFilename = assetMap?.[assetKey] ?? assetKey
-        const assetUrl = urljoin(assetBaseUrl, assetFilename)
+        const assetUrl = assetMap?.[assetKey] ?? urljoin(assetBaseUrl, assetKey)
 
         if (entry.endsWith(".css")) {
             assets = [

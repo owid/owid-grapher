@@ -26,6 +26,7 @@ export const GrapherFigureView = ({
         queryStr: grapher.props.bindUrlToWindow
             ? window.location.search
             : undefined,
+        runtimeAssetMap: grapher.props.runtimeAssetMap,
         bounds,
         dataApiUrl: DATA_API_URL,
         enableKeyboardShortcuts: true,

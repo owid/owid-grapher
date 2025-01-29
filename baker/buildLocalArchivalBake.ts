@@ -57,7 +57,7 @@ const bakeDods = async () => {
     const targetDir = path.join(projBaseDir, DIR)
 
     const newFilename = await hashAndCopyFile(srcFile, targetDir)
-    return { "dods.json": newFilename }
+    return { "dods.json": `/${newFilename}` }
 }
 
 const bakeVariableDataFiles = async (variableId: number) => {
@@ -68,15 +68,20 @@ const bakeVariableDataFiles = async (variableId: number) => {
     const dataFilename = `${variableId}.data.json`
     const metadataFilename = `${variableId}.metadata.json`
 
-    return {
-        [dataFilename]: await hashAndWriteFile(
+    const [dataFilenameWithHash, metadataFilenameWithHash] = await Promise.all([
+        hashAndWriteFile(
             path.join(projBaseDir, DIR, "data/v1/indicators", dataFilename),
             dataStringified
         ),
-        [metadataFilename]: await hashAndWriteFile(
+        hashAndWriteFile(
             path.join(projBaseDir, DIR, "data/v1/indicators", metadataFilename),
             metadataStringified
         ),
+    ]).then((filenames) => filenames.map((filename) => path.basename(filename)))
+
+    return {
+        [dataFilename]: `/data/v1/indicators/${dataFilenameWithHash}`,
+        [metadataFilename]: `/data/v1/indicators/${metadataFilenameWithHash}`,
     }
 }
 
@@ -91,7 +96,8 @@ const bakeAssets = async () => {
     for (const dirent of await fs.readdir(srcDir, { withFileTypes: true })) {
         if (!dirent.isFile()) continue
         const srcFile = path.join(srcDir, dirent.name)
-        viteAssetMap[dirent.name] = await hashAndCopyFile(srcFile, targetDir)
+        const filename = await hashAndCopyFile(srcFile, targetDir)
+        viteAssetMap[dirent.name] = `/assets/${filename}`
     }
     return { viteAssetMap }
 }
@@ -133,6 +139,7 @@ const bakeDomainToFolder = async (
         await bakeSingleGrapherPageForArchival(dir, chart.config, trx, {
             imageMetadataDictionary,
             viteAssetMap,
+            runtimeAssetMap: runtimeFiles,
         })
     }, db.TransactionCloseMode.Close)
 }

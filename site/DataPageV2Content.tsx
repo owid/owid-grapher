@@ -11,6 +11,7 @@ import {
     GrapherInterface,
     joinTitleFragments,
     ImageMetadata,
+    AssetMapEntry,
 } from "@ourworldindata/utils"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
@@ -37,9 +38,11 @@ export const DataPageV2Content = ({
     canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
     tagToSlugMap,
     imageMetadata,
+    runtimeAssetMap,
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
+    runtimeAssetMap?: AssetMapEntry
 }) => {
     const [grapher, setGrapher] = useState<Grapher | undefined>(undefined)
 
@@ -54,8 +57,9 @@ export const DataPageV2Content = ({
             ...grapherConfig,
             isEmbeddedInADataPage: true,
             bindUrlToWindow: true,
+            runtimeAssetMap,
         }),
-        [grapherConfig]
+        [grapherConfig, runtimeAssetMap]
     )
 
     useEffect(() => {

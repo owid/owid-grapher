@@ -15,6 +15,7 @@ interface SiteFooterProps {
     debug?: boolean
     isPreviewing?: boolean
     viteAssetMap?: AssetMapEntry
+    runtimeAssetMap?: AssetMapEntry
 }
 
 type LinkData = { title: string; url: string }
@@ -194,7 +195,8 @@ export const SiteFooter = (props: SiteFooterProps) => (
                         debug: props.debug,
                         isPreviewing: props.isPreviewing,
                         hideDonationFlag: props.hideDonationFlag,
-                    })})`,
+                        runtimeAssetMap: props.runtimeAssetMap,
+                    })})`, // todo: gotta be a better way.
                 }}
             />
         </footer>
