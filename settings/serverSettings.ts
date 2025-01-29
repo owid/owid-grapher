@@ -195,3 +195,5 @@ export const SEARCH_EVAL_URL: string =
 export const ENV_IS_STAGING: boolean = ADMIN_BASE_URL.includes(
     "http://staging-site"
 )
+
+export const FIGMA_API_KEY: string = process.env.FIGMA_API_KEY ?? ""
