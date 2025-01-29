@@ -17,7 +17,7 @@ import { getVariableData } from "../db/model/Variable.js"
 
 const DIR = "archive"
 
-const HASH_LENGTH = 10
+const HASH_LENGTH = 8
 
 const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
@@ -25,8 +25,13 @@ if (!projBaseDir) throw new Error("Could not find project base directory")
 const archiveDir = path.join(projBaseDir, DIR)
 
 const hashContent = (strOrBuffer: string | Buffer) => {
-    const hash = crypto.createHash("sha256").update(strOrBuffer).digest("hex")
-    return hash.substring(0, HASH_LENGTH)
+    const hashHex = crypto
+        .createHash("sha256")
+        .update(strOrBuffer)
+        .digest("hex")
+    // Convert hex to base36 to make it contain more information in fewer characters
+    const hashBase36 = BigInt(`0x${hashHex}`).toString(36)
+    return hashBase36.substring(0, HASH_LENGTH)
 }
 
 const hashFile = async (file: string) => {
