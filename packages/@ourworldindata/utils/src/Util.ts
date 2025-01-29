@@ -231,6 +231,8 @@ export type AllKeysRequired<T> = AllowUndefinedValues<
 
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
+export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
+
 // doesn't do anything fancy, but makes it a bit more readable by skipping one layer of angle brackets:
 // PartialRecord<A, B> = Partial<Record<A, B>>
 export type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>

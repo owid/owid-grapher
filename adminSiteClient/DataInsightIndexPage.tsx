@@ -25,7 +25,7 @@ import {
     SearchWord,
 } from "../adminShared/search.js"
 import { DbPlainTag, OwidGdocDataInsightIndexItem } from "@ourworldindata/types"
-import { dayjs, startCase } from "@ourworldindata/utils"
+import { dayjs, RequiredBy, startCase } from "@ourworldindata/utils"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 
@@ -49,7 +49,7 @@ function createColumns(ctx: {
             title: "Preview",
             key: "preview",
             render: (_, dataInsight) =>
-                dataInsight.image?.cloudflareId ? (
+                hasImage(dataInsight) ? (
                     <img
                         src={makePreviewImageSrc(dataInsight)}
                         style={{ maxWidth: 150 }}
@@ -76,8 +76,8 @@ function createColumns(ctx: {
                             {index < authors.length - 1 ? ", " : ""}
                         </React.Fragment>
                     ))}
-                    {dataInsight["approved-by"] &&
-                        ` (approved by ${dataInsight["approved-by"]})`}
+                    {dataInsight.approvedBy &&
+                        ` (approved by ${dataInsight.approvedBy})`}
                 </>
             ),
         },
@@ -142,27 +142,27 @@ function createColumns(ctx: {
                     >
                         Preview
                     </Button>
-                    {dataInsight["grapher-url"] && (
+                    {dataInsight.grapherUrl && (
                         <Button
-                            href={dataInsight["grapher-url"]}
+                            href={dataInsight.grapherUrl}
                             target="_blank"
                             icon={linkIcon}
                         >
                             Grapher page
                         </Button>
                     )}
-                    {dataInsight["explorer-url"] && (
+                    {dataInsight.explorerUrl && (
                         <Button
-                            href={dataInsight["explorer-url"]}
+                            href={dataInsight.explorerUrl}
                             target="_blank"
                             icon={linkIcon}
                         >
                             Explorer view
                         </Button>
                     )}
-                    {dataInsight["figma-url"] && (
+                    {dataInsight.figmaUrl && (
                         <Button
-                            href={dataInsight["figma-url"]}
+                            href={dataInsight.figmaUrl}
                             target="_blank"
                             icon={figmaIcon}
                         >
@@ -185,7 +185,7 @@ function createColumns(ctx: {
                     >
                         Edit GDoc
                     </Button>
-                    {dataInsight["narrative-chart"] && (
+                    {hasNarrativeChart(dataInsight) && (
                         <Button
                             type="primary"
                             href={makeNarrativeChartEditLink(dataInsight)}
@@ -351,12 +351,12 @@ function DataInsightGallery({
 }: {
     dataInsights: OwidGdocDataInsightIndexItem[]
 }) {
-    const dataInsightsWithPreview = dataInsights.filter(
-        (dataInsight) => dataInsight.image?.cloudflareId
+    const dataInsightsWithPreviewImage = dataInsights.filter((dataInsight) =>
+        hasImage(dataInsight)
     )
     return (
         <Flex wrap gap="large">
-            {dataInsightsWithPreview.map((dataInsight, index) => (
+            {dataInsightsWithPreviewImage.map((dataInsight, index) => (
                 <DataInsightCard
                     key={`${dataInsight.id}-${index}`}
                     dataInsight={dataInsight}
@@ -369,7 +369,7 @@ function DataInsightGallery({
 function DataInsightCard({
     dataInsight,
 }: {
-    dataInsight: OwidGdocDataInsightIndexItem
+    dataInsight: RequiredBy<OwidGdocDataInsightIndexItem, "image">
 }) {
     const preview = (
         <img
@@ -399,11 +399,11 @@ function DataInsightCard({
             >
                 GDoc
             </a>
-            {dataInsight["figma-url"] && (
+            {dataInsight.figmaUrl && (
                 <>
                     {" / "}
                     <a
-                        href={dataInsight["figma-url"]}
+                        href={dataInsight.figmaUrl}
                         target="_blank"
                         rel="noreferrer noopener"
                     >
@@ -415,6 +415,18 @@ function DataInsightCard({
     )
 }
 
+function hasNarrativeChart(
+    dataInsight: OwidGdocDataInsightIndexItem
+): dataInsight is RequiredBy<OwidGdocDataInsightIndexItem, "narrativeChart"> {
+    return dataInsight.narrativeChart !== undefined
+}
+
+function hasImage(
+    dataInsight: OwidGdocDataInsightIndexItem
+): dataInsight is RequiredBy<OwidGdocDataInsightIndexItem, "image"> {
+    return dataInsight.image !== undefined
+}
+
 function makePreviewLink(dataInsight: OwidGdocDataInsightIndexItem) {
     return `/admin/gdocs/${dataInsight.id}/preview`
 }
@@ -423,11 +435,15 @@ function makeGDocEditLink(dataInsight: OwidGdocDataInsightIndexItem) {
     return `https://docs.google.com/document/d/${dataInsight.id}/edit`
 }
 
-function makeNarrativeChartEditLink(dataInsight: OwidGdocDataInsightIndexItem) {
-    return `/admin/chartViews/${dataInsight.narrativeChartId}/edit`
+function makeNarrativeChartEditLink(
+    dataInsight: RequiredBy<OwidGdocDataInsightIndexItem, "narrativeChart">
+) {
+    return `/admin/chartViews/${dataInsight.narrativeChart.id}/edit`
 }
 
-function makePreviewImageSrc(dataInsight: OwidGdocDataInsightIndexItem) {
-    const { cloudflareId, originalWidth } = dataInsight.image ?? {}
+function makePreviewImageSrc(
+    dataInsight: RequiredBy<OwidGdocDataInsightIndexItem, "image">
+) {
+    const { cloudflareId, originalWidth } = dataInsight.image
     return `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=${originalWidth}`
 }
