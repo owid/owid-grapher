@@ -1,6 +1,7 @@
 import { StrictMode } from "react"
 import { hydrate, render } from "react-dom"
 import {
+    AssetMapEntry,
     DataPageV2ContentFields,
     getOwidGdocFromJSON,
     getWindowQueryStr,
@@ -76,7 +77,10 @@ function hydrateDataInsightsIndexPage() {
     }
 }
 
-function hydrateDataPageV2Content(isPreviewing?: boolean) {
+function hydrateDataPageV2Content({
+    isPreviewing,
+    runtimeAssetMap,
+}: { isPreviewing?: boolean; runtimeAssetMap?: AssetMapEntry } = {}) {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
     const props: DataPageV2ContentFields = window._OWID_DATAPAGEV2_PROPS
     const grapherConfig = window._OWID_GRAPHER_CONFIG
@@ -87,6 +91,7 @@ function hydrateDataPageV2Content(isPreviewing?: boolean) {
                 {...props}
                 grapherConfig={grapherConfig}
                 isPreviewing={isPreviewing}
+                runtimeAssetMap={runtimeAssetMap}
             />
         </DebugProvider>,
         wrapper
@@ -267,23 +272,25 @@ export const runSiteFooterScripts = (
               context?: SiteFooterContext
               container?: HTMLElement
               hideDonationFlag?: boolean
+              runtimeAssetMap?: AssetMapEntry
           }
         | undefined
 ) => {
     // We used to destructure this in the function signature, but that caused
     // a weird issue reported by bugsnag: https://app.bugsnag.com/our-world-in-data/our-world-in-data-website/errors/63ca39b631e8660009464eb4?event_id=63d384c500acc25fc0810000&i=sk&m=ef
     // So now we define the object as potentially undefined and then destructure it here.
-    const { debug, context, isPreviewing, hideDonationFlag } = args || {}
+    const { debug, context, isPreviewing, hideDonationFlag, runtimeAssetMap } =
+        args || {}
 
     switch (context) {
         case SiteFooterContext.dataPageV2:
-            hydrateDataPageV2Content(isPreviewing)
+            hydrateDataPageV2Content({ isPreviewing, runtimeAssetMap })
             runAllGraphersLoadedListener()
             runLightbox()
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
             runSiteTools()
             runCookiePreferencesManager()
-            void runDetailsOnDemand()
+            void runDetailsOnDemand({ runtimeAssetMap })
             break
         case SiteFooterContext.multiDimDataPage:
             hydrateMultiDimDataPageContent(isPreviewing)
@@ -292,7 +299,7 @@ export const runSiteFooterScripts = (
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
             runSiteTools()
             runCookiePreferencesManager()
-            void runDetailsOnDemand()
+            void runDetailsOnDemand({ runtimeAssetMap })
             break
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
@@ -300,7 +307,7 @@ export const runSiteFooterScripts = (
             runAllGraphersLoadedListener()
             runSiteTools()
             runCookiePreferencesManager()
-            void runDetailsOnDemand()
+            void runDetailsOnDemand({ runtimeAssetMap })
             break
         case SiteFooterContext.explorerIndexPage:
             hydrateExplorerIndex()
@@ -313,7 +320,7 @@ export const runSiteFooterScripts = (
             runAllGraphersLoadedListener()
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
             runFootnotes()
-            void runDetailsOnDemand()
+            void runDetailsOnDemand({ runtimeAssetMap })
             runLightbox()
             runSiteTools()
             runCookiePreferencesManager()
@@ -349,7 +356,7 @@ export const runSiteFooterScripts = (
             runFootnotes()
             runSiteTools()
             runCookiePreferencesManager()
-            void runDetailsOnDemand()
+            void runDetailsOnDemand({ runtimeAssetMap })
             break
     }
 }

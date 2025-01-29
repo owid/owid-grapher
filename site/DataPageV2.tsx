@@ -45,6 +45,8 @@ export const DataPageV2 = (props: {
     imageMetadata: Record<string, ImageMetadata>
     tagToSlugMap: Record<string | number, string>
     viteAssetMap?: AssetMapEntry
+    runtimeAssetMap?: AssetMapEntry
+    dataApiUrl?: string
 }) => {
     const {
         grapher,
@@ -56,6 +58,7 @@ export const DataPageV2 = (props: {
         tagToSlugMap,
         imageMetadata,
         viteAssetMap,
+        runtimeAssetMap,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title.title
     const canonicalUrl = grapher?.slug
@@ -173,6 +176,7 @@ export const DataPageV2 = (props: {
                     context={SiteFooterContext.dataPageV2}
                     isPreviewing={isPreviewing}
                     viteAssetMap={viteAssetMap}
+                    runtimeAssetMap={runtimeAssetMap}
                 />
                 <script
                     dangerouslySetInnerHTML={{
