@@ -121,8 +121,16 @@ export const DataPageV2 = (props: {
                 <link rel="preconnect" href={dataApiOrigin} />
                 {variableIds.flatMap((variableId) =>
                     [
-                        getVariableDataRoute(DATA_API_URL, variableId),
-                        getVariableMetadataRoute(DATA_API_URL, variableId),
+                        getVariableDataRoute(
+                            DATA_API_URL,
+                            variableId,
+                            runtimeAssetMap
+                        ),
+                        getVariableMetadataRoute(
+                            DATA_API_URL,
+                            variableId,
+                            runtimeAssetMap
+                        ),
                     ].map((href) => (
                         <link
                             key={href}
@@ -167,6 +175,7 @@ export const DataPageV2 = (props: {
                                 faqEntries={faqEntries}
                                 canonicalUrl={canonicalUrl}
                                 tagToSlugMap={tagToSlugMap}
+                                runtimeAssetMap={runtimeAssetMap}
                             />
                         </DebugProvider>
                     </div>
