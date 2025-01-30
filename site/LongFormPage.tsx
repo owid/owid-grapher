@@ -43,7 +43,6 @@ export const LongFormPage = (props: {
     const isPost = post.type === "post"
 
     const pageTitle = overrides?.pageTitle ?? post.title
-    const pageTitleSEO = pageTitle
     const pageDesc = overrides?.pageDesc ?? post.pageDesc
     const canonicalUrl = overrides?.canonicalUrl ?? `${baseUrl}/${post.slug}`
 
@@ -108,7 +107,7 @@ export const LongFormPage = (props: {
     return (
         <Html>
             <Head
-                pageTitle={pageTitleSEO}
+                pageTitle={pageTitle}
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
                 imageUrl={
