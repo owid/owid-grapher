@@ -11,6 +11,7 @@ import {
     EntityId,
     ErrorValue,
     OwidChartDimensionInterfaceWithMandatorySlug,
+    EntityName,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -332,20 +333,19 @@ export const legacyToOwidTableAndDimensions = (
         const entityColorColumnSlug = OwidTableSlugs.entityColor
 
         const valueFn = (
-            entityId: EntityId | undefined
+            entityName: EntityName | undefined
         ): string | ErrorValue => {
-            if (!entityId) return ErrorValueTypes.UndefinedButShouldBeString
-            const entityName =
-                joinedVariablesTable.entityIdToNameMap.get(entityId)
+            if (!entityName) return ErrorValueTypes.UndefinedButShouldBeString
             return entityName && selectedEntityColors
                 ? (selectedEntityColors[entityName] ??
                       ErrorValueTypes.UndefinedButShouldBeString)
                 : ErrorValueTypes.UndefinedButShouldBeString
         }
 
-        const values = joinedVariablesTable.rows.map((row) =>
-            valueFn(row.entityId)
-        )
+        const values =
+            joinedVariablesTable.entityNameColumn.valuesIncludingErrorValues.map(
+                (entityName) => valueFn(entityName as EntityName)
+            )
 
         joinedVariablesTable = joinedVariablesTable.appendColumns([
             {
