@@ -14,6 +14,7 @@ import {
     Popconfirm,
     Popover,
     Table,
+    TableColumnsType,
     Upload,
     notification,
 } from "antd"
@@ -22,7 +23,6 @@ import { AdminAppContext } from "./AdminAppContext.js"
 import { DbEnrichedImageWithUserId, DbPlainUser } from "@ourworldindata/types"
 import { downloadImage } from "@ourworldindata/utils"
 import { Timeago } from "./Forms.js"
-import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faClose,
@@ -282,7 +282,7 @@ function createColumns({
     users: UserMap
     usage: Dictionary<UsageInfo[]>
     notificationApi: NotificationInstance
-}): ColumnsType<DbEnrichedImageWithUserId> {
+}): TableColumnsType<DbEnrichedImageWithUserId> {
     return [
         {
             title: "Preview",

@@ -31,8 +31,8 @@ export function serializeChartConfig(config: GrapherInterface): JsonString {
 }
 
 export function parseChartConfigsRow(
-    row: DbRawChartConfig
-): DbEnrichedChartConfig {
+    row: Pick<DbRawChartConfig, "patch" | "full">
+): Pick<DbEnrichedChartConfig, "patch" | "full"> {
     return {
         ...row,
         patch: parseChartConfig(row.patch),

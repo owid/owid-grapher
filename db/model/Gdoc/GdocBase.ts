@@ -51,7 +51,7 @@ import {
 import { createLinkForChartView, createLinkFromUrl } from "../Link.js"
 import {
     getMultiDimDataPageBySlug,
-    isMultiDimDataPagePublished,
+    multiDimDataPageExists,
 } from "../MultiDimDataPage.js"
 import {
     ARCHVED_THUMBNAIL_FILENAME,
@@ -831,7 +831,10 @@ export class GdocBase implements OwidGdocBaseInterface {
                 case OwidGdocLinkType.Grapher: {
                     if (
                         !chartIdsBySlug[link.target] &&
-                        !(await isMultiDimDataPagePublished(knex, link.target))
+                        !(await multiDimDataPageExists(knex, {
+                            slug: link.target,
+                            published: true,
+                        }))
                     ) {
                         linkErrors.push({
                             property: "content",

@@ -61,8 +61,8 @@ export enum TaggableType {
 // Exception format that can be easily given as an API error
 export class JsonError extends Error {
     status: number
-    constructor(message: string, status?: number) {
-        super(message)
+    constructor(message: string, status?: number, options?: ErrorOptions) {
+        super(message, options)
         this.status = status ?? 400
     }
 }
