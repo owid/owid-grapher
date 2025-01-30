@@ -23,10 +23,6 @@ import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { SiteNavigation } from "./SiteNavigation.js"
 import SiteTools, { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { runDetailsOnDemand } from "./detailsOnDemand.js"
-import {
-    AdditionalInformation,
-    ADDITIONAL_INFORMATION_CLASS_NAME,
-} from "./blocks/AdditionalInformation.js"
 import { hydrateCodeSnippets } from "@ourworldindata/components"
 import { hydrateDynamicCollectionPage } from "./collections/DynamicCollection.js"
 import {
@@ -177,33 +173,6 @@ function runSiteTools() {
     }
 }
 
-const hydrateAdditionalInformation = () => {
-    document
-        .querySelectorAll<HTMLElement>(`.${ADDITIONAL_INFORMATION_CLASS_NAME}`)
-        .forEach((block) => {
-            const blockWrapper = block.parentElement
-            const titleEl = block.querySelector("h3")
-            const title = titleEl ? titleEl.textContent : null
-            const variation = block.getAttribute("data-variation") || ""
-            const defaultOpen =
-                block.getAttribute("data-default-open") === "true"
-            const figureEl = block.querySelector(".content-wrapper > figure")
-            const image = figureEl ? figureEl.innerHTML : null
-            const contentEl = block.querySelector(".content")
-            const content = contentEl ? contentEl.innerHTML : null
-            hydrate(
-                <AdditionalInformation
-                    content={content}
-                    title={title}
-                    image={image}
-                    variation={variation}
-                    defaultOpen={defaultOpen}
-                />,
-                blockWrapper
-            )
-        })
-}
-
 const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
     const wrapper = document.querySelector("#owid-document-root")
     const props = getOwidGdocFromJSON(window._OWID_GDOC_PROPS)
@@ -310,7 +279,6 @@ export const runSiteFooterScripts = (
             // - country-aware prominent links
             // - embedding charts through MultiEmbedderSingleton.embedAll()
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
-            hydrateAdditionalInformation()
             hydrateCodeSnippets()
             MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
             MultiEmbedderSingleton.embedAll()
