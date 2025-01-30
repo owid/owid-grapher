@@ -4,10 +4,8 @@ import ReactDOMServer from "react-dom/server.js"
 import { HTTPS_ONLY } from "../settings/serverSettings.js"
 import { FormattingOptions, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { FormattedPost, FullPost, TocHeading, Url } from "@ourworldindata/utils"
-import { parseKeyValueArgs } from "../serverUtils/wordpressUtils.js"
 import { Footnote } from "../site/Footnote.js"
 import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink.js"
-import { DataToken } from "../site/DataToken.js"
 import { DEEP_LINK_CLASS, formatImages } from "./formatting.js"
 import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
@@ -54,21 +52,6 @@ export const formatWordpressPost = async (
             return ""
         }
     })
-
-    // The only two supported ones here are: {{LastUpdated timestampUrl:...}} and {{FullWidthRawHtml url:...}}
-    const dataTokenRegex = /{{\s*([a-zA-Z]+)\s*(.+?)\s*}}/g
-
-    html = html.replace(
-        dataTokenRegex,
-        (_, token, dataTokenConfigurationString) => {
-            return ReactDOMServer.renderToString(
-                <DataToken
-                    token={token}
-                    {...parseKeyValueArgs(dataTokenConfigurationString)}
-                />
-            )
-        }
-    )
 
     // Give "Add country" text (and variations) the appearance of "+ Add Country" chart control
     html = html.replace(

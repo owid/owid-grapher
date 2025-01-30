@@ -23,7 +23,6 @@ import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { SiteNavigation } from "./SiteNavigation.js"
 import SiteTools, { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { runDetailsOnDemand } from "./detailsOnDemand.js"
-import { runDataTokens } from "./runDataTokens.js"
 import SearchCountry from "./SearchCountry.js"
 import {
     AdditionalInformation,
@@ -332,12 +331,10 @@ export const runSiteFooterScripts = (
         default:
             // Features that were not ported over to gdocs, are only being run on WP pages:
             // - global entity selector
-            // - data tokens
             // - country-aware prominent links
             // - search country widget leading to topic country profiles
             // - embedding charts through MultiEmbedderSingleton.embedAll()
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
-            runDataTokens()
             runSearchCountry()
             hydrateAdditionalInformation()
             hydrateCodeSnippets()
