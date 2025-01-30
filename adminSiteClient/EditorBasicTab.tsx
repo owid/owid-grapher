@@ -14,6 +14,8 @@ import {
     ALL_GRAPHER_CHART_TYPES,
     GrapherChartType,
     GRAPHER_CHART_TYPES,
+    DbChartTagJoin,
+    TaggableType,
 } from "@ourworldindata/types"
 import {
     DimensionSlot,
@@ -41,12 +43,14 @@ import {
 } from "react-beautiful-dnd"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { EditorDatabase } from "./ChartEditorView.js"
-import { isChartEditorInstance } from "./ChartEditor.js"
+import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
 import {
     IndicatorChartEditor,
     isIndicatorChartEditorInstance,
 } from "./IndicatorChartEditor.js"
+import { EditableTags } from "./EditableTags.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
 class DimensionSlotView<
@@ -353,6 +357,41 @@ class VariablesSection<
     }
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
+const TagsSection = (props: {
+    chartId: number | undefined
+    editor: ChartEditor
+    onSaveTags: (tags: DbChartTagJoin[]) => void
+}) => {
+    const { tags, availableTags } = props.editor
+    const canTag = !!props.chartId && tags && availableTags
+    return (
+        <Section name="Tags">
+            {canTag ? (
+                <>
+                    <EditableTags
+                        onSave={props.onSaveTags}
+                        tags={tags}
+                        suggestions={availableTags}
+                        hasKeyChartSupport
+                        hasSuggestionsSupport
+                        taggable={{
+                            type: TaggableType.Charts,
+                            id: props.chartId,
+                        }}
+                    />
+                    <small className="form-text text-muted">
+                        Changes to tags will be applied instantly, without the
+                        need to save the chart.
+                    </small>
+                </>
+            ) : (
+                <p>Can't tag this chart. Maybe it hasn't been saved yet?</p>
+            )}
+        </Section>
+    )
+}
+
 @observer
 export class EditorBasicTab<
     Editor extends AbstractChartEditor,
@@ -361,6 +400,9 @@ export class EditorBasicTab<
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }> {
+    static contextType = AdminAppContext
+    context!: AdminAppContextType
+
     private chartTypeOptionNone = "None"
 
     @action.bound private updateParentConfig() {
@@ -451,6 +493,20 @@ export class EditorBasicTab<
         }
     }
 
+    @action.bound onSaveTags(tags: DbChartTagJoin[]) {
+        void this.saveTags(tags)
+    }
+
+    async saveTags(tags: DbChartTagJoin[]) {
+        const { editor } = this.props
+        const { grapher } = editor
+        await this.context.admin.requestJSON(
+            `/api/charts/${grapher.id}/setTags`,
+            { tags },
+            "POST"
+        )
+    }
+
     render() {
         const { editor } = this.props
         const { grapher } = editor
@@ -491,6 +547,14 @@ export class EditorBasicTab<
                         errorMessagesForDimensions={
                             this.props.errorMessagesForDimensions
                         }
+                    />
+                )}
+
+                {isChartEditorInstance(editor) && (
+                    <TagsSection
+                        chartId={grapher.id}
+                        editor={editor}
+                        onSaveTags={this.onSaveTags}
                     />
                 )}
             </div>

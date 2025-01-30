@@ -5,7 +5,12 @@ import {
     getParentVariableIdFromChartConfig,
     RawPageview,
 } from "@ourworldindata/utils"
-import { GrapherInterface, ChartRedirect } from "@ourworldindata/types"
+import {
+    GrapherInterface,
+    ChartRedirect,
+    MinimalTagWithIsTopic,
+    DbChartTagJoin,
+} from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
 import {
     ChartEditor,
@@ -32,6 +37,8 @@ export class ChartEditorPage
     @observable references: References | undefined = undefined
     @observable redirects: ChartRedirect[] = []
     @observable pageviews?: RawPageview = undefined
+    @observable tags?: DbChartTagJoin[] = undefined
+    @observable availableTags?: MinimalTagWithIsTopic[] = undefined
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined
@@ -114,6 +121,21 @@ export class ChartEditorPage
         runInAction(() => (this.pageviews = json.pageviews))
     }
 
+    async fetchTags(): Promise<void> {
+        const { grapherId } = this.props
+        const { admin } = this.context
+        const json =
+            grapherId === undefined
+                ? {}
+                : await admin.getJSON(`/api/charts/${grapherId}.tags.json`)
+        runInAction(() => (this.tags = json.tags))
+    }
+
+    async fetchAvailableTags() {
+        const json = (await this.admin.getJSON("/api/tags.json")) as any
+        this.availableTags = json.tags
+    }
+
     @computed get admin(): Admin {
         return this.context.admin
     }
@@ -129,6 +151,8 @@ export class ChartEditorPage
         void this.fetchRefs()
         void this.fetchRedirects()
         void this.fetchPageviews()
+        void this.fetchTags()
+        void this.fetchAvailableTags()
     }
 
     componentDidMount(): void {

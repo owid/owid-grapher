@@ -11,6 +11,7 @@ import {
     DbInsertChartRevision,
     DbRawChartConfig,
     ChartConfigsTableName,
+    DbChartTagJoin,
 } from "@ourworldindata/types"
 import {
     diffGrapherConfigs,
@@ -683,6 +684,26 @@ export async function getChartPageviewsJson(
     return {
         pageviews: pageviewsByUrl ?? undefined,
     }
+}
+
+export async function getChartTagsJson(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    const chartId = expectInt(req.params.chartId)
+    const chartTags = await db.knexRaw<DbChartTagJoin>(
+        trx,
+        `-- sql
+            SELECT ct.tagId as id, ct.keyChartLevel, ct.isApproved, t.name
+            FROM chart_tags ct
+            JOIN charts c ON c.id=ct.chartId
+            JOIN tags t ON t.id=ct.tagId
+            WHERE ct.chartId = ?
+        `,
+        [chartId]
+    )
+    return { tags: chartTags }
 }
 
 export async function createChart(
