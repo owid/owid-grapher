@@ -23,7 +23,6 @@ import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { SiteNavigation } from "./SiteNavigation.js"
 import SiteTools, { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { runDetailsOnDemand } from "./detailsOnDemand.js"
-import SearchCountry from "./SearchCountry.js"
 import {
     AdditionalInformation,
     ADDITIONAL_INFORMATION_CLASS_NAME,
@@ -43,7 +42,6 @@ import { getInitialState } from "./cookiePreferences.js"
 import { CookiePreferencesManager } from "./CookiePreferencesManager.js"
 import { DataCatalogInstantSearchWrapper } from "./DataCatalog/DataCatalog.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
-import { countryProfileSpecs } from "./countryProfileProjects.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import {
@@ -144,28 +142,6 @@ function runFootnotes() {
             />,
             f
         )
-    })
-}
-
-function runSearchCountry() {
-    const searchElements = document.querySelectorAll(
-        ".wp-block-search-country-profile"
-    )
-    searchElements.forEach((element) => {
-        const project = element.getAttribute("data-project")
-        if (project) {
-            const profileSpec = countryProfileSpecs.find(
-                (spec) => spec.project === project
-            )
-            if (profileSpec) {
-                render(
-                    <SearchCountry
-                        countryProfileRootPath={profileSpec.rootPath}
-                    />,
-                    element
-                )
-            }
-        }
     })
 }
 
@@ -332,10 +308,8 @@ export const runSiteFooterScripts = (
             // Features that were not ported over to gdocs, are only being run on WP pages:
             // - global entity selector
             // - country-aware prominent links
-            // - search country widget leading to topic country profiles
             // - embedding charts through MultiEmbedderSingleton.embedAll()
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
-            runSearchCountry()
             hydrateAdditionalInformation()
             hydrateCodeSnippets()
             MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
