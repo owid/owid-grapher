@@ -26,9 +26,9 @@ export default function LinkedA({ span }: { span: SpanLink }) {
             </a>
         )
     }
-    if (linkedDocument && linkedDocument.published && linkedDocument.slug) {
+    if (linkedDocument && linkedDocument.published && linkedDocument.url) {
         return (
-            <a href={`/${linkedDocument.slug}`} className="span-link">
+            <a href={linkedDocument.url} className="span-link">
                 <SpanElements spans={span.children} />
             </a>
         )

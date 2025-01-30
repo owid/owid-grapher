@@ -10,7 +10,7 @@ function RecircItem({ url }: { url: string }) {
     return (
         <aside className="recirc-article-container">
             <h3 className="h3-bold">
-                <a href={`/${linkedDocument.slug}`}>{linkedDocument.title}</a>
+                <a href={linkedDocument.url}>{linkedDocument.title}</a>
             </h3>
             {linkedDocument.authors ? (
                 <div className="body-3-medium-italic">

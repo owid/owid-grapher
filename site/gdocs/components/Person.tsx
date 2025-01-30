@@ -1,7 +1,6 @@
 import { useMediaQuery } from "usehooks-ts"
 
-import { getCanonicalUrl } from "@ourworldindata/components"
-import { EnrichedBlockPerson, OwidGdocType } from "@ourworldindata/types"
+import { EnrichedBlockPerson } from "@ourworldindata/types"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
 import { useLinkedDocument } from "../utils.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
@@ -11,14 +10,7 @@ import { Socials } from "./Socials.js"
 export default function Person({ person }: { person: EnrichedBlockPerson }) {
     const { linkedDocument } = useLinkedDocument(person.url ?? "")
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
-
-    const slug = linkedDocument?.slug
-    const url = slug
-        ? getCanonicalUrl("", {
-              slug,
-              content: { type: OwidGdocType.Author },
-          })
-        : undefined
+    const url = linkedDocument?.url
 
     const heading = <h3 className="person-heading">{person.name}</h3>
 

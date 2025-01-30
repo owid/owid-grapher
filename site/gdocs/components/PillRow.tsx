@@ -6,7 +6,7 @@ import { DocumentContext } from "../DocumentContext.js"
 function Pill(props: { text?: string; url: string }) {
     const { linkedDocument, errorMessage } = useLinkedDocument(props.url)
     const { isPreviewing } = useContext(DocumentContext)
-    const url = linkedDocument ? `/${linkedDocument.slug}` : props.url
+    const url = linkedDocument?.url ?? props.url
     const text = props.text ?? linkedDocument?.title
 
     if (isPreviewing) {

@@ -21,7 +21,7 @@ function TopicPageRelatedTopic({
         return <li>{errorMessage}</li>
     }
     const topicText = linkedDocument?.title || text
-    const topicUrl = linkedDocument?.slug ? `/${linkedDocument?.slug}` : url
+    const topicUrl = linkedDocument?.url ?? url
     return (
         <li>
             <a href={topicUrl}>{topicText}</a>
