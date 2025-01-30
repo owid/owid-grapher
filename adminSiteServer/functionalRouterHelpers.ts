@@ -1,6 +1,7 @@
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import { Request, Response } from "express"
 import * as db from "../db/db.js"
+
 export function getRouteWithROTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
