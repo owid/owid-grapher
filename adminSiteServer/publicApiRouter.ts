@@ -1,6 +1,9 @@
+import e from "express"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import { Request, Response } from "./authentication.js"
 import * as db from "../db/db.js"
+import { getChartViewNameConfigMap } from "../db/model/ChartView.js"
+import { getRouteWithROTransaction } from "./functionalRouterHelpers.js"
 
 export const publicApiRouter = new FunctionalRouter()
 
@@ -22,3 +25,16 @@ publicApiRouter.router.get("/health", async (req: Request, res: Response) => {
         console.error("Error at health endpoint", e)
     }
 })
+
+getRouteWithROTransaction(
+    publicApiRouter,
+    "/chartViewMap",
+    async (
+        _req: Request,
+        _res: e.Response<any, Record<string, any>>,
+        trx: db.KnexReadonlyTransaction
+    ) => {
+        const chartViewMap = await getChartViewNameConfigMap(trx)
+        return chartViewMap
+    }
+)
