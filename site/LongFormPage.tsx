@@ -43,9 +43,7 @@ export const LongFormPage = (props: {
     const isPost = post.type === "post"
 
     const pageTitle = overrides?.pageTitle ?? post.title
-    const pageTitleSEO = `${pageTitle}${
-        post.supertitle ? ` - ${post.supertitle}` : ""
-    }`
+    const pageTitleSEO = pageTitle
     const pageDesc = overrides?.pageDesc ?? post.pageDesc
     const canonicalUrl = overrides?.canonicalUrl ?? `${baseUrl}/${post.slug}`
 
@@ -127,7 +125,6 @@ export const LongFormPage = (props: {
                         canonicalUrl={citationCanonicalUrl}
                     />
                 )}
-                {post.style && <style>{post.style}</style>}
             </Head>
             <body className={bodyClasses.join(" ")}>
                 <SiteHeader baseUrl={baseUrl} />
@@ -145,11 +142,6 @@ export const LongFormPage = (props: {
                                     />
                                 )}
                                 <div className="article-titles">
-                                    {post.supertitle && (
-                                        <div className="supertitle">
-                                            {post.supertitle}
-                                        </div>
-                                    )}
                                     <h1 className="entry-title">{pageTitle}</h1>
                                     {!isPost && formattingOptions.subnavId && (
                                         <BreadcrumbsFromSubnav

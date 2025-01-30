@@ -4,12 +4,10 @@ import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { TocHeading } from "./Toc.js"
 
 export interface FormattedPost extends FullPost {
-    supertitle?: string
     stickyNavLinks?: { text: string; target: string }[]
     byline?: string
     info?: string
     html: string
-    style?: string
     footnotes: string[]
     tocHeadings: TocHeading[]
     pageDesc: string

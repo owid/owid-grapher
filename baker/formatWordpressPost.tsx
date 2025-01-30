@@ -1,7 +1,6 @@
 import cheerio from "cheerio"
 import urlSlug from "url-slug"
 import ReactDOMServer from "react-dom/server.js"
-import { HTTPS_ONLY } from "../settings/serverSettings.js"
 import { FormattingOptions, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { FormattedPost, FullPost, TocHeading, Url } from "@ourworldindata/utils"
 import { Footnote } from "../site/Footnote.js"
@@ -85,31 +84,12 @@ export const formatWordpressPost = async (
     renderHelp(cheerioEl)
     await renderProminentLinks(cheerioEl, post.id, knex)
 
-    // Extract inline styling
-    let style
-    const $style = cheerioEl("style")
-    if ($style.length) {
-        style = $style
-            .toArray()
-            .map((el) => cheerioEl(el).html() || "")
-            .reduce((prev, curr) => prev + curr)
-        $style.remove()
-    }
-
     // Extract blog info content
     let info
     const $info = cheerioEl(".blog-info")
     if ($info.length) {
         info = $info.html() ?? undefined
         $info.remove()
-    }
-
-    // Extract page supertitle
-    let supertitle
-    const $supertitle = cheerioEl(".wp-block-owid-supertitle")
-    if ($supertitle.length) {
-        supertitle = $supertitle.text()
-        $supertitle.remove()
     }
 
     // Extract page byline
@@ -198,33 +178,10 @@ export const formatWordpressPost = async (
         $el.remove()
     }
 
-    // Any remaining iframes
-    for (const iframe of cheerioEl("iframe").toArray()) {
-        // Ensure https embeds
-        if (HTTPS_ONLY && iframe.attribs["src"]) {
-            iframe.attribs["src"] = iframe.attribs["src"].replace(
-                "http://",
-                "https://"
-            )
-        }
-        // Lazy load unless "loading" attribute already specified
-        if (!iframe.attribs["loading"]) {
-            iframe.attribs["loading"] = "lazy"
-        }
-    }
-
     // Remove any empty elements
     for (const p of cheerioEl("p").toArray()) {
         const $p = cheerioEl(p)
         if ($p.contents().length === 0) $p.remove()
-    }
-
-    // Wrap tables so we can do overflow-x: scroll if needed
-    for (const table of cheerioEl("table").toArray()) {
-        const $table = cheerioEl(table)
-        const $div = cheerioEl("<div class='tableContainer'></div>")
-        $table.after($div)
-        $div.append($table)
     }
 
     // Due to CSS Grid, we need to nest a container _inside_ the sticky column
@@ -329,10 +286,8 @@ export const formatWordpressPost = async (
 
     return {
         ...post,
-        supertitle,
         byline,
         info,
-        style,
         footnotes: footnotes,
         tocHeadings: tocHeadings,
         pageDesc: post.excerpt || cheerioEl("p").first().text(),
