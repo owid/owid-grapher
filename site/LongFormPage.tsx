@@ -6,7 +6,7 @@ import { SiteFooter } from "./SiteFooter.js"
 import { addContentFeatures, formatUrls } from "../site/formatting.js"
 import { SiteSubnavigation } from "./SiteSubnavigation.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faBook, faSync } from "@fortawesome/free-solid-svg-icons"
+import { faBook } from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import { TableOfContents } from "../site/TableOfContents.js"
 import { FormattedPost, TocHeading, omit } from "@ourworldindata/utils"
@@ -174,20 +174,8 @@ export const LongFormPage = (props: {
                                             <PageInfo info={post.info} />
                                         )}
 
-                                        {(withCitation || post.lastUpdated) && (
+                                        {withCitation && (
                                             <div className="tools">
-                                                {post.lastUpdated && (
-                                                    <div className="last-updated">
-                                                        <FontAwesomeIcon
-                                                            icon={faSync}
-                                                        />
-                                                        <span
-                                                            dangerouslySetInnerHTML={{
-                                                                __html: post.lastUpdated,
-                                                            }}
-                                                        />
-                                                    </div>
-                                                )}
                                                 {withCitation && (
                                                     <>
                                                         <a href="#licence">

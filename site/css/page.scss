@@ -90,11 +90,6 @@
         > * {
             margin-right: 1rem;
         }
-        @include lg-up {
-            .last-updated {
-                display: inline;
-            }
-        }
 
         a {
             color: inherit;

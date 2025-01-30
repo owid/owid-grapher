@@ -104,14 +104,6 @@ export const formatWordpressPost = async (
         $info.remove()
     }
 
-    // Extract last updated
-    let lastUpdated
-    const $lastUpdated = cheerioEl(".wp-block-last-updated")
-    if ($lastUpdated.length) {
-        lastUpdated = $lastUpdated.find("p").first().html() ?? undefined
-        $lastUpdated.remove()
-    }
-
     // Extract page supertitle
     let supertitle
     const $supertitle = cheerioEl(".wp-block-owid-supertitle")
@@ -338,7 +330,6 @@ export const formatWordpressPost = async (
     return {
         ...post,
         supertitle,
-        lastUpdated,
         byline,
         info,
         style,
