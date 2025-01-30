@@ -9,7 +9,6 @@ import { DEEP_LINK_CLASS, formatImages } from "./formatting.js"
 import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { renderHelp } from "../site/blocks/renderHelp.js"
-import { renderCodeSnippets } from "@ourworldindata/components"
 import { formatUrls, getBodyHtml } from "../site/formatting.js"
 import { renderProminentLinks } from "./siteRenderers.js"
 import { RELATED_CHARTS_CLASS_NAME } from "../site/blocks/RelatedCharts.js"
@@ -77,7 +76,6 @@ export const formatWordpressPost = async (
     //   added by the external ToC post-processing code). So from React's
     //   perspective, the server rendered version is different from the client
     //   one, hence the discrepancy.
-    renderCodeSnippets(cheerioEl)
     renderHelp(cheerioEl)
     await renderProminentLinks(cheerioEl, post.id, knex)
 
