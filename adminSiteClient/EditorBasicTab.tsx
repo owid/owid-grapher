@@ -43,7 +43,7 @@ import {
 } from "react-beautiful-dnd"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { EditorDatabase } from "./ChartEditorView.js"
-import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
+import { isChartEditorInstance } from "./ChartEditor.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
 import {
     IndicatorChartEditor,
