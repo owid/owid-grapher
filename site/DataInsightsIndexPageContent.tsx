@@ -114,6 +114,7 @@ export const DataInsightsIndexPageContent = (
                     linkedIndicators: {}, // not needed for data insights
                     relatedCharts: [], // not needed for the index page
                     latestDataInsights: [], // not needed for the index page
+                    tags: [], // not needed for the index page
                 }}
             >
                 <header className="data-insights-index-page__header grid grid-cols-12-full-width span-cols-14">
