@@ -147,7 +147,10 @@ export const SiteNavigation = ({
                                     </SiteNavigationToggle>
                                 </li>
                                 <li>
-                                    <a href="/latest">Latest</a>
+                                    <a href="/data">Data</a>
+                                </li>
+                                <li>
+                                    <a href="/data-insights">Insights</a>
                                 </li>
                                 <li className="with-relative-dropdown">
                                     <SiteNavigationToggle
