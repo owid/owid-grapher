@@ -1,131 +1,183 @@
 .site-footer {
     background-color: $oxford-blue;
-    padding: 3rem 0;
-    color: scale-color($blue-50, $lightness: 5%);
+    color: $blue-40;
+    padding: 32px 0;
 
-    @include sm-only {
-        text-align: center;
-        padding: 2rem 0;
-    }
-
-    .wrapper {
-        @include wrapper-x-spacing;
-        max-width: $wrapper-max-width;
-    }
-
-    a {
-        @include owid-link-40;
-    }
-
-    ul {
-        list-style-type: none;
-        margin-bottom: 1rem;
-
+    .affiliates {
         a {
-            display: inline-block;
-            text-decoration: none;
-
-            @include sm-only {
-                padding: 0.5rem;
-            }
-        }
-
-        @include sm-only {
-            margin-bottom: 2rem;
-            border-top: 1px solid $blue-90;
-
-            li {
-                border-bottom: 1px solid $blue-90;
-            }
-        }
-    }
-
-    .legal {
-        font-size: 0.875rem;
-        color: scale-color($blue-50, $lightness: 5%);
-        text-align: left;
-
-        p {
-            margin: 0 0 1rem;
-        }
-
-        .legal--last-paragraph {
+            opacity: 0.6;
             display: flex;
-            span {
-                flex: 7;
-            }
-            .partner-logo {
-                flex: 1;
-                text-align: right;
-                img {
-                    max-width: 48px;
-                }
-            }
         }
-    }
 
-    .partner-logo {
-        max-width: 10rem;
-        margin-bottom: 0.25rem;
-        display: block;
-        transition:
-            opacity 150ms ease,
-            filter 150ms ease;
-        filter: grayscale(1);
-        opacity: 0.9;
-
-        &:hover {
-            filter: grayscale(0);
+        a:hover {
             opacity: 1;
         }
 
         @include sm-only {
-            margin: 0 auto 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
         }
     }
 
-    .gcdl-logo {
-        float: right;
-        width: 2.75rem;
-        margin: 0 0 0 1rem;
-    }
+    .oxford-logos {
+        display: flex;
+        margin-bottom: 8px;
 
-    .donate-link {
-        border: 2px solid $blue-60;
-        padding: 0.5rem;
-    }
+        @include sm-only {
+            margin-bottom: 0;
+        }
 
-    .logos img {
+        img {
+            height: 64px;
+            width: auto;
+            margin-right: 8px;
+        }
+    }
+}
+
+.footer-left {
+    padding-bottom: 24px;
+    @include sm-only {
+        border-bottom: 1px solid scale-color($blue-20, $alpha: -90%);
+    }
+    a {
+        color: #fff;
+    }
+}
+
+.footer-right {
+    @include sm-only {
+        margin-top: 24px;
+    }
+}
+
+.footer-link-column {
+    h5 {
+        margin: 0;
+        margin-bottom: 8px;
+    }
+    h5 svg {
         display: inline-block;
+        margin-right: 8px;
+    }
+    @include sm-only {
+        h5 {
+            margin-bottom: 16px;
+        }
+    }
+}
+
+.footer-link-list {
+    list-style: none;
+    margin-bottom: 24px;
+
+    li {
+        margin-bottom: 8px;
+    }
+    a {
+        color: #fff;
+        &:hover {
+            color: $blue-40;
+        }
+    }
+
+    @include sm-only {
+        margin-bottom: 32px;
+
+        li {
+            margin-bottom: 16px;
+        }
+    }
+}
+
+.footer-base__socials {
+    display: flex;
+    line-height: 1;
+    align-items: center;
+
+    @include sm-only {
+        padding: 24px 0;
+        border-top: 1px solid scale-color($blue-20, $alpha: -90%);
+        border-bottom: 1px solid scale-color($blue-20, $alpha: -90%);
+        margin-bottom: 16px;
+        justify-content: space-between;
+    }
+
+    h5 {
+        margin: 0;
+        margin-right: 16px;
+    }
+    a {
+        color: $blue-20;
+        margin-right: 12px;
+        &:hover {
+            color: $blue-40;
+        }
+    }
+}
+
+.footer-base__legal {
+    .footer-link-list {
+        display: flex;
+        line-height: 1;
+        margin-bottom: 0;
+        justify-content: end;
+        @include sm-only {
+            justify-content: space-between;
+            li {
+                margin: 0;
+                a {
+                    margin-right: 0;
+                }
+            }
+        }
+        a {
+            color: $blue-40;
+            margin-right: 16px;
+            &:hover {
+                color: #fff;
+            }
+        }
     }
 }
 
 .donate-footer {
     background-color: $amber;
-    padding: 1.25rem 0;
-    text-align: center;
+    padding: 24px 0;
+}
 
-    @include md-up {
-        text-align: left;
-    }
+.donate-footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
-    .wrapper {
-        @include content-wrapper;
-    }
-
+    h4,
     p {
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin: 0.5rem 0;
+        margin: 0;
     }
 
+    @include md-down {
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        h4 {
+            margin-bottom: 4px;
+        }
+        p {
+            margin-bottom: 16px;
+        }
+    }
     .donate-button {
-        display: inline-block;
-        font-size: 1.125rem;
         background-color: $vermillion;
-
-        .icon {
-            margin-left: 0.5rem;
+        padding: 15px 24px;
+        line-height: 1;
+        @include sm-only {
+            padding: 11px 24px;
+        }
+        &:hover,
+        &:focus {
+            background-color: $accent-vermillion;
         }
     }
 }
