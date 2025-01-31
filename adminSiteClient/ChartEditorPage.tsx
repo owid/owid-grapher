@@ -159,6 +159,17 @@ export class ChartEditorPage
         this.refresh()
     }
 
+    componentDidUpdate(
+        prevProps: Readonly<{
+            grapherId?: number
+            grapherConfig?: GrapherInterface
+        }>
+    ): void {
+        if (prevProps.grapherId !== this.props.grapherId) {
+            void this.fetchTags()
+        }
+    }
+
     render(): React.ReactElement {
         return <ChartEditorView manager={this} />
     }

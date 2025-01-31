@@ -360,11 +360,12 @@ class VariablesSection<
 // eslint-disable-next-line react-refresh/only-export-components
 const TagsSection = (props: {
     chartId: number | undefined
-    editor: ChartEditor
+    tags: DbChartTagJoin[] | undefined
+    availableTags: DbChartTagJoin[] | undefined
     onSaveTags: (tags: DbChartTagJoin[]) => void
 }) => {
-    const { tags, availableTags } = props.editor
-    const canTag = !!props.chartId && tags && availableTags
+    const { chartId, tags, availableTags } = props
+    const canTag = !!chartId && tags && availableTags
     return (
         <Section name="Tags">
             {canTag ? (
@@ -386,7 +387,10 @@ const TagsSection = (props: {
                     </small>
                 </>
             ) : (
-                <p>Can't tag this chart. Maybe it hasn't been saved yet?</p>
+                <p>
+                    Can't tag this chart
+                    {!chartId && <>, because it hasn't been saved yet</>}.
+                </p>
             )}
         </Section>
     )
@@ -553,7 +557,8 @@ export class EditorBasicTab<
                 {isChartEditorInstance(editor) && (
                     <TagsSection
                         chartId={grapher.id}
-                        editor={editor}
+                        tags={editor.tags}
+                        availableTags={editor.availableTags}
                         onSaveTags={this.onSaveTags}
                     />
                 )}
