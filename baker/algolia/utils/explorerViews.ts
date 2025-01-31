@@ -470,14 +470,13 @@ async function enrichWithTableData(
     return enrichedRecords
 }
 
-function enrichRecordWithIndicatorData(
+async function enrichRecordWithIndicatorData(
     record: IndicatorUnenrichedExplorerViewRecord,
     indicatorMetadataDictionary: ExplorerIndicatorMetadataDictionary
-): IndicatorEnrichedExplorerViewRecord {
-    const allEntityNames = at(
-        indicatorMetadataDictionary,
-        record.yVariableIds
-    ).flatMap((meta) => meta.entityNames)
+): Promise<IndicatorEnrichedExplorerViewRecord | undefined> {
+    const allEntityNames = at(indicatorMetadataDictionary, record.yVariableIds)
+        .filter(Boolean)
+        .flatMap((meta) => meta.entityNames)
 
     const uniqueNonEmptyEntityNames = uniq(allEntityNames).filter(
         (name): name is string => !!name
@@ -486,6 +485,13 @@ function enrichRecordWithIndicatorData(
     const firstYIndicator = record.yVariableIds[0]
 
     const indicatorInfo = indicatorMetadataDictionary[firstYIndicator]
+    if (!indicatorInfo) {
+        await logErrorAndMaybeCaptureInSentry({
+            name: "ExplorerViewIndicatorMissing",
+            message: `Explorer with slug "${record.explorerSlug}" has a view with missing indicator metadata: ${record.viewQueryParams}.`,
+        })
+        return
+    }
 
     const viewTitle =
         record.viewTitle ||
@@ -505,16 +511,16 @@ function enrichRecordWithIndicatorData(
     }
 }
 
-const enrichWithIndicatorMetadata = async (
+async function enrichWithIndicatorMetadata(
     indicatorBaseRecords: IndicatorUnenrichedExplorerViewRecord[],
     indicatorMetadataDictionary: ExplorerIndicatorMetadataDictionary
-): Promise<IndicatorEnrichedExplorerViewRecord[]> => {
-    return indicatorBaseRecords.map((indicatorBaseRecord) =>
+): Promise<IndicatorEnrichedExplorerViewRecord[]> {
+    return pMap(indicatorBaseRecords, (indicatorBaseRecord) =>
         enrichRecordWithIndicatorData(
             indicatorBaseRecord,
             indicatorMetadataDictionary
         )
-    )
+    ).then((r) => r.filter(Boolean) as IndicatorEnrichedExplorerViewRecord[])
 }
 
 function processSubtitles(
@@ -658,6 +664,7 @@ export const getExplorerViewRecordsForExplorer = async (
         indicatorBaseRecords,
         trx
     )
+
     console.log("Fetched indicator metadata for explorer", slug)
 
     const enrichedIndicatorRecords = await enrichWithIndicatorMetadata(
