@@ -2,6 +2,7 @@
 // set up before any errors are thrown.
 import "../../serverUtils/instrument.js"
 
+import * as Sentry from "@sentry/node"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
@@ -55,9 +56,9 @@ const indexExplorerViewsAndChartsToAlgolia = async () => {
     console.log(`Indexing complete`)
 }
 
-process.on("unhandledRejection", (e) => {
-    console.error(e)
+indexExplorerViewsAndChartsToAlgolia().catch(async (e) => {
+    console.error("Error in indexExplorerViewsAndChartsToAlgolia:", e)
+    Sentry.captureException(e)
+    await Sentry.close()
     process.exit(1)
 })
-
-void indexExplorerViewsAndChartsToAlgolia()

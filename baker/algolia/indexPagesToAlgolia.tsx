@@ -1,3 +1,8 @@
+// This should be imported as early as possible so the global error handler is
+// set up before any errors are thrown.
+import "../../serverUtils/instrument.js"
+
+import * as Sentry from "@sentry/node"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
@@ -25,9 +30,9 @@ const indexPagesToAlgolia = async () => {
     process.exit(0)
 }
 
-process.on("unhandledRejection", (e) => {
-    console.error(e)
+indexPagesToAlgolia().catch(async (e) => {
+    console.error("Error in indexPagesToAlgolia:", e)
+    Sentry.captureException(e)
+    await Sentry.close()
     process.exit(1)
 })
-
-void indexPagesToAlgolia()

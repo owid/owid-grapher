@@ -2,6 +2,7 @@
 // set up before any errors are thrown.
 import "../../serverUtils/instrument.js"
 
+import * as Sentry from "@sentry/node"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
@@ -27,9 +28,9 @@ const indexChartsToAlgolia = async () => {
     await index.replaceAllObjects(records)
 }
 
-process.on("unhandledRejection", (e) => {
-    console.error(e)
+indexChartsToAlgolia().catch(async (e) => {
+    console.error("Error in indexChartsToAlgolia:", e)
+    Sentry.captureException(e)
+    await Sentry.close()
     process.exit(1)
 })
-
-void indexChartsToAlgolia()
