@@ -365,12 +365,7 @@ export async function assignTagsForCharts(
     knex: db.KnexReadonlyTransaction,
     charts: {
         id: number
-        tags?: {
-            id: number
-            name: string
-            keyChartLevel: number
-            isApproved: boolean
-        }[]
+        tags?: DbChartTagJoin[]
     }[]
 ): Promise<void> {
     const chartTags = await db.knexRaw<{

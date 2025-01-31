@@ -16,6 +16,7 @@ import {
     omit,
     CHART_VIEW_PROPS_TO_OMIT,
 } from "@ourworldindata/utils"
+import { DbChartTagJoin } from "@ourworldindata/types"
 import { action, computed, observable, runInAction } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import {
@@ -48,6 +49,8 @@ export interface ChartEditorManager extends AbstractChartEditorManager {
     references: References | undefined
     redirects: ChartRedirect[]
     pageviews?: RawPageview
+    tags?: DbChartTagJoin[]
+    availableTags?: DbChartTagJoin[]
 }
 
 export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
@@ -69,6 +72,14 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
     @computed get pageviews() {
         return this.manager.pageviews
+    }
+
+    @computed get tags() {
+        return this.manager.tags
+    }
+
+    @computed get availableTags() {
+        return this.manager.availableTags
     }
 
     /** parent variable id, derived from the config */

@@ -123,6 +123,7 @@ import {
     setChartTagsHandler,
     updateChart,
     deleteChart,
+    getChartTagsJson,
 } from "./apiRoutes/charts.js"
 
 const apiRouter = new FunctionalRouter()
@@ -182,6 +183,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/charts/:chartId.pageviews.json",
     getChartPageviewsJson
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId.tags.json",
+    getChartTagsJson
 )
 postRouteWithRWTransaction(apiRouter, "/charts", createChart)
 postRouteWithRWTransaction(
