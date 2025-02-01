@@ -517,9 +517,9 @@ export class EditorBasicTab<
 
     async saveTags(tags: DbChartTagJoin[]) {
         const { editor } = this.props
-        const { grapher } = editor
+        const { grapherState } = editor
         await this.context.admin.requestJSON(
-            `/api/charts/${grapher.id}/setTags`,
+            `/api/charts/${grapherState.id}/setTags`,
             { tags },
             "POST"
         )
@@ -572,7 +572,7 @@ export class EditorBasicTab<
 
                 {isChartEditorInstance(editor) && (
                     <TagsSection
-                        chartId={grapher.id}
+                        chartId={grapherState.id}
                         tags={editor.tags}
                         availableTags={editor.availableTags}
                         onSaveTags={this.onSaveTags}

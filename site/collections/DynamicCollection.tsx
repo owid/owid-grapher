@@ -15,7 +15,6 @@ import { WindowGraphers } from "./DynamicCollectionPage.js"
 import { Grapher } from "@ourworldindata/grapher"
 import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import GrapherImage from "../GrapherImage.js"
-import { Grapher } from "@ourworldindata/grapher"
 
 interface DynamicCollectionProps {
     baseUrl: string
