@@ -296,10 +296,10 @@ class MultiEmbedder {
         const embedType: EmbedType = isExplorer
             ? "explorer"
             : isMultiDim
-            ? "multiDim"
-            : isChartView
-            ? "chartView"
-            : "grapher"
+              ? "multiDim"
+              : isChartView
+                ? "chartView"
+                : "grapher"
 
         // Stop observing visibility as soon as possible
         this.figuresObserver?.unobserve(figure)
