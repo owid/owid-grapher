@@ -31,9 +31,8 @@ interface SvgFilenameFragments {
 export async function getGraphersAndRedirectsBySlug(
     knex: db.KnexReadonlyTransaction
 ) {
-    const { graphersBySlug, graphersById } = await getPublishedGraphersBySlug(
-        knex
-    )
+    const { graphersBySlug, graphersById } =
+        await getPublishedGraphersBySlug(knex)
 
     const redirectQuery = await db.knexRaw<
         Pick<DbPlainChartSlugRedirect, "slug" | "chart_id">
