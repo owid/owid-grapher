@@ -9,6 +9,7 @@ export interface Env {
     CLOUDFLARE_IMAGES_API_KEY: string
     CLOUDFLARE_IMAGES_URL: string
     ENV: string
+    DATA_API_URL: string
 }
 // We collect the possible extensions here so we can easily take them into account
 // when handling redirects

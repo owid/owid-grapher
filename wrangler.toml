@@ -9,7 +9,7 @@ ENV = "development"
 GRAPHER_CONFIG_R2_BUCKET_URL = "https://grapher-configs-staging.owid.io"
 GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL = "https://grapher-configs.owid.io"
 GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH = "v1"
-
+DATA_API_URL = "https://api.ourworldindata.org/v1/indicators/"
 
 # Overrides for CF preview deployments
 [env.preview.vars]
