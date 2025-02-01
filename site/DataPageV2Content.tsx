@@ -26,6 +26,8 @@ import MetadataSection from "./MetadataSection.js"
 import TopicTags from "./TopicTags.js"
 import { processRelatedResearch } from "./dataPage.js"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
+import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
+import { DocumentContext } from "./gdocs/DocumentContext.js"
 
 declare global {
     interface Window {

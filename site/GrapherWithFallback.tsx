@@ -1,10 +1,9 @@
-import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
+import { GRAPHER_PREVIEW_CLASS, GrapherInterface } from "@ourworldindata/types"
 import { GrapherFigureView } from "./GrapherFigureView.js"
 import cx from "classnames"
 import GrapherImage from "./GrapherImage.js"
 import { useEffect, useState } from "react"
 import { useInView } from "react-intersection-observer"
-import { GrapherInterface } from "@ourworldindata/types"
 
 export interface GrapherWithFallbackProps {
     slug: string
@@ -45,7 +44,7 @@ export function GrapherWithFallback(
         >
             <GrapherImage
                 slug={slug}
-                enablePopulatingUrlParams={enablePopulatingUrlParams}
+                enablePopulatingUrlParams={props.enablePopulatingUrlParams}
             />
         </figure>
     )

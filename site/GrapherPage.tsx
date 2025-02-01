@@ -1,5 +1,4 @@
 import {
-    FetchingGrapher,
     getVariableDataRoute,
     getVariableMetadataRoute,
     GRAPHER_PAGE_BODY_CLASS,
@@ -74,7 +73,6 @@ export const GrapherPage = (props: {
 window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
-    // TODO: 2025-01-09 Daniel - this isn't loading data yet - probably something about the multiembedder data fetcher expecting absolute urls
     return (
         <Html>
             <Head
@@ -113,13 +111,12 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
-                    <FetchingGrapher
-                        config={grapher}
-                        dataApiUrl={DATA_API_URL}
-                        adminBaseUrl={ADMIN_BASE_URL}
-                        bakedGrapherURL={BAKED_GRAPHER_URL}
-                    />
-
+                    <figure
+                        className={HIDE_IF_JS_DISABLED_CLASSNAME}
+                        data-grapher-src={`/grapher/${grapher.slug}`}
+                    >
+                        <LoadingIndicator />
+                    </figure>
                     <div className={HIDE_IF_JS_ENABLED_CLASSNAME} id="fallback">
                         {grapher.slug && (
                             <GrapherImage
