@@ -1,4 +1,4 @@
-import { Grapher, GrapherState } from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import {
     OwidTableSlugs,
     OwidOrigin,
