@@ -14,7 +14,10 @@ import {
     Url,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
-import { HIDE_IF_JS_ENABLED_CLASSNAME } from "@ourworldindata/types"
+import {
+    HIDE_IF_JS_DISABLED_CLASSNAME,
+    HIDE_IF_JS_ENABLED_CLASSNAME,
+} from "@ourworldindata/types"
 import urljoin from "url-join"
 import {
     ADMIN_BASE_URL,

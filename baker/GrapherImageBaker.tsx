@@ -10,6 +10,7 @@ import {
     GrapherProgrammaticInterface,
     GrapherState,
 } from "@ourworldindata/grapher"
+import path from "path"
 import * as db from "../db/db.js"
 import { grapherSlugToExportFileKey } from "./GrapherBakingUtils.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
