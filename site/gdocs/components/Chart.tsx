@@ -43,6 +43,8 @@ export default function Chart({
 
     const url = Url.fromURL(d.url)
     const resolvedUrl = linkedChart.resolvedUrl
+    const resolvedUrlParsed = Url.fromURL(resolvedUrl)
+    const slug = resolvedUrlParsed.slug!
     const isExplorer = linkedChart.configType === ChartConfigType.Explorer
     const isMultiDim = linkedChart.configType === ChartConfigType.MultiDim
     const hasControls = url.queryParams.hideControls !== "true"
@@ -137,17 +139,14 @@ export default function Chart({
                                 target="_blank"
                                 rel="noopener"
                             >
-                                <GrapherImage
-                                    slug={resolvedUrl}
-                                    alt={d.title}
-                                />
+                                <GrapherImage url={resolvedUrl} alt={d.title} />
                             </a>
                         )
                     )}
                 </figure>
             ) : (
                 // TODO: 2025-01-05 Daniel - this is a crude first version, this entire control has to be touched again
-                <GrapherWithFallback slug={resolvedUrl} config={chartConfig} />
+                <GrapherWithFallback slug={slug} config={chartConfig} />
             )}
             {d.caption ? (
                 <figcaption>

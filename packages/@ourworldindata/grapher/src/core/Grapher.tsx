@@ -187,8 +187,6 @@ import classnames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { ChartInterface } from "../chart/ChartInterface"
-import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
-import { FacetChartManager } from "../facetChart/FacetChartConstants"
 import {
     StaticChartRasterizer,
     type GrapherExport,
