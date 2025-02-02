@@ -16,7 +16,7 @@ import {
     isEmpty,
 } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { Grapher, GrapherState } from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import { getGrapherFilters } from "./urlTools.js"
 
 const markdownNewlineEnding = "  "

@@ -111,7 +111,6 @@ import {
     GrapherTabOption,
     SeriesName,
     ChartViewInfo,
-    OwidChartDimensionInterfaceWithMandatorySlug,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -3117,6 +3116,147 @@ export class GrapherState {
     }
 
     @observable isShareMenuActive = false
+
+    // Computed props that are not required by any inteface but can be optional in interfaces
+    // and could then lead to changed behavior vs previously if now only GrapherState is passed into
+    // a component.
+
+    /**
+     * Whether the chart is rendered in an Admin context (e.g. on owid.cloud).
+     */
+    @computed get useAdminAPI(): boolean {
+        if (typeof window === "undefined") return false
+        return (
+            window.admin !== undefined &&
+            // Ensure that we're not accidentally matching on a DOM element with an ID of "admin"
+            typeof window.admin.isSuperuser === "boolean"
+        )
+    }
+
+    @computed get shouldLinkToOwid(): boolean {
+        if (
+            this.isEmbeddedInAnOwidPage ||
+            this.isExportingToSvgOrPng ||
+            !this.isInIFrame
+        )
+            return false
+
+        return true
+    }
+
+    @computed.struct private get variableIds(): number[] {
+        return uniq(this.dimensions.map((d) => d.variableId))
+    }
+
+    @computed get hasOWIDLogo(): boolean {
+        return (
+            !this.hideLogo && (this.logo === undefined || this.logo === "owid")
+        )
+    }
+
+    @computed get xScaleType(): ScaleType | undefined {
+        return this.xAxis.scaleType
+    }
+
+    @computed get hasYDimension(): boolean {
+        return this.dimensions.some((d) => d.property === DimensionProperty.y)
+    }
+
+    @computed get cacheTag(): string {
+        return this.version.toString()
+    }
+
+    // Filter data to what can be display on the map (across all times)
+    @computed get mappableData(): OwidVariableRow<any>[] {
+        return this.inputTable
+            .get(this.mapColumnSlug)
+            .owidRows.filter((row) => isOnTheMap(row.entityName))
+    }
+
+    @computed get isMobile(): boolean {
+        return isMobile()
+    }
+
+    @computed get hideFullScreenButton(): boolean {
+        if (this.isInFullScreenMode) return false
+        // hide the full screen button if the full screen height
+        // is barely larger than the current chart height
+        const fullScreenHeight = this.windowInnerHeight!
+        return fullScreenHeight < this.frameBounds.height + 80
+    }
+
+    @computed get sidePanelBounds(): Bounds | undefined {
+        if (!this.isEntitySelectorPanelActive) return
+
+        return new Bounds(
+            0, // not in use; intentionally set to zero
+            0, // not in use; intentionally set to zero
+            this.frameBounds.width - this.captionedChartBounds.width,
+            this.captionedChartBounds.height
+        )
+    }
+    @computed get containerElement(): HTMLDivElement | undefined {
+        return this.base.current || undefined
+    }
+
+    // the header and footer don't rely on the base font size unless explicitly specified
+    @computed get useBaseFontSize(): boolean {
+        return this.initialOptions.baseFontSize !== undefined || this.isStatic
+    }
+
+    @computed get hasRelatedQuestion(): boolean {
+        if (
+            this.hideRelatedQuestion ||
+            !this.relatedQuestions ||
+            !this.relatedQuestions.length
+        )
+            return false
+        const question = this.relatedQuestions[0]
+        return !!question && !!question.text && !!question.url
+    }
+
+    @computed get isRelatedQuestionTargetDifferentFromCurrentPage(): boolean {
+        // comparing paths rather than full URLs for this to work as
+        // expected on local and staging where the origin (e.g.
+        // hans.owid.cloud) doesn't match the production origin that has
+        // been entered in the related question URL field:
+        // "ourworldindata.org" and yet should still yield a match.
+        // - Note that this won't work on production previews (where the
+        //   path is /admin/posts/preview/ID)
+        const { relatedQuestions = [], hasRelatedQuestion } = this
+        const relatedQuestion = relatedQuestions[0]
+        return (
+            hasRelatedQuestion &&
+            !!relatedQuestion &&
+            getWindowUrl().pathname !==
+                Url.fromURL(relatedQuestion.url).pathname
+        )
+    }
+
+    @computed get showRelatedQuestion(): boolean {
+        return (
+            !!this.relatedQuestions &&
+            !!this.hasRelatedQuestion &&
+            !!this.isRelatedQuestionTargetDifferentFromCurrentPage
+        )
+    }
+
+    @computed get isOnCanonicalUrl(): boolean {
+        if (!this.canonicalUrl) return false
+        return (
+            getWindowUrl().pathname === Url.fromURL(this.canonicalUrl).pathname
+        )
+    }
+
+    @computed get showEntitySelectionToggle(): boolean {
+        return (
+            !this.hideEntityControls &&
+            this.canChangeAddOrHighlightEntities &&
+            this.isOnChartTab &&
+            (this.showEntitySelectorAs === GrapherWindowType.modal ||
+                this.showEntitySelectorAs === GrapherWindowType.drawer)
+        )
+    }
 }
 
 export interface GrapherProps {
@@ -3143,159 +3283,6 @@ export class Grapher extends React.Component<GrapherProps> {
     @observable private hasBeenVisible = false
     @observable private uncaughtError?: Error
     @observable slideShow?: SlideShowController<any>
-
-    /**
-     * Whether the chart is rendered in an Admin context (e.g. on owid.cloud).
-     */
-    @computed get useAdminAPI(): boolean {
-        if (typeof window === "undefined") return false
-        return (
-            window.admin !== undefined &&
-            // Ensure that we're not accidentally matching on a DOM element with an ID of "admin"
-            typeof window.admin.isSuperuser === "boolean"
-        )
-    }
-
-    @computed get shouldLinkToOwid(): boolean {
-        if (
-            this.grapherState.isEmbeddedInAnOwidPage ||
-            this.grapherState.isExportingToSvgOrPng ||
-            !this.grapherState.isInIFrame
-        )
-            return false
-
-        return true
-    }
-
-    @computed.struct private get variableIds(): number[] {
-        return uniq(this.grapherState.dimensions.map((d) => d.variableId))
-    }
-
-    @computed get hasOWIDLogo(): boolean {
-        return (
-            !this.grapherState.hideLogo &&
-            (this.grapherState.logo === undefined ||
-                this.grapherState.logo === "owid")
-        )
-    }
-
-    @computed get xScaleType(): ScaleType | undefined {
-        return this.grapherState.xAxis.scaleType
-    }
-
-    @computed get hasYDimension(): boolean {
-        return this.grapherState.dimensions.some(
-            (d) => d.property === DimensionProperty.y
-        )
-    }
-
-    @computed get defaultBounds(): Bounds {
-        return new Bounds(0, 0, DEFAULT_GRAPHER_WIDTH, DEFAULT_GRAPHER_HEIGHT)
-    }
-
-    @computed get cacheTag(): string {
-        return this.grapherState.version.toString()
-    }
-
-    // Filter data to what can be display on the map (across all times)
-    @computed get mappableData(): OwidVariableRow<any>[] {
-        return this.grapherState.inputTable
-            .get(this.grapherState.mapColumnSlug)
-            .owidRows.filter((row) => isOnTheMap(row.entityName))
-    }
-
-    @computed get isMobile(): boolean {
-        return isMobile()
-    }
-
-    @computed get hideFullScreenButton(): boolean {
-        if (this.grapherState.isInFullScreenMode) return false
-        // hide the full screen button if the full screen height
-        // is barely larger than the current chart height
-        const fullScreenHeight = this.grapherState.windowInnerHeight!
-        return fullScreenHeight < this.grapherState.frameBounds.height + 80
-    }
-
-    @computed get sidePanelBounds(): Bounds | undefined {
-        if (!this.grapherState.isEntitySelectorPanelActive) return
-
-        return new Bounds(
-            0, // not in use; intentionally set to zero
-            0, // not in use; intentionally set to zero
-            this.grapherState.frameBounds.width -
-                this.grapherState.captionedChartBounds.width,
-            this.grapherState.captionedChartBounds.height
-        )
-    }
-    @computed get containerElement(): HTMLDivElement | undefined {
-        return this.grapherState.base.current || undefined
-    }
-
-    // the header and footer don't rely on the base font size unless explicitly specified
-    @computed get useBaseFontSize(): boolean {
-        return (
-            this.props.grapherState.initialOptions.baseFontSize !== undefined ||
-            this.grapherState.isStatic
-        )
-    }
-
-    @computed get hasRelatedQuestion(): boolean {
-        if (
-            this.grapherState.hideRelatedQuestion ||
-            !this.grapherState.relatedQuestions ||
-            !this.grapherState.relatedQuestions.length
-        )
-            return false
-        const question = this.grapherState.relatedQuestions[0]
-        return !!question && !!question.text && !!question.url
-    }
-
-    @computed get isRelatedQuestionTargetDifferentFromCurrentPage(): boolean {
-        // comparing paths rather than full URLs for this to work as
-        // expected on local and staging where the origin (e.g.
-        // hans.owid.cloud) doesn't match the production origin that has
-        // been entered in the related question URL field:
-        // "ourworldindata.org" and yet should still yield a match.
-        // - Note that this won't work on production previews (where the
-        //   path is /admin/posts/preview/ID)
-        const { relatedQuestions = [] } = this.grapherState
-        const { hasRelatedQuestion } = this
-        const relatedQuestion = relatedQuestions[0]
-        return (
-            hasRelatedQuestion &&
-            !!relatedQuestion &&
-            getWindowUrl().pathname !==
-                Url.fromURL(relatedQuestion.url).pathname
-        )
-    }
-
-    @computed get showRelatedQuestion(): boolean {
-        return (
-            !!this.grapherState.relatedQuestions &&
-            !!this.hasRelatedQuestion &&
-            !!this.isRelatedQuestionTargetDifferentFromCurrentPage
-        )
-    }
-
-    @computed get isOnCanonicalUrl(): boolean {
-        if (!this.grapherState.canonicalUrl) return false
-        return (
-            getWindowUrl().pathname ===
-            Url.fromURL(this.grapherState.canonicalUrl).pathname
-        )
-    }
-
-    @computed get showEntitySelectionToggle(): boolean {
-        return (
-            !this.grapherState.hideEntityControls &&
-            this.grapherState.canChangeAddOrHighlightEntities &&
-            this.grapherState.isOnChartTab &&
-            (this.grapherState.showEntitySelectorAs ===
-                GrapherWindowType.modal ||
-                this.grapherState.showEntitySelectorAs ===
-                    GrapherWindowType.drawer)
-        )
-    }
 
     constructor(props: { grapherState: GrapherState }) {
         super(props)
@@ -3736,8 +3723,8 @@ export class Grapher extends React.Component<GrapherProps> {
                 {/* captioned chart and entity selector */}
                 <div className="CaptionedChartAndSidePanel">
                     <CaptionedChart manager={this.grapherState} />
-                    {this.sidePanelBounds && (
-                        <SidePanel bounds={this.sidePanelBounds}>
+                    {this.grapherState.sidePanelBounds && (
+                        <SidePanel bounds={this.grapherState.sidePanelBounds}>
                             <EntitySelector manager={this.grapherState} />
                         </SidePanel>
                     )}
@@ -3843,7 +3830,7 @@ export class Grapher extends React.Component<GrapherProps> {
                 },
                 { threshold: [0, 0.66] }
             )
-            observer.observe(this.containerElement!)
+            observer.observe(this.grapherState.containerElement!)
             this.grapherState.disposers.push(() => observer.disconnect())
         } else {
             // IntersectionObserver not available; we may be in a Node environment, just render
