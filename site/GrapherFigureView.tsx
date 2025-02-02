@@ -34,7 +34,7 @@ export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
     }
 
     return (
-        <figure data-grapher-component ref={base}>
+        <figure className="chart" data-grapher-component ref={base}>
             {bounds && (
                 <FetchingGrapher
                     config={config}
