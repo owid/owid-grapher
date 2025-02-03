@@ -1,5 +1,9 @@
 #! /usr/bin/env jest
-import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
+import {
+    Grapher,
+    GrapherProgrammaticInterface,
+    GrapherState,
+} from "../core/Grapher"
 import {
     GRAPHER_CHART_TYPES,
     EntitySelectionMode,
@@ -61,7 +65,7 @@ const TestGrapherConfig = (): {
 }
 
 it("regression fix: container options are not serialized", () => {
-    const grapher = new Grapher({ xAxis: { min: 1 } })
+    const grapher = new GrapherState({ xAxis: { min: 1 } })
     const obj = grapher.toObject().xAxis!
     expect(obj.min).toBe(1)
     expect(obj.scaleType).toBe(undefined)
@@ -69,7 +73,7 @@ it("regression fix: container options are not serialized", () => {
 })
 
 it("can get dimension slots", () => {
-    const grapher = new Grapher()
+    const grapher = new GrapherState({})
     expect(grapher.dimensionSlots.length).toBe(2)
 
     grapher.chartTypes = [GRAPHER_CHART_TYPES.ScatterPlot]
@@ -77,7 +81,7 @@ it("can get dimension slots", () => {
 })
 
 it("an empty Grapher serializes to an object that includes only the schema", () => {
-    expect(new Grapher().toObject()).toEqual({
+    expect(new GrapherState({}).toObject()).toEqual({
         $schema: latestGrapherConfigSchema,
     })
 })
@@ -86,14 +90,16 @@ it("a bad chart type does not crash grapher", () => {
     const input = {
         chartTypes: ["fff" as any],
     }
-    expect(new Grapher(input).toObject()).toEqual({
+    expect(new GrapherState(input).toObject()).toEqual({
         ...input,
         $schema: latestGrapherConfigSchema,
     })
 })
 
 it("does not preserve defaults in the object (except for the schema)", () => {
-    expect(new Grapher({ tab: GRAPHER_TAB_OPTIONS.chart }).toObject()).toEqual({
+    expect(
+        new GrapherState({ tab: GRAPHER_TAB_OPTIONS.chart }).toObject()
+    ).toEqual({
         $schema: latestGrapherConfigSchema,
     })
 })
@@ -146,7 +152,7 @@ const legacyConfig: Omit<LegacyGrapherInterface, "data"> &
 }
 
 it("can apply legacy chart dimension settings", () => {
-    const grapher = new Grapher(legacyConfig)
+    const grapher = new GrapherState(legacyConfig)
     const col = grapher.yColumnsFromDimensions[0]!
     expect(col.unit).toEqual(unit)
     expect(col.displayName).toEqual(name)
@@ -154,7 +160,7 @@ it("can apply legacy chart dimension settings", () => {
 
 it("correctly identifies changes to passed-in selection", () => {
     const selection = new SelectionArray()
-    const grapher = new Grapher({
+    const grapher = new GrapherState({
         ...legacyConfig,
         manager: { selection },
     })
@@ -173,7 +179,7 @@ it("can fallback to a ycolumn if a map variableId does not exist", () => {
         hasMapTab: true,
         map: { variableId: 444 },
     } as GrapherInterface
-    const grapher = new Grapher(config)
+    const grapher = new GrapherState(config)
     expect(grapher.mapColumnSlug).toEqual("3512")
 })
 
@@ -182,7 +188,7 @@ it("can generate a url with country selection even if there is no entity code", 
         ...legacyConfig,
         selectedEntityNames: [],
     }
-    const grapher = new Grapher(config)
+    const grapher = new GrapherState(config)
     expect(grapher.queryStr).toBe("")
     grapher.selection.selectAll()
     expect(grapher.queryStr).toContain("AFG")
@@ -194,7 +200,7 @@ it("can generate a url with country selection even if there is no entity code", 
     metadata.dimensions.entities.values.find(
         (entity) => entity.id === 15
     )!.code = undefined as any
-    const grapher2 = new Grapher(config2)
+    const grapher2 = new GrapherState(config2)
     expect(grapher2.queryStr).toBe("")
     grapher2.selection.selectAll()
     expect(grapher2.queryStr).toContain("AFG")
@@ -202,7 +208,7 @@ it("can generate a url with country selection even if there is no entity code", 
 
 describe("hasTimeline", () => {
     it("charts with timeline", () => {
-        const grapher = new Grapher(legacyConfig)
+        const grapher = new GrapherState(legacyConfig)
         grapher.chartTypes = [GRAPHER_CHART_TYPES.LineChart]
         expect(grapher.hasTimeline).toBeTruthy()
         grapher.chartTypes = [GRAPHER_CHART_TYPES.SlopeChart]
@@ -216,7 +222,7 @@ describe("hasTimeline", () => {
     })
 
     it("map tab has timeline even if chart doesn't", () => {
-        const grapher = new Grapher(legacyConfig)
+        const grapher = new GrapherState(legacyConfig)
         grapher.hideTimeline = true
         grapher.chartTypes = [GRAPHER_CHART_TYPES.LineChart]
         expect(grapher.hasTimeline).toBeFalsy()
@@ -227,8 +233,8 @@ describe("hasTimeline", () => {
     })
 })
 
-const getGrapher = (): Grapher =>
-    new Grapher({
+const getGrapher = (): GrapherState =>
+    new GrapherState({
         dimensions: [
             {
                 variableId: 142609,
@@ -286,8 +292,8 @@ const getGrapher = (): Grapher =>
 function fromQueryParams(
     params: LegacyGrapherQueryParams,
     props?: Partial<GrapherInterface>
-): Grapher {
-    const grapher = new Grapher(props)
+): GrapherState {
+    const grapher = new GrapherState(props ?? {})
     grapher.populateFromQueryParams(
         legacyToCurrentGrapherQueryParams(queryParamsToStr(params))
     )
@@ -297,7 +303,7 @@ function fromQueryParams(
 function toQueryParams(
     props?: Partial<GrapherInterface>
 ): Partial<GrapherQueryParams> {
-    const grapher = new Grapher({
+    const grapher = new GrapherState({
         minTime: -5000,
         maxTime: 5000,
         map: { time: 5000 },
@@ -307,8 +313,8 @@ function toQueryParams(
 }
 
 it("can serialize scaleType if it changes", () => {
-    expect(new Grapher().changedParams.xScale).toEqual(undefined)
-    const grapher = new Grapher({
+    expect(new GrapherState({}).changedParams.xScale).toEqual(undefined)
+    const grapher = new GrapherState({
         xAxis: { scaleType: ScaleType.linear },
     })
     expect(grapher.changedParams.xScale).toEqual(undefined)
@@ -322,7 +328,7 @@ describe("currentTitle", () => {
             { entityCount: 2, timeRange: [2000, 2010] },
             1
         )
-        const grapher = new Grapher({
+        const grapher = new GrapherState({
             table,
             selectedEntityNames: table.availableEntityNames,
             dimensions: [
@@ -357,7 +363,7 @@ describe("currentTitle", () => {
             { entityCount: 2, timeRange: [2000, 2010] },
             1
         )
-        const grapher = new Grapher({
+        const grapher = new GrapherState({
             table,
             ySlugs: "GDP",
         })
@@ -369,7 +375,7 @@ describe("currentTitle", () => {
 describe("authors can use maxTime", () => {
     it("can can create a discretebar chart with correct maxtime", () => {
         const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
-        const grapher = new Grapher({
+        const grapher = new GrapherState({
             table,
             chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
             selectedEntityNames: table.availableEntityNames,
@@ -382,7 +388,7 @@ describe("authors can use maxTime", () => {
 })
 
 describe("line chart to bar chart and bar chart race", () => {
-    const grapher = new Grapher(TestGrapherConfig())
+    const grapher = new GrapherState(TestGrapherConfig())
 
     it("can create a new line chart with different start and end times", () => {
         expect(
@@ -394,7 +400,7 @@ describe("line chart to bar chart and bar chart race", () => {
     })
 
     describe("switches from a line chart to a bar chart when there is only 1 year selected", () => {
-        const grapher = new Grapher(TestGrapherConfig())
+        const grapher = new GrapherState(TestGrapherConfig())
         const lineSeries = grapher.chartInstance.series
 
         expect(
@@ -455,7 +461,7 @@ describe("line chart to bar chart and bar chart race", () => {
 
 describe("urls", () => {
     it("can change base url", () => {
-        const url = new Grapher({
+        const url = new GrapherState({
             isPublished: true,
             slug: "foo",
             bakedGrapherURL: "/grapher",
@@ -464,13 +470,13 @@ describe("urls", () => {
     })
 
     it("does not include country param in url if unchanged", () => {
-        const grapher = new Grapher(legacyConfig)
+        const grapher = new GrapherState(legacyConfig)
         grapher.isPublished = true
         expect(grapher.canonicalUrl?.includes("country")).toBeFalsy()
     })
 
     it("includes the tab param in embed url even if it's the default value", () => {
-        const grapher = new Grapher({
+        const grapher = new GrapherState({
             isPublished: true,
             slug: "foo",
             bakedGrapherURL: "/grapher",
@@ -491,7 +497,7 @@ describe("urls", () => {
     })
 
     it("doesn't apply selection if addCountryMode is 'disabled'", () => {
-        const grapher = new Grapher({
+        const grapher = new GrapherState({
             selectedEntityNames: ["usa", "canada"],
             addCountryMode: EntitySelectionMode.Disabled,
         })
@@ -503,19 +509,19 @@ describe("urls", () => {
     })
 
     it("parses tab=table correctly", () => {
-        const grapher = new Grapher()
+        const grapher = new GrapherState({})
         grapher.populateFromQueryParams({ tab: "table" })
         expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.Table)
     })
 
     it("parses tab=map correctly", () => {
-        const grapher = new Grapher()
+        const grapher = new GrapherState({})
         grapher.populateFromQueryParams({ tab: "map" })
         expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.WorldMap)
     })
 
     it("parses tab=chart correctly", () => {
-        const grapher = new Grapher({
+        const grapher = new GrapherState({
             chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
         })
         grapher.populateFromQueryParams({ tab: "chart" })
@@ -523,7 +529,7 @@ describe("urls", () => {
     })
 
     it("parses tab=line and tab=slope correctly", () => {
-        const grapher = new Grapher({
+        const grapher = new GrapherState({
             chartTypes: [
                 GRAPHER_CHART_TYPES.LineChart,
                 GRAPHER_CHART_TYPES.SlopeChart,
@@ -536,7 +542,7 @@ describe("urls", () => {
     })
 
     it("switches to the first chart tab if the given chart isn't available", () => {
-        const grapher = new Grapher({
+        const grapher = new GrapherState({
             chartTypes: [
                 GRAPHER_CHART_TYPES.LineChart,
                 GRAPHER_CHART_TYPES.SlopeChart,
@@ -547,19 +553,19 @@ describe("urls", () => {
     })
 
     it("switches to the map tab if no chart is available", () => {
-        const grapher = new Grapher({ chartTypes: [], hasMapTab: true })
+        const grapher = new GrapherState({ chartTypes: [], hasMapTab: true })
         grapher.populateFromQueryParams({ tab: "line" })
         expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.WorldMap)
     })
 
     it("switches to the table tab if it's the only tab available", () => {
-        const grapher = new Grapher({ chartTypes: [] })
+        const grapher = new GrapherState({ chartTypes: [] })
         grapher.populateFromQueryParams({ tab: "line" })
         expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.Table)
     })
 
     it("adds tab=chart to the URL if there is a single chart tab", () => {
-        const grapher = new Grapher({
+        const grapher = new GrapherState({
             hasMapTab: true,
             tab: GRAPHER_TAB_OPTIONS.map,
         })
@@ -568,7 +574,7 @@ describe("urls", () => {
     })
 
     it("adds the chart type name as tab query param if there are multiple chart tabs", () => {
-        const grapher = new Grapher({
+        const grapher = new GrapherState({
             chartTypes: [
                 GRAPHER_CHART_TYPES.LineChart,
                 GRAPHER_CHART_TYPES.SlopeChart,
@@ -587,7 +593,7 @@ describe("time domain tests", () => {
         { entityCount: 2, timeRange: [2000, 2010] },
         seed
     ).replaceRandomCells(17, [SampleColumnSlugs.GDP], seed)
-    const grapher = new Grapher({
+    const grapher = new GrapherState({
         table,
         selectedEntityNames: table.availableEntityNames,
         dimensions: [
@@ -716,7 +722,7 @@ describe("time parameter", () => {
         })
 
         it("doesn't include URL param if it's identical to original config", () => {
-            const grapher = new Grapher({
+            const grapher = new GrapherState({
                 minTime: 0,
                 maxTime: 75,
             })
@@ -724,7 +730,7 @@ describe("time parameter", () => {
         })
 
         it("doesn't include URL param if unbounded is encoded as `undefined`", () => {
-            const grapher = new Grapher({
+            const grapher = new GrapherState({
                 minTime: undefined,
                 maxTime: 75,
             })
@@ -863,7 +869,7 @@ describe("time parameter", () => {
 
 it("canChangeEntity reflects all available entities before transforms", () => {
     const table = SynthesizeGDPTable()
-    const grapher = new Grapher({
+    const grapher = new GrapherState({
         addCountryMode: EntitySelectionMode.SingleEntity,
         table,
         selectedEntityNames: table.sampleEntityName(1),
@@ -986,7 +992,7 @@ it("correctly identifies activeColumnSlugs", () => {
         new OwidTable(`entityName,entityId,entityColor,year,gdp,gdp-annotations,child_mortality,population,continent,happiness
     Belgium,BEL,#f6f,2010,80000,pretty damn high,1.5,9000000,Europe,81.2
     `)
-    const grapher = new Grapher({
+    const grapher = new GrapherState({
         table,
         chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
         xSlug: "gdp",
@@ -1023,7 +1029,7 @@ it("considers map tolerance before using column tolerance", () => {
         ]
     )
 
-    const grapher = new Grapher({
+    const grapher = new GrapherState({
         table,
         ySlugs: "gdp",
         tab: GRAPHER_TAB_OPTIONS.map,
@@ -1055,7 +1061,7 @@ describe("tableForSelection", () => {
     it("should include all available entities (LineChart)", () => {
         const table = SynthesizeGDPTable({ entityNames: ["A", "B"] })
 
-        const grapher = new Grapher({ table })
+        const grapher = new GrapherState({ table })
 
         expect(grapher.tableForSelection.availableEntityNames).toEqual([
             "A",
@@ -1084,7 +1090,7 @@ describe("tableForSelection", () => {
             [4, "France", "", 2000, 0, null, null, null], // y value missing
         ])
 
-        const grapher = new Grapher({
+        const grapher = new GrapherState({
             table,
             chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
             excludedEntities: [3],
@@ -1120,7 +1126,7 @@ it("handles tolerance when there are gaps in ScatterPlot data", () => {
         ]
     )
 
-    const grapher = new Grapher({
+    const grapher = new GrapherState({
         table,
         chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
         xSlug: "x",

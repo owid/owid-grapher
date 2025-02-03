@@ -1,12 +1,17 @@
 import { useMemo } from "react"
 import {
     FetchingGrapher,
+    fetchInputTableForConfig,
+    Grapher,
     GrapherProgrammaticInterface,
+    GrapherState,
+    MapChart,
 } from "@ourworldindata/grapher"
 import {
     REUSE_THIS_WORK_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
 } from "@ourworldindata/components"
+import ReactDOM from "react-dom"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
@@ -14,9 +19,9 @@ import {
     joinTitleFragments,
     ImageMetadata,
 } from "@ourworldindata/utils"
-import { DocumentContext } from "./gdocs/DocumentContext.js"
-import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
+import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
+import { DebugProvider } from "./gdocs/DebugContext.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
@@ -134,12 +139,8 @@ export const DataPageV2Content = ({
                     </nav>
                     <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
                         <div className="chart-key-info col-start-2 span-cols-12">
-                            <FetchingGrapher
-                                config={mergedGrapherConfig}
-                                dataApiUrl={DATA_API_URL}
-                                adminBaseUrl={ADMIN_BASE_URL}
-                                bakedGrapherURL={BAKED_GRAPHER_URL}
-                            />
+                            <Grapher grapherState={grapher1State} />
+                            <Grapher grapherState={grapher2State} />
                             <AboutThisData
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}
@@ -187,5 +188,22 @@ export const DataPageV2Content = ({
                 </div>
             </DocumentContext.Provider>
         </AttachmentsContext.Provider>
+    )
+}
+
+export const hydrateDataPageV2Content = (isPreviewing?: boolean) => {
+    const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
+    const props: DataPageV2ContentFields = window._OWID_DATAPAGEV2_PROPS
+    const grapherConfig = window._OWID_GRAPHER_CONFIG
+
+    ReactDOM.hydrate(
+        <DebugProvider debug={isPreviewing}>
+            <DataPageV2Content
+                {...props}
+                grapherConfig={grapherConfig}
+                isPreviewing={isPreviewing}
+            />
+        </DebugProvider>,
+        wrapper
     )
 }
