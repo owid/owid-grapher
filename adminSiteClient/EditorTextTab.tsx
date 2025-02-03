@@ -2,7 +2,7 @@ import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { LogoOption, RelatedQuestionsConfig } from "@ourworldindata/types"
 import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
-import { slugify } from "@ourworldindata/utils"
+import { copyToClipboard, slugify } from "@ourworldindata/utils"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
@@ -20,6 +20,11 @@ import {
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
 import { isChartViewEditorInstance } from "./ChartViewEditor.js"
+import { Button as AntdButton, Space } from "antd"
+import {
+    BAKED_GRAPHER_URL,
+    ADMIN_BASE_URL,
+} from "../settings/clientSettings.js"
 
 @observer
 export class EditorTextTab<
@@ -318,6 +323,32 @@ export class EditorTextTab<
                         placeholder="e.g. IHME"
                         helpText="Optional variant name for distinguishing charts with the same title"
                     />
+                </Section>
+                <Section name="Copy">
+                    <Space direction="vertical" size="small">
+                        {grapher.id && (
+                            <AntdButton
+                                onClick={() =>
+                                    copyToClipboard(
+                                        `[${grapher.title}](${ADMIN_BASE_URL}/charts/${grapher.id}/edit)`
+                                    )
+                                }
+                            >
+                                Copy admin link as markdown
+                            </AntdButton>
+                        )}
+                        {grapher.slug && (
+                            <AntdButton
+                                onClick={() =>
+                                    copyToClipboard(
+                                        `[${grapher.title}](${BAKED_GRAPHER_URL}/${grapher.slug})`
+                                    )
+                                }
+                            >
+                                Copy Grapher link as markdown
+                            </AntdButton>
+                        )}
+                    </Space>
                 </Section>
             </div>
         )
