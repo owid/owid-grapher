@@ -247,9 +247,12 @@ export function makeAxisLabel({
     if (unitInParens) {
         // extract text in parens at the end of the label,
         // e.g. "Population (millions)" is split into "Population " and "(millions)"
-        const [_fullMatch, untrimmedMainLabelText, labelTextInParens] =
-            label.trim().match(/^(.*?)(\([^()]*\))?$/) ?? []
-        const mainLabelText = untrimmedMainLabelText.trim()
+        const [
+            _fullMatch,
+            untrimmedMainLabelText = undefined,
+            labelTextInParens = undefined,
+        ] = label.trim().match(/^(.*?)(\([^()]*\))?$/s) ?? []
+        const mainLabelText = untrimmedMainLabelText?.trim() ?? ""
 
         // don't show unit twice if it's contained in the label
         const displayLabel =
