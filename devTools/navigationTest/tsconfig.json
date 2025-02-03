@@ -1,8 +1,0 @@
-{
-    "extends": "../tsconfigs/tsconfig.base.json",
-    "compilerOptions": {
-        "outDir": "../../itsJustJavascript/devTools/navigationTest",
-        "rootDir": "."
-    },
-    "references": [{ "path": "../../site" }]
-}

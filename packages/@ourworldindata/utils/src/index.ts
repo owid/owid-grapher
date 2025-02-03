@@ -124,6 +124,8 @@ export {
     commafyNumber,
     isFiniteWithGuard,
     createTagGraph,
+    getAllChildrenOfArea,
+    flattenNonTopicNodes,
     formatInlineList,
     lazy,
     getParentVariableIdFromChartConfig,
