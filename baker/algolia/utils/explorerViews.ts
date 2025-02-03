@@ -486,10 +486,12 @@ async function enrichRecordWithIndicatorData(
 
     const indicatorInfo = indicatorMetadataDictionary[firstYIndicator]
     if (!indicatorInfo) {
-        await logErrorAndMaybeCaptureInSentry({
-            name: "ExplorerViewIndicatorMissing",
-            message: `Explorer with slug "${record.explorerSlug}" has a view with missing indicator metadata: ${record.viewQueryParams}.`,
-        })
+        await logErrorAndMaybeCaptureInSentry(
+            new Error(
+                `Explorer with slug "${record.explorerSlug}" has a view ` +
+                    `with missing indicator metadata: ${record.viewQueryParams}.`
+            )
+        )
         return
     }
 
