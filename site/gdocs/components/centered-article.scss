@@ -200,12 +200,18 @@
     }
 }
 
-$banner-height: 200px;
+:root {
+    --banner-height: 200px;
+    @include md-down {
+        --banner-height: 160px;
+    }
+}
+
 .centered-article-header__banner {
     position: absolute;
     left: 0;
     right: 0;
-    height: $banner-height;
+    height: var(--banner-height);
     background: $amber;
     z-index: -1;
 }
@@ -289,12 +295,12 @@ $banner-height: 200px;
 .centered-article-header {
     background: $white;
     margin: 80px 0 24px;
-    min-height: calc($banner-height - 80px);
+    min-height: calc(var(--banner-height) - 80px);
     padding-top: 48px;
 
     @include md-down {
         margin-top: 48px;
-        padding-top: 24px;
+        padding-top: 16px;
     }
 }
 
@@ -526,7 +532,7 @@ h3.article-block__heading.has-supertitle {
     .centered-article-header__breadcrumbs {
         @include body-3-regular;
         @include sm-only {
-            font-size: 0.75rem;
+            @include note-1-medium;
         }
         &.breadcrumbs-white {
             color: $white;
@@ -542,7 +548,7 @@ h3.article-block__heading.has-supertitle {
         --header-breadcrumb-margin-top: 40px;
 
         @include md-down {
-            --header-breadcrumb-margin-top: 16px;
+            --header-breadcrumb-margin-top: 18px;
         }
 
         margin-top: var(--header-breadcrumb-margin-top);
@@ -581,7 +587,8 @@ h3.article-block__heading.has-supertitle {
 
         @include md-down {
             @include h2-bold;
-            margin-top: 0;
+            margin: 0 16px;
+            margin-bottom: 8px;
         }
     }
 }
@@ -592,7 +599,9 @@ h3.article-block__heading.has-supertitle {
     color: $blue-50;
 
     @include md-down {
-        @include body-1-regular;
+        @include body-2-regular;
+        margin: 0 16px;
+        margin-bottom: 16px;
     }
 }
 
@@ -612,11 +621,30 @@ h3.article-block__heading.has-supertitle {
         }
     }
 
-    .centered-article-header__byline,
+    .centered-article-header__byline {
+        margin: 0 16px;
+        @include md-down {
+            @include body-3-regular;
+        }
+    }
+
     .centered-article-header__dateline {
-        // A small bit of padding to encourage line-wrapping on long bylines
-        padding-right: 8px;
-        margin-bottom: 8px;
+        margin: 0 16px;
+        @include md-down {
+            @include body-3-regular;
+            font-size: 0.75rem;
+            margin-top: 4px;
+        }
+    }
+
+    .centered-article-header__links a {
+        @include md-down {
+            @include body-3-regular;
+            margin: 0;
+            &:last-child {
+                margin-top: 4px;
+            }
+        }
     }
 
     svg {
@@ -749,6 +777,10 @@ p.article-block__text + #article-licence {
     .span-link {
         @include owid-link-60;
         color: inherit;
+    }
+
+    @include md-down {
+        @include body-2-regular;
     }
 }
 
