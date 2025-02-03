@@ -1309,6 +1309,21 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     }
 }
 
+.EditorReferencesTab .ReferencesDataInsights {
+    li {
+        display: flex;
+        gap: 1em;
+
+        a {
+            flex-grow: 1;
+        }
+
+        button {
+            min-width: 144px;
+        }
+    }
+}
+
 .di-modal-content {
     margin: 16px 0 24px 0;
 
