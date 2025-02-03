@@ -419,7 +419,7 @@ export async function renderSvg(
         { shouldHashQueryStr: false, separator: "?" }
     )
 
-    grapher.receiveOwidData(configAndData.variableData)
+    // grapher.receiveOwidData(configAndData.variableData)
     const durationReceiveData = Date.now() - timeStart
 
     const svg = grapher.staticSVG

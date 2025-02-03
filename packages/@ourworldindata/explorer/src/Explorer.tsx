@@ -576,7 +576,7 @@ export class Explorer
         grapher.setAuthoredVersion(config)
         grapher.reset()
         grapher.updateFromObject(config)
-        grapher.downloadData()
+        // grapher.downloadData()
     }
 
     @action.bound async updateGrapherFromExplorerUsingVariableIds() {
@@ -695,7 +695,7 @@ export class Explorer
         config.dimensions = dimensions
         if (ySlugs && yVariableIds) config.ySlugs = ySlugs + " " + yVariableIds
 
-        const inputTableTransformer = (table: OwidTable) => {
+        const _inputTableTransformer = (table: OwidTable) => {
             // add transformed (and intermediate) columns to the grapher table
             if (uniqueSlugsInGrapherRow.length) {
                 const allColumnSlugs = uniq(
@@ -743,11 +743,11 @@ export class Explorer
         if (dimensions.length === 0) {
             // If dimensions are empty, explicitly set the table to an empty table
             // so we don't end up confusingly showing stale data from a previous chart
-            grapher.receiveOwidData(new Map())
+            // grapher.receiveOwidData(new Map())
         } else {
-            await grapher.downloadLegacyDataFromOwidVariableIds(
-                inputTableTransformer
-            )
+            // await grapher.downloadLegacyDataFromOwidVariableIds(
+            //     inputTableTransformer
+            // )
         }
     }
 
