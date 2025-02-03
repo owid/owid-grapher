@@ -180,7 +180,12 @@ export const GdocInsightSettings = ({
         <form className="GdocsSettingsForm">
             <GdocCommonErrors
                 errors={errors}
-                errorsToFilter={["approved-by", "grapher-url"]}
+                errorsToFilter={[
+                    "approved-by",
+                    "grapher-url",
+                    "narrative-chart",
+                    "figma-url",
+                ]}
             />
             <GdocCommonSettings
                 gdoc={gdoc}
@@ -195,7 +200,17 @@ export const GdocInsightSettings = ({
                     errors={errors}
                 />
                 <GdocsSettingsContentField
+                    property="narrative-chart"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
+                <GdocsSettingsContentField
                     property="grapher-url"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
+                <GdocsSettingsContentField
+                    property="figma-url"
                     gdoc={gdoc}
                     errors={errors}
                 />

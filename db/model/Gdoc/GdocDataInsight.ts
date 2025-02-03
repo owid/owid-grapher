@@ -20,6 +20,7 @@ export class GdocDataInsight
     implements OwidGdocDataInsightInterface
 {
     content!: OwidGdocDataInsightContent
+    _omittableFields = ["grapher-url", "narrative-chart", "figma-url"]
 
     constructor(id?: string) {
         super(id)
