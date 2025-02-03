@@ -354,6 +354,7 @@ export const MultiDimDataPageContent = ({
                 linkedCharts: {},
                 linkedIndicators: {},
                 relatedCharts: [],
+                tags: [],
             }}
         >
             <div className="DataPageContent MultiDimDataPageContent">

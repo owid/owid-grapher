@@ -93,6 +93,7 @@ export const DataPageV2Content = ({
                 linkedCharts: {},
                 linkedIndicators: {},
                 relatedCharts: [],
+                tags: [],
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>

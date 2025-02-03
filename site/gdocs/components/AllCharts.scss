@@ -1,6 +1,43 @@
 .article-block__all-charts {
     h1.h1-semibold {
-        margin-bottom: 40px;
+        margin: 0;
+        flex: 1 1 0%;
+        .deep-link {
+            // Any value smaller than -16 causes the h1 to wrap in Firefox
+            margin-left: -16px;
+        }
+    }
+
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+
+    .owid-button {
+        line-height: 40px;
+        text-align: center;
+        padding: 0 24px;
+        height: 40px;
+        flex-shrink: 0;
+        align-self: start;
+        background-color: $vermillion;
+        svg {
+            margin-left: 8px;
+        }
+        &:hover {
+            background-color: $accent-vermillion;
+        }
+        @include sm-only {
+            order: 3;
+            margin-top: 24px;
+            width: 100%;
+        }
+    }
+
+    .related-charts {
+        flex-basis: 100%;
+        margin-top: 40px;
     }
 
     figure[data-grapher-src]:not(.grapherPreview) {

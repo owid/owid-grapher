@@ -254,6 +254,7 @@ export class SiteBaker {
             ...attachments,
             linkedCharts: {},
             relatedCharts: [],
+            tags: [],
         })
         const outPath = path.join(
             this.bakedSiteDir,
