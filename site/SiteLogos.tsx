@@ -8,41 +8,32 @@ export const SiteLogos = ({ baseUrl }: { baseUrl: string }) => {
                 </a>
             </div>
             <div className="logos-wrapper">
-                <a
-                    href="https://www.oxfordmartin.ox.ac.uk/global-development"
-                    className="oxford-logo"
-                >
-                    <picture>
-                        <source
-                            type="image/avif"
-                            srcSet={`${baseUrl}/oms-logo.avif`}
-                        />
-                        <img
-                            src={`${baseUrl}/oms-logo.png`}
-                            alt="Oxford Martin School logo"
-                            loading="lazy"
-                            width={275}
-                            height={139}
-                        />
-                    </picture>
+                <a href="https://www.oxfordmartin.ox.ac.uk/global-development">
+                    <img
+                        src={`${baseUrl}/oms-logo.svg`}
+                        alt="Oxford Martin School logo"
+                        loading="lazy"
+                        width={275}
+                        height={139}
+                    />
                 </a>
-                <a
-                    href="https://global-change-data-lab.org/"
-                    className="gcdl-logo"
-                >
-                    <picture>
-                        <source
-                            type="image/webp"
-                            srcSet={`${baseUrl}/gcdl-logo.webp`}
-                        />
-                        <img
-                            src={`${baseUrl}/gcdl-logo.png`}
-                            alt="Global Change Data Lab logo"
-                            loading="lazy"
-                            width={106}
-                            height={127}
-                        />
-                    </picture>
+                <a href="https://www.ox.ac.uk/">
+                    <img
+                        src={`${baseUrl}/oxford-logo.svg`}
+                        alt="Oxford logo"
+                        loading="lazy"
+                        width={275}
+                        height={139}
+                    />
+                </a>
+                <a href="https://global-change-data-lab.org/">
+                    <img
+                        src={`${baseUrl}/gcdl-logo.svg`}
+                        alt="Global Change Data Lab logo"
+                        loading="lazy"
+                        width={106}
+                        height={127}
+                    />
                 </a>
             </div>
         </div>
