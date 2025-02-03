@@ -7,11 +7,18 @@ import { Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
+    ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../settings/clientSettings.js"
 import { ChartListItem, showChartType } from "./ChartList.js"
-import { TaggableType, DbChartTagJoin } from "@ourworldindata/utils"
+import {
+    TaggableType,
+    DbChartTagJoin,
+    copyToClipboard,
+    excludeUndefined,
+} from "@ourworldindata/utils"
+import { Dropdown } from "antd"
 
 @observer
 export class ChartRow extends React.Component<{
@@ -45,6 +52,26 @@ export class ChartRow extends React.Component<{
             this.props
 
         const highlight = searchHighlight || lodash.identity
+
+        type CopyToMarkdownOptionKey = "admin-url" | "grapher-url"
+        const copyToMarkdownOptions: {
+            key: CopyToMarkdownOptionKey
+            label: string
+        }[] = excludeUndefined([
+            { key: "admin-url", label: "Admin URL" },
+            chart.isPublished
+                ? { key: "grapher-url", label: "Grapher URL" }
+                : undefined,
+        ])
+
+        const makeMarkdownLink = (key: "admin-url" | "grapher-url") => {
+            switch (key) {
+                case "admin-url":
+                    return `[${chart.title}](${ADMIN_BASE_URL}/admin/charts/${chart.id}/edit)`
+                case "grapher-url":
+                    return `[${chart.title}](${BAKED_GRAPHER_URL}/${chart.slug})`
+            }
+        }
 
         return (
             <tr>
@@ -121,6 +148,23 @@ export class ChartRow extends React.Component<{
                     >
                         Edit
                     </Link>
+                    <Dropdown.Button
+                        className="mt-1"
+                        onClick={() =>
+                            copyToClipboard(makeMarkdownLink("admin-url"))
+                        }
+                        menu={{
+                            items: copyToMarkdownOptions,
+                            onClick: (e) =>
+                                copyToClipboard(
+                                    makeMarkdownLink(
+                                        e.key as CopyToMarkdownOptionKey
+                                    )
+                                ),
+                        }}
+                    >
+                        Copy
+                    </Dropdown.Button>
                 </td>
                 <td>
                     <button
