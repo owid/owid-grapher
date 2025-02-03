@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class AlterVariablesIndexes1738574434234 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
-        // Drop the unique index on shortName (and datasetId)
+        // Drop the unique index on (shortName ,datasetId)
         await queryRunner.query(`
             ALTER TABLE variables
             DROP INDEX unique_short_name_per_dataset;
