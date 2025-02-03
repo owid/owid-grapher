@@ -6,7 +6,6 @@ import {
     Card,
     Flex,
     Input,
-    Modal,
     notification,
     Radio,
     Select,
@@ -15,10 +14,8 @@ import {
 } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
-    faCheck,
     faCopy,
     faPen,
-    faSpinner,
     faUpload,
     faUpRightFromSquare,
 } from "@fortawesome/free-solid-svg-icons"
@@ -48,14 +45,12 @@ import {
 } from "@ourworldindata/utils"
 import {
     BAKED_BASE_URL,
-    CLOUDFLARE_IMAGES_URL,
-    ENV,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     FIGMA_API_TOKEN,
 } from "../settings/clientSettings.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { Admin } from "./Admin.js"
-import { fileToBase64 } from "./imagesHelpers.js"
+import { ImageUploadResponse, makeImageSrc } from "./imagesHelpers.js"
+import { ReuploadImageForDataInsightModal } from "./ReuploadImageForDataInsightModal.js"
 
 type NarrativeDataInsightIndexItem = RequiredBy<
     OwidGdocDataInsightIndexItem,
@@ -70,20 +65,6 @@ type DataInsightIndexItemThatCanBeUploaded =
     | NarrativeDataInsightIndexItem
     | FigmaDataInsightIndexItem
 
-type FigmaUploadImageProps = {
-    mode: "figma"
-    dataInsight: FigmaDataInsightIndexItem
-    imageUrl?: string
-}
-type NarrativeChartUploadImageProps = {
-    mode: "narrative-chart"
-    dataInsight: NarrativeDataInsightIndexItem
-}
-type UploadImageProps = FigmaUploadImageProps | NarrativeChartUploadImageProps
-
-type ImageUploadResponse =
-    | { success: true; image: DbEnrichedImageWithUserId }
-    | { success: false; errorMessage: string }
 type FigmaResponse =
     | { success: true; imageUrl: string }
     | { success: false; errorMessage: string }
@@ -99,10 +80,8 @@ const DEFAULT_LAYOUT: Layout = "list"
 const editIcon = <FontAwesomeIcon icon={faPen} size="sm" />
 const linkIcon = <FontAwesomeIcon icon={faUpRightFromSquare} size="sm" />
 const uploadIcon = <FontAwesomeIcon icon={faUpload} size="sm" />
-const spinnerIcon = <FontAwesomeIcon icon={faSpinner} spin />
 const figmaIcon = <FontAwesomeIcon icon={faFigma} size="sm" />
 const copyIcon = <FontAwesomeIcon icon={faCopy} size="sm" />
-const checkIcon = <FontAwesomeIcon icon={faCheck} />
 
 const NotificationContext = React.createContext(null)
 
@@ -127,7 +106,10 @@ function createColumns(ctx: {
                     <>
                         <img
                             className="border"
-                            src={makePreviewImageSrc(dataInsight)}
+                            src={makeImageSrc(
+                                dataInsight.image.cloudflareId,
+                                dataInsight.image.originalWidth
+                            )}
                             style={{ maxWidth: 200 }}
                         />
                         <Button
@@ -388,7 +370,7 @@ export function DataInsightIndexPage() {
         })
     }, [searchWords])
 
-    const updateDataInsightPreviewAfterImageUpload = (
+    const updateDataInsightPreview = (
         dataInsightId: string,
         uploadedImage: DbEnrichedImageWithUserId
     ) => {
@@ -400,9 +382,9 @@ export function DataInsightIndexPage() {
                           image: dataInsight.image
                               ? {
                                     ...dataInsight.image,
-                                    filename: uploadedImage.filename,
-                                    cloudflareId: uploadedImage.cloudflareId,
-                                    originalWidth: uploadedImage.originalWidth,
+                                    filename: uploadedImage.filename!,
+                                    cloudflareId: uploadedImage.cloudflareId!,
+                                    originalWidth: uploadedImage.originalWidth!,
                                 }
                               : undefined,
                       }
@@ -411,23 +393,12 @@ export function DataInsightIndexPage() {
         )
     }
 
-    const uploadImage = async (props: UploadImageProps) => {
-        let response: ImageUploadResponse
-        if (props.mode === "figma") {
-            response = await uploadFigmaImage(
-                admin,
-                props.dataInsight,
-                props.imageUrl
-            )
-        } else {
-            response = await uploadNarrativeChartImage(admin, props.dataInsight)
-        }
-
+    const onImageUploadComplete = async (
+        response: ImageUploadResponse,
+        dataInsight: { id: string; title: string }
+    ) => {
         if (response.success) {
-            updateDataInsightPreviewAfterImageUpload(
-                props.dataInsight.id,
-                response.image
-            )
+            updateDataInsightPreview(dataInsight.id, response.image)
 
             notificationApi.info({
                 message: "Image replaced!",
@@ -549,7 +520,7 @@ export function DataInsightIndexPage() {
                     {dataInsightForImageUpload && (
                         <UploadImageModal
                             dataInsight={dataInsightForImageUpload}
-                            uploadImage={uploadImage}
+                            onUploadComplete={onImageUploadComplete}
                             closeModal={() =>
                                 setDataInsightForImageUpload(undefined)
                             }
@@ -589,7 +560,10 @@ function DataInsightCard({
     const preview = (
         <img
             className="border"
-            src={makePreviewImageSrc(dataInsight)}
+            src={makeImageSrc(
+                dataInsight.image.cloudflareId,
+                dataInsight.image.originalWidth
+            )}
             style={{ width: 265, height: 265 }}
         />
     )
@@ -629,10 +603,12 @@ function DataInsightCard({
 
 interface UploadImageModalProps<
     DataInsightIndexItem = DataInsightIndexItemThatCanBeUploaded,
-    UploadImagePropsType = UploadImageProps,
 > {
     dataInsight: DataInsightIndexItem
-    uploadImage: (props: UploadImagePropsType) => Promise<void>
+    onUploadComplete: (
+        response: ImageUploadResponse,
+        dataInsight: { id: string; title: string }
+    ) => void
     closeModal: () => void
 }
 
@@ -660,91 +636,32 @@ function UploadImageModal(props: UploadImageModalProps) {
 
 function UploadNarrativeChartImageModal({
     dataInsight,
-    uploadImage,
+    onUploadComplete,
     closeModal,
-}: UploadImageModalProps<
-    NarrativeDataInsightIndexItem,
-    NarrativeChartUploadImageProps
->) {
-    const [isImageUploadInProgress, setIsImageUploadInProgress] =
-        useState(false)
-
-    const handleImageUpload = async (
-        dataInsight: NarrativeDataInsightIndexItem
-    ) => {
-        setIsImageUploadInProgress(true)
-        await uploadImage({ mode: "narrative-chart", dataInsight })
-        setIsImageUploadInProgress(false)
-        closeModal()
-    }
+}: UploadImageModalProps<NarrativeDataInsightIndexItem>) {
+    const sourceUrl = makePngUrlForNarrativeChart(dataInsight)
 
     return (
-        <Modal
-            title="Upload narrative chart export as DI image"
-            open={true}
-            width={765}
-            okText="Upload"
-            okButtonProps={{
-                icon: isImageUploadInProgress ? spinnerIcon : checkIcon,
-            }}
-            onOk={() => handleImageUpload(dataInsight)}
-            onCancel={() => close()}
-        >
-            <div className="di-modal-content">
-                <div>
-                    <b>Data insight</b>
-                    <br />
-                    {dataInsight.title}
-                </div>
-
-                <div>
-                    <b>Narrative chart</b>
-                    <br />
-                    {dataInsight.narrativeChart.name}
-                </div>
-
-                <div>
-                    <b>Filename</b>
-                    <br />
-                    {dataInsight.image?.filename}
-                </div>
-
-                <ImagePreview
-                    imageBefore={makePreviewImageSrc(dataInsight)}
-                    imageAfter={makeChartPngUrlForNarrativeChart(dataInsight)}
-                />
-            </div>
-        </Modal>
+        <ReuploadImageForDataInsightModal
+            dataInsight={dataInsight}
+            existingImage={dataInsight.image}
+            sourceUrl={sourceUrl}
+            onUploadComplete={onUploadComplete}
+            closeModal={closeModal}
+        />
     )
 }
 
 function UploadFigmaImageModal({
     dataInsight,
-    closeModal: close,
-    uploadImage,
-}: UploadImageModalProps<FigmaDataInsightIndexItem, FigmaUploadImageProps>) {
-    const [isImageUploadInProgress, setIsImageUploadInProgress] =
-        useState(false)
-
+    onUploadComplete,
+    closeModal,
+}: UploadImageModalProps<FigmaDataInsightIndexItem>) {
     const [figmaImageUrl, setFigmaImageUrl] = useState<string | undefined>()
     const [isLoadingFigmaImageUrl, setIsLoadingFigmaImageUrl] = useState(false)
     const [figmaLoadingError, setFigmaLoadingError] = useState<
         string | undefined
     >()
-
-    const handleImageUpload = async (
-        dataInsight: FigmaDataInsightIndexItem,
-        figmaImageUrl?: string
-    ) => {
-        setIsImageUploadInProgress(true)
-        await uploadImage({
-            mode: "figma",
-            dataInsight,
-            imageUrl: figmaImageUrl,
-        })
-        setIsImageUploadInProgress(false)
-        close()
-    }
 
     useEffect(() => {
         const fetchFigmaImage = async () => {
@@ -769,131 +686,16 @@ function UploadFigmaImageModal({
     }, [dataInsight])
 
     return (
-        <Modal
-            title="Upload Figma chart as DI image"
-            open={true}
-            width={765}
-            okText="Upload"
-            okButtonProps={{
-                icon: isImageUploadInProgress ? spinnerIcon : checkIcon,
-                disabled:
-                    isImageUploadInProgress ||
-                    isLoadingFigmaImageUrl ||
-                    (!figmaImageUrl && !isLoadingFigmaImageUrl),
-            }}
-            onOk={() => handleImageUpload(dataInsight, figmaImageUrl)}
-            onCancel={() => close()}
-        >
-            <div className="di-modal-content">
-                <div>
-                    <b>Data insight</b>
-                    <br />
-                    {dataInsight.title}
-                </div>
-
-                <div>
-                    <b>Image filename</b>
-                    <br />
-                    {dataInsight.image?.filename}
-                </div>
-
-                <ImagePreview
-                    imageBefore={makePreviewImageSrc(dataInsight)}
-                    imageAfter={figmaImageUrl}
-                    isLoading={isLoadingFigmaImageUrl}
-                    loadingError={figmaLoadingError}
-                />
-            </div>
-        </Modal>
+        <ReuploadImageForDataInsightModal
+            dataInsight={dataInsight}
+            existingImage={dataInsight.image}
+            sourceUrl={figmaImageUrl}
+            isLoadingSourceUrl={isLoadingFigmaImageUrl}
+            loadingSourceUrlError={figmaLoadingError}
+            onUploadComplete={onUploadComplete}
+            closeModal={closeModal}
+        />
     )
-}
-
-function ImagePreview({
-    imageBefore,
-    imageAfter,
-    size = 350,
-    isLoading = false,
-    loadingError = "",
-}: {
-    imageBefore: string
-    imageAfter?: string
-    size?: number
-    isLoading?: boolean
-    loadingError?: string
-}) {
-    return (
-        <div>
-            <b>Preview (before/after)</b>
-            <div className="image-preview">
-                <Space size="middle">
-                    <img
-                        className="border"
-                        src={imageBefore}
-                        width={size}
-                        height={size}
-                    />
-                    {isLoading ? (
-                        <div className="placeholder">{spinnerIcon}</div>
-                    ) : imageAfter ? (
-                        <img
-                            className="border"
-                            src={imageAfter}
-                            width={size}
-                            height={size}
-                        />
-                    ) : (
-                        <div className="error">
-                            <b>Loading preview failed</b>
-                            <p>{loadingError}</p>
-                        </div>
-                    )}
-                </Space>
-            </div>
-        </div>
-    )
-}
-
-async function uploadNarrativeChartImage(
-    admin: Admin,
-    dataInsight: NarrativeDataInsightIndexItem
-): Promise<ImageUploadResponse> {
-    const narrativeChartUrl = makeChartPngUrlForNarrativeChart(dataInsight)
-    return uploadImageForDataInsight(admin, dataInsight, narrativeChartUrl)
-}
-
-async function uploadFigmaImage(
-    admin: Admin,
-    dataInsight: FigmaDataInsightIndexItem,
-    figmaImageUrl?: string
-): Promise<ImageUploadResponse> {
-    if (!figmaImageUrl) return { success: false, errorMessage: "No image URL" }
-    return uploadImageForDataInsight(admin, dataInsight, figmaImageUrl)
-}
-
-async function uploadImageForDataInsight(
-    admin: Admin,
-    dataInsight: DataInsightIndexItemThatCanBeUploaded,
-    imageUrl: string
-): Promise<ImageUploadResponse> {
-    const imageResponse = await fetch(imageUrl)
-    const blob = await imageResponse.blob()
-
-    const payload = await fileToBase64(blob)
-    if (!payload) {
-        return {
-            success: false,
-            errorMessage: "Failed to convert image to base64",
-        }
-    }
-    payload.filename = dataInsight.image.filename
-
-    const response = await admin.requestJSON<ImageUploadResponse>(
-        `/api/images/${dataInsight.image.id}`,
-        payload,
-        "PUT"
-    )
-
-    return response
 }
 
 function hasNarrativeChart(
@@ -1004,20 +806,8 @@ function makeNarrativeChartEditLink(
     return `/admin/chartViews/${dataInsight.narrativeChart.id}/edit`
 }
 
-function makePreviewImageSrc(
-    dataInsight: RequiredBy<OwidGdocDataInsightIndexItem, "image">
-) {
-    const { cloudflareId, originalWidth } = dataInsight.image
-    return `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=${originalWidth}`
-}
-
-function makeChartPngUrlForNarrativeChart(
+function makePngUrlForNarrativeChart(
     dataInsight: RequiredBy<OwidGdocDataInsightIndexItem, "narrativeChart">
 ) {
-    return `${makeGrapherDynamicThumbnailUrl()}/by-uuid/${dataInsight.narrativeChart.chartConfigId}.png?imType=square`
-}
-
-function makeGrapherDynamicThumbnailUrl() {
-    if (ENV === "development") return "https://ourworldindata.org/grapher"
-    return GRAPHER_DYNAMIC_THUMBNAIL_URL
+    return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${dataInsight.narrativeChart.chartConfigId}.png?imType=square&nocache`
 }
