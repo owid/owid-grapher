@@ -211,7 +211,7 @@ const updateExistingChart = async (
         shouldInherit?: boolean
     }
 ): Promise<{
-    chartConfigId: Base64String
+    chartConfigId: string
     patchConfig: GrapherInterface
     fullConfig: GrapherInterface
 }> => {
@@ -368,7 +368,7 @@ export const saveGrapher = async (
 
     // Execute the actual database update or creation
     let chartId: number
-    let chartConfigId: Base64String
+    let chartConfigId: string
     let patchConfig: GrapherInterface
     let fullConfig: GrapherInterface
     if (existingConfig) {

@@ -104,3 +104,13 @@ export const getMultiDimDataPageBySlug = async (
 
     return row ? enrichRow(row) : undefined
 }
+
+export async function getMultiDimDataPageById(
+    knex: KnexReadonlyTransaction,
+    id: number
+): Promise<DbEnrichedMultiDimDataPage | undefined> {
+    const row = await knex<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
+        .where({ id })
+        .first()
+    return row ? enrichRow(row) : undefined
+}

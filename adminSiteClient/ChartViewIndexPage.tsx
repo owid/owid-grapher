@@ -1,11 +1,10 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
-import { Button, Flex, Input, Space, Table } from "antd"
+import { Button, Flex, Input, Space, Table, TableColumnsType } from "antd"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
-import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { ApiChartViewOverview } from "../adminShared/AdminTypes.js"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
 import { Link } from "./Link.js"
@@ -20,7 +19,7 @@ function createColumns(ctx: {
         text: string | null | undefined
     ) => React.ReactElement | string
     deleteFn: (chartViewId: number) => void
-}): ColumnsType<ApiChartViewOverview> {
+}): TableColumnsType<ApiChartViewOverview> {
     return [
         {
             title: "Preview",

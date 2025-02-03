@@ -3,6 +3,7 @@ import * as React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faChartBar,
+    faChartLine,
     faFile,
     faTable,
     faSkullCrossbones,
@@ -36,6 +37,11 @@ export const AdminSidebar = (): React.ReactElement => (
             <li>
                 <Link to="/chartViews">
                     <FontAwesomeIcon icon={faPanorama} /> Narrative charts
+                </Link>
+            </li>
+            <li>
+                <Link to="/multi-dims">
+                    <FontAwesomeIcon icon={faChartLine} /> Multi-dims
                 </Link>
             </li>
             <li>

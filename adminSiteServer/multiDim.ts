@@ -7,6 +7,7 @@ import {
 import {
     Base64String,
     ChartConfigsTableName,
+    DbEnrichedMultiDimDataPage,
     DbPlainMultiDimDataPage,
     DbPlainMultiDimXChartConfig,
     DbRawChartConfig,
@@ -14,12 +15,14 @@ import {
     IndicatorConfig,
     IndicatorEntryBeforePreProcessing,
     IndicatorsBeforePreProcessing,
+    JsonError,
     MultiDimDataPageConfigEnriched,
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageConfigRaw,
     MultiDimDataPagesTableName,
     MultiDimDimensionChoices,
     MultiDimXChartConfigsTableName,
+    parseChartConfigsRow,
     View,
 } from "@ourworldindata/types"
 import {
@@ -28,10 +31,7 @@ import {
     slugify,
 } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
-import {
-    isMultiDimDataPagePublished,
-    upsertMultiDimDataPage,
-} from "../db/model/MultiDimDataPage.js"
+import { upsertMultiDimDataPage } from "../db/model/MultiDimDataPage.js"
 import { upsertMultiDimXChartConfigs } from "../db/model/MultiDimXChartConfigs.js"
 import {
     getMergedGrapherConfigsForVariables,
@@ -250,8 +250,6 @@ export async function createMultiDimConfig(
     )
     const reusedChartConfigIds = new Set<string>()
     const { grapherConfigSchema } = config
-    // TODO: Remove when we build a way to publish mdims in the admin.
-    const isPublished = await isMultiDimDataPagePublished(knex, slug)
 
     const enrichedViews = await Promise.all(
         config.views.map(async (view) => {
@@ -262,9 +260,6 @@ export async function createMultiDimConfig(
                 dimensions: MultiDimDataPageConfig.viewToDimensionsConfig(view),
                 selectedEntityNames: config.defaultSelection ?? [],
                 slug,
-            }
-            if (isPublished) {
-                mainGrapherConfig.isPublished = true
             }
             let viewGrapherConfig = {}
             if (view.config) {
@@ -328,4 +323,46 @@ export async function createMultiDimConfig(
         })
     }
     return multiDimId
+}
+
+async function getChartConfigsByIds(
+    knex: db.KnexReadonlyTransaction,
+    ids: string[]
+) {
+    const rows = await knex<DbRawChartConfig>(ChartConfigsTableName)
+        .select("id", "patch", "full")
+        .whereIn("id", ids)
+    return new Map(rows.map((row) => [row.id, parseChartConfigsRow(row)]))
+}
+
+export async function setMultiDimPublished(
+    knex: db.KnexReadWriteTransaction,
+    multiDim: DbEnrichedMultiDimDataPage,
+    published: boolean
+) {
+    const chartConfigs = await getChartConfigsByIds(
+        knex,
+        multiDim.config.views.map((view) => view.fullConfigId)
+    )
+
+    await Promise.all(
+        multiDim.config.views.map(async (view) => {
+            const { fullConfigId: chartConfigId } = view
+            const chartConfig = chartConfigs.get(chartConfigId)
+            if (!chartConfig) {
+                throw new JsonError(
+                    `Chart config not found id=${chartConfigId}`,
+                    404
+                )
+            }
+            const { patch, full } = chartConfig
+            patch.isPublished = published
+            full.isPublished = published
+            await updateChartConfigInDbAndR2(knex, chartConfigId, patch, full)
+        })
+    )
+
+    await knex(MultiDimDataPagesTableName)
+        .where({ id: multiDim.id })
+        .update({ published })
 }
