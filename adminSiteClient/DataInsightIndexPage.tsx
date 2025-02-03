@@ -42,7 +42,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-    FIGMA_API_TOKEN,
+    FIGMA_API_KEY,
 } from "../settings/clientSettings.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { ImageUploadResponse, makeImageSrc } from "./imagesHelpers.js"
@@ -80,7 +80,7 @@ const copyIcon = <FontAwesomeIcon icon={faCopy} size="sm" />
 const NotificationContext = React.createContext(null)
 
 const figmaApi = new Figma.Api({
-    personalAccessToken: FIGMA_API_TOKEN,
+    personalAccessToken: FIGMA_API_KEY,
 })
 
 function createColumns(ctx: {
