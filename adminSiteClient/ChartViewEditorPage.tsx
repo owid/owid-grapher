@@ -18,7 +18,8 @@ export class ChartViewEditorPage
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    idAndName: { id: number; name: string } | undefined = undefined
+    idsAndName: { id: number; name: string; configId: string } | undefined =
+        undefined
 
     patchConfig: GrapherInterface = {}
     fullConfig: GrapherInterface = {}
@@ -34,7 +35,11 @@ export class ChartViewEditorPage
             `/api/chartViews/${this.chartViewId}.config.json`
         )
 
-        this.idAndName = { id: data.id, name: data.name }
+        this.idsAndName = {
+            id: data.id,
+            name: data.name,
+            configId: data.chartConfigId,
+        }
         this.fullConfig = data.configFull
         this.patchConfig = data.configPatch
         this.parentChartId = data.parentChartId
