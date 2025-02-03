@@ -29,7 +29,7 @@ import {
     faSave,
     faUpload,
 } from "@fortawesome/free-solid-svg-icons"
-import { RcFile } from "antd/es/upload/interface.js"
+import { type File, fileToBase64 } from "./imagesHelpers.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { Dictionary, keyBy } from "lodash"
 import cx from "classnames"
@@ -412,34 +412,6 @@ function createColumns({
             },
         },
     ]
-}
-
-type File = string | Blob | RcFile
-
-type FileToBase64Result = {
-    filename: string
-    content: string
-    type: string
-}
-
-/**
- * Uploading as base64, because otherwise we'd need multipart/form-data parsing middleware in the server.
- * This seems easier as a one-off.
- **/
-function fileToBase64(file: File): Promise<FileToBase64Result | null> {
-    if (typeof file === "string") return Promise.resolve(null)
-
-    return new Promise((resolve) => {
-        const reader = new FileReader()
-        reader.onload = () => {
-            resolve({
-                filename: file.name,
-                content: reader.result?.toString() ?? "",
-                type: file.type,
-            })
-        }
-        reader.readAsDataURL(file)
-    })
 }
 
 function PostImageButton({

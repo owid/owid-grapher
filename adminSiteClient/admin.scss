@@ -1305,3 +1305,36 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         border: 1px solid rgb(240, 240, 240) !important;
     }
 }
+
+.di-modal-content {
+    margin: 16px 0 24px 0;
+
+    > div {
+        margin-bottom: 12px;
+
+        .preview {
+            margin-top: 6px;
+        }
+    }
+
+    .image-preview .placeholder,
+    .image-preview .error {
+        width: 350px;
+        height: 350px;
+        border: 1px solid #f0f0f0;
+    }
+
+    .image-preview .placeholder {
+        padding: 8px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 16px;
+    }
+
+    .image-preview .error {
+        font-size: 14px;
+        display: block;
+        padding: 12px;
+    }
+}
