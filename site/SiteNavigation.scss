@@ -25,11 +25,13 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    @include column-gap(16px);
     padding-top: 12px;
     padding-bottom: 12px;
     @include sm-up {
         @include column-gap(24px);
+    }
+    @include md-only {
+        @include column-gap(0px);
     }
 
     .SiteNavigationToggle--mobile-menu {
