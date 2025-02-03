@@ -114,6 +114,7 @@ import {
     GrapherTabOption,
     SeriesName,
     ChartViewInfo,
+    OwidChartDimensionInterfaceWithMandatorySlug,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -1180,18 +1181,19 @@ export class Grapher
         // TODO grapher model: switch this to downloading multiple data and metadata files
 
         const startMark = performance.now()
-        const dimensions = legacyConfig.dimensions?.map((dimension) => ({
-            ...dimension,
-            slug:
-                dimension.slug ??
-                getDimensionColumnSlug(
-                    dimension.variableId,
-                    dimension.targetYear
-                ),
-        }))
+        const dimensions: OwidChartDimensionInterfaceWithMandatorySlug[] =
+            legacyConfig.dimensions?.map((dimension) => ({
+                ...dimension,
+                slug:
+                    dimension.slug ??
+                    getDimensionColumnSlug(
+                        dimension.variableId,
+                        dimension.targetYear
+                    ),
+            })) ?? []
         const tableWithColors = legacyToOwidTableAndDimensions(
             json,
-            dimensions ?? [],
+            dimensions,
             legacyConfig.selectedEntityColors
         )
         this.createPerformanceMeasurement(
@@ -1202,6 +1204,10 @@ export class Grapher
         if (inputTableTransformer)
             this.inputTable = inputTableTransformer(tableWithColors)
         else this.inputTable = tableWithColors
+
+        // We need to reset the dimensions because some of them may have changed slugs in the legacy
+        // transformation (can happen when columns use targetTime)
+        this.setDimensionsFromConfigs(dimensions)
 
         this.appendNewEntitySelectionOptions()
 
