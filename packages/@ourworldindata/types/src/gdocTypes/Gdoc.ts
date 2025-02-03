@@ -177,10 +177,12 @@ export type OwidGdocDataInsightIndexItem = Pick<
         narrativeChart?: Pick<DbPlainChartView, "id" | "name" | "chartConfigId">
         chartType?: GrapherChartOrMapType
         figmaUrl?: OwidGdocDataInsightContent["figma-url"]
-        image?: Pick<
-            DbRawImage,
-            "id" | "cloudflareId" | "filename" | "originalWidth"
-        >
+        image?: {
+            id: NonNullable<DbRawImage["id"]>
+            filename: NonNullable<DbRawImage["filename"]>
+            cloudflareId: NonNullable<DbRawImage["cloudflareId"]>
+            originalWidth: NonNullable<DbRawImage["originalWidth"]>
+        }
     }
 
 export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20

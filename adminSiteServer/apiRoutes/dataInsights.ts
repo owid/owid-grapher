@@ -151,14 +151,17 @@ function extractDataInsightIndexItem(
     })
 
     // collect the image data if it exists
-    const image = dataInsight.imageId
-        ? {
-              id: dataInsight.imageId,
-              filename: dataInsight.filename,
-              cloudflareId: dataInsight.cloudflareId,
-              originalWidth: dataInsight.originalWidth,
-          }
-        : undefined
+    const image =
+        dataInsight.imageId &&
+        dataInsight.cloudflareId &&
+        dataInsight.originalWidth
+            ? {
+                  id: dataInsight.imageId,
+                  filename: dataInsight.filename,
+                  cloudflareId: dataInsight.cloudflareId,
+                  originalWidth: dataInsight.originalWidth,
+              }
+            : undefined
 
     return {
         id: dataInsight.gdocId,
