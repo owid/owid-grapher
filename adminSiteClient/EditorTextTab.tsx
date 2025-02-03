@@ -2,7 +2,7 @@ import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { LogoOption, RelatedQuestionsConfig } from "@ourworldindata/types"
 import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
-import { slugify } from "@ourworldindata/utils"
+import { copyToClipboard, slugify } from "@ourworldindata/utils"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
@@ -20,6 +20,11 @@ import {
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
 import { isChartViewEditorInstance } from "./ChartViewEditor.js"
+import { Button as AntdButton, Space } from "antd"
+import {
+    BAKED_GRAPHER_URL,
+    ADMIN_BASE_URL,
+} from "../settings/clientSettings.js"
 
 @observer
 export class EditorTextTab<
@@ -86,6 +91,14 @@ export class EditorTextTab<
             features.showTimeAnnotationInTitleToggle ||
             features.showChangeInPrefixToggle
         )
+    }
+
+    @computed get hasCopyAdminURLButton() {
+        return !!this.props.editor.grapher.id
+    }
+
+    @computed get hasCopyGrapherURLButton() {
+        return !!this.props.editor.grapher.isPublished
     }
 
     render() {
@@ -319,6 +332,35 @@ export class EditorTextTab<
                         helpText="Optional variant name for distinguishing charts with the same title"
                     />
                 </Section>
+                {(this.hasCopyAdminURLButton ||
+                    this.hasCopyGrapherURLButton) && (
+                    <Section name="Copy as Markdown">
+                        <Space direction="vertical" size="small">
+                            {this.hasCopyAdminURLButton && (
+                                <AntdButton
+                                    onClick={() =>
+                                        copyToClipboard(
+                                            `[${grapher.title}](${ADMIN_BASE_URL}/admin/charts/${grapher.id}/edit)`
+                                        )
+                                    }
+                                >
+                                    Copy admin URL
+                                </AntdButton>
+                            )}
+                            {this.hasCopyGrapherURLButton && (
+                                <AntdButton
+                                    onClick={() =>
+                                        copyToClipboard(
+                                            `[${grapher.title}](${BAKED_GRAPHER_URL}/${grapher.slug})`
+                                        )
+                                    }
+                                >
+                                    Copy Grapher URL
+                                </AntdButton>
+                            )}
+                        </Space>
+                    </Section>
+                )}
             </div>
         )
     }
