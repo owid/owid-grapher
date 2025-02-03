@@ -1,9 +1,5 @@
 #! /usr/bin/env jest
-import {
-    Grapher,
-    GrapherProgrammaticInterface,
-    GrapherState,
-} from "../core/Grapher"
+import { GrapherProgrammaticInterface, GrapherState } from "../core/Grapher"
 import {
     GRAPHER_CHART_TYPES,
     EntitySelectionMode,
@@ -40,6 +36,7 @@ import {
     OwidDistinctLinesColorScheme,
 } from "../color/CustomSchemes"
 import { latestGrapherConfigSchema } from "./GrapherConstants.js"
+import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
 
 const TestGrapherConfig = (): {
     table: OwidTable
@@ -153,17 +150,27 @@ const legacyConfig: Omit<LegacyGrapherInterface, "data"> &
 
 it("can apply legacy chart dimension settings", () => {
     const grapher = new GrapherState(legacyConfig)
+    grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        legacyConfig.owidDataset!,
+        legacyConfig.dimensions!,
+        legacyConfig.selectedEntityColors
+    )
     const col = grapher.yColumnsFromDimensions[0]!
     expect(col.unit).toEqual(unit)
     expect(col.displayName).toEqual(name)
 })
 
 it("correctly identifies changes to passed-in selection", () => {
-    const selection = new SelectionArray()
+    const selection = new SelectionArray(legacyConfig.selectedEntityNames)
     const grapher = new GrapherState({
         ...legacyConfig,
         manager: { selection },
     })
+    grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        legacyConfig.owidDataset!,
+        legacyConfig.dimensions!,
+        legacyConfig.selectedEntityColors
+    )
 
     expect(grapher.changedParams).toEqual({})
     expect(selection.selectedEntityNames).toEqual(["Iceland", "Afghanistan"])
@@ -189,6 +196,11 @@ it("can generate a url with country selection even if there is no entity code", 
         selectedEntityNames: [],
     }
     const grapher = new GrapherState(config)
+    grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        config.owidDataset!,
+        config.dimensions!,
+        config.selectedEntityColors
+    )
     expect(grapher.queryStr).toBe("")
     grapher.selection.selectAll()
     expect(grapher.queryStr).toContain("AFG")
@@ -201,6 +213,11 @@ it("can generate a url with country selection even if there is no entity code", 
         (entity) => entity.id === 15
     )!.code = undefined as any
     const grapher2 = new GrapherState(config2)
+    grapher2.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        config2.owidDataset!,
+        config2.dimensions!,
+        config2.selectedEntityColors
+    )
     expect(grapher2.queryStr).toBe("")
     grapher2.selection.selectAll()
     expect(grapher2.queryStr).toContain("AFG")
@@ -209,6 +226,11 @@ it("can generate a url with country selection even if there is no entity code", 
 describe("hasTimeline", () => {
     it("charts with timeline", () => {
         const grapher = new GrapherState(legacyConfig)
+        grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+            legacyConfig.owidDataset!,
+            legacyConfig.dimensions!,
+            legacyConfig.selectedEntityColors
+        )
         grapher.chartTypes = [GRAPHER_CHART_TYPES.LineChart]
         expect(grapher.hasTimeline).toBeTruthy()
         grapher.chartTypes = [GRAPHER_CHART_TYPES.SlopeChart]
@@ -223,6 +245,11 @@ describe("hasTimeline", () => {
 
     it("map tab has timeline even if chart doesn't", () => {
         const grapher = new GrapherState(legacyConfig)
+        grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+            legacyConfig.owidDataset!,
+            legacyConfig.dimensions!,
+            legacyConfig.selectedEntityColors
+        )
         grapher.hideTimeline = true
         grapher.chartTypes = [GRAPHER_CHART_TYPES.LineChart]
         expect(grapher.hasTimeline).toBeFalsy()
@@ -233,61 +260,68 @@ describe("hasTimeline", () => {
     })
 })
 
-const getGrapher = (): GrapherState =>
-    new GrapherState({
+const getGrapher = (): GrapherState => {
+    const dataset = new Map([
+        [
+            142609,
+            {
+                data: {
+                    years: [-1, 0, 1, 2],
+                    entities: [1, 2, 1, 2],
+                    values: [51, 52, 53, 54],
+                },
+                metadata: {
+                    id: 142609,
+                    display: { zeroDay: "2020-01-21", yearIsDay: true },
+                    dimensions: {
+                        entities: {
+                            values: [
+                                {
+                                    name: "United Kingdom",
+                                    code: "GBR",
+                                    id: 1,
+                                },
+                                { name: "Ireland", code: "IRL", id: 2 },
+                            ],
+                        },
+                        years: {
+                            values: [
+                                {
+                                    id: -1,
+                                },
+                                {
+                                    id: 0,
+                                },
+                                {
+                                    id: 1,
+                                },
+                                {
+                                    id: 2,
+                                },
+                            ],
+                        },
+                    },
+                },
+            },
+        ],
+    ])
+    const state = new GrapherState({
         dimensions: [
             {
                 variableId: 142609,
                 property: DimensionProperty.y,
             },
         ],
-        owidDataset: new Map([
-            [
-                142609,
-                {
-                    data: {
-                        years: [-1, 0, 1, 2],
-                        entities: [1, 2, 1, 2],
-                        values: [51, 52, 53, 54],
-                    },
-                    metadata: {
-                        id: 142609,
-                        display: { zeroDay: "2020-01-21", yearIsDay: true },
-                        dimensions: {
-                            entities: {
-                                values: [
-                                    {
-                                        name: "United Kingdom",
-                                        code: "GBR",
-                                        id: 1,
-                                    },
-                                    { name: "Ireland", code: "IRL", id: 2 },
-                                ],
-                            },
-                            years: {
-                                values: [
-                                    {
-                                        id: -1,
-                                    },
-                                    {
-                                        id: 0,
-                                    },
-                                    {
-                                        id: 1,
-                                    },
-                                    {
-                                        id: 2,
-                                    },
-                                ],
-                            },
-                        },
-                    },
-                },
-            ],
-        ]),
         minTime: -5000,
         maxTime: 5000,
     })
+    state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        dataset,
+        state.dimensions,
+        {}
+    )
+    return state
+}
 
 function fromQueryParams(
     params: LegacyGrapherQueryParams,
@@ -330,7 +364,7 @@ describe("currentTitle", () => {
         )
         const grapher = new GrapherState({
             table,
-            selectedEntityNames: table.availableEntityNames,
+            selectedEntityNames: [...table.availableEntityNames],
             dimensions: [
                 {
                     slug: SampleColumnSlugs.GDP,
@@ -378,7 +412,7 @@ describe("authors can use maxTime", () => {
         const grapher = new GrapherState({
             table,
             chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
-            selectedEntityNames: table.availableEntityNames,
+            selectedEntityNames: [...table.availableEntityNames],
             maxTime: 2005,
             ySlugs: "GDP",
         })
@@ -595,7 +629,7 @@ describe("time domain tests", () => {
     ).replaceRandomCells(17, [SampleColumnSlugs.GDP], seed)
     const grapher = new GrapherState({
         table,
-        selectedEntityNames: table.availableEntityNames,
+        selectedEntityNames: [...table.availableEntityNames],
         dimensions: [
             {
                 slug: SampleColumnSlugs.GDP,

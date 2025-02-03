@@ -9,11 +9,7 @@ import {
     generateSelectedEntityNamesParam,
 } from "./EntityUrlBuilder.js"
 import { match } from "ts-pattern"
-import {
-    Grapher,
-    GrapherProgrammaticInterface,
-    GrapherState,
-} from "./Grapher.js"
+import { GrapherState } from "./Grapher.js"
 
 // This function converts a (potentially partial) GrapherInterface to the query params this translates to.
 // This is helpful for when we have a patch config to a parent chart, and we want to know which query params we need to get the parent chart as close as possible to the patched child chart.

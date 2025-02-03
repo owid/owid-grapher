@@ -1,17 +1,12 @@
 import { useMemo } from "react"
 import {
     FetchingGrapher,
-    fetchInputTableForConfig,
-    Grapher,
     GrapherProgrammaticInterface,
-    GrapherState,
-    MapChart,
 } from "@ourworldindata/grapher"
 import {
     REUSE_THIS_WORK_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
 } from "@ourworldindata/components"
-import ReactDOM from "react-dom"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
@@ -19,9 +14,7 @@ import {
     joinTitleFragments,
     ImageMetadata,
 } from "@ourworldindata/utils"
-import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
-import { DebugProvider } from "./gdocs/DebugContext.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
@@ -32,6 +25,9 @@ import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
 import TopicTags from "./TopicTags.js"
 import { processRelatedResearch } from "./dataPage.js"
+import { GrapherWithFallback } from "./GrapherWithFallback.js"
+import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
+import { DocumentContext } from "./gdocs/DocumentContext.js"
 
 declare global {
     interface Window {
@@ -64,10 +60,11 @@ export const DataPageV2Content = ({
             ...grapherConfig,
             isEmbeddedInADataPage: true,
             bindUrlToWindow: true,
+            adminBaseUrl: ADMIN_BASE_URL,
+            bakedGrapherURL: BAKED_GRAPHER_URL,
         }),
         [grapherConfig]
     )
-
     const stickyNavLinks = [
         {
             text: "Explore the Data",
@@ -106,8 +103,6 @@ export const DataPageV2Content = ({
                     <FetchingGrapher
                         config={mergedGrapherConfig}
                         dataApiUrl={DATA_API_URL}
-                        adminBaseUrl={ADMIN_BASE_URL}
-                        bakedGrapherURL={BAKED_GRAPHER_URL}
                     />
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
@@ -139,8 +134,14 @@ export const DataPageV2Content = ({
                     </nav>
                     <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
                         <div className="chart-key-info col-start-2 span-cols-12">
-                            <Grapher grapherState={grapher1State} />
-                            <Grapher grapherState={grapher2State} />
+                            {grapherConfig.slug && (
+                                <GrapherWithFallback
+                                    slug={grapherConfig.slug}
+                                    config={mergedGrapherConfig}
+                                    id="explore-the-data"
+                                    fetchConfigForSlug={false}
+                                />
+                            )}
                             <AboutThisData
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}
@@ -188,22 +189,5 @@ export const DataPageV2Content = ({
                 </div>
             </DocumentContext.Provider>
         </AttachmentsContext.Provider>
-    )
-}
-
-export const hydrateDataPageV2Content = (isPreviewing?: boolean) => {
-    const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
-    const props: DataPageV2ContentFields = window._OWID_DATAPAGEV2_PROPS
-    const grapherConfig = window._OWID_GRAPHER_CONFIG
-
-    ReactDOM.hydrate(
-        <DebugProvider debug={isPreviewing}>
-            <DataPageV2Content
-                {...props}
-                grapherConfig={grapherConfig}
-                isPreviewing={isPreviewing}
-            />
-        </DebugProvider>,
-        wrapper
     )
 }
