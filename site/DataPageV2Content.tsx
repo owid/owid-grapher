@@ -11,7 +11,7 @@ import {
     GrapherInterface,
     joinTitleFragments,
     ImageMetadata,
-    AssetMapEntry,
+    AssetMap,
 } from "@ourworldindata/utils"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
@@ -42,7 +42,7 @@ export const DataPageV2Content = ({
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
-    runtimeAssetMap?: AssetMapEntry
+    runtimeAssetMap?: AssetMap
 }) => {
     const [grapher, setGrapher] = useState<Grapher | undefined>(undefined)
 

@@ -1,7 +1,7 @@
 import { StrictMode } from "react"
 import { hydrate, render } from "react-dom"
 import {
-    AssetMapEntry,
+    AssetMap,
     DataPageV2ContentFields,
     getOwidGdocFromJSON,
     getWindowQueryStr,
@@ -80,7 +80,7 @@ function hydrateDataInsightsIndexPage() {
 function hydrateDataPageV2Content({
     isPreviewing,
     runtimeAssetMap,
-}: { isPreviewing?: boolean; runtimeAssetMap?: AssetMapEntry } = {}) {
+}: { isPreviewing?: boolean; runtimeAssetMap?: AssetMap } = {}) {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
     const props: DataPageV2ContentFields = window._OWID_DATAPAGEV2_PROPS
     const grapherConfig = window._OWID_GRAPHER_CONFIG
@@ -272,7 +272,7 @@ export const runSiteFooterScripts = (
               context?: SiteFooterContext
               container?: HTMLElement
               hideDonationFlag?: boolean
-              runtimeAssetMap?: AssetMapEntry
+              runtimeAssetMap?: AssetMap
           }
         | undefined
 ) => {

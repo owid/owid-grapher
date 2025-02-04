@@ -25,7 +25,6 @@ export {
 export {
     type BreadcrumbItem,
     type KeyValueProps,
-    type AssetMapEntry,
     type AssetMap,
 } from "./domainTypes/Site.js"
 export {

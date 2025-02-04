@@ -7,8 +7,4 @@ export interface KeyValueProps {
     [key: string]: string | boolean | undefined
 }
 
-export type AssetMapEntry = Record<string, string>
-export interface AssetMap {
-    viteAssets: AssetMapEntry
-    runtimeResources: AssetMapEntry
-}
+export type AssetMap = Record<string, string>

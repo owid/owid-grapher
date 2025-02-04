@@ -12,7 +12,7 @@ import { getAllImages } from "../db/model/Image.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
 import findProjectBaseDir from "../settings/findBaseDir.js"
 import crypto from "crypto"
-import { AssetMapEntry } from "@ourworldindata/types"
+import { AssetMap } from "@ourworldindata/types"
 import { getVariableData } from "../db/model/Variable.js"
 import dayjs from "dayjs"
 import { glob } from "glob"
@@ -124,7 +124,7 @@ const bakeAssets = async () => {
 
     await fs.mkdirp(targetDir)
 
-    const staticAssetMap: AssetMapEntry = {}
+    const staticAssetMap: AssetMap = {}
 
     for (const dirent of await fs.readdir(srcDir, { withFileTypes: true })) {
         if (!dirent.isFile()) continue

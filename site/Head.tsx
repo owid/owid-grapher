@@ -1,10 +1,7 @@
 import { viteAssetsForSite } from "./viteUtils.js"
 import { GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.js"
 import { NoJSDetector } from "./NoJSDetector.js"
-import {
-    AssetMapEntry,
-    DEFAULT_THUMBNAIL_FILENAME,
-} from "@ourworldindata/types"
+import { AssetMap, DEFAULT_THUMBNAIL_FILENAME } from "@ourworldindata/types"
 
 export const GTMScriptTags = ({ gtmId }: { gtmId: string }) => {
     if (!gtmId || /["']/.test(gtmId)) return null
@@ -45,7 +42,7 @@ export const Head = (props: {
         title: string
         href: string
     }
-    staticAssetMap?: AssetMapEntry
+    staticAssetMap?: AssetMap
 }) => {
     const { canonicalUrl, hideCanonicalUrl, baseUrl } = props
     const pageTitle = props.pageTitle || `Our World in Data`
