@@ -23,6 +23,10 @@ export function ReuploadImageForDataInsightModal({
     isLoadingSourceUrl,
     loadingSourceUrlError,
 
+    // modal presentation
+    title = "Upload image for data insight",
+    description,
+
     // modal-related actions
     closeModal,
     onUploadComplete,
@@ -37,6 +41,8 @@ export function ReuploadImageForDataInsightModal({
     sourceUrl?: string
     isLoadingSourceUrl?: boolean
     loadingSourceUrlError?: string
+    title?: string
+    description?: string
     closeModal: () => void
     onUploadComplete?: (
         response: ImageUploadResponse,
@@ -72,7 +78,7 @@ export function ReuploadImageForDataInsightModal({
 
     return (
         <Modal
-            title="Upload image for data insight"
+            title={title}
             open={true}
             width={765}
             okText="Upload"
@@ -87,17 +93,23 @@ export function ReuploadImageForDataInsightModal({
             onCancel={() => closeModal()}
         >
             <div className="di-modal-content">
-                <div>
+                {description && (
+                    <p>
+                        <i>{description}</i>
+                    </p>
+                )}
+
+                <p>
                     <b>Data insight</b>
                     <br />
                     {dataInsight.title}
-                </div>
+                </p>
 
-                <div>
+                <p>
                     <b>Filename</b>
                     <br />
                     {existingImage.filename}
-                </div>
+                </p>
 
                 <ImagePreview
                     imageBefore={currentImageUrl}

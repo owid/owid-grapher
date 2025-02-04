@@ -10,10 +10,12 @@ import {
     Select,
     Space,
     Table,
+    Tooltip,
 } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faCopy,
+    faPanorama,
     faPen,
     faUpload,
     faUpRightFromSquare,
@@ -80,6 +82,7 @@ const linkIcon = <FontAwesomeIcon icon={faUpRightFromSquare} size="sm" />
 const uploadIcon = <FontAwesomeIcon icon={faUpload} size="sm" />
 const figmaIcon = <FontAwesomeIcon icon={faFigma} size="sm" />
 const copyIcon = <FontAwesomeIcon icon={faCopy} size="sm" />
+const panoramaIcon = <FontAwesomeIcon icon={faPanorama} size="sm" />
 
 const NotificationContext = React.createContext(null)
 
@@ -209,6 +212,15 @@ function createColumns(ctx: {
                     >
                         Preview
                     </Button>
+                    {hasNarrativeChart(dataInsight) && (
+                        <Button
+                            href={makeNarrativeChartEditLink(dataInsight)}
+                            target="_blank"
+                            icon={panoramaIcon}
+                        >
+                            Narrative chart
+                        </Button>
+                    )}
                     {dataInsight.grapherUrl && (
                         <Button
                             href={dataInsight.grapherUrl}
@@ -252,25 +264,17 @@ function createColumns(ctx: {
                     >
                         Edit GDoc
                     </Button>
-                    {hasNarrativeChart(dataInsight) && (
-                        <Button
-                            type="primary"
-                            href={makeNarrativeChartEditLink(dataInsight)}
-                            target="_blank"
-                            icon={editIcon}
-                        >
-                            Edit narrative chart
-                        </Button>
-                    )}
                     {canReuploadImage(dataInsight) && (
-                        <Button
-                            icon={uploadIcon}
-                            onClick={() =>
-                                ctx.triggerImageUploadFlow(dataInsight)
-                            }
-                        >
-                            Reupload image
-                        </Button>
+                        <Tooltip title={makeUploadImageHelpText(dataInsight)}>
+                            <Button
+                                icon={uploadIcon}
+                                onClick={() =>
+                                    ctx.triggerImageUploadFlow(dataInsight)
+                                }
+                            >
+                                Reupload image
+                            </Button>
+                        </Tooltip>
                     )}
                 </Space>
             ),
@@ -641,6 +645,7 @@ function UploadNarrativeChartImageModal({
 
     return (
         <ReuploadImageForDataInsightModal
+            description={makeUploadImageHelpText(dataInsight)}
             dataInsight={dataInsight}
             existingImage={dataInsight.image}
             sourceUrl={sourceUrl}
@@ -687,6 +692,7 @@ function UploadFigmaImageModal({
 
     return (
         <ReuploadImageForDataInsightModal
+            description={makeUploadImageHelpText(dataInsight)}
             dataInsight={dataInsight}
             existingImage={dataInsight.image}
             sourceUrl={figmaImageUrl}
@@ -735,6 +741,16 @@ function canReuploadImage(
         canReuploadNarrativeChartImage(dataInsight) ||
         canReuploadFigmaImage(dataInsight)
     )
+}
+
+function makeUploadImageHelpText(
+    dataInsight: DataInsightIndexItemThatCanBeUploaded
+): string {
+    if (canReuploadFigmaImage(dataInsight))
+        return "Fetch a PNG from Figma and upload it as the image for this data insight"
+    else if (canReuploadNarrativeChartImage(dataInsight))
+        return "Fetch a PNG of the narrative chart and upload it as the image for this data insight"
+    else return ""
 }
 
 async function fetchFigmaProvidedImageUrl(
