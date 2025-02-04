@@ -217,9 +217,9 @@ const viteAssets = (
 
 export const viteAssetsForAdmin = () => viteAssets(ViteEntryPoint.Admin)
 export const viteAssetsForSite = ({
-    viteAssetMap,
-}: { viteAssetMap?: AssetMapEntry } = {}) =>
-    viteAssets(ViteEntryPoint.Site, { prodAssetMap: viteAssetMap })
+    staticAssetMap,
+}: { staticAssetMap?: AssetMapEntry } = {}) =>
+    viteAssets(ViteEntryPoint.Site, { prodAssetMap: staticAssetMap })
 
 export const generateEmbedSnippet = () => {
     // Make sure we're using an absolute URL here, since we don't know in what context the embed snippet is used.

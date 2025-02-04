@@ -61,11 +61,11 @@ const renderDatapageIfApplicable = async (
     knex: db.KnexReadonlyTransaction,
     {
         imageMetadataDictionary,
-        viteAssetMap,
+        staticAssetMap,
         runtimeAssetMap,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        viteAssetMap?: AssetMapEntry
+        staticAssetMap?: AssetMapEntry
         runtimeAssetMap?: AssetMapEntry
     } = {}
 ) => {
@@ -90,7 +90,7 @@ const renderDatapageIfApplicable = async (
             useIndicatorGrapherConfigs: false,
             pageGrapher: grapher,
             imageMetadataDictionary,
-            viteAssetMap,
+            staticAssetMap,
             runtimeAssetMap,
         },
         knex
@@ -107,17 +107,17 @@ export const renderDataPageOrGrapherPage = async (
     knex: db.KnexReadonlyTransaction,
     {
         imageMetadataDictionary,
-        viteAssetMap,
+        staticAssetMap,
         runtimeAssetMap,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        viteAssetMap?: AssetMapEntry
+        staticAssetMap?: AssetMapEntry
         runtimeAssetMap?: AssetMapEntry
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
         imageMetadataDictionary,
-        viteAssetMap,
+        staticAssetMap,
         runtimeAssetMap,
     })
     if (datapage) return datapage
@@ -132,7 +132,7 @@ export async function renderDataPageV2(
         useIndicatorGrapherConfigs,
         pageGrapher,
         imageMetadataDictionary = {},
-        viteAssetMap,
+        staticAssetMap,
         runtimeAssetMap,
     }: {
         variableId: number
@@ -141,7 +141,7 @@ export async function renderDataPageV2(
         useIndicatorGrapherConfigs: boolean
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
-        viteAssetMap?: AssetMapEntry
+        staticAssetMap?: AssetMapEntry
         runtimeAssetMap?: AssetMapEntry
     },
     knex: db.KnexReadonlyTransaction
@@ -239,7 +239,7 @@ export async function renderDataPageV2(
             imageMetadata={imageMetadata}
             faqEntries={faqEntries}
             tagToSlugMap={tagToSlugMap}
-            viteAssetMap={viteAssetMap}
+            staticAssetMap={staticAssetMap}
             runtimeAssetMap={runtimeAssetMap}
         />
     )
@@ -292,11 +292,11 @@ export const bakeSingleGrapherPageForArchival = async (
     knex: db.KnexReadonlyTransaction,
     {
         imageMetadataDictionary,
-        viteAssetMap,
+        staticAssetMap,
         runtimeAssetMap,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        viteAssetMap?: AssetMapEntry
+        staticAssetMap?: AssetMapEntry
         runtimeAssetMap?: AssetMapEntry
     } = {}
 ) => {
@@ -305,7 +305,7 @@ export const bakeSingleGrapherPageForArchival = async (
         outPathHtml,
         await renderDataPageOrGrapherPage(grapher, knex, {
             imageMetadataDictionary,
-            viteAssetMap,
+            staticAssetMap,
             runtimeAssetMap,
         })
     )
@@ -315,7 +315,7 @@ export const bakeSingleGrapherPageForArchival = async (
     // hashes of the config and data files.
     await fs.writeFile(
         outPathManifest,
-        JSON.stringify({ viteAssetMap, runtimeAssetMap }, undefined, 2)
+        JSON.stringify({ staticAssetMap, runtimeAssetMap }, undefined, 2)
     )
     console.log(outPathHtml, outPathManifest)
 }

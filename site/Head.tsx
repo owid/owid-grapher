@@ -45,7 +45,7 @@ export const Head = (props: {
         title: string
         href: string
     }
-    viteAssetMap?: AssetMapEntry
+    staticAssetMap?: AssetMapEntry
 }) => {
     const { canonicalUrl, hideCanonicalUrl, baseUrl } = props
     const pageTitle = props.pageTitle || `Our World in Data`
@@ -63,7 +63,7 @@ export const Head = (props: {
     }
 
     const stylesheets = viteAssetsForSite({
-        viteAssetMap: props.viteAssetMap,
+        staticAssetMap: props.staticAssetMap,
     }).forHeader
 
     return (

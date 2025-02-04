@@ -44,7 +44,7 @@ export const DataPageV2 = (props: {
     faqEntries?: FaqEntryData
     imageMetadata: Record<string, ImageMetadata>
     tagToSlugMap: Record<string | number, string>
-    viteAssetMap?: AssetMapEntry
+    staticAssetMap?: AssetMapEntry
     runtimeAssetMap?: AssetMapEntry
     dataApiUrl?: string
 }) => {
@@ -57,7 +57,7 @@ export const DataPageV2 = (props: {
         faqEntries,
         tagToSlugMap,
         imageMetadata,
-        viteAssetMap,
+        staticAssetMap,
         runtimeAssetMap,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title.title
@@ -113,7 +113,7 @@ export const DataPageV2 = (props: {
                 pageDesc={pageDesc}
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
-                viteAssetMap={viteAssetMap}
+                staticAssetMap={staticAssetMap}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
@@ -184,7 +184,7 @@ export const DataPageV2 = (props: {
                     baseUrl={baseUrl}
                     context={SiteFooterContext.dataPageV2}
                     isPreviewing={isPreviewing}
-                    viteAssetMap={viteAssetMap}
+                    staticAssetMap={staticAssetMap}
                     runtimeAssetMap={runtimeAssetMap}
                 />
                 <script
