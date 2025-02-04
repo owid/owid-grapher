@@ -64,7 +64,6 @@ const copyPublicDir = async () => {
     const ignoredFilesPattern = new RegExp(
         IGNORED_FILES_PATTERNS.map((p) => p.source).join("|")
     )
-    console.log(ignoredFilesPattern)
     await fs.copy(publicDir, targetDir, {
         overwrite: true,
         filter: (src) => {

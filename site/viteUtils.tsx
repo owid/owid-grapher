@@ -8,7 +8,7 @@ import {
 } from "../settings/serverSettings.js"
 import { POLYFILL_URL } from "./SiteConstants.js"
 import type { Manifest, ManifestChunk } from "vite"
-import { sortBy } from "@ourworldindata/utils"
+import { readFromAssetMap, sortBy } from "@ourworldindata/utils"
 import urljoin from "url-join"
 import { AssetMap } from "@ourworldindata/types"
 
@@ -111,7 +111,10 @@ export const createTagsForManifestEntry = (
             throw new Error(`Could not find manifest entry for ${entry}`)
 
         const assetKey = manifestEntry?.file ?? entry
-        const assetUrl = assetMap?.[assetKey] ?? urljoin(assetBaseUrl, assetKey)
+        const assetUrl = readFromAssetMap(assetMap, {
+            path: assetKey,
+            fallback: urljoin(assetBaseUrl, assetKey),
+        })
 
         if (entry.endsWith(".css")) {
             assets = [

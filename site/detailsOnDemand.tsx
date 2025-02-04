@@ -7,6 +7,7 @@ import {
     AssetMap,
     DetailDictionary,
     fetchWithRetry,
+    readFromAssetMap,
 } from "@ourworldindata/utils"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
@@ -27,8 +28,10 @@ export async function runDetailsOnDemand({
 }: {
     runtimeAssetMap?: AssetMap
 } = {}) {
-    const dodFetchUrl =
-        runtimeAssetMap?.["dods.json"] ?? `${BAKED_BASE_URL}/dods.json`
+    const dodFetchUrl = readFromAssetMap(runtimeAssetMap, {
+        path: "dods.json",
+        fallback: `${BAKED_BASE_URL}/dods.json`,
+    })
 
     window.details = await fetchWithRetry(dodFetchUrl, {
         method: "GET",

@@ -2,7 +2,7 @@ import {
     AssetMap,
     OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/types"
-import { fetchWithRetry } from "@ourworldindata/utils"
+import { fetchWithRetry, readFromAssetMap } from "@ourworldindata/utils"
 
 export const getVariableDataRoute = (
     dataApiUrl: string,
@@ -11,9 +11,11 @@ export const getVariableDataRoute = (
 ): string => {
     if (dataApiUrl.includes("v1/indicators/")) {
         const filename = `${variableId}.data.json`
-        if (assetMap?.[filename]) return assetMap[filename]
-        // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.data.json
-        return `${dataApiUrl}${filename}`
+        return readFromAssetMap(assetMap, {
+            path: filename,
+            // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.data.json
+            fallback: `${dataApiUrl}${filename}`,
+        })
     } else {
         throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
     }
@@ -26,9 +28,11 @@ export const getVariableMetadataRoute = (
 ): string => {
     if (dataApiUrl.includes("v1/indicators/")) {
         const filename = `${variableId}.metadata.json`
-        if (assetMap?.[filename]) return assetMap[filename]
-        // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.metadata.json
-        return `${dataApiUrl}${filename}`
+        return readFromAssetMap(assetMap, {
+            path: filename,
+            // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.metadata.json
+            fallback: `${dataApiUrl}${filename}`,
+        })
     } else {
         throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
     }

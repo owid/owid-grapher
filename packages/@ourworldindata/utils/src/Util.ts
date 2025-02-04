@@ -178,6 +178,7 @@ import {
     DimensionProperty,
     GRAPHER_CHART_TYPES,
     DbPlainTag,
+    AssetMap,
 } from "@ourworldindata/types"
 import { PointVector } from "./PointVector.js"
 import * as React from "react"
@@ -2075,4 +2076,31 @@ export function isArrayDifferentFromReference<T>(
 ): boolean {
     if (array.length !== referenceArray.length) return true
     return difference(array, referenceArray).length > 0
+}
+
+// When reading from an asset map, we want a very particular behavior:
+// If the asset map is entirely undefined, then we want to just fail silently and return the fallback.
+// If the asset map is defined but the asset is not found, however, then we want to throw an error.
+// This is to avoid invisible errors that'll lead to runtime errors or 404s.
+
+export function readFromAssetMap(
+    assetMap: AssetMap | undefined,
+    { path, fallback }: { path: string; fallback: string }
+): string
+
+export function readFromAssetMap(
+    assetMap: AssetMap | undefined,
+    { path, fallback }: { path: string; fallback?: string }
+): string | undefined
+
+export function readFromAssetMap(
+    assetMap: AssetMap | undefined,
+    { path, fallback }: { path: string; fallback?: string }
+): string | undefined {
+    if (!assetMap) return fallback
+
+    const assetValue = assetMap[path]
+    if (assetValue === undefined)
+        throw new Error(`Entry for asset not found in asset map: ${path}`)
+    return assetValue
 }
