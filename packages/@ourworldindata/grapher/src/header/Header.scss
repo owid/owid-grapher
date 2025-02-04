@@ -14,10 +14,11 @@
 
     h1 {
         font-family: $serif-font-stack;
+        color: $gray-100;
+        margin: 0;
     }
 
-    // title and subtitle
-    h1,
+    // subtitle
     p {
         color: $dark-text;
         margin: 0;

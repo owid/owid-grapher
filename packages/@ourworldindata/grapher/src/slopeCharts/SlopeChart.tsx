@@ -1184,7 +1184,6 @@ export class SlopeChart
                     <VerticalAxisComponent
                         bounds={this.bounds}
                         verticalAxis={this.yAxis}
-                        labelColor={this.manager.secondaryColorInStaticCharts}
                     />
                 )}
             </>

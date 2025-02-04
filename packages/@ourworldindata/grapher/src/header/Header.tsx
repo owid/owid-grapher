@@ -5,6 +5,7 @@ import {
     LogoOption,
     makeIdForHumanConsumption,
     Bounds,
+    round,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
@@ -17,7 +18,7 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
 } from "../core/GrapherConstants"
-import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
+import { GRAPHER_DARK_TEXT, GRAY_100, GRAY_80 } from "../color/ColorConstants"
 
 interface HeaderProps {
     manager: HeaderManager
@@ -28,6 +29,8 @@ interface HeaderProps {
 export class Header<
     Props extends HeaderProps = HeaderProps,
 > extends React.Component<Props> {
+    protected verticalPadding = 4
+
     @computed protected get manager(): HeaderManager {
         return this.props.manager
     }
@@ -105,15 +108,17 @@ export class Header<
                 fontSize,
             })
 
-        const initialFontSize = this.useBaseFontSize
-            ? (22 / BASE_FONT_SIZE) * this.baseFontSize
-            : this.manager.isNarrow
-              ? 18
-              : this.manager.isMedium
-                ? 20
-                : 24
+        const initialFontSize = this.manager.isStaticAndSmall
+            ? 25
+            : this.useBaseFontSize
+              ? (25 / BASE_FONT_SIZE) * this.baseFontSize
+              : this.manager.isNarrow
+                ? 18
+                : this.manager.isMedium
+                  ? 20
+                  : 25
 
-        let title = makeTitle(initialFontSize)
+        let title = makeTitle(round(initialFontSize))
 
         // if the title is already a single line, no need to decrease font size
         if (title.lines.length <= 1) return title
@@ -152,7 +157,7 @@ export class Header<
     }
 
     @computed get subtitleMarginTop(): number {
-        let padding = 4
+        let padding = this.verticalPadding
 
         // make sure the subtitle doesn't overlap with the logo
         if (
@@ -172,10 +177,11 @@ export class Header<
     }
 
     @computed get subtitleFontSize(): number {
+        if (this.manager.isStaticAndSmall) return 16
         if (this.useBaseFontSize) {
-            return (13 / BASE_FONT_SIZE) * this.baseFontSize
+            return round((15 / BASE_FONT_SIZE) * this.baseFontSize)
         }
-        return this.manager.isSmall ? 12 : this.manager.isMedium ? 13 : 14
+        return this.manager.isSmall ? 12 : this.manager.isMedium ? 13 : 15
     }
 
     @computed get subtitleLineHeight(): number {
@@ -288,6 +294,8 @@ interface StaticHeaderProps extends HeaderProps {
 
 @observer
 export class StaticHeader extends Header<StaticHeaderProps> {
+    protected verticalPadding = 6
+
     @computed get titleLineHeight(): number {
         return this.manager.isStaticAndSmall ? 1.1 : 1.2
     }
@@ -316,7 +324,7 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                         rel="noopener"
                     >
                         {title.renderSVG(x, y, {
-                            textProps: { fill: GRAPHER_DARK_TEXT },
+                            textProps: { fill: GRAY_100 },
                         })}
                     </a>
                 )}
@@ -330,7 +338,9 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                         {
                             id: makeIdForHumanConsumption("subtitle"),
                             textProps: {
-                                fill: manager.secondaryColorInStaticCharts,
+                                fill: this.manager.isSocialMediaExport
+                                    ? GRAY_80
+                                    : GRAPHER_DARK_TEXT,
                             },
                             detailsMarker: this.manager.detailsMarkerInSvg,
                         }

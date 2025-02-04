@@ -55,12 +55,7 @@ import {
     VerticalAlign,
     InteractionState,
 } from "@ourworldindata/types"
-import {
-    GRAPHER_AXIS_LINE_WIDTH_THICK,
-    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
-    BASE_FONT_SIZE,
-    GRAPHER_OPACITY_MUTE,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE, GRAPHER_OPACITY_MUTE } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -946,20 +941,10 @@ export class LineChart
     renderDualAxis(): React.ReactElement {
         const { manager, dualAxis } = this
 
-        const lineWidth = manager.isStaticAndSmall
-            ? GRAPHER_AXIS_LINE_WIDTH_THICK
-            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
-        const dashPattern = manager.isExportingForSocialMedia
-            ? "7, 7"
-            : undefined
-
         return (
             <DualAxisComponent
                 dualAxis={dualAxis}
                 showTickMarks={true}
-                labelColor={manager.secondaryColorInStaticCharts}
-                lineWidth={lineWidth}
-                gridDashPattern={dashPattern}
                 detailsMarker={manager.detailsMarkerInSvg}
             />
         )

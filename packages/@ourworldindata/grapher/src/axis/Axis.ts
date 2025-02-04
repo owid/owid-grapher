@@ -28,6 +28,7 @@ import { MarkdownTextWrap } from "@ourworldindata/components"
 import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
 import { GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants.js"
 import { makeAxisLabel } from "../chart/ChartUtils"
+import { floor } from "lodash"
 
 interface TickLabelPlacement {
     value: number
@@ -509,7 +510,7 @@ abstract class AbstractAxis {
     }
 
     @computed get tickFontSize(): number {
-        return GRAPHER_FONT_SCALE_12 * this.fontSize
+        return floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
     }
 
     @computed protected get baseTicks(): Tickmark[] {
@@ -531,7 +532,7 @@ abstract class AbstractAxis {
     }
 
     @computed get labelFontSize(): number {
-        return GRAPHER_FONT_SCALE_12 * this.fontSize
+        return floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
     }
 
     @computed get labelTextWrap(): MarkdownTextWrap | undefined {

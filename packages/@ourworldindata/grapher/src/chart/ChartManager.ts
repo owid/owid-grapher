@@ -94,7 +94,6 @@ export interface ChartManager {
     isSemiNarrow?: boolean
     isStaticAndSmall?: boolean
     isExportingForSocialMedia?: boolean
-    secondaryColorInStaticCharts?: string
     backgroundColor?: Color
     shouldPinTooltipToBottom?: boolean
 

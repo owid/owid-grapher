@@ -39,6 +39,7 @@ import {
 } from "./LineLegendConstants.js"
 import { getSeriesKey } from "./LineLegendHelpers"
 import { LineLabelSeries, PlacedSeries, SizedSeries } from "./LineLegendTypes"
+import { floor } from "lodash"
 
 function groupBounds(group: PlacedSeries[]): Bounds {
     const first = group[0]
@@ -334,7 +335,9 @@ export class LineLegend extends React.Component<LineLegendProps> {
     }
 
     @computed private get fontSize(): number {
-        return GRAPHER_FONT_SCALE_12 * (this.props.fontSize ?? BASE_FONT_SIZE)
+        return floor(
+            GRAPHER_FONT_SCALE_12 * (this.props.fontSize ?? BASE_FONT_SIZE)
+        )
     }
 
     @computed private get fontWeight(): number {
