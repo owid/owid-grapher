@@ -15,6 +15,7 @@ import crypto from "crypto"
 import { AssetMapEntry } from "@ourworldindata/types"
 import { getVariableData } from "../db/model/Variable.js"
 import dayjs from "dayjs"
+import { glob } from "glob"
 
 const DATE_TIME_FORMAT = "YYYYMMDD-HHmmss"
 const DIR = "archive"
@@ -60,6 +61,34 @@ const hashAndCopyFile = async (srcFile: string, targetDir: string) => {
     console.log(`Copying ${srcFile} to ${targetFile}`)
     await fs.copyFile(srcFile, targetFile)
     return path.relative(archiveDir, targetFile)
+}
+
+const IGNORED_FILES_PATTERNS = [
+    /^_headers$/,
+    /\.DS_Store$/,
+    /^images(\/.*)?$/,
+    /^sdg.*$/,
+    /^identifyadmin.html$/,
+    /^robots.txt$/,
+]
+const copyPublicDir = async () => {
+    const publicDir = path.join(projBaseDir, "public")
+    const targetDir = archiveDir
+    const ignoredFilesPattern = new RegExp(
+        IGNORED_FILES_PATTERNS.map((p) => p.source).join("|")
+    )
+    console.log(ignoredFilesPattern)
+    await fs.copy(publicDir, targetDir, {
+        overwrite: true,
+        filter: (src) => {
+            const relativePath = path.relative(publicDir, src)
+            if (ignoredFilesPattern.test(relativePath)) {
+                console.log(`Ignoring ${relativePath}`)
+                return false
+            }
+            return true
+        },
+    })
 }
 
 const bakeDods = async () => {
@@ -116,6 +145,7 @@ const bakeDomainToFolder = async (
     await fs.mkdirp(dir)
     await fs.mkdirp(path.join(dir, "grapher"))
 
+    await copyPublicDir()
     const { staticAssetMap } = await bakeAssets()
     const baker = new SiteBaker(dir, baseUrl, bakeSteps, staticAssetMap)
 
