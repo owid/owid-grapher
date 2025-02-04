@@ -2,7 +2,7 @@
 
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
-import { BakeStep, BakeStepConfig, bakeSteps, SiteBaker } from "./SiteBaker.js"
+import { BakeStep, bakeSteps } from "./SiteBaker.js"
 import fs from "fs-extra"
 import path, { normalize } from "path"
 import * as db from "../db/db.js"
@@ -11,39 +11,26 @@ import { keyBy } from "lodash"
 import { getAllImages } from "../db/model/Image.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
 import findProjectBaseDir from "../settings/findBaseDir.js"
-import crypto from "crypto"
 import { AssetMap } from "@ourworldindata/types"
 import { getVariableData } from "../db/model/Variable.js"
 import dayjs from "dayjs"
-import { glob } from "glob"
+import { hashBase36 } from "../serverUtils/hash.js"
 
 const DATE_TIME_FORMAT = "YYYYMMDD-HHmmss"
 const DIR = "archive"
-
-const HASH_LENGTH = 8
 
 const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
 
 const archiveDir = path.join(projBaseDir, DIR)
 
-const hashContent = (strOrBuffer: string | Buffer) => {
-    const hashHex = crypto
-        .createHash("sha256")
-        .update(strOrBuffer)
-        .digest("hex")
-    // Convert hex to base36 to make it contain more information in fewer characters
-    const hashBase36 = BigInt(`0x${hashHex}`).toString(36)
-    return hashBase36.substring(0, HASH_LENGTH)
-}
-
 const hashFile = async (file: string) => {
     const buf = await fs.readFile(file)
-    return hashContent(buf)
+    return hashBase36(buf)
 }
 
 const hashAndWriteFile = async (filename: string, content: string) => {
-    const hash = hashContent(content)
+    const hash = hashBase36(content)
     const targetFilename = filename.replace(/^(.*\/)?([^.]+\.)/, `$1$2${hash}.`)
     console.log(`Writing ${targetFilename}`)
     const fullTargetFilename = path.resolve(archiveDir, targetFilename)
@@ -137,8 +124,7 @@ const bakeAssets = async () => {
 
 const bakeDomainToFolder = async (
     baseUrl = "http://localhost:3000/",
-    dir = DIR,
-    bakeSteps?: BakeStepConfig
+    dir = DIR
 ) => {
     const dateTimeFormatted = dayjs().utc().format(DATE_TIME_FORMAT)
     dir = path.join(normalize(dir), dateTimeFormatted)
@@ -147,7 +133,6 @@ const bakeDomainToFolder = async (
 
     await copyPublicDir()
     const { staticAssetMap } = await bakeAssets()
-    const baker = new SiteBaker(dir, baseUrl, bakeSteps, staticAssetMap)
 
     console.log(`Baking site locally with baseUrl '${baseUrl}' to dir '${dir}'`)
 
@@ -202,8 +187,8 @@ void yargs(hideBin(process.argv))
                 })
         },
         async ({ baseUrl, dir, steps }) => {
-            const bakeSteps = steps ? new Set(steps as BakeStep[]) : undefined
-            await bakeDomainToFolder(baseUrl, dir, bakeSteps)
+            const _bakeSteps = steps ? new Set(steps as BakeStep[]) : undefined
+            await bakeDomainToFolder(baseUrl, dir)
             process.exit(0)
         }
     )
