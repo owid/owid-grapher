@@ -5,7 +5,7 @@ import {
     faInstagram,
     faThreads,
     faLinkedin,
-    faBluesky,
+    faSquareBluesky,
 } from "@fortawesome/free-brands-svg-icons"
 import { CategoryWithEntries, SubNavId } from "@ourworldindata/types"
 
@@ -71,7 +71,7 @@ export const SOCIALS = [
     {
         title: "Bluesky",
         url: "https://bsky.app/profile/ourworldindata.org",
-        icon: faBluesky,
+        icon: faSquareBluesky,
     },
 ]
 
