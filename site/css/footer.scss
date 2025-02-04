@@ -3,10 +3,20 @@
     color: $blue-40;
     padding: 32px 0;
 
+    @include sm-only {
+        padding: 24px 0;
+    }
+
     .affiliates {
+        display: flex;
+        flex-direction: column;
         a {
             opacity: 0.6;
             display: flex;
+        }
+
+        .yc-logo {
+            align-self: start;
         }
 
         a:hover {
@@ -14,14 +24,18 @@
         }
 
         @include sm-only {
-            display: flex;
+            flex-direction: row;
             justify-content: space-between;
             flex-wrap: wrap;
+            .yc-logo {
+                align-self: center;
+            }
         }
     }
 
     .oxford-logos {
         display: flex;
+        gap: 8px;
         margin-bottom: 8px;
 
         @include sm-only {
@@ -31,7 +45,6 @@
         img {
             height: 64px;
             width: auto;
-            margin-right: 8px;
         }
     }
 }
@@ -40,6 +53,9 @@
     padding-bottom: 24px;
     @include sm-only {
         border-bottom: 1px solid scale-color($blue-20, $alpha: -90%);
+    }
+    p {
+        margin-top: 0;
     }
     a {
         color: #fff;
@@ -57,6 +73,7 @@
 
 .footer-link-column {
     h5 {
+        color: $blue-50;
         margin: 0;
         margin-bottom: 8px;
     }
@@ -94,26 +111,31 @@
     }
 }
 
+.footer-base {
+    border-top: 1px solid scale-color($blue-20, $alpha: -90%);
+    padding-top: 24px;
+}
+
 .footer-base__socials {
     display: flex;
+    gap: 24px;
     line-height: 1;
     align-items: center;
 
     @include sm-only {
-        padding: 24px 0;
-        border-top: 1px solid scale-color($blue-20, $alpha: -90%);
+        padding-bottom: 24px;
         border-bottom: 1px solid scale-color($blue-20, $alpha: -90%);
         margin-bottom: 16px;
+        flex-wrap: wrap;
         justify-content: space-between;
     }
 
     h5 {
         margin: 0;
-        margin-right: 16px;
+        margin-right: 8px;
     }
     a {
         color: $blue-20;
-        margin-right: 12px;
         &:hover {
             color: $blue-40;
         }
@@ -126,6 +148,16 @@
         line-height: 1;
         margin-bottom: 0;
         justify-content: end;
+        li {
+            margin: 0;
+        }
+        a {
+            color: $blue-40;
+            margin-right: 16px;
+            &:hover {
+                color: #fff;
+            }
+        }
         @include sm-only {
             justify-content: space-between;
             li {
@@ -133,13 +165,6 @@
                 a {
                     margin-right: 0;
                 }
-            }
-        }
-        a {
-            color: $blue-40;
-            margin-right: 16px;
-            &:hover {
-                color: #fff;
             }
         }
     }
@@ -155,8 +180,13 @@
     justify-content: space-between;
     align-items: center;
 
-    h4,
+    h4 {
+        @include h2-bold;
+        margin: 0;
+    }
+
     p {
+        @include body-1-regular;
         margin: 0;
     }
 
@@ -165,9 +195,13 @@
         justify-content: center;
         text-align: center;
         h4 {
+            @include h3-bold;
+            margin: 0;
             margin-bottom: 4px;
         }
         p {
+            @include body-3-regular;
+            margin: 0;
             margin-bottom: 16px;
         }
     }
