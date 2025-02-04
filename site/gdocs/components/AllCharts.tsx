@@ -10,9 +10,8 @@ import {
 } from "@ourworldindata/utils"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { RelatedCharts } from "../../blocks/RelatedCharts.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { Button } from "@ourworldindata/components"
 
 type AllChartsProps = EnrichedBlockAllCharts & {
     className?: string
@@ -70,15 +69,11 @@ export function AllCharts(props: AllChartsProps) {
                     href={`#${ALL_CHARTS_ID}`}
                 />
             </h1>
-            <a
-                className="owid-button"
+            <Button
+                theme="solid-vermillion"
+                text="See all charts on this topic"
                 href={`${urljoin(BAKED_BASE_URL, `/data`, firstTagDataCatalogQueryString)}`}
-            >
-                <span className="body-3-medium">
-                    See all charts on this topic
-                    <FontAwesomeIcon icon={faArrowRight} />
-                </span>
-            </a>
+            />
             <RelatedCharts
                 showKeyChartsOnly={true}
                 charts={sortedRelatedCharts}

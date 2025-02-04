@@ -2,10 +2,6 @@
     h1.h1-semibold {
         margin: 0;
         flex: 1 1 0%;
-        .deep-link {
-            // Any value smaller than -16 causes the h1 to wrap in Firefox
-            margin-left: -16px;
-        }
     }
 
     display: flex;
@@ -14,20 +10,8 @@
     align-items: center;
     margin-bottom: 40px;
 
-    .owid-button {
-        line-height: 40px;
-        text-align: center;
-        padding: 0 24px;
-        height: 40px;
-        flex-shrink: 0;
+    .owid-btn {
         align-self: start;
-        background-color: $vermillion;
-        svg {
-            margin-left: 8px;
-        }
-        &:hover {
-            background-color: $accent-vermillion;
-        }
         @include sm-only {
             order: 3;
             margin-top: 24px;
