@@ -540,6 +540,7 @@ const ReferencesDataInsights = (props: {
                 </ul>
                 {dataInsightForUpload?.image && (
                     <ReuploadImageForDataInsightModal
+                        description="Upload a static export of the chart as the image for this data insight"
                         dataInsight={{
                             id: dataInsightForUpload.gdocId,
                             title: dataInsightForUpload.title,
