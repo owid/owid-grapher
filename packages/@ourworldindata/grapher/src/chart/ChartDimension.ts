@@ -13,6 +13,7 @@ import {
     OwidVariableDisplayConfig,
     OwidChartDimensionInterface,
     Time,
+    OwidChartDimensionInterfaceWithMandatorySlug,
 } from "@ourworldindata/utils"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 
@@ -35,9 +36,17 @@ export interface LegacyDimensionsManager {
     table: OwidTable
 }
 
+export function getDimensionColumnSlug(
+    variableId: OwidVariableId,
+    targetYear: Time | undefined
+): ColumnSlug {
+    if (targetYear) return `${variableId}-${targetYear}`
+    return variableId.toString()
+}
+
 export class ChartDimension
     extends ChartDimensionDefaults
-    implements Persistable
+    implements Persistable, OwidChartDimensionInterfaceWithMandatorySlug
 {
     private manager: LegacyDimensionsManager
 
@@ -78,7 +87,16 @@ export class ChartDimension
     }
 
     // Do not persist yet, until we migrate off VariableIds
-    @observable slug?: ColumnSlug
+    @observable _slug?: ColumnSlug | undefined
+
+    @computed get slug(): ColumnSlug {
+        if (this._slug) return this._slug
+        return getDimensionColumnSlug(this.variableId, this.targetYear)
+    }
+
+    set slug(value: ColumnSlug | undefined) {
+        this._slug = value
+    }
 
     @computed get column(): CoreColumn {
         return this.table.get(this.columnSlug)
