@@ -33,7 +33,7 @@ import {
     DbPlainChart,
     DbRawChartConfig,
     DbEnrichedImage,
-    AssetMapEntry,
+    AssetMap,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -65,8 +65,8 @@ const renderDatapageIfApplicable = async (
         runtimeAssetMap,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        staticAssetMap?: AssetMapEntry
-        runtimeAssetMap?: AssetMapEntry
+        staticAssetMap?: AssetMap
+        runtimeAssetMap?: AssetMap
     } = {}
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
@@ -111,8 +111,8 @@ export const renderDataPageOrGrapherPage = async (
         runtimeAssetMap,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        staticAssetMap?: AssetMapEntry
-        runtimeAssetMap?: AssetMapEntry
+        staticAssetMap?: AssetMap
+        runtimeAssetMap?: AssetMap
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
@@ -141,8 +141,8 @@ export async function renderDataPageV2(
         useIndicatorGrapherConfigs: boolean
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
-        staticAssetMap?: AssetMapEntry
-        runtimeAssetMap?: AssetMapEntry
+        staticAssetMap?: AssetMap
+        runtimeAssetMap?: AssetMap
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -296,8 +296,8 @@ export const bakeSingleGrapherPageForArchival = async (
         runtimeAssetMap,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        staticAssetMap?: AssetMapEntry
-        runtimeAssetMap?: AssetMapEntry
+        staticAssetMap?: AssetMap
+        runtimeAssetMap?: AssetMap
     } = {}
 ) => {
     const outPathHtml = `${bakedSiteDir}/grapher/${grapher.slug}.html`

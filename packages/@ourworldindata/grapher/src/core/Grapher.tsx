@@ -115,7 +115,7 @@ import {
     SeriesName,
     ChartViewInfo,
     OwidChartDimensionInterfaceWithMandatorySlug,
-    AssetMapEntry,
+    AssetMap,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -276,7 +276,7 @@ async function loadVariablesDataAdmin(
 async function loadVariablesDataSite(
     variableIds: number[],
     dataApiUrl: string,
-    assetMap?: AssetMapEntry
+    assetMap?: AssetMap
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map((variableId) =>
         loadVariableDataAndMetadata(variableId, dataApiUrl, assetMap)
@@ -340,7 +340,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
         ChartViewInfo,
         "parentChartSlug" | "queryParamsForParentChart"
     >
-    runtimeAssetMap?: AssetMapEntry
+    runtimeAssetMap?: AssetMap
 
     manager?: GrapherManager
     instanceRef?: React.RefObject<Grapher>
@@ -521,7 +521,7 @@ export class Grapher
         "name" | "parentChartSlug" | "queryParamsForParentChart"
     > = undefined
 
-    runtimeAssetMap?: AssetMapEntry = this.props.runtimeAssetMap
+    runtimeAssetMap?: AssetMap = this.props.runtimeAssetMap
 
     selection =
         this.manager?.selection ??

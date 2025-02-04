@@ -15,7 +15,7 @@ import {
     GrapherInterface,
     ImageMetadata,
     Url,
-    AssetMapEntry,
+    AssetMap,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import urljoin from "url-join"
@@ -44,8 +44,8 @@ export const DataPageV2 = (props: {
     faqEntries?: FaqEntryData
     imageMetadata: Record<string, ImageMetadata>
     tagToSlugMap: Record<string | number, string>
-    staticAssetMap?: AssetMapEntry
-    runtimeAssetMap?: AssetMapEntry
+    staticAssetMap?: AssetMap
+    runtimeAssetMap?: AssetMap
     dataApiUrl?: string
 }) => {
     const {

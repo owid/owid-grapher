@@ -1,5 +1,5 @@
 import {
-    AssetMapEntry,
+    AssetMap,
     OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/types"
 import { fetchWithRetry } from "@ourworldindata/utils"
@@ -7,7 +7,7 @@ import { fetchWithRetry } from "@ourworldindata/utils"
 export const getVariableDataRoute = (
     dataApiUrl: string,
     variableId: number,
-    assetMap?: AssetMapEntry
+    assetMap?: AssetMap
 ): string => {
     if (dataApiUrl.includes("v1/indicators/")) {
         const filename = `${variableId}.data.json`
@@ -22,7 +22,7 @@ export const getVariableDataRoute = (
 export const getVariableMetadataRoute = (
     dataApiUrl: string,
     variableId: number,
-    assetMap?: AssetMapEntry
+    assetMap?: AssetMap
 ): string => {
     if (dataApiUrl.includes("v1/indicators/")) {
         const filename = `${variableId}.metadata.json`
@@ -37,7 +37,7 @@ export const getVariableMetadataRoute = (
 export async function loadVariableDataAndMetadata(
     variableId: number,
     dataApiUrl: string,
-    assetMap?: AssetMapEntry
+    assetMap?: AssetMap
 ): Promise<OwidVariableDataMetadataDimensions> {
     const dataPromise = fetchWithRetry(
         getVariableDataRoute(dataApiUrl, variableId, assetMap)
