@@ -4,6 +4,7 @@ import { SiteFooterContext } from "@ourworldindata/utils"
 import { viteAssetsForSite } from "./viteUtils.js"
 import { ScriptLoadErrorDetector } from "./NoJSDetector.js"
 import { ABOUT_LINKS, RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
+import { Button } from "@ourworldindata/components"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -29,7 +30,7 @@ const RESOURCE_LINKS: LinkData[] = [
 ]
 
 const LEGAL_LINKS: LinkData[] = [
-    { title: "Privacy policy", url: "/privacy" },
+    { title: "Privacy policy", url: "/privacy-policy" },
     { title: "Legal disclaimer", url: "/organization#legal-disclaimer" },
     {
         title: "Grapher license",
@@ -63,22 +64,21 @@ export const SiteFooter = (props: SiteFooterProps) => (
             <section className="donate-footer grid grid-cols-12-full-width">
                 <div className="donate-footer-inner span-cols-12 col-start-2">
                     <div>
-                        <h4 className="h2-bold">
+                        <h4>
                             Our World in Data is free and accessible for
                             everyone.
                         </h4>
-                        <p className="body-1-regular">
-                            Help us do this work by making a donation.
-                        </p>
+                        <p>Help us do this work by making a donation.</p>
                     </div>
 
-                    <a
+                    <Button
                         href="/donate"
-                        className="owid-button donate-button"
-                        data-track-note="donate_footer"
-                    >
-                        Donate now
-                    </a>
+                        className="body-2-semibold donate-button"
+                        dataTrackNote="donate_footer"
+                        text="Donate now"
+                        theme="solid-vermillion"
+                        icon={null}
+                    />
                 </div>
             </section>
         )}
