@@ -227,7 +227,6 @@ import { FocusArray } from "../focus/FocusArray"
 import {
     GRAPHER_BACKGROUND_BEIGE,
     GRAPHER_BACKGROUND_DEFAULT,
-    GRAPHER_DARK_TEXT,
     GRAPHER_LIGHT_TEXT,
 } from "../color/ColorConstants"
 import { FacetChart } from "../facetChart/FacetChart"
@@ -1673,9 +1672,7 @@ export class Grapher
                 maxWidth:
                     this.staticBounds.width - 2 * this.framePaddingHorizontal,
                 lineHeight: 1.2,
-                style: {
-                    fill: this.secondaryColorInStaticCharts,
-                },
+                style: { fill: GRAPHER_LIGHT_TEXT },
             })
         })
     }
@@ -3187,7 +3184,7 @@ export class Grapher
 
     // the header and footer don't rely on the base font size unless explicitly specified
     @computed get useBaseFontSize(): boolean {
-        return this.props.baseFontSize !== undefined || this.isStatic
+        return this.props.baseFontSize !== undefined
     }
 
     private computeBaseFontSizeFromHeight(bounds: Bounds): number {
@@ -3247,10 +3244,6 @@ export class Grapher
         const idealPixelCount = defaultBounds.width * defaultBounds.height
         const staticPixelCount = staticBounds.width * staticBounds.height
         return staticPixelCount < 0.66 * idealPixelCount
-    }
-
-    @computed get secondaryColorInStaticCharts(): Color {
-        return this.isStaticAndSmall ? GRAPHER_LIGHT_TEXT : GRAPHER_DARK_TEXT
     }
 
     @computed get isExportingForSocialMedia(): boolean {
