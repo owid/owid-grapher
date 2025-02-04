@@ -707,19 +707,19 @@ function UploadFigmaImageModal({
 function hasNarrativeChart(
     dataInsight: OwidGdocDataInsightIndexItem
 ): dataInsight is RequiredBy<OwidGdocDataInsightIndexItem, "narrativeChart"> {
-    return dataInsight.narrativeChart !== undefined
+    return !!dataInsight.narrativeChart
 }
 
 function hasImage(
     dataInsight: OwidGdocDataInsightIndexItem
 ): dataInsight is RequiredBy<OwidGdocDataInsightIndexItem, "image"> {
-    return dataInsight.image !== undefined
+    return !!dataInsight.image
 }
 
 function hasFigmaUrl(
     dataInsight: OwidGdocDataInsightIndexItem
 ): dataInsight is RequiredBy<OwidGdocDataInsightIndexItem, "figmaUrl"> {
-    return dataInsight.figmaUrl !== undefined
+    return !!dataInsight.figmaUrl
 }
 
 function canReuploadNarrativeChartImage(
