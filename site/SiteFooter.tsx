@@ -12,7 +12,7 @@ interface SiteFooterProps {
     context?: SiteFooterContext
     debug?: boolean
     isPreviewing?: boolean
-    viteAssetMap?: AssetMapEntry
+    staticAssetMap?: AssetMapEntry
     runtimeAssetMap?: AssetMapEntry
 }
 
@@ -278,7 +278,10 @@ export const SiteFooter = (props: SiteFooterProps) => (
                 </div>
             </div>
             <div className="site-tools" />
-            {viteAssetsForSite({ viteAssetMap: props.viteAssetMap }).forFooter}
+            {
+                viteAssetsForSite({ staticAssetMap: props.staticAssetMap })
+                    .forFooter
+            }
             <ScriptLoadErrorDetector />
             <script
                 type="module"

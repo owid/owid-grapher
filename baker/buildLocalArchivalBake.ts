@@ -95,15 +95,15 @@ const bakeAssets = async () => {
 
     await fs.mkdirp(targetDir)
 
-    const viteAssetMap: AssetMapEntry = {}
+    const staticAssetMap: AssetMapEntry = {}
 
     for (const dirent of await fs.readdir(srcDir, { withFileTypes: true })) {
         if (!dirent.isFile()) continue
         const srcFile = path.join(srcDir, dirent.name)
         const filename = await hashAndCopyFile(srcFile, targetDir)
-        viteAssetMap[dirent.name] = `/${filename}`
+        staticAssetMap[dirent.name] = `/${filename}`
     }
-    return { viteAssetMap }
+    return { staticAssetMap }
 }
 
 const bakeDomainToFolder = async (
@@ -116,8 +116,8 @@ const bakeDomainToFolder = async (
     await fs.mkdirp(dir)
     await fs.mkdirp(path.join(dir, "grapher"))
 
-    const { viteAssetMap } = await bakeAssets()
-    const baker = new SiteBaker(dir, baseUrl, bakeSteps, viteAssetMap)
+    const { staticAssetMap } = await bakeAssets()
+    const baker = new SiteBaker(dir, baseUrl, bakeSteps, staticAssetMap)
 
     console.log(`Baking site locally with baseUrl '${baseUrl}' to dir '${dir}'`)
 
@@ -143,7 +143,7 @@ const bakeDomainToFolder = async (
 
         await bakeSingleGrapherPageForArchival(dir, chart.config, trx, {
             imageMetadataDictionary,
-            viteAssetMap,
+            staticAssetMap,
             runtimeAssetMap: runtimeFiles,
         })
     }, db.TransactionCloseMode.Close)
