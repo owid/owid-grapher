@@ -5,6 +5,7 @@ import { viteAssetsForSite } from "./viteUtils.js"
 import { ScriptLoadErrorDetector } from "./NoJSDetector.js"
 import { ABOUT_LINKS, RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
 import { Button } from "@ourworldindata/components"
+import { SITE_TOOLS_CLASS } from "./SiteTools.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -181,7 +182,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                 </div>
             </div>
 
-            <div className="site-tools" />
+            <div className={SITE_TOOLS_CLASS} />
             {viteAssetsForSite().forFooter}
             <ScriptLoadErrorDetector />
             <script
