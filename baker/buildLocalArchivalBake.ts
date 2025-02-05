@@ -123,7 +123,8 @@ const bakeAssets = async () => {
 
 const bakeDomainToFolder = async (
     baseUrl = "http://localhost:3000/",
-    dir = DIR
+    dir = DIR,
+    { copyToLatestDir = false }: { copyToLatestDir?: boolean } = {}
 ) => {
     const dateTimeFormatted = dayjs().utc().format(DATE_TIME_FORMAT)
     dir = path.join(normalize(dir), dateTimeFormatted)
@@ -161,10 +162,22 @@ const bakeDomainToFolder = async (
             runtimeAssetMap: runtimeFiles,
         })
     }, db.TransactionCloseMode.Close)
+
+    if (copyToLatestDir) {
+        const latestDir = path.join(DIR, "latest")
+        await fs.remove(latestDir)
+        await fs.copy(dir, latestDir)
+        console.log(`Copied ${dir} to ${latestDir}`)
+    }
 }
 
 void yargs(hideBin(process.argv))
-    .command<{ baseUrl: string; dir: string; steps?: string[] }>(
+    .command<{
+        baseUrl: string
+        dir: string
+        steps?: string[]
+        latestDir?: boolean
+    }>(
         "$0 [baseUrl] [dir]",
         "Bake the site to a local folder",
         (yargs) => {
@@ -184,10 +197,17 @@ void yargs(hideBin(process.argv))
                     choices: bakeSteps,
                     description: "Steps to perform during the baking process",
                 })
+                .option("latestDir", {
+                    type: "boolean",
+                    description:
+                        "Copy the baked site to a 'latest' directory, for ease of testing",
+                })
         },
-        async ({ baseUrl, dir, steps }) => {
+        async ({ baseUrl, dir, steps, latestDir }) => {
             const _bakeSteps = steps ? new Set(steps as BakeStep[]) : undefined
-            await bakeDomainToFolder(baseUrl, dir)
+            await bakeDomainToFolder(baseUrl, dir, {
+                copyToLatestDir: latestDir,
+            })
             process.exit(0)
         }
     )
