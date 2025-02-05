@@ -282,7 +282,7 @@ class Lines extends React.Component<LinesProps> {
             : undefined
 
         return (
-            <g id={makeIdForHumanConsumption("markers", series.seriesName)}>
+            <g id={makeIdForHumanConsumption("datapoints", series.seriesName)}>
                 {series.placedPoints.map((value, index) => {
                     const valueColor = value.color
                     const color =
