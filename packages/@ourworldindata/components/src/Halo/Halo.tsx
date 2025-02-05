@@ -1,6 +1,14 @@
 import * as React from "react"
 import { Color } from "@ourworldindata/types"
 
+interface HaloProps {
+    id: string
+    children: React.ReactElement
+    show?: boolean
+    outlineColor?: Color
+    style?: React.CSSProperties
+}
+
 const defaultHaloStyle: React.CSSProperties = {
     fill: "#fff",
     stroke: "#fff",
@@ -10,13 +18,7 @@ const defaultHaloStyle: React.CSSProperties = {
     userSelect: "none",
 }
 
-export function Halo(props: {
-    id: React.Key
-    children: React.ReactElement
-    show?: boolean
-    outlineColor?: Color
-    style?: React.CSSProperties
-}): React.ReactElement {
+export function Halo(props: HaloProps): React.ReactElement {
     const show = props.show ?? true
     if (!show) return props.children
 
@@ -26,6 +28,7 @@ export function Halo(props: {
         stroke: props.outlineColor ?? defaultHaloStyle.stroke,
     }
     const halo = React.cloneElement(props.children, {
+        id: props.id,
         style: {
             ...defaultStyle,
             ...props.style,
