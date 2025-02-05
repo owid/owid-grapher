@@ -212,6 +212,7 @@ export class Explorer
             isEmbeddedInAnOwidPage: this.props.isEmbeddedInAnOwidPage,
             adminBaseUrl: this.adminBaseUrl,
         })
+
         this.grapher = new Grapher({
             grapherState: this.grapherState,
         })

@@ -40,7 +40,7 @@ import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidT
 
 const TestGrapherConfig = (): {
     table: OwidTable
-    selection: any[]
+    selectedEntityNames: any[]
     dimensions: {
         slug: SampleColumnSlugs
         property: DimensionProperty
@@ -50,7 +50,7 @@ const TestGrapherConfig = (): {
     const table = SynthesizeGDPTable({ entityCount: 10 })
     return {
         table,
-        selection: table.sampleEntityName(5),
+        selectedEntityNames: table.sampleEntityName(5),
         dimensions: [
             {
                 slug: SampleColumnSlugs.GDP,
