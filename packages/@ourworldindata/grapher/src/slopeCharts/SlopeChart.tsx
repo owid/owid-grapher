@@ -1329,7 +1329,7 @@ interface SlopeProps {
 
 function Slope({
     series,
-    dotRadius = 2.5,
+    dotRadius = 3.5,
     strokeWidth = 2,
     outlineWidth = 0.5,
     outlineStroke = "#fff",
@@ -1347,17 +1347,19 @@ function Slope({
         hover.background || focus.background ? 0.66 * strokeWidth : strokeWidth
 
     return (
-        <g id={makeIdForHumanConsumption(seriesName)} className="slope">
+        <>
             {showOutline && (
                 <LineWithDots
+                    id={makeIdForHumanConsumption("outline", seriesName)}
                     startPoint={startPoint}
                     endPoint={endPoint}
-                    radius={dotRadius}
+                    radius={dotRadius + 2 * outlineWidth}
                     color={outlineStroke}
                     lineWidth={lineWidth + 2 * outlineWidth}
                 />
             )}
             <LineWithDots
+                id={makeIdForHumanConsumption("slope", seriesName)}
                 startPoint={startPoint}
                 endPoint={endPoint}
                 radius={dotRadius}
@@ -1365,14 +1367,12 @@ function Slope({
                 lineWidth={lineWidth}
                 opacity={opacity}
             />
-        </g>
+        </>
     )
 }
 
-/**
- * Line with two dots at the ends, drawn as a single path element.
- */
 function LineWithDots({
+    id,
     startPoint,
     endPoint,
     radius,
@@ -1380,6 +1380,7 @@ function LineWithDots({
     lineWidth = 2,
     opacity = 1,
 }: {
+    id?: string
     startPoint: PointVector
     endPoint: PointVector
     radius: number
@@ -1387,24 +1388,32 @@ function LineWithDots({
     lineWidth?: number
     opacity?: number
 }): React.ReactElement {
-    const startDotPath = makeCirclePath(startPoint.x, startPoint.y, radius)
-    const endDotPath = makeCirclePath(endPoint.x, endPoint.y, radius)
-
-    const linePath = makeLinePath(
-        startPoint.x,
-        startPoint.y,
-        endPoint.x,
-        endPoint.y
-    )
-
     return (
-        <path
-            d={`${startDotPath} ${endDotPath} ${linePath}`}
-            fill={color}
-            stroke={color}
-            strokeWidth={lineWidth.toFixed(1)}
-            opacity={opacity}
-        />
+        <g id={id} opacity={opacity} className="slope">
+            <circle
+                id={makeIdForHumanConsumption("start-point")}
+                cx={startPoint.x}
+                cy={startPoint.y}
+                r={radius}
+                fill={color}
+            />
+            <circle
+                id={makeIdForHumanConsumption("end-point")}
+                cx={endPoint.x}
+                cy={endPoint.y}
+                r={radius}
+                fill={color}
+            />
+            <line
+                id={makeIdForHumanConsumption("line")}
+                x1={startPoint.x}
+                y1={startPoint.y}
+                x2={endPoint.x}
+                y2={endPoint.y}
+                stroke={color}
+                strokeWidth={lineWidth.toFixed(1)}
+            />
+        </g>
     )
 }
 
@@ -1472,14 +1481,4 @@ function MarkX({
             </text>
         </>
     )
-}
-
-const makeCirclePath = (centerX: number, centerY: number, radius: number) => {
-    const topX = centerX
-    const topY = centerY - radius
-    return `M ${topX},${topY} A ${radius},${radius} 0 1,1 ${topX - 0.0001},${topY}`
-}
-
-const makeLinePath = (x1: number, y1: number, x2: number, y2: number) => {
-    return `M ${x1},${y1} L ${x2},${y2}`
 }
