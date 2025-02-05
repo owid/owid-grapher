@@ -91,6 +91,10 @@ export class Footer<
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
+    @computed protected get hideOriginUrl(): boolean {
+        return !!this.manager.hideOriginUrl
+    }
+
     @computed protected get sourcesLine(): string {
         return this.manager.sourcesLine?.replace(/\r\n|\n|\r/g, "") ?? ""
     }
@@ -158,7 +162,7 @@ export class Footer<
             actionButtons,
         } = this
 
-        if (this.manager.hideOriginUrl) return undefined
+        if (this.hideOriginUrl) return undefined
 
         if (!correctedUrlText) return undefined
 
@@ -640,6 +644,10 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     componentWillUnmount(): void {}
 
+    @computed protected get hideOriginUrl(): boolean {
+        return !!this.manager.hideOriginUrl || !!this.manager.isStaticAndSmall
+    }
+
     @computed private get textColor(): string {
         return GRAPHER_LIGHT_TEXT
     }
@@ -654,7 +662,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     @computed protected get finalUrlText(): string | undefined {
         const { correctedUrlText, licenseText, fontSize, maxWidth } = this
 
-        if (this.manager.hideOriginUrl) return undefined
+        if (this.hideOriginUrl) return undefined
 
         if (!correctedUrlText) return undefined
 
