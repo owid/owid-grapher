@@ -34,8 +34,6 @@ import {
 import {
     BASE_FONT_SIZE,
     GRAPHER_AREA_OPACITY_DEFAULT,
-    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
-    GRAPHER_AXIS_LINE_WIDTH_THICK,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import {
@@ -702,11 +700,7 @@ export class StackedDiscreteBarChart
     }
 
     renderAxis(): React.ReactElement {
-        const { manager, bounds, yAxis, innerBounds } = this
-
-        const axisLineWidth = manager.isStaticAndSmall
-            ? GRAPHER_AXIS_LINE_WIDTH_THICK
-            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+        const { bounds, yAxis, innerBounds } = this
 
         return (
             <>
@@ -716,20 +710,17 @@ export class StackedDiscreteBarChart
                             bounds={bounds}
                             axis={yAxis}
                             preferredAxisPosition={innerBounds.bottom}
-                            labelColor={manager.secondaryColorInStaticCharts}
-                            tickMarkWidth={axisLineWidth}
                         />
                         <HorizontalAxisGridLines
                             horizontalAxis={yAxis}
                             bounds={innerBounds}
-                            strokeWidth={axisLineWidth}
                         />
                     </>
                 )}
                 <HorizontalAxisZeroLine
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
-                    strokeWidth={0.5 * axisLineWidth}
+                    strokeWidth={0.5}
                     // moves the zero line a little to the left to avoid
                     // overlap with the bars
                     align={HorizontalAlign.right}

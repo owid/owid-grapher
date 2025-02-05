@@ -23,8 +23,6 @@ import {
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_AREA_OPACITY_MUTE,
     GRAPHER_AREA_OPACITY_FOCUS,
-    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
-    GRAPHER_AXIS_LINE_WIDTH_THICK,
 } from "../core/GrapherConstants"
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "../axis/AxisViews"
@@ -667,12 +665,6 @@ export class StackedAreaChart extends AbstractStackedChart {
             <DualAxisComponent
                 dualAxis={this.dualAxis}
                 showTickMarks={true}
-                labelColor={manager.secondaryColorInStaticCharts}
-                lineWidth={
-                    manager.isStaticAndSmall
-                        ? GRAPHER_AXIS_LINE_WIDTH_THICK
-                        : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
-                }
                 detailsMarker={manager.detailsMarkerInSvg}
             />
         )

@@ -16,12 +16,6 @@ import classNames from "classnames"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { ScaleType, DetailsMarker, AxisAlign } from "@ourworldindata/types"
 
-const dasharrayFromFontSize = (fontSize: number): string => {
-    const dashLength = Math.round((fontSize / 16) * 3)
-    const spaceLength = Math.round((dashLength * 2) / 3)
-    return `${dashLength},${spaceLength}`
-}
-
 const TICK_COLOR = "#ddd"
 const FAINT_TICK_COLOR = "#eee"
 const SOLID_TICK_COLOR = "#999"
@@ -49,9 +43,7 @@ export class VerticalAxisGridLines extends React.Component<{
                         : t.solid
                           ? SOLID_TICK_COLOR
                           : TICK_COLOR
-                    const dasharray =
-                        this.props.dashPattern ??
-                        dasharrayFromFontSize(verticalAxis.tickFontSize)
+                    const dasharray = this.props.dashPattern ?? "4,4"
 
                     return (
                         <line
@@ -102,9 +94,7 @@ export class HorizontalAxisGridLines extends React.Component<{
                         : t.solid
                           ? SOLID_TICK_COLOR
                           : TICK_COLOR
-                    const dasharray =
-                        this.props.dashPattern ??
-                        dasharrayFromFontSize(horizontalAxis.tickFontSize)
+                    const dasharray = this.props.dashPattern ?? "4,4"
 
                     return (
                         <line

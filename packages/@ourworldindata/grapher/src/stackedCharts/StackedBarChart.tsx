@@ -33,8 +33,6 @@ import {
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_AREA_OPACITY_FOCUS,
     GRAPHER_AREA_OPACITY_MUTE,
-    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
-    GRAPHER_AXIS_LINE_WIDTH_THICK,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import { ColorScaleManager } from "../color/ColorScale"
@@ -483,16 +481,10 @@ export class StackedBarChart
     renderAxis(): React.ReactElement {
         const { manager } = this
 
-        const lineWidth = manager.isStaticAndSmall
-            ? GRAPHER_AXIS_LINE_WIDTH_THICK
-            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
-
         return (
             <DualAxisComponent
                 dualAxis={this.dualAxis}
                 showTickMarks={true}
-                labelColor={manager.secondaryColorInStaticCharts}
-                lineWidth={lineWidth}
                 detailsMarker={manager.detailsMarkerInSvg}
             />
         )

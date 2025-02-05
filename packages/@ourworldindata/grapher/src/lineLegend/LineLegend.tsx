@@ -334,7 +334,9 @@ export class LineLegend extends React.Component<LineLegendProps> {
     }
 
     @computed private get fontSize(): number {
-        return GRAPHER_FONT_SCALE_12 * (this.props.fontSize ?? BASE_FONT_SIZE)
+        return Math.floor(
+            GRAPHER_FONT_SCALE_12 * (this.props.fontSize ?? BASE_FONT_SIZE)
+        )
     }
 
     @computed private get fontWeight(): number {

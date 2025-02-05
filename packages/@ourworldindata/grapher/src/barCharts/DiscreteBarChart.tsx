@@ -32,8 +32,6 @@ import {
 } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
-    GRAPHER_AXIS_LINE_WIDTH_THICK,
-    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
@@ -499,11 +497,7 @@ export class DiscreteBarChart
     }
 
     renderChartArea(): React.ReactElement {
-        const { manager, yAxis, innerBounds } = this
-
-        const axisLineWidth = manager.isStaticAndSmall
-            ? 0.5 * GRAPHER_AXIS_LINE_WIDTH_THICK
-            : 0.5 * GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+        const { yAxis, innerBounds } = this
 
         return (
             <>
@@ -514,7 +508,7 @@ export class DiscreteBarChart
                 <HorizontalAxisZeroLine
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
-                    strokeWidth={axisLineWidth}
+                    strokeWidth={0.5}
                     // if the chart doesn't have negative values, then we
                     // move the zero line a little to the left to avoid
                     // overlap with the bars
