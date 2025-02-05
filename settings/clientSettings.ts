@@ -77,6 +77,8 @@ export const GDOCS_ARTICLE_DUPLICATION_TEMPLATE_ID: string =
     process.env.GDOCS_ARTICLE_DUPLICATION_TEMPLATE_ID ?? ""
 export const GDOCS_DATA_INSIGHT_DUPLICATION_TEMPLATE_ID: string =
     process.env.GDOCS_DATA_INSIGHT_DUPLICATION_TEMPLATE_ID ?? ""
+export const GDOCS_DATA_INSIGHT_API_TEMPLATE_ID: string =
+    process.env.GDOCS_DATA_INSIGHT_API_TEMPLATE_ID ?? ""
 
 export const IMAGE_HOSTING_R2_CDN_URL: string =
     process.env.IMAGE_HOSTING_R2_CDN_URL || ""

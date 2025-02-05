@@ -63,7 +63,11 @@ import {
     handleDeleteChartRedirect,
 } from "./apiRoutes/redirects.js"
 import { triggerStaticBuild } from "./apiRoutes/routeUtils.js"
-import { suggestGptTopics, suggestGptAltText } from "./apiRoutes/suggest.js"
+import {
+    suggestGptTopics,
+    suggestGptAltTextForCloudflareImage,
+    suggestGptAltText,
+} from "./apiRoutes/suggest.js"
 import {
     handleGetFlatTagGraph,
     handlePostTagGraph,
@@ -125,7 +129,10 @@ import {
     deleteChart,
     getChartTagsJson,
 } from "./apiRoutes/charts.js"
-import { getAllDataInsightIndexItems } from "./apiRoutes/dataInsights.js"
+import {
+    createDataInsightGDoc,
+    getAllDataInsightIndexItems,
+} from "./apiRoutes/dataInsights.js"
 import { getFigmaImageUrl } from "./apiRoutes/figma.js"
 
 const apiRouter = new FunctionalRouter()
@@ -258,6 +265,11 @@ getRouteWithROTransaction(
     "/dataInsights",
     getAllDataInsightIndexItems
 )
+postRouteWithRWTransaction(
+    apiRouter,
+    "/dataInsights/create",
+    createDataInsightGDoc
+)
 
 // Images routes
 getRouteNonIdempotentWithRWTransaction(
@@ -344,8 +356,9 @@ getRouteWithROTransaction(
 getRouteWithROTransaction(
     apiRouter,
     `/gpt/suggest-alt-text/:imageId`,
-    suggestGptAltText
+    suggestGptAltTextForCloudflareImage
 )
+getRouteWithROTransaction(apiRouter, `/gpt/suggest-alt-text`, suggestGptAltText)
 
 // Tag graph routes
 getRouteWithROTransaction(

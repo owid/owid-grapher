@@ -20,7 +20,7 @@ import {
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { DbEnrichedImageWithUserId, DbPlainUser } from "@ourworldindata/types"
-import { triggerDownloadFromBlob } from "@ourworldindata/utils"
+import { downloadImage } from "@ourworldindata/utils"
 import { Timeago } from "./Forms.js"
 import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -242,17 +242,6 @@ function makeImageSrc(cloudflareId: string, width: number) {
     return `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(cloudflareId)}/w=${width}`
 }
 
-async function downloadImage(
-    filename: string,
-    cloudflareId: string,
-    originalWidth: number
-) {
-    const src = makeImageSrc(cloudflareId, originalWidth)
-    const response = await fetch(src)
-    const blob = await response.blob()
-    triggerDownloadFromBlob(filename, blob)
-}
-
 function Filename({
     filename,
     cloudflareId,
@@ -273,9 +262,8 @@ function Filename({
                     aria-label="Download"
                     onClick={() => {
                         void downloadImage(
-                            filename,
-                            cloudflareId,
-                            originalWidth
+                            makeImageSrc(cloudflareId, originalWidth),
+                            filename
                         )
                     }}
                 />
