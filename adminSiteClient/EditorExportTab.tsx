@@ -302,15 +302,16 @@ export class EditorExportTab<
                             }
                         />
                     )}
-                    {this.originalGrapher.originUrl && (
-                        <Toggle
-                            label="Origin URL"
-                            value={!this.settings.hideOriginUrl}
-                            onValue={(value) =>
-                                (this.settings.hideOriginUrl = !value)
-                            }
-                        />
-                    )}
+                    {this.originalGrapher.originUrl &&
+                        !this.grapher.isStaticAndSmall && (
+                            <Toggle
+                                label="Origin URL"
+                                value={!this.settings.hideOriginUrl}
+                                onValue={(value) =>
+                                    (this.settings.hideOriginUrl = !value)
+                                }
+                            />
+                        )}
                     {this.originalGrapher.detailsOrderedByReference.length >
                         0 && (
                         <Toggle
