@@ -186,6 +186,29 @@ function validateApprovedBy(
     }
 }
 
+function validateGrapherUrl(
+    gdoc: OwidGdocDataInsightInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    const grapherUrl = gdoc.content["grapher-url"]?.trim()
+    if (grapherUrl) {
+        const validPrefixes = [
+            "https://ourworldindata.org/grapher/",
+            "https://ourworldindata.org/explorers/",
+        ]
+        const hasValidPrefix = validPrefixes.some((validPrefix) =>
+            grapherUrl.startsWith(validPrefix)
+        )
+        if (!hasValidPrefix) {
+            errors.push({
+                property: "grapher-url",
+                type: OwidGdocErrorMessageType.Warning,
+                message: `"grapher-url" should be a valid Grapher or Explorer URL`,
+            })
+        }
+    }
+}
+
 function validateDataInsightImage(
     gdoc: OwidGdocDataInsightInterface,
     errors: OwidGdocErrorMessage[]
@@ -283,6 +306,7 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
         validateAtomFields(gdoc, errors)
     } else if (checkIsDataInsight(gdoc)) {
         validateApprovedBy(gdoc, errors)
+        validateGrapherUrl(gdoc, errors)
         validateDataInsightImage(gdoc, errors)
     } else if (checkIsAuthor(gdoc)) {
         validateSocials(gdoc, errors)

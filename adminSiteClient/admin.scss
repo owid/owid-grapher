@@ -1291,3 +1291,17 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     margin-top: -8px;
     margin-bottom: 0;
 }
+
+.DataInsightIndexPage {
+    .ant-card-body {
+        padding: 8px;
+
+        a {
+            color: rgba(0, 0, 0, 0.88);
+        }
+    }
+
+    img.border {
+        border: 1px solid rgb(240, 240, 240) !important;
+    }
+}
