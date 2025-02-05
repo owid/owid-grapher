@@ -1,6 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
-import * as Figma from "figma-api"
 import {
     Button,
     Card,
@@ -48,10 +47,13 @@ import {
 import {
     BAKED_BASE_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-    FIGMA_API_KEY,
 } from "../settings/clientSettings.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { ImageUploadResponse, makeImageSrc } from "./imagesHelpers.js"
+import {
+    fetchFigmaProvidedImageUrl,
+    ImageUploadResponse,
+    makeImageSrc,
+} from "./imagesHelpers.js"
 import { ReuploadImageForDataInsightModal } from "./ReuploadImageForDataInsightModal.js"
 
 type NarrativeDataInsightIndexItem = RequiredBy<
@@ -66,10 +68,6 @@ type FigmaDataInsightIndexItem = RequiredBy<
 type DataInsightIndexItemThatCanBeUploaded =
     | NarrativeDataInsightIndexItem
     | FigmaDataInsightIndexItem
-
-type FigmaResponse =
-    | { success: true; imageUrl: string }
-    | { success: false; errorMessage: string }
 
 type ChartTypeFilter = GrapherChartOrMapType | "all"
 type PublicationFilter = "all" | "published" | "scheduled" | "draft"
@@ -87,10 +85,6 @@ const copyIcon = <FontAwesomeIcon icon={faCopy} size="sm" />
 const panoramaIcon = <FontAwesomeIcon icon={faPanorama} size="sm" />
 
 const NotificationContext = React.createContext(null)
-
-const figmaApi = new Figma.Api({
-    personalAccessToken: FIGMA_API_KEY,
-})
 
 function createColumns(ctx: {
     highlightFn: (
@@ -754,57 +748,6 @@ function makeUploadImageHelpText(
     else if (canReuploadNarrativeChartImage(dataInsight))
         return "Fetch a PNG of the narrative chart and upload it as the image for this data insight"
     else return ""
-}
-
-async function fetchFigmaProvidedImageUrl(
-    figmaUrl: string
-): Promise<FigmaResponse> {
-    const { fileId, nodeId } = extractIdsFromFigmaUrl(figmaUrl) ?? {}
-    if (!fileId || !nodeId)
-        return {
-            success: false,
-            errorMessage:
-                "Invalid Figma URL. The provided URL should point to a Figma node.",
-        }
-
-    // Request the image URL from Figma
-    const imageMap = await figmaApi.getImages(
-        { file_key: fileId },
-        { ids: [nodeId], scale: 3 }
-    )
-    if (!imageMap || imageMap.err !== null)
-        return {
-            success: false,
-            errorMessage: "Failed to fetch image map from Figma",
-        }
-
-    // Grab the image URL from the image map
-    const imageUrl = imageMap.images[nodeId]
-    if (!imageUrl) {
-        return {
-            success: false,
-            errorMessage: "Figma's image map does not contain the image",
-        }
-    }
-
-    return {
-        success: true,
-        imageUrl: imageUrl,
-    }
-}
-
-function extractIdsFromFigmaUrl(
-    figmaUrl: string
-): { fileId: string; nodeId: string } | undefined {
-    const regex =
-        /figma\.com\/design\/(?<fileId>[^/]+).*[?&]node-id=(?<nodeId>[^&]+)/
-    const { groups } = figmaUrl.match(regex) ?? {}
-    if (groups) {
-        const fileId = groups.fileId
-        const nodeId = groups.nodeId.replace("-", ":")
-        return { fileId, nodeId }
-    }
-    return undefined
 }
 
 function makePreviewLink(dataInsight: OwidGdocDataInsightIndexItem) {

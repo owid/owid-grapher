@@ -29,7 +29,7 @@ import { addExplorerTags, deleteExplorerTags } from "./apiRoutes/explorer.js"
 import {
     getAllGdocIndexItems,
     getIndividualGdoc,
-    createOrUpdateGdoc,
+    createOrUpdateGdocHandler,
     deleteGdoc,
     setGdocTags,
 } from "./apiRoutes/gdocs.js"
@@ -125,7 +125,10 @@ import {
     deleteChart,
     getChartTagsJson,
 } from "./apiRoutes/charts.js"
-import { getAllDataInsightIndexItems } from "./apiRoutes/dataInsights.js"
+import {
+    createDataInsightGDoc,
+    getAllDataInsightIndexItems,
+} from "./apiRoutes/dataInsights.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -247,7 +250,7 @@ getRouteNonIdempotentWithRWTransaction(
     "/gdocs/:id",
     getIndividualGdoc
 )
-putRouteWithRWTransaction(apiRouter, "/gdocs/:id", createOrUpdateGdoc)
+putRouteWithRWTransaction(apiRouter, "/gdocs/:id", createOrUpdateGdocHandler)
 deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", deleteGdoc)
 postRouteWithRWTransaction(apiRouter, "/gdocs/:gdocId/setTags", setGdocTags)
 
@@ -256,6 +259,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/dataInsights",
     getAllDataInsightIndexItems
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/dataInsights/create",
+    createDataInsightGDoc
 )
 
 // Images routes

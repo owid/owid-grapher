@@ -5,7 +5,7 @@ import { useContext, useState } from "react"
 import {
     ImageUploadResponse,
     makeImageSrc,
-    reuploadImageFromSourceUrl,
+    uploadImageFromSourceUrl,
 } from "./imagesHelpers"
 import { AdminAppContext } from "./AdminAppContext"
 
@@ -62,7 +62,7 @@ export function ReuploadImageForDataInsightModal({
     const handleImageUpload = async () => {
         setIsImageUploadInProgress(true)
         const response = sourceUrl
-            ? await reuploadImageFromSourceUrl({
+            ? await uploadImageFromSourceUrl({
                   admin,
                   image: existingImage,
                   sourceUrl,
@@ -146,23 +146,37 @@ function ImagePreview({
                         width={size}
                         height={size}
                     />
-                    {isLoading ? (
-                        <div className="placeholder">{spinnerIcon}</div>
-                    ) : imageAfter ? (
-                        <img
-                            className="border"
-                            src={imageAfter}
-                            width={size}
-                            height={size}
-                        />
-                    ) : (
-                        <div className="error">
-                            <b>Loading preview failed</b>
-                            <p>{loadingError}</p>
-                        </div>
-                    )}
+                    <LoadingImage
+                        url={imageAfter}
+                        size={size}
+                        isLoading={isLoading}
+                        loadingError={loadingError}
+                    />
                 </Space>
             </div>
+        </div>
+    )
+}
+
+export function LoadingImage({
+    url,
+    size = 350,
+    isLoading = false,
+    loadingError = "",
+}: {
+    url?: string
+    size?: number
+    isLoading?: boolean
+    loadingError?: string
+}) {
+    return isLoading ? (
+        <div className="loading-image placeholder">{spinnerIcon}</div>
+    ) : url ? (
+        <img className="border" src={url} width={size} height={size} />
+    ) : (
+        <div className="loading-image error">
+            <b>Loading preview failed</b>
+            <p>{loadingError}</p>
         </div>
     )
 }

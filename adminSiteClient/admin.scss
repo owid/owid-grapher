@@ -1331,14 +1331,14 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         margin-top: 6px;
     }
 
-    .image-preview .placeholder,
-    .image-preview .error {
+    .loading-image.placeholder,
+    .loading-image.error {
         width: 350px;
         height: 350px;
         border: 1px solid #f0f0f0;
     }
 
-    .image-preview .placeholder {
+    .loading-image.placeholder {
         padding: 8px;
         display: flex;
         justify-content: center;
@@ -1346,7 +1346,7 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         font-size: 16px;
     }
 
-    .image-preview .error {
+    .loading-image.error {
         font-size: 14px;
         display: block;
         padding: 12px;

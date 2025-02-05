@@ -14,11 +14,16 @@ import {
     parsePostGdocContent,
 } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
-import { getTagsGroupedByGdocId } from "../../db/model/Gdoc/GdocFactory.js"
+import {
+    createOrLoadGdocById,
+    getTagsGroupedByGdocId,
+} from "../../db/model/Gdoc/GdocFactory.js"
 import {
     getChartTypeFromConfig,
     getChartTypeFromConfigAndQueryParams,
 } from "@ourworldindata/grapher"
+import { OwidGoogleAuth } from "../../db/OwidGoogleAuth.js"
+import { google } from "googleapis"
 
 const GRAPHER_URL_PREFIX = "https://ourworldindata.org/grapher/"
 const EXPLORER_URL_PREFIX = "https://ourworldindata.org/explorers/"
@@ -42,6 +47,94 @@ export async function getAllDataInsightIndexItems(
     trx: db.KnexReadonlyTransaction
 ) {
     return getAllDataInsightIndexItemsOrderedByUpdatedAt(trx)
+}
+
+async function createGDocFromTemplate(
+    templateId: string,
+    title: string,
+    folderId?: string
+): Promise<string> {
+    const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
+    const driveClient = google.drive({ version: "v3", auth })
+
+    const docsMimeType = "application/vnd.google-apps.document"
+    const response = await driveClient.files.copy({
+        supportsAllDrives: true,
+        fileId: templateId,
+        requestBody: {
+            name: title,
+            parents: folderId ? [folderId] : undefined,
+            mimeType: docsMimeType,
+        },
+    })
+
+    if (!response.data.id) {
+        throw new Error("Failed to copy document")
+    }
+
+    console.log(
+        `Copied document: https://docs.google.com/document/d/${response.data.id}`
+    )
+    return response.data.id
+}
+
+async function replacePlaceholdersInGdoc(
+    docId: string,
+    replacements: Record<string, string>
+) {
+    const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
+    const client = google.docs({ version: "v1", auth })
+
+    const requests = Object.entries(replacements).map(
+        ([placeholder, value]) => ({
+            replaceAllText: {
+                containsText: {
+                    text: `{{${placeholder}}}`, // Match placeholders like {{name}}
+                    matchCase: true,
+                },
+                replaceText: value,
+            },
+        })
+    )
+
+    await client.documents.batchUpdate({
+        documentId: docId,
+        requestBody: { requests },
+    })
+}
+
+export async function createDataInsightGDoc(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    // const TEST_TEMPLATE_ID = "1yKzQCEyqgVsHtoa885I0MTzHZP6-WSns-HbMaSQ2ceA"
+    // const TEST_TEMPLATE_ID = "10HjGEmhcv0mEWkbl4IN85OWJT9Lf4Z37wWg3CExhHy8"
+    // const TEST_FOLDER_ID = "1FkROLdqrkUcOEacHUDQ1ucgBpy0BZWVB"
+
+    // const gdocId = await createGDocFromTemplate(
+    //     TEST_TEMPLATE_ID,
+    //     "Sophia Test (today)",
+    //     TEST_FOLDER_ID
+    // )
+    const gdocId = "1-aYmclBHSzCIjqdROJHFdLYm0BX3dO40TcCgSlRuSEo"
+
+    const replacements = {
+        title: req.body.title ?? "",
+        authors: req.body.authors ?? "",
+        "narrative-chart": req.body.narrativeChart ?? "",
+        "figma-url": req.body.figmaUrl ?? "",
+        filename: req.body.filename ?? "",
+    }
+    await replacePlaceholdersInGdoc(gdocId, replacements)
+
+    const result = await createOrLoadGdocById(trx, gdocId)
+
+    return {
+        success: true,
+        gdocId,
+        result,
+    }
 }
 
 async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
