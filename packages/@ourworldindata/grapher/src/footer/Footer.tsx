@@ -18,6 +18,7 @@ import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
 import {
     BASE_FONT_SIZE,
+    GRAPHER_FOOTER_CLASS,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
 } from "../core/GrapherConstants"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
@@ -731,7 +732,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
 
         return (
             <g
-                id={makeIdForHumanConsumption("footer")}
+                id={makeIdForHumanConsumption(GRAPHER_FOOTER_CLASS)}
                 className="SourcesFooter"
                 style={{ fill: this.textColor }}
             >

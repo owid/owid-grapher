@@ -16,6 +16,7 @@ import {
     BASE_FONT_SIZE,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
+    GRAPHER_HEADER_CLASS,
 } from "../core/GrapherConstants"
 import { GRAPHER_DARK_TEXT, GRAY_100, GRAY_80 } from "../color/ColorConstants"
 
@@ -307,7 +308,10 @@ export class StaticHeader extends Header<StaticHeaderProps> {
         const { targetX: x, targetY: y } = this.props
         const { title, logo, subtitle, manager, maxWidth } = this
         return (
-            <g id={makeIdForHumanConsumption("header")} className="HeaderView">
+            <g
+                id={makeIdForHumanConsumption(GRAPHER_HEADER_CLASS)}
+                className="HeaderView"
+            >
                 {logo &&
                     logo.height > 0 &&
                     logo.renderSVG(x + maxWidth - logo.width, y)}

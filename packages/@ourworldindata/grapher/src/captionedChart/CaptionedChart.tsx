@@ -21,6 +21,7 @@ import {
     STATIC_EXPORT_DETAIL_SPACING,
     GRAPHER_FRAME_PADDING_VERTICAL,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
+    GRAPHER_CHART_AREA_CLASS,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
@@ -595,7 +596,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                     targetY={paddedBounds.y}
                 />
                 <g
-                    id={makeIdForHumanConsumption("chart-area")}
+                    id={makeIdForHumanConsumption(GRAPHER_CHART_AREA_CLASS)}
                     style={{ pointerEvents: "none" }}
                 >
                     {/*
