@@ -3,6 +3,7 @@ import * as React from "react"
 import {
     GDOCS_BASIC_ARTICLE_TEMPLATE_URL,
     GDOCS_CLIENT_EMAIL,
+    GDOCS_DATA_INSIGHT_TEMPLATE_URL,
 } from "../settings/clientSettings.js"
 import { useGdocsStore } from "./GdocsStoreContext.js"
 
@@ -29,14 +30,23 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
             <div className="modal-body">
                 <ol>
                     <li>
+                        Create a new document from the{" "}
                         <a
                             href={GDOCS_BASIC_ARTICLE_TEMPLATE_URL}
                             target="_blank"
                             rel="noopener"
                         >
-                            Create a new document{" "}
+                            basic article template
+                        </a>{" "}
+                        or the{" "}
+                        <a
+                            href={GDOCS_DATA_INSIGHT_TEMPLATE_URL}
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            data insight template
                         </a>
-                        from the basic article template.
+                        .
                         <br />
                         <em>
                             Alternatively:
