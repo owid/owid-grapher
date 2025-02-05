@@ -1324,6 +1324,15 @@ export const triggerDownloadFromUrl = (filename: string, url: string): void => {
     downloadLink.click()
 }
 
+export async function downloadImage(
+    url: string,
+    filename: string
+): Promise<void> {
+    const response = await fetch(url)
+    const blob = await response.blob()
+    triggerDownloadFromBlob(filename, blob)
+}
+
 export const removeAllWhitespace = (text: string): string => {
     return text.replace(/\s+|\n/g, "")
 }
