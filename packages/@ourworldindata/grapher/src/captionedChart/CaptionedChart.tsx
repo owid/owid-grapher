@@ -581,14 +581,6 @@ export class StaticCaptionedChart extends CaptionedChart {
             >
                 {this.fonts}
                 {this.patterns}
-                {!this.manager.isExportingForSocialMedia && (
-                    <rect
-                        className="background-fill"
-                        fill={this.backgroundColor}
-                        width={width}
-                        height={height}
-                    />
-                )}
                 <StaticHeader
                     manager={manager}
                     maxWidth={maxWidth}
