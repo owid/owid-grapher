@@ -125,7 +125,10 @@ import {
     deleteChart,
     getChartTagsJson,
 } from "./apiRoutes/charts.js"
-import { getAllDataInsightIndexItems } from "./apiRoutes/dataInsights.js"
+import {
+    createDataInsightGDoc,
+    getAllDataInsightIndexItems,
+} from "./apiRoutes/dataInsights.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -256,6 +259,12 @@ getRouteWithROTransaction(
     apiRouter,
     "/dataInsights",
     getAllDataInsightIndexItems
+)
+// TODO: change to POST route
+getRouteWithROTransaction(
+    apiRouter,
+    "/dataInsights/create",
+    createDataInsightGDoc
 )
 
 // Images routes
