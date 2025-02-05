@@ -118,6 +118,34 @@ const bakeAssets = async () => {
         const filename = await hashAndCopyFile(srcFile, targetDir)
         staticAssetMap[dirent.name] = `/${filename}`
     }
+
+    // Attempt to make JS source maps work, by replacing the content of the //# sourceMappingURL comment
+    if (staticAssetMap["owid.mjs"] && staticAssetMap["owid.mjs.map"]) {
+        const mjsFilename = path.basename(staticAssetMap["owid.mjs"])
+        const mjsContents = await fs.readFile(
+            path.join(targetDir, mjsFilename),
+            "utf8"
+        )
+        const withSourceMap = mjsContents.replace(
+            /\/\/# sourceMappingURL=owid.mjs.map/g,
+            `//# sourceMappingURL=${path.basename(staticAssetMap["owid.mjs.map"])}`
+        )
+
+        if (withSourceMap === mjsContents) {
+            console.error("Failed to replace sourceMappingURL in owid.mjs")
+        } else {
+            // Now that we have replaced the source map path, the content hash has slightly changed,
+            //  but we don't need to care about that, realistically. We'll just live with the fact.
+            await fs.writeFile(
+                path.join(targetDir, mjsFilename),
+                withSourceMap,
+                "utf-8"
+            )
+        }
+    } else {
+        console.error("Could not find owid.mjs and owid.mjs.map")
+    }
+
     return { staticAssetMap }
 }
 
