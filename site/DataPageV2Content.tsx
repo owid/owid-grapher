@@ -115,13 +115,11 @@ export const DataPageV2Content = ({
                                     {titleFragments}
                                 </div>
                             </div>
-                            {!!datapageData.topicTagsLinks?.length && (
-                                <TopicTags
-                                    className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
-                                    topicTagsLinks={datapageData.topicTagsLinks}
-                                    tagToSlugMap={tagToSlugMap}
-                                />
-                            )}
+                            <TopicTags
+                                className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
+                                topicTagsLinks={datapageData.topicTagsLinks}
+                                tagToSlugMap={tagToSlugMap}
+                            />
                         </div>
                     </div>
                     <nav className="sticky-nav sticky-nav--dark span-cols-14 grid grid-cols-12-full-width">

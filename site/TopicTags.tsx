@@ -4,13 +4,15 @@ export default function TopicTags({
     tagToSlugMap,
 }: {
     className?: string
-    topicTagsLinks: string[]
+    topicTagsLinks?: string[]
     tagToSlugMap: Record<string, string>
 }) {
     // TODO (DB): mark topic pages
     const tags = topicTagsLinks
         ?.map((name) => ({ name, slug: tagToSlugMap[name] }))
         .filter((tag) => !!tag.slug)
+    if (!tags?.length) return null
+
     return (
         <div className={className}>
             <div className="topic-tags__label">
