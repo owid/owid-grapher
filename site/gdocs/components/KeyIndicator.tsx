@@ -53,7 +53,7 @@ export default function KeyIndicator({
             <Chart
                 className="key-indicator-chart col-start-5 span-cols-8 span-sm-cols-12 margin-0"
                 d={{
-                    url: linkedChart.resolvedUrl,
+                    url: d.datapageUrl, // The URL is resolved in the component.
                     type: "chart",
                     parseErrors: [],
                 }}
