@@ -1,13 +1,21 @@
-import { OwidVariableDataMetadataDimensions } from "@ourworldindata/types"
-import { fetchWithRetry } from "@ourworldindata/utils"
+import {
+    AssetMap,
+    OwidVariableDataMetadataDimensions,
+} from "@ourworldindata/types"
+import { fetchWithRetry, readFromAssetMap } from "@ourworldindata/utils"
 
 export const getVariableDataRoute = (
     dataApiUrl: string,
-    variableId: number
+    variableId: number,
+    assetMap?: AssetMap
 ): string => {
     if (dataApiUrl.includes("v1/indicators/")) {
-        // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.data.json
-        return `${dataApiUrl}${variableId}.data.json`
+        const filename = `${variableId}.data.json`
+        return readFromAssetMap(assetMap, {
+            path: filename,
+            // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.data.json
+            fallback: `${dataApiUrl}${filename}`,
+        })
     } else {
         throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
     }
@@ -15,11 +23,16 @@ export const getVariableDataRoute = (
 
 export const getVariableMetadataRoute = (
     dataApiUrl: string,
-    variableId: number
+    variableId: number,
+    assetMap?: AssetMap
 ): string => {
     if (dataApiUrl.includes("v1/indicators/")) {
-        // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.metadata.json
-        return `${dataApiUrl}${variableId}.metadata.json`
+        const filename = `${variableId}.metadata.json`
+        return readFromAssetMap(assetMap, {
+            path: filename,
+            // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.metadata.json
+            fallback: `${dataApiUrl}${filename}`,
+        })
     } else {
         throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
     }
@@ -27,13 +40,14 @@ export const getVariableMetadataRoute = (
 
 export async function loadVariableDataAndMetadata(
     variableId: number,
-    dataApiUrl: string
+    dataApiUrl: string,
+    assetMap?: AssetMap
 ): Promise<OwidVariableDataMetadataDimensions> {
     const dataPromise = fetchWithRetry(
-        getVariableDataRoute(dataApiUrl, variableId)
+        getVariableDataRoute(dataApiUrl, variableId, assetMap)
     )
     const metadataPromise = fetchWithRetry(
-        getVariableMetadataRoute(dataApiUrl, variableId)
+        getVariableMetadataRoute(dataApiUrl, variableId, assetMap)
     )
     const [dataResponse, metadataResponse] = await Promise.all([
         dataPromise,
