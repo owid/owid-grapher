@@ -129,6 +129,7 @@ const VARIABLE_COLOR_STROKE_WIDTH = 2.5
 const DEFAULT_MARKER_RADIUS = 1.8
 const VARIABLE_COLOR_MARKER_RADIUS = 2.2
 const DISCONNECTED_DOTS_MARKER_RADIUS = 2.6
+const STATIC_SMALL_MARKER_RADIUS = 3
 // line outline
 const DEFAULT_LINE_OUTLINE_WIDTH = 0.5
 const VARIABLE_COLOR_LINE_OUTLINE_WIDTH = 1.0
@@ -555,6 +556,7 @@ export class LineChart
     @computed private get markerRadius(): number {
         if (this.hasMarkersOnlySeries) return DISCONNECTED_DOTS_MARKER_RADIUS
         if (this.hasColorScale) return VARIABLE_COLOR_MARKER_RADIUS
+        if (this.manager.isStaticAndSmall) return STATIC_SMALL_MARKER_RADIUS
         return DEFAULT_MARKER_RADIUS
     }
 
@@ -878,7 +880,7 @@ export class LineChart
     }
 
     @computed get hidePoints(): boolean {
-        return !!this.manager.hidePoints || !!this.manager.isStaticAndSmall
+        return !!this.manager.hidePoints
     }
 
     @computed get lineLegendX(): number {
