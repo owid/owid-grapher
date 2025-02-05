@@ -15,6 +15,9 @@ import {
     Base64String,
     ChartConfigsTableName,
     OwidGdocLinkType,
+    DbRawPostGdoc,
+    DbRawImage,
+    OwidGdocDataInsightContent,
 } from "@ourworldindata/types"
 import {
     diffGrapherConfigs,
@@ -22,7 +25,10 @@ import {
     uniqBy,
 } from "@ourworldindata/utils"
 import { omit, pick } from "lodash"
-import { ApiChartViewOverview } from "../../adminShared/AdminTypes.js"
+import {
+    ApiChartViewOverview,
+    DataInsight,
+} from "../../adminShared/AdminTypes.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
     saveNewChartConfigInDbAndR2,
@@ -35,6 +41,8 @@ import { expectChartById } from "./charts.js"
 import { Request } from "../authentication.js"
 import e from "express"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
+import { Knex } from "knex"
+
 const createPatchConfigAndQueryParamsForChartView = async (
     knex: db.KnexReadonlyTransaction,
     parentChartId: number,
@@ -335,14 +343,71 @@ export async function getChartViewReferences(
         throw new JsonError(`No chart view found for id ${id}`, 404)
     }
 
-    const references = {
-        references: {
-            postsGdocs: await getPublishedLinksTo(
-                trx,
-                [name],
-                OwidGdocLinkType.ChartView
-            ).then((refs) => uniqBy(refs, "slug")),
-        },
-    }
-    return references
+    const postsGdocs = await getPublishedLinksTo(
+        trx,
+        [name],
+        OwidGdocLinkType.ChartView
+    ).then((refs) => uniqBy(refs, "slug"))
+
+    const dataInsights = await getDataInsightsForChartView(trx, id)
+
+    return { references: { postsGdocs, dataInsights } }
+}
+
+async function getDataInsightsForChartView(
+    knex: Knex<any, any[]>,
+    chartViewId: number
+): Promise<DataInsight[]> {
+    const rows = await db.knexRaw<
+        Pick<DbRawPostGdoc, "id" | "published"> &
+            Pick<OwidGdocDataInsightContent, "title"> & {
+                figmaUrl: OwidGdocDataInsightContent["figma-url"]
+                imageId: DbRawImage["id"]
+                imageFilename: DbRawImage["filename"]
+                imageCloudflareId: DbRawImage["cloudflareId"]
+                imageOriginalWidth: DbRawImage["originalWidth"]
+            }
+    >(
+        knex,
+        `-- sql
+        SELECT
+            pg.id,
+            pg.published,
+            pg.content ->> '$.title' as title,
+            pg.content ->> '$."figma-url"' as figmaUrl,
+            i.id As imageId,
+            i.filename AS imageFilename,
+            i.cloudflareId AS imageCloudflareId,
+            i.originalWidth AS imageOriginalWidth
+        FROM posts_gdocs pg
+        LEFT JOIN chart_views cw
+            ON cw.name = content ->> '$."narrative-chart"'
+        LEFT JOIN chart_configs cc
+            ON cc.id = cw.chartConfigId
+        -- only works if the image block comes first
+        LEFT JOIN images i
+            ON i.filename = COALESCE(pg.content ->> '$.body[0].smallFilename', pg.content ->> '$.body[0].filename')
+        WHERE
+            pg.type = 'data-insight'
+            AND i.replacedBy IS NULL
+            AND cw.id = ?
+        `,
+        [chartViewId]
+    )
+
+    return rows.map((row) => ({
+        gdocId: row.id,
+        title: row.title ?? "",
+        published: !!row.published,
+        figmaUrl: row.figmaUrl,
+        image:
+            row.imageId && row.imageCloudflareId && row.imageOriginalWidth
+                ? {
+                      id: row.imageId,
+                      filename: row.imageFilename,
+                      cloudflareId: row.imageCloudflareId,
+                      originalWidth: row.imageOriginalWidth,
+                  }
+                : undefined,
+    }))
 }
