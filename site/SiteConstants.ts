@@ -5,7 +5,8 @@ import {
     faInstagram,
     faThreads,
     faLinkedin,
-    faBluesky,
+    faSquareBluesky,
+    faGithubSquare,
 } from "@fortawesome/free-brands-svg-icons"
 import { CategoryWithEntries, SubNavId } from "@ourworldindata/types"
 
@@ -71,18 +72,23 @@ export const SOCIALS = [
     {
         title: "Bluesky",
         url: "https://bsky.app/profile/ourworldindata.org",
-        icon: faBluesky,
+        icon: faSquareBluesky,
+    },
+    {
+        title: "GitHub",
+        url: "https://github.com/owid",
+        icon: faGithubSquare,
     },
 ]
 
 export const RSS_FEEDS = [
     {
-        title: "Research & Writing RSS Feed",
+        title: "Research & Writing",
         url: "/atom.xml",
         icon: faRss,
     },
     {
-        title: "Daily Data Insights RSS Feed",
+        title: "Daily Data Insights",
         url: `/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
         icon: faRss,
     },

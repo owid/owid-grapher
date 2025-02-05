@@ -1,6 +1,16 @@
 .site-tools {
     display: none;
 }
+
+@keyframes get-out-da-way {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(48px);
+    }
+}
+
 @include md-up {
     .site-tools {
         position: fixed;
@@ -9,6 +19,9 @@
         right: $vertical-spacing;
         bottom: $vertical-spacing;
         border: none;
+        &:has(.hide) {
+            animation: get-out-da-way 0.3s forwards;
+        }
 
         .hide-wrapper {
             display: flex;
