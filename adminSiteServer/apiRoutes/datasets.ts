@@ -203,15 +203,17 @@ export async function getDataset(
     const charts = await db.knexRaw<OldChartFieldList>(
         trx,
         `-- sql
-            SELECT ${oldChartFieldList}
+            SELECT ${oldChartFieldList},
+                round(views_365d / 365, 1) as pageviewsPerDay
             FROM charts
             JOIN chart_configs ON chart_configs.id = charts.configId
             JOIN chart_dimensions AS cd ON cd.chartId = charts.id
             JOIN variables AS v ON cd.variableId = v.id
             JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
             LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+            LEFT JOIN analytics_pageviews on (analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug) AND chart_configs.full ->> '$.isPublished' = "true" )
             WHERE v.datasetId = ?
-            GROUP BY charts.id
+            GROUP BY charts.id, views_365d
         `,
         [datasetId]
     )
