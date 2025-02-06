@@ -43,6 +43,7 @@ import {
     isTouchDevice,
     round,
     difference,
+    makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -344,6 +345,10 @@ export class ScatterPlotChart
 
     @computed get axisBounds(): Bounds {
         return this.innerBounds
+    }
+
+    @computed get isStatic(): boolean {
+        return !!this.manager.isStatic
     }
 
     @computed private get canAddCountry(): boolean {
@@ -745,25 +750,31 @@ export class ScatterPlotChart
         exposeInstanceOnWindow(this)
     }
 
-    render(): React.ReactElement {
-        if (this.failMessage)
-            return (
-                <NoDataModal
-                    manager={this.manager}
-                    bounds={this.bounds}
-                    message={this.failMessage}
-                />
-            )
+    renderComparisonLines(): React.ReactElement | void {
+        if (!this.comparisonLines) return
 
+        return (
+            <>
+                {this.comparisonLines.map((line, i) => (
+                    <ComparisonLine
+                        key={i}
+                        dualAxis={this.dualAxis}
+                        comparisonLine={line}
+                        baseFontSize={this.fontSize}
+                        backgroundColor={this.manager.backgroundColor}
+                    />
+                ))}
+            </>
+        )
+    }
+
+    renderSidebar(): React.ReactElement {
         const {
-            manager,
             bounds,
-            dualAxis,
-            arrowLegend,
             sizeLegend,
-            sidebarWidth,
-            comparisonLines,
+            arrowLegend,
             legendDimensions,
+            sidebarWidth,
         } = this
 
         const hasLegendItems = this.legendItems.length > 0
@@ -797,6 +808,7 @@ export class ScatterPlotChart
         const separatorLine = (y: number): React.ReactElement | null =>
             y > bounds.top ? (
                 <line
+                    id={makeIdForHumanConsumption("separator")}
                     x1={this.legendX}
                     y1={y - 0.5 * legendPadding}
                     x2={bounds.right}
@@ -806,23 +818,7 @@ export class ScatterPlotChart
             ) : null
 
         return (
-            <g className="ScatterPlot" onMouseMove={this.onScatterMouseMove}>
-                <DualAxisComponent
-                    dualAxis={dualAxis}
-                    showTickMarks={false}
-                    detailsMarker={manager.detailsMarkerInSvg}
-                />
-                {comparisonLines &&
-                    comparisonLines.map((line, i) => (
-                        <ComparisonLine
-                            key={i}
-                            dualAxis={dualAxis}
-                            comparisonLine={line}
-                            baseFontSize={this.fontSize}
-                            backgroundColor={this.manager.backgroundColor}
-                        />
-                    ))}
-                {this.points}
+            <>
                 <VerticalColorLegend manager={this} />
                 {sizeLegend && (
                     <>
@@ -852,9 +848,54 @@ export class ScatterPlotChart
                         />
                     </>
                 )}
+            </>
+        )
+    }
+
+    renderStatic(): React.ReactElement {
+        return (
+            <>
+                <DualAxisComponent
+                    dualAxis={this.dualAxis}
+                    showTickMarks={false}
+                    detailsMarker={this.manager.detailsMarkerInSvg}
+                />
+                {this.renderComparisonLines()}
+                {this.points}
+                {this.renderSidebar()}
+            </>
+        )
+    }
+
+    renderInteractive(): React.ReactElement {
+        return (
+            <g className="ScatterPlot" onMouseMove={this.onScatterMouseMove}>
+                <DualAxisComponent
+                    dualAxis={this.dualAxis}
+                    showTickMarks={false}
+                    detailsMarker={this.manager.detailsMarkerInSvg}
+                />
+                {this.renderComparisonLines()}
+                {this.points}
+                {this.renderSidebar()}
                 {this.tooltip}
             </g>
         )
+    }
+
+    render(): React.ReactElement {
+        if (this.failMessage)
+            return (
+                <NoDataModal
+                    manager={this.manager}
+                    bounds={this.bounds}
+                    message={this.failMessage}
+                />
+            )
+
+        return this.manager.isStatic
+            ? this.renderStatic()
+            : this.renderInteractive()
     }
 
     @computed get tooltip(): React.ReactElement | null {
