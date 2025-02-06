@@ -37,10 +37,7 @@ export class ScatterPoint extends React.Component<{
 
         return (
             <g
-                id={makeIdForHumanConsumption(
-                    "scatter-point",
-                    series.displayKey
-                )}
+                id={makeIdForHumanConsumption(series.seriesName, "datapoint")}
                 key={series.displayKey}
                 className={series.displayKey}
                 onMouseEnter={

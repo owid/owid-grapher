@@ -394,27 +394,32 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return this.renderSeries.filter((series) => !!series.isForeground)
     }
 
-    private renderBackgroundSeries(): React.ReactElement[] {
+    private renderBackgroundSeries(): React.ReactElement | null {
         const { backgroundSeries, isLayerMode, hideConnectedScatterLines } =
             this
 
-        return hideConnectedScatterLines
-            ? []
-            : backgroundSeries.map((series) => (
-                  <ScatterLine
-                      key={series.seriesName}
-                      series={series}
-                      isLayerMode={isLayerMode}
-                      onMouseEnter={this.onPointMouseEnter}
-                      onMouseLeave={this.onPointMouseLeave}
-                  />
-              ))
+        if (hideConnectedScatterLines) return null
+
+        return (
+            <g id={makeIdForHumanConsumption("points")}>
+                {backgroundSeries.map((series) => (
+                    <ScatterLine
+                        key={series.seriesName}
+                        series={series}
+                        isLayerMode={isLayerMode}
+                        onMouseEnter={this.onPointMouseEnter}
+                        onMouseLeave={this.onPointMouseLeave}
+                    />
+                ))}
+            </g>
+        )
     }
 
     private renderBackgroundLabels(): React.ReactElement {
         const { isLayerMode } = this
         return (
             <g
+                id={makeIdForHumanConsumption("labels")}
                 className="backgroundLabels"
                 fill={!isLayerMode ? "#333" : "#aaa"}
             >
@@ -424,12 +429,15 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                         .map((label) => (
                             <Halo
                                 key={series.displayKey + "-endLabel"}
-                                id={series.displayKey + "-endLabel"}
+                                id={makeIdForHumanConsumption(
+                                    "outline",
+                                    series.seriesName
+                                )}
                                 outlineColor={this.props.backgroundColor}
                             >
                                 <text
                                     id={makeIdForHumanConsumption(
-                                        "scatter-label",
+                                        "label",
                                         label.text
                                     )}
                                     x={label.bounds.x.toFixed(2)}
@@ -454,133 +462,146 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return guid()
     }
 
-    private renderForegroundSeries(): React.ReactElement[] {
+    private renderForegroundSeries(): React.ReactElement {
         const { isSubtleForeground, hideConnectedScatterLines } = this
-        return this.foregroundSeries.map((series) => {
-            const lastPoint = last(series.points)!
-            const strokeWidth =
-                (hideConnectedScatterLines
-                    ? 3
-                    : series.isHover
-                      ? 3
-                      : isSubtleForeground
-                        ? 1.5
-                        : 2) +
-                lastPoint.size / 2
+        return (
+            <g id={makeIdForHumanConsumption("points")}>
+                {this.foregroundSeries.map((series) => {
+                    const lastPoint = last(series.points)!
+                    const strokeWidth =
+                        (hideConnectedScatterLines
+                            ? 3
+                            : series.isHover
+                              ? 3
+                              : isSubtleForeground
+                                ? 1.5
+                                : 2) +
+                        lastPoint.size / 2
 
-            if (series.points.length === 1)
-                return (
-                    <ScatterPoint
-                        key={series.displayKey}
-                        series={series}
-                        onMouseEnter={this.onPointMouseEnter}
-                        onMouseLeave={this.onPointMouseLeave}
-                    />
-                )
-
-            const firstValue = first(series.points)
-            const opacity = isSubtleForeground ? 0.9 : 1
-            const radius = hideConnectedScatterLines
-                ? strokeWidth
-                : strokeWidth / 2 + 1
-            let rotation = PointVector.angle(
-                series.offsetVector,
-                PointVector.up
-            )
-            if (series.offsetVector.x < 0) rotation = -rotation
-            return (
-                <g
-                    id={makeIdForHumanConsumption(
-                        "time-scatter",
-                        series.displayKey
-                    )}
-                    key={series.displayKey}
-                    className={series.displayKey}
-                >
-                    {!hideConnectedScatterLines && (
-                        <MultiColorPolyline
-                            points={series.points.map((point) => ({
-                                x: point.position.x,
-                                y: point.position.y,
-                                color: point.color,
-                            }))}
-                            strokeWidth={strokeWidth}
-                            opacity={opacity}
-                        />
-                    )}
-                    {(series.isFocus || hideConnectedScatterLines) &&
-                        firstValue && (
-                            <circle
-                                cx={firstValue.position.x.toFixed(2)}
-                                cy={firstValue.position.y.toFixed(2)}
-                                r={radius}
-                                fill={firstValue.color}
-                                opacity={opacity}
-                                stroke={firstValue.color}
-                                strokeOpacity={0.6}
+                    if (series.points.length === 1)
+                        return (
+                            <ScatterPoint
+                                key={series.displayKey}
+                                series={series}
+                                onMouseEnter={this.onPointMouseEnter}
+                                onMouseLeave={this.onPointMouseLeave}
                             />
-                        )}
-                    {(series.isHover || hideConnectedScatterLines) &&
-                        series.points
-                            .slice(
-                                1,
-                                hideConnectedScatterLines ? undefined : -1
-                            )
-                            .map((v, index) => (
-                                <circle
-                                    key={index}
-                                    cx={v.position.x}
-                                    cy={v.position.y}
-                                    r={radius}
-                                    fill={v.color}
-                                    stroke="none"
-                                />
-                            ))}
-                    {!hideConnectedScatterLines && (
-                        <Triangle
-                            transform={`rotate(${rotation}, ${lastPoint.position.x.toFixed(
-                                2
-                            )}, ${lastPoint.position.y.toFixed(2)})`}
-                            cx={lastPoint.position.x}
-                            cy={lastPoint.position.y}
-                            r={1.5 + strokeWidth}
-                            fill={lastPoint.color}
-                            opacity={opacity}
-                        />
-                    )}
-                </g>
-            )
-        })
-    }
+                        )
 
-    private renderForegroundLabels(): React.ReactElement[][] {
-        return this.foregroundSeries.map((series) => {
-            return series.allLabels
-                .filter((label) => !label.isHidden)
-                .map((label, index) => (
-                    <Halo
-                        key={`${series.displayKey}-label-${index}`}
-                        id={`${series.displayKey}-label-${index}`}
-                        outlineColor={this.props.backgroundColor}
-                    >
-                        <text
+                    const firstValue = first(series.points)
+                    const opacity = isSubtleForeground ? 0.9 : 1
+                    const radius = hideConnectedScatterLines
+                        ? strokeWidth
+                        : strokeWidth / 2 + 1
+                    let rotation = PointVector.angle(
+                        series.offsetVector,
+                        PointVector.up
+                    )
+                    if (series.offsetVector.x < 0) rotation = -rotation
+                    return (
+                        <g
                             id={makeIdForHumanConsumption(
-                                "scatter-label",
+                                "time-scatter",
                                 series.displayKey
                             )}
-                            x={label.bounds.x.toFixed(2)}
-                            y={(label.bounds.y + label.bounds.height).toFixed(
-                                2
-                            )}
-                            fontSize={label.fontSize}
-                            fontWeight={label.fontWeight}
-                            fill={label.color}
+                            key={series.displayKey}
+                            className={series.displayKey}
                         >
-                            {label.text}
-                        </text>
-                    </Halo>
-                ))
-        })
+                            {!hideConnectedScatterLines && (
+                                <MultiColorPolyline
+                                    points={series.points.map((point) => ({
+                                        x: point.position.x,
+                                        y: point.position.y,
+                                        color: point.color,
+                                    }))}
+                                    strokeWidth={strokeWidth}
+                                    opacity={opacity}
+                                />
+                            )}
+                            {(series.isFocus || hideConnectedScatterLines) &&
+                                firstValue && (
+                                    <circle
+                                        cx={firstValue.position.x.toFixed(2)}
+                                        cy={firstValue.position.y.toFixed(2)}
+                                        r={radius}
+                                        fill={firstValue.color}
+                                        opacity={opacity}
+                                        stroke={firstValue.color}
+                                        strokeOpacity={0.6}
+                                    />
+                                )}
+                            {(series.isHover || hideConnectedScatterLines) &&
+                                series.points
+                                    .slice(
+                                        1,
+                                        hideConnectedScatterLines
+                                            ? undefined
+                                            : -1
+                                    )
+                                    .map((v, index) => (
+                                        <circle
+                                            key={index}
+                                            cx={v.position.x}
+                                            cy={v.position.y}
+                                            r={radius}
+                                            fill={v.color}
+                                            stroke="none"
+                                        />
+                                    ))}
+                            {!hideConnectedScatterLines && (
+                                <Triangle
+                                    transform={`rotate(${rotation}, ${lastPoint.position.x.toFixed(
+                                        2
+                                    )}, ${lastPoint.position.y.toFixed(2)})`}
+                                    cx={lastPoint.position.x}
+                                    cy={lastPoint.position.y}
+                                    r={1.5 + strokeWidth}
+                                    fill={lastPoint.color}
+                                    opacity={opacity}
+                                />
+                            )}
+                        </g>
+                    )
+                })}
+            </g>
+        )
+    }
+
+    private renderForegroundLabels(): React.ReactElement {
+        return (
+            <g id={makeIdForHumanConsumption("labels")}>
+                {this.foregroundSeries.map((series) => {
+                    return series.allLabels
+                        .filter((label) => !label.isHidden)
+                        .map((label, index) => (
+                            <Halo
+                                id={makeIdForHumanConsumption(
+                                    "outline",
+                                    series.seriesName
+                                )}
+                                key={`${series.displayKey}-label-${index}`}
+                                outlineColor={this.props.backgroundColor}
+                            >
+                                <text
+                                    id={makeIdForHumanConsumption(
+                                        "label",
+                                        series.seriesName
+                                    )}
+                                    x={label.bounds.x.toFixed(2)}
+                                    y={(
+                                        label.bounds.y + label.bounds.height
+                                    ).toFixed(2)}
+                                    fontSize={label.fontSize}
+                                    fontWeight={label.fontWeight}
+                                    fill={label.color}
+                                >
+                                    {label.text}
+                                </text>
+                            </Halo>
+                        ))
+                })}
+            </g>
+        )
     }
 
     animSelection?: d3.Selection<

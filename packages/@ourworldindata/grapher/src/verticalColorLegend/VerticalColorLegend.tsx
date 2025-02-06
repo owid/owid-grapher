@@ -177,7 +177,7 @@ export class VerticalColorLegend extends React.Component<{
         const { activeColors } = manager
 
         return (
-            <g>
+            <g id={makeIdForHumanConsumption("swatches")}>
                 {series.map((series) => {
                     const isActive = activeColors.includes(series.color)
 
