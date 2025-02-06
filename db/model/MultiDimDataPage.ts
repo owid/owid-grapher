@@ -41,6 +41,17 @@ export async function isMultiDimDataPagePublished(
     return Boolean(result)
 }
 
+export async function multiDimDataPageExists(
+    knex: KnexReadonlyTransaction,
+    data: Partial<DbPlainMultiDimDataPage>
+): Promise<boolean> {
+    const result = await knex(MultiDimDataPagesTableName)
+        .select(knex.raw("1"))
+        .where(data)
+        .first()
+    return Boolean(result)
+}
+
 const createOnlyPublishedFilter = (
     onlyPublished: boolean
 ): Record<string, any> => (onlyPublished ? { published: true } : {})
@@ -102,5 +113,15 @@ export const getMultiDimDataPageBySlug = async (
         .where({ slug, ...createOnlyPublishedFilter(onlyPublished) })
         .first()
 
+    return row ? enrichRow(row) : undefined
+}
+
+export async function getMultiDimDataPageById(
+    knex: KnexReadonlyTransaction,
+    id: number
+): Promise<DbEnrichedMultiDimDataPage | undefined> {
+    const row = await knex<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
+        .where({ id })
+        .first()
     return row ? enrichRow(row) : undefined
 }
