@@ -135,7 +135,10 @@ class LineLabels extends React.Component<{
 
                     return (
                         <Halo
-                            id={series.seriesName}
+                            id={makeIdForHumanConsumption(
+                                "outline",
+                                series.seriesName
+                            )}
                             key={getSeriesKey(series, index)}
                             show={this.showTextOutline}
                             outlineColor={this.textOutlineColor}
@@ -143,7 +146,13 @@ class LineLabels extends React.Component<{
                             {series.textWrapForRendering.renderSVG(
                                 labelText.x,
                                 labelText.y,
-                                { textProps }
+                                {
+                                    textProps,
+                                    id: makeIdForHumanConsumption(
+                                        "label",
+                                        series.seriesName
+                                    ),
+                                }
                             )}
                         </Halo>
                     )
