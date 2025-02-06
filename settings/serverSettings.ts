@@ -78,9 +78,6 @@ export const ALGOLIA_SECRET_KEY: string =
 export const ALGOLIA_INDEXING: boolean =
     serverSettings.ALGOLIA_INDEXING === "true"
 
-// Wordpress target setting
-export const HTTPS_ONLY: boolean = serverSettings.HTTPS_ONLY !== "false"
-
 export const GIT_DATASETS_DIR: string =
     serverSettings.GIT_DATASETS_DIR ?? `${BASE_DIR}/datasetsExport` //  Where the git exports go
 export const TMP_DIR: string = serverSettings.TMP_DIR ?? "/tmp"
