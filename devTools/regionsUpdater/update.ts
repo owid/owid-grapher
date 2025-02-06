@@ -31,7 +31,10 @@ const ETL_REGIONS_URL =
         MKD: ["Macedonia"],
         SWZ: ["Swaziland"],
         USA: ["US", "USA"],
-    }
+    },
+    // we want to exclude income groups for now, until we can properly display the user's
+    // income group in the UI
+    REGIONS_TO_EXCLUDE = ["OWID_HIC", "OWID_UMC", "OWID_LMC", "OWID_LIC"]
 
 interface Entity {
     code: string
@@ -203,8 +206,10 @@ async function main() {
         transform: csvToJson,
     })
 
-    // strip out empty rows and make sure entities are sorted
-    data = _.sortBy(data, "code").filter((c: any) => !!c.code)
+    // strip out empty and excluded rows and make sure entities are sorted
+    data = _.sortBy(data, "code")
+        .filter((c: any) => !!c.code)
+        .filter((c: any) => !REGIONS_TO_EXCLUDE.includes(c.code))
 
     const entities = _.map(data as Entity[], (entity) => {
         // drop redundant attrs
