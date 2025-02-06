@@ -12,7 +12,10 @@ import { DualAxis } from "../axis/Axis"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { Halo } from "@ourworldindata/components"
 import { Color, ComparisonLineConfig } from "@ourworldindata/types"
-import { GRAPHER_FONT_SCALE_10_5 } from "../core/GrapherConstants"
+import {
+    GRAPHER_FONT_SCALE_10_5,
+    GRAPHER_TEXT_OUTLINE_FACTOR,
+} from "../core/GrapherConstants"
 
 @observer
 export class ComparisonLine extends React.Component<{
@@ -85,6 +88,8 @@ export class ComparisonLine extends React.Component<{
         const { innerBounds } = this.props.dualAxis
         const { linePath, renderUid, placedLabel } = this
 
+        const fontSize = GRAPHER_FONT_SCALE_10_5 * this.props.baseFontSize
+
         return (
             <g
                 id={makeIdForHumanConsumption("comparison-line")}
@@ -114,9 +119,7 @@ export class ComparisonLine extends React.Component<{
                 {placedLabel && (
                     <text
                         style={{
-                            fontSize:
-                                GRAPHER_FONT_SCALE_10_5 *
-                                this.props.baseFontSize,
+                            fontSize,
                             opacity: 0.9,
                             textAnchor: "end",
                             fill: "#999",
@@ -125,6 +128,9 @@ export class ComparisonLine extends React.Component<{
                     >
                         <Halo
                             id={`path-${renderUid}`}
+                            outlineWidth={
+                                GRAPHER_TEXT_OUTLINE_FACTOR * fontSize
+                            }
                             outlineColor={this.props.backgroundColor}
                         >
                             <textPath

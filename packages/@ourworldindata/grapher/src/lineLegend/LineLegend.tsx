@@ -21,7 +21,11 @@ import {
     SeriesName,
     VerticalAlign,
 } from "@ourworldindata/types"
-import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    GRAPHER_FONT_SCALE_12,
+    GRAPHER_TEXT_OUTLINE_FACTOR,
+} from "../core/GrapherConstants"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import { GRAPHER_BACKGROUND_DEFAULT, GRAY_30 } from "../color/ColorConstants"
@@ -141,6 +145,10 @@ class LineLabels extends React.Component<{
                             )}
                             key={getSeriesKey(series, index)}
                             show={this.showTextOutline}
+                            outlineWidth={
+                                GRAPHER_TEXT_OUTLINE_FACTOR *
+                                series.textWrapForRendering.fontSize
+                            }
                             outlineColor={this.textOutlineColor}
                         >
                             {series.textWrapForRendering.renderSVG(
@@ -175,6 +183,10 @@ class LineLabels extends React.Component<{
                             id={series.seriesName}
                             key={getSeriesKey(series, index)}
                             show={this.showTextOutline}
+                            outlineWidth={
+                                GRAPHER_TEXT_OUTLINE_FACTOR *
+                                series.annotationTextWrap.fontSize
+                            }
                             outlineColor={this.textOutlineColor}
                         >
                             {series.annotationTextWrap.renderSVG(

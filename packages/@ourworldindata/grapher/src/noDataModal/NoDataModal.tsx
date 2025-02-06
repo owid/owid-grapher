@@ -12,6 +12,7 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
+    GRAPHER_TEXT_OUTLINE_FACTOR,
 } from "../core/GrapherConstants"
 import { Halo } from "@ourworldindata/components"
 import { GRAPHER_DARK_TEXT, GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
@@ -65,12 +66,16 @@ export class NoDataModal extends React.Component<{
         const center = bounds.centerPos
         const padding = 0.75 * this.fontSize
         const showHelpText = !isStatic && !!helpText
+        const helpTextFontSize = 0.9 * this.fontSize
 
         return (
             <g className="no-data">
                 <rect {...bounds.toProps()} fill="#fff" opacity={0.6} />
 
-                <Halo id="no-data-message">
+                <Halo
+                    id="no-data-message"
+                    outlineWidth={GRAPHER_TEXT_OUTLINE_FACTOR * this.fontSize}
+                >
                     <text
                         x={center.x}
                         y={center.y}
@@ -89,13 +94,18 @@ export class NoDataModal extends React.Component<{
                 </Halo>
 
                 {showHelpText && (
-                    <Halo id="no-data-help">
+                    <Halo
+                        id="no-data-help"
+                        outlineWidth={
+                            GRAPHER_TEXT_OUTLINE_FACTOR * helpTextFontSize
+                        }
+                    >
                         <text
                             x={center.x}
                             y={center.y + padding / 2}
                             textAnchor="middle"
                             dy={dyFromAlign(VerticalAlign.bottom)}
-                            fontSize={0.9 * this.fontSize}
+                            fontSize={helpTextFontSize}
                             fill={GRAPHER_LIGHT_TEXT}
                         >
                             {helpText}
