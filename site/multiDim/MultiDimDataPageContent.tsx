@@ -3,6 +3,7 @@ import {
     Grapher,
     GrapherAnalytics,
     GrapherProgrammaticInterface,
+    GrapherState,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import {
@@ -119,7 +120,9 @@ const cachedGetGrapherConfigByUuid = memoize(
         isPreviewing: boolean
     ): Promise<GrapherInterface> => {
         return fetchWithRetry(
-            `/grapher/by-uuid/${grapherConfigUuid}.config.json${isPreviewing ? "?nocache" : ""}`
+            `/grapher/by-uuid/${grapherConfigUuid}.config.json${
+                isPreviewing ? "?nocache" : ""
+            }`
         ).then((resp) => resp.json())
     }
 )
@@ -259,17 +262,17 @@ export const MultiDimDataPageContent = ({
     // This is the ACTUAL grapher instance being used, because GrapherFigureView/GrapherWithFallback are doing weird things and are not actually using the grapher instance we pass into it
     // and therefore we can not access the grapher state (e.g. tab, selection) from the grapher instance we pass into it
     // TODO we should probably fix that? seems sensible? change GrapherFigureView around a bit to use the actual grapher inst? or pass a GrapherProgrammaticInterface to it instead?
-    const [grapherInst, setGrapherInst] = useState<Grapher | null>(null)
+    const [grapherState, setGrapherState] = useState<GrapherState | null>(null)
 
     // De-mobx grapher.changedParams by transforming it into React state
     const grapherChangedParams = useMobxStateToReactState(
-        useCallback(() => grapherInst?.changedParams, [grapherInst]),
-        !!grapherInst
+        useCallback(() => grapherState?.changedParams, [grapherState]),
+        !!grapherState
     )
 
     const grapherCurrentTitle = useMobxStateToReactState(
-        useCallback(() => grapherInst?.currentTitle, [grapherInst]),
-        !!grapherInst
+        useCallback(() => grapherState?.currentTitle, [grapherState]),
+        !!grapherState
     )
 
     useEffect(() => {
@@ -326,6 +329,13 @@ export const MultiDimDataPageContent = ({
         canonicalUrl,
         currentView?.indicators,
     ])
+
+    // TODO: 2025-01-05 Daniel - this is an inefficient way of doing things
+    // switch to fetching grapher instead but make it work with updating the config
+    useEffect(() => {
+        if (!grapherConfigIsReady) return
+        setGrapherState(new GrapherState(grapherConfigComputed))
+    }, [grapherConfigComputed, grapherConfigIsReady])
 
     const hasTopicTags = !!config.config.topicTags?.length
 
@@ -398,14 +408,16 @@ export const MultiDimDataPageContent = ({
                             className="GrapherWithFallback full-width-on-mobile"
                         >
                             <figure data-grapher-src ref={grapherFigureRef}>
-                                <Grapher
-                                    key={JSON.stringify(
-                                        omit(grapherConfigComputed, ["bounds"])
-                                    )}
-                                    {...grapherConfigComputed}
-                                    queryStr={queryStr}
-                                    getGrapherInstance={setGrapherInst}
-                                />
+                                {grapherState && ( // TODO: we should always render something here
+                                    <Grapher
+                                        key={JSON.stringify(
+                                            omit(grapherConfigComputed, [
+                                                "bounds",
+                                            ])
+                                        )}
+                                        grapherState={grapherState}
+                                    />
+                                )}
                             </figure>
                         </div>
                         {varDatapageData && (

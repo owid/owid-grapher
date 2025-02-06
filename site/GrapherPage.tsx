@@ -76,7 +76,6 @@ export const GrapherPage = (props: {
 window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
-
     return (
         <Html>
             <Head
