@@ -1,6 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { runInAction, observable } from "mobx"
+import { runInAction, observable, computed, action } from "mobx"
 import { bind } from "decko"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
@@ -8,11 +8,19 @@ import {
     GrapherInterface,
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_OPTIONS,
+    SortOrder,
 } from "@ourworldindata/types"
-import { startCase, DbChartTagJoin } from "@ourworldindata/utils"
+import { startCase, DbChartTagJoin, sortNumeric } from "@ourworldindata/utils"
 import { getFullReferencesCount } from "./ChartEditor.js"
 import { ChartRow } from "./ChartRow.js"
 import { References } from "./AbstractChartEditor.js"
+import {
+    SearchWord,
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+    highlightFunctionForSearchWords,
+} from "../adminShared/search.js"
+import { TextField } from "./Forms.js"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {
@@ -49,14 +57,14 @@ export type SortConfig = {
 @observer
 export class ChartList extends React.Component<{
     charts: ChartListItem[]
-    searchHighlight?: (text: string) => string | React.ReactElement
     onDelete?: (chart: ChartListItem) => void
-    onSort?: (sort: SortConfig) => void
-    sortConfig?: SortConfig
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
+    @observable searchInput?: string
+    @observable maxVisibleCharts = 50
+    @observable sortConfig?: SortConfig
     @observable availableTags: DbChartTagJoin[] = []
 
     async fetchRefs(grapherId: number | undefined): Promise<References> {
@@ -112,13 +120,100 @@ export class ChartList extends React.Component<{
         runInAction(() => (this.availableTags = json.tags))
     }
 
+    getSearchInputFromUrl(): string {
+        const params = new URLSearchParams(window.location.search)
+        return params.get("chartSearch") || ""
+    }
+
+    setSearchInputInUrl(searchInput: string) {
+        const params = new URLSearchParams(window.location.search)
+        if (searchInput) {
+            params.set("chartSearch", searchInput)
+        } else {
+            params.delete("chartSearch")
+        }
+        const newUrl = `${window.location.pathname}?${params.toString()}`
+        window.history.replaceState({}, "", newUrl)
+    }
+
     componentDidMount() {
+        this.searchInput = this.getSearchInputFromUrl()
         void this.getTags()
     }
 
+    @action.bound onSort(sortConfig: SortConfig) {
+        this.sortConfig = sortConfig
+    }
+
+    @computed get searchWords(): SearchWord[] {
+        const { searchInput } = this
+        return buildSearchWordsFromSearchString(searchInput)
+    }
+
+    @computed get numTotalCharts() {
+        return this.chartsFiltered.length
+    }
+
+    @computed get chartsFiltered(): ChartListItem[] {
+        const { searchWords } = this
+        const { charts } = this.props
+        if (searchWords.length > 0) {
+            const filterFn = filterFunctionForSearchWords(
+                searchWords,
+                (chart: ChartListItem) => [
+                    chart.title,
+                    chart.variantName,
+                    chart.internalNotes,
+                    chart.publishedBy,
+                    chart.lastEditedBy,
+                    `${chart.id}`,
+                    chart.slug,
+                    chart.hasChartTab !== false ? chart.type : undefined,
+                    chart.hasMapTab ? "Map" : undefined,
+                    ...chart.tags.map((tag) => tag.name),
+                ]
+            )
+            return charts.filter(filterFn)
+        } else return charts
+    }
+
+    @computed get chartsSorted(): ChartListItem[] {
+        const { chartsFiltered } = this
+        if (!this.sortConfig) return chartsFiltered
+
+        const { direction } = this.sortConfig
+        return sortNumeric(
+            [...chartsFiltered],
+            (chart) => chart.pageviewsPerDay,
+            direction === "asc" ? SortOrder.asc : SortOrder.desc
+        )
+    }
+
+    @computed get chartsToShow(): ChartListItem[] {
+        return this.chartsSorted.slice(0, this.maxVisibleCharts)
+    }
+
+    @action.bound onSearchInput(input: string) {
+        this.searchInput = input
+        this.setSearchInputInUrl(input)
+    }
+
+    @action.bound onShowMore() {
+        this.maxVisibleCharts += 100
+    }
+
     render() {
-        const { charts, searchHighlight, sortConfig, onSort } = this.props
+        const {
+            sortConfig,
+            onSort,
+            chartsToShow,
+            numTotalCharts,
+            searchInput,
+        } = this
         const { availableTags } = this
+
+        const highlight = highlightFunctionForSearchWords(this.searchWords)
+        const hasMoreCharts = this.chartsFiltered.length > this.maxVisibleCharts
 
         const getSortIndicator = () => {
             if (!sortConfig || sortConfig.field !== "pageviewsPerDay") return ""
@@ -127,53 +222,81 @@ export class ChartList extends React.Component<{
 
         const handleSortClick = () => {
             if (!sortConfig || sortConfig.field !== "pageviewsPerDay") {
-                onSort?.({ field: "pageviewsPerDay", direction: "desc" })
+                onSort({ field: "pageviewsPerDay", direction: "desc" })
             } else if (sortConfig.direction === "desc") {
-                onSort?.({ field: "pageviewsPerDay", direction: "asc" })
+                onSort({ field: "pageviewsPerDay", direction: "asc" })
             } else {
-                onSort?.(null)
+                onSort(null)
             }
         }
 
         // if the first chart has inheritance information, we assume all charts have it
         const showInheritanceColumn =
-            charts[0]?.isInheritanceEnabled !== undefined
+            chartsToShow[0]?.isInheritanceEnabled !== undefined
 
         return (
-            <table className="table table-bordered">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Chart</th>
-                        <th>Id</th>
-                        <th>Type</th>
-                        {showInheritanceColumn && <th>Inheritance</th>}
-                        <th>Tags</th>
-                        <th>Published</th>
-                        <th>Last Updated</th>
-                        <th
-                            style={{ cursor: "pointer" }}
-                            onClick={handleSortClick}
-                        >
-                            views/day{getSortIndicator()}
-                        </th>
-                        <th></th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {charts.map((chart) => (
-                        <ChartRow
-                            chart={chart}
-                            key={chart.id}
-                            availableTags={availableTags}
-                            searchHighlight={searchHighlight}
-                            onDelete={this.onDeleteChart}
-                            showInheritanceColumn={showInheritanceColumn}
-                        />
-                    ))}
-                </tbody>
-            </table>
+            <div className="ChartList">
+                <div className="topRow">
+                    <span>
+                        Showing {chartsToShow.length} of {numTotalCharts} charts
+                        {searchInput && (
+                            <>
+                                {" "}
+                                for "{searchInput}" ({this.props.charts.length}{" "}
+                                total)
+                            </>
+                        )}
+                    </span>
+                    <TextField
+                        placeholder="Search all charts..."
+                        value={searchInput}
+                        onValue={this.onSearchInput}
+                        autofocus
+                    />
+                </div>
+                <table className="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Chart</th>
+                            <th>Id</th>
+                            <th>Type</th>
+                            {showInheritanceColumn && <th>Inheritance</th>}
+                            <th>Tags</th>
+                            <th>Published</th>
+                            <th>Last Updated</th>
+                            <th
+                                style={{ cursor: "pointer" }}
+                                onClick={handleSortClick}
+                            >
+                                views/day{getSortIndicator()}
+                            </th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {chartsToShow.map((chart) => (
+                            <ChartRow
+                                chart={chart}
+                                key={chart.id}
+                                availableTags={availableTags}
+                                searchHighlight={highlight}
+                                onDelete={this.onDeleteChart}
+                                showInheritanceColumn={showInheritanceColumn}
+                            />
+                        ))}
+                    </tbody>
+                </table>
+                {hasMoreCharts && (
+                    <button
+                        className="btn btn-secondary"
+                        onClick={this.onShowMore}
+                    >
+                        Show more charts...
+                    </button>
+                )}
+            </div>
         )
     }
 }

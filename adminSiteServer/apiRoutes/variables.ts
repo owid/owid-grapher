@@ -243,14 +243,16 @@ export async function getVariablesVariableIdJson(
     >(
         trx,
         `-- sql
-                SELECT ${oldChartFieldList}, charts.isInheritanceEnabled, chart_configs.full AS config
+                SELECT ${oldChartFieldList}, charts.isInheritanceEnabled, chart_configs.full AS config,
+                    round(views_365d / 365, 1) as pageviewsPerDay
                 FROM charts
                 JOIN chart_configs ON chart_configs.id = charts.configId
                 JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
                 LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+                LEFT JOIN analytics_pageviews on (analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug) AND chart_configs.full ->> '$.isPublished' = "true" )
                 JOIN chart_dimensions cd ON cd.chartId = charts.id
                 WHERE cd.variableId = ?
-                GROUP BY charts.id
+                GROUP BY charts.id, views_365d
             `,
         [variableId]
     )
