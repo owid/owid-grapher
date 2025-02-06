@@ -18,6 +18,7 @@ import {
     HorizontalAlign,
     Color,
     uniq,
+    makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
@@ -141,6 +142,10 @@ export class FacetChart
 
     @computed private get chartTypeName(): GrapherChartType {
         return this.props.chartTypeName ?? GRAPHER_CHART_TYPES.LineChart
+    }
+
+    @computed get isStatic(): boolean {
+        return !!this.manager.isStatic
     }
 
     @computed get failMessage(): string {
@@ -267,6 +272,7 @@ export class FacetChart
             missingDataStrategy,
             backgroundColor,
             focusArray,
+            isStatic,
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
@@ -324,6 +330,7 @@ export class FacetChart
                 backgroundColor,
                 hideNoDataSection,
                 focusArray,
+                isStatic,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
@@ -896,10 +903,12 @@ export class FacetChart
                                 {shortenedLabel}
                                 <title>{seriesName}</title>
                             </text>
-                            <ChartClass
-                                bounds={bounds}
-                                manager={facetChart.manager}
-                            />
+                            <g id={makeIdForHumanConsumption(seriesName)}>
+                                <ChartClass
+                                    bounds={bounds}
+                                    manager={facetChart.manager}
+                                />
+                            </g>
                         </React.Fragment>
                     )
                 })}
