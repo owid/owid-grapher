@@ -20,11 +20,13 @@ import {
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { DbEnrichedImageWithUserId, DbPlainUser } from "@ourworldindata/types"
+import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 import { Timeago } from "./Forms.js"
 import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faClose,
+    faDownload,
     faRobot,
     faSave,
     faUpload,
@@ -236,6 +238,52 @@ function UsageViewer({ usage }: { usage: UsageInfo[] | undefined }) {
     )
 }
 
+function makeImageSrc(cloudflareId: string, width: number) {
+    return `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(cloudflareId)}/w=${width}`
+}
+
+async function downloadImage(
+    filename: string,
+    cloudflareId: string,
+    originalWidth: number
+) {
+    const src = makeImageSrc(cloudflareId, originalWidth)
+    const response = await fetch(src)
+    const blob = await response.blob()
+    triggerDownloadFromBlob(filename, blob)
+}
+
+function Filename({
+    filename,
+    cloudflareId,
+    originalWidth,
+}: {
+    filename: string
+    cloudflareId: string | null
+    originalWidth: number | null
+}) {
+    return (
+        <>
+            {filename}
+            {cloudflareId && originalWidth && (
+                <Button
+                    type="link"
+                    size="small"
+                    icon={<FontAwesomeIcon icon={faDownload} />}
+                    aria-label="Download"
+                    onClick={() => {
+                        void downloadImage(
+                            filename,
+                            cloudflareId,
+                            originalWidth
+                        )
+                    }}
+                />
+            )}
+        </>
+    )
+}
+
 function createColumns({
     api,
     users,
@@ -254,19 +302,15 @@ function createColumns({
             width: 100,
             key: "cloudflareId",
             render: (cloudflareId, { originalWidth, originalHeight }) => {
-                const srcFor = (w: number) =>
-                    `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(
-                        cloudflareId
-                    )}/w=${w}`
                 return (
                     <div style={{ height: 100, width: 100 }} key={cloudflareId}>
                         <a
                             target="_blank"
-                            href={`${srcFor(originalWidth!)}`}
+                            href={makeImageSrc(cloudflareId, originalWidth!)}
                             rel="noopener"
                         >
                             <img
-                                src={`${srcFor(200)}`}
+                                src={makeImageSrc(cloudflareId, 200)}
                                 width="100"
                                 height={
                                     (originalHeight! / originalWidth!) * 100
@@ -282,6 +326,13 @@ function createColumns({
             dataIndex: "filename",
             key: "filename",
             width: 200,
+            render: (filename, { cloudflareId, originalWidth }) => (
+                <Filename
+                    filename={filename}
+                    cloudflareId={cloudflareId}
+                    originalWidth={originalWidth}
+                />
+            ),
         },
         {
             title: "Alt text",
