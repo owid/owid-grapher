@@ -1981,6 +1981,43 @@ export function createTagGraph(
     return recursivelySetChildren(tagGraph) as TagGraphRoot
 }
 
+export const getAllChildrenOfArea = (area: TagGraphNode): TagGraphNode[] => {
+    const children = []
+    for (const child of area.children) {
+        children.push(child)
+        children.push(...getAllChildrenOfArea(child))
+    }
+    return children
+}
+
+/**
+ * topicTagGraph.json includes sub-areas: non-topic tags that have topic children
+ * e.g. "Health" is an area, "Life & Death" is a sub-area, and "Life Expectancy" is a topic,
+ * This function flattens the graph by removing sub-areas and moving their children up to the area level
+ * e.g. "Life Expectancy" becomes a child of "Health" instead of "Life & Death"
+ * We need this because the all-topics section on the homepage renders sub-areas, but the site nav doesn't
+ * Note that topics can have children (e.g. "Air Pollution" is a topic, and "Indoor Air Pollution" is a sub-topic)
+ * Such cases are not flattened here, but in the frontend with getAllChildrenOfArea
+ */
+export function flattenNonTopicNodes(tagGraph: TagGraphRoot): TagGraphRoot {
+    const flattenNodes = (nodes: TagGraphNode[]): TagGraphNode[] =>
+        nodes.flatMap((node) =>
+            !node.isTopic && node.children.length
+                ? flattenNodes(node.children)
+                : node.isTopic
+                  ? [{ ...node, children: flattenNodes(node.children) }]
+                  : []
+        )
+
+    return {
+        ...tagGraph,
+        children: tagGraph.children.map((area) => ({
+            ...area,
+            children: flattenNodes(area.children),
+        })),
+    }
+}
+
 export function formatInlineList(
     array: unknown[],
     connector: "and" | "or" = "and"

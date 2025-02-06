@@ -35,6 +35,7 @@ import {
     BreadcrumbItem,
     PostsGdocsTableName,
     OwidGdocBaseInterface,
+    TagGraphRoot,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -533,6 +534,7 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
             tg.parentId,
             tg.childId,
             tg.weight,
+            t.slug,
             t.name,
             p.slug IS NOT NULL AS isTopic
         FROM
@@ -883,4 +885,69 @@ export function getImageUsage(trx: KnexReadonlyTransaction): Promise<
             results.map((result) => [result.imageId, JSON.parse(result.posts)])
         )
     )
+}
+
+// A topic is any tag that has a slug.
+// We want to keep tags that have topic children (i.e. areas and sub-areas) but not leaf nodes that aren't topics
+function checkDoesFlatTagGraphNodeHaveAnyTopicChildren(
+    node: FlatTagGraphNode,
+    flatTagGraph: FlatTagGraph
+): boolean {
+    if (node.isTopic) return true
+    const children = flatTagGraph[node.childId]
+    if (!children) return false
+    return children.some((child) =>
+        checkDoesFlatTagGraphNodeHaveAnyTopicChildren(child, flatTagGraph)
+    )
+}
+
+export async function generateTopicTagGraph(
+    knex: KnexReadonlyTransaction
+): Promise<TagGraphRoot> {
+    const { __rootId, ...parents } = await getFlatTagGraph(knex)
+
+    const tagGraphTopicsOnly = Object.entries(parents).reduce(
+        (acc: FlatTagGraph, [parentId, children]) => {
+            acc[Number(parentId)] = children.filter((child) => {
+                if (child.parentId === __rootId) return true
+                return checkDoesFlatTagGraphNodeHaveAnyTopicChildren(
+                    child,
+                    parents
+                )
+            })
+            return acc
+        },
+        {} as FlatTagGraph
+    )
+
+    return createTagGraph(tagGraphTopicsOnly, __rootId)
+}
+
+export const getUniqueTopicCount = async (
+    trx: KnexReadonlyTransaction
+): Promise<number> => {
+    const count = await knexRawFirst<{ count: number }>(
+        trx,
+        `-- sql
+        SELECT COUNT(DISTINCT(t.slug)) AS count
+        FROM tags t
+        LEFT JOIN posts_gdocs p ON t.slug = p.slug
+        WHERE t.slug IS NOT NULL AND p.published IS true
+        AND p.type IN (:types)`,
+        {
+            types: [
+                OwidGdocType.TopicPage,
+                OwidGdocType.LinearTopicPage,
+                OwidGdocType.Article,
+            ],
+        }
+    )
+        .then((res) => (res ? res.count : 0))
+        .catch((e) => {
+            console.error("Failed to get unique topic count", e)
+            throw e
+        })
+    // throw on count == 0 also
+    if (!count) throw new Error("Failed to get unique topic count")
+    return count
 }
