@@ -13,7 +13,7 @@ import _ from "lodash"
 
 const ETL_REGIONS_URL =
         process.env.ETL_REGIONS_URL ||
-        "https://catalog.ourworldindata.org/grapher/regions/latest/regions/regions.csv",
+        "https://catalog.ourworldindata.org/external/owid_grapher/latest/regions/regions.csv",
     GEO_JSON_URL =
         "https://raw.githubusercontent.com/alexabruck/worldmap-sensitive/master/dist/world.geo.json",
     GRAPHER_ROOT = __dirname.replace(/\/(itsJustJavascript\/)?devTools.*/, ""),
@@ -31,7 +31,10 @@ const ETL_REGIONS_URL =
         MKD: ["Macedonia"],
         SWZ: ["Swaziland"],
         USA: ["US", "USA"],
-    }
+    },
+    // we want to exclude income groups for now, until we can properly display the user's
+    // income group in the UI
+    REGIONS_TO_EXCLUDE = ["OWID_HIC", "OWID_UMC", "OWID_LMC", "OWID_LIC"]
 
 interface Entity {
     code: string
@@ -203,8 +206,10 @@ async function main() {
         transform: csvToJson,
     })
 
-    // strip out empty rows and make sure entities are sorted
-    data = _.sortBy(data, "code").filter((c: any) => !!c.code)
+    // strip out empty and excluded rows and make sure entities are sorted
+    data = _.sortBy(data, "code")
+        .filter((c: any) => !!c.code)
+        .filter((c: any) => !REGIONS_TO_EXCLUDE.includes(c.code))
 
     const entities = _.map(data as Entity[], (entity) => {
         // drop redundant attrs
