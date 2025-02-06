@@ -1,4 +1,5 @@
 import { useContext } from "react"
+import urljoin from "url-join"
 import cx from "classnames"
 import {
     EnrichedBlockAllCharts,
@@ -9,6 +10,8 @@ import {
 } from "@ourworldindata/utils"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { RelatedCharts } from "../../blocks/RelatedCharts.js"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { Button } from "@ourworldindata/components"
 
 type AllChartsProps = EnrichedBlockAllCharts & {
     className?: string
@@ -42,8 +45,13 @@ function sortRelatedCharts(
 
 export function AllCharts(props: AllChartsProps) {
     const { heading, top, className } = props
-    const { relatedCharts } = useContext(AttachmentsContext)
+    const { relatedCharts, tags } = useContext(AttachmentsContext)
     const topSlugs = top.map((item) => Url.fromURL(item.url).slug as string)
+
+    const firstTag = tags[0]
+    const firstTagDataCatalogQueryString = firstTag
+        ? `?topics=${firstTag.name}`
+        : ""
 
     const sortedRelatedCharts = sortRelatedCharts(relatedCharts, topSlugs)
     return (
@@ -52,13 +60,20 @@ export function AllCharts(props: AllChartsProps) {
                 className="article-block__heading h1-semibold"
                 id={ALL_CHARTS_ID}
             >
-                <span>{heading}</span>
+                <span>
+                    {firstTag ? `Key Charts on ${firstTag.name}` : heading}
+                </span>
                 <a
                     className="deep-link"
                     aria-labelledby={ALL_CHARTS_ID}
                     href={`#${ALL_CHARTS_ID}`}
                 />
             </h1>
+            <Button
+                theme="solid-vermillion"
+                text="See all charts on this topic"
+                href={`${urljoin(BAKED_BASE_URL, `/data`, firstTagDataCatalogQueryString)}`}
+            />
             <RelatedCharts
                 showKeyChartsOnly={true}
                 charts={sortedRelatedCharts}
