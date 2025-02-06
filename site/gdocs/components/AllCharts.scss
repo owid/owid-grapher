@@ -1,6 +1,27 @@
 .article-block__all-charts {
     h1.h1-semibold {
-        margin-bottom: 40px;
+        margin: 0;
+        flex: 1 1 0%;
+    }
+
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+
+    .owid-btn {
+        align-self: start;
+        @include sm-only {
+            order: 3;
+            margin-top: 24px;
+            width: 100%;
+        }
+    }
+
+    .related-charts {
+        flex-basis: 100%;
+        margin-top: 40px;
     }
 
     figure[data-grapher-src]:not(.grapherPreview) {

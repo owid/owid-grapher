@@ -414,6 +414,8 @@ ${dataInsights
                     homepageMetadata: get(post, "homepageMetadata", {}),
                     latestWorkLinks: get(post, "latestWorkLinks", []),
                     linkedChartViews: get(post, "linkedChartViews", {}),
+                    // lodash doesn't use fallback when value is null
+                    tags: post.tags ?? [],
                 }}
             >
                 <AtomArticleBlocks blocks={post.content.body} />
