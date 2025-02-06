@@ -5,6 +5,7 @@ interface HaloProps {
     id: string
     children: React.ReactElement
     show?: boolean
+    outlineWidth: number
     outlineColor?: Color
     style?: React.CSSProperties
 }
@@ -14,7 +15,6 @@ const defaultHaloStyle: React.CSSProperties = {
     stroke: "#fff",
     strokeLinecap: "round",
     strokeLinejoin: "round",
-    strokeWidth: ".25em",
     userSelect: "none",
 }
 
@@ -24,6 +24,7 @@ export function Halo(props: HaloProps): React.ReactElement {
 
     const defaultStyle = {
         ...defaultHaloStyle,
+        strokeWidth: props.outlineWidth,
         fill: props.outlineColor ?? defaultHaloStyle.fill,
         stroke: props.outlineColor ?? defaultHaloStyle.stroke,
     }

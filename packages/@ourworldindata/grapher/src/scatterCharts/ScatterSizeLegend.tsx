@@ -13,6 +13,7 @@ import {
     BASE_FONT_SIZE,
     GRAPHER_FONT_SCALE_10,
     GRAPHER_FONT_SCALE_11,
+    GRAPHER_TEXT_OUTLINE_FACTOR,
 } from "../core/GrapherConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
@@ -293,11 +294,6 @@ const LegendItem = ({
     outsideLabel?: boolean
     backgroundColor?: Color
 }): React.ReactElement => {
-    const style: React.CSSProperties = {
-        fontSize: labelFontSize,
-        fontWeight: labelFontWeight,
-        textAnchor: "middle",
-    }
     return (
         <g>
             <circle
@@ -311,15 +307,17 @@ const LegendItem = ({
             />
             <Halo
                 id={label}
+                outlineWidth={GRAPHER_TEXT_OUTLINE_FACTOR * labelFontSize}
                 outlineColor={backgroundColor}
-                style={{ ...style, strokeWidth: 3.5 }}
             >
                 <text
                     x={cx}
                     y={cy - circleRadius}
                     dy={outsideLabel ? "-.32em" : ".47em"}
                     fill={labelFill}
-                    style={style}
+                    fontSize={labelFontSize}
+                    fontWeight={labelFontWeight}
+                    textAnchor="middle"
                 >
                     {label}
                 </text>

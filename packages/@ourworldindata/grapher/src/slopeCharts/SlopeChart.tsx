@@ -22,6 +22,7 @@ import {
     BASE_FONT_SIZE,
     GRAPHER_FONT_SCALE_12,
     GRAPHER_OPACITY_MUTE,
+    GRAPHER_TEXT_OUTLINE_FACTOR,
 } from "../core/GrapherConstants"
 import {
     ScaleType,
@@ -1242,6 +1243,9 @@ export class SlopeChart
             return (
                 <Halo
                     id="x-axis-zero-label"
+                    outlineWidth={
+                        GRAPHER_TEXT_OUTLINE_FACTOR * this.lineLegendFontSize
+                    }
                     outlineColor={this.backgroundColor}
                 >
                     <text

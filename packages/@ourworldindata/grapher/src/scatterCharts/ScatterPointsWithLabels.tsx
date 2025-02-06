@@ -40,6 +40,7 @@ import {
 } from "./ScatterUtils"
 import { Triangle } from "./Triangle"
 import { ColorScale } from "../color/ColorScale"
+import { GRAPHER_TEXT_OUTLINE_FACTOR } from "../core/GrapherConstants"
 
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
@@ -433,6 +434,9 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                                     "outline",
                                     series.seriesName
                                 )}
+                                outlineWidth={
+                                    GRAPHER_TEXT_OUTLINE_FACTOR * label.fontSize
+                                }
                                 outlineColor={this.props.backgroundColor}
                             >
                                 <text
@@ -580,6 +584,9 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                                     series.seriesName
                                 )}
                                 key={`${series.displayKey}-label-${index}`}
+                                outlineWidth={
+                                    GRAPHER_TEXT_OUTLINE_FACTOR * label.fontSize
+                                }
                                 outlineColor={this.props.backgroundColor}
                             >
                                 <text
