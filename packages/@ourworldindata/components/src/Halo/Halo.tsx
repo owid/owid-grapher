@@ -6,7 +6,6 @@ const defaultHaloStyle: React.CSSProperties = {
     stroke: "#fff",
     strokeLinecap: "round",
     strokeLinejoin: "round",
-    strokeWidth: ".25em",
     userSelect: "none",
 }
 
@@ -22,6 +21,11 @@ export function Halo(props: {
 
     const defaultStyle = {
         ...defaultHaloStyle,
+        // Figma doesn't support stroke widths using ems, so we use pixels
+        // if we can and fallback to ems if we can't
+        strokeWidth: props.children.props.fontSize
+            ? props.children.props.fontSize * 0.25
+            : ".25em",
         fill: props.outlineColor ?? defaultHaloStyle.fill,
         stroke: props.outlineColor ?? defaultHaloStyle.stroke,
     }
