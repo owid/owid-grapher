@@ -95,3 +95,48 @@ svg.chart-hit-icon {
         }
     }
 }
+
+.chart-hit-textual {
+    // border-bottom: 1px solid $gray-20;
+    padding-bottom: 24px;
+}
+
+.chart-hit-textual__description {
+    margin-top: 32px;
+    font-size: 1.5rem;
+    a {
+        @include owid-link-90;
+        text-decoration: none;
+        &:visited {
+            color: $blue-90;
+        }
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+.chart-hit-textual__debug {
+    display: flex;
+    gap: 0.5em;
+    margin-top: 4px;
+    justify-content: end;
+}
+
+.chart-hit-textual__get-data {
+    a {
+        @include owid-link-60;
+        &:visited {
+            color: $blue-60;
+        }
+    }
+}
+
+.chart-hit-textual__data {
+    color: $gray-60;
+    font-size: 0.8rem;
+
+    a {
+        @include owid-link-60;
+    }
+}

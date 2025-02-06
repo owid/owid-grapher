@@ -63,7 +63,11 @@ import {
     handleDeleteChartRedirect,
 } from "./apiRoutes/redirects.js"
 import { triggerStaticBuild } from "./apiRoutes/routeUtils.js"
-import { suggestGptTopics, suggestGptAltText } from "./apiRoutes/suggest.js"
+import {
+    suggestGptTopics,
+    suggestGptAltText,
+    suggestDataPointDescription,
+} from "./apiRoutes/suggest.js"
 import {
     handleGetFlatTagGraph,
     handlePostTagGraph,
@@ -337,6 +341,10 @@ getRouteWithROTransaction(
     `/gpt/suggest-alt-text/:imageId`,
     suggestGptAltText
 )
+
+apiRouter.post("/gpt/suggest-data-point-description", async (req) => ({
+    description: await suggestDataPointDescription(req),
+}))
 
 // Tag graph routes
 getRouteWithROTransaction(
