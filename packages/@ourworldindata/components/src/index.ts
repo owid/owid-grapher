@@ -14,6 +14,7 @@ export {
     getUrlTarget,
     checkIsInternalLink,
     convertHeadingTextToId,
+    getPrefixedGdocPath,
     getBakePath,
     getCanonicalUrl,
     getPageTitle,

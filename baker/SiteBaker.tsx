@@ -570,7 +570,7 @@ export class SiteBaker {
         if (!this.bakeSteps.has("gdocPosts")) return
         // We don't need to call `load` on these, because we prefetch all attachments
         const publishedGdocs = await db
-            .getPublishedGdocPostsWithTags(knex)
+            .getPublishedGdocsWithTags(knex)
             .then((gdocs) => gdocs.map(gdocFromJSON))
 
         const allParentTagArraysByChildName =
