@@ -16,6 +16,9 @@ import {
     DEFAULT_GDOC_FEATURED_IMAGE,
     DEFAULT_THUMBNAIL_FILENAME,
     DbEnrichedImage,
+    OwidGdocDataInsightInterface,
+    getFirstTwoSentencesFromString,
+    spansToUnformattedPlainText,
 } from "@ourworldindata/utils"
 import { formatPost } from "../../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
@@ -45,6 +48,8 @@ import {
     CLOUDFLARE_IMAGES_URL,
 } from "../../../settings/clientSettings.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
+import { getFirstBlockOfType } from "../../../site/gdocs/utils.js"
+import { getPrefixedGdocPath } from "@ourworldindata/components"
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
@@ -161,9 +166,17 @@ async function generateWordpressRecords(
 }
 
 const getThumbnailUrl = (
-    gdoc: OwidGdocPostInterface,
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
     cloudflareImages: Record<string, DbEnrichedImage>
 ): string => {
+    if (gdoc.content.type === OwidGdocType.DataInsight) {
+        const firstImage = getFirstBlockOfType(gdoc, "image")
+        const filename = firstImage?.smallFilename || firstImage?.filename
+        return filename && cloudflareImages[filename]
+            ? `${CLOUDFLARE_IMAGES_URL}/${cloudflareImages[filename].cloudflareId}/w=512`
+            : `${BAKED_BASE_URL}/${DEFAULT_GDOC_FEATURED_IMAGE}`
+    }
+
     if (gdoc.content["deprecation-notice"]) {
         return `${BAKED_BASE_URL}/${ARCHVED_THUMBNAIL_FILENAME}`
     }
@@ -188,13 +201,30 @@ const getThumbnailUrl = (
     return `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=512`
 }
 
+function getExcerptFromGdoc(
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
+): string {
+    if (gdoc.content.type === OwidGdocType.DataInsight) {
+        const firstParagraph = getFirstBlockOfType(gdoc, "text")
+
+        if (firstParagraph) {
+            const plaintext = spansToUnformattedPlainText(firstParagraph.value)
+            return getFirstTwoSentencesFromString(plaintext, 140)
+        }
+
+        return ""
+    } else {
+        return gdoc.content.excerpt ?? ""
+    }
+}
+
 function generateGdocRecords(
-    gdocs: OwidGdocPostInterface[],
+    gdocs: (OwidGdocPostInterface | OwidGdocDataInsightInterface)[],
     pageviews: Record<string, RawPageview>,
     cloudflareImagesByFilename: Record<string, DbEnrichedImage>
 ): PageRecord[] {
     const getPostTypeAndImportance = (
-        gdoc: OwidGdocPostInterface
+        gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
     ): TypeAndImportance => {
         return match(gdoc.content.type)
             .with(OwidGdocType.Article, () => ({
@@ -214,6 +244,10 @@ function generateGdocRecords(
             )
             .with(P.union(OwidGdocType.Fragment, undefined), () => ({
                 type: "other" as const,
+                importance: 0,
+            }))
+            .with(OwidGdocType.DataInsight, () => ({
+                type: "data-insight" as const,
                 importance: 0,
             }))
             .exhaustive()
@@ -245,8 +279,9 @@ function generateGdocRecords(
                 slug: gdoc.slug,
                 title: gdoc.content.title || "",
                 content: chunk,
-                views_7d: pageviews[`/${gdoc.slug}`]?.views_7d ?? 0,
-                excerpt: gdoc.content.excerpt,
+                views_7d:
+                    pageviews[getPrefixedGdocPath("", gdoc)]?.views_7d ?? 0,
+                excerpt: getExcerptFromGdoc(gdoc),
                 date: gdoc.publishedAt!.toISOString(),
                 modifiedDate: (
                     gdoc.updatedAt ?? gdoc.publishedAt!
@@ -267,9 +302,18 @@ function generateGdocRecords(
 // Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
 export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const gdocs = await db
-        .getPublishedGdocPostsWithTags(knex)
-        .then((gdocs) => gdocs.map(gdocFromJSON) as OwidGdocPostInterface[])
+    const gdocs = (await db
+        .getPublishedGdocsWithTags(knex, [
+            OwidGdocType.Article,
+            OwidGdocType.LinearTopicPage,
+            OwidGdocType.TopicPage,
+            OwidGdocType.AboutPage,
+            OwidGdocType.DataInsight,
+        ])
+        .then((gdocs) => gdocs.map(gdocFromJSON))) as (
+        | OwidGdocPostInterface
+        | OwidGdocDataInsightInterface
+    )[]
 
     const publishedGdocsBySlug = keyBy(gdocs, "slug")
     const slugsWithPublishedGdocsSuccessors =

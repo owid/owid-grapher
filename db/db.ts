@@ -447,8 +447,15 @@ export const getPublishedGdocPosts = async (
     ).then((rows) => rows.map(parsePostsGdocsRow))
 }
 
-export const getPublishedGdocPostsWithTags = async (
-    knex: KnexReadonlyTransaction
+export const getPublishedGdocsWithTags = async (
+    knex: KnexReadonlyTransaction,
+    // The traditional "post" types - doesn't include data insights, author pages, the homepage, etc.
+    gdocTypes: OwidGdocType[] = [
+        OwidGdocType.Article,
+        OwidGdocType.LinearTopicPage,
+        OwidGdocType.TopicPage,
+        OwidGdocType.AboutPage,
+    ]
 ): Promise<DBEnrichedPostGdocWithTags[]> => {
     return knexRaw<DBRawPostGdocWithTags>(
         knex,
@@ -479,17 +486,12 @@ export const getPublishedGdocPostsWithTags = async (
         gxt.tagId = t.id
     WHERE
         g.published = 1
-        AND g.type IN (:types)
+        AND g.type IN (:gdocTypes)
         AND g.publishedAt <= NOW()
     GROUP BY g.id
     ORDER BY g.publishedAt DESC`,
         {
-            types: [
-                OwidGdocType.Article,
-                OwidGdocType.LinearTopicPage,
-                OwidGdocType.TopicPage,
-                OwidGdocType.AboutPage,
-            ],
+            gdocTypes,
         }
     ).then((rows) => rows.map(parsePostsGdocsWithTagsRow))
 }

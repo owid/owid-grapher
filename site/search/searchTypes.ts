@@ -7,6 +7,7 @@ export type PageType =
     | "faq"
     | "article"
     | "other"
+    | "data-insight"
 
 export const pageTypeDisplayNames: Record<PageType, string> = {
     about: "About",
@@ -14,6 +15,7 @@ export const pageTypeDisplayNames: Record<PageType, string> = {
     country: "Country",
     faq: "FAQ",
     article: "Article",
+    "data-insight": "Data Insight",
     other: "Topic", // this is a band-aid to avoid showing "Other" for items that we now largely consider to be "Topics". Caveat: some non-topic pages are still indexed as "other" (e.g. /jobs). See https://owid.slack.com/archives/C04N12KT6GY/p1693580177430049?thread_ts=1693336759.239919&cid=C04N12KT6GY
 }
 

@@ -1090,3 +1090,16 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockLatestDataInsights
     | EnrichedBlockCookieNotice
     | EnrichedBlockSocials
+
+/**
+ * A map of all possible block types, with the type as the key and the block type as the value
+ * e.g.
+ * {
+ *   "text": EnrichedBlockText,
+ *   "aside": EnrichedBlockAside,
+ *    ...
+ * }
+ */
+export type OwidEnrichedGdocBlockTypeMap = {
+    [K in OwidEnrichedGdocBlock as K["type"]]: K
+}
