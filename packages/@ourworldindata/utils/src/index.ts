@@ -89,6 +89,7 @@ export {
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
     removeAllWhitespace,
+    getFirstTwoSentencesFromString,
     moveArrayItemToIndex,
     getIndexableKeys,
     retryPromise,
