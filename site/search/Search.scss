@@ -241,6 +241,10 @@ $reset-button-margin: 16px;
     display: flex;
 }
 
+.search-results__page-hit-dateline {
+    @include h5-black-caps;
+}
+
 .search-results__page-hit-img-container {
     margin-right: 16px;
     @include sm-only {

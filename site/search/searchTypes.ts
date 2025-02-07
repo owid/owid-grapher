@@ -1,22 +1,32 @@
+import { OwidGdocType } from "@ourworldindata/types"
 import { BaseHit, Hit } from "instantsearch.js/es/types/results.js"
 
-export type PageType =
-    | "about"
-    | "topic"
-    | "country"
-    | "faq"
-    | "article"
-    | "other"
-    | "data-insight"
+export enum WordpressPageType {
+    Other = "other",
+    Country = "country",
+}
+
+export function checkIsWordpressPageType(
+    type: string
+): type is WordpressPageType {
+    return (
+        type === WordpressPageType.Country || type === WordpressPageType.Other
+    )
+}
+
+export type PageType = OwidGdocType | WordpressPageType
 
 export const pageTypeDisplayNames: Record<PageType, string> = {
-    about: "About",
-    topic: "Topic",
-    country: "Country",
-    faq: "FAQ",
-    article: "Article",
-    "data-insight": "Data Insight",
-    other: "Topic", // this is a band-aid to avoid showing "Other" for items that we now largely consider to be "Topics". Caveat: some non-topic pages are still indexed as "other" (e.g. /jobs). See https://owid.slack.com/archives/C04N12KT6GY/p1693580177430049?thread_ts=1693336759.239919&cid=C04N12KT6GY
+    [OwidGdocType.AboutPage]: "About",
+    [OwidGdocType.Article]: "Article",
+    [OwidGdocType.DataInsight]: "Data Insight",
+    [OwidGdocType.LinearTopicPage]: "Topic",
+    [OwidGdocType.TopicPage]: "Topic",
+    [WordpressPageType.Country]: "Country",
+    [WordpressPageType.Other]: "",
+    [OwidGdocType.Author]: "", // Should never be indexed
+    [OwidGdocType.Fragment]: "", // Should never be indexed
+    [OwidGdocType.Homepage]: "", // Should never be indexed
 }
 
 export interface PageRecord {
