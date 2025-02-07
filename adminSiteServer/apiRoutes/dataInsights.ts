@@ -127,7 +127,7 @@ function extractDataInsightIndexItem(
         : undefined
 
     // check if the given grapher-url is a valid Grapher or Explorer URL
-    const grapherUrlField = content["grapher-url"]?.trim()
+    const grapherUrlField = content["grapher-url"]
     const grapherUrl = grapherUrlField?.startsWith(GRAPHER_URL_PREFIX)
         ? grapherUrlField
         : undefined
