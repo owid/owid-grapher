@@ -1,31 +1,30 @@
 import { useState } from "react"
-import { CategoryWithEntries } from "@ourworldindata/utils"
+import { TagGraphNode, TagGraphRoot } from "@ourworldindata/utils"
 import classnames from "classnames"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import { Menu } from "./SiteConstants.js"
 import { SiteAbout } from "./SiteAbout.js"
 import { SiteResources } from "./SiteResources.js"
-import { SiteMobileCategory } from "./SiteMobileCategory.js"
+import { SiteMobileArea } from "./SiteMobileArea.js"
 
 export const SiteMobileMenu = ({
-    topics,
+    tagGraph,
     menu,
     toggleMenu,
     className,
 }: {
-    topics: CategoryWithEntries[]
+    tagGraph: TagGraphRoot | null
     menu: Menu | null
     toggleMenu: (menu: Menu) => void
     className?: string
 }) => {
-    const [activeCategory, setActiveCategory] =
-        useState<CategoryWithEntries | null>(null)
+    const [activeArea, setActiveArea] = useState<TagGraphNode | null>(null)
 
-    const toggleCategory = (category: CategoryWithEntries) => {
-        if (activeCategory === category) {
-            setActiveCategory(null)
+    const toggleArea = (area: TagGraphNode) => {
+        if (activeArea === area) {
+            setActiveArea(null)
         } else {
-            setActiveCategory(category)
+            setActiveArea(area)
         }
     }
 
@@ -35,12 +34,12 @@ export const SiteMobileMenu = ({
                 <li>
                     <span className="section__header">Browse by topic</span>
                     <ul className="section__dropdown--topics">
-                        {topics.map((category) => (
-                            <SiteMobileCategory
-                                key={category.slug}
-                                category={category}
-                                isActive={activeCategory === category}
-                                toggleCategory={toggleCategory}
+                        {tagGraph?.children.map((area) => (
+                            <SiteMobileArea
+                                key={area.slug}
+                                area={area}
+                                isActive={activeArea === area}
+                                toggleArea={toggleArea}
                             />
                         ))}
                     </ul>

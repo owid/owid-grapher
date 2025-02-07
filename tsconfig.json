@@ -44,9 +44,6 @@
             "path": "./devTools/regionsUpdater"
         },
         {
-            "path": "./devTools/navigationTest"
-        },
-        {
             "path": "./devTools/syncGraphersToR2"
         }
     ]
