@@ -5,11 +5,7 @@ import {
     DbRawChartConfig,
     DbRawImage,
     DbRawPostGdoc,
-    GRAPHER_CHART_TYPES,
-    GRAPHER_MAP_TYPE,
-    GRAPHER_TAB_QUERY_PARAMS,
     GrapherChartOrMapType,
-    GrapherChartType,
     GrapherInterface,
     MinimalTag,
     OwidGdocDataInsightContent,
@@ -19,8 +15,10 @@ import {
 } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
 import { getTagsGroupedByGdocId } from "../../db/model/Gdoc/GdocFactory.js"
-import { mapQueryParamToChartTypeName } from "@ourworldindata/grapher"
-import { getTimeDomainFromQueryString } from "@ourworldindata/utils"
+import {
+    getChartTypeFromConfig,
+    getChartTypeFromConfigAndQueryParams,
+} from "@ourworldindata/grapher"
 
 const GRAPHER_URL_PREFIX = "https://ourworldindata.org/grapher/"
 const EXPLORER_URL_PREFIX = "https://ourworldindata.org/explorers/"
@@ -203,92 +201,4 @@ function detectChartType({
     }
 
     return undefined
-}
-
-function getChartTypeFromConfig(
-    chartConfig: GrapherInterface
-): GrapherChartOrMapType | undefined {
-    return getChartTypeFromConfigAndQueryParams(chartConfig)
-}
-
-function getChartTypeFromConfigAndQueryParams(
-    chartConfig: GrapherInterface,
-    queryParams?: URLSearchParams
-): GrapherChartOrMapType | undefined {
-    // If the tab query parameter is set, use it to determine the chart type
-    const tab = queryParams?.get("tab")
-    if (tab) {
-        // Handle cases where tab is set to 'line' or 'slope'
-        const chartType = mapQueryParamToChartTypeName(tab)
-        if (chartType)
-            return maybeLineChartThatTurnedIntoDiscreteBar(
-                chartType,
-                chartConfig,
-                queryParams
-            )
-
-        // Handle cases where tab is set to 'chart', 'map' or 'table'
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.table) return undefined
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.map) return GRAPHER_MAP_TYPE
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.chart) {
-            const chartType = getChartTypeFromConfigField(
-                chartConfig.chartTypes
-            )
-            if (chartType)
-                return maybeLineChartThatTurnedIntoDiscreteBar(
-                    chartType,
-                    chartConfig,
-                    queryParams
-                )
-        }
-    }
-
-    // If the chart has a map tab and it's the default tab, use the map type
-    if (
-        chartConfig.hasMapTab &&
-        chartConfig.tab === GRAPHER_TAB_QUERY_PARAMS.map
-    )
-        return GRAPHER_MAP_TYPE
-
-    // Otherwise, rely on the config's chartTypes field
-    const chartType = getChartTypeFromConfigField(chartConfig.chartTypes)
-    if (chartType) {
-        return maybeLineChartThatTurnedIntoDiscreteBar(
-            chartType,
-            chartConfig,
-            queryParams
-        )
-    }
-
-    return undefined
-}
-
-function getChartTypeFromConfigField(
-    chartTypes?: GrapherChartType[]
-): GrapherChartType | undefined {
-    if (!chartTypes) return GRAPHER_CHART_TYPES.LineChart
-    if (chartTypes.length === 0) return undefined
-    return chartTypes[0]
-}
-
-function maybeLineChartThatTurnedIntoDiscreteBar(
-    chartType: GrapherChartType,
-    chartConfig: GrapherInterface,
-    queryParams?: URLSearchParams
-): GrapherChartType {
-    if (chartType !== GRAPHER_CHART_TYPES.LineChart) return chartType
-
-    const time = queryParams?.get("time")
-    if (time) {
-        const [minTime, maxTime] = getTimeDomainFromQueryString(time)
-        if (minTime === maxTime) return GRAPHER_CHART_TYPES.DiscreteBar
-    }
-
-    if (
-        chartConfig.minTime !== undefined &&
-        chartConfig.minTime === chartConfig.maxTime
-    )
-        return GRAPHER_CHART_TYPES.DiscreteBar
-
-    return chartType
 }
