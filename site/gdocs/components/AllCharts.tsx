@@ -7,6 +7,7 @@ import {
     Url,
     ALL_CHARTS_ID,
     KeyChartLevel,
+    queryParamsToStr,
 } from "@ourworldindata/utils"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { RelatedCharts } from "../../blocks/RelatedCharts.js"
@@ -50,7 +51,7 @@ export function AllCharts(props: AllChartsProps) {
 
     const firstTag = tags[0]
     const firstTagDataCatalogQueryString = firstTag
-        ? `?topics=${firstTag.name}`
+        ? queryParamsToStr({ topics: firstTag.name })
         : ""
 
     const sortedRelatedCharts = sortRelatedCharts(relatedCharts, topSlugs)
