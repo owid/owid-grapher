@@ -190,7 +190,7 @@ function validateGrapherUrl(
     gdoc: OwidGdocDataInsightInterface,
     errors: OwidGdocErrorMessage[]
 ) {
-    const grapherUrl = gdoc.content["grapher-url"]?.trim()
+    const grapherUrl = gdoc.content["grapher-url"]
     if (grapherUrl) {
         const validPrefixes = [
             "https://ourworldindata.org/grapher/",
