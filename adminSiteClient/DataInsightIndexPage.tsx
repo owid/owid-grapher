@@ -31,7 +31,10 @@ import {
     RequiredBy,
     startCase,
 } from "@ourworldindata/utils"
-import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
+import {
+    BAKED_BASE_URL,
+    CLOUDFLARE_IMAGES_URL,
+} from "../settings/clientSettings.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 
 type ChartTypeFilter = GrapherChartOrMapType | "all"
@@ -82,7 +85,18 @@ function createColumns(ctx: {
             dataIndex: "title",
             key: "title",
             width: 300,
-            render: (title) => ctx.highlightFn(title),
+            render: (title, dataInsight) =>
+                dataInsight.published && dataInsight.slug ? (
+                    <a
+                        href={makeDataInsightLink(dataInsight)}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                    >
+                        {ctx.highlightFn(title)}
+                    </a>
+                ) : (
+                    ctx.highlightFn(title)
+                ),
         },
         {
             title: "Authors",
@@ -477,6 +491,10 @@ function makePreviewLink(dataInsight: OwidGdocDataInsightIndexItem) {
 
 function makeGDocEditLink(dataInsight: OwidGdocDataInsightIndexItem) {
     return `https://docs.google.com/document/d/${dataInsight.id}/edit`
+}
+
+function makeDataInsightLink(dataInsight: OwidGdocDataInsightIndexItem) {
+    return `${BAKED_BASE_URL}/data-insights/${dataInsight.slug}`
 }
 
 function makeNarrativeChartEditLink(
