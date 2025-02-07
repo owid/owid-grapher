@@ -17,8 +17,6 @@ import {
     DEFAULT_THUMBNAIL_FILENAME,
     DbEnrichedImage,
     OwidGdocDataInsightInterface,
-    getFirstTwoSentencesFromString,
-    spansToUnformattedPlainText,
 } from "@ourworldindata/utils"
 import { formatPost } from "../../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
@@ -205,13 +203,6 @@ function getExcerptFromGdoc(
     gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
 ): string {
     if (gdoc.content.type === OwidGdocType.DataInsight) {
-        const firstParagraph = getFirstBlockOfType(gdoc, "text")
-
-        if (firstParagraph) {
-            const plaintext = spansToUnformattedPlainText(firstParagraph.value)
-            return getFirstTwoSentencesFromString(plaintext, 140)
-        }
-
         return ""
     } else {
         return gdoc.content.excerpt ?? ""

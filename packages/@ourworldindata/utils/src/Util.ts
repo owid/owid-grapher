@@ -1331,27 +1331,6 @@ export const removeAllWhitespace = (text: string): string => {
     return text.replace(/\s+|\n/g, "")
 }
 
-export function getFirstTwoSentencesFromString(
-    text: string,
-    maxChars: number
-): string {
-    // match sentences ending in ".", "!", or "?"
-    const sentenceRegex = /[^.!?]+[.!?]/g
-    const sentences = text.match(sentenceRegex) || [text]
-
-    // Try to return two full sentences if possible
-    if (sentences.length >= 2) {
-        const twoSentences = sentences.slice(0, 2).join(" ").trim()
-        if (twoSentences.length <= maxChars) {
-            return twoSentences
-        }
-    }
-
-    // Otherwise, truncate by maxChars with an ellipsis
-    const truncated = text.slice(0, maxChars).trim()
-    return truncated.length < text.length ? truncated + "..." : truncated
-}
-
 export function moveArrayItemToIndex<Item>(
     arr: Item[],
     fromIndex: number,
