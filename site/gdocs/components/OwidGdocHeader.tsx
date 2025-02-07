@@ -57,10 +57,10 @@ function OwidArticleHeader({
                 className={cx(
                     "centered-article-header align-center grid",
                     "grid-cols-8 span-cols-8 col-start-4",
-                    "grid-md-cols-12 span-md-cols-12 col-md-start-2"
+                    "grid-md-cols-6 span-md-cols-12 col-md-start-2"
                 )}
             >
-                <div className="centered-article-header__title-container col-start-2 span-cols-6 span-md-cols-10 col-md-start-2">
+                <div className="centered-article-header__title-container col-start-2 span-cols-6 span-md-cols-6 col-md-start-1">
                     {content.supertitle ? (
                         <h3 className="centered-article-header__supertitle span-cols-8">
                             {content.supertitle}
@@ -71,11 +71,11 @@ function OwidArticleHeader({
                     </h1>
                 </div>
                 {content.subtitle ? (
-                    <h2 className="centered-article-header__subtitle col-start-2 span-cols-6 span-md-cols-10 col-md-start-2">
+                    <h2 className="centered-article-header__subtitle col-start-2 span-cols-6 span-md-cols-6 col-md-start-1">
                         {content.subtitle}
                     </h2>
                 ) : null}
-                <div className="centered-article-header__meta-container col-start-2 span-cols-6 span-md-cols-10 col-md-start-2 grid grid-cols-2 ">
+                <div className="centered-article-header__meta-container col-start-2 span-cols-6 span-md-cols-6 col-md-start-1 grid grid-cols-2 ">
                     <div
                         className={
                             isDeprecated
@@ -94,7 +94,7 @@ function OwidArticleHeader({
                         </div>
                     </div>
                     {!isDeprecated && (
-                        <div className="span-cols-1 span-sm-cols-2">
+                        <div className="centered-article-header__links span-cols-1 span-sm-cols-2">
                             {!content["hide-citation"] && (
                                 <a
                                     href="#article-citation"
