@@ -493,6 +493,9 @@ export function DataInsightIndexPage() {
                                 type="dashed"
                                 onClick={() => {
                                     setSearchValue("")
+                                    setChartTypeFilter(
+                                        DEFAULT_CHART_TYPE_FILTER
+                                    )
                                     setPublicationFilter(
                                         DEFAULT_PUBLICATION_FILTER
                                     )
