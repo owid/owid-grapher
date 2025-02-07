@@ -11,6 +11,7 @@ import {
     groupBy,
     uniqBy,
     Region,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import {
     InstantSearch,
@@ -41,6 +42,7 @@ import {
     pageTypeDisplayNames,
     IExplorerViewHit,
     PageRecord,
+    checkIsWordpressPageType,
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -58,15 +60,38 @@ import {
     getEntityQueryStr,
 } from "./SearchUtils.js"
 import { ChartHit } from "./ChartHit.js"
+import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
+import { getCanonicalUrl } from "@ourworldindata/components"
 
 const siteAnalytics = new SiteAnalytics()
 
 // The rule doesn't support class components in the same file.
 // eslint-disable-next-line react-refresh/only-export-components
 function PagesHit({ hit }: { hit: IPageHit }) {
+    const dateline =
+        hit.type === OwidGdocType.DataInsight && hit.date ? (
+            <DataInsightDateline
+                className="search-results__page-hit-dateline"
+                publishedAt={new Date(hit.date)}
+                formatOptions={{
+                    year: "numeric",
+                    month: "long",
+                    day: "2-digit",
+                }}
+            />
+        ) : null
+
+    const href = checkIsWordpressPageType(hit.type)
+        ? `/${hit.slug}`
+        : getCanonicalUrl("", {
+              slug: hit.slug,
+              content: {
+                  type: hit.type,
+              },
+          })
     return (
         <a
-            href={`${BAKED_BASE_URL}/${hit.slug}`}
+            href={href}
             data-algolia-index={getIndexName(SearchIndexName.Pages)}
             data-algolia-object-id={hit.objectID}
             data-algolia-position={hit.__position}
@@ -83,6 +108,7 @@ function PagesHit({ hit }: { hit: IPageHit }) {
             )}
             <div className="search-results__page-hit-text-container">
                 <header className="page-hit__header">
+                    {dateline}
                     <h4 className="h3-bold search-results__page-hit-title">
                         {hit.title}
                     </h4>
@@ -92,7 +118,7 @@ function PagesHit({ hit }: { hit: IPageHit }) {
                 </header>
                 <Snippet
                     className="body-3-medium search-results__page-hit-snippet"
-                    attribute="excerpt"
+                    attribute="content"
                     highlightedTagName="strong"
                     hit={hit}
                 />

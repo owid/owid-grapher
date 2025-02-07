@@ -1,11 +1,5 @@
 import { DbEnrichedVariable } from "@ourworldindata/types"
-import { ChartRecord, PageType } from "../../../site/search/searchTypes.js"
-
-/** Pages */
-export interface TypeAndImportance {
-    type: PageType
-    importance: number
-}
+import { ChartRecord } from "../../../site/search/searchTypes.js"
 
 /** Charts */
 export interface RawChartRecordRow {
