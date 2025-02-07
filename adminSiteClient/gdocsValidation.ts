@@ -213,32 +213,34 @@ function validateDataInsightImage(
     gdoc: OwidGdocDataInsightInterface,
     errors: OwidGdocErrorMessage[]
 ) {
-    const image = gdoc.content.body.find((block) => block.type === "image")
-    if (!image) {
+    const firstBlock = gdoc.content.body[0]
+    if (!firstBlock || firstBlock.type !== "image") {
         errors.push({
             property: "body",
             type: OwidGdocErrorMessageType.Warning,
-            message: `Data insight is missing an image.`,
+            message: `The first block in a data insight should be an image.`,
         })
-    } else {
-        for (const property of ["filename"] as const) {
-            if (!image[property]) {
-                errors.push({
-                    property: "body",
-                    type: OwidGdocErrorMessageType.Error,
-                    message: `Data insight image is missing ${property}`,
-                })
-            }
-            if (
-                image[property] &&
-                getFilenameExtension(image[property]) !== "png"
-            ) {
-                errors.push({
-                    property: "body",
-                    type: OwidGdocErrorMessageType.Warning,
-                    message: `Data insight ${property} should be a PNG`,
-                })
-            }
+        return
+    }
+
+    const image = firstBlock
+    for (const property of ["filename"] as const) {
+        if (!image[property]) {
+            errors.push({
+                property: "body",
+                type: OwidGdocErrorMessageType.Error,
+                message: `Data insight image is missing ${property}`,
+            })
+        }
+        if (
+            image[property] &&
+            getFilenameExtension(image[property]) !== "png"
+        ) {
+            errors.push({
+                property: "body",
+                type: OwidGdocErrorMessageType.Warning,
+                message: `Data insight ${property} should be a PNG`,
+            })
         }
     }
 }
