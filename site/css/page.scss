@@ -54,11 +54,6 @@
         }
     }
 
-    .supertitle {
-        font-family: $sans-serif-font-stack;
-        color: $secondary-text-color;
-    }
-
     .subtitle {
         font-size: 1.1rem;
         margin-top: $vertical-spacing * 0.5;
@@ -89,11 +84,6 @@
         font-size: 0.875rem;
         > * {
             margin-right: 1rem;
-        }
-        @include lg-up {
-            .last-updated {
-                display: inline;
-            }
         }
 
         a {

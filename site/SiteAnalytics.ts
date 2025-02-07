@@ -5,13 +5,6 @@ import { IDataCatalogHit } from "./DataCatalog/DataCatalogUtils.js"
 import { set } from "lodash"
 
 export class SiteAnalytics extends GrapherAnalytics {
-    logCountryProfileSearch(country: string) {
-        this.logToGA({
-            event: EventCategory.CountryProfileSearch,
-            eventContext: country,
-        })
-    }
-
     logPageNotFoundError(url: string) {
         this.logToGA({
             event: EventCategory.SiteError,
