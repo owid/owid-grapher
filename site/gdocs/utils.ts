@@ -14,6 +14,9 @@ import {
     OwidGdocDataInsightContent,
     OwidGdocLinkType,
     SubNavId,
+    OwidGdocDataInsightInterface,
+    OwidGdocPostInterface,
+    OwidEnrichedGdocBlockTypeMap,
 } from "@ourworldindata/types"
 import {
     formatAuthors,
@@ -184,6 +187,25 @@ export const getTopSubnavigationParentItem = (
     subnavId: SubNavId
 ): SubnavItem | undefined => {
     return subnavs[subnavId]?.[0]
+}
+
+export function getFirstBlockOfType<
+    T extends keyof OwidEnrichedGdocBlockTypeMap,
+>(
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
+    type: T
+): OwidEnrichedGdocBlockTypeMap[T] | undefined {
+    if (!gdoc.content.body) return undefined
+    for (const block of gdoc.content.body) {
+        let foundBlock: OwidEnrichedGdocBlockTypeMap[T] | undefined
+        traverseEnrichedBlock(block, (node) => {
+            if (!foundBlock && node.type === type) {
+                foundBlock = node as OwidEnrichedGdocBlockTypeMap[T]
+            }
+        })
+        if (foundBlock) return foundBlock
+    }
+    return undefined
 }
 
 // Always use the smallFilename for old data insights, where two filenames were always provided
