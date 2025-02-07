@@ -18,7 +18,13 @@ import {
     highlightFunctionForSearchWords,
     SearchWord,
 } from "../adminShared/search.js"
-import { DbPlainTag, OwidGdocDataInsightIndexItem } from "@ourworldindata/types"
+import {
+    ALL_GRAPHER_CHART_TYPES,
+    DbPlainTag,
+    GRAPHER_MAP_TYPE,
+    GrapherChartOrMapType,
+    OwidGdocDataInsightIndexItem,
+} from "@ourworldindata/types"
 import {
     copyToClipboard,
     dayjs,
@@ -28,9 +34,11 @@ import {
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 
+type ChartTypeFilter = GrapherChartOrMapType | "all"
 type PublicationFilter = "all" | "published" | "scheduled" | "draft"
 type Layout = "list" | "gallery"
 
+const DEFAULT_CHART_TYPE_FILTER: ChartTypeFilter = "all"
 const DEFAULT_PUBLICATION_FILTER: PublicationFilter = "all"
 const DEFAULT_LAYOUT: Layout = "list"
 
@@ -110,13 +118,6 @@ function createColumns(ctx: {
                         {ctx.highlightFn(tag.name)}
                     </a>
                 )),
-        },
-        {
-            title: "Chart type",
-            dataIndex: "chartType",
-            key: "chartType",
-            width: 150,
-            render: (chartType) => ctx.highlightFn(startCase(chartType)),
         },
         {
             title: "Published",
@@ -219,6 +220,9 @@ export function DataInsightIndexPage() {
         OwidGdocDataInsightIndexItem[]
     >([])
     const [searchValue, setSearchValue] = useState("")
+    const [chartTypeFilter, setChartTypeFilter] = useState<
+        GrapherChartOrMapType | "all"
+    >(DEFAULT_CHART_TYPE_FILTER)
     const [publicationFilter, setPublicationFilter] =
         useState<PublicationFilter>(DEFAULT_PUBLICATION_FILTER)
     const [layout, setLayout] = useState<Layout>(DEFAULT_LAYOUT)
@@ -229,6 +233,13 @@ export function DataInsightIndexPage() {
     )
 
     const filteredDataInsights = useMemo(() => {
+        const chartTypeFilterFn = (
+            dataInsight: OwidGdocDataInsightIndexItem
+        ) => {
+            if (chartTypeFilter === "all") return true
+            return dataInsight.chartType === chartTypeFilter
+        }
+
         const publicationFilterFn = (
             dataInsight: OwidGdocDataInsightIndexItem
         ) => {
@@ -249,6 +260,7 @@ export function DataInsightIndexPage() {
                     return true
             }
         }
+
         const searchFilterFn = filterFunctionForSearchWords(
             searchWords,
             (dataInsight: OwidGdocDataInsightIndexItem) => [
@@ -261,8 +273,13 @@ export function DataInsightIndexPage() {
             ]
         )
 
-        return dataInsights.filter(publicationFilterFn).filter(searchFilterFn)
-    }, [dataInsights, publicationFilter, searchWords])
+        return dataInsights.filter(
+            (di) =>
+                chartTypeFilterFn(di) &&
+                publicationFilterFn(di) &&
+                searchFilterFn(di)
+        )
+    }, [dataInsights, chartTypeFilter, publicationFilter, searchWords])
 
     useEffect(() => {
         const fetchAllDataInsights = async () =>
@@ -290,9 +307,27 @@ export function DataInsightIndexPage() {
                             style={{ width: 500, marginBottom: 20 }}
                         />
                         <Select
+                            value={chartTypeFilter}
+                            options={[
+                                { value: "all", label: "All chart types" },
+                                ...ALL_GRAPHER_CHART_TYPES.map((type) => ({
+                                    value: type,
+                                    label: startCase(type),
+                                })),
+                                { value: GRAPHER_MAP_TYPE, label: "World map" },
+                            ]}
+                            onChange={(value: ChartTypeFilter) =>
+                                setChartTypeFilter(value)
+                            }
+                            popupMatchSelectWidth={false}
+                        />
+                        <Select
                             value={publicationFilter}
                             options={[
-                                { value: "all", label: "All" },
+                                {
+                                    value: "all",
+                                    label: "Any publication status",
+                                },
                                 { value: "draft", label: "Drafts" },
                                 { value: "published", label: "Published" },
                                 { value: "scheduled", label: "Scheduled" },
@@ -353,6 +388,7 @@ function DataInsightList({
             columns={columns}
             dataSource={dataInsights}
             rowKey={(dataInsight) => dataInsight.id}
+            size="small"
         />
     )
 }
