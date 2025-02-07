@@ -24,7 +24,9 @@ import { getAlgoliaClient } from "../configureAlgolia.js"
 import { htmlToText } from "html-to-text"
 import {
     PageRecord,
+    PageType,
     SearchIndexName,
+    WordpressPageType,
 } from "../../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { ArticleBlocks } from "../../../site/gdocs/components/ArticleBlocks.js"
@@ -40,7 +42,6 @@ import { SearchIndex } from "algoliasearch"
 import { match, P } from "ts-pattern"
 import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"
 import { formatUrls } from "../../../site/formatting.js"
-import { TypeAndImportance } from "./types.js"
 import {
     BAKED_BASE_URL,
     CLOUDFLARE_IMAGES_URL,
@@ -59,13 +60,10 @@ function generateCountryRecords(
     pageviews: Record<string, RawPageview>
 ): PageRecord[] {
     return countries.map((country) => {
-        const postTypeAndImportance: TypeAndImportance = {
-            type: "country",
-            importance: -1,
-        }
         const record = {
             objectID: country.slug,
-            ...postTypeAndImportance,
+            type: WordpressPageType.Country,
+            importance: -1,
             slug: `country/${country.slug}`,
             title: country.name,
             content: `All available indicators for ${country.name}.`,
@@ -108,15 +106,20 @@ async function generateWordpressRecords(
     const getPostTypeAndImportance = (
         post: FormattedPost,
         tags: Pick<DbPlainTag, "name">[]
-    ): TypeAndImportance => {
+    ): {
+        type: PageType
+        importance: number
+    } => {
         if (post.slug.startsWith("about/") || post.slug === "about")
-            return { type: "about", importance: 1 }
-        if (post.slug.match(/\bfaqs?\b/i)) return { type: "faq", importance: 1 }
-        if (post.type === "post") return { type: "article", importance: 0 }
+            return { type: OwidGdocType.AboutPage, importance: 1 }
+        if (post.slug.match(/\bfaqs?\b/i))
+            return { type: WordpressPageType.Other, importance: 1 }
+        if (post.type === "post")
+            return { type: OwidGdocType.Article, importance: 0 }
         if (tags.some((t) => t.name === "Entries"))
-            return { type: "topic", importance: 3 }
+            return { type: OwidGdocType.TopicPage, importance: 3 }
 
-        return { type: "other", importance: 0 }
+        return { type: WordpressPageType.Other, importance: 0 }
     }
 
     const records: PageRecord[] = []
@@ -214,33 +217,20 @@ function generateGdocRecords(
     pageviews: Record<string, RawPageview>,
     cloudflareImagesByFilename: Record<string, DbEnrichedImage>
 ): PageRecord[] {
-    const getPostTypeAndImportance = (
+    const getPostImportance = (
         gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
-    ): TypeAndImportance => {
+    ): number => {
         return match(gdoc.content.type)
-            .with(OwidGdocType.Article, () => ({
-                type: "article" as const,
-                importance: "deprecation-notice" in gdoc.content ? -0.5 : 0,
-            }))
-            .with(OwidGdocType.AboutPage, () => ({
-                type: "about" as const,
-                importance: 1,
-            }))
+            .with(OwidGdocType.Article, () =>
+                "deprecation-notice" in gdoc.content ? -0.5 : 0
+            )
+            .with(OwidGdocType.AboutPage, () => 1)
             .with(
                 P.union(OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage),
-                () => ({
-                    type: "topic" as const,
-                    importance: 3,
-                })
+                () => 3
             )
-            .with(P.union(OwidGdocType.Fragment, undefined), () => ({
-                type: "other" as const,
-                importance: 0,
-            }))
-            .with(OwidGdocType.DataInsight, () => ({
-                type: "data-insight" as const,
-                importance: 0,
-            }))
+            .with(P.union(OwidGdocType.Fragment, undefined), () => 0)
+            .with(OwidGdocType.DataInsight, () => 0)
             .exhaustive()
     }
 
@@ -258,7 +248,6 @@ function generateGdocRecords(
             )
         )
         const chunks = generateChunksFromHtmlText(renderedPostContent)
-        const postTypeAndImportance = getPostTypeAndImportance(gdoc)
         let i = 0
 
         const thumbnailUrl = getThumbnailUrl(gdoc, cloudflareImagesByFilename)
@@ -266,7 +255,8 @@ function generateGdocRecords(
         for (const chunk of chunks) {
             const record = {
                 objectID: `${gdoc.id}-c${i}`,
-                ...postTypeAndImportance,
+                importance: getPostImportance(gdoc),
+                type: gdoc.content.type as PageType,
                 slug: gdoc.slug,
                 title: gdoc.content.title || "",
                 content: chunk,
