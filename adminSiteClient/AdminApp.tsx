@@ -339,7 +339,7 @@ export class AdminApp extends React.Component<{
                                 )}
                             />
                             <Route
-                                path="/dataInsights"
+                                path="/data-insights"
                                 component={DataInsightIndexPage}
                             />
                             <Route

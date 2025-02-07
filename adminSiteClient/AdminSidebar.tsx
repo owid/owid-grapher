@@ -40,7 +40,7 @@ export const AdminSidebar = (): React.ReactElement => (
                 </Link>
             </li>
             <li>
-                <Link to="/dataInsights">
+                <Link to="/data-insights">
                     <FontAwesomeIcon icon={faLightbulb} /> Data insights
                 </Link>
             </li>
