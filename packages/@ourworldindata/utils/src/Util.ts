@@ -2076,3 +2076,11 @@ export function isArrayDifferentFromReference<T>(
     if (array.length !== referenceArray.length) return true
     return difference(array, referenceArray).length > 0
 }
+
+export const getUserNavigatorLanguages = (): readonly string[] => {
+    return navigator.languages ?? [navigator.language]
+}
+
+export const getUserNavigatorLanguagesNonEnglish = (): readonly string[] => {
+    return getUserNavigatorLanguages().filter((lang) => !lang.startsWith("en"))
+}
