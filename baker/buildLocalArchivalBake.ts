@@ -2,7 +2,6 @@
 
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
-import { BakeStep, bakeSteps } from "./SiteBaker.js"
 import fs from "fs-extra"
 import path, { normalize } from "path"
 import * as db from "../db/db.js"
@@ -15,6 +14,7 @@ import { AssetMap } from "@ourworldindata/types"
 import { getVariableData } from "../db/model/Variable.js"
 import dayjs from "dayjs"
 import { hashBase36, hashBase36FromStream } from "../serverUtils/hash.js"
+import * as Sentry from "@sentry/node"
 
 const DATE_TIME_FORMAT = "YYYYMMDD-HHmmss"
 const DIR = "archive"
@@ -221,7 +221,6 @@ void yargs(hideBin(process.argv))
     .command<{
         baseUrl: string
         dir: string
-        steps?: string[]
         latestDir?: boolean
     }>(
         "$0 [baseUrl] [dir]",
@@ -238,22 +237,22 @@ void yargs(hideBin(process.argv))
                     default: "archive",
                     describe: "Directory to save the baked site",
                 })
-                .option("steps", {
-                    type: "array",
-                    choices: bakeSteps,
-                    description: "Steps to perform during the baking process",
-                })
                 .option("latestDir", {
                     type: "boolean",
                     description:
                         "Copy the baked site to a 'latest' directory, for ease of testing",
                 })
         },
-        async ({ baseUrl, dir, steps, latestDir }) => {
-            const _bakeSteps = steps ? new Set(steps as BakeStep[]) : undefined
+        async ({ baseUrl, dir, latestDir }) => {
             await bakeDomainToFolder(baseUrl, dir, {
                 copyToLatestDir: latestDir,
+            }).catch(async (e) => {
+                console.error("Error in buildLocalArchivalBake:", e)
+                Sentry.captureException(e)
+                await Sentry.close()
+                process.exit(1)
             })
+
             process.exit(0)
         }
     )
