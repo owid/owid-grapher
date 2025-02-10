@@ -147,6 +147,7 @@ import {
     partition,
     compact,
     toAsciiQuotes,
+    validateRawBoolean,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink, getLinkType } from "@ourworldindata/components"
 import {
@@ -2363,6 +2364,14 @@ function parseHomepageIntro(
                     "Featured work must be of type primary, secondary, or tertiary",
             })
         }
+
+        const rawBooleanValidation = validateRawBoolean("isNew", post.value)
+        if (!rawBooleanValidation.isValid) {
+            parseErrors.push({
+                message: rawBooleanValidation.message,
+            })
+        }
+
         const url = extractUrl(post.value.url)
         const linkType = getLinkType(url)
 
@@ -2377,6 +2386,7 @@ function parseHomepageIntro(
                 description: post.value.description,
                 filename: post.value.filename,
                 kicker: post.value.kicker,
+                isNew: post.value.isNew === "true",
             })
         } else if (!post.value.title) {
             parseErrors.push({
@@ -2403,6 +2413,7 @@ function parseHomepageIntro(
                 description: post.value.description,
                 filename: post.value.filename,
                 kicker: post.value.kicker,
+                isNew: post.value.isNew === "true",
             })
         }
     }

@@ -194,6 +194,15 @@
     }
 }
 
+.homepage-intro__new-tag {
+    text-transform: uppercase;
+    background-color: scale-color($vermillion, $alpha: -80%);
+    color: $vermillion;
+    padding: 2px 4px;
+    border-radius: 2px;
+    margin-right: 8px;
+}
+
 .homepage-intro__featured-work-kicker {
     color: $blue-60;
     margin-top: 12px;

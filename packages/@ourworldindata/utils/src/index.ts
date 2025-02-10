@@ -111,6 +111,7 @@ export {
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
     type NodeWithUrl,
+    validateRawBoolean,
     filterValidStringValues,
     traverseEnrichedSpan,
     copyToClipboard,
