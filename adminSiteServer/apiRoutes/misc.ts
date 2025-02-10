@@ -31,10 +31,11 @@ export async function fetchAllWork(
         `-- sql
             SELECT id, publishedAt
             FROM posts_gdocs
-            WHERE JSON_CONTAINS(content->'$.authors', '"${author}"')
+            WHERE JSON_CONTAINS(content->'$.authors', ?)
             AND type NOT IN ("data-insight", "fragment")
             AND published = 1
-    `
+    `,
+        [`"${author}"`]
     )
 
     // type: page
@@ -51,14 +52,15 @@ export async function fetchAllWork(
             wpApiSnapshot->>"$.date" as publishedAt
         FROM posts p
         WHERE wpApiSnapshot->>"$.content" LIKE '%topic-page%'
-        AND JSON_CONTAINS(wpApiSnapshot->'$.authors_name', '"${author}"')
+        AND JSON_CONTAINS(wpApiSnapshot->'$.authors_name', ?)
         AND wpApiSnapshot->>"$.status" = 'publish'
         AND NOT EXISTS (
             SELECT 1 FROM posts_gdocs pg
             WHERE pg.slug = p.slug
             AND pg.content->>'$.type' LIKE '%topic-page'
         )
-        `
+        `,
+        [`"${author}"`]
     )
 
     const isWordpressPage = (
