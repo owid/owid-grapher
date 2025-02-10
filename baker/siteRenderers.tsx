@@ -470,7 +470,7 @@ const getCountryProfilePost = memoize(
 
 // todo: we used to flush cache of this thing.
 const getCountryProfileLandingPost = memoize(
-    async (knex: KnexReadonlyTransaction, profileSpec: CountryProfileSpec) => {
+    async (profileSpec: CountryProfileSpec, knex: KnexReadonlyTransaction) => {
         return getFullPostBySlugFromSnapshot(knex, profileSpec.landingPageSlug)
     }
 )
@@ -487,7 +487,7 @@ export const renderCountryProfile = async (
 
     const formattedCountryProfile = formatCountryProfile(formatted, country)
 
-    const landing = await getCountryProfileLandingPost(knex, profileSpec)
+    const landing = await getCountryProfileLandingPost(profileSpec, knex)
 
     const overrides: PageOverrides = {
         pageTitle: `${country.name}: ${profileSpec.pageTitle} Country Profile`,
