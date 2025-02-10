@@ -1227,7 +1227,10 @@ export class SlopeChart
         )
     }
 
-    private renderLineLegendLeft(): React.ReactElement {
+    private renderLineLegendLeft(): React.ReactElement | null {
+        // don't show labels for the start values in relative mode since they're all trivially zero
+        if (this.manager.isRelativeMode) return null
+
         const uniqYValues = uniq(
             this.lineLegendSeriesLeft.map((series) => series.yValue)
         )
@@ -1235,11 +1238,7 @@ export class SlopeChart
             uniqYValues.length === 1 && uniqYValues[0] === 0
 
         // if all values have a start value of 0, show the 0-label only once
-        if (
-            // in relative mode, all slopes start from 0%
-            this.manager.isRelativeMode ||
-            allSlopesStartFromZero
-        )
+        if (allSlopesStartFromZero)
             return (
                 <Halo
                     id="x-axis-zero-label"
