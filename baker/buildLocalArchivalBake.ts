@@ -14,7 +14,7 @@ import findProjectBaseDir from "../settings/findBaseDir.js"
 import { AssetMap } from "@ourworldindata/types"
 import { getVariableData } from "../db/model/Variable.js"
 import dayjs from "dayjs"
-import { hashBase36 } from "../serverUtils/hash.js"
+import { hashBase36, hashBase36FromStream } from "../serverUtils/hash.js"
 
 const DATE_TIME_FORMAT = "YYYYMMDD-HHmmss"
 const DIR = "archive"
@@ -25,8 +25,8 @@ if (!projBaseDir) throw new Error("Could not find project base directory")
 const archiveDir = path.join(projBaseDir, DIR)
 
 const hashFile = async (file: string) => {
-    const buf = await fs.readFile(file)
-    return hashBase36(buf)
+    const stream = await fs.createReadStream(file)
+    return await hashBase36FromStream(stream)
 }
 
 const hashAndWriteFile = async (filename: string, content: string) => {
@@ -104,6 +104,27 @@ const bakeVariableDataFiles = async (variableId: number) => {
     }
 }
 
+const bakeOwidMjsFile = async (
+    srcPath: string,
+    destPath: string,
+    sourceMapFilename: string
+) => {
+    const mjsContents = await fs.readFile(srcPath, "utf8")
+    const withSourceMap = mjsContents.replace(
+        /\/\/# sourceMappingURL=owid.mjs.map/g,
+        `//# sourceMappingURL=${sourceMapFilename}`
+    )
+
+    if (withSourceMap === mjsContents) {
+        console.error("Failed to replace sourceMappingURL in owid.mjs")
+    }
+    return await hashAndWriteFile(destPath, withSourceMap)
+}
+
+// we explicitly want owid.mjs.map to come first, so that we can replace the sourceMappingURL in owid.mjs
+// after we know the content-hashed filename of owid.map.mjs
+const ASSET_FILES = ["owid.mjs.map", "owid.mjs", "owid.css"]
+const IGNORED_FILES = [".vite"]
 const bakeAssets = async () => {
     const srcDir = path.join(projBaseDir, "dist/assets")
     const targetDir = path.join(projBaseDir, DIR, "assets")
@@ -112,38 +133,35 @@ const bakeAssets = async () => {
 
     const staticAssetMap: AssetMap = {}
 
-    for (const dirent of await fs.readdir(srcDir, { withFileTypes: true })) {
-        if (!dirent.isFile()) continue
-        const srcFile = path.join(srcDir, dirent.name)
-        const filename = await hashAndCopyFile(srcFile, targetDir)
-        staticAssetMap[dirent.name] = `/${filename}`
+    const filesInDir = await fs.readdir(srcDir, { withFileTypes: true })
+
+    for await (const filename of ASSET_FILES) {
+        if (!filesInDir.some((dirent) => dirent.name === filename)) {
+            throw new Error(`Could not find ${filename} in ${srcDir}`)
+        }
+        const srcFile = path.join(srcDir, filename)
+
+        let outFilename: string
+        if (filename === "owid.mjs") {
+            outFilename = await bakeOwidMjsFile(
+                srcFile,
+                path.join(targetDir, filename),
+                path.basename(staticAssetMap["owid.mjs.map"])
+            )
+        } else {
+            outFilename = await hashAndCopyFile(srcFile, targetDir)
+        }
+        staticAssetMap[filename] = `/${outFilename}`
     }
 
-    // Attempt to make JS source maps work, by replacing the content of the //# sourceMappingURL comment
-    if (staticAssetMap["owid.mjs"] && staticAssetMap["owid.mjs.map"]) {
-        const mjsFilename = path.basename(staticAssetMap["owid.mjs"])
-        const mjsContents = await fs.readFile(
-            path.join(targetDir, mjsFilename),
-            "utf8"
+    const additionalFiles = new Set(
+        filesInDir.map((dirent) => dirent.name)
+    ).difference(new Set([...ASSET_FILES, ...IGNORED_FILES]))
+    if (additionalFiles.size > 0) {
+        console.warn(
+            `Found additional files in ${srcDir}:`,
+            Array.from(additionalFiles).join(", ")
         )
-        const withSourceMap = mjsContents.replace(
-            /\/\/# sourceMappingURL=owid.mjs.map/g,
-            `//# sourceMappingURL=${path.basename(staticAssetMap["owid.mjs.map"])}`
-        )
-
-        if (withSourceMap === mjsContents) {
-            console.error("Failed to replace sourceMappingURL in owid.mjs")
-        } else {
-            // Now that we have replaced the source map path, the content hash has slightly changed,
-            //  but we don't need to care about that, realistically. We'll just live with the fact.
-            await fs.writeFile(
-                path.join(targetDir, mjsFilename),
-                withSourceMap,
-                "utf-8"
-            )
-        }
-    } else {
-        console.error("Could not find owid.mjs and owid.mjs.map")
     }
 
     return { staticAssetMap }
