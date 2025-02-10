@@ -10,5 +10,7 @@ export interface DbInsertUser {
     lastSeen?: Date | null
     password?: string | null
     updatedAt?: Date | null
+    githubUsername?: string | null
+    dataInsightFolderId?: string | null
 }
 export type DbPlainUser = Required<DbInsertUser>
