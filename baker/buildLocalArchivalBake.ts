@@ -143,10 +143,16 @@ const bakeAssets = async () => {
 
         let outFilename: string
         if (filename === "owid.mjs") {
+            const sourceMapFilename = path.basename(
+                staticAssetMap["owid.mjs.map"] ?? ""
+            )
+            if (!sourceMapFilename)
+                throw new Error("Could not find owid.mjs.map in staticAssetMap")
+
             outFilename = await bakeOwidMjsFile(
                 srcFile,
                 path.join(targetDir, filename),
-                path.basename(staticAssetMap["owid.mjs.map"])
+                sourceMapFilename
             )
         } else {
             outFilename = await hashAndCopyFile(srcFile, targetDir)
