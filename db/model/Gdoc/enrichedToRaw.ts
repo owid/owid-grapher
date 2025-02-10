@@ -593,6 +593,9 @@ export function enrichedBlockToRawBlock(
                             type,
                             value: {
                                 ...value,
+                                isNew: value.isNew
+                                    ? value.isNew.toString()
+                                    : "false",
                                 authors: authors?.join(", "),
                             },
                         })

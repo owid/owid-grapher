@@ -735,17 +735,11 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         ? htmlToSpans(image.value.caption)
         : undefined
 
-    if (
-        image.value.hasOutline &&
-        image.value.hasOutline !== "true" &&
-        image.value.hasOutline !== "false"
-    ) {
-        return createError({
-            message:
-                "If set, image `hasOutline` property must be true or false",
-        })
+    const booleanValidation = validateRawBoolean("hasOutline", image.value)
+    if (!booleanValidation.isValid) {
+        return createError(booleanValidation)
     }
-    const hasOutline = Boolean(image.value.hasOutline === "true")
+    const hasOutline = image.value.hasOutline === "true"
 
     return {
         type: "image",
@@ -798,23 +792,17 @@ const parseVideo = (raw: RawBlockVideo): EnrichedBlockVideo => {
         })
     }
 
-    const shouldLoop = raw.value.shouldLoop
-    if (!!shouldLoop && shouldLoop !== "true" && shouldLoop !== "false") {
-        return createError({
-            message: "If specified, shouldLoop property must be true or false",
-        })
+    const shouldLoopValidation = validateRawBoolean("shouldLoop", raw.value)
+    if (!shouldLoopValidation.isValid) {
+        return createError(shouldLoopValidation)
     }
 
-    const shouldAutoplay = raw.value.shouldAutoplay
-    if (
-        !!shouldAutoplay &&
-        shouldAutoplay !== "true" &&
-        shouldAutoplay !== "false"
-    ) {
-        return createError({
-            message:
-                "If specified, shouldAutoplay property must be true or false",
-        })
+    const shouldAutoplayValidation = validateRawBoolean(
+        "shouldAutoplay",
+        raw.value
+    )
+    if (!shouldAutoplayValidation.isValid) {
+        return createError(shouldAutoplayValidation)
     }
 
     const caption = raw.value.caption
@@ -826,8 +814,8 @@ const parseVideo = (raw: RawBlockVideo): EnrichedBlockVideo => {
         url,
         filename,
         caption,
-        shouldLoop: shouldLoop === "true",
-        shouldAutoplay: shouldAutoplay === "true",
+        shouldLoop: raw.value.shouldLoop === "true",
+        shouldAutoplay: raw.value.shouldAutoplay === "true",
         parseErrors: [],
     }
 }
@@ -1878,13 +1866,9 @@ function parseResearchAndWritingBlock(
         } else return createLinkError(`Malformed link data: ${typeof rawLink}`)
     }
 
-    if (
-        raw.value["hide-authors"] &&
-        !["true", "false"].includes(raw.value["hide-authors"])
-    ) {
-        parseErrors.push({
-            message: `"hide-authors" must be true or false if present`,
-        })
+    const hideAuthorsValidation = validateRawBoolean("hide-authors", raw.value)
+    if (!hideAuthorsValidation.isValid) {
+        parseErrors.push(hideAuthorsValidation)
     }
 
     const primary: EnrichedBlockResearchAndWritingLink[] = []
