@@ -87,19 +87,6 @@ export function parsePostRow(postRow: DbRawPost): DbEnrichedPost {
     }
 }
 
-export function serializePostRow(postRow: DbEnrichedPost): DbRawPost {
-    return {
-        ...postRow,
-        authors: JSON.stringify(postRow.authors),
-        formattingOptions: JSON.stringify(postRow.formattingOptions),
-        archieml: JSON.stringify(postRow.archieml),
-        archieml_update_statistics: JSON.stringify(
-            postRow.archieml_update_statistics
-        ),
-        wpApiSnapshot: JSON.stringify(postRow.wpApiSnapshot),
-    }
-}
-
 export const snapshotIsPostRestApi = (
     snapshot: PostRestApi | BlockGraphQlApi
 ): snapshot is PostRestApi => {

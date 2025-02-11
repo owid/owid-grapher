@@ -23,12 +23,6 @@ import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { SiteNavigation } from "./SiteNavigation.js"
 import SiteTools, { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { runDetailsOnDemand } from "./detailsOnDemand.js"
-import { runDataTokens } from "./runDataTokens.js"
-import SearchCountry from "./SearchCountry.js"
-import {
-    AdditionalInformation,
-    ADDITIONAL_INFORMATION_CLASS_NAME,
-} from "./blocks/AdditionalInformation.js"
 import { hydrateCodeSnippets } from "@ourworldindata/components"
 import { hydrateDynamicCollectionPage } from "./collections/DynamicCollection.js"
 import {
@@ -44,7 +38,6 @@ import { getInitialState } from "./cookiePreferences.js"
 import { CookiePreferencesManager } from "./CookiePreferencesManager.js"
 import { DataCatalogInstantSearchWrapper } from "./DataCatalog/DataCatalog.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
-import { countryProfileSpecs } from "./countryProfileProjects.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import {
@@ -148,28 +141,6 @@ function runFootnotes() {
     })
 }
 
-function runSearchCountry() {
-    const searchElements = document.querySelectorAll(
-        ".wp-block-search-country-profile"
-    )
-    searchElements.forEach((element) => {
-        const project = element.getAttribute("data-project")
-        if (project) {
-            const profileSpec = countryProfileSpecs.find(
-                (spec) => spec.project === project
-            )
-            if (profileSpec) {
-                render(
-                    <SearchCountry
-                        countryProfileRootPath={profileSpec.rootPath}
-                    />,
-                    element
-                )
-            }
-        }
-    })
-}
-
 function runSiteNavigation(baseUrl: string, hideDonationFlag?: boolean) {
     let isOnHomepage = false
     if (window._OWID_GDOC_PROPS) {
@@ -200,33 +171,6 @@ function runSiteTools() {
             newsletterSubscriptionFormRootHomepage
         )
     }
-}
-
-const hydrateAdditionalInformation = () => {
-    document
-        .querySelectorAll<HTMLElement>(`.${ADDITIONAL_INFORMATION_CLASS_NAME}`)
-        .forEach((block) => {
-            const blockWrapper = block.parentElement
-            const titleEl = block.querySelector("h3")
-            const title = titleEl ? titleEl.textContent : null
-            const variation = block.getAttribute("data-variation") || ""
-            const defaultOpen =
-                block.getAttribute("data-default-open") === "true"
-            const figureEl = block.querySelector(".content-wrapper > figure")
-            const image = figureEl ? figureEl.innerHTML : null
-            const contentEl = block.querySelector(".content")
-            const content = contentEl ? contentEl.innerHTML : null
-            hydrate(
-                <AdditionalInformation
-                    content={content}
-                    title={title}
-                    image={image}
-                    variation={variation}
-                    defaultOpen={defaultOpen}
-                />,
-                blockWrapper
-            )
-        })
 }
 
 const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
@@ -332,14 +276,9 @@ export const runSiteFooterScripts = (
         default:
             // Features that were not ported over to gdocs, are only being run on WP pages:
             // - global entity selector
-            // - data tokens
             // - country-aware prominent links
-            // - search country widget leading to topic country profiles
             // - embedding charts through MultiEmbedderSingleton.embedAll()
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
-            runDataTokens()
-            runSearchCountry()
-            hydrateAdditionalInformation()
             hydrateCodeSnippets()
             MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
             MultiEmbedderSingleton.embedAll()

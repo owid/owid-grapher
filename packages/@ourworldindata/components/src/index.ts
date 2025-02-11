@@ -46,7 +46,6 @@ export { TextInput } from "./TextInput.js"
 
 export { CodeSnippet } from "./CodeSnippet/CodeSnippet.js"
 export { hydrateCodeSnippets } from "./CodeSnippet/hydrateCodeSnippets.js"
-export { renderCodeSnippets } from "./CodeSnippet/renderCodeSnippets.js"
 
 export { DataCitation } from "./DataCitation/DataCitation.js"
 
