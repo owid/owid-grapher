@@ -18,16 +18,17 @@ type Tippyfied<E> = E & {
 declare global {
     interface Window {
         details?: DetailDictionary
+        _OWID_RUNTIME_ASSET_MAP?: AssetMap
     }
 }
 
 const siteAnalytics = new SiteAnalytics()
 
-export async function runDetailsOnDemand({
-    runtimeAssetMap,
-}: {
-    runtimeAssetMap?: AssetMap
-} = {}) {
+export async function runDetailsOnDemand() {
+    const runtimeAssetMap =
+        (typeof window !== "undefined" && window._OWID_RUNTIME_ASSET_MAP) ||
+        undefined
+
     const dodFetchUrl = readFromAssetMap(runtimeAssetMap, {
         path: "dods.json",
         fallback: `${BAKED_BASE_URL}/dods.json`,

@@ -193,12 +193,15 @@ export const SiteFooter = (props: SiteFooterProps) => (
             <script
                 type="module"
                 dangerouslySetInnerHTML={{
-                    __html: `window.runSiteFooterScripts(${JSON.stringify({
+                    __html: `
+                    window._OWID_RUNTIME_ASSET_MAP = ${JSON.stringify(
+                        props.runtimeAssetMap
+                    )};
+                    window.runSiteFooterScripts(${JSON.stringify({
                         context: props.context,
                         debug: props.debug,
                         isPreviewing: props.isPreviewing,
                         hideDonationFlag: props.hideDonationFlag,
-                        runtimeAssetMap: props.runtimeAssetMap,
                     })})`,
                 }}
             />

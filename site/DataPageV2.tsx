@@ -175,7 +175,6 @@ export const DataPageV2 = (props: {
                                 faqEntries={faqEntries}
                                 canonicalUrl={canonicalUrl}
                                 tagToSlugMap={tagToSlugMap}
-                                runtimeAssetMap={runtimeAssetMap}
                             />
                         </DebugProvider>
                     </div>
