@@ -599,7 +599,6 @@ export {
     parsePostAuthors,
     parsePostRow,
     parsePostWpApiSnapshot,
-    serializePostRow,
     parsePostArchieml,
     snapshotIsPostRestApi,
     snapshotIsBlockGraphQlApi,
