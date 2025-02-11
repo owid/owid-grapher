@@ -167,25 +167,18 @@ export const LongFormPage = (props: {
 
                                         {withCitation && (
                                             <div className="tools">
-                                                {withCitation && (
-                                                    <>
-                                                        <a href="#licence">
-                                                            <FontAwesomeIcon
-                                                                icon={
-                                                                    faCreativeCommons
-                                                                }
-                                                            />
-                                                            Reuse our work
-                                                            freely
-                                                        </a>
-                                                        <a href="#citation">
-                                                            <FontAwesomeIcon
-                                                                icon={faBook}
-                                                            />
-                                                            Cite this research
-                                                        </a>
-                                                    </>
-                                                )}
+                                                <a href="#licence">
+                                                    <FontAwesomeIcon
+                                                        icon={faCreativeCommons}
+                                                    />
+                                                    Reuse our work freely
+                                                </a>
+                                                <a href="#citation">
+                                                    <FontAwesomeIcon
+                                                        icon={faBook}
+                                                    />
+                                                    Cite this research
+                                                </a>
                                             </div>
                                         )}
                                     </>
