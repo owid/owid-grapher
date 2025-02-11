@@ -855,18 +855,25 @@ export const DataCatalog = ({
     const currentResults = cache[cacheKey].get(stateAsUrl)
 
     useEffect(() => {
+        // Reconstructing state from the `stateAsUrl` serialization to avoid a `state` dependency in this effect,
+        // which would cause it to run on every state change (even no-ops)
+        const url = Url.fromURL(stateAsUrl)
+        const state = urlToDataCatalogState(url)
+        analytics.logDataCatalogSearch(state)
+    }, [stateAsUrl])
+
+    useEffect(() => {
         async function fetchData() {
             const results = shouldShowRibbons
                 ? await queryRibbons(searchClient, state, tagGraph)
                 : await querySearch(searchClient, state)
-            setCache((cache) => ({
-                ...cache,
-                [cacheKey]: cache[cacheKey].set(stateAsUrl, results as any),
+            setCache((prevCache) => ({
+                ...prevCache,
+                [cacheKey]: prevCache[cacheKey].set(stateAsUrl, results as any),
             }))
         }
 
         syncDataCatalogURL(stateAsUrl)
-        analytics.logDataCatalogSearch(state)
         if (cache[cacheKey].has(stateAsUrl)) return
 
         setIsLoading(true)
