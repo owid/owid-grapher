@@ -1,5 +1,9 @@
 #! /usr/bin/env node
 
+// This should be imported as early as possible so the global error handler is
+// set up before any errors are thrown.
+import "../serverUtils/instrument.js"
+
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import fs from "fs-extra"
