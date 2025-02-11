@@ -121,7 +121,7 @@ export const renderDataPageOrGrapherPage = async (
         runtimeAssetMap,
     })
     if (datapage) return datapage
-    return renderGrapherPage(grapher, knex)
+    return renderGrapherPage(grapher, knex, { staticAssetMap, runtimeAssetMap })
 }
 
 export async function renderDataPageV2(
@@ -261,7 +261,14 @@ export const renderPreviewDataPageOrGrapherPage = async (
 
 const renderGrapherPage = async (
     grapher: GrapherInterface,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    {
+        staticAssetMap,
+        runtimeAssetMap,
+    }: {
+        staticAssetMap?: AssetMap
+        runtimeAssetMap?: AssetMap
+    } = {}
 ) => {
     const postSlug = urlToSlug(grapher.originUrl || "") as string | undefined
     // TODO: update this to use gdocs posts
@@ -282,6 +289,8 @@ const renderGrapherPage = async (
             relatedArticles={relatedArticles}
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
+            staticAssetMap={staticAssetMap}
+            runtimeAssetMap={runtimeAssetMap}
         />
     )
 }

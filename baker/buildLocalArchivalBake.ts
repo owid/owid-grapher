@@ -188,7 +188,7 @@ const bakeDomainToFolder = async (
 
     console.log(`Baking site locally with baseUrl '${baseUrl}' to dir '${dir}'`)
 
-    const SLUG = "life-expectancy"
+    const SLUGS = ["life-expectancy", "environmental-footprint-milks"]
 
     const commonRuntimeFiles = await bakeDods()
 
@@ -196,23 +196,27 @@ const bakeDomainToFolder = async (
         const imageMetadataDictionary = await getAllImages(trx).then((images) =>
             keyBy(images, "filename")
         )
-        const chart = await getChartConfigBySlug(trx, SLUG)
 
-        const runtimeFiles = { ...commonRuntimeFiles }
+        for (const chartSlug of SLUGS) {
+            const chart = await getChartConfigBySlug(trx, chartSlug)
 
-        for (const dim of chart.config.dimensions ?? []) {
-            if (dim.variableId) {
-                const variableId = dim.variableId
-                const variableFiles = await bakeVariableDataFiles(variableId)
-                Object.assign(runtimeFiles, variableFiles)
+            const runtimeFiles = { ...commonRuntimeFiles }
+
+            for (const dim of chart.config.dimensions ?? []) {
+                if (dim.variableId) {
+                    const variableId = dim.variableId
+                    const variableFiles =
+                        await bakeVariableDataFiles(variableId)
+                    Object.assign(runtimeFiles, variableFiles)
+                }
             }
-        }
 
-        await bakeSingleGrapherPageForArchival(dir, chart.config, trx, {
-            imageMetadataDictionary,
-            staticAssetMap,
-            runtimeAssetMap: runtimeFiles,
-        })
+            await bakeSingleGrapherPageForArchival(dir, chart.config, trx, {
+                imageMetadataDictionary,
+                staticAssetMap,
+                runtimeAssetMap: runtimeFiles,
+            })
+        }
     }, db.TransactionCloseMode.Close)
 
     if (copyToLatestDir) {

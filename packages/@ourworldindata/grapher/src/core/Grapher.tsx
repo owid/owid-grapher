@@ -2435,7 +2435,8 @@ export class Grapher
     }
 
     static renderSingleGrapherOnGrapherPage(
-        jsonConfig: GrapherInterface
+        jsonConfig: GrapherInterface,
+        { runtimeAssetMap }: { runtimeAssetMap?: AssetMap } = {}
     ): void {
         const container = document.getElementsByTagName("figure")[0]
         try {
@@ -2445,6 +2446,7 @@ export class Grapher
                     bindUrlToWindow: true,
                     enableKeyboardShortcuts: true,
                     queryStr: window.location.search,
+                    runtimeAssetMap,
                 },
                 container
             )
