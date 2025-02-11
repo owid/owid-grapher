@@ -128,6 +128,7 @@ export {
     lazy,
     getParentVariableIdFromChartConfig,
     isArrayDifferentFromReference,
+    readFromAssetMap,
 } from "./Util.js"
 
 export {

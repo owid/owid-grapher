@@ -15,6 +15,7 @@ import {
     GrapherInterface,
     ImageMetadata,
     Url,
+    AssetMap,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import urljoin from "url-join"
@@ -43,6 +44,9 @@ export const DataPageV2 = (props: {
     faqEntries?: FaqEntryData
     imageMetadata: Record<string, ImageMetadata>
     tagToSlugMap: Record<string | number, string>
+    staticAssetMap?: AssetMap
+    runtimeAssetMap?: AssetMap
+    dataApiUrl?: string
 }) => {
     const {
         grapher,
@@ -53,6 +57,8 @@ export const DataPageV2 = (props: {
         faqEntries,
         tagToSlugMap,
         imageMetadata,
+        staticAssetMap,
+        runtimeAssetMap,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title.title
     const canonicalUrl = grapher?.slug
@@ -107,6 +113,7 @@ export const DataPageV2 = (props: {
                 pageDesc={pageDesc}
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
+                staticAssetMap={staticAssetMap}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
@@ -114,8 +121,16 @@ export const DataPageV2 = (props: {
                 <link rel="preconnect" href={dataApiOrigin} />
                 {variableIds.flatMap((variableId) =>
                     [
-                        getVariableDataRoute(DATA_API_URL, variableId),
-                        getVariableMetadataRoute(DATA_API_URL, variableId),
+                        getVariableDataRoute(
+                            DATA_API_URL,
+                            variableId,
+                            runtimeAssetMap
+                        ),
+                        getVariableMetadataRoute(
+                            DATA_API_URL,
+                            variableId,
+                            runtimeAssetMap
+                        ),
                     ].map((href) => (
                         <link
                             key={href}
@@ -168,6 +183,8 @@ export const DataPageV2 = (props: {
                     baseUrl={baseUrl}
                     context={SiteFooterContext.dataPageV2}
                     isPreviewing={isPreviewing}
+                    staticAssetMap={staticAssetMap}
+                    runtimeAssetMap={runtimeAssetMap}
                 />
                 <script
                     dangerouslySetInnerHTML={{

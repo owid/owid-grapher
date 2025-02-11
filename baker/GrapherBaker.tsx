@@ -33,6 +33,7 @@ import {
     DbPlainChart,
     DbRawChartConfig,
     DbEnrichedImage,
+    AssetMap,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -58,7 +59,15 @@ const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
     isPreviewing: boolean,
     knex: db.KnexReadonlyTransaction,
-    imageMetadataDictionary?: Record<string, DbEnrichedImage>
+    {
+        imageMetadataDictionary,
+        staticAssetMap,
+        runtimeAssetMap,
+    }: {
+        imageMetadataDictionary?: Record<string, DbEnrichedImage>
+        staticAssetMap?: AssetMap
+        runtimeAssetMap?: AssetMap
+    } = {}
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
 
@@ -81,6 +90,8 @@ const renderDatapageIfApplicable = async (
             useIndicatorGrapherConfigs: false,
             pageGrapher: grapher,
             imageMetadataDictionary,
+            staticAssetMap,
+            runtimeAssetMap,
         },
         knex
     )
@@ -94,16 +105,23 @@ const renderDatapageIfApplicable = async (
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     knex: db.KnexReadonlyTransaction,
-    imageMetadataDictionary?: Record<string, DbEnrichedImage>
+    {
+        imageMetadataDictionary,
+        staticAssetMap,
+        runtimeAssetMap,
+    }: {
+        imageMetadataDictionary?: Record<string, DbEnrichedImage>
+        staticAssetMap?: AssetMap
+        runtimeAssetMap?: AssetMap
+    } = {}
 ): Promise<string> => {
-    const datapage = await renderDatapageIfApplicable(
-        grapher,
-        false,
-        knex,
-        imageMetadataDictionary
-    )
+    const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
+        imageMetadataDictionary,
+        staticAssetMap,
+        runtimeAssetMap,
+    })
     if (datapage) return datapage
-    return renderGrapherPage(grapher, knex)
+    return renderGrapherPage(grapher, knex, { staticAssetMap, runtimeAssetMap })
 }
 
 export async function renderDataPageV2(
@@ -114,6 +132,8 @@ export async function renderDataPageV2(
         useIndicatorGrapherConfigs,
         pageGrapher,
         imageMetadataDictionary = {},
+        staticAssetMap,
+        runtimeAssetMap,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -121,6 +141,8 @@ export async function renderDataPageV2(
         useIndicatorGrapherConfigs: boolean
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
+        staticAssetMap?: AssetMap
+        runtimeAssetMap?: AssetMap
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -217,6 +239,8 @@ export async function renderDataPageV2(
             imageMetadata={imageMetadata}
             faqEntries={faqEntries}
             tagToSlugMap={tagToSlugMap}
+            staticAssetMap={staticAssetMap}
+            runtimeAssetMap={runtimeAssetMap}
         />
     )
 }
@@ -237,7 +261,14 @@ export const renderPreviewDataPageOrGrapherPage = async (
 
 const renderGrapherPage = async (
     grapher: GrapherInterface,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    {
+        staticAssetMap,
+        runtimeAssetMap,
+    }: {
+        staticAssetMap?: AssetMap
+        runtimeAssetMap?: AssetMap
+    } = {}
 ) => {
     const postSlug = urlToSlug(grapher.originUrl || "") as string | undefined
     // TODO: update this to use gdocs posts
@@ -258,8 +289,44 @@ const renderGrapherPage = async (
             relatedArticles={relatedArticles}
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
+            staticAssetMap={staticAssetMap}
+            runtimeAssetMap={runtimeAssetMap}
         />
     )
+}
+
+export const bakeSingleGrapherPageForArchival = async (
+    bakedSiteDir: string,
+    grapher: GrapherInterface,
+    knex: db.KnexReadonlyTransaction,
+    {
+        imageMetadataDictionary,
+        staticAssetMap,
+        runtimeAssetMap,
+    }: {
+        imageMetadataDictionary?: Record<string, DbEnrichedImage>
+        staticAssetMap?: AssetMap
+        runtimeAssetMap?: AssetMap
+    } = {}
+) => {
+    const outPathHtml = `${bakedSiteDir}/grapher/${grapher.slug}.html`
+    await fs.writeFile(
+        outPathHtml,
+        await renderDataPageOrGrapherPage(grapher, knex, {
+            imageMetadataDictionary,
+            staticAssetMap,
+            runtimeAssetMap,
+        })
+    )
+    const outPathManifest = `${bakedSiteDir}/grapher/${grapher.slug}.manifest.json`
+
+    // TODO: right now, this only contains the asset maps. it may in the future also contain input
+    // hashes of the config and data files.
+    await fs.writeFile(
+        outPathManifest,
+        JSON.stringify({ staticAssetMap, runtimeAssetMap }, undefined, 2)
+    )
+    console.log(outPathHtml, outPathManifest)
 }
 
 const bakeGrapherPage = async (

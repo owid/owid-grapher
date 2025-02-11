@@ -15,6 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import {
+    AssetMap,
     HIDE_IF_JS_DISABLED_CLASSNAME,
     HIDE_IF_JS_ENABLED_CLASSNAME,
 } from "@ourworldindata/types"
@@ -39,6 +40,8 @@ export const GrapherPage = (props: {
     relatedArticles?: PostReference[]
     baseUrl: string
     baseGrapherUrl: string
+    staticAssetMap?: AssetMap
+    runtimeAssetMap?: AssetMap
 }) => {
     const { grapher, relatedCharts, relatedArticles, baseGrapherUrl, baseUrl } =
         props
@@ -73,7 +76,8 @@ export const GrapherPage = (props: {
         bakedGrapherURL: BAKED_GRAPHER_URL,
         dataApiUrl: DATA_API_URL,
     })}
-window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
+const runtimeAssetMap = (typeof window !== "undefined" && window._OWID_RUNTIME_ASSET_MAP) || undefined;
+window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { runtimeAssetMap: runtimeAssetMap })`
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
 
@@ -85,6 +89,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 pageDesc={pageDesc}
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
+                staticAssetMap={props.staticAssetMap}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
@@ -92,8 +97,16 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 <link rel="preconnect" href={dataApiOrigin} />
                 {variableIds.flatMap((variableId) =>
                     [
-                        getVariableDataRoute(DATA_API_URL, variableId),
-                        getVariableMetadataRoute(DATA_API_URL, variableId),
+                        getVariableDataRoute(
+                            DATA_API_URL,
+                            variableId,
+                            props.runtimeAssetMap
+                        ),
+                        getVariableMetadataRoute(
+                            DATA_API_URL,
+                            variableId,
+                            props.runtimeAssetMap
+                        ),
                     ].map((href) => (
                         <link
                             key={href}
@@ -167,6 +180,8 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 <SiteFooter
                     baseUrl={baseUrl}
                     context={SiteFooterContext.grapherPage}
+                    staticAssetMap={props.staticAssetMap}
+                    runtimeAssetMap={props.runtimeAssetMap}
                 />
                 <script
                     type="module"

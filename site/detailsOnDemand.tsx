@@ -3,7 +3,12 @@ import { Instance } from "tippy.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { renderToStaticMarkup } from "react-dom/server.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
-import { DetailDictionary, fetchWithRetry } from "@ourworldindata/utils"
+import {
+    AssetMap,
+    DetailDictionary,
+    fetchWithRetry,
+    readFromAssetMap,
+} from "@ourworldindata/utils"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
 type Tippyfied<E> = E & {
@@ -13,13 +18,23 @@ type Tippyfied<E> = E & {
 declare global {
     interface Window {
         details?: DetailDictionary
+        _OWID_RUNTIME_ASSET_MAP?: AssetMap
     }
 }
 
 const siteAnalytics = new SiteAnalytics()
 
 export async function runDetailsOnDemand() {
-    window.details = await fetchWithRetry(`${BAKED_BASE_URL}/dods.json`, {
+    const runtimeAssetMap =
+        (typeof window !== "undefined" && window._OWID_RUNTIME_ASSET_MAP) ||
+        undefined
+
+    const dodFetchUrl = readFromAssetMap(runtimeAssetMap, {
+        path: "dods.json",
+        fallback: `${BAKED_BASE_URL}/dods.json`,
+    })
+
+    window.details = await fetchWithRetry(dodFetchUrl, {
         method: "GET",
         credentials: "same-origin",
         headers: {

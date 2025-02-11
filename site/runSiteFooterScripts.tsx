@@ -69,7 +69,9 @@ function hydrateDataInsightsIndexPage() {
     }
 }
 
-function hydrateDataPageV2Content(isPreviewing?: boolean) {
+function hydrateDataPageV2Content({
+    isPreviewing,
+}: { isPreviewing?: boolean } = {}) {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
     const props: DataPageV2ContentFields = window._OWID_DATAPAGEV2_PROPS
     const grapherConfig = window._OWID_GRAPHER_CONFIG
@@ -221,7 +223,7 @@ export const runSiteFooterScripts = (
 
     switch (context) {
         case SiteFooterContext.dataPageV2:
-            hydrateDataPageV2Content(isPreviewing)
+            hydrateDataPageV2Content({ isPreviewing })
             runAllGraphersLoadedListener()
             runLightbox()
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)

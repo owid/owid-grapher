@@ -115,6 +115,7 @@ import {
     SeriesName,
     ChartViewInfo,
     OwidChartDimensionInterfaceWithMandatorySlug,
+    AssetMap,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -274,10 +275,11 @@ async function loadVariablesDataAdmin(
 
 async function loadVariablesDataSite(
     variableIds: number[],
-    dataApiUrl: string
+    dataApiUrl: string,
+    assetMap?: AssetMap
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map((variableId) =>
-        loadVariableDataAndMetadata(variableId, dataApiUrl)
+        loadVariableDataAndMetadata(variableId, dataApiUrl, assetMap)
     )
     const variablesData: OwidVariableDataMetadataDimensions[] =
         await Promise.all(loadVariableDataPromises)
@@ -338,6 +340,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
         ChartViewInfo,
         "parentChartSlug" | "queryParamsForParentChart"
     >
+    runtimeAssetMap?: AssetMap
 
     manager?: GrapherManager
     instanceRef?: React.RefObject<Grapher>
@@ -517,6 +520,8 @@ export class Grapher
         ChartViewInfo,
         "name" | "parentChartSlug" | "queryParamsForParentChart"
     > = undefined
+
+    runtimeAssetMap?: AssetMap = this.props.runtimeAssetMap
 
     selection =
         this.manager?.selection ??
@@ -1154,7 +1159,8 @@ export class Grapher
         } else {
             variablesDataMap = await loadVariablesDataSite(
                 this.variableIds,
-                this.dataApiUrl
+                this.dataApiUrl,
+                this.runtimeAssetMap
             )
         }
         this.createPerformanceMeasurement("downloadVariablesData", startMark)
@@ -2429,7 +2435,8 @@ export class Grapher
     }
 
     static renderSingleGrapherOnGrapherPage(
-        jsonConfig: GrapherInterface
+        jsonConfig: GrapherInterface,
+        { runtimeAssetMap }: { runtimeAssetMap?: AssetMap } = {}
     ): void {
         const container = document.getElementsByTagName("figure")[0]
         try {
@@ -2439,6 +2446,7 @@ export class Grapher
                     bindUrlToWindow: true,
                     enableKeyboardShortcuts: true,
                     queryStr: window.location.search,
+                    runtimeAssetMap,
                 },
                 container
             )
