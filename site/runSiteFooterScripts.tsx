@@ -1,7 +1,6 @@
 import { StrictMode } from "react"
 import { hydrate, render } from "react-dom"
 import {
-    AssetMap,
     DataPageV2ContentFields,
     getOwidGdocFromJSON,
     getWindowQueryStr,
