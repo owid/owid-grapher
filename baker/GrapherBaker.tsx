@@ -204,7 +204,11 @@ export async function renderDataPageV2(
         grapher ?? {}
     )
 
-    datapageData.primaryTopic = await getPrimaryTopic(knex, datapageData)
+    datapageData.primaryTopic = await getPrimaryTopic(
+        knex,
+        datapageData.topicTagsLinks,
+        grapher.slug
+    )
 
     // Get the charts this variable is being used in (aka "related charts")
     // and exclude the current chart to avoid duplicates
