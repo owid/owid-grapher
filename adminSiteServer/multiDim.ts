@@ -231,7 +231,7 @@ async function cleanUpOrphanedChartConfigs(
     }
 }
 
-export async function createMultiDimConfig(
+export async function upsertMultiDimConfig(
     knex: db.KnexReadWriteTransaction,
     slug: string,
     rawConfig: MultiDimDataPageConfigRaw
