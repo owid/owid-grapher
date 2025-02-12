@@ -104,18 +104,23 @@ export const GDOCS_DETAILS_ON_DEMAND_ID: string =
 
 export const PUBLISHED_AT_FORMAT = "ddd, MMM D, YYYY HH:mm"
 
-// Feature flags: FEATURE_FLAGS is a comma-separated list of flags, and they need to be part of this enum to be considered
-export enum FeatureFlagFeature {
-    MultiDimDataPage = "MultiDimDataPage",
-}
+/** A map of possible features which can be enabled or disabled. */
+const Features = {
+    ExampleFeature: "ExampleFeature",
+} as const
+
+type Feature = (typeof Features)[keyof typeof Features]
+
+// process.env.FEATURE_FLAGS is a comma-separated list of flags, and they need
+// to be a valid value in the Features object to be considered.
 const featureFlagsRaw =
     (typeof process.env.FEATURE_FLAGS === "string" &&
         process.env.FEATURE_FLAGS.trim()?.split(",")) ||
     []
-export const FEATURE_FLAGS: Set<FeatureFlagFeature> = new Set(
-    Object.keys(FeatureFlagFeature).filter((key) =>
-        featureFlagsRaw.includes(key)
-    ) as FeatureFlagFeature[]
+export const FEATURE_FLAGS: Set<Feature> = new Set(
+    Object.values(Features).filter((feature) =>
+        featureFlagsRaw.includes(feature)
+    )
 )
 
 export const SLACK_DI_PITCHES_CHANNEL_ID: string =
