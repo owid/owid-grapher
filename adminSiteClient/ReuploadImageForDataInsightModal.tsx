@@ -1,6 +1,10 @@
-import { faCheck, faSpinner } from "@fortawesome/free-solid-svg-icons"
+import {
+    faCheck,
+    faDownload,
+    faSpinner,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { Modal, Space } from "antd"
+import { Button, Flex, Modal, Space } from "antd"
 import { useContext, useState } from "react"
 import {
     ImageUploadResponse,
@@ -8,9 +12,11 @@ import {
     uploadImageFromSourceUrl,
 } from "./imagesHelpers"
 import { AdminAppContext } from "./AdminAppContext"
+import { downloadImage } from "@ourworldindata/utils"
 
 const spinnerIcon = <FontAwesomeIcon icon={faSpinner} size="sm" spin />
 const checkIcon = <FontAwesomeIcon icon={faCheck} size="sm" />
+const downloadIcon = <FontAwesomeIcon icon={faDownload} size="sm" />
 
 export function ReuploadImageForDataInsightModal({
     dataInsight,
@@ -51,7 +57,7 @@ export function ReuploadImageForDataInsightModal({
 }) {
     const { admin } = useContext(AdminAppContext)
 
-    const currentImageUrl = makeImageSrc(
+    const existingImageUrl = makeImageSrc(
         existingImage.cloudflareId,
         existingImage.originalWidth
     )
@@ -112,11 +118,28 @@ export function ReuploadImageForDataInsightModal({
                 </p>
 
                 <ImagePreview
-                    imageBefore={currentImageUrl}
+                    imageBefore={existingImageUrl}
                     imageAfter={sourceUrl}
                     isLoading={isLoadingSourceUrl}
                     loadingError={loadingSourceUrlError}
                 />
+                {sourceUrl && (
+                    <Flex justify="end">
+                        <Button
+                            color="default"
+                            variant="filled"
+                            icon={downloadIcon}
+                            onClick={() => {
+                                void downloadImage(
+                                    sourceUrl,
+                                    existingImage.filename
+                                )
+                            }}
+                        >
+                            Download
+                        </Button>
+                    </Flex>
+                )}
             </div>
         </Modal>
     )
