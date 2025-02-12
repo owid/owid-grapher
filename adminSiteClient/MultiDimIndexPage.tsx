@@ -4,7 +4,7 @@ import {
     useQuery,
     useQueryClient,
 } from "@tanstack/react-query"
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { useContext, useEffect, useMemo, useState } from "react"
 import {
     Input,
     Popconfirm,
@@ -46,7 +46,7 @@ function SlugField({
     id: number
     slug: string
     slugMutation: UseMutationResult<
-        unknown,
+        MultiDim,
         unknown,
         { id: number; slug: string },
         unknown
@@ -65,13 +65,13 @@ function SlugField({
 
 function createColumns(
     slugMutation: UseMutationResult<
-        unknown,
+        MultiDim,
         unknown,
         { id: number; slug: string },
         unknown
     >,
     publishMutation: UseMutationResult<
-        unknown,
+        MultiDim,
         unknown,
         { id: number; published: boolean },
         unknown
@@ -131,7 +131,7 @@ function createColumns(
             render: (slug, { id }) => (
                 <SlugField id={id} slug={slug} slugMutation={slugMutation} />
             ),
-            sorter: (a, b) => a.title.localeCompare(b.title),
+            sorter: (a, b) => a.slug.localeCompare(b.slug),
         },
         {
             title: "Last updated",
@@ -198,8 +198,6 @@ async function patchMultiDim(admin: Admin, id: number, data: Json) {
     return deserializeMultiDim(multiDim)
 }
 
-const NotificationContext = createContext(null)
-
 export function MultiDimIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [notificationApi, notificationContextHolder] =
@@ -260,23 +258,21 @@ export function MultiDimIndexPage() {
 
     return (
         <AdminLayout title="Multidimensional Data Pages">
-            <NotificationContext.Provider value={null}>
-                {notificationContextHolder}
-                <main>
-                    <Input
-                        placeholder="Search by title or slug"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        style={{ width: 500, marginBottom: 20 }}
-                        autoFocus
-                    />
-                    <Table
-                        columns={columns}
-                        dataSource={filteredMdims}
-                        rowKey={(x) => x.id}
-                    />
-                </main>
-            </NotificationContext.Provider>
+            {notificationContextHolder}
+            <main>
+                <Input
+                    placeholder="Search by title or slug"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    style={{ width: 500, marginBottom: 20 }}
+                    autoFocus
+                />
+                <Table
+                    columns={columns}
+                    dataSource={filteredMdims}
+                    rowKey={(x) => x.id}
+                />
+            </main>
         </AdminLayout>
     )
 }

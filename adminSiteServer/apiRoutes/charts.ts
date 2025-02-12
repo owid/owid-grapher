@@ -319,9 +319,7 @@ export const saveGrapher = async (
 
     // When a chart is published, check for conflicts
     if (newConfig.isPublished) {
-        if (newConfig.slug) {
-            await validateGrapherSlug(knex, newConfig.slug, existingConfig?.id)
-        }
+        await validateGrapherSlug(knex, newConfig.slug, existingConfig?.id)
         if (
             existingConfig &&
             existingConfig.isPublished &&

@@ -47,7 +47,7 @@ async function isSlugUsedInOtherGrapher(
 
 export async function validateGrapherSlug(
     knex: db.KnexReadonlyTransaction,
-    slug: string,
+    slug?: string,
     existingConfigId?: number
 ) {
     if (!isValidSlug(slug)) {
@@ -65,7 +65,32 @@ export async function validateGrapherSlug(
     }
     if (await multiDimDataPageExists(knex, { slug })) {
         throw new JsonError(
-            `This slug is in use by a multi-dimensional data page: ${slug}`
+            `This slug is in use by a multidimensional data page: ${slug}`
+        )
+    }
+    return slug
+}
+
+/**
+ * Validates an existing slug of a multidimensional data page,
+ * e.g. before publishing.
+ */
+export async function validateMultiDimSlug(
+    knex: db.KnexReadonlyTransaction,
+    slug: string,
+    existingConfigId?: number
+) {
+    if (!isValidSlug(slug)) {
+        throw new JsonError(`Invalid chart slug ${slug}`)
+    }
+    if (await isSlugUsedInRedirect(knex, slug, existingConfigId)) {
+        throw new JsonError(
+            `This chart slug was previously used by another chart: ${slug}`
+        )
+    }
+    if (await isSlugUsedInOtherGrapher(knex, slug, existingConfigId)) {
+        throw new JsonError(
+            `This chart slug is in use by another published chart: ${slug}`
         )
     }
     return slug
