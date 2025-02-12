@@ -189,8 +189,10 @@ export const resolveFaqsForVariable = (
 
 export const getPrimaryTopic = async (
     knex: KnexReadonlyTransaction,
-    firstTopicTag: string | undefined
+    tags: string[] = [],
+    slug: string | undefined
 ) => {
+    const firstTopicTag = tags[0]
     if (!firstTopicTag) return undefined
 
     let topicSlug: string
@@ -199,7 +201,7 @@ export const getPrimaryTopic = async (
     } catch {
         await logErrorAndMaybeCaptureInSentry(
             new Error(
-                `Data page is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
+                `Data page with slug "${slug}" is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
             )
         )
         return undefined

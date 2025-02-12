@@ -142,7 +142,7 @@ export async function renderMultiDimDataPageFromConfig({
     const faqEntries = await getFaqEntries(knex, config, variableMetaDict)
 
     // PRIMARY TOPIC
-    const primaryTopic = await getPrimaryTopic(knex, config.topicTags?.[0])
+    const primaryTopic = await getPrimaryTopic(knex, config.topicTags, slug)
 
     // Related research
     const relatedResearchCandidates =
