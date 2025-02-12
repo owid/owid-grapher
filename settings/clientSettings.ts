@@ -105,7 +105,7 @@ export const GDOCS_DETAILS_ON_DEMAND_ID: string =
 export const PUBLISHED_AT_FORMAT = "ddd, MMM D, YYYY HH:mm"
 
 /** A map of possible features which can be enabled or disabled. */
-const Features = {
+export const Features = {
     ExampleFeature: "ExampleFeature",
 } as const
 
