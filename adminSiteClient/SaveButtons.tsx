@@ -157,11 +157,12 @@ class SaveButtonsForChart extends Component<{
                         (this.narrativeChartNameModalOpen = "closed")
                     }
                 />
-                {editingErrors.map((error, i) => (
-                    <div key={i} className="alert alert-danger mt-2">
-                        {error}
-                    </div>
-                ))}
+                {grapher.isReady &&
+                    editingErrors.map((error, i) => (
+                        <div key={i} className="alert alert-danger mt-2">
+                            {error}
+                        </div>
+                    ))}
             </div>
         )
     }
@@ -206,11 +207,12 @@ class SaveButtonsForIndicatorChart extends Component<{
                         ? "Create indicator chart"
                         : "Update indicator chart"}
                 </button>
-                {editingErrors.map((error, i) => (
-                    <div key={i} className="alert alert-danger mt-2">
-                        {error}
-                    </div>
-                ))}
+                {grapher.isReady &&
+                    editingErrors.map((error, i) => (
+                        <div key={i} className="alert alert-danger mt-2">
+                            {error}
+                        </div>
+                    ))}
             </div>
         )
     }
@@ -268,11 +270,12 @@ class SaveButtonsForChartView extends Component<{
                 >
                     Create DI
                 </button>
-                {editingErrors.map((error, i) => (
-                    <div key={i} className="alert alert-danger mt-2">
-                        {error}
-                    </div>
-                ))}
+                {grapher.isReady &&
+                    editingErrors.map((error, i) => (
+                        <div key={i} className="alert alert-danger mt-2">
+                            {error}
+                        </div>
+                    ))}
                 {this.isCreateDataInsightModalOpen && (
                     <CreateDataInsightModal
                         description="Create a new data insight based on this narrative chart."
