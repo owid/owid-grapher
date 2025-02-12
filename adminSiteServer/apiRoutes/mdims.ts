@@ -20,7 +20,7 @@ import {
 import { triggerStaticBuild } from "./routeUtils.js"
 import { Request } from "../authentication.js"
 import * as db from "../../db/db.js"
-import { validateGrapherSlug } from "../validation.js"
+import { validateGrapherSlug, validateMultiDimSlug } from "../validation.js"
 import e from "express"
 
 export async function handleGetMultiDims(
@@ -72,6 +72,7 @@ export async function handlePutMultiDim(
         FEATURE_FLAGS.has(FeatureFlagFeature.MultiDimDataPage) &&
         (await multiDimDataPageExists(trx, { slug, published: true }))
     ) {
+        await validateMultiDimSlug(trx, slug)
         await triggerStaticBuild(
             res.locals.user,
             `Publishing multidimensional chart ${slug}`
@@ -104,6 +105,7 @@ export async function handlePatchMultiDim(
         }
     }
     if (action) {
+        await validateMultiDimSlug(trx, multiDim.slug)
         await triggerStaticBuild(
             res.locals.user,
             `${action === "publish" ? "Publishing" : "Unpublishing"} multidimensional chart ${multiDim.slug}`

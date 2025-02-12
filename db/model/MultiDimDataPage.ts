@@ -30,17 +30,6 @@ export async function upsertMultiDimDataPage(
     return result[0]
 }
 
-export async function isMultiDimDataPagePublished(
-    knex: KnexReadonlyTransaction,
-    slug: string
-): Promise<boolean> {
-    const result = await knex(MultiDimDataPagesTableName)
-        .select(knex.raw("1"))
-        .where({ slug, published: true })
-        .first()
-    return Boolean(result)
-}
-
 export async function multiDimDataPageExists(
     knex: KnexReadonlyTransaction,
     data: Partial<DbPlainMultiDimDataPage>
