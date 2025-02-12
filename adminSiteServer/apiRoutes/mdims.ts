@@ -13,7 +13,7 @@ import {
     FeatureFlagFeature,
 } from "../../settings/clientSettings.js"
 import {
-    createMultiDimConfig,
+    upsertMultiDimConfig,
     setMultiDimPublished,
     setMultiDimSlug,
 } from "../multiDim.js"
@@ -69,7 +69,7 @@ export async function handlePutMultiDim(
         await validateNewGrapherSlug(trx, slug)
     }
     const rawConfig = req.body as MultiDimDataPageConfigRaw
-    const id = await createMultiDimConfig(trx, slug, rawConfig)
+    const id = await upsertMultiDimConfig(trx, slug, rawConfig)
 
     if (
         FEATURE_FLAGS.has(FeatureFlagFeature.MultiDimDataPage) &&
