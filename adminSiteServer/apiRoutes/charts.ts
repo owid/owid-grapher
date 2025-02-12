@@ -62,7 +62,7 @@ import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { Request } from "../authentication.js"
 import e from "express"
 import { DataInsightMinimalInformation } from "../../adminShared/AdminTypes.js"
-import { validateGrapherSlug } from "../validation.js"
+import { validateNewGrapherSlug } from "../validation.js"
 
 export const getReferencesByChartId = async (
     chartId: number,
@@ -319,7 +319,7 @@ export const saveGrapher = async (
 
     // When a chart is published, check for conflicts
     if (newConfig.isPublished) {
-        await validateGrapherSlug(knex, newConfig.slug, existingConfig?.id)
+        await validateNewGrapherSlug(knex, newConfig.slug, existingConfig?.id)
         if (
             existingConfig &&
             existingConfig.isPublished &&

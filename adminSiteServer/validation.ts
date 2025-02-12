@@ -45,7 +45,7 @@ async function isSlugUsedInOtherGrapher(
     return rows.length > 0
 }
 
-export async function validateGrapherSlug(
+export async function validateNewGrapherSlug(
     knex: db.KnexReadonlyTransaction,
     slug?: string,
     existingConfigId?: number

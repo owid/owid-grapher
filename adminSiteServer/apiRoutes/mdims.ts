@@ -20,7 +20,7 @@ import {
 import { triggerStaticBuild } from "./routeUtils.js"
 import { Request } from "../authentication.js"
 import * as db from "../../db/db.js"
-import { validateGrapherSlug, validateMultiDimSlug } from "../validation.js"
+import { validateNewGrapherSlug, validateMultiDimSlug } from "../validation.js"
 import e from "express"
 
 export async function handleGetMultiDims(
@@ -65,6 +65,9 @@ export async function handlePutMultiDim(
     if (!isValidSlug(slug)) {
         throw new JsonError(`Invalid multi-dim slug ${slug}`)
     }
+    if (!(await multiDimDataPageExists(trx, { slug }))) {
+        await validateNewGrapherSlug(trx, slug)
+    }
     const rawConfig = req.body as MultiDimDataPageConfigRaw
     const id = await createMultiDimConfig(trx, slug, rawConfig)
 
@@ -72,7 +75,6 @@ export async function handlePutMultiDim(
         FEATURE_FLAGS.has(FeatureFlagFeature.MultiDimDataPage) &&
         (await multiDimDataPageExists(trx, { slug, published: true }))
     ) {
-        await validateMultiDimSlug(trx, slug)
         await triggerStaticBuild(
             res.locals.user,
             `Publishing multidimensional chart ${slug}`
@@ -93,19 +95,23 @@ export async function handlePatchMultiDim(
     }
     const { published, slug } = req.body
     let action
-    if (published !== undefined && published !== multiDim.published) {
-        multiDim = await setMultiDimPublished(trx, multiDim, published)
-        action = published ? "publish" : "unpublish"
-    }
     if (slug !== undefined && slug !== multiDim.slug) {
-        await validateGrapherSlug(trx, slug)
+        await validateNewGrapherSlug(trx, slug)
         multiDim = await setMultiDimSlug(trx, multiDim, slug)
-        if (!action && multiDim.published) {
+        if (multiDim.published) {
             action = "publish"
         }
     }
+    // Note: Keep this change last, since we don't want to update the configs
+    // in R2 when a previous operation fails.
+    if (published !== undefined && published !== multiDim.published) {
+        if (published) {
+            await validateMultiDimSlug(trx, multiDim.slug)
+        }
+        multiDim = await setMultiDimPublished(trx, multiDim, published)
+        action = published ? "publish" : "unpublish"
+    }
     if (action) {
-        await validateMultiDimSlug(trx, multiDim.slug)
         await triggerStaticBuild(
             res.locals.user,
             `${action === "publish" ? "Publishing" : "Unpublishing"} multidimensional chart ${multiDim.slug}`
