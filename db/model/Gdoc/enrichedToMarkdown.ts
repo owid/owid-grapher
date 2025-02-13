@@ -145,6 +145,7 @@ ${items}
                 "\n```"
             )
         })
+        .with({ type: "cookie-notice" }, () => undefined)
         .with({ type: "donors" }, (_): string | undefined =>
             markdownComponent("DonorList", {}, exportComponents)
         )
