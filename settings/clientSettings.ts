@@ -73,10 +73,10 @@ export const TOPICS_CONTENT_GRAPH: boolean =
     process.env.TOPICS_CONTENT_GRAPH === "true"
 
 export const GDOCS_CLIENT_EMAIL: string = process.env.GDOCS_CLIENT_EMAIL ?? ""
-export const GDOCS_BASIC_ARTICLE_TEMPLATE_URL: string =
-    process.env.GDOCS_BASIC_ARTICLE_TEMPLATE_URL ?? ""
-export const GDOCS_DATA_INSIGHT_TEMPLATE_URL: string =
-    process.env.GDOCS_DATA_INSIGHT_TEMPLATE_URL ?? ""
+export const GDOCS_ARTICLE_DUPLICATION_TEMPLATE_ID: string =
+    process.env.GDOCS_ARTICLE_DUPLICATION_TEMPLATE_ID ?? ""
+export const GDOCS_DATA_INSIGHT_DUPLICATION_TEMPLATE_ID: string =
+    process.env.GDOCS_DATA_INSIGHT_DUPLICATION_TEMPLATE_ID ?? ""
 
 export const IMAGE_HOSTING_R2_CDN_URL: string =
     process.env.IMAGE_HOSTING_R2_CDN_URL || ""
