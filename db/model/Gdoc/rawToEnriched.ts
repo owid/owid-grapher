@@ -147,7 +147,6 @@ import {
     partition,
     compact,
     toAsciiQuotes,
-    validateRawBoolean,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink, getLinkType } from "@ourworldindata/components"
 import {
@@ -247,6 +246,28 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "homepage-intro" }, parseHomepageIntro)
         .with({ type: "socials" }, parseSocials)
         .exhaustive()
+}
+
+export function validateRawBoolean<
+    T extends string,
+    U extends { [K in T]?: any },
+>(
+    key: T,
+    rawBlock: U
+): { isValid: true } | { isValid: false; message: string } {
+    if (!(key in rawBlock)) {
+        return { isValid: true }
+    }
+
+    const value = rawBlock[key]
+    if (value !== "true" && value !== "false") {
+        return {
+            isValid: false,
+            message: `If specified, ${key} must be either "true" or "false", but it's set to "${value}"`,
+        }
+    }
+
+    return { isValid: true }
 }
 
 function parseAllCharts(raw: RawBlockAllCharts): EnrichedBlockAllCharts {

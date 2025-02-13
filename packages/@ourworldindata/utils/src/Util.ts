@@ -1808,28 +1808,6 @@ export function lowercaseObjectKeys(
     )
 }
 
-export function validateRawBoolean<
-    T extends string,
-    U extends { [K in T]?: any },
->(
-    key: T,
-    rawBlock: U
-): { isValid: true } | { isValid: false; message: string } {
-    if (!(key in rawBlock)) {
-        return { isValid: true }
-    }
-
-    const value = rawBlock[key]
-    if (value !== "true" && value !== "false") {
-        return {
-            isValid: false,
-            message: `If specified, ${key} must be either "true" or "false", but it's set to "${value}"`,
-        }
-    }
-
-    return { isValid: true }
-}
-
 export function filterValidStringValues<ValidValue extends string>(
     values: string[],
     validValues: ValidValue[],
