@@ -17,6 +17,7 @@ export interface DataInsight {
     gdocId: string
     title: string
     published: boolean
+    narrativeChart?: string
     figmaUrl?: string
     image?: {
         id: NonNullable<DbRawImage["id"]>
