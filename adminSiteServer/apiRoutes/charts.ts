@@ -62,6 +62,8 @@ import { getPublishedLinksTo } from "../../db/model/Link.js"
 
 import { Request } from "../authentication.js"
 import e from "express"
+import { DataInsight } from "../../adminShared/AdminTypes.js"
+
 export const getReferencesByChartId = async (
     chartId: number,
     knex: db.KnexReadonlyTransaction
@@ -90,13 +92,42 @@ export const getReferencesByChartId = async (
         WHERE cv.parentChartId = ?`,
         [chartId]
     )
-    const [postsWordpress, postsGdocs, explorerSlugs, chartViews] =
-        await Promise.all([
-            postsWordpressPromise,
-            postGdocsPromise,
-            explorerSlugsPromise,
-            chartViewsPromise,
-        ])
+    const dataInsightsPromise = db.knexRaw<DataInsight>(
+        knex,
+        `-- sql
+        SELECT
+            pg.id AS gdocId,
+            pg.content ->> '$.title' AS title,
+            pg.published,
+            content ->> '$."narrative-chart"' AS narrativeChart,
+            content ->> '$."figma-url"' AS figmaUrl,
+            JSON_OBJECT(
+                'id', i.id,
+                'filename', i.filename,
+                'cloudflareId', i.cloudflareId,
+                'originalWidth', i.originalWidth
+            ) AS image
+        FROM charts c
+        JOIN chart_configs cc ON c.configId = cc.id
+        LEFT JOIN posts_gdocs pg ON cc.slug = SUBSTRING_INDEX(SUBSTRING_INDEX(pg.content ->> '$."grapher-url"', '/grapher/', -1), '\\?', 1)
+        -- join the images table by filename (only works for data insights where the image block comes first)
+        LEFT JOIN images i ON i.filename = COALESCE(pg.content ->> '$.body[0].smallFilename', pg.content ->> '$.body[0].filename')
+        WHERE c.id = ?? AND pg.type = 'data-insight' AND i.replacedBy IS NULL`,
+        [chartId]
+    )
+    const [
+        postsWordpress,
+        postsGdocs,
+        explorerSlugs,
+        chartViews,
+        dataInsights,
+    ] = await Promise.all([
+        postsWordpressPromise,
+        postGdocsPromise,
+        explorerSlugsPromise,
+        chartViewsPromise,
+        dataInsightsPromise,
+    ])
 
     return {
         postsGdocs,
@@ -105,6 +136,7 @@ export const getReferencesByChartId = async (
             (row: { explorerSlug: string }) => row.explorerSlug
         ),
         chartViews,
+        dataInsights,
     }
 }
 

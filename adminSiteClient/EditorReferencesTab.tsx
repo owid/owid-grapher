@@ -133,6 +133,9 @@ export class EditorReferencesTabForChart extends Component<{
                             <ReferencesChartViews
                                 references={this.references}
                             />
+                            <ReferencesDataInsights
+                                references={this.references}
+                            />
                         </>
                     ) : (
                         <p>No references found</p>
@@ -202,7 +205,12 @@ export class EditorReferencesTabForChartView extends Component<{
                             <ReferencesGdocPosts references={this.references} />
                             <ReferencesDataInsights
                                 references={this.references}
-                                chartViewConfigId={this.chartViewConfigId}
+                                canReuploadImage={(dataInsight) =>
+                                    !!dataInsight.image && !dataInsight.figmaUrl
+                                }
+                                makeImageUrl={() =>
+                                    `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${this.chartViewConfigId}.png?imType=square&nocache`
+                                }
                             />
                         </>
                     ) : (
@@ -475,7 +483,8 @@ const NotificationContext = createContext(null)
 
 const ReferencesDataInsights = (props: {
     references: Pick<References, "dataInsights">
-    chartViewConfigId: string
+    canReuploadImage?: (dataInsight: DataInsight) => boolean
+    makeImageUrl?: (dataInsight: DataInsight) => string
 }) => {
     const [dataInsightForUpload, setDataInsightForUpload] =
         useState<DataInsight>()
@@ -506,38 +515,32 @@ const ReferencesDataInsights = (props: {
         <div className="ReferencesDataInsights">
             <NotificationContext.Provider value={null}>
                 {notificationContextHolder}
-                <p>Data insights based on this narrative chart</p>
+                <p>Data insights based on this chart</p>
                 <ul className="list-group">
-                    {props.references.dataInsights.map((dataInsight) => {
-                        const canReuploadImage =
-                            dataInsight.image && !dataInsight.figmaUrl
-                        return (
-                            <Fragment key={dataInsight.gdocId}>
-                                <li>
-                                    <a
-                                        className="list-group-item"
-                                        href={`/admin/gdocs/${dataInsight.gdocId}/preview`}
-                                        target="_blank"
-                                        rel="noopener"
+                    {props.references.dataInsights.map((dataInsight) => (
+                        <Fragment key={dataInsight.gdocId}>
+                            <li>
+                                <a
+                                    className="list-group-item"
+                                    href={`/admin/gdocs/${dataInsight.gdocId}/preview`}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    <strong>{dataInsight.title}</strong>
+                                </a>
+                                {props.canReuploadImage?.(dataInsight) && (
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={() =>
+                                            setDataInsightForUpload(dataInsight)
+                                        }
                                     >
-                                        <strong>{dataInsight.title}</strong>
-                                    </a>
-                                    {canReuploadImage && (
-                                        <button
-                                            className="btn btn-secondary"
-                                            onClick={() =>
-                                                setDataInsightForUpload(
-                                                    dataInsight
-                                                )
-                                            }
-                                        >
-                                            Upload static export as DI image
-                                        </button>
-                                    )}
-                                </li>
-                            </Fragment>
-                        )
-                    })}
+                                        Upload static export as DI image
+                                    </button>
+                                )}
+                            </li>
+                        </Fragment>
+                    ))}
                 </ul>
                 {dataInsightForUpload?.image && (
                     <ReuploadImageForDataInsightModal
@@ -547,7 +550,7 @@ const ReferencesDataInsights = (props: {
                             title: dataInsightForUpload.title,
                         }}
                         existingImage={dataInsightForUpload.image}
-                        sourceUrl={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${props.chartViewConfigId}.png?imType=square&nocache`}
+                        sourceUrl={props.makeImageUrl?.(dataInsightForUpload)}
                         closeModal={() => setDataInsightForUpload(undefined)}
                         onUploadComplete={onImageUploadComplete}
                     />
