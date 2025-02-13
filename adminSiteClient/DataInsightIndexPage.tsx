@@ -1,5 +1,12 @@
-import { useContext, useEffect, useMemo, useState } from "react"
-import * as React from "react"
+import {
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+    useCallback,
+    createContext,
+    Fragment,
+} from "react"
 import {
     Button,
     Card,
@@ -34,10 +41,10 @@ import {
 import {
     ALL_GRAPHER_CHART_TYPES,
     DbEnrichedImageWithUserId,
-    DbPlainTag,
     GRAPHER_MAP_TYPE,
     GrapherChartOrMapType,
     OwidGdocDataInsightIndexItem,
+    MinimalTag,
 } from "@ourworldindata/types"
 import {
     copyToClipboard,
@@ -57,6 +64,7 @@ import {
 } from "./imagesHelpers.js"
 import { ReuploadImageForDataInsightModal } from "./ReuploadImageForDataInsightModal.js"
 import { CreateDataInsightModal } from "./CreateDataInsightModal.js"
+import { EditableTags } from "./EditableTags.js"
 
 type NarrativeDataInsightIndexItem = RequiredBy<
     OwidGdocDataInsightIndexItem,
@@ -87,9 +95,11 @@ const copyIcon = <FontAwesomeIcon icon={faCopy} size="sm" />
 const panoramaIcon = <FontAwesomeIcon icon={faPanorama} size="sm" />
 const plusIcon = <FontAwesomeIcon icon={faPlus} size="sm" />
 
-const NotificationContext = React.createContext(null)
+const NotificationContext = createContext(null)
 
 function createColumns(ctx: {
+    availableTags: MinimalTag[]
+    updateTags: (gdocId: string, tags: MinimalTag[]) => Promise<void>
     highlightFn: (
         text: string | null | undefined
     ) => React.ReactElement | string
@@ -151,10 +161,10 @@ function createColumns(ctx: {
             render: (authors: string[], dataInsight) => (
                 <>
                     {authors.map((author, index) => (
-                        <React.Fragment key={author}>
+                        <Fragment key={author}>
                             {ctx.highlightFn(author)}
                             {index < authors.length - 1 ? ", " : ""}
-                        </React.Fragment>
+                        </Fragment>
                     ))}
                     {dataInsight.approvedBy &&
                         ` (approved by ${dataInsight.approvedBy})`}
@@ -162,21 +172,18 @@ function createColumns(ctx: {
             ),
         },
         {
-            title: "Topic tags",
+            title: "Tags",
             dataIndex: "tags",
             key: "tags",
-            render: (tags: DbPlainTag[]) =>
-                tags.map((tag) => (
-                    <a
-                        key={tag.name}
-                        href={`/admin/tags/${tag.id}`}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        style={{ display: "block" }}
-                    >
-                        {ctx.highlightFn(tag.name)}
-                    </a>
-                )),
+            render: (tags, dataInsight) => (
+                <EditableTags
+                    tags={tags}
+                    onSave={(tags) =>
+                        ctx.updateTags(dataInsight.id, tags as MinimalTag[])
+                    }
+                    suggestions={ctx.availableTags}
+                />
+            ),
         },
         {
             title: "Published",
@@ -289,6 +296,8 @@ export function DataInsightIndexPage() {
         OwidGdocDataInsightIndexItem[]
     >([])
 
+    const [availableTags, setAvailableTags] = useState<MinimalTag[]>([])
+
     const [searchValue, setSearchValue] = useState("")
     const [chartTypeFilter, setChartTypeFilter] = useState<
         GrapherChartOrMapType | "all"
@@ -359,6 +368,23 @@ export function DataInsightIndexPage() {
         )
     }, [dataInsights, chartTypeFilter, publicationFilter, searchWords])
 
+    const updateTags = useCallback(
+        async (gdocId: string, tags: MinimalTag[]) => {
+            const json = await admin.requestJSON(
+                `/api/gdocs/${gdocId}/setTags`,
+                { tagIds: tags.map((t) => t.id) },
+                "POST"
+            )
+            if (json.success) {
+                const dataInsight = dataInsights.find(
+                    (gdoc) => gdoc.id === gdocId
+                )
+                if (dataInsight) dataInsight.tags = tags
+            }
+        },
+        [admin, dataInsights]
+    )
+
     const columns = useMemo(() => {
         const highlightFn = highlightFunctionForSearchWords(searchWords)
 
@@ -367,10 +393,12 @@ export function DataInsightIndexPage() {
         ) => setDataInsightForImageUpload(dataInsight)
 
         return createColumns({
+            availableTags,
+            updateTags,
             highlightFn,
             triggerImageUploadFlow,
         })
-    }, [searchWords])
+    }, [searchWords, availableTags, updateTags])
 
     const updateDataInsightPreview = (
         dataInsightId: string,
@@ -426,6 +454,13 @@ export function DataInsightIndexPage() {
         void fetchAllDataInsights().then((dataInsights) =>
             setDataInsights(dataInsights)
         )
+    }, [admin])
+
+    useEffect(() => {
+        const fetchTags = async () =>
+            (await admin.getJSON("/api/tags.json")) as { tags: MinimalTag[] }
+
+        void fetchTags().then((result) => setAvailableTags(result.tags))
     }, [admin])
 
     return (
