@@ -26,7 +26,7 @@ import {
     createGdocFromTemplate,
     replacePlaceholdersInGdoc,
 } from "../../db/model/Gdoc/archieToGdoc.js"
-import { GDOCS_DATA_INSIGHT_TEMPLATE_ID } from "../../settings/clientSettings.js"
+import { GDOCS_DATA_INSIGHT_API_TEMPLATE_ID } from "../../settings/clientSettings.js"
 
 const GRAPHER_URL_PREFIX = "https://ourworldindata.org/grapher/"
 const EXPLORER_URL_PREFIX = "https://ourworldindata.org/explorers/"
@@ -68,7 +68,7 @@ export async function createDataInsightGDoc(
     // Create a new GDoc from the template
     const docTitle = req.body.title ?? "Untitled Data Insight"
     const gdocId = await createGdocFromTemplate(
-        GDOCS_DATA_INSIGHT_TEMPLATE_ID,
+        GDOCS_DATA_INSIGHT_API_TEMPLATE_ID,
         docTitle,
         targetFolder
     )

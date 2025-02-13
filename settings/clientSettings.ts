@@ -75,12 +75,10 @@ export const TOPICS_CONTENT_GRAPH: boolean =
 export const GDOCS_CLIENT_EMAIL: string = process.env.GDOCS_CLIENT_EMAIL ?? ""
 export const GDOCS_BASIC_ARTICLE_TEMPLATE_URL: string =
     process.env.GDOCS_BASIC_ARTICLE_TEMPLATE_URL ?? ""
-// share url
 export const GDOCS_DATA_INSIGHT_TEMPLATE_URL: string =
     process.env.GDOCS_DATA_INSIGHT_TEMPLATE_URL ?? ""
-// document with placeholders used for automation
-export const GDOCS_DATA_INSIGHT_TEMPLATE_ID: string =
-    process.env.GDOCS_DATA_INSIGHT_TEMPLATE_ID ?? ""
+export const GDOCS_DATA_INSIGHT_API_TEMPLATE_ID: string =
+    process.env.GDOCS_DATA_INSIGHT_API_TEMPLATE_ID ?? ""
 
 export const IMAGE_HOSTING_R2_CDN_URL: string =
     process.env.IMAGE_HOSTING_R2_CDN_URL || ""
