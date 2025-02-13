@@ -509,7 +509,8 @@ const ReferencesDataInsights = (props: {
                 <p>Data insights based on this narrative chart</p>
                 <ul className="list-group">
                     {props.references.dataInsights.map((dataInsight) => {
-                        const canReuploadImage = dataInsight.image
+                        const canReuploadImage =
+                            dataInsight.image && !dataInsight.figmaUrl
                         return (
                             <Fragment key={dataInsight.gdocId}>
                                 <li>
