@@ -715,6 +715,7 @@ export const enrichedBlockExamples: Record<
                 kicker: "Article - 10 Mins",
                 filename: "optimism-and-pessimism.jpg",
                 authors: ["Our World In Data"],
+                isNew: false,
             },
             {
                 type: "secondary",
@@ -725,6 +726,7 @@ export const enrichedBlockExamples: Record<
                 kicker: "Article - 10 Mins",
                 filename: "optimism-and-pessimism.jpg",
                 authors: ["Our World In Data"],
+                isNew: true,
             },
             {
                 type: "secondary",
@@ -734,6 +736,7 @@ export const enrichedBlockExamples: Record<
                 kicker: "Article - 10 Mins",
                 filename: "featured-image.jpg",
                 authors: ["Max Roser"],
+                isNew: false,
             },
             {
                 type: "tertiary",
@@ -741,6 +744,7 @@ export const enrichedBlockExamples: Record<
                 title: "We’re looking for a front-end engineer to join our team.",
                 kicker: "Announcement",
                 authors: ["Our World In Data"],
+                isNew: false,
             },
             {
                 type: "tertiary",
@@ -748,6 +752,7 @@ export const enrichedBlockExamples: Record<
                 title: "We’re looking to build bridges with a civil engineer.",
                 kicker: "Announcement",
                 authors: ["Our World In Data"],
+                isNew: false,
             },
         ],
         parseErrors: [],

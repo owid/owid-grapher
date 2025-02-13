@@ -825,6 +825,7 @@ function* rawBlockHomepageIntroToArchieMLString(
             yield* propertyToArchieMLString("filename", value)
             yield* propertyToArchieMLString("kicker", value)
             yield* propertyToArchieMLString("authors", value)
+            yield* propertyToArchieMLString("isNew", value)
             yield "{}"
         }
     }

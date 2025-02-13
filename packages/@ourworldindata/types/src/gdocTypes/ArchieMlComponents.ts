@@ -906,6 +906,7 @@ export type RawBlockHomepageIntroPost = {
         kicker?: string
         authors?: string
         filename?: string
+        isNew?: string
     }
 }
 
@@ -925,6 +926,7 @@ export type EnrichedBlockHomepageIntroPost = {
     kicker?: string
     authors?: string[]
     filename?: string
+    isNew?: boolean
 }
 
 export type EnrichedBlockHomepageIntro = {
