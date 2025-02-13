@@ -1,9 +1,9 @@
 import { GDOCS_URL_PLACEHOLDER, gdocUrlRegex } from "@ourworldindata/utils"
 import * as React from "react"
 import {
-    GDOCS_BASIC_ARTICLE_TEMPLATE_URL,
+    GDOCS_ARTICLE_DUPLICATION_TEMPLATE_ID,
     GDOCS_CLIENT_EMAIL,
-    GDOCS_DATA_INSIGHT_TEMPLATE_URL,
+    GDOCS_DATA_INSIGHT_DUPLICATION_TEMPLATE_ID,
 } from "../settings/clientSettings.js"
 import { useGdocsStore } from "./GdocsStoreContext.js"
 
@@ -32,7 +32,9 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
                     <li>
                         Create a new document from the{" "}
                         <a
-                            href={GDOCS_BASIC_ARTICLE_TEMPLATE_URL}
+                            href={makeGdocDuplicationUrl(
+                                GDOCS_ARTICLE_DUPLICATION_TEMPLATE_ID
+                            )}
                             target="_blank"
                             rel="noopener"
                         >
@@ -40,7 +42,9 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
                         </a>{" "}
                         or the{" "}
                         <a
-                            href={GDOCS_DATA_INSIGHT_TEMPLATE_URL}
+                            href={makeGdocDuplicationUrl(
+                                GDOCS_DATA_INSIGHT_DUPLICATION_TEMPLATE_ID
+                            )}
                             target="_blank"
                             rel="noopener"
                         >
@@ -90,4 +94,8 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
             </div>
         </form>
     )
+}
+
+function makeGdocDuplicationUrl(docId: string): string {
+    return `https://docs.google.com/document/d/${docId}/copy?copyCollaborators=true`
 }
