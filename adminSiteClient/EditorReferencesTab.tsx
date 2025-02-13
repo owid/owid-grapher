@@ -33,7 +33,7 @@ import {
 } from "./ChartViewEditor.js"
 import { ReuploadImageForDataInsightModal } from "./ReuploadImageForDataInsightModal.js"
 import { ImageUploadResponse } from "./imagesHelpers.js"
-import { DataInsight } from "../adminShared/AdminTypes.js"
+import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
 import { notification } from "antd"
 
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
@@ -483,11 +483,11 @@ const NotificationContext = createContext(null)
 
 const ReferencesDataInsights = (props: {
     references: Pick<References, "dataInsights">
-    canReuploadImage?: (dataInsight: DataInsight) => boolean
-    makeImageUrl?: (dataInsight: DataInsight) => string
+    canReuploadImage?: (dataInsight: DataInsightMinimalInformation) => boolean
+    makeImageUrl?: (dataInsight: DataInsightMinimalInformation) => string
 }) => {
     const [dataInsightForUpload, setDataInsightForUpload] =
-        useState<DataInsight>()
+        useState<DataInsightMinimalInformation>()
 
     const [notificationApi, notificationContextHolder] =
         notification.useNotification()

@@ -62,7 +62,7 @@ import { getPublishedLinksTo } from "../../db/model/Link.js"
 
 import { Request } from "../authentication.js"
 import e from "express"
-import { DataInsight } from "../../adminShared/AdminTypes.js"
+import { DataInsightMinimalInformation } from "../../adminShared/AdminTypes.js"
 
 export const getReferencesByChartId = async (
     chartId: number,
@@ -92,7 +92,7 @@ export const getReferencesByChartId = async (
         WHERE cv.parentChartId = ?`,
         [chartId]
     )
-    const dataInsightsPromise = db.knexRaw<DataInsight>(
+    const dataInsightsPromise = db.knexRaw<DataInsightMinimalInformation>(
         knex,
         `-- sql
         SELECT
