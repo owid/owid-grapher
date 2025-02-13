@@ -120,6 +120,7 @@ const layouts: { [key in Container]: Layouts} = {
     ["side-by-side"]: {
         ["default"]: "span-cols-6 span-sm-cols-12",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 grid-sm-cols-12 span-sm-cols-12 ",
+        ["cookie-notice"]: "span-cols-5 col-start-2 span-sm-cols-12 col-sm-start-1"
     },
     ["summary"]: {
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",

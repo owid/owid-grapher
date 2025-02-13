@@ -223,6 +223,7 @@ export function extractFilenamesFromBlock(
                     "chart-story",
                     "chart",
                     "code",
+                    "cookie-notice",
                     "donors",
                     "entry-summary",
                     "expandable-paragraph",

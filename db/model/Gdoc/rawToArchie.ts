@@ -50,6 +50,7 @@ import {
     RawBlockNarrativeChart,
     RawBlockCode,
 } from "@ourworldindata/types"
+import { RawBlockCookieNotice } from "@ourworldindata/types/dist/gdocTypes/ArchieMlComponents.js"
 import { isArray } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
@@ -551,6 +552,13 @@ function* rawBlockTopicPageIntroToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockCookieNoticeToArchieMLString(
+    _: RawBlockCookieNotice
+): Generator<string, void, undefined> {
+    yield "{.cookie-notice}"
+    yield "{}"
+}
+
 function* rawKeyInsightsToArchieMLString(
     block: RawBlockKeyInsights
 ): Generator<string, void, undefined> {
@@ -910,6 +918,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             { type: "topic-page-intro" },
             rawBlockTopicPageIntroToArchieMLString
         )
+        .with({ type: "cookie-notice" }, rawBlockCookieNoticeToArchieMLString)
         .with({ type: "key-insights" }, rawKeyInsightsToArchieMLString)
         .with(
             { type: "research-and-writing" },

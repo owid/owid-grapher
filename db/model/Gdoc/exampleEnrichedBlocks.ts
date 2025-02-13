@@ -145,6 +145,10 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    "cookie-notice": {
+        type: "cookie-notice",
+        parseErrors: [],
+    },
     donors: {
         type: "donors",
         value: {},

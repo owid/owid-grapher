@@ -53,6 +53,7 @@ import {
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
+import { RawBlockCookieNotice } from "@ourworldindata/types/dist/gdocTypes/ArchieMlComponents.js"
 
 function spansToHtmlText(spans: Span[]): string {
     return spans.map(spanToHtmlString).join("")
@@ -146,6 +147,13 @@ export function enrichedBlockToRawBlock(
                     type: "text",
                     value: text.value.text,
                 })),
+            })
+        )
+        .with(
+            { type: "cookie-notice" },
+            (b): RawBlockCookieNotice => ({
+                type: b.type,
+                value: {},
             })
         )
         .with(
