@@ -1072,6 +1072,38 @@ div.raw-html-table__container {
     }
 }
 
+.article-block__cookie-notice {
+    .cookie-preferences {
+        margin: 0;
+        padding: 32px 24px;
+        border: none;
+        background-color: $blue-5;
+        h2 {
+            @include subtitle-2-bold;
+            margin-bottom: 24px;
+        }
+        input:disabled + label {
+            color: $blue-50;
+        }
+        label {
+            @include body-3-bold;
+            text-transform: initial;
+            color: $blue-90;
+        }
+        .description,
+        .last-updated {
+            @include body-3-regular;
+            color: $blue-65;
+        }
+        .cookie-preference {
+            margin-bottom: 24px;
+            & + .cookie-preference {
+                margin-top: 32px;
+            }
+        }
+    }
+}
+
 // A full-width grey section
 .article-block__gray-section {
     background-color: $gray-10;

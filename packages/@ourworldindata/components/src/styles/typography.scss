@@ -409,6 +409,18 @@ body {
     @include body-3-medium-italic-underlined;
 }
 
+@mixin body-3-bold {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    font-weight: 700;
+    letter-spacing: 0.01rem;
+}
+
+.body-3-bold {
+    @include body-3-bold;
+}
+
 @mixin label-2-medium {
     font-family: $sans-serif-font-stack;
     font-size: 0.8125rem;
