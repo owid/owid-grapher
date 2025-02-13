@@ -31,6 +31,7 @@ import {
     sampleSize,
     startCase,
     OwidChartDimensionInterface,
+    copyToClipboard,
 } from "@ourworldindata/utils"
 import { FieldsRow, Section, SelectField, Toggle } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
@@ -51,6 +52,13 @@ import {
 } from "./IndicatorChartEditor.js"
 import { EditableTags } from "./EditableTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import {
+    ChartViewEditor,
+    isChartViewEditorInstance,
+} from "./ChartViewEditor.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faCopy } from "@fortawesome/free-solid-svg-icons"
+import { Button } from "antd"
 
 @observer
 class DimensionSlotView<
@@ -515,10 +523,12 @@ export class EditorBasicTab<
         const { editor } = this.props
         const { grapher } = editor
         const isIndicatorChart = isIndicatorChartEditorInstance(editor)
+        const isChartView = isChartViewEditorInstance(editor)
 
         return (
             <div className="EditorBasicTab">
                 {isIndicatorChart && <IndicatorChartInfo editor={editor} />}
+                {isChartView && <ChartViewInfo editor={editor} />}
 
                 <Section name="Tabs">
                     <SelectField
@@ -585,7 +595,31 @@ function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
 
     return (
         <Section name="Indicator chart">
-            <p>This is the Grapher config for indicator {variableLink}.</p>
+            <p>Your are editing the config of the {variableLink} indicator.</p>
+        </Section>
+    )
+}
+
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
+function ChartViewInfo(props: { editor: ChartViewEditor }) {
+    const { name = "" } = props.editor.manager.idsAndName ?? {}
+
+    return (
+        <Section name="Narrative chart">
+            <p>
+                Your are editing the config of a narrative chart named{" "}
+                <i>{name}</i>.
+            </p>
+            <Button
+                size="small"
+                color="default"
+                variant="filled"
+                icon={<FontAwesomeIcon icon={faCopy} size="sm" />}
+                onClick={() => copyToClipboard(name)}
+            >
+                Copy name
+            </Button>
         </Section>
     )
 }
