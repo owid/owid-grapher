@@ -21,6 +21,7 @@ export interface Chart {
 
 export interface ChartViewEditorManager extends AbstractChartEditorManager {
     chartViewId: number
+    idsAndName: { id: number; name: string; configId: string } | undefined
     parentChartId: number
     references: References | undefined
 }
