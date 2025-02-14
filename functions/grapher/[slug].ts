@@ -28,6 +28,12 @@ const router = Router<
     finally: [corsify],
 })
 router
+    .get("*", async (_, url, env) => {
+        console.log("Looking up redirect for", url.pathname)
+        const redirect = await getRedirectForUrl(env, url)
+        if (redirect) return redirect
+        // Don't return anything to pass to the next handler.
+    })
     .get(
         `/grapher/:slug${extensions.configJson}`,
         async ({ params: { slug } }, { searchParams }, env, etag) =>
