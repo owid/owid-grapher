@@ -197,7 +197,6 @@ export async function authMiddleware(
         res.locals.user = user
 
         Sentry.setUser({
-            id: user.id,
             email: user.email,
             username: user.fullName,
         })
