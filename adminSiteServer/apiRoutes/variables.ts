@@ -320,10 +320,7 @@ export async function putVariablesVariableIdGrapherConfigETL(
     try {
         validConfig = migrateGrapherConfigToLatestVersion(req.body)
     } catch (err) {
-        return {
-            success: false,
-            error: String(err),
-        }
+        throw new JsonError(String(err))
     }
 
     const variable = await getGrapherConfigsForVariable(trx, variableId)
@@ -433,10 +430,7 @@ export async function putVariablesVariableIdGrapherConfigAdmin(
     try {
         validConfig = migrateGrapherConfigToLatestVersion(req.body)
     } catch (err) {
-        return {
-            success: false,
-            error: String(err),
-        }
+        throw new JsonError(String(err))
     }
 
     const variable = await getGrapherConfigsForVariable(trx, variableId)
