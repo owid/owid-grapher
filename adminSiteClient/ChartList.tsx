@@ -57,6 +57,7 @@ export type SortConfig = {
 @observer
 export class ChartList extends React.Component<{
     charts: ChartListItem[]
+    autofocusSearchInput?: boolean
     onDelete?: (chart: ChartListItem) => void
 }> {
     static contextType = AdminAppContext
@@ -251,7 +252,7 @@ export class ChartList extends React.Component<{
                         placeholder="Search all charts..."
                         value={searchInput}
                         onValue={this.onSearchInput}
-                        autofocus
+                        autofocus={this.props.autofocusSearchInput}
                     />
                 </div>
                 <table className="table table-bordered">
