@@ -372,6 +372,26 @@ export function CreateDataInsightModal(props: {
         })
     }, [admin, hasNarrativeChartField])
 
+    const showFeedbackBox = ({
+        formData,
+        progress,
+        imageUrl,
+    }: {
+        formData: FormData
+        progress: Record<Task, Progress>
+        imageUrl?: string
+        grapherUrl?: string
+    }): boolean => {
+        if (!isValid(formData)) return false
+        if (imageUrl && !isValidForImageUpload(formData)) return false
+        if (
+            progress.loadFigmaImage.status === "complete" &&
+            !progress.loadFigmaImage.success
+        )
+            return false
+        return true
+    }
+
     return (
         <Modal
             title="Create a data insight"
@@ -539,22 +559,24 @@ export function CreateDataInsightModal(props: {
                         </>
                     )}
 
-                    <div className="feedback-box">
-                        <h2>This data insight will be created by:</h2>
+                    {showFeedbackBox({ formData, progress, imageUrl }) && (
+                        <div className="feedback-box">
+                            <h2>This data insight will be created by:</h2>
 
-                        <ul>
-                            <ImageUploadFeedback
-                                imageUrl={imageUrl}
-                                imageSource={imageSource}
-                                formData={formData}
-                                progress={progress.uploadImage}
-                            />
-                            <DataInsightCreationFeedback
-                                formData={formData}
-                                progress={progress.createDI}
-                            />
-                        </ul>
-                    </div>
+                            <ul>
+                                <ImageUploadFeedback
+                                    imageUrl={imageUrl}
+                                    imageSource={imageSource}
+                                    formData={formData}
+                                    progress={progress.uploadImage}
+                                />
+                                <DataInsightCreationFeedback
+                                    formData={formData}
+                                    progress={progress.createDI}
+                                />
+                            </ul>
+                        </div>
+                    )}
 
                     <div className="form-submit">
                         <Space align="end">
