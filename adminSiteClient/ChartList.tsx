@@ -133,7 +133,9 @@ export class ChartList extends React.Component<{
         } else {
             params.delete("chartSearch")
         }
-        const newUrl = `${window.location.pathname}?${params.toString()}`
+        const pathname = window.location.pathname
+        const newUrl =
+            params.size > 0 ? `${pathname}?${params.toString()}` : pathname
         window.history.replaceState({}, "", newUrl)
     }
 
