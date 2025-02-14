@@ -91,7 +91,7 @@ async function handleThumbnailRequest(
                 },
             })
         } else {
-            return png(await renderSvgToPng(svg, options))
+            return png(await renderSvgToPng(svg, options, "#fff"))
         }
     } catch (e) {
         console.error(e)
