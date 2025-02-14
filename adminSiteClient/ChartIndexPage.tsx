@@ -21,6 +21,7 @@ export class ChartIndexPage extends Component {
                 <main className="ChartIndexPage">
                     <ChartList
                         charts={charts}
+                        autofocusSearchInput
                         onDelete={action((c: ChartListItem) =>
                             this.charts.splice(this.charts.indexOf(c), 1)
                         )}
