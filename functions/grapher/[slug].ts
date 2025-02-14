@@ -6,10 +6,7 @@ import {
     fetchZipForGrapher,
 } from "../_common/downloadFunctions.js"
 import { handleThumbnailRequest } from "../_common/reusableHandlers.js"
-import {
-    handlePageNotFound,
-    getRedirectForUrl,
-} from "../_common/redirectTools.js"
+import { redirectMiddleware } from "../_common/redirectTools.js"
 import {
     fetchUnparsedGrapherConfig,
     rewriteMetaTags,
@@ -28,6 +25,7 @@ const router = Router<
     finally: [corsify],
 })
 router
+    .get("*", redirectMiddleware)
     .get(
         `/grapher/:slug${extensions.configJson}`,
         async ({ params: { slug } }, { searchParams }, env, etag) =>
@@ -104,16 +102,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             context
         )
         .catch(async (e) => {
-            // Here we do a unified after the fact handling of 404s to check
-            // if we have a redirect in the _grapherRedirects.json file.
-            // This is done as a catch handler that checks for 404 pages
-            // so that the common, happy path does not have to fetch the redirects file.
             console.log("Handling error", e)
-            if (e instanceof StatusError && e.status === 404) {
-                console.log("Handling 404 for", url.pathname)
-                const redirect = await getRedirectForUrl(env, url)
-                return redirect || error(404, "Not found")
-            } else if (e instanceof StatusError) {
+            if (e instanceof StatusError) {
                 return error(e.status, e.message)
             } else return error(500, e)
         })
@@ -137,8 +127,7 @@ async function handleHtmlPageRequest(
     })
 
     if (grapherPageResp.status === 404) {
-        // grapherPageResp should be a static 404 HTML page.
-        return handlePageNotFound(env, grapherPageResp)
+        return grapherPageResp
     }
 
     // A non-200 status code is most likely a redirect (301 or 302), all of which we want to pass through as-is.
@@ -179,10 +168,6 @@ async function handleConfigRequest(
     if (grapherPageResp.status === 304) {
         console.log("Returning 304 for ", slug)
         return new Response(null, { status: 304 })
-    }
-
-    if (grapherPageResp.status === 404) {
-        throw new StatusError(404)
     }
 
     const cacheControl = shouldCache

@@ -1,7 +1,7 @@
 import { Env, Etag, extensions } from "../_common/env.js"
 import { extractOptions } from "../_common/imageOptions.js"
 import { buildExplorerProps, Explorer } from "@ourworldindata/explorer"
-import { handlePageNotFound } from "../_common/redirectTools.js"
+import { redirectMiddleware } from "../_common/redirectTools.js"
 import { renderSvgToPng } from "../_common/grapherRenderer.js"
 import { IRequestStrict, Router, error, cors, png } from "itty-router"
 import { Bounds, Url } from "@ourworldindata/utils"
@@ -24,6 +24,7 @@ const router = Router<
     finally: [corsify],
 })
 router
+    .get("*", redirectMiddleware)
     .get(
         `/explorers/:slug${extensions.svg}`,
         async (_, { searchParams }, env) => {
@@ -111,7 +112,7 @@ async function handleHtmlPageRequest(
     })
 
     if (explorerPage.status === 404) {
-        return handlePageNotFound(env, explorerPage)
+        return explorerPage
     }
 
     const openGraphThumbnailUrl = `/explorers/${slug}.png?imType=og${
