@@ -10,7 +10,12 @@ import {
     GRAPHER_TAB_OPTIONS,
     SortOrder,
 } from "@ourworldindata/types"
-import { startCase, DbChartTagJoin, sortNumeric } from "@ourworldindata/utils"
+import {
+    startCase,
+    DbChartTagJoin,
+    sortNumeric,
+    queryParamsToStr,
+} from "@ourworldindata/utils"
 import { getFullReferencesCount } from "./ChartEditor.js"
 import { ChartRow } from "./ChartRow.js"
 import { References } from "./AbstractChartEditor.js"
@@ -127,15 +132,11 @@ export class ChartList extends React.Component<{
     }
 
     setSearchInputInUrl(searchInput: string) {
-        const params = new URLSearchParams(window.location.search)
-        if (searchInput) {
-            params.set("chartSearch", searchInput)
-        } else {
-            params.delete("chartSearch")
-        }
+        const params = queryParamsToStr({
+            chartSearch: searchInput || undefined,
+        })
         const pathname = window.location.pathname
-        const newUrl =
-            params.size > 0 ? `${pathname}?${params.toString()}` : pathname
+        const newUrl = `${pathname}${params}`
         window.history.replaceState({}, "", newUrl)
     }
 
