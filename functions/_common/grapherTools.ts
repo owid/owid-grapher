@@ -9,7 +9,6 @@ import {
     Bounds,
     searchParamsToMultiDimView,
 } from "@ourworldindata/utils"
-import { StatusError } from "itty-router"
 import { Env } from "./env.js"
 import { fetchFromR2, grapherBaseUrl } from "./grapherRenderer.js"
 import { ImageOptions } from "./imageOptions.js"
@@ -119,13 +118,6 @@ export async function fetchGrapherConfig({
         etag
     )
 
-    if (fetchResponse.status === 404) {
-        // we throw 404 errors instead of returning a 404 response so that the router
-        // catch handler can do a lookup in the redirects file and maybe send
-        // a 302 redirect response
-        throw new StatusError(404)
-    }
-
     if (fetchResponse.status !== 200) {
         console.log(
             "Status code is not 200, returning empty response with status code",
@@ -176,40 +168,24 @@ export async function initGrapher(
     multiDimAvailableDimensions?: string[]
 }> {
     let grapherConfigResponse: FetchGrapherConfigResult
-    try {
+    grapherConfigResponse = await fetchGrapherConfig({
+        identifier,
+        env,
+        searchParams,
+    })
+    if (identifier.type === "slug" && grapherConfigResponse.status === 404) {
+        // Normal graphers and multi-dims have the same URL namespace, but
+        // we have no way of knowing which of them was requested, so we try
+        // again with a multi-dim identifier.
+        const multiDimId: MultiDimSlug = {
+            type: "multi-dim-slug",
+            id: identifier.id,
+        }
         grapherConfigResponse = await fetchGrapherConfig({
-            identifier,
+            identifier: multiDimId,
             env,
             searchParams,
         })
-    } catch (e) {
-        if (
-            identifier.type === "slug" &&
-            e instanceof StatusError &&
-            e.status === 404
-        ) {
-            // Normal graphers and multi-dims have the same URL namespace, but
-            // we have no way of knowing which of them was requested, so we try
-            // again with a multi-dim identifier.
-            const multiDimId: MultiDimSlug = {
-                type: "multi-dim-slug",
-                id: identifier.id,
-            }
-            grapherConfigResponse = await fetchGrapherConfig({
-                identifier: multiDimId,
-                env,
-                searchParams,
-            })
-        } else {
-            throw e
-        }
-    }
-
-    if (grapherConfigResponse.status === 404) {
-        // we throw 404 errors instad of returning a 404 response so that the router
-        // catch handler can do a lookup in the redirects file and maybe send
-        // a 302 redirect response
-        throw new StatusError(grapherConfigResponse.status)
     }
 
     const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)

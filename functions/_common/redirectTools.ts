@@ -41,15 +41,7 @@ export async function getRedirectForUrl(env: Env, url: URL): Promise<Response> {
         return createRedirectResponse(`${redirectSlug}${extension}`, url)
     }
 }
-export async function handlePageNotFound(
-    env: Env,
-    response: Response
-): Promise<Response> {
-    const url = new URL(response.url)
-    console.log("Handling 404 for", url.pathname)
-    const redirect = await getRedirectForUrl(env, url)
-    return redirect || response
-}
+
 export async function getOptionalRedirectForSlug(
     slug: string,
     baseUrl: URL,
@@ -65,4 +57,16 @@ export async function getOptionalRedirectForSlug(
             return {}
         })
     return redirects[slug]
+}
+
+// It would be more efficient to check for a redirect only when the original
+// request returns a 404, but Cloudflare retains assets in the CDN cache for up
+// to one week, so we can't rely on that if we want to avoid serving an old
+// version of the page.
+// https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
+export async function redirectMiddleware(_: Request, url: URL, env: Env) {
+    console.log("Looking up redirect for", url.pathname)
+    const redirect = await getRedirectForUrl(env, url)
+    if (redirect) return redirect
+    // Don't return anything to pass to the next handler.
 }
