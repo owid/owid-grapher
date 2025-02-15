@@ -32,10 +32,13 @@ export async function getRedirectForUrl(env: Env, url: URL): Promise<Response> {
         extension,
     })
 
+    const startTime = Date.now()
     const redirectSlug = await getOptionalRedirectForSlug(slug, url, {
         ...env,
         url,
     })
+    const endTime = Date.now()
+    console.log("Time taken to get redirect slug", endTime - startTime, "ms")
     console.log("Redirect slug", redirectSlug)
     if (redirectSlug && redirectSlug !== slug) {
         return createRedirectResponse(`${redirectSlug}${extension}`, url)
