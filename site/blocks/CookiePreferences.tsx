@@ -24,7 +24,7 @@ const analytics = new SiteAnalytics()
 // - unique IDs for input elements in CookiePreference
 // - support for in-place rendering
 
-const CookiePreference = ({
+export const CookiePreference = ({
     title,
     name,
     consent,
@@ -75,6 +75,8 @@ export const CookiePreferences = ({
     dispatch: any
 }): ReactPortal | null => {
     const cookiePreferencesDomSlot = document.querySelector(
+        // This class is referenced in ArticleBlock.tsx
+        // If changed or removed, update it there also.
         ".wp-block-cookie-preferences"
     )
     if (!cookiePreferencesDomSlot) return null
