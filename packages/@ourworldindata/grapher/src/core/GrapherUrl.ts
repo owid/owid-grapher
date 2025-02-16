@@ -9,7 +9,7 @@ import {
     generateSelectedEntityNamesParam,
 } from "./EntityUrlBuilder.js"
 import { match } from "ts-pattern"
-import { Grapher } from "./Grapher.js"
+import { GrapherState } from "./Grapher.js"
 import * as R from "remeda"
 import {
     DEFAULT_GLOBE_ROTATION,
@@ -92,12 +92,12 @@ export const grapherConfigToQueryParams = (
 }
 
 export const grapherObjectToQueryParams = (
-    grapher: Grapher
+    grapher: GrapherState
 ): GrapherQueryParams => {
     const params: GrapherQueryParams = {
         tab: grapher.mapGrapherTabToQueryParam(grapher.activeTab),
-        xScale: grapher.xAxis.scaleType,
-        yScale: grapher.yAxis.scaleType,
+        xScale: grapher.xAxis?.scaleType,
+        yScale: grapher.yAxis?.scaleType,
         stackMode: grapher.stackMode,
         zoomToSelection: grapher.zoomToSelection ? "true" : undefined,
         endpointsOnly: grapher.compareEndPointsOnly ? "1" : "0",

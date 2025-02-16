@@ -10,3 +10,4 @@ dist/
 grapherData/
 .vscode/
 /.nx/cache
+.claude/settings.local.json

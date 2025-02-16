@@ -6,10 +6,7 @@ import { expect, it } from "vitest"
 
 import Enzyme from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
-import {
-    BAKED_BASE_URL,
-    GRAPHER_DYNAMIC_THUMBNAIL_URL,
-} from "../../settings/clientSettings.js"
+import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.js"
 import { KeyChartLevel } from "@ourworldindata/utils"
 import { RelatedCharts } from "./RelatedCharts.js"
 Enzyme.configure({ adapter: new Adapter() })
@@ -47,16 +44,12 @@ it("renders active chart links and loads respective chart on click", () => {
         // Chart 2 has a higher priority, so the charts should be in reverse order: `Chart 2, Chart 1`
         const expectedChartIdx = 1 - idx
         link.simulate("click")
-        expect(wrapper.find("figure")).toHaveLength(1)
+        expect(wrapper.find("GrapherWithFallback")).toHaveLength(1)
         expect(
             wrapper.find(
-                `figure[data-grapher-src="${BAKED_BASE_URL}/grapher/${charts[expectedChartIdx]?.slug}"]`
+                `GrapherWithFallback[slug*='${charts[expectedChartIdx].slug}']`
             )
         ).toHaveLength(1)
-        // should have forced re-render by changing the `key`
-        expect(wrapper.find("figure").key()).toEqual(
-            charts[expectedChartIdx].slug
-        )
     })
 
     expect(wrapper.find("li").last().hasClass("active")).toEqual(true)

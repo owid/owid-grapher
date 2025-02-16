@@ -1,4 +1,3 @@
-import React from "react"
 import * as R from "remeda"
 import {
     Bounds,
@@ -63,6 +62,7 @@ import {
 import { autoDetectYColumnSlugs, makeClipPath } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { Component, createRef } from "react"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
@@ -78,7 +78,7 @@ interface MapChartProps {
 
 @observer
 export class MapChart
-    extends React.Component<MapChartProps>
+    extends Component<MapChartProps>
     implements
         ChartInterface,
         HorizontalColorLegendManager,
@@ -228,7 +228,7 @@ export class MapChart
         return this.seriesMap
     }
 
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base: React.RefObject<SVGGElement> = createRef()
     @action.bound onMapMouseOver(feature: GeoFeature): void {
         if (feature.id !== undefined) {
             const featureId = feature.id as string

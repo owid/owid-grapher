@@ -52,13 +52,13 @@ import { SortIcon } from "../controls/SortIcon"
 import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
 import {
+    AdditionalGrapherDataFetchFn,
     ColumnSlug,
     EntityName,
     OwidColumnDef,
     Time,
 } from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
-import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 import * as R from "remeda"
 import { MapConfig } from "../mapCharts/MapConfig"
@@ -73,7 +73,7 @@ import {
 } from "../core/EntitiesByRegionType"
 import { SearchField } from "../controls/SearchField"
 
-type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
+export type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
 type EntityFilter = EntityRegionType | "all"
 
@@ -93,7 +93,6 @@ export interface EntitySelectorManager {
     entityType?: string
     entityTypePlural?: string
     activeColumnSlugs?: string[]
-    dataApiUrl: string
     isEntitySelectorModalOrDrawerOpen?: boolean
     canChangeEntity?: boolean
     canHighlightEntities?: boolean
@@ -113,6 +112,7 @@ export interface EntitySelectorManager {
         action: EntitySelectorEvent,
         target?: string
     ) => void
+    additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
 }
 
 interface SortConfig {
@@ -952,6 +952,7 @@ export class EntitySelector extends React.Component<{
         external: ExternalSortIndicatorDefinition
     ): Promise<void> {
         const { slug, indicatorId } = external
+        const { additionalDataLoaderFn } = this.manager
 
         // the indicator has already been loaded
         if (this.interpolatedSortColumnsBySlug[slug]) return
@@ -959,10 +960,11 @@ export class EntitySelector extends React.Component<{
         // load the external indicator
         try {
             this.set({ isLoadingExternalSortColumn: true })
-            const variable = await loadVariableDataAndMetadata(
-                indicatorId,
-                this.manager.dataApiUrl
-            )
+            if (additionalDataLoaderFn === undefined)
+                throw new Error(
+                    "additionalDataLoaderFn is not set, can't load sort variables on demand"
+                )
+            const variable = await additionalDataLoaderFn(indicatorId)
             const variableTable = buildVariableTable(variable)
             const column = variableTable
                 .filterByEntityNames(this.availableEntityNames)

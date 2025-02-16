@@ -15,7 +15,7 @@ ENV = "development"
 GRAPHER_CONFIG_R2_BUCKET_URL = "https://grapher-configs-staging.owid.io"
 GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL = "https://grapher-configs.owid.io"
 GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH = "v1"
-
+DATA_API_URL_COMPLETE = "https://api.ourworldindata.org/v1/indicators/"
 
 # Overrides for CF preview deployments
 [env.preview.vars]
@@ -25,6 +25,9 @@ ENV = "staging"
 GRAPHER_CONFIG_R2_BUCKET_URL = "https://grapher-configs-staging.owid.io"
 GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL = "https://grapher-configs.owid.io"
 GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH = "v1"
+DATA_API_URL_PARTIAL_PREFIX = "https://api-staging.owid.io/staging-site-"
+DATA_API_URL_PARTIAL_POSTFIX = "/v1/indicators/"
+DATA_API_URL_COMPLETE = ""
 
 # Overrides for CF production deployment
 [env.production]
@@ -38,4 +41,5 @@ GRAPHER_CONFIG_R2_BUCKET_URL = "https://grapher-configs.owid.io"
 GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL = ""
 GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH = ""
 GRAPHER_CONFIG_R2_BUCKET_PATH = "v1"
+DATA_API_URL_COMPLETE = "https://api.ourworldindata.org/v1/indicators/"
 CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE=0.01

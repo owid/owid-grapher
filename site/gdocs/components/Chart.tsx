@@ -1,5 +1,4 @@
-import { useRef } from "react"
-import { useEmbedChart } from "../../hooks.js"
+import { useRef, useMemo } from "react"
 import {
     grapherInterfaceWithHiddenControls,
     grapherInterfaceWithHiddenTabs,
@@ -18,7 +17,9 @@ import { ChartConfigType, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { useLinkedChart } from "../utils.js"
 import SpanElements from "./SpanElements.js"
 import cx from "classnames"
-import GrapherImage from "../../GrapherImage.js"
+import { GrapherWithFallback } from "../../GrapherWithFallback.js"
+import { MultiDimEmbed } from "../../MultiDimEmbed.js"
+import { useEmbedChart } from "../../hooks.js"
 
 export default function Chart({
     d,
@@ -38,65 +39,71 @@ export default function Chart({
     // This means we can link to the same chart multiple times with different querystrings
     // and it should all resolve correctly via the same linkedChart
     const { linkedChart } = useLinkedChart(d.url)
-    if (!linkedChart) return null
 
     const url = Url.fromURL(d.url)
-    const resolvedUrl = linkedChart.resolvedUrl
-    const isExplorer = linkedChart.configType === ChartConfigType.Explorer
-    const isMultiDim = linkedChart.configType === ChartConfigType.MultiDim
+    const resolvedUrl = linkedChart?.resolvedUrl
+    const resolvedUrlParsed = Url.fromURL(resolvedUrl ?? "")
+    const slug = resolvedUrlParsed.slug!
+    const queryStr = resolvedUrlParsed.queryStr
+    const isExplorer = linkedChart?.configType === ChartConfigType.Explorer
+    const isMultiDim = linkedChart?.configType === ChartConfigType.MultiDim
     const hasControls = url.queryParams.hideControls !== "true"
     const isExplorerWithControls = isExplorer && hasControls
     const isMultiDimWithControls = isMultiDim && hasControls
 
     // config passed to grapher charts
-    let customizedChartConfig: GrapherProgrammaticInterface = {}
-    const isCustomized = d.title || d.subtitle
-    if (!isExplorer && isCustomized) {
-        const controls: ChartControlKeyword[] = d.controls || []
-        const tabs: ChartTabKeyword[] = d.tabs || []
+    const customizedChartConfig = useMemo(() => {
+        let config: GrapherProgrammaticInterface = {}
+        const isCustomized = d.title || d.subtitle
+        if (!isExplorer && isCustomized) {
+            const controls: ChartControlKeyword[] = d.controls || []
+            const tabs: ChartTabKeyword[] = d.tabs || []
 
-        const showAllControls = controls.includes(ChartControlKeyword.all)
-        const showAllTabs = tabs.includes(ChartTabKeyword.all)
+            const showAllControls = controls.includes(ChartControlKeyword.all)
+            const showAllTabs = tabs.includes(ChartTabKeyword.all)
 
-        const allControlsHidden = grapherInterfaceWithHiddenControls
-        const allTabsHidden = grapherInterfaceWithHiddenTabs
+            const allControlsHidden = grapherInterfaceWithHiddenControls
+            const allTabsHidden = grapherInterfaceWithHiddenTabs
 
-        const enabledControls = excludeUndefined(
-            controls.map(mapControlKeywordToGrapherConfig)
-        )
-        const enabledTabs = excludeUndefined(
-            tabs.map(mapTabKeywordToGrapherConfig)
-        )
+            const enabledControls = excludeUndefined(
+                controls.map(mapControlKeywordToGrapherConfig)
+            )
+            const enabledTabs = excludeUndefined(
+                tabs.map(mapTabKeywordToGrapherConfig)
+            )
 
-        customizedChartConfig = merge(
-            {},
-            !showAllControls ? allControlsHidden : {},
-            !showAllTabs ? allTabsHidden : {},
-            ...enabledControls,
-            ...enabledTabs,
-            {
-                hideRelatedQuestion: true,
-                hideShareButton: true, // always hidden since the original chart would be shared, not the customized one
-                hideExploreTheDataButton: false,
-            },
-            {
-                title: d.title,
-                subtitle: d.subtitle,
-            }
-        )
+            config = merge(
+                {},
+                !showAllControls ? allControlsHidden : {},
+                !showAllTabs ? allTabsHidden : {},
+                ...enabledControls,
+                ...enabledTabs,
+                {
+                    hideRelatedQuestion: true,
+                    hideShareButton: true, // always hidden since the original chart would be shared, not the customized one
+                    hideExploreTheDataButton: false,
+                },
+                {
+                    title: d.title,
+                    subtitle: d.subtitle,
+                }
+            )
 
-        // make sure the custom title is presented as is
-        if (customizedChartConfig.title) {
-            customizedChartConfig.forceHideAnnotationFieldsInTitle = {
-                entity: true,
-                time: true,
-                changeInPrefix: true,
+            // make sure the custom title is presented as is
+            if (config.title) {
+                config.forceHideAnnotationFieldsInTitle = {
+                    entity: true,
+                    time: true,
+                    changeInPrefix: true,
+                }
             }
         }
-    }
+        return config
+    }, [d.title, d.subtitle, d.controls, d.tabs, isExplorer])
 
     const chartConfig = customizedChartConfig
 
+    if (!linkedChart) return null
     return (
         <div
             className={cx(d.position, className, {
@@ -108,37 +115,44 @@ export default function Chart({
             style={{ gridRow: d.row, gridColumn: d.column }}
             ref={refChartContainer}
         >
-            <figure
-                // Use unique `key` to force React to re-render tree
-                key={resolvedUrl}
-                className={cx({
-                    [GRAPHER_PREVIEW_CLASS]: !isExplorer,
-                    chart: !isExplorerWithControls && !isMultiDimWithControls,
-                    explorer: isExplorerWithControls,
-                    "multi-dim": isMultiDimWithControls,
-                })}
-                data-is-multi-dim={isMultiDim || undefined}
-                data-grapher-src={isExplorer ? undefined : resolvedUrl}
-                data-grapher-config={
-                    isExplorer || isEmpty(chartConfig)
-                        ? undefined
-                        : JSON.stringify(chartConfig)
-                }
-                data-explorer-src={isExplorer ? resolvedUrl : undefined}
-                style={{
-                    width: "100%",
-                    border: "0px none",
-                    height: d.height,
-                }}
-            >
-                {isExplorer || isMultiDim ? (
+            {isExplorer ? (
+                <figure
+                    // Use unique `key` to force React to re-render tree
+                    key={resolvedUrl}
+                    className={cx({
+                        [GRAPHER_PREVIEW_CLASS]: !isExplorer,
+                        chart:
+                            !isExplorerWithControls && !isMultiDimWithControls,
+                        explorer: isExplorerWithControls,
+                        "multi-dim": isMultiDimWithControls,
+                    })}
+                    data-is-multi-dim={isMultiDim || undefined}
+                    data-grapher-src={isExplorer ? undefined : resolvedUrl}
+                    data-grapher-config={
+                        isExplorer || isEmpty(chartConfig)
+                            ? undefined
+                            : JSON.stringify(chartConfig)
+                    }
+                    data-explorer-src={isExplorer ? resolvedUrl : undefined}
+                    style={{
+                        width: "100%",
+                        border: "0px none",
+                        height: d.height,
+                    }}
+                >
                     <div className="js--show-warning-block-if-js-disabled" />
-                ) : (
-                    <a href={resolvedUrl} target="_blank" rel="noopener">
-                        <GrapherImage url={resolvedUrl} alt={d.title} />
-                    </a>
-                )}
-            </figure>
+                </figure>
+            ) : isMultiDim ? (
+                <MultiDimEmbed url={d.url} chartConfig={chartConfig} />
+            ) : (
+                <GrapherWithFallback
+                    slug={slug}
+                    config={chartConfig}
+                    queryStr={queryStr}
+                    isEmbeddedInAnOwidPage={true}
+                    isEmbeddedInADataPage={false}
+                />
+            )}
             {d.caption ? (
                 <figcaption>
                     <SpanElements spans={d.caption} />

@@ -95,7 +95,6 @@ export const DataPageV2 = (props: {
         ...mergedGrapherConfig,
         bakedGrapherURL: BAKED_GRAPHER_URL,
         adminBaseUrl: ADMIN_BASE_URL,
-        dataApiUrl: DATA_API_URL,
     }
 
     // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
