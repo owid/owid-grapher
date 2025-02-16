@@ -1,6 +1,7 @@
 @use "sass:math";
 
 .StandaloneGrapherOrExplorerPage main figure[data-grapher-src],
+.StandaloneGrapherOrExplorerPage main figure[data-grapher-component],
 #fallback {
     display: flex;
     align-items: center;
@@ -104,7 +105,8 @@ html.IsInIframe .StandaloneGrapherOrExplorerPage {
         min-height: inherit;
     }
 
-    main figure[data-grapher-src] {
+    main figure[data-grapher-src],
+    main figure[data-grapher-component] {
         height: 100vh;
         min-height: auto;
         max-height: none;

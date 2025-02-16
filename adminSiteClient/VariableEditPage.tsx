@@ -36,7 +36,6 @@ import {
     stringifyUnknownError,
     startCase,
 } from "@ourworldindata/utils"
-import { GrapherFigureView } from "../site/GrapherFigureView.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"
@@ -47,7 +46,7 @@ import {
     GrapherInterface,
     OwidVariableRoundingMode,
 } from "@ourworldindata/types"
-import { Grapher } from "@ourworldindata/grapher"
+import { Grapher, GrapherState } from "@ourworldindata/grapher"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { DATA_API_URL, ETL_API_URL } from "../settings/clientSettings.js"
@@ -143,7 +142,7 @@ class VariableEditor extends Component<{
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable.ref grapher?: Grapher
+    @observable.ref grapherState?: GrapherState
 
     @computed get isModified(): boolean {
         return (
@@ -334,27 +333,29 @@ class VariableEditor extends Component<{
                             </section>
                         </div>
                         {/* BUG: when user pres Enter when editing form, chart will switch to `Table` tab */}
-                        {this.grapher && (
+                        {this.grapherState && (
                             <div className="col">
                                 <div className="topbar">
                                     <h3>Preview</h3>
                                     <Link
                                         className="btn btn-secondary"
                                         to={`/charts/create/${Base64.encode(
-                                            JSON.stringify(this.grapher.object)
+                                            JSON.stringify(
+                                                this.grapherState.object
+                                            )
                                         )}`}
                                     >
                                         Edit as new chart
                                     </Link>
                                 </div>
-                                <GrapherFigureView
-                                    grapher={this.grapher}
-                                    extraProps={{
-                                        // passed this way because clientSettings are baked and need a recompile to be updated
-                                        dataApiUrlForAdmin:
-                                            this.context.admin?.settings
-                                                ?.DATA_API_FOR_ADMIN_UI,
-                                    }}
+                                <Grapher
+                                    grapherState={this.grapherState}
+                                    // extraProps={{
+                                    //     // passed this way because clientSettings are baked and need a recompile to be updated
+                                    //     dataApiUrlForAdmin:
+                                    //         this.context.admin?.settings
+                                    //             ?.DATA_API_FOR_ADMIN_UI,
+                                    // }}
                                 />
                             </div>
                         )}
@@ -712,11 +713,11 @@ class VariableEditor extends Component<{
 
     dispose!: IReactionDisposer
     componentDidMount() {
-        this.grapher = new Grapher(this.grapherConfig)
+        this.grapherState = new GrapherState(this.grapherConfig)
 
         this.dispose = autorun(() => {
-            if (this.grapher && this.grapherConfig) {
-                this.grapher.updateFromObject(this.grapherConfig)
+            if (this.grapherState && this.grapherConfig) {
+                this.grapherState.updateFromObject(this.grapherConfig)
             }
         })
     }

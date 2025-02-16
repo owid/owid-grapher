@@ -8,7 +8,8 @@ html.IsInIframe body.DataPage {
     }
 
     // GrapherWithFallback
-    figure[data-grapher-src] {
+    figure[data-grapher-src],
+    figure[data-grapher-component] {
         display: flex;
         align-items: center;
         justify-content: center;
