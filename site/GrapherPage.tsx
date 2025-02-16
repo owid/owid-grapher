@@ -80,7 +80,6 @@ const runtimeAssetMap = (typeof window !== "undefined" && window._OWID_RUNTIME_A
 window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { runtimeAssetMap: runtimeAssetMap })`
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
-
     return (
         <Html>
             <Head

@@ -16,7 +16,7 @@ import {
     isEmpty,
 } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { Grapher } from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import { getGrapherFilters } from "./urlTools.js"
 
 const markdownNewlineEnding = "  "
@@ -255,7 +255,7 @@ function* activeFilterSettings(
 }
 
 export function constructReadme(
-    grapher: Grapher,
+    grapherState: GrapherState,
     columns: CoreColumn[],
     searchParams: URLSearchParams,
     multiDimAvailableDimensions?: string[]
@@ -268,13 +268,13 @@ export function constructReadme(
         )
         .flatMap((col) => [...columnReadmeText(col)])
     let readme: string
-    const urlWithFilters = `${grapher.canonicalUrl}`
+    const urlWithFilters = `${grapherState.canonicalUrl}`
 
     const downloadDate = formatDate(new Date()) // formats the date as "October 10, 2024"
     if (isSingleColumn)
-        readme = `# ${grapher.displayTitle} - Data package
+        readme = `# ${grapherState.displayTitle} - Data package
 
-This data package contains the data that powers the chart ["${grapher.displayTitle}"](${urlWithFilters}) on the Our World in Data website. It was downloaded on ${downloadDate}.
+This data package contains the data that powers the chart ["${grapherState.displayTitle}"](${urlWithFilters}) on the Our World in Data website. It was downloaded on ${downloadDate}.
 ${[...activeFilterSettings(searchParams, multiDimAvailableDimensions)].join("\n")}
 ## CSV Structure
 
@@ -300,9 +300,9 @@ ${sources.join("\n")}
 
     `
     else
-        readme = `# ${grapher.displayTitle} - Data package
+        readme = `# ${grapherState.displayTitle} - Data package
 
-This data package contains the data that powers the chart ["${grapher.displayTitle}"](${urlWithFilters}) on the Our World in Data website.
+This data package contains the data that powers the chart ["${grapherState.displayTitle}"](${urlWithFilters}) on the Our World in Data website.
 
 ## CSV Structure
 

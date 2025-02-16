@@ -1,4 +1,4 @@
-import { Grapher } from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import {
     OwidTableSlugs,
     OwidOrigin,
@@ -34,7 +34,7 @@ type MetadataColumn = {
     fullMetadata: string
 }
 
-export const getColumnsForMetadata = (grapher: Grapher) => {
+export const getColumnsForMetadata = (grapherState: GrapherState) => {
     const columnsToIgnore = new Set(
         [
             OwidTableSlugs.entityId,
@@ -47,20 +47,20 @@ export const getColumnsForMetadata = (grapher: Grapher) => {
         ].map((slug) => slug.toString())
     )
 
-    const colsToGet = grapher.inputTable.columnSlugs.filter(
+    const colsToGet = grapherState.inputTable.columnSlugs.filter(
         (col) => !columnsToIgnore.has(col)
     )
 
-    return grapher.inputTable.getColumns(colsToGet)
+    return grapherState.inputTable.getColumns(colsToGet)
 }
 export function assembleMetadata(
-    grapher: Grapher,
+    grapherState: GrapherState,
     searchParams: URLSearchParams,
     multiDimAvailableDimensions?: string[]
 ) {
     const useShortNames = searchParams.get("useColumnShortNames") === "true"
 
-    const metadataCols = getColumnsForMetadata(grapher)
+    const metadataCols = getColumnsForMetadata(grapherState)
 
     const columns: [string, MetadataColumn][] = metadataCols.map((col) => {
         const {
@@ -179,14 +179,14 @@ export function assembleMetadata(
 
     const fullMetadata = {
         chart: {
-            title: grapher.title,
-            subtitle: grapher.subtitle,
-            note: grapher.note,
-            xAxisLabel: grapher.xAxis.label,
-            yAxisLabel: grapher.yAxis.label,
-            citation: grapher.sourcesLine,
-            originalChartUrl: grapher.canonicalUrl,
-            selection: grapher.selectedEntityNames,
+            title: grapherState.title,
+            subtitle: grapherState.subtitle,
+            note: grapherState.note,
+            xAxisLabel: grapherState.xAxis.label,
+            yAxisLabel: grapherState.yAxis.label,
+            citation: grapherState.sourcesLine,
+            originalChartUrl: grapherState.canonicalUrl,
+            selection: grapherState.selectedEntityNames,
         },
         columns: Object.fromEntries(columns),
         // date downloaded should be YYYY-MM-DD

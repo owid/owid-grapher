@@ -76,7 +76,8 @@
         }
         @include grid(12);
 
-        figure[data-grapher-src] {
+        figure[data-grapher-src],
+        figure[data-grapher-component] {
             grid-column: span 12;
             margin: 0;
 
@@ -168,7 +169,8 @@
             margin-bottom: 0;
         }
 
-        figure[data-grapher-src] {
+        figure[data-grapher-src],
+        figure[data-grapher-component] {
             height: $grapher-height;
         }
     }

@@ -1,15 +1,16 @@
 import { DimensionProperty } from "@ourworldindata/utils"
-import { Grapher } from "../core/Grapher"
+import { GrapherState } from "../core/Grapher"
 import { GRAPHER_TAB_OPTIONS, GrapherInterface } from "@ourworldindata/types"
 import {
     TestMetadata,
     createOwidTestDataset,
     fakeEntities,
 } from "../testData/OwidTestData"
+import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "../core/LegacyToOwidTable.js"
 
 export const childMortalityGrapher = (
     props: Partial<GrapherInterface> = {}
-): Grapher => {
+): GrapherState => {
     const childMortalityId = 104402
     const childMortalityMetadata: TestMetadata = {
         id: childMortalityId,
@@ -36,23 +37,30 @@ export const childMortalityGrapher = (
             property: DimensionProperty.y,
         },
     ]
-    return new Grapher({
+    const owidDataset = createOwidTestDataset([
+        {
+            metadata: childMortalityMetadata,
+            data: childMortalityData,
+        },
+    ])
+    const state = new GrapherState({
         hasMapTab: true,
         tab: GRAPHER_TAB_OPTIONS.map,
         dimensions,
         ...props,
-        owidDataset: createOwidTestDataset([
-            {
-                metadata: childMortalityMetadata,
-                data: childMortalityData,
-            },
-        ]),
+        owidDataset,
     })
+    state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        owidDataset,
+        dimensions,
+        {}
+    )
+    return state
 }
 
 export const GrapherWithIncompleteData = (
     props: Partial<GrapherInterface> = {}
-): Grapher => {
+): GrapherState => {
     const indicatorId = 3512
     const metadata = { id: indicatorId, shortUnit: "%" }
     const data = [
@@ -84,18 +92,23 @@ export const GrapherWithIncompleteData = (
             },
         },
     ]
-    return new Grapher({
+    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        createOwidTestDataset([{ metadata, data }]),
+        dimensions,
+        {}
+    )
+    return new GrapherState({
         tab: GRAPHER_TAB_OPTIONS.table,
         selectedEntityNames: ["Iceland", "France", "Afghanistan"],
         dimensions,
         ...props,
-        owidDataset: createOwidTestDataset([{ metadata, data }]),
+        table: inputTable,
     })
 }
 
 export const GrapherWithAggregates = (
     props: Partial<GrapherInterface> = {}
-): Grapher => {
+): GrapherState => {
     const childMortalityId = 104402
     const childMortalityMetadata: TestMetadata = {
         id: childMortalityId,
@@ -125,20 +138,25 @@ export const GrapherWithAggregates = (
             property: DimensionProperty.y,
         },
     ]
-    return new Grapher({
+    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        createOwidTestDataset([
+            { metadata: childMortalityMetadata, data: childMortalityData },
+        ]),
+        dimensions,
+        {}
+    )
+    return new GrapherState({
         tab: GRAPHER_TAB_OPTIONS.table,
         dimensions,
         selectedEntityNames: ["Afghanistan", "Iceland", "World"],
         ...props,
-        owidDataset: createOwidTestDataset([
-            { metadata: childMortalityMetadata, data: childMortalityData },
-        ]),
+        table: inputTable,
     })
 }
 
 export const GrapherWithMultipleVariablesAndMultipleYears = (
     props: Partial<GrapherInterface> = {}
-): Grapher => {
+): GrapherState => {
     const abovePovertyLineId = 514050
     const belowPovertyLineId = 472265
 
@@ -169,14 +187,18 @@ export const GrapherWithMultipleVariablesAndMultipleYears = (
             { year: 2019, entity: fakeEntities.World, value: 10 },
         ],
     }
-
-    return new Grapher({
-        tab: GRAPHER_TAB_OPTIONS.table,
-        dimensions,
-        ...props,
-        owidDataset: createOwidTestDataset([
+    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        createOwidTestDataset([
             abovePovertyLineDataset,
             belowPovertyLineDataset,
         ]),
+        dimensions,
+        {}
+    )
+    return new GrapherState({
+        tab: GRAPHER_TAB_OPTIONS.table,
+        dimensions,
+        ...props,
+        table: inputTable,
     })
 }
