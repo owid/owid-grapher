@@ -24,7 +24,7 @@ import {
     GrapherStaticFormat,
     DimensionProperty,
 } from "@ourworldindata/types"
-import { Grapher } from "@ourworldindata/grapher"
+import { Grapher, GrapherState } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import { getFullReferencesCount, isChartEditorInstance } from "./ChartEditor.js"
 import { EditorBasicTab } from "./EditorBasicTab.js"
@@ -109,7 +109,9 @@ export class ChartEditorView<
 }> {
     @observable.ref database = new EditorDatabase({})
     @observable details: DetailDictionary = {}
-    @observable.ref grapherElement?: React.ReactElement
+    @computed get grapherState(): GrapherState {
+        return this.manager.editor.grapherState
+    }
 
     @observable simulateVisionDeficiency?: VisionDeficiency
 
@@ -125,20 +127,16 @@ export class ChartEditorView<
 
     @action.bound private updateGrapher(): void {
         const config = this.manager.editor.originalGrapherConfig
-        const grapherConfig = {
+        // 2025-01-04 Daniel Not sure this is the best way to do things
+        this.grapherState.updateFromObject({
             ...config,
-            // binds the grapher instance to this.grapher
-            getGrapherInstance: (grapher: Grapher) => {
-                this.manager.editor.grapher = grapher
-            },
             dataApiUrlForAdmin:
                 this.manager.admin.settings.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
             bounds: this.bounds,
             staticFormat: this.staticFormat,
-        }
-        this.manager.editor.grapher.renderToStatic =
+        })
+        this.manager.editor.grapherState.renderToStatic =
             !!this.editor?.showStaticPreview
-        this.grapherElement = <Grapher {...grapherConfig} />
         this._isGrapherSet = true
     }
 
@@ -196,7 +194,7 @@ export class ChartEditorView<
     @computed private get bounds(): Bounds {
         return this.isMobilePreview
             ? new Bounds(0, 0, 380, 525)
-            : this.manager.editor.grapher.defaultBounds
+            : this.grapherState.defaultBounds
     }
 
     @computed private get staticFormat(): GrapherStaticFormat {
@@ -209,15 +207,15 @@ export class ChartEditorView<
     // these may point to non-existent details e.g. ["not_a_real_term", "pvotery"]
     @computed
     get currentDetailReferences(): DetailReferences {
-        const { grapher } = this.manager.editor
+        const { grapherState } = this.manager.editor
         return {
-            subtitle: extractDetailsFromSyntax(grapher.currentSubtitle),
-            note: extractDetailsFromSyntax(grapher.note ?? ""),
+            subtitle: extractDetailsFromSyntax(grapherState.currentSubtitle),
+            note: extractDetailsFromSyntax(grapherState.note ?? ""),
             axisLabelX: extractDetailsFromSyntax(
-                grapher.xAxisConfig.label ?? ""
+                grapherState.xAxisConfig.label ?? ""
             ),
             axisLabelY: extractDetailsFromSyntax(
-                grapher.yAxisConfig.label ?? ""
+                grapherState.yAxisConfig.label ?? ""
             ),
         }
     }
@@ -286,7 +284,7 @@ export class ChartEditorView<
             [DimensionProperty.table]: [], // not used
         }
 
-        this.manager.editor.grapher.dimensionSlots.forEach((slot) => {
+        this.grapherState.dimensionSlots.forEach((slot) => {
             slot.dimensions.forEach((dimension, dimensionIndex) => {
                 const details = extractDetailsFromSyntax(
                     dimension.display.name ?? ""
@@ -353,7 +351,7 @@ export class ChartEditorView<
     }
 
     renderReady(editor: Editor): React.ReactElement {
-        const { grapher, availableTabs } = editor
+        const { grapherState, availableTabs } = editor
 
         const chartEditor = isChartEditorInstance(editor) ? editor : undefined
 
@@ -424,10 +422,10 @@ export class ChartEditorView<
                             />
                         )}
                         {editor.tab === "scatter" && (
-                            <EditorScatterTab grapher={grapher} />
+                            <EditorScatterTab grapherState={grapherState} />
                         )}
                         {editor.tab === "marimekko" && (
-                            <EditorMarimekkoTab grapher={grapher} />
+                            <EditorMarimekkoTab grapherState={grapherState} />
                         )}
                         {editor.tab === "map" && (
                             <EditorMapTab editor={editor} />
@@ -457,10 +455,9 @@ export class ChartEditorView<
                 </div>
                 <div className="chart-editor-view">
                     <figure
-                        data-grapher-src
                         style={{
                             minHeight: editor.showStaticPreview
-                                ? grapher.staticBoundsWithDetails.height
+                                ? grapherState.staticBoundsWithDetails.height
                                 : undefined,
                             boxShadow: editor.showStaticPreview
                                 ? "0px 4px 40px rgba(0, 0, 0, 0.2)"
@@ -470,7 +467,7 @@ export class ChartEditorView<
                                 `url(#${this.simulateVisionDeficiency.id})`,
                         }}
                     >
-                        {this.grapherElement}
+                        <Grapher grapherState={this.grapherState} />
                     </figure>
                     <div>
                         <div

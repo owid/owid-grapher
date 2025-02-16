@@ -27,6 +27,8 @@ import {
     SlideShowManager,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     GrapherAnalytics,
+    GrapherState,
+    fetchInputTableForConfig,
     FocusArray,
 } from "@ourworldindata/grapher"
 import {
@@ -194,15 +196,25 @@ export class Explorer
         GrapherManager
 {
     analytics = new GrapherAnalytics()
+    grapherState: GrapherState
+    inputTableTransformer = (table: OwidTable) => table
 
     constructor(props: ExplorerProps) {
         super(props)
         this.explorerProgram = ExplorerProgram.fromJson(
             props
         ).initDecisionMatrix(this.initialQueryParams)
-        this.grapher = new Grapher({
-            bounds: props.bounds,
+        this.grapherState = new GrapherState({
             staticBounds: props.staticBounds,
+            bounds: props.bounds,
+            enableKeyboardShortcuts: true,
+            manager: this,
+            isEmbeddedInAnOwidPage: this.props.isEmbeddedInAnOwidPage,
+            adminBaseUrl: this.adminBaseUrl,
+        })
+
+        this.grapher = new Grapher({
+            grapherState: this.grapherState,
         })
     }
     // caution: do a ctrl+f to find untyped usages
@@ -331,7 +343,7 @@ export class Explorer
 
         if (this.props.isInStandalonePage) this.setCanonicalUrl()
 
-        this.grapher?.populateFromQueryParams(url.queryParams)
+        this.grapher?.grapherState?.populateFromQueryParams(url.queryParams)
 
         exposeInstanceOnWindow(this, "explorer")
         this.setUpIntersectionObserver()
@@ -352,7 +364,7 @@ export class Explorer
             this.explorerProgram.indexViewsSeparately &&
             document.location.search
         ) {
-            document.title = `${this.grapher.displayTitle} - Our World in Data`
+            document.title = `${this.grapher?.grapherState.displayTitle} - Our World in Data`
         }
     }
 
@@ -429,7 +441,7 @@ export class Explorer
             return // todo: can we remove this?
         this.initSlideshow()
 
-        const oldGrapherParams = this.grapher.changedParams
+        const oldGrapherParams = this.grapher?.grapherState.changedParams
         this.persistedGrapherQueryParamsBySelectedRow.set(
             oldSelectedRow,
             oldGrapherParams
@@ -441,23 +453,26 @@ export class Explorer
             ),
             country: oldGrapherParams.country,
             region: oldGrapherParams.region,
-            time: this.grapher.timeParam,
+            time: this.grapher?.grapherState.timeParam,
         }
 
-        const previousTab = this.grapher.activeTab
+        const previousTab = this.grapher?.grapherState.activeTab
 
         this.updateGrapherFromExplorer()
 
-        if (this.grapher.availableTabs.includes(previousTab)) {
+        if (this.grapher?.grapherState.availableTabs.includes(previousTab)) {
             // preserve the previous tab if that's still available in the new view
             newGrapherParams.tab =
-                this.grapher.mapGrapherTabToQueryParam(previousTab)
-        } else if (this.grapher.validChartTypes.length > 0) {
+                this.grapher?.grapherState.mapGrapherTabToQueryParam(
+                    previousTab
+                )
+        } else if (this.grapher?.grapherState.validChartTypes.length > 0) {
             // otherwise, switch to the first chart tab
-            newGrapherParams.tab = this.grapher.mapGrapherTabToQueryParam(
-                this.grapher.validChartTypes[0]
-            )
-        } else if (this.grapher.hasMapTab) {
+            newGrapherParams.tab =
+                this.grapher?.grapherState.mapGrapherTabToQueryParam(
+                    this.grapher?.grapherState.validChartTypes[0]
+                )
+        } else if (this.grapher?.grapherState.hasMapTab) {
             // or switch to the map, if there is one
             newGrapherParams.tab = GRAPHER_TAB_QUERY_PARAMS.map
         } else {
@@ -465,7 +480,7 @@ export class Explorer
             newGrapherParams.tab = GRAPHER_TAB_QUERY_PARAMS.table
         }
 
-        this.grapher.populateFromQueryParams(newGrapherParams)
+        this.grapher?.grapherState.populateFromQueryParams(newGrapherParams)
 
         this.analytics.logExplorerView(
             this.explorerProgram.slug,
@@ -475,8 +490,8 @@ export class Explorer
 
     @action.bound private setGrapherTable(table: OwidTable) {
         if (this.grapher) {
-            this.grapher.inputTable = table
-            this.grapher.appendNewEntitySelectionOptions()
+            this.grapher.grapherState.inputTable =
+                this.inputTableTransformer(table)
         }
     }
 
@@ -492,7 +507,7 @@ export class Explorer
     @action.bound updateGrapherFromExplorer() {
         switch (this.explorerProgram.chartCreationMode) {
             case ExplorerChartCreationMode.FromGrapherId:
-                this.updateGrapherFromExplorerUsingGrapherId()
+                void this.updateGrapherFromExplorerUsingGrapherId()
                 break
             case ExplorerChartCreationMode.FromVariableIds:
                 void this.updateGrapherFromExplorerUsingVariableIds()
@@ -549,7 +564,7 @@ export class Explorer
         )
     }
 
-    @action.bound updateGrapherFromExplorerUsingGrapherId() {
+    @action.bound async updateGrapherFromExplorerUsingGrapherId() {
         const grapher = this.grapher
         if (!grapher) return
 
@@ -573,10 +588,18 @@ export class Explorer
             config.selectedEntityNames = this.selection.selectedEntityNames
         }
 
-        grapher.setAuthoredVersion(config)
-        grapher.reset()
-        grapher.updateFromObject(config)
-        grapher.downloadData()
+        grapher?.grapherState.setAuthoredVersion(config)
+        grapher.grapherState.reset()
+        grapher?.grapherState.updateFromObject(config)
+        const inputTable = await fetchInputTableForConfig(
+            config.dimensions ?? [],
+            config.selectedEntityColors,
+            this.props.dataApiUrl,
+            undefined
+        )
+        if (inputTable)
+            grapher.grapherState.inputTable =
+                this.inputTableTransformer(inputTable)
     }
 
     @action.bound async updateGrapherFromExplorerUsingVariableIds() {
@@ -695,7 +718,8 @@ export class Explorer
         config.dimensions = dimensions
         if (ySlugs && yVariableIds) config.ySlugs = ySlugs + " " + yVariableIds
 
-        const inputTableTransformer = (table: OwidTable) => {
+        // TODO: 2025-01-07 Daniel - do we still need this?
+        this.inputTableTransformer = (table: OwidTable) => {
             // add transformed (and intermediate) columns to the grapher table
             if (uniqueSlugsInGrapherRow.length) {
                 const allColumnSlugs = uniq(
@@ -737,17 +761,27 @@ export class Explorer
             return table
         }
 
-        grapher.setAuthoredVersion(config)
-        grapher.reset()
-        grapher.updateFromObject(config)
+        grapher?.grapherState.setAuthoredVersion(config)
+        grapher.grapherState.reset()
+        grapher?.grapherState.updateFromObject(config)
         if (dimensions.length === 0) {
             // If dimensions are empty, explicitly set the table to an empty table
             // so we don't end up confusingly showing stale data from a previous chart
-            grapher.receiveOwidData(new Map())
+            // grapher.receiveOwidData(new Map())
+            grapher.grapherState.inputTable = BlankOwidTable()
         } else {
-            await grapher.downloadLegacyDataFromOwidVariableIds(
-                inputTableTransformer
+            // await grapher.downloadLegacyDataFromOwidVariableIds(
+            //     inputTableTransformer
+            // )
+            const inputTable = await fetchInputTableForConfig(
+                config.dimensions,
+                config.selectedEntityColors,
+                this.props.dataApiUrl,
+                undefined
             )
+            if (inputTable)
+                grapher.grapherState.inputTable =
+                    this.inputTableTransformer(inputTable)
         }
     }
 
@@ -770,9 +804,9 @@ export class Explorer
             config.selectedEntityNames = this.selection.selectedEntityNames
         }
 
-        grapher.setAuthoredVersion(config)
-        grapher.reset()
-        grapher.updateFromObject(config)
+        grapher?.grapherState.setAuthoredVersion(config)
+        grapher.grapherState.reset()
+        grapher?.grapherState.updateFromObject(config)
 
         // Clear any error messages, they are likely to be related to dataset loading.
         this.grapher?.clearErrors()
@@ -806,7 +840,7 @@ export class Explorer
 
         let url = Url.fromQueryParams(
             omitUndefinedValues({
-                ...this.grapher.changedParams,
+                ...this.grapher?.grapherState.changedParams,
                 pickerSort: this.entityPickerSort,
                 pickerMetric: this.entityPickerMetric,
                 hideControls: this.initialQueryParams.hideControls || undefined,
@@ -974,7 +1008,7 @@ export class Explorer
     private updateGrapherBounds() {
         const grapherContainer = this.grapherContainerRef.current
         if (grapherContainer)
-            this.grapherBounds = new Bounds(
+            this.grapherState.externalBounds = new Bounds(
                 0,
                 0,
                 grapherContainer.clientWidth,
@@ -1028,14 +1062,8 @@ export class Explorer
                     this.mobileCustomizeButton}
                 <div className="ExplorerFigure" ref={this.grapherContainerRef}>
                     <Grapher
-                        adminBaseUrl={this.adminBaseUrl}
-                        bounds={this.grapherBounds}
-                        enableKeyboardShortcuts={true}
-                        manager={this}
                         ref={this.grapherRef}
-                        isEmbeddedInAnOwidPage={
-                            this.props.isEmbeddedInAnOwidPage
-                        }
+                        grapherState={this.grapherState}
                     />
                 </div>
             </div>
@@ -1077,7 +1105,7 @@ export class Explorer
     }
 
     @computed get grapherTable() {
-        return this.grapher?.tableAfterAuthorTimelineFilter
+        return this.grapher?.grapherState?.tableAfterAuthorTimelineFilter
     }
 
     @observable entityPickerMetric? = this.initialQueryParams.pickerMetric
@@ -1192,6 +1220,6 @@ export class Explorer
     }
 
     @computed get requiredColumnSlugs() {
-        return this.grapher?.newSlugs ?? []
+        return this.grapher?.grapherState?.newSlugs ?? []
     }
 }
