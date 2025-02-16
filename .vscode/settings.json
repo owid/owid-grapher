@@ -24,5 +24,6 @@
     },
     "Prettier-SQL.keywordCase": "upper",
     "Prettier-SQL.SQLFlavourOverride": "mysql",
-    "Prettier-SQL.expressionWidth": 80
+    "Prettier-SQL.expressionWidth": 80,
+    "prettier.semi": false
 }

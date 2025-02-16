@@ -89,9 +89,9 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
     @computed get availableTabs(): EditorTab[] {
         const tabs: EditorTab[] = ["basic", "data", "text", "customize"]
-        if (this.grapher.hasMapTab) tabs.push("map")
-        if (this.grapher.isScatter) tabs.push("scatter")
-        if (this.grapher.isMarimekko) tabs.push("marimekko")
+        if (this.grapherState.hasMapTab) tabs.push("map")
+        if (this.grapherState.isScatter) tabs.push("scatter")
+        if (this.grapherState.isMarimekko) tabs.push("marimekko")
         tabs.push("revisions")
         tabs.push("refs")
         tabs.push("export")
@@ -100,14 +100,14 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     }
 
     @computed get isNewGrapher() {
-        return this.grapher.id === undefined
+        return this.grapherState.id === undefined
     }
 
     @action.bound async updateParentConfig() {
         const currentParentIndicatorId =
             this.parentConfig?.dimensions?.[0].variableId
         const newParentIndicatorId = getParentVariableIdFromChartConfig(
-            this.grapher.object
+            this.grapherState.object
         )
 
         // no-op if the parent indicator hasn't changed
@@ -138,12 +138,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     async saveGrapher({
         onError,
     }: { onError?: () => void } = {}): Promise<void> {
-        const { grapher, isNewGrapher, patchConfig } = this
+        const { grapherState, isNewGrapher, patchConfig } = this
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
         // But the server will need to know what we calculated in order to do its job
-        if (!patchConfig.title) patchConfig.title = grapher.displayTitle
-        if (!patchConfig.slug) patchConfig.slug = grapher.displaySlug
+        if (!patchConfig.title) patchConfig.title = grapherState.displayTitle
+        if (!patchConfig.slug) patchConfig.slug = grapherState.displaySlug
 
         // it only makes sense to enable inheritance if the chart has a parent
         const shouldEnableInheritance =
@@ -154,7 +154,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         })
         const targetUrl = isNewGrapher
             ? `/api/charts?${query}`
-            : `/api/charts/${grapher.id}?${query}`
+            : `/api/charts/${grapherState.id}?${query}`
 
         const json = await this.manager.admin.requestJSON(
             targetUrl,
@@ -165,12 +165,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         if (json.success) {
             if (isNewGrapher) {
                 this.newChartId = json.chartId
-                this.grapher.id = json.chartId
+                this.grapherState.id = json.chartId
                 this.savedPatchConfig = json.savedPatch
                 this.isInheritanceEnabled = shouldEnableInheritance
             } else {
                 runInAction(() => {
-                    grapher.version += 1
+                    grapherState.version += 1
                     this.logs.unshift(json.newLog)
                     this.savedPatchConfig = json.savedPatch
                     this.isInheritanceEnabled = shouldEnableInheritance
@@ -213,13 +213,13 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     async saveAsChartView(
         name: string
     ): Promise<{ success: boolean; errorMsg?: string }> {
-        const { patchConfig, grapher } = this
+        const { patchConfig, grapherState } = this
 
         const chartJson = omit(patchConfig, CHART_VIEW_PROPS_TO_OMIT)
 
         const body = {
             name,
-            parentChartId: grapher.id,
+            parentChartId: grapherState.id,
             config: chartJson,
         }
 
@@ -239,12 +239,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     }
 
     publishGrapher(): void {
-        const url = `${BAKED_GRAPHER_URL}/${this.grapher.displaySlug}`
+        const url = `${BAKED_GRAPHER_URL}/${this.grapherState.displaySlug}`
 
         if (window.confirm(`Publish chart at ${url}?`)) {
-            this.grapher.isPublished = true
+            this.grapherState.isPublished = true
             void this.saveGrapher({
-                onError: () => (this.grapher.isPublished = undefined),
+                onError: () => (this.grapherState.isPublished = undefined),
             })
         }
     }
@@ -255,9 +255,9 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
                 ? "WARNING: This chart might be referenced from public posts, please double check before unpublishing. Try to remove the chart anyway?"
                 : "Are you sure you want to unpublish this chart?"
         if (window.confirm(message)) {
-            this.grapher.isPublished = undefined
+            this.grapherState.isPublished = undefined
             void this.saveGrapher({
-                onError: () => (this.grapher.isPublished = true),
+                onError: () => (this.grapherState.isPublished = true),
             })
         }
     }

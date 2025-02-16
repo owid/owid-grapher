@@ -1,4 +1,3 @@
-import React from "react"
 import {
     Bounds,
     DEFAULT_BOUNDS,
@@ -60,6 +59,7 @@ import {
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SelectionArray } from "../selection/SelectionArray"
+import { Component, createRef } from "react"
 import { ChoroplethMap } from "./ChoroplethMap"
 
 interface MapChartProps {
@@ -70,7 +70,7 @@ interface MapChartProps {
 
 @observer
 export class MapChart
-    extends React.Component<MapChartProps>
+    extends Component<MapChartProps>
     implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
 {
     @observable focusEntity?: MapEntity
@@ -142,7 +142,7 @@ export class MapChart
         return this.seriesMap
     }
 
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base: React.RefObject<SVGGElement> = createRef()
     @action.bound onMapMouseOver(feature: GeoFeature): void {
         const series =
             feature.id === undefined

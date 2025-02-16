@@ -1,5 +1,3 @@
-import { findDOMParent } from "@ourworldindata/utils"
-
 const DEBUG = false
 
 // Add type information for dataLayer global provided by Google Tag Manager
@@ -177,55 +175,52 @@ export class GrapherAnalytics {
 
     startClickTracking(): void {
         // we use a data-track-note attr on elements to indicate that clicks on them should be tracked, and what to send
-        const dataTrackAttr = "data-track-note"
-
+        // const _dataTrackAttr = "data-track-note"
         // we set a data-grapher-url attr on grapher charts to indicate the URL of the chart.
         // this is helpful for tracking clicks on charts that are embedded in articles, where we would like to know
         // which chart the user is interacting with
-        const dataGrapherUrlAttr = "data-grapher-url"
-        document.addEventListener(
-            "click",
-            async (ev) => {
-                const targetElement = ev.target as HTMLElement
-                const trackedElement = findDOMParent(
-                    targetElement,
-                    (el: HTMLElement) => el.getAttribute(dataTrackAttr) !== null
-                )
-                if (!trackedElement) return
-
-                const grapherUrlRaw = trackedElement
-                    .closest(`[${dataGrapherUrlAttr}]`)
-                    ?.getAttribute(dataGrapherUrlAttr)
-
-                if (grapherUrlRaw) {
-                    let grapherUrlObj:
-                        | {
-                              grapherUrl: string
-                              chartViewName: string
-                          }
-                        | undefined
-                    try {
-                        grapherUrlObj = JSON.parse(grapherUrlRaw)
-                    } catch (e) {
-                        console.warn("failed to parse grapherUrl", e)
-                    }
-
-                    this.logGrapherClick(
-                        trackedElement.getAttribute(dataTrackAttr) || undefined,
-                        {
-                            label: trackedElement.innerText,
-                            grapherUrl: grapherUrlObj?.grapherUrl,
-                            chartViewName: grapherUrlObj?.chartViewName,
-                        }
-                    )
-                } else
-                    this.logSiteClick(
-                        trackedElement.getAttribute(dataTrackAttr) || undefined,
-                        trackedElement.innerText
-                    )
-            },
-            { capture: true, passive: true }
-        )
+        // const _dataGrapherUrlAttr = "data-grapher-url"
+        // TODO: 2025-01-05 Daniel - re-enable this before deploying
+        // document.addEventListener(
+        //     "click",
+        //     async (ev) => {
+        //         const targetElement = ev.target as HTMLElement
+        //         const trackedElement = findDOMParent(
+        //             targetElement,
+        //             (el: HTMLElement) => el.getAttribute(dataTrackAttr) !== null
+        //         )
+        //         if (!trackedElement) return
+        //             const grapherUrlRaw = trackedElement
+        //                 .closest(`[${dataGrapherUrlAttr}]`)
+        //                 ?.getAttribute(dataGrapherUrlAttr)
+        //             if (grapherUrlRaw) {
+        //                 let grapherUrlObj:
+        //                     | {
+        //                           grapherUrl: string
+        //                           chartViewName: string
+        //                       }
+        //                     | undefined
+        //                 try {
+        //                     grapherUrlObj = JSON.parse(grapherUrlRaw)
+        //                 } catch (e) {
+        //                     console.warn("failed to parse grapherUrl", e)
+        //                 }
+        //                 this.logGrapherClick(
+        //                     trackedElement.getAttribute(dataTrackAttr) || undefined,
+        //                     {
+        //                         label: trackedElement.innerText,
+        //                         grapherUrl: grapherUrlObj?.grapherUrl,
+        //                         chartViewName: grapherUrlObj?.chartViewName,
+        //                     }
+        //                 )
+        //             } else
+        //                 this.logSiteClick(
+        //                     trackedElement.getAttribute(dataTrackAttr) || undefined,
+        //                     trackedElement.innerText
+        //                 )
+        //         },
+        //         { capture: true, passive: true }
+        //     )
     }
 
     protected logToGA(event: GAEvent): void {
