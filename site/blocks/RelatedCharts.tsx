@@ -1,17 +1,11 @@
 import { useState, useRef } from "react"
 import * as React from "react"
-import {
-    orderBy,
-    RelatedChart,
-    HIDE_IF_JS_ENABLED_CLASSNAME,
-} from "@ourworldindata/utils"
+import { orderBy, RelatedChart } from "@ourworldindata/utils"
 import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
-import { useEmbedChart } from "../hooks.js"
 import { GalleryArrow } from "./GalleryArrow.js"
 import { GalleryArrowDirection } from "../SiteConstants.js"
 import { AllChartsListItem } from "./AllChartsListItem.js"
-import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
-import GrapherImage from "../GrapherImage.js"
+import { GrapherWithFallback } from "../GrapherWithFallback.js"
 
 export const RELATED_CHARTS_CLASS_NAME = "related-charts"
 
@@ -48,26 +42,16 @@ export const RelatedCharts = ({
         }
     }
 
-    useEmbedChart(activeChartIdx, refChartContainer)
-
-    const grapherUrl = `${BAKED_BASE_URL}/grapher/${activeChartSlug}`
-
     const figure = (
-        <figure
+        <GrapherWithFallback
+            slug={activeChartSlug}
             className={GRAPHER_PREVIEW_CLASS}
-            // Use unique `key` to force React to re-render tree
-            key={activeChartSlug}
-            data-grapher-src={grapherUrl}
-        >
-            <div className={HIDE_IF_JS_ENABLED_CLASSNAME}>
-                <a href={grapherUrl}>
-                    <GrapherImage
-                        slug={activeChartSlug}
-                        alt={activeChart?.title}
-                    />
-                </a>
-            </div>
-        </figure>
+            id={`related-chart-${activeChartIdx}`}
+            enablePopulatingUrlParams={true}
+            isEmbeddedInAnOwidPage={true}
+            isEmbeddedInADataPage={false}
+            config={{}}
+        />
     )
 
     const singleChartView = (
