@@ -590,11 +590,11 @@ export {
 export {
     type DbInsertFeaturedMetric,
     type DbPlainFeaturedMetric,
-    type ExpandedFeaturedMetric,
     FeaturedMetricIncomeGroup,
     FeaturedMetricsTableName,
     type DbPlainFeaturedMetricWithParentTagName,
     type FeaturedMetricByParentTagNameDictionary,
+    type ExpandedFeaturedMetric,
 } from "./dbTypes/FeaturedMetrics.js"
 export {
     type DbEnrichedMultiDimDataPage,
@@ -796,3 +796,4 @@ export {
     type ArchiveVersions,
     type ArchivedChartOrArchivePageMeta,
 } from "./domainTypes/Archive.js"
+export { type AdditionalGrapherDataFetchFn } from "./grapherTypes/GrapherTypes.js"
