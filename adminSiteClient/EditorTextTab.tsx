@@ -96,11 +96,11 @@ export class EditorTextTab<
     }
 
     @computed get hasCopyAdminURLButton() {
-        return !!this.props.editor.grapher.id
+        return !!this.props.editor.grapherState.id
     }
 
     @computed get hasCopyGrapherURLButton() {
-        return !!this.props.editor.grapher.isPublished
+        return !!this.props.editor.grapherState.isPublished
     }
 
     render() {
@@ -351,7 +351,7 @@ export class EditorTextTab<
                                 <AntdButton
                                     onClick={() =>
                                         copyToClipboard(
-                                            `[${grapher.title}](${ADMIN_BASE_URL}/admin/charts/${grapher.id}/edit)`
+                                            `[${grapherState.title}](${ADMIN_BASE_URL}/admin/charts/${grapherState.id}/edit)`
                                         )
                                     }
                                 >
@@ -362,7 +362,7 @@ export class EditorTextTab<
                                 <AntdButton
                                     onClick={() =>
                                         copyToClipboard(
-                                            `[${grapher.title}](${BAKED_GRAPHER_URL}/${grapher.slug})`
+                                            `[${grapherState.title}](${BAKED_GRAPHER_URL}/${grapherState.slug})`
                                         )
                                     }
                                 >
