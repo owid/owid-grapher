@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import * as Sentry from "@sentry/react"
 import {
+    getCachingInputTableFetcher,
     Grapher,
     GrapherAnalytics,
     GrapherProgrammaticInterface,
+    GrapherState,
+    loadVariableDataAndMetadata,
 } from "@ourworldindata/grapher"
 import {
     extractMultiDimChoicesFromSearchParams,
@@ -24,7 +27,6 @@ import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 const baseGrapherConfig: GrapherProgrammaticInterface = {
     bakedGrapherURL: BAKED_GRAPHER_URL,
     adminBaseUrl: ADMIN_BASE_URL,
-    dataApiUrl: DATA_API_URL,
     canHideExternalControlsInEmbed: true,
     isEmbeddedInAnOwidPage: true,
 }
@@ -42,12 +44,21 @@ export default function MultiDim({
     slug: string | null
     queryStr: string
 }) {
-    const grapherRef = useRef<Grapher>(null)
+    const manager = useRef(localGrapherConfig?.manager ?? {})
+    const grapherRef = useRef<GrapherState>(
+        new GrapherState({
+            ...baseGrapherConfig,
+            manager: manager.current,
+            queryStr,
+            additionalDataLoaderFn: (varId: number) =>
+                loadVariableDataAndMetadata(varId, DATA_API_URL),
+        })
+    )
+    const grapherDataLoader = useRef(
+        getCachingInputTableFetcher(DATA_API_URL, undefined)
+    )
     const grapherContainerRef = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(grapherContainerRef)
-    const [manager, setManager] = useState({
-        ...localGrapherConfig?.manager,
-    })
     const searchParams = useMemo(
         () => new URLSearchParams(queryStr),
         [queryStr]
@@ -96,7 +107,8 @@ export default function MultiDim({
             mdimSlug: slug ?? undefined,
             mdimView: settings,
         }
-        setManager((prev) => ({ ...prev, editUrl, analyticsContext }))
+        manager.current.editUrl = editUrl
+        manager.current.analyticsContext = analyticsContext
 
         const newGrapherParams: GrapherQueryParams = {
             ...grapher.changedParams,
@@ -128,14 +140,31 @@ export default function MultiDim({
                 grapher.setAuthoredVersion(grapherConfig)
                 grapher.reset()
                 grapher.updateFromObject(grapherConfig)
-                grapher.downloadData()
+                void grapherDataLoader
+                    .current(
+                        grapherConfig.dimensions ?? [],
+                        grapherConfig.selectedEntityColors
+                    )
+                    .then((table) => {
+                        if (table) {
+                            grapher.inputTable = table
+                        }
+                    })
                 grapher.populateFromQueryParams(newGrapherParams)
             })
             .catch(Sentry.captureException)
         return () => {
             ignoreFetchedData = true
         }
-    }, [config, localGrapherConfig, searchParams, settings, slug])
+    }, [config, localGrapherConfig, searchParams, settings, slug, manager])
+
+    // use a useEffects on the bounds to update the grapherState.externalBounds
+
+    useEffect(() => {
+        if (grapherRef.current) {
+            grapherRef.current.externalBounds = bounds
+        }
+    }, [bounds])
 
     return (
         <div className="multi-dim-container">
@@ -152,11 +181,8 @@ export default function MultiDim({
                 ref={grapherContainerRef}
             >
                 <Grapher
-                    ref={grapherRef}
+                    grapherState={grapherRef.current}
                     {...baseGrapherConfig}
-                    bounds={bounds}
-                    manager={manager}
-                    queryStr={queryStr}
                 />
             </div>
         </div>

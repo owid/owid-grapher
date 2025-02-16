@@ -14,6 +14,9 @@ export interface Env {
     CLOUDFLARE_IMAGES_API_KEY: string
     CLOUDFLARE_IMAGES_URL: string
     ENV: string
+    DATA_API_URL_COMPLETE?: string
+    DATA_API_URL_PARTIAL_PREFIX?: string
+    DATA_API_URL_PARTIAL_POSTFIX?: string
     SENTRY_DSN: string
     SLACK_BOT_OAUTH_TOKEN?: string
     SLACK_ERROR_CHANNEL_ID?: string

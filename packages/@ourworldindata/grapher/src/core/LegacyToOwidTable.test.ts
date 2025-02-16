@@ -6,40 +6,17 @@ import {
     OwidTableSlugs,
     StandardOwidColumnDefs,
     LegacyGrapherInterface,
-    OwidChartDimensionInterface,
 } from "@ourworldindata/types"
+import { ColumnTypeMap, ErrorValueTypes } from "@ourworldindata/core-table"
 import {
-    ColumnTypeMap,
-    ErrorValueTypes,
-    OwidTable,
-} from "@ourworldindata/core-table"
-import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
+    legacyToOwidTableAndDimensions,
+    legacyToOwidTableAndDimensionsWithMandatorySlug,
+} from "./LegacyToOwidTable"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
     DimensionProperty,
 } from "@ourworldindata/utils"
-import { getDimensionColumnSlug } from "../chart/ChartDimension.js"
-
-export const legacyToOwidTableAndDimensionsWithMandatorySlug = (
-    json: MultipleOwidVariableDataDimensionsMap,
-    dimensions: OwidChartDimensionInterface[],
-    selectedEntityColors:
-        | { [entityName: string]: string | undefined }
-        | undefined
-): OwidTable => {
-    const dimensionsWithSlug = dimensions?.map((dimension) => ({
-        ...dimension,
-        slug:
-            dimension.slug ??
-            getDimensionColumnSlug(dimension.variableId, dimension.targetYear),
-    }))
-    return legacyToOwidTableAndDimensions(
-        json,
-        dimensionsWithSlug,
-        selectedEntityColors
-    )
-}
 
 describe(legacyToOwidTableAndDimensions, () => {
     const legacyVariableEntry: OwidVariableDataMetadataDimensions = {

@@ -20,39 +20,40 @@ export const legacyMapGrapher: GrapherProgrammaticInterface = {
             },
         },
     ],
-    owidDataset: new Map([
-        [
-            3512,
-            {
-                data: {
-                    years: [2000, 2010, 2010],
-                    entities: [207, 15, 207],
-                    values: [4, 20, 34],
-                },
-                metadata: {
-                    id: 3512,
-                    display: { shortUnit: "%" },
-                    dimensions: {
-                        entities: {
-                            values: [
-                                { name: "Afghanistan", id: 15, code: "AFG" },
-                                { name: "Iceland", id: 207, code: "ISL" },
-                            ],
-                        },
-                        years: {
-                            values: [
-                                {
-                                    id: 2000,
-                                },
-                                {
-                                    id: 2010,
-                                },
-                            ],
-                        },
+    queryStr: "?time=2002",
+}
+
+export const legacyMapGrapherData = new Map([
+    [
+        3512,
+        {
+            data: {
+                years: [2000, 2010, 2010],
+                entities: [207, 15, 207],
+                values: [4, 20, 34],
+            },
+            metadata: {
+                id: 3512,
+                display: { shortUnit: "%" },
+                dimensions: {
+                    entities: {
+                        values: [
+                            { name: "Afghanistan", id: 15, code: "AFG" },
+                            { name: "Iceland", id: 207, code: "ISL" },
+                        ],
+                    },
+                    years: {
+                        values: [
+                            {
+                                id: 2000,
+                            },
+                            {
+                                id: 2010,
+                            },
+                        ],
                     },
                 },
             },
-        ],
-    ]),
-    queryStr: "?time=2002",
-}
+        },
+    ],
+])
