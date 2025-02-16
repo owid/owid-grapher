@@ -8,6 +8,11 @@ export {
 } from "./color/ColorScaleBin"
 export { ChartDimension } from "./chart/ChartDimension"
 export {
+    FetchingGrapher,
+    fetchInputTableForConfig,
+    getCachingInputTableFetcher,
+} from "./core/FetchingGrapher"
+export {
     GRAPHER_EMBEDDED_FIGURE_ATTR,
     GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR,
     GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR,
@@ -53,13 +58,17 @@ export {
 export { GlobalEntitySelector } from "./controls/globalEntitySelector/GlobalEntitySelector"
 export {
     Grapher,
+    GrapherState,
     type GrapherProgrammaticInterface,
     type GrapherManager,
 } from "./core/Grapher"
 export { GrapherAnalytics, EventCategory } from "./core/GrapherAnalytics"
 export { hydrateGlobalEntitySelectorIfAny } from "./controls/globalEntitySelector/GlobalEntitySelector"
 export { legacyToCurrentGrapherUrl } from "./core/GrapherUrlMigrations"
-export { legacyToOwidTableAndDimensions } from "./core/LegacyToOwidTable"
+export {
+    legacyToOwidTableAndDimensions,
+    legacyToOwidTableAndDimensionsWithMandatorySlug,
+} from "./core/LegacyToOwidTable"
 export { getErrorMessageRelatedQuestionUrl } from "./core/relatedQuestion"
 export { LoadingIndicator } from "./loadingIndicator/LoadingIndicator"
 export { MapChart } from "./mapCharts/MapChart"

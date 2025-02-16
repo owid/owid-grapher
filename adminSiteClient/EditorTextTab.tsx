@@ -31,49 +31,51 @@ export class EditorTextTab<
     Editor extends AbstractChartEditor,
 > extends Component<{ editor: Editor; errorMessages: ErrorMessages }> {
     @action.bound onSlug(slug: string) {
-        this.props.editor.grapher.slug = slugify(slug)
+        this.props.editor.grapherState.slug = slugify(slug)
     }
 
     @action.bound onChangeLogo(value: string) {
         if (value === "none") {
-            this.props.editor.grapher.hideLogo = true
+            this.props.editor.grapherState.hideLogo = true
         } else {
-            this.props.editor.grapher.hideLogo = undefined
-            this.props.editor.grapher.logo = (value as LogoOption) || undefined
+            this.props.editor.grapherState.hideLogo = undefined
+            this.props.editor.grapherState.logo =
+                (value as LogoOption) || undefined
         }
     }
 
     @action.bound onAddRelatedQuestion() {
-        const { grapher } = this.props.editor
-        if (!grapher.relatedQuestions) grapher.relatedQuestions = []
-        grapher.relatedQuestions.push({
+        const { grapherState } = this.props.editor
+        if (!grapherState.relatedQuestions) grapherState.relatedQuestions = []
+        grapherState.relatedQuestions.push({
             text: "",
             url: "",
         })
     }
 
     @action.bound onRemoveRelatedQuestion(idx: number) {
-        const { grapher } = this.props.editor
-        if (!grapher.relatedQuestions) grapher.relatedQuestions = []
-        grapher.relatedQuestions.splice(idx, 1)
+        const { grapherState } = this.props.editor
+        if (!grapherState.relatedQuestions) grapherState.relatedQuestions = []
+        grapherState.relatedQuestions.splice(idx, 1)
     }
 
     @action.bound onToggleTitleAnnotationEntity(value: boolean) {
-        const { grapher } = this.props.editor
-        grapher.hideAnnotationFieldsInTitle ??= {}
-        grapher.hideAnnotationFieldsInTitle.entity = value || undefined
+        const { grapherState } = this.props.editor
+        grapherState.hideAnnotationFieldsInTitle ??= {}
+        grapherState.hideAnnotationFieldsInTitle.entity = value || undefined
     }
 
     @action.bound onToggleTitleAnnotationTime(value: boolean) {
-        const { grapher } = this.props.editor
-        grapher.hideAnnotationFieldsInTitle ??= {}
-        grapher.hideAnnotationFieldsInTitle.time = value || undefined
+        const { grapherState } = this.props.editor
+        grapherState.hideAnnotationFieldsInTitle ??= {}
+        grapherState.hideAnnotationFieldsInTitle.time = value || undefined
     }
 
     @action.bound onToggleTitleAnnotationChangeInPrefix(value: boolean) {
-        const { grapher } = this.props.editor
-        grapher.hideAnnotationFieldsInTitle ??= {}
-        grapher.hideAnnotationFieldsInTitle.changeInPrefix = value || undefined
+        const { grapherState } = this.props.editor
+        grapherState.hideAnnotationFieldsInTitle ??= {}
+        grapherState.hideAnnotationFieldsInTitle.changeInPrefix =
+            value || undefined
     }
 
     @computed get errorMessages() {
@@ -94,25 +96,27 @@ export class EditorTextTab<
     }
 
     @computed get hasCopyAdminURLButton() {
-        return !!this.props.editor.grapher.id
+        return !!this.props.editor.grapherState.id
     }
 
     @computed get hasCopyGrapherURLButton() {
-        return !!this.props.editor.grapher.isPublished
+        return !!this.props.editor.grapherState.isPublished
     }
 
     render() {
         const { editor } = this.props
-        const { grapher, features } = editor
-        const { relatedQuestions = [] } = grapher
+        const { grapherState, features } = editor
+        const { relatedQuestions = [] } = grapherState
 
         return (
             <div className="EditorTextTab">
                 <Section name="Header">
                     <BindAutoStringExt
                         label="Title"
-                        readFn={(grapher) => grapher.displayTitle}
-                        writeFn={(grapher, newVal) => (grapher.title = newVal)}
+                        readFn={(grapherState) => grapherState.displayTitle}
+                        writeFn={(grapherState, newVal) =>
+                            (grapherState.title = newVal)
+                        }
                         auto={
                             editor.couldPropertyBeInherited("title")
                                 ? editor.activeParentConfig!.title
@@ -120,16 +124,17 @@ export class EditorTextTab<
                         }
                         isAuto={
                             editor.isPropertyInherited("title") ||
-                            grapher.title === undefined
+                            grapherState.title === undefined
                         }
-                        store={grapher}
+                        store={grapherState}
                         softCharacterLimit={100}
                     />
                     {features.showEntityAnnotationInTitleToggle && (
                         <Toggle
                             label="Hide automatic entity"
                             value={
-                                !!grapher.hideAnnotationFieldsInTitle?.entity
+                                !!grapherState.hideAnnotationFieldsInTitle
+                                    ?.entity
                             }
                             onValue={this.onToggleTitleAnnotationEntity}
                         />
@@ -138,11 +143,13 @@ export class EditorTextTab<
                         <Toggle
                             label="Hide automatic time"
                             secondaryLabel={
-                                "Grapher makes sure to include the current time in the title if " +
+                                "grapherState makes sure to include the current time in the title if " +
                                 "omitting it would lead to SVG exports with no reference " +
                                 "to the time. In such cases, your preference is ignored."
                             }
-                            value={!!grapher.hideAnnotationFieldsInTitle?.time}
+                            value={
+                                !!grapherState.hideAnnotationFieldsInTitle?.time
+                            }
                             onValue={this.onToggleTitleAnnotationTime}
                         />
                     )}
@@ -150,7 +157,7 @@ export class EditorTextTab<
                         <Toggle
                             label="Don't prepend 'Change in' in relative line charts"
                             value={
-                                !!grapher.hideAnnotationFieldsInTitle
+                                !!grapherState.hideAnnotationFieldsInTitle
                                     ?.changeInPrefix
                             }
                             onValue={this.onToggleTitleAnnotationChangeInPrefix}
@@ -159,14 +166,14 @@ export class EditorTextTab<
                     {this.showAnyAnnotationFieldInTitleToggle && <hr />}
                     {this.showChartSlug && (
                         <AutoTextField
-                            label="/grapher"
-                            value={grapher.displaySlug}
+                            label="/grapherState"
+                            value={grapherState.displaySlug}
                             onValue={this.onSlug}
-                            isAuto={grapher.slug === undefined}
+                            isAuto={grapherState.slug === undefined}
                             onToggleAuto={() =>
-                                (grapher.slug =
-                                    grapher.slug === undefined
-                                        ? grapher.displaySlug
+                                (grapherState.slug =
+                                    grapherState.slug === undefined
+                                        ? grapherState.displaySlug
                                         : undefined)
                             }
                             helpText="Human-friendly URL for this chart"
@@ -174,9 +181,9 @@ export class EditorTextTab<
                     )}
                     <BindAutoStringExt
                         label="Subtitle"
-                        readFn={(grapher) => grapher.currentSubtitle}
-                        writeFn={(grapher, newVal) =>
-                            (grapher.subtitle = newVal)
+                        readFn={(grapherState) => grapherState.currentSubtitle}
+                        writeFn={(grapherState, newVal) =>
+                            (grapherState.subtitle = newVal)
                         }
                         auto={
                             editor.couldPropertyBeInherited("subtitle")
@@ -185,9 +192,9 @@ export class EditorTextTab<
                         }
                         isAuto={
                             editor.isPropertyInherited("subtitle") ||
-                            grapher.subtitle === undefined
+                            grapherState.subtitle === undefined
                         }
-                        store={grapher}
+                        store={grapherState}
                         placeholder="Briefly describe the context of the data. It's best to avoid duplicating any information which can be easily inferred from other visual elements of the chart."
                         textarea
                         softCharacterLimit={280}
@@ -202,7 +209,9 @@ export class EditorTextTab<
                             { label: "No logo", value: "none" },
                         ]}
                         value={
-                            grapher.hideLogo ? "none" : grapher.logo || "owid"
+                            grapherState.hideLogo
+                                ? "none"
+                                : grapherState.logo || "owid"
                         }
                         onChange={this.onChangeLogo}
                     />
@@ -210,9 +219,9 @@ export class EditorTextTab<
                 <Section name="Footer">
                     <BindAutoStringExt
                         label="Source"
-                        readFn={(grapher) => grapher.sourcesLine}
-                        writeFn={(grapher, newVal) =>
-                            (grapher.sourceDesc = newVal)
+                        readFn={(grapherState) => grapherState.sourcesLine}
+                        writeFn={(grapherState, newVal) =>
+                            (grapherState.sourceDesc = newVal)
                         }
                         auto={
                             editor.couldPropertyBeInherited("sourceDesc")
@@ -221,17 +230,17 @@ export class EditorTextTab<
                         }
                         isAuto={
                             editor.isPropertyInherited("sourceDesc") ||
-                            grapher.sourceDesc === undefined
+                            grapherState.sourceDesc === undefined
                         }
-                        store={grapher}
+                        store={grapherState}
                         helpText="Short comma-separated list of source names"
                         softCharacterLimit={60}
                     />
                     <BindString
                         label="Origin url"
                         field="originUrl"
-                        store={grapher}
-                        placeholder={grapher.originUrlWithProtocol}
+                        store={grapherState}
+                        placeholder={grapherState.originUrlWithProtocol}
                         helpText="The page containing this chart where more context can be found"
                     />
                     {isChartEditorInstance(editor) &&
@@ -254,15 +263,17 @@ export class EditorTextTab<
 
                     <BindAutoStringExt
                         label="Footer note"
-                        readFn={(grapher) => grapher.note ?? ""}
-                        writeFn={(grapher, newVal) => (grapher.note = newVal)}
+                        readFn={(grapherState) => grapherState.note ?? ""}
+                        writeFn={(grapherState, newVal) =>
+                            (grapherState.note = newVal)
+                        }
                         auto={
                             editor.couldPropertyBeInherited("note")
                                 ? editor.activeParentConfig?.note
                                 : undefined
                         }
                         isAuto={editor.isPropertyInherited("note")}
-                        store={grapher}
+                        store={grapherState}
                         helpText="Any important clarification needed to avoid miscommunication"
                         softCharacterLimit={140}
                         errorMessage={this.errorMessages.note}
@@ -320,14 +331,14 @@ export class EditorTextTab<
                     <BindString
                         label="Internal author notes"
                         field="internalNotes"
-                        store={grapher}
+                        store={grapherState}
                         placeholder="e.g. WIP, needs review, etc"
                         textarea
                     />
                     <BindString
                         label="Variant name"
                         field="variantName"
-                        store={grapher}
+                        store={grapherState}
                         placeholder="e.g. IHME"
                         helpText="Optional variant name for distinguishing charts with the same title"
                     />
@@ -340,7 +351,7 @@ export class EditorTextTab<
                                 <AntdButton
                                     onClick={() =>
                                         copyToClipboard(
-                                            `[${grapher.title}](${ADMIN_BASE_URL}/admin/charts/${grapher.id}/edit)`
+                                            `[${grapherState.title}](${ADMIN_BASE_URL}/admin/charts/${grapherState.id}/edit)`
                                         )
                                     }
                                 >
@@ -351,7 +362,7 @@ export class EditorTextTab<
                                 <AntdButton
                                     onClick={() =>
                                         copyToClipboard(
-                                            `[${grapher.title}](${BAKED_GRAPHER_URL}/${grapher.slug})`
+                                            `[${grapherState.title}](${BAKED_GRAPHER_URL}/${grapherState.slug})`
                                         )
                                     }
                                 >

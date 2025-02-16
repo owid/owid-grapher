@@ -1,4 +1,8 @@
-import { Grapher } from "@ourworldindata/grapher"
+import {
+    fetchInputTableForConfig,
+    Grapher,
+    GrapherState,
+} from "@ourworldindata/grapher"
 import { OwidColumnDef } from "@ourworldindata/types"
 import { StatusError } from "itty-router"
 import { createZip, File } from "littlezipper"
@@ -21,10 +25,15 @@ export async function fetchMetadataForGrapher(
         env
     )
 
-    await grapher.downloadLegacyDataFromOwidVariableIds()
+    const inputTable = await fetchInputTableForConfig(
+        grapher.grapherState.dimensions,
+        grapher.grapherState.selectedEntityColors,
+        env.DATA_API_URL
+    )
+    grapher.grapherState.inputTable = inputTable
 
     const fullMetadata = assembleMetadata(
-        grapher,
+        grapher.grapherState,
         searchParams ?? new URLSearchParams(""),
         multiDimAvailableDimensions
     )
@@ -44,9 +53,14 @@ export async function fetchZipForGrapher(
         searchParams ?? new URLSearchParams(""),
         env
     )
-    await grapher.downloadLegacyDataFromOwidVariableIds()
+    const inputTable = await fetchInputTableForConfig(
+        grapher.grapherState.dimensions,
+        grapher.grapherState.selectedEntityColors,
+        env.DATA_API_URL
+    )
+    grapher.grapherState.inputTable = inputTable
     ensureDownloadOfDataAllowed(grapher)
-    const metadata = assembleMetadata(grapher, searchParams)
+    const metadata = assembleMetadata(grapher.grapherState, searchParams)
     const readme = assembleReadme(grapher, searchParams)
     const csv = assembleCsv(grapher, searchParams)
     console.log("Fetched the parts, creating zip file")
@@ -67,12 +81,15 @@ export async function fetchZipForGrapher(
         },
     })
 }
-function assembleCsv(grapher: Grapher, searchParams: URLSearchParams): string {
+function assembleCsv(
+    grapherState: GrapherState,
+    searchParams: URLSearchParams
+): string {
     const useShortNames = searchParams.get("useColumnShortNames") === "true"
-    const fullTable = grapher.inputTable
-    const filteredTable = grapher.isOnTableTab
-        ? grapher.tableForDisplay
-        : grapher.transformedTable
+    const fullTable = grapherState.inputTable
+    const filteredTable = grapherState.isOnTableTab
+        ? grapherState.tableForDisplay
+        : grapherState.transformedTable
     const table =
         searchParams.get("csvType") === "filtered" ? filteredTable : fullTable
     return table.toPrettyCsv(useShortNames)
@@ -89,20 +106,28 @@ export async function fetchCsvForGrapher(
         searchParams ?? new URLSearchParams(""),
         env
     )
-    await grapher.downloadLegacyDataFromOwidVariableIds()
+    const inputTable = await fetchInputTableForConfig(
+        grapher.grapherState.dimensions,
+        grapher.grapherState.selectedEntityColors,
+        env.DATA_API_URL
+    )
+    grapher.grapherState.inputTable = inputTable
     console.log("checking if download is allowed")
-    ensureDownloadOfDataAllowed(grapher)
+    ensureDownloadOfDataAllowed(grapher.grapherState)
     console.log("data download is allowed")
-    const csv = assembleCsv(grapher, searchParams ?? new URLSearchParams(""))
+    const csv = assembleCsv(
+        grapher.grapherState,
+        searchParams ?? new URLSearchParams("")
+    )
     return new Response(csv, {
         headers: {
             "Content-Type": "text/csv",
         },
     })
 }
-function ensureDownloadOfDataAllowed(grapher: Grapher) {
+function ensureDownloadOfDataAllowed(grapherState: GrapherState) {
     if (
-        grapher.inputTable.columnsAsArray.some(
+        grapherState.inputTable.columnsAsArray.some(
             (col) => (col.def as OwidColumnDef).nonRedistributable
         )
     ) {
@@ -126,7 +151,12 @@ export async function fetchReadmeForGrapher(
         env
     )
 
-    await grapher.downloadLegacyDataFromOwidVariableIds()
+    const inputTable = await fetchInputTableForConfig(
+        grapher.grapherState.dimensions,
+        grapher.grapherState.selectedEntityColors,
+        env.DATA_API_URL
+    )
+    grapher.grapherState.inputTable = inputTable
 
     const readme = assembleReadme(
         grapher,
@@ -145,9 +175,9 @@ function assembleReadme(
     searchParams: URLSearchParams,
     multiDimAvailableDimensions?: string[]
 ): string {
-    const metadataCols = getColumnsForMetadata(grapher)
+    const metadataCols = getColumnsForMetadata(grapher.grapherState)
     return constructReadme(
-        grapher,
+        grapher.grapherState,
         metadataCols,
         searchParams,
         multiDimAvailableDimensions
