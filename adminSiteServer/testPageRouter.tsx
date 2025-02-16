@@ -3,10 +3,7 @@
 import { Router } from "express"
 
 import { renderToHtmlPage, expectInt } from "../serverUtils/serverUtil.js"
-import {
-    getChartConfigBySlug,
-    getChartVariableData,
-} from "../db/model/Chart.js"
+import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { Head } from "../site/Head.js"
 import * as db from "../db/db.js"
 import {
@@ -40,6 +37,7 @@ import {
     ColorSchemes,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
+
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
@@ -801,8 +799,8 @@ getPlainRouteWithROTransaction(
     "/:slug.svg",
     async (req, res, trx) => {
         const grapher = await getChartConfigBySlug(trx, req.params.slug)
-        const vardata = await getChartVariableData(grapher.config)
-        const svg = await grapherToSVG(grapher.config, vardata)
+        // const vardata = await getChartVariableData(grapher.config)
+        const svg = await grapherToSVG(grapher.config)
         res.send(svg)
     }
 )

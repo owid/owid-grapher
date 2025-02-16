@@ -40,7 +40,7 @@ import {
     GRAPHER_DYNAMIC_CONFIG_URL,
     MULTI_DIM_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
-import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
+// import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
 import { match } from "ts-pattern"
 
 type EmbedType = "grapher" | "explorer" | "multiDim" | "chartView"
@@ -210,12 +210,17 @@ class MultiEmbedder {
         if (config.manager?.selection)
             this.graphersAndExplorersToUpdate.add(config.manager.selection)
 
-        const grapherRef = Grapher.renderGrapherIntoContainer(config, figure)
+        const runtimeAssetMap =
+            (typeof window !== "undefined" && window._OWID_RUNTIME_ASSET_MAP) ||
+            undefined
+
+        Grapher.renderGrapherIntoContainer(config, figure, runtimeAssetMap)
 
         // Special handling for shared collections
-        if (window.location.pathname.startsWith("/collection/custom")) {
-            embedDynamicCollectionGrapher(grapherRef, figure)
-        }
+        // TODO: re-enable this
+        // if (window.location.pathname.startsWith("/collection/custom")) {
+        //     embedDynamicCollectionGrapher(grapherRef, figure)
+        // }
     }
     async renderGrapherIntoFigure(figure: Element) {
         const embedUrlRaw = figure.getAttribute(GRAPHER_EMBEDDED_FIGURE_ATTR)

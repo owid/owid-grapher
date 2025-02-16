@@ -1,4 +1,8 @@
-import { generateGrapherImageSrcSet, Grapher } from "@ourworldindata/grapher"
+import {
+    generateGrapherImageSrcSet,
+    Grapher,
+    GrapherState,
+} from "@ourworldindata/grapher"
 import {
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
@@ -213,7 +217,7 @@ export async function initGrapher(
     }
 
     const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
-    const grapher = new Grapher({
+    const grapherState = new GrapherState({
         ...grapherConfigResponse.grapherConfig,
         bakedGrapherURL: grapherBaseUrl,
         queryStr: "?" + searchParams.toString(),
@@ -222,8 +226,9 @@ export async function initGrapher(
         baseFontSize: options.fontSize,
         ...options.grapherProps,
     })
-    grapher.isExportingToSvgOrPng = true
-    grapher.shouldIncludeDetailsInStaticExport = options.details
+    grapherState.isExportingToSvgOrPng = true
+    grapherState.shouldIncludeDetailsInStaticExport = options.details
+    const grapher = new Grapher({ grapherState })
 
     return {
         grapher,
