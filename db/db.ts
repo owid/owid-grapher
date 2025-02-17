@@ -270,7 +270,7 @@ export const getPublishedDataInsights = (
         `-- sql
         SELECT
             content->>'$.title' AS title,
-            content->>'$.authors' AS authors,
+            authors,
             publishedAt,
             updatedAt,
             slug,

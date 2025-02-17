@@ -22,9 +22,20 @@ export class PostsGdocsIndexes1739788202649 implements MigrationInterface {
             ALTER TABLE posts_gdocs
             ADD INDEX idx_posts_gdocs_published_publishedAt (published, publishedAt)
         `)
+
+        // Add a computed stored column for `authors`
+        await queryRunner.query(`-- sql
+            ALTER TABLE posts_gdocs
+            ADD COLUMN authors JSON GENERATED ALWAYS AS (JSON_EXTRACT(content, '$.authors')) STORED AFTER content
+        `)
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`-- sql
+            ALTER TABLE posts_gdocs
+            DROP COLUMN authors
+        `)
+
         await queryRunner.query(`-- sql
             DROP INDEX idx_posts_gdocs_published_publishedAt ON posts_gdocs
         `)
