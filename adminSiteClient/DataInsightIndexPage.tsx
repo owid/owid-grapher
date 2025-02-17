@@ -175,7 +175,7 @@ function createColumns(ctx: {
             ),
         },
         {
-            title: "Tags",
+            title: "Topic tags",
             dataIndex: "tags",
             key: "tags",
             render: (tags, dataInsight) => (
@@ -301,6 +301,7 @@ export function DataInsightIndexPage() {
     const [availableTags, setAvailableTags] = useState<MinimalTag[]>([])
 
     const [searchValue, setSearchValue] = useState("")
+    const [topicTagFilter, setTopicTagFilter] = useState<string | undefined>()
     const [chartTypeFilter, setChartTypeFilter] = useState<
         GrapherChartOrMapType | "all"
     >(DEFAULT_CHART_TYPE_FILTER)
@@ -322,6 +323,13 @@ export function DataInsightIndexPage() {
     )
 
     const filteredDataInsights = useMemo(() => {
+        const topicTagFilterFn = (
+            dataInsight: OwidGdocDataInsightIndexItem
+        ) => {
+            if (!topicTagFilter) return true
+            return dataInsight.tags?.some((tag) => tag.name === topicTagFilter)
+        }
+
         const chartTypeFilterFn = (
             dataInsight: OwidGdocDataInsightIndexItem
         ) => {
@@ -364,11 +372,18 @@ export function DataInsightIndexPage() {
 
         return dataInsights.filter(
             (di) =>
+                topicTagFilterFn(di) &&
                 chartTypeFilterFn(di) &&
                 publicationFilterFn(di) &&
                 searchFilterFn(di)
         )
-    }, [dataInsights, chartTypeFilter, publicationFilter, searchWords])
+    }, [
+        dataInsights,
+        topicTagFilter,
+        chartTypeFilter,
+        publicationFilter,
+        searchWords,
+    ])
 
     const updateTags = useCallback(
         async (gdocId: string, tags: MinimalTag[]) => {
@@ -459,8 +474,12 @@ export function DataInsightIndexPage() {
             <NotificationContext.Provider value={null}>
                 {notificationContextHolder}
                 <main className="DataInsightIndexPage">
-                    <Flex justify="space-between">
-                        <Flex gap="small">
+                    <Flex
+                        gap="small"
+                        justify="space-between"
+                        style={{ marginBottom: 20 }}
+                    >
+                        <Flex gap="small" wrap>
                             <Input
                                 placeholder="Search"
                                 value={searchValue}
@@ -468,14 +487,27 @@ export function DataInsightIndexPage() {
                                 onKeyDown={(e) => {
                                     if (e.key === "Escape") setSearchValue("")
                                 }}
-                                style={{ width: 500, marginBottom: 20 }}
+                                style={{ width: 350 }}
+                            />
+                            <Select
+                                value={topicTagFilter}
+                                placeholder="Select a topic tag..."
+                                allowClear
+                                options={availableTags.map((tag) => ({
+                                    value: tag.name,
+                                    label: tag.name,
+                                }))}
+                                onChange={(tag: string) =>
+                                    setTopicTagFilter(tag)
+                                }
+                                popupMatchSelectWidth={false}
                             />
                             <Select
                                 value={chartTypeFilter}
                                 options={[
                                     {
                                         value: "all",
-                                        label: "All chart types",
+                                        label: "Any chart type",
                                     },
                                     ...ALL_GRAPHER_CHART_TYPES.map((type) => ({
                                         value: type,
@@ -517,6 +549,7 @@ export function DataInsightIndexPage() {
                                 type="dashed"
                                 onClick={() => {
                                     setSearchValue("")
+                                    setTopicTagFilter(undefined)
                                     setChartTypeFilter(
                                         DEFAULT_CHART_TYPE_FILTER
                                     )
@@ -532,6 +565,7 @@ export function DataInsightIndexPage() {
                             <Radio.Group
                                 defaultValue="list"
                                 onChange={(e) => setLayout(e.target.value)}
+                                block
                             >
                                 <Radio.Button value="list">List</Radio.Button>
                                 <Radio.Button value="gallery">
