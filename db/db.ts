@@ -426,7 +426,8 @@ export const getPublishedGdocPosts = async (
         g.publishedAt,
         g.revisionId,
         g.slug,
-        g.updatedAt
+        g.updatedAt,
+        g.authors
     FROM
         posts_gdocs g
     WHERE
