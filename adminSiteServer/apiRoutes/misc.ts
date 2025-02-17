@@ -7,7 +7,6 @@ import { DbRawPostGdoc, JsonError } from "@ourworldindata/types"
 
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
-import path from "path"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { Request } from "../authentication.js"
 import e from "express"
@@ -17,108 +16,29 @@ export async function fetchAllWork(
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
 ) {
-    type WordpressPageRecord = {
-        isWordpressPage: number
-    } & Record<
-        "slug" | "title" | "subtitle" | "thumbnail" | "authors" | "publishedAt",
-        string
-    >
     type GdocRecord = Pick<DbRawPostGdoc, "id" | "publishedAt">
 
     const author = req.query.author
-    const gdocs = await db.knexRaw<GdocRecord>(
-        trx,
-        `-- sql
+    const gdocs = await db
+        .knexRaw<GdocRecord>(
+            trx,
+            `-- sql
             SELECT id, publishedAt
             FROM posts_gdocs
-            WHERE JSON_CONTAINS(content->'$.authors', '"${author}"')
+            WHERE JSON_CONTAINS(content->'$.authors', ?)
             AND type NOT IN ("data-insight", "fragment")
             AND published = 1
-    `
-    )
-
-    // type: page
-    const wpModularTopicPages = await db.knexRaw<WordpressPageRecord>(
-        trx,
-        `-- sql
-        SELECT
-            wpApiSnapshot->>"$.slug" as slug,
-            wpApiSnapshot->>"$.title.rendered" as title,
-            wpApiSnapshot->>"$.excerpt.rendered" as subtitle,
-            TRUE as isWordpressPage,
-            wpApiSnapshot->>"$.authors_name" as authors,
-            wpApiSnapshot->>"$.featured_media_paths.medium_large" as thumbnail,
-            wpApiSnapshot->>"$.date" as publishedAt
-        FROM posts p
-        WHERE wpApiSnapshot->>"$.content" LIKE '%topic-page%'
-        AND JSON_CONTAINS(wpApiSnapshot->'$.authors_name', '"${author}"')
-        AND wpApiSnapshot->>"$.status" = 'publish'
-        AND NOT EXISTS (
-            SELECT 1 FROM posts_gdocs pg
-            WHERE pg.slug = p.slug
-            AND pg.content->>'$.type' LIKE '%topic-page'
+    `,
+            [`"${author}"`]
         )
-        `
+        .then((rows) => lodash.orderBy(rows, (row) => row.publishedAt, "desc"))
+
+    const archieLines = gdocs.map(
+        (post) => `url: https://docs.google.com/document/d/${post.id}/edit`
     )
-
-    const isWordpressPage = (
-        post: WordpressPageRecord | GdocRecord
-    ): post is WordpressPageRecord =>
-        (post as WordpressPageRecord).isWordpressPage === 1
-
-    function* generateProperty(key: string, value: string) {
-        yield `${key}: ${value}\n`
-    }
-
-    const sortByDateDesc = (
-        a: GdocRecord | WordpressPageRecord,
-        b: GdocRecord | WordpressPageRecord
-    ): number => {
-        if (!a.publishedAt || !b.publishedAt) return 0
-        return (
-            new Date(b.publishedAt).getTime() -
-            new Date(a.publishedAt).getTime()
-        )
-    }
-
-    function* generateAllWorkArchieMl() {
-        for (const post of [...gdocs, ...wpModularTopicPages].sort(
-            sortByDateDesc
-        )) {
-            if (isWordpressPage(post)) {
-                yield* generateProperty(
-                    "url",
-                    `https://ourworldindata.org/${post.slug}`
-                )
-                yield* generateProperty("title", post.title)
-                yield* generateProperty("subtitle", post.subtitle)
-                yield* generateProperty(
-                    "authors",
-                    JSON.parse(post.authors).join(", ")
-                )
-                const parsedPath = path.parse(post.thumbnail)
-                yield* generateProperty(
-                    "filename",
-                    // /app/uploads/2021/09/reducing-fertilizer-768x301.png -> reducing-fertilizer.png
-                    path.format({
-                        name: parsedPath.name.replace(/-\d+x\d+$/, ""),
-                        ext: parsedPath.ext,
-                    })
-                )
-                yield "\n"
-            } else {
-                // this is a gdoc
-                yield* generateProperty(
-                    "url",
-                    `https://docs.google.com/document/d/${post.id}/edit`
-                )
-                yield "\n"
-            }
-        }
-    }
 
     res.type("text/plain")
-    return [...generateAllWorkArchieMl()].join("")
+    return archieLines.join("\n\n")
 }
 
 export async function fetchNamespaces(
