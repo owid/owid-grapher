@@ -84,7 +84,12 @@ export class VariablesIndexPage extends Component {
                         <code>after:</code>, <code>is:public</code>,{" "}
                         <code>is:private</code>
                     </p>
-                    <p>Also try: <a href={urljoin(ETL_WIZARD_URL, "indicator_search")}>semantic indicator search</a></p>
+                    <p>
+                        Also try:{" "}
+                        <a href={urljoin(ETL_WIZARD_URL, "indicator_search")}>
+                            semantic indicator search
+                        </a>
+                    </p>
                     <VariableList
                         variables={variablesToShow}
                         fields={[
