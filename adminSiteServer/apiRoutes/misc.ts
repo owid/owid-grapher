@@ -19,35 +19,26 @@ export async function fetchAllWork(
     type GdocRecord = Pick<DbRawPostGdoc, "id" | "publishedAt">
 
     const author = req.query.author
-    const gdocs = await db.knexRaw<GdocRecord>(
-        trx,
-        `-- sql
+    const gdocs = await db
+        .knexRaw<GdocRecord>(
+            trx,
+            `-- sql
             SELECT id, publishedAt
             FROM posts_gdocs
             WHERE JSON_CONTAINS(content->'$.authors', ?)
             AND type NOT IN ("data-insight", "fragment")
             AND published = 1
-            ORDER BY publishedAt DESC
     `,
-        [`"${author}"`]
+            [`"${author}"`]
+        )
+        .then((rows) => lodash.orderBy(rows, (row) => row.publishedAt, "desc"))
+
+    const archieLines = gdocs.map(
+        (post) => `url: https://docs.google.com/document/d/${post.id}/edit`
     )
 
-    function* generateProperty(key: string, value: string) {
-        yield `${key}: ${value}\n`
-    }
-
-    function* generateAllWorkArchieMl() {
-        for (const post of gdocs) {
-            yield* generateProperty(
-                "url",
-                `https://docs.google.com/document/d/${post.id}/edit`
-            )
-            yield "\n"
-        }
-    }
-
     res.type("text/plain")
-    return [...generateAllWorkArchieMl()].join("")
+    return archieLines.join("\n\n")
 }
 
 export async function fetchNamespaces(
