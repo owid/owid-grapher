@@ -13,9 +13,7 @@ services:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
             MYSQL_ROOT_HOST: "%"
 
-    # mysql:8.0 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
-    # These init scripts check if the grapher database and users are missing, if so they create them
-    # and pull the data to have a working dev environment.
+    # mysql:8 container for running the DB creation scripts
     db-load-data:
         image: mysql:8
         command: "/app/create-test-db.sh"
@@ -23,13 +21,10 @@ services:
             - ./devTools/docker:/app
             - ./db/migration:/migration
             - ./tmp-downloads:/tmp-downloads
-            # - ~/.ssh:/user/.ssh # map the .ssh directory into the container so it knows about the owid-live ssh configuration
-            # - ${SSH_AUTH_SOCK}:/ssh-agent # Forward the SSH agent socket into the container
         environment:
             DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
             DB_ROOT_HOST: db
             DATA_FOLDER: "/tmp-downloads"
-            # SSH_AUTH_SOCK: "/ssh-agent"
         env_file:
             - .env
         depends_on:
