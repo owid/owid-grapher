@@ -14,6 +14,8 @@ import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow } from "./Forms.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
+import urljoin from "url-join"
 
 @observer
 export class VariablesIndexPage extends Component {
@@ -81,6 +83,12 @@ export class VariablesIndexPage extends Component {
                         <code>short:</code>, <code>before:</code>,{" "}
                         <code>after:</code>, <code>is:public</code>,{" "}
                         <code>is:private</code>
+                    </p>
+                    <p>
+                        Also try:{" "}
+                        <a href={urljoin(ETL_WIZARD_URL, "indicator_search")}>
+                            semantic indicator search
+                        </a>
                     </p>
                     <VariableList
                         variables={variablesToShow}
