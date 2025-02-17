@@ -46,6 +46,7 @@ import {
     GrapherChartOrMapType,
     OwidGdocDataInsightIndexItem,
     MinimalTag,
+    MinimalTagWithIsTopic,
 } from "@ourworldindata/types"
 import {
     copyToClipboard,
@@ -99,7 +100,7 @@ const plusIcon = <FontAwesomeIcon icon={faPlus} size="sm" />
 const NotificationContext = createContext(null)
 
 function createColumns(ctx: {
-    availableTags: MinimalTag[]
+    availableTopicTags: MinimalTag[]
     updateTags: (gdocId: string, tags: MinimalTag[]) => Promise<void>
     highlightFn: (
         text: string | null | undefined
@@ -112,6 +113,7 @@ function createColumns(ctx: {
         {
             title: "Preview",
             key: "preview",
+            width: 200,
             render: (_, dataInsight) =>
                 hasImage(dataInsight) ? (
                     <>
@@ -184,7 +186,7 @@ function createColumns(ctx: {
                     onSave={(tags) =>
                         ctx.updateTags(dataInsight.id, tags as MinimalTag[])
                     }
-                    suggestions={ctx.availableTags}
+                    suggestions={ctx.availableTopicTags}
                 />
             ),
         },
@@ -298,7 +300,9 @@ export function DataInsightIndexPage() {
     const [dataInsights, setDataInsights, refreshDataInsights] =
         useDataInsights(admin)
 
-    const [availableTags, setAvailableTags] = useState<MinimalTag[]>([])
+    const [availableTopicTags, setAvailableTopicTags] = useState<MinimalTag[]>(
+        []
+    )
 
     const [searchValue, setSearchValue] = useState("")
     const [topicTagFilter, setTopicTagFilter] = useState<string | undefined>()
@@ -410,12 +414,12 @@ export function DataInsightIndexPage() {
         ) => setDataInsightForImageUpload(dataInsight)
 
         return createColumns({
-            availableTags,
+            availableTopicTags,
             updateTags,
             highlightFn,
             triggerImageUploadFlow,
         })
-    }, [searchWords, availableTags, updateTags])
+    }, [searchWords, availableTopicTags, updateTags])
 
     const updateDataInsightPreview = (
         dataInsightId: string,
@@ -463,10 +467,12 @@ export function DataInsightIndexPage() {
     }
 
     useEffect(() => {
-        const fetchTags = async () =>
-            (await admin.getJSON("/api/tags.json")) as { tags: MinimalTag[] }
+        const fetchTags = () =>
+            admin.getJSON<{ tags: MinimalTagWithIsTopic[] }>("/api/tags.json")
 
-        void fetchTags().then((result) => setAvailableTags(result.tags))
+        void fetchTags().then((result) =>
+            setAvailableTopicTags(result.tags.filter((tag) => tag.isTopic))
+        )
     }, [admin])
 
     return (
@@ -493,7 +499,7 @@ export function DataInsightIndexPage() {
                                 value={topicTagFilter}
                                 placeholder="Select a topic tag..."
                                 allowClear
-                                options={availableTags.map((tag) => ({
+                                options={availableTopicTags.map((tag) => ({
                                     value: tag.name,
                                     label: tag.name,
                                 }))}
