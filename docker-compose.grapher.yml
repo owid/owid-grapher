@@ -46,9 +46,7 @@ services:
     # and pull the data to have a working dev environment. As the wordpress donwload needs a working ssh access, it
     # mounts the SSH agent and ~/.ssh directory into the container
     db-load-data:
-        build:
-            context: ./devTools/docker/mysql-init-docker
-        # image: mysql:8
+        image: mysql:8
         command: "/app/grapher-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
