@@ -81,12 +81,10 @@ type DataInsightIndexItemThatCanBeUploaded =
     | NarrativeDataInsightIndexItem
     | FigmaDataInsightIndexItem
 
-type ChartTypeFilter = GrapherChartOrMapType | "all"
-type PublicationFilter = "all" | "published" | "scheduled" | "draft"
+type ChartTypeFilter = GrapherChartOrMapType
+type PublicationFilter = "published" | "scheduled" | "draft"
 type Layout = "list" | "gallery"
 
-const DEFAULT_CHART_TYPE_FILTER: ChartTypeFilter = "all"
-const DEFAULT_PUBLICATION_FILTER: PublicationFilter = "all"
 const DEFAULT_LAYOUT: Layout = "list"
 
 const editIcon = <FontAwesomeIcon icon={faPen} size="sm" />
@@ -307,10 +305,11 @@ export function DataInsightIndexPage() {
     const [searchValue, setSearchValue] = useState("")
     const [topicTagFilter, setTopicTagFilter] = useState<string | undefined>()
     const [chartTypeFilter, setChartTypeFilter] = useState<
-        GrapherChartOrMapType | "all"
-    >(DEFAULT_CHART_TYPE_FILTER)
-    const [publicationFilter, setPublicationFilter] =
-        useState<PublicationFilter>(DEFAULT_PUBLICATION_FILTER)
+        GrapherChartOrMapType | undefined
+    >()
+    const [publicationFilter, setPublicationFilter] = useState<
+        PublicationFilter | undefined
+    >()
     const [layout, setLayout] = useState<Layout>(DEFAULT_LAYOUT)
 
     const [dataInsightForImageUpload, setDataInsightForImageUpload] =
@@ -337,13 +336,14 @@ export function DataInsightIndexPage() {
         const chartTypeFilterFn = (
             dataInsight: OwidGdocDataInsightIndexItem
         ) => {
-            if (chartTypeFilter === "all") return true
+            if (!chartTypeFilter) return true
             return dataInsight.chartType === chartTypeFilter
         }
 
         const publicationFilterFn = (
             dataInsight: OwidGdocDataInsightIndexItem
         ) => {
+            if (!publicationFilter) return true
             switch (publicationFilter) {
                 case "draft":
                     return !dataInsight.published
@@ -357,8 +357,6 @@ export function DataInsightIndexPage() {
                         dataInsight.published &&
                         dayjs(dataInsight.publishedAt).isBefore(dayjs())
                     )
-                case "all":
-                    return true
             }
         }
 
@@ -498,7 +496,6 @@ export function DataInsightIndexPage() {
                             <Select
                                 value={topicTagFilter}
                                 placeholder="Select a topic tag..."
-                                allowClear
                                 options={availableTopicTags.map((tag) => ({
                                     value: tag.name,
                                     label: tag.name,
@@ -506,15 +503,13 @@ export function DataInsightIndexPage() {
                                 onChange={(tag: string) =>
                                     setTopicTagFilter(tag)
                                 }
+                                allowClear
                                 popupMatchSelectWidth={false}
                             />
                             <Select
                                 value={chartTypeFilter}
+                                placeholder="Select a chart type..."
                                 options={[
-                                    {
-                                        value: "all",
-                                        label: "Any chart type",
-                                    },
                                     ...ALL_GRAPHER_CHART_TYPES.map((type) => ({
                                         value: type,
                                         label: startCase(type),
@@ -527,15 +522,13 @@ export function DataInsightIndexPage() {
                                 onChange={(value: ChartTypeFilter) =>
                                     setChartTypeFilter(value)
                                 }
+                                allowClear
                                 popupMatchSelectWidth={false}
                             />
                             <Select
                                 value={publicationFilter}
+                                placeholder="Select a publication status..."
                                 options={[
-                                    {
-                                        value: "all",
-                                        label: "Any publication status",
-                                    },
                                     { value: "draft", label: "Drafts" },
                                     {
                                         value: "published",
@@ -549,6 +542,7 @@ export function DataInsightIndexPage() {
                                 onChange={(value: PublicationFilter) =>
                                     setPublicationFilter(value)
                                 }
+                                allowClear
                                 popupMatchSelectWidth={false}
                             />
                             <Button
@@ -556,12 +550,8 @@ export function DataInsightIndexPage() {
                                 onClick={() => {
                                     setSearchValue("")
                                     setTopicTagFilter(undefined)
-                                    setChartTypeFilter(
-                                        DEFAULT_CHART_TYPE_FILTER
-                                    )
-                                    setPublicationFilter(
-                                        DEFAULT_PUBLICATION_FILTER
-                                    )
+                                    setChartTypeFilter(undefined)
+                                    setPublicationFilter(undefined)
                                 }}
                             >
                                 Reset
