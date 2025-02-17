@@ -1156,8 +1156,11 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         }
     }
 
-    iframe {
+    .iframe-container {
         height: calc(100% - 65px);
+        display: flex;
+        justify-content: center;
+        background: #f2f2f2;
     }
 
     .GdocsEditPage__error-container {

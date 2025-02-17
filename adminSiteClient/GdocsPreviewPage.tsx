@@ -74,6 +74,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { admin } = useContext(AdminAppContext)
     const store = useGdocsStore()
 
+    const [isMobilePreviewActive, setIsMobilePreviewActive] = useState(false)
+
     const iframeRef = useRef<HTMLIFrameElement>(null)
 
     const fetchGdoc = useCallback(
@@ -172,6 +174,11 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         await store.delete(currentGdoc, tombstone)
         history.push("/gdocs")
     }
+
+    const toggleMobilePreview = () =>
+        setIsMobilePreviewActive(
+            (isMobilePreviewActive) => !isMobilePreviewActive
+        )
 
     const onSettingsClose = () => {
         setSettingsOpen(false)
@@ -303,6 +310,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 onDebug={() => setDiffOpen(true)}
                                 onUnpublish={doUnpublish}
                                 onDelete={onDelete}
+                                isMobilePreviewActive={isMobilePreviewActive}
+                                toggleMobilePreview={toggleMobilePreview}
                             />
                         </Space>
                     </Col>
@@ -408,19 +417,25 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     />
                 </Drawer>
 
-                {/*
-                    This uses the full SSR rendering pipeline. It is more accurate but comes
-                    with an additional requests to the Google API and has a less polished
-                    authoring experience at the moment (content flashes and scrolling position
-                    resets on every change)
-                */}
-                <iframe
-                    ref={iframeRef}
-                    src={`/gdocs/${currentGdoc.id}/preview#owid-document-root`}
-                    style={{ width: "100%", border: "none" }}
-                    // use `updatedAt` as a proxy for when database-level settings such as breadcrumbs have changed
-                    key={`${currentGdoc.revisionId}-${originalGdoc?.updatedAt}`}
-                />
+                <div className="iframe-container">
+                    {/*
+                        This uses the full SSR rendering pipeline. It is more accurate but comes
+                        with an additional requests to the Google API and has a less polished
+                        authoring experience at the moment (content flashes and scrolling position
+                        resets on every change)
+                    */}
+                    <iframe
+                        ref={iframeRef}
+                        src={`/gdocs/${currentGdoc.id}/preview#owid-document-root`}
+                        style={{
+                            width: "100%",
+                            border: "none",
+                            maxWidth: isMobilePreviewActive ? 375 : undefined,
+                        }}
+                        // use `updatedAt` as a proxy for when database-level settings such as breadcrumbs have changed
+                        key={`${currentGdoc.revisionId}-${originalGdoc?.updatedAt}`}
+                    />
+                </div>
 
                 {currentGdoc.published && (
                     <div

@@ -5,6 +5,8 @@ import {
     faTrash,
     faXmark,
     faBug,
+    faMobileScreen,
+    faDesktop,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -23,6 +25,7 @@ enum GdocsMoreMenuAction {
     Debug = "debug",
     Unpublish = "unpublish",
     Delete = "delete",
+    Mobile = "mobile",
 }
 
 export const GdocsMoreMenu = ({
@@ -30,11 +33,15 @@ export const GdocsMoreMenu = ({
     onDebug,
     onUnpublish,
     onDelete,
+    isMobilePreviewActive,
+    toggleMobilePreview,
 }: {
     gdoc: OwidGdoc
     onDebug: VoidFunction
     onUnpublish: VoidFunction
     onDelete: (tombstone?: CreateTombstoneData) => Promise<void>
+    isMobilePreviewActive: boolean
+    toggleMobilePreview: () => void
 }) => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
@@ -68,6 +75,8 @@ export const GdocsMoreMenu = ({
                             case GdocsMoreMenuAction.Delete:
                                 setIsDeleteModalOpen(true)
                                 break
+                            case GdocsMoreMenuAction.Mobile:
+                                toggleMobilePreview()
                         }
                     },
                     items: [
@@ -75,6 +84,21 @@ export const GdocsMoreMenu = ({
                             key: GdocsMoreMenuAction.Debug,
                             label: "Debug",
                             icon: <FontAwesomeIcon icon={faBug} />,
+                        },
+                        {
+                            key: GdocsMoreMenuAction.Mobile,
+                            label: isMobilePreviewActive
+                                ? "Desktop preview"
+                                : "Mobile preview",
+                            icon: (
+                                <FontAwesomeIcon
+                                    icon={
+                                        isMobilePreviewActive
+                                            ? faDesktop
+                                            : faMobileScreen
+                                    }
+                                />
+                            ),
                         },
                         {
                             key: GdocsMoreMenuAction.Unpublish,
