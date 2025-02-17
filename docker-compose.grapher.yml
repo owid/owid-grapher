@@ -27,7 +27,7 @@
 services:
     # Stock mysql database. Root password is hardcoded for now
     db:
-        image: mysql/mysql-server:latest
+        image: mysql:8
         restart: always
         volumes:
             - ./devTools/docker/my.cnf:/etc/my.cnf:ro
@@ -35,31 +35,24 @@ services:
             - ./logs:/var/log/mysql
         ports:
             # Exposing via the port specified for Grapher
-            # Should always be the same as the WordPress port, because we store both DBs on the same server
             - "${GRAPHER_DB_PORT}:3306"
         environment:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
             MYSQL_ROOT_HOST: "%"
 
-    # mysql:8.0 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
-    # These init scripts check if the grapher and wordpress databases and users are missing, if so they create them
-    # and pull the data to have a working dev environment. As the wordpress donwload needs a working ssh access, it
-    # mounts the SSH agent and ~/.ssh directory into the container
+    # mysql:8 container for running the DB init scripts
+    # These init scripts check if the grapher database and users are missing, if so they create them
+    # and pull the data to have a working dev environment.
     db-load-data:
-        build:
-            context: ./devTools/docker/mysql-init-docker
-        # image: mysql/mysql-server:latest
+        image: mysql:8
         command: "/app/grapher-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
             - ./tmp-downloads:/tmp-downloads
-            # - ~/.ssh:/user/.ssh # map the .ssh directory into the container so it knows about the owid-live ssh configuration
-            # - ${SSH_AUTH_SOCK}:/ssh-agent # Forward the SSH agent socket into the container
         environment:
             DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
             DB_ROOT_HOST: db
             DATA_FOLDER: "/tmp-downloads"
-            # SSH_AUTH_SOCK: "/ssh-agent"
         env_file:
             - .env
         depends_on:

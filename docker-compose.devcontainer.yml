@@ -42,7 +42,7 @@ services:
 
     # Stock mysql database. Used for grapher database. Root password is hardcoded for now
     db:
-        image: mysql/mysql-server:latest
+        image: mysql:8
         restart: always
         volumes:
             - mysql_data:/var/lib/mysql
@@ -53,12 +53,11 @@ services:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
             MYSQL_ROOT_HOST: "%"
 
-    # mysql 8 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
+    # mysql 8 container for running the DB init scripts
     # These init scripts check if the grapher database and users are missing, if so they create them
     # and pull the data to have a working dev environment.
     db-load-data:
-        build:
-            context: ./devTools/docker/mysql-init-docker
+        image: mysql:8
         command: "/app/grapher-only-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
