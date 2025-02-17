@@ -42,7 +42,7 @@ services:
 
     # Stock mysql database. Used for grapher database. Root password is hardcoded for now
     db:
-        image: mysql/mysql-server:latest
+        image: mysql:8
         restart: always
         volumes:
             - mysql_data:/var/lib/mysql

@@ -1,4 +1,4 @@
-FROM mysql/mysql-server:latest
+FROM mysql:8
 
 RUN rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2023 \
  && microdnf -y update \
