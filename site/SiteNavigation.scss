@@ -107,12 +107,16 @@
         align-items: center;
         justify-content: end;
         height: $search-cta-height;
-        @include column-gap(16px);
+        @include column-gap(8px);
         @include sm-only {
             flex: 1; // center owid logo
         }
 
         .SiteNavigationToggle.newsletter-subscription {
+            // hide the newsletter button at the last little bit before we switch to the mobile view
+            @media (max-width: calc($sm + 40px)) and (min-width: $sm) {
+                display: none;
+            }
             @include sm-only {
                 // when the donate button is hidden, it still captures the
                 // :last-child selector of the column-gap mixin of the parent
