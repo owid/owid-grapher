@@ -8,8 +8,13 @@ import { getVariableData } from "../../db/model/Variable.js"
 import findProjectBaseDir from "../../settings/findBaseDir.js"
 import { bakeSingleGrapherPageForArchival } from "../GrapherBaker.js"
 import { hashAndCopyFile, hashAndWriteFile } from "./ArchivalFileUtils.js"
-import { getDateForArchival } from "./ArchivalUtils.js"
+import {
+    ArchivalManifest,
+    assembleManifest,
+    getDateForArchival,
+} from "./ArchivalUtils.js"
 import pMap from "p-map"
+import { GrapherChecksumsObjectWithHash } from "./ArchivalChecksumUtils.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
@@ -22,7 +27,7 @@ const IGNORED_FILES_PATTERNS = [
     /^identifyadmin.html$/,
     /^robots.txt$/,
 ]
-const copyPublicDir = async (archiveDir: string) => {
+export const copyPublicDir = async (archiveDir: string) => {
     const publicDir = path.join(projBaseDir, "public")
     const targetDir = archiveDir
     const ignoredFilesPattern = new RegExp(
@@ -41,7 +46,7 @@ const copyPublicDir = async (archiveDir: string) => {
     })
 }
 
-const bakeDods = async (archiveDir: string) => {
+export const bakeDods = async (archiveDir: string) => {
     const srcFile = path.join(projBaseDir, "localBake/dods.json")
     const targetDir = path.join(archiveDir, "assets")
 
@@ -93,7 +98,7 @@ const bakeOwidMjsFile = async (
 // after we know the content-hashed filename of owid.map.mjs
 const ASSET_FILES = ["owid.mjs.map", "owid.mjs", "owid.css"]
 const IGNORED_FILES = [".vite"]
-const bakeAssets = async (archiveDir: string) => {
+export const bakeAssets = async (archiveDir: string) => {
     const srcDir = path.join(projBaseDir, "dist/assets")
     const targetDir = path.join(archiveDir, "assets")
 
@@ -163,7 +168,7 @@ const archiveVariableIds = async (
 
 export const bakeGrapherPagesToFolder = async (
     dir: string,
-    grapherIds: number[],
+    grapherChecksumsObjsToBeArchived: GrapherChecksumsObjectWithHash[],
     { copyToLatestDir = false }: { copyToLatestDir?: boolean } = {}
 ) => {
     const archiveDir = path.resolve(projBaseDir, dir)
@@ -179,16 +184,24 @@ export const bakeGrapherPagesToFolder = async (
 
     const commonRuntimeFiles = await bakeDods(archiveDir)
 
+    const manifests: Record<number, ArchivalManifest> = {}
     await db.knexReadonlyTransaction(async (trx) => {
         const imageMetadataDictionary = await getAllImages(trx).then((images) =>
             keyBy(images, "filename")
         )
 
+        const grapherIds = grapherChecksumsObjsToBeArchived.map(
+            (c) => c.chartId
+        )
         const grapherConfigs = await db
-            .knexRaw<{ id: number; fullConfig: JsonString }>(
+            .knexRaw<{
+                chartId: number
+                chartConfigId: string
+                fullConfig: JsonString
+            }>(
                 trx,
                 `-- sql
-            SELECT c.id, cc.full AS fullConfig
+            SELECT c.id AS chartId, cc.id AS chartConfigId, cc.full AS fullConfig
             FROM charts c
             JOIN chart_configs cc ON cc.id = c.configId
             WHERE c.id IN (?)
@@ -197,7 +210,8 @@ export const bakeGrapherPagesToFolder = async (
             )
             .then((rows) =>
                 rows.map((r) => ({
-                    id: r.id,
+                    chartId: r.chartId,
+                    chartConfigId: r.chartConfigId,
                     config: parseChartConfig(r.fullConfig),
                 }))
             )
@@ -212,7 +226,7 @@ export const bakeGrapherPagesToFolder = async (
         )
 
         let i = 0
-        for (const { config } of grapherConfigs) {
+        for (const { chartId, chartConfigId, config } of grapherConfigs) {
             i++
             const runtimeFiles = { ...commonRuntimeFiles }
 
@@ -223,11 +237,28 @@ export const bakeGrapherPagesToFolder = async (
                 }
             }
 
+            const checksumsObj = grapherChecksumsObjsToBeArchived.find(
+                (c) => c.chartId === chartId
+            )
+            if (!checksumsObj)
+                throw new Error(
+                    `Could not find checksums for chartId ${chartId}, this shouldn't happen`
+                )
+
+            const manifest = await assembleManifest({
+                staticAssetMap,
+                runtimeAssetMap: runtimeFiles,
+                checksumsObj,
+                archivalDate: date.formattedDate,
+                chartConfigId,
+            })
             await bakeSingleGrapherPageForArchival(dir, config, trx, {
                 imageMetadataDictionary,
                 staticAssetMap,
                 runtimeAssetMap: runtimeFiles,
+                manifest,
             })
+            manifests[chartId] = manifest
 
             console.log(`${i}/${grapherConfigs.length} ${config.slug}`)
         }
@@ -241,5 +272,5 @@ export const bakeGrapherPagesToFolder = async (
         console.log(`Copied ${dir} to ${latestDir}`)
     }
 
-    return { date }
+    return { date, manifests }
 }
