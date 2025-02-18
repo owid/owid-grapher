@@ -82,7 +82,11 @@ export const CookiePreferences = ({
     if (!cookiePreferencesDomSlot) return null
 
     return ReactDOM.createPortal(
-        <div data-test="cookie-preferences" className="cookie-preferences">
+        <div
+            data-test="cookie-preferences"
+            id="cookie-preferences"
+            className="cookie-preferences"
+        >
             <h2>Cookie preferences</h2>
             <CookiePreference
                 title="Necessary cookies"
