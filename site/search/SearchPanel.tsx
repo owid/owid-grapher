@@ -58,6 +58,7 @@ import {
     getEntityQueryStr,
 } from "./SearchUtils.js"
 import { ChartHit } from "./ChartHit.js"
+import { ChartHitsTextual } from "./ChartHitsTextual.js"
 
 const siteAnalytics = new SiteAnalytics()
 
@@ -553,6 +554,13 @@ const SearchResults = (props: SearchResultsProps) => {
             className="search-results"
             data-active-filter={activeCategoryFilter}
         >
+            <Index indexName={getIndexName(SearchIndexName.Charts)}>
+                <Configure hitsPerPage={1} />
+
+                <ChartHitsTextual
+                    searchQueryRegionsMatches={searchQueryRegionsMatches}
+                />
+            </Index>
             {/* This is using the InstantSearch index specified in InstantSearchContainer */}
             <Configure
                 hitsPerPage={40}
@@ -786,7 +794,7 @@ export class InstantSearchContainer extends React.Component {
                         }}
                         queryHook={this.handleQuery}
                     />
-                    <Filters
+                    {/* <Filters
                         isHidden={!this.inputValue}
                         categoryFilterContainerRef={
                             this.categoryFilterContainerRef
@@ -795,7 +803,7 @@ export class InstantSearchContainer extends React.Component {
                         handleCategoryFilterClick={
                             this.handleCategoryFilterClick
                         }
-                    />
+                    /> */}
                     <SearchResults
                         isHidden={!this.inputValue}
                         activeCategoryFilter={this.activeCategoryFilter}
