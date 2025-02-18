@@ -134,6 +134,7 @@ import {
     getAllDataInsightIndexItems,
 } from "./apiRoutes/dataInsights.js"
 import { getFigmaImageUrl } from "./apiRoutes/figma.js"
+import { sendMessageToSlack } from "./apiRoutes/slack.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -463,6 +464,9 @@ getRouteWithROTransaction(
 
 // Figma routes
 getRouteWithROTransaction(apiRouter, "/figma/image", getFigmaImageUrl)
+
+// Slack routes
+postRouteWithRWTransaction(apiRouter, "/slack/sendMessage", sendMessageToSlack)
 
 // Deploy helpers
 apiRouter.get("/deploys.json", async () => ({
