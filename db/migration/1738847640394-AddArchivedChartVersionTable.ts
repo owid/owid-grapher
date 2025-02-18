@@ -15,7 +15,8 @@ export class AddArchivedChartVersionTable1738847640394
 
                 UNIQUE INDEX grapherIdAndTimestampIdx (grapherId, archivalTimestamp), -- this kind of composite index is useful for querying the latest version of a chart
                 INDEX grapherSlugIdx (grapherSlug),
-                INDEX timestampIdx (archivalTimestamp)
+                INDEX timestampIdx (archivalTimestamp),
+                INDEX hashOfInputsIdx (hashOfInputs)
             )
         `)
     }
