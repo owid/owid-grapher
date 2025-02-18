@@ -77,14 +77,46 @@ export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
         (row) => `${row.source} ${row.target} ${row.code}`
     )
 
+    const recentGrapherRedirects = (await getRecentGrapherRedirects(knex)).map(
+        (row) => `/grapher/${row.source} /grapher/${row.target} 302`
+    )
+
     // Add newlines in between so we get some more overview
     return [
         ...staticRedirects,
+        "",
+        ...recentGrapherRedirects,
         "",
         ...redirectsFromDb,
         "",
         ...dynamicRedirects, // Cloudflare requires all dynamic redirects to be at the very end of the _redirects file
     ]
+}
+
+async function getRecentGrapherRedirects(knex: db.KnexReadonlyTransaction) {
+    // Prevent Cloudflare from serving outdated grapher pages, which can remain
+    // in the cache for up to a week. This is necessary, since we take into
+    // consideration the grapher redirects only when the route returns a 404,
+    // which won't be the case if the page is still cached.
+    //
+    // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
+    return await db.knexRaw<{
+        source: string
+        target: string
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            chart_slug_redirects.slug as source,
+            chart_configs.slug as target
+        FROM chart_slug_redirects
+        INNER JOIN charts ON charts.id=chart_id
+        INNER JOIN chart_configs ON chart_configs.id=charts.configId
+        WHERE
+            COALESCE(chart_slug_redirects.updatedAt, chart_slug_redirects.createdAt)
+            > (NOW() - INTERVAL 1 WEEK)
+        `
+    )
 }
 
 export const getGrapherRedirectsMap = async (
