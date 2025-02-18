@@ -463,6 +463,7 @@ export function CreateDataInsightModal(props: {
                             <FormField
                                 label="Grapher or Explorer URL"
                                 name="grapherUrl"
+                                placeholder="https://ourworldindata.org/grapher/***"
                                 initialValue={initialValues.grapherUrl}
                                 style={{ flex: "1 1 0px" }}
                                 show={shouldShowField("grapherUrl")}
@@ -481,6 +482,7 @@ export function CreateDataInsightModal(props: {
                     <FormField
                         label="Figma URL"
                         name="figmaUrl"
+                        placeholder="https://www.figma.com/design/***/Charts?node-id=***"
                         show={shouldShowField("figmaUrl")}
                         onChange={async (figmaUrl) => {
                             if (figmaUrl) {
@@ -610,17 +612,29 @@ export function CreateDataInsightModal(props: {
 function FormField(
     props: FormItemProps<FormData> & {
         show?: boolean
+        placeholder?: string
         onChange?: (value: string) => void
         children?: React.ReactNode
     }
 ) {
-    const { show = true, onChange, children, ...passthroughProps } = props
+    const {
+        show = true,
+        onChange,
+        children,
+        placeholder,
+        ...passthroughProps
+    } = props
 
     if (!show) return null
 
     return (
         <Form.Item<FormData> {...passthroughProps}>
-            {children ?? <Input onChange={(e) => onChange?.(e.target.value)} />}
+            {children ?? (
+                <Input
+                    placeholder={placeholder}
+                    onChange={(e) => onChange?.(e.target.value)}
+                />
+            )}
         </Form.Item>
     )
 }
@@ -669,6 +683,7 @@ function NarrativeChartSelect({
             style={style}
         >
             <Select
+                placeholder="Select a narrative chart..."
                 showSearch
                 options={allNarrativeCharts.array.map(({ name }) => ({
                     value: name,
