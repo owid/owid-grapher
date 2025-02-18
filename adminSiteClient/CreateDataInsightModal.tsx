@@ -524,6 +524,13 @@ export function CreateDataInsightModal(props: {
                                         progress.suggestAltText
                                     )}
                                     help={makeHelpText(progress.suggestAltText)}
+                                    rules={[
+                                        {
+                                            max: 1600,
+                                            message:
+                                                "Image alt text cannot exceed 1600 characters",
+                                        },
+                                    ]}
                                 >
                                     <Input.TextArea
                                         autoSize={true}
