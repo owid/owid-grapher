@@ -426,8 +426,14 @@ export function CreateDataInsightModal(props: {
                         label="Title"
                         name="title"
                         initialValue={initialValues.title}
-                        requiredMessage="Please provide a title"
                         show={shouldShowField("title")}
+                        rules={[
+                            {
+                                required: true,
+                                message:
+                                    "Please provide a filename for the image",
+                            },
+                        ]}
                     />
 
                     <FormField
@@ -459,12 +465,15 @@ export function CreateDataInsightModal(props: {
                                 name="grapherUrl"
                                 initialValue={initialValues.grapherUrl}
                                 style={{ flex: "1 1 0px" }}
-                                help={
-                                    !hiddenFields.includes("narrativeChart")
-                                        ? "Consider using a narrative chart instead"
-                                        : undefined
-                                }
                                 show={shouldShowField("grapherUrl")}
+                                rules={[
+                                    {
+                                        pattern:
+                                            /^https:\/\/ourworldindata\.org\/(grapher|explorers)\/.*/gm,
+                                        message:
+                                            "The URL should start with https://ourworldindata.org/grapher/ or https://ourworldindata.org/explorers/",
+                                    },
+                                ]}
                             />
                         </Flex>
                     )}
@@ -491,7 +500,13 @@ export function CreateDataInsightModal(props: {
                                 label="Image filename"
                                 name="imageFilename"
                                 initialValue={initialValues.imageFilename}
-                                requiredMessage="Please provide a filename for the image"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message:
+                                            "Please provide a filename for the image",
+                                    },
+                                ]}
                             />
 
                             <Space
@@ -595,27 +610,16 @@ export function CreateDataInsightModal(props: {
 function FormField(
     props: FormItemProps<FormData> & {
         show?: boolean
-        requiredMessage?: string
         onChange?: (value: string) => void
         children?: React.ReactNode
     }
 ) {
-    const {
-        show = true,
-        requiredMessage,
-        onChange,
-        children,
-        ...passthroughProps
-    } = props
+    const { show = true, onChange, children, ...passthroughProps } = props
 
     if (!show) return null
 
-    const rules = requiredMessage
-        ? [{ required: true, message: requiredMessage }]
-        : undefined
-
     return (
-        <Form.Item<FormData> rules={rules} {...passthroughProps}>
+        <Form.Item<FormData> {...passthroughProps}>
             {children ?? <Input onChange={(e) => onChange?.(e.target.value)} />}
         </Form.Item>
     )
