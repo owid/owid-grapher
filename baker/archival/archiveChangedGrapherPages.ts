@@ -3,6 +3,7 @@ import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import * as db from "../../db/db.js"
 import { findChangedGrapherPages } from "./ArchivalChecksumUtils.js"
+import { bakeGrapherPagesToFolder } from "./ArchivalBaker.js"
 
 interface Options {
     dir: string
@@ -23,6 +24,16 @@ const findChangedPagesAndArchive = async (opts: Options) => {
             console.log(needToBeArchived.map((c) => c.chartId))
             return
         }
+        if (needToBeArchived.length === 0) {
+            console.log("No pages need to be archived, exiting.")
+            return
+        }
+
+        await bakeGrapherPagesToFolder(
+            opts.dir,
+            needToBeArchived.map((c) => c.chartId),
+            { copyToLatestDir: opts.latestDir }
+        )
     })
 
     process.exit(0)
