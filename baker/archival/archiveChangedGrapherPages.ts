@@ -8,10 +8,10 @@ import {
     parseChartConfig,
     VariablesTableName,
 } from "@ourworldindata/types"
-import * as db from "../db/db.js"
+import * as db from "../../db/db.js"
 import { sortNumeric } from "@ourworldindata/utils"
-import { mapValues, omit, partition, sortedUniq } from "lodash"
-import { hashHex } from "../serverUtils/hash.js"
+import { omit, partition, sortedUniq } from "lodash"
+import { hashHex } from "../../serverUtils/hash.js"
 import { stringify } from "safe-stable-stringify"
 
 const collectHashesForGrapherId = async (
