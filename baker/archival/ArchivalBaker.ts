@@ -2,7 +2,6 @@ import { AssetMap, JsonString, parseChartConfig } from "@ourworldindata/types"
 import fs from "fs-extra"
 import { keyBy } from "lodash"
 import path from "path"
-import { normalize } from "path/posix"
 import * as db from "../../db/db.js"
 import { getAllImages } from "../../db/model/Image.js"
 import { getVariableData } from "../../db/model/Variable.js"
@@ -170,7 +169,7 @@ export const bakeGrapherPagesToFolder = async (
     const archiveDir = path.resolve(projBaseDir, dir)
 
     const date = getDateForArchival()
-    dir = path.join(normalize(archiveDir), date.formattedDate)
+    dir = path.join(archiveDir, date.formattedDate)
     await fs.mkdirp(path.join(dir, "grapher"))
 
     await copyPublicDir(archiveDir)
@@ -212,7 +211,9 @@ export const bakeGrapherPagesToFolder = async (
             archiveDir
         )
 
+        let i = 0
         for (const { config } of grapherConfigs) {
+            i++
             const runtimeFiles = { ...commonRuntimeFiles }
 
             for (const dim of config.dimensions ?? []) {
@@ -227,6 +228,8 @@ export const bakeGrapherPagesToFolder = async (
                 staticAssetMap,
                 runtimeAssetMap: runtimeFiles,
             })
+
+            console.log(`${i}/${grapherConfigs.length} ${config.slug}`)
         }
         console.log(`Baked ${grapherConfigs.length} grapher pages`)
     })
@@ -237,4 +240,6 @@ export const bakeGrapherPagesToFolder = async (
         await fs.copy(dir, latestDir)
         console.log(`Copied ${dir} to ${latestDir}`)
     }
+
+    return { date }
 }
