@@ -189,6 +189,11 @@ export const getTopSubnavigationParentItem = (
     return subnavs[subnavId]?.[0]
 }
 
+/**
+ * Takes a gdoc and a block type and returns the first block of that type found in the gdoc
+ * e.g. getFirstBlockOfType(gdoc, "image") will return the first image block in the gdoc
+ * and it will be typed correctly as an EnrichedBlockImage
+ **/
 export function getFirstBlockOfType<
     T extends keyof OwidEnrichedGdocBlockTypeMap,
 >(
