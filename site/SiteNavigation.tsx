@@ -44,7 +44,10 @@ export const SiteNavigation = ({
             const tagGraph = await response.json()
             setTagGraph(flattenNonTopicNodes(tagGraph))
         }
-        if (!tagGraph) fetchTagGraph().catch(console.error)
+        if (!tagGraph)
+            fetchTagGraph().catch((err) => {
+                throw new Error(`Failed to fetch tag graph: ${err}`)
+            })
     }, [tagGraph, setTagGraph])
 
     const isActiveMobileMenu =
