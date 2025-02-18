@@ -32,13 +32,13 @@ const findChangedPagesAndArchive = async (opts: Options) => {
             return
         }
 
-        const { date } = await bakeGrapherPagesToFolder(
+        const { date, manifests } = await bakeGrapherPagesToFolder(
             opts.dir,
-            needToBeArchived.map((c) => c.chartId),
+            needToBeArchived,
             { copyToLatestDir: opts.latestDir }
         )
 
-        await insertChartVersions(trx, needToBeArchived, date)
+        await insertChartVersions(trx, needToBeArchived, date, manifests)
     })
 
     process.exit(0)

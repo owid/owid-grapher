@@ -8,7 +8,7 @@ import * as db from "../../db/db.js"
 import { omit, partition } from "lodash"
 import { stringify } from "safe-stable-stringify"
 import { hashHex } from "../../serverUtils/hash.js"
-import { ArchivalTimestamp } from "./ArchivalUtils.js"
+import { ArchivalManifest, ArchivalTimestamp } from "./ArchivalUtils.js"
 
 export interface GrapherChecksums {
     chartConfigMd5: string
@@ -24,7 +24,7 @@ export interface GrapherChecksumsObject {
 }
 
 export interface GrapherChecksumsObjectWithHash extends GrapherChecksumsObject {
-    hashed: string
+    checksumsHashed: string
 }
 
 // Fetches checksum/hash information about all published charts from the database
@@ -69,7 +69,8 @@ const getGrapherChecksumsFromDb = async (knex: db.KnexReadonlyTransaction) => {
     return rows
 }
 
-const getLatestArchivedVersionsFromDb = async (
+// Not currently used, but this method/query will be useful for debugging and for future work
+const _getLatestArchivedVersionsFromDb = async (
     knex: db.KnexReadonlyTransaction
 ) => {
     return db.knexRaw(
@@ -107,17 +108,17 @@ export const findChangedGrapherPages = async (
     const checksums: GrapherChecksumsObjectWithHash[] = allChartChecksums.map(
         (chartObj) => {
             const checksumsHashed = hashChecksumsObj(chartObj.checksums)
-            return { ...chartObj, hashed: checksumsHashed }
+            return { ...chartObj, checksumsHashed }
         }
     )
 
     // We're gonna find the hashes of all the graphers that are already archived and up-to-date
     const hashesFoundInDb = await findHashesInDb(
         knex,
-        checksums.map((c) => c.hashed)
+        checksums.map((c) => c.checksumsHashed)
     )
     const [alreadyArchived, needToBeArchived] = partition(checksums, (c) =>
-        hashesFoundInDb.has(c.hashed)
+        hashesFoundInDb.has(c.checksumsHashed)
     )
 
     console.log("total published graphers", checksums.length)
@@ -130,14 +131,15 @@ export const findChangedGrapherPages = async (
 export const insertChartVersions = async (
     knex: db.KnexReadWriteTransaction,
     versions: GrapherChecksumsObjectWithHash[],
-    date: ArchivalTimestamp
+    date: ArchivalTimestamp,
+    manifests: Record<number, ArchivalManifest>
 ) => {
     const rows: DbInsertArchivedChartVersion[] = versions.map((v) => ({
         grapherId: v.chartId,
         grapherSlug: v.chartSlug,
         archivalTimestamp: date.date,
-        hashOfInputs: v.hashed,
-        manifest: JSON.stringify(v.checksums),
+        hashOfInputs: v.checksumsHashed,
+        manifest: stringify(manifests[v.chartId], undefined, 2),
     }))
 
     if (rows.length)
