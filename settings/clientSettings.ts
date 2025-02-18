@@ -117,3 +117,6 @@ export const FEATURE_FLAGS: Set<FeatureFlagFeature> = new Set(
         featureFlagsRaw.includes(key)
     ) as FeatureFlagFeature[]
 )
+
+export const SLACK_DI_PITCHES_CHANNEL_ID: string =
+    process.env.SLACK_DI_PITCHES_CHANNEL_ID ?? ""
