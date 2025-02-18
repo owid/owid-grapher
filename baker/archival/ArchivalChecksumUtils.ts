@@ -1,5 +1,6 @@
 import {
     ArchivedChartVersionsTableName,
+    DbInsertArchivedChartVersion,
     DbPlainArchivedChartVersion,
     JsonString,
 } from "@ourworldindata/types"
@@ -7,6 +8,7 @@ import * as db from "../../db/db.js"
 import { omit, partition } from "lodash"
 import { stringify } from "safe-stable-stringify"
 import { hashHex } from "../../serverUtils/hash.js"
+import { ArchivalTimestamp } from "./ArchivalUtils.js"
 
 export interface GrapherChecksums {
     chartConfigMd5: string
@@ -17,6 +19,7 @@ export interface GrapherChecksums {
 
 export interface GrapherChecksumsObject {
     chartId: number
+    chartSlug: string
     checksums: GrapherChecksums
 }
 
@@ -28,6 +31,7 @@ export interface GrapherChecksumsObjectWithHash extends GrapherChecksumsObject {
 const getGrapherChecksumsFromDb = async (knex: db.KnexReadonlyTransaction) => {
     type FlatGrapherChecksums = {
         chartId: number
+        chartSlug: string
         chartConfigMd5: string
         indicators: JsonString
     }
@@ -39,6 +43,7 @@ const getGrapherChecksumsFromDb = async (knex: db.KnexReadonlyTransaction) => {
             `-- sql
         SELECT 
             c.id AS chartId,
+            cc.slug AS chartSlug,
             cc.fullMd5 AS chartConfigMd5,
             JSON_OBJECTAGG(v.id, JSON_OBJECT("metadataChecksum", v.metadataChecksum, "dataChecksum", v.dataChecksum)) AS indicators
         FROM charts c
@@ -53,6 +58,7 @@ const getGrapherChecksumsFromDb = async (knex: db.KnexReadonlyTransaction) => {
         .then((row) =>
             row.map((r) => ({
                 chartId: r.chartId,
+                chartSlug: r.chartSlug,
                 checksums: {
                     chartConfigMd5: r.chartConfigMd5,
                     indicators: JSON.parse(r.indicators),
@@ -119,4 +125,21 @@ export const findChangedGrapherPages = async (
     console.log("need archived", needToBeArchived.length)
 
     return needToBeArchived
+}
+
+export const insertChartVersions = async (
+    knex: db.KnexReadWriteTransaction,
+    versions: GrapherChecksumsObjectWithHash[],
+    date: ArchivalTimestamp
+) => {
+    const rows: DbInsertArchivedChartVersion[] = versions.map((v) => ({
+        grapherId: v.chartId,
+        grapherSlug: v.chartSlug,
+        archivalTimestamp: date.date,
+        hashOfInputs: v.hashed,
+        manifest: JSON.stringify(v.checksums),
+    }))
+
+    if (rows.length)
+        await knex.batchInsert(ArchivedChartVersionsTableName, rows)
 }

@@ -329,7 +329,6 @@ export const bakeSingleGrapherPageForArchival = async (
         outPathManifest,
         JSON.stringify({ staticAssetMap, runtimeAssetMap }, undefined, 2)
     )
-    console.log(outPathHtml)
 }
 
 const bakeGrapherPage = async (

@@ -2,7 +2,10 @@ import * as Sentry from "@sentry/node"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import * as db from "../../db/db.js"
-import { findChangedGrapherPages } from "./ArchivalChecksumUtils.js"
+import {
+    findChangedGrapherPages,
+    insertChartVersions,
+} from "./ArchivalChecksumUtils.js"
 import { bakeGrapherPagesToFolder } from "./ArchivalBaker.js"
 
 interface Options {
@@ -29,11 +32,13 @@ const findChangedPagesAndArchive = async (opts: Options) => {
             return
         }
 
-        await bakeGrapherPagesToFolder(
+        const { date } = await bakeGrapherPagesToFolder(
             opts.dir,
             needToBeArchived.map((c) => c.chartId),
             { copyToLatestDir: opts.latestDir }
         )
+
+        await insertChartVersions(trx, needToBeArchived, date)
     })
 
     process.exit(0)
