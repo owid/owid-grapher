@@ -10,18 +10,18 @@ export const SiteMobileArea = ({
 }: {
     area: TagGraphNode
     isActive: boolean
-    toggleArea: (category: TagGraphNode) => void
+    toggleArea: (area: TagGraphNode) => void
 }) => {
-    const categoryRef = useRef<HTMLLIElement>(null)
+    const areaRef = useRef<HTMLLIElement>(null)
 
     useEffect(() => {
-        if (isActive && categoryRef.current) {
-            categoryRef.current.scrollIntoView({ behavior: "smooth" })
+        if (isActive && areaRef.current) {
+            areaRef.current.scrollIntoView({ behavior: "smooth" })
         }
     }, [isActive])
 
     return (
-        <li key={area.slug} className="SiteMobileCategory" ref={categoryRef}>
+        <li key={area.slug} className="SiteMobileArea" ref={areaRef}>
             <SiteNavigationToggle
                 ariaLabel={
                     isActive ? `Collapse ${area.name}` : `Expand ${area.name}`
