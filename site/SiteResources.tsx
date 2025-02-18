@@ -2,16 +2,16 @@ export const SiteResources = () => {
     return (
         <ul>
             <li>
-                <a href="/data">Data Catalog</a>
+                <a href="/latest">Latest Articles</a>
             </li>
             <li>
-                <a href="/data-insights">Daily Data Insights</a>
+                <a href="/explorers">Data Explorers</a>
             </li>
             <li>
-                <a href="/sdgs">Sustainable Development Goals Tracker</a>
+                <a href="/sdgs">SDG Trackers</a>
             </li>
             <li>
-                <a href="/teaching">Teaching Hub</a>
+                <a href="/teaching">Teaching Materials</a>
             </li>
         </ul>
     )

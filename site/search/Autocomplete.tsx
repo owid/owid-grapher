@@ -235,7 +235,9 @@ export function Autocomplete({
     onClose,
     className,
     placeholder = DEFAULT_SEARCH_PLACEHOLDER,
-    detachedMediaQuery = "(max-width: 960px)",
+    // A magic number slightly higher than our $md breakpoint to ensure there's enough room
+    // for everything in the site nav between 960-1045px. Mirrored in Autocomplete.scss
+    detachedMediaQuery = "(max-width: 1045px)",
     panelClassName,
 }: {
     onActivate?: () => void
