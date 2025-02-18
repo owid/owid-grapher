@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 import {
     Button,
@@ -288,9 +288,8 @@ function createColumns(ctx: {
 export function DataInsightIndexPage() {
     const { admin } = useContext(AdminAppContext)
 
-    const [dataInsights, setDataInsights] = useState<
-        OwidGdocDataInsightIndexItem[]
-    >([])
+    const [dataInsights, setDataInsights, refreshDataInsights] =
+        useDataInsights(admin)
 
     const [searchValue, setSearchValue] = useState("")
     const [chartTypeFilter, setChartTypeFilter] = useState<
@@ -420,17 +419,6 @@ export function DataInsightIndexPage() {
         }
     }
 
-    useEffect(() => {
-        const fetchAllDataInsights = async () =>
-            (await admin.getJSON(
-                "/api/dataInsights"
-            )) as OwidGdocDataInsightIndexItem[]
-
-        void fetchAllDataInsights().then((dataInsights) =>
-            setDataInsights(dataInsights)
-        )
-    }, [admin])
-
     return (
         <AdminLayout title="Data insights">
             <NotificationContext.Provider value={null}>
@@ -551,6 +539,7 @@ export function DataInsightIndexPage() {
                             closeModal={() => setIsCreateModalOpen(false)}
                             onFinish={(response) => {
                                 if (response.success) {
+                                    void refreshDataInsights()
                                     setIsCreateModalOpen(false)
                                     window.open(
                                         `/admin/gdocs/${response.gdocId}/preview`,
@@ -735,6 +724,27 @@ function UploadFigmaImageModal({
             closeModal={closeModal}
         />
     )
+}
+
+const useDataInsights = (admin: Admin) => {
+    const [dataInsights, setDataInsights] = useState<
+        OwidGdocDataInsightIndexItem[]
+    >([])
+
+    const fetchAndUpdateDataInsights = useCallback(async () => {
+        const updatedDataInsights =
+            await admin.getJSON<OwidGdocDataInsightIndexItem[]>(
+                "/api/dataInsights"
+            )
+        setDataInsights(updatedDataInsights)
+        return updatedDataInsights
+    }, [admin])
+
+    useEffect(() => {
+        void fetchAndUpdateDataInsights()
+    }, [fetchAndUpdateDataInsights])
+
+    return [dataInsights, setDataInsights, fetchAndUpdateDataInsights] as const
 }
 
 function hasNarrativeChart(
