@@ -46,8 +46,13 @@ export const SiteMobileMenu = ({
                     </ul>
                 </li>
                 <li>
-                    <a href="/latest" className="section__header">
-                        Latest
+                    <a href="/data" className="section__header">
+                        Data
+                    </a>
+                </li>
+                <li>
+                    <a href="/data-insights" className="section__header">
+                        Insights
                     </a>
                 </li>
                 <li>
