@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { CategoryWithEntries } from "@ourworldindata/utils"
 import classnames from "classnames"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
@@ -21,6 +21,8 @@ export const SiteMobileMenu = ({
     const [activeCategory, setActiveCategory] =
         useState<CategoryWithEntries | null>(null)
 
+    const menuRef = useRef<HTMLDivElement>(null)
+
     const toggleCategory = (category: CategoryWithEntries) => {
         if (activeCategory === category) {
             setActiveCategory(null)
@@ -30,7 +32,7 @@ export const SiteMobileMenu = ({
     }
 
     return (
-        <div className={classnames("SiteMobileMenu", className)}>
+        <div ref={menuRef} className={classnames("SiteMobileMenu", className)}>
             <ul>
                 <li>
                     <span className="section__header">Browse by topic</span>
@@ -69,6 +71,8 @@ export const SiteMobileMenu = ({
                         dropdown={<SiteResources />}
                         withCaret={true}
                         className="SiteNavigationToggle--lvl1"
+                        shouldScrollIntoView
+                        menuRef={menuRef}
                     >
                         Resources
                     </SiteNavigationToggle>
@@ -85,6 +89,8 @@ export const SiteMobileMenu = ({
                         dropdown={<SiteAbout />}
                         withCaret={true}
                         className="SiteNavigationToggle--lvl1"
+                        shouldScrollIntoView
+                        menuRef={menuRef}
                     >
                         About
                     </SiteNavigationToggle>

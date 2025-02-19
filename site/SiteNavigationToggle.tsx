@@ -11,6 +11,8 @@ export const SiteNavigationToggle = ({
     withCaret = false,
     dropdown,
     className,
+    shouldScrollIntoView = false,
+    menuRef,
 }: {
     ariaLabel: string
     children: React.ReactNode
@@ -19,7 +21,24 @@ export const SiteNavigationToggle = ({
     withCaret?: boolean
     dropdown?: React.ReactNode
     className?: string
+    shouldScrollIntoView?: boolean
+    menuRef?: React.RefObject<HTMLDivElement>
 }) => {
+    React.useLayoutEffect(() => {
+        if (shouldScrollIntoView && isActive && menuRef?.current) {
+            const menuBottomOffset =
+                menuRef.current.getBoundingClientRect().bottom
+
+            // put bottom of the menu at the bottom of the viewport if it's offscreen
+            if (menuBottomOffset > window.innerHeight) {
+                window.scrollTo({
+                    top: menuBottomOffset - window.innerHeight + window.scrollY,
+                    behavior: "smooth",
+                })
+            }
+        }
+    }, [shouldScrollIntoView, menuRef, isActive])
+
     return (
         <div
             className={cx("SiteNavigationToggle", className, {
