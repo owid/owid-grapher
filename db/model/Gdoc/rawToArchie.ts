@@ -49,8 +49,8 @@ import {
     RawBlockPerson,
     RawBlockNarrativeChart,
     RawBlockCode,
+    RawBlockCookieNotice,
 } from "@ourworldindata/types"
-import { RawBlockCookieNotice } from "@ourworldindata/types/dist/gdocTypes/ArchieMlComponents.js"
 import { isArray } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
