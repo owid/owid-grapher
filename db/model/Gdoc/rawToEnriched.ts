@@ -133,6 +133,8 @@ import {
     EnrichedBlockNarrativeChart,
     RawBlockCode,
     EnrichedBlockCode,
+    EnrichedBlockCookieNotice,
+    RawBlockCookieNotice,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -163,10 +165,6 @@ import {
 import { P, match } from "ts-pattern"
 import { isObject, parseInt } from "lodash"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
-import {
-    EnrichedBlockCookieNotice,
-    RawBlockCookieNotice,
-} from "@ourworldindata/types/dist/gdocTypes/ArchieMlComponents.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
