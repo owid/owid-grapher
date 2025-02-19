@@ -10,7 +10,7 @@ export const getVariableDataRoute = (
     variableId: number,
     assetMap?: AssetMap
 ): string => {
-    if (dataApiUrl.includes("v1/indicators/")) {
+    if (dataApiUrl.includes("v1/indicators")) {
         const filename = `${variableId}.data.json`
         return readFromAssetMap(assetMap, {
             path: filename,
@@ -27,7 +27,7 @@ export const getVariableMetadataRoute = (
     variableId: number,
     assetMap?: AssetMap
 ): string => {
-    if (dataApiUrl.includes("v1/indicators/")) {
+    if (dataApiUrl.includes("v1/indicators")) {
         const filename = `${variableId}.metadata.json`
         return readFromAssetMap(assetMap, {
             path: filename,
