@@ -3,7 +3,8 @@ import { MultiDimDataPageConfigEnriched } from "../siteTypes/MultiDimDataPage.js
 
 export const MultiDimDataPagesTableName = "multi_dim_data_pages"
 export interface DbInsertMultiDimDataPage {
-    slug: string
+    catalogPath?: string
+    slug?: string | null
     config: JsonString
     published?: boolean
     createdAt?: Date

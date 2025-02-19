@@ -44,7 +44,10 @@ import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
 import { DbPlainDatasetFile, DbPlainDataset } from "@ourworldindata/types"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
-import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
+import {
+    getMultiDimDataPageByCatalogPath,
+    getMultiDimDataPageBySlug,
+} from "../db/model/MultiDimDataPage.js"
 import { renderMultiDimDataPageFromConfig } from "../baker/MultiDimBaker.js"
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -356,13 +359,14 @@ getPlainRouteWithROTransaction(
             return
         }
 
-        const mdd = await getMultiDimDataPageBySlug(trx, slug, {
-            onlyPublished: false,
-        })
+        const mdd =
+            (await getMultiDimDataPageBySlug(trx, slug, {
+                onlyPublished: false,
+            })) ?? (await getMultiDimDataPageByCatalogPath(trx, slug))
         if (mdd) {
             const renderedPage = await renderMultiDimDataPageFromConfig({
                 knex: trx,
-                slug,
+                slug: mdd.slug,
                 config: mdd.config,
                 isPreviewing: true,
             })

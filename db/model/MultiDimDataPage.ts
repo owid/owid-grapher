@@ -52,24 +52,22 @@ const enrichRow = <T extends { config: JsonString }>(
     config: JSON.parse(row.config),
 })
 
-export const getAllMultiDimDataPages = async (
-    knex: KnexReadonlyTransaction,
-    { onlyPublished = true }: { onlyPublished?: boolean } = {}
+export const getAllPublishedMultiDimDataPages = async (
+    knex: KnexReadonlyTransaction
 ): Promise<Map<string, DbEnrichedMultiDimDataPage>> => {
     const rows = await knex<DbPlainMultiDimDataPage>(
         MultiDimDataPagesTableName
-    ).where({
-        ...createOnlyPublishedFilter(onlyPublished),
-    })
+    ).where("published", true)
 
-    return new Map(rows.map((row) => [row.slug, enrichRow(row)]))
+    // Published mdims must have a slug.
+    return new Map(rows.map((row) => [row.slug!, enrichRow(row)]))
 }
 
 export async function getAllLinkedPublishedMultiDimDataPages(
     knex: KnexReadonlyTransaction
-): Promise<Pick<DbEnrichedMultiDimDataPage, "slug" | "config">[]> {
+): Promise<{ slug: string; config: MultiDimDataPageConfigEnriched }[]> {
     const rows = await knexRaw<
-        Pick<DbPlainMultiDimDataPage, "slug" | "config">
+        Pick<DbPlainMultiDimDataPage, "config"> & { slug: string }
     >(
         knex,
         `-- sql
@@ -87,10 +85,10 @@ export async function getAllLinkedPublishedMultiDimDataPages(
 export async function getAllMultiDimDataPageSlugs(
     knex: KnexReadonlyTransaction
 ): Promise<string[]> {
-    const rows = await knex<DbPlainMultiDimDataPage>(
-        MultiDimDataPagesTableName
-    ).select("slug")
-    return rows.map((row) => row.slug)
+    const rows = await knex<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
+        .select("slug")
+        .whereNotNull("slug")
+    return rows.map((row) => row.slug!)
 }
 
 export const getMultiDimDataPageBySlug = async (
@@ -111,6 +109,16 @@ export async function getMultiDimDataPageById(
 ): Promise<DbEnrichedMultiDimDataPage | undefined> {
     const row = await knex<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
         .where({ id })
+        .first()
+    return row ? enrichRow(row) : undefined
+}
+
+export async function getMultiDimDataPageByCatalogPath(
+    knex: KnexReadonlyTransaction,
+    catalogPath: string
+): Promise<DbEnrichedMultiDimDataPage | undefined> {
+    const row = await knex<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
+        .where({ catalogPath })
         .first()
     return row ? enrichRow(row) : undefined
 }

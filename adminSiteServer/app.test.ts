@@ -492,11 +492,12 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         // create mdim config that uses both of the variables
         await makeRequestAgainstAdminApi({
             method: "PUT",
-            path: "/multi-dim/energy",
-            body: JSON.stringify(testMultiDimConfig),
+            path: "/multi-dims/test%2Fcatalog%23path",
+            body: JSON.stringify({ config: testMultiDimConfig }),
         })
         const mdim = await testKnexInstance!(MultiDimDataPagesTableName).first()
-        expect(mdim.slug).toBe("energy")
+        expect(mdim.catalogPath).toBe("test/catalog#path")
+        expect(mdim.slug).toBe(null)
         const savedMdimConfig = JSON.parse(mdim.config)
         // variableId should be normalized to an array
         expect(savedMdimConfig.views[0].indicators.y).toBeInstanceOf(Array)
@@ -516,7 +517,6 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             ...mergedGrapherConfig,
             title: "Total energy use",
             selectedEntityNames: [], // mdims define their own default entities
-            slug: "energy",
         }
         const fullViewConfig1 = await testKnexInstance!(ChartConfigsTableName)
             .where("id", mdxcc1.chartConfigId)
