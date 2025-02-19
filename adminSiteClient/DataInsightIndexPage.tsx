@@ -17,7 +17,7 @@ import {
     faCopy,
     faPanorama,
     faPen,
-    faUpload,
+    faRotate,
     faUpRightFromSquare,
 } from "@fortawesome/free-solid-svg-icons"
 import { faFigma } from "@fortawesome/free-brands-svg-icons"
@@ -79,7 +79,7 @@ const DEFAULT_LAYOUT: Layout = "list"
 
 const editIcon = <FontAwesomeIcon icon={faPen} size="sm" />
 const linkIcon = <FontAwesomeIcon icon={faUpRightFromSquare} size="sm" />
-const uploadIcon = <FontAwesomeIcon icon={faUpload} size="sm" />
+const rotateIcon = <FontAwesomeIcon icon={faRotate} size="sm" />
 const figmaIcon = <FontAwesomeIcon icon={faFigma} size="sm" />
 const copyIcon = <FontAwesomeIcon icon={faCopy} size="sm" />
 const panoramaIcon = <FontAwesomeIcon icon={faPanorama} size="sm" />
@@ -267,12 +267,12 @@ function createColumns(ctx: {
                     {canReuploadImage(dataInsight) && (
                         <Tooltip title={makeUploadImageHelpText(dataInsight)}>
                             <Button
-                                icon={uploadIcon}
+                                icon={rotateIcon}
                                 onClick={() =>
                                     ctx.triggerImageUploadFlow(dataInsight)
                                 }
                             >
-                                Reupload image
+                                Update image
                             </Button>
                         </Tooltip>
                     )}
