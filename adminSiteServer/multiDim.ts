@@ -5,7 +5,6 @@ import {
     migrateGrapherConfigToLatestVersion,
 } from "@ourworldindata/grapher"
 import {
-    Base64String,
     ChartConfigsTableName,
     DbEnrichedMultiDimDataPage,
     DbPlainMultiDimDataPage,
@@ -23,6 +22,7 @@ import {
     MultiDimDimensionChoices,
     MultiDimXChartConfigsTableName,
     parseChartConfigsRow,
+    R2GrapherConfigDirectory,
     View,
 } from "@ourworldindata/types"
 import {
@@ -38,6 +38,7 @@ import {
     getVariableIdsByCatalogPath,
 } from "../db/model/Variable.js"
 import {
+    deleteGrapherConfigFromR2,
     deleteGrapherConfigFromR2ByUUID,
     saveMultiDimConfigToR2,
 } from "./chartConfigR2Helpers.js"
@@ -166,7 +167,7 @@ async function resolveMultiDimDataPageCatalogPathsToIndicatorIds(
 
 async function getViewIdToChartConfigIdMap(
     knex: db.KnexReadonlyTransaction,
-    slug: string
+    catalogPath: string
 ) {
     const rows = await db.knexRaw<DbPlainMultiDimXChartConfig>(
         knex,
@@ -174,45 +175,54 @@ async function getViewIdToChartConfigIdMap(
         SELECT viewId, chartConfigId
         FROM multi_dim_x_chart_configs mdxcc
         JOIN multi_dim_data_pages mddp ON mddp.id = mdxcc.multiDimId
-        WHERE mddp.slug = ?`,
-        [slug]
+        WHERE mddp.catalogPath = ?`,
+        [catalogPath]
     )
-    return new Map(
-        rows.map((row) => [row.viewId, row.chartConfigId as Base64String])
-    )
+    return new Map(rows.map((row) => [row.viewId, row.chartConfigId]))
 }
 
-async function saveMultiDimConfig(
-    knex: db.KnexReadWriteTransaction,
-    slug: string,
-    config: MultiDimDataPageConfigEnriched
+async function retrieveMultiDimConfigFromDbAndSaveToR2(
+    knex: db.KnexReadonlyTransaction,
+    id: number
 ) {
-    const id = await upsertMultiDimDataPage(knex, {
-        slug,
-        config: JSON.stringify(config),
-    })
-    if (id === 0) {
-        // There are no updates to the config, return the existing id.
-        console.debug(`There are no changes to multi dim config slug=${slug}`)
-        const result = await knex<DbPlainMultiDimDataPage>(
-            MultiDimDataPagesTableName
-        )
-            .select("id")
-            .where({ slug })
-            .first()
-        return result!.id
-    }
     // We need to get the full config and the md5 hash from the database instead of
     // computing our own md5 hash because MySQL normalizes JSON and our
     // client computed md5 would be different from the ones computed by and stored in R2
     const result = await knex<DbPlainMultiDimDataPage>(
         MultiDimDataPagesTableName
     )
-        .select("config", "configMd5")
+        .select("slug", "config", "configMd5")
         .where({ id })
         .first()
-    const { config: normalizedConfig, configMd5 } = result!
-    await saveMultiDimConfigToR2(normalizedConfig, slug, configMd5)
+    const { slug, config: normalizedConfig, configMd5 } = result!
+    if (slug) {
+        await saveMultiDimConfigToR2(normalizedConfig, slug, configMd5)
+    }
+}
+
+async function upsertMultiDimConfig(
+    knex: db.KnexReadWriteTransaction,
+    catalogPath: string,
+    config: MultiDimDataPageConfigEnriched
+) {
+    const id = await upsertMultiDimDataPage(knex, {
+        catalogPath,
+        config: JSON.stringify(config),
+    })
+    if (id === 0) {
+        // There are no updates to the config, return the existing id.
+        console.debug(
+            `There are no changes to multi dim config catalogPath=${catalogPath}`
+        )
+        const result = await knex<DbPlainMultiDimDataPage>(
+            MultiDimDataPagesTableName
+        )
+            .select("id")
+            .where({ catalogPath })
+            .first()
+        return result!.id
+    }
+    await retrieveMultiDimConfigFromDbAndSaveToR2(knex, id)
     return id
 }
 
@@ -231,9 +241,9 @@ async function cleanUpOrphanedChartConfigs(
     }
 }
 
-export async function upsertMultiDimConfig(
+export async function upsertMultiDim(
     knex: db.KnexReadWriteTransaction,
-    slug: string,
+    catalogPath: string,
     rawConfig: MultiDimDataPageConfigRaw
 ): Promise<number> {
     const config = await resolveMultiDimDataPageCatalogPathsToIndicatorIds(
@@ -246,7 +256,7 @@ export async function upsertMultiDimConfig(
     )
     const existingViewIdsToChartConfigIds = await getViewIdToChartConfigIdMap(
         knex,
-        slug
+        catalogPath
     )
     const reusedChartConfigIds = new Set<string>()
     const { grapherConfigSchema } = config
@@ -259,7 +269,6 @@ export async function upsertMultiDimConfig(
                 $schema: defaultGrapherConfig.$schema,
                 dimensions: MultiDimDataPageConfig.viewToDimensionsConfig(view),
                 selectedEntityNames: config.defaultSelection ?? [],
-                slug,
             }
             let viewGrapherConfig = {}
             if (view.config) {
@@ -313,7 +322,11 @@ export async function upsertMultiDimConfig(
     await cleanUpOrphanedChartConfigs(knex, orphanedChartConfigIds)
 
     const enrichedConfig = { ...config, views: enrichedViews }
-    const multiDimId = await saveMultiDimConfig(knex, slug, enrichedConfig)
+    const multiDimId = await upsertMultiDimConfig(
+        knex,
+        catalogPath,
+        enrichedConfig
+    )
     for (const view of enrichedConfig.views) {
         await upsertMultiDimXChartConfigs(knex, {
             multiDimId,
@@ -376,5 +389,10 @@ export async function setMultiDimSlug(
     await knex(MultiDimDataPagesTableName)
         .where({ id: multiDim.id })
         .update({ slug })
+    await deleteGrapherConfigFromR2(
+        R2GrapherConfigDirectory.multiDim,
+        `${multiDim.slug}.json`
+    )
+    await retrieveMultiDimConfigFromDbAndSaveToR2(knex, multiDim.id)
     return { ...multiDim, slug }
 }

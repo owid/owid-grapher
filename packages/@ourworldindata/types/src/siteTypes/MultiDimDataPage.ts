@@ -111,7 +111,7 @@ export type FaqEntryKeyedByGdocIdAndFragmentId = {
 export interface MultiDimDataPageProps {
     baseUrl: string
     baseGrapherUrl: string
-    slug: string
+    slug: string | null
     configObj: MultiDimDataPageConfigEnriched
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId

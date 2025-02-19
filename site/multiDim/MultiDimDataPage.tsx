@@ -21,7 +21,10 @@ export function MultiDimDataPage({
     imageMetadata,
     isPreviewing,
 }: MultiDimDataPageProps) {
-    const canonicalUrl = `${baseGrapherUrl}/${slug}`
+    if (!slug && !isPreviewing) {
+        throw new Error("Missing slug for multidimensional data page")
+    }
+    const canonicalUrl = slug ? `${baseGrapherUrl}/${slug}` : ""
     const contentProps: MultiDimDataPageContentProps = {
         canonicalUrl,
         slug,
