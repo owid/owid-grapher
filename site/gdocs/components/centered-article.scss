@@ -1085,11 +1085,6 @@ div.raw-html-table__container {
         input:disabled + label {
             color: $blue-50;
         }
-        label {
-            @include body-3-bold;
-            text-transform: initial;
-            color: $blue-90;
-        }
         .description,
         .last-updated {
             @include body-3-regular;
@@ -1099,6 +1094,35 @@ div.raw-html-table__container {
             margin-bottom: 24px;
             & + .cookie-preference {
                 margin-top: 32px;
+            }
+            .checkbox {
+                margin-bottom: 8px;
+                label {
+                    display: inline-flex;
+                    cursor: pointer;
+                    margin: 0;
+                }
+                .custom {
+                    top: unset;
+                }
+                .label {
+                    margin: 0;
+                    @include body-3-bold;
+                    text-transform: initial;
+                    line-height: 16px;
+                    padding-left: 24px;
+                }
+                .label {
+                    color: $blue-90;
+                }
+            }
+            .checkbox--disabled {
+                label {
+                    cursor: not-allowed;
+                }
+                .label {
+                    color: $blue-50;
+                }
             }
         }
     }
