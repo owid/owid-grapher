@@ -35,7 +35,8 @@ import {
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { getAllPublishedChartSlugs } from "../db/model/Chart.js"
 import {
-    getAllMultiDimDataPages,
+    getAllPublishedMultiDimDataPages,
+    getMultiDimDataPageByCatalogPath,
     getMultiDimDataPageBySlug,
 } from "../db/model/MultiDimDataPage.js"
 
@@ -125,7 +126,7 @@ export async function renderMultiDimDataPageFromConfig({
     isPreviewing = false,
 }: {
     knex: db.KnexReadonlyTransaction
-    slug: string
+    slug: string | null
     config: MultiDimDataPageConfigEnriched
     imageMetadataDictionary?: Record<string, ImageMetadata>
     isPreviewing?: boolean
@@ -142,7 +143,11 @@ export async function renderMultiDimDataPageFromConfig({
     const faqEntries = await getFaqEntries(knex, config, variableMetaDict)
 
     // PRIMARY TOPIC
-    const primaryTopic = await getPrimaryTopic(knex, config.topicTags, slug)
+    const primaryTopic = await getPrimaryTopic(
+        knex,
+        config.topicTags,
+        slug ?? undefined
+    )
 
     // Related research
     const relatedResearchCandidates =
@@ -198,6 +203,23 @@ export const renderMultiDimDataPageBySlug = async (
     })
 }
 
+export async function renderMultiDimDataPageByCatalogPath(
+    knex: db.KnexReadonlyTransaction,
+    catalogPath: string
+) {
+    const dbRow = await getMultiDimDataPageByCatalogPath(knex, catalogPath)
+    if (!dbRow)
+        throw new Error(
+            `No multi-dim site found for catalog path: ${catalogPath}`
+        )
+
+    return renderMultiDimDataPageFromConfig({
+        knex,
+        slug: dbRow.slug,
+        config: dbRow.config,
+    })
+}
+
 export const renderMultiDimDataPageFromProps = async (
     props: MultiDimDataPageProps
 ) => {
@@ -226,7 +248,7 @@ export const bakeAllMultiDimDataPages = async (
     bakedSiteDir: string,
     imageMetadata: Record<string, ImageMetadata>
 ) => {
-    const multiDimsBySlug = await getAllMultiDimDataPages(knex)
+    const multiDimsBySlug = await getAllPublishedMultiDimDataPages(knex)
     const progressBar = new ProgressBar(
         "bake multi-dim page [:bar] :current/:total :elapseds :rate/s :name\n",
         {

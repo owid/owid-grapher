@@ -211,7 +211,7 @@ const analytics = new GrapherAnalytics()
 
 export type MultiDimDataPageContentProps = {
     canonicalUrl: string
-    slug: string
+    slug: string | null
     configObj: MultiDimDataPageConfigEnriched
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId

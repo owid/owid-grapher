@@ -7,6 +7,8 @@ import * as db from "../db/db.js"
 import { multiDimDataPageExists } from "../db/model/MultiDimDataPage.js"
 import { isValidSlug } from "../serverUtils/serverUtil.js"
 
+const CATALOG_PATH_PATTERN = /^[\w\d_/-]+#[\w\d_/-]+$/
+
 async function isSlugUsedInRedirect(
     knex: db.KnexReadonlyTransaction,
     slug: string,
@@ -77,7 +79,7 @@ export async function validateNewGrapherSlug(
  */
 export async function validateMultiDimSlug(
     knex: db.KnexReadonlyTransaction,
-    slug: string,
+    slug: string | null,
     existingConfigId?: number
 ) {
     if (!isValidSlug(slug)) {
@@ -94,4 +96,8 @@ export async function validateMultiDimSlug(
         )
     }
     return slug
+}
+
+export function isValidCatalogPath(catalogPath: string) {
+    return CATALOG_PATH_PATTERN.test(catalogPath)
 }

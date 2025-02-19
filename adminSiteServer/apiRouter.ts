@@ -291,7 +291,11 @@ getRouteWithROTransaction(apiRouter, "/images/usage", getImageUsageHandler)
 
 // Mdim routes
 getRouteWithROTransaction(apiRouter, "/multi-dims.json", handleGetMultiDims)
-putRouteWithRWTransaction(apiRouter, "/multi-dim/:slug", handlePutMultiDim)
+putRouteWithRWTransaction(
+    apiRouter,
+    "/multi-dims/:catalogPath",
+    handlePutMultiDim
+)
 patchRouteWithRWTransaction(apiRouter, "/multi-dims/:id", handlePatchMultiDim)
 
 // Misc routes
