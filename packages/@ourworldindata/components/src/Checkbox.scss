@@ -60,6 +60,23 @@
         background: white;
     }
 
+    input:disabled {
+        + .custom {
+            background: $blue-10;
+            border-color: $blue-20;
+            color: $blue-50;
+        }
+
+        &:active + .custom {
+            background: $blue-10;
+        }
+
+        ~ .label {
+            color: $blue-50;
+            cursor: not-allowed;
+        }
+    }
+
     .label {
         @include grapher_label-2-regular;
         padding-left: $checkbox-size + 8px;
