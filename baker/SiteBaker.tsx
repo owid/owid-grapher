@@ -12,7 +12,6 @@ import {
     BLOG_POSTS_PER_PAGE,
     BASE_DIR,
     GDOCS_DETAILS_ON_DEMAND_ID,
-    FEATURE_FLAGS,
 } from "../settings/serverSettings.js"
 
 import {
@@ -83,7 +82,6 @@ import { getAllImages } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { mapSlugsToConfigs } from "../db/model/Chart.js"
-import { FeatureFlagFeature } from "../settings/clientSettings.js"
 import pMap from "p-map"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
@@ -811,12 +809,6 @@ export class SiteBaker {
 
     private async bakeMultiDimPages(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("multiDimPages")) return
-        if (!FEATURE_FLAGS.has(FeatureFlagFeature.MultiDimDataPage)) {
-            console.log(
-                "Skipping baking multi-dim pages because feature flag is not set"
-            )
-            return
-        }
         const { imageMetadata } = await this.getPrefetchedGdocAttachments(knex)
         await bakeAllMultiDimDataPages(knex, this.bakedSiteDir, imageMetadata)
 
