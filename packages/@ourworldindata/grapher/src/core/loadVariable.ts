@@ -3,6 +3,7 @@ import {
     OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/types"
 import { fetchWithRetry, readFromAssetMap } from "@ourworldindata/utils"
+import urljoin from "url-join"
 
 export const getVariableDataRoute = (
     dataApiUrl: string,
@@ -14,7 +15,7 @@ export const getVariableDataRoute = (
         return readFromAssetMap(assetMap, {
             path: filename,
             // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.data.json
-            fallback: `${dataApiUrl}${filename}`,
+            fallback: urljoin(dataApiUrl, filename),
         })
     } else {
         throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
@@ -31,7 +32,7 @@ export const getVariableMetadataRoute = (
         return readFromAssetMap(assetMap, {
             path: filename,
             // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.metadata.json
-            fallback: `${dataApiUrl}${filename}`,
+            fallback: urljoin(dataApiUrl, filename),
         })
     } else {
         throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)

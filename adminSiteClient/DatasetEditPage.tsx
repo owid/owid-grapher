@@ -21,6 +21,8 @@ import { faDownload, faHatWizard } from "@fortawesome/free-solid-svg-icons"
 import { faGithub } from "@fortawesome/free-brands-svg-icons"
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
 import { Button } from "antd"
+import urljoin from "url-join"
+
 interface DatasetPageData {
     id: number
     name: string
@@ -254,7 +256,10 @@ class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
                     </Link>
                     {/* Link to Wizard dataset preview */}
                     <a
-                        href={`${ETL_WIZARD_URL}datasets?datasetId=${dataset.id}`}
+                        href={urljoin(
+                            ETL_WIZARD_URL,
+                            `datasets?datasetId=${dataset.id}`
+                        )}
                         target="_blank"
                         className="btn btn-tertiary"
                         rel="noopener"

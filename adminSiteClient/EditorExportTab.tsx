@@ -12,6 +12,7 @@ import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
 import { faHatWizard, faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import urljoin from "url-join"
 
 type ExportSettings = Required<
     Pick<
@@ -231,7 +232,9 @@ export class EditorExportTab<
     }
 
     render() {
-        const chartAnimationUrl = new URL(`${ETL_WIZARD_URL}chart-animation`)
+        const chartAnimationUrl = new URL(
+            urljoin(ETL_WIZARD_URL, "chart-animation")
+        )
         if (this.grapher.canonicalUrl)
             chartAnimationUrl.searchParams.set(
                 "animation_chart_url",
