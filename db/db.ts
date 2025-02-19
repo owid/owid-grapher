@@ -887,7 +887,7 @@ export function getImageUsage(trx: KnexReadonlyTransaction): Promise<
     )
 }
 
-// A topic is any tag that has a slug.
+// A topic is any tag that has a slug matching the slug of a published topic page, linear topic page, or article.
 // We want to keep tags that have topic children (i.e. areas and sub-areas) but not leaf nodes that aren't topics
 function checkDoesFlatTagGraphNodeHaveAnyTopicChildren(
     node: FlatTagGraphNode,

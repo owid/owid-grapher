@@ -96,7 +96,7 @@ const AllTopicsSection = () => {
                                     className="homepage-topic__subtopic"
                                     key={`subarea-${name}`}
                                 >
-                                    {name}
+                                    {name}:
                                 </li>
                             )
                         )}
