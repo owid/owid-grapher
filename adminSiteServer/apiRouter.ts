@@ -41,7 +41,11 @@ import {
     deleteImageHandler,
     getImageUsageHandler,
 } from "./apiRoutes/images.js"
-import { handleMultiDimDataPageRequest } from "./apiRoutes/mdims.js"
+import {
+    handlePutMultiDim,
+    handleGetMultiDims,
+    handlePatchMultiDim,
+} from "./apiRoutes/mdims.js"
 import {
     fetchAllWork,
     fetchNamespaces,
@@ -264,11 +268,9 @@ deleteRouteWithRWTransaction(apiRouter, "/images/:id", deleteImageHandler)
 getRouteWithROTransaction(apiRouter, "/images/usage", getImageUsageHandler)
 
 // Mdim routes
-putRouteWithRWTransaction(
-    apiRouter,
-    "/multi-dim/:slug",
-    handleMultiDimDataPageRequest
-)
+getRouteWithROTransaction(apiRouter, "/multi-dims.json", handleGetMultiDims)
+putRouteWithRWTransaction(apiRouter, "/multi-dim/:slug", handlePutMultiDim)
+patchRouteWithRWTransaction(apiRouter, "/multi-dims/:id", handlePatchMultiDim)
 
 // Misc routes
 getRouteWithROTransaction(apiRouter, "/all-work", fetchAllWork)
