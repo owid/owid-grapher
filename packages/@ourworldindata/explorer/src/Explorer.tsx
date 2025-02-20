@@ -476,7 +476,7 @@ export class Explorer
     @action.bound private setGrapherTable(table: OwidTable) {
         if (this.grapher) {
             this.grapher.inputTable = table
-            this.grapher.appendNewEntitySelectionOptions()
+            this.grapher.updateAvailableEntitiesOfSelection()
         }
     }
 
@@ -1077,7 +1077,7 @@ export class Explorer
     }
 
     @computed get grapherTable() {
-        return this.grapher?.tableAfterAuthorTimelineFilter
+        return this.grapher?.tableAfterAuthorTimelineAndEntityFilter
     }
 
     @observable entityPickerMetric? = this.initialQueryParams.pickerMetric

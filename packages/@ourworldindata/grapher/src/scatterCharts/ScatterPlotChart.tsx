@@ -7,7 +7,6 @@ import {
     SeriesName,
     Color,
     EntityName,
-    OwidTableSlugs,
     ColorSchemeName,
     ValueRange,
     ColumnSlug,
@@ -135,39 +134,7 @@ export class ScatterPlotChart
         series: ScatterSeries
     }>()
 
-    private filterManuallySelectedEntities(table: OwidTable): OwidTable {
-        const { includedEntityNames, excludedEntityNames } = this.manager
-
-        if (!includedEntityNames && !excludedEntityNames) return table
-
-        const excludedSet = new Set(excludedEntityNames)
-        const includedSet = new Set(includedEntityNames)
-
-        const excludeFilter = (entityName: EntityName): boolean =>
-            !excludedSet.has(entityName)
-        const includeFilter = (entityName: EntityName): boolean =>
-            includedSet.size > 0 ? includedSet.has(entityName) : true
-
-        const filterFn = (entityName: any): boolean =>
-            excludeFilter(entityName) && includeFilter(entityName)
-
-        const excludedList = excludedEntityNames
-            ? excludedEntityNames.join(", ")
-            : ""
-        const includedList = includedEntityNames
-            ? includedEntityNames.join(", ")
-            : ""
-
-        return table.columnFilter(
-            OwidTableSlugs.entityName,
-            filterFn,
-            `Excluded entities specified by author: ${excludedList} - Included entities specified by author: ${includedList}`
-        )
-    }
-
     transformTable(table: OwidTable): OwidTable {
-        table = this.filterManuallySelectedEntities(table)
-
         if (this.xScaleType === ScaleType.log && this.xColumnSlug)
             table = table.replaceNonPositiveCellsForLogScale([this.xColumnSlug])
 
@@ -228,8 +195,6 @@ export class ScatterPlotChart
     }
 
     transformTableForDisplay(table: OwidTable): OwidTable {
-        table = this.filterManuallySelectedEntities(table)
-
         // Drop any rows which have non-number values for X or Y.
         table = table
             .columnFilter(
@@ -287,8 +252,6 @@ export class ScatterPlotChart
             animationStartTime,
             animationEndTime
         )
-
-        table = this.filterManuallySelectedEntities(table)
 
         if (this.manager.matchingEntitiesOnly && !this.colorColumn.isMissing) {
             table = table.filterByEntityNames(

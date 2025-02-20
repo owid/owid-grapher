@@ -60,6 +60,11 @@ export class SelectionArray {
         return this
     }
 
+    @action.bound setAvailableEntities(entities: Entity[]): this {
+        this.availableEntities = entities
+        return this
+    }
+
     @action.bound selectAll(): this {
         return this.addToSelection(this.unselectedEntityNames)
     }
