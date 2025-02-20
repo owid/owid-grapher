@@ -167,6 +167,39 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
+    filterByEntityNamesUsingIncludeExcludePattern({
+        excluded,
+        included,
+    }: {
+        excluded?: EntityName[]
+        included?: EntityName[]
+    }): this {
+        if (!included && !excluded) return this
+
+        const excludedSet = new Set(excluded)
+        const includedSet = new Set(included)
+
+        const excludeFilter = (entityName: EntityName): boolean =>
+            !excludedSet.has(entityName)
+        const includeFilter =
+            includedSet.size > 0
+                ? (entityName: EntityName): boolean =>
+                      includedSet.has(entityName)
+                : (): boolean => true
+
+        const filterFn = (entityName: any): boolean =>
+            excludeFilter(entityName) && includeFilter(entityName)
+
+        const excludedList = excluded ? excluded.join(", ") : ""
+        const includedList = included ? included.join(", ") : ""
+
+        return this.columnFilter(
+            this.entityNameSlug,
+            filterFn,
+            `Excluded entities specified by author: ${excludedList} - Included entities specified by author: ${includedList}`
+        )
+    }
+
     // Does a stable sort by time. You can refer to this table for fast time filtering.
     @imemo private get sortedByTime(): this {
         if (this.timeColumn.isMissing) return this

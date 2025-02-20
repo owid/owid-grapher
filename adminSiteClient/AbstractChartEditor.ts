@@ -181,8 +181,23 @@ export abstract class AbstractChartEditor<
         return difference(focusedSeriesNames, availableSeriesNames)
     }
 
+    @computed get invalidSelectedEntityNames(): SeriesName[] {
+        const { grapher } = this
+
+        // find invalid selected entities
+        const availableEntityNames = grapher.availableEntities.map(
+            (e) => e.entityName
+        )
+        const selectedEntityNames = grapher.selection.selectedEntityNames
+        return difference(selectedEntityNames, availableEntityNames)
+    }
+
     @action.bound removeInvalidFocusedSeriesNames(): void {
         this.grapher.focusArray.remove(...this.invalidFocusedSeriesNames)
+    }
+
+    @action.bound removeInvalidSelectedEntityNames(): void {
+        this.grapher.selection.deselectEntities(this.invalidSelectedEntityNames)
     }
 
     abstract get isNewGrapher(): boolean

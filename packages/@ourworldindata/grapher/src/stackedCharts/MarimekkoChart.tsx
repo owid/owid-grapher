@@ -37,7 +37,6 @@ import { ChartInterface } from "../chart/ChartInterface"
 import {
     EntityName,
     OwidVariableRow,
-    OwidTableSlugs,
     VerticalAlign,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -276,41 +275,9 @@ export class MarimekkoChart
         entityName: string
     }>()
 
-    private filterManuallySelectedEntities(table: OwidTable): OwidTable {
-        const { includedEntityNames, excludedEntityNames } = this.manager
-
-        if (!includedEntityNames && !excludedEntityNames) return table
-
-        const excludedSet = new Set(excludedEntityNames)
-        const includedSet = new Set(includedEntityNames)
-
-        const excludeFilter = (entityName: EntityName): boolean =>
-            !excludedSet.has(entityName)
-        const includeFilter = (entityName: EntityName): boolean =>
-            includedSet.size > 0 ? includedSet.has(entityName) : true
-
-        const filterFn = (entityName: any): boolean =>
-            excludeFilter(entityName) && includeFilter(entityName)
-
-        const excludedList = excludedEntityNames
-            ? excludedEntityNames.join(", ")
-            : ""
-        const includedList = includedEntityNames
-            ? includedEntityNames.join(", ")
-            : ""
-
-        return table.columnFilter(
-            OwidTableSlugs.entityName,
-            filterFn,
-            `Excluded entities specified by author: ${excludedList} - Included entities specified by author: ${includedList}`
-        )
-    }
-
     transformTable(table: OwidTable): OwidTable {
         const { yColumnSlugs, manager, colorColumnSlug, xColumnSlug } = this
         if (!this.yColumnSlugs.length) return table
-
-        table = this.filterManuallySelectedEntities(table)
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(yColumnSlugs)
@@ -346,10 +313,6 @@ export class MarimekkoChart
         }
 
         return table
-    }
-
-    transformTableForDisplay(table: OwidTable): OwidTable {
-        return this.filterManuallySelectedEntities(table)
     }
 
     @computed get inputTable(): OwidTable {
