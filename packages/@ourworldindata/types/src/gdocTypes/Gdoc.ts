@@ -219,6 +219,7 @@ export interface OwidGdocAboutContent {
     excerpt?: string
     "featured-image"?: string
     authors: string[]
+    "hide-nav"?: boolean
     body: OwidEnrichedGdocBlock[]
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
 }
