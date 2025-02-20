@@ -1077,7 +1077,7 @@ export class Explorer
     }
 
     @computed get grapherTable() {
-        return this.grapher?.tableAfterAuthorTimelineFilter
+        return this.grapher?.tableAfterAuthorTimelineAndEntityFilter
     }
 
     @observable entityPickerMetric? = this.initialQueryParams.pickerMetric
