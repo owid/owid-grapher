@@ -5,6 +5,10 @@ import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings"
 
 export type File = string | Blob | RcFile
 
+type FigmaResponse =
+    | { success: true; imageUrl: string }
+    | { success: false; errorMessage: string }
+
 type FileToBase64Result = {
     filename: string
     content: string
@@ -35,13 +39,13 @@ export function fileToBase64(file: File): Promise<FileToBase64Result | null> {
     })
 }
 
-export async function reuploadImageFromSourceUrl({
+export async function uploadImageFromSourceUrl({
     admin,
     image,
     sourceUrl,
 }: {
     admin: Admin
-    image: { id: number; filename: string }
+    image: { id?: number; filename: string }
     sourceUrl: string
 }): Promise<ImageUploadResponse> {
     const imageResponse = await fetch(sourceUrl)
@@ -56,15 +60,48 @@ export async function reuploadImageFromSourceUrl({
     }
     payload.filename = image.filename
 
-    const response = await admin.requestJSON<ImageUploadResponse>(
-        `/api/images/${image.id}`,
-        payload,
-        "PUT"
-    )
+    if (image.id) {
+        return admin.requestJSON(`/api/images/${image.id}`, payload, "PUT")
+    } else {
+        return admin.requestJSON(`/api/images`, payload, "POST")
+    }
+}
 
-    return response
+export async function fetchFigmaProvidedImageUrl(
+    admin: Admin,
+    figmaUrl: string
+): Promise<FigmaResponse> {
+    const { fileId, nodeId } = extractIdsFromFigmaUrl(figmaUrl) ?? {}
+    if (!fileId || !nodeId)
+        return {
+            success: false,
+            errorMessage:
+                "Invalid Figma URL. The provided URL should point to a Figma node.",
+        }
+
+    try {
+        return admin.getJSON("/api/figma/image", { fileId, nodeId })
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : String(error)
+        return { success: false, errorMessage }
+    }
 }
 
 export function makeImageSrc(cloudflareId: string, width: number) {
     return `${CLOUDFLARE_IMAGES_URL}/${encodeURIComponent(cloudflareId)}/w=${width}`
+}
+
+function extractIdsFromFigmaUrl(
+    figmaUrl: string
+): { fileId: string; nodeId: string } | undefined {
+    const regex =
+        /figma\.com\/design\/(?<fileId>[^/]+).*[?&]node-id=(?<nodeId>[^&]+)/
+    const { groups } = figmaUrl.match(regex) ?? {}
+    if (groups) {
+        const fileId = groups.fileId
+        const nodeId = groups.nodeId.replace("-", ":")
+        return { fileId, nodeId }
+    }
+    return undefined
 }

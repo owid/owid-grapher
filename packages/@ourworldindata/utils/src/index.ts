@@ -130,6 +130,7 @@ export {
     getParentVariableIdFromChartConfig,
     isArrayDifferentFromReference,
     readFromAssetMap,
+    downloadImage,
 } from "./Util.js"
 
 export {

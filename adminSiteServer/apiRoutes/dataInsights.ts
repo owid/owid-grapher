@@ -14,11 +14,19 @@ import {
     parsePostGdocContent,
 } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
-import { getTagsGroupedByGdocId } from "../../db/model/Gdoc/GdocFactory.js"
+import {
+    createOrLoadGdocById,
+    getTagsGroupedByGdocId,
+} from "../../db/model/Gdoc/GdocFactory.js"
 import {
     getChartTypeFromConfig,
     getChartTypeFromConfigAndQueryParams,
 } from "@ourworldindata/grapher"
+import {
+    createGdocFromTemplate,
+    replacePlaceholdersInGdoc,
+} from "../../db/model/Gdoc/archieToGdoc.js"
+import { GDOCS_DATA_INSIGHT_API_TEMPLATE_ID } from "../../settings/clientSettings.js"
 
 const GRAPHER_URL_PREFIX = "https://ourworldindata.org/grapher/"
 const EXPLORER_URL_PREFIX = "https://ourworldindata.org/explorers/"
@@ -42,6 +50,46 @@ export async function getAllDataInsightIndexItems(
     trx: db.KnexReadonlyTransaction
 ) {
     return getAllDataInsightIndexItemsOrderedByUpdatedAt(trx)
+}
+
+export async function createDataInsightGDoc(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    // Find the user's data insight folder
+    const targetFolder = res.locals.user.dataInsightFolderId
+    if (!targetFolder) {
+        throw new Error(
+            `Data insight folder doesn't exist for ${res.locals.user.fullName}`
+        )
+    }
+
+    // Create a new GDoc from the template
+    const docTitle = req.body.title ?? "Untitled Data Insight"
+    const gdocId = await createGdocFromTemplate(
+        GDOCS_DATA_INSIGHT_API_TEMPLATE_ID,
+        docTitle,
+        targetFolder
+    )
+
+    // Insert given information into the GDoc
+    const previewLink = `https://admin.owid.io/admin/gdocs/${gdocId}/preview`
+    const replacements = {
+        title: req.body.title ?? "",
+        authors: req.body.authors ?? "",
+        "grapher-url": req.body.grapherUrl ?? "",
+        "narrative-chart": req.body.narrativeChart ?? "",
+        "figma-url": req.body.figmaUrl ?? "",
+        filename: req.body.filename ?? "",
+        "preview-link": previewLink,
+    }
+    await replacePlaceholdersInGdoc(gdocId, replacements)
+
+    // Load the GDoc into the database
+    await createOrLoadGdocById(trx, gdocId)
+
+    return { success: true, gdocId }
 }
 
 async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
