@@ -67,23 +67,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.entityNameColumn.uniqValuesAsSet
     }
 
-    // todo: can we remove at some point?
-    @imemo get entityIdToNameMap(): Map<number, string> {
-        return this.valueIndex(
-            this.entityIdColumn.slug,
-            this.entityNameColumn.slug
-        ) as Map<number, string>
-    }
-
-    // todo: can we remove at some point?
-    @imemo get entityCodeToNameMap(): Map<string, string> {
-        return this.valueIndex(
-            this.entityCodeColumn.slug,
-            this.entityNameColumn.slug
-        ) as Map<string, string>
-    }
-
-    // todo: can we remove at some point?
     @imemo get entityNameToIdMap(): Map<string, number> {
         return this.valueIndex(
             this.entityNameColumn.slug,
@@ -91,7 +74,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         ) as Map<string, number>
     }
 
-    // todo: can we remove at some point?
     @imemo get entityNameToCodeMap(): Map<string, string> {
         return this.valueIndex(
             this.entityNameColumn.slug,
