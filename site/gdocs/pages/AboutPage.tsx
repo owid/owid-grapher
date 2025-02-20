@@ -8,12 +8,13 @@ import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import Footnotes from "../components/Footnotes.js"
 
 export default function AboutPage({ content, slug }: OwidGdocAboutInterface) {
+    const shouldOverrideTitle = content["override-title"]
     return (
         <main className="about-page centered-article-container grid grid-cols-12-full-width">
             <h1 className="about-header col-start-2 col-end-limit display-2-semibold">
-                About
+                {(shouldOverrideTitle && content.title) || "About"}
             </h1>
-            <AboutNav slug={slug} />
+            <AboutNav slug={slug} hideNav={content["hide-nav"]} />
             <div className="about-body grid grid-cols-12-full-width col-start-1 col-end-limit">
                 <ArticleBlocks
                     containerType="about-page"
@@ -27,7 +28,7 @@ export default function AboutPage({ content, slug }: OwidGdocAboutInterface) {
     )
 }
 
-function AboutNav({ slug }: { slug: string }) {
+function AboutNav({ slug, hideNav }: { slug: string; hideNav?: boolean }) {
     const activeLinkRef = useRef<HTMLAnchorElement>(null)
 
     // Scroll the nav to the active link, since it might not be visible
@@ -46,6 +47,8 @@ function AboutNav({ slug }: { slug: string }) {
             }
         }
     }, [])
+
+    if (hideNav) return null
 
     return (
         <nav className="about-nav grid grid-cols-12-full-width col-start-1 col-end-limit">
