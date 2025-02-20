@@ -2,7 +2,6 @@ import { faMinus, faTrash } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { EntityName } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
-import { excludeUndefined } from "@ourworldindata/utils"
 import lodash from "lodash"
 import { action, computed, IReactionDisposer, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
@@ -18,91 +17,71 @@ export class EditorMarimekkoTab extends Component<{ grapher: Grapher }> {
     }
 
     @computed private get includedEntityNames(): EntityName[] {
-        const { includedEntities, inputTable } = this.props.grapher
-        const { entityIdToNameMap } = inputTable
-        const includedEntityIds = includedEntities ?? []
-        return excludeUndefined(
-            includedEntityIds.map((entityId) => entityIdToNameMap.get(entityId))
-        )
-    }
-
-    @computed private get includedEntityChoices() {
-        const { inputTable } = this.props.grapher
-        return inputTable.availableEntityNames
-            .filter(
-                (entityName) => !this.includedEntityNames.includes(entityName)
-            )
-            .sort()
-    }
-
-    @action.bound onIncludeEntity(entity: string) {
-        const { grapher } = this.props
-        if (grapher.includedEntities === undefined) {
-            grapher.includedEntities = []
-        }
-
-        const entityId = grapher.table.entityNameToIdMap.get(entity)!
-        if (grapher.includedEntities.indexOf(entityId) === -1)
-            grapher.includedEntities.push(entityId)
-    }
-
-    @action.bound onUnincludeEntity(entity: string) {
-        const { grapher } = this.props
-        if (!grapher.includedEntities) return
-
-        const entityId = grapher.table.entityNameToIdMap.get(entity)
-        grapher.includedEntities = grapher.includedEntities.filter(
-            (e) => e !== entityId
-        )
+        return this.props.grapher.includedEntityNames ?? []
     }
 
     @computed private get excludedEntityNames(): EntityName[] {
-        const { excludedEntities, inputTable } = this.props.grapher
-        const { entityIdToNameMap } = inputTable
-        const excludedEntityIds = excludedEntities ?? []
-        return excludeUndefined(
-            excludedEntityIds.map((entityId) => entityIdToNameMap.get(entityId))
-        )
+        return this.props.grapher.excludedEntityNames ?? []
     }
 
-    @computed private get excludedEntityChoices() {
-        const { inputTable } = this.props.grapher
+    @computed private get includedEntityChoices() {
+        const { inputTable, includedEntityNames = [] } = this.props.grapher
         return inputTable.availableEntityNames
-            .filter(
-                (entityName) => !this.excludedEntityNames.includes(entityName)
-            )
+            .filter((entityName) => !includedEntityNames.includes(entityName))
             .sort()
     }
 
-    @action.bound onExcludeEntity(entity: string) {
-        const { grapher } = this.props
-        if (grapher.excludedEntities === undefined) {
-            grapher.excludedEntities = []
-        }
-
-        const entityId = grapher.table.entityNameToIdMap.get(entity)!
-        if (grapher.excludedEntities.indexOf(entityId) === -1)
-            grapher.excludedEntities.push(entityId)
+    @computed private get excludedEntityChoices() {
+        const { inputTable, excludedEntityNames = [] } = this.props.grapher
+        return inputTable.availableEntityNames
+            .filter((entityName) => !excludedEntityNames.includes(entityName))
+            .sort()
     }
 
-    @action.bound onUnexcludeEntity(entity: string) {
+    @action.bound onExcludeEntity(entityName: string) {
         const { grapher } = this.props
-        if (!grapher.excludedEntities) return
+        if (grapher.excludedEntityNames === undefined) {
+            grapher.excludedEntityNames = []
+        }
 
-        const entityId = grapher.table.entityNameToIdMap.get(entity)
-        grapher.excludedEntities = grapher.excludedEntities.filter(
-            (e) => e !== entityId
+        if (!grapher.excludedEntityNames.includes(entityName))
+            grapher.excludedEntityNames.push(entityName)
+    }
+
+    @action.bound onUnexcludeEntity(entityName: string) {
+        const { grapher } = this.props
+        if (!grapher.excludedEntityNames) return
+        grapher.excludedEntityNames = grapher.excludedEntityNames.filter(
+            (e) => e !== entityName
+        )
+    }
+
+    @action.bound onIncludeEntity(entityName: string) {
+        const { grapher } = this.props
+        if (grapher.includedEntityNames === undefined) {
+            grapher.includedEntityNames = []
+        }
+
+        if (!grapher.includedEntityNames.includes(entityName))
+            grapher.includedEntityNames.push(entityName)
+    }
+
+    @action.bound onUnincludeEntity(entityName: string) {
+        const { grapher } = this.props
+        if (!grapher.includedEntityNames) return
+        grapher.includedEntityNames = grapher.includedEntityNames.filter(
+            (e) => e !== entityName
         )
     }
 
     @action.bound onClearExcludedEntities() {
         const { grapher } = this.props
-        grapher.excludedEntities = []
+        grapher.excludedEntityNames = []
     }
 
     @action.bound onClearIncludedEntities() {
         const { grapher } = this.props
-        grapher.includedEntities = []
+        grapher.includedEntityNames = []
     }
 
     @action.bound onXOverrideYear(value: number | undefined) {

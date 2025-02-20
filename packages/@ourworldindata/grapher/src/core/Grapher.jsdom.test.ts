@@ -1080,14 +1080,14 @@ describe("tableForSelection", () => {
             [1, "UK", "", 2002, 1, null, null, null],
             [1, "UK", "", 2003, null, null, null, null],
             [2, "Barbados", "", 2000, null, null, null, null], // x, y value missing
-            [3, "USA", "", 2001, 2, 1, null, null], // excluded via excludedEntities
+            [3, "USA", "", 2001, 2, 1, null, null], // excluded via excludedEntityNames
             [4, "France", "", 2000, 0, null, null, null], // y value missing
         ])
 
         const grapher = new Grapher({
             table,
             chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
-            excludedEntities: [3],
+            excludedEntityNames: ["USA"],
             xSlug: "x",
             ySlugs: "y",
         })

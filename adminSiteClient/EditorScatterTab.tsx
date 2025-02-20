@@ -6,7 +6,7 @@ import {
     ScatterPointLabelStrategy,
 } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
-import { debounce, excludeUndefined } from "@ourworldindata/utils"
+import { debounce } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
@@ -33,91 +33,71 @@ export class EditorScatterTab extends Component<{ grapher: Grapher }> {
     }
 
     @computed private get includedEntityNames(): EntityName[] {
-        const { includedEntities, inputTable } = this.props.grapher
-        const { entityIdToNameMap } = inputTable
-        const includedEntityIds = includedEntities ?? []
-        return excludeUndefined(
-            includedEntityIds.map((entityId) => entityIdToNameMap.get(entityId))
-        )
+        return this.props.grapher.includedEntityNames ?? []
     }
 
     @computed private get excludedEntityNames(): EntityName[] {
-        const { excludedEntities, inputTable } = this.props.grapher
-        const { entityIdToNameMap } = inputTable
-        const excludedEntityIds = excludedEntities ?? []
-        return excludeUndefined(
-            excludedEntityIds.map((entityId) => entityIdToNameMap.get(entityId))
-        )
+        return this.props.grapher.excludedEntityNames ?? []
     }
 
     @computed private get includedEntityChoices() {
-        const { inputTable } = this.props.grapher
+        const { inputTable, includedEntityNames = [] } = this.props.grapher
         return inputTable.availableEntityNames
-            .filter(
-                (entityName) => !this.includedEntityNames.includes(entityName)
-            )
+            .filter((entityName) => !includedEntityNames.includes(entityName))
             .sort()
     }
 
     @computed private get excludedEntityChoices() {
-        const { inputTable } = this.props.grapher
+        const { inputTable, excludedEntityNames = [] } = this.props.grapher
         return inputTable.availableEntityNames
-            .filter(
-                (entityName) => !this.excludedEntityNames.includes(entityName)
-            )
+            .filter((entityName) => !excludedEntityNames.includes(entityName))
             .sort()
     }
 
-    @action.bound onExcludeEntity(entity: string) {
+    @action.bound onExcludeEntity(entityName: string) {
         const { grapher } = this.props
-        if (grapher.excludedEntities === undefined) {
-            grapher.excludedEntities = []
+        if (grapher.excludedEntityNames === undefined) {
+            grapher.excludedEntityNames = []
         }
 
-        const entityId = grapher.table.entityNameToIdMap.get(entity)!
-        if (grapher.excludedEntities.indexOf(entityId) === -1)
-            grapher.excludedEntities.push(entityId)
+        if (!grapher.excludedEntityNames.includes(entityName))
+            grapher.excludedEntityNames.push(entityName)
     }
 
-    @action.bound onUnexcludeEntity(entity: string) {
+    @action.bound onUnexcludeEntity(entityName: string) {
         const { grapher } = this.props
-        if (!grapher.excludedEntities) return
-
-        const entityId = grapher.table.entityNameToIdMap.get(entity)
-        grapher.excludedEntities = grapher.excludedEntities.filter(
-            (e) => e !== entityId
+        if (!grapher.excludedEntityNames) return
+        grapher.excludedEntityNames = grapher.excludedEntityNames.filter(
+            (e) => e !== entityName
         )
     }
 
-    @action.bound onIncludeEntity(entity: string) {
+    @action.bound onIncludeEntity(entityName: string) {
         const { grapher } = this.props
-        if (grapher.includedEntities === undefined) {
-            grapher.includedEntities = []
+        if (grapher.includedEntityNames === undefined) {
+            grapher.includedEntityNames = []
         }
 
-        const entityId = grapher.table.entityNameToIdMap.get(entity)!
-        if (grapher.includedEntities.indexOf(entityId) === -1)
-            grapher.includedEntities.push(entityId)
+        if (!grapher.includedEntityNames.includes(entityName))
+            grapher.includedEntityNames.push(entityName)
     }
 
-    @action.bound onUnincludeEntity(entity: string) {
+    @action.bound onUnincludeEntity(entityName: string) {
         const { grapher } = this.props
-        if (!grapher.includedEntities) return
-
-        const entityId = grapher.table.entityNameToIdMap.get(entity)
-        grapher.includedEntities = grapher.includedEntities.filter(
-            (e) => e !== entityId
+        if (!grapher.includedEntityNames) return
+        grapher.includedEntityNames = grapher.includedEntityNames.filter(
+            (e) => e !== entityName
         )
     }
 
     @action.bound onClearExcludedEntities() {
         const { grapher } = this.props
-        grapher.excludedEntities = []
+        grapher.excludedEntityNames = []
     }
 
     @action.bound onClearIncludedEntities() {
         const { grapher } = this.props
-        grapher.includedEntities = []
+        grapher.includedEntityNames = []
     }
 
     @action.bound onToggleConnection(value: boolean) {
