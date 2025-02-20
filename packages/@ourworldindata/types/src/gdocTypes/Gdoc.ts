@@ -220,6 +220,10 @@ export interface OwidGdocAboutContent {
     "featured-image"?: string
     authors: string[]
     "hide-nav"?: boolean
+    // By default, all about pages render with the title "About" even if they have a title set
+    // (which we use in the gdocs index page in the admin)
+    // This boolean makes it so that the title is used in *both* locations
+    "override-title"?: boolean
     body: OwidEnrichedGdocBlock[]
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
 }

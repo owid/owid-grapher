@@ -8,10 +8,11 @@ import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import Footnotes from "../components/Footnotes.js"
 
 export default function AboutPage({ content, slug }: OwidGdocAboutInterface) {
+    const shouldOverrideTitle = content["override-title"]
     return (
         <main className="about-page centered-article-container grid grid-cols-12-full-width">
             <h1 className="about-header col-start-2 col-end-limit display-2-semibold">
-                {content.title || "About"}
+                {(shouldOverrideTitle && content.title) || "About"}
             </h1>
             <AboutNav slug={slug} hideNav={content["hide-nav"]} />
             <div className="about-body grid grid-cols-12-full-width col-start-1 col-end-limit">
