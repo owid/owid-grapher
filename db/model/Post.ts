@@ -6,7 +6,6 @@ import {
     parsePostWpApiSnapshot,
     FullPost,
     JsonError,
-    CategoryWithEntries,
     WP_PostType,
     FilterFnPostRestApi,
     PostRestApi,
@@ -40,7 +39,6 @@ import {
     CLOUDFLARE_IMAGES_URL,
 } from "../../settings/clientSettings.js"
 import { BLOG_SLUG } from "../../settings/serverSettings.js"
-import { SiteNavigationStatic } from "../../site/SiteConstants.js"
 import { decodeHTML } from "entities"
 import { getAndLoadListedGdocPosts } from "./Gdoc/GdocFactory.js"
 
@@ -185,22 +183,10 @@ export const getFullPostByIdFromSnapshot = async (
     return getFullPost(trx, postEnriched.wpApiSnapshot)
 }
 
-// TODO: I suggest that in the place where we define SiteNavigationStatic we create a Set with all the leaves and
-//       then this one becomes a simple lookup in the set. Probably nicest to do the set creation as a memoized function.
-export const isPostSlugCitable = (slug: string): boolean => {
-    const entries = SiteNavigationStatic.categories
-    return entries.some((category) => {
-        return (
-            category.entries.some((entry) => entry.slug === slug) ||
-            (category.subcategories ?? []).some(
-                (subcategory: CategoryWithEntries) => {
-                    return subcategory.entries.some(
-                        (subCategoryEntry) => subCategoryEntry.slug === slug
-                    )
-                }
-            )
-        )
-    })
+// There are no longer any citable WP posts.
+// Will remove this and related code in the future.
+export const isPostSlugCitable = (_: string): boolean => {
+    return false
 }
 
 export const getPostsFromSnapshots = async (

@@ -29,11 +29,13 @@ import {
     traverseEnrichedBlock,
     cartesian,
     formatInlineList,
+    flattenNonTopicNodes,
 } from "./Util.js"
 import {
     BlockImageSize,
     OwidEnrichedGdocBlock,
     SortOrder,
+    TagGraphRoot,
 } from "@ourworldindata/types"
 
 describe(findClosestTime, () => {
@@ -769,6 +771,88 @@ describe(cartesian, () => {
             ["b", "y", "+"],
             ["b", "y", "-"],
         ])
+    })
+})
+
+describe(flattenNonTopicNodes, () => {
+    it("Removes sub-areas from the TagGraphRoot", () => {
+        const root: TagGraphRoot = {
+            children: [
+                {
+                    children: [
+                        {
+                            children: [
+                                {
+                                    children: [],
+                                    id: 4,
+                                    isTopic: true,
+                                    name: "Life Expectancy",
+                                    path: [1, 2, 3, 4],
+                                    slug: "life-expectancy",
+                                    weight: 0,
+                                },
+                            ],
+                            id: 3,
+                            isTopic: false,
+                            name: "Life & Death",
+                            path: [1, 2, 3],
+                            slug: null,
+                            weight: 0,
+                        },
+                    ],
+                    id: 2,
+                    isTopic: false,
+                    name: "Health",
+                    path: [1, 2],
+                    slug: null,
+                    weight: 0,
+                },
+            ],
+            id: 1,
+            isTopic: false,
+            name: "tag-graph-root",
+            path: [1],
+            slug: null,
+            weight: 0,
+        }
+        const flattened = flattenNonTopicNodes(root)
+        expect(flattened.children[0].children[0].slug).toEqual(
+            "life-expectancy"
+        )
+    })
+
+    it("Removes non-area non-topic nodes that don't have children", () => {
+        const root: TagGraphRoot = {
+            id: 1,
+            name: "tag-graph-root",
+            slug: null,
+            weight: 0,
+            isTopic: false,
+            path: [1],
+            children: [
+                {
+                    id: 2,
+                    name: "Health",
+                    slug: null,
+                    weight: 0,
+                    isTopic: false,
+                    children: [
+                        {
+                            id: 3,
+                            name: "Unused sub-area",
+                            slug: null,
+                            weight: 0,
+                            isTopic: false,
+                            children: [],
+                            path: [1, 2, 3],
+                        },
+                    ],
+                    path: [1, 2],
+                },
+            ],
+        }
+        const flattened = flattenNonTopicNodes(root)
+        expect(flattened.children[0].children.length).toEqual(0)
     })
 })
 

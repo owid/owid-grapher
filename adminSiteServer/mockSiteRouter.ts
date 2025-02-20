@@ -548,6 +548,15 @@ getPlainRouteWithROTransaction(
     }
 )
 
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/topicTagGraph.json",
+    async (req, res, trx) => {
+        const headerMenu = await db.generateTopicTagGraph(trx)
+        res.send(headerMenu)
+    }
+)
+
 getPlainRouteWithROTransaction(mockSiteRouter, "/*", async (req, res, trx) => {
     // Remove leading and trailing slashes
     const slug = req.path.replace(/^\/|\/$/g, "")

@@ -11,11 +11,9 @@ import {
     OwidGdocPostContent,
     OwidGdocMinimalPostInterface,
     LinkedIndicator,
-    CategoryWithEntries,
-    EntryMeta,
-    SubNavId,
     OwidGdocDataInsightContent,
     OwidGdocLinkType,
+    SubNavId,
 } from "@ourworldindata/types"
 import {
     formatAuthors,
@@ -23,7 +21,7 @@ import {
     Url,
 } from "@ourworldindata/utils"
 import { AttachmentsContext } from "./AttachmentsContext.js"
-import { SiteNavigationStatic, SubnavItem, subnavs } from "../SiteConstants.js"
+import { SubnavItem, subnavs } from "../SiteConstants.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
 export const breadcrumbColorForCoverColor = (
@@ -171,29 +169,6 @@ export function getShortPageCitation(
         authors: authors,
     })} (${publishedAt?.getFullYear()}) - “${title}”`
 }
-
-export const allTopicsInCategory = (
-    category: CategoryWithEntries
-): EntryMeta[] => {
-    return [
-        ...category.entries,
-        ...(category.subcategories ?? []).flatMap(
-            (subcategory) => subcategory.entries
-        ),
-    ]
-}
-
-export const getUniqueTopicCount = () =>
-    SiteNavigationStatic.categories
-        .flatMap((category) => {
-            const subcategoryEntries =
-                category?.subcategories?.flatMap(
-                    (subcategory) => subcategory.entries || []
-                ) || []
-            return [...category.entries, ...subcategoryEntries]
-        })
-        .map((entry) => entry.slug)
-        .filter((value, index, array) => array.indexOf(value) === index).length
 
 export const getSubnavItem = (
     id: string | undefined,

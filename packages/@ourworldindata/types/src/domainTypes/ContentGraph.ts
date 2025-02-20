@@ -30,6 +30,7 @@ export type FlatTagGraphNode = Pick<DbPlainTag, "name" | "slug"> & {
     isTopic: boolean
     parentId: number
     childId: number
+    slug: string | null
 }
 
 export type FlatTagGraph = Record<number, FlatTagGraphNode[]>
