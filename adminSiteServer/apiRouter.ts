@@ -126,6 +126,7 @@ import {
     getChartTagsJson,
 } from "./apiRoutes/charts.js"
 import { getAllDataInsightIndexItems } from "./apiRoutes/dataInsights.js"
+import { getFigmaImageUrl } from "./apiRoutes/figma.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -446,6 +447,9 @@ getRouteWithROTransaction(
     "/variables/:variableId/charts.json",
     getVariablesVariableIdChartsJson
 )
+
+// Figma routes
+getRouteWithROTransaction(apiRouter, "/figma/image", getFigmaImageUrl)
 
 // Deploy helpers
 apiRouter.get("/deploys.json", async () => ({
