@@ -277,34 +277,40 @@ export class MarimekkoChart
     }>()
 
     private filterManuallySelectedEntities(table: OwidTable): OwidTable {
-        const { excludedEntities, includedEntities } = this.manager
-        const excludedEntityIdsSet = new Set(excludedEntities)
-        const includedEntityIdsSet = new Set(includedEntities)
-        const excludeEntitiesFilter = (entityId: any): boolean =>
-            !excludedEntityIdsSet.has(entityId as number)
-        const includedEntitiesFilter = (entityId: any): boolean =>
-            includedEntityIdsSet.size > 0
-                ? includedEntityIdsSet.has(entityId as number)
-                : true
-        const filterFn = (entityId: any): boolean =>
-            excludeEntitiesFilter(entityId) && includedEntitiesFilter(entityId)
-        const excludedList = excludedEntities ? excludedEntities.join(", ") : ""
-        const includedList = includedEntities ? includedEntities.join(", ") : ""
+        const { includedEntityNames, excludedEntityNames } = this.manager
+
+        if (!includedEntityNames && !excludedEntityNames) return table
+
+        const excludedSet = new Set(excludedEntityNames)
+        const includedSet = new Set(includedEntityNames)
+
+        const excludeFilter = (entityName: EntityName): boolean =>
+            !excludedSet.has(entityName)
+        const includeFilter = (entityName: EntityName): boolean =>
+            includedSet.size > 0 ? includedSet.has(entityName) : true
+
+        const filterFn = (entityName: any): boolean =>
+            excludeFilter(entityName) && includeFilter(entityName)
+
+        const excludedList = excludedEntityNames
+            ? excludedEntityNames.join(", ")
+            : ""
+        const includedList = includedEntityNames
+            ? includedEntityNames.join(", ")
+            : ""
+
         return table.columnFilter(
-            OwidTableSlugs.entityId,
+            OwidTableSlugs.entityName,
             filterFn,
-            `Excluded entity ids specified by author: ${excludedList} - Included entity ids specified by author: ${includedList}`
+            `Excluded entities specified by author: ${excludedList} - Included entities specified by author: ${includedList}`
         )
     }
 
     transformTable(table: OwidTable): OwidTable {
-        const { excludedEntities, includedEntities } = this.manager
         const { yColumnSlugs, manager, colorColumnSlug, xColumnSlug } = this
         if (!this.yColumnSlugs.length) return table
 
-        if (excludedEntities || includedEntities) {
-            table = this.filterManuallySelectedEntities(table)
-        }
+        table = this.filterManuallySelectedEntities(table)
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(yColumnSlugs)
@@ -343,13 +349,7 @@ export class MarimekkoChart
     }
 
     transformTableForDisplay(table: OwidTable): OwidTable {
-        const { includedEntities, excludedEntities } = this.manager
-
-        if (excludedEntities || includedEntities) {
-            table = this.filterManuallySelectedEntities(table)
-        }
-
-        return table
+        return this.filterManuallySelectedEntities(table)
     }
 
     @computed get inputTable(): OwidTable {
