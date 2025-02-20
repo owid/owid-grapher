@@ -5,7 +5,6 @@ import {
     SortConfig,
     Time,
     Bounds,
-    EntityId,
     EntityName,
 } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -13,13 +12,13 @@ import { StackedPoint } from "./StackedConstants"
 import { DualAxis } from "../axis/Axis"
 export interface MarimekkoChartManager extends ChartManager {
     endTime?: Time
-    excludedEntities?: EntityId[]
     matchingEntitiesOnly?: boolean
     xOverrideTime?: number
     tableAfterAuthorTimelineAndActiveChartTransform?: OwidTable
     sortConfig?: SortConfig
     hideNoDataArea?: boolean
-    includedEntities?: number[]
+    excludedEntityNames?: EntityName[]
+    includedEntityNames?: EntityName[]
 }
 
 export interface EntityColorData {

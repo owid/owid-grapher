@@ -136,32 +136,37 @@ export class ScatterPlotChart
     }>()
 
     private filterManuallySelectedEntities(table: OwidTable): OwidTable {
-        const { includedEntities, excludedEntities } = this.manager
-        const excludedEntityIdsSet = new Set(excludedEntities)
-        const includedEntityIdsSet = new Set(includedEntities)
-        const excludeEntitiesFilter = (entityId: any): boolean =>
-            !excludedEntityIdsSet.has(entityId as number)
-        const includedEntitiesFilter = (entityId: any): boolean =>
-            includedEntityIdsSet.size > 0
-                ? includedEntityIdsSet.has(entityId as number)
-                : true
-        const filterFn = (entityId: any): boolean =>
-            excludeEntitiesFilter(entityId) && includedEntitiesFilter(entityId)
-        const excludedList = excludedEntities ? excludedEntities.join(", ") : ""
-        const includedList = includedEntities ? includedEntities.join(", ") : ""
+        const { includedEntityNames, excludedEntityNames } = this.manager
+
+        if (!includedEntityNames && !excludedEntityNames) return table
+
+        const excludedSet = new Set(excludedEntityNames)
+        const includedSet = new Set(includedEntityNames)
+
+        const excludeFilter = (entityName: EntityName): boolean =>
+            !excludedSet.has(entityName)
+        const includeFilter = (entityName: EntityName): boolean =>
+            includedSet.size > 0 ? includedSet.has(entityName) : true
+
+        const filterFn = (entityName: any): boolean =>
+            excludeFilter(entityName) && includeFilter(entityName)
+
+        const excludedList = excludedEntityNames
+            ? excludedEntityNames.join(", ")
+            : ""
+        const includedList = includedEntityNames
+            ? includedEntityNames.join(", ")
+            : ""
+
         return table.columnFilter(
-            OwidTableSlugs.entityId,
+            OwidTableSlugs.entityName,
             filterFn,
-            `Excluded entity ids specified by author: ${excludedList} - Included entity ids specified by author: ${includedList}`
+            `Excluded entities specified by author: ${excludedList} - Included entities specified by author: ${includedList}`
         )
     }
 
     transformTable(table: OwidTable): OwidTable {
-        const { includedEntities, excludedEntities } = this.manager
-
-        if (excludedEntities || includedEntities) {
-            table = this.filterManuallySelectedEntities(table)
-        }
+        table = this.filterManuallySelectedEntities(table)
 
         if (this.xScaleType === ScaleType.log && this.xColumnSlug)
             table = table.replaceNonPositiveCellsForLogScale([this.xColumnSlug])
@@ -223,11 +228,7 @@ export class ScatterPlotChart
     }
 
     transformTableForDisplay(table: OwidTable): OwidTable {
-        const { includedEntities, excludedEntities } = this.manager
-
-        if (excludedEntities || includedEntities) {
-            table = this.filterManuallySelectedEntities(table)
-        }
+        table = this.filterManuallySelectedEntities(table)
 
         // Drop any rows which have non-number values for X or Y.
         table = table
@@ -278,12 +279,7 @@ export class ScatterPlotChart
         size?: ValueRange
     } {
         const { inputTable } = this
-        const {
-            animationStartTime,
-            animationEndTime,
-            includedEntities,
-            excludedEntities,
-        } = this.manager
+        const { animationStartTime, animationEndTime } = this.manager
 
         if (!animationStartTime || !animationEndTime) return {}
 
@@ -292,9 +288,7 @@ export class ScatterPlotChart
             animationEndTime
         )
 
-        if (excludedEntities || includedEntities) {
-            table = this.filterManuallySelectedEntities(table)
-        }
+        table = this.filterManuallySelectedEntities(table)
 
         if (this.manager.matchingEntitiesOnly && !this.colorColumn.isMissing) {
             table = table.filterByEntityNames(

@@ -469,7 +469,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 EditorOption.primitiveListEditor,
                 () =>
                     // TODO: handle different kinds of arrays here. In effect, the ones to handle are
-                    // includedEntities, excludedEntities (both with a yet to extract control)
+                    // includedEntityNames, excludedEntityNames (both with a yet to extract control)
                     // selection. The seleciton should be refactored because ATM it's 3 arrays and it
                     // is annoying to keep those in sync and target more than one field with a column.
                     undefined
