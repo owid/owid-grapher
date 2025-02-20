@@ -865,7 +865,7 @@ export class Grapher
         // (2) needs to have data for the x and y dimension.
         let table = this.isScatter
             ? this.tableAfterAuthorTimelineAndActiveChartTransform
-            : this.inputTable
+            : this.tableAfterAuthorTimelineAndEntityFilter
 
         if (!this.isReady) return table
 
@@ -916,10 +916,15 @@ export class Grapher
         return table
     }
 
-    // If an author sets a timeline filter run it early in the pipeline so to the charts it's as if the filtered times do not exist
-    @computed get tableAfterAuthorTimelineFilter(): OwidTable {
-        const table = this.tableAfterColorAndSizeToleranceApplication
+    // If an author sets a timeline or entity filter, run it early in the pipeline
+    // so to the charts it's as if the filtered times and entities do not exist
+    @computed get tableAfterAuthorTimelineAndEntityFilter(): OwidTable {
+        let table = this.tableAfterColorAndSizeToleranceApplication
 
+        // Filter entities
+        table = table.filterEntitiesByIncludeExcludePattern(this)
+
+        // Filter times
         if (
             this.timelineMinTime === undefined &&
             this.timelineMaxTime === undefined
@@ -938,7 +943,7 @@ export class Grapher
 
     @computed
     get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
-        const table = this.tableAfterAuthorTimelineFilter
+        const table = this.tableAfterAuthorTimelineAndEntityFilter
         if (!this.isReady || !this.isOnChartOrMapTab) return table
 
         const startMark = performance.now()
@@ -989,7 +994,7 @@ export class Grapher
     }
 
     @computed get table(): OwidTable {
-        return this.tableAfterAuthorTimelineFilter
+        return this.tableAfterAuthorTimelineAndEntityFilter
     }
 
     @computed
@@ -1833,7 +1838,8 @@ export class Grapher
     }
 
     @computed private get areHandlesOnSameTime(): boolean {
-        const times = this.tableAfterAuthorTimelineFilter.timeColumn.uniqValues
+        const times =
+            this.tableAfterAuthorTimelineAndEntityFilter.timeColumn.uniqValues
         const [start, end] = this.timelineHandleTimeBounds.map((time) =>
             findClosestTime(times, time)
         )
@@ -2151,7 +2157,8 @@ export class Grapher
         // We can have cases where minTime = Infinity and/or maxTime = -Infinity,
         // but still only a single year is selected.
         // To check for that we need to look at the times array.
-        const times = this.tableAfterAuthorTimelineFilter.timeColumn.uniqValues
+        const times =
+            this.tableAfterAuthorTimelineAndEntityFilter.timeColumn.uniqValues
         const closestMinTime = findClosestTime(times, minTime ?? -Infinity)
         const closestMaxTime = findClosestTime(times, maxTime ?? Infinity)
         return closestMinTime !== undefined && closestMinTime === closestMaxTime
@@ -3680,7 +3687,7 @@ export class Grapher
     }
 
     @computed get animationEndTime(): Time {
-        const { timeColumn } = this.tableAfterAuthorTimelineFilter
+        const { timeColumn } = this.tableAfterAuthorTimelineAndEntityFilter
         if (this.timelineMaxTime) {
             return (
                 findClosestTime(timeColumn.uniqValues, this.timelineMaxTime) ??
