@@ -557,6 +557,16 @@ export default function ArticleBlock({
                 className={getLayout("topic-page-intro", containerType)}
             />
         ))
+        .with({ type: "cookie-notice" }, () => {
+            return (
+                <div
+                    className={cx(
+                        getLayout("cookie-notice", containerType),
+                        "wp-block-cookie-preferences"
+                    )}
+                ></div>
+            )
+        })
         .with({ type: "key-insights" }, (block) => (
             <KeyInsights
                 {...block}

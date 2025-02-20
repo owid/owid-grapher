@@ -943,6 +943,15 @@ export type EnrichedBlockLatestDataInsights = {
     type: "latest-data-insights"
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockCookieNotice = {
+    type: "cookie-notice"
+    value: Record<string, never>
+}
+
+export type EnrichedBlockCookieNotice = {
+    type: "cookie-notice"
+} & EnrichedBlockWithParseErrors
+
 export enum SocialLinkType {
     X = "x",
     Facebook = "facebook",
@@ -1027,6 +1036,7 @@ export type OwidRawGdocBlock =
     | RawBlockHomepageSearch
     | RawBlockHomepageIntro
     | RawBlockLatestDataInsights
+    | RawBlockCookieNotice
     | RawBlockSocials
 
 export type OwidEnrichedGdocBlock =
@@ -1078,4 +1088,5 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockHomepageSearch
     | EnrichedBlockHomepageIntro
     | EnrichedBlockLatestDataInsights
+    | EnrichedBlockCookieNotice
     | EnrichedBlockSocials
