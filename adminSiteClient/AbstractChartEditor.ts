@@ -14,7 +14,7 @@ import { Admin } from "./Admin.js"
 import { defaultGrapherConfig, Grapher } from "@ourworldindata/grapher"
 import { ChartViewMinimalInformation } from "./ChartEditor.js"
 import { IndicatorChartInfo } from "./IndicatorChartEditor.js"
-import { DataInsight } from "../adminShared/AdminTypes.js"
+import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
 
 export type EditorTab =
     | "basic"
@@ -42,7 +42,7 @@ export interface References {
     explorers?: string[]
     chartViews?: ChartViewMinimalInformation[]
     childCharts?: IndicatorChartInfo[]
-    dataInsights?: DataInsight[]
+    dataInsights?: DataInsightMinimalInformation[]
 }
 
 export abstract class AbstractChartEditor<

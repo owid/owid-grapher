@@ -13,10 +13,11 @@ export interface ApiChartViewOverview {
     title: string
 }
 
-export interface DataInsight {
+export interface DataInsightMinimalInformation {
     gdocId: string
     title: string
     published: boolean
+    narrativeChart?: string
     figmaUrl?: string
     image?: {
         id: NonNullable<DbRawImage["id"]>
