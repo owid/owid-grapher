@@ -264,18 +264,25 @@ export class VerticalAxisComponent extends React.Component<{
                 id={makeIdForHumanConsumption("vertical-axis")}
                 className="VerticalAxis"
             >
-                {labelTextWrap &&
-                    labelTextWrap.renderSVG(labelX, labelY, {
-                        id: makeIdForHumanConsumption("vertical-axis-label"),
-                        textProps: {
-                            transform: isLabelCentered
-                                ? "rotate(-90)"
-                                : undefined,
-                            fill: labelColor || GRAPHER_DARK_TEXT,
-                            textAnchor: isLabelCentered ? "middle" : "start",
-                        },
-                        detailsMarker,
-                    })}
+                {labelTextWrap && (
+                    <React.Fragment key={labelTextWrap.text}>
+                        {labelTextWrap.renderSVG(labelX, labelY, {
+                            id: makeIdForHumanConsumption(
+                                "vertical-axis-label"
+                            ),
+                            textProps: {
+                                transform: isLabelCentered
+                                    ? "rotate(-90)"
+                                    : undefined,
+                                fill: labelColor || GRAPHER_DARK_TEXT,
+                                textAnchor: isLabelCentered
+                                    ? "middle"
+                                    : "start",
+                            },
+                            detailsMarker,
+                        })}
+                    </React.Fragment>
+                )}
                 {showTickMarks && (
                     <g id={makeIdForHumanConsumption("tick-marks")}>
                         {tickLabels.map((label, i) => (
@@ -390,15 +397,20 @@ export class HorizontalAxisComponent extends React.Component<{
                 id={makeIdForHumanConsumption("horizontal-axis")}
                 className="HorizontalAxis"
             >
-                {label &&
-                    label.renderSVG(labelX, labelYPosition, {
-                        id: makeIdForHumanConsumption("horizontal-axis-label"),
-                        textProps: {
-                            fill: labelColor || GRAPHER_DARK_TEXT,
-                            textAnchor: isLabelCentered ? "middle" : "end",
-                        },
-                        detailsMarker,
-                    })}
+                {label && (
+                    <React.Fragment key={label.text}>
+                        {label.renderSVG(labelX, labelYPosition, {
+                            id: makeIdForHumanConsumption(
+                                "horizontal-axis-label"
+                            ),
+                            textProps: {
+                                fill: labelColor || GRAPHER_DARK_TEXT,
+                                textAnchor: isLabelCentered ? "middle" : "end",
+                            },
+                            detailsMarker,
+                        })}
+                    </React.Fragment>
+                )}
                 {showTickMarks && (
                     <g id={makeIdForHumanConsumption("tick-marks")}>
                         {tickLabels.map((label) => (
