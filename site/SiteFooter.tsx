@@ -28,7 +28,7 @@ const EXPLORE_LINKS: LinkData[] = [
 
 const RESOURCE_LINKS: LinkData[] = [
     { title: "Latest Articles", url: "/latest" },
-    { title: "SDG Trackers", url: "/sdgs" },
+    { title: "SDG Tracker", url: "/sdgs" },
     { title: "Teaching Materials", url: "/teaching" },
 ]
 

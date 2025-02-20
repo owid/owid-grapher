@@ -8,7 +8,7 @@ export const SiteResources = () => {
                 <a href="/explorers">Data Explorers</a>
             </li>
             <li>
-                <a href="/sdgs">SDG Trackers</a>
+                <a href="/sdgs">SDG Tracker</a>
             </li>
             <li>
                 <a href="/teaching">Teaching Materials</a>
