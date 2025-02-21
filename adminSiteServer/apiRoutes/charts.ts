@@ -725,7 +725,7 @@ export async function createChart(
 
         return { success: true, chartId: chartId }
     } catch (err) {
-        return { success: false, error: String(err) }
+        throw new JsonError(String(err))
     }
 }
 
@@ -769,10 +769,7 @@ export async function updateChart(
             newLog: logs[0],
         }
     } catch (err) {
-        return {
-            success: false,
-            error: String(err),
-        }
+        throw new JsonError(String(err))
     }
 }
 
