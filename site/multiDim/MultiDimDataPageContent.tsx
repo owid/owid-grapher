@@ -156,6 +156,7 @@ const useVarDatapageData = (
     const [grapherConfigIsReady, setGrapherConfigIsReady] = useState(false)
 
     useEffect(() => {
+        let ignore = false
         setGrapherConfigIsReady(false)
         setGrapherConfig(null)
         setVarDatapageData(null)
@@ -181,7 +182,9 @@ const useVarDatapageData = (
                         `Fetching variable by uuid failed: ${grapherConfigUuid}`,
                         { cause: datapageData.reason }
                     )
-
+                // Avoid a race condition where the earlier fetch completes
+                // after the user has already switched to a different view.
+                if (ignore) return
                 setVarDatapageData(datapageData.value)
                 setGrapherConfig(
                     grapherConfig.status === "fulfilled"
@@ -191,6 +194,9 @@ const useVarDatapageData = (
                 setGrapherConfigIsReady(true)
             })
             .catch(console.error)
+        return () => {
+            ignore = true
+        }
     }, [
         config.config?.metadata,
         currentView?.fullConfigId,
