@@ -123,9 +123,9 @@ const DimensionDropdown = (props: {
 export const MultiDimSettingsPanel = (props: {
     config: MultiDimDataPageConfig
     currentSettings: MultiDimDimensionChoices
-    updateSettings?: (currentSettings: MultiDimDimensionChoices) => void
+    onUpdateSettings: (currentSettings: MultiDimDimensionChoices) => void
 }) => {
-    const { config, currentSettings, updateSettings } = props
+    const { config, currentSettings, onUpdateSettings } = props
 
     const { dimensions } = config
 
@@ -150,10 +150,10 @@ export const MultiDimSettingsPanel = (props: {
             config.filterToAvailableChoices(resolvedCurrentSettings)
 
         if (!isEqual(selectedChoices, resolvedCurrentSettings))
-            updateSettings?.(selectedChoices)
+            onUpdateSettings(selectedChoices)
         if (!isEqual(dimensionsWithAvailableChoices, availableSettings))
             setAvailableSettings(dimensionsWithAvailableChoices)
-    }, [resolvedCurrentSettings, config, updateSettings, availableSettings])
+    }, [resolvedCurrentSettings, config, onUpdateSettings, availableSettings])
 
     return (
         <div className="md-settings-row">
@@ -166,7 +166,7 @@ export const MultiDimSettingsPanel = (props: {
                     dimension={dim}
                     currentChoiceSlug={resolvedCurrentSettings[dim.slug]}
                     onChange={(slug, value) =>
-                        updateSettings?.({
+                        onUpdateSettings({
                             ...resolvedCurrentSettings,
                             [slug]: value,
                         })
