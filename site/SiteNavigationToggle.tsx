@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useEffect } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCaretDown, faCaretUp } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
@@ -24,7 +25,7 @@ export const SiteNavigationToggle = ({
     shouldScrollIntoView?: boolean
     menuRef?: React.RefObject<HTMLDivElement>
 }) => {
-    React.useLayoutEffect(() => {
+    useEffect(() => {
         if (shouldScrollIntoView && isActive && menuRef?.current) {
             const menuBottomOffset =
                 menuRef.current.getBoundingClientRect().bottom
