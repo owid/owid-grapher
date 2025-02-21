@@ -63,7 +63,7 @@ interface EditorExportTabProps<Editor> {
 
 @observer
 export class EditorExportTab<
-    Editor extends AbstractChartEditor
+    Editor extends AbstractChartEditor,
 > extends Component<EditorExportTabProps<Editor>> {
     @observable private settings = DEFAULT_SETTINGS
     private originalSettings: Partial<ExportSettings> = DEFAULT_SETTINGS
