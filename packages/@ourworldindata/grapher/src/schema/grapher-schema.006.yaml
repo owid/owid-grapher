@@ -433,13 +433,18 @@ properties:
                 type: boolean
                 description: Whether to hide "Change in" in relative line charts
                 default: false
-    excludedEntities:
+    excludedEntityNames:
         type: array
         description: Entities that should be excluded from the chart
         default: []
         items:
-            type: integer
-            minimum: 0
+            type: string
+    includedEntityNames:
+        type: array
+        description: Entities to include. Opposite of excludedEntityNames. If this is set then all entities not specified here are excluded.
+        default: []
+        items:
+            type: string
     xAxis:
         $ref: "#/$defs/axis"
     timelineMaxTime:
@@ -499,12 +504,6 @@ properties:
         type: boolean
         default: true
         description: Whether to hide the faceting control
-    includedEntities:
-        type: array
-        description: Entities to include. Opposite of excludedEntities. If this is set then all entities not specified here are excluded.
-        default: []
-        items:
-            type: number
     entityTypePlural:
         description: Plural of the entity type (i.e. when entityType is 'country' this would be 'countries')
         default: countries and regions

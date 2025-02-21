@@ -11,7 +11,6 @@ import {
     SeriesName,
     Color,
     Time,
-    EntityId,
     EntityName,
 } from "@ourworldindata/types"
 import {
@@ -30,8 +29,8 @@ export interface ScatterPlotManager extends ChartManager {
     addCountryMode?: EntitySelectionMode
     xOverrideTime?: Time | undefined
     tableAfterAuthorTimelineAndActiveChartTransform?: OwidTable
-    includedEntities?: EntityId[]
-    excludedEntities?: EntityId[]
+    includedEntityNames?: EntityName[]
+    excludedEntityNames?: EntityName[]
     startTime?: Time
     endTime?: Time
     hasTimeline?: boolean

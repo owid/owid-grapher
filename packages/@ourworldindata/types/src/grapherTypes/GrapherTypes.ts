@@ -591,8 +591,8 @@ export interface GrapherInterface extends SortConfig {
     compareEndPointsOnly?: boolean
     matchingEntitiesOnly?: boolean
     hideTotalValueLabel?: boolean
-    excludedEntities?: number[]
-    includedEntities?: number[]
+    excludedEntityNames?: EntityName[]
+    includedEntityNames?: EntityName[]
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string | undefined }
     focusedSeriesNames?: SeriesName[]
@@ -708,7 +708,6 @@ export const grapherKeysToSerialize = [
     "scatterPointLabelStrategy",
     "compareEndPointsOnly",
     "matchingEntitiesOnly",
-    "includedEntities",
     "hideTotalValueLabel",
     "xAxis",
     "yAxis",
@@ -721,7 +720,8 @@ export const grapherKeysToSerialize = [
     "sortBy",
     "sortOrder",
     "sortColumnSlug",
-    "excludedEntities",
+    "excludedEntityNames",
+    "includedEntityNames",
     "selectedFacetStrategy",
     "hideFacetControl",
     "comparisonLines",
