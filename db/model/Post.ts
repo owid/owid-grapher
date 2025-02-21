@@ -212,7 +212,7 @@ export const getPostsFromSnapshots = async (
         .map((snapshot) => parsePostWpApiSnapshot(snapshot!))
 
     // Published pages excluded from public views
-    const excludedSlugs = [BLOG_SLUG]
+    const excludedSlugs = [BLOG_SLUG, "thank-you"]
 
     const filterConditions: Array<FilterFnPostRestApi> = [
         (post): boolean => !excludedSlugs.includes(post.slug),
