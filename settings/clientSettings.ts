@@ -48,9 +48,9 @@ export const MULTI_DIM_DYNAMIC_CONFIG_URL: string =
 export const ADMIN_BASE_URL: string =
     process.env.ADMIN_BASE_URL ??
     `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
-// e.g. "https://api.ourworldindata.org/v1/indicators/" or "https://api-staging.owid.io/user/v1/indicators/"
+// e.g. "https://api.ourworldindata.org/v1/indicators" or "https://api-staging.owid.io/user/v1/indicators"
 export const DATA_API_URL: string =
-    process.env.DATA_API_URL ?? "https://api.ourworldindata.org/v1/indicators/"
+    process.env.DATA_API_URL ?? "https://api.ourworldindata.org/v1/indicators"
 
 export const ALGOLIA_ID: string = process.env.ALGOLIA_ID ?? ""
 export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY ?? ""
@@ -91,7 +91,7 @@ export const IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH: string =
 
 // Link to production wizard.  You need Tailscale to access it in production.
 export const ETL_WIZARD_URL: string =
-    process.env.ETL_WIZARD_URL ?? `http://${ADMIN_SERVER_HOST}:8053/`
+    process.env.ETL_WIZARD_URL ?? `http://${ADMIN_SERVER_HOST}:8053`
 
 // Production ETL API runs on http://etl-prod-2:8083/v1 (you need Tailscale to access it)
 export const ETL_API_URL: string =

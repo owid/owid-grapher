@@ -52,6 +52,7 @@ import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { DATA_API_URL, ETL_API_URL } from "../settings/clientSettings.js"
 import _ from "lodash"
+import urljoin from "url-join"
 
 interface VariablePageData
     extends Omit<OwidVariableWithDataAndSource, "source"> {
@@ -596,7 +597,7 @@ class VariableEditor extends Component<{
     }
 
     async etlApiIsRunning(): Promise<boolean> {
-        const healthcheckUrl = `${ETL_API_URL}/health`
+        const healthcheckUrl = urljoin(ETL_API_URL, "health")
         try {
             await this.context.admin.rawRequest(
                 healthcheckUrl,
@@ -616,7 +617,7 @@ class VariableEditor extends Component<{
 
         this.context.admin.loadingIndicatorSetting = "loading"
 
-        const url = `${ETL_API_URL}/indicators`
+        const url = urljoin(ETL_API_URL, "indicators")
 
         const indicatorDiff = getDifference(
             this.newVariable,

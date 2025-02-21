@@ -10,6 +10,7 @@ import {
     IMAGE_HOSTING_R2_CDN_URL,
 } from "../../settings/serverSettings.js"
 import { keyBy } from "@ourworldindata/utils"
+import urljoin from "url-join"
 
 type CloudflareImageDirectory = Record<string, { id: string; filename: string }>
 
@@ -282,7 +283,7 @@ async function uploadImageToCloudflareImages(
         return
     }
 
-    const imageUrl = `${IMAGE_HOSTING_R2_CDN_URL}/production/${filename}`
+    const imageUrl = urljoin(IMAGE_HOSTING_R2_CDN_URL, "production", filename)
     const metadata = stringifyImageMetadata(image)
     const invalidReason = validateImage(image, metadata)
     if (invalidReason) {
