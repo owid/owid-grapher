@@ -57,6 +57,7 @@ export {
     type GrapherProgrammaticInterface,
     type GrapherManager,
     getErrorMessageRelatedQuestionUrl,
+    getNextTabParamWhenSwitchingGrapher,
 } from "./core/Grapher"
 export { GrapherAnalytics, EventCategory } from "./core/GrapherAnalytics"
 import fuzzysort from "fuzzysort"

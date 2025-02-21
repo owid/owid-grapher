@@ -3866,3 +3866,22 @@ export const getErrorMessageRelatedQuestionUrl = (
               undefined
         : undefined
 }
+
+export function getNextTabParamWhenSwitchingGrapher(
+    grapher: Grapher,
+    previousTab: GrapherTabName
+): string {
+    if (grapher.availableTabs.includes(previousTab)) {
+        // preserve the previous tab if that's still available in the new view
+        return grapher.mapGrapherTabToQueryParam(previousTab)
+    } else if (grapher.validChartTypes.length > 0) {
+        // otherwise, switch to the first chart tab
+        return grapher.mapGrapherTabToQueryParam(grapher.validChartTypes[0])
+    } else if (grapher.hasMapTab) {
+        // or switch to the map, if there is one
+        return GRAPHER_TAB_QUERY_PARAMS.map
+    } else {
+        // if everything fails, switch to the table tab that is always available
+        return GRAPHER_TAB_QUERY_PARAMS.table
+    }
+}
