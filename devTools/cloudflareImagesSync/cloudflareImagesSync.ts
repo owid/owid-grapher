@@ -283,7 +283,7 @@ async function uploadImageToCloudflareImages(
         return
     }
 
-    const imageUrl = urljoin(IMAGE_HOSTING_R2_CDN_URL, `production/${filename}`)
+    const imageUrl = urljoin(IMAGE_HOSTING_R2_CDN_URL, "production", filename)
     const metadata = stringifyImageMetadata(image)
     const invalidReason = validateImage(image, metadata)
     if (invalidReason) {
