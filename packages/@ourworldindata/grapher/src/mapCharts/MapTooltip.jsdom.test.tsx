@@ -1,12 +1,19 @@
 #! /usr/bin/env jest
-import { Grapher } from "../core/Grapher.js"
+import { Grapher, GrapherState } from "../core/Grapher.js"
 import { legacyMapGrapher } from "./MapChart.sample.js"
 
 import Enzyme from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
+import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "../core/LegacyToOwidTable.js"
 Enzyme.configure({ adapter: new Adapter() })
 
-const grapherWrapper = Enzyme.mount(<Grapher {...legacyMapGrapher} />)
+const state = new GrapherState({ ...legacyMapGrapher })
+state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    legacyMapGrapher.owidDataset!,
+    legacyMapGrapher.dimensions!,
+    legacyMapGrapher.selectedEntityColors
+)
+const grapherWrapper = Enzyme.mount(<Grapher grapherState={state} />)
 
 test("map tooltip renders iff mouseenter", () => {
     expect(grapherWrapper.find(".Tooltip")).toHaveLength(0)

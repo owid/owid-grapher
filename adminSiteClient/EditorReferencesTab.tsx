@@ -173,7 +173,7 @@ export class EditorReferencesTabForChart extends Component<{
     editor: ChartEditor
 }> {
     @computed get isPersisted() {
-        return this.props.editor.grapher.id
+        return this.props.editor.grapherState.id
     }
 
     @computed get references() {
@@ -313,7 +313,7 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<{
         if (!this.isLoading) {
             this.isLoading = true
             try {
-                const chartId = this.props.editor.grapher.id
+                const chartId = this.props.editor.grapherState.id
                 const result = await this.context.admin.requestJSON(
                     `/api/charts/${chartId}/redirects/new`,
                     { slug: this.slug },

@@ -14,7 +14,7 @@ import {
     EntityName,
     SeriesName,
 } from "@ourworldindata/types"
-import { Grapher } from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import { ColorBox, SelectField, Section, FieldsRow } from "./Forms.js"
 import {
     faArrowsAltV,
@@ -32,7 +32,7 @@ import {
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 interface EntityListItemProps extends React.HTMLProps<HTMLDivElement> {
-    grapher: Grapher
+    grapherState: GrapherState
     entityName: EntityName
     onRemove?: () => void
 }
@@ -48,7 +48,7 @@ class EntityListItem extends React.Component<EntityListItemProps> {
     @observable.ref isChoosingColor: boolean = false
 
     @computed get table() {
-        return this.props.grapher.table
+        return this.props.grapherState.table
     }
 
     @computed get color() {
@@ -56,15 +56,19 @@ class EntityListItem extends React.Component<EntityListItemProps> {
     }
 
     @action.bound onColor(color: string | undefined) {
-        const { grapher } = this.props
-        grapher.selectedEntityColors[this.props.entityName] = color
-        grapher.legacyConfigAsAuthored.selectedEntityColors = {
-            ...grapher.legacyConfigAsAuthored.selectedEntityColors,
+        const { grapherState } = this.props
+        grapherState.selectedEntityColors[this.props.entityName] = color
+        grapherState.legacyConfigAsAuthored.selectedEntityColors = {
+            ...grapherState.legacyConfigAsAuthored.selectedEntityColors,
             [this.props.entityName]: color,
         }
 
-        grapher.seriesColorMap?.clear()
-        grapher.rebuildInputOwidTable()
+        grapherState.seriesColorMap?.clear()
+        // TODO: 2025-01-05 Daniel we used to rebuild the table here but that
+        // was AFAIK only because scatter and marimekko charts need the color
+        // column to be updated. Move this merge logic into scatter and marimekko
+        // table transforms instead?
+        // grapherState.rebuildInputOwidTable()
     }
 
     @action.bound onRemove() {
@@ -73,8 +77,8 @@ class EntityListItem extends React.Component<EntityListItemProps> {
 
     render() {
         const { props, color } = this
-        const { entityName, grapher } = props
-        const rest = omit(props, ["entityName", "onRemove", "grapher"])
+        const { entityName, grapherState } = props
+        const rest = omit(props, ["entityName", "onRemove", "grapherState"])
 
         return (
             <div
@@ -89,7 +93,7 @@ class EntityListItem extends React.Component<EntityListItemProps> {
                     <ColorBox
                         color={color}
                         onColor={this.onColor}
-                        showLineChartColors={grapher.isLineChart}
+                        showLineChartColors={grapherState.isLineChart}
                     />
                     {entityName}
                 </div>
@@ -141,17 +145,17 @@ export class EntitySelectionSection extends React.Component<{
     }
 
     @action.bound onAddKey(entityName: EntityName) {
-        this.editor.grapher.selection.selectEntity(entityName)
+        this.editor.grapherState.selection.selectEntity(entityName)
         this.editor.removeInvalidFocusedSeriesNames()
     }
 
     @action.bound onRemoveKey(entityName: EntityName) {
-        this.editor.grapher.selection.deselectEntity(entityName)
+        this.editor.grapherState.selection.deselectEntity(entityName)
         this.editor.removeInvalidFocusedSeriesNames()
     }
 
     @action.bound onDragEnd(result: DropResult) {
-        const { selection } = this.editor.grapher
+        const { selection } = this.editor.grapherState
         const { source, destination } = result
         if (!destination) return
 
@@ -164,10 +168,10 @@ export class EntitySelectionSection extends React.Component<{
     }
 
     @action.bound setEntitySelectionToParentValue() {
-        const { grapher, activeParentConfig } = this.editor
+        const { grapherState, activeParentConfig } = this.editor
         if (!activeParentConfig || !activeParentConfig.selectedEntityNames)
             return
-        grapher.selection.setSelectedEntities(
+        grapherState.selection.setSelectedEntities(
             activeParentConfig.selectedEntityNames
         )
         this.editor.removeInvalidFocusedSeriesNames()
@@ -175,8 +179,8 @@ export class EntitySelectionSection extends React.Component<{
 
     render() {
         const { editor } = this
-        const { grapher } = editor
-        const { selection } = grapher
+        const { grapherState } = editor
+        const { selection } = grapherState
         const { unselectedEntityNames, selectedEntityNames } = selection
 
         const isEntitySelectionInherited = editor.isPropertyInherited(
@@ -234,7 +238,9 @@ export class EntitySelectionSection extends React.Component<{
                                                 >
                                                     <EntityListItem
                                                         key={entityName}
-                                                        grapher={grapher}
+                                                        grapherState={
+                                                            grapherState
+                                                        }
                                                         entityName={entityName}
                                                         onRemove={() =>
                                                             this.onRemoveKey(
@@ -274,18 +280,18 @@ export class FocusSection extends React.Component<{
     }
 
     @action.bound addToFocusedSeries(seriesName: SeriesName) {
-        this.editor.grapher.focusArray.add(seriesName)
+        this.editor.grapherState.focusArray.add(seriesName)
     }
 
     @action.bound removeFromFocusedSeries(seriesName: SeriesName) {
-        this.editor.grapher.focusArray.remove(seriesName)
+        this.editor.grapherState.focusArray.remove(seriesName)
     }
 
     @action.bound setFocusedSeriesNamesToParentValue() {
-        const { grapher, activeParentConfig } = this.editor
+        const { grapherState, activeParentConfig } = this.editor
         if (!activeParentConfig || !activeParentConfig.focusedSeriesNames)
             return
-        grapher.focusArray.clearAllAndAdd(
+        grapherState.focusArray.clearAllAndAdd(
             ...activeParentConfig.focusedSeriesNames
         )
         this.editor.removeInvalidFocusedSeriesNames()
@@ -293,16 +299,16 @@ export class FocusSection extends React.Component<{
 
     render() {
         const { editor } = this
-        const { grapher } = editor
+        const { grapherState } = editor
 
         const isFocusInherited =
             editor.isPropertyInherited("focusedSeriesNames")
 
-        const focusedSeriesNameSet = grapher.focusArray.seriesNameSet
-        const focusedSeriesNames = grapher.focusArray.seriesNames
+        const focusedSeriesNameSet = grapherState.focusArray.seriesNameSet
+        const focusedSeriesNames = grapherState.focusArray.seriesNames
 
         // series available to highlight are those that are currently plotted
-        const seriesNameSet = new Set(grapher.chartSeriesNames)
+        const seriesNameSet = new Set(grapherState.chartSeriesNames)
         const availableSeriesNameSet = differenceOfSets([
             seriesNameSet,
             focusedSeriesNameSet,
@@ -365,8 +371,8 @@ export class FocusSection extends React.Component<{
 class MissingDataSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<{ editor: Editor }> {
-    @computed get grapher() {
-        return this.props.editor.grapher
+    @computed get grapherState() {
+        return this.props.editor.grapherState
     }
 
     get missingDataStrategyOptions(): {
@@ -388,17 +394,17 @@ class MissingDataSection<
     }
 
     @action.bound onSelectMissingDataStrategy(value: string | undefined) {
-        this.grapher.missingDataStrategy = value as MissingDataStrategy
+        this.grapherState.missingDataStrategy = value as MissingDataStrategy
     }
 
     render() {
-        const { grapher } = this
+        const { grapherState } = this
 
         return (
             <Section name="Missing data">
                 <SelectField
                     label="Missing data strategy (for when one or more variables are missing for an entity)"
-                    value={grapher.missingDataStrategy}
+                    value={grapherState.missingDataStrategy}
                     options={this.missingDataStrategyOptions}
                     onValue={this.onSelectMissingDataStrategy}
                 />
@@ -413,7 +419,7 @@ export class EditorDataTab<
 > extends React.Component<{ editor: Editor }> {
     render() {
         const { editor } = this.props
-        const { grapher, features } = editor
+        const { grapherState, features } = editor
 
         return (
             <div className="EditorDataTab">
@@ -426,11 +432,11 @@ export class EditorDataTab<
                                 name="add-country-mode"
                                 value={EntitySelectionMode.MultipleEntities}
                                 checked={
-                                    grapher.addCountryMode ===
+                                    grapherState.addCountryMode ===
                                     EntitySelectionMode.MultipleEntities
                                 }
                                 onChange={() =>
-                                    (grapher.addCountryMode =
+                                    (grapherState.addCountryMode =
                                         EntitySelectionMode.MultipleEntities)
                                 }
                             />
@@ -445,11 +451,11 @@ export class EditorDataTab<
                                 name="add-country-mode"
                                 value={EntitySelectionMode.SingleEntity}
                                 checked={
-                                    grapher.addCountryMode ===
+                                    grapherState.addCountryMode ===
                                     EntitySelectionMode.SingleEntity
                                 }
                                 onChange={() =>
-                                    (grapher.addCountryMode =
+                                    (grapherState.addCountryMode =
                                         EntitySelectionMode.SingleEntity)
                                 }
                             />
@@ -464,11 +470,11 @@ export class EditorDataTab<
                                 name="add-country-mode"
                                 value={EntitySelectionMode.Disabled}
                                 checked={
-                                    grapher.addCountryMode ===
+                                    grapherState.addCountryMode ===
                                     EntitySelectionMode.Disabled
                                 }
                                 onChange={() =>
-                                    (grapher.addCountryMode =
+                                    (grapherState.addCountryMode =
                                         EntitySelectionMode.Disabled)
                                 }
                             />
