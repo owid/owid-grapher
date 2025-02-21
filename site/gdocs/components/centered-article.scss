@@ -1075,36 +1075,49 @@ div.raw-html-table__container {
 .article-block__cookie-notice {
     .cookie-preferences {
         margin: 0;
+        margin-bottom: 24px;
         padding: 32px 24px;
         border: none;
         background-color: $blue-5;
+
+        @include sm-only {
+            margin-bottom: 16px;
+        }
+
         h2 {
             @include subtitle-2-bold;
             margin-bottom: 24px;
         }
+
         input:disabled + label {
             color: $blue-50;
         }
+
         .description,
         .last-updated {
             @include body-3-regular;
             color: $blue-65;
         }
+
         .cookie-preference {
             margin-bottom: 24px;
             & + .cookie-preference {
                 margin-top: 32px;
             }
+
             .checkbox {
                 margin-bottom: 8px;
+
                 label {
                     display: inline-flex;
                     cursor: pointer;
                     margin: 0;
                 }
+
                 .custom {
                     top: unset;
                 }
+
                 .label {
                     margin: 0;
                     @include body-3-bold;
@@ -1112,14 +1125,17 @@ div.raw-html-table__container {
                     line-height: 16px;
                     padding-left: 24px;
                 }
+
                 .label {
                     color: $blue-90;
                 }
             }
+
             .checkbox--disabled {
                 label {
                     cursor: not-allowed;
                 }
+
                 .label {
                     color: $blue-50;
                 }
