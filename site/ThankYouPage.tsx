@@ -21,7 +21,9 @@ export const ThankYouPage = (props: { baseUrl: string }) => (
             baseUrl={props.baseUrl}
             pageDesc="Thank you for supporting Our World in Data"
             imageUrl={`${props.baseUrl}/thank-you-thumbnail.png`}
-        ></Head>
+        >
+            <meta name="robots" content="noindex" />
+        </Head>
         <body>
             <SiteHeader baseUrl={props.baseUrl} />
             <main className="thank-you-page">
