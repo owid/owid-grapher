@@ -6,13 +6,11 @@ import {
     MultiDimDimensionChoices,
     View,
     ViewEnriched,
-    QueryParams,
     OwidChartDimensionInterface,
     DimensionProperty,
     MultiDimDataPageConfigEnriched,
 } from "@ourworldindata/types"
-import { groupBy, isEmpty, keyBy, pick } from "./Util.js"
-import { Url } from "./urls/Url.js"
+import { groupBy, isEmpty, keyBy } from "./Util.js"
 
 interface FilterToAvailableResult {
     selectedChoices: MultiDimDimensionChoices
@@ -194,27 +192,17 @@ export class MultiDimDataPageConfig {
     }
 }
 
-// Helpers to convert from and to query strings
-export const multiDimStateToQueryStr = (
-    grapherQueryParams: QueryParams,
-    dimensionChoices: MultiDimDimensionChoices
-): string => {
-    return Url.fromQueryParams(grapherQueryParams).updateQueryParams(
-        dimensionChoices
-    ).queryStr
-}
-
-export const extractMultiDimChoicesFromQueryStr = (
-    queryStr: string,
+export const extractMultiDimChoicesFromSearchParams = (
+    searchParams: URLSearchParams,
     config: MultiDimDataPageConfig
 ): MultiDimDimensionChoices => {
-    const queryParams = Url.fromQueryStr(queryStr).queryParams
     const dimensions = config.dimensions
-    const dimensionChoices = pick(
-        queryParams,
-        Object.keys(dimensions)
-    ) as MultiDimDimensionChoices
-
+    const dimensionChoices: MultiDimDimensionChoices = {}
+    for (const [key, value] of searchParams.entries()) {
+        if (key in dimensions) {
+            dimensionChoices[key] = value
+        }
+    }
     return dimensionChoices
 }
 
@@ -223,8 +211,8 @@ export function searchParamsToMultiDimView(
     searchParams: URLSearchParams
 ): ViewEnriched {
     const mdimConfig = MultiDimDataPageConfig.fromObject(config)
-    let dimensions = extractMultiDimChoicesFromQueryStr(
-        searchParams.toString(),
+    let dimensions = extractMultiDimChoicesFromSearchParams(
+        searchParams,
         mdimConfig
     )
     if (isEmpty(dimensions)) {

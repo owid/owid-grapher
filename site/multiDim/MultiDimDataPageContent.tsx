@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { unstable_batchedUpdates } from "react-dom"
+import { useSearchParams } from "react-router-dom-v5-compat"
 import {
     Grapher,
     GrapherAnalytics,
-    GrapherProgrammaticInterface,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import {
@@ -16,13 +17,10 @@ import {
     getAttributionFragmentsFromVariable,
     OwidVariableWithSourceAndDimension,
     memoize,
-    setWindowQueryStr,
     compact,
     MultiDimDataPageConfig,
-    extractMultiDimChoicesFromQueryStr,
-    multiDimStateToQueryStr,
+    extractMultiDimChoicesFromSearchParams,
     merge,
-    omit,
     fetchWithRetry,
 } from "@ourworldindata/utils"
 import cx from "classnames"
@@ -34,11 +32,11 @@ import {
 import {
     DataPageRelatedResearch,
     FaqEntryKeyedByGdocIdAndFragmentId,
+    GrapherQueryParams,
     ImageMetadata,
     MultiDimDataPageConfigEnriched,
     MultiDimDimensionChoices,
     PrimaryTopic,
-    ViewEnriched,
 } from "@ourworldindata/types"
 import AboutThisData from "../AboutThisData.js"
 import TopicTags from "../TopicTags.js"
@@ -132,81 +130,6 @@ const useTitleFragments = (config: MultiDimDataPageConfig) => {
     )
 }
 
-const useView = (
-    currentSettings: MultiDimDimensionChoices,
-    config: MultiDimDataPageConfig
-) => {
-    const currentView = useMemo(() => {
-        if (Object.keys(currentSettings).length === 0) return undefined
-        return config.findViewByDimensions(currentSettings)
-    }, [currentSettings, config])
-    return currentView
-}
-
-const useVarDatapageData = (
-    config: MultiDimDataPageConfig,
-    currentView: ViewEnriched | undefined,
-    isPreviewing: boolean
-) => {
-    const [varDatapageData, setVarDatapageData] =
-        useState<DataPageDataV2 | null>(null)
-    const [grapherConfig, setGrapherConfig] = useState<GrapherInterface | null>(
-        null
-    )
-    const [grapherConfigIsReady, setGrapherConfigIsReady] = useState(false)
-
-    useEffect(() => {
-        setGrapherConfigIsReady(false)
-        setGrapherConfig(null)
-        setVarDatapageData(null)
-        const variableId = currentView?.indicators?.["y"]?.[0]?.id
-        if (!variableId) return
-
-        const datapageDataPromise = cachedGetVariableMetadata(variableId).then(
-            (json) =>
-                getDatapageDataV2(
-                    merge(json, config.config?.metadata, currentView?.metadata),
-                    currentView?.config
-                )
-        )
-        const grapherConfigUuid = currentView?.fullConfigId
-        const grapherConfigPromise = grapherConfigUuid
-            ? cachedGetGrapherConfigByUuid(grapherConfigUuid, isPreviewing)
-            : null
-
-        Promise.allSettled([datapageDataPromise, grapherConfigPromise])
-            .then(([datapageData, grapherConfig]) => {
-                if (datapageData.status === "rejected")
-                    throw new Error(
-                        `Fetching variable by uuid failed: ${grapherConfigUuid}`,
-                        { cause: datapageData.reason }
-                    )
-
-                setVarDatapageData(datapageData.value)
-                setGrapherConfig(
-                    grapherConfig.status === "fulfilled"
-                        ? grapherConfig.value
-                        : null
-                )
-                setGrapherConfigIsReady(true)
-            })
-            .catch(console.error)
-    }, [
-        config.config?.metadata,
-        currentView?.fullConfigId,
-        currentView?.indicators,
-        currentView?.config,
-        currentView?.metadata,
-        isPreviewing,
-    ])
-
-    return {
-        varDatapageData,
-        varGrapherConfig: grapherConfig,
-        grapherConfigIsReady,
-    }
-}
-
 const analytics = new GrapherAnalytics()
 
 export type MultiDimDataPageContentProps = {
@@ -217,7 +140,6 @@ export type MultiDimDataPageContentProps = {
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
     relatedResearchCandidates: DataPageRelatedResearch[]
-    initialQueryStr?: string
     imageMetadata: Record<string, ImageMetadata>
     isPreviewing?: boolean
 }
@@ -225,7 +147,6 @@ export type MultiDimDataPageContentProps = {
 export const MultiDimDataPageContent = ({
     slug,
     canonicalUrl,
-    // _datapageData,
     configObj,
     isPreviewing,
     faqEntries,
@@ -233,9 +154,13 @@ export const MultiDimDataPageContent = ({
     relatedResearchCandidates,
     tagToSlugMap,
     imageMetadata,
-    initialQueryStr,
 }: MultiDimDataPageContentProps) => {
+    const grapherRef = useRef<Grapher | null>(null)
     const grapherFigureRef = useRef<HTMLDivElement>(null)
+    const [searchParams, setSearchParams] = useSearchParams()
+    const [manager, setManager] = useState({ canonicalUrl })
+    const [varDatapageData, setVarDatapageData] =
+        useState<DataPageDataV2 | null>(null)
 
     const config = useMemo(
         () => MultiDimDataPageConfig.fromObject(configObj),
@@ -243,33 +168,137 @@ export const MultiDimDataPageContent = ({
     )
     const titleFragments = useTitleFragments(config)
 
-    const [currentSettings, setCurrentSettings] = useState(() => {
-        const initialChoices = initialQueryStr
-            ? extractMultiDimChoicesFromQueryStr(initialQueryStr, config)
-            : {}
-        const { selectedChoices } =
-            config.filterToAvailableChoices(initialChoices)
-        return selectedChoices
-    })
+    const settings = useMemo(() => {
+        const choices = extractMultiDimChoicesFromSearchParams(
+            searchParams,
+            config
+        )
+        return config.filterToAvailableChoices(choices).selectedChoices
+    }, [searchParams, config])
 
-    const currentView = useView(currentSettings, config)
-    const { varDatapageData, varGrapherConfig, grapherConfigIsReady } =
-        useVarDatapageData(config, currentView, isPreviewing ?? false)
+    useEffect(() => {
+        if (slug) analytics.logGrapherView(slug, settings)
+    }, [slug, settings])
 
-    // This is the ACTUAL grapher instance being used, because GrapherFigureView/GrapherWithFallback are doing weird things and are not actually using the grapher instance we pass into it
-    // and therefore we can not access the grapher state (e.g. tab, selection) from the grapher instance we pass into it
-    // TODO we should probably fix that? seems sensible? change GrapherFigureView around a bit to use the actual grapher inst? or pass a GrapherProgrammaticInterface to it instead?
-    const [grapherInst, setGrapherInst] = useState<Grapher | null>(null)
+    const updateGrapher = useCallback(
+        (
+            grapher: Grapher,
+            settings: MultiDimDimensionChoices,
+            grapherQueryParams: GrapherQueryParams
+        ) => {
+            const newView = config.findViewByDimensions(settings)
+            if (!newView) return
+
+            const variableId = newView.indicators?.["y"]?.[0]?.id
+            if (!variableId) return
+
+            const datapageDataPromise = cachedGetVariableMetadata(
+                variableId
+            ).then((json) =>
+                getDatapageDataV2(
+                    merge(json, config.config?.metadata, newView.metadata),
+                    newView.config
+                )
+            )
+            const grapherConfigUuid = newView.fullConfigId
+            const grapherConfigPromise = cachedGetGrapherConfigByUuid(
+                grapherConfigUuid,
+                isPreviewing ?? false
+            )
+            const variables = newView.indicators?.["y"]
+            const editUrl =
+                variables?.length === 1
+                    ? `variables/${variables[0].id}/config`
+                    : undefined
+            setManager((prev) => ({ ...prev, editUrl }))
+
+            void Promise.allSettled([datapageDataPromise, grapherConfigPromise])
+                .then(([datapageData, grapherConfig]) => {
+                    if (datapageData.status === "rejected")
+                        throw new Error(
+                            `Fetching variable by uuid failed: ${grapherConfigUuid}`,
+                            { cause: datapageData.reason }
+                        )
+                    // Avoid a race condition where the earlier fetch completes
+                    // after the user has already switched to a different view.
+                    setVarDatapageData(datapageData.value)
+                    if (grapherConfig.status === "fulfilled") {
+                        const config = grapherConfig.value
+                        // Batch the grapher updates to avoid getting intermediate
+                        // grapherChangedParams values, which make the URL update
+                        // multiple times while flashing.
+                        // https://stackoverflow.com/a/48610973/9846837
+                        unstable_batchedUpdates(() => {
+                            grapher.setAuthoredVersion(config)
+                            grapher.reset()
+                            grapher.updateFromObject(config)
+                            grapher.downloadData()
+                            grapher.populateFromQueryParams(grapherQueryParams)
+                        })
+                    }
+                })
+                .catch(console.error)
+        },
+        [config, isPreviewing]
+    )
+
+    const handleSettingsChange = useCallback(
+        (settings: MultiDimDimensionChoices) => {
+            const grapher = grapherRef.current
+            if (!grapher) return
+
+            const oldGrapherParams = grapher.changedParams
+            const newGrapherParams: GrapherQueryParams = {
+                ...oldGrapherParams,
+                // Pass the previous tab to grapher, but don't set it in URL. We
+                // want it set only when it's not the default, which is handled
+                // by effect that depends on `grapherChangedParams`.
+                tab: grapher.mapGrapherTabToQueryParam(grapher.activeTab),
+            }
+
+            const { selectedChoices } =
+                config.filterToAvailableChoices(settings)
+
+            setSearchParams(
+                { ...oldGrapherParams, ...selectedChoices },
+                { replace: true }
+            )
+            updateGrapher(grapher, selectedChoices, newGrapherParams)
+        },
+        [config, setSearchParams, updateGrapher]
+    )
+
+    // Set state from query params on page load.
+    useEffect(() => {
+        const grapher = grapherRef.current
+        if (!grapher) return
+        const queryParams = Object.fromEntries(searchParams.entries())
+        updateGrapher(grapher, settings, queryParams)
+        // NOTE (Martin): This is the only way I was able to set the initial
+        // state on page load. Reconsider after the Grapher state refactor, i.e.
+        // when we decouple Grapher state from the Grapher components. Adding
+        // deps properly to the dep array leads to an infinite loop.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     // De-mobx grapher.changedParams by transforming it into React state
     const grapherChangedParams = useMobxStateToReactState(
-        useCallback(() => grapherInst?.changedParams, [grapherInst]),
-        !!grapherInst
+        useCallback(() => grapherRef.current?.changedParams, []),
+        !!grapherRef.current
     )
 
+    useEffect(() => {
+        if (grapherChangedParams) {
+            setSearchParams(
+                { ...grapherChangedParams, ...settings },
+                { replace: true }
+            )
+        }
+    }, [grapherChangedParams, settings, setSearchParams])
+
     const grapherCurrentTitle = useMobxStateToReactState(
-        useCallback(() => grapherInst?.currentTitle, [grapherInst]),
-        !!grapherInst
+        useCallback(() => grapherRef.current?.currentTitle, []),
+        !!grapherRef.current
     )
 
     useEffect(() => {
@@ -279,53 +308,6 @@ export const MultiDimDataPageContent = ({
     }, [grapherCurrentTitle])
 
     const bounds = useElementBounds(grapherFigureRef)
-
-    const queryStr = useMemo(
-        () =>
-            grapherChangedParams !== undefined
-                ? multiDimStateToQueryStr(grapherChangedParams, currentSettings)
-                : initialQueryStr,
-        [grapherChangedParams, currentSettings, initialQueryStr]
-    )
-
-    useEffect(() => {
-        setWindowQueryStr(queryStr ?? "")
-    }, [queryStr])
-
-    useEffect(() => {
-        if (slug) analytics.logGrapherView(slug, currentSettings)
-    }, [slug, currentSettings])
-
-    const grapherConfigComputed = useMemo(() => {
-        const baseConfig: GrapherProgrammaticInterface = {
-            bounds,
-            bakedGrapherURL: BAKED_GRAPHER_URL,
-            adminBaseUrl: ADMIN_BASE_URL,
-            dataApiUrl: DATA_API_URL,
-            manager: {}, // Don't resize while data is loading.
-        }
-
-        if (!grapherConfigIsReady) return baseConfig
-        const variables = currentView?.indicators?.["y"]
-        const editUrl =
-            variables?.length === 1
-                ? `variables/${variables[0].id}/config`
-                : undefined
-        return {
-            ...varGrapherConfig,
-            ...baseConfig,
-            manager: {
-                canonicalUrl,
-                editUrl,
-            },
-        }
-    }, [
-        varGrapherConfig,
-        grapherConfigIsReady,
-        bounds,
-        canonicalUrl,
-        currentView?.indicators,
-    ])
 
     const hasTopicTags = !!config.config.topicTags?.length
 
@@ -385,8 +367,8 @@ export const MultiDimDataPageContent = ({
                         >
                             <MultiDimSettingsPanel
                                 config={config}
-                                currentSettings={currentSettings}
-                                updateSettings={setCurrentSettings}
+                                settings={settings}
+                                onChange={handleSettingsChange}
                             />
                         </div>
                     </div>
@@ -400,12 +382,12 @@ export const MultiDimDataPageContent = ({
                         >
                             <figure data-grapher-src ref={grapherFigureRef}>
                                 <Grapher
-                                    key={JSON.stringify(
-                                        omit(grapherConfigComputed, ["bounds"])
-                                    )}
-                                    {...grapherConfigComputed}
-                                    queryStr={queryStr}
-                                    getGrapherInstance={setGrapherInst}
+                                    ref={grapherRef}
+                                    bounds={bounds}
+                                    manager={manager}
+                                    bakedGrapherURL={BAKED_GRAPHER_URL}
+                                    adminBaseUrl={ADMIN_BASE_URL}
+                                    dataApiUrl={DATA_API_URL}
                                 />
                             </figure>
                         </div>

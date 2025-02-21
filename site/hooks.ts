@@ -153,7 +153,7 @@ export const useMobxStateToReactState = <T>(
 
     useEffect(() => {
         if (!enabled) return
-        const disposer = reaction(() => mobxStateGetter(), setState, {
+        const disposer = reaction(mobxStateGetter, setState, {
             fireImmediately: true,
         })
         return disposer

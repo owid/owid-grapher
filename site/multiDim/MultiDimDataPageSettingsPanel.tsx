@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import {
     DimensionEnriched,
     MultiDimDimensionChoices,
@@ -6,11 +6,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
-import {
-    MultiDimDataPageConfig,
-    isEqual,
-    mapValues,
-} from "@ourworldindata/utils"
+import { MultiDimDataPageConfig, mapValues } from "@ourworldindata/utils"
 import { OverlayHeader, RadioButton } from "@ourworldindata/components"
 import { useTriggerOnEscape, useTriggerWhenClickOutside } from "../hooks.js"
 
@@ -122,38 +118,28 @@ const DimensionDropdown = (props: {
 
 export const MultiDimSettingsPanel = (props: {
     config: MultiDimDataPageConfig
-    currentSettings: MultiDimDimensionChoices
-    updateSettings?: (currentSettings: MultiDimDimensionChoices) => void
+    settings: MultiDimDimensionChoices
+    onChange: (settings: MultiDimDimensionChoices) => void
 }) => {
-    const { config, currentSettings, updateSettings } = props
+    const { config, settings, onChange } = props
 
     const { dimensions } = config
 
-    // Non-partial version of `currentSettings` with all dimensions filled in
-    const resolvedCurrentSettings = useMemo(
+    // Non-partial version of `settings` with all dimensions filled in
+    const resolvedSettings = useMemo(
         () =>
             mapValues(
                 dimensions,
                 (dim) =>
-                    currentSettings[dim.slug] ??
-                    Object.values(dim.choices)[0].slug
+                    settings[dim.slug] ?? Object.values(dim.choices)[0].slug
             ),
-        [currentSettings, dimensions]
+        [settings, dimensions]
     )
 
-    const [availableSettings, setAvailableSettings] = useState<
-        Record<string, DimensionEnriched>
-    >({})
-
-    useEffect(() => {
-        const { dimensionsWithAvailableChoices, selectedChoices } =
-            config.filterToAvailableChoices(resolvedCurrentSettings)
-
-        if (!isEqual(selectedChoices, resolvedCurrentSettings))
-            updateSettings?.(selectedChoices)
-        if (!isEqual(dimensionsWithAvailableChoices, availableSettings))
-            setAvailableSettings(dimensionsWithAvailableChoices)
-    }, [resolvedCurrentSettings, config, updateSettings, availableSettings])
+    const availableSettings = useMemo(() => {
+        return config.filterToAvailableChoices(resolvedSettings)
+            .dimensionsWithAvailableChoices
+    }, [resolvedSettings, config])
 
     return (
         <div className="md-settings-row">
@@ -164,10 +150,10 @@ export const MultiDimSettingsPanel = (props: {
                 <DimensionDropdown
                     key={dim.slug}
                     dimension={dim}
-                    currentChoiceSlug={resolvedCurrentSettings[dim.slug]}
+                    currentChoiceSlug={resolvedSettings[dim.slug]}
                     onChange={(slug, value) =>
-                        updateSettings?.({
-                            ...resolvedCurrentSettings,
+                        onChange({
+                            ...resolvedSettings,
                             [slug]: value,
                         })
                     }

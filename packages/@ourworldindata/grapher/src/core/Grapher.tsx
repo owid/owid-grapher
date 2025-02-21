@@ -3470,21 +3470,23 @@ export class Grapher
             hasMapTab,
         } = this
 
+        let defaultTab: GrapherTabName = GRAPHER_TAB_NAMES.Table
+        if (defaultChartType) {
+            defaultTab = defaultChartType
+        } else if (hasMapTab) {
+            defaultTab = GRAPHER_TAB_NAMES.WorldMap
+        }
+
         if (tab === GRAPHER_TAB_QUERY_PARAMS.table) {
             return GRAPHER_TAB_NAMES.Table
         }
         if (tab === GRAPHER_TAB_QUERY_PARAMS.map) {
-            return GRAPHER_TAB_NAMES.WorldMap
+            if (hasMapTab) return GRAPHER_TAB_NAMES.WorldMap
+            return defaultTab
         }
 
         if (tab === GRAPHER_TAB_QUERY_PARAMS.chart) {
-            if (defaultChartType) {
-                return defaultChartType
-            } else if (hasMapTab) {
-                return GRAPHER_TAB_NAMES.WorldMap
-            } else {
-                return GRAPHER_TAB_NAMES.Table
-            }
+            return defaultTab
         }
 
         const chartTypeName = mapQueryParamToChartTypeName(tab)
@@ -3493,13 +3495,9 @@ export class Grapher
 
         if (validChartTypeSet.has(chartTypeName)) {
             return chartTypeName
-        } else if (defaultChartType) {
-            return defaultChartType
-        } else if (hasMapTab) {
-            return GRAPHER_TAB_NAMES.WorldMap
-        } else {
-            return GRAPHER_TAB_NAMES.Table
         }
+
+        return defaultTab
     }
 
     mapGrapherTabToQueryParam(tab: GrapherTabName): string {
