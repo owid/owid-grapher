@@ -193,11 +193,10 @@ async function makeRequestAgainstAdminApi(
         body,
     })
 
-    expect(response.status).toBe(200)
-
     const json = await response.json()
 
     if (verifySuccess) {
+        expect(response.status).toBe(200)
         expect(json.success).toBe(true)
     }
 
@@ -914,7 +913,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             },
             { verifySuccess: false }
         )
-        expect(json.success).toBe(false)
+        expect(json.error.status).toBe(400)
     })
 
     it("should return an error if the schema is invalid", async () => {
@@ -930,7 +929,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             },
             { verifySuccess: false }
         )
-        expect(json.success).toBe(false)
+        expect(json.error.status).toBe(400)
     })
 })
 

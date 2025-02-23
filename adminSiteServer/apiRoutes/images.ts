@@ -49,10 +49,9 @@ export async function postImageHandler(
         .first()
 
     if (collision) {
-        return {
-            success: false,
-            error: `An image with this content already exists (filename: ${collision.filename})`,
-        }
+        throw new JsonError(
+            `An exact copy of this image already exists (filename: ${collision.filename})`
+        )
     }
 
     const preexisting = await trx<DbEnrichedImage>("images")
@@ -60,19 +59,15 @@ export async function postImageHandler(
         .first()
 
     if (preexisting) {
-        return {
-            success: false,
-            error: "An image with this filename already exists",
-        }
+        throw new JsonError(
+            `An image with this filename already exists (id: ${preexisting.id})`
+        )
     }
 
     const cloudflareId = await uploadToCloudflare(filename, asBlob)
 
     if (!cloudflareId) {
-        return {
-            success: false,
-            error: "Failed to upload image",
-        }
+        throw new JsonError("Failed to upload image", 500)
     }
 
     await trx<DbEnrichedImage>("images").insert({
@@ -115,10 +110,10 @@ export async function putImageHandler(
         .first()
 
     if (collision) {
-        return {
-            success: false,
-            error: `An exact copy of this image already exists (filename: ${collision.filename})`,
-        }
+        throw new JsonError(
+            `An exact copy of this image already exists (filename: ${collision.filename})`,
+            400
+        )
     }
 
     const { id } = req.params
