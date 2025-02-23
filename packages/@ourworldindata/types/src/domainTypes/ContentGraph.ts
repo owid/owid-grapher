@@ -61,3 +61,25 @@ export interface PostReference {
     slug: string
     url: string
 }
+
+export enum ContentGraphLinkType {
+    Gdoc = "gdoc",
+    Url = "url",
+    Grapher = "grapher",
+    Explorer = "explorer",
+    ChartView = "chart-view",
+}
+
+export interface DbInsertContentGraphLink {
+    componentType: string
+    hash: string
+    id?: number
+    linkType?: ContentGraphLinkType | null
+    queryString: string
+    // string for gdocs, number for dods
+    sourceId?: string | number | null
+    target: string
+    text: string
+}
+
+export type DbPlainContentGraphLink = Required<DbInsertContentGraphLink>

@@ -18,7 +18,10 @@ import {
 import { MinimalTag } from "../dbTypes/Tags.js"
 import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 import { QueryParams } from "../domainTypes/Various.js"
-import { TagGraphRoot } from "../domainTypes/ContentGraph.js"
+import {
+    TagGraphRoot,
+    ContentGraphLinkType,
+} from "../domainTypes/ContentGraph.js"
 import { DbRawImage } from "../dbTypes/Images.js"
 import { DbPlainChartView } from "../dbTypes/ChartViews.js"
 
@@ -313,17 +316,9 @@ export interface OwidGdocJSON
     updatedAt: string | null
 }
 
-export enum OwidGdocLinkType {
-    Gdoc = "gdoc",
-    Url = "url",
-    Grapher = "grapher",
-    Explorer = "explorer",
-    ChartView = "chart-view",
-}
-
 export interface OwidGdocLinkJSON {
     // source: Record<string, any>
-    linkType: OwidGdocLinkType
+    linkType: ContentGraphLinkType
     target: string
     componentType: string
     text: string

@@ -57,6 +57,7 @@ import {
     ARCHVED_THUMBNAIL_FILENAME,
     ChartConfigType,
     ChartViewInfo,
+    ContentGraphLinkType,
     DEFAULT_THUMBNAIL_FILENAME,
     GrapherInterface,
     LatestDataInsight,
@@ -64,7 +65,6 @@ import {
     MultiDimDataPageConfigEnriched,
     OwidGdoc,
     OwidGdocContent,
-    OwidGdocLinkType,
     OwidGdocType,
 } from "@ourworldindata/types"
 import { getAllChartViewNames, getChartViewsInfo } from "../ChartView.js"
@@ -214,7 +214,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 links.push(
                     createLinkFromUrl({
                         url,
-                        source: this,
+                        sourceId: this.id,
                         componentType: "front-matter",
                     })
                 )
@@ -298,7 +298,7 @@ export class GdocBase implements OwidGdocBaseInterface {
 
     get linkedChartViewNames(): string[] {
         const filteredLinks = this.links
-            .filter((link) => link.linkType === OwidGdocLinkType.ChartView)
+            .filter((link) => link.linkType === ContentGraphLinkType.ChartView)
             .map((link) => link.target)
 
         return filteredLinks
@@ -340,7 +340,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 return [
                     createLinkFromUrl({
                         url: block.url,
-                        source: this,
+                        sourceId: this.id,
                         componentType: block.type,
                         text: block.name,
                     }),
@@ -349,7 +349,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             .with({ type: "prominent-link" }, (block) => [
                 createLinkFromUrl({
                     url: block.url,
-                    source: this,
+                    sourceId: this.id,
                     componentType: block.type,
                     text: block.title,
                 }),
@@ -357,14 +357,14 @@ export class GdocBase implements OwidGdocBaseInterface {
             .with({ type: "chart" }, (block) => [
                 createLinkFromUrl({
                     url: block.url,
-                    source: this,
+                    sourceId: this.id,
                     componentType: block.type,
                 }),
             ])
             .with({ type: "narrative-chart" }, (block) => [
                 createLinkForChartView({
                     name: block.name,
-                    source: this,
+                    sourceId: this.id,
                     componentType: block.type,
                 }),
             ])
@@ -372,7 +372,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 block.top.map((item) =>
                     createLinkFromUrl({
                         url: item.url,
-                        source: this,
+                        sourceId: this.id,
                         componentType: block.type,
                     })
                 )
@@ -384,7 +384,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     links.push(
                         createLinkFromUrl({
                             url,
-                            source: this,
+                            sourceId: this.id,
                             componentType: block.type,
                             text: `Recirc link ${i + 1}`,
                         })
@@ -399,7 +399,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 block.blocks.forEach(({ url, text }, i) => {
                     const chartLink = createLinkFromUrl({
                         url,
-                        source: this,
+                        sourceId: this.id,
                         componentType: block.type,
                         text: `Scroller block ${i + 1}`,
                     })
@@ -420,7 +420,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 block.items.forEach((storyItem, i) => {
                     const chartLink = createLinkFromUrl({
                         url: storyItem.chart.url,
-                        source: this,
+                        sourceId: this.id,
                         componentType: block.type,
                         text: `chart-story item ${i + 1}`,
                     })
@@ -449,7 +449,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 if (block.downloadButton) {
                     const downloadButtonLink = createLinkFromUrl({
                         url: block.downloadButton.url,
-                        source: this,
+                        sourceId: this.id,
                         componentType: block.type,
                         text: block.downloadButton.text,
                     })
@@ -459,7 +459,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     block.relatedTopics.forEach((relatedTopic) => {
                         const relatedTopicLink = createLinkFromUrl({
                             url: relatedTopic.url,
-                            source: this,
+                            sourceId: this.id,
                             componentType: block.type,
                             text: relatedTopic.text ?? "",
                         })
@@ -486,7 +486,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     if (insight.url) {
                         const insightLink = createLinkFromUrl({
                             url: insight.url,
-                            source: this,
+                            sourceId: this.id,
                             componentType: block.type,
                             text: insight.title,
                         })
@@ -494,7 +494,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     } else if (insight.narrativeChartName) {
                         const insightLink = createLinkForChartView({
                             name: insight.narrativeChartName,
-                            source: this,
+                            sourceId: this.id,
                             componentType: block.type,
                         })
                         links.push(insightLink)
@@ -511,7 +511,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     explorerTiles.explorers.map(({ url }) =>
                         createLinkFromUrl({
                             url,
-                            source: this,
+                            sourceId: this.id,
                             componentType: "explorer-tiles",
                         })
                     )
@@ -530,7 +530,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         (links, link) => [
                             ...links,
                             createLinkFromUrl({
-                                source: this,
+                                sourceId: this.id,
                                 url: link.value.url,
                                 componentType: researchAndWriting.type,
                                 text: link.value.title,
@@ -544,7 +544,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 return [
                     createLinkFromUrl({
                         url: video.url,
-                        source: this,
+                        sourceId: this.id,
                         componentType: video.type,
                         text: spansToSimpleString(video.caption || []),
                     }),
@@ -554,7 +554,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 return [
                     createLinkFromUrl({
                         url: block.datapageUrl,
-                        source: this,
+                        sourceId: this.id,
                         componentType: block.type,
                     }),
                 ]
@@ -563,7 +563,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 return pillRow.pills.map((pill) =>
                     createLinkFromUrl({
                         url: pill.url,
-                        source: this,
+                        sourceId: this.id,
                         componentType: pillRow.type,
                         text: pill.text,
                     })
@@ -573,7 +573,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 return homepageIntro.featuredWork.map((featuredWork) =>
                     createLinkFromUrl({
                         url: featuredWork.url,
-                        source: this,
+                        sourceId: this.id,
                         componentType: homepageIntro.type,
                         text:
                             featuredWork.title ||
@@ -638,7 +638,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             if (!checkIsRefAnchor(url)) {
                 return createLinkFromUrl({
                     url,
-                    source: this,
+                    sourceId: this.id,
                     componentType: span.spanType,
                     text: spansToSimpleString(span.children),
                 })
@@ -811,7 +811,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         const linkErrors: OwidGdocErrorMessage[] = []
         for (const link of this.links) {
             switch (link.linkType) {
-                case OwidGdocLinkType.Gdoc: {
+                case ContentGraphLinkType.Gdoc: {
                     const id = getUrlTarget(link.target)
                     const doesGdocExist = Boolean(this.linkedDocuments[id])
                     const isGdocPublished = this.linkedDocuments[id]?.published
@@ -828,7 +828,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     }
                     break
                 }
-                case OwidGdocLinkType.Grapher: {
+                case ContentGraphLinkType.Grapher: {
                     if (
                         !chartIdsBySlug[link.target] &&
                         !(await multiDimDataPageExists(knex, {
@@ -844,7 +844,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     }
                     break
                 }
-                case OwidGdocLinkType.Explorer: {
+                case ContentGraphLinkType.Explorer: {
                     if (!publishedExplorersBySlug[link.target]) {
                         linkErrors.push({
                             property: "content",
@@ -854,7 +854,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     }
                     break
                 }
-                case OwidGdocLinkType.ChartView: {
+                case ContentGraphLinkType.ChartView: {
                     if (!chartViewNames.has(link.target)) {
                         linkErrors.push({
                             property: "content",

@@ -1,11 +1,10 @@
 import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import { Url } from "@ourworldindata/utils"
-import { GdocBase } from "./Gdoc/GdocBase.js"
 import { formatUrls } from "../../site/formatting.js"
 import {
-    DbInsertPostGdocLink,
+    ContentGraphLinkType,
+    DbInsertContentGraphLink,
     DbPlainPostGdocLink,
-    OwidGdocLinkType,
 } from "@ourworldindata/types"
 import { KnexReadonlyTransaction, knexRaw } from "../db.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
@@ -13,7 +12,7 @@ import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 export async function getPublishedLinksTo(
     knex: KnexReadonlyTransaction,
     ids: string[],
-    linkType?: OwidGdocLinkType
+    linkType?: ContentGraphLinkType
 ): Promise<
     (DbPlainPostGdocLink & {
         title: string
@@ -55,15 +54,15 @@ export async function getPublishedLinksTo(
 
 export function createLinkFromUrl({
     url,
-    source,
+    sourceId,
     text = "",
     componentType = "",
 }: {
     url: string
-    source: GdocBase
+    sourceId: string | number
     text?: string
     componentType?: string
-}): DbInsertPostGdocLink {
+}): DbInsertContentGraphLink {
     const formattedUrl = formatUrls(url)
     const urlObject = Url.fromURL(formattedUrl)
     const linkType = getLinkType(formattedUrl)
@@ -77,26 +76,26 @@ export function createLinkFromUrl({
         hash,
         text,
         componentType,
-        sourceId: source.id,
-    } satisfies DbInsertPostGdocLink
+        sourceId,
+    } satisfies DbInsertContentGraphLink
 }
 
 export function createLinkForChartView({
     name,
-    source,
+    sourceId,
     componentType,
 }: {
     name: string
-    source: GdocBase
+    sourceId: string
     componentType: string
-}): DbInsertPostGdocLink {
+}): DbInsertContentGraphLink {
     return {
         target: name,
-        linkType: OwidGdocLinkType.ChartView,
+        linkType: ContentGraphLinkType.ChartView,
         queryString: "",
         hash: "",
         text: "",
         componentType,
-        sourceId: source.id,
-    } satisfies DbInsertPostGdocLink
+        sourceId,
+    } satisfies DbInsertContentGraphLink
 }
