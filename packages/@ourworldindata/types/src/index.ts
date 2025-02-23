@@ -7,6 +7,12 @@ export {
 } from "./DonationTypes.js"
 
 export {
+    DodsTableName,
+    type DbInsertDod,
+    type DbPlainDod,
+} from "./dbTypes/Dods.js"
+
+export {
     type Base64String,
     type GitCommit,
     type HexString,
@@ -139,6 +145,9 @@ export {
     type TagGraphRoot,
     type DbInsertTagGraphNode,
     type DbPlainTagGraphNode,
+    type DbPlainContentGraphLink,
+    type DbInsertContentGraphLink,
+    ContentGraphLinkType,
 } from "./domainTypes/ContentGraph.js"
 export {
     WP_BlockClass,
@@ -332,7 +341,6 @@ export {
     type LatestDataInsight,
     type LinkedAuthor,
     type LinkedChart,
-    OwidGdocLinkType,
     type LinkedIndicator,
     DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
     type OwidGdocContent,
