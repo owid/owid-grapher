@@ -8,7 +8,7 @@ import {
     DbInsertMultiDimDataPage,
     DbPlainMultiDimDataPage,
     DbEnrichedMultiDimDataPage,
-    OwidGdocLinkType,
+    ContentGraphLinkType,
     JsonString,
     MultiDimDataPageConfigEnriched,
 } from "@ourworldindata/types"
@@ -82,7 +82,7 @@ export async function getAllLinkedPublishedMultiDimDataPages(
             mddp.config as config
         FROM multi_dim_data_pages mddp
         JOIN posts_gdocs_links pgl ON pgl.target = mddp.slug
-        WHERE pgl.linkType = '${OwidGdocLinkType.Grapher}'
+        WHERE pgl.linkType = '${ContentGraphLinkType.Grapher}'
         AND mddp.published = true`
     )
     return rows.map(enrichRow)
