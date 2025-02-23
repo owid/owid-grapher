@@ -1,4 +1,8 @@
-import { OwidGdoc, OwidGdocLinkType, OwidGdocType } from "@ourworldindata/types"
+import {
+    OwidGdoc,
+    ContentGraphLinkType,
+    OwidGdocType,
+} from "@ourworldindata/types"
 import {
     spansToUnformattedPlainText,
     gdocUrlRegex,
@@ -8,18 +12,18 @@ import {
 import urlSlug from "url-slug"
 import { P, match } from "ts-pattern"
 
-export function getLinkType(urlString: string): OwidGdocLinkType {
+export function getLinkType(urlString: string): ContentGraphLinkType {
     const url = Url.fromURL(urlString)
     if (url.isGoogleDoc) {
-        return OwidGdocLinkType.Gdoc
+        return ContentGraphLinkType.Gdoc
     }
     if (url.isGrapher) {
-        return OwidGdocLinkType.Grapher
+        return ContentGraphLinkType.Grapher
     }
     if (url.isExplorer) {
-        return OwidGdocLinkType.Explorer
+        return ContentGraphLinkType.Explorer
     }
-    return OwidGdocLinkType.Url
+    return ContentGraphLinkType.Url
 }
 
 export function checkIsInternalLink(url: string): boolean {

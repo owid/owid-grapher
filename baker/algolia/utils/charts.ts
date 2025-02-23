@@ -1,6 +1,6 @@
 import { isNil, uniq } from "lodash-es"
 import { MarkdownTextWrap } from "@ourworldindata/components"
-import { KeyChartLevel, OwidGdocLinkType } from "@ourworldindata/types"
+import { KeyChartLevel, ContentGraphLinkType } from "@ourworldindata/types"
 import * as db from "../../../db/db.js"
 import {
     ChartRecord,
@@ -115,7 +115,7 @@ export const getChartsRecords = async (
         const linksFromGdocs = await getPublishedLinksTo(
             knex,
             [c.slug],
-            OwidGdocLinkType.Grapher
+            ContentGraphLinkType.Grapher
         )
 
         const plaintextSubtitle = isNil(c.subtitle)

@@ -1,11 +1,11 @@
-import { OwidGdocLinkType } from "../gdocTypes/Gdoc.js"
+import { ContentGraphLinkType } from "../domainTypes/ContentGraph.js"
 
 export const PostsLinksTableName = "posts_links"
 export interface DbInsertPostLink {
     componentType: string
     hash: string
     id?: number
-    linkType?: OwidGdocLinkType | null
+    linkType?: ContentGraphLinkType | null
     queryString: string
     sourceId: number
     target: string
