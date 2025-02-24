@@ -44,10 +44,7 @@ export const DataInsightsIndexPage = (props: DataInsightsIndexPageProps) => {
                         <DataInsightsIndexPageContent {...props} />
                     </DebugProvider>
                 </main>
-                <SiteFooter
-                    baseUrl={baseUrl}
-                    context={SiteFooterContext.dataInsightsIndexPage}
-                />
+                <SiteFooter context={SiteFooterContext.dataInsightsIndexPage} />
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `window.${_OWID_DATA_INSIGHTS_INDEX_PAGE_DATA} = ${serializeJSONForHTML(

@@ -26,11 +26,9 @@ import { Menu } from "./SiteConstants.js"
 const HAS_DONATION_FLAG = false
 
 export const SiteNavigation = ({
-    baseUrl,
     hideDonationFlag,
     isOnHomepage,
 }: {
-    baseUrl: string
     hideDonationFlag?: boolean
     isOnHomepage?: boolean
 }) => {
@@ -134,7 +132,7 @@ export const SiteNavigation = ({
                                 icon={isActiveMobileMenu ? faXmark : faBars}
                             />
                         </SiteNavigationToggle>
-                        <SiteLogos baseUrl={baseUrl} />
+                        <SiteLogos />
                         <nav className="site-primary-links hide-sm-only">
                             <ul>
                                 <li>

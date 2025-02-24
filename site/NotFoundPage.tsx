@@ -34,7 +34,7 @@ export default function NotFoundPage({ baseUrl }: { baseUrl: string }) {
                         <NotFoundPageForm />
                     </div>
                 </main>
-                <SiteFooter hideDonate={true} baseUrl={baseUrl} />
+                <SiteFooter hideDonate />
                 <script
                     type="module"
                     dangerouslySetInnerHTML={{

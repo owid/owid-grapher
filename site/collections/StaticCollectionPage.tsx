@@ -62,7 +62,7 @@ export const StaticCollectionPage = (
                         </div>
                     </div>
                 </main>
-                <SiteFooter hideDonate={true} baseUrl={baseUrl} />
+                <SiteFooter hideDonate />
             </body>
         </Html>
     )

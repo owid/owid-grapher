@@ -11,7 +11,6 @@ import { OxfordAndGcdlLogos } from "./SiteLogos.js"
 interface SiteFooterProps {
     hideDonate?: boolean
     hideDonationFlag?: boolean
-    baseUrl: string
     context?: SiteFooterContext
     debug?: boolean
     isPreviewing?: boolean
@@ -128,11 +127,11 @@ export const SiteFooter = (props: SiteFooterProps) => {
                     </p>
                     <div className="affiliates">
                         <div className="oxford-logos">
-                            <OxfordAndGcdlLogos baseUrl={props.baseUrl} />
+                            <OxfordAndGcdlLogos />
                         </div>
                         <a href="https://www.ycombinator.com">
                             <img
-                                src={`${props.baseUrl}/yc-logo.svg`}
+                                src={"/yc-logo.svg"}
                                 alt="Y Combinator logo"
                                 loading="lazy"
                                 width={123}
