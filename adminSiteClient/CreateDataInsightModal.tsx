@@ -574,8 +574,7 @@ export function CreateDataInsightModal(props: {
                         rules={[
                             {
                                 required: true,
-                                message:
-                                    "Please provide a filename for the image",
+                                message: "Please provide a title for the DI",
                             },
                         ]}
                     />
@@ -1038,7 +1037,7 @@ function SendMessageToSlackFeedback({
         <p>
             <span>
                 The newly created data insight will be shared in the
-                #data-insight-pitches channel.
+                #data-insight-pitches channel for review.
             </span>
             <FeedbackTag progress={progress} />
         </p>
