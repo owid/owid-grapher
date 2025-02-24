@@ -1369,8 +1369,12 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         }
     }
 
+    .slackNote {
+        margin-top: 12px;
+    }
+
     .image-preview {
-        margin-top: 24px;
+        margin: 24px 0;
 
         h3 {
             font-size: 1em;
@@ -1391,7 +1395,7 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         }
 
         p {
-            margin: 0;
+            margin: 12px 0 0 0;
         }
 
         ul {
@@ -1401,7 +1405,10 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 
         li {
             line-height: 1.5;
+        }
 
+        li,
+        p {
             // add a little margin before the feedback tag
             span:first-of-type {
                 margin-right: 12px;
