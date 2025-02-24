@@ -27,7 +27,7 @@ import {
 import { omit, pick } from "lodash"
 import {
     ApiChartViewOverview,
-    DataInsight,
+    DataInsightMinimalInformation,
 } from "../../adminShared/AdminTypes.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
@@ -357,7 +357,7 @@ export async function getChartViewReferences(
 async function getDataInsightsForChartView(
     knex: Knex<any, any[]>,
     chartViewId: number
-): Promise<DataInsight[]> {
+): Promise<DataInsightMinimalInformation[]> {
     const rows = await db.knexRaw<
         Pick<DbRawPostGdoc, "id" | "published"> &
             Pick<OwidGdocDataInsightContent, "title"> & {
