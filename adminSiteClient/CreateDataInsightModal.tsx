@@ -18,7 +18,14 @@ import {
     FormItemProps,
 } from "antd"
 import { ValidateStatus } from "antd/es/form/FormItem"
-import { useCallback, useContext, useEffect, useMemo, useState } from "react"
+import {
+    Fragment,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react"
 import cx from "classnames"
 import {
     fetchFigmaProvidedImageUrl,
@@ -29,7 +36,13 @@ import { AdminAppContext } from "./AdminAppContext"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings"
 import { LoadingImage } from "./ReuploadImageForDataInsightModal"
 import { ApiChartViewOverview } from "../adminShared/AdminTypes"
-import { downloadImage, isEmpty, RequiredBy } from "@ourworldindata/utils"
+import {
+    downloadImage,
+    isEmpty,
+    MinimalTag,
+    MinimalTagWithIsTopic,
+    RequiredBy,
+} from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
 const DEFAULT_RUNNING_MESSAGE: Record<Task, string> = {
@@ -37,6 +50,7 @@ const DEFAULT_RUNNING_MESSAGE: Record<Task, string> = {
     uploadImage: "Uploading image...",
     loadFigmaImage: "Loading Figma image...",
     suggestAltText: "Suggesting alt text...",
+    setTopicTags: "Setting topic tags...",
 } as const
 
 const DEFAULT_SUCCESS_MESSAGE: Record<Task, string> = {
@@ -44,6 +58,7 @@ const DEFAULT_SUCCESS_MESSAGE: Record<Task, string> = {
     uploadImage: "Image uploaded successfully",
     loadFigmaImage: "Figma image loaded successfully",
     suggestAltText: "Alt text suggested successfully",
+    setTopicTags: "Topic tags assigned",
 } as const
 
 const DEFAULT_ERROR_MESSAGE: Record<Task, string> = {
@@ -51,9 +66,15 @@ const DEFAULT_ERROR_MESSAGE: Record<Task, string> = {
     uploadImage: "Uploading image failed",
     loadFigmaImage: "Loading Figma image failed",
     suggestAltText: "Suggesting alt text failed",
+    setTopicTags: "Setting topic tags failed",
 } as const
 
-type Task = "createDI" | "uploadImage" | "loadFigmaImage" | "suggestAltText"
+type Task =
+    | "createDI"
+    | "uploadImage"
+    | "loadFigmaImage"
+    | "suggestAltText"
+    | "setTopicTags"
 
 type Progress =
     | { status: "idle" }
@@ -63,6 +84,7 @@ type Progress =
 type FormFieldName =
     | "title"
     | "authors"
+    | "topicTagIds"
     | "grapherUrl"
     | "narrativeChart"
     | "figmaUrl"
@@ -70,7 +92,11 @@ type FormFieldName =
     | "imageAltText"
 type ImageFormFieldName = "imageFilename" | "imageAltText"
 
-type FormData = Partial<Record<FormFieldName, string>>
+type FormData = Partial<
+    Omit<Record<FormFieldName, string>, "topicTagIds"> & {
+        topicTagIds?: number[]
+    }
+>
 type FormDataWithTitle = RequiredBy<FormData, "title">
 type FormDataWithImageFilename = RequiredBy<FormData, "imageFilename">
 
@@ -125,11 +151,15 @@ export function CreateDataInsightModal(props: {
         "createDI",
         "uploadImage",
         "loadFigmaImage",
-        "suggestAltText"
+        "suggestAltText",
+        "setTopicTags"
     )
 
     // loaded from Figma if a Figma URL is provided
     const [figmaImageUrl, setFigmaImageUrl] = useState<string | undefined>()
+
+    // used for autocompletion
+    const [allTopicTags, setAllTopicTags] = useState<MinimalTag[]>([])
 
     // used for autocompletion
     const [allNarrativeCharts, setAllNarrativeCharts] = useState<
@@ -144,6 +174,10 @@ export function CreateDataInsightModal(props: {
     const narrativeChart = formData.narrativeChart
         ? allNarrativeChartsMap.get(formData.narrativeChart)
         : props.narrativeChart
+
+    const topicTags = allTopicTags.filter((tag) =>
+        formData.topicTagIds?.includes(tag.id)
+    )
 
     const getDataInsightImageUrl = (args?: {
         cache: boolean
@@ -257,10 +291,25 @@ export function CreateDataInsightModal(props: {
         }
 
         // Create the data insight Gdoc
-        const response = await createDataInsight({ formData })
-        updateProgress("createDI", response)
+        const createResponse = await createDataInsight({ formData })
+        updateProgress("createDI", createResponse)
 
-        props.onFinish?.(response)
+        // Set topic tags if given
+        const topicTagIds = formData.topicTagIds ?? []
+        if (createResponse.success && topicTagIds.length > 0) {
+            setProgress("setTopicTags", "running")
+            try {
+                const response = await setTags({
+                    gdocId: createResponse.gdocId,
+                    tagIds: topicTagIds,
+                })
+                updateProgress("setTopicTags", response)
+            } catch {
+                setProgress("setTopicTags", "failure")
+            }
+        }
+
+        props.onFinish?.(createResponse)
     }
 
     const uploadImage = async ({
@@ -289,7 +338,7 @@ export function CreateDataInsightModal(props: {
         return response
     }
 
-    const createDataInsight = async ({
+    const createDataInsight = ({
         formData,
     }: {
         formData: FormDataWithTitle
@@ -306,6 +355,20 @@ export function CreateDataInsightModal(props: {
         return admin.requestJSON<DataInsightCreationResponse>(
             `/api/dataInsights/create`,
             payload,
+            "POST"
+        )
+    }
+
+    const setTags = ({
+        gdocId,
+        tagIds,
+    }: {
+        gdocId: string
+        tagIds: number[]
+    }): Promise<{ success: true }> => {
+        return admin.requestJSON(
+            `/api/gdocs/${gdocId}/setTags`,
+            { tagIds },
             "POST"
         )
     }
@@ -371,6 +434,20 @@ export function CreateDataInsightModal(props: {
             )
         })
     }, [admin, hasNarrativeChartField])
+
+    const hasTopicTagsField = shouldShowField("topicTagIds")
+    useEffect(() => {
+        // no need to load topic tags if the the field is hidden
+        // since they're used for autocompletion
+        if (!hasTopicTagsField) return
+
+        const fetchTags = () =>
+            admin.getJSON<{ tags: MinimalTagWithIsTopic[] }>("/api/tags.json")
+
+        void fetchTags().then((result) =>
+            setAllTopicTags(result.tags.filter((tag) => tag.isTopic))
+        )
+    }, [admin, hasTopicTagsField])
 
     const showFeedbackBox = ({
         formData,
@@ -441,6 +518,11 @@ export function CreateDataInsightModal(props: {
                         name="authors"
                         initialValue={initialValues.authors ?? admin.username}
                         show={shouldShowField("authors")}
+                    />
+
+                    <TopicTagsSelect
+                        allTopicTags={allTopicTags}
+                        show={shouldShowField("topicTagIds")}
                     />
 
                     {(shouldShowField("narrativeChart") ||
@@ -598,6 +680,10 @@ export function CreateDataInsightModal(props: {
                                     formData={formData}
                                     progress={progress.createDI}
                                 />
+                                <TopicTagsFeedback
+                                    topicTags={topicTags}
+                                    progress={progress.setTopicTags}
+                                />
                             </ul>
                         </div>
                     )}
@@ -697,7 +783,36 @@ function NarrativeChartSelect({
                     label: name,
                 }))}
                 onSelect={handleSelect}
-                allowClear={true}
+                allowClear
+            />
+        </FormField>
+    )
+}
+
+function TopicTagsSelect({
+    allTopicTags,
+    show,
+}: {
+    allTopicTags: MinimalTag[]
+    show?: boolean
+}) {
+    if (!show) return null
+    return (
+        <FormField label="Topic tags" name="topicTagIds">
+            <Select
+                placeholder="Select topic tags..."
+                mode="multiple"
+                options={allTopicTags.map(({ id, name }) => ({
+                    value: id,
+                    label: name,
+                }))}
+                filterOption={(input, option) => {
+                    if (!option) return false
+                    return option.label
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                }}
+                allowClear
             />
         </FormField>
     )
@@ -784,6 +899,30 @@ function DataInsightCreationFeedback({
             <span>
                 Adding a new Google Doc to your data insights folder
                 {titleSuffix}
+            </span>
+            <FeedbackTag progress={progress} />
+        </li>
+    )
+}
+
+function TopicTagsFeedback({
+    topicTags,
+    progress,
+}: {
+    topicTags: MinimalTag[]
+    progress: Progress
+}) {
+    if (topicTags.length === 0) return null
+    return (
+        <li>
+            <span>
+                Tagging the newly created data insight, with{" "}
+                {topicTags.map((tag, index) => (
+                    <Fragment key={tag.id}>
+                        <i>{tag.name}</i>
+                        {index < topicTags.length - 1 && " and "}
+                    </Fragment>
+                ))}
             </span>
             <FeedbackTag progress={progress} />
         </li>
