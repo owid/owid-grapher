@@ -3,6 +3,7 @@ export {
     type NoUndefinedValues,
     type AllKeysRequired,
     type PartialBy,
+    type RequiredBy,
     type PartialRecord,
     createFormatter,
     getRelativeMouse,
