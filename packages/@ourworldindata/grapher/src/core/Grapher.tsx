@@ -865,7 +865,7 @@ export class Grapher
         // (2) needs to have data for the x and y dimension.
         let table = this.isScatter
             ? this.tableAfterAuthorTimelineAndActiveChartTransform
-            : this.tableAfterAuthorTimelineAndEntityFilter
+            : this.table
 
         if (!this.isReady) return table
 
@@ -922,7 +922,10 @@ export class Grapher
         let table = this.tableAfterColorAndSizeToleranceApplication
 
         // Filter entities
-        table = table.filterEntitiesByIncludeExcludePattern(this)
+        table = table.filterByEntityNamesUsingIncludeExcludePattern({
+            excluded: this.excludedEntityNames,
+            included: this.includedEntityNames,
+        })
 
         // Filter times
         if (
@@ -943,7 +946,7 @@ export class Grapher
 
     @computed
     get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
-        const table = this.tableAfterAuthorTimelineAndEntityFilter
+        const table = this.table
         if (!this.isReady || !this.isOnChartOrMapTab) return table
 
         const startMark = performance.now()
@@ -1838,8 +1841,7 @@ export class Grapher
     }
 
     @computed private get areHandlesOnSameTime(): boolean {
-        const times =
-            this.tableAfterAuthorTimelineAndEntityFilter.timeColumn.uniqValues
+        const times = this.table.timeColumn.uniqValues
         const [start, end] = this.timelineHandleTimeBounds.map((time) =>
             findClosestTime(times, time)
         )
@@ -2157,8 +2159,7 @@ export class Grapher
         // We can have cases where minTime = Infinity and/or maxTime = -Infinity,
         // but still only a single year is selected.
         // To check for that we need to look at the times array.
-        const times =
-            this.tableAfterAuthorTimelineAndEntityFilter.timeColumn.uniqValues
+        const times = this.table.timeColumn.uniqValues
         const closestMinTime = findClosestTime(times, minTime ?? -Infinity)
         const closestMaxTime = findClosestTime(times, maxTime ?? Infinity)
         return closestMinTime !== undefined && closestMinTime === closestMaxTime
@@ -3687,7 +3688,7 @@ export class Grapher
     }
 
     @computed get animationEndTime(): Time {
-        const { timeColumn } = this.tableAfterAuthorTimelineAndEntityFilter
+        const { timeColumn } = this.table
         if (this.timelineMaxTime) {
             return (
                 findClosestTime(timeColumn.uniqValues, this.timelineMaxTime) ??

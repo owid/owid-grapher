@@ -167,17 +167,17 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    filterEntitiesByIncludeExcludePattern({
-        excludedEntityNames,
-        includedEntityNames,
+    filterByEntityNamesUsingIncludeExcludePattern({
+        excluded,
+        included,
     }: {
-        excludedEntityNames?: EntityName[]
-        includedEntityNames?: EntityName[]
+        excluded?: EntityName[]
+        included?: EntityName[]
     }): this {
-        if (!includedEntityNames && !excludedEntityNames) return this
+        if (!included && !excluded) return this
 
-        const excludedSet = new Set(excludedEntityNames)
-        const includedSet = new Set(includedEntityNames)
+        const excludedSet = new Set(excluded)
+        const includedSet = new Set(included)
 
         const excludeFilter = (entityName: EntityName): boolean =>
             !excludedSet.has(entityName)
@@ -187,12 +187,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const filterFn = (entityName: any): boolean =>
             excludeFilter(entityName) && includeFilter(entityName)
 
-        const excludedList = excludedEntityNames
-            ? excludedEntityNames.join(", ")
-            : ""
-        const includedList = includedEntityNames
-            ? includedEntityNames.join(", ")
-            : ""
+        const excludedList = excluded ? excluded.join(", ") : ""
+        const includedList = included ? included.join(", ") : ""
 
         return this.columnFilter(
             this.entityNameSlug,
