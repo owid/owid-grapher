@@ -186,19 +186,6 @@ function validateApprovedBy(
     }
 }
 
-function validateGrapherUrl(
-    gdoc: OwidGdocDataInsightInterface,
-    errors: OwidGdocErrorMessage[]
-) {
-    if (!gdoc.content["grapher-url"]) {
-        errors.push({
-            property: "grapher-url",
-            type: OwidGdocErrorMessageType.Warning,
-            message: `Missing "grapher-url". This isn't required, but if you're referencing a grapher, it's a good idea to add it so that we can link it to this data insight in the future. Include country selections, if applicable.`,
-        })
-    }
-}
-
 function validateDataInsightImage(
     gdoc: OwidGdocDataInsightInterface,
     errors: OwidGdocErrorMessage[]
@@ -296,7 +283,6 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
         validateAtomFields(gdoc, errors)
     } else if (checkIsDataInsight(gdoc)) {
         validateApprovedBy(gdoc, errors)
-        validateGrapherUrl(gdoc, errors)
         validateDataInsightImage(gdoc, errors)
     } else if (checkIsAuthor(gdoc)) {
         validateSocials(gdoc, errors)

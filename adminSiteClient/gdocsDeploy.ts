@@ -102,6 +102,8 @@ export const checkIsLightningUpdate = (
     > = {
         ["grapher-url"]: true,
         ["approved-by"]: true,
+        ["narrative-chart"]: true,
+        ["figma-url"]: true,
         title: false, // requires rebaking the feed
         authors: false, // requires rebaking the feed
         body: false, // requires rebaking the feed

@@ -153,7 +153,9 @@ export function extractGdocIndexItem(
 export interface OwidGdocDataInsightContent {
     title: string
     authors: string[]
+    ["narrative-chart"]?: string
     ["grapher-url"]?: string
+    ["figma-url"]?: string
     ["approved-by"]: string // can't publish an insight unless this is set
     body: OwidEnrichedGdocBlock[]
     type: OwidGdocType.DataInsight
