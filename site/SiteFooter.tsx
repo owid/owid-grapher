@@ -6,6 +6,7 @@ import { ScriptLoadErrorDetector } from "./NoJSDetector.js"
 import { ABOUT_LINKS, RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
 import { Button } from "@ourworldindata/components"
 import { SITE_TOOLS_CLASS } from "./SiteTools.js"
+import { OxfordAndGcdlLogos } from "./SiteLogos.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -127,41 +128,15 @@ export const SiteFooter = (props: SiteFooterProps) => {
                     </p>
                     <div className="affiliates">
                         <div className="oxford-logos">
-                            <a href="https://www.oxfordmartin.ox.ac.uk/global-development">
-                                <img
-                                    src={`${props.baseUrl}/oms-logo.svg`}
-                                    alt="Oxford Martin School logo"
-                                    loading="lazy"
-                                    width="96"
-                                    height="103"
-                                />
-                            </a>
-                            <a href="https://www.ox.ac.uk">
-                                <img
-                                    src={`${props.baseUrl}/oxford-logo.svg`}
-                                    alt="University of Oxford logo"
-                                    loading="lazy"
-                                    width="96"
-                                    height="103"
-                                />
-                            </a>
-                            <a href="https://global-change-data-lab.org">
-                                <img
-                                    src={`${props.baseUrl}/gcdl-logo.svg`}
-                                    alt="Global Change Data Lab logo"
-                                    loading="lazy"
-                                    width="80"
-                                    height="103"
-                                />
-                            </a>
+                            <OxfordAndGcdlLogos baseUrl={props.baseUrl} />
                         </div>
                         <a href="https://www.ycombinator.com">
                             <img
                                 src={`${props.baseUrl}/yc-logo.svg`}
                                 alt="Y Combinator logo"
                                 loading="lazy"
-                                width="123"
-                                height="30"
+                                width={123}
+                                height={30}
                             />
                         </a>
                     </div>
