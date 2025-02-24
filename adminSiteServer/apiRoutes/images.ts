@@ -51,7 +51,7 @@ export async function postImageHandler(
     if (collision) {
         return {
             success: false,
-            error: `An image with this content already exists (filename: ${collision.filename})`,
+            errorMessage: `An image with this content already exists (filename: ${collision.filename})`,
         }
     }
 
@@ -62,7 +62,7 @@ export async function postImageHandler(
     if (preexisting) {
         return {
             success: false,
-            error: "An image with this filename already exists",
+            errorMessage: "An image with this filename already exists",
         }
     }
 
@@ -71,7 +71,7 @@ export async function postImageHandler(
     if (!cloudflareId) {
         return {
             success: false,
-            error: "Failed to upload image",
+            errorMessage: "Failed to upload image",
         }
     }
 

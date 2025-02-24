@@ -17,6 +17,7 @@ import {
     isChartViewEditorInstance,
 } from "./ChartViewEditor.js"
 import { NarrativeChartNameModal } from "./NarrativeChartNameModal.js"
+import { CreateDataInsightModal } from "./CreateDataInsightModal.js"
 
 @observer
 export class SaveButtons<Editor extends AbstractChartEditor> extends Component<{
@@ -156,11 +157,12 @@ class SaveButtonsForChart extends Component<{
                         (this.narrativeChartNameModalOpen = "closed")
                     }
                 />
-                {editingErrors.map((error, i) => (
-                    <div key={i} className="alert alert-danger mt-2">
-                        {error}
-                    </div>
-                ))}
+                {grapher.isReady &&
+                    editingErrors.map((error, i) => (
+                        <div key={i} className="alert alert-danger mt-2">
+                            {error}
+                        </div>
+                    ))}
             </div>
         )
     }
@@ -205,11 +207,12 @@ class SaveButtonsForIndicatorChart extends Component<{
                         ? "Create indicator chart"
                         : "Update indicator chart"}
                 </button>
-                {editingErrors.map((error, i) => (
-                    <div key={i} className="alert alert-danger mt-2">
-                        {error}
-                    </div>
-                ))}
+                {grapher.isReady &&
+                    editingErrors.map((error, i) => (
+                        <div key={i} className="alert alert-danger mt-2">
+                            {error}
+                        </div>
+                    ))}
             </div>
         )
     }
@@ -221,6 +224,8 @@ class SaveButtonsForChartView extends Component<{
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }> {
+    @observable isCreateDataInsightModalOpen = false
+
     @action.bound onSaveChart() {
         void this.props.editor.saveGrapher()
     }
@@ -257,12 +262,48 @@ class SaveButtonsForChartView extends Component<{
                     rel="noopener"
                 >
                     Go to parent chart
-                </a>
-                {editingErrors.map((error, i) => (
-                    <div key={i} className="alert alert-danger mt-2">
-                        {error}
-                    </div>
-                ))}
+                </a>{" "}
+                <button
+                    className="btn btn-secondary"
+                    onClick={() => (this.isCreateDataInsightModalOpen = true)}
+                    disabled={isSavingDisabled}
+                >
+                    Create DI
+                </button>
+                {grapher.isReady &&
+                    editingErrors.map((error, i) => (
+                        <div key={i} className="alert alert-danger mt-2">
+                            {error}
+                        </div>
+                    ))}
+                {this.isCreateDataInsightModalOpen && (
+                    <CreateDataInsightModal
+                        description="Create a new data insight based on this narrative chart."
+                        narrativeChart={{
+                            ...editor.manager.idsAndName!,
+                            title: grapher.currentTitle,
+                        }}
+                        initialValues={{
+                            title: grapher.currentTitle,
+                            imageFilename: editor.manager.idsAndName?.name
+                                ? `${editor.manager.idsAndName?.name}.png`
+                                : undefined,
+                        }}
+                        hiddenFields={["grapherUrl", "narrativeChart"]}
+                        closeModal={() =>
+                            (this.isCreateDataInsightModalOpen = false)
+                        }
+                        onFinish={(response) => {
+                            if (response.success) {
+                                this.isCreateDataInsightModalOpen = false
+                                window.open(
+                                    `/admin/gdocs/${response.gdocId}/preview`,
+                                    "_blank"
+                                )
+                            }
+                        }}
+                    />
+                )}
             </div>
         )
     }

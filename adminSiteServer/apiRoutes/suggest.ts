@@ -32,13 +32,13 @@ export async function suggestGptTopics(
     }
 }
 
-export async function suggestGptAltText(
+export async function suggestGptAltTextForCloudflareImage(
     req: Request,
     _res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
 ): Promise<{
-    success: boolean
-    altText: string | null
+    success: true
+    altText: string
 }> {
     const imageId = parseIntOrUndefined(req.params.imageId)
     if (!imageId) throw new JsonError(`Invalid image ID`, 400)
@@ -47,12 +47,40 @@ export async function suggestGptAltText(
         .first()
     if (!image) throw new JsonError(`No image found for ID ${imageId}`, 404)
 
-    const src = `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/public`
+    const imageUrl = `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/public`
+    const response = await generateAltTextFromUrl(imageUrl)
+
+    return response
+}
+
+export async function suggestGptAltText(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>,
+    _trx: db.KnexReadonlyTransaction
+): Promise<{
+    success: true
+    altText: string
+}> {
+    const imageUrl = req.query.imageUrl
+    if (!imageUrl) throw new JsonError(`No image URL provided`, 400)
+    if (typeof imageUrl !== "string")
+        throw new JsonError(`Invalid image URL provided`, 400)
+    const response = await generateAltTextFromUrl(imageUrl as string)
+    return response
+}
+
+export async function generateAltTextFromUrl(imageUrl: string): Promise<{
+    success: true
+    altText: string
+}> {
     let altText: string | null = ""
     try {
-        altText = await fetchGptGeneratedAltText(src)
+        altText = await fetchGptGeneratedAltText(imageUrl)
     } catch (error) {
-        console.error(`Error fetching GPT alt text for image ${imageId}`, error)
+        console.error(
+            `Error fetching GPT alt text for image at ${imageUrl}`,
+            error
+        )
         throw new JsonError(`Error fetching GPT alt text: ${error}`, 500)
     }
 

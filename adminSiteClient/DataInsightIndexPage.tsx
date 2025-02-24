@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 import {
     Button,
@@ -18,6 +18,7 @@ import {
     faPanorama,
     faPen,
     faRotate,
+    faPlus,
     faUpRightFromSquare,
 } from "@fortawesome/free-solid-svg-icons"
 import { faFigma } from "@fortawesome/free-brands-svg-icons"
@@ -50,8 +51,13 @@ import {
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../settings/clientSettings.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { ImageUploadResponse, makeImageSrc } from "./imagesHelpers.js"
+import {
+    fetchFigmaProvidedImageUrl,
+    ImageUploadResponse,
+    makeImageSrc,
+} from "./imagesHelpers.js"
 import { ReuploadImageForDataInsightModal } from "./ReuploadImageForDataInsightModal.js"
+import { CreateDataInsightModal } from "./CreateDataInsightModal.js"
 
 type NarrativeDataInsightIndexItem = RequiredBy<
     OwidGdocDataInsightIndexItem,
@@ -65,10 +71,6 @@ type FigmaDataInsightIndexItem = RequiredBy<
 type DataInsightIndexItemThatCanBeUploaded =
     | NarrativeDataInsightIndexItem
     | FigmaDataInsightIndexItem
-
-type FigmaResponse =
-    | { success: true; imageUrl: string }
-    | { success: false; errorMessage: string }
 
 type ChartTypeFilter = GrapherChartOrMapType | "all"
 type PublicationFilter = "all" | "published" | "scheduled" | "draft"
@@ -84,6 +86,7 @@ const rotateIcon = <FontAwesomeIcon icon={faRotate} size="sm" />
 const figmaIcon = <FontAwesomeIcon icon={faFigma} size="sm" />
 const copyIcon = <FontAwesomeIcon icon={faCopy} size="sm" />
 const panoramaIcon = <FontAwesomeIcon icon={faPanorama} size="sm" />
+const plusIcon = <FontAwesomeIcon icon={faPlus} size="sm" />
 
 const NotificationContext = React.createContext(null)
 
@@ -258,7 +261,6 @@ function createColumns(ctx: {
             render: (_, dataInsight) => (
                 <Space size="small" direction="vertical">
                     <Button
-                        type="primary"
                         target="_blank"
                         href={makeGDocEditLink(dataInsight)}
                         icon={editIcon}
@@ -286,9 +288,8 @@ function createColumns(ctx: {
 export function DataInsightIndexPage() {
     const { admin } = useContext(AdminAppContext)
 
-    const [dataInsights, setDataInsights] = useState<
-        OwidGdocDataInsightIndexItem[]
-    >([])
+    const [dataInsights, setDataInsights, refreshDataInsights] =
+        useDataInsights(admin)
 
     const [searchValue, setSearchValue] = useState("")
     const [chartTypeFilter, setChartTypeFilter] = useState<
@@ -300,6 +301,8 @@ export function DataInsightIndexPage() {
 
     const [dataInsightForImageUpload, setDataInsightForImageUpload] =
         useState<DataInsightIndexItemThatCanBeUploaded>()
+
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
     const [notificationApi, notificationContextHolder] =
         notification.useNotification()
@@ -416,17 +419,6 @@ export function DataInsightIndexPage() {
         }
     }
 
-    useEffect(() => {
-        const fetchAllDataInsights = async () =>
-            (await admin.getJSON(
-                "/api/dataInsights"
-            )) as OwidGdocDataInsightIndexItem[]
-
-        void fetchAllDataInsights().then((dataInsights) =>
-            setDataInsights(dataInsights)
-        )
-    }, [admin])
-
     return (
         <AdminLayout title="Data insights">
             <NotificationContext.Provider value={null}>
@@ -501,13 +493,24 @@ export function DataInsightIndexPage() {
                                 Reset
                             </Button>
                         </Flex>
-                        <Radio.Group
-                            defaultValue="list"
-                            onChange={(e) => setLayout(e.target.value)}
-                        >
-                            <Radio.Button value="list">List</Radio.Button>
-                            <Radio.Button value="gallery">Gallery</Radio.Button>
-                        </Radio.Group>
+                        <Flex gap="small">
+                            <Radio.Group
+                                defaultValue="list"
+                                onChange={(e) => setLayout(e.target.value)}
+                            >
+                                <Radio.Button value="list">List</Radio.Button>
+                                <Radio.Button value="gallery">
+                                    Gallery
+                                </Radio.Button>
+                            </Radio.Group>
+                            <Button
+                                type="primary"
+                                icon={plusIcon}
+                                onClick={() => setIsCreateModalOpen(true)}
+                            >
+                                Add DI
+                            </Button>
+                        </Flex>
                     </Flex>
                     {layout === "list" && (
                         <Table
@@ -529,6 +532,21 @@ export function DataInsightIndexPage() {
                             closeModal={() =>
                                 setDataInsightForImageUpload(undefined)
                             }
+                        />
+                    )}
+                    {isCreateModalOpen && (
+                        <CreateDataInsightModal
+                            closeModal={() => setIsCreateModalOpen(false)}
+                            onFinish={(response) => {
+                                if (response.success) {
+                                    void refreshDataInsights()
+                                    setIsCreateModalOpen(false)
+                                    window.open(
+                                        `/admin/gdocs/${response.gdocId}/preview`,
+                                        "_blank"
+                                    )
+                                }
+                            }}
                         />
                     )}
                 </main>
@@ -708,6 +726,27 @@ function UploadFigmaImageModal({
     )
 }
 
+const useDataInsights = (admin: Admin) => {
+    const [dataInsights, setDataInsights] = useState<
+        OwidGdocDataInsightIndexItem[]
+    >([])
+
+    const fetchAndUpdateDataInsights = useCallback(async () => {
+        const updatedDataInsights =
+            await admin.getJSON<OwidGdocDataInsightIndexItem[]>(
+                "/api/dataInsights"
+            )
+        setDataInsights(updatedDataInsights)
+        return updatedDataInsights
+    }, [admin])
+
+    useEffect(() => {
+        void fetchAndUpdateDataInsights()
+    }, [fetchAndUpdateDataInsights])
+
+    return [dataInsights, setDataInsights, fetchAndUpdateDataInsights] as const
+}
+
 function hasNarrativeChart(
     dataInsight: OwidGdocDataInsightIndexItem
 ): dataInsight is RequiredBy<OwidGdocDataInsightIndexItem, "narrativeChart"> {
@@ -755,41 +794,6 @@ function makeUploadImageHelpText(
     else if (canReuploadNarrativeChartImage(dataInsight))
         return "Fetch a PNG of the narrative chart and upload it as the image for this data insight"
     else return ""
-}
-
-async function fetchFigmaProvidedImageUrl(
-    admin: Admin,
-    figmaUrl: string
-): Promise<FigmaResponse> {
-    const { fileId, nodeId } = extractIdsFromFigmaUrl(figmaUrl) ?? {}
-    if (!fileId || !nodeId)
-        return {
-            success: false,
-            errorMessage:
-                "Invalid Figma URL. The provided URL should point to a Figma node.",
-        }
-
-    try {
-        return admin.getJSON("/api/figma/image", { fileId, nodeId })
-    } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : String(error)
-        return { success: false, errorMessage }
-    }
-}
-
-function extractIdsFromFigmaUrl(
-    figmaUrl: string
-): { fileId: string; nodeId: string } | undefined {
-    const regex =
-        /figma\.com\/design\/(?<fileId>[^/]+).*[?&]node-id=(?<nodeId>[^&]+)/
-    const { groups } = figmaUrl.match(regex) ?? {}
-    if (groups) {
-        const fileId = groups.fileId
-        const nodeId = groups.nodeId.replace("-", ":")
-        return { fileId, nodeId }
-    }
-    return undefined
 }
 
 function makePreviewLink(dataInsight: OwidGdocDataInsightIndexItem) {

@@ -1,16 +1,22 @@
-import { faCheck, faSpinner } from "@fortawesome/free-solid-svg-icons"
+import {
+    faCheck,
+    faDownload,
+    faSpinner,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { Modal, Space } from "antd"
+import { Button, Flex, Modal, Space } from "antd"
 import { useContext, useState } from "react"
 import {
     ImageUploadResponse,
     makeImageSrc,
-    reuploadImageFromSourceUrl,
+    uploadImageFromSourceUrl,
 } from "./imagesHelpers"
 import { AdminAppContext } from "./AdminAppContext"
+import { downloadImage } from "@ourworldindata/utils"
 
-const spinnerIcon = <FontAwesomeIcon icon={faSpinner} spin />
-const checkIcon = <FontAwesomeIcon icon={faCheck} />
+const spinnerIcon = <FontAwesomeIcon icon={faSpinner} size="sm" spin />
+const checkIcon = <FontAwesomeIcon icon={faCheck} size="sm" />
+const downloadIcon = <FontAwesomeIcon icon={faDownload} size="sm" />
 
 export function ReuploadImageForDataInsightModal({
     dataInsight,
@@ -51,7 +57,7 @@ export function ReuploadImageForDataInsightModal({
 }) {
     const { admin } = useContext(AdminAppContext)
 
-    const currentImageUrl = makeImageSrc(
+    const existingImageUrl = makeImageSrc(
         existingImage.cloudflareId,
         existingImage.originalWidth
     )
@@ -62,7 +68,7 @@ export function ReuploadImageForDataInsightModal({
     const handleImageUpload = async () => {
         setIsImageUploadInProgress(true)
         const response = sourceUrl
-            ? await reuploadImageFromSourceUrl({
+            ? await uploadImageFromSourceUrl({
                   admin,
                   image: existingImage,
                   sourceUrl,
@@ -112,11 +118,28 @@ export function ReuploadImageForDataInsightModal({
                 </p>
 
                 <ImagePreview
-                    imageBefore={currentImageUrl}
+                    imageBefore={existingImageUrl}
                     imageAfter={sourceUrl}
                     isLoading={isLoadingSourceUrl}
                     loadingError={loadingSourceUrlError}
                 />
+                {sourceUrl && (
+                    <Flex justify="end">
+                        <Button
+                            color="default"
+                            variant="filled"
+                            icon={downloadIcon}
+                            onClick={() => {
+                                void downloadImage(
+                                    sourceUrl,
+                                    existingImage.filename
+                                )
+                            }}
+                        >
+                            Download
+                        </Button>
+                    </Flex>
+                )}
             </div>
         </Modal>
     )
@@ -138,7 +161,7 @@ function ImagePreview({
     return (
         <div>
             <b>Preview (before/after)</b>
-            <div className="image-preview">
+            <div className="side-by-side-preview">
                 <Space size="middle">
                     <img
                         className="border"
@@ -146,23 +169,37 @@ function ImagePreview({
                         width={size}
                         height={size}
                     />
-                    {isLoading ? (
-                        <div className="placeholder">{spinnerIcon}</div>
-                    ) : imageAfter ? (
-                        <img
-                            className="border"
-                            src={imageAfter}
-                            width={size}
-                            height={size}
-                        />
-                    ) : (
-                        <div className="error">
-                            <b>Loading preview failed</b>
-                            <p>{loadingError}</p>
-                        </div>
-                    )}
+                    <LoadingImage
+                        url={imageAfter}
+                        size={size}
+                        isLoading={isLoading}
+                        loadingError={loadingError}
+                    />
                 </Space>
             </div>
+        </div>
+    )
+}
+
+export function LoadingImage({
+    url,
+    size = 350,
+    isLoading = false,
+    loadingError = "",
+}: {
+    url?: string
+    size?: number
+    isLoading?: boolean
+    loadingError?: string
+}) {
+    return isLoading ? (
+        <div className="loading-image placeholder">{spinnerIcon}</div>
+    ) : url ? (
+        <img className="border" src={url} width={size} height={size} />
+    ) : (
+        <div className="loading-image error">
+            <b>Loading preview failed</b>
+            <p>{loadingError}</p>
         </div>
     )
 }
