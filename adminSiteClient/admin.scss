@@ -588,11 +588,14 @@ $nav-height: 45px;
 }
 
 .EditorScatterTab,
-.EditorMarimekkoTab {
+.EditorMarimekkoTab,
+.EditorDataTab {
     .form-group > label {
         margin-bottom: 0.3rem;
     }
+}
 
+.EditorDataTab {
     ul.excludedEntities,
     ul.includedEntities {
         padding: 0;

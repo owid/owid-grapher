@@ -29,8 +29,6 @@ export interface ScatterPlotManager extends ChartManager {
     addCountryMode?: EntitySelectionMode
     xOverrideTime?: Time | undefined
     tableAfterAuthorTimelineAndActiveChartTransform?: OwidTable
-    includedEntityNames?: EntityName[]
-    excludedEntityNames?: EntityName[]
     startTime?: Time
     endTime?: Time
     hasTimeline?: boolean
