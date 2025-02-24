@@ -1,5 +1,12 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react"
-import * as React from "react"
+import {
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+    useCallback,
+    createContext,
+    Fragment,
+} from "react"
 import {
     Button,
     Card,
@@ -35,10 +42,11 @@ import { Admin } from "./Admin.js"
 import {
     ALL_GRAPHER_CHART_TYPES,
     DbEnrichedImageWithUserId,
-    DbPlainTag,
     GRAPHER_MAP_TYPE,
     GrapherChartOrMapType,
     OwidGdocDataInsightIndexItem,
+    MinimalTag,
+    MinimalTagWithIsTopic,
 } from "@ourworldindata/types"
 import {
     copyToClipboard,
@@ -58,6 +66,7 @@ import {
 } from "./imagesHelpers.js"
 import { ReuploadImageForDataInsightModal } from "./ReuploadImageForDataInsightModal.js"
 import { CreateDataInsightModal } from "./CreateDataInsightModal.js"
+import { EditableTags } from "./EditableTags.js"
 
 type NarrativeDataInsightIndexItem = RequiredBy<
     OwidGdocDataInsightIndexItem,
@@ -72,12 +81,10 @@ type DataInsightIndexItemThatCanBeUploaded =
     | NarrativeDataInsightIndexItem
     | FigmaDataInsightIndexItem
 
-type ChartTypeFilter = GrapherChartOrMapType | "all"
-type PublicationFilter = "all" | "published" | "scheduled" | "draft"
+type ChartTypeFilter = GrapherChartOrMapType
+type PublicationFilter = "published" | "scheduled" | "draft"
 type Layout = "list" | "gallery"
 
-const DEFAULT_CHART_TYPE_FILTER: ChartTypeFilter = "all"
-const DEFAULT_PUBLICATION_FILTER: PublicationFilter = "all"
 const DEFAULT_LAYOUT: Layout = "list"
 
 const editIcon = <FontAwesomeIcon icon={faPen} size="sm" />
@@ -88,9 +95,11 @@ const copyIcon = <FontAwesomeIcon icon={faCopy} size="sm" />
 const panoramaIcon = <FontAwesomeIcon icon={faPanorama} size="sm" />
 const plusIcon = <FontAwesomeIcon icon={faPlus} size="sm" />
 
-const NotificationContext = React.createContext(null)
+const NotificationContext = createContext(null)
 
 function createColumns(ctx: {
+    availableTopicTags: MinimalTag[]
+    updateTags: (gdocId: string, tags: MinimalTag[]) => Promise<void>
     highlightFn: (
         text: string | null | undefined
     ) => React.ReactElement | string
@@ -102,6 +111,7 @@ function createColumns(ctx: {
         {
             title: "Preview",
             key: "preview",
+            width: 200,
             render: (_, dataInsight) =>
                 hasImage(dataInsight) ? (
                     <>
@@ -154,10 +164,10 @@ function createColumns(ctx: {
             render: (authors: string[], dataInsight) => (
                 <>
                     {authors.map((author, index) => (
-                        <React.Fragment key={author}>
+                        <Fragment key={author}>
                             {ctx.highlightFn(author)}
                             {index < authors.length - 1 ? ", " : ""}
-                        </React.Fragment>
+                        </Fragment>
                     ))}
                     {dataInsight.approvedBy &&
                         ` (approved by ${dataInsight.approvedBy})`}
@@ -168,18 +178,15 @@ function createColumns(ctx: {
             title: "Topic tags",
             dataIndex: "tags",
             key: "tags",
-            render: (tags: DbPlainTag[]) =>
-                tags.map((tag) => (
-                    <a
-                        key={tag.name}
-                        href={`/admin/tags/${tag.id}`}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        style={{ display: "block" }}
-                    >
-                        {ctx.highlightFn(tag.name)}
-                    </a>
-                )),
+            render: (tags, dataInsight) => (
+                <EditableTags
+                    tags={tags}
+                    onSave={(tags) =>
+                        ctx.updateTags(dataInsight.id, tags as MinimalTag[])
+                    }
+                    suggestions={ctx.availableTopicTags}
+                />
+            ),
         },
         {
             title: "Published",
@@ -291,12 +298,18 @@ export function DataInsightIndexPage() {
     const [dataInsights, setDataInsights, refreshDataInsights] =
         useDataInsights(admin)
 
+    const [availableTopicTags, setAvailableTopicTags] = useState<MinimalTag[]>(
+        []
+    )
+
     const [searchValue, setSearchValue] = useState("")
+    const [topicTagFilter, setTopicTagFilter] = useState<string | undefined>()
     const [chartTypeFilter, setChartTypeFilter] = useState<
-        GrapherChartOrMapType | "all"
-    >(DEFAULT_CHART_TYPE_FILTER)
-    const [publicationFilter, setPublicationFilter] =
-        useState<PublicationFilter>(DEFAULT_PUBLICATION_FILTER)
+        GrapherChartOrMapType | undefined
+    >()
+    const [publicationFilter, setPublicationFilter] = useState<
+        PublicationFilter | undefined
+    >()
     const [layout, setLayout] = useState<Layout>(DEFAULT_LAYOUT)
 
     const [dataInsightForImageUpload, setDataInsightForImageUpload] =
@@ -313,16 +326,24 @@ export function DataInsightIndexPage() {
     )
 
     const filteredDataInsights = useMemo(() => {
+        const topicTagFilterFn = (
+            dataInsight: OwidGdocDataInsightIndexItem
+        ) => {
+            if (!topicTagFilter) return true
+            return dataInsight.tags?.some((tag) => tag.name === topicTagFilter)
+        }
+
         const chartTypeFilterFn = (
             dataInsight: OwidGdocDataInsightIndexItem
         ) => {
-            if (chartTypeFilter === "all") return true
+            if (!chartTypeFilter) return true
             return dataInsight.chartType === chartTypeFilter
         }
 
         const publicationFilterFn = (
             dataInsight: OwidGdocDataInsightIndexItem
         ) => {
+            if (!publicationFilter) return true
             switch (publicationFilter) {
                 case "draft":
                     return !dataInsight.published
@@ -336,8 +357,6 @@ export function DataInsightIndexPage() {
                         dataInsight.published &&
                         dayjs(dataInsight.publishedAt).isBefore(dayjs())
                     )
-                case "all":
-                    return true
             }
         }
 
@@ -355,11 +374,35 @@ export function DataInsightIndexPage() {
 
         return dataInsights.filter(
             (di) =>
+                topicTagFilterFn(di) &&
                 chartTypeFilterFn(di) &&
                 publicationFilterFn(di) &&
                 searchFilterFn(di)
         )
-    }, [dataInsights, chartTypeFilter, publicationFilter, searchWords])
+    }, [
+        dataInsights,
+        topicTagFilter,
+        chartTypeFilter,
+        publicationFilter,
+        searchWords,
+    ])
+
+    const updateTags = useCallback(
+        async (gdocId: string, tags: MinimalTag[]) => {
+            const json = await admin.requestJSON(
+                `/api/gdocs/${gdocId}/setTags`,
+                { tagIds: tags.map((t) => t.id) },
+                "POST"
+            )
+            if (json.success) {
+                const dataInsight = dataInsights.find(
+                    (gdoc) => gdoc.id === gdocId
+                )
+                if (dataInsight) dataInsight.tags = tags
+            }
+        },
+        [admin, dataInsights]
+    )
 
     const columns = useMemo(() => {
         const highlightFn = highlightFunctionForSearchWords(searchWords)
@@ -369,10 +412,12 @@ export function DataInsightIndexPage() {
         ) => setDataInsightForImageUpload(dataInsight)
 
         return createColumns({
+            availableTopicTags,
+            updateTags,
             highlightFn,
             triggerImageUploadFlow,
         })
-    }, [searchWords])
+    }, [searchWords, availableTopicTags, updateTags])
 
     const updateDataInsightPreview = (
         dataInsightId: string,
@@ -419,13 +464,26 @@ export function DataInsightIndexPage() {
         }
     }
 
+    useEffect(() => {
+        const fetchTags = () =>
+            admin.getJSON<{ tags: MinimalTagWithIsTopic[] }>("/api/tags.json")
+
+        void fetchTags().then((result) =>
+            setAvailableTopicTags(result.tags.filter((tag) => tag.isTopic))
+        )
+    }, [admin])
+
     return (
         <AdminLayout title="Data insights">
             <NotificationContext.Provider value={null}>
                 {notificationContextHolder}
                 <main className="DataInsightIndexPage">
-                    <Flex justify="space-between">
-                        <Flex gap="small">
+                    <Flex
+                        gap="small"
+                        justify="space-between"
+                        style={{ marginBottom: 20 }}
+                    >
+                        <Flex gap="small" wrap>
                             <Input
                                 placeholder="Search"
                                 value={searchValue}
@@ -433,15 +491,25 @@ export function DataInsightIndexPage() {
                                 onKeyDown={(e) => {
                                     if (e.key === "Escape") setSearchValue("")
                                 }}
-                                style={{ width: 500, marginBottom: 20 }}
+                                style={{ width: 350 }}
+                            />
+                            <Select
+                                value={topicTagFilter}
+                                placeholder="Select a topic tag..."
+                                options={availableTopicTags.map((tag) => ({
+                                    value: tag.name,
+                                    label: tag.name,
+                                }))}
+                                onChange={(tag: string) =>
+                                    setTopicTagFilter(tag)
+                                }
+                                allowClear
+                                popupMatchSelectWidth={false}
                             />
                             <Select
                                 value={chartTypeFilter}
+                                placeholder="Select a chart type..."
                                 options={[
-                                    {
-                                        value: "all",
-                                        label: "All chart types",
-                                    },
                                     ...ALL_GRAPHER_CHART_TYPES.map((type) => ({
                                         value: type,
                                         label: startCase(type),
@@ -454,15 +522,13 @@ export function DataInsightIndexPage() {
                                 onChange={(value: ChartTypeFilter) =>
                                     setChartTypeFilter(value)
                                 }
+                                allowClear
                                 popupMatchSelectWidth={false}
                             />
                             <Select
                                 value={publicationFilter}
+                                placeholder="Select a publication status..."
                                 options={[
-                                    {
-                                        value: "all",
-                                        label: "Any publication status",
-                                    },
                                     { value: "draft", label: "Drafts" },
                                     {
                                         value: "published",
@@ -476,18 +542,16 @@ export function DataInsightIndexPage() {
                                 onChange={(value: PublicationFilter) =>
                                     setPublicationFilter(value)
                                 }
+                                allowClear
                                 popupMatchSelectWidth={false}
                             />
                             <Button
                                 type="dashed"
                                 onClick={() => {
                                     setSearchValue("")
-                                    setChartTypeFilter(
-                                        DEFAULT_CHART_TYPE_FILTER
-                                    )
-                                    setPublicationFilter(
-                                        DEFAULT_PUBLICATION_FILTER
-                                    )
+                                    setTopicTagFilter(undefined)
+                                    setChartTypeFilter(undefined)
+                                    setPublicationFilter(undefined)
                                 }}
                             >
                                 Reset
@@ -497,6 +561,7 @@ export function DataInsightIndexPage() {
                             <Radio.Group
                                 defaultValue="list"
                                 onChange={(e) => setLayout(e.target.value)}
+                                block
                             >
                                 <Radio.Button value="list">List</Radio.Button>
                                 <Radio.Button value="gallery">
