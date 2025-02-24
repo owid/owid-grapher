@@ -13,8 +13,8 @@ export const SiteLogos = ({ baseUrl }: { baseUrl: string }) => {
                         src={`${baseUrl}/oms-logo.svg`}
                         alt="Oxford Martin School logo"
                         loading="lazy"
-                        width={275}
-                        height={139}
+                        width={96}
+                        height={103}
                     />
                 </a>
                 <a href="https://www.ox.ac.uk/">
@@ -22,8 +22,8 @@ export const SiteLogos = ({ baseUrl }: { baseUrl: string }) => {
                         src={`${baseUrl}/oxford-logo.svg`}
                         alt="Oxford logo"
                         loading="lazy"
-                        width={275}
-                        height={139}
+                        width={96}
+                        height={103}
                     />
                 </a>
                 <a href="https://global-change-data-lab.org/">
@@ -31,8 +31,8 @@ export const SiteLogos = ({ baseUrl }: { baseUrl: string }) => {
                         src={`${baseUrl}/gcdl-logo.svg`}
                         alt="Global Change Data Lab logo"
                         loading="lazy"
-                        width={106}
-                        height={127}
+                        width={80}
+                        height={103}
                     />
                 </a>
             </div>

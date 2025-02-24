@@ -132,8 +132,8 @@ export const SiteFooter = (props: SiteFooterProps) => {
                                     src={`${props.baseUrl}/oms-logo.svg`}
                                     alt="Oxford Martin School logo"
                                     loading="lazy"
-                                    width="58"
-                                    height="62"
+                                    width="96"
+                                    height="103"
                                 />
                             </a>
                             <a href="https://www.ox.ac.uk">
@@ -141,8 +141,8 @@ export const SiteFooter = (props: SiteFooterProps) => {
                                     src={`${props.baseUrl}/oxford-logo.svg`}
                                     alt="University of Oxford logo"
                                     loading="lazy"
-                                    width="58"
-                                    height="62"
+                                    width="96"
+                                    height="103"
                                 />
                             </a>
                             <a href="https://global-change-data-lab.org">
@@ -150,8 +150,8 @@ export const SiteFooter = (props: SiteFooterProps) => {
                                     src={`${props.baseUrl}/gcdl-logo.svg`}
                                     alt="Global Change Data Lab logo"
                                     loading="lazy"
-                                    width="106"
-                                    height="62"
+                                    width="80"
+                                    height="103"
                                 />
                             </a>
                         </div>
