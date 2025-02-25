@@ -7,31 +7,25 @@ const hashFile = async (file: string) => {
     return await hashBase36FromStream(stream)
 }
 
-export const hashAndWriteFile = async (
-    filename: string,
-    content: string,
-    archiveDir: string
-) => {
+export const hashAndWriteFile = async (targetPath: string, content: string) => {
     const hash = hashBase36(content)
-    const targetFilename = filename.replace(/^(.*\/)?([^.]+\.)/, `$1$2${hash}.`)
-    console.log(`Writing ${targetFilename}`)
-    const fullTargetFilename = path.resolve(archiveDir, targetFilename)
-    await fs.mkdirp(path.dirname(fullTargetFilename))
-    await fs.writeFile(fullTargetFilename, content)
-    return path.relative(archiveDir, fullTargetFilename)
+    const targetPathWithHash = targetPath.replace(
+        /^(.*\/)?([^.]+\.)/,
+        `$1$2${hash}.`
+    )
+    console.log(`Writing ${targetPathWithHash}`)
+    await fs.mkdirp(path.dirname(targetPathWithHash))
+    await fs.writeFile(targetPathWithHash, content)
+    return targetPathWithHash
 }
 
-export const hashAndCopyFile = async (
-    srcFile: string,
-    targetDir: string,
-    archiveDir: string
-) => {
+export const hashAndCopyFile = async (srcFile: string, targetDir: string) => {
     const hash = await hashFile(srcFile)
     const targetFilename = path
         .basename(srcFile)
         .replace(/^(.*\/)?([^.]+\.)/, `$1$2${hash}.`)
-    const targetFile = path.resolve(archiveDir, targetDir, targetFilename)
+    const targetFile = path.resolve(targetDir, targetDir, targetFilename)
     console.log(`Copying ${srcFile} to ${targetFile}`)
     await fs.copyFile(srcFile, targetFile)
-    return path.relative(archiveDir, targetFile)
+    return targetFile
 }

@@ -50,8 +50,10 @@ export const bakeDods = async (archiveDir: string) => {
     const srcFile = path.join(projBaseDir, "localBake/dods.json")
     const targetDir = path.join(archiveDir, "assets")
 
-    const newFilename = await hashAndCopyFile(srcFile, targetDir, archiveDir)
-    return { "dods.json": `/${newFilename}` }
+    const newFilename = await hashAndCopyFile(srcFile, targetDir).then(
+        (filename) => path.basename(filename)
+    )
+    return { "dods.json": `/assets/${newFilename}` }
 }
 
 const bakeVariableDataFiles = async (
@@ -62,25 +64,36 @@ const bakeVariableDataFiles = async (
     const dataStringified = JSON.stringify(data)
     const metadataStringified = JSON.stringify(metadata)
 
-    const dataFilename = `api/v1/indicators/${variableId}.data.json`
-    const metadataFilename = `api/v1/indicators/${variableId}.metadata.json`
+    const apiPath = "api/v1/indicators"
+    const dataFilename = path.join(
+        archiveDir,
+        `${apiPath}/${variableId}.data.json`
+    )
+    const metadataFilename = path.join(
+        archiveDir,
+        `${apiPath}/${variableId}.metadata.json`
+    )
 
     const [dataFilenameWithHash, metadataFilenameWithHash] = await Promise.all([
-        hashAndWriteFile(dataFilename, dataStringified, archiveDir),
-        hashAndWriteFile(metadataFilename, metadataStringified, archiveDir),
+        hashAndWriteFile(dataFilename, dataStringified).then((fn) =>
+            path.basename(fn)
+        ),
+        hashAndWriteFile(metadataFilename, metadataStringified).then((fn) =>
+            path.basename(fn)
+        ),
     ])
 
     return {
-        [path.basename(dataFilename)]: `/${dataFilenameWithHash}`,
-        [path.basename(metadataFilename)]: `/${metadataFilenameWithHash}`,
+        [path.basename(dataFilename)]: `/${apiPath}/${dataFilenameWithHash}`,
+        [path.basename(metadataFilename)]:
+            `/${apiPath}/${metadataFilenameWithHash}`,
     }
 }
 
 const bakeOwidMjsFile = async (
     srcPath: string,
     destPath: string,
-    sourceMapFilename: string,
-    archiveDir: string
+    sourceMapFilename: string
 ) => {
     const mjsContents = await fs.readFile(srcPath, "utf8")
     const withSourceMap = mjsContents.replace(
@@ -91,7 +104,7 @@ const bakeOwidMjsFile = async (
     if (withSourceMap === mjsContents) {
         console.error("Failed to replace sourceMappingURL in owid.mjs")
     }
-    return await hashAndWriteFile(destPath, withSourceMap, archiveDir)
+    return await hashAndWriteFile(destPath, withSourceMap)
 }
 
 // we explicitly want owid.mjs.map to come first, so that we can replace the sourceMappingURL in owid.mjs
@@ -125,13 +138,13 @@ export const bakeAssets = async (archiveDir: string) => {
             outFilename = await bakeOwidMjsFile(
                 srcFile,
                 path.join(targetDir, filename),
-                sourceMapFilename,
-                archiveDir
+                sourceMapFilename
             )
         } else {
-            outFilename = await hashAndCopyFile(srcFile, targetDir, archiveDir)
+            outFilename = await hashAndCopyFile(srcFile, targetDir)
         }
-        staticAssetMap[filename] = `/${outFilename}`
+        const outFilenameRelative = path.relative(archiveDir, outFilename)
+        staticAssetMap[filename] = `/${outFilenameRelative}`
     }
 
     const additionalFiles = new Set(
