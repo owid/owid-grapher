@@ -279,10 +279,33 @@ export const bakeGrapherPagesToFolder = async (
     })
 
     if (copyToLatestDir) {
+        // we want to the baked site to an overwrite-only `latest` directory,
+        // where we never delete files, only add new ones or overwrite existing ones
         const latestDir = path.join(archiveDir, "latest")
-        await fs.remove(latestDir)
-        await fs.copy(dir, latestDir)
-        console.log(`Copied ${dir} to ${latestDir}`)
+        await fs.mkdirp(latestDir)
+
+        let filesCopied = 0,
+            dirsCopied = 0
+        for await (const file of await fs.opendir(dir, { recursive: true })) {
+            console.log(`Copying ${file.name}`)
+            const relativePath = path.relative(dir, file.path)
+
+            if (file.isDirectory()) {
+                dirsCopied++
+                await fs.mkdirp(path.join(latestDir, relativePath))
+            } else if (file.isFile()) {
+                filesCopied++
+                await fs.copy(
+                    path.join(file.path, file.name),
+                    path.join(latestDir, relativePath, file.name),
+                    { overwrite: true }
+                )
+            }
+        }
+
+        console.log(
+            `Copied ${dir} to ${latestDir} (${filesCopied} files, ${dirsCopied} dirs)`
+        )
     }
 
     return { date, manifests }
