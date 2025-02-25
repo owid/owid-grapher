@@ -654,7 +654,7 @@
     },
     {
         "type": "array",
-        "pointer": "/excludedEntities",
+        "pointer": "/excludedEntityNames",
         "editor": "primitiveListEditor"
     },
     {
@@ -759,7 +759,7 @@
     },
     {
         "type": "array",
-        "pointer": "/includedEntities",
+        "pointer": "/includedEntityNames",
         "editor": "primitiveListEditor"
     },
     {

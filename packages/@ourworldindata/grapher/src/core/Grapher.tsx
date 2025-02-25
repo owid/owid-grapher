@@ -450,12 +450,8 @@ export class Grapher
 
     @observable selectedEntityNames: EntityName[] = []
     @observable focusedSeriesNames: SeriesName[] = []
-    @observable excludedEntities?: number[] = undefined
-    /** IncludedEntities are usually empty which means use all available entities. When
-        includedEntities is set it means "only use these entities". excludedEntities
-        are evaluated afterwards and can still remove entities even if they were included before.
-     */
-    @observable includedEntities?: number[] = undefined
+    @observable excludedEntityNames?: EntityName[] = undefined
+    @observable includedEntityNames?: EntityName[] = undefined
     @observable comparisonLines?: ComparisonLineConfig[] = undefined // todo: Persistables?
     @observable relatedQuestions?: RelatedQuestionsConfig[] = undefined // todo: Persistables?
 

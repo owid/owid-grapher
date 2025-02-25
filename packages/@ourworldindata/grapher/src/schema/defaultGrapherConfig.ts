@@ -72,7 +72,8 @@ export const defaultGrapherConfig = {
         time: false,
         changeInPrefix: false,
     },
-    excludedEntities: [],
+    excludedEntityNames: [],
+    includedEntityNames: [],
     xAxis: {
         removePointsOutsideDomain: false,
         scaleType: "linear",
@@ -90,7 +91,6 @@ export const defaultGrapherConfig = {
     sortBy: "total",
     sortOrder: "desc",
     hideFacetControl: true,
-    includedEntities: [],
     entityTypePlural: "countries and regions",
     missingDataStrategy: "auto",
 } as GrapherInterface
