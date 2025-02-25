@@ -213,9 +213,7 @@ export class Explorer
             adminBaseUrl: this.adminBaseUrl,
         })
 
-        this.grapher = new Grapher({
-            grapherState: this.grapherState,
-        })
+        this.grapher = new Grapher({ grapherState: this.grapherState })
     }
     // caution: do a ctrl+f to find untyped usages
     static renderSingleExplorerOnExplorerPage(
@@ -421,9 +419,9 @@ export class Explorer
 
     private initSlideshow() {
         const grapher = this.grapher
-        if (!grapher || grapher.slideShow) return
+        if (!grapher || grapher.grapherState.slideShow) return
 
-        grapher.slideShow = new SlideShowController(
+        grapher.grapherState.slideShow = new SlideShowController(
             this.explorerProgram.decisionMatrix.allDecisionsAsQueryParams(),
             0,
             this
