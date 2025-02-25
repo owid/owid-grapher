@@ -133,6 +133,8 @@ import {
     EnrichedBlockNarrativeChart,
     RawBlockCode,
     EnrichedBlockCode,
+    EnrichedBlockCookieNotice,
+    RawBlockCookieNotice,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -215,6 +217,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "gray-section" }, parseGraySection)
         .with({ type: "prominent-link" }, parseProminentLink)
         .with({ type: "topic-page-intro" }, parseTopicPageIntro)
+        .with({ type: "cookie-notice" }, parseCookieNotice)
         .with({ type: "key-insights" }, parseKeyInsights)
         .with({ type: "research-and-writing" }, parseResearchAndWritingBlock)
         .with(
@@ -1575,6 +1578,13 @@ function parseTopicPageIntro(
             htmlToEnrichedTextBlock(rawText.value)
         ),
         parseErrors: [...contentErrors],
+    }
+}
+
+function parseCookieNotice(_: RawBlockCookieNotice): EnrichedBlockCookieNotice {
+    return {
+        type: "cookie-notice",
+        parseErrors: [],
     }
 }
 

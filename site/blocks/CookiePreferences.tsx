@@ -13,6 +13,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCheck } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import { Checkbox } from "@ourworldindata/components"
 
 const ANALYTICS_ACTION = "cookie_preferences"
 const analytics = new SiteAnalytics()
@@ -24,7 +25,7 @@ const analytics = new SiteAnalytics()
 // - unique IDs for input elements in CookiePreference
 // - support for in-place rendering
 
-const CookiePreference = ({
+export const CookiePreference = ({
     title,
     name,
     consent,
@@ -51,15 +52,14 @@ const CookiePreference = ({
 
     return (
         <div className="cookie-preference">
-            <input
+            <Checkbox
                 id={id}
-                type="checkbox"
-                onChange={onChange}
                 checked={consent}
-                disabled={disabled}
+                onChange={onChange}
+                label={title}
                 data-test={`${name}-preference`}
-            ></input>
-            <label htmlFor={id}>{title}</label>
+                disabled={disabled}
+            />
             <div className="description">{children}</div>
         </div>
     )
@@ -75,13 +75,19 @@ export const CookiePreferences = ({
     dispatch: any
 }): ReactPortal | null => {
     const cookiePreferencesDomSlot = document.querySelector(
+        // This class is referenced in ArticleBlock.tsx
+        // If changed or removed, update it there also.
         ".wp-block-cookie-preferences"
     )
     if (!cookiePreferencesDomSlot) return null
 
     return ReactDOM.createPortal(
-        <div data-test="cookie-preferences" className="cookie-preferences">
-            <h2>Cookie preferences</h2>
+        <div
+            data-test="cookie-preferences"
+            id="cookie-preferences"
+            className="cookie-preferences"
+        >
+            <h2>Cookie Preferences</h2>
             <CookiePreference
                 title="Necessary cookies"
                 name="necessary"
