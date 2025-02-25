@@ -70,7 +70,7 @@ export const BlogIndexPage = (props: {
                         </nav>
                     </div>
                 </main>
-                <SiteFooter baseUrl={baseUrl} />
+                <SiteFooter />
             </body>
         </Html>
     )

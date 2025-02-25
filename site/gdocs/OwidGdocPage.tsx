@@ -154,7 +154,6 @@ export default function OwidGdocPage({
                     </DebugProvider>
                 </div>
                 <SiteFooter
-                    baseUrl={baseUrl}
                     context={SiteFooterContext.gdocsDocument}
                     debug={debug}
                     isPreviewing={isPreviewing}

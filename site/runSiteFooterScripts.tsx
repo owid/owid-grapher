@@ -10,7 +10,6 @@ import {
     SiteFooterContext,
     TagGraphRoot,
 } from "@ourworldindata/utils"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { hydrateProminentLink } from "./blocks/ProminentLink.js"
 import {
     DataPageV2Content,
@@ -143,7 +142,7 @@ function runFootnotes() {
     })
 }
 
-function runSiteNavigation(baseUrl: string, hideDonationFlag?: boolean) {
+function runSiteNavigation(hideDonationFlag?: boolean) {
     let isOnHomepage = false
     if (window._OWID_GDOC_PROPS) {
         const props = getOwidGdocFromJSON(window._OWID_GDOC_PROPS)
@@ -151,7 +150,6 @@ function runSiteNavigation(baseUrl: string, hideDonationFlag?: boolean) {
     }
     render(
         <SiteNavigation
-            baseUrl={baseUrl}
             hideDonationFlag={hideDonationFlag}
             isOnHomepage={isOnHomepage}
         />,
@@ -226,7 +224,7 @@ export const runSiteFooterScripts = (
             hydrateDataPageV2Content({ isPreviewing })
             runAllGraphersLoadedListener()
             runLightbox()
-            runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
+            runSiteNavigation(hideDonationFlag)
             runSiteTools()
             runCookiePreferencesManager()
             void runDetailsOnDemand()
@@ -235,14 +233,14 @@ export const runSiteFooterScripts = (
             hydrateMultiDimDataPageContent(isPreviewing)
             runAllGraphersLoadedListener()
             runLightbox()
-            runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
+            runSiteNavigation(hideDonationFlag)
             runSiteTools()
             runCookiePreferencesManager()
             void runDetailsOnDemand()
             break
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
-            runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
+            runSiteNavigation(hideDonationFlag)
             runAllGraphersLoadedListener()
             runSiteTools()
             runCookiePreferencesManager()
@@ -250,14 +248,14 @@ export const runSiteFooterScripts = (
             break
         case SiteFooterContext.explorerIndexPage:
             hydrateExplorerIndex()
-            runSiteNavigation(BAKED_BASE_URL)
+            runSiteNavigation()
             runCookiePreferencesManager()
             runSiteTools()
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
             runAllGraphersLoadedListener()
-            runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
+            runSiteNavigation(hideDonationFlag)
             runFootnotes()
             void runDetailsOnDemand()
             runLightbox()
@@ -280,7 +278,7 @@ export const runSiteFooterScripts = (
             // - global entity selector
             // - country-aware prominent links
             // - embedding charts through MultiEmbedderSingleton.embedAll()
-            runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
+            runSiteNavigation(hideDonationFlag)
             hydrateCodeSnippets()
             MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
             MultiEmbedderSingleton.embedAll()

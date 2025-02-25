@@ -71,8 +71,7 @@ export const DynamicCollectionPage = (props: { baseUrl: string }) => {
                     </div>
                 </main>
                 <SiteFooter
-                    hideDonate={true}
-                    baseUrl={baseUrl}
+                    hideDonate
                     context={SiteFooterContext.dynamicCollectionPage}
                 />
             </body>

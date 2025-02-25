@@ -33,10 +33,7 @@ export const ExplorerIndexPage = ({
                 <main className="explorer-index-page grid grid-cols-12-full-width">
                     <ExplorerIndex baseUrl={baseUrl} explorers={explorers} />
                 </main>
-                <SiteFooter
-                    baseUrl={baseUrl}
-                    context={SiteFooterContext.explorerIndexPage}
-                />
+                <SiteFooter context={SiteFooterContext.explorerIndexPage} />
                 <script dangerouslySetInnerHTML={{ __html: inlineJs }} />
             </body>
         </Html>

@@ -119,7 +119,7 @@ Chart embedded on
                         }}
                     />
                 </main>
-                <SiteFooter baseUrl={""} />
+                <SiteFooter />
             </body>
         </Html>
     )

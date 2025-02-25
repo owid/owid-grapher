@@ -42,10 +42,7 @@ export const DataCatalogPage = (props: {
                 >
                     <DataCatalogInstantSearchWrapper tagGraph={tagGraph} />
                 </main>
-                <SiteFooter
-                    context={SiteFooterContext.dataCatalogPage}
-                    baseUrl={baseUrl}
-                />
+                <SiteFooter context={SiteFooterContext.dataCatalogPage} />
             </body>
         </Html>
     )

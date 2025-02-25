@@ -180,7 +180,6 @@ export const DataPageV2 = (props: {
                     </div>
                 </main>
                 <SiteFooter
-                    baseUrl={baseUrl}
                     context={SiteFooterContext.dataPageV2}
                     isPreviewing={isPreviewing}
                     staticAssetMap={staticAssetMap}
