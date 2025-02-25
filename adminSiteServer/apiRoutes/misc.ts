@@ -19,19 +19,18 @@ export async function fetchAllWork(
     type GdocRecord = Pick<DbRawPostGdoc, "id" | "publishedAt">
 
     const author = req.query.author
-    const gdocs = await db
-        .knexRaw<GdocRecord>(
-            trx,
-            `-- sql
-            SELECT id, publishedAt
+    const gdocs = await db.knexRaw<GdocRecord>(
+        trx,
+        `-- sql
+            SELECT id
             FROM posts_gdocs
-            WHERE JSON_CONTAINS(content->'$.authors', ?)
+            WHERE JSON_CONTAINS(authors, ?)
             AND type NOT IN ("data-insight", "fragment")
             AND published = 1
+            ORDER BY publishedAt DESC
     `,
-            [`"${author}"`]
-        )
-        .then((rows) => lodash.orderBy(rows, (row) => row.publishedAt, "desc"))
+        [`"${author}"`]
+    )
 
     const archieLines = gdocs.map(
         (post) => `url: https://docs.google.com/document/d/${post.id}/edit`

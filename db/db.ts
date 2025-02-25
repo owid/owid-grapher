@@ -271,7 +271,7 @@ export const getPublishedDataInsights = (
         `-- sql
         SELECT
             content->>'$.title' AS title,
-            content->>'$.authors' AS authors,
+            authors,
             publishedAt,
             updatedAt,
             slug,
@@ -427,7 +427,8 @@ export const getPublishedGdocPosts = async (
         g.publishedAt,
         g.revisionId,
         g.slug,
-        g.updatedAt
+        g.updatedAt,
+        g.authors
     FROM
         posts_gdocs g
     WHERE
