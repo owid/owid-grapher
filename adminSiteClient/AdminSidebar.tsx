@@ -22,6 +22,7 @@ import {
     faImage,
     faLightbulb,
     faStar,
+    faCircleInfo,
 } from "@fortawesome/free-solid-svg-icons"
 
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
@@ -59,8 +60,15 @@ export const AdminSidebar = (): React.ReactElement => (
                 <Link to="/posts">
                     <FontAwesomeIcon icon={faFile} /> Posts
                 </Link>
+            </li>
+            <li>
                 <Link to="/gdocs">
                     <FontAwesomeIcon icon={faFile} /> Google Docs
+                </Link>
+            </li>
+            <li>
+                <Link to="/dods">
+                    <FontAwesomeIcon icon={faCircleInfo} /> Dods
                 </Link>
             </li>
             <li>
