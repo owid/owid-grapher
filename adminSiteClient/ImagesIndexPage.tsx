@@ -36,6 +36,7 @@ import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { keyBy } from "lodash-es"
 import cx from "classnames"
 import { NotificationInstance } from "antd/es/notification/interface.js"
+import { EditableTextarea } from "./EditableTextarea.js"
 
 type ImageMap = Record<string, DbEnrichedImageWithUserId>
 
@@ -88,40 +89,35 @@ function AltTextEditor({
     getAltText: ImageEditorApi["getAltText"]
 }) {
     const [value, setValue] = useState(text)
-    const [shouldAutosize, setShouldAutosize] = useState(false)
 
-    const saveAltText = useCallback(() => {
-        const trimmed = value.trim()
-        patchImage(image, { defaultAlt: trimmed })
-    }, [image, patchImage, value])
+    const saveAltText = useCallback(
+        (newValue: string) => {
+            patchImage(image, { defaultAlt: newValue })
+            setValue(newValue)
+        },
+        [image, patchImage]
+    )
 
     const handleGetAltText = useCallback(async () => {
         const response = await getAltText(image.id)
         setValue(response.altText)
-        // Only autoexpand the textarea if the user generates alt text
-        setShouldAutosize(true)
     }, [image.id, getAltText])
 
+    const altTextButton = (
+        <Button onClick={handleGetAltText} type="text">
+            <FontAwesomeIcon icon={faRobot} />
+        </Button>
+    )
+
     return (
-        <div className="ImageIndexPage__alt-text-editor">
-            <textarea
-                className={cx({
-                    "ImageIndexPage__alt-text-editor--should-autosize":
-                        shouldAutosize,
-                })}
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-            />
-            <Button onClick={handleGetAltText} type="text">
-                <FontAwesomeIcon icon={faRobot} />
-            </Button>
-            <Button type="text" onClick={saveAltText} disabled={value === text}>
-                <FontAwesomeIcon icon={faSave} />
-            </Button>
-            {value !== text && (
-                <span className="ImageIndexPage__unsaved-chip">Unsaved</span>
-            )}
-        </div>
+        <EditableTextarea
+            value={value}
+            onChange={setValue}
+            onSave={saveAltText}
+            className="ImageIndexPage__alt-text-editor"
+            extraActions={altTextButton}
+            autoResize
+        />
     )
 }
 

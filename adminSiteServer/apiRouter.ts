@@ -144,6 +144,7 @@ import {
 } from "./apiRoutes/dataInsights.js"
 import { getFigmaImageUrl } from "./apiRoutes/figma.js"
 import { sendMessageToSlack } from "./apiRoutes/slack.js"
+import { getDods, updateDod } from "./apiRoutes/dods.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -248,6 +249,9 @@ postRouteWithRWTransaction(
     "/datasets/:datasetId/charts",
     republishCharts
 )
+
+getRouteWithROTransaction(apiRouter, "/dods.json", getDods)
+patchRouteWithRWTransaction(apiRouter, "/dods/:id", updateDod)
 
 // explorer routes
 postRouteWithRWTransaction(apiRouter, "/explorer/:slug/tags", addExplorerTags)

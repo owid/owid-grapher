@@ -34,6 +34,7 @@ import {
     PostsGdocsTableName,
     OwidGdocBaseInterface,
     TagGraphRoot,
+    DbPlainDod,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash-es"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -479,6 +480,16 @@ export const getNonGrapherExplorerViewCount = (
             AND type = "graphers"
             AND grapherId IS NULL`
     ).then((res) => res?.count ?? 0)
+}
+
+export async function getDods(
+    knex: KnexReadonlyTransaction
+): Promise<DbPlainDod[]> {
+    return knexRaw<DbPlainDod>(
+        knex,
+        `-- sql
+        SELECT * FROM dods`
+    )
 }
 
 /**
