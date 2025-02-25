@@ -233,6 +233,11 @@ export const bakeGrapherPagesToFolder = async (
                 (c) => c.config.dimensions?.map((d) => d.variableId) ?? []
             )
         )
+
+        // There's a curiosity here in that we re-bake variable files even if they didn't change (their checksums are the same), but the grapher config of an underlying chart changed.
+        // What's happening in practice is that the variable file is then re-fetched, re-hashed, and is then overriding the existing file under the same name.
+        // It's not ideal, but in the grand scheme of things it's not a worry also - the median incremental update will probably touch less than 10 charts and less than 20 variables or so.
+        // On the other hand, detecting whether a variable file is up-to-date would require a lot of extra logic.
         const variableFiles = await archiveVariableIds(
             [...allVariableIds],
             archiveDir
