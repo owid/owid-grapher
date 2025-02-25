@@ -3,6 +3,7 @@ import {
     Grapher,
     GrapherAnalytics,
     GrapherProgrammaticInterface,
+    getNextTabParamWhenSwitchingGrapher,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import {
@@ -34,6 +35,7 @@ import {
 import {
     DataPageRelatedResearch,
     FaqEntryKeyedByGdocIdAndFragmentId,
+    GrapherTabName,
     ImageMetadata,
     MultiDimDataPageConfigEnriched,
     MultiDimDimensionChoices,
@@ -156,6 +158,7 @@ const useVarDatapageData = (
     const [grapherConfigIsReady, setGrapherConfigIsReady] = useState(false)
 
     useEffect(() => {
+        let ignore = false
         setGrapherConfigIsReady(false)
         setGrapherConfig(null)
         setVarDatapageData(null)
@@ -181,7 +184,9 @@ const useVarDatapageData = (
                         `Fetching variable by uuid failed: ${grapherConfigUuid}`,
                         { cause: datapageData.reason }
                     )
-
+                // Avoid a race condition where the earlier fetch completes
+                // after the user has already switched to a different view.
+                if (ignore) return
                 setVarDatapageData(datapageData.value)
                 setGrapherConfig(
                     grapherConfig.status === "fulfilled"
@@ -191,6 +196,9 @@ const useVarDatapageData = (
                 setGrapherConfigIsReady(true)
             })
             .catch(console.error)
+        return () => {
+            ignore = true
+        }
     }, [
         config.config?.metadata,
         currentView?.fullConfigId,
@@ -261,6 +269,16 @@ export const MultiDimDataPageContent = ({
     // TODO we should probably fix that? seems sensible? change GrapherFigureView around a bit to use the actual grapher inst? or pass a GrapherProgrammaticInterface to it instead?
     const [grapherInst, setGrapherInst] = useState<Grapher | null>(null)
 
+    const [previousGrapherConfig, setPreviousGrapherConfig] =
+        useState<GrapherInterface | null>(null)
+    const [previousTab, setPreviousTab] = useState<GrapherTabName | null>(null)
+
+    function handleUpdateSettings(newSettings: MultiDimDimensionChoices) {
+        setPreviousGrapherConfig(grapherConfigComputed)
+        setPreviousTab(grapherInst?.activeTab ?? null)
+        setCurrentSettings(newSettings)
+    }
+
     // De-mobx grapher.changedParams by transforming it into React state
     const grapherChangedParams = useMobxStateToReactState(
         useCallback(() => grapherInst?.changedParams, [grapherInst]),
@@ -280,13 +298,25 @@ export const MultiDimDataPageContent = ({
 
     const bounds = useElementBounds(grapherFigureRef)
 
-    const queryStr = useMemo(
-        () =>
-            grapherChangedParams !== undefined
-                ? multiDimStateToQueryStr(grapherChangedParams, currentSettings)
-                : initialQueryStr,
-        [grapherChangedParams, currentSettings, initialQueryStr]
-    )
+    const queryStr = useMemo(() => {
+        if (grapherChangedParams !== undefined) {
+            const params = { ...grapherChangedParams }
+            if (grapherInst && previousTab) {
+                params.tab = getNextTabParamWhenSwitchingGrapher(
+                    grapherInst,
+                    previousTab
+                )
+            }
+            return multiDimStateToQueryStr(params, currentSettings)
+        }
+        return initialQueryStr
+    }, [
+        currentSettings,
+        grapherChangedParams,
+        grapherInst,
+        initialQueryStr,
+        previousTab,
+    ])
 
     useEffect(() => {
         setWindowQueryStr(queryStr ?? "")
@@ -305,7 +335,10 @@ export const MultiDimDataPageContent = ({
             manager: {}, // Don't resize while data is loading.
         }
 
-        if (!grapherConfigIsReady) return baseConfig
+        // Use previous config if available to avoid unnecessary re-renders/jank
+        // instead of using the baseConfig just for a split second before the
+        // new config is ready.
+        if (!grapherConfigIsReady) return previousGrapherConfig ?? baseConfig
         const variables = currentView?.indicators?.["y"]
         const editUrl =
             variables?.length === 1
@@ -325,6 +358,7 @@ export const MultiDimDataPageContent = ({
         bounds,
         canonicalUrl,
         currentView?.indicators,
+        previousGrapherConfig,
     ])
 
     const hasTopicTags = !!config.config.topicTags?.length
@@ -386,7 +420,7 @@ export const MultiDimDataPageContent = ({
                             <MultiDimSettingsPanel
                                 config={config}
                                 currentSettings={currentSettings}
-                                updateSettings={setCurrentSettings}
+                                onUpdateSettings={handleUpdateSettings}
                             />
                         </div>
                     </div>
