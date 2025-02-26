@@ -435,13 +435,16 @@ properties:
                 default: false
     excludedEntityNames:
         type: array
-        description: Entities that should be excluded from the chart
+        description: Entities that should be excluded (opposite of includedEntityNames)
         default: []
         items:
             type: string
     includedEntityNames:
         type: array
-        description: Entities to include. Opposite of excludedEntityNames. If this is set then all entities not specified here are excluded.
+        description: |
+            Entities that should be included (opposite of excludedEntityNames).
+            If empty, all available entities are used. If set, all entities not specified here are excluded.
+            excludedEntityNames are evaluated afterwards and can still remove entities even if they were included before.
         default: []
         items:
             type: string
