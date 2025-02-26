@@ -106,7 +106,6 @@ import {
     AnnotationsMap,
     getAnnotationsForSeries,
     getAnnotationsMap,
-    getColorKey,
     getSeriesName,
 } from "./LineChartHelpers"
 import { FocusArray } from "../focus/FocusArray.js"
@@ -1246,8 +1245,7 @@ export class LineChart
         column: CoreColumn
     ): LineChartSeries {
         const {
-            manager: { canSelectMultipleEntities = false },
-            transformedTable: { availableEntityNames },
+            transformedTable: { availableEntityNames: selectedEntityNames },
             seriesStrategy,
             hasColorScale,
             colorColumn,
@@ -1285,8 +1283,7 @@ export class LineChart
             entityName,
             columnName,
             seriesStrategy,
-            availableEntityNames,
-            canSelectMultipleEntities,
+            selectedEntityNames,
         })
 
         let seriesColor: Color
@@ -1294,14 +1291,7 @@ export class LineChart
             const colorValue = last(points)?.colorValue
             seriesColor = this.getColorScaleColor(colorValue)
         } else {
-            seriesColor = this.categoricalColorAssigner.assign(
-                getColorKey({
-                    entityName,
-                    columnName,
-                    seriesStrategy,
-                    availableEntityNames,
-                })
-            )
+            seriesColor = this.categoricalColorAssigner.assign(seriesName)
         }
 
         return {

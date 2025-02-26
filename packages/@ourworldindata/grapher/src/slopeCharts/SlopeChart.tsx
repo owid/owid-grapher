@@ -78,7 +78,6 @@ import {
     AnnotationsMap,
     getAnnotationsForSeries,
     getAnnotationsMap,
-    getColorKey,
     getSeriesName,
 } from "../lineCharts/LineChartHelpers"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -98,7 +97,6 @@ type SVGMouseOrTouchEvent =
     | React.TouchEvent<SVGGElement>
 
 export interface SlopeChartManager extends ChartManager {
-    canSelectMultipleEntities?: boolean // used to pick an appropriate series name
     hasTimeline?: boolean // used to filter the table for the entity selector
     hideNoDataSection?: boolean
 }
@@ -326,16 +324,15 @@ export class SlopeChart
         column: CoreColumn
     ): RawSlopeChartSeries {
         const { startTime, endTime, seriesStrategy } = this
-        const { canSelectMultipleEntities = false } = this.manager
 
-        const { availableEntityNames } = this.transformedTable
+        const { availableEntityNames: selectedEntityNames } =
+            this.transformedTable
         const columnName = column.nonEmptyDisplayName
         const props = {
             entityName,
             columnName,
             seriesStrategy,
-            availableEntityNames,
-            canSelectMultipleEntities,
+            selectedEntityNames,
         }
         const seriesName = getSeriesName(props)
         const displayName = getSeriesName({
@@ -347,8 +344,7 @@ export class SlopeChart
         const start = owidRowByTime?.get(startTime)
         const end = owidRowByTime?.get(endTime)
 
-        const colorKey = getColorKey(props)
-        const color = this.categoricalColorAssigner.assign(colorKey)
+        const color = this.categoricalColorAssigner.assign(seriesName)
 
         const annotation = getAnnotationsForSeries(
             this.annotationsMap,
