@@ -114,7 +114,7 @@ export const ThankYouPage = (props: { baseUrl: string }) => (
                 </div>
             </main>
 
-            <SiteFooter hideDonate={true} baseUrl={props.baseUrl} />
+            <SiteFooter hideDonate />
         </body>
     </Html>
 )

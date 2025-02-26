@@ -87,7 +87,7 @@ export default function TombstonePage({
                         </>
                     )}
                 </main>
-                <SiteFooter hideDonate={true} baseUrl={baseUrl} />
+                <SiteFooter hideDonate />
             </body>
         </Html>
     )

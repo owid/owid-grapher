@@ -21,7 +21,7 @@ export class FeedbackPage extends Component<{ baseUrl: string }> {
                     <main>
                         <FeedbackForm />
                     </main>
-                    <SiteFooter hideDonate={true} baseUrl={baseUrl} />
+                    <SiteFooter hideDonate />
                 </body>
                 <script type="module">{`window.runFeedbackPage()`}</script>
             </Html>

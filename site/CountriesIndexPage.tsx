@@ -39,7 +39,7 @@ export const CountriesIndexPage = (props: {
                         ))}
                     </ul>
                 </main>
-                <SiteFooter baseUrl={baseUrl} />
+                <SiteFooter />
             </body>
         </Html>
     )

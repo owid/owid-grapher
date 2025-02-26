@@ -85,7 +85,6 @@ export function MultiDimDataPage({
                     </div>
                 </main>
                 <SiteFooter
-                    baseUrl={baseUrl}
                     context={SiteFooterContext.multiDimDataPage}
                     isPreviewing={isPreviewing}
                 />

@@ -374,10 +374,7 @@ export const LongFormPage = (props: {
                         </div>
                     </article>
                 </main>
-                <SiteFooter
-                    hideDonate={formattingOptions.hideDonateFooter}
-                    baseUrl={baseUrl}
-                />
+                <SiteFooter hideDonate={formattingOptions.hideDonateFooter} />
                 <script
                     type="module"
                     dangerouslySetInnerHTML={{

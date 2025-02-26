@@ -14,7 +14,6 @@ export const SiteHeader = (props: SiteHeaderProps) => (
     <header className="site-header">
         <div className="site-navigation-root">
             <SiteNavigation
-                baseUrl={props.baseUrl}
                 hideDonationFlag={props.hideDonationFlag}
                 isOnHomepage={props.isOnHomepage}
             />

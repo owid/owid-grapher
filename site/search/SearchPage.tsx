@@ -32,7 +32,7 @@ export const SearchPage = (props: { baseUrl: string }) => {
             <body>
                 <SiteHeader baseUrl={baseUrl} />
                 <main className="search-page-container" />
-                <SiteFooter hideDonate={true} baseUrl={baseUrl} />
+                <SiteFooter hideDonate />
                 <script type="module">{`window.runSearchPage()`}</script>
             </body>
         </Html>

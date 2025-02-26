@@ -178,7 +178,6 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { runtimeAssetMap: r
                     )}
                 </main>
                 <SiteFooter
-                    baseUrl={baseUrl}
                     context={SiteFooterContext.grapherPage}
                     staticAssetMap={props.staticAssetMap}
                     runtimeAssetMap={props.runtimeAssetMap}
