@@ -1,22 +1,24 @@
 import {
+    DbPlainMultiDimDataPage,
     JsonError,
     MultiDimDataPageConfigRaw,
     MultiDimDataPagesTableName,
 } from "@ourworldindata/types"
+import { getMultiDimDataPageById } from "../../db/model/MultiDimDataPage.js"
+import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
-    getMultiDimDataPageById,
-    multiDimDataPageExists,
-} from "../../db/model/MultiDimDataPage.js"
-import { expectInt, isValidSlug } from "../../serverUtils/serverUtil.js"
-import {
-    upsertMultiDimConfig,
+    upsertMultiDim,
     setMultiDimPublished,
     setMultiDimSlug,
 } from "../multiDim.js"
 import { triggerStaticBuild } from "./routeUtils.js"
 import { Request } from "../authentication.js"
 import * as db from "../../db/db.js"
-import { validateNewGrapherSlug, validateMultiDimSlug } from "../validation.js"
+import {
+    validateNewGrapherSlug,
+    validateMultiDimSlug,
+    isValidCatalogPath,
+} from "../validation.js"
 import e from "express"
 
 export async function handleGetMultiDims(
@@ -25,17 +27,17 @@ export async function handleGetMultiDims(
     trx: db.KnexReadonlyTransaction
 ) {
     try {
-        const results = await db.knexRaw<{
-            id: number
-            slug: string
-            title: string
-            updatedAt: string
-            published: number
-        }>(
+        const results = await db.knexRaw<
+            Pick<
+                DbPlainMultiDimDataPage,
+                "id" | "catalogPath" | "slug" | "updatedAt" | "published"
+            > & { title: string }
+        >(
             trx,
             `-- sql
             SELECT
                 id,
+                catalogPath,
                 slug,
                 config->>'$.title.title' as title,
                 updatedAt,
@@ -57,20 +59,25 @@ export async function handlePutMultiDim(
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadWriteTransaction
 ) {
-    const { slug } = req.params
-    if (!isValidSlug(slug)) {
-        throw new JsonError(`Invalid multi-dim slug ${slug}`)
+    const { catalogPath } = req.params
+    if (!isValidCatalogPath(catalogPath)) {
+        throw new JsonError(`Invalid multi-dim catalog path ${catalogPath}`)
     }
-    if (!(await multiDimDataPageExists(trx, { slug }))) {
-        await validateNewGrapherSlug(trx, slug)
+    const { config: rawConfig } = req.body as {
+        config: MultiDimDataPageConfigRaw
     }
-    const rawConfig = req.body as MultiDimDataPageConfigRaw
-    const id = await upsertMultiDimConfig(trx, slug, rawConfig)
+    const id = await upsertMultiDim(trx, catalogPath, rawConfig)
 
-    if (await multiDimDataPageExists(trx, { slug, published: true })) {
+    const { slug: publishedSlug } =
+        (await trx<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
+            .select("slug")
+            .where("catalogPath", catalogPath)
+            .where("published", true)
+            .first()) ?? {}
+    if (publishedSlug) {
         await triggerStaticBuild(
             res.locals.user,
-            `Publishing multidimensional chart ${slug}`
+            `Publishing multidimensional chart ${publishedSlug}`
         )
     }
     return { success: true, id }

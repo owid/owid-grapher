@@ -19,7 +19,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import urljoin from "url-join"
 import {
-    BAKED_BASE_URL,
+    ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../settings/clientSettings.js"
@@ -28,6 +28,7 @@ import { Link } from "./Link.js"
 
 type ApiMultiDim = {
     id: number
+    catalogPath: string | null
     title: string
     slug: string
     updatedAt: string
@@ -86,21 +87,31 @@ function createColumns(
             render: (_, record) => {
                 return (
                     <a
-                        href={urljoin(
-                            BAKED_BASE_URL,
-                            `/admin/grapher/${record.slug}`
-                        )}
+                        href={
+                            record.catalogPath
+                                ? urljoin(
+                                      ADMIN_BASE_URL,
+                                      `/admin/grapher/${encodeURIComponent(
+                                          record.catalogPath
+                                      )}`
+                                  )
+                                : undefined
+                        }
                         target="_blank"
                         rel="noopener"
                     >
-                        <img
-                            src={urljoin(
-                                GRAPHER_DYNAMIC_THUMBNAIL_URL,
-                                `/${record.slug}.png?imHeight=400`
-                            )}
-                            style={{ height: "140px", width: "auto" }}
-                            alt="Preview"
-                        />
+                        {record.slug ? (
+                            <img
+                                src={urljoin(
+                                    GRAPHER_DYNAMIC_THUMBNAIL_URL,
+                                    `/${record.slug}.png?imHeight=400`
+                                )}
+                                style={{ height: "140px", width: "auto" }}
+                                alt="Preview"
+                            />
+                        ) : (
+                            "Preview"
+                        )}
                     </a>
                 )
             },
@@ -109,7 +120,6 @@ function createColumns(
             title: "Title",
             dataIndex: "title",
             key: "title",
-            width: 280,
             render: (text, record) =>
                 record.published ? (
                     <a
@@ -123,6 +133,20 @@ function createColumns(
                     text
                 ),
             sorter: (a, b) => a.title.localeCompare(b.title),
+        },
+        {
+            title: "Catalog path",
+            dataIndex: "catalogPath",
+            key: "catalogPath",
+            render: (catalogPath) =>
+                catalogPath && (
+                    <Typography.Text copyable>{catalogPath}</Typography.Text>
+                ),
+            sorter: (a, b) => {
+                if (a.catalogPath === null) return 1
+                if (b.catalogPath === null) return -1
+                return a.catalogPath.localeCompare(b.catalogPath)
+            },
         },
         {
             title: "Slug",
@@ -164,8 +188,9 @@ function createColumns(
                     <Switch
                         checked={published}
                         disabled={
-                            publishMutation.isLoading &&
-                            publishMutation.variables?.id === record.id
+                            !record.slug ||
+                            (publishMutation.isLoading &&
+                                publishMutation.variables?.id === record.id)
                         }
                     />
                 </Popconfirm>
