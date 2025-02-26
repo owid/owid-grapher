@@ -9,10 +9,6 @@ import {
 } from "../../db/model/MultiDimDataPage.js"
 import { expectInt, isValidSlug } from "../../serverUtils/serverUtil.js"
 import {
-    FEATURE_FLAGS,
-    FeatureFlagFeature,
-} from "../../settings/clientSettings.js"
-import {
     upsertMultiDimConfig,
     setMultiDimPublished,
     setMultiDimSlug,
@@ -71,10 +67,7 @@ export async function handlePutMultiDim(
     const rawConfig = req.body as MultiDimDataPageConfigRaw
     const id = await upsertMultiDimConfig(trx, slug, rawConfig)
 
-    if (
-        FEATURE_FLAGS.has(FeatureFlagFeature.MultiDimDataPage) &&
-        (await multiDimDataPageExists(trx, { slug, published: true }))
-    ) {
+    if (await multiDimDataPageExists(trx, { slug, published: true })) {
         await triggerStaticBuild(
             res.locals.user,
             `Publishing multidimensional chart ${slug}`
