@@ -484,7 +484,6 @@ export class StackedBarChart
         return (
             <DualAxisComponent
                 dualAxis={this.dualAxis}
-                showTickMarks={true}
                 detailsMarker={manager.detailsMarkerInSvg}
             />
         )
