@@ -814,7 +814,6 @@ export class ScatterPlotChart
             <>
                 <DualAxisComponent
                     dualAxis={this.dualAxis}
-                    showTickMarks={false}
                     detailsMarker={this.manager.detailsMarkerInSvg}
                 />
                 {this.renderComparisonLines()}
@@ -829,7 +828,6 @@ export class ScatterPlotChart
             <g className="ScatterPlot" onMouseMove={this.onScatterMouseMove}>
                 <DualAxisComponent
                     dualAxis={this.dualAxis}
-                    showTickMarks={false}
                     detailsMarker={this.manager.detailsMarkerInSvg}
                 />
                 {this.renderComparisonLines()}
@@ -1026,6 +1024,7 @@ export class ScatterPlotChart
             ...yAxisConfig,
             labelPosition: AxisAlign.end,
             labelPadding: this.manager.isNarrow ? 10 : 14,
+            hideTickMarks: true,
         }
         return new AxisConfig(config, this)
     }
@@ -1035,6 +1034,7 @@ export class ScatterPlotChart
         const config = {
             ...xAxisConfig,
             labelPadding: this.manager.isNarrow ? 6 : undefined,
+            hideTickMarks: true,
         }
         return new AxisConfig(config, this)
     }

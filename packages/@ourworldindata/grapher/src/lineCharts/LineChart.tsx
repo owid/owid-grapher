@@ -946,7 +946,6 @@ export class LineChart
         return (
             <DualAxisComponent
                 dualAxis={dualAxis}
-                showTickMarks={true}
                 detailsMarker={manager.detailsMarkerInSvg}
             />
         )

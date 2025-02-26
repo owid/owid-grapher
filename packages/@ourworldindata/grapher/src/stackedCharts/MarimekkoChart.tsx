@@ -1006,7 +1006,6 @@ export class MarimekkoChart
                 />
                 <DualAxisComponent
                     dualAxis={dualAxis}
-                    showTickMarks={true}
                     detailsMarker={manager.detailsMarkerInSvg}
                 />
                 <HorizontalCategoricalColorLegend manager={this} />
