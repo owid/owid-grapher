@@ -16,7 +16,7 @@ import { OwidDistinctColorScheme } from "../color/CustomSchemes"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })
-    const selection = new SelectionArray([], table.availableEntities)
+    const selection = new SelectionArray()
     const manager: DiscreteBarChartManager = {
         table,
         selection,
@@ -26,7 +26,7 @@ it("can create a new bar chart", () => {
     const chart = new DiscreteBarChart({ manager })
 
     expect(chart.failMessage).toBeTruthy()
-    selection.selectAll()
+    selection.setSelectedEntities(table.availableEntityNames)
     expect(chart.failMessage).toEqual("")
 
     const series = chart.series

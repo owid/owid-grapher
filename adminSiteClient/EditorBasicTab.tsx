@@ -124,7 +124,9 @@ class DimensionSlotView<
     @action.bound private updateDefaultSelection() {
         const { grapher } = this.props.editor
         const { selection } = grapher
-        const { availableEntityNames, availableEntityNameSet } = selection
+
+        const availableEntityNames = grapher.availableEntityNames
+        const availableEntityNameSet = new Set(grapher.availableEntityNames)
 
         if (grapher.isScatter || grapher.isMarimekko) {
             // chart types that display all entities by default shouldn't select any by default

@@ -184,7 +184,7 @@ it("can generate a url with country selection even if there is no entity code", 
     }
     const grapher = new Grapher(config)
     expect(grapher.queryStr).toBe("")
-    grapher.selection.selectAll()
+    grapher.selection.setSelectedEntities(grapher.availableEntityNames)
     expect(grapher.queryStr).toContain("AFG")
 
     const config2 = {
@@ -196,7 +196,7 @@ it("can generate a url with country selection even if there is no entity code", 
     )!.code = undefined as any
     const grapher2 = new Grapher(config2)
     expect(grapher2.queryStr).toBe("")
-    grapher2.selection.selectAll()
+    grapher2.selection.setSelectedEntities(grapher.availableEntityNames)
     expect(grapher2.queryStr).toContain("AFG")
 })
 

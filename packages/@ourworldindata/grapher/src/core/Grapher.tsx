@@ -116,6 +116,7 @@ import {
     ChartViewInfo,
     OwidChartDimensionInterfaceWithMandatorySlug,
     AssetMap,
+    Entity,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -195,7 +196,7 @@ import {
     ChartComponentClassMap,
     DefaultChartClass,
 } from "../chart/ChartTypeMap"
-import { Entity, SelectionArray } from "../selection/SelectionArray"
+import { SelectionArray } from "../selection/SelectionArray"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
 import {
@@ -521,10 +522,7 @@ export class Grapher
 
     selection =
         this.manager?.selection ??
-        new SelectionArray(
-            this.props.selectedEntityNames ?? [],
-            this.props.table?.availableEntities ?? []
-        )
+        new SelectionArray(this.props.selectedEntityNames ?? [])
 
     focusArray = this.manager?.focusArray ?? new FocusArray()
 
@@ -1218,8 +1216,6 @@ export class Grapher
         // transformation (can happen when columns use targetTime)
         this.setDimensionsFromConfigs(dimensions)
 
-        this.updateAvailableEntitiesOfSelection()
-
         if (this.manager?.selection?.hasSelection) {
             // Selection is managed externally, do nothing.
         } else if (this.selection.hasSelection) {
@@ -1249,10 +1245,6 @@ export class Grapher
         this.legacyVariableDataJson = json
 
         this.rebuildInputOwidTable(inputTableTransformer)
-    }
-
-    @action.bound updateAvailableEntitiesOfSelection(): void {
-        this.selection.setAvailableEntities(this.availableEntities)
     }
 
     @action.bound private applyOriginalSelectionAsAuthored(): void {
@@ -2666,6 +2658,10 @@ export class Grapher
         return this.tableForSelection.availableEntities
     }
 
+    @computed get availableEntityNames(): EntityName[] {
+        return this.tableForSelection.availableEntityNames
+    }
+
     private get keyboardShortcuts(): Command[] {
         const temporaryFacetTestCommands = range(0, 10).map((num) => {
             return {
@@ -2694,7 +2690,9 @@ export class Grapher
                         this.selection.clearSelection()
                         this.focusArray.clear()
                     } else {
-                        this.selection.selectAll()
+                        this.selection.setSelectedEntities(
+                            this.availableEntityNames
+                        )
                     }
                 },
                 title: this.selection.hasSelection
@@ -2922,7 +2920,7 @@ export class Grapher
         const currentSelection = this.selection.selectedEntityNames.length
         const newNum = num ? num : currentSelection ? currentSelection * 2 : 10
         this.selection.setSelectedEntities(
-            sampleFrom(this.selection.availableEntityNames, newNum, Date.now())
+            sampleFrom(this.availableEntityNames, newNum, Date.now())
         )
     }
 
@@ -3810,7 +3808,7 @@ export class Grapher
     // we may still want to show those entities as available in a picker. We also do not want to do things like
     // hide the Add Entity button as the user drags the timeline.
     @computed private get numSelectableEntityNames(): number {
-        return this.selection.numAvailableEntityNames
+        return this.availableEntities.length
     }
 
     @computed get entitiesAreCountryLike(): boolean {

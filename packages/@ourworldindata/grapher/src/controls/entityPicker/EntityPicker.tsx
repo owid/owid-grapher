@@ -177,7 +177,8 @@ export class EntityPicker extends React.Component<{
     }
 
     @computed private get availableEntitiesForCurrentView(): Set<string> {
-        if (!this.grapherTable) return this.selection.availableEntityNameSet
+        if (!this.grapherTable)
+            return new Set(this.manager.availableEntityNames)
         if (!this.manager.requiredColumnSlugs?.length)
             return this.grapherTable.availableEntityNameSet
         return this.grapherTable.entitiesWith(this.manager.requiredColumnSlugs)
@@ -209,9 +210,10 @@ export class EntityPicker extends React.Component<{
 
     @computed
     private get entitiesWithMetricValue(): EntityOptionWithMetricValue[] {
-        const { metricTable, selection, localEntityNames } = this
+        const { metricTable, localEntityNames } = this
         const col = this.activePickerMetricColumn
-        const entityNames = selection.availableEntityNames.slice().sort()
+        const entityNames =
+            this.manager.availableEntityNames?.slice().sort() ?? []
         return entityNames.map((entityName) => {
             const plotValue =
                 col && metricTable?.has(col.slug)

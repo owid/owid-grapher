@@ -8,6 +8,7 @@ import {
     TableSlug,
     GrapherInterface,
     GrapherQueryParams,
+    EntityName,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -461,8 +462,11 @@ export class Explorer
     @action.bound private setGrapherTable(table: OwidTable) {
         if (this.grapher) {
             this.grapher.inputTable = table
-            this.grapher.updateAvailableEntitiesOfSelection()
         }
+    }
+
+    @computed get availableEntityNames(): EntityName[] {
+        return this.grapher?.availableEntityNames ?? []
     }
 
     private futureGrapherTable = new PromiseSwitcher<OwidTable>({
