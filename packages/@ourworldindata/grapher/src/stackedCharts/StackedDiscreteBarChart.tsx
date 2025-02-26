@@ -315,7 +315,13 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        return new AxisConfig(this.manager.yAxisConfig, this)
+        return new AxisConfig(
+            {
+                hideTickMarks: true,
+                ...this.manager.yAxisConfig,
+            },
+            this
+        )
     }
 
     @computed get yAxis(): HorizontalAxis {
