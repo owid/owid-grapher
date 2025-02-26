@@ -24,6 +24,7 @@ import {
     Color,
     HorizontalAlign,
     makeIdForHumanConsumption,
+    isTouchDevice,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -815,6 +816,10 @@ export class LineChart
         return !this.focusArray.isEmpty
     }
 
+    @computed get canToggleFocusMode(): boolean {
+        return !isTouchDevice() && this.series.length > 1
+    }
+
     @computed private get hasEntityYearHighlight(): boolean {
         return this.props.manager.entityYearHighlight !== undefined
     }
@@ -988,7 +993,7 @@ export class LineChart
                         onMouseOver={this.onLineLegendMouseOver}
                         onMouseLeave={this.onLineLegendMouseLeave}
                         onClick={
-                            this.series.length > 1
+                            this.canToggleFocusMode
                                 ? this.onLineLegendClick
                                 : undefined
                         }

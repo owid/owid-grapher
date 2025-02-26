@@ -14,6 +14,7 @@ import {
     dyFromAlign,
     uniq,
     sortBy,
+    isTouchDevice,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -256,6 +257,10 @@ export class SlopeChart
 
     @computed get isFocusModeActive(): boolean {
         return !this.focusArray.isEmpty
+    }
+
+    @computed get canToggleFocusMode(): boolean {
+        return !isTouchDevice() && this.series.length > 1
     }
 
     @computed private get yColumns(): CoreColumn[] {
@@ -644,8 +649,9 @@ export class SlopeChart
             textOutlineColor: this.backgroundColor,
             onMouseOver: this.onLineLegendMouseOver,
             onMouseLeave: this.onLineLegendMouseLeave,
-            onClick:
-                this.series.length > 1 ? this.onLineLegendClick : undefined,
+            onClick: this.canToggleFocusMode
+                ? this.onLineLegendClick
+                : undefined,
         }
     }
 
