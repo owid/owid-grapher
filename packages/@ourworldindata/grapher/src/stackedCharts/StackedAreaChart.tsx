@@ -664,7 +664,6 @@ export class StackedAreaChart extends AbstractStackedChart {
         return (
             <DualAxisComponent
                 dualAxis={this.dualAxis}
-                showTickMarks={true}
                 detailsMarker={manager.detailsMarkerInSvg}
             />
         )
