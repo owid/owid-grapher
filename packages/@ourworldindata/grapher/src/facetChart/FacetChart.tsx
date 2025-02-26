@@ -367,20 +367,25 @@ export class FacetChart
         // - for most charts, we want to only show the axis on the left-most facet charts, and omit
         //   it on the others
         // - for bar charts the Y axis is plotted horizontally, so we don't want to omit it
+        const unsupportedChartTypes: GrapherChartType[] = [
+            GRAPHER_CHART_TYPES.StackedDiscreteBar,
+            GRAPHER_CHART_TYPES.DiscreteBar,
+        ]
         return (
             this.uniformYAxis &&
-            ![
-                GRAPHER_CHART_TYPES.StackedDiscreteBar,
-                GRAPHER_CHART_TYPES.DiscreteBar,
-            ].includes(this.chartTypeName as any)
+            !unsupportedChartTypes.includes(this.chartTypeName)
         )
     }
 
     @computed private get isSharedXAxis(): boolean {
+        const supportedChartTypes: GrapherChartType[] = [
+            GRAPHER_CHART_TYPES.StackedBar,
+            GRAPHER_CHART_TYPES.StackedArea,
+            GRAPHER_CHART_TYPES.LineChart,
+        ]
         return (
             this.uniformXAxis &&
-            // TODO: do this for stacked area charts and line charts as well?
-            this.chartTypeName === GRAPHER_CHART_TYPES.StackedBar &&
+            supportedChartTypes.includes(this.chartTypeName) &&
             this.facetCount >= SHARED_X_AXIS_MIN_FACET_COUNT
         )
     }
