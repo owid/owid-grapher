@@ -552,7 +552,8 @@ export const isMobile = (): boolean =>
         ? false
         : !!window?.navigator?.userAgent.toLowerCase().includes("mobi")
 
-export const isTouchDevice = (): boolean => !!("ontouchstart" in window)
+export const isTouchDevice = (): boolean =>
+    typeof window === "undefined" ? false : !!("ontouchstart" in window)
 
 // General type representing arbitrary json data; basically a non-nullable 'any'
 export interface Json {
