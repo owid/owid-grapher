@@ -407,6 +407,7 @@ export class MarimekkoChart
 
         return times ? last(times) : undefined
     }
+
     @computed private get tableAtLatestTimelineTimepoint():
         | OwidTable
         | undefined {
@@ -415,13 +416,6 @@ export class MarimekkoChart
                 [this.latestTime],
                 0
             )
-        else return undefined
-    }
-    @computed protected get xColumnAtLastTimePoint(): CoreColumn | undefined {
-        if (this.xColumnSlug === undefined) return undefined
-        const columnSlug = [this.xColumnSlug]
-        if (this.tableAtLatestTimelineTimepoint)
-            return this.tableAtLatestTimelineTimepoint.getColumns(columnSlug)[0]
         else return undefined
     }
 
@@ -1276,7 +1270,7 @@ export class MarimekkoChart
 
     @computed private get pickedLabelCandidates(): LabelCandidate[] {
         const {
-            xColumnAtLastTimePoint,
+            xColumn,
             yColumnsAtLastTimePoint,
             selectedItems,
             xRange,
@@ -1305,8 +1299,8 @@ export class MarimekkoChart
         // We want labels to be chosen according to the latest time point available in the chart.
         // The reason for this is that it makes it so the labels are pretty consistent across time,
         // and not very jumpy when the user drags across the timeline.
-        const labelCandidateSource = xColumnAtLastTimePoint
-            ? xColumnAtLastTimePoint
+        const labelCandidateSource = xColumn
+            ? xColumn
             : yColumnsAtLastTimePoint[0]
 
         const labelCandidates: LabelCandidate[] =
@@ -1315,10 +1309,7 @@ export class MarimekkoChart
                     {
                         entityName: row.entityName,
                         shortEntityName: getShortNameForEntity(row.entityName),
-                        xValue:
-                            xColumnAtLastTimePoint !== undefined
-                                ? row.value
-                                : 1,
+                        xValue: xColumn !== undefined ? row.value : 1,
                         ySortValue: ySizeMap.get(row.entityName),
                     },
                     this.entityLabelFontSize,
