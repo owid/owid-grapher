@@ -2549,6 +2549,7 @@ export class Grapher
 
     @computed get hideFullScreenButton(): boolean {
         if (this.isInFullScreenMode) return false
+        if (!this.isSmall) return false
         // hide the full screen button if the full screen height
         // is barely larger than the current chart height
         const fullScreenHeight = this.windowInnerHeight!
