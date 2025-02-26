@@ -6,7 +6,6 @@ import {
     Base64String,
     serializeChartConfig,
     DbPlainChart,
-    DbPlainChartSlugRedirect,
     R2GrapherConfigDirectory,
     DbInsertChartRevision,
     DbRawChartConfig,
@@ -41,7 +40,7 @@ import {
     getWordpressPostReferencesByChartId,
     getGdocsPostReferencesByChartId,
 } from "../../db/model/Post.js"
-import { expectInt, isValidSlug } from "../../serverUtils/serverUtil.js"
+import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
     BAKED_BASE_URL,
     ADMIN_BASE_URL,
@@ -63,6 +62,7 @@ import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { Request } from "../authentication.js"
 import e from "express"
 import { DataInsightMinimalInformation } from "../../adminShared/AdminTypes.js"
+import { validateNewGrapherSlug } from "../validation.js"
 
 export const getReferencesByChartId = async (
     chartId: number,
@@ -243,7 +243,7 @@ const updateExistingChart = async (
         shouldInherit?: boolean
     }
 ): Promise<{
-    chartConfigId: Base64String
+    chartConfigId: string
     patchConfig: GrapherInterface
     fullConfig: GrapherInterface
 }> => {
@@ -317,50 +317,10 @@ export const saveGrapher = async (
     // Try to migrate the new config to the latest version
     newConfig = migrateGrapherConfigToLatestVersion(newConfig)
 
-    // Slugs need some special logic to ensure public urls remain consistent whenever possible
-    async function isSlugUsedInRedirect() {
-        const rows = await db.knexRaw<DbPlainChartSlugRedirect>(
-            knex,
-            `SELECT * FROM chart_slug_redirects WHERE chart_id != ? AND slug = ?`,
-            // -1 is a placeholder ID that will never exist; but we cannot use NULL because
-            // in that case we would always get back an empty resultset
-            [existingConfig ? existingConfig.id : -1, newConfig.slug]
-        )
-        return rows.length > 0
-    }
-
-    async function isSlugUsedInOtherGrapher() {
-        const rows = await db.knexRaw<Pick<DbPlainChart, "id">>(
-            knex,
-            `-- sql
-                SELECT c.id
-                FROM charts c
-                JOIN chart_configs cc ON cc.id = c.configId
-                WHERE
-                    c.id != ?
-                    AND cc.full ->> "$.isPublished" = "true"
-                    AND cc.slug = ?
-            `,
-            // -1 is a placeholder ID that will never exist; but we cannot use NULL because
-            // in that case we would always get back an empty resultset
-            [existingConfig ? existingConfig.id : -1, newConfig.slug]
-        )
-        return rows.length > 0
-    }
-
     // When a chart is published, check for conflicts
     if (newConfig.isPublished) {
-        if (!isValidSlug(newConfig.slug))
-            throw new JsonError(`Invalid chart slug ${newConfig.slug}`)
-        else if (await isSlugUsedInRedirect())
-            throw new JsonError(
-                `This chart slug was previously used by another chart: ${newConfig.slug}`
-            )
-        else if (await isSlugUsedInOtherGrapher())
-            throw new JsonError(
-                `This chart slug is in use by another published chart: ${newConfig.slug}`
-            )
-        else if (
+        await validateNewGrapherSlug(knex, newConfig.slug, existingConfig?.id)
+        if (
             existingConfig &&
             existingConfig.isPublished &&
             existingConfig.slug !== newConfig.slug
@@ -400,7 +360,7 @@ export const saveGrapher = async (
 
     // Execute the actual database update or creation
     let chartId: number
-    let chartConfigId: Base64String
+    let chartConfigId: string
     let patchConfig: GrapherInterface
     let fullConfig: GrapherInterface
     if (existingConfig) {

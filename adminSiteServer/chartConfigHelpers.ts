@@ -28,7 +28,7 @@ import {
 
 export const retrieveChartConfigFromDbAndSaveToR2 = async (
     knex: db.KnexReadonlyTransaction,
-    chartConfigId: Base64String,
+    chartConfigId: string,
     r2Path?: { directory: R2GrapherConfigDirectory; filename: string }
 ) => {
     // We need to get the full config and the md5 hash from the database instead of
@@ -69,7 +69,7 @@ export const retrieveChartConfigFromDbAndSaveToR2 = async (
 
 export const updateChartConfigInDbAndR2 = async (
     knex: db.KnexReadWriteTransaction,
-    chartConfigId: Base64String,
+    chartConfigId: string,
     patchConfig: GrapherInterface,
     fullConfig: GrapherInterface
 ) => {
@@ -86,11 +86,11 @@ export const updateChartConfigInDbAndR2 = async (
 
 export const saveNewChartConfigInDbAndR2 = async (
     knex: db.KnexReadWriteTransaction,
-    chartConfigId: Base64String | undefined,
+    chartConfigId: string | undefined,
     patchConfig: GrapherInterface,
     fullConfig: GrapherInterface
 ) => {
-    chartConfigId ??= uuidv7() as Base64String
+    chartConfigId ??= uuidv7()
 
     await knex<DbInsertChartConfig>(ChartConfigsTableName).insert({
         id: chartConfigId,

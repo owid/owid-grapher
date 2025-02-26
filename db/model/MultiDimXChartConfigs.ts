@@ -6,7 +6,7 @@ import { KnexReadWriteTransaction } from "../db.js"
 
 export async function upsertMultiDimXChartConfigs(
     knex: KnexReadWriteTransaction,
-    data: DbInsertMultiDimXChartConfig
+    data: Partial<DbInsertMultiDimXChartConfig>
 ): Promise<number> {
     const result = await knex<DbInsertMultiDimXChartConfig>(
         MultiDimXChartConfigsTableName

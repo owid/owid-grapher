@@ -16,8 +16,8 @@ export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
 // Determine if input is suitable for use as a url slug
-export const isValidSlug = (slug: any) =>
-    lodash.isString(slug) && slug.length > 1 && slug.match(/^[\w-]+$/)
+export const isValidSlug = (slug: any): slug is string =>
+    lodash.isString(slug) && slug.length > 1 && slug.match(/^[\w-]+$/) !== null
 
 export function base64ToBytes(base64: Base64String): Uint8Array {
     return Buffer.from(base64, "base64")

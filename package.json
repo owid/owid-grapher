@@ -68,6 +68,7 @@
         "@sentry/vite-plugin": "^3.1.0",
         "@sinclair/typebox": "^0.28.5",
         "@slack/web-api": "^7.1.0",
+        "@tanstack/react-query": "4",
         "@tippyjs/react": "^4.2.6",
         "@wojtekmaj/enzyme-adapter-react-17": "^0.8.0",
         "algoliasearch": "^4.23.2",
