@@ -503,6 +503,11 @@ export class FacetChart
                         cellEdges,
                         sharedAxesSizes
                     ),
+                    hideTickMarks: shouldHideFacetAxis(
+                        xAxis,
+                        cellEdges,
+                        sharedAxesSizes
+                    ),
                     ...series.manager.xAxisConfig,
                     ...axes.x.config,
                 },
