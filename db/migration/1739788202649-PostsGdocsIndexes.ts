@@ -29,9 +29,18 @@ export class PostsGdocsIndexes1739788202649 implements MigrationInterface {
             ALTER TABLE posts_gdocs
             ADD COLUMN authors JSON GENERATED ALWAYS AS (JSON_EXTRACT(content, '$.authors')) STORED AFTER content
         `)
+
+        // Add a composite index on `posts_gdocs_links` for `linkType` and `componentType` - we especially use queries for `linkType = 'grapher'`
+        await queryRunner.query(`-- sql
+            CREATE INDEX idx_linkType_componentType ON posts_gdocs_links (linkType, componentType)
+        `)
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`-- sql
+            DROP INDEX idx_linkType_componentType ON posts_gdocs_links
+        `)
+
         await queryRunner.query(`-- sql
             ALTER TABLE posts_gdocs
             DROP COLUMN authors
