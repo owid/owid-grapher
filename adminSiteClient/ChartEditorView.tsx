@@ -456,6 +456,16 @@ export class ChartEditorView<
                     )}
                 </div>
                 <div className="chart-editor-view">
+                    {grapher.id && (
+                        <a
+                            className="preview"
+                            href={`/admin/charts/${grapher.id}/preview`}
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            View Grapher or Data page
+                        </a>
+                    )}
                     <figure
                         data-grapher-src
                         style={{

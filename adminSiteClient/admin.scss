@@ -332,6 +332,13 @@ $nav-height: 45px;
         flex-grow: 1;
         align-items: center;
         justify-content: center;
+        position: relative;
+
+        a.preview {
+            position: absolute;
+            top: 8px;
+            right: 16px;
+        }
     }
 
     section {

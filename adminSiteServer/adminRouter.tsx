@@ -40,7 +40,7 @@ import {
     renderDataPageV2,
     renderPreviewDataPageOrGrapherPage,
 } from "../baker/GrapherBaker.js"
-import { getChartConfigBySlug } from "../db/model/Chart.js"
+import { getChartConfigById, getChartConfigBySlug } from "../db/model/Chart.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
 import { DbPlainDatasetFile, DbPlainDataset } from "@ourworldindata/types"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
@@ -344,14 +344,30 @@ getPlainRouteWithROTransaction(
         )
     }
 )
+
+getPlainRouteWithROTransaction(
+    adminRouter,
+    "/charts/:id/preview",
+    async (req, res, trx) => {
+        const chartId = expectInt(req.params.id)
+        const chart = await getChartConfigById(trx, chartId)
+        if (chart) {
+            const previewDataPageOrGrapherPage =
+                await renderPreviewDataPageOrGrapherPage(chart.config, trx)
+            res.send(previewDataPageOrGrapherPage)
+            return
+        }
+
+        throw new JsonError("No such chart", 404)
+    }
+)
+
 getPlainRouteWithROTransaction(
     adminRouter,
     "/grapher/:slug",
     async (req, res, trx) => {
         const { slug } = req.params
-        const chart = await getChartConfigBySlug(trx, slug).catch(
-            () => undefined
-        )
+        const chart = await getChartConfigBySlug(trx, slug)
         if (chart) {
             const previewDataPageOrGrapherPage =
                 await renderPreviewDataPageOrGrapherPage(chart.config, trx)
