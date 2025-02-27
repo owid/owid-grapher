@@ -11,7 +11,6 @@ export const PostsGdocsTableName = "posts_gdocs"
 export interface DbInsertPostGdoc {
     manualBreadcrumbs?: JsonString | null
     content: JsonString
-    createdAt: Date
     id: string
     markdown?: string | null
     publicationContext?: OwidGdocPublicationContext
@@ -19,11 +18,12 @@ export interface DbInsertPostGdoc {
     publishedAt?: Date | null
     revisionId?: string | null
     slug: string
-    updatedAt?: Date | null
 }
 export type DbRawPostGdoc = Required<DbInsertPostGdoc> & {
     type?: OwidGdocType
     authors?: JsonString
+    createdAt: Date
+    updatedAt: Date | null
 }
 export type DbEnrichedPostGdoc = Omit<
     DbRawPostGdoc,
@@ -93,7 +93,13 @@ export function serializePostsGdocsRow(
 ): DbInsertPostGdoc {
     // Kind of awkward, but some props may be set on the row but we don't want to insert them.
     // So we remove them here.
-    const KEYS_TO_REMOVE = ["breadcrumbs", "type", "authors"]
+    const KEYS_TO_REMOVE = [
+        "breadcrumbs",
+        "type",
+        "authors",
+        "updatedAt", // updated by the DB on update
+        "createdAt", // set by the DB to the current time on creation. We should never set this manually.
+    ]
 
     KEYS_TO_REMOVE.forEach((key) => {
         if (key in row) {
