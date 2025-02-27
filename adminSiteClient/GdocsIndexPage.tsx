@@ -129,18 +129,12 @@ class GdocsIndexPageSearch extends React.Component<{
     }
 }
 
-interface GdocsMatchParams {
-    id: string
-}
-
-export type GdocsMatchProps = RouteComponentProps<GdocsMatchParams>
-
 type GdocsSearchFilters = Record<OwidGdocType, boolean> & {
     publishStatus: GdocPublishStatus
 }
 
 @observer
-export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
+export class GdocsIndexPage extends React.Component<RouteComponentProps> {
     static contextType = GdocsStoreContext
     context!: React.ContextType<typeof GdocsStoreContext>
 

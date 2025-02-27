@@ -1,7 +1,6 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import * as React from "react"
 import { AdminLayout } from "./AdminLayout.js"
-import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import {
     GdocPostSettings,
     GdocInsightSettings,
@@ -47,6 +46,13 @@ import {
     BAKED_BASE_URL,
     PUBLISHED_AT_FORMAT,
 } from "../settings/clientSettings.js"
+import { RouteComponentProps } from "react-router-dom"
+
+interface GdocsMatchParams {
+    id: string
+}
+
+export type GdocsMatchProps = RouteComponentProps<GdocsMatchParams>
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params

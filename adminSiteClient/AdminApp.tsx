@@ -30,6 +30,7 @@ import {
     Route,
     Switch,
     Redirect,
+    RouteComponentProps,
 } from "react-router-dom"
 import { LoadingBlocker, Modal } from "./Forms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
@@ -39,8 +40,8 @@ import { ExplorersIndexPage } from "../explorerAdminClient/ExplorersListPage.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { AdminLayout } from "./AdminLayout.js"
 import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
-import { GdocsIndexPage, GdocsMatchProps } from "./GdocsIndexPage.js"
-import { GdocsPreviewPage } from "./GdocsPreviewPage.js"
+import { GdocsIndexPage } from "./GdocsIndexPage.js"
+import { GdocsMatchProps, GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsStoreProvider } from "./GdocsStoreProvider.js"
 import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
 import { ChartViewEditorPage } from "./ChartViewEditorPage.js"
@@ -365,7 +366,7 @@ export class AdminApp extends React.Component<{
                                 />
                                 <Route
                                     path="/gdocs"
-                                    render={(props: GdocsMatchProps) => (
+                                    render={(props: RouteComponentProps) => (
                                         <GdocsStoreProvider>
                                             <GdocsIndexPage {...props} />
                                         </GdocsStoreProvider>
