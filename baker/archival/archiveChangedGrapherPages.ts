@@ -1,3 +1,7 @@
+// This should be imported as early as possible so the global error handler is
+// set up before any errors are thrown.
+import "../../serverUtils/instrument.js"
+
 import * as Sentry from "@sentry/node"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"

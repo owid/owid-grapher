@@ -176,7 +176,7 @@ const archiveVariableIds = async (
         },
         { concurrency: 40 }
     )
-    return Object.assign({}, ...results)
+    return results.reduce((acc, result) => ({ ...acc, ...result }), {})
 }
 
 export const bakeGrapherPagesToFolder = async (

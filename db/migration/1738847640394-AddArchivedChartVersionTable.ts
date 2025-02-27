@@ -13,10 +13,10 @@ export class AddArchivedChartVersionTable1738847640394
                 hashOfInputs VARCHAR(255) NOT NULL,
                 manifest JSON,
 
-                UNIQUE INDEX grapherIdAndTimestampIdx (grapherId, archivalTimestamp), -- this kind of composite index is useful for querying the latest version of a chart
-                INDEX grapherSlugIdx (grapherSlug),
-                INDEX timestampIdx (archivalTimestamp),
-                INDEX hashOfInputsIdx (hashOfInputs)
+                UNIQUE INDEX idx_grapherId_archivalTimestamp (grapherId, archivalTimestamp), -- this kind of composite index is useful for querying the latest version of a chart
+                INDEX idx_grapherSlug (grapherSlug),
+                INDEX idx_timestamp (archivalTimestamp),
+                INDEX idx_hashOfInputs (hashOfInputs)
             )
         `)
     }

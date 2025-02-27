@@ -327,8 +327,6 @@ export const bakeSingleGrapherPageForArchival = async (
     )
     const outPathManifest = `${bakedSiteDir}/grapher/${grapher.slug}.manifest.json`
 
-    // TODO: right now, this only contains the asset maps. it may in the future also contain input
-    // hashes of the config and data files.
     await fs.writeFile(outPathManifest, stringify(manifest, undefined, 2))
 }
 

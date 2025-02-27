@@ -5,7 +5,7 @@ import {
     JsonString,
 } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
-import { omit, partition } from "lodash"
+import { partition, pick } from "lodash"
 import { stringify } from "safe-stable-stringify"
 import { hashHex } from "../../serverUtils/hash.js"
 import { ArchivalManifest, ArchivalTimestamp } from "./ArchivalUtils.js"
@@ -41,7 +41,7 @@ const getGrapherChecksumsFromDb = async (knex: db.KnexReadonlyTransaction) => {
             knex,
             // This query gets all published charts and their hashes, and all associated variables (keyed by variableId) and their checksums
             `-- sql
-        SELECT 
+        SELECT
             c.id AS chartId,
             cc.slug AS chartSlug,
             cc.fullMd5 AS chartConfigMd5,
@@ -85,7 +85,9 @@ const _getLatestArchivedVersionsFromDb = async (
 }
 
 const hashChecksumsObj = (checksums: GrapherChecksums) => {
-    const stringified = stringify(omit(checksums, "chartId"))
+    const stringified = stringify(
+        pick(checksums, "chartConfigMd5", "indicators")
+    )
     const hashed = hashHex(stringified, null)
     return hashed
 }

@@ -36,7 +36,6 @@ export const getDateForArchival = (): ArchivalTimestamp => {
 }
 
 const getOwidGrapherCommitSha = lazy(async () => {
-    if (process.env.BUILDKITE_COMMIT) return process.env.BUILDKITE_COMMIT
     try {
         return await simpleGit().revparse(["HEAD"])
     } catch {
