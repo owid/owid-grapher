@@ -444,9 +444,11 @@ export async function getGptTopicSuggestions(
                 <listed-on>${enrichedChartConfig.originUrl}</listed-on>
             </chart>
             <topics>
-                ${topics.map(
-                    (topic) => `<topic id=${topic.id}>${topic.name}</topic>\n`
-                )}
+                ${topics
+                    .map(
+                        (topic) => `<topic id=${topic.id}>${topic.name}</topic>`
+                    )
+                    .join("\n")}
             </topics>
 
             Respond with the two categories you think best describe the chart.
@@ -462,7 +464,7 @@ export async function getGptTopicSuggestions(
     })
     const completion = await openai.chat.completions.create({
         messages: [{ role: "user", content: prompt }],
-        model: "gpt-4-1106-preview",
+        model: "gpt-4o",
     })
 
     const json = completion.choices[0]?.message?.content
