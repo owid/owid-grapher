@@ -54,6 +54,8 @@ import { knexRaw } from "../db/db.js"
 import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
+import stringify from "safe-stable-stringify"
+import { ArchivalManifest } from "./archival/archivalUtils.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -306,11 +308,13 @@ export const bakeSingleGrapherPageForArchival = async (
         imageMetadataDictionary,
         staticAssetMap,
         runtimeAssetMap,
+        manifest,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
-    } = {}
+        manifest: ArchivalManifest
+    }
 ) => {
     const outPathHtml = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     await fs.writeFile(
@@ -323,13 +327,7 @@ export const bakeSingleGrapherPageForArchival = async (
     )
     const outPathManifest = `${bakedSiteDir}/grapher/${grapher.slug}.manifest.json`
 
-    // TODO: right now, this only contains the asset maps. it may in the future also contain input
-    // hashes of the config and data files.
-    await fs.writeFile(
-        outPathManifest,
-        JSON.stringify({ staticAssetMap, runtimeAssetMap }, undefined, 2)
-    )
-    console.log(outPathHtml, outPathManifest)
+    await fs.writeFile(outPathManifest, stringify(manifest, undefined, 2))
 }
 
 const bakeGrapherPage = async (
