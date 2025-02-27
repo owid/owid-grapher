@@ -55,7 +55,7 @@ import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import stringify from "safe-stable-stringify"
-import { ArchivalManifest } from "./archival/ArchivalUtils.js"
+import { ArchivalManifest } from "./archival/archivalUtils.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,

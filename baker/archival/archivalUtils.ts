@@ -2,7 +2,7 @@ import { AssetMap, dayjs, lazy, omit } from "@ourworldindata/utils"
 import {
     GrapherChecksums,
     GrapherChecksumsObjectWithHash,
-} from "./ArchivalChecksumUtils.js"
+} from "./archivalChecksum.js"
 import { simpleGit } from "simple-git"
 
 export interface ArchivalTimestamp {

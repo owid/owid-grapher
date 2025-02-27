@@ -8,7 +8,7 @@ import * as db from "../../db/db.js"
 import { partition, pick } from "lodash"
 import { stringify } from "safe-stable-stringify"
 import { hashHex } from "../../serverUtils/hash.js"
-import { ArchivalManifest, ArchivalTimestamp } from "./ArchivalUtils.js"
+import { ArchivalManifest, ArchivalTimestamp } from "./archivalUtils.js"
 
 export interface GrapherChecksums {
     chartConfigMd5: string

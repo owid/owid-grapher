@@ -9,7 +9,7 @@ import * as db from "../../db/db.js"
 import {
     findChangedGrapherPages,
     insertChartVersions,
-} from "./ArchivalChecksumUtils.js"
+} from "./archivalChecksum.js"
 import { bakeGrapherPagesToFolder } from "./ArchivalBaker.js"
 
 interface Options {

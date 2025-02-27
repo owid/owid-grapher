@@ -7,14 +7,14 @@ import { getAllImages } from "../../db/model/Image.js"
 import { getVariableData } from "../../db/model/Variable.js"
 import findProjectBaseDir from "../../settings/findBaseDir.js"
 import { bakeSingleGrapherPageForArchival } from "../GrapherBaker.js"
-import { hashAndCopyFile, hashAndWriteFile } from "./ArchivalFileUtils.js"
+import { hashAndCopyFile, hashAndWriteFile } from "./archivalFileUtils.js"
 import {
     ArchivalManifest,
     assembleManifest,
     getDateForArchival,
-} from "./ArchivalUtils.js"
+} from "./archivalUtils.js"
 import pMap from "p-map"
-import { GrapherChecksumsObjectWithHash } from "./ArchivalChecksumUtils.js"
+import { GrapherChecksumsObjectWithHash } from "./archivalChecksum.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
