@@ -24,6 +24,8 @@ import {
 } from "@ourworldindata/types"
 import { OpenAI } from "openai"
 import { OPENAI_API_KEY } from "../../settings/serverSettings.js"
+import zod from "zod"
+import { zodResponseFormat } from "openai/helpers/zod"
 
 // XXX hardcoded filtering to public parent tags
 export const PUBLIC_TAG_PARENT_IDS = [
@@ -434,10 +436,19 @@ export async function getGptTopicSuggestions(
 
     if (!topics.length) throw new JsonError("No topics found", 404)
 
+    // Define Zod schema for the response
+    const TopicSchema = zod.object({
+        id: zod.number(),
+        name: zod.string(),
+    })
+    const TopicsResponseSchema = zod.object({
+        topics: zod.array(TopicSchema),
+    })
+
     const prompt = `
             You will be provided with the chart metadata (delimited with XML tags),
             as well as a list of possible topics (delimited with XML tags).
-            Classify the chart into two of the provided topics.
+            Classify the chart into one or two of the provided topics.
             <chart>
                 <title>${enrichedChartConfig.title}</title>
                 <description>${enrichedChartConfig.subtitle}</description>
@@ -451,48 +462,27 @@ export async function getGptTopicSuggestions(
                     .join("\n")}
             </topics>
 
-            Respond with the two categories you think best describe the chart.
-
-            Format your response as follows:
-            [
-                { "id": 1, "name": "Topic 1" },
-                { "id": 2, "name": "Topic 2" }
-            ]`
+            Select the one or two categories you think best describe the chart.`
 
     const openai = new OpenAI({
         apiKey: OPENAI_API_KEY,
     })
-    const completion = await openai.chat.completions.create({
+    const completion = await openai.beta.chat.completions.parse({
         messages: [{ role: "user", content: prompt }],
         model: "gpt-4o",
+        response_format: zodResponseFormat(TopicsResponseSchema, "topics"),
     })
 
-    const json = completion.choices[0]?.message?.content
-    if (!json) throw new JsonError("No response from GPT", 500)
+    const parsedResponse = completion.choices[0].message.parsed
+    if (!parsedResponse?.topics?.length)
+        throw new JsonError("No response from GPT", 500)
 
-    let selectedTopics: unknown = undefined
-    // Sometimes GPT includes a preamble before the JSON, so we need to extract the JSON from the response
-    const jsonArrayRegex = /\[[^\]]*\]/g
-    try {
-        const match = jsonArrayRegex.exec(json)
-        if (match) {
-            selectedTopics = JSON.parse(match[0])
-        }
-    } catch {
-        throw new JsonError(`GPT returned invalid JSON: "${json}"`, 500)
-    }
+    // We only want to return topics that are in the list of possible topics
+    const confirmedTopics = parsedResponse.topics.filter((topic) =>
+        topics.some((t) => t.id === topic.id)
+    )
 
-    if (lodash.isArray(selectedTopics)) {
-        // We only want to return topics that are in the list of possible
-        // topics, in case of hallucinations
-        const confirmedTopics = selectedTopics.filter((topic) =>
-            topics.map((t) => t.id).includes(topic.id)
-        )
-
-        return confirmedTopics
-    } else {
-        throw new JsonError(`GPT returned non-array JSON: "${json}"`, 500)
-    }
+    return confirmedTopics
 }
 
 export interface OldChartFieldList {
