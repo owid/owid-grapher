@@ -3,6 +3,7 @@ import { JsonString } from "../domainTypes/Various.js"
 import {
     OwidGdocContent,
     OwidGdocPublicationContext,
+    OwidGdocType,
 } from "../gdocTypes/Gdoc.js"
 import { MinimalTag } from "./Tags.js"
 
@@ -20,14 +21,18 @@ export interface DbInsertPostGdoc {
     slug: string
     updatedAt?: Date | null
 }
-export type DbRawPostGdoc = Required<DbInsertPostGdoc>
+export type DbRawPostGdoc = Required<DbInsertPostGdoc> & {
+    type?: OwidGdocType
+    authors?: JsonString
+}
 export type DbEnrichedPostGdoc = Omit<
     DbRawPostGdoc,
-    "content" | "manualBreadcrumbs" | "published"
+    "content" | "manualBreadcrumbs" | "published" | "authors"
 > & {
     content: OwidGdocContent
     manualBreadcrumbs: BreadcrumbItem[] | null
     published: boolean
+    authors?: string[]
 }
 
 export type DBRawPostGdocWithTags = DbRawPostGdoc & {
@@ -52,6 +57,12 @@ export function parsePostsGdocsBreadcrumbs(
     return breadcrumbs ? JSON.parse(breadcrumbs) : null
 }
 
+export function parsePostGdocsAuthors(
+    authors: JsonString | undefined
+): string[] {
+    return authors ? JSON.parse(authors) : []
+}
+
 export function serializePostsGdocsBreadcrumbs(
     breadcrumbs: BreadcrumbItem[] | null
 ): JsonString | null {
@@ -64,6 +75,7 @@ export function parsePostsGdocsRow(row: DbRawPostGdoc): DbEnrichedPostGdoc {
         content: parsePostGdocContent(row.content),
         manualBreadcrumbs: parsePostsGdocsBreadcrumbs(row.manualBreadcrumbs),
         published: !!row.published,
+        authors: parsePostGdocsAuthors(row.authors),
     }
 }
 
@@ -76,12 +88,18 @@ export function parsePostsGdocsWithTagsRow(
     }
 }
 
-export function serializePostsGdocsRow(row: DbEnrichedPostGdoc): DbRawPostGdoc {
-    // Kind of awkward, but automatic breadcrumbs are part of OwidGdocBaseInterface,
-    // but not part of the DB schema. So we remove them here.
-    if ("breadcrumbs" in row) {
-        delete row.breadcrumbs
-    }
+export function serializePostsGdocsRow(
+    row: DbEnrichedPostGdoc
+): DbInsertPostGdoc {
+    // Kind of awkward, but some props may be set on the row but we don't want to insert them.
+    // So we remove them here.
+    const KEYS_TO_REMOVE = ["breadcrumbs", "type", "authors"]
+
+    KEYS_TO_REMOVE.forEach((key) => {
+        if (key in row) {
+            delete (row as any)[key]
+        }
+    })
     return {
         ...row,
         content: serializePostGdocContent(row.content),

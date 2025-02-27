@@ -241,7 +241,7 @@ export async function getAllMinimalGdocBaseObjects(
                 id,
                 content ->> '$.title' as title,
                 slug,
-                content ->> '$.authors' as authors,
+                authors,
                 publishedAt,
                 published,
                 content ->> '$.subtitle' as subtitle,

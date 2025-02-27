@@ -574,7 +574,7 @@ export const getRelatedResearchAndWritingForVariables = async (
             p.content ->> '$.title' AS title,
             p.slug AS postSlug,
             COALESCE(csr.chart_id, c.id) AS chartId,
-            p.content ->> '$.authors' AS authors,
+            authors,
             p.content ->> '$."featured-image"' AS thumbnail,
             COALESCE(pv.views_365d, 0) AS pageviews,
             'gdocs' AS post_source,
@@ -643,7 +643,7 @@ export const getLatestWorkByAuthor = async (
             pg.slug,
             pg.content->>'$.title' AS title,
             pg.content->>'$.subtitle' AS subtitle,
-            pg.content->>'$.authors' AS authors,
+            authors,
             pg.publishedAt,
             CASE
                 WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHVED_THUMBNAIL_FILENAME}'
@@ -652,19 +652,13 @@ export const getLatestWorkByAuthor = async (
         FROM
             posts_gdocs pg
         WHERE
-            pg.content ->> '$.authors' LIKE ?
+            JSON_CONTAINS(authors, ?)
             AND pg.published = TRUE
             AND pg.type = "${OwidGdocType.Article}"
+        ORDER BY publishedAt DESC
         `,
-        [`%${author}%`]
+        [`"${author}"`]
     )
 
-    // We're sorting in JS because of the "Out of sort memory, consider
-    // increasing server sort buffer size" error when using ORDER BY. Adding an
-    // index on the publishedAt column doesn't help.
-    return sortBy(
-        rawLatestWorkLinks.map((work) => parseLatestWork(work)),
-        // Sort by most recent first
-        (work) => -work.publishedAt! // "!" because we're only selecting published posts, so publishedAt can't be NULL
-    )
+    return rawLatestWorkLinks.map(parseLatestWork)
 }
