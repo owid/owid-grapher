@@ -509,7 +509,7 @@ describe("urls", () => {
     })
 
     it("parses tab=map correctly", () => {
-        const grapher = new Grapher()
+        const grapher = new Grapher({ hasMapTab: true })
         grapher.populateFromQueryParams({ tab: "map" })
         expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.WorldMap)
     })

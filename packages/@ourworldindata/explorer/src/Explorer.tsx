@@ -8,7 +8,6 @@ import {
     TableSlug,
     GrapherInterface,
     GrapherQueryParams,
-    GRAPHER_TAB_QUERY_PARAMS,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -448,22 +447,8 @@ export class Explorer
 
         this.updateGrapherFromExplorer()
 
-        if (this.grapher.availableTabs.includes(previousTab)) {
-            // preserve the previous tab if that's still available in the new view
-            newGrapherParams.tab =
-                this.grapher.mapGrapherTabToQueryParam(previousTab)
-        } else if (this.grapher.validChartTypes.length > 0) {
-            // otherwise, switch to the first chart tab
-            newGrapherParams.tab = this.grapher.mapGrapherTabToQueryParam(
-                this.grapher.validChartTypes[0]
-            )
-        } else if (this.grapher.hasMapTab) {
-            // or switch to the map, if there is one
-            newGrapherParams.tab = GRAPHER_TAB_QUERY_PARAMS.map
-        } else {
-            // if everything fails, switch to the table tab that is always available
-            newGrapherParams.tab = GRAPHER_TAB_QUERY_PARAMS.table
-        }
+        newGrapherParams.tab =
+            this.grapher.mapGrapherTabToQueryParam(previousTab)
 
         this.grapher.populateFromQueryParams(newGrapherParams)
 

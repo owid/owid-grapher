@@ -3,7 +3,6 @@ import { hydrate, render } from "react-dom"
 import {
     DataPageV2ContentFields,
     getOwidGdocFromJSON,
-    getWindowQueryStr,
     isNil,
     OwidGdocType,
     parseIntOrUndefined,
@@ -43,6 +42,7 @@ import {
     MultiDimDataPageContent,
     MultiDimDataPageContentProps,
 } from "./multiDim/MultiDimDataPageContent.js"
+import { BrowserRouter } from "react-router-dom-v5-compat"
 
 function hydrateDataCatalogPage() {
     const root = document.getElementById("data-catalog-page-root")
@@ -189,15 +189,15 @@ const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
 const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
     const props: MultiDimDataPageContentProps = window._OWID_MULTI_DIM_PROPS!
-    const initialQueryStr = getWindowQueryStr()
 
     hydrate(
         <DebugProvider debug={isPreviewing}>
-            <MultiDimDataPageContent
-                {...props}
-                isPreviewing={isPreviewing}
-                initialQueryStr={initialQueryStr}
-            />
+            <BrowserRouter>
+                <MultiDimDataPageContent
+                    {...props}
+                    isPreviewing={isPreviewing}
+                />
+            </BrowserRouter>
         </DebugProvider>,
         wrapper
     )
