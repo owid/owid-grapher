@@ -2396,7 +2396,7 @@ export class GrapherState {
     }
     // the header and footer don't rely on the base font size unless explicitly specified
     @computed get useBaseFontSize(): boolean {
-        return this.initialOptions.baseFontSize !== undefined || this.isStatic
+        return this.initialOptions.baseFontSize !== undefined
     }
     private computeBaseFontSizeFromHeight(bounds: Bounds): number {
         const squareBounds = this.getStaticBounds(GrapherStaticFormat.square)
