@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ErrorBoundary } from "react-error-boundary"
+import * as Sentry from "@sentry/react"
 import { useDebug } from "../DebugContext.js"
 
 export const BlockErrorBoundary = ({
@@ -10,23 +10,32 @@ export const BlockErrorBoundary = ({
     className: string
 }) => {
     return (
-        <ErrorBoundary
-            FallbackComponent={(props) => (
-                <BlockErrorFallback {...props} className={className} />
-            )}
+        <Sentry.ErrorBoundary
+            fallback={({ error, resetError }) => {
+                if (!(error instanceof Error)) {
+                    error = new Error(String(error))
+                }
+                return (
+                    <BlockErrorFallback
+                        className={className}
+                        error={error as Error}
+                        resetError={resetError}
+                    />
+                )
+            }}
         >
             {children}
-        </ErrorBoundary>
+        </Sentry.ErrorBoundary>
     )
 }
 
 export const BlockErrorFallback = ({
     error,
-    resetErrorBoundary,
+    resetError,
     className = "",
 }: {
     error: Error
-    resetErrorBoundary?: VoidFunction
+    resetError?: VoidFunction
     className?: string
 }): React.ReactElement => {
     const debug = useDebug()
@@ -45,12 +54,12 @@ export const BlockErrorFallback = ({
             {debug ? (
                 <>
                     <div>{error.message}</div>
-                    {resetErrorBoundary ? (
+                    {resetError ? (
                         <div>
                             <button
                                 aria-label="Reload content"
                                 style={{ margin: "10px" }}
-                                onClick={resetErrorBoundary}
+                                onClick={resetError}
                             >
                                 Try again
                             </button>
