@@ -367,7 +367,12 @@ getPlainRouteWithROTransaction(
     "/grapher/:slug",
     async (req, res, trx) => {
         const { slug } = req.params
-        const chart = await getChartConfigBySlug(trx, slug)
+
+        // don't throw if no chart config is found since this is the case for
+        // multi-dim data pages and we want to continue execution in that case
+        const chart = await getChartConfigBySlug(trx, slug).catch(
+            () => undefined
+        )
         if (chart) {
             const previewDataPageOrGrapherPage =
                 await renderPreviewDataPageOrGrapherPage(chart.config, trx)
