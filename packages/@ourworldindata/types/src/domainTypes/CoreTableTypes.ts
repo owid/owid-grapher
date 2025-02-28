@@ -144,6 +144,12 @@ export type EntityName = string
 export type EntityCode = string
 export type EntityId = number
 
+export interface Entity {
+    entityName: EntityName
+    entityId?: EntityId
+    entityCode?: EntityCode
+}
+
 export enum ColumnTypeNames {
     NumberOrString = "NumberOrString",
     Numeric = "Numeric",

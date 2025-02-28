@@ -1,5 +1,6 @@
 import * as React from "react"
 import {
+    difference,
     differenceOfSets,
     moveArrayItemToIndex,
     omit,
@@ -179,7 +180,12 @@ export class EntitySelectionSection extends React.Component<{
         const { editor } = this
         const { grapher } = editor
         const { selection } = grapher
-        const { unselectedEntityNames, selectedEntityNames } = selection
+        const { selectedEntityNames } = selection
+
+        const unselectedEntityNames = difference(
+            grapher.availableEntityNames,
+            selectedEntityNames
+        )
 
         const isEntitySelectionInherited = editor.isPropertyInherited(
             "selectedEntityNames"
@@ -450,7 +456,6 @@ class EntityFilterSection<
     @action.bound validateSelectionAndFocus() {
         this.editor.removeInvalidSelectedEntityNames()
         this.editor.removeInvalidFocusedSeriesNames()
-        this.editor.grapher.updateAvailableEntitiesOfSelection()
     }
 
     @action.bound onExcludeEntity(entityName: string) {

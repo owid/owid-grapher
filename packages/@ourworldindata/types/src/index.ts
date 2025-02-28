@@ -440,6 +440,7 @@ export {
     type EntityName,
     type EntityCode,
     type EntityId,
+    type Entity,
     type OwidColumnDef,
     OwidEntityNameColumnDef,
     OwidEntityIdColumnDef,

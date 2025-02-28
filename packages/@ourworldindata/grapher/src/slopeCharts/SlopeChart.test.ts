@@ -110,10 +110,7 @@ describe("series naming in multi-column mode", () => {
     })
 
     it("combines entity and column name if multiple entities are selected and multi entity selection is disabled", () => {
-        const selection = new SelectionArray(
-            table.availableEntityNames,
-            table.availableEntities
-        )
+        const selection = new SelectionArray(table.availableEntityNames)
         const manager = {
             table,
             canSelectMultipleEntities: false,
@@ -242,10 +239,7 @@ describe("colors", () => {
             ]
         )
 
-        const selection = new SelectionArray(
-            ["usa", "canada"],
-            [{ entityName: "usa" }, { entityName: "canada" }]
-        )
+        const selection = new SelectionArray(["usa", "canada"])
         const manager: SlopeChartManager = {
             yColumnSlugs: ["gdp", "pop"],
             table: table,
