@@ -308,9 +308,17 @@ async function getExistingRecordsForSlug(
     index: SearchIndex,
     slug: string
 ): Promise<ObjectWithObjectID[]> {
+    const settings = await index.getSettings()
+    if (!settings.attributesForFaceting?.includes("slug")) {
+        await logErrorAndMaybeCaptureInSentry(
+            new Error(
+                "Attribute 'slug' must be set in the index's attributesForFaceting " +
+                    "to get existing records in Algolia."
+            )
+        )
+    }
     const existingRecordsForPost: ObjectWithObjectID[] = []
     await index.browseObjects({
-        // IMPORTANT: requires `slug` to be set in the index's attributesForFaceting
         filters: `slug:${slug}`,
         attributesToRetrieve: ["objectID"],
         // This is the way you get results from browseObjects for some reason 🤷
