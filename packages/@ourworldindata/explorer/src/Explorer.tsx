@@ -281,6 +281,10 @@ export class Explorer
 
     entityType = this.explorerProgram.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
 
+    // We want to ensure that unavailable entity are shown in the explorer entity
+    // that's why we employ an append-only version of `grapher.availableEntityNames`
+    @observable appendOnlyAvailableEntityNames: Set<EntityName> = new Set()
+
     @observable.ref grapher?: Grapher
 
     @action.bound setGrapher(grapher: Grapher) {
@@ -400,6 +404,17 @@ export class Explorer
             )
         )
 
+        this.disposers.push(
+            reaction(
+                () => this.grapher?.availableEntityNames,
+                (availableEntityNames) => {
+                    availableEntityNames?.forEach((entity) =>
+                        this.appendOnlyAvailableEntityNames.add(entity)
+                    )
+                }
+            )
+        )
+
         if (this.props.isInStandalonePage) this.bindToWindow()
     }
 
@@ -466,7 +481,8 @@ export class Explorer
     }
 
     @computed get availableEntityNames(): EntityName[] {
-        return this.grapher?.availableEntityNames ?? []
+        const entityNameSet = this.appendOnlyAvailableEntityNames
+        return Array.from(entityNameSet)
     }
 
     private futureGrapherTable = new PromiseSwitcher<OwidTable>({
