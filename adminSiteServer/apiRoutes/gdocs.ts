@@ -2,6 +2,7 @@ import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     GdocsContentSource,
     DbInsertUser,
+    DbRawPost,
     JsonError,
     GDOCS_BASE_URL,
     gdocUrlRegex,
@@ -9,6 +10,7 @@ import {
     PostsGdocsXImagesTableName,
     PostsGdocsTableName,
     PostsGdocsComponentsTableName,
+    PostsTableName,
 } from "@ourworldindata/types"
 import { checkIsGdocPostExcludingFragments } from "@ourworldindata/utils"
 import { isEmpty } from "lodash"
@@ -282,6 +284,12 @@ export async function deleteGdoc(
                 [gdocSlug, "/"]
             )
         }
+        // Make sure the old WP post that was replaced by this GDoc doesn't
+        // become available again (if it exists). By this time we don't want
+        // that behavior by default (any more).
+        await trx<DbRawPost>(PostsTableName)
+            .where("slug", gdocSlug)
+            .update({ gdocSuccessorId: null, status: "private" })
         await triggerStaticBuild(res.locals.user, `Deleting ${gdocSlug}`)
     }
     return {}
