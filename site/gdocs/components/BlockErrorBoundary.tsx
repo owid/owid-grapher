@@ -43,6 +43,7 @@ export const BlockErrorFallback = ({
         <div
             className={className}
             style={{
+                display: "block",
                 textAlign: "center",
                 backgroundColor: "rgba(255,0,0,0.1)",
                 padding: "20px",
