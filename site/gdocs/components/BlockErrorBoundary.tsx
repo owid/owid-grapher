@@ -1,5 +1,6 @@
 import * as React from "react"
 import * as Sentry from "@sentry/react"
+import { Button } from "@ourworldindata/components"
 import { useDebug } from "../DebugContext.js"
 
 export const BlockErrorBoundary = ({
@@ -43,30 +44,31 @@ export const BlockErrorFallback = ({
         <div
             className={className}
             style={{
-                textAlign: "center",
-                backgroundColor: "rgba(255,0,0,0.1)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                alignItems: "center",
+                backgroundColor: "#ffe5e5",
                 padding: "20px",
                 marginTop: "20px",
                 marginBottom: "20px",
             }}
         >
             <h3 style={{ margin: 0 }}>{error.name}</h3>
-            {debug ? (
+            {debug && (
                 <>
                     <div>{error.message}</div>
-                    {resetError ? (
-                        <div>
-                            <button
-                                aria-label="Reload content"
-                                style={{ margin: "10px" }}
-                                onClick={resetError}
-                            >
-                                Try again
-                            </button>
-                        </div>
-                    ) : null}
+                    {resetError && (
+                        <Button
+                            theme="solid-vermillion"
+                            text="Try again"
+                            ariaLabel="Reload content"
+                            onClick={resetError}
+                            icon={null}
+                        />
+                    )}
                 </>
-            ) : null}
+            )}
         </div>
     )
 }
