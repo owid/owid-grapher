@@ -485,14 +485,10 @@ export const getPostTags = async (
 }
 
 export interface RelatedResearchQueryResult {
-    linkTargetSlug: string
-    chartSlug: string
     title: string
     postSlug: string
-    chartId: number
     authors: string
     thumbnail: string
-    pageviews: number
     tags: string
 }
 
@@ -504,14 +500,10 @@ export const getRelatedResearchAndWritingForVariables = async (
         knex,
         `-- sql
         SELECT DISTINCT
-            pl.target AS linkTargetSlug,
-            COALESCE(csr.slug, cc.slug) AS chartSlug,
             p.content ->> '$.title' AS title,
             p.slug AS postSlug,
-            COALESCE(csr.chart_id, c.id) AS chartId,
-            authors,
+            p.authors,
             p.content ->> '$."featured-image"' AS thumbnail,
-            COALESCE(pv.views_365d, 0) AS pageviews,
             (
                 SELECT
                     COALESCE(JSON_ARRAYAGG(t.name), JSON_ARRAY())
@@ -532,12 +524,12 @@ export const getRelatedResearchAndWritingForVariables = async (
             LEFT JOIN posts_gdocs_x_tags pt ON pt.gdocId = p.id
         WHERE
             pl.linkType = 'grapher'
-            AND componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
+            AND pl.componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
             AND cd.variableId IN (?)
             AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
             AND p.published = 1
             AND p.type != 'fragment'
-        ORDER BY pageviews DESC`,
+        ORDER BY pv.pageviews DESC`,
         [variableIds]
     )
 
