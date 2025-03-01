@@ -19,6 +19,7 @@ import {
     Tippy,
     excludeUndefined,
     intersection,
+    getRegionByNameOrVariantName,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -56,6 +57,7 @@ import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 import { P, match } from "ts-pattern"
 import { FocusArray } from "../focus/FocusArray"
+import { useMemo } from "react"
 
 export interface EntitySelectorState {
     searchInput: string
@@ -1028,36 +1030,20 @@ export class EntitySelector extends React.Component<{
 
 type BarConfig = { formattedValue: string; width?: number }
 
-function SelectableEntity({
-    name,
-    checked,
-    type,
-    bar,
-    onChange,
-    local,
-    localCountryInfo,
-}: {
-    name: string
-    checked: boolean
-    type: "checkbox" | "radio"
-    bar?: BarConfig
-    onChange: () => void
-    local?: boolean
+const useLocalEntityTooltip = (
+    local: boolean | undefined,
+    name: string,
     localCountryInfo?: UserCountryInformation
-}) {
-    const Input = {
-        checkbox: Checkbox,
-        radio: RadioButton,
-    }[type]
+) => {
+    return useMemo(() => {
+        if (!local) return undefined
 
-    let label: React.ReactNode
-    if (local) {
         const currentCountryName = localCountryInfo?.name ? (
             <>
                 , <em>{localCountryInfo.name}</em>,
             </>
         ) : undefined
-        const regionInfo = regions.find((region) => region.name === name)
+        const regionInfo = getRegionByNameOrVariantName(name)
         const tooltipContent = match(regionInfo?.regionType)
             .with("country", () => "Your current country.")
             .with("continent", () => "Your current continent.")
@@ -1092,7 +1078,36 @@ function SelectableEntity({
                 </>
             ))
             .exhaustive()
+        return tooltipContent
+    }, [local, name, localCountryInfo])
+}
 
+function SelectableEntity({
+    name,
+    checked,
+    type,
+    bar,
+    onChange,
+    local,
+    localCountryInfo,
+}: {
+    name: string
+    checked: boolean
+    type: "checkbox" | "radio"
+    bar?: BarConfig
+    onChange: () => void
+    local?: boolean
+    localCountryInfo?: UserCountryInformation
+}) {
+    const Input = {
+        checkbox: Checkbox,
+        radio: RadioButton,
+    }[type]
+
+    const tooltipContent = useLocalEntityTooltip(local, name, localCountryInfo)
+
+    let label: React.ReactNode
+    if (tooltipContent) {
         label = (
             <span className="label-with-location-icon">
                 {name}
