@@ -3839,7 +3839,7 @@ __metadata:
     react: "npm:^17.0.2"
     react-dom: "npm:^17.0.2"
     ts-pattern: "npm:^5.0.5"
-    typescript: "npm:~5.7.2"
+    typescript: "npm:~5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -3855,7 +3855,7 @@ __metadata:
     dayjs: "npm:^1.11.11"
     eslint: "npm:^9.17.0"
     papaparse: "npm:^5.4.1"
-    typescript: "npm:~5.7.2"
+    typescript: "npm:~5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -3912,7 +3912,7 @@ __metadata:
     topojson-client: "npm:^3.1.0"
     ts-pattern: "npm:^5.0.5"
     tsup: "npm:^8.1.0"
-    typescript: "npm:~5.7.2"
+    typescript: "npm:~5.8.2"
     url-parse: "npm:^1.5.10"
   languageName: unknown
   linkType: soft
@@ -3970,7 +3970,7 @@ __metadata:
     topojson-client: "npm:^3.1.0"
     ts-pattern: "npm:^5.0.5"
     tsup: "npm:^8.1.0"
-    typescript: "npm:~5.7.2"
+    typescript: "npm:~5.8.2"
     url-parse: "npm:^1.5.10"
   languageName: unknown
   linkType: soft
@@ -3984,7 +3984,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^5.1.0"
     jest: "npm:^29.7.0"
     mobx: "npm:^5.15.7"
-    typescript: "npm:~5.7.2"
+    typescript: "npm:~5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -4017,7 +4017,7 @@ __metadata:
     striptags: "npm:^3.2.0"
     timezone-mock: "npm:^1.0.18"
     ts-pattern: "npm:^5.0.5"
-    typescript: "npm:~5.7.2"
+    typescript: "npm:~5.8.2"
     url-parse: "npm:^1.5.10"
     uuidv7: "npm:^1.0.1"
   languageName: unknown
@@ -12021,7 +12021,7 @@ __metadata:
     ts-pattern: "npm:^5.0.5"
     tsx: "npm:^4.16.2"
     typeorm: "npm:^0.3.20"
-    typescript: "npm:~5.7.2"
+    typescript: "npm:~5.8.2"
     typescript-eslint: "npm:^8.18.1"
     unist-util-visit: "npm:^2.0.0"
     url-join: "npm:^4.0.0"
@@ -20659,23 +20659,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:>=3 < 6, typescript@npm:~5.7.2":
-  version: 5.7.2
-  resolution: "typescript@npm:5.7.2"
+"typescript@npm:>=3 < 6, typescript@npm:~5.8.2":
+  version: 5.8.2
+  resolution: "typescript@npm:5.8.2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10/4caa3904df69db9d4a8bedc31bafc1e19ffb7b24fbde2997a1633ae1398d0de5bdbf8daf602ccf3b23faddf1aeeb9b795223a2ed9c9a4fdcaf07bfde114a401a
+  checksum: 10/dbc2168a55d56771f4d581997be52bab5cbc09734fec976cfbaabd787e61fb4c6cf9125fd48c6f98054ce549c77ecedefc7f64252a830dd8e9c3381f61fbeb78
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A>=3 < 6#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A~5.7.2#optional!builtin<compat/typescript>":
-  version: 5.7.2
-  resolution: "typescript@patch:typescript@npm%3A5.7.2#optional!builtin<compat/typescript>::version=5.7.2&hash=5786d5"
+"typescript@patch:typescript@npm%3A>=3 < 6#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A~5.8.2#optional!builtin<compat/typescript>":
+  version: 5.8.2
+  resolution: "typescript@patch:typescript@npm%3A5.8.2#optional!builtin<compat/typescript>::version=5.8.2&hash=5786d5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10/d75ca10141afc64fd3474b41a8b082b640555bed388d237558aed64e5827ddadb48f90932c7f4205883f18f5bcab8b6a739a2cfac95855604b0dfeb34bc2f3eb
+  checksum: 10/97920a082ffc57583b1cb6bc4faa502acc156358e03f54c7fc7fdf0b61c439a717f4c9070c449ee9ee683d4cfc3bb203127c2b9794b2950f66d9d307a4ff262c
   languageName: node
   linkType: hard
 
