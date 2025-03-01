@@ -46,7 +46,11 @@ import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { SortIcon } from "../controls/SortIcon"
 import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
-import { ColumnSlug, OwidColumnDef } from "@ourworldindata/types"
+import {
+    ColumnSlug,
+    OwidColumnDef,
+    UserCountryInformation,
+} from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
@@ -56,6 +60,7 @@ import { FocusArray } from "../focus/FocusArray"
 export interface EntitySelectorState {
     searchInput: string
     sortConfig: SortConfig
+    localCountryInfo?: UserCountryInformation
     localEntityNames?: string[]
     externalSortColumnsByIndicatorId?: Record<number, CoreColumn>
     isLoadingExternalSortColumn?: boolean
@@ -215,7 +220,8 @@ export class EntitySelector extends React.Component<{
                 return region.name
             })
 
-            if (localEntityNames) this.set({ localEntityNames })
+            if (localEntityNames)
+                this.set({ localEntityNames, localCountryInfo })
         } catch {
             // ignore
         }
@@ -272,6 +278,12 @@ export class EntitySelector extends React.Component<{
 
     @computed private get localEntityNames(): string[] | undefined {
         return this.manager.entitySelectorState.localEntityNames
+    }
+
+    @computed private get localCountryInfo():
+        | UserCountryInformation
+        | undefined {
+        return this.manager.entitySelectorState.localCountryInfo
     }
 
     @computed private get externalSortColumnsByIndicatorId(): Record<
@@ -805,6 +817,7 @@ export class EntitySelector extends React.Component<{
                             bar={this.getBarConfigForEntity(entity)}
                             onChange={() => this.onChange(entity.name)}
                             local={entity.local}
+                            localCountryInfo={this.localCountryInfo}
                         />
                     </li>
                 ))}
@@ -826,6 +839,7 @@ export class EntitySelector extends React.Component<{
                             bar={this.getBarConfigForEntity(entity)}
                             onChange={() => this.onChange(entity.name)}
                             local={entity.local}
+                            localCountryInfo={this.localCountryInfo}
                         />
                     </li>
                 ))}
@@ -906,6 +920,7 @@ export class EntitySelector extends React.Component<{
                                     bar={this.getBarConfigForEntity(entity)}
                                     onChange={() => this.onChange(entity.name)}
                                     local={entity.local}
+                                    localCountryInfo={this.localCountryInfo}
                                 />
                             </FlippedListItem>
                         ))}
@@ -941,6 +956,9 @@ export class EntitySelector extends React.Component<{
                                                 this.onChange(entity.name)
                                             }
                                             local={entity.local}
+                                            localCountryInfo={
+                                                this.localCountryInfo
+                                            }
                                         />
                                     </FlippedListItem>
                                 )
@@ -1017,6 +1035,7 @@ function SelectableEntity({
     bar,
     onChange,
     local,
+    localCountryInfo,
 }: {
     name: string
     checked: boolean
@@ -1024,69 +1043,68 @@ function SelectableEntity({
     bar?: BarConfig
     onChange: () => void
     local?: boolean
+    localCountryInfo?: UserCountryInformation
 }) {
     const Input = {
         checkbox: Checkbox,
         radio: RadioButton,
     }[type]
 
-    const nameWords = name.split(" ")
     let label: React.ReactNode
     if (local) {
+        const currentCountryName = localCountryInfo?.name ? (
+            <>
+                , <em>{localCountryInfo.name}</em>,
+            </>
+        ) : undefined
         const regionInfo = regions.find((region) => region.name === name)
         const tooltipContent = match(regionInfo?.regionType)
-            .with("country", () => "Your current country")
-            .with(
-                P.union("continent", "aggregate"),
-                () => "Your current region"
-            )
-            .with("income_group", () => (
+            .with("country", () => "Your current country.")
+            .with("continent", () => "Your current continent.")
+            .with("income_group", () => {
+                const incomeGroupName = name
+                    .toLowerCase()
+                    .replace("countries", "country")
+                const incomeGroupArticle = a(incomeGroupName, {
+                    articleOnly: true,
+                })
+                return (
+                    <>
+                        <p>
+                            Your current country{currentCountryName} is
+                            classified as {incomeGroupArticle}{" "}
+                            <em>{incomeGroupName}</em> by the World Bank.
+                        </p>
+                        <p>
+                            See the{" "}
+                            <a href="/grapher/world-bank-income-groups">
+                                World Bank income group classification
+                            </a>{" "}
+                            for more information.
+                        </p>
+                    </>
+                )
+            })
+            .with(P.union("aggregate", "other", undefined), () => (
                 <>
-                    <p>
-                        The income group that your current country belongs to.
-                    </p>
-                    <p>
-                        See the{" "}
-                        <a href="/grapher/world-bank-income-groups">
-                            World Bank income group classification
-                        </a>
-                        .
-                        {/* <img
-                            src="/grapher/exports/world-bank-income-groups.svg"
-                            height={600}
-                            width={850}
-                        /> */}
-                    </p>
+                    Your current country{currentCountryName} is part of this
+                    grouping.
                 </>
             ))
-            .with(P.union("other", undefined), () => "Your current location")
-            .exhaustive()
-
-        const dodId = match(regionInfo?.regionType)
-            .with("country", () => "location__country")
-            .with(P.union("continent", "aggregate"), () => "location__region")
-            .with("income_group", () => "location__income_group")
-            .with(P.union("other", undefined), () => "location__other")
             .exhaustive()
 
         label = (
             <span className="label-with-location-icon">
-                {nameWords.slice(0, -1).join(" ")}{" "}
-                <span className="label-with-location-icon label-with-location-icon--no-line-break">
-                    {nameWords[nameWords.length - 1]}
-                    <Tippy
-                        content={tooltipContent}
-                        placement="top"
-                        theme="grapher-explanation--short"
-                        interactive
-                        appendTo={() => document.body}
-                    >
-                        <FontAwesomeIcon icon={faLocationArrow} />
-                    </Tippy>
-                    <span className="dod-span" data-id={dodId}>
-                        DoD
-                    </span>
-                </span>
+                {name}
+                <Tippy
+                    content={tooltipContent}
+                    placement="top"
+                    theme="grapher-explanation--short"
+                    interactive
+                    appendTo={() => document.body}
+                >
+                    <FontAwesomeIcon icon={faLocationArrow} />
+                </Tippy>
             </span>
         )
     } else label = name
