@@ -34,7 +34,18 @@ const ETL_REGIONS_URL =
     },
     // we want to exclude income groups for now, until we can properly display the user's
     // income group in the UI
-    REGIONS_TO_EXCLUDE = ["OWID_HIC", "OWID_UMC", "OWID_LMC", "OWID_LIC"]
+    REGIONS_TO_EXCLUDE = ["OWID_HIC", "OWID_UMC", "OWID_LMC", "OWID_LIC"],
+    // used for Intl.DisplayNames mapping
+    // see https://github.com/unicode-org/cldr/blob/480029bab5301d79e762b872b463e9101ba91a40/common/main/en.xml#L927-L957 for these codes
+    TRANSLATION_CODES = {
+        OWID_WRL: "001",
+        OWID_AFR: "002",
+        OWID_NAM: "003",
+        OWID_SAM: "005",
+        OWID_OCE: "009",
+        OWID_ASI: "142",
+        OWID_EUR: "150",
+    }
 
 interface Entity {
     code: string
@@ -47,6 +58,7 @@ interface Entity {
     is_historical?: boolean
     is_unlisted?: boolean
     variant_names?: string[]
+    translation_code?: string
     members?: string[]
 }
 
@@ -236,8 +248,9 @@ async function main() {
             ]
         }
 
-        // merge in alternate search terms
+        // merge in alternate search names and translation codes
         entity.variant_names = _.get(SEARCH_ALIASES, entity.code)
+        entity.translation_code = _.get(TRANSLATION_CODES, entity.code)
 
         return _.chain(entity)
             .mapKeys((_val, key) =>
@@ -260,6 +273,7 @@ async function main() {
                 "isHistorical",
                 "isUnlisted",
                 "variantNames",
+                "translationCode",
                 "members"
             )
             .value()

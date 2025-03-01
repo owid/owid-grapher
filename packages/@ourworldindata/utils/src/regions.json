@@ -1382,6 +1382,7 @@
         "name": "Africa",
         "slug": "africa",
         "regionType": "continent",
+        "translationCode": "002",
         "members": [
             "AGO",
             "BDI",
@@ -1458,6 +1459,7 @@
         "name": "Asia",
         "slug": "asia",
         "regionType": "continent",
+        "translationCode": "142",
         "members": [
             "AFG",
             "ARE",
@@ -1628,6 +1630,7 @@
         "name": "Europe",
         "slug": "europe",
         "regionType": "continent",
+        "translationCode": "150",
         "members": [
             "ALA",
             "ALB",
@@ -1770,6 +1773,7 @@
         "name": "North America",
         "slug": "north-america",
         "regionType": "continent",
+        "translationCode": "003",
         "members": [
             "ABW",
             "AIA",
@@ -1821,6 +1825,7 @@
         "name": "Oceania",
         "slug": "oceania",
         "regionType": "continent",
+        "translationCode": "009",
         "members": [
             "ASM",
             "AUS",
@@ -1903,6 +1908,7 @@
         "name": "South America",
         "slug": "south-america",
         "regionType": "continent",
+        "translationCode": "005",
         "members": [
             "ARG",
             "BOL",
@@ -1993,6 +1999,7 @@
         "name": "World",
         "slug": "world",
         "regionType": "aggregate",
+        "translationCode": "001",
         "members": [
             "OWID_AFR",
             "OWID_ASI",
