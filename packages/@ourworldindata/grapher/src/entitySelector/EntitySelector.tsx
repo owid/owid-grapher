@@ -208,9 +208,11 @@ export class EntitySelector extends React.Component<{
                 userEntityCodes.indexOf(region.code)
             )
 
-            const localEntityNames = sortedUserRegions.map(
-                (region) => region.name
-            )
+            const localEntityNames = sortedUserRegions.flatMap((region) => {
+                if (region.regionType === "aggregate")
+                    return [region.name, ...(region.variantNames ?? [])]
+                return region.name
+            })
 
             if (localEntityNames) this.set({ localEntityNames })
         } catch {

@@ -26,6 +26,7 @@ export interface Aggregate {
     regionType: "aggregate"
     code: string
     members: string[]
+    variantNames?: string[]
 }
 
 export interface Continent {

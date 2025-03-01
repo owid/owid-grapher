@@ -2533,6 +2533,7 @@
         "name": "Australia and New Zealand (UNSD)",
         "slug": "australia-and-new-zealand-unsd",
         "regionType": "aggregate",
+        "variantNames": ["Australia & New Zealand (UNSD)"],
         "members": ["AUS", "CXR", "CCK", "HMD", "NZL", "NFK"]
     },
     {
@@ -2968,6 +2969,7 @@
         "name": "East Asia and Pacific (WB)",
         "slug": "east-asia-and-pacific-wb",
         "regionType": "aggregate",
+        "variantNames": ["East Asia & Pacific (WB)"],
         "members": [
             "ASM",
             "AUS",
@@ -3026,6 +3028,7 @@
         "name": "Europe and Central Asia (WB)",
         "slug": "europe-and-central-asia-wb",
         "regionType": "aggregate",
+        "variantNames": ["Europe & Central Asia (WB)"],
         "members": [
             "AIA",
             "ALA",
@@ -3124,6 +3127,7 @@
         "name": "Latin America and Caribbean (WB)",
         "slug": "latin-america-and-caribbean-wb",
         "regionType": "aggregate",
+        "variantNames": ["Latin America & Caribbean (WB)"],
         "members": [
             "ABW",
             "ARG",
@@ -3178,6 +3182,7 @@
         "name": "Middle East and North Africa (WB)",
         "slug": "middle-east-and-north-africa-wb",
         "regionType": "aggregate",
+        "variantNames": ["Middle East & North Africa (WB)"],
         "members": [
             "ARE",
             "BHR",

@@ -24,13 +24,20 @@ const ETL_REGIONS_URL =
         Asia: ["OWID_ABK", "OWID_AKD", "OWID_NAG", "OWID_CYN", "OWID_SOS"],
         Europe: ["OWID_CIS", "SJM", "OWID_TRS"],
     },
-    SEARCH_ALIASES = {
+    VARIANT_NAMES = {
         ARE: ["UAE"],
         CZE: ["Czech Republic"],
         GBR: ["UK"],
         MKD: ["Macedonia"],
         SWZ: ["Swaziland"],
         USA: ["US", "USA"],
+
+        // "and" and "&" are interchangeable
+        UNSD_AUS: ["Australia & New Zealand (UNSD)"],
+        WB_EAP: ["East Asia & Pacific (WB)"],
+        WB_ECA: ["Europe & Central Asia (WB)"],
+        WB_LAC: ["Latin America & Caribbean (WB)"],
+        WB_MENA: ["Middle East & North Africa (WB)"],
     },
     // we want to exclude income groups for now, until we can properly display the user's
     // income group in the UI
@@ -237,7 +244,7 @@ async function main() {
         }
 
         // merge in alternate search terms
-        entity.variant_names = _.get(SEARCH_ALIASES, entity.code)
+        entity.variant_names = _.get(VARIANT_NAMES, entity.code)
 
         return _.chain(entity)
             .mapKeys((_val, key) =>
