@@ -1038,11 +1038,13 @@ const useLocalEntityTooltip = (
     return useMemo(() => {
         if (!local) return undefined
 
-        const currentCountryName = localCountryInfo?.name ? (
+        const yourCurrentCountry = localCountryInfo?.name ? (
             <>
-                , <em>{localCountryInfo.name}</em>,
+                Your current country, <em>{localCountryInfo.name}</em>,
             </>
-        ) : undefined
+        ) : (
+            <>Your current country</>
+        )
         const regionInfo = getRegionByNameOrVariantName(name)
         const tooltipContent = match(regionInfo?.regionType)
             .with("country", () => "Your current country.")
@@ -1057,13 +1059,16 @@ const useLocalEntityTooltip = (
                 return (
                     <>
                         <p>
-                            Your current country{currentCountryName} is
-                            classified as {incomeGroupArticle}{" "}
-                            <em>{incomeGroupName}</em> by the World Bank.
+                            {yourCurrentCountry} is classified as{" "}
+                            {incomeGroupArticle} <em>{incomeGroupName}</em> by
+                            the World Bank.
                         </p>
                         <p>
                             See the{" "}
-                            <a href="/grapher/world-bank-income-groups">
+                            <a
+                                href="/grapher/world-bank-income-groups"
+                                target="_blank"
+                            >
                                 World Bank income group classification
                             </a>{" "}
                             for more information.
@@ -1071,12 +1076,10 @@ const useLocalEntityTooltip = (
                     </>
                 )
             })
-            .with(P.union("aggregate", "other", undefined), () => (
-                <>
-                    Your current country{currentCountryName} is part of this
-                    grouping.
-                </>
+            .with("aggregate", () => (
+                <>{yourCurrentCountry} is part of this grouping.</>
             ))
+            .with(P.union("other", undefined), () => "Your current location.")
             .exhaustive()
         return tooltipContent
     }, [local, name, localCountryInfo])
