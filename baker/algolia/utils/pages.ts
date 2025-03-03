@@ -309,7 +309,8 @@ async function getExistingRecordsForSlug(
     slug: string
 ): Promise<ObjectWithObjectID[]> {
     const settings = await index.getSettings()
-    if (!settings.attributesForFaceting?.includes("slug")) {
+    // Settings can be specified with a modifier, e.g. `filterOnly(slug)`.
+    if (!settings.attributesForFaceting?.some((a) => a.includes("slug"))) {
         await logErrorAndMaybeCaptureInSentry(
             new Error(
                 "Attribute 'slug' must be set in the index's attributesForFaceting " +
