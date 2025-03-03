@@ -490,6 +490,7 @@ export interface RelatedResearchQueryResult {
     authors: string
     thumbnail: string
     tags: string
+    pageviews: number
 }
 
 export const getRelatedResearchAndWritingForVariables = async (
@@ -504,6 +505,7 @@ export const getRelatedResearchAndWritingForVariables = async (
             p.slug AS postSlug,
             p.authors,
             p.content ->> '$."featured-image"' AS thumbnail,
+            COALESCE(pv.views_365d, 0) AS pageviews,
             (
                 SELECT
                     COALESCE(JSON_ARRAYAGG(t.name), JSON_ARRAY())
@@ -529,7 +531,7 @@ export const getRelatedResearchAndWritingForVariables = async (
             AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
             AND p.published = 1
             AND p.type != 'fragment'
-        ORDER BY pv.pageviews DESC`,
+        ORDER BY pageviews DESC`,
         [variableIds]
     )
 
