@@ -219,8 +219,6 @@ export const MultiDimDataPageContent = ({
                             `Fetching variable by uuid failed: ${grapherConfigUuid}`,
                             { cause: datapageData.reason }
                         )
-                    // Avoid a race condition where the earlier fetch completes
-                    // after the user has already switched to a different view.
                     setVarDatapageData(datapageData.value)
                     if (grapherConfig.status === "fulfilled") {
                         const config = grapherConfig.value
