@@ -27,7 +27,6 @@ import {
 } from "@ourworldindata/types"
 import {
     uniqBy,
-    sortBy,
     memoize,
     orderBy,
     keyBy,
@@ -486,16 +485,10 @@ export const getPostTags = async (
 }
 
 export interface RelatedResearchQueryResult {
-    linkTargetSlug: string
-    componentType: string
-    chartSlug: string
     title: string
     postSlug: string
-    chartId: number
     authors: string
     thumbnail: string
-    pageviews: number
-    post_source: string
     tags: string
 }
 
@@ -503,81 +496,14 @@ export const getRelatedResearchAndWritingForVariables = async (
     knex: db.KnexReadonlyTransaction,
     variableIds: Iterable<number>
 ): Promise<DataPageRelatedResearch[]> => {
-    const wp_posts: RelatedResearchQueryResult[] = await db.knexRaw(
-        knex,
-        `-- sql
-            -- What we want here is to get from the variable to the charts
-            -- to the posts and collect different pieces of information along the way
-            -- One important complication is that the slugs that are used in posts to
-            -- embed charts can either be the current slugs or old slugs that are redirected
-            -- now.
-            SELECT DISTINCT
-                pl.target AS linkTargetSlug,
-                pl.componentType AS componentType,
-                COALESCE(csr.slug, cc.slug) AS chartSlug,
-                p.title AS title,
-                p.slug AS postSlug,
-                COALESCE(csr.chart_id, c.id) AS chartId,
-                p.authors AS authors,
-                p.featured_image AS thumbnail,
-                COALESCE(pv.views_365d, 0) AS pageviews,
-                'wordpress' AS post_source,
-                (
-                    SELECT
-                        COALESCE(JSON_ARRAYAGG(t.name), JSON_ARRAY())
-                    FROM
-                        post_tags pt
-                        JOIN tags t ON pt.tag_id = t.id
-                    WHERE
-                        pt.post_id = p.id
-                ) AS tags
-            FROM
-                posts_links pl
-                JOIN posts p ON pl.sourceId = p.id
-                LEFT JOIN chart_configs cc on pl.target = cc.slug
-                LEFT JOIN charts c ON cc.id = c.configId
-                LEFT JOIN chart_slug_redirects csr ON pl.target = csr.slug
-                LEFT JOIN chart_dimensions cd ON cd.chartId = COALESCE(csr.chart_id, c.id)
-                LEFT JOIN analytics_pageviews pv ON pv.url = CONCAT('https://ourworldindata.org/', p.slug)
-                LEFT JOIN posts_gdocs pg ON pg.id = p.gdocSuccessorId
-                LEFT JOIN posts_gdocs pgs ON pgs.slug = p.slug
-                LEFT JOIN post_tags pt ON pt.post_id = p.id
-            WHERE
-                -- we want only urls that point to grapher charts
-                pl.linkType = 'grapher'
-                -- componentType src is for those links that matched the anySrcregex (not anyHrefRegex or prominentLinkRegex)
-                -- this means that only the links that are of the iframe kind will be kept - normal a href style links will
-                -- be disregarded
-                AND componentType = 'src'
-                AND cd.variableId IN (?)
-                AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
-                AND p.status = 'publish' -- only use published wp posts
-                AND p.type != 'wp_block'
-                AND COALESCE(pg.published, 0) = 0 -- ignore posts if the wp post has a published gdoc successor. The
-                -- coalesce makes sure that if there is no gdoc successor then
-                -- the filter keeps the post
-                AND COALESCE(pgs.published, 0) = 0 -- ignore posts if there is a gdoc post with the same slug that is published
-                -- this case happens for example for topic pages that are newly created (successorId is null)
-                -- but that replace an old wordpress page
-
-            `,
-        [variableIds]
-    )
-
-    const gdocs_posts: RelatedResearchQueryResult[] = await db.knexRaw(
+    const gdocsPosts: RelatedResearchQueryResult[] = await db.knexRaw(
         knex,
         `-- sql
         SELECT DISTINCT
-            pl.target AS linkTargetSlug,
-            pl.componentType AS componentType,
-            COALESCE(csr.slug, cc.slug) AS chartSlug,
             p.content ->> '$.title' AS title,
             p.slug AS postSlug,
-            COALESCE(csr.chart_id, c.id) AS chartId,
-            authors,
+            p.authors,
             p.content ->> '$."featured-image"' AS thumbnail,
-            COALESCE(pv.views_365d, 0) AS pageviews,
-            'gdocs' AS post_source,
             (
                 SELECT
                     COALESCE(JSON_ARRAYAGG(t.name), JSON_ARRAY())
@@ -598,21 +524,16 @@ export const getRelatedResearchAndWritingForVariables = async (
             LEFT JOIN posts_gdocs_x_tags pt ON pt.gdocId = p.id
         WHERE
             pl.linkType = 'grapher'
-            AND componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
+            AND pl.componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
             AND cd.variableId IN (?)
             AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
             AND p.published = 1
-            AND p.type != 'fragment'`,
+            AND p.type != 'fragment'
+        ORDER BY pv.pageviews DESC`,
         [variableIds]
     )
 
-    const combined = [...wp_posts, ...gdocs_posts]
-
-    // we could do the sorting in the SQL query if we'd union the two queries
-    // but it seemed easier to understand if we do the sort here
-    const sorted = sortBy(combined, (post) => -post.pageviews)
-
-    const allSortedRelatedResearch = sorted.map((post) => {
+    const allSortedRelatedResearch = gdocsPosts.map((post) => {
         const parsedAuthors = JSON.parse(post.authors)
         const parsedTags = post.tags !== "" ? JSON.parse(post.tags) : []
 
