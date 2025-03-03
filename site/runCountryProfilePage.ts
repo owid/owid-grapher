@@ -1,5 +1,4 @@
-import { keyBy } from "@ourworldindata/utils"
-import fuzzysort from "fuzzysort"
+import { FuzzySearch, FuzzySearchResult, keyBy } from "@ourworldindata/utils"
 import { action, autorun, computed, observable } from "mobx"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 interface ChartItem {
@@ -20,21 +19,20 @@ class ChartFilter {
     searchInput: HTMLInputElement
     chartItems: ChartItem[] = []
     chartItemsByTitle: { [key: string]: ChartItem } = {}
-    strings: (Fuzzysort.Prepared | undefined)[]
     results: any[] = []
     sections: HTMLDivElement[] = []
 
     @observable query: string = ""
 
-    @computed get searchStrings(): Fuzzysort.Prepared[] {
-        return this.chartItems.map((c) => fuzzysort.prepare(c.title))
+    @computed private get fuzzy(): FuzzySearch<ChartItem> {
+        return new FuzzySearch(this.chartItems, "title", { threshold: -150 })
     }
 
-    @computed get searchResults(): Fuzzysort.Results {
-        return fuzzysort.go(this.query, this.searchStrings, { threshold: -150 })
+    @computed get searchResults() {
+        return this.fuzzy.searchResults(this.query)
     }
 
-    @computed get resultsByTitle(): { [key: string]: Fuzzysort.Result } {
+    @computed get resultsByTitle(): { [key: string]: FuzzySearchResult } {
         return keyBy(this.searchResults, "target")
     }
 
@@ -57,7 +55,6 @@ class ChartFilter {
             ul: li.closest("ul") as HTMLUListElement,
         }))
         this.chartItemsByTitle = keyBy(this.chartItems, "title")
-        this.strings = this.chartItems.map((c) => fuzzysort.prepare(c.title))
     }
 
     analytics = new SiteAnalytics()

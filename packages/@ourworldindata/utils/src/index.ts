@@ -357,4 +357,4 @@ export {
     searchParamsToMultiDimView,
 } from "./MultiDimDataPageConfig.js"
 
-export { FuzzySearch } from "./FuzzySearch.js"
+export { FuzzySearch, type FuzzySearchResult } from "./FuzzySearch.js"
