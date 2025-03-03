@@ -24,7 +24,7 @@ jobs:
                   stale-pr-message: "This PR has had no activity within the last two weeks. It is considered stale and will be closed in 3 days if no further activity is detected."
                   stale-issue-label: "stale"
                   stale-pr-label: "stale"
-                  days-before-stale: 300
+                  days-before-stale: 182
                   days-before-pr-stale: 14
                   days-before-pr-close: 3
                   exempt-issue-labels: "pinned,security,correctness,external-contributor"
