@@ -1,13 +1,13 @@
-import { keyBy } from "./Util.js"
+import { groupBy } from "./Util.js"
 import fuzzysort from "fuzzysort"
 
 export class FuzzySearch<T> {
     strings: Fuzzysort.Prepared[]
-    datamap: Record<string, T>
+    datamap: Record<string, T[]>
     opts: Fuzzysort.Options | undefined
 
     constructor(data: T[], key: keyof T, opts?: Fuzzysort.Options) {
-        this.datamap = keyBy(data, key)
+        this.datamap = groupBy(data, key)
         this.strings = data.map((d) => fuzzysort.prepare(d[key] as string))
         this.opts = opts
     }
@@ -15,7 +15,7 @@ export class FuzzySearch<T> {
     search(input: string): T[] {
         return fuzzysort
             .go(input, this.strings, this.opts)
-            .map((result) => this.datamap[result.target])
+            .flatMap((result) => this.datamap[result.target])
     }
 
     searchResults(input: string): Fuzzysort.Results {
