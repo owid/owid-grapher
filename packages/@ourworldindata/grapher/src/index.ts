@@ -59,8 +59,6 @@ export {
     getErrorMessageRelatedQuestionUrl,
 } from "./core/Grapher"
 export { GrapherAnalytics, EventCategory } from "./core/GrapherAnalytics"
-import fuzzysort from "fuzzysort"
-export { fuzzysort }
 export { hydrateGlobalEntitySelectorIfAny } from "./controls/globalEntitySelector/GlobalEntitySelector"
 export { legacyToCurrentGrapherUrl } from "./core/GrapherUrlMigrations"
 export { legacyToOwidTableAndDimensions } from "./core/LegacyToOwidTable"

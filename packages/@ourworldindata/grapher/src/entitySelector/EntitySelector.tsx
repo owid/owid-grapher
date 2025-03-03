@@ -19,13 +19,13 @@ import {
     Tippy,
     excludeUndefined,
     intersection,
+    FuzzySearch,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
     RadioButton,
     OverlayHeader,
 } from "@ourworldindata/components"
-import { FuzzySearch } from "../controls/FuzzySearch"
 import {
     faCircleXmark,
     faMagnifyingGlass,

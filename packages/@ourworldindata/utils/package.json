@@ -18,6 +18,7 @@
     "@tippyjs/react": "^4.2.6",
     "d3": "^6.1.1",
     "dayjs": "^1.11.11",
+    "fuzzysort": "^3.1.0",
     "lodash": "^4.17.21",
     "mobx": "^5.15.7",
     "mobx-react": "5",

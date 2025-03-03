@@ -97,7 +97,6 @@
         "figma-api": "^2.0.1-beta",
         "filenamify": "^4.1.0",
         "fs-extra": "^11.1.1",
-        "fuzzysort": "^3.1.0",
         "glob": "^10.3.3",
         "googleapis": "^108.0.0",
         "handsontable": "^15.1.0",

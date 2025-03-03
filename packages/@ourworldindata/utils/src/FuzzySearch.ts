@@ -1,4 +1,4 @@
-import { keyBy } from "@ourworldindata/utils"
+import { keyBy } from "./Util.js"
 import fuzzysort from "fuzzysort"
 
 export class FuzzySearch<T> {
