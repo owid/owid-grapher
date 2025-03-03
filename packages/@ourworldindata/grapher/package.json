@@ -34,7 +34,7 @@
     "d3": "^6.1.1",
     "decko": "^1.2.0",
     "expr-eval": "^2.0.2",
-    "fuzzysort": "^1.1.4",
+    "fuzzysort": "^3.1.0",
     "js-cookie": "^3.0.1",
     "mobx": "^5.15.7",
     "mobx-formatters": "^1.0.2",

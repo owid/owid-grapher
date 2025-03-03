@@ -61,7 +61,6 @@ export {
 export { GrapherAnalytics, EventCategory } from "./core/GrapherAnalytics"
 import fuzzysort from "fuzzysort"
 export { fuzzysort }
-export { highlight } from "./controls/FuzzySearch"
 export { hydrateGlobalEntitySelectorIfAny } from "./controls/globalEntitySelector/GlobalEntitySelector"
 export { legacyToCurrentGrapherUrl } from "./core/GrapherUrlMigrations"
 export { legacyToOwidTableAndDimensions } from "./core/LegacyToOwidTable"

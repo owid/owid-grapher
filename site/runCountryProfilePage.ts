@@ -1,4 +1,3 @@
-import { highlight as fuzzyHighlight } from "@ourworldindata/grapher"
 import { keyBy } from "@ourworldindata/utils"
 import fuzzysort from "fuzzysort"
 import { action, autorun, computed, observable } from "mobx"
@@ -27,7 +26,7 @@ class ChartFilter {
 
     @observable query: string = ""
 
-    @computed get searchStrings(): (Fuzzysort.Prepared | undefined)[] {
+    @computed get searchStrings(): Fuzzysort.Prepared[] {
         return this.chartItems.map((c) => fuzzysort.prepare(c.title))
     }
 
@@ -116,8 +115,7 @@ class ChartFilter {
                 c.li.style.display = "none"
             } else {
                 c.li.style.display = ""
-                c.li.children[0].children[0].innerHTML =
-                    fuzzyHighlight(res) ?? ""
+                c.li.children[0].children[0].innerHTML = res.highlight() ?? ""
             }
         }
 
