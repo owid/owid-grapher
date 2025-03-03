@@ -92,7 +92,7 @@ export function serializeVariableDisplayConfig(
 
 export function parseVariableDimensions(
     dimensions: JsonString | null
-): VariableDisplayDimension {
+): VariableDisplayDimension | null {
     return dimensions ? JSON.parse(dimensions) : null
 }
 
@@ -102,7 +102,9 @@ export function serializeVariableDimensions(
     return dimensions ? JSON.stringify(dimensions) : null
 }
 
-export function parseVariableLicenses(licenses: JsonString | null): License[] {
+export function parseVariableLicenses(
+    licenses: JsonString | null
+): License[] | null {
     return licenses ? JSON.parse(licenses) : null
 }
 
@@ -112,7 +114,7 @@ export function serializeVariableLicenses(
     return licenses ? JSON.stringify(licenses) : null
 }
 
-export function parseLicense(license: JsonString | null): License {
+export function parseLicense(license: JsonString | null): License | null {
     return license ? JSON.parse(license) : null
 }
 
