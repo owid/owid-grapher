@@ -25,6 +25,7 @@ export interface Aggregate {
     name: string
     regionType: "aggregate"
     code: string
+    translationCode?: string
     members: string[]
 }
 
@@ -38,6 +39,7 @@ export interface Continent {
         | "South America"
     regionType: "continent"
     code: string
+    translationCode?: string
     members: string[]
 }
 
@@ -152,7 +154,9 @@ export const getRegionAlternativeNames = (
                 }
             }
 
-            const codeForTranslation = "shortCode" in region && region.shortCode
+            const codeForTranslation =
+                ("translationCode" in region && region.translationCode) ||
+                ("shortCode" in region && region.shortCode)
             if (codeForTranslation) {
                 const translations = languages
                     .map((lang) =>
