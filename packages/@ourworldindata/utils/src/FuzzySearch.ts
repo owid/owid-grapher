@@ -6,10 +6,23 @@ export class FuzzySearch<T> {
     datamap: Record<string, T[]>
     opts: Fuzzysort.Options | undefined
 
-    constructor(data: T[], key: keyof T, opts?: Fuzzysort.Options) {
-        this.datamap = groupBy(data, key)
-        this.strings = data.map((d) => fuzzysort.prepare(d[key] as string))
+    private constructor(
+        datamap: Record<string, T[]>,
+        opts?: Fuzzysort.Options
+    ) {
+        const rawStrings = Object.keys(datamap)
+        this.strings = rawStrings.map((s) => fuzzysort.prepare(s))
+        this.datamap = datamap
         this.opts = opts
+    }
+
+    static withKey<T>(
+        data: T[],
+        key: (obj: T) => string,
+        opts?: Fuzzysort.Options
+    ): FuzzySearch<T> {
+        const datamap = groupBy(data, key)
+        return new FuzzySearch(datamap, opts)
     }
 
     search(input: string): T[] {

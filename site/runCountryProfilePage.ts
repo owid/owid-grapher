@@ -25,7 +25,9 @@ class ChartFilter {
     @observable query: string = ""
 
     @computed private get fuzzy(): FuzzySearch<ChartItem> {
-        return new FuzzySearch(this.chartItems, "title", { threshold: -150 })
+        return FuzzySearch.withKey(this.chartItems, (chart) => chart.title, {
+            threshold: -150,
+        })
     }
 
     @computed get searchResults() {

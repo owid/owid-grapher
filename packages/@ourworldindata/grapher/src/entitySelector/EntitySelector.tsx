@@ -548,7 +548,10 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed get fuzzy(): FuzzySearch<SearchableEntity> {
-        return new FuzzySearch(this.sortedAvailableEntities, "name")
+        return FuzzySearch.withKey(
+            this.sortedAvailableEntities,
+            (entity) => entity.name
+        )
     }
 
     @computed get searchResults(): SearchableEntity[] | undefined {

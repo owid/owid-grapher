@@ -258,9 +258,9 @@ export class EntityPicker extends React.Component<{
     }
 
     @computed private get fuzzy(): FuzzySearch<EntityOptionWithMetricValue> {
-        return new FuzzySearch(
+        return FuzzySearch.withKey(
             this.entitiesWithMetricValue,
-            OwidTableSlugs.entityName
+            (entity) => entity.entityName
         )
     }
 
