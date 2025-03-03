@@ -20,6 +20,9 @@ import {
     excludeUndefined,
     intersection,
     FuzzySearch,
+    getUserNavigatorLanguagesNonEnglish,
+    uniqBy,
+    getRegionAlternativeNames,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -81,9 +84,10 @@ interface SortConfig {
 
 type SearchableEntity = {
     name: string
+    sortColumnValues: Record<ColumnSlug, CoreValueType | undefined>
     local?: boolean
     isWorld?: boolean
-    sortColumnValues: Record<ColumnSlug, CoreValueType | undefined>
+    alternativeNames?: string[]
 }
 
 interface PartitionedEntities {
@@ -443,11 +447,14 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get availableEntities(): SearchableEntity[] {
+        const langs = getUserNavigatorLanguagesNonEnglish()
+
         return this.availableEntityNames.map((entityName) => {
             const searchableEntity: SearchableEntity = {
                 name: entityName,
                 isWorld: entityName === "World",
                 sortColumnValues: {},
+                alternativeNames: getRegionAlternativeNames(entityName, langs),
             }
 
             if (this.localEntityNames) {
@@ -548,15 +555,15 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed get fuzzy(): FuzzySearch<SearchableEntity> {
-        return FuzzySearch.withKey(
+        return FuzzySearch.withKeyArray(
             this.sortedAvailableEntities,
-            (entity) => entity.name
+            (entity) => [entity.name, ...(entity.alternativeNames ?? [])]
         )
     }
 
     @computed get searchResults(): SearchableEntity[] | undefined {
         if (!this.searchInput) return undefined
-        return this.fuzzy.search(this.searchInput)
+        return uniqBy(this.fuzzy.search(this.searchInput), "name")
     }
 
     @computed get partitionedSearchResults(): PartitionedEntities | undefined {

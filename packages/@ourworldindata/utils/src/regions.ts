@@ -115,3 +115,57 @@ export const getRegionByNameOrVariantName = (
     nameOrVariantName: string
 ): Region | undefined =>
     regionsByNameOrVariantNameLowercase().get(nameOrVariantName.toLowerCase())
+
+const _IntlDisplayNamesInstances = new Map<string, Intl.DisplayNames>()
+const getRegionTranslation = (
+    regionCode: string,
+    languageCode: string
+): string | undefined => {
+    try {
+        if (!_IntlDisplayNamesInstances.has(languageCode)) {
+            _IntlDisplayNamesInstances.set(
+                languageCode,
+                new Intl.DisplayNames([languageCode], {
+                    type: "region",
+                    fallback: "none",
+                })
+            )
+        }
+        return _IntlDisplayNamesInstances.get(languageCode)!.of(regionCode)
+    } catch {
+        return undefined
+    }
+}
+
+const _regionAlternativeNames = new Map<string, string[] | undefined>()
+export const getRegionAlternativeNames = (
+    regionName: string,
+    languages: readonly string[]
+): string[] | undefined => {
+    if (!_regionAlternativeNames.has(regionName)) {
+        const region = getRegionByNameOrVariantName(regionName)
+        if (region) {
+            const names = new Set<string>()
+            if ("variantNames" in region && region.variantNames) {
+                for (const variant of region.variantNames) {
+                    names.add(variant)
+                }
+            }
+
+            const codeForTranslation = "shortCode" in region && region.shortCode
+            if (codeForTranslation) {
+                const translations = languages
+                    .map((lang) =>
+                        getRegionTranslation(codeForTranslation, lang)
+                    )
+                    .filter((name) => name !== undefined)
+
+                translations.forEach((translation) => names.add(translation))
+            }
+            _regionAlternativeNames.set(regionName, Array.from(names))
+        } else {
+            _regionAlternativeNames.set(regionName, undefined)
+        }
+    }
+    return _regionAlternativeNames.get(regionName)!
+}

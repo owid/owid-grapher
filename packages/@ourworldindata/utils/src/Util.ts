@@ -2154,3 +2154,11 @@ export function readFromAssetMap(
         throw new Error(`Entry for asset not found in asset map: ${path}`)
     return assetValue
 }
+
+export const getUserNavigatorLanguages = (): readonly string[] => {
+    return navigator.languages ?? [navigator.language]
+}
+
+export const getUserNavigatorLanguagesNonEnglish = (): readonly string[] => {
+    return getUserNavigatorLanguages().filter((lang) => !lang.startsWith("en"))
+}
