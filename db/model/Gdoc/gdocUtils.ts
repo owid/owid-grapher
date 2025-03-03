@@ -8,7 +8,7 @@ import {
     noop,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import cheerio from "cheerio"
+import * as cheerio from "cheerio"
 
 export function spanToSimpleString(s: Span): string {
     return match(s)

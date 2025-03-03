@@ -1,4 +1,4 @@
-import cheerio from "cheerio"
+import * as cheerio from "cheerio"
 import { WP_ColumnStyle } from "@ourworldindata/utils"
 import { splitContentIntoSectionsAndColumns } from "./formatting.js"
 import { formatAuthors } from "./clientFormatting.js"

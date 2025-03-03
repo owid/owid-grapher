@@ -1,6 +1,6 @@
 import * as db from "./db.js"
 import _ from "lodash"
-import cheerio from "cheerio"
+import * as cheerio from "cheerio"
 
 // const argv = parseArgs(process.argv.slice(2))
 

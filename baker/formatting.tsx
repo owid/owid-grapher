@@ -1,4 +1,4 @@
-import cheerio from "cheerio"
+import * as cheerio from "cheerio"
 import { FormattedPost, Country, capitalize, Url } from "@ourworldindata/utils"
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"

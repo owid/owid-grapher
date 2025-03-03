@@ -1,5 +1,5 @@
 import { cheerioElementsToArchieML } from "./htmlToEnriched.js"
-import cheerio from "cheerio"
+import * as cheerio from "cheerio"
 
 it("parses a Wordpress paragraph within the content", () => {
     // The wrapping <div> is there to help simulate paragraphs within the

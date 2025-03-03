@@ -1,4 +1,4 @@
-import cheerio from "cheerio"
+import * as cheerio from "cheerio"
 import urlSlug from "url-slug"
 import ReactDOMServer from "react-dom/server.js"
 import { FormattingOptions, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"

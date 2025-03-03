@@ -1,5 +1,5 @@
 import * as db from "./db.js"
-import cheerio from "cheerio"
+import * as cheerio from "cheerio"
 
 import {
     OwidGdocPublicationContext,

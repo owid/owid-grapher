@@ -1,4 +1,4 @@
-import cheerio from "cheerio"
+import * as cheerio from "cheerio"
 import ReactDOMServer from "react-dom/server.js"
 import {
     FormattedPost,

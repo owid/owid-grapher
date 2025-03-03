@@ -12,7 +12,7 @@ import { GDOCS_BACKPORTING_TARGET_FOLDER } from "../../../settings/serverSetting
 import { enrichedBlockToRawBlock } from "./enrichedToRaw.js"
 import { google, docs_v1, drive_v3 } from "googleapis"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
-import cheerio from "cheerio"
+import * as cheerio from "cheerio"
 
 function* yieldMultiBlockPropertyIfDefined(
     property: keyof OwidGdocPostContent,

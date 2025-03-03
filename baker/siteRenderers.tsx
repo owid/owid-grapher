@@ -13,7 +13,7 @@ import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import ReactDOMServer from "react-dom/server.js"
 import lodash from "lodash"
 import { formatCountryProfile, isCanonicalInternalUrl } from "./formatting.js"
-import cheerio from "cheerio"
+import * as cheerio from "cheerio"
 import {
     BAKED_BASE_URL,
     BLOG_POSTS_PER_PAGE,

@@ -48,7 +48,7 @@ import {
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import { compact, get, isArray, isPlainObject, partition } from "lodash"
-import cheerio from "cheerio"
+import * as cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
 
 //#region Spans
