@@ -21,7 +21,6 @@ import {
     intersection,
     FuzzySearch,
     getUserNavigatorLanguagesNonEnglish,
-    uniqBy,
     getRegionAlternativeNames,
 } from "@ourworldindata/utils"
 import {
@@ -557,13 +556,14 @@ export class EntitySelector extends React.Component<{
     @computed get fuzzy(): FuzzySearch<SearchableEntity> {
         return FuzzySearch.withKeyArray(
             this.sortedAvailableEntities,
-            (entity) => [entity.name, ...(entity.alternativeNames ?? [])]
+            (entity) => [entity.name, ...(entity.alternativeNames ?? [])],
+            (entity) => entity.name
         )
     }
 
     @computed get searchResults(): SearchableEntity[] | undefined {
         if (!this.searchInput) return undefined
-        return uniqBy(this.fuzzy.search(this.searchInput), "name")
+        return this.fuzzy.search(this.searchInput)
     }
 
     @computed get partitionedSearchResults(): PartitionedEntities | undefined {
