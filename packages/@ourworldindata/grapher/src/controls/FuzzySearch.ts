@@ -3,17 +3,17 @@ import fuzzysort from "fuzzysort"
 
 export class FuzzySearch<T> {
     strings: (Fuzzysort.Prepared | undefined)[]
-    datamap: any
+    datamap: Record<string, T>
 
-    constructor(data: T[], key: string) {
+    constructor(data: T[], key: keyof T) {
         this.datamap = keyBy(data, key)
-        this.strings = data.map((d: any) => fuzzysort.prepare(d[key]))
+        this.strings = data.map((d) => fuzzysort.prepare(d[key] as string))
     }
 
     search(input: string): T[] {
         return fuzzysort
             .go(input, this.strings)
-            .map((result: any) => this.datamap[result.target])
+            .map((result) => this.datamap[result.target])
     }
 
     single(input: string, target: string): Fuzzysort.Result | null {
