@@ -25,6 +25,28 @@ export class FuzzySearch<T> {
         return new FuzzySearch(datamap, opts)
     }
 
+    // Allows for multiple keys per object, e.g. aliases:
+    // [
+    //     { name: "Netherlands", "keys": ["Netherlands", "Nederland"] },
+    //     { name: "Spain", "keys": ["Spain", "España"] },
+    // ]
+    // Note that the calling site will need to take care of uniqueness of results,
+    // if that's desired, e.g. using uniqBy(results, "name")
+    static withKeyArray<T>(
+        data: T[],
+        keys: (obj: T) => string[],
+        opts?: Fuzzysort.Options
+    ): FuzzySearch<T> {
+        const datamap: Record<string, T[]> = {}
+        data.forEach((d) => {
+            keys(d).forEach((key) => {
+                if (!datamap[key]) datamap[key] = [d]
+                else datamap[key].push(d)
+            })
+        })
+        return new FuzzySearch(datamap, opts)
+    }
+
     search(input: string): T[] {
         return fuzzysort
             .go(input, this.strings, this.opts)
