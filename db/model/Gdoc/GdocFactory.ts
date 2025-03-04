@@ -43,7 +43,7 @@ import {
     knexRaw,
     KnexReadWriteTransaction,
     getImageMetadataByFilenames,
-    getPublishedGdocPostsWithTags,
+    getPublishedGdocsWithTags,
     getParentTagArraysByChildName,
     getBestBreadcrumbs,
 } from "../../db.js"
@@ -490,7 +490,7 @@ export async function getLatestDataInsights(
 export async function getAndLoadPublishedGdocPosts(
     knex: KnexReadonlyTransaction
 ): Promise<GdocPost[]> {
-    const rows = await getPublishedGdocPostsWithTags(knex)
+    const rows = await getPublishedGdocsWithTags(knex)
     const gdocs = await Promise.all(
         rows.map(async (row) => loadGdocFromGdocBase(knex, row))
     )
