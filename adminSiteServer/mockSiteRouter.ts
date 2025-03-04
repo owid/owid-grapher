@@ -438,6 +438,11 @@ mockSiteRouter.use(
 
 mockSiteRouter.use("/", express.static(path.join(BASE_DIR, "public")))
 
+// Redirect so getUserCountryInformation works in dev
+mockSiteRouter.get("/detect-country", async (req, res) => {
+    return res.redirect(302, "https://detect-country.owid.io")
+})
+
 mockSiteRouter.get("/countries", async (req, res) =>
     res.send(await countriesIndexPage(BAKED_BASE_URL))
 )

@@ -1,13 +1,17 @@
 import {
-    countries,
+    regions,
     orderBy,
     removeTrailingParenthetical,
 } from "@ourworldindata/utils"
 
-const countriesWithVariantNames = new Set(
-    countries
-        .filter((country) => country.variantNames?.length || country.shortName)
-        .map((country) => country.name)
+const regionsWithVariantNames = new Set(
+    regions
+        .filter(
+            (region) =>
+                ("variantNames" in region && region.variantNames?.length) ||
+                ("shortName" in region && region.shortName)
+        )
+        .map((region) => region.name)
 )
 
 export const processAvailableEntities = (
@@ -28,7 +32,7 @@ export const processAvailableEntities = (
         availableEntities,
         [
             (entityName) =>
-                countriesWithVariantNames.has(
+                regionsWithVariantNames.has(
                     removeTrailingParenthetical(entityName)
                 ),
             (entityName) => entityName.includes("-"),

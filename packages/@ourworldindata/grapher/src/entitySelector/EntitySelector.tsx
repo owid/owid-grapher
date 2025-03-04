@@ -19,6 +19,7 @@ import {
     Tippy,
     excludeUndefined,
     intersection,
+    getRegionByNameOrVariantName,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -46,15 +47,22 @@ import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { SortIcon } from "../controls/SortIcon"
 import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
-import { ColumnSlug, OwidColumnDef } from "@ourworldindata/types"
+import {
+    ColumnSlug,
+    OwidColumnDef,
+    UserCountryInformation,
+} from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
+import { P, match } from "ts-pattern"
 import { FocusArray } from "../focus/FocusArray"
+import { useMemo } from "react"
 
 export interface EntitySelectorState {
     searchInput: string
     sortConfig: SortConfig
+    localCountryInfo?: UserCountryInformation
     localEntityNames?: string[]
     externalSortColumnsByIndicatorId?: Record<number, CoreColumn>
     isLoadingExternalSortColumn?: boolean
@@ -208,11 +216,14 @@ export class EntitySelector extends React.Component<{
                 userEntityCodes.indexOf(region.code)
             )
 
-            const localEntityNames = sortedUserRegions.map(
-                (region) => region.name
-            )
+            const localEntityNames = sortedUserRegions.flatMap((region) => {
+                if (region.regionType === "aggregate")
+                    return [region.name, ...(region.variantNames ?? [])]
+                return region.name
+            })
 
-            if (localEntityNames) this.set({ localEntityNames })
+            if (localEntityNames)
+                this.set({ localEntityNames, localCountryInfo })
         } catch {
             // ignore
         }
@@ -269,6 +280,12 @@ export class EntitySelector extends React.Component<{
 
     @computed private get localEntityNames(): string[] | undefined {
         return this.manager.entitySelectorState.localEntityNames
+    }
+
+    @computed private get localCountryInfo():
+        | UserCountryInformation
+        | undefined {
+        return this.manager.entitySelectorState.localCountryInfo
     }
 
     @computed private get externalSortColumnsByIndicatorId(): Record<
@@ -802,6 +819,7 @@ export class EntitySelector extends React.Component<{
                             bar={this.getBarConfigForEntity(entity)}
                             onChange={() => this.onChange(entity.name)}
                             local={entity.local}
+                            localCountryInfo={this.localCountryInfo}
                         />
                     </li>
                 ))}
@@ -823,6 +841,7 @@ export class EntitySelector extends React.Component<{
                             bar={this.getBarConfigForEntity(entity)}
                             onChange={() => this.onChange(entity.name)}
                             local={entity.local}
+                            localCountryInfo={this.localCountryInfo}
                         />
                     </li>
                 ))}
@@ -903,6 +922,7 @@ export class EntitySelector extends React.Component<{
                                     bar={this.getBarConfigForEntity(entity)}
                                     onChange={() => this.onChange(entity.name)}
                                     local={entity.local}
+                                    localCountryInfo={this.localCountryInfo}
                                 />
                             </FlippedListItem>
                         ))}
@@ -938,6 +958,9 @@ export class EntitySelector extends React.Component<{
                                                 this.onChange(entity.name)
                                             }
                                             local={entity.local}
+                                            localCountryInfo={
+                                                this.localCountryInfo
+                                            }
                                         />
                                     </FlippedListItem>
                                 )
@@ -1007,6 +1030,61 @@ export class EntitySelector extends React.Component<{
 
 type BarConfig = { formattedValue: string; width?: number }
 
+const useLocalEntityTooltip = (
+    local: boolean | undefined,
+    name: string,
+    localCountryInfo?: UserCountryInformation
+) => {
+    return useMemo(() => {
+        if (!local) return undefined
+
+        const yourCurrentCountry = localCountryInfo?.name ? (
+            <>
+                Your current country, <em>{localCountryInfo.name}</em>,
+            </>
+        ) : (
+            <>Your current country</>
+        )
+        const regionInfo = getRegionByNameOrVariantName(name)
+        const tooltipContent = match(regionInfo?.regionType)
+            .with("country", () => "Your current country.")
+            .with("continent", () => "Your current continent.")
+            .with("income_group", () => {
+                const incomeGroupName = name
+                    .toLowerCase()
+                    .replace("countries", "country")
+                const incomeGroupArticle = a(incomeGroupName, {
+                    articleOnly: true,
+                })
+                return (
+                    <>
+                        <p>
+                            {yourCurrentCountry} is classified as{" "}
+                            {incomeGroupArticle} <em>{incomeGroupName}</em> by
+                            the World Bank.
+                        </p>
+                        <p>
+                            See the{" "}
+                            <a
+                                href="/grapher/world-bank-income-groups"
+                                target="_blank"
+                            >
+                                World Bank income group classification
+                            </a>{" "}
+                            for more information.
+                        </p>
+                    </>
+                )
+            })
+            .with("aggregate", () => (
+                <>{yourCurrentCountry} is part of this grouping.</>
+            ))
+            .with(P.union("other", undefined), () => "Your current location.")
+            .exhaustive()
+        return tooltipContent
+    }, [local, name, localCountryInfo])
+}
+
 function SelectableEntity({
     name,
     checked,
@@ -1014,6 +1092,7 @@ function SelectableEntity({
     bar,
     onChange,
     local,
+    localCountryInfo,
 }: {
     name: string
     checked: boolean
@@ -1021,30 +1100,32 @@ function SelectableEntity({
     bar?: BarConfig
     onChange: () => void
     local?: boolean
+    localCountryInfo?: UserCountryInformation
 }) {
     const Input = {
         checkbox: Checkbox,
         radio: RadioButton,
     }[type]
 
-    const nameWords = name.split(" ")
-    const label = local ? (
-        <span className="label-with-location-icon">
-            {nameWords.slice(0, -1).join(" ")}{" "}
-            <span className="label-with-location-icon label-with-location-icon--no-line-break">
-                {nameWords[nameWords.length - 1]}
+    const tooltipContent = useLocalEntityTooltip(local, name, localCountryInfo)
+
+    let label: React.ReactNode
+    if (tooltipContent) {
+        label = (
+            <span className="label-with-location-icon">
+                {name}
                 <Tippy
-                    content="Your current location"
-                    theme="grapher-explanation--short"
+                    content={tooltipContent}
                     placement="top"
+                    theme="grapher-explanation--short"
+                    interactive
+                    appendTo={() => document.body}
                 >
                     <FontAwesomeIcon icon={faLocationArrow} />
                 </Tippy>
             </span>
-        </span>
-    ) : (
-        name
-    )
+        )
+    } else label = name
 
     return (
         <div
