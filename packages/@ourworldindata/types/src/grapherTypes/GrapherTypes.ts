@@ -241,6 +241,7 @@ export interface AxisConfigInterface {
     removePointsOutsideDomain?: boolean
     hideAxis?: boolean
     hideTickLabels?: boolean
+    hideTickMarks?: boolean
 
     /** Hide the faint lines that are shown inside the plot (axis ticks may still be visible). */
     hideGridlines?: boolean

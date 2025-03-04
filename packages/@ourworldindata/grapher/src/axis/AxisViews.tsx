@@ -174,7 +174,6 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
     render(): React.ReactElement {
         const {
             dualAxis,
-            showTickMarks,
             labelColor,
             tickColor,
             lineWidth,
@@ -215,7 +214,6 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
             <HorizontalAxisComponent
                 bounds={bounds}
                 axis={horizontalAxis}
-                showTickMarks={showTickMarks}
                 preferredAxisPosition={innerBounds.bottom}
                 labelColor={labelColor}
                 tickColor={tickColor}
@@ -239,25 +237,21 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 export class VerticalAxisComponent extends React.Component<{
     bounds: Bounds
     verticalAxis: VerticalAxis
-    showTickMarks?: boolean
     labelColor?: string
     tickColor?: string
     detailsMarker?: DetailsMarker
 }> {
     render(): React.ReactElement {
-        const {
-            bounds,
-            verticalAxis,
-            labelColor,
-            tickColor,
-            detailsMarker,
-            showTickMarks,
-        } = this.props
+        const { bounds, verticalAxis, labelColor, tickColor, detailsMarker } =
+            this.props
         const { tickLabels, labelTextWrap, config } = verticalAxis
 
         const isLabelCentered = verticalAxis.labelPosition === AxisAlign.middle
         const labelX = isLabelCentered ? -verticalAxis.rangeCenter : bounds.left
         const labelY = isLabelCentered ? bounds.left : bounds.top
+
+        const showTickLabels = !config.hideTickLabels
+        const showTickMarks = !(config.hideTickMarks ?? true)
 
         return (
             <g
@@ -302,7 +296,7 @@ export class VerticalAxisComponent extends React.Component<{
                         ))}
                     </g>
                 )}
-                {!config.hideTickLabels && (
+                {showTickLabels && (
                     <g id={makeIdForHumanConsumption("tick-labels")}>
                         {tickLabels.map((label, i) => {
                             const { y, xAlign, yAlign, formattedValue } = label
@@ -338,7 +332,6 @@ export class VerticalAxisComponent extends React.Component<{
 export class HorizontalAxisComponent extends React.Component<{
     bounds: Bounds
     axis: HorizontalAxis
-    showTickMarks?: boolean
     preferredAxisPosition?: number
     labelColor?: string
     tickColor?: string
@@ -365,7 +358,6 @@ export class HorizontalAxisComponent extends React.Component<{
         const {
             bounds,
             axis,
-            showTickMarks,
             preferredAxisPosition,
             labelColor,
             tickColor,
@@ -388,6 +380,7 @@ export class HorizontalAxisComponent extends React.Component<{
             : bounds.bottom - labelOffset
 
         const showTickLabels = !axis.config.hideTickLabels
+        const showTickMarks = !axis.config.hideTickMarks
 
         const isLabelCentered = axis.labelPosition === AxisAlign.middle
         const labelX = isLabelCentered ? axis.rangeCenter : bounds.right
