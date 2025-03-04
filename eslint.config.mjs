@@ -6,9 +6,6 @@ import eslint from "@eslint/js"
 import importPlugin from "eslint-plugin-import"
 import prettier from "eslint-config-prettier"
 import react from "eslint-plugin-react"
-// TODO: Remove this when the lib adds type declarations.
-// https://github.com/facebook/react/issues/30119
-// @ts-ignore
 import reactHooks from "eslint-plugin-react-hooks"
 import reactRefresh from "eslint-plugin-react-refresh"
 import tseslint from "typescript-eslint"
@@ -18,10 +15,9 @@ export default tseslint.config(
     tseslint.configs.recommended,
     importPlugin.flatConfigs.recommended,
     importPlugin.flatConfigs.typescript,
-    // @ts-ignore
     react.configs.flat.recommended,
-    // @ts-ignore
     react.configs.flat["jsx-runtime"],
+    reactHooks.configs["recommended-latest"],
     {
         files: [
             // TODO: Apply to all React files when we move off class components,
@@ -42,11 +38,6 @@ export default tseslint.config(
         },
     },
     {
-        plugins: {
-            // They don't have a compatible flat config at the moment. Update to
-            // a flat one when they do.
-            "react-hooks": reactHooks,
-        },
         languageOptions: {
             parserOptions: {
                 project: "./tsconfig.eslint.json",
@@ -62,7 +53,6 @@ export default tseslint.config(
             },
         },
         rules: {
-            ...reactHooks.configs.recommended.rules,
             "@typescript-eslint/consistent-type-exports": [
                 "warn",
                 {
@@ -193,6 +183,7 @@ export default tseslint.config(
             "**/dist/",
             "**/jest.config.js",
             "**/knexfile.ts",
+            "archive/**/*",
             "bakedSite/**/*",
             "coverage/**/*",
             "devtools/**/*",
