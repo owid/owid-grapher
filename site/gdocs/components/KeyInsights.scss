@@ -143,14 +143,16 @@ $slide-content-height: $grapher-height;
         &[data-active="true"] {
             display: block;
         }
+    }
+}
 
-        h4 {
-            @include h2-bold;
-            margin: 0 0 $vertical-spacing;
-        }
+.key-insights-title {
+    @include h2-bold;
+    margin: 0 0 $vertical-spacing;
+}
 
-        p {
-            @include body-2-regular;
-        }
+.article-block__key-insights-content-column {
+    p {
+        @include body-2-regular;
     }
 }
