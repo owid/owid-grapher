@@ -40,12 +40,57 @@ const ETL_REGIONS_URL =
     // note that these currently only work in Firefox and Safari, not Chrome: see https://issues.chromium.org/issues/40801814
     TRANSLATION_CODES = {
         OWID_WRL: "001",
+
+        // Continents & aggregates according to OWID
         OWID_AFR: "002",
-        OWID_NAM: "003",
-        OWID_SAM: "005",
-        OWID_OCE: "009",
         OWID_ASI: "142",
         OWID_EUR: "150",
+        OWID_MNS: "054",
+        OWID_NAM: "003",
+        OWID_OCE: "009",
+        OWID_PYA: "061",
+        OWID_SAM: "005",
+
+        // Regions according to UNSD
+        UNSD_AUS: "053",
+        UNSD_CAM: "013",
+        UNSD_CAR: "029",
+        UNSD_CAS: "143",
+        UNSD_EAF: "014",
+        UNSD_EAS: "030",
+        UNSD_EEU: "151",
+        UNSD_MAF: "017",
+        UNSD_MEL: "054",
+        UNSD_MIC: "057",
+        UNSD_NAF: "015",
+        UNSD_NAM: "003",
+        UNSD_NEU: "154",
+        UNSD_POL: "061",
+        UNSD_SAF: "018",
+        UNSD_SAM: "005",
+        UNSD_SAS: "034",
+        UNSD_SEA: "035",
+        UNSD_SEU: "039",
+        UNSD_WAF: "011",
+        UNSD_WAS: "145",
+        UNSD_WEU: "155",
+
+        // Regions according to World Bank
+        WB_EAP: ["030", "009"], // East Asia; Pacific ≈ Oceania
+        WB_ECA: ["143", "150"],
+        WB_LAC: ["419", "029"],
+        WB_MENA: ["145", "015"], // Middle East ≈ Western Asia; Northern Africa
+        WB_NA: "003",
+        WB_SA: "034",
+        WB_SSA: "202",
+
+        // Regions according to WHO
+        WHO_AFR: "002",
+        WHO_AMR: "019",
+        WHO_EMR: "145",
+        WHO_EUR: "150",
+        WHO_SEAR: "035",
+        WHO_WPAC: ["030", "035", "009"], // Western Pacific ≈ East Asia + Southeast Asia + Oceania
     }
 
 interface Entity {
@@ -59,7 +104,7 @@ interface Entity {
     is_historical?: boolean
     is_unlisted?: boolean
     variant_names?: string[]
-    translation_code?: string
+    translation_codes?: string[]
     members?: string[]
 }
 
@@ -251,7 +296,13 @@ async function main() {
 
         // merge in alternate search names and translation codes
         entity.variant_names = _.get(SEARCH_ALIASES, entity.code)
-        entity.translation_code = _.get(TRANSLATION_CODES, entity.code)
+        entity.translation_codes = _.get(TRANSLATION_CODES, entity.code)
+
+        if (
+            entity.translation_codes &&
+            !Array.isArray(entity.translation_codes)
+        )
+            entity.translation_codes = [entity.translation_codes]
 
         return _.chain(entity)
             .mapKeys((_val, key) =>
@@ -274,7 +325,7 @@ async function main() {
                 "isHistorical",
                 "isUnlisted",
                 "variantNames",
-                "translationCode",
+                "translationCodes",
                 "members"
             )
             .value()
