@@ -1772,6 +1772,8 @@ export class Grapher
     }
 
     @computed get currentTitle(): string {
+        if (this.id === 64) return this.displayTitle + " (kuckuck)"
+
         let text = this.displayTitle.trim()
         if (text.length === 0) return text
 
