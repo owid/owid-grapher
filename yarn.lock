@@ -2217,12 +2217,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@handsontable/react@npm:^14.4.0":
-  version: 14.4.0
-  resolution: "@handsontable/react@npm:14.4.0"
+"@handsontable/react@npm:^15.1.0":
+  version: 15.1.0
+  resolution: "@handsontable/react@npm:15.1.0"
   peerDependencies:
-    handsontable: ">=14.0.0"
-  checksum: 10/83a0810d5c6cc13846e9f4528916ba30408dc4d28ca0da26f080645756fd6bd92882a9b540e759c84301b93417771fd551537086cd614894443c5057bb82d0be
+    handsontable: ">=15.0.0"
+  checksum: 10/fceb0686f3d52f72fde6b301ae8eb443c04ce0ed94d864adad489447b377f991582a358e1dd8dc82afcb4e845289b1071c76655f33f429a95525f26e2a9eaa6f
   languageName: node
   linkType: hard
 
@@ -6283,15 +6283,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/pikaday@npm:1.7.4":
-  version: 1.7.4
-  resolution: "@types/pikaday@npm:1.7.4"
-  dependencies:
-    moment: "npm:>=2.14.0"
-  checksum: 10/2a14fe5884101f3858262076b6ca768a0d394ee58d4d7ca85d03b546bf62c69b77c33c4648e0f9fa311824750ab2fbb5c34f546c3c0539913797d6b62277842d
-  languageName: node
-  linkType: hard
-
 "@types/pluralize@npm:^0.0.33":
   version: 0.0.33
   resolution: "@types/pluralize@npm:0.0.33"
@@ -6571,6 +6562,13 @@ __metadata:
   version: 2.3.5
   resolution: "@types/tough-cookie@npm:2.3.5"
   checksum: 10/e7d1b4cf22c19c4e383c100df5d90f4fd8d1af67c93e80cf65eee76ddab9b136505426e65fb8d0fb009fa49c8ea7120f5aabc0e30caaadf62b621f14a7e1e7e2
+  languageName: node
+  linkType: hard
+
+"@types/trusted-types@npm:^2.0.7":
+  version: 2.0.7
+  resolution: "@types/trusted-types@npm:2.0.7"
+  checksum: 10/8e4202766a65877efcf5d5a41b7dd458480b36195e580a3b1085ad21e948bc417d55d6f8af1fd2a7ad008015d4117d5fdfe432731157da3c68678487174e4ba3
   languageName: node
   linkType: hard
 
@@ -7651,17 +7649,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bignumber.js@npm:^8.0.1":
-  version: 8.1.1
-  resolution: "bignumber.js@npm:8.1.1"
-  checksum: 10/544fb0dca3e207795c1c29e5873de414f8bd79d8769120dbd2e817c77ec05d5a99e1a805fbc25837d13f3f1a31786852b3b4c7948251e7598fe4cf42e4b99379
-  languageName: node
-  linkType: hard
-
-"bignumber.js@npm:^9.0.0":
-  version: 9.1.0
-  resolution: "bignumber.js@npm:9.1.0"
-  checksum: 10/9bee7f0bf2f685ef061cb47cf44944ed1c8929c8a677498174bbf175357fe04ff09f7f8244f0846abd844678b544c76e126e627f7df67c7c8f731f7d4d94748b
+"bignumber.js@npm:^8 || ^9, bignumber.js@npm:^9.0.0":
+  version: 9.1.2
+  resolution: "bignumber.js@npm:9.1.2"
+  checksum: 10/d89b8800a987225d2c00dcbf8a69dc08e92aa0880157c851c287b307d31ceb2fc2acb0c62c3e3a3d42b6c5fcae9b004035f13eb4386e56d529d7edac18d5c9d8
   languageName: node
   linkType: hard
 
@@ -9707,10 +9698,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:^2.1.1":
-  version: 2.5.6
-  resolution: "dompurify@npm:2.5.6"
-  checksum: 10/ef5fdc075ee448246b2b54bf8c7e2608dbaa176d9366137d2ff4e4ed4e580a2e913d5a58f1d3609f63d67871574e5fdcce534b185a1b1efdd8b931cd843b045a
+"dompurify@npm:^3.1.7":
+  version: 3.2.4
+  resolution: "dompurify@npm:3.2.4"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10/98570c53385518a2f9b617f796926338856acfdd3369c88b5905bddf96bd7d391bf8a5433127155e0046e6faa2bfb767185fcd571b865dfabe624c099e2537f5
   languageName: node
   linkType: hard
 
@@ -11850,7 +11846,7 @@ __metadata:
     "@fortawesome/free-brands-svg-icons": "npm:^6.7.2"
     "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
     "@fortawesome/react-fontawesome": "npm:^0.2.2"
-    "@handsontable/react": "npm:^14.4.0"
+    "@handsontable/react": "npm:^15.1.0"
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/explorer": "workspace:^"
@@ -11953,7 +11949,7 @@ __metadata:
     fuzzysort: "npm:^1.1.4"
     glob: "npm:^10.3.3"
     googleapis: "npm:^108.0.0"
-    handsontable: "npm:^14.4.0"
+    handsontable: "npm:^15.1.0"
     html-to-text: "npm:^9.0.5"
     http-server: "npm:^14.1.1"
     husky: "npm:^9.0.11"
@@ -12086,22 +12082,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"handsontable@npm:^14.4.0":
-  version: 14.4.0
-  resolution: "handsontable@npm:14.4.0"
+"handsontable@npm:^15.1.0":
+  version: 15.1.0
+  resolution: "handsontable@npm:15.1.0"
   dependencies:
     "@handsontable/pikaday": "npm:^1.0.0"
-    "@types/pikaday": "npm:1.7.4"
     core-js: "npm:^3.37.0"
-    dompurify: "npm:^2.1.1"
-    hyperformula: "npm:^2.6.2"
+    dompurify: "npm:^3.1.7"
+    hyperformula: "npm:^3.0.0"
     moment: "npm:2.30.1"
-    numbro: "npm:2.1.2"
-    pikaday: "npm:1.8.2"
+    numbro: "npm:2.5.0"
   dependenciesMeta:
     hyperformula:
       optional: true
-  checksum: 10/96461b1a7cf38e345fc14b5084c8b0f2e7d236ab059af274b8e3a26571c19178eececaea46fd4a15d8a82a7bd3a3390ca3dfa10e88877cac139d4c03a488fb03
+  checksum: 10/e7ba0f63ed26b215c26217937f5e958e7207e4d17c58fb5cb97b1182a1b86e308c9b3e6563711e5219d2fe8ef538d098677a8f480b19f16c8fa2c672f443622a
   languageName: node
   linkType: hard
 
@@ -12479,13 +12473,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hyperformula@npm:^2.6.2":
-  version: 2.7.0
-  resolution: "hyperformula@npm:2.7.0"
+"hyperformula@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "hyperformula@npm:3.0.0"
   dependencies:
     chevrotain: "npm:^6.5.0"
     tiny-emitter: "npm:^2.1.0"
-  checksum: 10/603ee583104e06cc8915f345126e2fbd6281273c68e07b933822c07096aef1c633037a15e188c298680364ab778d517ea799e59dd9a056603124d73e4bea77a5
+  checksum: 10/9e41fc3cdd3922080ad7bf358940527881cf580f43007428d65ac26a1c88490cad0e3786df3685b14b033c825562b4592bc858188f4d288d91a319e32a07f492
   languageName: node
   linkType: hard
 
@@ -15365,7 +15359,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"moment@npm:2.30.1, moment@npm:>=2.14.0, moment@npm:^2.30.1":
+"moment@npm:2.30.1, moment@npm:^2.30.1":
   version: 2.30.1
   resolution: "moment@npm:2.30.1"
   checksum: 10/ae42d876d4ec831ef66110bdc302c0657c664991e45cf2afffc4b0f6cd6d251dde11375c982a5c0564ccc0fa593fc564576ddceb8c8845e87c15f58aa6baca69
@@ -15901,12 +15895,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"numbro@npm:2.1.2":
-  version: 2.1.2
-  resolution: "numbro@npm:2.1.2"
+"numbro@npm:2.5.0":
+  version: 2.5.0
+  resolution: "numbro@npm:2.5.0"
   dependencies:
-    bignumber.js: "npm:^8.0.1"
-  checksum: 10/a9fcbd20aad05bf2fb557729047b6208d3d49479b29a98381fd879c83640aa87bd19715f08f010cf15e725bb05cc45aeca946a138553e37696b9d73e0fc53277
+    bignumber.js: "npm:^8 || ^9"
+  checksum: 10/50408c826dded5b5a2a5511ea8af204af4a426e9b89cac367dd115ead813c1da35448fb7b38b1c80b2edae762b59e7ca7d74414f6eb6d74685665e295f2c8f9a
   languageName: node
   linkType: hard
 
@@ -16767,13 +16761,6 @@ __metadata:
   version: 4.0.1
   resolution: "pify@npm:4.0.1"
   checksum: 10/8b97cbf9dc6d4c1320cc238a2db0fc67547f9dc77011729ff353faf34f1936ea1a4d7f3c63b2f4980b253be77bcc72ea1e9e76ee3fd53cce2aafb6a8854d07ec
-  languageName: node
-  linkType: hard
-
-"pikaday@npm:1.8.2":
-  version: 1.8.2
-  resolution: "pikaday@npm:1.8.2"
-  checksum: 10/88dbf7cd9ac61340910e845dc7310160b50ec86bc4cfb59a766820caad805de05584287ba6982ea047219f2a8a49ff8fa89934332dc559062c45d7c65782d2ef
   languageName: node
   linkType: hard
 
