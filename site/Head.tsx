@@ -32,7 +32,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 export const Head = (props: {
     canonicalUrl: string
-    hideCanonicalUrl?: boolean
     pageTitle?: string
     pageDesc?: string
     imageUrl?: string
@@ -44,7 +43,7 @@ export const Head = (props: {
     }
     staticAssetMap?: AssetMap
 }) => {
-    const { canonicalUrl, hideCanonicalUrl, baseUrl } = props
+    const { canonicalUrl, baseUrl } = props
     const pageTitle = props.pageTitle || `Our World in Data`
     const fullPageTitle = props.pageTitle
         ? `${props.pageTitle} - Our World in Data`
@@ -71,7 +70,7 @@ export const Head = (props: {
             />
             <title>{fullPageTitle}</title>
             <meta name="description" content={pageDesc} />
-            {!hideCanonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+            <link rel="canonical" href={canonicalUrl} />
             <link
                 rel="alternate"
                 type="application/atom+xml"

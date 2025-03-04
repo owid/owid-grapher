@@ -3,12 +3,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import {
-    dayjs,
-    countries,
-    queryParamsToStr,
-    DbPlainChart,
-} from "@ourworldindata/utils"
+import { dayjs, countries, DbPlainChart } from "@ourworldindata/utils"
 import {
     EXPLORERS_ROUTE_FOLDER,
     ExplorerProgram,
@@ -41,27 +36,15 @@ const xmlify = (url: SitemapUrl) => {
     </url>`
 }
 
-const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
-    const baseUrl = `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${program.slug}`
+const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl => {
+    const url = `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${program.slug}`
     const lastmod = program.lastCommit?.date
         ? dayjs(program.lastCommit.date).format("YYYY-MM-DD")
         : undefined
 
-    if (program.indexViewsSeparately) {
-        // return an array containing the URLs to each view of the explorer
-        return program.decisionMatrix
-            .allDecisionsAsQueryParams()
-            .map((params) => ({
-                loc: baseUrl + queryParamsToStr(params),
-                lastmod,
-            }))
-    } else {
-        return [
-            {
-                loc: baseUrl,
-                lastmod,
-            },
-        ]
+    return {
+        loc: url,
+        lastmod,
     }
 }
 
@@ -155,7 +138,7 @@ export const makeSitemap = async (
                 lastmod: dayjs(c.updatedAt).format("YYYY-MM-DD"),
             }))
         )
-        .concat(explorers.flatMap(explorerToSitemapUrl))
+        .concat(explorers.map(explorerToSitemapUrl))
         .concat(
             authorPages.map((a) => ({
                 loc: urljoin(BAKED_BASE_URL, "team", a.slug),

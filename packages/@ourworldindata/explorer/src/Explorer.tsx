@@ -333,40 +333,12 @@ export class Explorer
             )
         }
 
-        if (this.props.isInStandalonePage) this.setCanonicalUrl()
-
         this.grapher?.populateFromQueryParams(url.queryParams)
 
         exposeInstanceOnWindow(this, "explorer")
         this.setUpIntersectionObserver()
         this.attachEventListeners()
         this.updateEntityPickerTable() // call for the first time to initialize EntityPicker
-    }
-
-    componentDidUpdate() {
-        this.maybeUpdatePageTitle()
-    }
-
-    private maybeUpdatePageTitle() {
-        // expose the title of the current view to the Google crawler on non-default views
-        // of opted-in standalone explorer pages
-        if (
-            this.props.isInStandalonePage &&
-            this.grapher &&
-            this.explorerProgram.indexViewsSeparately &&
-            document.location.search
-        ) {
-            document.title = `${this.grapher.displayTitle} - Our World in Data`
-        }
-    }
-
-    private setCanonicalUrl() {
-        // see https://developers.google.com/search/docs/advanced/javascript/javascript-seo-basics#properly-inject-canonical-links
-        // Note that the URL is not updated when the user interacts with the explorer - this should be enough for Googlebot I hope.
-        const canonicalElement = document.createElement("link")
-        canonicalElement.setAttribute("rel", "canonical")
-        canonicalElement.href = this.canonicalUrlForGoogle
-        document.head.appendChild(canonicalElement)
     }
 
     private attachEventListeners() {
@@ -832,15 +804,6 @@ export class Explorer
     @computed get currentUrl(): Url {
         if (this.props.isPreview) return Url.fromQueryParams(this.queryParams)
         return Url.fromURL(this.baseUrl).setQueryParams(this.queryParams)
-    }
-
-    @computed get canonicalUrlForGoogle(): string {
-        // we want the canonical URL to match what's in the sitemap, so it's different depending on indexViewsSeparately
-        if (this.explorerProgram.indexViewsSeparately)
-            return Url.fromURL(this.baseUrl).setQueryParams(
-                this.currentChoiceParams
-            ).fullUrl
-        else return this.baseUrl
     }
 
     private bindToWindow() {
