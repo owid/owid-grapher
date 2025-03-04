@@ -1,19 +1,22 @@
 import * as React from "react"
 import { computed } from "mobx"
-import { Remark, useRemarkSync, UseRemarkSyncOptions } from "react-remark"
+import Markdown, {
+    type Options as MarkdownOptions,
+    type Components as MarkdownComponents,
+} from "react-markdown"
 import { remarkPlainLinks } from "./markdown/remarkPlainLinks.js"
-import visit from "unist-util-visit"
+import { visit } from "unist-util-visit"
+import { type Plugin } from "unified"
+import { type Root } from "hast"
 
 type SimpleMarkdownTextProps = {
     text: string
     useParagraphs?: boolean // by default, text is wrapped in <p> tags
 }
 
-function transformDodLinks() {
-    // TODO: try to type this properly when we have upgraded to a recent version with ESM. This is
-    // going to be a HAST tree and with that typing it should be able to make the access in there typesafe.
-    return function (tree: any) {
-        visit(tree, "element", function (node: any) {
+const transformDodLinks: Plugin<[], Root> = () => {
+    return function (tree) {
+        visit(tree, "element", function (node) {
             if (node.tagName === "a")
                 if (
                     node.properties &&
@@ -31,17 +34,9 @@ function transformDodLinks() {
                         node.properties["tabindex"] = 0
                         delete node.properties.href
                     }
-                    //node.children.push(
                 }
         })
     }
-}
-
-function RemarkSync({
-    children,
-    ...props
-}: { children: string } & UseRemarkSyncOptions) {
-    return useRemarkSync(children, props)
 }
 
 // NOTE: We currently don't need to render markdown in React. We should be able
@@ -57,13 +52,11 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
         return this.props.useParagraphs ?? true
     }
 
-    @computed get rehypeReactOptions(): any {
+    @computed get markdownCustomComponents(): MarkdownComponents | undefined {
         if (!this.useParagraphs) {
             // "unwrap" the text by rendering <p /> as a react fragment
             return {
-                components: {
-                    p: (props: any) => <React.Fragment {...props} />,
-                },
+                p: (props) => <React.Fragment {...props} />,
             }
         }
 
@@ -71,17 +64,12 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
     }
 
     render(): React.ReactElement | null {
-        const isServer = typeof window === "undefined"
-        const options = {
+        const options: MarkdownOptions = {
             rehypePlugins: [transformDodLinks],
             remarkPlugins: [remarkPlainLinks],
-            rehypeReactOptions: this.rehypeReactOptions,
+            components: this.markdownCustomComponents,
         }
-        return isServer ? (
-            <RemarkSync {...options}>{this.text}</RemarkSync>
-        ) : (
-            <Remark {...options}>{this.text}</Remark>
-        )
+        return <Markdown {...options}>{this.text}</Markdown>
     }
 }
 

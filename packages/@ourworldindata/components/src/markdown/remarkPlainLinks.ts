@@ -1,4 +1,4 @@
-import findAndReplace from "mdast-util-find-and-replace"
+import { findAndReplace } from "mdast-util-find-and-replace"
 
 // This regex matches:
 //   "http"
@@ -17,19 +17,17 @@ export const urlRegex =
     /https?:\/\/([\w-]+\.)+[\w-]+((\/[\p{L}\p{N}_\-.+/?:%&=~#]*[\p{L}\p{N}_\-+/%&=~#])|\/)?/gu
 
 export function remarkPlainLinks() {
-    const turnIntoLink = (value: any, _match: string) => {
-        return [
-            {
-                type: "link",
-                url: value,
-                children: [
-                    {
-                        type: "text",
-                        value: value,
-                    },
-                ],
-            },
-        ]
+    const turnIntoLink = (value: string) => {
+        return {
+            type: "link" as const,
+            url: value,
+            children: [
+                {
+                    type: "text" as const,
+                    value: value,
+                },
+            ],
+        }
     }
     return (tree: any) => {
         findAndReplace(tree, [[urlRegex, turnIntoLink]])
