@@ -616,8 +616,7 @@ export async function upsertGdoc(
     let sql = undefined
     try {
         const enrichedGdoc = getDbEnrichedGdocFromOwidGdoc(gdoc)
-        const { updatedAt: _, ...rawPost } =
-            serializePostsGdocsRow(enrichedGdoc)
+        const rawPost = serializePostsGdocsRow(enrichedGdoc)
         const query = knex
             .table(PostsGdocsTableName)
             .insert(rawPost)

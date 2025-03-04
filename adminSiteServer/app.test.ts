@@ -961,7 +961,6 @@ describe("OwidAdminApp: tag graph", () => {
             }),
             id: slug,
             published: 1,
-            createdAt: new Date(),
             publishedAt: new Date(),
             markdown: "",
         }
