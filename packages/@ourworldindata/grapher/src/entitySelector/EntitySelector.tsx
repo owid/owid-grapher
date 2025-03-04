@@ -19,13 +19,13 @@ import {
     Tippy,
     excludeUndefined,
     intersection,
+    FuzzySearch,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
     RadioButton,
     OverlayHeader,
 } from "@ourworldindata/components"
-import { FuzzySearch } from "../controls/FuzzySearch"
 import {
     faCircleXmark,
     faMagnifyingGlass,
@@ -548,7 +548,10 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed get fuzzy(): FuzzySearch<SearchableEntity> {
-        return new FuzzySearch(this.sortedAvailableEntities, "name")
+        return FuzzySearch.withKey(
+            this.sortedAvailableEntities,
+            (entity) => entity.name
+        )
     }
 
     @computed get searchResults(): SearchableEntity[] | undefined {

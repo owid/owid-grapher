@@ -8,8 +8,8 @@ import { scaleLinear, ScaleLinear } from "d3-scale"
 import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch, faTimes } from "@fortawesome/free-solid-svg-icons"
-import { FuzzySearch } from "../../controls/FuzzySearch"
 import {
+    FuzzySearch,
     partition,
     scrollIntoViewIfNeeded,
     last,
@@ -258,9 +258,9 @@ export class EntityPicker extends React.Component<{
     }
 
     @computed private get fuzzy(): FuzzySearch<EntityOptionWithMetricValue> {
-        return new FuzzySearch(
+        return FuzzySearch.withKey(
             this.entitiesWithMetricValue,
-            OwidTableSlugs.entityName
+            (entity) => entity.entityName
         )
     }
 
