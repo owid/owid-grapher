@@ -1,34 +1,64 @@
-import { groupBy } from "./Util.js"
+import { PrimitiveType } from "@ourworldindata/types"
+import { groupBy, uniqBy } from "./Util.js"
 import fuzzysort from "fuzzysort"
 
 export class FuzzySearch<T> {
     strings: Fuzzysort.Prepared[]
     datamap: Record<string, T[]>
+    uniqByFn: ((obj: T) => PrimitiveType) | undefined
     opts: Fuzzysort.Options | undefined
 
     private constructor(
         datamap: Record<string, T[]>,
+        uniqByFn?: (obj: T) => PrimitiveType,
         opts?: Fuzzysort.Options
     ) {
         const rawStrings = Object.keys(datamap)
         this.strings = rawStrings.map((s) => fuzzysort.prepare(s))
         this.datamap = datamap
+        this.uniqByFn = uniqByFn
         this.opts = opts
     }
 
     static withKey<T>(
         data: T[],
-        key: (obj: T) => string,
+        keyFn: (obj: T) => string,
         opts?: Fuzzysort.Options
     ): FuzzySearch<T> {
-        const datamap = groupBy(data, key)
-        return new FuzzySearch(datamap, opts)
+        const datamap = groupBy(data, keyFn)
+        return new FuzzySearch(datamap, undefined, opts)
+    }
+
+    // Allows for multiple keys per object, e.g. aliases:
+    // [
+    //     { name: "Netherlands", "keys": ["Netherlands", "Nederland"] },
+    //     { name: "Spain", "keys": ["Spain", "España"] },
+    // ]
+    static withKeyArray<T>(
+        data: T[],
+        keysFn: (obj: T) => string[],
+        uniqByFn?: (obj: T) => PrimitiveType,
+        opts?: Fuzzysort.Options
+    ): FuzzySearch<T> {
+        const datamap: Record<string, T[]> = {}
+        data.forEach((d) => {
+            keysFn(d).forEach((key) => {
+                if (!datamap[key]) datamap[key] = [d]
+                else datamap[key].push(d)
+            })
+        })
+        return new FuzzySearch(datamap, uniqByFn, opts)
     }
 
     search(input: string): T[] {
-        return fuzzysort
+        const results = fuzzysort
             .go(input, this.strings, this.opts)
             .flatMap((result) => this.datamap[result.target])
+
+        if (this.uniqByFn) {
+            return uniqBy(results, this.uniqByFn)
+        }
+        return results
     }
 
     searchResults(input: string): Fuzzysort.Results {

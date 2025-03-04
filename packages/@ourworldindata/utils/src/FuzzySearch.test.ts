@@ -65,6 +65,84 @@ describe(FuzzySearch, () => {
         })
     })
 
+    const countriesWithAliases = [
+        {
+            name: "Netherlands",
+            aliases: ["Netherlands", "Nederland", "Holland"],
+        },
+        { name: "Spain", aliases: ["Spain", "España"] },
+        { name: "Germany", aliases: ["Germany", "Deutschland"] },
+    ]
+
+    describe("withKeyArray", () => {
+        it("creates a fuzzy search instance with multiple keys per object", () => {
+            const search = FuzzySearch.withKeyArray(
+                countriesWithAliases,
+                (country) => country.aliases
+            )
+            expect(search).toBeInstanceOf(FuzzySearch)
+        })
+
+        it("finds results based on any of the keys", () => {
+            const search = FuzzySearch.withKeyArray(
+                countriesWithAliases,
+                (country) => country.aliases
+            )
+
+            const hollandResults = search.search("holland")
+            expect(hollandResults).toHaveLength(1)
+            expect(hollandResults[0].name).toBe("Netherlands")
+
+            const espanaResults = search.search("españa")
+            expect(espanaResults).toHaveLength(1)
+            expect(espanaResults[0].name).toBe("Spain")
+        })
+
+        it("may return duplicate objects if multiple keys match", () => {
+            const duplicateKeyData = [
+                { id: 1, keys: ["apple", "fruit", "red"] },
+                { id: 2, keys: ["banana", "fruit", "yellow"] },
+            ]
+
+            const search = FuzzySearch.withKeyArray(
+                duplicateKeyData,
+                (item) => item.keys
+            )
+            const results = search.search("fruit")
+            expect(results).toHaveLength(2)
+        })
+
+        it("can make use of a 'unique by' function", () => {
+            const search = FuzzySearch.withKeyArray(
+                countriesWithAliases,
+                (item) => item.aliases,
+                (item) => item.name
+            )
+            const results = search.search("land")
+            expect(results).toHaveLength(2)
+        })
+
+        it("handles case sensitivity in searches", () => {
+            const search = FuzzySearch.withKeyArray(
+                countriesWithAliases,
+                (item) => item.aliases
+            )
+            const results = search.search("NETHERLANDS")
+            expect(results).toHaveLength(1)
+            expect(results[0].name).toBe("Netherlands")
+        })
+
+        it("handles accented characters in searches", () => {
+            const search = FuzzySearch.withKeyArray(
+                countriesWithAliases,
+                (item) => item.aliases
+            )
+            const results = search.search("espana")
+            expect(results).toHaveLength(1)
+            expect(results[0].name).toBe("Spain")
+        })
+    })
+
     describe("searchResults", () => {
         it("returns raw fuzzysort results", () => {
             const search = FuzzySearch.withKey(

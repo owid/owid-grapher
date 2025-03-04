@@ -133,6 +133,8 @@ export {
     isArrayDifferentFromReference,
     readFromAssetMap,
     downloadImage,
+    getUserNavigatorLanguages,
+    getUserNavigatorLanguagesNonEnglish,
 } from "./Util.js"
 
 export {
@@ -264,6 +266,7 @@ export {
     type Aggregate,
     getOthers,
     countriesByName,
+    getRegionAlternativeNames,
 } from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"

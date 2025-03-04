@@ -25,6 +25,7 @@ export interface Aggregate {
     name: string
     regionType: "aggregate"
     code: string
+    translationCodes?: string[]
     members: string[]
 }
 
@@ -38,6 +39,7 @@ export interface Continent {
         | "South America"
     regionType: "continent"
     code: string
+    translationCodes?: string[]
     members: string[]
 }
 
@@ -115,3 +117,67 @@ export const getRegionByNameOrVariantName = (
     nameOrVariantName: string
 ): Region | undefined =>
     regionsByNameOrVariantNameLowercase().get(nameOrVariantName.toLowerCase())
+
+const _IntlDisplayNamesInstances = new Map<string, Intl.DisplayNames>()
+const getRegionTranslation = (
+    regionCode: string,
+    languageCode: string
+): string | undefined => {
+    try {
+        if (!_IntlDisplayNamesInstances.has(languageCode)) {
+            _IntlDisplayNamesInstances.set(
+                languageCode,
+                new Intl.DisplayNames([languageCode], {
+                    type: "region",
+                    fallback: "none",
+                })
+            )
+        }
+        return _IntlDisplayNamesInstances.get(languageCode)!.of(regionCode)
+    } catch {
+        return undefined
+    }
+}
+
+const _regionAlternativeNames = new Map<string, string[] | undefined>()
+export const getRegionAlternativeNames = (
+    regionName: string,
+    languages: readonly string[]
+): string[] | undefined => {
+    if (!_regionAlternativeNames.has(regionName)) {
+        const region = getRegionByNameOrVariantName(regionName)
+        if (region) {
+            const names = new Set<string>()
+            if ("variantNames" in region && region.variantNames) {
+                for (const variant of region.variantNames) {
+                    names.add(variant)
+                }
+            }
+
+            const codesForTranslation =
+                ("translationCodes" in region && region.translationCodes) ||
+                ("shortCode" in region && region.shortCode)
+            if (codesForTranslation) {
+                const translations = languages
+                    .flatMap((lang) => {
+                        if (Array.isArray(codesForTranslation))
+                            return codesForTranslation.map((code) =>
+                                getRegionTranslation(code, lang)
+                            )
+                        else
+                            return getRegionTranslation(
+                                codesForTranslation,
+                                lang
+                            )
+                    })
+                    .filter((name) => name !== undefined)
+
+                translations.forEach((translation) => names.add(translation))
+            }
+            _regionAlternativeNames.set(regionName, Array.from(names))
+        } else {
+            _regionAlternativeNames.set(regionName, undefined)
+        }
+    }
+    return _regionAlternativeNames.get(regionName)!
+}
