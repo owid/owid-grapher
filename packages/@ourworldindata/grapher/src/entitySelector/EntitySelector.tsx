@@ -83,7 +83,8 @@ type SearchableEntity = {
     name: string
     local?: boolean
     isWorld?: boolean
-} & Record<ColumnSlug, CoreValueType | undefined>
+    sortColumnValues: Record<ColumnSlug, CoreValueType | undefined>
+}
 
 interface PartitionedEntities {
     selected: SearchableEntity[]
@@ -446,6 +447,7 @@ export class EntitySelector extends React.Component<{
             const searchableEntity: SearchableEntity = {
                 name: entityName,
                 isWorld: entityName === "World",
+                sortColumnValues: {},
             }
 
             if (this.localEntityNames) {
@@ -455,7 +457,7 @@ export class EntitySelector extends React.Component<{
 
             for (const column of this.sortColumns) {
                 const rows = column.owidRowsByEntityName.get(entityName) ?? []
-                searchableEntity[column.slug] = maxBy(
+                searchableEntity.sortColumnValues[column.slug] = maxBy(
                     rows,
                     (row) => row.originalTime
                 )?.value
@@ -520,11 +522,12 @@ export class EntitySelector extends React.Component<{
         const [withValues, withoutValues] = partition(
             entities,
             (entity: SearchableEntity) =>
-                isFiniteWithGuard(entity[sortConfig.slug])
+                isFiniteWithGuard(entity.sortColumnValues[sortConfig.slug])
         )
         const sortedEntitiesWithValues = orderBy(
             withValues,
-            (entity: SearchableEntity) => entity[sortConfig.slug],
+            (entity: SearchableEntity) =>
+                entity.sortColumnValues[sortConfig.slug],
             sortConfig.order
         )
         const sortedEntitiesWithoutValues = orderBy(
@@ -849,7 +852,7 @@ export class EntitySelector extends React.Component<{
 
         if (!displayColumn) return undefined
 
-        const value = entity[displayColumn.slug]
+        const value = entity.sortColumnValues[displayColumn.slug]
 
         if (!isFiniteWithGuard(value)) return { formattedValue: "No data" }
 
