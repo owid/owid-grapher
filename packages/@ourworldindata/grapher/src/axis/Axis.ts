@@ -580,7 +580,7 @@ export class HorizontalAxis extends AbstractAxis {
     }
 
     @computed get orient(): Position {
-        // Default to `bottom` unless overriden to `top`.
+        // Default to `bottom` unless overridden to `top`.
         return this.config.orient === Position.top
             ? Position.top
             : Position.bottom
@@ -594,12 +594,11 @@ export class HorizontalAxis extends AbstractAxis {
         return this.rangeSize
     }
 
-    // note that we intentionally don't take `hideAxisLabels` into account here.
-    // tick labels might be hidden in faceted charts. when faceted, it's important
-    // the axis size doesn't change as a result of hiding the axis labels, or else
+    // note that we intentionally don't take `hideAxis` into account here.
+    // the axis might be hidden in faceted charts. when faceted, it's important
+    // the axis size doesn't change as a result of hiding it, or else
     // we might end up with misaligned axes.
     @computed get height(): number {
-        if (this.hideAxis) return 0
         const { labelOffset, tickPadding } = this
         const maxTickHeight = max(this.tickLabels.map((tick) => tick.height))
         const tickHeight = maxTickHeight ? maxTickHeight + tickPadding : 0
@@ -717,10 +716,6 @@ export class VerticalAxis extends AbstractAxis {
         return this.labelPosition === AxisAlign.middle ? 0 : this.labelHeight
     }
 
-    // note that we intentionally don't take `hideAxisLabels` into account here.
-    // tick labels might be hidden in faceted charts. when faceted, it's important
-    // the axis size doesn't change as a result of hiding the axis labels, or else
-    // we might end up with misaligned axes.
     @computed get width(): number {
         if (this.hideAxis) return 0
         const { tickPadding, labelOffsetLeft } = this
