@@ -1,4 +1,4 @@
-import { expect, it, describe } from "vitest"
+import { expect, it } from "vitest"
 
 // todo: remove this when we remove chartDimension
 

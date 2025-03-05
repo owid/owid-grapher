@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import { expect, it, describe } from "vitest"
+import { expect, it } from "vitest"
 
 import { AxisConfig } from "./AxisConfig"
 import { DualAxisComponent, HorizontalAxisGridLines } from "./AxisViews"

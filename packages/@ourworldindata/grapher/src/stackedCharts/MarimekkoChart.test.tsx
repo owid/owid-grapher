@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import { expect, it, describe, test } from "vitest"
+import { expect, it, test } from "vitest"
 
 import { Bounds, ColumnTypeNames, omit } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"

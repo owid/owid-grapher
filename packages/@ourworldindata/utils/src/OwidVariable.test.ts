@@ -1,4 +1,4 @@
-import { expect, it, describe } from "vitest"
+import { expect, it } from "vitest"
 
 import { OwidVariableDisplayConfig } from "./OwidVariable.js"
 

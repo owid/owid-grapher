@@ -1,4 +1,4 @@
-import { expect, it, describe, vi, assert } from "vitest"
+import { expect, it, assert } from "vitest"
 
 import { PromiseCache } from "./PromiseCache.js"
 

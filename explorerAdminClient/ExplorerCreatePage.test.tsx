@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import { expect, it, describe, vi } from "vitest"
+import { expect, it, describe } from "vitest"
 import { render, screen } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 import { ExplorerCreatePage } from "./ExplorerCreatePage.js"

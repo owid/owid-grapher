@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import { expect, it, describe, beforeEach, vi } from "vitest"
+import { expect, it, beforeEach, vi } from "vitest"
 
 import {
     EnrichedBlockKeyInsights,

@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import { expect, it, describe } from "vitest"
+import { expect, it } from "vitest"
 
 import Enzyme from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"

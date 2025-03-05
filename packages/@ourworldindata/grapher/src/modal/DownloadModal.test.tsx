@@ -1,4 +1,4 @@
-import { expect, it, describe } from "vitest"
+import { expect, it } from "vitest"
 
 import { ColumnTypeNames } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
