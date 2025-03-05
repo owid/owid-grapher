@@ -245,6 +245,7 @@
         "typescript-eslint": "^8.26.0",
         "vite": "^6.2.0",
         "vite-plugin-checker": "^0.9.0",
+        "vitest": "^3.0.7",
         "wrangler": "^3.111.0"
     },
     "resolutions": {
