@@ -144,15 +144,6 @@ export const AdminSidebar = (): React.ReactElement => (
                     <FontAwesomeIcon icon={faEye} /> Test
                 </Link>
             </li>
-            <li>
-                <a
-                    href="https://owid.github.io/stories/"
-                    target="_blank"
-                    rel="noopener"
-                >
-                    <FontAwesomeIcon icon={faBook} /> Storybook
-                </a>
-            </li>
             <li className="header">UTILITIES</li>
             <li>
                 <Link to="/deploys">

@@ -92,7 +92,6 @@ export class OwidAdminApp {
         app.use("/api", publicApiRouter.router)
         app.use("/admin/api", apiRouter.router)
         app.use("/admin/test", testPageRouter)
-        app.use("/admin/storybook", express.static(".storybook/build"))
         app.use("/admin", adminRouter)
 
         // Default route: single page admin app

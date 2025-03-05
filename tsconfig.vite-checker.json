@@ -3,7 +3,7 @@
 {
     "extends": "./tsconfig.json",
     "include": ["packages/**/*.ts", "packages/**/*.tsx"],
-    "exclude": ["**/*.stories.tsx", "devTools/**"],
+    "exclude": ["devTools/**"],
     "compilerOptions": {
         // ensure that nobody can accidentally use this config for a build
         "noEmit": true

@@ -236,7 +236,7 @@ export class TextWrap {
         // Magic number set through experimentation.
         // The HTML and SVG renderers need to position lines identically.
         // This number was tweaked until the overlaid HTML and SVG outputs
-        // overlap (see storybook of this component).
+        // overlap.
         const HEIGHT_CORRECTION_FACTOR = 0.74
 
         const textHeight = max(lines.map((line) => line.height)) ?? 0

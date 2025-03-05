@@ -63,24 +63,6 @@ To run our test suite you first need to build the TypeScript files into JavaScri
     yarn test
     ```
 
-## Using storybook
-
-Storybook allows you to interact with our Grapher and Explorer components visually in a browser and can be a great way to debug or to test new features.
-
-1. Run buildTsc
-
-    ```sh
-    yarn buildTsc
-    ```
-
-2. Run Storybook Server
-
-    ```sh
-    yarn startStorybookServer
-    ```
-
-![Storybook](screenshots/storybook.png)
-
 ## Checking the docker compose logs
 
 This section explains how to check the logs for the database loading script that runs the first time you use this setup.

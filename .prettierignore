@@ -4,7 +4,6 @@
 datasetsExport
 itsJustJavascript
 package.json
-/.storybook/build
 coverage
 packages/@ourworldindata/*/dist/
 dist/

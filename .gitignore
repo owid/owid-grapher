@@ -22,7 +22,6 @@ datasetsExport
 .pending
 coverage/
 public/head.txt
-.storybook/build
 *tempDeployScript.*
 .env
 clientSettings.json

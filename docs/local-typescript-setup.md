@@ -4,7 +4,7 @@ This page describes how to set up the TypeScript and JavaScript tooling to build
 
 This local environment requires some manual setup. For a faster way to get started have a look at the [VS Code devcontainer setup](devcontainer-setup.md).
 
-You need the following to be able to compile the grapher project and run the tests or use our Storybook:
+You need the following to be able to compile the grapher project and run the tests:
 
 - [Node 22](https://nodejs.org/en/)
 - [Yarn](https://yarnpkg.com/)
@@ -13,7 +13,7 @@ All further dependencies will be automatically installed by the yarn package man
 
 We recommend using the [nvm Node Version manager](https://github.com/nvm-sh/nvm) and [Visual Studio Code](https://code.visualstudio.com/) as the editor.
 
-Below are steps to set up nvm and yarn. Further down are the steps to run the tests and use the storybook for development.
+Below are steps to set up nvm and yarn. Further down are the steps to run the tests.
 
 ## Setting up Node and Yarn
 
