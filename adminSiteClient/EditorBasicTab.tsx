@@ -540,13 +540,15 @@ export class EditorBasicTab<
                         options={this.chartTypeOptions}
                     />
                     <FieldsRow>
-                        <Toggle
-                            label="Map tab"
-                            value={grapher.hasMapTab}
-                            onValue={(shouldHaveMapTab) =>
-                                (grapher.hasMapTab = shouldHaveMapTab)
-                            }
-                        />
+                        {editor.features.canToggleMapTab && (
+                            <Toggle
+                                label="Map tab"
+                                value={grapher.hasMapTab}
+                                onValue={(shouldHaveMapTab) =>
+                                    (grapher.hasMapTab = shouldHaveMapTab)
+                                }
+                            />
+                        )}
                         {grapher.isLineChart && (
                             <Toggle
                                 label="Slope chart"
