@@ -172,7 +172,8 @@
         "uuidv7": "^1.0.1",
         "webfontloader": "^1.6.28",
         "workerpool": "^6.2.0",
-        "yaml": "^2.4.2"
+        "yaml": "^2.4.2",
+        "yargs": "^17.7.2"
     },
     "devDependencies": {
         "@eslint/js": "^9.21.0",
@@ -252,8 +253,7 @@
         "vite": "^6.2.0",
         "vite-plugin-checker": "^0.9.0",
         "vitest": "^3.0.7",
-        "wrangler": "^3.111.0",
-        "yargs": "^17.7.2"
+        "wrangler": "^3.111.0"
     },
     "resolutions": {
         "@types/node": "20.8.3",
