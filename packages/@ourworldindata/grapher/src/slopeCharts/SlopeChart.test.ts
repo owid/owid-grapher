@@ -99,14 +99,14 @@ describe("series naming in multi-column mode", () => {
         expect(chart.series[0].seriesName).not.toContain(" – ")
     })
 
-    it("combines entity and column name if only one entity is selected and multi entity selection is enabled", () => {
+    it("only displays column name if only one entity is selected even if multi entity selection is enabled", () => {
         const manager = {
             table,
             canSelectMultipleEntities: true,
             selection: [table.availableEntityNames[0]],
         }
         const chart = new SlopeChart({ manager })
-        expect(chart.series[0].seriesName).toContain(" – ")
+        expect(chart.series[0].seriesName).not.toContain(" – ")
     })
 
     it("combines entity and column name if multiple entities are selected and multi entity selection is disabled", () => {
@@ -205,7 +205,6 @@ describe("colors", () => {
             selection: ["usa"],
             seriesStrategy: SeriesStrategy.column,
             facetStrategy: FacetStrategy.entity,
-            canSelectMultipleEntities: true,
         }
         const chart = new SlopeChart({ manager })
         const series = chart.series
@@ -245,7 +244,6 @@ describe("colors", () => {
             table: table,
             selection,
             seriesStrategy: SeriesStrategy.column,
-            canSelectMultipleEntities: true,
         }
         const chart = new SlopeChart({ manager })
         const series = chart.series
