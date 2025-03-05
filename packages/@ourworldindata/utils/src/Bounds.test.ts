@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import { Position } from "@ourworldindata/types"
 import { Bounds } from "./Bounds.js"

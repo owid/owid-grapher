@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
 import {
     GRAPHER_CHART_TYPES,

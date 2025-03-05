@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import {} from "../site/blocks/ProminentLink.js"
 import { renderExplorerPage } from "./siteRenderers.js"

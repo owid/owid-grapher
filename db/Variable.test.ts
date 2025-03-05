@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+import { expect, it, describe, afterEach } from "vitest"
 
 import { writeVariableCSV, _dataAsDFfromS3 } from "./model/Variable.js"
 import * as Variable from "./model/Variable.js"
@@ -6,8 +6,6 @@ import pl from "nodejs-polars"
 import { Writable } from "stream"
 import { OwidVariableId } from "@ourworldindata/utils"
 import * as db from "./db.js"
-
-import { jest } from "@jest/globals"
 
 afterEach(() => {
     jest.restoreAllMocks()

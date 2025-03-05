@@ -2,7 +2,6 @@ import { FullPost, WP_PostType } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import * as pageOverrides from "./pageOverrides.js"
 
-import { jest } from "@jest/globals"
 import { KnexReadonlyTransaction } from "../db/db.js"
 
 const mockCreatePost = (slug: string): FullPost => {

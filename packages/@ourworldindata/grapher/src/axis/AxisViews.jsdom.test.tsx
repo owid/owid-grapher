@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import { AxisConfig } from "./AxisConfig"
 import { DualAxisComponent, HorizontalAxisGridLines } from "./AxisViews"

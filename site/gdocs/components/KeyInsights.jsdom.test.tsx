@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe, beforeEach, vi } from "vitest"
 
 import {
     EnrichedBlockKeyInsights,
@@ -9,7 +9,6 @@ import {
 import { fireEvent, render, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 
-import { jest } from "@jest/globals"
 import ArticleBlock from "./ArticleBlock.js"
 import { KEY_INSIGHTS_INSIGHT_PARAM } from "./KeyInsights.js"
 
@@ -17,7 +16,7 @@ const KEY_INSIGHTS_SLUG = "key-insights"
 
 //from https://stackoverflow.com/a/62148101
 beforeEach(() => {
-    const mockIntersectionObserver = jest.fn()
+    const mockIntersectionObserver = vi.fn()
     mockIntersectionObserver.mockReturnValue({
         observe: () => null,
         unobserve: () => null,

@@ -1,4 +1,4 @@
-#! yarn testJest
+import { expect, it, describe } from "vitest"
 
 import { BinningStrategy, ColorSchemeName } from "@ourworldindata/types"
 import { NO_DATA_LABEL } from "./ColorScale"

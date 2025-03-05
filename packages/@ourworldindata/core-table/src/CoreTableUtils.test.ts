@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import { ColumnTypeNames, CoreMatrix, Time } from "@ourworldindata/types"
 import {

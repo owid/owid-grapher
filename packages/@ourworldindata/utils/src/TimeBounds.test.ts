@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import { TimeBoundValue } from "@ourworldindata/types"
 import {

@@ -1,5 +1,6 @@
+import { expect, it, describe, beforeAll, afterAll } from "vitest"
+
 import { google } from "googleapis"
-import { beforeAll, jest } from "@jest/globals"
 // Mock the google docs api to retrieve files from the test-files directory
 // AFAICT, we have to do this directly after the import
 // and before any other code that might import googleapis

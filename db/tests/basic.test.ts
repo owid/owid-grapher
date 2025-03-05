@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 import { dbTestConfig } from "./dbTestConfig.js"
 import { knex, Knex } from "knex"
 import {

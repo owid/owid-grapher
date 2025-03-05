@@ -1,3 +1,5 @@
+import { expect, it, describe } from "vitest"
+
 import { cheerioElementsToArchieML } from "./htmlToEnriched.js"
 import * as cheerio from "cheerio"
 

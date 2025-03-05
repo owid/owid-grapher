@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import Enzyme from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"

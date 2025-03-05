@@ -1,15 +1,11 @@
-#! /usr/bin/env jest
+import { expect, it, describe, beforeAll, afterAll } from "vitest"
 
 import { GitCmsClient } from "./GitCmsClient.js"
 import { GitCmsServer } from "./GitCmsServer.js"
 import fs from "fs-extra"
 import express from "express"
 
-import { jest } from "@jest/globals"
-
-jest.setTimeout(10000) // wait for up to 10s for the server to respond
-
-describe("client/server integration tests", () => {
+describe("client/server integration tests", { timeout: 10000 }, () => {
     const baseDir = __dirname + "/integrationTestTempDirectoryOkToDelete"
 
     // Arrange

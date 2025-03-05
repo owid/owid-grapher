@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import { CoreTable, ErrorValueTypes } from "@ourworldindata/core-table"
 import { ColorScale } from "./ColorScale"

@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe, test } from "vitest"
 
 import { DimensionProperty } from "@ourworldindata/utils"
 import {
@@ -48,7 +48,7 @@ const basicGrapherConfig: GrapherProgrammaticInterface = {
     ],
 }
 
-describe("grapher and discrete bar charts", () => {
+test("grapher and discrete bar charts", () => {
     const grapher = new Grapher({
         chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
         ...basicGrapherConfig,

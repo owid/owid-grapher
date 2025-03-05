@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import { getSegmentsFromPoints } from "../scatterCharts/MultiColorPolyline"
 

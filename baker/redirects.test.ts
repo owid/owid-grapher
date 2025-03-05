@@ -3,7 +3,6 @@ import { formatUrls } from "../site/formatting.js"
 import * as redirects from "./redirects.js"
 import { resolveInternalRedirect } from "./redirects.js"
 
-import { jest } from "@jest/globals"
 import { KnexReadonlyTransaction } from "../db/db.js"
 
 type ArrayForMap = [string, string][]

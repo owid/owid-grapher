@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import fs from "fs-extra"
 import { DeployQueueServer } from "./DeployQueueServer.js"
@@ -6,8 +6,6 @@ import {
     DEPLOY_QUEUE_FILE_PATH,
     DEPLOY_PENDING_FILE_PATH,
 } from "../settings/serverSettings.js"
-
-import { jest } from "@jest/globals"
 
 describe("parseQueueContent", () => {
     const server = new DeployQueueServer()

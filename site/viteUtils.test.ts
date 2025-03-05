@@ -1,3 +1,5 @@
+import { expect, it, describe } from "vitest"
+
 import { createTagsForManifestEntry } from "./viteUtils.js"
 import ReactDOMServer from "react-dom/server.js"
 

@@ -1,3 +1,5 @@
+import { expect, it, describe } from "vitest"
+
 import * as cheerio from "cheerio"
 import { WP_ColumnStyle } from "@ourworldindata/utils"
 import { splitContentIntoSectionsAndColumns } from "./formatting.js"

@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import { setValueRecursive, setValueRecursiveInplace } from "./patchHelper.js"
 

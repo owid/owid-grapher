@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe, test } from "vitest"
 import { Grapher } from "../core/Grapher.js"
 import { legacyMapGrapher } from "./MapChart.sample.js"
 
