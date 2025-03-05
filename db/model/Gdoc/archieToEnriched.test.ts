@@ -1,3 +1,5 @@
+import { expect, it, describe } from "vitest"
+
 import { extractRefs } from "./archieToEnriched.js"
 
 it("Can extract a ref from some text", () => {
