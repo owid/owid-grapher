@@ -1028,7 +1028,7 @@ export class Grapher
                 table.get(this.yColumnSlugs[0]).tolerance
             )
 
-        return table.filterByTimeRange(startTime, endTime)
+        return table.filterByTimeRange(startTime, endTime).sortedByTime
     }
 
     @computed get transformedTable(): OwidTable {
