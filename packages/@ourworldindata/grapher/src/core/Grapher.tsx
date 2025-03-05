@@ -1466,12 +1466,6 @@ export class Grapher
     // todo: can we remove this?
     // I believe these states can only occur during editing.
     @action.bound private ensureValidConfigWhenEditing(): void {
-        this.disposers.push(
-            reaction(
-                () => this.variableIds,
-                () => this.downloadLegacyDataFromOwidVariableIds()
-            )
-        )
         const disposers = [
             autorun(() => {
                 if (!this.availableTabs.includes(this.activeTab))
