@@ -32,6 +32,9 @@ jobs:
             - name: Run prettier
               run: yarn testPrettierAll
 
+            - name: Run tsc build
+              run: yarn buildTsc
+
             - name: Run vitest
               run: yarn test
 
