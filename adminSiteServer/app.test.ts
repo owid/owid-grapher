@@ -10,11 +10,15 @@ import {
 } from "vitest"
 
 import { google } from "googleapis"
+
+const baseDir = findProjectBaseDir(__dirname)
+if (!baseDir) throw Error("Could not find project base directory")
+
 // Mock the google docs api to retrieve files from the test-files directory
 // AFAICT, we have to do this directly after the import
 // and before any other code that might import googleapis
-vi.mock("googleapis", () => {
-    const originalModule: any = vi.importActual("googleapis")
+vi.mock("googleapis", async (importOriginal) => {
+    const originalModule: typeof import("googleapis") = await importOriginal()
 
     return {
         ...originalModule,
@@ -23,14 +27,9 @@ vi.mock("googleapis", () => {
             docs: vi.fn(() => ({
                 documents: {
                     get: vi.fn(({ documentId }) => {
-                        // This is a bit hacky and assumes we are running from inside
-                        // the itsJustJavascript directory - I couldn't find a better way
-                        // to get the workspace root directory here
                         const unparsed = fs.readFileSync(
                             path.join(
-                                __dirname,
-                                "..",
-                                "..",
+                                baseDir,
                                 "adminSiteServer",
                                 "test-files",
                                 `${documentId}.json`
@@ -82,6 +81,7 @@ import path from "path"
 import fs from "fs"
 import { omitUndefinedValues } from "@ourworldindata/utils"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
+import findProjectBaseDir from "../settings/findBaseDir.js"
 
 const ADMIN_SERVER_HOST = "localhost"
 const ADMIN_SERVER_PORT = 8765
@@ -152,16 +152,14 @@ afterEach(async () => {
     await cleanupDb()
 })
 
-afterAll((done: any) => {
-    void cleanupDb()
-        .then(() =>
-            Promise.allSettled([
-                app?.stopListening(),
-                testKnexInstance?.destroy(),
-                serverKnexInstance?.destroy(),
-            ])
-        )
-        .then(() => done())
+afterAll(async () => {
+    await cleanupDb().then(() =>
+        Promise.allSettled([
+            app?.stopListening(),
+            testKnexInstance?.destroy(),
+            serverKnexInstance?.destroy(),
+        ])
+    )
 })
 
 async function getCountForTable(tableName: string): Promise<number> {
