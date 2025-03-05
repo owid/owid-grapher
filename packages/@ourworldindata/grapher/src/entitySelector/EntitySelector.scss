@@ -165,6 +165,40 @@
             margin-top: 16px;
         }
 
+        .entity-section__header {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            button {
+                background: none;
+                border: none;
+                color: $dark-text;
+                font-size: 13px;
+                font-weight: 500;
+                letter-spacing: 0.01em;
+                text-decoration-line: underline;
+                text-underline-offset: 3px;
+                cursor: pointer;
+                margin-bottom: 8px;
+
+                &:hover {
+                    text-decoration: none;
+                }
+
+                &:active {
+                    background: $gray-5;
+                }
+
+                &:disabled {
+                    color: $gray-50;
+                    text-decoration: none;
+                    cursor: default;
+                }
+            }
+        }
+
         .entity-section__title {
             letter-spacing: 0.01em;
             margin-bottom: 8px;
@@ -261,56 +295,6 @@
 
         li:last-of-type .selectable-entity {
             border-bottom: $row-border;
-        }
-    }
-
-    .entity-selector__footer {
-        background-color: #fff;
-        width: 100%;
-        border-radius: 4px;
-        z-index: 2;
-
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px var(--padding);
-        box-shadow: 0px -4px 8px 0px rgba(0, 0, 0, 0.04);
-
-        .footer__selected {
-            font-size: 11px;
-            font-weight: 500;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-        }
-
-        button {
-            background: none;
-            border: none;
-            color: $dark-text;
-            font-size: 13px;
-            font-weight: 500;
-            letter-spacing: 0.01em;
-            text-decoration-line: underline;
-            text-underline-offset: 3px;
-            cursor: pointer;
-
-            padding: 8px;
-            margin-right: -8px;
-            border-radius: 4px;
-
-            &:hover {
-                text-decoration: none;
-            }
-
-            &:active {
-                background: $gray-5;
-            }
-
-            &:disabled {
-                color: $gray-50;
-                text-decoration: none;
-                cursor: default;
-            }
         }
     }
 

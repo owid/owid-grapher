@@ -878,8 +878,12 @@ export class EntitySelector extends React.Component<{
     }
 
     private renderAllEntitiesInMultiMode(): React.ReactElement {
-        const { sortedAvailableEntities } = this
+        const {
+            sortedAvailableEntities,
+            partitionedVisibleEntities: visibleEntities,
+        } = this
         const { selected } = this.partitionedAvailableEntities
+        const { numSelectedEntities, selectedEntityNames } = this.selectionArray
 
         // having a "Selection" and "Available entities" section both looks odd
         // when all entities are currently selected and there are only a few of them
@@ -888,17 +892,27 @@ export class EntitySelector extends React.Component<{
 
         return (
             <Flipper
-                spring={{
-                    stiffness: 300,
-                    damping: 33,
-                }}
-                flipKey={this.selectionArray.selectedEntityNames.join(",")}
+                spring={{ stiffness: 300, damping: 33 }}
+                flipKey={selectedEntityNames.join(",")}
             >
                 <div className="entity-section">
                     {selected.length > 0 && (
                         <Flipped flipId="__selection" translate opacity>
-                            <div className="entity-section__title grapher_body-3-medium-italic grapher_light">
-                                Selection
+                            <div className="entity-section__header">
+                                <div className="entity-section__title grapher_body-3-medium-italic grapher_light">
+                                    Selection{" "}
+                                    {numSelectedEntities > 0 &&
+                                        `(${numSelectedEntities})`}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={this.onClear}
+                                    disabled={
+                                        visibleEntities.selected.length === 0
+                                    }
+                                >
+                                    Clear
+                                </button>
                             </div>
                         </Flipped>
                     )}
@@ -962,28 +976,6 @@ export class EntitySelector extends React.Component<{
         )
     }
 
-    private renderFooter(): React.ReactElement {
-        const { numSelectedEntities } = this.selectionArray
-        const { partitionedVisibleEntities: visibleEntities } = this
-
-        return (
-            <div className="entity-selector__footer">
-                <div className="footer__selected">
-                    {numSelectedEntities > 0
-                        ? `${numSelectedEntities} selected`
-                        : "Empty selection"}
-                </div>
-                <button
-                    type="button"
-                    onClick={this.onClear}
-                    disabled={visibleEntities.selected.length === 0}
-                >
-                    Clear
-                </button>
-            </div>
-        )
-    }
-
     render(): React.ReactElement {
         return (
             <div className="entity-selector">
@@ -1011,8 +1003,6 @@ export class EntitySelector extends React.Component<{
                               : this.renderAllEntitiesInSingleMode()}
                     </div>
                 </div>
-
-                {this.isMultiMode && this.renderFooter()}
             </div>
         )
     }
