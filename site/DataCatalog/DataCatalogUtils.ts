@@ -13,7 +13,9 @@ import { SearchClient } from "algoliasearch"
 /**
  * Constants
  */
-const CHARTS_INDEX = getIndexName(SearchIndexName.ExplorerViewsAndCharts)
+const CHARTS_INDEX = getIndexName(
+    SearchIndexName.ExplorerViewsMdimViewsAndCharts
+)
 
 const DATA_CATALOG_ATTRIBUTES = [
     "title",

@@ -38,6 +38,7 @@ export function ChartHit({
     const [imgLoaded, setImgLoaded] = useState(false)
     const [imgError, setImgError] = useState(false)
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
 
     const entities = useMemo(
         () =>
@@ -59,9 +60,10 @@ export function ChartHit({
         [entities]
     )
 
-    const fullQueryParams = isExplorerView
-        ? hit.queryParams! + entityQueryStr.replace("?", "&")
-        : entityQueryStr
+    const fullQueryParams =
+        isExplorerView || isMultiDimView
+            ? hit.queryParams! + entityQueryStr.replace("?", "&")
+            : entityQueryStr
 
     function createExplorerViewThumbnailUrl(
         slug: string,

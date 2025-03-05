@@ -23,7 +23,7 @@ import {
 
 import * as db from "../../../db/db.js"
 import { DATA_API_URL } from "../../../settings/serverSettings.js"
-import { keyBy } from "@ourworldindata/utils"
+import { getUniqueNamesFromParentTagArrays, keyBy } from "@ourworldindata/utils"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import {
     CsvUnenrichedExplorerViewRecord,
@@ -49,7 +49,6 @@ import {
     ChartRecord,
     ChartRecordType,
 } from "../../../site/search/searchTypes.js"
-import { getUniqueNamesFromParentTagArrays } from "@ourworldindata/utils/dist/Util.js"
 
 export function explorerViewRecordToChartRecord(
     e: ExplorerViewFinalRecord
