@@ -134,7 +134,7 @@ const migrate = async (trx: db.KnexReadWriteTransaction): Promise<void> => {
             // We don't get the first and last nodes if they are comments.
             // This can cause issues with the wp:components so here we wrap
             // everything in a div
-            const $: cheerio.CheerioAPI = cheerio.load(`<div>${text}</div>`)
+            const $: CheerioStatic = cheerio.load(`<div>${text}</div>`)
             const bodyContents = $("body>div").contents().toArray()
             const parsingContext = {
                 $,

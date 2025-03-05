@@ -37,7 +37,7 @@ const analyze = async (): Promise<void> => {
 
         for (const post of posts) {
             // temp workaround for load with 3 params not showing up in TS type
-            const $: cheerio.CheerioAPI = cheerio.load(post.content)
+            const $: CheerioStatic = cheerio.load(post.content)
             $("body").each((i, node) => {
                 traverseNode(
                     node,

@@ -26,7 +26,7 @@ export const formatUrls = (html: string) => {
 }
 
 export const splitContentIntoSectionsAndColumns = (
-    cheerioEl: cheerio.CheerioAPI
+    cheerioEl: CheerioStatic
 ) => {
     interface Columns {
         wrapper: Cheerio
@@ -284,12 +284,12 @@ export const splitContentIntoSectionsAndColumns = (
     }
 }
 
-export const getBodyHtml = (cheerioEl: cheerio.CheerioAPI): string => {
+export const getBodyHtml = (cheerioEl: CheerioStatic): string => {
     return cheerioEl("body").html() || ""
 }
 
 const addTocToSections = (
-    cheerioEl: cheerio.CheerioAPI,
+    cheerioEl: CheerioStatic,
     tocHeadings: TocHeading[]
 ) => {
     cheerioEl("h2")
@@ -318,7 +318,7 @@ const addTocToSections = (
         })
 }
 
-const addPostHeader = (cheerioEl: cheerio.CheerioAPI, post: FormattedPost) => {
+const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
     const publishedDate = formatDate(post.date)
     // const modifiedDate = formatDate(post.modifiedDate)
 

@@ -16,7 +16,7 @@ it("parses a Wordpress paragraph within the content", () => {
         <!-- /wp:paragraph -->
     </div>
     `
-    const $: cheerio.CheerioAPI = cheerio.load(html)
+    const $: CheerioStatic = cheerio.load(html)
     // The first element of the <div> contents is a new line, so we skip it
     const bodyContents = $("body > div").contents().toArray().slice(1)
 
@@ -54,7 +54,7 @@ it("parses a Wordpress paragraph as the first element", () => {
         <p>or sit amet, consectetur adipiscing elit</p>
         <!-- /wp:paragraph -->
     `
-    const $: cheerio.CheerioAPI = cheerio.load(html)
+    const $: CheerioStatic = cheerio.load(html)
 
     const bodyContents = $("body").contents().toArray()
 

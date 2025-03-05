@@ -12,6 +12,7 @@ export const LoadingIndicator = (props: {
     return (
         <div
             className="loading-indicator"
+            data-testid="loading-indicator"
             title={props.title}
             style={{
                 backgroundColor: props.backgroundColor,

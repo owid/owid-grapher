@@ -18,7 +18,7 @@ const h4 = `<h4>Some h4 heading</h4>`
 const h6 = `<h6>Some h6 heading</h6>`
 
 const testColumnsContent = (
-    $: cheerio.CheerioAPI,
+    $: CheerioStatic,
     firstColumnHTML: string,
     lastColumnHTML: string,
     style: string = WP_ColumnStyle.StickyRight
