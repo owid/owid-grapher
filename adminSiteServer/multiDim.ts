@@ -19,7 +19,6 @@ import {
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageConfigRaw,
     MultiDimDataPagesTableName,
-    MultiDimDimensionChoices,
     MultiDimXChartConfigsTableName,
     parseChartConfigsRow,
     R2GrapherConfigDirectory,
@@ -28,7 +27,7 @@ import {
 import {
     mergeGrapherConfigs,
     MultiDimDataPageConfig,
-    slugify,
+    multiDimDimensionsToViewId,
 } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import { upsertMultiDimDataPage } from "../db/model/MultiDimDataPage.js"
@@ -46,14 +45,6 @@ import {
     saveNewChartConfigInDbAndR2,
     updateChartConfigInDbAndR2,
 } from "./chartConfigHelpers.js"
-
-function dimensionsToViewId(dimensions: MultiDimDimensionChoices) {
-    return Object.entries(dimensions)
-        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-        .map(([_, value]) => slugify(value))
-        .join("__")
-        .toLowerCase()
-}
 
 function catalogPathFromIndicatorEntry(
     entry: IndicatorEntryBeforePreProcessing
@@ -289,7 +280,7 @@ export async function upsertMultiDim(
                 patchGrapherConfig
             )
             const existingChartConfigId = existingViewIdsToChartConfigIds.get(
-                dimensionsToViewId(view.dimensions)
+                multiDimDimensionsToViewId(view.dimensions)
             )
             let chartConfigId
             if (existingChartConfigId) {
@@ -330,7 +321,7 @@ export async function upsertMultiDim(
     for (const view of enrichedConfig.views) {
         await upsertMultiDimXChartConfigs(knex, {
             multiDimId,
-            viewId: dimensionsToViewId(view.dimensions),
+            viewId: multiDimDimensionsToViewId(view.dimensions),
             variableId: view.indicators.y[0].id,
             chartConfigId: view.fullConfigId,
         })

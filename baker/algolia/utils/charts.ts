@@ -11,9 +11,11 @@ import { getRelatedArticles } from "../../../db/model/Post.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
 import { isPathRedirectedToExplorer } from "../../../explorerAdminServer/ExplorerRedirects.js"
 import { ParsedChartRecordRow, RawChartRecordRow } from "./types.js"
-import { excludeNullish } from "@ourworldindata/utils"
+import {
+    excludeNullish,
+    getUniqueNamesFromParentTagArrays,
+} from "@ourworldindata/utils"
 import { processAvailableEntities } from "./shared.js"
-import { getUniqueNamesFromParentTagArrays } from "@ourworldindata/utils/dist/Util.js"
 
 const computeChartScore = (record: Omit<ChartRecord, "score">): number => {
     const { numRelatedArticles, views_7d } = record

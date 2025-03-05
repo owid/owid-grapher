@@ -14,13 +14,16 @@ import { scaleRecordScores } from "./utils/shared.js"
 import { getChartsRecords } from "./utils/charts.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
+import { getMdimViewRecords } from "./utils/mdimViews.js"
 
 // We get 200k operations with Algolia's Open Source plan. We've hit 140k in the past so this might push us over.
 // If we standardize the record shape, we could have this be the only index and have a `type` field
 // to use in /search.
-const indexExplorerViewsAndChartsToAlgolia = async () => {
+const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) return
-    const indexName = getIndexName(SearchIndexName.ExplorerViewsAndCharts)
+    const indexName = getIndexName(
+        SearchIndexName.ExplorerViewsMdimViewsAndCharts
+    )
     console.log(
         `Indexing explorer views and charts to the "${indexName}" index on Algolia`
     )
@@ -31,15 +34,14 @@ const indexExplorerViewsAndChartsToAlgolia = async () => {
         )
     }
 
-    const { explorerViews, grapherViews } = await db.knexReadonlyTransaction(
-        async (trx) => {
+    const { explorerViews, mdimViews, grapherViews } =
+        await db.knexReadonlyTransaction(async (trx) => {
             return {
                 explorerViews: await getExplorerViewRecords(trx, true),
+                mdimViews: await getMdimViewRecords(trx),
                 grapherViews: await getChartsRecords(trx),
             }
-        },
-        db.TransactionCloseMode.Close
-    )
+        }, db.TransactionCloseMode.Close)
 
     // Scale grapher records and the default explorer views between 1000 and 10000,
     // Scale the remaining explorer views between 0 and 1000.
@@ -47,8 +49,13 @@ const indexExplorerViewsAndChartsToAlgolia = async () => {
     // the data catalog to smother Grapher results with hundreds of low-quality Explorer results.
     const scaledGrapherViews = scaleRecordScores(grapherViews, [1000, 10000])
     const scaledExplorerViews = adaptExplorerViews(explorerViews)
+    const scaledMdimViews = scaleRecordScores(mdimViews, [1000, 10000])
 
-    const records = [...scaledGrapherViews, ...scaledExplorerViews]
+    const records = [
+        ...scaledGrapherViews,
+        ...scaledExplorerViews,
+        ...scaledMdimViews,
+    ]
 
     const index = client.initIndex(indexName)
     console.log(`Indexing ${records.length} records`)
@@ -56,8 +63,8 @@ const indexExplorerViewsAndChartsToAlgolia = async () => {
     console.log(`Indexing complete`)
 }
 
-indexExplorerViewsAndChartsToAlgolia().catch(async (e) => {
-    console.error("Error in indexExplorerViewsAndChartsToAlgolia:", e)
+indexExplorerViewsMdimViewsAndChartsToAlgolia().catch(async (e) => {
+    console.error("Error in indexExplorerViewsMdimViewsAndChartsToAlgolia:", e)
     Sentry.captureException(e)
     await Sentry.close()
     process.exit(1)
