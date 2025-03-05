@@ -225,7 +225,6 @@ test: node_modules
 	@echo '==> Linting'
 	yarn run eslint
 	yarn lerna run build
-	yarn lerna run buildTests
 
 	@echo '==> Checking formatting'
 	yarn testPrettierAll
@@ -234,9 +233,6 @@ test: node_modules
 	yarn run jest
 
 dbtest: node_modules
-	@echo '==> Building'
-	yarn buildTsc
-
 	@echo '==> Running db test script'
 	./db/tests/run-db-tests.sh
 

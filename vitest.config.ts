@@ -7,7 +7,7 @@ export default defineConfig({
             "itsJustJavascript/*",
             "*/dist/*",
             "db/tests/*",
-            "adminSiteServer/app.test.ts", // TODO
+            "adminSiteServer/app.test.ts",
         ],
     },
 })

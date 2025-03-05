@@ -26,7 +26,7 @@ echo '==> Running migrations'
 yarn tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:run -d db/tests/dataSource.dbtests.ts
 
 echo '==> Running tests'
-if ! yarn run jest --config=jest.db.config.js --runInBand # runInBand runs multiple test files serially - useful to avoid weird race conditions
+if ! yarn run vitest -c vitest.db.config.ts
 then
     echo '💀 Tests failed'
     ./devTools/docker/mark-test-mysql-dirty.sh
