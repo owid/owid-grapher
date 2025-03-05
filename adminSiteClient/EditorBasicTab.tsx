@@ -103,12 +103,12 @@ class DimensionSlotView<
 
         this.isSelectingVariables = false
 
-        this.updateDimensionsAndRebuildTable(dimensionConfigs)
+        void this.updateDimensionsAndRebuildTable(dimensionConfigs)
         this.updateParentConfig()
     }
 
     @action.bound private onRemoveDimension(variableId: OwidVariableId) {
-        this.updateDimensionsAndRebuildTable(
+        void this.updateDimensionsAndRebuildTable(
             this.props.slot.dimensions.filter(
                 (d) => d.variableId !== variableId
             )
@@ -117,7 +117,7 @@ class DimensionSlotView<
     }
 
     @action.bound private onChangeDimension() {
-        this.updateDimensionsAndRebuildTable()
+        void this.updateDimensionsAndRebuildTable()
         this.updateParentConfig()
     }
 
@@ -190,7 +190,7 @@ class DimensionSlotView<
         this.disposers.forEach((dispose) => dispose())
     }
 
-    @action.bound private updateDimensionsAndRebuildTable(
+    @action.bound private async updateDimensionsAndRebuildTable(
         updatedDimensions?: OwidChartDimensionInterface[]
     ) {
         const { grapher } = this.props.editor
@@ -206,7 +206,9 @@ class DimensionSlotView<
             dimensions: grapher.dimensions.map((dim) => dim.toObject()),
         })
         grapher.seriesColorMap?.clear()
-        this.grapher.rebuildInputOwidTable()
+
+        await grapher.downloadLegacyDataFromOwidVariableIds()
+        grapher.rebuildInputOwidTable()
     }
 
     @action.bound private updateParentConfig() {
@@ -226,7 +228,7 @@ class DimensionSlotView<
             destination.index
         )
 
-        this.updateDimensionsAndRebuildTable(dimensions)
+        void this.updateDimensionsAndRebuildTable(dimensions)
         this.updateParentConfig()
     }
 
