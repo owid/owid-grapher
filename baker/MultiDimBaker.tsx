@@ -35,12 +35,14 @@ import {
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { getAllPublishedChartSlugs } from "../db/model/Chart.js"
 import {
-    getAllPublishedMultiDimDataPages,
+    getAllPublishedMultiDimDataPagesBySlug,
     getMultiDimDataPageByCatalogPath,
     getMultiDimDataPageBySlug,
 } from "../db/model/MultiDimDataPage.js"
 
-const getRelevantVariableIds = (config: MultiDimDataPageConfigPreProcessed) => {
+export function getRelevantVariableIds(
+    config: MultiDimDataPageConfigPreProcessed
+) {
     // A "relevant" variable id is the first y indicator of each view
     const allIndicatorIds = config.views
         .map((view) => view.indicators.y?.[0]?.id)
@@ -49,7 +51,9 @@ const getRelevantVariableIds = (config: MultiDimDataPageConfigPreProcessed) => {
     return new Set(allIndicatorIds)
 }
 
-async function getRelevantVariableMetadata(variableIds: Iterable<number>) {
+export async function getRelevantVariableMetadata(
+    variableIds: Iterable<number>
+) {
     const metadata = await pMap(
         variableIds,
         async (id) => {
@@ -248,7 +252,7 @@ export const bakeAllMultiDimDataPages = async (
     bakedSiteDir: string,
     imageMetadata: Record<string, ImageMetadata>
 ) => {
-    const multiDimsBySlug = await getAllPublishedMultiDimDataPages(knex)
+    const multiDimsBySlug = await getAllPublishedMultiDimDataPagesBySlug(knex)
     const progressBar = new ProgressBar(
         "bake multi-dim page [:bar] :current/:total :elapseds :rate/s :name\n",
         {

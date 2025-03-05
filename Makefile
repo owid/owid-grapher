@@ -293,8 +293,8 @@ reindex: itsJustJavascript
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexChartsToAlgolia.js
 	@echo '--- Running indexExplorerViewsToAlgolia...'
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorerViewsToAlgolia.js
-	@echo '--- Running indexExplorerViewsAndChartsToAlgolia...'
-	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorerViewsAndChartsToAlgolia.js
+	@echo '--- Running indexExplorerViewsMdimViewsAndChartsToAlgolia...'
+	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorerViewsMdimViewsAndChartsToAlgolia.js
 
 delete-algolia-index: itsJustJavascript
 	@echo '==> Deleting Algolia index'

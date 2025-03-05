@@ -52,15 +52,21 @@ const enrichRow = <T extends { config: JsonString }>(
     config: JSON.parse(row.config),
 })
 
-export const getAllPublishedMultiDimDataPages = async (
+export async function getAllPublishedMultiDimDataPages(
     knex: KnexReadonlyTransaction
-): Promise<Map<string, DbEnrichedMultiDimDataPage>> => {
+): Promise<DbEnrichedMultiDimDataPage[]> {
     const rows = await knex<DbPlainMultiDimDataPage>(
         MultiDimDataPagesTableName
     ).where("published", true)
+    return rows.map(enrichRow)
+}
 
+export const getAllPublishedMultiDimDataPagesBySlug = async (
+    knex: KnexReadonlyTransaction
+): Promise<Map<string, DbEnrichedMultiDimDataPage>> => {
+    const multiDims = await getAllPublishedMultiDimDataPages(knex)
     // Published mdims must have a slug.
-    return new Map(rows.map((row) => [row.slug!, enrichRow(row)]))
+    return new Map(multiDims.map((multiDim) => [multiDim.slug!, multiDim]))
 }
 
 export async function getAllLinkedPublishedMultiDimDataPages(
