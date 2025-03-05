@@ -1,5 +1,6 @@
 import ArticleBlock from "./ArticleBlock.js"
-import { Container } from "./layout.js"
+import { BlockErrorBoundary } from "./BlockErrorBoundary.js"
+import { Container, getLayout } from "./layout.js"
 import {
     OwidEnrichedGdocBlock,
     TocHeadingWithTitleSupertitle,
@@ -29,13 +30,17 @@ export const ArticleBlocks = ({
     <>
         {blocks.map((block: OwidEnrichedGdocBlock, i: number) => {
             return (
-                <ArticleBlock
+                <BlockErrorBoundary
                     key={i}
-                    b={block}
-                    containerType={containerType}
-                    toc={toc}
-                    shouldRenderLinks={shouldRenderLinks}
-                />
+                    className={getLayout("default", containerType)}
+                >
+                    <ArticleBlock
+                        b={block}
+                        containerType={containerType}
+                        toc={toc}
+                        shouldRenderLinks={shouldRenderLinks}
+                    />
+                </BlockErrorBoundary>
             )
         })}
     </>

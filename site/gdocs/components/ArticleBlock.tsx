@@ -18,7 +18,7 @@ import {
 } from "@ourworldindata/utils"
 import { CodeSnippet, convertHeadingTextToId } from "@ourworldindata/components"
 import SDGGrid from "./SDGGrid.js"
-import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
+import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { match } from "ts-pattern"
 import SpanElements from "./SpanElements.js"
 import Paragraph from "./Paragraph.js"
@@ -70,7 +70,7 @@ export default function ArticleBlock({
             />
         )
     }
-    const content: any | null = match(block)
+    return match(block)
         .with({ type: "aside" }, ({ caption, position = "right" }) => (
             <figure
                 className={cx(
@@ -225,9 +225,9 @@ export default function ArticleBlock({
                 />
             )
         })
-        .with({ type: "simple-text" }, (block) => {
-            return block.value
-        })
+        .with({ type: "simple-text" }, (block) => (
+            <span>{block.value.text}</span>
+        ))
         .with({ type: "heading", level: 1 }, (block) => (
             <h1
                 className={cx(
@@ -684,10 +684,4 @@ export default function ArticleBlock({
             />
         ))
         .exhaustive()
-
-    return (
-        <BlockErrorBoundary className={getLayout("default", containerType)}>
-            {content}
-        </BlockErrorBoundary>
-    )
 }
