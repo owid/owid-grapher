@@ -1,4 +1,4 @@
-import { expect, it, describe, afterEach } from "vitest"
+import { expect, it, describe, afterEach, vi } from "vitest"
 
 import { writeVariableCSV, _dataAsDFfromS3 } from "./model/Variable.js"
 import * as Variable from "./model/Variable.js"
@@ -8,12 +8,12 @@ import { OwidVariableId } from "@ourworldindata/utils"
 import * as db from "./db.js"
 
 afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
 })
 
 export const mockS3data = (s3data: Record<string, any>): void => {
-    jest.spyOn(Variable, "fetchS3Values").mockImplementation(
-        jest.fn((key: OwidVariableId) => s3data[key])
+    vi.spyOn(Variable, "fetchS3Values").mockImplementation(
+        vi.fn((key: OwidVariableId) => s3data[key])
     )
 
     const entities = pl
@@ -23,7 +23,7 @@ export const mockS3data = (s3data: Record<string, any>): void => {
             entityCode: ["code"],
         })
         .withColumn(pl.col("entityId").cast(pl.Int32))
-    jest.spyOn(Variable, "entitiesAsDF").mockResolvedValueOnce(entities)
+    vi.spyOn(Variable, "entitiesAsDF").mockResolvedValueOnce(entities)
 }
 
 describe("writeVariableCSV", () => {
@@ -32,7 +32,7 @@ describe("writeVariableCSV", () => {
         s3data: any,
         variableIds: number[]
     ): Promise<string> => {
-        const spy = jest.spyOn(Variable, "readSQLasDF")
+        const spy = vi.spyOn(Variable, "readSQLasDF")
         if (variablesDf) spy.mockResolvedValueOnce(variablesDf)
 
         if (s3data) mockS3data(s3data)

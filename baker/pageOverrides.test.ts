@@ -1,3 +1,5 @@
+import { vi, it, describe, expect } from "vitest"
+
 import { FullPost, WP_PostType } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import * as pageOverrides from "./pageOverrides.js"
@@ -20,7 +22,7 @@ const mockCreatePost = (slug: string): FullPost => {
 
 const forestLandingSlug = "forests-and-deforestation"
 
-const getPostBySlugLogToSlackNoThrow = jest.spyOn(
+const getPostBySlugLogToSlackNoThrow = vi.spyOn(
     pageOverrides,
     "getPostBySlugLogToSlackNoThrow"
 )

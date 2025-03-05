@@ -2,7 +2,7 @@
  * @vitest-environment happy-dom
  */
 
-import { expect, it, describe } from "vitest"
+import { expect, it, describe, beforeAll } from "vitest"
 import { GrapherInterface } from "@ourworldindata/types"
 import {
     DimensionProperty,
