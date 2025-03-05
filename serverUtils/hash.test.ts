@@ -1,3 +1,5 @@
+import { expect, it, describe } from "vitest"
+
 import { PassThrough } from "node:stream"
 import { hashBase36, hashBase36FromStream } from "./hash.js"
 

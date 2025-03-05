@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import { FacetChart } from "./FacetChart"
 import { SynthesizeGDPTable, OwidTable } from "@ourworldindata/core-table"

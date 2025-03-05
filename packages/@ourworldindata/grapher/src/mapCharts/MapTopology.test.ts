@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it } from "vitest"
 
 import { MapTopology } from "./MapTopology"
 import { regions, Country } from "@ourworldindata/utils"

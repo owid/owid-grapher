@@ -1,3 +1,5 @@
+import { expect, it, describe } from "vitest"
+
 import { ColumnTypeNames } from "@ourworldindata/types"
 import { ColumnTypeMap } from "./CoreTableColumns.js"
 import { ErrorValueTypes } from "./ErrorValues.js"

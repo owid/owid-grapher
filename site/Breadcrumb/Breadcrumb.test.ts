@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import { getSubnavItem } from "../gdocs/utils.js"
 import { getBreadcrumbItems, getSubnavParent } from "./breadcrumbUtils.js"

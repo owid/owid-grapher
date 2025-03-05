@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it } from "vitest"
 
 // todo: remove this when we remove chartDimension
 

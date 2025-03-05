@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+import { expect, it, describe } from "vitest"
 
 import {
     EnrichedBlockAdditionalCharts,

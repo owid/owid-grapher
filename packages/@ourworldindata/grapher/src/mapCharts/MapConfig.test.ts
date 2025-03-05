@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it } from "vitest"
 
 import { MapConfig } from "./MapConfig"
 import { MapProjectionName } from "@ourworldindata/types"

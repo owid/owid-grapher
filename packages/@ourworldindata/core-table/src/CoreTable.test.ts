@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import { CoreTable } from "./CoreTable.js"
 import { TransformType, ColumnTypeNames } from "@ourworldindata/types"

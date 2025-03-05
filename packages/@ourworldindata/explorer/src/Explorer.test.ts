@@ -1,4 +1,8 @@
-#! yarn testJest
+/**
+ * @vitest-environment jsdom
+ */
+
+import { expect, it, describe } from "vitest"
 
 import { Explorer } from "./Explorer.js"
 import {

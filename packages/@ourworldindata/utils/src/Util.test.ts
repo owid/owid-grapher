@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import timezoneMock from "timezone-mock"
 import {
@@ -511,11 +511,13 @@ describe("slugifySameCase", () => {
         ["  hello//world  ", "helloworld"],
     ]
 
-    cases.forEach(([input, output]) => {
-        expect(slugifySameCase(input)).toBe(output)
+    it("slugifies strings", () => {
+        cases.forEach(([input, output]) => {
+            expect(slugifySameCase(input)).toBe(output)
+        })
     })
 
-    describe("it can allow slashes", () => {
+    it("can allow slashes", () => {
         expect(slugifySameCase("sdgs/energy", true)).toBe("sdgs/energy")
         expect(slugifySameCase("sdgs/economic development", true)).toBe(
             "sdgs/economic-development"

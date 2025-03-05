@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it } from "vitest"
 
 import { defaultGrapherConfig } from "../defaultGrapherConfig"
 import { migrateGrapherConfigToLatestVersion } from "./migrate"

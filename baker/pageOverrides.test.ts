@@ -1,8 +1,10 @@
+import { vi, it, expect } from "vitest"
+
 import { FullPost, WP_PostType } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import * as pageOverrides from "./pageOverrides.js"
+import * as Post from "../db/model/Post.js"
 
-import { jest } from "@jest/globals"
 import { KnexReadonlyTransaction } from "../db/db.js"
 
 const mockCreatePost = (slug: string): FullPost => {
@@ -21,9 +23,9 @@ const mockCreatePost = (slug: string): FullPost => {
 
 const forestLandingSlug = "forests-and-deforestation"
 
-const getPostBySlugLogToSlackNoThrow = jest.spyOn(
-    pageOverrides,
-    "getPostBySlugLogToSlackNoThrow"
+const getPostBySlugLogToSlackNoThrow = vi.spyOn(
+    Post,
+    "getFullPostBySlugFromSnapshot"
 )
 getPostBySlugLogToSlackNoThrow.mockImplementation((knex, landingSlug) =>
     Promise.resolve(mockCreatePost(landingSlug))
@@ -77,7 +79,7 @@ it("does not get parent landing and logs (landing post not found)", async () => 
     )
 
     getPostBySlugLogToSlackNoThrow.mockImplementationOnce(() =>
-        Promise.resolve(undefined)
+        Promise.resolve(undefined as any)
     )
 
     await expect(

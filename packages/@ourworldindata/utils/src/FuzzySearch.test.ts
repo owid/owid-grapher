@@ -1,3 +1,5 @@
+import { expect, it, describe } from "vitest"
+
 import { FuzzySearch } from "./FuzzySearch.js"
 
 describe(FuzzySearch, () => {

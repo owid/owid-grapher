@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import { PartialBy } from "@ourworldindata/utils"
 import { AxisConfig } from "../axis/AxisConfig"

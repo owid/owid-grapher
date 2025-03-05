@@ -5,8 +5,10 @@ import {
     SENTRY_ADMIN_DSN,
 } from "../settings/clientSettings.js"
 
-Sentry.init({
-    dsn: SENTRY_ADMIN_DSN,
-    environment: ENV,
-    release: COMMIT_SHA,
-})
+if (!process.env.VITEST) {
+    Sentry.init({
+        dsn: SENTRY_ADMIN_DSN,
+        environment: ENV,
+        release: COMMIT_SHA,
+    })
+}

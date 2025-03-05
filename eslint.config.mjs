@@ -181,7 +181,6 @@ export default tseslint.config(
             "**/*.cjs",
             "**/*.js",
             "**/dist/",
-            "**/jest.config.js",
             "**/knexfile.ts",
             "archive/**/*",
             "bakedSite/**/*",

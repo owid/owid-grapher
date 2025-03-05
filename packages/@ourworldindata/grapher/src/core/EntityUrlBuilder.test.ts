@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import { Url } from "@ourworldindata/utils"
 import {
@@ -129,7 +129,7 @@ describe("facebook", () => {
     })
 })
 
-describe("it can handle legacy urls with dimension in selection key", () => {
+it("can handle legacy urls with dimension in selection key", () => {
     const url = Url.fromQueryParams({
         country: [
             "United States",

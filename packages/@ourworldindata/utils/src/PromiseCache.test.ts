@@ -1,3 +1,5 @@
+import { expect, it, assert } from "vitest"
+
 import { PromiseCache } from "./PromiseCache.js"
 
 const wait = (ms: number): Promise<void> =>
@@ -30,7 +32,7 @@ it("promise is discarded if it rejects", async () => {
 
     try {
         await firstPromise
-        fail()
+        assert.fail()
     } catch {
         // ignore
     }
@@ -39,7 +41,7 @@ it("promise is discarded if it rejects", async () => {
 
     try {
         await cache.get("key")
-        fail()
+        assert.fail()
     } catch {
         // ignore
     }
@@ -49,7 +51,7 @@ it("promise is discarded if it rejects", async () => {
 
     try {
         await thirdPromise
-        fail()
+        assert.fail()
     } catch {
         // ignore
     }

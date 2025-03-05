@@ -224,19 +224,14 @@ tmp-downloads/owid_metadata.sql.gz:
 test: node_modules
 	@echo '==> Linting'
 	yarn run eslint
-	yarn lerna run build
-	yarn lerna run buildTests
 
 	@echo '==> Checking formatting'
 	yarn testPrettierAll
 
 	@echo '==> Running tests'
-	yarn run jest
+	yarn run test
 
 dbtest: node_modules
-	@echo '==> Building'
-	yarn buildTsc
-
 	@echo '==> Running db test script'
 	./db/tests/run-db-tests.sh
 
@@ -254,7 +249,7 @@ format: node_modules
 
 unittest: node_modules
 	@echo '==> Running tests'
-	yarn run jest --all
+	yarn run test
 
 ../owid-grapher-svgs:
 	cd .. && git clone git@github.com:owid/owid-grapher-svgs

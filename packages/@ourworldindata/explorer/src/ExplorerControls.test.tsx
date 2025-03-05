@@ -1,4 +1,8 @@
-#! /usr/bin/env jest
+/**
+ * @vitest-environment jsdom
+ */
+
+import { expect, it, describe } from "vitest"
 import { ExplorerControlType } from "./ExplorerConstants.js"
 import { ExplorerControlPanel } from "./ExplorerControls.js"
 

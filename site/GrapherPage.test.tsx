@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe, beforeAll } from "vitest"
 import { GrapherInterface } from "@ourworldindata/types"
 import {
     DimensionProperty,

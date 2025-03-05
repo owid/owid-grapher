@@ -1,3 +1,5 @@
+import { expect, it, describe } from "vitest"
+
 import { replaceDef } from "./CoreTableUtils.js"
 import { OwidTable } from "./OwidTable.js"
 import {

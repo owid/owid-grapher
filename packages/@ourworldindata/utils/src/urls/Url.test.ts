@@ -1,4 +1,4 @@
-#! yarn testJest
+import { expect, it, describe } from "vitest"
 
 import { Url } from "./Url.js"
 

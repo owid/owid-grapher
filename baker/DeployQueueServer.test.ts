@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe, vi } from "vitest"
 
 import fs from "fs-extra"
 import { DeployQueueServer } from "./DeployQueueServer.js"
@@ -6,8 +6,6 @@ import {
     DEPLOY_QUEUE_FILE_PATH,
     DEPLOY_PENDING_FILE_PATH,
 } from "../settings/serverSettings.js"
-
-import { jest } from "@jest/globals"
 
 describe("parseQueueContent", () => {
     const server = new DeployQueueServer()
@@ -37,7 +35,7 @@ describe("parseQueueContent", () => {
 describe("getDeploys", () => {
     const server = new DeployQueueServer()
     it("is empty when nothing is in the queues", async () => {
-        jest.spyOn(fs, "readFile").mockImplementation(
+        vi.spyOn(fs, "readFile").mockImplementation(
             (async (): Promise<string> => {
                 return ``
             }) as any
@@ -46,7 +44,7 @@ describe("getDeploys", () => {
     })
 
     it("parses queued deploy file", async () => {
-        jest.spyOn(fs, "readFile").mockImplementation((async (
+        vi.spyOn(fs, "readFile").mockImplementation((async (
             path: string
         ): Promise<string> => {
             if (path === DEPLOY_QUEUE_FILE_PATH)
@@ -65,8 +63,8 @@ describe("getDeploys", () => {
     })
 
     it("parses pending deploy file", async () => {
-        jest.spyOn(fs, "pathExists").mockImplementation(async () => true)
-        jest.spyOn(fs, "readFile").mockImplementation((async (
+        vi.spyOn(fs, "pathExists").mockImplementation(async () => true)
+        vi.spyOn(fs, "readFile").mockImplementation((async (
             path: string
         ): Promise<string> => {
             if (path === DEPLOY_QUEUE_FILE_PATH)

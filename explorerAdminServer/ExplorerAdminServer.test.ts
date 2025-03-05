@@ -1,11 +1,8 @@
-#! /usr/bin/env jest
-import { jest } from "@jest/globals"
-
-jest.setTimeout(10000) // wait up to 10s
+import { expect, it } from "vitest"
 
 import { ExplorerAdminServer } from "./ExplorerAdminServer.js"
 
-it("can init", async () => {
+it("can init", { timeout: 10000 }, async () => {
     const server = new ExplorerAdminServer(__dirname)
     expect(server).toBeTruthy()
 

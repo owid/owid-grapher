@@ -1,6 +1,6 @@
 import { defineConfig } from "vite"
 import pluginReact from "@vitejs/plugin-react"
-import pluginChecker from "vite-plugin-checker"
+import { checker as pluginChecker } from "vite-plugin-checker"
 import { sentryVitePlugin } from "@sentry/vite-plugin"
 import * as clientSettings from "./settings/clientSettings.js"
 import {
@@ -71,18 +71,20 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                     },
                 },
             }),
-            pluginChecker({
-                typescript: {
-                    buildMode: true,
-                    tsconfigPath: "tsconfig.vite-checker.json",
-                },
-            }),
+            !process.env.VITEST &&
+                pluginChecker({
+                    typescript: {
+                        buildMode: true,
+                        tsconfigPath: "tsconfig.vite-checker.json",
+                    },
+                }),
             // Put the Sentry vite plugin after all other plugins.
-            sentryVitePlugin({
-                authToken: process.env.SENTRY_AUTH_TOKEN,
-                org: process.env.SENTRY_ORG,
-                project: entrypoint === "admin" ? "admin" : "website",
-            }),
+            !process.env.VITEST &&
+                sentryVitePlugin({
+                    authToken: process.env.SENTRY_AUTH_TOKEN,
+                    org: process.env.SENTRY_ORG,
+                    project: entrypoint === "admin" ? "admin" : "website",
+                }),
         ],
         server: {
             port: 8090,

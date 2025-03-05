@@ -1,15 +1,16 @@
+import { vi, it, expect } from "vitest"
+
 import { Url, strToQueryParams } from "@ourworldindata/utils"
 import { formatUrls } from "../site/formatting.js"
-import * as redirects from "./redirects.js"
+import * as redirectsFromDb from "./redirectsFromDb.js"
 import { resolveInternalRedirect } from "./redirects.js"
 
-import { jest } from "@jest/globals"
 import { KnexReadonlyTransaction } from "../db/db.js"
 
 type ArrayForMap = [string, string][]
 
-const getGrapherAndWordpressRedirectsMap = jest.spyOn(
-    redirects,
+const getGrapherAndWordpressRedirectsMap = vi.spyOn(
+    redirectsFromDb,
     "getGrapherAndWordpressRedirectsMap"
 )
 

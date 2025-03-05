@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it, describe } from "vitest"
 
 import { ExplorerProgram } from "./ExplorerProgram.js"
 import {

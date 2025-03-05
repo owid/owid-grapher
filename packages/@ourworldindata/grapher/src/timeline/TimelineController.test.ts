@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it } from "vitest"
 
 import { TimeBoundValue, range } from "@ourworldindata/utils"
 import { TimelineController, TimelineManager } from "./TimelineController"

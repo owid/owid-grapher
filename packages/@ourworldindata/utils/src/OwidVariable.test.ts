@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+import { expect, it } from "vitest"
 
 import { OwidVariableDisplayConfig } from "./OwidVariable.js"
 

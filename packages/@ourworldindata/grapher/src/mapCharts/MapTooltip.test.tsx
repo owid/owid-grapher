@@ -1,4 +1,8 @@
-#! /usr/bin/env jest
+/**
+ * @vitest-environment jsdom
+ */
+
+import { expect, test } from "vitest"
 import { Grapher } from "../core/Grapher.js"
 import { legacyMapGrapher } from "./MapChart.sample.js"
 
