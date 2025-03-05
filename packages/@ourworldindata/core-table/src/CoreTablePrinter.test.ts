@@ -14,10 +14,10 @@ it("to aligned table", () => {
         alignRight: false,
         maxCharactersPerColumn: 100,
     })
-    expect(result).toEqual(`name score color
-bob  12    red
-mike 321   blue
-al   1214  green`)
+    expect(result).toEqual(
+        // using \n here because we have trailing whitespace in each line, and prettier would remove it
+        `name score color\nbob  12    red  \nmike 321   blue \nal   1214  green`
+    )
 })
 
 it("to markdown table", () => {
