@@ -301,7 +301,7 @@ interface WpComponentIntermediateParseResult {
 }
 
 interface ParseContext {
-    $: CheerioStatic
+    $: cheerio.CheerioAPI
     shouldParseWpComponents: boolean
     htmlTagCounts: Record<string, number>
     wpTagCounts: Record<string, number>

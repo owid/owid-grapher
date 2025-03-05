@@ -543,7 +543,7 @@ const renderPostThumbnailBySlug = async (
 }
 
 export const renderProminentLinks = async (
-    $: CheerioStatic,
+    $: cheerio.CheerioAPI,
     containerPostId: number,
     knex: KnexReadonlyTransaction
 ) => {

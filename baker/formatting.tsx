@@ -49,7 +49,7 @@ export const isCanonicalInternalUrl = (url: Url): boolean => {
  *   with lightboxes. Chosen over preventDefault() in front-end code to avoid
  *   clicks before javascript executes.
  */
-export const formatImages = ($: CheerioStatic) => {
+export const formatImages = ($: cheerio.CheerioAPI) => {
     for (const el of $("img").toArray()) {
         const $el = $(el)
         if ($el.closest("[data-no-img-formatting]").length) continue

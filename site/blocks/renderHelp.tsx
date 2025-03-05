@@ -1,7 +1,7 @@
 import ReactDOMServer from "react-dom/server.js"
 import { Help } from "./Help.js"
 
-export const renderHelp = (cheerioEl: CheerioStatic) =>
+export const renderHelp = (cheerioEl: cheerio.CheerioAPI) =>
     cheerioEl("block[type='help']").each(function (this: CheerioElement) {
         const $block = cheerioEl(this)
         const title = $block.find("h4").remove().text() || null

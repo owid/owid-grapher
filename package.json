@@ -222,6 +222,7 @@
         "@types/url-parse": "^1.4.8",
         "@types/webfontloader": "^1.6.34",
         "@types/workerpool": "^6.1.0",
+        "@types/yargs": "^17.0.33",
         "@vitejs/plugin-react": "^4.3.4",
         "@yarnpkg/types": "^4.0.0",
         "bundlewatch": "^0.4.0",
@@ -248,7 +249,8 @@
         "vite": "^6.2.0",
         "vite-plugin-checker": "^0.9.0",
         "vitest": "^3.0.7",
-        "wrangler": "^3.111.0"
+        "wrangler": "^3.111.0",
+        "yargs": "^17.7.2"
     },
     "resolutions": {
         "@types/node": "20.8.3",

@@ -25,7 +25,7 @@ export const WITH_IMAGE = "with-image"
 @observer
 export class ProminentLink extends Component<{
     href: string
-    style: string | null
+    style: string | null | undefined
     title: string | null
     content?: string | null
     image?: string | null
