@@ -72,8 +72,8 @@ To run our test suite you first need to build the TypeScript files into JavaScri
     yarn lerna run build && yarn buildTsc
     ```
 
-2. Run jest
+2. Run vitest
 
     ```sh
-    yarn testJest
+    yarn test
     ```
