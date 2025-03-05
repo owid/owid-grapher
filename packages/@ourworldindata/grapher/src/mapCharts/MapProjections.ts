@@ -7,10 +7,6 @@ import {
 import { MapProjectionName } from "@ourworldindata/types"
 import { geoRobinson, geoPatterson } from "./d3-geo-projection.js"
 
-// https://github.com/d3/d3-geo-projection/issues/202
-// todo: would be nice to get propert types for this and not have to run different code during testing
-const projectionToUseDuringJestTesting = geoConicConformal()
-
 export const MapProjectionLabels: Record<MapProjectionName, string> = {
     World: "World",
     Africa: "Africa",
@@ -22,11 +18,7 @@ export const MapProjectionLabels: Record<MapProjectionName, string> = {
 }
 
 export const MapProjectionGeos: { [key in MapProjectionName]: GeoPath } = {
-    World: geoPath().projection(
-        typeof geoRobinson === "undefined"
-            ? projectionToUseDuringJestTesting
-            : geoRobinson()
-    ),
+    World: geoPath().projection(geoRobinson()),
 
     Africa: geoPath().projection(
         geoConicConformal().rotate([-25, 0]).center([0, 0]).parallels([30, -20])
@@ -48,10 +40,7 @@ export const MapProjectionGeos: { [key in MapProjectionName]: GeoPath } = {
 
     // From http://bl.ocks.org/dhoboy/ff8448ace9d5d567390a
     Asia: geoPath().projection(
-        (typeof geoPatterson === "undefined"
-            ? projectionToUseDuringJestTesting
-            : geoPatterson()
-        )
+        geoPatterson()
             .center([58, 54])
             .scale(150)
             .translate([0, 0])

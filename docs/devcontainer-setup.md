@@ -49,7 +49,7 @@ If you want to access MySQL you have two options. ⚠ Note that depending on whi
 
 ## Running tests
 
-To run our test suite you first need to build the TypeScript files into JavaScript and then run jest:
+To run our test suite you first need to build the TypeScript files into JavaScript and then run vitest:
 
 1. Run buildTsc
 

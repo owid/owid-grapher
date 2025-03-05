@@ -7,7 +7,6 @@
     "packageManager": "yarn@4.6.0",
     "scripts": {
         "batchTagWithGpt": "tsx --tsconfig tsconfig.tsx.json baker/batchTagWithGpt.ts",
-        "buildCoverage": "jest --coverage=true --coverageProvider=v8",
         "buildLocalBake": "tsx --tsconfig tsconfig.tsx.json baker/buildLocalBake.ts",
         "buildTsc": "tsc -b -verbose",
         "buildLerna": "lerna run build",

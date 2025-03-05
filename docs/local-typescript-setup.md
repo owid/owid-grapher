@@ -64,7 +64,7 @@ Note: on Windows we strongly recommend using the [Windows Subsystem for Linux](h
 
 ## Running tests
 
-To run our test suite you first need to build the TypeScript files into JavaScript and then run jest:
+To run our test suite you first need to build the TypeScript files into JavaScript and then run vitest:
 
 1. Build JavaScript
 

@@ -2,7 +2,7 @@ name: Continuous Integration
 on: [push, pull_request]
 
 jobs:
-    # Checks for prettify errors, TypeScript errors and runs Jest tests.
+    # Checks for prettify errors, TypeScript errors and runs vitest tests.
     testdbcheck:
         runs-on: ubuntu-latest
 
