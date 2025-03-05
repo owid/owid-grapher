@@ -58,11 +58,7 @@ import {
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
-import {
-    getGrapherRedirectsMap,
-    getRedirects,
-    flushCache as redirectsFlushCache,
-} from "./redirects.js"
+import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
 import { bakeAllChangedGrapherPagesAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
@@ -105,6 +101,7 @@ import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
 import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
 import { getChartViewsInfo } from "../db/model/ChartView.js"
+import { getGrapherRedirectsMap } from "./redirectsFromDb.js"
 
 type PrefetchedAttachments = {
     donors: string[]

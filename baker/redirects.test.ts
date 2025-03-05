@@ -7,7 +7,7 @@ import { vi, it, expect } from "vitest"
 
 import { Url, strToQueryParams } from "@ourworldindata/utils"
 import { formatUrls } from "../site/formatting.js"
-import * as redirects from "./redirects.js"
+import * as redirectsFromDb from "./redirectsFromDb.js"
 import { resolveInternalRedirect } from "./redirects.js"
 
 import { KnexReadonlyTransaction } from "../db/db.js"
@@ -15,7 +15,7 @@ import { KnexReadonlyTransaction } from "../db/db.js"
 type ArrayForMap = [string, string][]
 
 const getGrapherAndWordpressRedirectsMap = vi.spyOn(
-    redirects,
+    redirectsFromDb,
     "getGrapherAndWordpressRedirectsMap"
 )
 
@@ -23,7 +23,7 @@ const getFormattedUrl = (url: string): Url => {
     return Url.fromURL(formatUrls(url))
 }
 
-it.skip("resolves pathnames", async () => {
+it("resolves pathnames", async () => {
     const src = "/hello"
     const target = "/world"
     const redirectsArr: ArrayForMap = [[src, target]]
@@ -43,7 +43,7 @@ it.skip("resolves pathnames", async () => {
     ).toEqual(resolvedUrl)
 })
 
-it.skip("does not support query string in redirects map", async () => {
+it("does not support query string in redirects map", async () => {
     const src = "/hello?q=1"
     const target = "/world"
     const redirectsArr: ArrayForMap = [[src, target]]
@@ -62,7 +62,7 @@ it.skip("does not support query string in redirects map", async () => {
     ).toEqual(urlToResolve)
 })
 
-it.skip("passes query string params when resolving", async () => {
+it("passes query string params when resolving", async () => {
     const src = "/hello"
     const target = "/world"
     const redirectsArr: ArrayForMap = [[src, target]]
@@ -87,7 +87,7 @@ it.skip("passes query string params when resolving", async () => {
     ).toEqual(resolvedUrl)
 })
 
-it.skip("does not pass query string params when some present on the target", async () => {
+it("does not pass query string params when some present on the target", async () => {
     const src = "/hello"
     const target = "/world?q=1"
     const redirectsArr: ArrayForMap = [[src, target]]
@@ -109,7 +109,7 @@ it.skip("does not pass query string params when some present on the target", asy
     ).toEqual(resolvedUrl)
 })
 
-it.skip("resolves self-redirects", async () => {
+it("resolves self-redirects", async () => {
     const src = "/hello"
     const target = "/hello"
     const redirectsArr: ArrayForMap = [[src, target]]
@@ -128,7 +128,7 @@ it.skip("resolves self-redirects", async () => {
     ).toEqual(urlToResolve)
 })
 
-it.skip("does not support query params in self-redirects", async () => {
+it("does not support query params in self-redirects", async () => {
     const src = "/hello"
     const target = "/hello?q=1"
     const redirectsArr: ArrayForMap = [[src, target]]
@@ -156,7 +156,7 @@ it.skip("does not support query params in self-redirects", async () => {
     ).toEqual(urlToResolveWithQueryParam)
 })
 
-it.skip("resolves circular redirects", async () => {
+it("resolves circular redirects", async () => {
     const theKing = "/the-king"
     const isDead = "/is-dead"
     const longLive = "/long-live"
