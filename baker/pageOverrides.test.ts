@@ -1,8 +1,3 @@
-/**
- * All the tests in here are skipped, currently, because mocking SQL/S3 calls is difficult:
- * see https://vitest.dev/guide/mocking#mocking-pitfalls
- */
-
 import { vi, it, expect } from "vitest"
 
 import { FullPost, WP_PostType } from "@ourworldindata/utils"
