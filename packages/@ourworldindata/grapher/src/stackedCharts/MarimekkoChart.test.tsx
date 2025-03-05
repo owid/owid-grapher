@@ -1,7 +1,3 @@
-/**
- * @vitest-environment jsdom
- */
-
 import { expect, it, test } from "vitest"
 
 import { Bounds, ColumnTypeNames, omit } from "@ourworldindata/utils"

@@ -1,7 +1,3 @@
-/**
- * @vitest-environment jsdom
- */
-
 import { expect, it, describe } from "vitest"
 import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
 import {

@@ -1,7 +1,3 @@
-/**
- * @vitest-environment jsdom
- */
-
 import { expect, it } from "vitest"
 
 import { AxisConfig } from "./AxisConfig"

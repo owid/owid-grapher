@@ -1,7 +1,3 @@
-/**
- * @vitest-environment jsdom
- */
-
 import { expect, it, describe, beforeAll } from "vitest"
 import { GrapherInterface } from "@ourworldindata/types"
 import {
