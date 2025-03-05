@@ -16,6 +16,7 @@ import {
     DEFAULT_GDOC_FEATURED_IMAGE,
     DEFAULT_THUMBNAIL_FILENAME,
     DbEnrichedImage,
+    OwidGdocDataInsightInterface,
 } from "@ourworldindata/utils"
 import { formatPost } from "../../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
@@ -23,7 +24,9 @@ import { getAlgoliaClient } from "../configureAlgolia.js"
 import { htmlToText } from "html-to-text"
 import {
     PageRecord,
+    PageType,
     SearchIndexName,
+    WordpressPageType,
 } from "../../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { ArticleBlocks } from "../../../site/gdocs/components/ArticleBlocks.js"
@@ -39,12 +42,13 @@ import { SearchIndex } from "algoliasearch"
 import { match, P } from "ts-pattern"
 import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"
 import { formatUrls } from "../../../site/formatting.js"
-import { TypeAndImportance } from "./types.js"
 import {
     BAKED_BASE_URL,
     CLOUDFLARE_IMAGES_URL,
 } from "../../../settings/clientSettings.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
+import { getFirstBlockOfType } from "../../../site/gdocs/utils.js"
+import { getPrefixedGdocPath } from "@ourworldindata/components"
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
@@ -56,13 +60,10 @@ function generateCountryRecords(
     pageviews: Record<string, RawPageview>
 ): PageRecord[] {
     return countries.map((country) => {
-        const postTypeAndImportance: TypeAndImportance = {
-            type: "country",
-            importance: -1,
-        }
         const record = {
             objectID: country.slug,
-            ...postTypeAndImportance,
+            type: WordpressPageType.Country,
+            importance: -1,
             slug: `country/${country.slug}`,
             title: country.name,
             content: `All available indicators for ${country.name}.`,
@@ -105,15 +106,20 @@ async function generateWordpressRecords(
     const getPostTypeAndImportance = (
         post: FormattedPost,
         tags: Pick<DbPlainTag, "name">[]
-    ): TypeAndImportance => {
+    ): {
+        type: PageType
+        importance: number
+    } => {
         if (post.slug.startsWith("about/") || post.slug === "about")
-            return { type: "about", importance: 1 }
-        if (post.slug.match(/\bfaqs?\b/i)) return { type: "faq", importance: 1 }
-        if (post.type === "post") return { type: "article", importance: 0 }
+            return { type: OwidGdocType.AboutPage, importance: 1 }
+        if (post.slug.match(/\bfaqs?\b/i))
+            return { type: WordpressPageType.Other, importance: 1 }
+        if (post.type === "post")
+            return { type: OwidGdocType.Article, importance: 0 }
         if (tags.some((t) => t.name === "Entries"))
-            return { type: "topic", importance: 3 }
+            return { type: OwidGdocType.TopicPage, importance: 3 }
 
-        return { type: "other", importance: 0 }
+        return { type: WordpressPageType.Other, importance: 0 }
     }
 
     const records: PageRecord[] = []
@@ -161,9 +167,17 @@ async function generateWordpressRecords(
 }
 
 const getThumbnailUrl = (
-    gdoc: OwidGdocPostInterface,
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
     cloudflareImages: Record<string, DbEnrichedImage>
 ): string => {
+    if (gdoc.content.type === OwidGdocType.DataInsight) {
+        const firstImage = getFirstBlockOfType(gdoc, "image")
+        const filename = firstImage?.smallFilename || firstImage?.filename
+        return filename && cloudflareImages[filename]
+            ? `${CLOUDFLARE_IMAGES_URL}/${cloudflareImages[filename].cloudflareId}/w=512`
+            : `${BAKED_BASE_URL}/${DEFAULT_GDOC_FEATURED_IMAGE}`
+    }
+
     if (gdoc.content["deprecation-notice"]) {
         return `${BAKED_BASE_URL}/${ARCHVED_THUMBNAIL_FILENAME}`
     }
@@ -188,34 +202,35 @@ const getThumbnailUrl = (
     return `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=512`
 }
 
+function getExcerptFromGdoc(
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
+): string {
+    if (gdoc.content.type === OwidGdocType.DataInsight) {
+        return ""
+    } else {
+        return gdoc.content.excerpt ?? ""
+    }
+}
+
 function generateGdocRecords(
-    gdocs: OwidGdocPostInterface[],
+    gdocs: (OwidGdocPostInterface | OwidGdocDataInsightInterface)[],
     pageviews: Record<string, RawPageview>,
     cloudflareImagesByFilename: Record<string, DbEnrichedImage>
 ): PageRecord[] {
-    const getPostTypeAndImportance = (
-        gdoc: OwidGdocPostInterface
-    ): TypeAndImportance => {
+    const getPostImportance = (
+        gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
+    ): number => {
         return match(gdoc.content.type)
-            .with(OwidGdocType.Article, () => ({
-                type: "article" as const,
-                importance: "deprecation-notice" in gdoc.content ? -0.5 : 0,
-            }))
-            .with(OwidGdocType.AboutPage, () => ({
-                type: "about" as const,
-                importance: 1,
-            }))
+            .with(OwidGdocType.Article, () =>
+                "deprecation-notice" in gdoc.content ? -0.5 : 0
+            )
+            .with(OwidGdocType.AboutPage, () => 1)
             .with(
                 P.union(OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage),
-                () => ({
-                    type: "topic" as const,
-                    importance: 3,
-                })
+                () => 3
             )
-            .with(P.union(OwidGdocType.Fragment, undefined), () => ({
-                type: "other" as const,
-                importance: 0,
-            }))
+            .with(P.union(OwidGdocType.Fragment, undefined), () => 0)
+            .with(OwidGdocType.DataInsight, () => 0)
             .exhaustive()
     }
 
@@ -233,7 +248,6 @@ function generateGdocRecords(
             )
         )
         const chunks = generateChunksFromHtmlText(renderedPostContent)
-        const postTypeAndImportance = getPostTypeAndImportance(gdoc)
         let i = 0
 
         const thumbnailUrl = getThumbnailUrl(gdoc, cloudflareImagesByFilename)
@@ -241,12 +255,14 @@ function generateGdocRecords(
         for (const chunk of chunks) {
             const record = {
                 objectID: `${gdoc.id}-c${i}`,
-                ...postTypeAndImportance,
+                importance: getPostImportance(gdoc),
+                type: gdoc.content.type as PageType,
                 slug: gdoc.slug,
                 title: gdoc.content.title || "",
                 content: chunk,
-                views_7d: pageviews[`/${gdoc.slug}`]?.views_7d ?? 0,
-                excerpt: gdoc.content.excerpt,
+                views_7d:
+                    pageviews[getPrefixedGdocPath("", gdoc)]?.views_7d ?? 0,
+                excerpt: getExcerptFromGdoc(gdoc),
                 date: gdoc.publishedAt!.toISOString(),
                 modifiedDate: (
                     gdoc.updatedAt ?? gdoc.publishedAt!
@@ -267,9 +283,18 @@ function generateGdocRecords(
 // Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
 export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const gdocs = await db
-        .getPublishedGdocPostsWithTags(knex)
-        .then((gdocs) => gdocs.map(gdocFromJSON) as OwidGdocPostInterface[])
+    const gdocs = (await db
+        .getPublishedGdocsWithTags(knex, [
+            OwidGdocType.Article,
+            OwidGdocType.LinearTopicPage,
+            OwidGdocType.TopicPage,
+            OwidGdocType.AboutPage,
+            OwidGdocType.DataInsight,
+        ])
+        .then((gdocs) => gdocs.map(gdocFromJSON))) as (
+        | OwidGdocPostInterface
+        | OwidGdocDataInsightInterface
+    )[]
 
     const publishedGdocsBySlug = keyBy(gdocs, "slug")
     const slugsWithPublishedGdocsSuccessors =
