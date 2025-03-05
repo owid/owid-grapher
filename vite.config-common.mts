@@ -1,6 +1,6 @@
 import { defineConfig } from "vite"
 import pluginReact from "@vitejs/plugin-react"
-import pluginChecker from "vite-plugin-checker"
+import { checker as pluginChecker } from "vite-plugin-checker"
 import { sentryVitePlugin } from "@sentry/vite-plugin"
 import * as clientSettings from "./settings/clientSettings.js"
 import {
