@@ -250,7 +250,6 @@ export class VerticalAxisComponent extends React.Component<{
         const labelX = isLabelCentered ? -verticalAxis.rangeCenter : bounds.left
         const labelY = isLabelCentered ? bounds.left : bounds.top
 
-        const showTickLabels = !config.hideTickLabels
         const showTickMarks = !(config.hideTickMarks ?? true)
 
         return (
@@ -296,34 +295,30 @@ export class VerticalAxisComponent extends React.Component<{
                         ))}
                     </g>
                 )}
-                {showTickLabels && (
-                    <g id={makeIdForHumanConsumption("tick-labels")}>
-                        {tickLabels.map((label, i) => {
-                            const { y, xAlign, yAlign, formattedValue } = label
-                            return (
-                                <text
-                                    key={i}
-                                    x={(
-                                        bounds.left +
-                                        verticalAxis.width -
-                                        verticalAxis.tickPadding
-                                    ).toFixed(2)}
-                                    y={y}
-                                    dy={dyFromAlign(
-                                        yAlign ?? VerticalAlign.middle
-                                    )}
-                                    textAnchor={textAnchorFromAlign(
-                                        xAlign ?? HorizontalAlign.right
-                                    )}
-                                    fill={tickColor || GRAPHER_DARK_TEXT}
-                                    fontSize={verticalAxis.tickFontSize}
-                                >
-                                    {formattedValue}
-                                </text>
-                            )
-                        })}
-                    </g>
-                )}
+                <g id={makeIdForHumanConsumption("tick-labels")}>
+                    {tickLabels.map((label, i) => {
+                        const { y, xAlign, yAlign, formattedValue } = label
+                        return (
+                            <text
+                                key={i}
+                                x={(
+                                    bounds.left +
+                                    verticalAxis.width -
+                                    verticalAxis.tickPadding
+                                ).toFixed(2)}
+                                y={y}
+                                dy={dyFromAlign(yAlign ?? VerticalAlign.middle)}
+                                textAnchor={textAnchorFromAlign(
+                                    xAlign ?? HorizontalAlign.right
+                                )}
+                                fill={tickColor || GRAPHER_DARK_TEXT}
+                                fontSize={verticalAxis.tickFontSize}
+                            >
+                                {formattedValue}
+                            </text>
+                        )
+                    })}
+                </g>
             </g>
         )
     }
@@ -379,7 +374,6 @@ export class HorizontalAxisComponent extends React.Component<{
             ? bounds.top + labelOffset + 10
             : bounds.bottom - labelOffset
 
-        const showTickLabels = !axis.config.hideTickLabels
         const showTickMarks = !axis.config.hideTickMarks
 
         const isLabelCentered = axis.labelPosition === AxisAlign.middle
@@ -422,24 +416,22 @@ export class HorizontalAxisComponent extends React.Component<{
                         ))}
                     </g>
                 )}
-                {showTickLabels && (
-                    <g id={makeIdForHumanConsumption("tick-labels")}>
-                        {tickLabels.map((label) => (
-                            <text
-                                key={label.formattedValue}
-                                x={label.x}
-                                y={tickLabelYPlacement}
-                                fill={tickColor || GRAPHER_DARK_TEXT}
-                                textAnchor={textAnchorFromAlign(
-                                    label.xAlign ?? HorizontalAlign.center
-                                )}
-                                fontSize={axis.tickFontSize}
-                            >
-                                {label.formattedValue}
-                            </text>
-                        ))}
-                    </g>
-                )}
+                <g id={makeIdForHumanConsumption("tick-labels")}>
+                    {tickLabels.map((label) => (
+                        <text
+                            key={label.formattedValue}
+                            x={label.x}
+                            y={tickLabelYPlacement}
+                            fill={tickColor || GRAPHER_DARK_TEXT}
+                            textAnchor={textAnchorFromAlign(
+                                label.xAlign ?? HorizontalAlign.center
+                            )}
+                            fontSize={axis.tickFontSize}
+                        >
+                            {label.formattedValue}
+                        </text>
+                    ))}
+                </g>
             </g>
         )
     }

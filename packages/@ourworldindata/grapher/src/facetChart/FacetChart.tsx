@@ -495,20 +495,15 @@ export class FacetChart
                 useValueBasedColorScheme,
                 externalLegendHoverBin: this.legendHoverBin,
                 xAxisConfig: {
-                    // For now, sharing an x axis means hiding the tick labels of inner facets.
-                    // This means that none of the x axes are actually hidden (we just don't plot their tick labels).
+                    // For now, sharing an x axis means hiding the axis label and tick labels of inner facets.
+                    // This means that none of the x axes are actually removed (we just don't plot them).
                     // If we ever allow shared x axes to be actually hidden, we need to be careful with how we determine
                     // the `minSize` – in the intermediate series (at this time) all axes are shown in
                     // order to find the one with maximum size, but in the placed series, some axes are
                     // hidden. This expands the available area for the chart, which can in turn increase
                     // the number of ticks shown, which can make the size of the axis in the placed
                     // series greater than the one in the intermediate series.
-                    hideTickLabels: shouldHideFacetAxis(
-                        xAxis,
-                        cellEdges,
-                        sharedAxesSizes
-                    ),
-                    hideTickMarks: shouldHideFacetAxis(
+                    hideAxis: shouldHideFacetAxis(
                         xAxis,
                         cellEdges,
                         sharedAxesSizes
