@@ -286,11 +286,6 @@ export const getRelativeMouse = (
     )
 }
 
-// Purely for local development time
-const isStorybook = (): boolean =>
-    window.location.host.startsWith("localhost:6006") &&
-    document.title === "Storybook"
-
 // Just a quick and dirty way to expose window.chart/explorer/etc for debugging. Last caller wins.
 export const exposeInstanceOnWindow = (
     component: unknown,
@@ -300,8 +295,6 @@ export const exposeInstanceOnWindow = (
     if (typeof window === "undefined") return
     const win = window as any
     win[name] = component
-    alsoOnTopWindow =
-        alsoOnTopWindow === undefined ? isStorybook() : alsoOnTopWindow
     if (alsoOnTopWindow && win !== win.top) win.top[name] = component
 }
 
