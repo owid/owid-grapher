@@ -671,6 +671,9 @@ export class LineChart
             { unit, shortUnit } = formatColumn,
             { isRelativeMode, startTime } = this.manager
 
+        const title = formattedTime
+        const titleAnnotation = this.xAxis.label ? `(${this.xAxis.label})` : ""
+
         const columns = [formatColumn]
         if (hasColorScale) columns.push(colorColumn)
 
@@ -706,7 +709,8 @@ export class LineChart
                 offsetXDirection="left"
                 offsetX={20}
                 offsetY={-16}
-                title={formattedTime}
+                title={title}
+                titleAnnotation={titleAnnotation}
                 subtitle={subtitle}
                 subtitleFormat={subtitleFormat}
                 footer={footer}

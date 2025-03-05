@@ -570,6 +570,9 @@ export class StackedAreaChart extends AbstractStackedChart {
             formattedTime = formatColumn.formatTime(bottomSeriesPoint.position),
             { unit, shortUnit } = formatColumn
 
+        const title = formattedTime
+        const titleAnnotation = this.xAxis.label ? `(${this.xAxis.label})` : ""
+
         const lastStackedPoint = last(series)!.points[hoveredPointIndex]
         if (!lastStackedPoint) return undefined
         const totalValue = lastStackedPoint.value + lastStackedPoint.valueOffset
@@ -594,7 +597,8 @@ export class StackedAreaChart extends AbstractStackedChart {
                 offsetX={20}
                 offsetXDirection="left"
                 style={{ maxWidth: "50%" }}
-                title={formattedTime}
+                title={title}
+                titleAnnotation={titleAnnotation}
                 subtitle={unit !== shortUnit ? unit : undefined}
                 subtitleFormat="unit"
                 footer={footer}
