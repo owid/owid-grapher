@@ -3,21 +3,28 @@
  */
 
 import { expect, it, describe } from "vitest"
-import { render, screen } from "@testing-library/react"
-import "@testing-library/jest-dom/vitest"
+
+import Enzyme from "enzyme"
+import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
 import { ExplorerCreatePage } from "./ExplorerCreatePage.js"
 
-describe(ExplorerCreatePage, () => {
-    it("renders", () => {
-        render(
-            <ExplorerCreatePage
-                slug={"sample"}
-                gitCmsBranchName={"dev"}
-                doNotFetch={true}
-            />
-        )
+Enzyme.configure({ adapter: new Adapter() })
 
-        // Check for loading indicator
-        expect(screen.getByTestId("loading-indicator")).toBeInTheDocument()
+describe(ExplorerCreatePage, () => {
+    const element = Enzyme.mount(
+        <ExplorerCreatePage
+            slug={"sample"}
+            gitCmsBranchName={"dev"}
+            doNotFetch={true}
+        />
+    )
+    it("renders", () => {
+        expect(element.find(`.loading-indicator`).length).toEqual(1)
+    })
+
+    const explorerCreatePage = element.instance() as ExplorerCreatePage
+
+    it("edit methods work", () => {
+        expect(explorerCreatePage.isModified).toEqual(false)
     })
 })
