@@ -8,6 +8,7 @@ import { vi, it, expect } from "vitest"
 import { FullPost, WP_PostType } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import * as pageOverrides from "./pageOverrides.js"
+import * as Post from "../db/model/Post.js"
 
 import { KnexReadonlyTransaction } from "../db/db.js"
 
@@ -28,14 +29,14 @@ const mockCreatePost = (slug: string): FullPost => {
 const forestLandingSlug = "forests-and-deforestation"
 
 const getPostBySlugLogToSlackNoThrow = vi.spyOn(
-    pageOverrides,
-    "getPostBySlugLogToSlackNoThrow"
+    Post,
+    "getFullPostBySlugFromSnapshot"
 )
 getPostBySlugLogToSlackNoThrow.mockImplementation((knex, landingSlug) =>
     Promise.resolve(mockCreatePost(landingSlug))
 )
 
-it.skip("gets parent landing", async () => {
+it("gets parent landing", async () => {
     const formattingOptions = extractFormattingOptions(
         "<!-- formatting-options subnavId:forests subnavCurrentId:forest-area -->"
     )
@@ -49,7 +50,7 @@ it.skip("gets parent landing", async () => {
     ).resolves.toEqual(mockCreatePost(forestLandingSlug))
 })
 
-it.skip("does not get parent landing (subnavId invalid)", async () => {
+it("does not get parent landing (subnavId invalid)", async () => {
     const formattingOptions = extractFormattingOptions(
         "<!-- formatting-options subnavId:invalid subnavCurrentId:forest-area -->"
     )
@@ -63,7 +64,7 @@ it.skip("does not get parent landing (subnavId invalid)", async () => {
     ).resolves.toEqual(undefined)
 })
 
-it.skip("does not get parent landing (post is already a landing)", async () => {
+it("does not get parent landing (post is already a landing)", async () => {
     const formattingOptions = extractFormattingOptions(
         "<!-- formatting-options subnavId:forests subnavCurrentId:forest-area -->"
     )
@@ -77,13 +78,13 @@ it.skip("does not get parent landing (post is already a landing)", async () => {
     ).resolves.toEqual(undefined)
 })
 
-it.skip("does not get parent landing and logs (landing post not found)", async () => {
+it("does not get parent landing and logs (landing post not found)", async () => {
     const formattingOptions = extractFormattingOptions(
         "<!-- formatting-options subnavId:forests subnavCurrentId:forest-area -->"
     )
 
     getPostBySlugLogToSlackNoThrow.mockImplementationOnce(() =>
-        Promise.resolve(undefined)
+        Promise.resolve(undefined as any)
     )
 
     await expect(
