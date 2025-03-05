@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment happy-dom
+ */
+
 import { expect, it, describe, beforeEach, vi } from "vitest"
 
 import {
@@ -7,7 +11,7 @@ import {
     slugify,
 } from "@ourworldindata/utils"
 import { fireEvent, render, screen } from "@testing-library/react"
-import "@testing-library/jest-dom"
+import "@testing-library/jest-dom/vitest"
 
 import ArticleBlock from "./ArticleBlock.js"
 import { KEY_INSIGHTS_INSIGHT_PARAM } from "./KeyInsights.js"

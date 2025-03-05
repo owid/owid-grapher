@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment happy-dom
+ */
+
 import { expect, it, describe } from "vitest"
 import { GrapherInterface } from "@ourworldindata/types"
 import {

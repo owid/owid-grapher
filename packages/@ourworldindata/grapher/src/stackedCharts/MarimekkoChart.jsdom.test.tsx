@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment happy-dom
+ */
+
 import { expect, it, describe, test } from "vitest"
 
 import { Bounds, ColumnTypeNames, omit } from "@ourworldindata/utils"

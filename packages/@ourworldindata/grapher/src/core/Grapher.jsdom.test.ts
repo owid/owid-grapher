@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment happy-dom
+ */
+
 import { expect, it, describe } from "vitest"
 import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
 import {

@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment happy-dom
+ */
+
 import { expect, it, describe } from "vitest"
 import { ExplorerControlType } from "./ExplorerConstants.js"
 import { ExplorerControlPanel } from "./ExplorerControls.js"

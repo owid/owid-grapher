@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment happy-dom
+ */
+
 import { expect, it, describe } from "vitest"
 
 import { Explorer } from "./Explorer.js"

@@ -11189,6 +11189,7 @@ __metadata:
     glob: "npm:^10.3.3"
     googleapis: "npm:^108.0.0"
     handsontable: "npm:^15.1.0"
+    happy-dom: "npm:^17.2.2"
     html-to-text: "npm:^9.0.5"
     http-server: "npm:^14.1.1"
     husky: "npm:^9.0.11"
@@ -11334,6 +11335,16 @@ __metadata:
     hyperformula:
       optional: true
   checksum: 10/e7ba0f63ed26b215c26217937f5e958e7207e4d17c58fb5cb97b1182a1b86e308c9b3e6563711e5219d2fe8ef538d098677a8f480b19f16c8fa2c672f443622a
+  languageName: node
+  linkType: hard
+
+"happy-dom@npm:^17.2.2":
+  version: 17.2.2
+  resolution: "happy-dom@npm:17.2.2"
+  dependencies:
+    webidl-conversions: "npm:^7.0.0"
+    whatwg-mimetype: "npm:^3.0.0"
+  checksum: 10/8ad7e801e41ec4d61d535c60e476cd4e9989850f0240417d22613fcc56aa2dd26903754dcf6b70561b81d97dd07dfe7fc7b71feaa1f2003107c81dece3a32e14
   languageName: node
   linkType: hard
 
@@ -19857,6 +19868,13 @@ __metadata:
   dependencies:
     iconv-lite: "npm:0.6.3"
   checksum: 10/162d712d88fd134a4fe587e53302da812eb4215a1baa4c394dfd86eff31d0a079ff932c05233857997de07481093358d6e7587997358f49b8a580a777be22089
+  languageName: node
+  linkType: hard
+
+"whatwg-mimetype@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "whatwg-mimetype@npm:3.0.0"
+  checksum: 10/96f9f628c663c2ae05412c185ca81b3df54bcb921ab52fe9ebc0081c1720f25d770665401eb2338ab7f48c71568133845638e18a81ed52ab5d4dcef7d22b40ef
   languageName: node
   linkType: hard
 

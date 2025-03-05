@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment happy-dom
+ */
+
 import { expect, it, describe, test } from "vitest"
 import { Grapher } from "../core/Grapher.js"
 import { legacyMapGrapher } from "./MapChart.sample.js"
