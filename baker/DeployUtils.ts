@@ -9,9 +9,8 @@ import {
 } from "../settings/serverSettings.js"
 import { SiteBaker } from "../baker/SiteBaker.js"
 import { WebClient } from "@slack/web-api"
-import { DeployChange, DeployMetadata } from "@ourworldindata/utils"
+import { DeployChange, DeployMetadata, memoize } from "@ourworldindata/utils"
 import { KnexReadonlyTransaction } from "../db/db.js"
-import { memoize } from "@ourworldindata/utils"
 
 const deployQueueServer = new DeployQueueServer()
 
