@@ -31,13 +31,11 @@ describe("legacyToGridCovidExplorer", () => {
     const migratedQueryParams = migratedUrl.queryParams
 
     it("has correct explorer slug", () => {
-        expect(migration.explorerSlug).toEqual("coronavirus-data-explorer")
+        expect(migration.explorerSlug).toEqual("covid")
     })
 
     it("sets new pathname", () => {
-        expect(migratedUrl.pathname).toEqual(
-            "/explorers/coronavirus-data-explorer"
-        )
+        expect(migratedUrl.pathname).toEqual("/explorers/covid")
     })
 
     it("migrates country param correctly", () => {
