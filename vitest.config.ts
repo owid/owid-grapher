@@ -11,5 +11,6 @@ export default defineConfig({
             "db/tests/*",
             "adminSiteServer/app.test.ts",
         ],
+        pool: "vmThreads",
     },
 })
