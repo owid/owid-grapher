@@ -92,12 +92,6 @@ export const DEPLOY_PENDING_FILE_PATH: string =
     serverSettings.DEPLOY_PENDING_FILE_PATH ?? `${BASE_DIR}/.pending`
 export const CLOUDFLARE_AUD: string = serverSettings.CLOUDFLARE_AUD ?? ""
 
-// Either remote catalog `https://owid-catalog.nyc3.digitaloceanspaces.com/` or local catalog `.../etl/data/`
-// Note that Cloudflare proxy on `https://catalog.ourworldindata.org` does not support range requests yet
-// It is empty (turned off) by default for now, in the future it should be
-// `https://owid-catalog.nyc3.digitaloceanspaces.com/` by default
-export const CATALOG_PATH: string = serverSettings.CATALOG_PATH ?? ""
-
 // make and bash handle spaces in env variables differently.
 // no quotes - wait-for-mysql.sh will break: "PRIVATE: command not found"
 // quotes - wait-for-mysql.sh will work, but the variable will be double-quoted in node: '"-----BEGIN PRIVATE etc..."'
