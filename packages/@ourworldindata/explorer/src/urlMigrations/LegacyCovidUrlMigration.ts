@@ -121,7 +121,7 @@ const legacyToCurrentCovidQueryParams = (
 }
 
 export const legacyCovidMigrationSpec: ExplorerUrlMigrationSpec = {
-    explorerSlug: "coronavirus-data-explorer",
+    explorerSlug: "covid",
     migrateUrl: (url, baseQueryStr) => {
         // Migrate the Grapher query params in both URLs
         const [explorerUrl, baseUrl] = [
@@ -137,7 +137,7 @@ export const legacyCovidMigrationSpec: ExplorerUrlMigrationSpec = {
                 )
             )
             .update({
-                pathname: `/${EXPLORERS_ROUTE_FOLDER}/coronavirus-data-explorer`,
+                pathname: `/${EXPLORERS_ROUTE_FOLDER}/covid`,
             })
     },
 }
