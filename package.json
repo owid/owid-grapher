@@ -131,7 +131,6 @@
         "react-color": "^2.18.1",
         "react-diff-viewer-continued": "^3.4.0",
         "react-dom": "^17.0.2",
-        "react-error-boundary": "^4.0.10",
         "react-flip-toolkit": "^7.0.9",
         "react-hook-form": "^7.51.3",
         "react-horizontal-scrolling-menu": "^4.0.3",

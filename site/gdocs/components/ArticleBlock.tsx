@@ -47,7 +47,7 @@ import Person from "./Person.js"
 import NarrativeChart from "./NarrativeChart.js"
 import { Container, getLayout } from "./layout.js"
 
-export default function ArticleBlock({
+function ArticleBlockInternal({
     b: block,
     containerType = "default",
     toc,
@@ -70,7 +70,7 @@ export default function ArticleBlock({
             />
         )
     }
-    const content: any | null = match(block)
+    return match(block)
         .with({ type: "aside" }, ({ caption, position = "right" }) => (
             <figure
                 className={cx(
@@ -225,9 +225,7 @@ export default function ArticleBlock({
                 />
             )
         })
-        .with({ type: "simple-text" }, (block) => {
-            return block.value
-        })
+        .with({ type: "simple-text" }, (block) => <>{block.value.text}</>)
         .with({ type: "heading", level: 1 }, (block) => (
             <h1
                 className={cx(
@@ -684,10 +682,27 @@ export default function ArticleBlock({
             />
         ))
         .exhaustive()
+}
 
+export default function ArticleBlock({
+    b: block,
+    containerType = "default",
+    toc,
+    shouldRenderLinks = true,
+}: {
+    b: OwidEnrichedGdocBlock
+    containerType?: Container
+    toc?: TocHeadingWithTitleSupertitle[]
+    shouldRenderLinks?: boolean
+}) {
     return (
         <BlockErrorBoundary className={getLayout("default", containerType)}>
-            {content}
+            <ArticleBlockInternal
+                b={block}
+                containerType={containerType}
+                toc={toc}
+                shouldRenderLinks={shouldRenderLinks}
+            />
         </BlockErrorBoundary>
     )
 }

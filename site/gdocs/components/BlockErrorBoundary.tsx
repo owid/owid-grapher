@@ -1,5 +1,6 @@
 import * as React from "react"
-import { ErrorBoundary } from "react-error-boundary"
+import * as Sentry from "@sentry/react"
+import { Button } from "@ourworldindata/components"
 import { useDebug } from "../DebugContext.js"
 
 export const BlockErrorBoundary = ({
@@ -10,23 +11,32 @@ export const BlockErrorBoundary = ({
     className: string
 }) => {
     return (
-        <ErrorBoundary
-            FallbackComponent={(props) => (
-                <BlockErrorFallback {...props} className={className} />
-            )}
+        <Sentry.ErrorBoundary
+            fallback={({ error, resetError }) => {
+                if (!(error instanceof Error)) {
+                    error = new Error(String(error))
+                }
+                return (
+                    <BlockErrorFallback
+                        className={className}
+                        error={error as Error}
+                        resetError={resetError}
+                    />
+                )
+            }}
         >
             {children}
-        </ErrorBoundary>
+        </Sentry.ErrorBoundary>
     )
 }
 
 export const BlockErrorFallback = ({
     error,
-    resetErrorBoundary,
+    resetError,
     className = "",
 }: {
     error: Error
-    resetErrorBoundary?: VoidFunction
+    resetError?: VoidFunction
     className?: string
 }): React.ReactElement => {
     const debug = useDebug()
@@ -34,30 +44,31 @@ export const BlockErrorFallback = ({
         <div
             className={className}
             style={{
-                textAlign: "center",
-                backgroundColor: "rgba(255,0,0,0.1)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                alignItems: "center",
+                backgroundColor: "#ffe5e5",
                 padding: "20px",
                 marginTop: "20px",
                 marginBottom: "20px",
             }}
         >
             <h3 style={{ margin: 0 }}>{error.name}</h3>
-            {debug ? (
+            {debug && (
                 <>
                     <div>{error.message}</div>
-                    {resetErrorBoundary ? (
-                        <div>
-                            <button
-                                aria-label="Reload content"
-                                style={{ margin: "10px" }}
-                                onClick={resetErrorBoundary}
-                            >
-                                Try again
-                            </button>
-                        </div>
-                    ) : null}
+                    {resetError && (
+                        <Button
+                            theme="solid-vermillion"
+                            text="Try again"
+                            ariaLabel="Reload content"
+                            onClick={resetError}
+                            icon={null}
+                        />
+                    )}
                 </>
-            ) : null}
+            )}
         </div>
     )
 }
