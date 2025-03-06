@@ -1167,12 +1167,18 @@ div.raw-html-table__container {
 
 // A small grey block
 .article-block__callout {
-    h4 {
-        display: inline;
-        color: $blue-90;
-        margin-bottom: 8px;
-        margin-top: 8px;
+    .article-block__text,
+    .article-block__list,
+    .article-block__html,
+    .article-block__numbered-list {
+        @include body-3-regular;
+        margin-bottom: 0;
+
+        &:not(:last-child) {
+            margin-bottom: 8px;
+        }
     }
+
     a {
         @include owid-link-90;
     }
@@ -1180,10 +1186,7 @@ div.raw-html-table__container {
     background: $gray-10;
     padding: 16px 24px;
     border-radius: 8px;
-    margin: 32px 0;
-    p:last-child {
-        margin-bottom: 8px;
-    }
+    margin: 8px 0 32px;
 
     + .article-block__horizontal-rule {
         margin-top: 24px;

@@ -1,3 +1,10 @@
+.callout-heading {
+    @include h4-semibold;
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: $blue-90;
+}
+
 .callout-icon {
     margin-right: 8px;
 }
