@@ -478,8 +478,10 @@ export async function getGptTopicSuggestions(
         throw new JsonError("No response from GPT", 500)
 
     // We only want to return topics that are in the list of possible topics
-    const confirmedTopics = parsedResponse.topics.filter((topic) =>
-        topics.some((t) => t.id === topic.id)
+    const confirmedTopics = topics.filter((topic) =>
+        parsedResponse.topics.some(
+            (t) => t.id === topic.id && t.name === topic.name
+        )
     )
 
     return confirmedTopics
