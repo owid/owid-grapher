@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom-v5-compat"
 import {
     Grapher,
     GrapherAnalytics,
+    GrapherProgrammaticInterface,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import {
@@ -53,6 +54,12 @@ declare global {
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
+
+const baseGrapherConfig: GrapherProgrammaticInterface = {
+    bakedGrapherURL: BAKED_GRAPHER_URL,
+    adminBaseUrl: ADMIN_BASE_URL,
+    dataApiUrl: DATA_API_URL,
+}
 
 // From DataPageUtils
 const getDatapageDataV2 = async (
@@ -221,7 +228,10 @@ export const MultiDimDataPageContent = ({
                         )
                     setVarDatapageData(datapageData.value)
                     if (grapherConfig.status === "fulfilled") {
-                        const config = grapherConfig.value
+                        const config = {
+                            ...grapherConfig.value,
+                            ...baseGrapherConfig,
+                        }
                         // Batch the grapher updates to avoid getting intermediate
                         // grapherChangedParams values, which make the URL update
                         // multiple times while flashing.
@@ -381,11 +391,9 @@ export const MultiDimDataPageContent = ({
                             <figure data-grapher-src ref={grapherFigureRef}>
                                 <Grapher
                                     ref={grapherRef}
+                                    {...baseGrapherConfig}
                                     bounds={bounds}
                                     manager={manager}
-                                    bakedGrapherURL={BAKED_GRAPHER_URL}
-                                    adminBaseUrl={ADMIN_BASE_URL}
-                                    dataApiUrl={DATA_API_URL}
                                 />
                             </figure>
                         </div>
