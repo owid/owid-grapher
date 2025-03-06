@@ -36,7 +36,7 @@ jobs:
               run: yarn buildTsc
 
             - name: Run vitest
-              run: yarn test
+              run: yarn test --pool=forks
 
     eslint:
         runs-on: ubuntu-latest
