@@ -81,6 +81,7 @@ export default function LatestDataInsights({
                     {dataInsights.map((dataInsight, index) => (
                         <DataInsightCard
                             key={dataInsight.id}
+                            index={index}
                             title={dataInsight.content.title}
                             body={dataInsight.content.body}
                             publishedAt={dataInsight.publishedAt}
@@ -138,16 +139,19 @@ export default function LatestDataInsights({
 }
 
 const DataInsightCard = memo(function DataInsightCard({
+    index,
     title,
     body,
     publishedAt,
     href,
 }: {
+    index: number
     title: string
     body: OwidEnrichedGdocBlock[]
     publishedAt?: Date
     href: string
 }) {
+    const titleId = `latest-data-insights__card-title-${index}`
     const firstImageIndex = body.findIndex((block) => block.type === "image")
     const firstImageBlock = body[firstImageIndex] as
         | EnrichedBlockImage
@@ -157,6 +161,7 @@ const DataInsightCard = memo(function DataInsightCard({
         <a
             className="latest-data-insights__card latest-data-insights__card__data-insight"
             href={href}
+            aria-labelledby={titleId}
         >
             {firstImageBlock && (
                 <Image
@@ -177,7 +182,9 @@ const DataInsightCard = memo(function DataInsightCard({
                         highlightToday={true}
                     />
                 )}
-                <h3 className="latest-data-insights__card-title">{title}</h3>
+                <h3 id={titleId} className="latest-data-insights__card-title">
+                    {title}
+                </h3>
                 <div className="latest-data-insights__card-body">
                     <ArticleBlocks
                         blocks={otherBlocks}
