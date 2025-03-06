@@ -6,7 +6,7 @@ Each option supports different features:
 
 **TypeScript compilation** 🔨
 
-At a minimum, all of the options will transpile and serve the Grapher code, which can be viewed with [Storybook](https://storybook.js.org/) for testing in a browser. This should be enough for simple bug fixes but a bit basic for more complex development.
+At a minimum, all of the options will transpile and serve the Grapher code. This should be enough for simple bug fixes but a bit basic for more complex development.
 
 **Grapher Admin UI** 🚜
 
