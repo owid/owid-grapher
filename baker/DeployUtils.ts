@@ -11,6 +11,7 @@ import { SiteBaker } from "../baker/SiteBaker.js"
 import { WebClient } from "@slack/web-api"
 import { DeployChange, DeployMetadata } from "@ourworldindata/utils"
 import { KnexReadonlyTransaction } from "../db/db.js"
+import { memoize } from "@ourworldindata/utils"
 
 const deployQueueServer = new DeployQueueServer()
 
@@ -127,20 +128,26 @@ const getEmailSlackMentionsMap = async (
  * Get a Slack mention for a given email address. Format it according to the
  * Slack API requirements to mention a user in a message
  * (https://api.slack.com/reference/surfaces/formatting#mentioning-users).
+ * Slack has a tight limit of 20 requests per minute for email lookups, so we
+ * memoize this.
  */
-const getSlackMentionByEmail = async (
-    email: string | undefined,
-    slackClient: WebClient
-): Promise<string | undefined> => {
-    if (!email || email === "etl@ourworldindata.org") return
+const getSlackMentionByEmail = memoize(
+    async (
+        email: string | undefined,
+        slackClient: WebClient
+    ): Promise<string | undefined> => {
+        if (!email || email === "etl@ourworldindata.org") return
 
-    try {
-        const response = await slackClient.users.lookupByEmail({ email })
-        return response.user?.id ? `<@${response.user.id}>` : undefined
-    } catch (error) {
-        throw new Error(`Error looking up email "${email}" in slack: ${error}`)
+        try {
+            const response = await slackClient.users.lookupByEmail({ email })
+            return response.user?.id ? `<@${response.user.id}>` : undefined
+        } catch (error) {
+            throw new Error(
+                `Error looking up email "${email}" in slack: ${error}`
+            )
+        }
     }
-}
+)
 
 const MAX_SUCCESSIVE_FAILURES = 2
 
