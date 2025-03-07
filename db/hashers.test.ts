@@ -4,7 +4,7 @@ import { BCryptHasher } from "./hashers.js"
 describe(BCryptHasher, () => {
     it("should encode a password", async () => {
         const hasher = new BCryptHasher()
-        hasher.iterations = 4 // for faster tests
+        hasher.saltRounds = 4 // for faster tests
         const password = "password"
         const hash = await hasher.encode(password)
         expect(hash).toContain("bcrypt")
@@ -12,10 +12,9 @@ describe(BCryptHasher, () => {
 
     it("should verify a hashed password", async () => {
         const hasher = new BCryptHasher()
-        hasher.iterations = 4 // for faster tests
+        hasher.saltRounds = 4 // for faster tests
         const password = "password"
         const hash = await hasher.encode(password)
-        console.log(hash)
         const result = await hasher.verify(password, hash)
         expect(result).toBe(true)
     })
