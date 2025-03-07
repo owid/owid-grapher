@@ -95,7 +95,7 @@
         "filenamify": "^4.1.0",
         "fs-extra": "^11.1.1",
         "glob": "^10.3.3",
-        "googleapis": "^108.0.0",
+        "googleapis": "^146.0.0",
         "handsontable": "^15.1.0",
         "html-to-text": "^9.0.5",
         "indefinite": "^2.4.3",
