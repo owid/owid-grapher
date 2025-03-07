@@ -2,7 +2,7 @@ import bcrypt from "bcrypt"
 
 export class BCryptHasher {
     private algorithm = "bcrypt"
-    private iterations = 12
+    iterations = 12
 
     private async salt(): Promise<string> {
         return bcrypt.genSalt(this.iterations)
