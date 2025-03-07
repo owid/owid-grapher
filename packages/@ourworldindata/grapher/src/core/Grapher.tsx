@@ -2699,7 +2699,7 @@ export class GrapherState {
     }
 
     @computed get hasUserChangedTimeHandles(): boolean {
-        const authorsVersion = this.legacyConfigAsAuthored
+        const authorsVersion = this.authorsVersion
         return (
             this.minTime !== authorsVersion.minTime ||
             this.maxTime !== authorsVersion.maxTime
