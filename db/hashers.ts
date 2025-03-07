@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt"
+import bcrypt from "bcryptjs"
 
 export class BCryptHasher {
     private algorithm = "bcrypt"

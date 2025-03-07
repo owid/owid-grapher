@@ -36,7 +36,7 @@ describe(BCryptHasher, () => {
         }
     })
 
-    it("should verify a pre-hashed password", async () => {
+    it("should not verify a wrong password", async () => {
         const hasher = new BCryptHasher()
         const password = "wrongPassword"
         const hashedPassword =
