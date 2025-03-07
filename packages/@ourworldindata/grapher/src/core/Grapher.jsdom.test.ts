@@ -760,6 +760,7 @@ describe("time parameter", () => {
                 minTime: 0,
                 maxTime: 75,
             })
+            expect(grapher.hasUserChangedTimeHandles).toBe(false)
             expect(grapher.changedParams.time).toEqual(undefined)
         })
 
@@ -768,6 +769,7 @@ describe("time parameter", () => {
                 minTime: undefined,
                 maxTime: 75,
             })
+            expect(grapher.hasUserChangedTimeHandles).toBe(false)
             expect(grapher.changedParams.time).toEqual(undefined)
         })
     })
