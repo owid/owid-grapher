@@ -17,9 +17,13 @@ export default function Callout({
     const icon = block.icon ? iconMap[block.icon] : null
     return (
         <div className={className}>
-            {icon && <FontAwesomeIcon className="callout-icon" icon={icon} />}
             {block.title ? (
-                <h4 className="h4-semibold">{block.title}</h4>
+                <h4 className="callout-heading">
+                    {icon && (
+                        <FontAwesomeIcon className="callout-icon" icon={icon} />
+                    )}
+                    {block.title}
+                </h4>
             ) : null}
             <ArticleBlocks blocks={block.text} />
         </div>
