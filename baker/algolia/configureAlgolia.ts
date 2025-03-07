@@ -112,7 +112,7 @@ export const configureAlgolia = async () => {
             "unordered(content)",
         ],
         customRanking: ["desc(score)", "desc(importance)"],
-        attributesToSnippet: ["excerpt:20", "content:20"],
+        attributesToSnippet: ["content:20"],
         attributeForDistinct: "slug",
         attributesForFaceting: [
             "filterOnly(slug)",
