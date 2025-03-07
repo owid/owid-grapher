@@ -11380,7 +11380,7 @@ __metadata:
     unist-util-visit: "npm:^2.0.0"
     url-join: "npm:^5.0.0"
     url-parse: "npm:^1.5.10"
-    url-slug: "npm:^3.0.2"
+    url-slug: "npm:^4.0.1"
     usehooks-ts: "npm:^3.1.0"
     uuidv7: "npm:^1.0.1"
     vite: "npm:^6.2.0"
@@ -19757,10 +19757,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"url-slug@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "url-slug@npm:3.0.2"
-  checksum: 10/5439c987f3feed477523febcec33017e7025000e9492a1cd90a01e71784eeb45ebb0e207be31f8c93b86e86f301e222f131834d6cadb4dbdef13efcb7e6b4690
+"url-slug@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "url-slug@npm:4.0.1"
+  checksum: 10/ed76334f8450558f2ea61ec4ffe6a477ab4926d9bcfb6e7e47478551787ad025a3da12bc4d57e797d4c64e7c34414d1bafc2a573b189ca86697547d1b7865fa0
   languageName: node
   linkType: hard
 

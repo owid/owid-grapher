@@ -166,7 +166,7 @@
         "unist-util-visit": "^2.0.0",
         "url-join": "^5.0.0",
         "url-parse": "^1.5.10",
-        "url-slug": "^3.0.2",
+        "url-slug": "^4.0.1",
         "usehooks-ts": "^3.1.0",
         "uuidv7": "^1.0.1",
         "webfontloader": "^1.6.28",
