@@ -133,6 +133,7 @@ export {
     isArrayDifferentFromReference,
     readFromAssetMap,
     downloadImage,
+    getUniqueNamesFromParentTagArrays,
     getUserNavigatorLanguages,
     getUserNavigatorLanguagesNonEnglish,
 } from "./Util.js"
@@ -153,6 +154,8 @@ export {
     getCitationShort,
     grabMetadataForGdocLinkedIndicator,
 } from "./metadataHelpers.js"
+
+export { multiDimDimensionsToViewId } from "./multiDim.js"
 
 export {
     capitalize,

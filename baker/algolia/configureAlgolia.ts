@@ -161,7 +161,7 @@ export const configureAlgolia = async () => {
     })
 
     const explorerViewsAndChartsIndex = client.initIndex(
-        getIndexName(SearchIndexName.ExplorerViewsAndCharts)
+        getIndexName(SearchIndexName.ExplorerViewsMdimViewsAndCharts)
     )
 
     await explorerViewsAndChartsIndex.setSettings({
