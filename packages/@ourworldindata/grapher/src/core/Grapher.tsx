@@ -2696,8 +2696,8 @@ export class GrapherState {
         return this.manager?.embedDialogAdditionalElements
     }
 
-    @computed private get hasUserChangedTimeHandles(): boolean {
-        const authorsVersion = this.legacyConfigAsAuthored
+    @computed get hasUserChangedTimeHandles(): boolean {
+        const authorsVersion = this.authorsVersion
         return (
             this.minTime !== authorsVersion.minTime ||
             this.maxTime !== authorsVersion.maxTime
