@@ -11312,7 +11312,7 @@ __metadata:
     http-server: "npm:^14.1.1"
     husky: "npm:^9.0.11"
     indefinite: "npm:^2.4.3"
-    ini: "npm:^4.1.2"
+    ini: "npm:^5.0.0"
     instantsearch.js: "npm:^4.72.1"
     js-base64: "npm:^3.7.2"
     js-cookie: "npm:^3.0.1"
@@ -11982,10 +11982,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ini@npm:^4.1.2":
-  version: 4.1.2
-  resolution: "ini@npm:4.1.2"
-  checksum: 10/383396e45965bdd32ac18d405db1726d51e43e5c792325b4247736c4a402cdc0b448cc9e85960f0c13f1ab603a14a11ed4c9c796a385aced6d9045756a19a469
+"ini@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "ini@npm:5.0.0"
+  checksum: 10/76e5567b46504b2b12650878ba6277204500a6ead3fe69eef419ee570456b364b39c040ee545846053f6d8a15797a82fc6d9efe06e392b9b6093935f4a2f2c30
   languageName: node
   linkType: hard
 
