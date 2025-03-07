@@ -93,7 +93,7 @@
         "express-rate-limit": "^7.5.0",
         "figma-api": "^2.0.1-beta",
         "filenamify": "^6.0.0",
-        "fs-extra": "^11.1.1",
+        "fs-extra": "^11.3.0",
         "glob": "^10.3.3",
         "googleapis": "^146.0.0",
         "handsontable": "^15.1.0",
