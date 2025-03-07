@@ -62,7 +62,6 @@ import {
     isEmpty,
     compact,
     getOriginAttributionFragments,
-    sortBy,
     extractDetailsFromSyntax,
     omit,
     isTouchDevice,
@@ -1916,14 +1915,8 @@ export class Grapher
         const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
             this
 
-        // sort y columns by their display name
-        const sortedYColumnSlugs = sortBy(
-            yColumnSlugs,
-            (slug) => this.inputTable.get(slug).titlePublicOrDisplayName.title
-        )
-
         return excludeUndefined([
-            ...sortedYColumnSlugs,
+            ...yColumnSlugs,
             xColumnSlug,
             sizeColumnSlug,
             colorColumnSlug,
@@ -1934,14 +1927,8 @@ export class Grapher
         const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
             this
 
-        // sort y-columns by their display name
-        const sortedYColumnSlugs = sortBy(
-            yColumnSlugs,
-            (slug) => this.inputTable.get(slug).titlePublicOrDisplayName.title
-        )
-
         const columnSlugs = excludeUndefined([
-            ...sortedYColumnSlugs,
+            ...yColumnSlugs,
             xColumnSlug,
             sizeColumnSlug,
             colorColumnSlug,
