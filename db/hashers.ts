@@ -1,16 +1,11 @@
-import bcrypt from "bcrypt"
+import bcrypt from "bcryptjs"
 
 export class BCryptHasher {
     private algorithm = "bcrypt"
-    private iterations = 12
-
-    private async salt(): Promise<string> {
-        return bcrypt.genSalt(this.iterations)
-    }
+    saltRounds = 12 // only exposed for testing, where we use fewer rounds for faster tests
 
     async encode(password: string): Promise<string> {
-        const salt = await this.salt()
-        const key = await bcrypt.hash(password, salt)
+        const key = await bcrypt.hash(password, this.saltRounds)
         return `${this.algorithm}$${key}`
     }
 
