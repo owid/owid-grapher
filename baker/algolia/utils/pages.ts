@@ -237,6 +237,7 @@ function generateGdocRecords(
     const records: PageRecord[] = []
     for (const gdoc of gdocs) {
         if (!gdoc.content.body) continue
+        if (!gdoc.content.type) continue
         // Only rendering the blocks - not the page nav, title, byline, etc
         const renderedPostContent = ReactDOMServer.renderToStaticMarkup(
             createElement(
@@ -256,7 +257,7 @@ function generateGdocRecords(
             const record = {
                 objectID: `${gdoc.id}-c${i}`,
                 importance: getPostImportance(gdoc),
-                type: gdoc.content.type as PageType,
+                type: gdoc.content.type,
                 slug: gdoc.slug,
                 title: gdoc.content.title || "",
                 content: chunk,
