@@ -236,8 +236,12 @@ function generateGdocRecords(
 
     const records: PageRecord[] = []
     for (const gdoc of gdocs) {
-        if (!gdoc.content.body) continue
-        if (!gdoc.content.type) continue
+        if (!gdoc.content.body || !gdoc.content.type) {
+            console.log(
+                `Skipping Gdoc ${gdoc.id} in search indexing (missing content or type)`
+            )
+            continue
+        }
         // Only rendering the blocks - not the page nav, title, byline, etc
         const renderedPostContent = ReactDOMServer.renderToStaticMarkup(
             createElement(
