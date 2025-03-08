@@ -73,7 +73,7 @@ import { applyTransforms, extractTransformNameAndParams } from "./Transforms.js"
 interface AdvancedOptions {
     tableDescription?: string
     transformCategory?: TransformType
-    parent?: CoreTable
+    hasParent?: boolean
     filterMask?: FilterMask
     tableSlug?: TableSlug
 }
@@ -85,7 +85,7 @@ export class CoreTable<
     COL_DEF_TYPE extends CoreColumnDef = CoreColumnDef,
 > {
     private _columns: Map<ColumnSlug, CoreColumn> = new Map()
-    protected parent?: this
+    protected hasParent: boolean
     tableDescription: string
     private timeToLoad = 0
     private initTime = Date.now()
@@ -100,11 +100,11 @@ export class CoreTable<
         advancedOptions: AdvancedOptions = {}
     ) {
         const start = Date.now() // Perf aid
-        const { parent, tableDescription = "" } = advancedOptions
+        const { tableDescription = "", hasParent } = advancedOptions
 
         this.originalInput = input
         this.tableDescription = tableDescription
-        this.parent = parent as this
+        this.hasParent = hasParent ?? false
         this.inputColumnDefs =
             typeof inputColumnDefs === "string"
                 ? columnDefinitionsFromInput<COL_DEF_TYPE>(inputColumnDefs)
@@ -141,7 +141,7 @@ export class CoreTable<
 
         // If this has a parent table, than we expect all defs. This makes "deletes" and "renames" fast.
         // If this is the first input table, then we do a simple check to generate any missing column defs.
-        if (!parent)
+        if (!advancedOptions.hasParent)
             autodetectColumnDefs(this.inputColumnStore, this._columns).forEach(
                 (def) => this.setColumn(def as COL_DEF_TYPE)
             )
@@ -318,7 +318,7 @@ export class CoreTable<
             )
         }
 
-        if (this.parent || !firstInputRow) return []
+        if (this.hasParent || !firstInputRow) return []
 
         // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
         // user data, with the exception of columns that have values passed directly.
@@ -326,7 +326,7 @@ export class CoreTable<
         const alreadyTypedSlugs = new Set(
             Object.keys(this.valuesFromColumnDefs)
         )
-        if (this.isRoot) {
+        if (!this.hasParent) {
             return columnsToMaybeParse.filter(
                 (col) => !alreadyTypedSlugs.has(col.slug)
             )
@@ -359,7 +359,7 @@ export class CoreTable<
         // The combo of the "this" return type and then casting this to any allows subclasses to create transforms of the
         // same type. The "any" typing is very brief (the returned type will have the same type as the instance being transformed).
         return new (this.constructor as any)(rowsOrColumnStore, defs, {
-            parent: this,
+            hasParent: true,
             tableDescription,
             transformCategory,
             filterMask,
@@ -370,9 +370,7 @@ export class CoreTable<
     // A large time may just be due to a transform only happening after a user action, or it
     // could be do to other sync code executing between transforms.
     private get betweenTime(): number {
-        return this.parent
-            ? this.initTime - (this.parent.initTime + this.parent.timeToLoad)
-            : 0
+        return 0 // TODO
     }
 
     @imemo get rows(): ROW_TYPE[] {
@@ -507,7 +505,7 @@ export class CoreTable<
     }
 
     get rootTable(): this {
-        return this.parent ? this.parent.rootTable : this
+        return this // TODO
     }
 
     /**
@@ -570,33 +568,6 @@ export class CoreTable<
                 ? line.includes(searchStringOrRegex)
                 : searchStringOrRegex.test(line)
         }, `Kept rows that matched '${searchStringOrRegex.toString()}'`)
-    }
-
-    get opposite(): this {
-        const { parent } = this
-        const { filterMask } = this.advancedOptions
-        if (!filterMask || !parent) return this
-        return this.transform(
-            parent.columnStore,
-            this.defs,
-            `Inversing previous filter`,
-            TransformType.InverseFilterRows,
-            filterMask.inverse()
-        )
-    }
-
-    @imemo get oppositeColumns(): this {
-        if (this.isRoot) return this
-        const columnsToDrop = new Set(this.columnSlugs)
-        const defs = this.parent!.columnsAsArray.filter(
-            (col) => !columnsToDrop.has(col.slug)
-        ).map((col) => col.def) as COL_DEF_TYPE[]
-        return this.transform(
-            this.columnStore,
-            defs,
-            `Inversing previous column filter`,
-            TransformType.InverseFilterColumns
-        )
     }
 
     grepColumns(searchStringOrRegex: string | RegExp): this {
@@ -751,19 +722,9 @@ export class CoreTable<
         )
     }
 
-    private get isRoot(): boolean {
-        return !this.parent
-    }
-
     dump(rowLimit = 30): void {
-        this.dumpPipeline()
         this.dumpColumns()
         this.dumpRows(rowLimit)
-    }
-
-    dumpPipeline(): void {
-        // eslint-disable-next-line no-console
-        console.table(this.ancestors.map((tb) => tb.explanation))
     }
 
     dumpColumns(): void {
@@ -839,10 +800,6 @@ export class CoreTable<
                 color: def.color,
             }
         })
-    }
-
-    get ancestors(): this[] {
-        return this.parent ? [...this.parent.ancestors, this] : [this]
     }
 
     @imemo private get numColsToParse(): number {
@@ -973,7 +930,7 @@ export class CoreTable<
         return this.concat(
             [
                 new (this.constructor as typeof CoreTable)(rows, this.defs, {
-                    parent: this,
+                    hasParent: true,
                 }),
             ],
             opDescription
@@ -1529,7 +1486,7 @@ export class CoreTable<
         const appendTable = new (this.constructor as typeof CoreTable)(
             appendColumnStore,
             this.defs,
-            { parent: this }
+            { hasParent: true }
         )
 
         return this.concat(
