@@ -6083,13 +6083,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/webfontloader@npm:^1.6.34":
-  version: 1.6.35
-  resolution: "@types/webfontloader@npm:1.6.35"
-  checksum: 10/8a809e1f8041fc9f7ec1df82d6e841bfc51732a3aa0b56a4e3d2abab86a8abce1b0db90dc9d2c594fd0d77034e2670cae3cfb714a902a0112985fa04fd4a61c8
-  languageName: node
-  linkType: hard
-
 "@types/workerpool@npm:^6.1.0":
   version: 6.1.0
   resolution: "@types/workerpool@npm:6.1.0"
@@ -11262,7 +11255,6 @@ __metadata:
     "@types/topojson-server": "npm:^3.0.1"
     "@types/url-join": "npm:^4.0.1"
     "@types/url-parse": "npm:^1.4.8"
-    "@types/webfontloader": "npm:^1.6.34"
     "@types/workerpool": "npm:^6.1.0"
     "@types/yargs": "npm:^17.0.33"
     "@vitejs/plugin-react": "npm:^4.3.4"
@@ -11394,7 +11386,6 @@ __metadata:
     vite: "npm:^6.2.0"
     vite-plugin-checker: "npm:^0.9.0"
     vitest: "npm:^3.0.7"
-    webfontloader: "npm:^1.6.28"
     workerpool: "npm:^6.2.0"
     wrangler: "npm:^3.111.0"
     yaml: "npm:^2.4.2"
@@ -20139,13 +20130,6 @@ __metadata:
   version: 4.0.0-beta.3
   resolution: "web-streams-polyfill@npm:4.0.0-beta.3"
   checksum: 10/dcdef67de57d83008f9dc330662b65ba4497315555dd0e4e7bcacb132ffdf8a830eaab8f74ad40a4a44f542461f51223f406e2a446ece1cc29927859b1405853
-  languageName: node
-  linkType: hard
-
-"webfontloader@npm:^1.6.28":
-  version: 1.6.28
-  resolution: "webfontloader@npm:1.6.28"
-  checksum: 10/fba6a6a41222d893401aa43199ba3937679a6d71a7e1aeed1fc57d2f034c96fefa267b57cf9aff6af5877fed78c11a5327d7f3c8d3d6f2bfb7543fce8640e5f0
   languageName: node
   linkType: hard
 
