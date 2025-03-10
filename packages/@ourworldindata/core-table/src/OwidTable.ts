@@ -106,8 +106,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return min(this.allTimes) as Time
     }
 
-    @imemo get maxTime(): number | undefined {
-        return max(this.allTimes)
+    @imemo get maxTime(): Time {
+        return max(this.allTimes) as Time
     }
 
     @imemo private get allTimes(): Time[] {
@@ -201,7 +201,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // Does a stable sort by time. You can refer to this table for fast time filtering.
-    @imemo private get sortedByTime(): this {
+    @imemo get sortedByTime(): this {
         if (this.timeColumn.isMissing) return this
         return this.sortBy([this.timeColumn.slug])
     }
@@ -214,7 +214,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const timeColumnSlug = this.timeColumn?.slug || OwidTableSlugs.time
         // Sorting by time, because incidentally some parts of the code depended on this method
         // returning sorted rows.
-        return this.sortedByTime.columnFilter(
+        return this.columnFilter(
             timeColumnSlug,
             (time) =>
                 (time as number) >= adjustedStart &&
