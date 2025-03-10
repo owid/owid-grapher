@@ -15,7 +15,6 @@ jobs:
               uses: actions/checkout@master
 
             - uses: ./.github/actions/setup-node-yarn-deps
-            - uses: ./.github/actions/build-tsc
 
             - uses: hustcer/setup-nu@v3
               with:
@@ -35,7 +34,7 @@ jobs:
             - run: |
                   (ls packages/@ourworldindata/grapher/src/schema/grapher-schema.*.json
                   | each {|json|
-                      node itsJustJavascript/devTools/schema/generate-default-object-from-schema.js $json.name
+                      yarn tsx --tsconfig tsconfig.tsx.json devTools/schema/generate-default-object-from-schema.ts $json.name
                       | save -f ($json.name
                           | path parse
                           | upsert stem ($json.name

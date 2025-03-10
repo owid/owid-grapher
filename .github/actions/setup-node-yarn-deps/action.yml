@@ -24,7 +24,3 @@ runs:
         - name: Install dependencies
           run: yarn --immutable
           shell: bash
-
-        - name: Build packages
-          run: yarn buildLerna
-          shell: bash

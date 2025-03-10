@@ -17,9 +17,6 @@ jobs:
               with:
                   ref: ${{ github.head_ref }}
 
-            - uses: ./.github/actions/setup-node-yarn-deps
-            - uses: ./.github/actions/build-tsc
-
             - uses: hustcer/setup-nu@v3
               with:
                   version: "0.101" # Don't use 0.101 here, as it was a float number and will be convert to 0.101, you can use v0.101/0.101.0 or '0.101'
@@ -42,7 +39,7 @@ jobs:
               run: |
                   (ls packages/@ourworldindata/grapher/src/schema/grapher-schema.*.json
                   | each {|json|
-                      node itsJustJavascript/devTools/schema/generate-default-object-from-schema.js $json.name --save-ts packages/@ourworldindata/grapher/src/schema/defaultGrapherConfig.ts })
+                      yarn tsx --tsconfig tsconfig.tsx.json devTools/schema/generate-default-object-from-schema.ts $json.name --save-ts packages/@ourworldindata/grapher/src/schema/defaultGrapherConfig.ts })
               shell: nu {0}
 
             - name: Run prettier
