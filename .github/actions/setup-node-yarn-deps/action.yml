@@ -27,5 +27,7 @@ runs:
           shell: bash
 
         - name: Install dependencies
+          env:
+              YARN_ENABLE_HARDENED_MODE: ${{ github.event.pull_request.head.repo.full_name != 'owid/owid-grapher' }}
           run: yarn --immutable ${{ inputs.runPostinstallScripts != 'true' && '--mode=skip-build' || '' }}
           shell: bash
