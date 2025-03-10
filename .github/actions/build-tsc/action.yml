@@ -1,8 +1,0 @@
-name: Build TypeScript
-description: Compiles our TypeScript code
-runs:
-    using: composite
-    steps:
-        - name: Run tsc
-          run: yarn buildTsc
-          shell: bash

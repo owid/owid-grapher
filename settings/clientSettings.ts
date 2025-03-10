@@ -13,7 +13,13 @@ if (typeof __dirname !== "undefined") {
     if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
 }
 
-import { parseIntOrUndefined } from "@ourworldindata/utils"
+const parseIntOrUndefined = (value: string | undefined): number | undefined => {
+    try {
+        return value ? parseInt(value) : undefined
+    } catch {
+        return undefined
+    }
+}
 
 type Environment = "development" | "staging" | "production"
 export const ENV: Environment =

@@ -1,5 +1,10 @@
 name: Set up node and dependencies
 description: Runs all the setup steps required to have the proper Node version and all dependencies installed
+inputs:
+    runPostinstallScripts:
+        description: "Whether to run postinstall scripts during dependency installation. Usually only needed for native packages, like esbuild, sharp or wranglerd."
+        required: false
+        default: "true"
 runs:
     using: composite
     steps:
@@ -22,9 +27,7 @@ runs:
           shell: bash
 
         - name: Install dependencies
-          run: yarn --immutable
-          shell: bash
-
-        - name: Build packages
-          run: yarn buildLerna
+          env:
+              YARN_ENABLE_HARDENED_MODE: ${{ github.event.pull_request.head.repo.full_name != 'owid/owid-grapher' }}
+          run: yarn --immutable ${{ inputs.runPostinstallScripts != 'true' && '--mode=skip-build' || '' }}
           shell: bash

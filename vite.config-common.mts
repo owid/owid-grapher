@@ -7,7 +7,9 @@ import {
     VITE_ASSET_SITE_ENTRY,
     VITE_ENTRYPOINT_INFO,
     ViteEntryPoint,
-} from "./site/viteUtils.js"
+} from "./site/viteConstants.js"
+
+const runTypeCheckerPlugin = !(process.env.VITEST || process.env.CI)
 
 // https://vitejs.dev/config/
 export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
@@ -71,7 +73,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                     },
                 },
             }),
-            !process.env.VITEST &&
+            runTypeCheckerPlugin &&
                 pluginChecker({
                     typescript: {
                         buildMode: true,
