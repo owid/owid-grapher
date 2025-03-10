@@ -1,6 +1,6 @@
 // Misc non-SPA views
 import express, { Request, Response, Router } from "express"
-import rateLimit from "express-rate-limit"
+import { rateLimit } from "express-rate-limit"
 import filenamify from "filenamify"
 import * as React from "react"
 import { Writable } from "stream"
