@@ -13,7 +13,7 @@ if (typeof __dirname !== "undefined") {
     if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
 }
 
-const parseIntOrUndefined = (value: string | undefined) => {
+const parseIntOrUndefined = (value: string | undefined): number | undefined => {
     try {
         return value ? parseInt(value) : undefined
     } catch {
