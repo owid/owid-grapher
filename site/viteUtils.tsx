@@ -11,29 +11,9 @@ import type { Manifest, ManifestChunk } from "vite"
 import { readFromAssetMap, sortBy } from "@ourworldindata/utils"
 import urljoin from "url-join"
 import { AssetMap } from "@ourworldindata/types"
+import { VITE_ENTRYPOINT_INFO, ViteEntryPoint } from "./viteConstants.js"
 
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
-
-export const VITE_ASSET_SITE_ENTRY = "site/owid.entry.ts"
-export const VITE_ASSET_ADMIN_ENTRY = "adminSiteClient/admin.entry.ts"
-
-export enum ViteEntryPoint {
-    Site = "site",
-    Admin = "admin",
-}
-
-export const VITE_ENTRYPOINT_INFO = {
-    [ViteEntryPoint.Site]: {
-        entryPointFile: VITE_ASSET_SITE_ENTRY,
-        outDir: "assets",
-        outName: "owid",
-    },
-    [ViteEntryPoint.Admin]: {
-        entryPointFile: VITE_ASSET_ADMIN_ENTRY,
-        outDir: "assets-admin",
-        outName: "admin",
-    },
-}
 
 // We ALWAYS load polyfills.
 

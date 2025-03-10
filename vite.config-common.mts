@@ -7,7 +7,7 @@ import {
     VITE_ASSET_SITE_ENTRY,
     VITE_ENTRYPOINT_INFO,
     ViteEntryPoint,
-} from "./site/viteUtils.js"
+} from "./site/viteConstants.js"
 
 // https://vitejs.dev/config/
 export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
