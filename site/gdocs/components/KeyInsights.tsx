@@ -226,26 +226,13 @@ const Arrow = ({
 }
 
 const LeftArrow = () => {
-    const {
-        isFirstItemVisible,
-        scrollPrev,
-        visibleItemsWithoutSeparators,
-        initComplete,
-    } = useContext(VisibilityContext)
+    const { useLeftArrowVisible, scrollPrev } = useContext(VisibilityContext)
 
-    const [disabled, setDisabled] = useState(
-        !initComplete || (initComplete && isFirstItemVisible)
-    )
-    useEffect(() => {
-        // NOTE: detect if whole component visible
-        if (visibleItemsWithoutSeparators.length) {
-            setDisabled(isFirstItemVisible)
-        }
-    }, [isFirstItemVisible, visibleItemsWithoutSeparators])
+    const disabled = useLeftArrowVisible()
 
     return !disabled ? (
         <Arrow
-            disabled={false}
+            disabled={disabled}
             onClick={() => scrollPrev()}
             className="left"
             direction={ArrowDirection.prev}
@@ -256,21 +243,13 @@ const LeftArrow = () => {
 }
 
 const RightArrow = () => {
-    const { isLastItemVisible, scrollNext, visibleItemsWithoutSeparators } =
-        useContext(VisibilityContext)
+    const { useRightArrowVisible, scrollNext } = useContext(VisibilityContext)
 
-    const [disabled, setDisabled] = useState(
-        !visibleItemsWithoutSeparators.length && isLastItemVisible
-    )
-    useEffect(() => {
-        if (visibleItemsWithoutSeparators.length) {
-            setDisabled(isLastItemVisible)
-        }
-    }, [isLastItemVisible, visibleItemsWithoutSeparators])
+    const disabled = useRightArrowVisible()
 
     return !disabled ? (
         <Arrow
-            disabled={false}
+            disabled={disabled}
             onClick={() => scrollNext()}
             className="right"
             direction={ArrowDirection.next}

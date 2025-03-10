@@ -8000,13 +8000,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"compute-scroll-into-view@npm:^1.0.17":
-  version: 1.0.17
-  resolution: "compute-scroll-into-view@npm:1.0.17"
-  checksum: 10/9c7b730442081a812dba2d7d26a66968f0f3fdbba94b3cb60637808e8ba9afb33f9aa0997f71d3c2cebc71762c4145dc4b2bf5b814e0ff6d05215aa22f7c5ad2
-  languageName: node
-  linkType: hard
-
 "compute-scroll-into-view@npm:^3.0.2":
   version: 3.1.0
   resolution: "compute-scroll-into-view@npm:3.1.0"
@@ -11342,7 +11335,7 @@ __metadata:
     react-dom: "npm:^17.0.2"
     react-flip-toolkit: "npm:^7.0.9"
     react-hook-form: "npm:^7.51.3"
-    react-horizontal-scrolling-menu: "npm:^4.0.3"
+    react-horizontal-scrolling-menu: "npm:^8.2.0"
     react-instantsearch: "npm:^7.12.2"
     react-intersection-observer: "npm:^9.10.1"
     react-move: "npm:^6.5.0"
@@ -16677,14 +16670,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-horizontal-scrolling-menu@npm:^4.0.3":
-  version: 4.0.3
-  resolution: "react-horizontal-scrolling-menu@npm:4.0.3"
+"react-horizontal-scrolling-menu@npm:^8.2.0":
+  version: 8.2.0
+  resolution: "react-horizontal-scrolling-menu@npm:8.2.0"
   dependencies:
-    smooth-scroll-into-view-if-needed: "npm:~1.1"
+    smooth-scroll-into-view-if-needed: "npm:^2.0.2"
   peerDependencies:
     react: ">=16.8"
-  checksum: 10/d4af91755321af5409d771ac12940d505689fe98e41ffa63300500b296e547eb2b269dca290df3707b0953a3d5c2b4cc290cd9bac06d26676909471daeb80ffc
+    react-dom: ">=16.8"
+  checksum: 10/a58758726a51829cc8fb2786ac5c141fccff94d326ca07d62b98ae3ea56c134ac2ecaade7b4acb60c9f95774a34d68bb5a084059de3fa088a461ac656cd80591
   languageName: node
   linkType: hard
 
@@ -17724,15 +17718,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"scroll-into-view-if-needed@npm:^2.2.28":
-  version: 2.2.29
-  resolution: "scroll-into-view-if-needed@npm:2.2.29"
-  dependencies:
-    compute-scroll-into-view: "npm:^1.0.17"
-  checksum: 10/927f3eb14518ada970fcc230724b236b1fb26113f830076154a4691c7be4f4cc1fa7ecb513abdfc51a8d19b1354aaf950979f3e85828885ed380040cdcfe4902
-  languageName: node
-  linkType: hard
-
 "scroll-into-view-if-needed@npm:^3.1.0":
   version: 3.1.0
   resolution: "scroll-into-view-if-needed@npm:3.1.0"
@@ -18171,12 +18156,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"smooth-scroll-into-view-if-needed@npm:~1.1":
-  version: 1.1.33
-  resolution: "smooth-scroll-into-view-if-needed@npm:1.1.33"
+"smooth-scroll-into-view-if-needed@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "smooth-scroll-into-view-if-needed@npm:2.0.2"
   dependencies:
-    scroll-into-view-if-needed: "npm:^2.2.28"
-  checksum: 10/0b0975ae13bdd51135c29e7d10d081fb123ea949e1c75e9d9be16cfd883e46f26797de4204080ffd3ddf73d6607ab321f1c49d715ea47d69ea47bf3f2f241ac1
+    scroll-into-view-if-needed: "npm:^3.1.0"
+  checksum: 10/2e9c26987a4af19fbc7a3c1ebb8cbfe0d5412e7ab7fa0802a374a5ec213df14cd4fa7c8fc91d81e49015617460b4562f43c0a66ed02314e834456b69687030df
   languageName: node
   linkType: hard
 
