@@ -9,39 +9,34 @@ import {
     beforeEach,
 } from "vitest"
 
-import { google } from "googleapis"
-
 const baseDir = findProjectBaseDir(__dirname)
 if (!baseDir) throw Error("Could not find project base directory")
 
 // Mock the google docs api to retrieve files from the test-files directory
-// AFAICT, we have to do this directly after the import
-// and before any other code that might import googleapis
-vi.mock("googleapis", async (importOriginal) => {
-    const originalModule: typeof import("googleapis") = await importOriginal()
+// AFAICT, we have to do this before any other code that might import googleapis
+vi.mock("@googleapis/docs", async (importOriginal) => {
+    const originalModule: typeof import("@googleapis/docs") =
+        await importOriginal()
 
     return {
         ...originalModule,
-        google: {
-            ...originalModule.google,
-            docs: vi.fn(() => ({
-                documents: {
-                    get: vi.fn(({ documentId }) => {
-                        const unparsed = fs.readFileSync(
-                            path.join(
-                                baseDir,
-                                "adminSiteServer",
-                                "test-files",
-                                `${documentId}.json`
-                            ),
-                            "utf8"
-                        )
-                        const data = JSON.parse(unparsed)
-                        return Promise.resolve(data)
-                    }),
-                },
-            })),
-        },
+        docs: vi.fn(() => ({
+            documents: {
+                get: vi.fn(({ documentId }) => {
+                    const unparsed = fs.readFileSync(
+                        path.join(
+                            baseDir,
+                            "adminSiteServer",
+                            "test-files",
+                            `${documentId}.json`
+                        ),
+                        "utf8"
+                    )
+                    const data = JSON.parse(unparsed)
+                    return Promise.resolve(data)
+                }),
+            },
+        })),
     }
 })
 
@@ -94,9 +89,6 @@ let app: OwidAdminApp | undefined = undefined
 let cookieId: string = ""
 
 beforeAll(async () => {
-    // dummy use of google docs so that when we import the google
-    // docs above to mock it, prettier will not complain about an unused import
-    const _ = google.docs
     testKnexInstance = knex(dbTestConfig)
     serverKnexInstance = knex(dbTestConfig)
     const dataSpec = {
@@ -233,7 +225,7 @@ describe("OwidAdminApp", { timeout: 10000 }, () => {
         )
         expect(nodeVersion.status).toBe(200)
         const text = await nodeVersion.text()
-        expect(text).toBe("v22.13.0")
+        expect(text).toBe(process.version)
     })
 
     it("should be able to edit a chart via the api", async () => {

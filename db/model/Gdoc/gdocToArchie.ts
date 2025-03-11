@@ -1,6 +1,6 @@
 // Original work from https://github.com/rdmurphy/doc-to-archieml
 // Forked and expanded in https://github.com/owid/doc-to-archieml
-import { docs_v1 } from "googleapis"
+import { type docs_v1 } from "@googleapis/docs"
 import {
     Span,
     RawBlockHorizontalRule,

@@ -3,12 +3,12 @@
 import parseArgs from "minimist"
 
 import { OwidGoogleAuth } from "../../db/OwidGoogleAuth.js"
-import { google } from "googleapis"
+import { docs as googleDocs } from "@googleapis/docs"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
         const auth = OwidGoogleAuth.getGoogleReadonlyAuth()
-        const docs = google.docs({ version: "v1", auth })
+        const docs = googleDocs({ version: "v1", auth })
 
         const response = await docs.documents.get({
             documentId: parsedArgs["_"][0],

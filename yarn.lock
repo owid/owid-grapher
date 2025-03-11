@@ -2116,6 +2116,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@googleapis/docs@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "@googleapis/docs@npm:3.3.0"
+  dependencies:
+    googleapis-common: "npm:^7.0.0"
+  checksum: 10/2c320f8271c2dc233fb6fb3fd68449c303d8eea473c217841f54cea18bff7a0cde936d44f92636df969d40d785ee96d85d6715e63e954f03840d8c187cf585e4
+  languageName: node
+  linkType: hard
+
+"@googleapis/drive@npm:^8.16.0":
+  version: 8.16.0
+  resolution: "@googleapis/drive@npm:8.16.0"
+  dependencies:
+    googleapis-common: "npm:^7.0.0"
+  checksum: 10/1b227539eba2e0fc15fcb6f21f69570f1ad4ea8fd76a5db3cc428f533fa91aab9325f0b965505d4ac584031716c13a449de927ccf1d58dd6ce8cc29ba0008101
+  languageName: node
+  linkType: hard
+
 "@handsontable/pikaday@npm:^1.0.0":
   version: 1.0.0
   resolution: "@handsontable/pikaday@npm:1.0.0"
@@ -11118,7 +11136,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"google-auth-library@npm:^9.0.0, google-auth-library@npm:^9.7.0":
+"google-auth-library@npm:^9.15.1, google-auth-library@npm:^9.7.0":
   version: 9.15.1
   resolution: "google-auth-library@npm:9.15.1"
   dependencies:
@@ -11150,16 +11168,6 @@ __metadata:
     url-template: "npm:^2.0.8"
     uuid: "npm:^9.0.0"
   checksum: 10/4b914be6681f2a5a02bd0954a4a5cee1725d8623cb9d0a7c2fd7132de110e8d5707566cba39784e58147be39e74bc5513ad30fdcdaa6edcbb47ecf687003cb6c
-  languageName: node
-  linkType: hard
-
-"googleapis@npm:^146.0.0":
-  version: 146.0.0
-  resolution: "googleapis@npm:146.0.0"
-  dependencies:
-    google-auth-library: "npm:^9.0.0"
-    googleapis-common: "npm:^7.0.0"
-  checksum: 10/8675674470b0f1c55944cd8b8609da83f93605fffad879a40f4bd31c5c3a81cdf9e29566bb403841a17200a6a3e1dc54e091079cbed583e0d76f27744486999a
   languageName: node
   linkType: hard
 
@@ -11198,6 +11206,8 @@ __metadata:
     "@fortawesome/free-brands-svg-icons": "npm:^6.7.2"
     "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
     "@fortawesome/react-fontawesome": "npm:^0.2.2"
+    "@googleapis/docs": "npm:^3.3.0"
+    "@googleapis/drive": "npm:^8.16.0"
     "@handsontable/react": "npm:^15.1.0"
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
@@ -11298,7 +11308,7 @@ __metadata:
     flag-icons: "npm:^7.3.1"
     fs-extra: "npm:^11.1.1"
     glob: "npm:^10.3.3"
-    googleapis: "npm:^146.0.0"
+    google-auth-library: "npm:^9.15.1"
     handsontable: "npm:^15.1.0"
     html-to-text: "npm:^9.0.5"
     http-server: "npm:^14.1.1"

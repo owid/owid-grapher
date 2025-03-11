@@ -10,7 +10,8 @@ import {
 } from "./rawToArchie.js"
 import { GDOCS_BACKPORTING_TARGET_FOLDER } from "../../../settings/serverSettings.js"
 import { enrichedBlockToRawBlock } from "./enrichedToRaw.js"
-import { google, docs_v1, drive_v3 } from "googleapis"
+import { type docs_v1, docs as googleDocs } from "@googleapis/docs"
+import { type drive_v3, drive as googleDrive } from "@googleapis/drive"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import * as cheerio from "cheerio"
 
@@ -282,11 +283,11 @@ export async function createGdocAndInsertOwidGdocPostContent(
     if (targetFolder === undefined || targetFolder === "")
         throw new Error("GDOCS_BACKPORTING_TARGET_FOLDER is not set")
     const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
-    const client = google.docs({
+    const client = googleDocs({
         version: "v1",
         auth,
     })
-    const driveClient = google.drive({
+    const driveClient = googleDrive({
         version: "v3",
         auth,
     })
@@ -316,7 +317,7 @@ export async function createGdocFromTemplate(
     targetFolder: string
 ): Promise<string> {
     const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
-    const driveClient = google.drive({ version: "v3", auth })
+    const driveClient = googleDrive({ version: "v3", auth })
 
     const docsMimeType = "application/vnd.google-apps.document"
     const response = await driveClient.files.copy({
@@ -341,7 +342,7 @@ export async function replacePlaceholdersInGdoc(
     replacements: Record<string, string>
 ): Promise<void> {
     const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
-    const client = google.docs({ version: "v1", auth })
+    const client = googleDocs({ version: "v1", auth })
 
     const requests = Object.entries(replacements).map(
         ([placeholder, value]) => ({

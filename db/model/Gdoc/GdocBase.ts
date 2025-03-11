@@ -26,7 +26,7 @@ import {
     omit,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
-import { google } from "googleapis"
+import { docs as googleDocs } from "@googleapis/docs"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
 import { getChartConfigById, mapSlugsToIds } from "../Chart.js"
@@ -743,7 +743,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async fetchAndEnrichGdoc(): Promise<void> {
-        const docsClient = google.docs({
+        const docsClient = googleDocs({
             version: "v1",
             auth: OwidGoogleAuth.getGoogleReadonlyAuth(),
         })
@@ -956,7 +956,7 @@ export async function getMinimalGdocPostsByIds(
                 content ->> '$.subtitle' as subtitle,
                 content ->> '$.excerpt' as excerpt,
                 type,
-                CASE 
+                CASE
                     WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHVED_THUMBNAIL_FILENAME}'
                     ELSE content ->> '$."featured-image"'
                 END as "featured-image"
