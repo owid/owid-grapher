@@ -112,11 +112,3 @@ export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
     ["Charts", SearchIndexName.Charts],
     ["Data Explorers", SearchIndexName.ExplorerViews],
 ]
-
-export const indexNameToSubdirectoryMap: Record<SearchIndexName, string> = {
-    [SearchIndexName.Pages]: "",
-    [SearchIndexName.Charts]: "/grapher",
-    [SearchIndexName.ExplorerViews]: "/explorers",
-    // n/a - charts and explorers have different subdirectories, so this needs to be resolved elsewhere
-    [SearchIndexName.ExplorerViewsMdimViewsAndCharts]: "",
-}
