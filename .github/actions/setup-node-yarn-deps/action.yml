@@ -5,6 +5,10 @@ inputs:
         description: "Whether to run postinstall scripts during dependency installation. Usually only needed for native packages, like esbuild, sharp or wranglerd."
         required: false
         default: "true"
+    skipIgnoredDependencies:
+        description: "Whether to skip installing dependencies that are ignored in the package-resolutions.ci.json file."
+        required: false
+        default: "true"
 runs:
     using: composite
     steps:
@@ -26,8 +30,16 @@ runs:
               echo "yarn `yarn --version`"
           shell: bash
 
+        - name: Set resolutions for ignored dependencies
+          if: ${{ inputs.skipIgnoredDependencies == 'true' }}
+          run: |
+              echo "Setting resolutions for ignored dependencies..."
+              jq -s ".[0] * {resolutions: ((.[0].resolutions + .[1].resolutions) // .[0].resolutions)}" package.json .github/actions/setup-node-yarn-deps/package-resolutions.ci.json > package_merged.json
+              mv package_merged.json package.json
+          shell: bash
+
         - name: Install dependencies
           env:
               YARN_ENABLE_HARDENED_MODE: ${{ (github.event.pull_request && github.event.pull_request.head.repo.full_name != 'owid/owid-grapher' && '1') || '0' }}
-          run: yarn --immutable ${{ inputs.runPostinstallScripts != 'true' && '--mode=skip-build' || '' }}
+          run: yarn ${{ inputs.skipIgnoredDependencies != 'true' && 'immutable' || '' }} ${{ inputs.runPostinstallScripts != 'true' && '--mode=skip-build' || '' }}
           shell: bash

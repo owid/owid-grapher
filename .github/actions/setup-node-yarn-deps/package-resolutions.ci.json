@@ -1,0 +1,7 @@
+{
+    "_description": "This file will be merged with package.json when run in GH Actions, and will thus not install the packages listed below. See also: https://github.com/yarnpkg/yarn/issues/4611",
+    "resolutions": {
+        "cypress": "npm:empty-npm-package@1.0.0",
+        "wrangler": "npm:empty-npm-package@1.0.0"
+    }
+}
