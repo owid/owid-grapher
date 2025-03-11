@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import * as React from "react"
 import { render } from "react-dom"
+import urljoin from "url-join"
 import {
     AutocompleteApi,
     AutocompleteSource,
@@ -11,14 +12,18 @@ import {
 import algoliasearch from "algoliasearch"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
+    ChartRecordType,
     PageType,
     SearchIndexName,
-    indexNameToSubdirectoryMap,
+    WordpressPageType,
     pageTypeDisplayNames,
 } from "./searchTypes.js"
+import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -27,9 +32,11 @@ import {
     getIndexName,
     parseIndexName,
 } from "./searchClient.js"
-import { queryParamsToStr } from "@ourworldindata/utils"
+import { OwidGdocType, queryParamsToStr } from "@ourworldindata/utils"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import Mousetrap from "mousetrap"
+import { match } from "ts-pattern"
+import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 
 const siteAnalytics = new SiteAnalytics()
 
@@ -74,17 +81,59 @@ const onSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
 const getItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({ item }) =>
     item.slug as string
 
-// The slugs we index to Algolia don't include the /grapher/ or /explorers/ directories
+// The slugs we index to Algolia don't include grapher/, explorers/, or data-insights/ subdirectories
 // Prepend them with this function when we need them
 const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
     const indexName = parseIndexName(item.__autocomplete_indexName as string)
-    const subdirectory = indexNameToSubdirectoryMap[indexName]
-    switch (indexName) {
-        case SearchIndexName.ExplorerViews:
-            return `${subdirectory}/${item.explorerSlug}${item.viewQueryParams}`
-        default:
-            return `${subdirectory}/${item.slug}`
-    }
+    return match(indexName)
+        .with(SearchIndexName.ExplorerViews, () => {
+            return urljoin(
+                BAKED_BASE_URL,
+                EXPLORERS_ROUTE_FOLDER,
+                item.explorerSlug as string,
+                item.viewQueryParams as string
+            )
+        })
+        .with(SearchIndexName.Charts, () => {
+            return urljoin(BAKED_GRAPHER_URL, item.slug as string)
+        })
+        .with(SearchIndexName.Pages, () => {
+            if (
+                item.type === WordpressPageType.Country ||
+                item.type === WordpressPageType.Other
+            ) {
+                return urljoin(BAKED_BASE_URL, item.slug as string)
+            }
+            return getCanonicalUrl(BAKED_BASE_URL, {
+                slug: item.slug as string,
+                content: {
+                    type: item.type as OwidGdocType,
+                },
+            })
+        })
+        .with(SearchIndexName.ExplorerViewsMdimViewsAndCharts, () => {
+            return match(item.type as ChartRecordType)
+                .with(ChartRecordType.ExplorerView, () => {
+                    return urljoin(
+                        BAKED_BASE_URL,
+                        EXPLORERS_ROUTE_FOLDER,
+                        item.explorerSlug as string,
+                        item.viewQueryParams as string
+                    )
+                })
+                .with(ChartRecordType.Chart, () => {
+                    return urljoin(BAKED_GRAPHER_URL, item.slug as string)
+                })
+                .with(ChartRecordType.MultiDimView, () => {
+                    return urljoin(
+                        BAKED_GRAPHER_URL,
+                        item.slug as string,
+                        item.queryParams as string
+                    )
+                })
+                .exhaustive()
+        })
+        .exhaustive()
 }
 
 const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
