@@ -12,6 +12,7 @@ import {
 import algoliasearch from "algoliasearch"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
+    ChartRecordType,
     PageType,
     SearchIndexName,
     WordpressPageType,
@@ -109,10 +110,27 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                 },
             })
         })
-        .with(
-            SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-            () => `${BAKED_GRAPHER_URL}/${item.slug}`
-        )
+        .with(SearchIndexName.ExplorerViewsMdimViewsAndCharts, () => {
+            return match(item.type as ChartRecordType)
+                .with(ChartRecordType.ExplorerView, () => {
+                    return urljoin(
+                        EXPLORERS_ROUTE_FOLDER,
+                        item.explorerSlug as string,
+                        item.viewQueryParams as string
+                    )
+                })
+                .with(ChartRecordType.Chart, () => {
+                    return urljoin(BAKED_GRAPHER_URL, item.slug as string)
+                })
+                .with(ChartRecordType.MultiDimView, () => {
+                    return urljoin(
+                        BAKED_GRAPHER_URL,
+                        item.slug as string,
+                        item.queryParams as string
+                    )
+                })
+                .exhaustive()
+        })
         .exhaustive()
 }
 
