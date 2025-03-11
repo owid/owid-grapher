@@ -88,6 +88,7 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
     return match(indexName)
         .with(SearchIndexName.ExplorerViews, () => {
             return urljoin(
+                BAKED_BASE_URL,
                 EXPLORERS_ROUTE_FOLDER,
                 item.explorerSlug as string,
                 item.viewQueryParams as string
@@ -101,7 +102,7 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                 item.type === WordpressPageType.Country ||
                 item.type === WordpressPageType.Other
             ) {
-                return `/${item.slug}`
+                return urljoin(BAKED_BASE_URL, item.slug as string)
             }
             return getCanonicalUrl(BAKED_BASE_URL, {
                 slug: item.slug as string,
@@ -114,6 +115,7 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
             return match(item.type as ChartRecordType)
                 .with(ChartRecordType.ExplorerView, () => {
                     return urljoin(
+                        BAKED_BASE_URL,
                         EXPLORERS_ROUTE_FOLDER,
                         item.explorerSlug as string,
                         item.viewQueryParams as string
