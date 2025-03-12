@@ -47,7 +47,7 @@ import Person from "./Person.js"
 import NarrativeChart from "./NarrativeChart.js"
 import { Container, getLayout } from "./layout.js"
 
-function ArticleBlockInternal({
+export default function ArticleBlock({
     b: block,
     containerType = "default",
     toc,
@@ -70,7 +70,7 @@ function ArticleBlockInternal({
             />
         )
     }
-    return match(block)
+    const content = match(block)
         .with({ type: "aside" }, ({ caption, position = "right" }) => (
             <figure
                 className={cx(
@@ -682,27 +682,33 @@ function ArticleBlockInternal({
             />
         ))
         .exhaustive()
-}
 
-export default function ArticleBlock({
-    b: block,
-    containerType = "default",
-    toc,
-    shouldRenderLinks = true,
-}: {
-    b: OwidEnrichedGdocBlock
-    containerType?: Container
-    toc?: TocHeadingWithTitleSupertitle[]
-    shouldRenderLinks?: boolean
-}) {
     return (
         <BlockErrorBoundary className={getLayout("default", containerType)}>
-            <ArticleBlockInternal
-                b={block}
-                containerType={containerType}
-                toc={toc}
-                shouldRenderLinks={shouldRenderLinks}
-            />
+            {content}
         </BlockErrorBoundary>
     )
 }
+
+// export default function ArticleBlock({
+//     b: block,
+//     containerType = "default",
+//     toc,
+//     shouldRenderLinks = true,
+// }: {
+//     b: OwidEnrichedGdocBlock
+//     containerType?: Container
+//     toc?: TocHeadingWithTitleSupertitle[]
+//     shouldRenderLinks?: boolean
+// }) {
+//     return (
+//         <BlockErrorBoundary className={getLayout("default", containerType)}>
+//             <ArticleBlockInternal
+//                 b={block}
+//                 containerType={containerType}
+//                 toc={toc}
+//                 shouldRenderLinks={shouldRenderLinks}
+//             />
+//         </BlockErrorBoundary>
+//     )
+// }
