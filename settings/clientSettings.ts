@@ -3,15 +3,7 @@
 // Settings in here will be made available to the client-side code that is
 // bundled and shipped out to our users.
 
-import dotenv from "dotenv"
-import findBaseDir from "./findBaseDir.js"
-
-if (typeof __dirname !== "undefined") {
-    // only run this code in node, not in the browser.
-    // in the browser, process.env is already populated by vite.
-    const baseDir = findBaseDir(__dirname)
-    if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
-}
+import "./loadDotenv.js"
 
 const parseIntOrUndefined = (value: string | undefined): number | undefined => {
     try {
@@ -24,6 +16,7 @@ const parseIntOrUndefined = (value: string | undefined): number | undefined => {
 type Environment = "development" | "staging" | "production"
 export const ENV: Environment =
     (process.env.ENV as Environment) || "development"
+export const ARCHIVE: boolean = process.env.ARCHIVE === "true"
 export const COMMIT_SHA = process.env.COMMIT_SHA
 
 export const SENTRY_DSN: string | undefined = process.env.SENTRY_DSN

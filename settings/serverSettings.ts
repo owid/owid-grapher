@@ -1,8 +1,9 @@
 // This is where server-side only, potentially sensitive settings enter from the environment
 // DO NOT store sensitive strings in this file itself, as it is checked in to git!
 
+import "./loadDotenv.js"
+
 import path from "path"
-import dotenv from "dotenv"
 import findBaseDir from "./findBaseDir.js"
 import fs from "fs"
 import ini from "ini"
@@ -10,8 +11,6 @@ import os from "os"
 
 const baseDir = findBaseDir(__dirname)
 if (baseDir === undefined) throw new Error("could not locate base package.json")
-
-dotenv.config({ path: `${baseDir}/.env` })
 
 import * as clientSettings from "./clientSettings.js"
 import { parseIntOrUndefined } from "@ourworldindata/utils"
