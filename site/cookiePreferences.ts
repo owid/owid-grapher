@@ -1,5 +1,6 @@
 import { dayjs } from "@ourworldindata/utils"
 import Cookies from "js-cookie"
+import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 
 export enum PreferenceType {
     Analytics = "a",
@@ -109,6 +110,8 @@ export const getPreferenceValue = (
     type: PreferenceType,
     preferences: Preference[] = getInitialState().preferences
 ) => {
+    if (type === PreferenceType.Analytics && REDUCED_TRACKING) return false
+
     return (
         preferences.find((preference) => {
             return preference.type === type
