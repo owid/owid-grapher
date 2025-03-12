@@ -16,7 +16,8 @@ const parseIntOrUndefined = (value: string | undefined): number | undefined => {
 type Environment = "development" | "staging" | "production"
 export const ENV: Environment =
     (process.env.ENV as Environment) || "development"
-export const ARCHIVE: boolean = process.env.ARCHIVE === "true"
+export const ARCHIVE: boolean =
+    process.env.ARCHIVE === "true" || process.env.ARCHIVE === true
 export const COMMIT_SHA = process.env.COMMIT_SHA
 
 export const SENTRY_DSN: string | undefined = process.env.SENTRY_DSN
@@ -69,7 +70,8 @@ export const GOOGLE_TAG_MANAGER_ID: string =
     process.env.GOOGLE_TAG_MANAGER_ID ?? ""
 
 export const TOPICS_CONTENT_GRAPH: boolean =
-    process.env.TOPICS_CONTENT_GRAPH === "true"
+    process.env.TOPICS_CONTENT_GRAPH === "true" ||
+    process.env.TOPICS_CONTENT_GRAPH === true
 
 export const GDOCS_CLIENT_EMAIL: string = process.env.GDOCS_CLIENT_EMAIL ?? ""
 export const GDOCS_ARTICLE_DUPLICATION_TEMPLATE_ID: string =
