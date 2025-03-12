@@ -16,6 +16,7 @@ const parseIntOrUndefined = (value: string | undefined): number | undefined => {
 type Environment = "development" | "staging" | "production"
 export const ENV: Environment =
     (process.env.ENV as Environment) || "development"
+export const ARCHIVE: boolean = process.env.ARCHIVE === "true"
 export const COMMIT_SHA = process.env.COMMIT_SHA
 
 export const SENTRY_DSN: string | undefined = process.env.SENTRY_DSN
