@@ -114,7 +114,6 @@
         "mdast-util-from-markdown": "^0.8.0",
         "minimist": "^1.2.6",
         "mobx": "^5.15.7",
-        "mobx-formatters": "^1.0.2",
         "mobx-react": "5",
         "mobx-utils": "5",
         "mousetrap": "^1.6.5",
