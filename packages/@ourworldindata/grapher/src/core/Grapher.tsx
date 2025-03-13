@@ -2949,6 +2949,22 @@ export class Grapher
         )
     }
 
+    // Whether a server-side download is available for the download modal
+    @computed get isServerSideDownloadAvailable(): boolean {
+        return (
+            // Chart is published (this is false for charts inside explorers, for example)
+            !!this.isPublished &&
+            // We're not on an archival grapher page
+            !this.runtimeAssetMap &&
+            // We're not inside the admin
+            window.admin === undefined &&
+            // We're not on a Mdim
+            !!this.slug &&
+            // We're not in a chart view / narrative chart
+            !this.chartViewInfo
+        )
+    }
+
     private renderError(): React.ReactElement {
         return (
             <div
