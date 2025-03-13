@@ -42,7 +42,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             ...Object.fromEntries(
                 Object.entries(clientSettings).map(([key, value]) => [
                     `process.env.${key}`,
-                    JSON.stringify(value),
+                    JSON.stringify(value?.toString()), // We need to stringify e.g. `true` to `"true"`, so that it's correctly parsed _again_
                 ])
             ),
         },
