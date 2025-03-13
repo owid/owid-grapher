@@ -124,3 +124,10 @@ export const FEATURE_FLAGS: Set<Feature> = new Set(
 
 export const SLACK_DI_PITCHES_CHANNEL_ID: string =
     process.env.SLACK_DI_PITCHES_CHANNEL_ID ?? ""
+
+export const IS_RUNNING_INSIDE_VITEST: boolean = !!process.env.VITEST
+
+/// Generated properties only, these cannot be overridden directly
+// Whether to only enable cookie-less tracking & never show the cookie notice
+export const REDUCED_TRACKING = ARCHIVE
+export const LOAD_SENTRY = !REDUCED_TRACKING && !IS_RUNNING_INSIDE_VITEST
