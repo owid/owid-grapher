@@ -110,6 +110,7 @@ export const getPreferenceValue = (
     type: PreferenceType,
     preferences: Preference[] = getInitialState().preferences
 ) => {
+    // The REDUCED_TRACKING env setting can be used to disable analytics tracking entirely, regardless of user preferences or cookies
     if (type === PreferenceType.Analytics && REDUCED_TRACKING) return false
 
     return (
