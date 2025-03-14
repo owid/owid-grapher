@@ -8,6 +8,7 @@ type ButtonCommonProps = {
     theme: "solid-vermillion" | "outline-vermillion" | "solid-blue"
     /** Set to null to hide the icon */
     icon?: IconDefinition | null
+    iconPosition?: "left" | "right"
     dataTrackNote?: string
 }
 
@@ -38,9 +39,22 @@ export const Button = ({
     ariaLabel,
     type = "button",
     icon = faArrowRight,
+    iconPosition = "right",
     dataTrackNote,
 }: ButtonProps) => {
-    const classes = cx("owid-btn", `owid-btn--${theme}`, className)
+    const classes = cx(
+        "owid-btn",
+        `owid-btn--${theme}`,
+        `owid-btn--icon-${iconPosition}`,
+        className
+    )
+    const content = (
+        <>
+            {iconPosition === "left" && icon && <FontAwesomeIcon icon={icon} />}
+            {text}
+            {iconPosition !== "left" && icon && <FontAwesomeIcon icon={icon} />}
+        </>
+    )
 
     if (href) {
         const aProps = {
@@ -48,11 +62,7 @@ export const Button = ({
             className: classes,
             "data-track-note": dataTrackNote,
         }
-        return (
-            <a {...aProps}>
-                {text} {icon && <FontAwesomeIcon icon={icon} />}
-            </a>
-        )
+        return <a {...aProps}>{content}</a>
     }
 
     const buttonProps = {
@@ -62,9 +72,5 @@ export const Button = ({
         "aria-label": ariaLabel,
         "data-track-note": dataTrackNote,
     }
-    return (
-        <button {...buttonProps}>
-            {text} {icon && <FontAwesomeIcon icon={icon} />}
-        </button>
-    )
+    return <button {...buttonProps}>{content}</button>
 }

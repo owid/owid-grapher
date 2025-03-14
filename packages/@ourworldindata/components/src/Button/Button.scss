@@ -12,6 +12,12 @@
     }
 }
 
+.owid-btn--icon-left {
+    svg {
+        margin-right: 0.5rem;
+    }
+}
+
 .owid-btn--solid-vermillion {
     background-color: $vermillion;
     color: #fff;
