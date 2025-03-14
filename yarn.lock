@@ -11299,6 +11299,7 @@ __metadata:
     mysql2: "npm:^3.10.1"
     nodejs-polars: "npm:^0.7.2"
     normalize.css: "npm:^8.0.1"
+    ollama: "npm:^0.5.14"
     openai: "npm:^4.85.4"
     p-map: "npm:^4.0.0"
     papaparse: "npm:^5.4.1"
@@ -11363,6 +11364,7 @@ __metadata:
     yaml: "npm:^2.7.0"
     yargs: "npm:^17.7.2"
     zod: "npm:^3.24.2"
+    zod-to-json-schema: "npm:^3.24.3"
   languageName: unknown
   linkType: soft
 
@@ -14844,6 +14846,15 @@ __metadata:
   version: 2.0.11
   resolution: "ohash@npm:2.0.11"
   checksum: 10/6b0423f42cc95c3d643f390a88364aac824178b7788dccb4e8c64e2124463d0069e60d4d90bad88ed9823808368d051e088aa27058ca4722b1397a201ffbfa4b
+  languageName: node
+  linkType: hard
+
+"ollama@npm:^0.5.14":
+  version: 0.5.14
+  resolution: "ollama@npm:0.5.14"
+  dependencies:
+    whatwg-fetch: "npm:^3.6.20"
+  checksum: 10/fc70ae17e74165cdb4224afa6016d26379bb573c81bd8481efc841e7d8909b2bdc72049180928cb7e13daa2b602743861037d522d771c6c34a6508b4ab1ac638
   languageName: node
   linkType: hard
 
@@ -20044,6 +20055,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"whatwg-fetch@npm:^3.6.20":
+  version: 3.6.20
+  resolution: "whatwg-fetch@npm:3.6.20"
+  checksum: 10/2b4ed92acd6a7ad4f626a6cb18b14ec982bbcaf1093e6fe903b131a9c6decd14d7f9c9ca3532663c2759d1bdf01d004c77a0adfb2716a5105465c20755a8c57c
+  languageName: node
+  linkType: hard
+
 "whatwg-mimetype@npm:^4.0.0":
   version: 4.0.0
   resolution: "whatwg-mimetype@npm:4.0.0"
@@ -20489,6 +20507,15 @@ __metadata:
     mustache: "npm:^4.2.0"
     stacktracey: "npm:^2.1.8"
   checksum: 10/f344875af605ae841094f47802eaa800f9bf9ab63ecda0df116428e287a9e94a2c2673889a7a280baa53cc9eb5637d9f3a719789817de32f40142e3e2beb32d3
+  languageName: node
+  linkType: hard
+
+"zod-to-json-schema@npm:^3.24.3":
+  version: 3.24.3
+  resolution: "zod-to-json-schema@npm:3.24.3"
+  peerDependencies:
+    zod: ^3.24.1
+  checksum: 10/9dc6fafc3a9b5e088a92e2296bee6bc7b1c149f1d762c535a17626ce471721ef0c472d287f137f5408dad6368469621fe538ed8f0bf79811c7a69d67a1a7908b
   languageName: node
   linkType: hard
 

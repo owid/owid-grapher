@@ -41,7 +41,8 @@
         "generateDbTypes": "npx @rmp135/sql-ts -c db/sql-ts/sql-ts-config.json",
         "syncGraphersToR2": "tsx --tsconfig tsconfig.tsx.json devTools/syncGraphersToR2/syncGraphersToR2.ts",
         "syncCloudflareImages": "tsx --tsconfig tsconfig.tsx.json devTools/cloudflareImagesSync/cloudflareImagesSync.ts",
-        "reconstructPostsGdocsComponents": "tsx --tsconfig tsconfig.tsx.json devTools/reconstructPostsGdocsComponents/reconstructPostsGdocsComponents.ts"
+        "reconstructPostsGdocsComponents": "tsx --tsconfig tsconfig.tsx.json devTools/reconstructPostsGdocsComponents/reconstructPostsGdocsComponents.ts",
+        "extractSearchSuggestions": "tsx --tsconfig tsconfig.tsx.json baker/algolia/extractSearchSuggestions.ts"
     },
     "dependencies": {
         "@algolia/autocomplete-js": "^1.17.2",
@@ -120,6 +121,7 @@
         "mysql2": "^3.10.1",
         "nodejs-polars": "^0.7.2",
         "normalize.css": "^8.0.1",
+        "ollama": "^0.5.14",
         "openai": "^4.85.4",
         "p-map": "^4.0.0",
         "papaparse": "^5.4.1",
@@ -173,7 +175,8 @@
         "workerpool": "^6.2.0",
         "yaml": "^2.7.0",
         "yargs": "^17.7.2",
-        "zod": "^3.24.2"
+        "zod": "^3.24.2",
+        "zod-to-json-schema": "^3.24.3"
     },
     "devDependencies": {
         "@eslint/js": "^9.21.0",
