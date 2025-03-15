@@ -184,7 +184,7 @@ export const MultiDimDataPageContent = ({
     }, [searchParams, config])
 
     useEffect(() => {
-        if (slug) analytics.logGrapherView(slug, settings)
+        if (slug) analytics.logGrapherView(slug, { view: settings })
     }, [slug, settings])
 
     const updateGrapher = useCallback(
