@@ -27,6 +27,11 @@ import {
 } from "./apiRoutes/datasets.js"
 import { addExplorerTags, deleteExplorerTags } from "./apiRoutes/explorer.js"
 import {
+    handleGetExplorers,
+    handlePutExplorer,
+    handlePatchExplorer,
+} from "./apiRoutes/explorers.js"
+import {
     getAllGdocIndexItems,
     getIndividualGdoc,
     createOrUpdateGdoc,
@@ -297,6 +302,15 @@ putRouteWithRWTransaction(
     handlePutMultiDim
 )
 patchRouteWithRWTransaction(apiRouter, "/multi-dims/:id", handlePatchMultiDim)
+
+// Explorer routes
+getRouteWithROTransaction(apiRouter, "/explorers.json", handleGetExplorers)
+putRouteWithRWTransaction(
+    apiRouter,
+    "/explorers/:catalogPath",
+    handlePutExplorer
+)
+patchRouteWithRWTransaction(apiRouter, "/explorers/:id", handlePatchExplorer)
 
 // Misc routes
 getRouteWithROTransaction(apiRouter, "/all-work", fetchAllWork)

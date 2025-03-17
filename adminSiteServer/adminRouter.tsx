@@ -284,6 +284,7 @@ adminRouter.get("/nodeVersion", (req, res) => {
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
 adminRouter.get(`/${GetAllExplorersRoute}`, async (req, res) => {
+    // EXP: fetch explorers from MySQL
     res.send(await explorerAdminServer.getAllExplorersCommand())
 })
 
