@@ -1,33 +1,12 @@
 import { JsonError } from "@ourworldindata/types"
-import { Request, Response } from "express"
+import e, { Request, Response } from "express"
 import * as db from "../../db/db.js"
 import {
     DbPlainExplorer,
     ExplorersTableName,
     upsertExplorer,
 } from "../../db/model/Explorer.js"
-
-// PUT /explorers/:slug - Save or update explorer by slug
-export async function handlePutExplorer(
-    req: Request,
-    _res: Response,
-    trx: db.KnexReadWriteTransaction
-) {
-    const { slug } = req.params
-    if (!slug) {
-        throw new JsonError(`Invalid explorer slug ${slug}`)
-    }
-
-    const { config: rawConfig } = req.body as { config: any }
-    if (!rawConfig) {
-        throw new JsonError("Explorer config is required")
-    }
-
-    const configStr = JSON.stringify(rawConfig)
-    const id = await upsertExplorer(trx, slug, configStr)
-
-    return { success: true, id }
-}
+import { triggerStaticBuild } from "./routeUtils.js"
 
 // GET /allExplorers.json - List all explorers
 export async function handleGetExplorers(
@@ -35,13 +14,43 @@ export async function handleGetExplorers(
     _res: Response,
     trx: db.KnexReadonlyTransaction
 ) {
+    // TODO: redirect allExplorers.json here
     console.log("Handled by /allExplorers.json")
 }
 
-// PATCH /explorers/:id - Update explorer properties
+// PUT /explorers/:slug - Save or update explorer by slug
+export async function handlePutExplorer(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const { slug } = req.params
+    if (!slug) {
+        throw new JsonError(`Invalid explorer slug ${slug}`)
+    }
+
+    const { tsv: tsv } = req.body as { tsv: any }
+    const id = await upsertExplorer(trx, slug, tsv)
+
+    const { slug: publishedSlug } =
+        (await trx(ExplorersTableName)
+            .select("slug")
+            .where("slug", slug)
+            .where("isPublished", true)
+            .first()) ?? {}
+    if (publishedSlug) {
+        await triggerStaticBuild(
+            res.locals.user,
+            `Publishing multidimensional chart ${publishedSlug}`
+        )
+    }
+    return { success: true, id }
+}
+
+// TODO: do we need PATCH?
 export async function handlePatchExplorer(
     req: Request,
-    _res: Response,
+    res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadWriteTransaction
 ) {
     const { id } = req.params

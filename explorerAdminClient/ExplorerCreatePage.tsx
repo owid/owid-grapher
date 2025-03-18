@@ -135,11 +135,16 @@ export class ExplorerCreatePage extends Component<{
     @action.bound private async _save(slug: string, commitMessage: string) {
         this.loadingModalOn()
         this.program.slug = slug
-        const res = await this.gitCmsClient.writeRemoteFile({
-            filepath: this.program.fullPath,
-            content: this.program.toString(),
-            commitMessage,
+
+        // Call the API to save the explorer
+        const res = await patchExplorer({
+            slug: this.program.slug,
+            tsv: this.program.toString(),
+            lastCommit: JSON.stringify({
+                message: commitMessage,
+            }),
         })
+
         if (!res.success) {
             alert(`Saving the explorer failed!\n\n${res.error}`)
             return
@@ -186,7 +191,7 @@ export class ExplorerCreatePage extends Component<{
         let commitMessage
         if (ENV !== "development") {
             commitMessage = prompt(
-                `Enter a message describing this change. Your change will be pushed to the '${this.props.gitCmsBranchName}' on GitHub.`,
+                `Enter a message describing this change.`,
                 `Updated ${this.program.slug}`
             )
             if (!commitMessage) return
@@ -231,7 +236,7 @@ export class ExplorerCreatePage extends Component<{
                 disabled={!isModified && !isNewFile}
                 className={classNames("btn", "btn-primary")}
                 onClick={this.onSave}
-                title="Saves file to disk, commits and pushes to GitHub"
+                title="Saves explorer"
             >
                 Save
             </button>
@@ -244,7 +249,7 @@ export class ExplorerCreatePage extends Component<{
                 title={
                     isNewFile
                         ? "You need to save this file first."
-                        : "Saves file to disk, commits and pushes to GitHub"
+                        : "Saves as a new explorer"
                 }
                 className={classNames("btn", "btn-secondary")}
                 onClick={this.saveAs}
@@ -520,4 +525,21 @@ class TemplatesComponent extends Component<{
             </button>
         ))
     }
+}
+
+async function patchExplorer({
+    slug,
+    ...data
+}: {
+    slug: string
+    tsv: string
+    lastCommit: string
+}) {
+    // Call the simplified API endpoint for explorers
+    const response = await fetch(`/admin/api/explorers/${slug}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+    })
+    return response.json()
 }

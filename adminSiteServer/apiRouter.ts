@@ -305,12 +305,8 @@ patchRouteWithRWTransaction(apiRouter, "/multi-dims/:id", handlePatchMultiDim)
 
 // Explorer routes
 getRouteWithROTransaction(apiRouter, "/explorers.json", handleGetExplorers)
-putRouteWithRWTransaction(
-    apiRouter,
-    "/explorers/:catalogPath",
-    handlePutExplorer
-)
-patchRouteWithRWTransaction(apiRouter, "/explorers/:id", handlePatchExplorer)
+putRouteWithRWTransaction(apiRouter, "/explorers/:slug", handlePutExplorer)
+// patchRouteWithRWTransaction(apiRouter, "/explorers/:id", handlePatchExplorer)
 
 // Misc routes
 getRouteWithROTransaction(apiRouter, "/all-work", fetchAllWork)

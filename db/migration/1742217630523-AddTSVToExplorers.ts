@@ -5,6 +5,7 @@ import {
     EXPLORERS_GIT_CMS_FOLDER,
 } from "@ourworldindata/explorer"
 import * as path from "path"
+import { simpleGit } from "simple-git"
 
 // Explorer configs are huge, use custom logger to avoid filling up the terminal.
 class SilentLogger implements Logger {
@@ -45,6 +46,11 @@ export class AddTSVToExplorers1742217630523 implements MigrationInterface {
                 `ALTER TABLE explorers ADD COLUMN tsv LONGTEXT`
             )
 
+            // Add the "lastCommit" column (using JSON type).
+            await queryRunner.query(
+                `ALTER TABLE explorers ADD COLUMN lastCommit JSON`
+            )
+
             const owidContentDir = path.join(__dirname, "../../../owid-content")
             const explorersDir = path.join(
                 owidContentDir,
@@ -52,21 +58,40 @@ export class AddTSVToExplorers1742217630523 implements MigrationInterface {
             )
             const explorerFiles = await fs.readdir(explorersDir)
 
+            // Initialize simpleGit using the repository root (adjust baseDir if necessary)
+            const git = simpleGit({
+                baseDir: owidContentDir,
+                binary: "git",
+                maxConcurrentProcesses: 16,
+            })
+
             for (const filename of explorerFiles) {
                 if (filename.endsWith(EXPLORER_FILE_SUFFIX)) {
                     const slug = filename.replace(EXPLORER_FILE_SUFFIX, "")
-                    const content = await fs.readFile(
-                        `${explorersDir}/${filename}`,
-                        "utf8"
-                    )
+                    const filePath = path.join(explorersDir, filename)
+                    const content = await fs.readFile(filePath, "utf8")
 
-                    // Update the record if it exists. If no rows are updated, log a message.
+                    // Get the last commit for this file.
+                    let lastCommit: any = null
+                    try {
+                        const commits = await git.log({ file: filePath, n: 1 })
+                        lastCommit = commits.latest
+                    } catch (error) {
+                        console.log(
+                            `Error retrieving git log for ${filename}: ${error}`
+                        )
+                    }
+
+                    // Update the explorer record with both TSV and lastCommit JSON.
                     const updateResult: any = await queryRunner.query(
-                        `UPDATE explorers SET tsv = ? WHERE slug = ?`,
-                        [content, slug]
+                        `UPDATE explorers SET tsv = ?, lastCommit = ? WHERE slug = ?`,
+                        [
+                            content,
+                            lastCommit ? JSON.stringify(lastCommit) : null,
+                            slug,
+                        ]
                     )
 
-                    // MySQL returns an object with affectedRows.
                     if (!updateResult || updateResult.affectedRows === 0) {
                         console.log(
                             `Explorer with slug "${slug}" not found. Skipping.`
@@ -81,7 +106,8 @@ export class AddTSVToExplorers1742217630523 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        // Remove the "tsv" column.
+        // Remove the "lastCommit" and "tsv" columns.
+        await queryRunner.query(`ALTER TABLE explorers DROP COLUMN lastCommit`)
         await queryRunner.query(`ALTER TABLE explorers DROP COLUMN tsv`)
     }
 }

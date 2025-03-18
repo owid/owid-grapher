@@ -39,7 +39,9 @@ export class ExplorerAdminServer {
     async getAllExplorersCommand(knex: db.KnexReadonlyTransaction) {
         // Download all explorers for the admin index page
         try {
-            const explorers = (await this.getAllExplorers(knex)).slice(0, 2)
+            const explorers = (await this.getAllExplorers(knex)).filter(
+                (explorer) => ["monkeypox"].includes(explorer.slug)
+            )
 
             const branches = await this.simpleGit.branchLocal()
             const gitCmsBranchName = await branches.current
@@ -87,7 +89,12 @@ export class ExplorerAdminServer {
         const explorerRows = await getAllExplorers(knex)
 
         return explorerRows.map(
-            (row) => new ExplorerProgram(row.slug, row.tsv ?? "")
+            (row) =>
+                new ExplorerProgram(
+                    row.slug,
+                    row.tsv ?? "",
+                    JSON.parse(row.lastCommit)
+                )
         )
     }
 

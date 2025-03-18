@@ -7,10 +7,10 @@ export interface DbPlainExplorer {
     slug: string
     // this is populated from Buildkite's job
     config: string
-    // this comes from API
+    // TSV comes from API
     tsv: string
     isPublished: boolean
-    // catalogPath: string
+    lastCommit: string
     createdAt: Date
     updatedAt: Date
 }
@@ -32,7 +32,7 @@ export async function upsertExplorer(
     if (existingExplorer) {
         // Update existing explorer with new config
         await knex<DbPlainExplorer>(ExplorersTableName)
-            .where({ id: existingExplorer.id })
+            .where({ slug: existingExplorer.slug })
             .update({
                 tsv,
                 updatedAt: new Date(),
