@@ -635,7 +635,7 @@ export const getExplorerViewRecordsForExplorer = async (
     const baseRecords = createBaseRecords(
         explorerInfo,
         explorerProgram.decisionMatrix
-    )
+    ).slice(0, 1) // only one view per explorer
 
     const [grapherBaseRecords, nonGrapherBaseRecords] = partition(
         baseRecords,

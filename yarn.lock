@@ -11301,7 +11301,7 @@ __metadata:
     normalize.css: "npm:^8.0.1"
     ollama: "npm:^0.5.14"
     openai: "npm:^4.85.4"
-    p-map: "npm:^4.0.0"
+    p-map: "npm:^7.0.3"
     papaparse: "npm:^5.4.1"
     prettier: "npm:^3.5.0"
     progress: "npm:^2.0.3"
@@ -15099,6 +15099,13 @@ __metadata:
   dependencies:
     aggregate-error: "npm:^3.0.0"
   checksum: 10/7ba4a2b1e24c05e1fc14bbaea0fc6d85cf005ae7e9c9425d4575550f37e2e584b1af97bcde78eacd7559208f20995988d52881334db16cf77bc1bcf68e48ed7c
+  languageName: node
+  linkType: hard
+
+"p-map@npm:^7.0.3":
+  version: 7.0.3
+  resolution: "p-map@npm:7.0.3"
+  checksum: 10/2ef48ccfc6dd387253d71bf502604f7893ed62090b2c9d73387f10006c342606b05233da0e4f29388227b61eb5aeface6197e166520c465c234552eeab2fe633
   languageName: node
   linkType: hard
 

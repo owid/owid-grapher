@@ -284,15 +284,15 @@ update.chart-entities: itsJustJavascript
 	node --enable-source-maps itsJustJavascript/baker/updateChartEntities.js --all
 
 reindex: itsJustJavascript
-	@echo '==> Reindexing search in Algolia'
-	@echo '--- Running configureAlgolia...'
-	node --enable-source-maps itsJustJavascript/baker/algolia/configureAlgolia.js
-	@echo '--- Running indexPagesToAlgolia...'
-	node --enable-source-maps itsJustJavascript/baker/algolia/indexPagesToAlgolia.js
-	@echo '--- Running indexChartsToAlgolia...'
-	node --enable-source-maps itsJustJavascript/baker/algolia/indexChartsToAlgolia.js
-	@echo '--- Running indexExplorerViewsToAlgolia...'
-	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorerViewsToAlgolia.js
+	# @echo '==> Reindexing search in Algolia'
+	# @echo '--- Running configureAlgolia...'
+	# node --enable-source-maps itsJustJavascript/baker/algolia/configureAlgolia.js
+	# @echo '--- Running indexPagesToAlgolia...'
+	# node --enable-source-maps itsJustJavascript/baker/algolia/indexPagesToAlgolia.js
+	# @echo '--- Running indexChartsToAlgolia...'
+	# node --enable-source-maps itsJustJavascript/baker/algolia/indexChartsToAlgolia.js
+	# @echo '--- Running indexExplorerViewsToAlgolia...'
+	# node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorerViewsToAlgolia.js
 	@echo '--- Running indexExplorerViewsMdimViewsAndChartsToAlgolia...'
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorerViewsMdimViewsAndChartsToAlgolia.js
 

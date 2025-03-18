@@ -1,10 +1,7 @@
 import ollama from "ollama"
-
+import fetch from "node-fetch"
 import { z } from "zod"
 import { zodToJsonSchema } from "zod-to-json-schema"
-import { readFileSync } from "fs"
-import { resolve } from "path"
-import { createInterface } from "readline"
 
 /*
     Ollama vision capabilities with structured outputs
@@ -15,24 +12,27 @@ const ImageDescriptionSchema = z.object({
     search_suggestions: z.array(z.string()).length(5),
 })
 
-async function run(model: string) {
-    // Create readline interface for user input
-    const rl = createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    })
-
-    // Get path from user input
-    const path = await new Promise<string>((resolve) => {
-        rl.question("Enter the path to your image: ", resolve)
-    })
-    rl.close()
-
-    // Verify the file exists and read it
+/**
+ * Extracts search suggestions from an image URL
+ * This function only knows how to process an image URL and doesn't have any chart-specific logic
+ */
+export const extractSearchSuggestions = async (
+    model: string,
+    imageUrl: string
+): Promise<string[]> => {
     try {
-        const imagePath = resolve(path)
-        const imageBuffer = readFileSync(imagePath)
-        const base64Image = imageBuffer.toString("base64")
+        // Download the image directly as a buffer
+        console.log(`Downloading image from ${imageUrl}`)
+        const responseImage = await fetch(imageUrl)
+        if (!responseImage.ok) {
+            throw new Error(
+                `Failed to fetch image: ${responseImage.statusText}`
+            )
+        }
+
+        // Get the image as arrayBuffer and convert to base64
+        const imageBuffer = await responseImage.arrayBuffer()
+        const base64Image = Buffer.from(imageBuffer).toString("base64")
 
         // Convert the Zod schema to JSON Schema format
         const jsonSchema = zodToJsonSchema(ImageDescriptionSchema)
@@ -56,17 +56,12 @@ async function run(model: string) {
         })
 
         // Parse and validate the response
-        try {
-            const imageAnalysis = ImageDescriptionSchema.parse(
-                JSON.parse(response.message.content)
-            )
-            console.log("Image Analysis:", imageAnalysis)
-        } catch (error) {
-            console.error("Generated invalid response:", error)
-        }
+        const imageAnalysis = ImageDescriptionSchema.parse(
+            JSON.parse(response.message.content)
+        )
+        return imageAnalysis.search_suggestions || []
     } catch (error) {
-        console.error("Error reading image file:", error)
+        console.error("Error processing image:", error)
+        return []
     }
 }
-
-run("llama3.2-vision").catch(console.error)
