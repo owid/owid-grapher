@@ -99,10 +99,11 @@ export class ExplorerCreatePage extends Component<{
 
     @action.bound private async fetchExplorerProgramOnLoad() {
         const { slug } = this.props
-        const response = await this.gitCmsClient.readRemoteFile({
-            filepath: makeFullPath(slug),
-        })
-        this.programOnDisk = new ExplorerProgram("", response.content ?? "")
+        //
+
+        const response = await fetchExplorer({ slug })
+
+        this.programOnDisk = new ExplorerProgram("", response.tsv ?? "")
         this.setProgram(this.draftIfAny ?? this.programOnDisk.toString())
         this.isReady = true
         if (this.isModified)
@@ -527,6 +528,15 @@ class TemplatesComponent extends Component<{
     }
 }
 
+async function fetchExplorer({
+    slug,
+}: {
+    slug: string
+}): Promise<{ tsv: string }> {
+    const response = await fetch(`/admin/api/explorers/${slug}`)
+    return response.json()
+}
+
 async function patchExplorer({
     slug,
     ...data
@@ -534,7 +544,7 @@ async function patchExplorer({
     slug: string
     tsv: string
     lastCommit: string
-}) {
+}): Promise<{ success: boolean; error?: string }> {
     // Call the simplified API endpoint for explorers
     const response = await fetch(`/admin/api/explorers/${slug}`, {
         method: "PUT",
