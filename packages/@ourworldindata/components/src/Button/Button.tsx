@@ -51,7 +51,7 @@ export const Button = ({
     const content = (
         <>
             {iconPosition === "left" && icon && <FontAwesomeIcon icon={icon} />}
-            {text}
+            {text && <span>{text}</span>}
             {iconPosition !== "left" && icon && <FontAwesomeIcon icon={icon} />}
         </>
     )
