@@ -33,6 +33,7 @@ import {
 } from "../gitCms/GitCmsConstants.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { AdminManager } from "../explorerAdminClient/AdminManager.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
 class ExplorerRow extends Component<{
@@ -127,9 +128,7 @@ class ExplorerRow extends Component<{
                 <td>
                     <button
                         className="btn btn-danger"
-                        onClick={() =>
-                            indexPage.togglePublishedStatus(filename)
-                        }
+                        onClick={() => indexPage.togglePublishedStatus(slug)}
                     >
                         {isPublished ? "Unpublish" : "Publish"}
                     </button>
@@ -137,7 +136,7 @@ class ExplorerRow extends Component<{
                 <td>
                     <button
                         className="btn btn-danger"
-                        onClick={() => indexPage.deleteFile(filename)}
+                        onClick={() => indexPage.deleteFile(slug)}
                     >
                         Delete{" "}
                     </button>
@@ -188,6 +187,9 @@ class ExplorerList extends Component<{
 export class ExplorersIndexPage extends Component<{
     manager?: AdminManager
 }> {
+    static contextType = AdminAppContext
+    context!: AdminAppContextType
+
     @observable explorers: ExplorerProgram[] = []
     @observable needsPull = false
     @observable maxVisibleRows = 50
@@ -206,12 +208,6 @@ export class ExplorersIndexPage extends Component<{
 
     @action.bound onShowMore() {
         this.maxVisibleRows += 100
-    }
-
-    @action.bound private async pullFromGithub() {
-        const result = await this.gitCmsClient.pullFromGithub()
-        alert(JSON.stringify(result))
-        window.location.reload()
     }
 
     render() {
@@ -245,13 +241,6 @@ export class ExplorersIndexPage extends Component<{
                     </div>
                     <div style={{ textAlign: "right" }}>
                         <a
-                            className="btn btn-secondary"
-                            href="#"
-                            onClick={this.pullFromGithub}
-                        >
-                            Pull updates from GitHub
-                        </a>{" "}
-                        <a
                             className="btn btn-primary"
                             href={`/admin/${EXPLORERS_ROUTE_FOLDER}/${DefaultNewExplorerSlug}`}
                         >
@@ -265,11 +254,6 @@ export class ExplorersIndexPage extends Component<{
                     indexPage={this}
                     gitCmsBranchName={this.gitCmsBranchName}
                 />
-                <a
-                    href={`${GIT_CMS_REPO_URL}/commits/${this.gitCmsBranchName}`}
-                >
-                    See branch '{this.gitCmsBranchName}' history on GitHub
-                </a>
                 <br />
                 <br />
             </main>
@@ -313,30 +297,44 @@ export class ExplorersIndexPage extends Component<{
         this.manager.loadingIndicatorSetting = "default"
     }
 
-    @action.bound async togglePublishedStatus(filename: string) {
-        const explorer = this.explorers.find(
-            (exp) => exp.filename === filename
-        )!
+    @action.bound async togglePublishedStatus(slug: string) {
+        const explorer = this.explorers.find((exp) => exp.slug === slug)!
         const newVersion = explorer.setPublished(!explorer.isPublished)
 
         this.loadingModalOn()
-        // TODO: change TSV file
-        await this.gitCmsClient.writeRemoteFile({
-            filepath: newVersion.fullPath,
-            content: newVersion.toString(),
-            commitMessage: `Setting publish status of ${filename} to ${newVersion.isPublished}`,
-        })
+
+        // Call the API to save the explorer
+        const commitMessage = `Setting publish status of ${explorer.slug} to ${newVersion.isPublished}`
+
+        const res = await this.context.admin.requestJSON(
+            `/api/explorers/${explorer.slug}`,
+            {
+                tsv: newVersion.toString(),
+                // TODO: update lastCommit or separate message into its own field
+                lastCommit: JSON.stringify({ message: commitMessage }),
+            },
+            "PUT"
+        )
+
+        if (!res.success) {
+            alert(`Saving the explorer failed!\n\n${res.error}`)
+            return
+        }
+
         this.resetLoadingModal()
         await this.fetchAllExplorers()
     }
 
-    @action.bound async deleteFile(filename: string) {
-        if (!confirm(`Are you sure you want to delete "${filename}"?`)) return
+    @action.bound async deleteFile(slug: string) {
+        if (!confirm(`Are you sure you want to delete "${slug}"?`)) return
 
         this.loadingModalOn()
-        await this.gitCmsClient.deleteRemoteFile({
-            filepath: `${EXPLORERS_GIT_CMS_FOLDER}/${filename}`,
-        })
+
+        await this.context.admin.requestJSON(
+            `/api/explorers/${slug}`,
+            {},
+            "DELETE"
+        )
         this.resetLoadingModal()
         await this.fetchAllExplorers()
     }

@@ -31,6 +31,7 @@ import {
     handleGetExplorers,
     handlePutExplorer,
     handlePatchExplorer,
+    handleDeleteExplorer,
 } from "./apiRoutes/explorers.js"
 import {
     getAllGdocIndexItems,
@@ -309,6 +310,21 @@ getRouteWithROTransaction(apiRouter, "/explorers.json", handleGetExplorers)
 getRouteWithROTransaction(apiRouter, "/explorers/:slug", handleGetExplorer)
 putRouteWithRWTransaction(apiRouter, "/explorers/:slug", handlePutExplorer)
 // patchRouteWithRWTransaction(apiRouter, "/explorers/:id", handlePatchExplorer)
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/explorers/:slug",
+    handleDeleteExplorer
+)
+
+getRouteWithROTransaction(apiRouter, "/explorers.json", handleGetExplorers)
+getRouteWithROTransaction(apiRouter, "/explorers/:slug", handleGetExplorer)
+putRouteWithRWTransaction(apiRouter, "/explorers/:slug", handlePutExplorer)
+
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/explorers/:slug",
+    handleDeleteExplorer
+)
 
 // Misc routes
 getRouteWithROTransaction(apiRouter, "/all-work", fetchAllWork)

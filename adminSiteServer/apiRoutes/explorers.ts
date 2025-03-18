@@ -61,6 +61,26 @@ export async function handlePutExplorer(
     return { success: true, id }
 }
 
+export async function handleDeleteExplorer(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const { slug } = req.params
+    if (!slug) {
+        throw new JsonError("Invalid explorer slug " + slug)
+    }
+
+    const explorer = await getExplorerBySlug(trx, slug)
+    if (!explorer) {
+        throw new JsonError("Explorer not found", 404)
+    }
+
+    await trx(ExplorersTableName).where({ slug }).delete()
+
+    return { success: true }
+}
+
 // TODO: do we need PATCH?
 export async function handlePatchExplorer(
     req: Request,
