@@ -32,7 +32,7 @@ import {
     GIT_CMS_REPO_URL,
 } from "../gitCms/GitCmsConstants.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
-import { AdminManager } from "./AdminManager.js"
+import { AdminManager } from "../explorerAdminClient/AdminManager.js"
 
 @observer
 class ExplorerRow extends Component<{
@@ -320,6 +320,7 @@ export class ExplorersIndexPage extends Component<{
         const newVersion = explorer.setPublished(!explorer.isPublished)
 
         this.loadingModalOn()
+        // TODO: change TSV file
         await this.gitCmsClient.writeRemoteFile({
             filepath: newVersion.fullPath,
             content: newVersion.toString(),

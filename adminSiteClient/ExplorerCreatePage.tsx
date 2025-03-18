@@ -26,11 +26,12 @@ import {
 } from "@ourworldindata/explorer"
 import { GitCmsClient } from "../gitCms/GitCmsClient.js"
 import { GitCmsFile, GIT_CMS_BASE_ROUTE } from "../gitCms/GitCmsConstants.js"
-import { AdminManager } from "./AdminManager.js"
+import { AdminManager } from "../explorerAdminClient/AdminManager.js"
 import {
     AutofillColDefCommand,
     SelectAllHitsCommand,
-} from "./ExplorerCommands.js"
+} from "../explorerAdminClient/ExplorerCommands.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ENV } from "../settings/clientSettings.js"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
@@ -45,6 +46,8 @@ export class ExplorerCreatePage extends Component<{
     manager?: AdminManager
     doNotFetch?: boolean // for testing
 }> {
+    static contextType = AdminAppContext
+    context!: AdminAppContextType
     disposers: Array<() => void> = []
 
     @observable showPreview: boolean = true
@@ -99,9 +102,12 @@ export class ExplorerCreatePage extends Component<{
 
     @action.bound private async fetchExplorerProgramOnLoad() {
         const { slug } = this.props
-        //
 
-        const response = await fetchExplorer({ slug })
+        const response = await this.context.admin.requestJSON(
+            `/api/explorers/${slug}`,
+            {},
+            "GET"
+        )
 
         this.programOnDisk = new ExplorerProgram("", response.tsv ?? "")
         this.setProgram(this.draftIfAny ?? this.programOnDisk.toString())
@@ -138,13 +144,15 @@ export class ExplorerCreatePage extends Component<{
         this.program.slug = slug
 
         // Call the API to save the explorer
-        const res = await patchExplorer({
-            slug: this.program.slug,
-            tsv: this.program.toString(),
-            lastCommit: JSON.stringify({
-                message: commitMessage,
-            }),
-        })
+        const res = await this.context.admin.requestJSON(
+            `/api/explorers/${this.program.slug}`,
+            {
+                tsv: this.program.toString(),
+                // TODO: update lastCommit or separate message into its own field
+                lastCommit: JSON.stringify({ message: commitMessage }),
+            },
+            "PUT"
+        )
 
         if (!res.success) {
             alert(`Saving the explorer failed!\n\n${res.error}`)
@@ -153,13 +161,14 @@ export class ExplorerCreatePage extends Component<{
 
         this.loadingModalOff()
         this.programOnDisk = new ExplorerProgram("", this.program.toString())
+        console.log(this.programOnDisk.toString())
         this.setProgram(this.programOnDisk.toString())
         this.clearDraft()
     }
 
     @action.bound private async saveAs() {
         const userSlug = prompt(
-            `Create a slug (URL friendly name) for this explorer. Your new file will be pushed to the '${this.props.gitCmsBranchName}' branch on GitHub.`,
+            `Create a slug (URL friendly name) for this explorer.`,
             this.program.slug
         )
         if (!userSlug) return
@@ -526,30 +535,4 @@ class TemplatesComponent extends Component<{
             </button>
         ))
     }
-}
-
-async function fetchExplorer({
-    slug,
-}: {
-    slug: string
-}): Promise<{ tsv: string }> {
-    const response = await fetch(`/admin/api/explorers/${slug}`)
-    return response.json()
-}
-
-async function patchExplorer({
-    slug,
-    ...data
-}: {
-    slug: string
-    tsv: string
-    lastCommit: string
-}): Promise<{ success: boolean; error?: string }> {
-    // Call the simplified API endpoint for explorers
-    const response = await fetch(`/admin/api/explorers/${slug}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-    })
-    return response.json()
 }

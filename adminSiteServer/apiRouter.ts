@@ -27,6 +27,7 @@ import {
 } from "./apiRoutes/datasets.js"
 import { addExplorerTags, deleteExplorerTags } from "./apiRoutes/explorer.js"
 import {
+    handleGetExplorer,
     handleGetExplorers,
     handlePutExplorer,
     handlePatchExplorer,
@@ -305,6 +306,7 @@ patchRouteWithRWTransaction(apiRouter, "/multi-dims/:id", handlePatchMultiDim)
 
 // Explorer routes
 getRouteWithROTransaction(apiRouter, "/explorers.json", handleGetExplorers)
+getRouteWithROTransaction(apiRouter, "/explorers/:slug", handleGetExplorer)
 putRouteWithRWTransaction(apiRouter, "/explorers/:slug", handlePutExplorer)
 // patchRouteWithRWTransaction(apiRouter, "/explorers/:id", handlePatchExplorer)
 

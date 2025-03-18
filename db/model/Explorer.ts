@@ -40,11 +40,20 @@ export async function upsertExplorer(
 
         return existingExplorer.id
     } else {
+        // TODO: isPublished needs to be set in TSV!
         // Create new explorer
+
+        const unpublishedTSV = tsv.replace(
+            /isPublished\ttrue/g,
+            "isPublished\tfalse"
+        )
+
         const [id] = await knex<DbPlainExplorer>(ExplorersTableName).insert({
-            tsv,
+            tsv: unpublishedTSV,
             slug,
             isPublished: false,
+            config: "{}",
+            lastCommit: "{}",
             createdAt: new Date(),
             updatedAt: new Date(),
         })

@@ -40,7 +40,8 @@ export class ExplorerAdminServer {
         // Download all explorers for the admin index page
         try {
             const explorers = (await this.getAllExplorers(knex)).filter(
-                (explorer) => ["monkeypox"].includes(explorer.slug)
+                (explorer) =>
+                    ["monkeypox", "apox", "bpox"].includes(explorer.slug)
             )
 
             const branches = await this.simpleGit.branchLocal()

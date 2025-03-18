@@ -5,6 +5,7 @@ import {
     DbPlainExplorer,
     ExplorersTableName,
     upsertExplorer,
+    getExplorerBySlug,
 } from "../../db/model/Explorer.js"
 import { triggerStaticBuild } from "./routeUtils.js"
 
@@ -16,6 +17,19 @@ export async function handleGetExplorers(
 ) {
     // TODO: redirect allExplorers.json here
     console.log("Handled by /allExplorers.json")
+}
+
+export async function handleGetExplorer(
+    req: Request,
+    res: Response,
+    trx: db.KnexReadonlyTransaction
+) {
+    const { slug } = req.params
+    const explorer = await getExplorerBySlug(trx, slug)
+    if (!explorer) {
+        throw new JsonError("Explorer not found", 404)
+    }
+    return explorer
 }
 
 // PUT /explorers/:slug - Save or update explorer by slug
