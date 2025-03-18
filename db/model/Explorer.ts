@@ -66,9 +66,10 @@ export async function getExplorerBySlug(
     knex: db.KnexReadonlyTransaction,
     slug: string
 ): Promise<DbPlainExplorer | undefined> {
-    return await knex<DbPlainExplorer>(ExplorersTableName)
+    const row = await knex<DbPlainExplorer>(ExplorersTableName)
         .where({ slug })
         .first()
+    return row
 }
 
 export async function getAllExplorers(

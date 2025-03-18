@@ -81,7 +81,5 @@ export const EXPLORERS_PREVIEW_ROUTE = `${EXPLORERS_ROUTE_FOLDER}/preview`
 export interface ExplorersRouteResponse {
     success: boolean
     errorMessage?: string
-    needsPull: boolean
-    gitCmsBranchName: string
     explorers: SerializedGridProgram[]
 }

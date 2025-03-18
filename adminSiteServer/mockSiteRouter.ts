@@ -48,7 +48,6 @@ import {
     OwidGdocMinimalPostInterface,
     ImageMetadata,
 } from "@ourworldindata/utils"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
     EXPLORERS_ROUTE_FOLDER,
     explorerUrlMigrationsById,
@@ -149,7 +148,7 @@ mockSiteRouter.get("/assets/embedCharts.js", async (req, res) => {
     res.contentType("text/javascript").send(generateEmbedSnippet())
 })
 
-const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+const explorerAdminServer = new ExplorerAdminServer()
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,

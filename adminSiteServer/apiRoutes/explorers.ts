@@ -27,7 +27,7 @@ export async function handleGetExplorer(
     const { slug } = req.params
     const explorer = await getExplorerBySlug(trx, slug)
     if (!explorer) {
-        throw new JsonError("Explorer not found", 404)
+        return {}
     }
     return explorer
 }

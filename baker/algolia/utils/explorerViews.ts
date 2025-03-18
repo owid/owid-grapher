@@ -13,7 +13,6 @@ import { fetchS3MetadataByPath } from "../../../db/model/Variable.js"
 import { getVariableMetadataRoute } from "@ourworldindata/grapher"
 import pMap from "p-map"
 import { ExplorerAdminServer } from "../../../explorerAdminServer/ExplorerAdminServer.js"
-import { GIT_CMS_DIR } from "../../../gitCms/GitCmsConstants.js"
 import { parseDelimited } from "@ourworldindata/core-table"
 import {
     ColumnTypeNames,
@@ -752,7 +751,7 @@ export const getExplorerViewRecords = async (
     const publishedExplorersWithTags = await getExplorersWithInheritedTags(trx)
     const pageviews = await getAnalyticsPageviewsByUrlObj(trx)
 
-    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+    const explorerAdminServer = new ExplorerAdminServer()
 
     const records = await pMap(
         publishedExplorersWithTags,

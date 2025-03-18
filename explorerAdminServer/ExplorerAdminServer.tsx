@@ -1,40 +1,20 @@
 import {
     ExplorerProgram,
-    EXPLORERS_GIT_CMS_FOLDER,
     ExplorersRouteResponse,
 } from "@ourworldindata/explorer"
-import { simpleGit, SimpleGit } from "simple-git"
 import { keyBy, sortBy } from "@ourworldindata/utils"
 import { getExplorerBySlug, getAllExplorers } from "../db/model/Explorer"
 
 import * as db from "../db/db.js"
 
 export class ExplorerAdminServer {
-    constructor(gitDir: string) {
-        this.gitDir = gitDir
+    constructor() {
         this._cachedExplorers = null
         this._cacheTime = new Date(0)
     }
 
-    private gitDir: string
     private _cachedExplorers: null | Record<string, ExplorerProgram>
     private _cacheTime: Date
-
-    private _simpleGit?: SimpleGit
-    private get simpleGit() {
-        if (!this._simpleGit)
-            this._simpleGit = simpleGit({
-                baseDir: this.gitDir,
-                binary: "git",
-                maxConcurrentProcesses: 16, // we're getting one "git log" per explorer file, so concurrency makes a massive difference
-            })
-        return this._simpleGit
-    }
-
-    // we store explorers in a subdir of the gitcms for now. idea is we may store other things in there later.
-    get absoluteFolderPath() {
-        return this.gitDir + "/" + EXPLORERS_GIT_CMS_FOLDER + "/"
-    }
 
     async getAllExplorersCommand(knex: db.KnexReadonlyTransaction) {
         // Download all explorers for the admin index page
@@ -44,14 +24,8 @@ export class ExplorerAdminServer {
                     ["monkeypox", "apox", "bpox"].includes(explorer.slug)
             )
 
-            const branches = await this.simpleGit.branchLocal()
-            const gitCmsBranchName = await branches.current
-            const needsPull = false // todo: add
-
             return {
                 success: true,
-                gitCmsBranchName,
-                needsPull,
                 explorers: explorers.map((explorer) => explorer.toJson()),
             } as ExplorersRouteResponse
         } catch (err) {

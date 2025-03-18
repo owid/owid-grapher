@@ -113,7 +113,6 @@ beforeAll(async () => {
     app = new OwidAdminApp({
         isDev: true,
         isTest: true,
-        gitCmsDir: "",
         quiet: true,
     })
     await app.startListening(ADMIN_SERVER_PORT, ADMIN_SERVER_HOST)

@@ -15,8 +15,6 @@ import {
     renderGdoc,
     renderPreview,
 } from "../baker/siteRenderers.js"
-import { GitCmsServer } from "../gitCms/GitCmsServer.js"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
     getOwidGdocFromJSON,
     JsonError,
@@ -281,7 +279,7 @@ adminRouter.get("/nodeVersion", (req, res) => {
     res.send(process.version)
 })
 
-const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+const explorerAdminServer = new ExplorerAdminServer()
 
 getPlainRouteWithROTransaction(
     adminRouter,
@@ -399,12 +397,5 @@ getPlainRouteWithROTransaction(
         throw new JsonError("No such chart", 404)
     }
 )
-
-const gitCmsServer = new GitCmsServer({
-    baseDir: GIT_CMS_DIR,
-    shouldAutoPush: true,
-})
-void gitCmsServer.createDirAndInitIfNeeded()
-gitCmsServer.addToRouter(adminRouter)
 
 export { adminRouter }

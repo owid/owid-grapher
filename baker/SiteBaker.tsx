@@ -61,7 +61,6 @@ import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
 import { bakeAllChangedGrapherPagesAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
     bakeAllExplorerRedirects,
     bakeAllPublishedExplorers,
@@ -197,7 +196,7 @@ export class SiteBaker {
                 renderThrottle: 0,
             }
         )
-        this.explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+        this.explorerAdminServer = new ExplorerAdminServer()
     }
 
     private async bakeCountryProfiles(knex: db.KnexReadonlyTransaction) {
