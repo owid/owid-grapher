@@ -801,7 +801,10 @@ const getExplorerTitleByUrl = async (
     if (!url.isExplorer || !url.slug) return
     // todo / optim: ok to instanciate multiple simple-git?
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-    const explorer = await explorerAdminServer.getExplorerFromSlug(url.slug)
+    const explorer = await explorerAdminServer.getExplorerFromSlug(
+        knex,
+        url.slug
+    )
     if (!explorer) return
 
     if (url.queryStr) {

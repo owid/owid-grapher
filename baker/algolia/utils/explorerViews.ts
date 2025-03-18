@@ -627,7 +627,10 @@ export const getExplorerViewRecordsForExplorer = async (
     skipGrapherViews: boolean
 ): Promise<ExplorerViewFinalRecord[]> => {
     const { slug } = explorerInfo
-    const explorerProgram = await explorerAdminServer.getExplorerFromSlug(slug)
+    const explorerProgram = await explorerAdminServer.getExplorerFromSlug(
+        trx,
+        slug
+    )
 
     console.log(
         `Creating ${explorerProgram.decisionMatrix.numRows} base records for explorer ${slug}`

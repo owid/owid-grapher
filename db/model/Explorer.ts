@@ -4,7 +4,7 @@ export const ExplorersTableName = "explorers"
 
 export interface DbPlainExplorer {
     id: number
-    slug: string | null
+    slug: string
     // this is populated from Buildkite's job
     config: string
     // this comes from API
@@ -51,4 +51,20 @@ export async function upsertExplorer(
 
         return id
     }
+}
+
+export async function getExplorerBySlug(
+    knex: db.KnexReadonlyTransaction,
+    slug: string
+): Promise<DbPlainExplorer | undefined> {
+    return await knex<DbPlainExplorer>(ExplorersTableName)
+        .where({ slug })
+        .first()
+}
+
+export async function getAllExplorers(
+    knex: db.KnexReadonlyTransaction
+): Promise<DbEnrichedExplorer[]> {
+    const rows = await knex<DbPlainExplorer>(ExplorersTableName)
+    return rows
 }

@@ -334,7 +334,7 @@ export class SiteBaker {
             })
 
             const publishedExplorersBySlug = await this.explorerAdminServer
-                .getAllPublishedExplorersBySlugCached()
+                .getAllPublishedExplorersBySlugCached(knex)
                 .then((results) =>
                     mapValues(results, (explorer) => {
                         return makeExplorerLinkedChart(explorer, explorer.slug)

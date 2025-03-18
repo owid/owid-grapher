@@ -808,23 +808,27 @@ getPlainRouteWithROTransaction(
     }
 )
 
-testPageRouter.get("/explorers", async (req, res) => {
-    let explorers = await explorerAdminServer.getAllPublishedExplorers()
-    const viewProps = getViewPropsFromQueryParams(req.query)
-    const chartCreationMode = getChartCreationModeFromQueryParams(req.query)
+getPlainRouteWithROTransaction(
+    testPageRouter,
+    "/explorers",
+    async (req, res, trx) => {
+        let explorers = await explorerAdminServer.getAllPublishedExplorers(trx)
+        const viewProps = getViewPropsFromQueryParams(req.query)
+        const chartCreationMode = getChartCreationModeFromQueryParams(req.query)
 
-    if (chartCreationMode) {
-        explorers = explorers.filter(
-            (explorer) => explorer.chartCreationMode === chartCreationMode
+        if (chartCreationMode) {
+            explorers = explorers.filter(
+                (explorer) => explorer.chartCreationMode === chartCreationMode
+            )
+        }
+
+        const slugs = explorers.map((explorer) => explorer.slug)
+
+        res.send(
+            renderToHtmlPage(<ExplorerTestPage slugs={slugs} {...viewProps} />)
         )
     }
-
-    const slugs = explorers.map((explorer) => explorer.slug)
-
-    res.send(
-        renderToHtmlPage(<ExplorerTestPage slugs={slugs} {...viewProps} />)
-    )
-})
+)
 
 interface ExplorerTestPageProps {
     slugs: string[]

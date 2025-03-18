@@ -35,33 +35,7 @@ export async function handleGetExplorers(
     _res: Response,
     trx: db.KnexReadonlyTransaction
 ) {
-    try {
-        const results = await db.knexRaw<
-            Pick<
-                DbPlainExplorer,
-                "id" | "catalogPath" | "slug" | "updatedAt" | "published"
-            >
-        >(
-            trx,
-            `-- sql
-            SELECT
-                id,
-                catalogPath,
-                slug,
-                updatedAt,
-                published
-            FROM ${ExplorersTableName}`
-        )
-
-        const explorers = results.map((row) => ({
-            ...row,
-            published: Boolean(row.published),
-        }))
-
-        return { explorers }
-    } catch (error) {
-        throw new JsonError("Failed to fetch explorers", 500, { cause: error })
-    }
+    console.log("Handled by /allExplorers.json")
 }
 
 // PATCH /explorers/:id - Update explorer properties
@@ -79,10 +53,10 @@ export async function handlePatchExplorer(
 
     const { published, slug } = req.body
 
-    // Validate slug if provided
-    if (slug !== undefined) {
-        await validateNewGrapherSlug(trx, slug, explorerId)
-    }
+    // // Validate slug if provided
+    // if (slug !== undefined) {
+    //     await validateNewGrapherSlug(trx, slug, explorerId)
+    // }
 
     // Build update object
     const updateData: any = {}

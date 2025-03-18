@@ -283,10 +283,13 @@ adminRouter.get("/nodeVersion", (req, res) => {
 
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
-adminRouter.get(`/${GetAllExplorersRoute}`, async (req, res) => {
-    // EXP: fetch explorers from MySQL
-    res.send(await explorerAdminServer.getAllExplorersCommand())
-})
+getPlainRouteWithROTransaction(
+    adminRouter,
+    `/${GetAllExplorersRoute}`,
+    async (_, res, trx) => {
+        res.send(await explorerAdminServer.getAllExplorersCommand(trx))
+    }
+)
 
 getPlainRouteWithROTransaction(
     adminRouter,
@@ -303,7 +306,6 @@ getPlainRouteWithROTransaction(
     `/${EXPLORERS_PREVIEW_ROUTE}/:slug`,
     async (req, res, knex) => {
         const slug = slugify(req.params.slug)
-        const filename = slug + EXPLORER_FILE_SUFFIX
 
         if (slug === DefaultNewExplorerSlug)
             return renderExplorerPage(
@@ -311,12 +313,10 @@ getPlainRouteWithROTransaction(
                 knex,
                 { isPreviewing: true }
             )
-        if (
-            !slug ||
-            !fs.existsSync(explorerAdminServer.absoluteFolderPath + filename)
+        const explorer = await explorerAdminServer.getExplorerFromSlug(
+            knex,
+            slug
         )
-            return `File not found`
-        const explorer = await explorerAdminServer.getExplorerFromFile(filename)
         const explorerPage = await renderExplorerPage(explorer, knex, {
             isPreviewing: true,
         })
