@@ -1,8 +1,14 @@
 import { JsonError } from "@ourworldindata/types"
-import { Request } from "express"
-import * as e from "express"
+import e, { Request, Response } from "express"
 
 import * as db from "../../db/db.js"
+
+import {
+    ExplorersTableName,
+    upsertExplorer,
+    getExplorerBySlug,
+} from "../../db/model/Explorer.js"
+import { triggerStaticBuild } from "./routeUtils.js"
 
 export async function addExplorerTags(
     req: Request,
@@ -33,15 +39,64 @@ export async function deleteExplorerTags(
     return { success: true }
 }
 
-export async function getExplorerBySlug(
+export async function handleGetExplorer(
     req: Request,
-    _res: e.Response<any, Record<string, any>>,
+    res: Response,
     trx: db.KnexReadonlyTransaction
 ) {
     const { slug } = req.params
-    const explorer = await trx.table("explorers").where({ slug }).first()
-    if (!explorer)
-        throw new JsonError(`No explorer found for slug ${slug}`, 404)
-
+    const explorer = await getExplorerBySlug(trx, slug)
+    if (!explorer) {
+        return {}
+    }
     return explorer
+}
+
+// PUT /explorers/:slug - Save or update explorer by slug
+export async function handlePutExplorer(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const { slug } = req.params
+    if (!slug) {
+        throw new JsonError(`Invalid explorer slug ${slug}`)
+    }
+
+    const { tsv: tsv } = req.body as { tsv: any }
+    const id = await upsertExplorer(trx, slug, tsv)
+
+    const { slug: publishedSlug } =
+        (await trx(ExplorersTableName)
+            .select("slug")
+            .where("slug", slug)
+            .where("isPublished", true)
+            .first()) ?? {}
+    if (publishedSlug) {
+        await triggerStaticBuild(
+            res.locals.user,
+            `Publishing multidimensional chart ${publishedSlug}`
+        )
+    }
+    return { success: true, id }
+}
+
+export async function handleDeleteExplorer(
+    req: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadWriteTransaction
+) {
+    const { slug } = req.params
+    if (!slug) {
+        throw new JsonError("Invalid explorer slug " + slug)
+    }
+
+    const explorer = await getExplorerBySlug(trx, slug)
+    if (!explorer) {
+        throw new JsonError("Explorer not found", 404)
+    }
+
+    await trx(ExplorersTableName).where({ slug }).delete()
+
+    return { success: true }
 }

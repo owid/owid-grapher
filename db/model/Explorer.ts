@@ -3,27 +3,26 @@ import * as db from "../db.js"
 export const ExplorersTableName = "explorers"
 
 export interface DbPlainExplorer {
-    id: number
     slug: string
-    // this is populated from Buildkite's job
-    config: string
     // TSV comes from API
     tsv: string
-    isPublished: boolean
     lastCommit: string
     createdAt: Date
     updatedAt: Date
 }
 
-export interface DbEnrichedExplorer extends Omit<DbPlainExplorer, "config"> {
-    config: any
+export interface DbEnrichedExplorer extends DbPlainExplorer {
+    // these properties are populated from Buildkite's pipeline "Mirror explorers to MySQL"
+    // and shouldn't be relied on
+    config: string
+    isPublished: boolean
 }
 
 export async function upsertExplorer(
     knex: db.KnexReadWriteTransaction,
     slug: string,
     tsv: string
-): Promise<number> {
+): Promise<string> {
     // Check if explorer with this catalog path already exists
     const existingExplorer = await knex<DbPlainExplorer>(ExplorersTableName)
         .where({ slug })
@@ -38,27 +37,26 @@ export async function upsertExplorer(
                 updatedAt: new Date(),
             })
 
-        return existingExplorer.id
+        return existingExplorer.slug
     } else {
-        // TODO: isPublished needs to be set in TSV!
         // Create new explorer
-
+        // isPublished is currently set in the TSV
+        // TODO: do this via const newExplorer = explorer.setPublished(false)
         const unpublishedTSV = tsv.replace(
             /isPublished\ttrue/g,
             "isPublished\tfalse"
         )
 
-        const [id] = await knex<DbPlainExplorer>(ExplorersTableName).insert({
+        await knex<DbEnrichedExplorer>(ExplorersTableName).insert({
             tsv: unpublishedTSV,
             slug,
-            isPublished: false,
-            config: "{}",
             lastCommit: "{}",
             createdAt: new Date(),
             updatedAt: new Date(),
+            isPublished: false,
+            config: "{}",
         })
-
-        return id
+        return slug
     }
 }
 
@@ -74,7 +72,7 @@ export async function getExplorerBySlug(
 
 export async function getAllExplorers(
     knex: db.KnexReadonlyTransaction
-): Promise<DbEnrichedExplorer[]> {
+): Promise<DbPlainExplorer[]> {
     const rows = await knex<DbPlainExplorer>(ExplorersTableName)
     return rows
 }
