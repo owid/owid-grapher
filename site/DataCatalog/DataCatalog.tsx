@@ -673,8 +673,11 @@ const TopicsRefinementList = ({
                                     aria-label={`Filter by ${facetName}`}
                                     onClick={() => addTopic(facetName)}
                                 >
+                                    <span className="body-3-bold">
+                                        {facetName}
+                                    </span>{" "}
                                     <span className="body-3-medium">
-                                        {facetName} ({commafyNumber(count)})
+                                        ({commafyNumber(count)})
                                     </span>
                                 </button>
                             </li>
