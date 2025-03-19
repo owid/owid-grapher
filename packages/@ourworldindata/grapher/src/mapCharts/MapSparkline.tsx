@@ -139,6 +139,7 @@ export class MapSparkline extends React.Component<{
                     { value: -Infinity, priority: 2 },
                     { value: 0, priority: 1 },
                 ],
+                nice: false,
             },
             xAxisConfig: {
                 hideAxis: false,
