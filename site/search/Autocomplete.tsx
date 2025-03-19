@@ -133,6 +133,13 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                 })
                 .exhaustive()
         })
+        .with(SearchIndexName.SearchSuggestions, () =>
+            urljoin(
+                BAKED_BASE_URL,
+                "/data",
+                queryParamsToStr({ q: item.suggestion as string })
+            )
+        )
         .exhaustive()
 }
 
@@ -248,6 +255,50 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     },
 }
 
+const QuerySuggestionsSource: AutocompleteSource<BaseItem> = {
+    sourceId: "querySuggestions",
+    onSelect({ navigator, item, state }) {
+        navigator.navigate({
+            itemUrl: prependSubdirectoryToAlgoliaItemUrl(item),
+            item,
+            state,
+        })
+    },
+    getItemUrl({ item }) {
+        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
+        return itemUrl
+    },
+    getItems({ query }) {
+        // Only suggest queries when there are at least 2 characters
+        if (!query || query.length < 2) {
+            return []
+        }
+
+        return getAlgoliaResults({
+            searchClient,
+            queries: [
+                {
+                    indexName: getIndexName(SearchIndexName.SearchSuggestions),
+                    query,
+                    params: {
+                        hitsPerPage: 10,
+                    },
+                },
+            ],
+        })
+    },
+    templates: {
+        header: () => <h5 className="overline-black-caps">Suggestions</h5>,
+        item: ({ item }) => {
+            return (
+                <div className="aa-ItemWrapper">
+                    <span>{item.suggestion}</span>
+                </div>
+            )
+        },
+    },
+}
+
 const AllResultsSource: AutocompleteSource<BaseItem> = {
     sourceId: "runSearch",
     onSelect,
@@ -333,7 +384,11 @@ export function Autocomplete({
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
-                    sources.push(AlgoliaSource, AllResultsSource)
+                    sources.push(
+                        QuerySuggestionsSource,
+                        AlgoliaSource,
+                        AllResultsSource
+                    )
                 } else {
                     sources.push(FeaturedSearchesSource)
                 }

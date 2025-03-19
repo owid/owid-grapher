@@ -18,9 +18,12 @@ import {
 import { extractSearchSuggestions } from "./extractSearchSuggestions.js"
 import { pMapIterable } from "p-map"
 import ProgressBar from "progress"
+import { getChartsRecords } from "./utils/charts.js"
+import { getAlgoliaClient } from "./configureAlgolia.js"
+import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 
 // Configure the model to use for search suggestions
-const OLLAMA_MODEL = "llama3.2-vision"
+const OLLAMA_MODEL = "gemma3:4b"
 
 /**
  * Generate a thumbnail URL for a chart or explorer view
@@ -58,6 +61,7 @@ async function getAllSearchSuggestions(
  * Store search suggestions in the database
  */
 async function storeSearchSuggestions(
+    knex: db.KnexReadWriteTransaction,
     imageUrl: string,
     suggestions: string[]
 ): Promise<void> {
@@ -67,8 +71,7 @@ async function storeSearchSuggestions(
     // Store suggestions as a JSON array
     const suggestionsJson = JSON.stringify(suggestions)
 
-    await db
-        .knexInstance()
+    await knex
         .table("search_suggestions")
         .insert({
             imageUrl,
@@ -82,26 +85,27 @@ async function storeSearchSuggestions(
 // If we standardize the record shape, we could have this be the only index and have a `type` field
 // to use in /search.
 const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
-    // if (!ALGOLIA_INDEXING) return
+    if (!ALGOLIA_INDEXING) return
+
     const indexName = getIndexName(
         SearchIndexName.ExplorerViewsMdimViewsAndCharts
     )
     console.log(
         `Indexing explorer views and charts to the "${indexName}" index on Algolia`
     )
-    // const client = getAlgoliaClient()
-    // if (!client) {
-    //     throw new Error(
-    //         `Failed indexing explorer views (Algolia client not initialized)`
-    //     )
-    // }
+    const client = getAlgoliaClient()
+    if (!client) {
+        throw new Error(
+            `Failed indexing explorer views (Algolia client not initialized)`
+        )
+    }
 
     const { explorerViews, mdimViews, grapherViews, allSearchSuggestions } =
         await db.knexReadonlyTransaction(async (trx) => {
             return {
                 explorerViews: await getExplorerViewRecords(trx, true),
                 mdimViews: [], //await getMdimViewRecords(trx),
-                grapherViews: [], //await getChartsRecords(trx),
+                grapherViews: await getChartsRecords(trx),
                 allSearchSuggestions: await getAllSearchSuggestions(trx),
             }
         }, db.TransactionCloseMode.Close)
@@ -158,16 +162,21 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
                     searchSuggestions = existingSuggestions.suggestions
                     progressBar.tick({ slug: `${record.slug} (cached)` })
                 } else {
-                    // Extract search suggestions from the thumbnail
+                    // Generate search suggestions from the title
                     searchSuggestions = await extractSearchSuggestions(
                         OLLAMA_MODEL,
-                        `https://ourworldindata.org${thumbnailUrl}`
+                        record.title
                     )
 
                     // Store the new suggestions in the database
-                    await storeSearchSuggestions(
-                        thumbnailUrl,
-                        searchSuggestions
+                    await db.knexReadWriteTransaction(
+                        async (trx) =>
+                            await storeSearchSuggestions(
+                                trx,
+                                thumbnailUrl,
+                                searchSuggestions
+                            ),
+                        db.TransactionCloseMode.Close
                     )
 
                     progressBar.tick({ slug: record.slug })
@@ -189,14 +198,14 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
                 return record
             }
         },
-        { concurrency: 2 }
+        { concurrency: 10 }
     )) {
         recordsWithSearchSuggestions.push(result)
     }
 
-    // const index = client.initIndex(indexName)
+    const index = client.initIndex(indexName)
 
-    // await index.replaceAllObjects(processedRecords)
+    await index.replaceAllObjects(recordsWithSearchSuggestions)
     console.log(`\nIndexed ${recordsWithSearchSuggestions.length} records`)
     console.log(`Indexing complete`)
 }

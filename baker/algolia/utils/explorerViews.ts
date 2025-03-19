@@ -349,6 +349,7 @@ const createBaseRecords = (
 ): ExplorerViewBaseRecord[] => {
     return matrix
         .allDecisionsAsQueryParams()
+        .slice(0, 1) // TODO: remove only one base record per explorer limit
         .map((choice: ExplorerChoiceParams, index: number) =>
             createBaseRecord(choice, matrix, index, explorerInfo)
         )
@@ -635,7 +636,7 @@ export const getExplorerViewRecordsForExplorer = async (
     const baseRecords = createBaseRecords(
         explorerInfo,
         explorerProgram.decisionMatrix
-    ).slice(0, 1) // only one view per explorer
+    )
 
     const [grapherBaseRecords, nonGrapherBaseRecords] = partition(
         baseRecords,

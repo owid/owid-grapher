@@ -95,6 +95,7 @@ export const getChartsRecords = async (
                  LEFT JOIN tags t on ct.tagId = t.id
         GROUP BY c.id
         HAVING COUNT(t.id) >= 1
+        LIMIT 0,100 /*TODO: remove this limit*/
     `
     )
 
