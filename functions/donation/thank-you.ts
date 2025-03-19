@@ -40,7 +40,7 @@ const constructMessage = (data: MessageData): string => {
         "Together, we can make progress against those challenges.",
         "Donations like yours are essential to our work. They provide us with the stability and independence to expand our work and increase our impact — delivering more data, charts, and insights on an increasing number of pressing topics, all free and open to the world.",
         data.isMonthly &&
-            "We really appreciate your ongoing support! You’ll receive a receipt each month after your payment is processed. If you’d like to cancel your recurring donation at any point, you can do it yourselft at https://billing.stripe.com/p/login/14k17H5yh646b4s4gg or just email us at donate@ourworldindata.org and we’ll take care of that for you.",
+            "We really appreciate your ongoing support! You’ll receive a receipt each month after your payment is processed. If you’d like to cancel your recurring donation at any point, you can do it yourself at https://billing.stripe.com/p/login/14k17H5yh646b4s4gg or just email us at donate@ourworldindata.org and we’ll take care of that for you.",
         data.showOnList &&
             "In recognition of your support, we will be delighted to include your name as part of our List of Supporters: https://ourworldindata.org/funding. We will add your name the next time we update the list, which we do every few months. The amount of your donation will not be disclosed.",
         "Stay connected with our work: Follow us on social media or sign up for one of our newsletters here: https://ourworldindata.org/#subscribe (As a valued donor, we may also share an occasional donor-only update with you, from which you may unsubscribe at any time.)",
