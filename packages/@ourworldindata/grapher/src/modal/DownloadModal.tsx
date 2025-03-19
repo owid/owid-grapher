@@ -69,6 +69,7 @@ export interface DownloadModalManager {
     isSocialMediaExport?: boolean
     isPublished?: boolean
     activeColumnSlugs?: string[]
+    isServerSideDownloadAvailable?: boolean
 }
 
 interface DownloadModalProps {
@@ -753,12 +754,9 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     const { cols: nonRedistributableCols, sourceLinks } =
         getNonRedistributableInfo(props.manager.inputTable)
 
-    // Server-side download is not necessarily available for:
-    // - Explorers
-    // - Mdims
-    // - Charts authored/changed in the admin (incl. unpublished charts)
+    // Server-side download is not necessarily available for all types of charts
     const serverSideDownloadAvailable =
-        !!props.manager.isPublished && window.admin === undefined
+        props.manager.isServerSideDownloadAvailable
 
     const downloadCtx: Omit<
         DataDownloadContextClientSide,

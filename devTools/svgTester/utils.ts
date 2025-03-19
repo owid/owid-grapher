@@ -26,6 +26,7 @@ import util from "util"
 import { getHeapStatistics } from "v8"
 import { queryStringsByChartType } from "./chart-configurations.js"
 import * as d3 from "d3"
+import prettier from "prettier"
 
 // the owid-grapher-svgs repo is usually cloned as a sibling to the owid-grapher repo
 export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/configs"
@@ -148,14 +149,14 @@ export async function verifySvg(
         referenceSvgsPath,
         referenceSvgRecord
     )
-    const preparedNewSvg = prepareSvgForComparision(newSvg)
-    const preparedReferenceSvg = prepareSvgForComparision(referenceSvg)
+    const preparedNewSvg = await prepareSvgForComparison(newSvg)
+    const preparedReferenceSvg = await prepareSvgForComparison(referenceSvg)
     const firstDiffIndex = findFirstDiffIndex(
         preparedNewSvg,
         preparedReferenceSvg
     )
-    // Sometimes the md5 hash comparision above indicated a difference
-    // but the character by character comparision gives -1 (no differences)
+    // Sometimes the md5 hash comparison above indicated a difference
+    // but the character by character comparison gives -1 (no differences)
     // Weird - maybe an artifact of a change in how the ids are stripped
     // across version?
     if (firstDiffIndex === -1) {
@@ -430,7 +431,7 @@ export async function renderSvg(
         slug: configAndData.config.slug!,
         chartType: grapher.activeTab,
         queryStr,
-        md5: processSvgAndCalculateHash(svg),
+        md5: await processSvgAndCalculateHash(svg),
         svgFilename: outFilename,
         performance: {
             durationReceiveData,
@@ -447,17 +448,24 @@ export async function renderSvg(
 const replaceRegexes = [/id="react-select-\d+-.+"/g]
 /** Some fragments of the svgs are non-deterministic. This function is used to
     delete all such fragments */
-function prepareSvgForComparision(svg: string): string {
+async function prepareSvgForComparison(svg: string): Promise<string> {
     let current = svg
     for (const replaceRegex of replaceRegexes) {
         current = svg.replace(replaceRegex, "")
     }
-    return current
+    return await formatSvg(current)
+}
+
+async function formatSvg(svg: string): Promise<string> {
+    return await prettier.format(svg, {
+        parser: "html",
+        tabWidth: 4,
+    })
 }
 
 /** Remove all non-deterministic parts of the svg and then calculate an md5 hash */
-export function processSvgAndCalculateHash(svg: string): string {
-    const processed = prepareSvgForComparision(svg)
+export async function processSvgAndCalculateHash(svg: string): Promise<string> {
+    const processed = await prepareSvgForComparison(svg)
     return md5(processed)
 }
 export interface RenderSvgAndSaveJobDescription {
@@ -471,7 +479,7 @@ export async function renderSvgAndSave(
     const { dir, outDir, queryStr } = jobDescription
     const [svg, svgRecord] = await renderSvg(dir, queryStr)
     const outPath = path.join(outDir, svgRecord.svgFilename)
-    const cleanedSvg = prepareSvgForComparision(svg)
+    const cleanedSvg = await prepareSvgForComparison(svg)
     await fs.writeFile(outPath, cleanedSvg)
     return Promise.resolve(svgRecord)
 }
@@ -631,7 +639,7 @@ export async function renderAndVerifySvg({
                     outDir,
                     pathFragments.name + suffix + pathFragments.ext
                 )
-                const cleanedSvg = prepareSvgForComparision(svg)
+                const cleanedSvg = await prepareSvgForComparison(svg)
                 await fs.writeFile(outputPath, cleanedSvg)
                 break
             }

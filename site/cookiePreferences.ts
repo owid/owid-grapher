@@ -1,5 +1,6 @@
 import { dayjs } from "@ourworldindata/utils"
 import Cookies from "js-cookie"
+import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 
 export enum PreferenceType {
     Analytics = "a",
@@ -109,6 +110,9 @@ export const getPreferenceValue = (
     type: PreferenceType,
     preferences: Preference[] = getInitialState().preferences
 ) => {
+    // The REDUCED_TRACKING env setting can be used to disable analytics tracking entirely, regardless of user preferences or cookies
+    if (type === PreferenceType.Analytics && REDUCED_TRACKING) return false
+
     return (
         preferences.find((preference) => {
             return preference.type === type
