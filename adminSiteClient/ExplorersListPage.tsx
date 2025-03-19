@@ -283,8 +283,7 @@ export class ExplorersIndexPage extends Component<{
             `/api/explorers/${explorer.slug}`,
             {
                 tsv: newVersion.toString(),
-                // TODO: update lastCommit or separate message into its own field
-                lastCommit: JSON.stringify({ message: commitMessage }),
+                commitMessage: commitMessage,
             },
             "PUT"
         )

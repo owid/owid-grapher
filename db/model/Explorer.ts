@@ -4,24 +4,41 @@ export const ExplorersTableName = "explorers"
 
 export interface DbPlainExplorer {
     slug: string
-    // TSV comes from API
     tsv: string
+    isPublished: boolean
     lastCommit: string
+    lastEditedByUserId: number
+    lastEditedAt: Date
+    commitMessage: string
     createdAt: Date
     updatedAt: Date
 }
 
 export interface DbEnrichedExplorer extends DbPlainExplorer {
     // these properties are populated from Buildkite's pipeline "Mirror explorers to MySQL"
-    // and shouldn't be relied on
     config: string
-    isPublished: boolean
+}
+
+function createLastCommit(
+    row: { lastEditedAt: Date; commitMessage: string },
+    fullName?: string | null,
+    email?: string | null
+): string {
+    const lastCommit = {
+        date: row.lastEditedAt ? row.lastEditedAt.toISOString() : "",
+        message: row.commitMessage || "",
+        author_name: fullName || "",
+        author_email: email || "",
+    }
+    return JSON.stringify(lastCommit)
 }
 
 export async function upsertExplorer(
     knex: db.KnexReadWriteTransaction,
     slug: string,
-    tsv: string
+    tsv: string,
+    lastEditedByUserId: number,
+    commitMessage: string
 ): Promise<string> {
     // Check if explorer with this catalog path already exists
     const existingExplorer = await knex<DbPlainExplorer>(ExplorersTableName)
@@ -34,6 +51,9 @@ export async function upsertExplorer(
             .where({ slug: existingExplorer.slug })
             .update({
                 tsv,
+                commitMessage,
+                lastEditedByUserId,
+                lastEditedAt: new Date(),
                 updatedAt: new Date(),
             })
 
@@ -53,6 +73,9 @@ export async function upsertExplorer(
             lastCommit: "{}",
             createdAt: new Date(),
             updatedAt: new Date(),
+            lastEditedByUserId,
+            lastEditedAt: new Date(),
+            commitMessage,
             isPublished: false,
             config: "{}",
         })
@@ -65,14 +88,44 @@ export async function getExplorerBySlug(
     slug: string
 ): Promise<DbPlainExplorer | undefined> {
     const row = await knex<DbPlainExplorer>(ExplorersTableName)
+        .leftJoin(
+            "users",
+            `${ExplorersTableName}.lastEditedByUserId`,
+            "users.id"
+        )
+        .select(`${ExplorersTableName}.*`, "users.fullName", "users.email")
         .where({ slug })
         .first()
+
+    if (row && row.lastEditedByUserId) {
+        row.lastCommit = createLastCommit(
+            row,
+            (row as any).fullName,
+            (row as any).email
+        )
+    }
+
     return row
 }
 
 export async function getAllExplorers(
     knex: db.KnexReadonlyTransaction
 ): Promise<DbPlainExplorer[]> {
+    // Use left join to fetch users in one query
     const rows = await knex<DbPlainExplorer>(ExplorersTableName)
+        .leftJoin(
+            "users",
+            `${ExplorersTableName}.lastEditedByUserId`,
+            "users.id"
+        )
+        .select(`${ExplorersTableName}.*`, "users.fullName", "users.email")
+
+    rows.forEach((row) => {
+        const fullName = (row as any).fullName
+        const email = (row as any).email
+        if (row.lastEditedByUserId) {
+            row.lastCommit = createLastCommit(row, fullName, email)
+        }
+    })
     return rows
 }

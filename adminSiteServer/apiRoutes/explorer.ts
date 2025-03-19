@@ -1,4 +1,4 @@
-import { JsonError } from "@ourworldindata/types"
+import { JsonError, DbPlainUser } from "@ourworldindata/types"
 import e, { Request, Response } from "express"
 
 import * as db from "../../db/db.js"
@@ -52,7 +52,6 @@ export async function handleGetExplorer(
     return explorer
 }
 
-// PUT /explorers/:slug - Save or update explorer by slug
 export async function handlePutExplorer(
     req: Request,
     res: e.Response<any, Record<string, any>>,
@@ -63,22 +62,18 @@ export async function handlePutExplorer(
         throw new JsonError(`Invalid explorer slug ${slug}`)
     }
 
-    const { tsv: tsv } = req.body as { tsv: any }
-    const id = await upsertExplorer(trx, slug, tsv)
+    const user: DbPlainUser = res.locals.user
 
-    const { slug: publishedSlug } =
-        (await trx(ExplorersTableName)
-            .select("slug")
-            .where("slug", slug)
-            .where("isPublished", true)
-            .first()) ?? {}
-    if (publishedSlug) {
-        await triggerStaticBuild(
-            res.locals.user,
-            `Publishing multidimensional chart ${publishedSlug}`
-        )
+    const { tsv, commitMessage } = req.body
+
+    await upsertExplorer(trx, slug, tsv, user.id, commitMessage)
+
+    const isPublished = (await getExplorerBySlug(trx, slug))!.isPublished
+
+    if (isPublished) {
+        await triggerStaticBuild(user, `Publishing explorer ${slug}`)
     }
-    return { success: true, id }
+    return { success: true }
 }
 
 export async function handleDeleteExplorer(

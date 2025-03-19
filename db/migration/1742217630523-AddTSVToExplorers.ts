@@ -41,14 +41,27 @@ export class AddTSVToExplorers1742217630523 implements MigrationInterface {
         const originalLogger = queryRunner.connection.logger
         queryRunner.connection.logger = new SilentLogger()
         try {
-            // Add the "tsv" column to the explorers table (MySQL syntax)
             await queryRunner.query(
-                `ALTER TABLE explorers ADD COLUMN tsv LONGTEXT`
+                `ALTER TABLE explorers ADD COLUMN tsv LONGTEXT NOT NULL`
+            )
+            await queryRunner.query(
+                `ALTER TABLE explorers ADD COLUMN lastEditedByUserId int DEFAULT NULL`
+            )
+            await queryRunner.query(
+                `ALTER TABLE explorers ADD COLUMN lastEditedAt datetime DEFAULT NULL`
+            )
+            await queryRunner.query(
+                `ALTER TABLE explorers ADD COLUMN commitMessage VARCHAR(255) DEFAULT NULL`
             )
 
-            // Add the "lastCommit" column (using JSON type).
+            // replace isPublished by a virtual column
             await queryRunner.query(
-                `ALTER TABLE explorers ADD COLUMN lastCommit JSON`
+                `ALTER TABLE explorers DROP COLUMN isPublished`
+            )
+            await queryRunner.query(
+                `ALTER TABLE explorers
+                ADD COLUMN isPublished BOOLEAN AS (tsv LIKE '%isPublished\ttrue%') VIRTUAL
+                `
             )
 
             const owidContentDir = path.join(__dirname, "../../../owid-content")
@@ -82,12 +95,40 @@ export class AddTSVToExplorers1742217630523 implements MigrationInterface {
                         )
                     }
 
+                    let userId = null
+                    if (lastCommit?.author_email) {
+                        const userResult = await queryRunner.query(
+                            "SELECT id FROM users WHERE email = ? LIMIT 1",
+                            [lastCommit.author_email]
+                        )
+                        if (userResult?.length) {
+                            userId = userResult[0].id
+                        }
+                    }
+
+                    if (userId === null && lastCommit?.author_name) {
+                        const userResult = await queryRunner.query(
+                            "SELECT id FROM users WHERE fullName = ? LIMIT 1",
+                            [lastCommit.author_name]
+                        )
+                        if (userResult?.length) {
+                            userId = userResult[0].id
+                        }
+                    }
+
+                    let lastEditedAt = null
+                    if (lastCommit?.date) {
+                        lastEditedAt = new Date(lastCommit.date)
+                    }
+
                     // Update the explorer record with both TSV and lastCommit JSON.
                     const updateResult: any = await queryRunner.query(
-                        `UPDATE explorers SET tsv = ?, lastCommit = ? WHERE slug = ?`,
+                        `UPDATE explorers SET tsv = ?, lastEditedByUserId = ?, lastEditedAt = ?, commitMessage = ? WHERE slug = ?`,
                         [
                             content,
-                            lastCommit ? JSON.stringify(lastCommit) : null,
+                            userId,
+                            lastEditedAt,
+                            lastCommit?.message,
                             slug,
                         ]
                     )
@@ -106,8 +147,23 @@ export class AddTSVToExplorers1742217630523 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        // Remove the "lastCommit" and "tsv" columns.
-        await queryRunner.query(`ALTER TABLE explorers DROP COLUMN lastCommit`)
+        await queryRunner.query(`ALTER TABLE explorers DROP COLUMN isPublished`)
+
+        // isPublished will be filled by mirror_explorers.py from automation
+        await queryRunner.query(
+            `ALTER TABLE explorers ADD COLUMN isPublished BOOLEAN`
+        )
+
+        // Drop the columns added in the up migration.
         await queryRunner.query(`ALTER TABLE explorers DROP COLUMN tsv`)
+        await queryRunner.query(
+            `ALTER TABLE explorers DROP COLUMN lastEditedByUserId`
+        )
+        await queryRunner.query(
+            `ALTER TABLE explorers DROP COLUMN lastEditedAt`
+        )
+        await queryRunner.query(
+            `ALTER TABLE explorers DROP COLUMN commitMessage`
+        )
     }
 }

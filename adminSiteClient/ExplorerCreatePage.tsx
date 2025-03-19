@@ -138,8 +138,7 @@ export class ExplorerCreatePage extends Component<{
             `/api/explorers/${this.program.slug}`,
             {
                 tsv: this.program.toString(),
-                // TODO: update lastCommit or separate message into its own field
-                lastCommit: JSON.stringify({ message: commitMessage }),
+                commitMessage,
             },
             "PUT"
         )
