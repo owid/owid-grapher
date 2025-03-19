@@ -41,19 +41,19 @@ function createChartThumbnailUrl(record: ChartRecord): string {
  */
 async function getAllSearchSuggestions(
     knex: db.KnexReadonlyTransaction
-): Promise<{ imageUrl: string; suggestions: string[] }[]> {
-    const rows = await db.knexRaw<{ imageUrl: string; suggestions: string }>(
+): Promise<{ suggestions: string[]; title: string }[]> {
+    const rows = await db.knexRaw<{ suggestions: string; title: string }>(
         knex,
         `-- sql
-        SELECT imageUrl, suggestions
+        SELECT suggestions, title
         FROM search_suggestions
         WHERE suggestions IS NOT NULL
         `
     )
 
     return rows.map((row) => ({
-        imageUrl: row.imageUrl,
         suggestions: JSON.parse(row.suggestions),
+        title: row.title,
     }))
 }
 
@@ -62,23 +62,27 @@ async function getAllSearchSuggestions(
  */
 async function storeSearchSuggestions(
     knex: db.KnexReadWriteTransaction,
-    imageUrl: string,
-    suggestions: string[]
+    data: {
+        imageUrl: string
+        title: string
+        suggestions: string[]
+    }
 ): Promise<void> {
     // If there are no valid suggestions, don't insert anything
-    if (suggestions.length === 0) return
+    if (data.suggestions.length === 0) return
 
     // Store suggestions as a JSON array
-    const suggestionsJson = JSON.stringify(suggestions)
+    const suggestionsJson = JSON.stringify(data.suggestions)
 
     await knex
         .table("search_suggestions")
         .insert({
-            imageUrl,
+            imageUrl: data.imageUrl,
             suggestions: suggestionsJson,
+            title: data.title,
         })
-        .onConflict("imageUrl")
-        .merge()
+        .onConflict("title")
+        .ignore()
 }
 
 // We get 200k operations with Algolia's Open Source plan. We've hit 140k in the past so this might push us over.
@@ -148,12 +152,9 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
         records,
         async (record: ChartRecord) => {
             try {
-                // Generate thumbnail URL based on record type
-                const thumbnailUrl = createChartThumbnailUrl(record)
-
                 // Check if we already have search suggestions for this thumbnail
                 const existingSuggestions = allSearchSuggestions.find(
-                    (suggestion) => suggestion.imageUrl === thumbnailUrl
+                    (suggestion) => suggestion.title === record.title
                 )
                 let searchSuggestions: string[] = []
 
@@ -171,11 +172,11 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
                     // Store the new suggestions in the database
                     await db.knexReadWriteTransaction(
                         async (trx) =>
-                            await storeSearchSuggestions(
-                                trx,
-                                thumbnailUrl,
-                                searchSuggestions
-                            ),
+                            await storeSearchSuggestions(trx, {
+                                imageUrl: createChartThumbnailUrl(record),
+                                title: record.title,
+                                suggestions: searchSuggestions,
+                            }),
                         db.TransactionCloseMode.Close
                     )
 
