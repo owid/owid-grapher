@@ -281,7 +281,7 @@ const QuerySuggestionsSource: AutocompleteSource<BaseItem> = {
                     indexName: getIndexName(SearchIndexName.SearchSuggestions),
                     query,
                     params: {
-                        hitsPerPage: 10,
+                        hitsPerPage: 7,
                     },
                 },
             ],
@@ -289,10 +289,16 @@ const QuerySuggestionsSource: AutocompleteSource<BaseItem> = {
     },
     templates: {
         header: () => <h5 className="overline-black-caps">Suggestions</h5>,
-        item: ({ item }) => {
+        item: ({ item, components }) => {
             return (
                 <div className="aa-ItemWrapper">
-                    <span>{item.suggestion}</span>
+                    <span>
+                        <components.Highlight
+                            hit={item}
+                            attribute="suggestion"
+                            tagName="strong"
+                        />
+                    </span>
                 </div>
             )
         },
