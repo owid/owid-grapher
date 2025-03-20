@@ -19,10 +19,7 @@ export class ExplorerAdminServer {
     async getAllExplorersCommand(knex: db.KnexReadonlyTransaction) {
         // Download all explorers for the admin index page
         try {
-            const explorers = (await this.getAllExplorers(knex)).filter(
-                (explorer) =>
-                    ["monkeypox", "apox", "bpox"].includes(explorer.slug)
-            )
+            const explorers = await this.getAllExplorers(knex)
 
             return {
                 success: true,
@@ -63,14 +60,13 @@ export class ExplorerAdminServer {
     ): Promise<ExplorerProgram[]> {
         const explorerRows = await getAllExplorers(knex)
 
-        return explorerRows.map(
-            (row) =>
-                new ExplorerProgram(
-                    row.slug,
-                    row.tsv ?? "",
-                    JSON.parse(row.lastCommit)
-                )
-        )
+        return explorerRows.map((row) => {
+            return new ExplorerProgram(
+                row.slug,
+                row.tsv ?? "",
+                JSON.parse(row.lastCommit ?? "{}")
+            )
+        })
     }
 
     // This operation takes ~5 seconds on prod, which is annoying for gdocs
