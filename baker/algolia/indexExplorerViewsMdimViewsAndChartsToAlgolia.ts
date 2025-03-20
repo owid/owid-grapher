@@ -118,6 +118,13 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
         `Found ${allSearchSuggestions.length} existing search suggestions in database`
     )
 
+    const suggestionsMap = new Map(
+        allSearchSuggestions.map((suggestion) => [
+            suggestion.title,
+            suggestion.suggestions,
+        ])
+    )
+
     // Scale grapher records and the default explorer views between 1000 and 10000,
     // Scale the remaining explorer views between 0 and 1000.
     // This is because Graphers are generally higher quality than Explorers and we don't want
@@ -152,15 +159,13 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
         records,
         async (record: ChartRecord) => {
             try {
-                // Check if we already have search suggestions for this thumbnail
-                const existingSuggestions = allSearchSuggestions.find(
-                    (suggestion) => suggestion.title === record.title
-                )
+                // Check if we already have search suggestions for this title
+                const existingSuggestions = suggestionsMap.get(record.title)
                 let searchSuggestions: string[] = []
 
                 if (existingSuggestions) {
-                    // Use existing suggestions from database
-                    searchSuggestions = existingSuggestions.suggestions
+                    // Use existing suggestions from map
+                    searchSuggestions = existingSuggestions
                     progressBar.tick({ slug: `${record.slug} (cached)` })
                 } else {
                     // Generate search suggestions from the title
@@ -179,6 +184,9 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
                             }),
                         db.TransactionCloseMode.Close
                     )
+
+                    // Add the new suggestions to the map for future use
+                    suggestionsMap.set(record.title, searchSuggestions)
 
                     progressBar.tick({ slug: record.slug })
                 }
