@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { MigrationInterface, QueryRunner, Logger } from "typeorm"
 import fs from "fs-extra"
 import {
@@ -10,28 +11,28 @@ import { simpleGit } from "simple-git"
 // Explorer configs are huge, use custom logger to avoid filling up the terminal.
 class SilentLogger implements Logger {
     logQuery(
-        query: string,
-        parameters?: any[],
-        queryRunner?: QueryRunner
+        _query: string,
+        _parameters?: any[],
+        _queryRunner?: QueryRunner
     ): void {}
     logQueryError(
-        error: string,
-        query: string,
-        parameters?: any[],
-        queryRunner?: QueryRunner
+        _error: string,
+        _query: string,
+        _parameters?: any[],
+        _queryRunner?: QueryRunner
     ): void {}
     logQuerySlow(
-        time: number,
-        query: string,
-        parameters?: any[],
-        queryRunner?: QueryRunner
+        _time: number,
+        _query: string,
+        _parameters?: any[],
+        _queryRunner?: QueryRunner
     ): void {}
-    logSchemaBuild(message: string, queryRunner?: QueryRunner): void {}
-    logMigration(message: string, queryRunner?: QueryRunner): void {}
+    logSchemaBuild(_message: string, _queryRunner?: QueryRunner): void {}
+    logMigration(_message: string, _queryRunner?: QueryRunner): void {}
     log(
-        level: "log" | "info" | "warn",
-        message: any,
-        queryRunner?: QueryRunner
+        _level: "log" | "info" | "warn",
+        _message: any,
+        _queryRunner?: QueryRunner
     ): void {}
 }
 

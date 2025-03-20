@@ -1,4 +1,3 @@
-import { simpleGit } from "simple-git"
 import express, { NextFunction } from "express"
 import * as Sentry from "@sentry/node"
 // eslint-disable-next-line @typescript-eslint/no-require-imports

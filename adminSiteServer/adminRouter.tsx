@@ -30,9 +30,7 @@ import {
     GetAllExplorersRoute,
     GetAllExplorersTagsRoute,
     ExplorerProgram,
-    EXPLORER_FILE_SUFFIX,
 } from "@ourworldindata/explorer"
-import fs from "fs-extra"
 import * as Post from "../db/model/Post.js"
 import {
     renderDataPageV2,
