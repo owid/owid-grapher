@@ -13,6 +13,7 @@ import {
     HorizontalAlign,
     PrimitiveType,
     makeIdForHumanConsumption,
+    clamp,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -39,6 +40,11 @@ import {
     RenderFeature,
     ChoroplethSeries,
     MAP_HOVER_TARGET_RANGE,
+    VIEWPORTS,
+    MIN_ZOOM,
+    MAX_ZOOM,
+    ZOOM_STEP,
+    MAP_ZOOM_SCALE,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
@@ -71,9 +77,19 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faExpand } from "@fortawesome/free-solid-svg-icons"
+import { faExpand, faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { isDarkColor } from "../color/ColorUtils"
+import {
+    geoCentroid,
+    geoGraticule,
+    geoOrthographic,
+    GeoPath,
+    geoPath,
+    GeoPermissibleObjects,
+} from "d3"
+import { GlobeController } from "./GlobeController"
+import ReactDOM from "react-dom"
 
 const DEFAULT_STROKE_COLOR = "#333"
 const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
@@ -87,7 +103,7 @@ interface MapChartProps {
 }
 
 // Get the underlying geographical topology elements we're going to display
-const GeoFeatures: GeoFeature[] = (
+export const GeoFeatures: GeoFeature[] = (
     topojson.feature(
         MapTopology as any,
         MapTopology.objects.world as any
@@ -142,6 +158,19 @@ const geoBoundsFor = (projectionName: MapProjectionName): Bounds[] => {
     return geoBoundsCache.get(projectionName)!
 }
 
+let centroidCache: PointVector[] = []
+export function centroids(): PointVector[] {
+    if (centroidCache.length > 0) return centroidCache
+
+    const centroids = GeoFeatures.map((geo) => {
+        const centroid = geoCentroid(geo)
+        return new PointVector(centroid[0], centroid[1])
+    })
+
+    centroidCache = centroids
+    return centroids
+}
+
 // Bundle GeoFeatures with the calculated info needed to render them
 const renderFeaturesCache = new Map<MapProjectionName, RenderFeature[]>()
 const renderFeaturesFor = (
@@ -151,9 +180,11 @@ const renderFeaturesFor = (
         return renderFeaturesCache.get(projectionName)!
     const geoBounds = geoBoundsFor(projectionName)
     const geoPaths = geoPathsFor(projectionName)
+    const unprojectedCentroids = centroids()
     const feats = GeoFeatures.map((geo, index) => ({
         id: geo.id as string,
         geo: geo,
+        geoCentroid: unprojectedCentroids[index],
         path: geoPaths[index],
         bounds: geoBounds[index],
         center: geoBounds[index].centerPos,
@@ -280,7 +311,9 @@ export class MapChart
         return makeSelectionArray(this.manager.selection)
     }
 
-    @action.bound onClick(d: GeoFeature): void {
+    @action.bound async onClick(d: GeoFeature): Promise<void> {
+        const isGlobe = this.mapConfig.globe
+
         const entityName = d.id as EntityName
         // - on the world map, we always select an entity and jump to it
         // - when on continent or country, we deselect
@@ -291,8 +324,26 @@ export class MapChart
             if (!this.selectionArray.selectedSet.has(entityName))
                 this.selectionArray.selectEntity(entityName)
             this.mapConfig.zoomCountry = entityName
+            this.mapConfig.globe = true
+            if (!isGlobe) {
+                await this.globeController.rotateToCountry(
+                    entityName,
+                    isGlobe ? undefined : MAP_ZOOM_SCALE
+                )
+            }
         } else {
             this.selectionArray.toggleSelection(entityName)
+            if (
+                this.selectionArray.selectedSet.has(entityName) &&
+                this.mapConfig.projection === MapProjectionName.World
+            ) {
+                if (!isGlobe) {
+                    await this.globeController.rotateToCountry(
+                        entityName,
+                        isGlobe ? undefined : MAP_ZOOM_SCALE
+                    )
+                }
+            }
         }
 
         if (
@@ -300,10 +351,18 @@ export class MapChart
             this.mapConfig.projection === MapProjectionName.World
         ) {
             this.mapConfig.zoomCountry = entityName
+
+            this.mapConfig.globe = true
+            if (!isGlobe)
+                await this.globeController.rotateToCountry(
+                    entityName,
+                    isGlobe ? undefined : MAP_ZOOM_SCALE
+                )
         }
 
         if (this.selectionArray.numSelectedEntities === 0) {
             this.mapConfig.zoomCountry = undefined
+            this.mapConfig.globe = false
         }
     }
 
@@ -601,6 +660,30 @@ export class MapChart
         return makeClipPath(this.renderUid, this.choroplethMapBounds)
     }
 
+    @action.bound resetProjection(): void {
+        this.mapConfig.projection = MapProjectionName.World
+    }
+
+    @action.bound onGlobeRotationChange(rotate: [number, number]): void {
+        this.mapConfig.globeRotation = rotate
+    }
+
+    @computed get globeRotation() {
+        return this.mapConfig.globeRotation
+    }
+
+    @computed get globeSize() {
+        return this.mapConfig.globeSize
+    }
+
+    @computed get isGlobe(): boolean {
+        return this.mapConfig.globe ?? false
+    }
+
+    @computed get globeController(): GlobeController {
+        return this.manager.globeController ?? new GlobeController(this)
+    }
+
     renderMapLegend(): React.ReactElement {
         const { numericLegend, categoryLegend } = this
 
@@ -637,6 +720,9 @@ export class MapChart
         )
     }
 
+    @observable shouldShowZoomButtons = true
+    @observable shouldShowAllValuesWhenZoomedIn = false
+
     renderInteractive(): React.ReactElement {
         const { tooltipState } = this
 
@@ -656,7 +742,8 @@ export class MapChart
                 </g>
                 {this.renderMapLegend()}
                 {(this.zoomCountry ||
-                    this.mapConfig.projection !== MapProjectionName.World) && (
+                    this.mapConfig.projection !== MapProjectionName.World ||
+                    this.isGlobe) && (
                     <foreignObject
                         {...this.choroplethMapBounds.toProps()}
                         // TODO: hack to make map hoverable
@@ -669,6 +756,7 @@ export class MapChart
                                         MapProjectionName.World
                                     this.manager.mapConfig.zoomCountry =
                                         undefined
+                                    this.mapConfig.globe = false
                                 }
                             }}
                             style={{
@@ -690,7 +778,118 @@ export class MapChart
                         >
                             <FontAwesomeIcon icon={faExpand} />
                         </button>
+                        {this.shouldShowZoomButtons && (
+                            <button
+                                onClick={() => {
+                                    const globeSize = Math.max(
+                                        MIN_ZOOM,
+                                        Math.round(
+                                            (this.mapConfig.globeSize -
+                                                ZOOM_STEP) *
+                                                2
+                                        ) / 2
+                                    )
+                                    this.globeController.zoomTo(globeSize)
+                                }}
+                                style={{
+                                    position: "absolute",
+                                    top: 4,
+                                    right: 28 + 4 + 8 + 28,
+                                    background: "white",
+                                    padding: "5px",
+                                    borderRadius: "5px",
+                                    cursor: "pointer",
+                                    width: 28,
+                                    height: 28,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    color: GRAPHER_DARK_TEXT,
+                                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                                }}
+                            >
+                                <FontAwesomeIcon icon={faMinus} />
+                            </button>
+                        )}
+                        {this.shouldShowZoomButtons && (
+                            <button
+                                onClick={() => {
+                                    const globeSize = Math.min(
+                                        MAX_ZOOM,
+                                        Math.round(
+                                            (this.mapConfig.globeSize +
+                                                ZOOM_STEP) *
+                                                2
+                                        ) / 2
+                                    )
+                                    this.globeController.zoomTo(globeSize)
+                                }}
+                                style={{
+                                    position: "absolute",
+                                    top: 4,
+                                    right: 28 + 4 + 8,
+                                    background: "white",
+                                    padding: "5px",
+                                    borderRadius: "5px",
+                                    cursor: "pointer",
+                                    width: 28,
+                                    height: 28,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    color: GRAPHER_DARK_TEXT,
+                                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                                }}
+                            >
+                                <FontAwesomeIcon icon={faPlus} />
+                            </button>
+                        )}
                     </foreignObject>
+                )}
+                {ReactDOM.createPortal(
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: 12,
+                            right: 12,
+                            background: "white",
+                            zIndex: 100000,
+                            padding: 16,
+                            border: "1px solid #ccc",
+                            borderRadius: 4,
+                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                        }}
+                    >
+                        <div>
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={this.shouldShowZoomButtons}
+                                    onChange={(event) =>
+                                        (this.shouldShowZoomButtons =
+                                            event.target.checked)
+                                    }
+                                />
+                                Show zoom buttons
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={
+                                        this.shouldShowAllValuesWhenZoomedIn
+                                    }
+                                    onChange={(event) =>
+                                        (this.shouldShowAllValuesWhenZoomedIn =
+                                            event.target.checked)
+                                    }
+                                />
+                                Show all values on the map when zoomed in
+                            </label>
+                        </div>
+                    </div>,
+                    document.body
                 )}
                 {tooltipState.target && (
                     <MapTooltip
@@ -754,6 +953,100 @@ class ChoroplethMap extends React.Component<{
         return this.manager.choroplethData
     }
 
+    @computed get isWorldProjection(): boolean {
+        return this.manager.projection === MapProjectionName.World
+    }
+
+    @computed private get isGlobe(): boolean {
+        return this.manager.isGlobe ?? true
+    }
+
+    @computed private get globeSize(): number {
+        const globeSize = Math.min(this.bounds.width, this.bounds.height)
+        return this.manager.globeSize * globeSize
+    }
+
+    @computed private get globeCenter(): [number, number] {
+        const center = getGlobeCenter(this.bounds)
+        return [center.x, center.y]
+    }
+
+    @computed private get globeScale(): number {
+        const defaultScale = geoOrthographic().scale()
+        const defaultSize = 500
+        return defaultScale * (this.globeSize / defaultSize)
+    }
+
+    @computed private get globeRotation(): [number, number] {
+        return this.manager.globeRotation
+    }
+
+    @computed private get globeProjection(): any {
+        return geoOrthographic()
+            .scale(this.globeScale)
+            .translate(this.globeCenter)
+            .rotate(this.globeRotation)
+    }
+
+    private globePathContext = new GeoPathRoundingContext()
+    @computed private get globePath(): GeoPath<any, GeoPermissibleObjects> {
+        return geoPath()
+            .projection(this.globeProjection)
+            .context(this.globePathContext)
+    }
+
+    private getPath(feature: RenderFeature): string {
+        if (this.isGlobe) {
+            this.globePathContext.beginPath()
+            this.globePath(feature.geo)
+            return this.globePathContext.result()
+        } else {
+            return feature.path
+        }
+    }
+
+    @computed private get globeEquator(): string {
+        const equator = geoGraticule().step([0, 360])()
+        this.globePathContext.beginPath()
+        this.globePath(equator)
+        return this.globePathContext.result()
+    }
+
+    @computed private get globeGraticule(): string {
+        const graticule = geoGraticule().step([10, 10])()
+        this.globePathContext.beginPath()
+        this.globePath(graticule)
+        return this.globePathContext.result()
+    }
+
+    // written by copilot
+    private isCountryVisibleOnGlobeForText(feature: RenderFeature): boolean {
+        if (!this.isGlobe) return true
+
+        // Convert centroid to radians
+        const centroid = [feature.geoCentroid.x, feature.geoCentroid.y]
+        const lambda = (centroid[0] * Math.PI) / 180
+        const phi = (centroid[1] * Math.PI) / 180
+
+        // Get current rotation in radians
+        const [rotLambda, rotPhi] = this.globeRotation.map(
+            (deg) => (-deg * Math.PI) / 180
+        )
+
+        // Calculate the cosine of the angle between the point and the viewing direction
+        // This is essentially the dot product of the point's position vector and the viewing direction
+        const cosDelta =
+            Math.sin(phi) * Math.sin(rotPhi) +
+            Math.cos(phi) * Math.cos(rotPhi) * Math.cos(lambda - rotLambda)
+
+        // The threshold determines how far from the center a point can be to display text
+        // 1.0 = only at the exact center, 0.0 = anywhere on the visible hemisphere
+        // 0.5-0.7 is a good value to hide text before it reaches the edge
+        const visibilityThreshold = 0.6
+
+        return cosDelta > visibilityThreshold
+    }
+
     @computed.struct private get defaultFill(): string {
         return this.manager.noDataColor
     }
@@ -805,22 +1098,13 @@ class ChoroplethMap extends React.Component<{
         width: number
         height: number
     } {
-        const viewports = {
-            World: { x: 0.565, y: 0.5, width: 1, height: 1 },
-            Europe: { x: 0.53, y: 0.22, width: 0.2, height: 0.2 },
-            Africa: { x: 0.49, y: 0.7, width: 0.21, height: 0.38 },
-            NorthAmerica: { x: 0.49, y: 0.4, width: 0.19, height: 0.32 },
-            SouthAmerica: { x: 0.52, y: 0.815, width: 0.1, height: 0.26 },
-            Asia: { x: 0.74, y: 0.45, width: 0.36, height: 0.5 },
-            Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2 },
-        }
-
-        return viewports[this.manager.projection]
+        return VIEWPORTS[this.manager.projection]
     }
 
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
     @computed private get viewportScale(): number {
         const { bounds, viewport, mapBounds } = this
+        if (this.isGlobe) return 1
         const scaleValue = this.zoomFeature ? 110 : undefined
         const viewportWidth = scaleValue
             ? scaleValue
@@ -835,8 +1119,10 @@ class ChoroplethMap extends React.Component<{
         return viewportScale
     }
 
-    @computed private get matrixTransform(): string {
+    @computed private get matrixTransform(): string | undefined {
         const { bounds, mapBounds, viewport, viewportScale } = this
+
+        if (this.isGlobe) return undefined
 
         // Calculate our reference dimensions. These values are independent of the current
         // map translation and scaling.
@@ -905,23 +1191,111 @@ class ChoroplethMap extends React.Component<{
 
     @computed private get quadtree(): Quadtree<RenderFeature> {
         return quadtree<RenderFeature>()
-            .x(({ center }) => center.x)
-            .y(({ center }) => center.y)
+            .x(({ center, geoCentroid }) => {
+                const globeCenter = this.globeProjection([
+                    geoCentroid.x,
+                    geoCentroid.y,
+                ])
+                return this.manager.isGlobe ? globeCenter[0] : center.x
+            })
+            .y(({ center, geoCentroid }) => {
+                const globeCenter = this.globeProjection([
+                    geoCentroid.x,
+                    geoCentroid.y,
+                ])
+                return this.manager.isGlobe ? globeCenter[1] : center.y
+            })
             .addAll(this.featuresInProjection)
+    }
+
+    private isDragging = false
+    private previousScreenX?: number
+    private previousScreenY?: number
+
+    @action.bound private startDragging(): void {
+        this.isDragging = true
+        this.manager.resetProjection()
+        document.body.style.cursor = "move"
+    }
+
+    private stopDragTimerId: NodeJS.Timeout | undefined
+    @action.bound private stopDragging(): void {
+        if (this.stopDragTimerId) clearTimeout(this.stopDragTimerId)
+        // stop dragging after a short delay to silence click events
+        this.stopDragTimerId = setTimeout(() => {
+            this.isDragging = false
+            this.previousScreenX = undefined
+            this.previousScreenY = undefined
+        }, 100)
+        document.body.style.cursor = "default"
+    }
+
+    private rotateFrameId: number | undefined
+    @action.bound private rotateGlobe(
+        startCoords: [number, number],
+        endCoords: [number, number]
+    ): void {
+        if (this.rotateFrameId) cancelAnimationFrame(this.rotateFrameId)
+        this.rotateFrameId = requestAnimationFrame(() => {
+            const dx = endCoords[0] - startCoords[0]
+            const dy = endCoords[1] - startCoords[1]
+
+            const sensitivity = 0.3
+            const [rx, ry] = this.globeProjection.rotate()
+            this.manager.onGlobeRotationChange([
+                rx + dx * sensitivity,
+                clamp(ry - dy * sensitivity, -90, 90),
+            ])
+        })
+    }
+
+    @action.bound private onCursorDrag(event: MouseEvent | TouchEvent): void {
+        if (!this.isGlobe) return
+
+        const { screenX, screenY } = getScreenCoords(event)
+
+        // start dragging if this is the first move event
+        if (
+            this.previousScreenX === undefined ||
+            this.previousScreenY === undefined
+        ) {
+            this.startDragging()
+
+            // init screen coords
+            this.previousScreenX = screenX
+            this.previousScreenY = screenY
+        }
+
+        // dismiss the currently hovered feature
+        if (this.hoverEnterFeature || this.hoverNearbyFeature) {
+            this.hoverEnterFeature = undefined
+            this.hoverNearbyFeature = undefined
+            this.manager.onMapMouseLeave()
+        }
+
+        // rotate globe from the previous screen coords to the current screen coords
+        this.rotateGlobe(
+            [this.previousScreenX, this.previousScreenY],
+            [screenX, screenY]
+        )
+
+        // update screen coords
+        this.previousScreenX = screenX
+        this.previousScreenY = screenY
     }
 
     @observable private hoverEnterFeature?: RenderFeature
     @observable private hoverNearbyFeature?: RenderFeature
-    @action.bound private onMouseMove(ev: React.MouseEvent<SVGGElement>): void {
-        if (ev.shiftKey) this.showSelectedStyle = true // Turn on highlight selection. To turn off, user can switch tabs.
-        if (this.hoverEnterFeature) return
 
+    @action.bound private detectNearbyFeature(
+        event: MouseEvent | TouchEvent
+    ): void {
+        if (this.isDragging || this.hoverEnterFeature) return
         const subunits = this.base.current?.querySelector(".subunits")
         if (subunits) {
-            const { x, y } = getRelativeMouse(subunits, ev)
+            const { x, y } = getRelativeMouse(subunits, event)
             const distance = MAP_HOVER_TARGET_RANGE
             const feature = this.quadtree.find(x, y, distance)
-
             if (feature) {
                 if (feature.id !== this.hoverNearbyFeature?.id) {
                     this.hoverNearbyFeature = feature
@@ -934,7 +1308,71 @@ class ChoroplethMap extends React.Component<{
         } else console.error("subunits was falsy")
     }
 
-    @action.bound private onMouseEnter(feature: RenderFeature): void {
+    @action.bound private onMouseDown(event: MouseEvent): void {
+        if (this.isGlobe) {
+            event.preventDefault() // prevent text selection
+
+            // register mousemove and mouseup events on the document
+            // so that dragging continues if the mouse leaves the map
+            document.addEventListener("mousemove", this.onCursorDrag, {
+                passive: true,
+            })
+            document.addEventListener("mouseup", this.onMouseUp, {
+                passive: true,
+            })
+        }
+    }
+
+    @action.bound private onMouseUp(): void {
+        this.stopDragging()
+
+        document.removeEventListener("mousemove", this.onCursorDrag)
+        document.removeEventListener("mouseup", this.onMouseUp)
+    }
+
+    @action.bound private onTouchStart(event: TouchEvent): void {
+        this.detectNearbyFeature(event)
+
+        if (this.base.current) {
+            this.base.current.addEventListener("touchmove", this.onTouchMove, {
+                passive: false,
+            })
+            this.base.current.addEventListener("touchend", this.onTouchEnd, {
+                passive: true,
+            })
+            this.base.current.addEventListener("touchcancel", this.onTouchEnd, {
+                passive: true,
+            })
+        }
+    }
+
+    @action.bound private onTouchMove(event: TouchEvent): void {
+        event.preventDefault() // prevent scrolling
+        this.onCursorDrag(event)
+    }
+
+    @action.bound private onTouchEnd(): void {
+        this.stopDragging()
+
+        if (this.base.current) {
+            this.base.current.removeEventListener("touchmove", this.onTouchMove)
+            this.base.current.removeEventListener("touchend", this.onTouchEnd)
+            this.base.current.removeEventListener(
+                "touchcancel",
+                this.onTouchEnd
+            )
+        }
+    }
+
+    @action.bound private onMouseMove(event: MouseEvent): void {
+        if (event.shiftKey) this.showSelectedStyle = true // Turn on highlight selection. To turn off, user can switch tabs.
+        this.detectNearbyFeature(event)
+    }
+
+    @action.bound private onMouseEnterFeature(feature: RenderFeature): void {
+        // don't show tooltips when dragging
+        if (this.isDragging) return
+
         this.hoverEnterFeature = feature
         this.manager.onMapMouseOver(feature.geo)
     }
@@ -956,6 +1394,36 @@ class ChoroplethMap extends React.Component<{
     // If true selected countries will have an outline
     @observable private showSelectedStyle = true
 
+    async componentDidMount(): Promise<void> {
+        if (this.base.current) {
+            this.base.current.addEventListener("mousedown", this.onMouseDown, {
+                passive: false,
+            })
+            this.base.current.addEventListener("mousemove", this.onMouseMove, {
+                passive: true,
+            })
+            this.base.current.addEventListener(
+                "touchstart",
+                this.onTouchStart,
+                { passive: true }
+            )
+        }
+    }
+
+    componentWillUnmount(): void {
+        if (this.base.current) {
+            this.base.current.removeEventListener("mousedown", this.onMouseDown)
+            this.base.current.removeEventListener("mousemove", this.onMouseMove)
+            this.base.current.removeEventListener(
+                "touchstart",
+                this.onTouchStart
+            )
+        }
+
+        if (this.stopDragTimerId) clearTimeout(this.stopDragTimerId)
+        if (this.rotateFrameId) cancelAnimationFrame(this.rotateFrameId)
+    }
+
     renderFeaturesOutsideProjection(): React.ReactElement | void {
         if (this.featuresOutsideProjection.length === 0) return
 
@@ -970,7 +1438,7 @@ class ChoroplethMap extends React.Component<{
                     <path
                         key={feature.id}
                         id={makeIdForHumanConsumption(feature.id)}
-                        d={feature.path}
+                        d={this.getPath(feature)}
                         strokeWidth={strokeWidth}
                         stroke="#aaa"
                         fill="#fff"
@@ -1002,6 +1470,7 @@ class ChoroplethMap extends React.Component<{
                             1 / this.viewportScale
                         })`} // <-- This scale here is crucial and map specific
                     >
+                        <rect width="4" height="4" fill="#fff" />
                         <path
                             d="M -1,2 l 6,0"
                             stroke="#ccc"
@@ -1035,7 +1504,7 @@ class ChoroplethMap extends React.Component<{
                         <path
                             key={feature.id}
                             id={makeIdForHumanConsumption(feature.id)}
-                            d={feature.path}
+                            d={this.getPath(feature)}
                             strokeWidth={strokeWidth}
                             stroke={stroke}
                             strokeOpacity={strokeOpacity}
@@ -1046,7 +1515,7 @@ class ChoroplethMap extends React.Component<{
                                 this.manager.onClick(feature.geo, ev)
                             }
                             onMouseEnter={(): void =>
-                                this.onMouseEnter(feature)
+                                this.onMouseEnterFeature(feature)
                             }
                             onMouseLeave={this.onMouseLeave}
                         />
@@ -1096,7 +1565,7 @@ class ChoroplethMap extends React.Component<{
                             <path
                                 key={feature.id}
                                 id={makeIdForHumanConsumption(feature.id)}
-                                d={feature.path}
+                                d={this.getPath(feature)}
                                 strokeWidth={strokeWidth}
                                 stroke={stroke}
                                 strokeOpacity={strokeOpacity}
@@ -1107,7 +1576,7 @@ class ChoroplethMap extends React.Component<{
                                     this.manager.onClick(feature.geo, ev)
                                 }
                                 onMouseEnter={(): void =>
-                                    this.onMouseEnter(feature)
+                                    this.onMouseEnterFeature(feature)
                                 }
                                 onMouseLeave={this.onMouseLeave}
                             />
@@ -1144,39 +1613,79 @@ class ChoroplethMap extends React.Component<{
             <g
                 ref={this.base}
                 className={CHOROPLETH_MAP_CLASSNAME}
-                onMouseDown={
-                    (ev: SVGMouseEvent): void =>
-                        ev.preventDefault() /* Without this, title may get selected while shift clicking */
-                }
-                onMouseMove={this.onMouseMove}
-                onMouseLeave={this.onMouseLeave}
-                style={this.hoverFeature ? { cursor: "pointer" } : {}}
+                style={{
+                    touchAction: this.manager.isGlobe
+                        ? "pinch-zoom"
+                        : undefined,
+                }}
             >
-                <rect
-                    x={bounds.x}
-                    y={bounds.y}
-                    width={bounds.width}
-                    height={bounds.height}
-                    fill="rgba(255,255,255,0)"
-                    opacity={0}
-                />
+                {this.isGlobe ? (
+                    <circle
+                        className="globe-sphere"
+                        cx={this.globeCenter[0]}
+                        cy={this.globeCenter[1]}
+                        r={this.globeSize / 2}
+                        fill="#fafafa"
+                    />
+                ) : (
+                    <rect
+                        x={bounds.x}
+                        y={bounds.y}
+                        width={bounds.width}
+                        height={bounds.height}
+                        fill="rgba(255,255,255,0)"
+                        opacity={0}
+                    />
+                )}
+                {this.isGlobe && (
+                    <>
+                        <path
+                            className="globe-graticule"
+                            d={this.globeGraticule}
+                            stroke="#d2d2d2"
+                            strokeWidth={1}
+                            fill="none"
+                            style={{ pointerEvents: "none" }}
+                        />
+                        <path
+                            className="globe-equator"
+                            d={this.globeEquator}
+                            stroke="#dadada"
+                            strokeWidth={1}
+                            fill="none"
+                            style={{ pointerEvents: "none" }}
+                        />
+                    </>
+                )}
                 <g className="subunits" transform={matrixTransform}>
                     {this.renderFeaturesOutsideProjection()}
                     {this.renderFeaturesWithoutData()}
                     {this.renderFeaturesWithData()}
-                    {(this.zoomFeature ||
-                        this.manager.projection !== MapProjectionName.World) &&
-                        this.manager.selectionArray.selectedEntityNames.map(
-                            (entityName) => {
+                    <g className="values-on-maps">
+                        {(this.zoomFeature ||
+                            this.manager.projection !==
+                                MapProjectionName.World ||
+                            this.isGlobe) &&
+                            this.featuresWithData.map((feature) => {
+                                const entityName = feature.id
+
+                                if (
+                                    !this.manager
+                                        .shouldShowAllValuesWhenZoomedIn &&
+                                    !this.isSelected(entityName)
+                                )
+                                    return null
+
                                 const datum =
                                     this.choroplethData.get(entityName)
                                 if (!datum) return null
-                                const feature = this.featuresWithData.find(
-                                    (feature) => feature.id === entityName
-                                )
+
                                 if (!feature) return null
+                                if (!this.manager.mapColumn) return null
+                                if (!this.manager.mapColumn.hasNumberFormatting)
+                                    return null
                                 const formattedValue =
-                                    this.manager.mapColumn!.formatValueShortWithAbbreviations(
+                                    this.manager.mapColumn.formatValueShortWithAbbreviations(
                                         datum.value
                                     )
 
@@ -1204,22 +1713,40 @@ class ChoroplethMap extends React.Component<{
                                         ? "#fff"
                                         : "#000"
 
-                                return (
-                                    <text
-                                        key={feature.id}
-                                        x={feature.center.x}
-                                        y={feature.center.y}
-                                        fontSize={4}
-                                        textAnchor="middle"
-                                        alignmentBaseline="middle"
-                                        style={{ pointerEvents: "none" }}
-                                        fill={color}
-                                    >
-                                        {formattedValue}
-                                    </text>
+                                const center = this.isGlobe
+                                    ? this.globeProjection([
+                                          feature.geoCentroid.x,
+                                          feature.geoCentroid.y,
+                                      ])
+                                    : [feature.center.x, feature.center.y]
+
+                                if (
+                                    this.isGlobe &&
+                                    !this.isCountryVisibleOnGlobeForText(
+                                        feature
+                                    )
                                 )
-                            }
-                        )}
+                                    return null
+
+                                return (
+                                    <React.Fragment key={feature.id}>
+                                        <text
+                                            x={center[0]}
+                                            y={center[1]}
+                                            fontSize={this.isGlobe ? 12 : 4}
+                                            textAnchor="middle"
+                                            alignmentBaseline="middle"
+                                            style={{
+                                                pointerEvents: "none",
+                                            }}
+                                            fill={color}
+                                        >
+                                            {formattedValue}
+                                        </text>
+                                    </React.Fragment>
+                                )
+                            })}
+                    </g>
                 </g>
             </g>
         )
@@ -1230,4 +1757,26 @@ class ChoroplethMap extends React.Component<{
             ? this.renderStatic()
             : this.renderInteractive()
     }
+}
+
+const getScreenCoords = (
+    event: MouseEvent | TouchEvent
+): { screenX: number; screenY: number } => {
+    return isTouchEvent(event)
+        ? event.touches[0]
+        : {
+              screenX: event.screenX,
+              screenY: event.screenY,
+          }
+}
+
+const isTouchEvent = (event: MouseEvent | TouchEvent): event is TouchEvent => {
+    return event.type.includes("touch")
+}
+
+const getGlobeCenter = (bounds: Bounds): PointVector => {
+    return new PointVector(
+        bounds.left + bounds.width / 2,
+        bounds.top + bounds.height / 2
+    )
 }

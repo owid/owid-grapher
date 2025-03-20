@@ -30,10 +30,8 @@ export class MapProjectionMenu extends React.Component<{
     }
 
     @computed get showMenu(): boolean {
-        const { hideMapProjectionMenu, isOnMapTab, mapConfig } =
-                this.props.manager,
-            { projection } = mapConfig ?? {}
-        return !hideMapProjectionMenu && !!(isOnMapTab && projection)
+        const { hideMapProjectionMenu, isOnMapTab } = this.props.manager
+        return !hideMapProjectionMenu && !!isOnMapTab
     }
 
     @computed private get maxWidth(): number {
@@ -51,12 +49,14 @@ export class MapProjectionMenu extends React.Component<{
     }
 
     @computed get options(): MapProjectionMenuItem[] {
-        return Object.values(MapProjectionName).map((projectName) => {
-            return {
-                value: projectName,
-                label: MapProjectionLabels[projectName],
-            }
-        })
+        return Object.values(MapProjectionName)
+            .filter((p) => p !== MapProjectionName.World)
+            .map((projectName) => {
+                return {
+                    value: projectName,
+                    label: MapProjectionLabels[projectName],
+                }
+            })
     }
 
     @computed get value(): MapProjectionMenuItem | null {
@@ -74,6 +74,7 @@ export class MapProjectionMenu extends React.Component<{
                     options={this.options}
                     onChange={this.onChange}
                     value={this.value}
+                    placeholder={"Zoom to continent..."}
                 />
             </div>
         ) : null

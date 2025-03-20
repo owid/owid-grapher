@@ -136,6 +136,7 @@ export {
     getUniqueNamesFromParentTagArrays,
     getUserNavigatorLanguages,
     getUserNavigatorLanguagesNonEnglish,
+    delay,
 } from "./Util.js"
 
 export {
