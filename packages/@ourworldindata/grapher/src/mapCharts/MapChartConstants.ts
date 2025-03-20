@@ -11,6 +11,8 @@ import {
 import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
 import { ChartSeries } from "../chart/ChartInterface"
+import { SelectionArray } from "../selection/SelectionArray"
+import { CoreColumn } from "@ourworldindata/core-table"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin
@@ -43,6 +45,10 @@ export interface ChoroplethMapManager {
     onMapMouseOver: (d: GeoFeature) => void
     onMapMouseLeave: () => void
     isStatic?: boolean
+    zoomCountry?: string
+    selectionArray: SelectionArray
+    mapColumn?: CoreColumn
+    highlightCountries?: string[]
 }
 
 export interface RenderFeature {
@@ -55,7 +61,6 @@ export interface RenderFeature {
 
 export interface MapChartManager extends ChartManager {
     mapColumnSlug?: ColumnSlug
-    mapIsClickable?: boolean
     tab?: GrapherTabOption // Used to switch to chart tab on map click
     type?: GrapherChartType // Used to determine the "Click to select" text in MapTooltip
     isLineChartThatTurnedIntoDiscreteBar?: boolean // Used to determine whether to reset the timeline on map click

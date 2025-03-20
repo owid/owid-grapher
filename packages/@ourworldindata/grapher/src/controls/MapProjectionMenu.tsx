@@ -11,6 +11,7 @@ export interface MapProjectionMenuManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
     hideMapProjectionMenu?: boolean
+    onProjectionChange?: (newProjection: MapProjectionName) => void
 }
 
 interface MapProjectionMenuItem {
@@ -41,8 +42,12 @@ export class MapProjectionMenu extends React.Component<{
 
     @action.bound onChange(selected: unknown): void {
         const { mapConfig } = this.props.manager
-        if (selected && mapConfig)
-            mapConfig.projection = (selected as MapProjectionMenuItem).value
+        if (selected && mapConfig) {
+            const projection = (selected as MapProjectionMenuItem).value
+            mapConfig.projection = projection
+            mapConfig.zoomCountry = undefined
+            this.props.manager.onProjectionChange?.(projection)
+        }
     }
 
     @computed get options(): MapProjectionMenuItem[] {

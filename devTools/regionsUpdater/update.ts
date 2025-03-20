@@ -34,7 +34,8 @@ const ETL_REGIONS_URL =
     },
     // we want to exclude income groups for now, until we can properly display the user's
     // income group in the UI
-    REGIONS_TO_EXCLUDE = ["OWID_HIC", "OWID_UMC", "OWID_LMC", "OWID_LIC"],
+    // REGIONS_TO_EXCLUDE = ["OWID_HIC", "OWID_UMC", "OWID_LMC", "OWID_LIC"],
+    REGIONS_TO_EXCLUDE: string[] = [],
     // used for Intl.DisplayNames mapping
     // see https://github.com/unicode-org/cldr/blob/480029bab5301d79e762b872b463e9101ba91a40/common/main/en.xml#L927-L957 for these codes
     // note that these currently only work in Firefox and Safari, not Chrome: see https://issues.chromium.org/issues/40801814

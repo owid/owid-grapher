@@ -59,7 +59,6 @@ import { getCountriesByProjection } from "./WorldRegionsToProjection"
 import {
     ColorSchemeName,
     MapProjectionName,
-    GRAPHER_TAB_OPTIONS,
     SeriesName,
     EntityName,
 } from "@ourworldindata/types"
@@ -71,6 +70,10 @@ import {
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SelectionArray } from "../selection/SelectionArray"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faExpand } from "@fortawesome/free-solid-svg-icons"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
+import { isDarkColor } from "../color/ColorUtils"
 
 const DEFAULT_STROKE_COLOR = "#333"
 const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
@@ -213,7 +216,7 @@ export class MapChart
         )
     }
 
-    @computed private get mapColumn(): CoreColumn {
+    @computed get mapColumn(): CoreColumn {
         return this.transformedTable.get(this.mapColumnSlug)
     }
 
@@ -246,9 +249,8 @@ export class MapChart
         }
 
         if (feature.id !== undefined) {
-            const featureId = feature.id as string,
-                clickable = this.isEntityClickable(featureId)
-            this.tooltipState.target = { featureId, clickable }
+            const featureId = feature.id as string
+            this.tooltipState.target = { featureId, clickable: false }
         }
     }
 
@@ -274,33 +276,35 @@ export class MapChart
         return this.inputTable.entitiesWith([this.mapColumnSlug])
     }
 
-    // Determine if we can go to line chart by clicking on a given map entity
-    private isEntityClickable(entityName?: EntityName): boolean {
-        if (!this.manager.mapIsClickable || !entityName) return false
-        return this.entityNamesWithData.has(entityName)
-    }
-
-    @computed private get selectionArray(): SelectionArray {
+    @computed get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager.selection)
     }
 
-    @action.bound onClick(
-        d: GeoFeature,
-        ev: React.MouseEvent<SVGElement>
-    ): void {
+    @action.bound onClick(d: GeoFeature): void {
         const entityName = d.id as EntityName
-        if (!this.isEntityClickable(entityName)) return
+        // - on the world map, we always select an entity and jump to it
+        // - when on continent or country, we deselect
+        if (
+            this.mapConfig.projection === MapProjectionName.World &&
+            !this.mapConfig.zoomCountry
+        ) {
+            if (!this.selectionArray.selectedSet.has(entityName))
+                this.selectionArray.selectEntity(entityName)
+            this.mapConfig.zoomCountry = entityName
+        } else {
+            this.selectionArray.toggleSelection(entityName)
+        }
 
-        if (!ev.shiftKey) {
-            this.selectionArray.setSelectedEntities([entityName])
-            this.manager.tab = GRAPHER_TAB_OPTIONS.chart
-            if (
-                this.manager.isLineChartThatTurnedIntoDiscreteBar &&
-                this.manager.hasTimeline
-            ) {
-                this.manager.resetHandleTimeBounds?.()
-            }
-        } else this.selectionArray.toggleSelection(entityName)
+        if (
+            this.selectionArray.selectedSet.has(entityName) &&
+            this.mapConfig.projection === MapProjectionName.World
+        ) {
+            this.mapConfig.zoomCountry = entityName
+        }
+
+        if (this.selectionArray.numSelectedEntities === 0) {
+            this.mapConfig.zoomCountry = undefined
+        }
     }
 
     componentWillUnmount(): void {
@@ -318,6 +322,16 @@ export class MapChart
 
     @computed get mapConfig(): MapConfig {
         return this.manager.mapConfig || new MapConfig()
+    }
+
+    @computed get zoomCountry(): string | undefined {
+        return this.mapConfig.zoomCountry
+    }
+
+    @computed get highlightCountries(): string[] {
+        return this.mapConfig.highlightCountries
+            ? Array.from(this.mapConfig.highlightCountries)
+            : []
     }
 
     @action.bound onProjectionChange(value: MapProjectionName): void {
@@ -641,6 +655,43 @@ export class MapChart
                     <ChoroplethMap manager={this} />
                 </g>
                 {this.renderMapLegend()}
+                {(this.zoomCountry ||
+                    this.mapConfig.projection !== MapProjectionName.World) && (
+                    <foreignObject
+                        {...this.choroplethMapBounds.toProps()}
+                        // TODO: hack to make map hoverable
+                        height={40}
+                    >
+                        <button
+                            onClick={() => {
+                                if (this.manager.mapConfig) {
+                                    this.manager.mapConfig.projection =
+                                        MapProjectionName.World
+                                    this.manager.mapConfig.zoomCountry =
+                                        undefined
+                                }
+                            }}
+                            style={{
+                                position: "absolute",
+                                top: 4,
+                                right: 4,
+                                background: "white",
+                                padding: "5px",
+                                borderRadius: "5px",
+                                cursor: "pointer",
+                                width: 28,
+                                height: 28,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: GRAPHER_DARK_TEXT,
+                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faExpand} />
+                        </button>
+                    </foreignObject>
+                )}
                 {tooltipState.target && (
                     <MapTooltip
                         tooltipState={tooltipState}
@@ -709,6 +760,7 @@ class ChoroplethMap extends React.Component<{
 
     // Combine bounding boxes to get the extents of the entire map
     @computed private get mapBounds(): Bounds {
+        if (this.zoomFeature) return this.zoomFeature.bounds
         return Bounds.merge(geoBoundsFor(this.manager.projection))
     }
 
@@ -732,7 +784,18 @@ class ChoroplethMap extends React.Component<{
     }
 
     private isSelected(id: string): boolean | undefined {
-        return this.choroplethData.get(id)!.isSelected
+        return this.manager.selectionArray.selectedSet.has(id)
+    }
+
+    private isHighlighted(id: string): boolean {
+        const { highlightCountries = [] } = this.manager
+        return highlightCountries.includes(id)
+    }
+
+    private isMute(id: string): boolean {
+        const { highlightCountries = [] } = this.manager
+        if (highlightCountries.length === 0) return false
+        return !this.isHighlighted(id)
     }
 
     // Viewport for each projection, defined by center and width+height in fractional coordinates
@@ -758,12 +821,18 @@ class ChoroplethMap extends React.Component<{
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
     @computed private get viewportScale(): number {
         const { bounds, viewport, mapBounds } = this
-        const viewportWidth = viewport.width * mapBounds.width
-        const viewportHeight = viewport.height * mapBounds.height
-        return Math.min(
+        const scaleValue = this.zoomFeature ? 110 : undefined
+        const viewportWidth = scaleValue
+            ? scaleValue
+            : viewport.width * mapBounds.width
+        const viewportHeight = scaleValue
+            ? scaleValue
+            : viewport.height * mapBounds.height
+        const viewportScale = Math.min(
             bounds.width / viewportWidth,
             bounds.height / viewportHeight
         )
+        return viewportScale
     }
 
     @computed private get matrixTransform(): string {
@@ -819,6 +888,14 @@ class ChoroplethMap extends React.Component<{
         return this.featuresInProjection.filter((feature) =>
             this.choroplethData.has(feature.id)
         )
+    }
+
+    @computed private get zoomFeature(): RenderFeature | undefined {
+        if (!this.manager.zoomCountry) return undefined
+        const feature = this.featuresInProjection.find(
+            (feature) => feature.id === this.manager.zoomCountry
+        )
+        return feature
     }
 
     // Map uses a hybrid approach to mouseover
@@ -877,7 +954,7 @@ class ChoroplethMap extends React.Component<{
     }
 
     // If true selected countries will have an outline
-    @observable private showSelectedStyle = false
+    @observable private showSelectedStyle = true
 
     renderFeaturesOutsideProjection(): React.ReactElement | void {
         if (this.featuresOutsideProjection.length === 0) return
@@ -934,9 +1011,16 @@ class ChoroplethMap extends React.Component<{
                 </defs>
 
                 {this.featuresWithNoData.map((feature) => {
+                    const showSelectedStyle =
+                        this.showSelectedStyle && this.isSelected(feature.id)
                     const isFocus = this.hasFocus(feature.id)
-                    const outOfFocusBracket = !!this.focusBracket && !isFocus
-                    const stroke = isFocus ? this.focusStrokeColor : "#aaa"
+                    const outOfFocusBracket =
+                        (!!this.focusBracket && !isFocus) ||
+                        this.isMute(feature.id)
+                    const stroke =
+                        isFocus || showSelectedStyle
+                            ? this.focusStrokeColor
+                            : "#aaa"
                     const fillOpacity = outOfFocusBracket
                         ? this.blurFillOpacity
                         : 1
@@ -944,7 +1028,7 @@ class ChoroplethMap extends React.Component<{
                         ? this.blurStrokeOpacity
                         : 1
                     const strokeWidth =
-                        (isFocus
+                        (isFocus || showSelectedStyle
                             ? this.focusStrokeWidth
                             : this.defaultStrokeWidth) / this.viewportScale
                     return (
@@ -984,7 +1068,8 @@ class ChoroplethMap extends React.Component<{
                             this.showSelectedStyle &&
                             this.isSelected(feature.id)
                         const outOfFocusBracket =
-                            !!this.focusBracket && !isFocus
+                            (!!this.focusBracket && !isFocus) ||
+                            this.isMute(feature.id)
                         const series = this.choroplethData.get(
                             feature.id as string
                         )
@@ -1079,6 +1164,62 @@ class ChoroplethMap extends React.Component<{
                     {this.renderFeaturesOutsideProjection()}
                     {this.renderFeaturesWithoutData()}
                     {this.renderFeaturesWithData()}
+                    {(this.zoomFeature ||
+                        this.manager.projection !== MapProjectionName.World) &&
+                        this.manager.selectionArray.selectedEntityNames.map(
+                            (entityName) => {
+                                const datum =
+                                    this.choroplethData.get(entityName)
+                                if (!datum) return null
+                                const feature = this.featuresWithData.find(
+                                    (feature) => feature.id === entityName
+                                )
+                                if (!feature) return null
+                                const formattedValue =
+                                    this.manager.mapColumn!.formatValueShortWithAbbreviations(
+                                        datum.value
+                                    )
+
+                                const textDims = Bounds.forText(
+                                    formattedValue,
+                                    {
+                                        fontSize: 4,
+                                    }
+                                )
+                                const textBounds = new Bounds(
+                                    feature.center.x - textDims.width / 2,
+                                    feature.center.y - textDims.height / 2,
+                                    textDims.width,
+                                    textDims.height
+                                )
+
+                                if (!feature.bounds.encloses(textBounds))
+                                    return null
+
+                                const series = this.choroplethData.get(
+                                    feature.id as string
+                                )
+                                const color =
+                                    series?.color && isDarkColor(series.color)
+                                        ? "#fff"
+                                        : "#000"
+
+                                return (
+                                    <text
+                                        key={feature.id}
+                                        x={feature.center.x}
+                                        y={feature.center.y}
+                                        fontSize={4}
+                                        textAnchor="middle"
+                                        alignmentBaseline="middle"
+                                        style={{ pointerEvents: "none" }}
+                                        fill={color}
+                                    >
+                                        {formattedValue}
+                                    </text>
+                                )
+                            }
+                        )}
                 </g>
             </g>
         )

@@ -66,6 +66,14 @@ import {
     omit,
     isTouchDevice,
     isArrayDifferentFromReference,
+    getContinents,
+    countriesByCode,
+    countries,
+    difference,
+    countriesByName,
+    getAggregates,
+    getIncomeGroups,
+    getMemberCountries,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -231,6 +239,7 @@ import {
     GRAPHER_LIGHT_TEXT,
 } from "../color/ColorConstants"
 import { FacetChart } from "../facetChart/FacetChart"
+import { MapProjectionLabels } from "../mapCharts/MapProjections"
 
 declare global {
     interface Window {
@@ -714,6 +723,19 @@ export class Grapher
         if (this.addCountryMode !== EntitySelectionMode.Disabled && selection)
             this.selection.setSelectedEntities(selection)
 
+        // map highlights
+        if (selection) {
+            for (const entityName of selection) {
+                const memberCountries = getMemberCountries(entityName)
+                if (memberCountries.length === 0) return
+                if (!this.mapConfig.highlightCountries)
+                    this.mapConfig.highlightCountries = new Set()
+                for (const memberCountry of memberCountries) {
+                    this.mapConfig.highlightCountries.add(memberCountry)
+                }
+            }
+        }
+
         // focus
         const focusedSeriesNames = getFocusedSeriesNamesParam(params.focus)
         if (focusedSeriesNames) {
@@ -871,6 +893,45 @@ export class Grapher
         // to ensure that the entity selector only offers entities that are actually plotted.
         if (this.chartInstance.transformTableForSelection) {
             table = this.chartInstance.transformTableForSelection(table)
+        }
+
+        if (this.isOnMapTab) {
+            // Exclude the World entity on the map tab
+            table = table.filterByEntityNamesUsingIncludeExcludePattern({
+                excluded: ["World"],
+            })
+
+            // Filter out entities that are not mappable
+            const mappableCountryNames = countries
+                .filter((country) => country.isMappable)
+                .map((country) => country.name)
+            // TODO: exclude for now
+            // const mappableContinents = getContinents().map((c) => c.name)
+            const mappableIncomeGroups = getIncomeGroups().map((g) => g.name)
+            const mappableAggregates = getAggregates().map((a) => a.name)
+            table = table.filterByEntityNames([
+                ...mappableCountryNames,
+                // ...mappableContinents,
+                ...mappableIncomeGroups,
+                ...mappableAggregates,
+            ])
+
+            // Filter out entities that are not currently plotted on the map
+            if (this.mapConfig.projection !== MapProjectionName.World) {
+                const continents = getContinents()
+                const selectedContinent = continents.find(
+                    (continent) =>
+                        continent.name ===
+                        MapProjectionLabels[this.mapConfig.projection]
+                )
+                const memberCountryCodes = selectedContinent?.members ?? []
+                const memberCountryNames = memberCountryCodes.map(
+                    (countryCode) => countriesByCode()[countryCode]?.name
+                )
+                if (memberCountryNames.length > 0) {
+                    table = table.filterByEntityNames(memberCountryNames)
+                }
+            }
         }
 
         return table
@@ -1446,6 +1507,26 @@ export class Grapher
         oldTab: GrapherTabName,
         newTab: GrapherTabName
     ): void {
+        // TODO: debatable
+
+        // clear selected entities when switching to the map tab
+        if (newTab === GRAPHER_TAB_NAMES.WorldMap) {
+            if (this.areSelectedEntitiesDifferentThanAuthors) {
+                this.mapConfig.zoomCountry = undefined
+            } else {
+                this.selection.clearSelection()
+            }
+        }
+
+        // apply original selection as authored when switching to a chart tab
+        if (
+            newTab !== GRAPHER_TAB_NAMES.Table &&
+            newTab !== GRAPHER_TAB_NAMES.WorldMap &&
+            this.selection.numSelectedEntities === 0
+        ) {
+            this.applyOriginalSelectionAsAuthored()
+        }
+
         // if switching from a line to a slope chart and the handles are
         // on the same time, then automatically adjust the handles so that
         // the slope chart view is meaningful
@@ -2283,14 +2364,6 @@ export class Grapher
 
     @computed get cacheTag(): string {
         return this.version.toString()
-    }
-
-    @computed get mapIsClickable(): boolean {
-        return (
-            this.hasChartTab &&
-            (this.hasLineChart || this.isScatter) &&
-            !isMobile()
-        )
     }
 
     @computed get relativeToggleLabel(): string {
@@ -3408,6 +3481,64 @@ export class Grapher
         )
     }
 
+    @action.bound onSelectEntity(entityName: string): void {
+        const isMappable = countriesByName()[entityName]?.isMappable
+        if (
+            this.mapConfig.projection === MapProjectionName.World &&
+            isMappable
+        ) {
+            this.mapConfig.zoomCountry = entityName
+        }
+
+        if (!isMappable) {
+            const members = getMemberCountries(entityName)
+            if (members.length === 0) return
+            if (!this.mapConfig.highlightCountries)
+                this.mapConfig.highlightCountries = new Set()
+            for (const memberCountry of members) {
+                this.mapConfig.highlightCountries.add(memberCountry)
+            }
+        }
+    }
+
+    @action.bound onDeselectEntity(entityNames: string[]): void {
+        if (this.selection.numSelectedEntities === 0) {
+            this.mapConfig.zoomCountry = undefined
+        }
+        for (const entityName of entityNames) {
+            const members = getMemberCountries(entityName)
+            if (members.length === 0) continue
+
+            if (this.mapConfig.highlightCountries)
+                for (const memberCountry of members) {
+                    this.mapConfig.highlightCountries.delete(memberCountry)
+                }
+        }
+    }
+
+    @action.bound onProjectionChange(newProjection: MapProjectionName): void {
+        // if switching to a continent, drop all entities that are not part of the continent
+        if (newProjection !== MapProjectionName.World) {
+            const continent = getContinents().find(
+                (continent) =>
+                    continent.name === MapProjectionLabels[newProjection]
+            )
+            if (continent) {
+                const memberCountryCodes = continent.members ?? []
+                const memberCountryNames = excludeUndefined(
+                    memberCountryCodes.map(
+                        (code) => countriesByCode()[code]?.name
+                    )
+                )
+                const dropCountryNames = difference(
+                    this.selection.selectedEntityNames,
+                    memberCountryNames
+                )
+                this.selection.deselectEntities(dropCountryNames)
+            }
+        }
+    }
+
     @action.bound clearSelection(): void {
         this.selection.clearSelection()
         this.applyOriginalSelectionAsAuthored()
@@ -3770,7 +3901,7 @@ export class Grapher
         return (
             !this.hideEntityControls &&
             this.canChangeAddOrHighlightEntities &&
-            this.isOnChartTab &&
+            !this.isOnTableTab &&
             this.showEntitySelectorAs === GrapherWindowType.panel
         )
     }
@@ -3779,7 +3910,7 @@ export class Grapher
         return (
             !this.hideEntityControls &&
             this.canChangeAddOrHighlightEntities &&
-            this.isOnChartTab &&
+            !this.isOnTableTab &&
             (this.showEntitySelectorAs === GrapherWindowType.modal ||
                 this.showEntitySelectorAs === GrapherWindowType.drawer)
         )
