@@ -66,80 +66,89 @@ export class AddTSVToExplorers1742217630523 implements MigrationInterface {
             )
 
             const owidContentDir = path.join(__dirname, "../../../owid-content")
-            const explorersDir = path.join(
-                owidContentDir,
-                EXPLORERS_GIT_CMS_FOLDER
-            )
-            const explorerFiles = await fs.readdir(explorersDir)
+            if (await fs.pathExists(owidContentDir)) {
+                const explorersDir = path.join(
+                    owidContentDir,
+                    EXPLORERS_GIT_CMS_FOLDER
+                )
+                const explorerFiles = await fs.readdir(explorersDir)
 
-            // Initialize simpleGit using the repository root (adjust baseDir if necessary)
-            const git = simpleGit({
-                baseDir: owidContentDir,
-                binary: "git",
-                maxConcurrentProcesses: 16,
-            })
+                // Initialize simpleGit using the repository root (adjust baseDir if necessary)
+                const git = simpleGit({
+                    baseDir: owidContentDir,
+                    binary: "git",
+                    maxConcurrentProcesses: 16,
+                })
 
-            for (const filename of explorerFiles) {
-                if (filename.endsWith(EXPLORER_FILE_SUFFIX)) {
-                    const slug = filename.replace(EXPLORER_FILE_SUFFIX, "")
-                    const filePath = path.join(explorersDir, filename)
-                    const content = await fs.readFile(filePath, "utf8")
+                for (const filename of explorerFiles) {
+                    if (filename.endsWith(EXPLORER_FILE_SUFFIX)) {
+                        const slug = filename.replace(EXPLORER_FILE_SUFFIX, "")
+                        const filePath = path.join(explorersDir, filename)
+                        const content = await fs.readFile(filePath, "utf8")
 
-                    // Get the last commit for this file.
-                    let lastCommit: any = null
-                    try {
-                        const commits = await git.log({ file: filePath, n: 1 })
-                        lastCommit = commits.latest
-                    } catch (error) {
-                        console.log(
-                            `Error retrieving git log for ${filename}: ${error}`
-                        )
-                    }
-
-                    let userId = null
-                    if (lastCommit?.author_email) {
-                        const userResult = await queryRunner.query(
-                            "SELECT id FROM users WHERE email = ? LIMIT 1",
-                            [lastCommit.author_email]
-                        )
-                        if (userResult?.length) {
-                            userId = userResult[0].id
+                        // Get the last commit for this file.
+                        let lastCommit: any = null
+                        try {
+                            const commits = await git.log({
+                                file: filePath,
+                                n: 1,
+                            })
+                            lastCommit = commits.latest
+                        } catch (error) {
+                            console.log(
+                                `Error retrieving git log for ${filename}: ${error}`
+                            )
                         }
-                    }
 
-                    if (userId === null && lastCommit?.author_name) {
-                        const userResult = await queryRunner.query(
-                            "SELECT id FROM users WHERE fullName = ? LIMIT 1",
-                            [lastCommit.author_name]
-                        )
-                        if (userResult?.length) {
-                            userId = userResult[0].id
+                        let userId = null
+                        if (lastCommit?.author_email) {
+                            const userResult = await queryRunner.query(
+                                "SELECT id FROM users WHERE email = ? LIMIT 1",
+                                [lastCommit.author_email]
+                            )
+                            if (userResult?.length) {
+                                userId = userResult[0].id
+                            }
                         }
-                    }
 
-                    let lastEditedAt = null
-                    if (lastCommit?.date) {
-                        lastEditedAt = new Date(lastCommit.date)
-                    }
+                        if (userId === null && lastCommit?.author_name) {
+                            const userResult = await queryRunner.query(
+                                "SELECT id FROM users WHERE fullName = ? LIMIT 1",
+                                [lastCommit.author_name]
+                            )
+                            if (userResult?.length) {
+                                userId = userResult[0].id
+                            }
+                        }
 
-                    // Update the explorer record with both TSV and lastCommit JSON.
-                    const updateResult: any = await queryRunner.query(
-                        `UPDATE explorers SET tsv = ?, lastEditedByUserId = ?, lastEditedAt = ?, commitMessage = ? WHERE slug = ?`,
-                        [
-                            content,
-                            userId,
-                            lastEditedAt,
-                            lastCommit?.message,
-                            slug,
-                        ]
-                    )
+                        let lastEditedAt = null
+                        if (lastCommit?.date) {
+                            lastEditedAt = new Date(lastCommit.date)
+                        }
 
-                    if (!updateResult || updateResult.affectedRows === 0) {
-                        console.log(
-                            `Explorer with slug "${slug}" not found. Skipping.`
+                        // Update the explorer record with both TSV and lastCommit JSON.
+                        const updateResult: any = await queryRunner.query(
+                            `UPDATE explorers SET tsv = ?, lastEditedByUserId = ?, lastEditedAt = ?, commitMessage = ? WHERE slug = ?`,
+                            [
+                                content,
+                                userId,
+                                lastEditedAt,
+                                lastCommit?.message,
+                                slug,
+                            ]
                         )
+
+                        if (!updateResult || updateResult.affectedRows === 0) {
+                            console.log(
+                                `Explorer with slug "${slug}" not found. Skipping.`
+                            )
+                        }
                     }
                 }
+            } else {
+                console.log(
+                    "Directory owid-content does not exist, skipping explorer processing."
+                )
             }
         } finally {
             // Restore the original logger.

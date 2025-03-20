@@ -19,14 +19,6 @@ If you're using Windows, we recommend you use the Windows Subsystem for Linux, w
 apt install -y build-essential finger
 ```
 
-## Optional prequisites
-
-If you want to work with the explorer admin then you need to clone the "owid-content" folder as a **sibling** to the owid-grapher. Note that this is not required just to create or edit single charts which is normally sufficient for development of new features or bug fixes.
-
-```bash
-git clone https://github.com/owid/owid-content
-```
-
 ## Starting our development environment
 
 Make a copy of `.env.example-grapher` for the server to configure itself with.
