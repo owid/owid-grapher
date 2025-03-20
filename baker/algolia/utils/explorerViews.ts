@@ -349,7 +349,6 @@ const createBaseRecords = (
 ): ExplorerViewBaseRecord[] => {
     return matrix
         .allDecisionsAsQueryParams()
-        .slice(0, 1) // TODO: remove only one base record per explorer limit
         .map((choice: ExplorerChoiceParams, index: number) =>
             createBaseRecord(choice, matrix, index, explorerInfo)
         )
