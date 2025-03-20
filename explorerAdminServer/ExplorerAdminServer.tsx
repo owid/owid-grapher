@@ -69,10 +69,8 @@ export class ExplorerAdminServer {
         })
     }
 
-    // This operation takes ~5 seconds on prod, which is annoying for gdocs
-    // where we update the page every 5 seconds, so I'm caching the result every 30 minutes
-    // until we have Explorers in MySQL.
-    // TODO: is this still necessary now that we fetch explorers from MySQL? how long does it take?
+    // This operation takes ~1 seconds on prod, which is annoying for gdocs
+    // where we update the page every 1 seconds, so I'm caching the result every 30 minutes
     async getAllPublishedExplorersBySlugCached(
         knex: db.KnexReadonlyTransaction
     ) {

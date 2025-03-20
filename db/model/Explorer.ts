@@ -61,7 +61,6 @@ export async function upsertExplorer(
     } else {
         // Create new explorer
         // isPublished is currently set in the TSV
-        // TODO: do this via const newExplorer = explorer.setPublished(false)
         const unpublishedTSV = tsv.replace(
             /isPublished\ttrue/g,
             "isPublished\tfalse"
