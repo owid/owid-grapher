@@ -10,6 +10,8 @@ import {
     getAlgoliaResults,
 } from "@algolia/autocomplete-js"
 import algoliasearch from "algoliasearch"
+// Import the Algolia Hit and HighlightResult types
+import { Hit as AlgoliaHit } from "@algolia/client-search"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
     ChartRecordType,
@@ -255,17 +257,66 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     },
 }
 
+// Rename function and change return type to reflect its new purpose
+const findBestMatchingSuggestion = (item: BaseItem): string => {
+    const highlighting = item._highlightResult as AlgoliaHit<{
+        searchSuggestions: string[]
+    }>["_highlightResult"]
+    const suggestions = item.searchSuggestions as string[]
+
+    if (!highlighting?.searchSuggestions?.length || !suggestions?.length)
+        return ""
+
+    const highlightedSuggestions = highlighting.searchSuggestions
+
+    const matchLevelScore = {
+        full: 3,
+        partial: 2,
+        none: 1,
+    }
+
+    let bestScore = -1
+    let bestIndex = 0
+
+    highlightedSuggestions.forEach((highlight, index) => {
+        if (!highlight) return
+
+        const score = highlight.matchLevel
+            ? matchLevelScore[highlight.matchLevel]
+            : 0
+        if (score > bestScore) {
+            bestScore = score
+            bestIndex = index
+        }
+    })
+
+    return suggestions[bestIndex]
+}
+
 const QuerySuggestionsSource: AutocompleteSource<BaseItem> = {
     sourceId: "querySuggestions",
     onSelect({ navigator, item, state }) {
+        const suggestion = findBestMatchingSuggestion(item)
+
+        const itemUrl = urljoin(
+            BAKED_BASE_URL,
+            "/data",
+            queryParamsToStr({ q: suggestion })
+        )
         navigator.navigate({
-            itemUrl: prependSubdirectoryToAlgoliaItemUrl(item),
+            itemUrl,
             item,
             state,
         })
     },
     getItemUrl({ item }) {
-        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
+        const suggestion = findBestMatchingSuggestion(item)
+
+        const itemUrl = urljoin(
+            BAKED_BASE_URL,
+            "/data",
+            queryParamsToStr({ q: suggestion })
+        )
         return itemUrl
     },
     getItems({ query }) {
@@ -278,10 +329,18 @@ const QuerySuggestionsSource: AutocompleteSource<BaseItem> = {
             searchClient,
             queries: [
                 {
-                    indexName: getIndexName(SearchIndexName.SearchSuggestions),
+                    indexName: getIndexName(
+                        SearchIndexName.ExplorerViewsMdimViewsAndCharts
+                    ),
                     query,
                     params: {
                         hitsPerPage: 7,
+                        attributesToRetrieve: ["searchSuggestions"],
+                        attributesToHighlight: ["searchSuggestions"],
+                        // we don't want to search through the title, as it
+                        // wouldn't necessarily contain the query keywords typed
+                        // by the user
+                        restrictSearchableAttributes: ["searchSuggestions"],
                     },
                 },
             ],
@@ -290,12 +349,20 @@ const QuerySuggestionsSource: AutocompleteSource<BaseItem> = {
     templates: {
         header: () => <h5 className="overline-black-caps">Suggestions</h5>,
         item: ({ item, components }) => {
+            const suggestions = item.searchSuggestions as string[]
+            const bestIndex = suggestions.indexOf(
+                findBestMatchingSuggestion(item)
+            )
+
             return (
                 <div className="aa-ItemWrapper">
                     <span>
                         <components.Highlight
                             hit={item}
-                            attribute="suggestion"
+                            attribute={[
+                                "searchSuggestions",
+                                bestIndex.toString(),
+                            ]}
                             tagName="strong"
                         />
                     </span>
