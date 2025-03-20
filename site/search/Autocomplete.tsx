@@ -11,7 +11,6 @@ import {
 } from "@algolia/autocomplete-js"
 import algoliasearch from "algoliasearch"
 // Import the Algolia Hit and HighlightResult types
-import { Hit as AlgoliaHit } from "@algolia/client-search"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
     ChartRecordType,
@@ -257,46 +256,10 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     },
 }
 
-// Rename function and change return type to reflect its new purpose
-const findBestMatchingSuggestion = (item: BaseItem): string => {
-    const highlighting = item._highlightResult as AlgoliaHit<{
-        searchSuggestions: string[]
-    }>["_highlightResult"]
-    const suggestions = item.searchSuggestions as string[]
-
-    if (!highlighting?.searchSuggestions?.length || !suggestions?.length)
-        return ""
-
-    const highlightedSuggestions = highlighting.searchSuggestions
-
-    const matchLevelScore = {
-        full: 3,
-        partial: 2,
-        none: 1,
-    }
-
-    let bestScore = -1
-    let bestIndex = 0
-
-    highlightedSuggestions.forEach((highlight, index) => {
-        if (!highlight) return
-
-        const score = highlight.matchLevel
-            ? matchLevelScore[highlight.matchLevel]
-            : 0
-        if (score > bestScore) {
-            bestScore = score
-            bestIndex = index
-        }
-    })
-
-    return suggestions[bestIndex]
-}
-
 const QuerySuggestionsSource: AutocompleteSource<BaseItem> = {
     sourceId: "querySuggestions",
     onSelect({ navigator, item, state }) {
-        const suggestion = findBestMatchingSuggestion(item)
+        const suggestion = item.value as string
 
         const itemUrl = urljoin(
             BAKED_BASE_URL,
@@ -310,7 +273,7 @@ const QuerySuggestionsSource: AutocompleteSource<BaseItem> = {
         })
     },
     getItemUrl({ item }) {
-        const suggestion = findBestMatchingSuggestion(item)
+        const suggestion = item.value as string
 
         const itemUrl = urljoin(
             BAKED_BASE_URL,
@@ -319,56 +282,39 @@ const QuerySuggestionsSource: AutocompleteSource<BaseItem> = {
         )
         return itemUrl
     },
-    getItems({ query }) {
+    async getItems({ query }) {
         // Only suggest queries when there are at least 2 characters
         if (!query || query.length < 2) {
             return []
         }
 
-        return getAlgoliaResults({
-            searchClient,
-            queries: [
-                {
-                    indexName: getIndexName(
-                        SearchIndexName.ExplorerViewsMdimViewsAndCharts
-                    ),
-                    query,
-                    params: {
-                        hitsPerPage: 7,
-                        attributesToRetrieve: ["searchSuggestions"],
-                        attributesToHighlight: ["searchSuggestions"],
-                        // we don't want to search through the title, as it
-                        // wouldn't necessarily contain the query keywords typed
-                        // by the user
-                        restrictSearchableAttributes: ["searchSuggestions"],
-                    },
-                },
-            ],
-        })
+        return searchClient
+            .initIndex(
+                getIndexName(SearchIndexName.ExplorerViewsMdimViewsAndCharts)
+            )
+            .searchForFacetValues("searchSuggestions", query, {
+                maxFacetHits: 7,
+                highlightPreTag: "<strong>",
+                highlightPostTag: "</strong>",
+            })
+            .then((result) => {
+                return result.facetHits
+            })
     },
     templates: {
         header: () => <h5 className="overline-black-caps">Suggestions</h5>,
-        item: ({ item, components }) => {
-            const suggestions = item.searchSuggestions as string[]
-            const bestIndex = suggestions.indexOf(
-                findBestMatchingSuggestion(item)
-            )
-
-            return (
-                <div className="aa-ItemWrapper">
-                    <span>
-                        <components.Highlight
-                            hit={item}
-                            attribute={[
-                                "searchSuggestions",
-                                bestIndex.toString(),
-                            ]}
-                            tagName="strong"
-                        />
-                    </span>
-                </div>
-            )
-        },
+        item: ({ item }) => (
+            <div className="aa-ItemWrapper">
+                <span
+                    dangerouslySetInnerHTML={{
+                        __html: item.highlighted as string,
+                    }}
+                />
+                <span className="aa-ItemWrapper__count">
+                    {item.count as number}
+                </span>
+            </div>
+        ),
     },
 }
 

@@ -194,7 +194,11 @@ export const configureAlgolia = async () => {
         disableExactOnAttributes: ["tags", "subtitle", "availableEntities"],
         disableTypoToleranceOnAttributes: ["subtitle", "availableEntities"],
         disablePrefixOnAttributes: ["subtitle"],
-        attributesForFaceting: ["tags", "availableEntities"],
+        attributesForFaceting: [
+            "tags",
+            "availableEntities",
+            "searchable(searchSuggestions)",
+        ],
     })
 
     const searchSuggestionsIndex = client.initIndex(
