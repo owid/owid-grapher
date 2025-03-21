@@ -14,7 +14,6 @@ interface MessageData {
     name: string
     showOnList: boolean
     isSubscription: boolean
-    giftAid: boolean
 }
 
 type ThankYouEnvVars = {
@@ -173,16 +172,6 @@ export const onRequestPost: PagesFunction = async ({
                         isSubscription: session.mode === "subscription",
                         name: session.metadata.name,
                         showOnList: session.metadata.showOnList === "true",
-                        giftAid:
-                            (session.customer_details.address.country ===
-                                "GB" ||
-                                session.currency === "gbp") &&
-                            (session.amount_total >= 3000 || // 30 GBP
-                                // If the donation is recurring, the overall
-                                // amount will likely be more than 30 GBP and
-                                // thus qualifies for Gift Aid processing by our
-                                // definition.
-                                session.mode === "subscription"),
                     },
                     env
                 )
