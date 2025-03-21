@@ -74,7 +74,7 @@ export class MapProjectionMenu extends React.Component<{
                     options={this.options}
                     onChange={this.onChange}
                     value={this.value}
-                    placeholder={"Zoom to continent..."}
+                    placeholder={"Select continent..."}
                 />
             </div>
         ) : null

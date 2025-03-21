@@ -325,7 +325,7 @@ export class MapChart
                 this.selectionArray.selectEntity(entityName)
             this.mapConfig.zoomCountry = entityName
             this.mapConfig.globe = true
-            if (!isGlobe) {
+            if (!isGlobe || this.shouldRotateToCountryWhenClicked) {
                 await this.globeController.rotateToCountry(
                     entityName,
                     isGlobe ? undefined : MAP_ZOOM_SCALE
@@ -337,7 +337,7 @@ export class MapChart
                 this.selectionArray.selectedSet.has(entityName) &&
                 this.mapConfig.projection === MapProjectionName.World
             ) {
-                if (!isGlobe) {
+                if (!isGlobe || this.shouldRotateToCountryWhenClicked) {
                     await this.globeController.rotateToCountry(
                         entityName,
                         isGlobe ? undefined : MAP_ZOOM_SCALE
@@ -353,7 +353,7 @@ export class MapChart
             this.mapConfig.zoomCountry = entityName
 
             this.mapConfig.globe = true
-            if (!isGlobe)
+            if (!isGlobe || this.shouldRotateToCountryWhenClicked)
                 await this.globeController.rotateToCountry(
                     entityName,
                     isGlobe ? undefined : MAP_ZOOM_SCALE
@@ -722,6 +722,7 @@ export class MapChart
 
     @observable shouldShowZoomButtons = true
     @observable shouldShowAllValuesWhenZoomedIn = false
+    @observable shouldRotateToCountryWhenClicked = true
 
     renderInteractive(): React.ReactElement {
         const { tooltipState } = this
@@ -886,6 +887,21 @@ export class MapChart
                                     }
                                 />
                                 Show all values on the map when zoomed in
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={
+                                        this.shouldRotateToCountryWhenClicked
+                                    }
+                                    onChange={(event) =>
+                                        (this.shouldRotateToCountryWhenClicked =
+                                            event.target.checked)
+                                    }
+                                />
+                                Automatically rotate to a country when clicked
                             </label>
                         </div>
                     </div>,
