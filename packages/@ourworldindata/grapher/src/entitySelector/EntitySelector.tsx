@@ -8,7 +8,6 @@ import {
     partition,
     SortOrder,
     orderBy,
-    keyBy,
     isFiniteWithGuard,
     CoreValueType,
     clamp,
@@ -18,7 +17,6 @@ import {
     sortBy,
     Tippy,
     excludeUndefined,
-    intersection,
     FuzzySearch,
     getUserNavigatorLanguagesNonEnglish,
     getRegionAlternativeNames,
@@ -55,11 +53,13 @@ import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 import { FocusArray } from "../focus/FocusArray"
 
+type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
+
 export interface EntitySelectorState {
     searchInput: string
     sortConfig: SortConfig
     localEntityNames?: string[]
-    externalSortColumnsByIndicatorId?: Record<number, CoreColumn>
+    sortColumnsBySlug?: CoreColumnBySlug
     isLoadingExternalSortColumn?: boolean
 }
 
@@ -99,11 +99,15 @@ interface DropdownOption {
     label: string
 }
 
-const EXTERNAL_SORT_INDICATORS = [
+const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
     {
         key: "population",
         label: "Population",
         indicatorId: POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
+        slug: indicatorIdToSlug(
+            POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR
+        ),
+        // checks if a column has population data
         isMatch: (column: CoreColumn): boolean =>
             isPopulationVariableETLPath(
                 (column.def as OwidColumnDef)?.catalogPath ?? ""
@@ -113,6 +117,10 @@ const EXTERNAL_SORT_INDICATORS = [
         key: "gdpPerCapita",
         label: "GDP per capita (int. $)",
         indicatorId: GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
+        slug: indicatorIdToSlug(
+            GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR
+        ),
+        // checks if a column has GDP per capita data
         isMatch: (column: CoreColumn): boolean => {
             const label = makeColumnLabel(column)
 
@@ -128,6 +136,12 @@ const EXTERNAL_SORT_INDICATORS = [
         },
     },
 ] as const
+
+type ExternalSortIndicatorDefinition =
+    (typeof EXTERNAL_SORT_INDICATOR_DEFINITIONS)[number]
+type ExternalSortIndicatorKey = ExternalSortIndicatorDefinition["key"]
+
+const regionNamesSet = new Set(regions.map((region) => region.name))
 
 @observer
 export class EntitySelector extends React.Component<{
@@ -222,6 +236,16 @@ export class EntitySelector extends React.Component<{
         }
     }
 
+    private setSortColumn(column?: CoreColumn): void {
+        if (!column) return
+        this.set({
+            sortColumnsBySlug: {
+                ...this.sortColumnsBySlug,
+                [column.slug]: column,
+            },
+        })
+    }
+
     private clearSearchInput(): void {
         this.set({ searchInput: "" })
     }
@@ -275,18 +299,12 @@ export class EntitySelector extends React.Component<{
         return this.manager.entitySelectorState.localEntityNames
     }
 
-    @computed private get externalSortColumnsByIndicatorId(): Record<
-        number,
-        CoreColumn
-    > {
-        return (
-            this.manager.entitySelectorState.externalSortColumnsByIndicatorId ??
-            {}
-        )
+    @computed private get sortColumnsBySlug(): CoreColumnBySlug {
+        return this.manager.entitySelectorState.sortColumnsBySlug ?? {}
     }
 
-    @computed private get externalSortColumns(): CoreColumn[] {
-        return Object.values(this.externalSortColumnsByIndicatorId)
+    @computed private get sortColumns(): CoreColumn[] {
+        return Object.values(this.sortColumnsBySlug)
     }
 
     @computed private get isLoadingExternalSortColumn(): boolean {
@@ -300,13 +318,17 @@ export class EntitySelector extends React.Component<{
         return this.manager.tableForSelection
     }
 
-    @computed private get hasCountryOrRegionEntities(): boolean {
-        return (
-            intersection(
-                this.availableEntityNames,
-                regions.map((region) => region.name)
-            ).length > 0
-        )
+    @computed private get entitiesAreCountriesOrRegions(): boolean {
+        for (const entityName of this.availableEntityNames) {
+            if (regionNamesSet.has(entityName)) return true
+        }
+        return false
+    }
+
+    @computed private get supportsSortingByExternalIndicators(): boolean {
+        // Adding external indicators like population and gdp per capita
+        // only makes sense for charts with countries or regions
+        return this.entitiesAreCountriesOrRegions
     }
 
     @computed private get numericalChartColumns(): CoreColumn[] {
@@ -318,58 +340,39 @@ export class EntitySelector extends React.Component<{
             )
     }
 
+    /**
+     * Map of chart columns that match external sort indicators.
+     * For example, if the chart has a column with population data,
+     * it will be used instead of the "Population" external indicator.
+     */
     @computed
-    private get numericalChartColumnsWithoutExternalSortColumns(): CoreColumn[] {
-        return this.numericalChartColumns.filter(
-            (column) => !this.externalSortIndicatorSlugs.includes(column.slug)
-        )
-    }
-
-    @computed private get sortColumns(): CoreColumn[] {
-        return excludeUndefined([
-            this.table.entityNameColumn,
-            ...this.externalSortColumns,
-            ...this.numericalChartColumnsWithoutExternalSortColumns,
-        ])
-    }
-
-    @computed private get externalSortIndicators(): {
-        key: string
-        defaultLabel: string
-        indicatorId: number | undefined
-        slug: string | undefined
-        chartColumn?: CoreColumn
-    }[] {
-        return EXTERNAL_SORT_INDICATORS.map((externalSortIndicator) => {
-            const chartColumn = this.numericalChartColumns.find((column) =>
-                externalSortIndicator.isMatch(column)
+    private get chartColumnsByExternalSortIndicatorKey(): Partial<
+        Record<ExternalSortIndicatorKey, CoreColumn>
+    > {
+        const matchingColumns: Partial<
+            Record<ExternalSortIndicatorKey, CoreColumn>
+        > = {}
+        for (const external of EXTERNAL_SORT_INDICATOR_DEFINITIONS) {
+            const matchingColumn = this.numericalChartColumns.find((column) =>
+                external.isMatch(column)
             )
-
-            let indicatorId: number | undefined
-            if (chartColumn) {
-                indicatorId = +chartColumn.slug
-            } else if (this.hasCountryOrRegionEntities) {
-                indicatorId = externalSortIndicator.indicatorId
-            }
-
-            return {
-                key: externalSortIndicator.key,
-                defaultLabel: externalSortIndicator.label,
-                indicatorId,
-                slug: indicatorId?.toString(),
-                chartColumn,
-            }
-        })
+            if (matchingColumn) matchingColumns[external.key] = matchingColumn
+        }
+        return matchingColumns
     }
 
-    @computed private get externalSortIndicatorSlugs(): string[] {
-        return this.externalSortIndicators
-            .map(({ slug }) => slug)
-            .filter((slug): slug is string => slug !== undefined)
-    }
+    @computed
+    private get externalSortIndicatorDefinitions(): ExternalSortIndicatorDefinition[] {
+        if (!this.supportsSortingByExternalIndicators) return []
 
-    @computed private get sortColumnsBySlug(): Record<ColumnSlug, CoreColumn> {
-        return keyBy(this.sortColumns, (column: CoreColumn) => column.slug)
+        // if the chart has a column that matches an external sort indicator,
+        // prefer the chart column over the external indicator
+        const matchingKeys = Object.keys(
+            this.chartColumnsByExternalSortIndicatorKey
+        )
+        return EXTERNAL_SORT_INDICATOR_DEFINITIONS.filter(
+            (external) => !matchingKeys.includes(external.key)
+        )
     }
 
     @computed get sortOptions(): DropdownOption[] {
@@ -381,29 +384,41 @@ export class EntitySelector extends React.Component<{
             label: "Name",
         })
 
-        // add external indicators to the dropdown if applicable
-        this.externalSortIndicators.forEach((external) => {
-            if (external.slug) {
-                options.push({
-                    value: external.slug,
-                    label: external.chartColumn
-                        ? makeColumnLabel(external.chartColumn)
-                        : external.defaultLabel,
-                })
-            }
-        })
+        // add external indicators as sort options if applicable
+        if (this.supportsSortingByExternalIndicators) {
+            EXTERNAL_SORT_INDICATOR_DEFINITIONS.forEach((external) => {
+                // if the chart has a column that matches the external
+                // indicator, prefer it over the external indicator
+                const chartColumn =
+                    this.chartColumnsByExternalSortIndicatorKey[external.key]
 
-        // add chart columns to the dropdown
-        const chartColumns =
-            this.numericalChartColumnsWithoutExternalSortColumns
-        options.push(
-            ...chartColumns.map((column) => {
-                return {
-                    value: column.slug,
-                    label: makeColumnLabel(column),
+                if (chartColumn) {
+                    options.push({
+                        value: chartColumn.slug,
+                        label: makeColumnLabel(chartColumn),
+                    })
+                } else {
+                    options.push({
+                        value: external.slug,
+                        label: external.label,
+                    })
                 }
             })
-        )
+        }
+
+        // add the remaining numerical chart columns as sort options,
+        // excluding those that match external indicators
+        const matchingSlugs = Object.values(
+            this.chartColumnsByExternalSortIndicatorKey
+        ).map((column) => column.slug)
+        for (const column of this.numericalChartColumns) {
+            if (!matchingSlugs.includes(column.slug)) {
+                options.push({
+                    value: column.slug,
+                    label: makeColumnLabel(column),
+                })
+            }
+        }
 
         return options
     }
@@ -648,69 +663,46 @@ export class EntitySelector extends React.Component<{
         }
     }
 
-    @action.bound async loadExternalSortColumn(
-        indicatorId: number
+    @action.bound async loadAndSetExternalSortColumn(
+        external: ExternalSortIndicatorDefinition
     ): Promise<void> {
-        if (this.externalSortColumnsByIndicatorId[indicatorId]) return
+        const { slug, indicatorId } = external
 
-        const externalSortIndicator = this.externalSortIndicators.find(
-            (external) => external.indicatorId === indicatorId
-        )
+        // the indicator has already been loaded
+        if (this.sortColumnsBySlug[slug]) return
 
-        if (!externalSortIndicator) return undefined
-
-        if (externalSortIndicator.chartColumn) {
-            this.set({
-                externalSortColumnsByIndicatorId: {
-                    ...this.externalSortColumnsByIndicatorId,
-                    [externalSortIndicator.key]:
-                        externalSortIndicator.chartColumn,
-                },
-            })
-            return
-        }
-
-        if (externalSortIndicator.indicatorId === undefined) return
-
-        this.set({ isLoadingExternalSortColumn: true })
-
+        // load the external indicator
         try {
+            this.set({ isLoadingExternalSortColumn: true })
             const variable = await loadVariableDataAndMetadata(
-                externalSortIndicator.indicatorId,
+                indicatorId,
                 this.manager.dataApiUrl
             )
             const variableTable = buildVariableTable(variable)
-            if (variableTable) {
-                this.set({
-                    externalSortColumnsByIndicatorId: {
-                        ...this.externalSortColumnsByIndicatorId,
-                        [externalSortIndicator.indicatorId]: variableTable.get(
-                            externalSortIndicator.slug
-                        ),
-                    },
-                })
-            }
+            const column = variableTable.get(slug)
+            if (column) this.setSortColumn(column)
         } catch {
-            console.error(
-                `Failed to load variable with id ${externalSortIndicator.indicatorId}`
-            )
+            console.error(`Failed to load variable with id ${indicatorId}`)
+        } finally {
+            this.set({ isLoadingExternalSortColumn: false })
         }
-
-        this.set({ isLoadingExternalSortColumn: false })
     }
 
     @action.bound async onChangeSortSlug(selected: unknown): Promise<void> {
         if (selected) {
-            const { value } = selected as DropdownOption
+            const { value: slug } = selected as DropdownOption
 
-            const isExternalIndicator =
-                this.externalSortIndicatorSlugs.includes(value)
+            const external = this.externalSortIndicatorDefinitions.find(
+                (external) => external.slug === slug
+            )
 
-            if (isExternalIndicator) {
-                await this.loadExternalSortColumn(+value)
+            if (external) {
+                await this.loadAndSetExternalSortColumn(external)
+            } else {
+                this.setSortColumn(this.table.get(slug))
             }
 
-            this.updateSortSlug(value)
+            this.updateSortSlug(slug)
         }
     }
 
@@ -1093,4 +1085,8 @@ function FlippedListItem({
 
 function makeColumnLabel(column: CoreColumn): string {
     return column.titlePublicOrDisplayName.title
+}
+
+function indicatorIdToSlug(indicatorId: number): ColumnSlug {
+    return indicatorId.toString()
 }
