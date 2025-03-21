@@ -308,7 +308,7 @@ export class MapChart
     }
 
     @computed get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.selection)
+        return this.mapConfig.selectedCountries
     }
 
     @action.bound async onClick(d: GeoFeature): Promise<void> {
