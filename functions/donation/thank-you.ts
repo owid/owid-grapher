@@ -1,5 +1,9 @@
 import Stripe from "stripe"
-import { DEFAULT_HEADERS, STRIPE_API_VERSION } from "./_utils/constants.js"
+import {
+    DEFAULT_HEADERS,
+    STRIPE_API_VERSION,
+    STRIPE_CUSTOMER_PORTAL_URL,
+} from "./_utils/constants.js"
 import { JsonError, stringifyUnknownError } from "@ourworldindata/utils"
 import { MailgunEnvVars, sendMail } from "./_utils/email.js"
 import { SlackEnvVars, logError } from "./_utils/error.js"
@@ -9,7 +13,7 @@ interface MessageData {
     customerId: string
     name: string
     showOnList: boolean
-    isMonthly: boolean
+    isSubscription: boolean
     giftAid: boolean
 }
 
@@ -39,8 +43,8 @@ const constructMessage = (data: MessageData): string => {
         "Your generous donation to Global Change Data Lab, the nonprofit behind Our World in Data, helps us achieve our mission to make data and research on the world’s biggest challenges easier to understand and use, for everyone: https://ourworldindata.org/problems-and-progress",
         "Together, we can make progress against those challenges.",
         "Donations like yours are essential to our work. They provide us with the stability and independence to expand our work and increase our impact — delivering more data, charts, and insights on an increasing number of pressing topics, all free and open to the world.",
-        data.isMonthly &&
-            "We really appreciate your ongoing support! You’ll receive a receipt each month after your payment is processed. If you’d like to cancel your recurring donation at any point, you can do so at https://billing.stripe.com/p/login/14k17H5yh646b4s4gg or just email us at donate@ourworldindata.org and we’ll take care of that for you.",
+        data.isSubscription &&
+            "We really appreciate your ongoing support! You’ll receive a receipt each time after your payment is processed. If you’d like to cancel your recurring donation at any point, you can do so at ${STRIPE_CUSTOMER_PORTAL_URL} or just email us at donate@ourworldindata.org and we’ll take care of that for you.",
         data.showOnList &&
             "In recognition of your support, we will be delighted to include your name as part of our List of Supporters: https://ourworldindata.org/funding. We will add your name the next time we update the list, which we do every few months. The amount of your donation will not be disclosed.",
         "Stay connected with our work: Follow us on social media or sign up for one of our newsletters here: https://ourworldindata.org/#subscribe (As a valued donor, we may also share an occasional donor-only update with you, from which you may unsubscribe at any time.)",
@@ -73,8 +77,8 @@ function constructHtmlMessage(data: MessageData): string {
             impact — delivering more data, charts, and insights on an increasing
             number of pressing topics, all free and open to the world.
         </p>
-        ${data.isMonthly
-            ? `<p>We really appreciate your ongoing support! You’ll receive a receipt each month after your payment is processed. If you’d like to cancel your recurring donation at any point, you can do so at <a href="https://billing.stripe.com/p/login/14k17H5yh646b4s4gg">the billing portal</a> or just email us at <a href="mailto:donate@ourworldindata.org">donate@ourworldindata.org</a> and we'll take care of that for you.</p>`
+        ${data.isSubscription
+            ? `<p>We really appreciate your ongoing support! You’ll receive a receipt each time after your payment is processed. If you’d like to cancel your recurring donation at any point, you can do so at <a href="${STRIPE_CUSTOMER_PORTAL_URL}">the billing portal</a> or just email us at <a href="mailto:donate@ourworldindata.org">donate@ourworldindata.org</a> and we'll take care of that for you.</p>`
             : ""}
         ${data.showOnList
             ? `<p>In recognition of your support, we will be delighted to include your name as part of our <a href="https://ourworldindata.org/funding">List of Supporters</a>. We will add your name the next time we update the list, which we do every few months. The amount of your donation will not be disclosed.</p>`
@@ -166,7 +170,7 @@ export const onRequestPost: PagesFunction = async ({
                         // We support two checkout modes: "payment" (for one-time payments) and "subscription"
                         // These are set when creating the checkout session, in checkout.ts
                         // see https://stripe.com/docs/api/checkout/sessions/object#checkout_session_object-mode
-                        isMonthly: session.mode === "subscription",
+                        isSubscription: session.mode === "subscription",
                         name: session.metadata.name,
                         showOnList: session.metadata.showOnList === "true",
                         giftAid:
@@ -174,7 +178,7 @@ export const onRequestPost: PagesFunction = async ({
                                 "GB" ||
                                 session.currency === "gbp") &&
                             (session.amount_total >= 3000 || // 30 GBP
-                                // If the donation is monthly, the overall
+                                // If the donation is recurring, the overall
                                 // amount will likely be more than 30 GBP and
                                 // thus qualifies for Gift Aid processing by our
                                 // definition.
