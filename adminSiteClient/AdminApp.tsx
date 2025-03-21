@@ -35,8 +35,8 @@ import {
 import { LoadingBlocker, Modal } from "./Forms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Base64 } from "js-base64"
-import { ExplorerCreatePage } from "../explorerAdminClient/ExplorerCreatePage.js"
-import { ExplorersIndexPage } from "../explorerAdminClient/ExplorersListPage.js"
+import { ExplorerCreatePage } from "./ExplorerCreatePage.js"
+import { ExplorersIndexPage } from "./ExplorersListPage.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { AdminLayout } from "./AdminLayout.js"
 import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
@@ -115,14 +115,13 @@ class AdminLoader extends React.Component<{ admin: Admin }> {
 @observer
 export class AdminApp extends React.Component<{
     admin: Admin
-    gitCmsBranchName: string
 }> {
     get childContext() {
         return { admin: this.props.admin }
     }
 
     render(): React.ReactElement {
-        const { admin, gitCmsBranchName } = this.props
+        const { admin } = this.props
 
         return (
             <QueryClientProvider client={queryClient}>
@@ -211,9 +210,6 @@ export class AdminApp extends React.Component<{
                                         <AdminLayout title="Create Explorer">
                                             <ExplorerCreatePage
                                                 slug={match.params.slug}
-                                                gitCmsBranchName={
-                                                    gitCmsBranchName
-                                                }
                                                 manager={admin}
                                             />
                                         </AdminLayout>

@@ -43,7 +43,7 @@ help:
 
 up: export DEBUG = 'knex:query'
 
-up: require create-if-missing.env ../owid-content tmp-downloads/owid_metadata.sql.gz node_modules
+up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env
 	@make check-port-3306
 
@@ -98,7 +98,7 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 
 up.full: export DEBUG = 'knex:query'
 
-up.full: require create-if-missing.env.full ../owid-content tmp-downloads/owid_metadata.sql.gz node_modules
+up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env.full
 	@make check-port-3306
 
@@ -263,10 +263,6 @@ svgtest: ../owid-grapher-svgs
 	@# generate a full new set of svgs and create an HTML report if there are differences
 	node --enable-source-maps itsJustJavascript/devTools/svgTester/verify-graphs.js \
 		|| node --enable-source-maps itsJustJavascript/devTools/svgTester/create-compare-view.js
-
-../owid-content:
-	@echo '==> Cloning owid-content to ../owid-content'
-	cd .. && git clone git@github.com:owid/owid-content
 
 node_modules: package.json yarn.lock yarn.config.cjs
 	@echo '==> Installing packages'

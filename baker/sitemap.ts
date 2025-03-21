@@ -82,7 +82,7 @@ export const makeSitemap = async (
 
     const STATIC_PAGES = ["/explorers", "/data", "/search", "/donate"]
 
-    const explorers = await explorerAdminServer.getAllPublishedExplorers()
+    const explorers = await explorerAdminServer.getAllPublishedExplorers(knex)
 
     let urls = countries.map((c) => ({
         loc: urljoin(BAKED_BASE_URL, "country", c.slug),
