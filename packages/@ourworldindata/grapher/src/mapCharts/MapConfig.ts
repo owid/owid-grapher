@@ -24,6 +24,8 @@ class MapConfigDefaults {
     @observable toleranceStrategy?: ToleranceStrategy
     @observable hideTimeline?: boolean
     @observable projection = MapProjectionName.World
+    @observable zoomCountry?: string
+    @observable highlightCountries?: Set<string>
 
     @observable colorScale = new ColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value

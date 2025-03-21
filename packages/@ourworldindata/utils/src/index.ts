@@ -270,6 +270,10 @@ export {
     getOthers,
     countriesByName,
     getRegionAlternativeNames,
+    countriesByCode,
+    regionsByName,
+    getIncomeGroups,
+    getMemberCountries,
 } from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"
