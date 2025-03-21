@@ -65,7 +65,7 @@
         color: $dark-text;
 
         .option {
-            padding: 8px 18px;
+            padding: 8px 28px 8px 18px;
             &:hover,
             &.focus {
                 cursor: pointer;
@@ -88,7 +88,8 @@
                     height: 9px;
                     position: absolute;
                     right: 18px;
-                    bottom: 11px;
+                    bottom: 50%;
+                    transform: translateY(50%);
                 }
             }
         }
