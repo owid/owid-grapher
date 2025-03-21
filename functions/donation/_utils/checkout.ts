@@ -7,6 +7,13 @@ import {
 } from "@ourworldindata/utils"
 import { STRIPE_API_VERSION } from "./constants.js"
 
+const messageByInterval = {
+    once: "You will only be charged once.",
+    monthly:
+        "You will be charged monthly and can cancel any time by writing to us at donate@ourworldindata.org.",
+    annual: "You will be charged annually and can cancel any time by writing to us at donate@ourworldindata.org.",
+} as const
+
 function getPaymentMethodTypes(
     donation: DonationRequest
 ): Stripe.Checkout.SessionCreateParams.PaymentMethodType[] {
@@ -70,10 +77,7 @@ export async function createCheckoutSession(
         metadata, // attach the metadata to the checkout session
     }
 
-    const messageInterval =
-        interval === "monthly"
-            ? "You will be charged monthly and can cancel any time by writing to us at donate@ourworldindata.org."
-            : "You will only be charged once."
+    const messageInterval = messageByInterval[interval]
     const message = showOnList
         ? `You chose for your donation to be publicly listed as "${metadata.name}". Your name will appear on our list of donors next time we update it. The donation amount will not be disclosed. ${messageInterval}`
         : `You chose to remain anonymous, your name won't be shown on our list of supporters. ${messageInterval}`
@@ -98,6 +102,38 @@ export async function createCheckoutSession(
                     },
                     recurring: {
                         interval: "month",
+                        interval_count: 1,
+                    },
+                    unit_amount: amountRoundedCents,
+                },
+                quantity: 1,
+            },
+        ]
+        options.custom_text = {
+            submit: {
+                message,
+            },
+        }
+    } else if (interval === "annual") {
+        options.mode = "subscription"
+        // We add the metadata to the subscription - in addition to the checkout
+        // session (see above) - to support exporting donors in owid-donors
+        // until we adapt the exporting code to work with checkout sessions.
+        options.subscription_data = {
+            metadata,
+        }
+        options.line_items = [
+            {
+                price_data: {
+                    currency,
+                    product_data: {
+                        name: "Annual donation",
+                        images: [
+                            `https://ourworldindata.org/${DEFAULT_THUMBNAIL_FILENAME}`,
+                        ],
+                    },
+                    recurring: {
+                        interval: "year",
                         interval_count: 1,
                     },
                     unit_amount: amountRoundedCents,

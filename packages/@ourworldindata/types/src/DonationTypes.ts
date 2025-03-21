@@ -1,5 +1,5 @@
 import { Static, Type } from "@sinclair/typebox"
-export type DonationInterval = "once" | "monthly"
+export type DonationInterval = "once" | "monthly" | "annual"
 
 export type DonationCurrencyCode = "USD" | "GBP" | "EUR"
 
@@ -26,7 +26,11 @@ export const DonationRequestTypeObject = Type.Object({
             // by getErrorMessageDonation().
         })
     ),
-    interval: Type.Union([Type.Literal("once"), Type.Literal("monthly")]),
+    interval: Type.Union([
+        Type.Literal("once"),
+        Type.Literal("monthly"),
+        Type.Literal("annual"),
+    ]),
     successUrl: Type.String(),
     cancelUrl: Type.String(),
     captchaToken: Type.String(),

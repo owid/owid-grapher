@@ -29,11 +29,25 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
-const ONETIME_DONATION_AMOUNTS = [20, 50, 100, 500, 1000]
-const MONTHLY_DONATION_AMOUNTS = [5, 10, 25, 50, 100]
+const ONETIME_DONATION_AMOUNTS = [20, 50, 100, 500, 1000] as const
+const MONTHLY_DONATION_AMOUNTS = [5, 10, 25, 50, 100] as const
+const ANNUAL_DONATION_AMOUNTS = [60, 120, 300, 600, 1200] as const
 
 const ONETIME_DEFAULT_INDEX = 2
 const MONTHLY_DEFAULT_INDEX = 2
+const ANNUAL_DEFAULT_INDEX = 2
+
+const intervalToAmounts = {
+    once: ONETIME_DONATION_AMOUNTS,
+    monthly: MONTHLY_DONATION_AMOUNTS,
+    annual: ANNUAL_DONATION_AMOUNTS,
+} as const
+
+const intervalToDefaultAmountIndex = {
+    once: ONETIME_DEFAULT_INDEX,
+    monthly: MONTHLY_DEFAULT_INDEX,
+    annual: ANNUAL_DEFAULT_INDEX,
+} as const
 
 const analytics = new SiteAnalytics()
 
@@ -57,13 +71,9 @@ export class DonateForm extends React.Component {
     }
 
     @action.bound setInterval(interval: DonationInterval) {
+        const defaultAmountIndex = intervalToDefaultAmountIndex[interval]
         this.interval = interval
-        this.presetAmount =
-            this.intervalAmounts[
-                interval === "monthly"
-                    ? MONTHLY_DEFAULT_INDEX
-                    : ONETIME_DEFAULT_INDEX
-            ]
+        this.presetAmount = this.intervalAmounts[defaultAmountIndex]
     }
 
     @action.bound setPresetAmount(amount?: number) {
@@ -108,10 +118,8 @@ export class DonateForm extends React.Component {
             : this.presetAmount
     }
 
-    @computed get intervalAmounts(): number[] {
-        return this.interval === "monthly"
-            ? MONTHLY_DONATION_AMOUNTS
-            : ONETIME_DONATION_AMOUNTS
+    @computed get intervalAmounts() {
+        return intervalToAmounts[this.interval]
     }
 
     @computed get currencySymbol(): string {
@@ -247,6 +255,14 @@ export class DonateForm extends React.Component {
                             onClick={() => this.setInterval("monthly")}
                             className={cx("donation-options__button", {
                                 active: this.interval === "monthly",
+                            })}
+                        />
+                        <input
+                            type="button"
+                            value="Annually"
+                            onClick={() => this.setInterval("annual")}
+                            className={cx("donation-options__button", {
+                                active: this.interval === "annual",
                             })}
                         />
                     </div>

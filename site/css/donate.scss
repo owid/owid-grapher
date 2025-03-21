@@ -51,12 +51,8 @@
 
     .donation-options {
         display: flex;
-        & > * {
-            margin-right: 8px;
-            &:last-child {
-                margin-right: 0;
-            }
-        }
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
     .donation-options--grid {
