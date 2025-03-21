@@ -1524,15 +1524,22 @@ export class Grapher
     ): void {
         const isWorldTab = (tab: GrapherTabName) =>
             tab === GRAPHER_TAB_NAMES.WorldMap
+        const isTableTab = (tab: GrapherTabName) =>
+            tab === GRAPHER_TAB_NAMES.Table
         const isChartTab = (tab: GrapherTabName) =>
             tab !== GRAPHER_TAB_NAMES.Table &&
             tab !== GRAPHER_TAB_NAMES.WorldMap
 
         // clear selected entities when switching to the map tab
-        if (isChartTab(oldTab) && isWorldTab(newTab)) {
+        if (
+            isChartTab(oldTab) &&
+            isWorldTab(newTab) &&
+            this.addCountryMode !== EntitySelectionMode.Disabled
+        ) {
             if (
                 this.areSelectedEntitiesDifferentThanAuthors &&
-                this.mapConfig.selectedCountries.numSelectedEntities > 0
+                this.mapConfig.selectedCountries.numSelectedEntities > 0 &&
+                this.selection.numSelectedEntities > 0
             ) {
                 this.mapConfig.selectedCountries.setSelectedEntities(
                     this.selection.selectedEntityNames
@@ -1544,16 +1551,41 @@ export class Grapher
 
         // apply original selection as authored when switching to a chart tab
         if (isWorldTab(oldTab) && isChartTab(newTab)) {
-            if (this.selection.numSelectedEntities === 0) {
-                this.applyOriginalSelectionAsAuthored()
-            }
+            // if (this.selection.numSelectedEntities === 0) {
+            //     this.applyOriginalSelectionAsAuthored()
+            // }
             if (this.mapConfig.selectedCountries.numSelectedEntities > 0) {
-                this.selection.setSelectedEntities(
-                    this.mapConfig.selectedCountries.selectedEntityNames
-                )
+                if (this.addCountryMode !== EntitySelectionMode.Disabled)
+                    this.selection.setSelectedEntities(
+                        this.mapConfig.selectedCountries.selectedEntityNames
+                    )
             } else {
                 this.applyOriginalSelectionAsAuthored()
             }
+        }
+
+        // apply original selection as authored when switching to a chart tab
+        // TODO: debatable
+        if (isWorldTab(oldTab) && isTableTab(newTab)) {
+            if (this.mapConfig.selectedCountries.numSelectedEntities > 0) {
+                if (this.addCountryMode !== EntitySelectionMode.Disabled)
+                    this.selection.setSelectedEntities(
+                        this.mapConfig.selectedCountries.selectedEntityNames
+                    )
+                // TODO: these don't work; what should happen is: filter the table, show the toggle
+                // TODO: add tableConfig (like mapConfig?)
+                this.showSelectionOnlyInDataTable = true
+            } else {
+                // TODO: don't filter the table, show the toggle
+                this.showSelectionOnlyInDataTable = false
+            }
+        }
+
+        // TODO: could be annoying when table -> map -> table
+        // TODO: debatable
+        if (isChartTab(oldTab) && isTableTab(newTab)) {
+            if (this.mapConfig.selectedCountries.numSelectedEntities > 0)
+                this.showSelectionOnlyInDataTable = false
         }
 
         // if switching from a line to a slope chart and the handles are
@@ -3911,6 +3943,7 @@ export class Grapher
     }
 
     @computed get canChangeEntity(): boolean {
+        if (this.isOnMapTab) return false
         return (
             this.hasChartTab &&
             !this.isOnScatterTab &&
@@ -3921,6 +3954,7 @@ export class Grapher
     }
 
     @computed get canAddEntities(): boolean {
+        if (this.isOnMapTab) return true
         return (
             this.hasChartTab &&
             this.canSelectMultipleEntities &&

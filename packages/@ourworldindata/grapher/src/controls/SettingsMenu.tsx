@@ -220,8 +220,12 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showTableFilterToggle(): boolean {
-        const { hideTableFilterToggle, canChangeAddOrHighlightEntities } =
-            this.manager
+        const {
+            hideTableFilterToggle,
+            canChangeAddOrHighlightEntities,
+            showSelectionOnlyInDataTable,
+        } = this.manager
+        if (showSelectionOnlyInDataTable) return true
         return (
             this.selectionArray.hasSelection &&
             !!canChangeAddOrHighlightEntities &&
