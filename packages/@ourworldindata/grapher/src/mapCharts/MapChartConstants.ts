@@ -7,6 +7,7 @@ import {
     GrapherChartType,
     GrapherTabOption,
     SeriesName,
+    PrimitiveType,
 } from "@ourworldindata/types"
 import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
@@ -62,6 +63,7 @@ export interface ChoroplethMapManager {
     resetProjection: () => void
     onGlobeRotationChange: (rotation: [number, number]) => void
     shouldShowAllValuesWhenZoomedIn?: boolean
+    formatTooltipValueIfCustom: (d: PrimitiveType) => string | undefined
 }
 
 export interface RenderFeature {

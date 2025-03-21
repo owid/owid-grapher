@@ -14,6 +14,7 @@ import {
     PrimitiveType,
     makeIdForHumanConsumption,
     clamp,
+    isNumber,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -397,7 +398,7 @@ export class MapChart
         this.mapConfig.projection = value
     }
 
-    @computed private get formatTooltipValueIfCustom(): (
+    @computed get formatTooltipValueIfCustom(): (
         d: PrimitiveType
     ) => string | undefined {
         const { mapConfig, colorScale } = this
@@ -1700,10 +1701,23 @@ class ChoroplethMap extends React.Component<{
                                 if (!this.manager.mapColumn) return null
                                 if (!this.manager.mapColumn.hasNumberFormatting)
                                     return null
-                                const formattedValue =
-                                    this.manager.mapColumn.formatValueShortWithAbbreviations(
+
+                                // format the value label
+                                let formattedValue: string | undefined
+                                const customValueLabel =
+                                    this.manager.formatTooltipValueIfCustom(
                                         datum.value
                                     )
+                                if (customValueLabel !== undefined) {
+                                    return null
+                                } else if (isNumber(datum.value)) {
+                                    formattedValue =
+                                        this.manager.mapColumn.formatValueShortWithAbbreviations(
+                                            datum.value
+                                        )
+                                } else {
+                                    return null
+                                }
 
                                 const textDims = Bounds.forText(
                                     formattedValue,

@@ -1551,15 +1551,16 @@ export class Grapher
 
         // apply original selection as authored when switching to a chart tab
         if (isWorldTab(oldTab) && isChartTab(newTab)) {
-            // if (this.selection.numSelectedEntities === 0) {
-            //     this.applyOriginalSelectionAsAuthored()
-            // }
+            if (this.selection.numSelectedEntities === 0) {
+                this.applyOriginalSelectionAsAuthored()
+            }
             if (this.mapConfig.selectedCountries.numSelectedEntities > 0) {
                 if (this.addCountryMode !== EntitySelectionMode.Disabled)
                     this.selection.setSelectedEntities(
                         this.mapConfig.selectedCountries.selectedEntityNames
                     )
             } else {
+                this.selection.clearSelection()
                 this.applyOriginalSelectionAsAuthored()
             }
         }
