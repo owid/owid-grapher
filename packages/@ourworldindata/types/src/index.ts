@@ -567,6 +567,12 @@ export {
     ImagesTableName,
 } from "./dbTypes/Images.js"
 export {
+    type DbInsertMim,
+    type DbPlainMim,
+    MimIncomeGroup,
+    MimsTableName,
+} from "./dbTypes/Mims.js"
+export {
     type DbEnrichedMultiDimDataPage,
     type DbInsertMultiDimDataPage,
     type DbPlainMultiDimDataPage,
