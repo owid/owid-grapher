@@ -21,7 +21,6 @@ export {
     GRAPHER_LOADED_EVENT_NAME,
     CookieKey,
     BASE_FONT_SIZE,
-    ThereWasAProblemLoadingThisChart,
     WORLD_ENTITY_NAME,
     Patterns,
     grapherInterfaceWithHiddenControls,

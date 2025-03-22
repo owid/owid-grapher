@@ -126,7 +126,6 @@ import {
 import {
     BASE_FONT_SIZE,
     CookieKey,
-    ThereWasAProblemLoadingThisChart,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_ENTITY_TYPE,
@@ -2983,7 +2982,7 @@ export class Grapher
             >
                 <p style={{ color: "#cc0000", fontWeight: 700 }}>
                     <FontAwesomeIcon icon={faExclamationTriangle} />
-                    {ThereWasAProblemLoadingThisChart}
+                    There was a problem loading this chart
                 </p>
                 <p>
                     We have been notified of this error, please check back later

@@ -60,8 +60,6 @@ export enum CookieKey {
     isAdmin = "isAdmin",
 }
 
-export const ThereWasAProblemLoadingThisChart = `There was a problem loading this chart`
-
 export const WORLD_ENTITY_NAME = "World"
 
 export const isWorldEntityName = (entityName: EntityName) =>
