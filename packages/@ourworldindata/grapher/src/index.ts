@@ -22,7 +22,7 @@ export {
     CookieKey,
     BASE_FONT_SIZE,
     ThereWasAProblemLoadingThisChart,
-    WorldEntityName,
+    WORLD_ENTITY_NAME,
     Patterns,
     grapherInterfaceWithHiddenControls,
     grapherInterfaceWithHiddenTabs,

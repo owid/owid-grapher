@@ -43,6 +43,7 @@ import {
     POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
     GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
     isPopulationVariableETLPath,
+    isWorldEntityName,
 } from "../core/GrapherConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { SortIcon } from "../controls/SortIcon"
@@ -84,8 +85,7 @@ interface SortConfig {
 type SearchableEntity = {
     name: string
     sortColumnValues: Record<ColumnSlug, CoreValueType | undefined>
-    local?: boolean
-    isWorld?: boolean
+    isLocal?: boolean
     alternativeNames?: string[]
 }
 
@@ -451,13 +451,12 @@ export class EntitySelector extends React.Component<{
         return this.availableEntityNames.map((entityName) => {
             const searchableEntity: SearchableEntity = {
                 name: entityName,
-                isWorld: entityName === "World",
                 sortColumnValues: {},
                 alternativeNames: getRegionAlternativeNames(entityName, langs),
             }
 
             if (this.localEntityNames) {
-                searchableEntity.local =
+                searchableEntity.isLocal =
                     this.localEntityNames.includes(entityName)
             }
 
@@ -497,12 +496,12 @@ export class EntitySelector extends React.Component<{
         if (shouldBeSortedByName && options.sortLocalsAndWorldToTop) {
             const [[worldEntity], entitiesWithoutWorld] = partition(
                 entities,
-                (entity) => entity.isWorld
+                (entity) => isWorldEntityName(entity.name)
             )
 
             const [localEntities, otherEntities] = partition(
                 entitiesWithoutWorld,
-                (entity: SearchableEntity) => entity.local
+                (entity: SearchableEntity) => entity.isLocal
             )
 
             const sortedLocalEntities = sortBy(
@@ -814,7 +813,7 @@ export class EntitySelector extends React.Component<{
                             checked={this.isEntitySelected(entity)}
                             bar={this.getBarConfigForEntity(entity)}
                             onChange={() => this.onChange(entity.name)}
-                            local={entity.local}
+                            isLocal={entity.isLocal}
                         />
                     </li>
                 ))}
@@ -835,7 +834,7 @@ export class EntitySelector extends React.Component<{
                             checked={this.isEntitySelected(entity)}
                             bar={this.getBarConfigForEntity(entity)}
                             onChange={() => this.onChange(entity.name)}
-                            local={entity.local}
+                            isLocal={entity.isLocal}
                         />
                     </li>
                 ))}
@@ -929,7 +928,7 @@ export class EntitySelector extends React.Component<{
                                     checked={true}
                                     bar={this.getBarConfigForEntity(entity)}
                                     onChange={() => this.onChange(entity.name)}
-                                    local={entity.local}
+                                    isLocal={entity.isLocal}
                                 />
                             </FlippedListItem>
                         ))}
@@ -964,7 +963,7 @@ export class EntitySelector extends React.Component<{
                                             onChange={() =>
                                                 this.onChange(entity.name)
                                             }
-                                            local={entity.local}
+                                            isLocal={entity.isLocal}
                                         />
                                     </FlippedListItem>
                                 )
@@ -1016,14 +1015,14 @@ function SelectableEntity({
     type,
     bar,
     onChange,
-    local,
+    isLocal,
 }: {
     name: string
     checked: boolean
     type: "checkbox" | "radio"
     bar?: BarConfig
     onChange: () => void
-    local?: boolean
+    isLocal?: boolean
 }) {
     const Input = {
         checkbox: Checkbox,
@@ -1031,7 +1030,7 @@ function SelectableEntity({
     }[type]
 
     const nameWords = name.split(" ")
-    const label = local ? (
+    const label = isLocal ? (
         <span className="label-with-location-icon">
             {nameWords.slice(0, -1).join(" ")}{" "}
             <span className="label-with-location-icon label-with-location-icon--no-line-break">
