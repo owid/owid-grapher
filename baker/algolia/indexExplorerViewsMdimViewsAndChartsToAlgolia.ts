@@ -4,23 +4,93 @@ import "../../serverUtils/instrument.js"
 
 import * as Sentry from "@sentry/node"
 import * as db from "../../db/db.js"
-import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
-import { getAlgoliaClient } from "./configureAlgolia.js"
 import {
     getExplorerViewRecords,
     adaptExplorerViews,
 } from "./utils/explorerViews.js"
 import { scaleRecordScores } from "./utils/shared.js"
-import { getChartsRecords } from "./utils/charts.js"
 import { getIndexName } from "../../site/search/searchClient.js"
-import { SearchIndexName } from "../../site/search/searchTypes.js"
-import { getMdimViewRecords } from "./utils/mdimViews.js"
+import {
+    SearchIndexName,
+    ChartRecordType,
+    ChartRecord,
+} from "../../site/search/searchTypes.js"
+import { extractSearchSuggestions } from "./extractSearchSuggestions.js"
+import { pMapIterable } from "p-map"
+import ProgressBar from "progress"
+import { getChartsRecords } from "./utils/charts.js"
+import { getAlgoliaClient } from "./configureAlgolia.js"
+import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
+
+// Configure the model to use for search suggestions
+const OLLAMA_MODEL = "gemma3:4b"
+
+/**
+ * Generate a thumbnail URL for a chart or explorer view
+ */
+function createChartThumbnailUrl(record: ChartRecord): string {
+    const isExplorerView = record.type === ChartRecordType.ExplorerView
+    const queryParams = record.queryParams || ""
+    return isExplorerView
+        ? `/explorers/${record.slug}.png${queryParams}`
+        : `/grapher/${record.slug}.png${queryParams}`
+}
+
+/**
+ * Get existing search suggestions from the database
+ */
+async function getAllSearchSuggestions(
+    knex: db.KnexReadonlyTransaction
+): Promise<{ suggestions: string[]; title: string }[]> {
+    const rows = await db.knexRaw<{ suggestions: string; title: string }>(
+        knex,
+        `-- sql
+        SELECT suggestions, title
+        FROM search_suggestions
+        WHERE suggestions IS NOT NULL
+        `
+    )
+
+    return rows.map((row) => ({
+        suggestions: JSON.parse(row.suggestions),
+        title: row.title,
+    }))
+}
+
+/**
+ * Store search suggestions in the database
+ */
+async function storeSearchSuggestions(
+    knex: db.KnexReadWriteTransaction,
+    data: {
+        imageUrl: string
+        title: string
+        suggestions: string[]
+    }
+): Promise<void> {
+    // If there are no valid suggestions, don't insert anything
+    if (data.suggestions.length === 0) return
+
+    // Store suggestions as a JSON array
+    const suggestionsJson = JSON.stringify(data.suggestions)
+
+    await knex
+        .table("search_suggestions")
+        .insert({
+            imageUrl: data.imageUrl,
+            suggestions: suggestionsJson,
+            title: data.title,
+        })
+        .onConflict("title")
+        .ignore()
+}
 
 // We get 200k operations with Algolia's Open Source plan. We've hit 140k in the past so this might push us over.
 // If we standardize the record shape, we could have this be the only index and have a `type` field
 // to use in /search.
 const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) return
+
     const indexName = getIndexName(
         SearchIndexName.ExplorerViewsMdimViewsAndCharts
     )
@@ -34,14 +104,26 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
         )
     }
 
-    const { explorerViews, mdimViews, grapherViews } =
+    const { explorerViews, mdimViews, grapherViews, allSearchSuggestions } =
         await db.knexReadonlyTransaction(async (trx) => {
             return {
                 explorerViews: await getExplorerViewRecords(trx, true),
-                mdimViews: await getMdimViewRecords(trx),
+                mdimViews: [], //await getMdimViewRecords(trx),
                 grapherViews: await getChartsRecords(trx),
+                allSearchSuggestions: await getAllSearchSuggestions(trx),
             }
         }, db.TransactionCloseMode.Close)
+
+    console.log(
+        `Found ${allSearchSuggestions.length} existing search suggestions in database`
+    )
+
+    const suggestionsMap = new Map(
+        allSearchSuggestions.map((suggestion) => [
+            suggestion.title,
+            suggestion.suggestions,
+        ])
+    )
 
     // Scale grapher records and the default explorer views between 1000 and 10000,
     // Scale the remaining explorer views between 0 and 1000.
@@ -57,9 +139,83 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
         ...scaledMdimViews,
     ]
 
+    // Create a progress bar
+    const progressBar = new ProgressBar(
+        "Add search suggestions [:bar] :current/:total :percent :etas :slug\n",
+        {
+            total: records.length,
+            width: 30,
+            complete: "=",
+            incomplete: " ",
+        }
+    )
+
+    // Process each record to extract search suggestions if none have been
+    // stored in the database yet. Otherwise, use the existing suggestions from
+    // the database.
+    const recordsWithSearchSuggestions = []
+
+    for await (const result of pMapIterable(
+        records,
+        async (record: ChartRecord) => {
+            try {
+                // Check if we already have search suggestions for this title
+                const existingSuggestions = suggestionsMap.get(record.title)
+                let searchSuggestions: string[] = []
+
+                if (existingSuggestions) {
+                    // Use existing suggestions from map
+                    searchSuggestions = existingSuggestions
+                    progressBar.tick({ slug: `${record.slug} (cached)` })
+                } else {
+                    // Generate search suggestions from the title
+                    searchSuggestions = await extractSearchSuggestions(
+                        OLLAMA_MODEL,
+                        record.title
+                    )
+
+                    // Store the new suggestions in the database
+                    await db.knexReadWriteTransaction(
+                        async (trx) =>
+                            await storeSearchSuggestions(trx, {
+                                imageUrl: createChartThumbnailUrl(record),
+                                title: record.title,
+                                suggestions: searchSuggestions,
+                            }),
+                        db.TransactionCloseMode.Close
+                    )
+
+                    // Add the new suggestions to the map for future use
+                    suggestionsMap.set(record.title, searchSuggestions)
+
+                    progressBar.tick({ slug: record.slug })
+                }
+
+                // Add search suggestions to the record
+                return {
+                    ...record,
+                    searchSuggestions,
+                }
+            } catch (error) {
+                console.error(
+                    `Failed to extract suggestions for ${record.slug}:`,
+                    error
+                )
+                // Update progress bar even on error
+                progressBar.tick({ slug: `${record.slug} (error)` })
+                // Return the original record if we couldn't extract suggestions
+                return record
+            }
+        },
+        { concurrency: 10 }
+    )) {
+        recordsWithSearchSuggestions.push(result)
+    }
+
     const index = client.initIndex(indexName)
-    console.log(`Indexing ${records.length} records`)
-    await index.replaceAllObjects(records)
+
+    await index.replaceAllObjects(recordsWithSearchSuggestions)
+    console.log(`\nIndexed ${recordsWithSearchSuggestions.length} records`)
     console.log(`Indexing complete`)
 }
 
