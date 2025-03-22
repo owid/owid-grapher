@@ -1,4 +1,4 @@
-import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
+import { EntityName, GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 import type { GrapherProgrammaticInterface } from "./Grapher"
 
@@ -62,7 +62,10 @@ export enum CookieKey {
 
 export const ThereWasAProblemLoadingThisChart = `There was a problem loading this chart`
 
-export const WorldEntityName = "World"
+export const WORLD_ENTITY_NAME = "World"
+
+export const isWorldEntityName = (entityName: EntityName) =>
+    entityName === WORLD_ENTITY_NAME
 
 export const CONTINENTS_INDICATOR_ID = 900801 // "Countries Continent"
 export const POPULATION_INDICATOR_ID_USED_IN_ADMIN = 953899 // "Population (various sources, 2024-07-15)"

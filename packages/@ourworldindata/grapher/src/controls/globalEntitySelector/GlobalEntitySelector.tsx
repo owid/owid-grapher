@@ -23,7 +23,7 @@ import {
     lazy,
 } from "@ourworldindata/utils"
 import { GrapherAnalytics } from "../../core/GrapherAnalytics"
-import { WorldEntityName } from "../../core/GrapherConstants"
+import { WORLD_ENTITY_NAME } from "../../core/GrapherConstants"
 import { GLOBAL_ENTITY_SELECTOR_ELEMENT } from "./GlobalEntitySelectorConstants"
 import { SelectionArray } from "../../selection/SelectionArray"
 import { EntityName } from "@ourworldindata/types"
@@ -50,7 +50,7 @@ const getAllEntitiesSortedWithWorld = lazy(() =>
         // Add 'World'
         .concat([
             {
-                name: WorldEntityName,
+                name: WORLD_ENTITY_NAME,
                 code: "OWID_WRL",
                 slug: "world",
                 regionType: "other",
