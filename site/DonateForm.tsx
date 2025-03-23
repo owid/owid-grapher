@@ -23,6 +23,7 @@ import {
     getCurrencySymbol,
     DonateSessionResponse,
     PLEASE_TRY_AGAIN,
+    getUserCountryInformation,
 } from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -37,8 +38,71 @@ const MONTHLY_DEFAULT_INDEX = 2
 
 const analytics = new SiteAnalytics()
 
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
+function EveryOrgSection() {
+    return (
+        <div className="donation-payment">
+            <p className="donation-payment__or">
+                For US donors, our partner every.org facilitates tax-deductible
+                giving and offers more payment options.
+            </p>
+            <a
+                href="https://www.every.org/ourworldindata?donateTo=ourworldindata#/donate/card"
+                className="donation-submit donation-submit--light"
+            >
+                Donate via every.org
+                <FontAwesomeIcon
+                    icon={faArrowRight}
+                    className="donation-submit__icon"
+                />
+            </a>
+
+            <ul className="donation-payment-benefits">
+                <li className="donation-payment-benefits__item">
+                    🇺🇸 Your donation is tax-deductible in the US{" "}
+                    <Tippy
+                        appendTo={() => document.body}
+                        content={
+                            <div>
+                                <p>
+                                    Your donation is made to Every.org, a
+                                    tax-exempt US 501(c)(3) charity that grants
+                                    unrestricted funds to Our World in Data on
+                                    your behalf. This means that if you are a US
+                                    taxpayer, 100% of your donation is
+                                    tax-deductible to the extent allowed by US
+                                    law.
+                                </p>
+                                <p>
+                                    After your donation payment is confirmed by
+                                    Every.org, you will immediately get a
+                                    tax-deductible receipt emailed to you.
+                                </p>
+                            </div>
+                        }
+                        interactive
+                        placement="bottom"
+                        theme="owid-footnote"
+                        trigger="mouseenter focus click"
+                    >
+                        <FontAwesomeIcon icon={faInfoCircle} />
+                    </Tippy>
+                </li>
+                <li className="donation-payment-benefits__item">
+                    You can donate in US dollars using PayPal, Venmo, direct US
+                    bank transfer (ACH), credit card and more
+                </li>
+                <li className="donation-payment-benefits__item">
+                    You can use this option for donor-advised fund (DAF) grants
+                </li>
+            </ul>
+        </div>
+    )
+}
+
 @observer
-export class DonateForm extends React.Component {
+export class DonateForm extends React.Component<{ countryCode?: string }> {
     @observable interval: DonationInterval = "once"
     @observable presetAmount?: number =
         ONETIME_DONATION_AMOUNTS[ONETIME_DEFAULT_INDEX]
@@ -230,6 +294,7 @@ export class DonateForm extends React.Component {
     render() {
         return (
             <form className="donate-form" onSubmit={this.onSubmit}>
+                {this.props.countryCode === "USA" && <EveryOrgSection />}
                 <fieldset>
                     <legend className="overline-black-caps">Frequency</legend>
                     <div className="donation-options">
@@ -403,66 +468,7 @@ export class DonateForm extends React.Component {
                         </li>
                     </ul>
                 </div>
-                <div className="donation-payment">
-                    <p className="donation-payment__or">
-                        For US donors, our partner every.org facilitates
-                        tax-deductible giving and offers more payment options.
-                    </p>
-                    <a
-                        href="https://www.every.org/ourworldindata?donateTo=ourworldindata#/donate/card"
-                        className="donation-submit donation-submit--light"
-                    >
-                        Donate via every.org
-                        <FontAwesomeIcon
-                            icon={faArrowRight}
-                            className="donation-submit__icon"
-                        />
-                    </a>
-
-                    <ul className="donation-payment-benefits">
-                        <li className="donation-payment-benefits__item">
-                            🇺🇸 Your donation is tax-deductible in the US{" "}
-                            <Tippy
-                                appendTo={() => document.body}
-                                content={
-                                    <div>
-                                        <p>
-                                            Your donation is made to Every.org,
-                                            a tax-exempt US 501(c)(3) charity
-                                            that grants unrestricted funds to
-                                            Our World in Data on your behalf.
-                                            This means that if you are a US
-                                            taxpayer, 100% of your donation is
-                                            tax-deductible to the extent allowed
-                                            by US law.
-                                        </p>
-                                        <p>
-                                            After your donation payment is
-                                            confirmed by Every.org, you will
-                                            immediately get a tax-deductible
-                                            receipt emailed to you.
-                                        </p>
-                                    </div>
-                                }
-                                interactive
-                                placement="bottom"
-                                theme="owid-footnote"
-                                trigger="mouseenter focus click"
-                            >
-                                <FontAwesomeIcon icon={faInfoCircle} />
-                            </Tippy>
-                        </li>
-                        <li className="donation-payment-benefits__item">
-                            You can donate in US dollars using PayPal, Venmo,
-                            direct US bank transfer (ACH), credit card and more
-                        </li>
-                        <li className="donation-payment-benefits__item">
-                            You can use this option for donor-advised fund (DAF)
-                            grants
-                        </li>
-                    </ul>
-                </div>
-
+                {this.props.countryCode !== "USA" && <EveryOrgSection />}
                 <p className="donation-note">
                     This site is protected by reCAPTCHA and the Google{" "}
                     <a href="https://policies.google.com/privacy">
@@ -481,8 +487,9 @@ export class DonateForm extends React.Component {
 
 export class DonateFormRunner {
     async run() {
+        const localCountryInfo = await getUserCountryInformation()
         ReactDOM.render(
-            <DonateForm />,
+            <DonateForm countryCode={localCountryInfo?.code} />,
             document.querySelector(".donate-form-container")
         )
     }
