@@ -294,7 +294,15 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
     render() {
         return (
             <form className="donate-form" onSubmit={this.onSubmit}>
-                {this.props.countryCode === "USA" && <EveryOrgSection />}
+                {this.props.countryCode === "USA" && (
+                    <>
+                        <EveryOrgSection />
+                        <p className="donation-payment__or">
+                            You can also donate via Stripe by using the form
+                            below.
+                        </p>
+                    </>
+                )}
                 <fieldset>
                     <legend className="overline-black-caps">Frequency</legend>
                     <div className="donation-options">
