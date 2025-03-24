@@ -32,7 +32,8 @@ import {
     GIT_CMS_REPO_URL,
 } from "../gitCms/GitCmsConstants.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
-import { AdminManager } from "./AdminManager.js"
+import { AdminManager } from "../explorerAdminClient/AdminManager.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
 class ExplorerRow extends Component<{
@@ -188,6 +189,9 @@ class ExplorerList extends Component<{
 export class ExplorersIndexPage extends Component<{
     manager?: AdminManager
 }> {
+    static contextType = AdminAppContext
+    context!: AdminAppContextType
+
     @observable explorers: ExplorerProgram[] = []
     @observable needsPull = false
     @observable maxVisibleRows = 50

@@ -20,17 +20,17 @@ import {
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS,
     ExplorerProgram,
-    EXPLORER_FILE_SUFFIX,
     makeFullPath,
     isEmpty,
 } from "@ourworldindata/explorer"
 import { GitCmsClient } from "../gitCms/GitCmsClient.js"
-import { GitCmsFile, GIT_CMS_BASE_ROUTE } from "../gitCms/GitCmsConstants.js"
-import { AdminManager } from "./AdminManager.js"
+import { GIT_CMS_BASE_ROUTE } from "../gitCms/GitCmsConstants.js"
+import { AdminManager } from "../explorerAdminClient/AdminManager.js"
 import {
     AutofillColDefCommand,
     SelectAllHitsCommand,
-} from "./ExplorerCommands.js"
+} from "../explorerAdminClient/ExplorerCommands.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ENV } from "../settings/clientSettings.js"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
@@ -43,8 +43,9 @@ export class ExplorerCreatePage extends Component<{
     slug: string
     gitCmsBranchName: string
     manager?: AdminManager
-    doNotFetch?: boolean // for testing
 }> {
+    static contextType = AdminAppContext
+    context!: AdminAppContextType
     disposers: Array<() => void> = []
 
     @observable showPreview: boolean = true
@@ -68,8 +69,6 @@ export class ExplorerCreatePage extends Component<{
     @action componentDidMount() {
         this.loadingModalOff()
         exposeInstanceOnWindow(this, "explorerEditor")
-
-        if (this.props.doNotFetch) return
 
         void this.fetchExplorerProgramOnLoad()
         this.startPollingLocalStorageForPreviewChanges()
@@ -294,12 +293,6 @@ export class ExplorerCreatePage extends Component<{
                     }}
                 >
                     <div className="ExplorerCreatePageHeader">
-                        <div>
-                            <TemplatesComponent
-                                onChange={this.setProgram}
-                                isNewFile={isNewFile}
-                            />
-                        </div>
                         {showPreviewCheckbox}
                         <div style={{ textAlign: "right" }}>{buttons}</div>
                     </div>
@@ -477,47 +470,5 @@ class PictureInPicture extends Component<{
                 className="ExplorerPipPreview"
             />
         )
-    }
-}
-
-class TemplatesComponent extends Component<{
-    isNewFile: boolean
-    onChange: (code: string) => void
-}> {
-    @action.bound private loadTemplate(filename: string) {
-        this.props.onChange(
-            this.templates.find((template) => template.filename === filename)!
-                .content
-        )
-    }
-
-    @observable.ref templates: GitCmsFile[] = []
-
-    componentDidMount() {
-        if (this.props.isNewFile) void this.fetchTemplatesOnLoad()
-    }
-
-    private gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)
-
-    @action.bound private async fetchTemplatesOnLoad() {
-        const response = await this.gitCmsClient.readRemoteFiles({
-            glob: "*template*",
-            folder: "explorers",
-        })
-        this.templates = response.files
-    }
-
-    render() {
-        return this.templates.map((template) => (
-            <button
-                className={classNames("btn", "btn-primary")}
-                key={template.filename}
-                onClick={() => this.loadTemplate(template.filename)}
-            >
-                {template.filename
-                    .replace(EXPLORER_FILE_SUFFIX, "")
-                    .replace("-", " ")}
-            </button>
-        ))
     }
 }
