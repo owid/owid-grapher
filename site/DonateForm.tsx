@@ -1,5 +1,4 @@
 import * as React from "react"
-import ReactDOM from "react-dom"
 import * as Sentry from "@sentry/react"
 import cx from "classnames"
 import { observable, action, computed } from "mobx"
@@ -23,7 +22,6 @@ import {
     getCurrencySymbol,
     DonateSessionResponse,
     PLEASE_TRY_AGAIN,
-    getUserCountryInformation,
 } from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -491,19 +489,4 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
             </form>
         )
     }
-}
-
-export class DonateFormRunner {
-    async run() {
-        const localCountryInfo = await getUserCountryInformation()
-        ReactDOM.render(
-            <DonateForm countryCode={localCountryInfo?.code} />,
-            document.querySelector(".donate-form-container")
-        )
-    }
-}
-
-export async function runDonateForm() {
-    const donateForm = new DonateFormRunner()
-    await donateForm.run()
 }
