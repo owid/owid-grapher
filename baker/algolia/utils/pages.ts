@@ -375,6 +375,17 @@ export async function indexIndividualGdocPost(
     indexedSlug: string
 ) {
     if (!ALGOLIA_INDEXING) return
+    const isScheduled = gdoc.publishedAt
+        ? gdoc.publishedAt.getTime() > Date.now()
+        : false
+
+    if (isScheduled) {
+        console.log(
+            `Not indexing Gdoc post ${gdoc.id} because it's scheduled for publishing`
+        )
+        return
+    }
+
     if (typeof gdoc.slug === "undefined") {
         console.error(`Failed indexing gdoc post ${gdoc.id} (No slug)`)
         return
