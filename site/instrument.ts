@@ -1,9 +1,14 @@
 import * as Sentry from "@sentry/react"
 import { isInIFrame } from "@ourworldindata/utils"
-import { COMMIT_SHA, ENV, SENTRY_DSN } from "../settings/clientSettings.js"
+import {
+    COMMIT_SHA,
+    ENV,
+    LOAD_SENTRY,
+    SENTRY_DSN,
+} from "../settings/clientSettings.js"
 import { getPreferenceValue, PreferenceType } from "./cookiePreferences.js"
 
-if (!process.env.VITEST) {
+if (LOAD_SENTRY) {
     const analyticsConsent = getPreferenceValue(PreferenceType.Analytics)
 
     let sentryOpts: Sentry.BrowserOptions = {}

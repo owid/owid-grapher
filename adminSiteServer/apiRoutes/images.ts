@@ -6,12 +6,13 @@ import {
     uploadToCloudflare,
     deleteFromCloudflare,
 } from "../imagesHelpers.js"
-import { triggerStaticBuild } from "./routeUtils.js"
+import { extractSqlError, triggerStaticBuild } from "./routeUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
 
 import { Request } from "../authentication.js"
 import e from "express"
+
 export async function getImagesHandler(
     _: Request,
     res: e.Response<any, Record<string, any>>,
@@ -75,15 +76,25 @@ export async function postImageHandler(
         }
     }
 
-    await trx<DbEnrichedImage>("images").insert({
-        filename,
-        originalWidth: dimensions.width,
-        originalHeight: dimensions.height,
-        cloudflareId,
-        updatedAt: new Date().getTime(),
-        userId: res.locals.user.id,
-        hash,
-    })
+    try {
+        await trx<DbEnrichedImage>("images").insert({
+            filename,
+            originalWidth: dimensions.width,
+            originalHeight: dimensions.height,
+            cloudflareId,
+            updatedAt: new Date().getTime(),
+            userId: res.locals.user.id,
+            hash,
+        })
+    } catch (error) {
+        throw new JsonError(
+            JSON.stringify({
+                ...extractSqlError(error),
+                filename,
+                userId: res.locals.user.id,
+            })
+        )
+    }
 
     const image = await db.getCloudflareImage(trx, filename)
 
@@ -148,17 +159,27 @@ export async function putImageHandler(
         throw new JsonError("Failed to upload image", 500)
     }
 
-    const [newImageId] = await trx<DbEnrichedImage>("images").insert({
-        filename: originalFilename,
-        originalWidth: dimensions.width,
-        originalHeight: dimensions.height,
-        cloudflareId: newCloudflareId,
-        updatedAt: new Date().getTime(),
-        userId: res.locals.user.id,
-        defaultAlt: originalAltText,
-        hash,
-        version: image.version + 1,
-    })
+    const [newImageId] = await trx<DbEnrichedImage>("images")
+        .insert({
+            filename: originalFilename,
+            originalWidth: dimensions.width,
+            originalHeight: dimensions.height,
+            cloudflareId: newCloudflareId,
+            updatedAt: new Date().getTime(),
+            userId: res.locals.user.id,
+            defaultAlt: originalAltText,
+            hash,
+            version: image.version + 1,
+        })
+        .catch((error) => {
+            throw new JsonError(
+                JSON.stringify({
+                    ...extractSqlError(error),
+                    filename: originalFilename,
+                    userId: res.locals.user.id,
+                })
+            )
+        })
 
     await trx<DbEnrichedImage>("images").where("id", "=", id).update({
         replacedBy: newImageId,
@@ -199,7 +220,17 @@ export async function patchImageHandler(
         throw new JsonError("No patchable properties provided", 400)
     }
 
-    await trx("images").where({ id }).update(patch)
+    try {
+        await trx("images").where({ id }).update(patch)
+    } catch (error) {
+        throw new JsonError(
+            JSON.stringify({
+                ...extractSqlError(error),
+                id,
+                userId: res.locals.user.id,
+            })
+        )
+    }
 
     const updated = await trx<DbEnrichedImage>("images")
         .where("id", "=", id)

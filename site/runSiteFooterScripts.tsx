@@ -43,6 +43,7 @@ import {
     MultiDimDataPageContentProps,
 } from "./multiDim/MultiDimDataPageContent.js"
 import { BrowserRouter } from "react-router-dom-v5-compat"
+import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 
 function hydrateDataCatalogPage() {
     const root = document.getElementById("data-catalog-page-root")
@@ -100,6 +101,8 @@ function hydrateExplorerIndex() {
 }
 
 function runCookiePreferencesManager() {
+    if (REDUCED_TRACKING) return
+
     const div = document.createElement("div")
     document.body.appendChild(div)
 

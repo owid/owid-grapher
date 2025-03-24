@@ -224,6 +224,8 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
             accessKeyId: R2_ACCESS_KEY_ID,
             secretAccessKey: R2_SECRET_ACCESS_KEY,
         },
+        requestChecksumCalculation: "WHEN_REQUIRED",
+        responseChecksumValidation: "WHEN_REQUIRED",
     })
 
     const hashesOfFilesToToUpsertBySlug = new Map<string, HashAndId>()

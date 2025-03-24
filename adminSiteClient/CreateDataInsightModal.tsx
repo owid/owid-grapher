@@ -30,14 +30,10 @@ import cx from "classnames"
 import {
     fetchFigmaProvidedImageUrl,
     ImageUploadResponse,
-    makeImageSrc,
     uploadImageFromSourceUrl,
 } from "./imagesHelpers"
 import { AdminAppContext } from "./AdminAppContext"
-import {
-    GRAPHER_DYNAMIC_THUMBNAIL_URL,
-    SLACK_DI_PITCHES_CHANNEL_ID,
-} from "../settings/clientSettings"
+import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings"
 import { LoadingImage } from "./ReuploadImageForDataInsightModal"
 import { ApiChartViewOverview } from "../adminShared/AdminTypes"
 import {
@@ -48,7 +44,6 @@ import {
     RequiredBy,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import { Checkbox } from "antd/lib"
 
 const DEFAULT_RUNNING_MESSAGE: Record<Task, string> = {
     createDI: "Creating data insight...",
@@ -56,7 +51,6 @@ const DEFAULT_RUNNING_MESSAGE: Record<Task, string> = {
     loadFigmaImage: "Loading Figma image...",
     suggestAltText: "Suggesting alt text...",
     setTopicTags: "Setting topic tags...",
-    sendSlackMessage: "Sending Slack message...",
 } as const
 
 const DEFAULT_SUCCESS_MESSAGE: Record<Task, string> = {
@@ -65,7 +59,6 @@ const DEFAULT_SUCCESS_MESSAGE: Record<Task, string> = {
     loadFigmaImage: "Figma image loaded successfully",
     suggestAltText: "Alt text suggested successfully",
     setTopicTags: "Topic tags assigned",
-    sendSlackMessage: "Slack message sent",
 } as const
 
 const DEFAULT_ERROR_MESSAGE: Record<Task, string> = {
@@ -74,7 +67,6 @@ const DEFAULT_ERROR_MESSAGE: Record<Task, string> = {
     loadFigmaImage: "Loading Figma image failed",
     suggestAltText: "Suggesting alt text failed",
     setTopicTags: "Setting topic tags failed",
-    sendSlackMessage: "Sending Slack message failed",
 } as const
 
 type Task =
@@ -83,7 +75,6 @@ type Task =
     | "loadFigmaImage"
     | "suggestAltText"
     | "setTopicTags"
-    | "sendSlackMessage"
 
 type Progress =
     | { status: "idle" }
@@ -99,7 +90,6 @@ type FormFieldName =
     | "figmaUrl"
     | "imageFilename"
     | "imageAltText"
-    | "slackNote"
 type ImageFormFieldName = "imageFilename" | "imageAltText"
 
 type FormData = Partial<
@@ -162,12 +152,8 @@ export function CreateDataInsightModal(props: {
         "uploadImage",
         "loadFigmaImage",
         "suggestAltText",
-        "setTopicTags",
-        "sendSlackMessage"
+        "setTopicTags"
     )
-
-    const [shouldSendMessageToSlack, setShouldSendMessageToSlack] =
-        useState(true)
 
     // loaded from Figma if a Figma URL is provided
     const [figmaImageUrl, setFigmaImageUrl] = useState<string | undefined>()
@@ -277,7 +263,6 @@ export function CreateDataInsightModal(props: {
 
         setProgress("createDI", "running")
 
-        let cloudflareImageId: string | undefined
         if (imageUrl && isValidForImageUpload(formData)) {
             setProgress("uploadImage", "running")
 
@@ -291,8 +276,6 @@ export function CreateDataInsightModal(props: {
                         "Not attempted since image upload failed"
                     )
                     return
-                } else {
-                    cloudflareImageId = response.image.cloudflareId ?? undefined
                 }
             } catch (error) {
                 const errorMessage =
@@ -323,22 +306,6 @@ export function CreateDataInsightModal(props: {
                 updateProgress("setTopicTags", response)
             } catch {
                 setProgress("setTopicTags", "failure")
-            }
-        }
-
-        // Send a message to Slack if requested
-        if (shouldSendMessageToSlack && cloudflareImageId) {
-            setProgress("sendSlackMessage", "running")
-            try {
-                await sendDataInsightToSlack({
-                    formData,
-                    imageUrl: makeImageSrc(cloudflareImageId, 1250),
-                })
-                setProgress("sendSlackMessage", "success")
-            } catch (error) {
-                const errorMessage =
-                    error instanceof Error ? error.message : String(error)
-                setProgress("sendSlackMessage", "failure", errorMessage)
             }
         }
 
@@ -404,40 +371,6 @@ export function CreateDataInsightModal(props: {
             { tagIds },
             "POST"
         )
-    }
-
-    const sendDataInsightToSlack = async ({
-        formData,
-        imageUrl,
-    }: {
-        formData: FormDataWithTitle
-        imageUrl: string
-    }) => {
-        const { title, slackNote, authors } = formData
-
-        let text = `*${title}*`
-        if (slackNote) text += `\n\n${slackNote}`
-        if (authors) text += `\n\nby ${authors}`
-
-        const blocks = [
-            {
-                type: "section",
-                text: { type: "mrkdwn", text },
-            },
-            {
-                type: "image",
-                image_url: imageUrl,
-                alt_text: formData.imageAltText,
-            },
-        ]
-
-        const payload = {
-            blocks,
-            channel: SLACK_DI_PITCHES_CHANNEL_ID,
-            username: "Data insight bot",
-        }
-
-        void admin.requestJSON(`/api/slack/sendMessage`, payload, "POST")
     }
 
     const fetchFigmaImage = async (figmaUrl: string) => {
@@ -729,31 +662,6 @@ export function CreateDataInsightModal(props: {
                         </>
                     )}
 
-                    {imageUrl && (
-                        <p>
-                            <Checkbox
-                                checked={shouldSendMessageToSlack}
-                                onChange={(e) => {
-                                    setShouldSendMessageToSlack(
-                                        e.target.checked
-                                    )
-                                }}
-                            >
-                                Share data insight in the #data-insight-pitches
-                                channel
-                            </Checkbox>
-                            {shouldSendMessageToSlack && (
-                                <FormField
-                                    name="slackNote"
-                                    className="slackNote"
-                                    aria-label="Note (shared on Slack)"
-                                >
-                                    <Input.TextArea placeholder="Note (shared on Slack)" />
-                                </FormField>
-                            )}
-                        </p>
-                    )}
-
                     {showFeedbackBox({ formData, progress, imageUrl }) && (
                         <div className="feedback-box">
                             <h2>This data insight will be created by:</h2>
@@ -774,13 +682,6 @@ export function CreateDataInsightModal(props: {
                                     progress={progress.setTopicTags}
                                 />
                             </ul>
-
-                            <SendMessageToSlackFeedback
-                                shouldSend={
-                                    !!imageUrl && shouldSendMessageToSlack
-                                }
-                                progress={progress.sendSlackMessage}
-                            />
                         </div>
                     )}
 
@@ -1022,25 +923,6 @@ function TopicTagsFeedback({
             </span>
             <FeedbackTag progress={progress} />
         </li>
-    )
-}
-
-function SendMessageToSlackFeedback({
-    shouldSend,
-    progress,
-}: {
-    shouldSend: boolean
-    progress: Progress
-}) {
-    if (!shouldSend) return null
-    return (
-        <p>
-            <span>
-                The newly created data insight will be shared in the
-                #data-insight-pitches channel for review.
-            </span>
-            <FeedbackTag progress={progress} />
-        </p>
     )
 }
 

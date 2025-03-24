@@ -350,9 +350,9 @@ class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
                 <FieldsRow>
                     <Toggle
                         label={`Hide facet control`}
-                        value={this.grapher.hideFacetControl || false}
+                        value={this.grapher.hideFacetControl}
                         onValue={(value) => {
-                            this.grapher.hideFacetControl = value || undefined
+                            this.grapher.hideFacetControl = value
                         }}
                     />
                 </FieldsRow>

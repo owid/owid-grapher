@@ -10,10 +10,9 @@ import {
     Preference,
     PreferenceType,
 } from "../cookiePreferences.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCheck } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import { Checkbox } from "@ourworldindata/components"
+import { Button, Checkbox } from "@ourworldindata/components"
 
 const ANALYTICS_ACTION = "cookie_preferences"
 const analytics = new SiteAnalytics()
@@ -127,22 +126,20 @@ export const CookiePreferences = ({
                     {dayjs(date, DATE_FORMAT).format("MMMM D, YYYY")}
                 </div>
             ) : (
-                <button
-                    aria-label="Save cookie preferences"
-                    className="owid-button"
+                <Button
+                    theme="solid-vermillion"
+                    ariaLabel="Save cookie preferences"
                     onClick={() =>
                         dispatch({
                             type: Action.Persist,
                             payload: { date: getTodayDate() },
                         })
                     }
+                    text="Save preferences"
+                    icon={faCheck}
+                    iconPosition="left"
                     data-track-note={ANALYTICS_ACTION}
-                >
-                    <span className="icon">
-                        <FontAwesomeIcon icon={faCheck} />
-                    </span>
-                    Save preferences
-                </button>
+                />
             )}
         </div>,
         cookiePreferencesDomSlot

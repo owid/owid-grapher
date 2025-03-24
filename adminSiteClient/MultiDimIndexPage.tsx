@@ -30,7 +30,7 @@ type ApiMultiDim = {
     id: number
     catalogPath: string | null
     title: string
-    slug: string
+    slug: string | null
     updatedAt: string
     published: boolean
 }
@@ -45,7 +45,7 @@ function SlugField({
     slugMutation,
 }: {
     id: number
-    slug: string
+    slug: string | null
     slugMutation: UseMutationResult<
         MultiDim,
         unknown,
@@ -121,7 +121,7 @@ function createColumns(
             dataIndex: "title",
             key: "title",
             render: (text, record) =>
-                record.published ? (
+                record.published && record.slug ? (
                     <a
                         href={urljoin(BAKED_GRAPHER_URL, record.slug)}
                         target="_blank"
@@ -155,7 +155,11 @@ function createColumns(
             render: (slug, { id }) => (
                 <SlugField id={id} slug={slug} slugMutation={slugMutation} />
             ),
-            sorter: (a, b) => a.slug.localeCompare(b.slug),
+            sorter: (a, b) => {
+                if (a.slug === null) return 1
+                if (b.slug === null) return -1
+                return a.slug.localeCompare(b.slug)
+            },
         },
         {
             title: "Last updated",
@@ -273,7 +277,7 @@ export function MultiDimIndexPage() {
     const filteredMdims = useMemo(() => {
         const query = search.trim().toLowerCase()
         return data?.filter((mdim) =>
-            [mdim.title, mdim.slug].some((field) =>
+            [mdim.title, mdim.slug ?? ""].some((field) =>
                 field.toLowerCase().includes(query)
             )
         )
