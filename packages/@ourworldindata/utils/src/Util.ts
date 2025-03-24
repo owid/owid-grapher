@@ -324,6 +324,10 @@ export function makeIdForHumanConsumption(...unsafeKeys: string[]): string {
     return makeSafeForFigma(unsafeKeys.join("__"))
 }
 
+export function toDate(dayAsYear: number): dayjs.Dayjs {
+    return dayjs.utc(EPOCH_DATE).add(dayAsYear, "days")
+}
+
 export function formatDay(
     dayAsYear: number,
     options?: { format?: string }

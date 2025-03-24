@@ -19,6 +19,7 @@ import {
     FuzzySearch,
     getUserNavigatorLanguagesNonEnglish,
     getRegionAlternativeNames,
+    toDate,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -269,8 +270,27 @@ export class EntitySelector extends React.Component<{
         })
     }
 
-    private clampEndTimeWithinColumnTimeRange(column: CoreColumn): Time {
-        return clamp(this.endTime, column.minTime, column.maxTime)
+    @computed private get chartHasDailyData(): boolean {
+        return this.numericalChartColumns.some(
+            (column) => column.display?.yearIsDay
+        )
+    }
+
+    /**
+     * Converts the given time to be compatible with the time format
+     * of the given column.
+     *
+     * This is necessary for daily charts since the external sort indicators
+     * (population, gdp per capita) typically have yearly date.
+     */
+    private toColumnCompatibleTime(time: Time, column: CoreColumn): Time {
+        return this.chartHasDailyData && !column.display?.yearIsDay
+            ? toDate(time).year()
+            : time
+    }
+
+    private clampWithinColumnTimeRange(time: Time, column: CoreColumn): Time {
+        return clamp(time, column.minTime, column.maxTime)
     }
 
     private makeLabelForSortColumn(
@@ -281,10 +301,13 @@ export class EntitySelector extends React.Component<{
 
         const title = customTitle ?? column.titlePublicOrDisplayName.title
 
-        const time = this.clampEndTimeWithinColumnTimeRange(column)
-        if (time === this.endTime) return makeLabel(title)
+        const endTime = this.toColumnCompatibleTime(this.endTime, column)
+        const clampedTime = this.clampWithinColumnTimeRange(endTime, column)
 
-        const formattedTime = column.formatTime(time)
+        // don't add time to the label if it's the same as the currently selected time
+        if (endTime === clampedTime) return makeLabel(title)
+
+        const formattedTime = column.formatTime(clampedTime)
         return makeLabel(title, formattedTime)
     }
 
@@ -498,7 +521,11 @@ export class EntitySelector extends React.Component<{
             }
 
             for (const column of this.interpolatedSortColumns) {
-                const time = this.clampEndTimeWithinColumnTimeRange(column)
+                const endTime = this.toColumnCompatibleTime(
+                    this.endTime,
+                    column
+                )
+                const time = this.clampWithinColumnTimeRange(endTime, column)
                 const rowsByTime =
                     column.owidRowByEntityNameAndTime.get(entityName)
                 searchableEntity.sortColumnValues[column.slug] =
