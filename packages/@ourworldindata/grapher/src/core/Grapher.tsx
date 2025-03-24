@@ -124,6 +124,7 @@ import {
     OwidChartDimensionInterfaceWithMandatorySlug,
     AssetMap,
     Entity,
+    GRAPHER_MAP_TYPE,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -182,7 +183,11 @@ import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesModal, SourcesModalManager } from "../modal/SourcesModal"
 import { DataTableManager } from "../dataTable/DataTable"
-import { MapChartManager } from "../mapCharts/MapChartConstants"
+import {
+    DEFAULT_VIEWPORT,
+    MAP_ZOOM_SCALE,
+    MapChartManager,
+} from "../mapCharts/MapChartConstants"
 import { MapChart } from "../mapCharts/MapChart"
 import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "../controls/CommandPalette"
@@ -240,6 +245,8 @@ import {
 } from "../color/ColorConstants"
 import { FacetChart } from "../facetChart/FacetChart"
 import { MapProjectionLabels } from "../mapCharts/MapProjections"
+import { GlobeController } from "../mapCharts/GlobeController"
+import { P } from "ts-pattern"
 
 declare global {
     interface Window {
@@ -484,6 +491,8 @@ export class Grapher
     @observable.ref windowInnerWidth?: number
     @observable.ref windowInnerHeight?: number
 
+    globeController = new GlobeController(this)
+
     owidDataset?: MultipleOwidVariableDataDimensionsMap = undefined // This is used for passing data for testing
 
     manuallyProvideData? = false // This will be removed.
@@ -713,8 +722,14 @@ export class Grapher
             this.compareEndPointsOnly = endpointsOnly === "1" ? true : undefined
 
         const region = params.region
-        if (region !== undefined)
+        if (region !== undefined) {
             this.map.projection = region as MapProjectionName
+            this.map.globe = true
+            this.globeController.rotateToProjection(
+                region as MapProjectionName,
+                { animate: false }
+            )
+        }
 
         // selection
         const selection = getSelectedEntityNamesParam(
@@ -905,24 +920,24 @@ export class Grapher
             const mappableCountryNames = countries
                 .filter((country) => country.isMappable)
                 .map((country) => country.name)
-            // TODO: exclude for now
-            // const mappableContinents = getContinents().map((c) => c.name)
+            const mappableContinents = getContinents().map((c) => c.name)
             const mappableIncomeGroups = getIncomeGroups().map((g) => g.name)
             const mappableAggregates = getAggregates().map((a) => a.name)
             table = table.filterByEntityNames([
                 ...mappableCountryNames,
-                // ...mappableContinents,
+                ...mappableContinents,
                 ...mappableIncomeGroups,
                 ...mappableAggregates,
             ])
 
             // Filter out entities that are not currently plotted on the map
-            if (this.mapConfig.projection !== MapProjectionName.World) {
+            // when a region is selected
+            const { projection } = this.mapConfig
+            if (projection && projection !== MapProjectionName.World) {
                 const continents = getContinents()
                 const selectedContinent = continents.find(
                     (continent) =>
-                        continent.name ===
-                        MapProjectionLabels[this.mapConfig.projection]
+                        continent.name === MapProjectionLabels[projection]
                 )
                 const memberCountryCodes = selectedContinent?.members ?? []
                 const memberCountryNames = memberCountryCodes.map(
@@ -1507,24 +1522,71 @@ export class Grapher
         oldTab: GrapherTabName,
         newTab: GrapherTabName
     ): void {
-        // TODO: debatable
+        const isWorldTab = (tab: GrapherTabName) =>
+            tab === GRAPHER_TAB_NAMES.WorldMap
+        const isTableTab = (tab: GrapherTabName) =>
+            tab === GRAPHER_TAB_NAMES.Table
+        const isChartTab = (tab: GrapherTabName) =>
+            tab !== GRAPHER_TAB_NAMES.Table &&
+            tab !== GRAPHER_TAB_NAMES.WorldMap
 
         // clear selected entities when switching to the map tab
-        if (newTab === GRAPHER_TAB_NAMES.WorldMap) {
-            if (this.areSelectedEntitiesDifferentThanAuthors) {
-                this.mapConfig.zoomCountry = undefined
+        if (
+            isChartTab(oldTab) &&
+            isWorldTab(newTab) &&
+            this.addCountryMode !== EntitySelectionMode.Disabled
+        ) {
+            if (
+                this.areSelectedEntitiesDifferentThanAuthors &&
+                this.mapConfig.selectedCountries.numSelectedEntities > 0 &&
+                this.selection.numSelectedEntities > 0
+            ) {
+                this.mapConfig.selectedCountries.setSelectedEntities(
+                    this.selection.selectedEntityNames
+                )
             } else {
-                this.selection.clearSelection()
+                this.mapConfig.selectedCountries.clearSelection()
             }
         }
 
         // apply original selection as authored when switching to a chart tab
-        if (
-            newTab !== GRAPHER_TAB_NAMES.Table &&
-            newTab !== GRAPHER_TAB_NAMES.WorldMap &&
-            this.selection.numSelectedEntities === 0
-        ) {
-            this.applyOriginalSelectionAsAuthored()
+        if (isWorldTab(oldTab) && isChartTab(newTab)) {
+            if (this.selection.numSelectedEntities === 0) {
+                this.applyOriginalSelectionAsAuthored()
+            }
+            if (this.mapConfig.selectedCountries.numSelectedEntities > 0) {
+                if (this.addCountryMode !== EntitySelectionMode.Disabled)
+                    this.selection.setSelectedEntities(
+                        this.mapConfig.selectedCountries.selectedEntityNames
+                    )
+            } else {
+                this.selection.clearSelection()
+                this.applyOriginalSelectionAsAuthored()
+            }
+        }
+
+        // apply original selection as authored when switching to a chart tab
+        // TODO: debatable
+        if (isWorldTab(oldTab) && isTableTab(newTab)) {
+            if (this.mapConfig.selectedCountries.numSelectedEntities > 0) {
+                if (this.addCountryMode !== EntitySelectionMode.Disabled)
+                    this.selection.setSelectedEntities(
+                        this.mapConfig.selectedCountries.selectedEntityNames
+                    )
+                // TODO: these don't work; what should happen is: filter the table, show the toggle
+                // TODO: add tableConfig (like mapConfig?)
+                this.showSelectionOnlyInDataTable = true
+            } else {
+                // TODO: don't filter the table, show the toggle
+                this.showSelectionOnlyInDataTable = false
+            }
+        }
+
+        // TODO: could be annoying when table -> map -> table
+        // TODO: debatable
+        if (isChartTab(oldTab) && isTableTab(newTab)) {
+            if (this.mapConfig.selectedCountries.numSelectedEntities > 0)
+                this.showSelectionOnlyInDataTable = false
         }
 
         // if switching from a line to a slope chart and the handles are
@@ -3151,7 +3213,14 @@ export class Grapher
                     <CaptionedChart manager={this} />
                     {this.sidePanelBounds && (
                         <SidePanel bounds={this.sidePanelBounds}>
-                            <EntitySelector manager={this} />
+                            <EntitySelector
+                                manager={this}
+                                selectionArray={
+                                    this.isOnMapTab
+                                        ? this.mapConfig.selectedCountries
+                                        : this.selection
+                                }
+                            />
                         </SidePanel>
                     )}
                 </div>
@@ -3481,13 +3550,26 @@ export class Grapher
         )
     }
 
-    @action.bound onSelectEntity(entityName: string): void {
+    @action.bound async onSelectEntity(entityName: string): Promise<void> {
+        if (!this.isOnMapTab) return
         const isMappable = countriesByName()[entityName]?.isMappable
         if (
-            this.mapConfig.projection === MapProjectionName.World &&
+            (!this.mapConfig.projection ||
+                this.mapConfig.projection === MapProjectionName.World) &&
             isMappable
         ) {
             this.mapConfig.zoomCountry = entityName
+            this.mapConfig.globe = true
+        }
+        if (
+            isMappable &&
+            this.mapConfig.globe &&
+            this.mapConfig.projection === MapProjectionName.World
+        ) {
+            await this.globeController.rotateToCountry(
+                entityName,
+                MAP_ZOOM_SCALE
+            )
         }
 
         if (!isMappable) {
@@ -3502,8 +3584,11 @@ export class Grapher
     }
 
     @action.bound onDeselectEntity(entityNames: string[]): void {
-        if (this.selection.numSelectedEntities === 0) {
+        if (!this.isOnMapTab) return
+        if (this.mapConfig.selectedCountries.numSelectedEntities === 0) {
             this.mapConfig.zoomCountry = undefined
+            if (this.mapConfig.projection === MapProjectionName.World)
+                this.mapConfig.globe = false
         }
         for (const entityName of entityNames) {
             const members = getMemberCountries(entityName)
@@ -3516,10 +3601,24 @@ export class Grapher
         }
     }
 
-    @action.bound onProjectionChange(newProjection: MapProjectionName): void {
+    @action.bound async onProjectionChange(
+        newProjection: MapProjectionName
+    ): Promise<void> {
+        const animate = this.mapConfig.globe
+        this.mapConfig.globe = true
+
+        await this.globeController.rotateToProjection(newProjection, {
+            // animate,
+        })
+
         // if switching to a continent, drop all entities that are not part of the continent
         if (newProjection !== MapProjectionName.World) {
-            const continent = getContinents().find(
+            const allRegions = [
+                ...getContinents(),
+                ...getAggregates(),
+                ...getIncomeGroups(),
+            ]
+            const continent = allRegions.find(
                 (continent) =>
                     continent.name === MapProjectionLabels[newProjection]
             )
@@ -3531,10 +3630,14 @@ export class Grapher
                     )
                 )
                 const dropCountryNames = difference(
-                    this.selection.selectedEntityNames,
+                    this.mapConfig.selectedCountries.selectedEntityNames,
                     memberCountryNames
                 )
-                this.selection.deselectEntities(dropCountryNames)
+                this.mapConfig.selectedCountries.deselectEntities(
+                    dropCountryNames
+                )
+                // for now, get rid of all highlights
+                this.mapConfig.highlightCountries?.clear()
             }
         }
     }
@@ -3842,6 +3945,7 @@ export class Grapher
     }
 
     @computed get canChangeEntity(): boolean {
+        if (this.isOnMapTab) return false
         return (
             this.hasChartTab &&
             !this.isOnScatterTab &&
@@ -3852,6 +3956,7 @@ export class Grapher
     }
 
     @computed get canAddEntities(): boolean {
+        if (this.isOnMapTab) return true
         return (
             this.hasChartTab &&
             this.canSelectMultipleEntities &&

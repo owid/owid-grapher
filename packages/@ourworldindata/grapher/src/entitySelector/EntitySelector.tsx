@@ -134,6 +134,7 @@ const EXTERNAL_SORT_INDICATORS = [
 @observer
 export class EntitySelector extends React.Component<{
     manager: EntitySelectorManager
+    selectionArray?: SelectionArray
     onDismiss?: () => void
     autoFocus?: boolean
 }> {
@@ -437,7 +438,9 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.selection)
+        return makeSelectionArray(
+            this.props.selectionArray ?? this.manager.selection
+        )
     }
 
     @computed private get allEntitiesSelected(): boolean {

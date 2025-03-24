@@ -13,6 +13,8 @@ import {
     NoUndefinedValues,
     ToleranceStrategy,
 } from "@ourworldindata/utils"
+import { DEFAULT_VIEWPORT } from "./MapChartConstants"
+import { SelectionArray } from "../selection/SelectionArray"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.
@@ -26,6 +28,11 @@ class MapConfigDefaults {
     @observable projection = MapProjectionName.World
     @observable zoomCountry?: string
     @observable highlightCountries?: Set<string>
+    @observable selectedCountries = new SelectionArray()
+
+    @observable globe = false
+    @observable globeRotation = DEFAULT_VIEWPORT.rotation
+    @observable globeSize = 1
 
     @observable colorScale = new ColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
