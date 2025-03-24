@@ -19,6 +19,7 @@ import {
     FuzzySearch,
     getUserNavigatorLanguagesNonEnglish,
     getRegionAlternativeNames,
+    toDate,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -122,7 +123,7 @@ const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
         ),
         // checks if a column has GDP per capita data
         isMatch: (column: CoreColumn): boolean => {
-            const label = makeColumnLabel(column)
+            const label = column.titlePublicOrDisplayName.title
 
             // matches "gdp per capita" and content within parentheses
             const potentialMatches =
@@ -272,6 +273,47 @@ export class EntitySelector extends React.Component<{
         })
     }
 
+    @computed private get chartHasDailyData(): boolean {
+        return this.numericalChartColumns.some(
+            (column) => column.display?.yearIsDay
+        )
+    }
+
+    /**
+     * Converts the given time to be compatible with the time format
+     * of the given column.
+     *
+     * This is necessary for daily charts since the external sort indicators
+     * (population, gdp per capita) typically have yearly date.
+     */
+    private toColumnCompatibleTime(time: Time, column: CoreColumn): Time {
+        return this.chartHasDailyData && !column.display?.yearIsDay
+            ? toDate(time).year()
+            : time
+    }
+
+    private clampWithinColumnTimeRange(time: Time, column: CoreColumn): Time {
+        return clamp(time, column.minTime, column.maxTime)
+    }
+
+    private makeLabelForSortColumn(
+        column?: CoreColumn,
+        customTitle?: string
+    ): string {
+        if (!column) return customTitle ?? ""
+
+        const title = customTitle ?? column.titlePublicOrDisplayName.title
+
+        const endTime = this.toColumnCompatibleTime(this.endTime, column)
+        const clampedTime = this.clampWithinColumnTimeRange(endTime, column)
+
+        // don't add time to the label if it's the same as the currently selected time
+        if (endTime === clampedTime) return makeLabel(title)
+
+        const formattedTime = column.formatTime(clampedTime)
+        return makeLabel(title, formattedTime)
+    }
+
     @computed private get manager(): EntitySelectorManager {
         return this.props.manager
     }
@@ -401,12 +443,17 @@ export class EntitySelector extends React.Component<{
                 if (chartColumn) {
                     options.push({
                         value: chartColumn.slug,
-                        label: makeColumnLabel(chartColumn),
+                        label: this.makeLabelForSortColumn(chartColumn),
                     })
                 } else {
+                    const column =
+                        this.interpolatedSortColumnsBySlug[external.slug]
                     options.push({
                         value: external.slug,
-                        label: external.label,
+                        label: this.makeLabelForSortColumn(
+                            column,
+                            external.label
+                        ),
                     })
                 }
             })
@@ -421,7 +468,7 @@ export class EntitySelector extends React.Component<{
             if (!matchingSlugs.includes(column.slug)) {
                 options.push({
                     value: column.slug,
-                    label: makeColumnLabel(column),
+                    label: this.makeLabelForSortColumn(column),
                 })
             }
         }
@@ -482,9 +529,13 @@ export class EntitySelector extends React.Component<{
             }
 
             for (const column of this.interpolatedSortColumns) {
+                const endTime = this.toColumnCompatibleTime(
+                    this.endTime,
+                    column
+                )
                 // clamping is necessary for external indicators since they
                 // might not cover the entire time range of the chart
-                const time = clamp(this.endTime, column.minTime, column.maxTime)
+                const time = this.clampWithinColumnTimeRange(endTime, column)
                 const rowsByTime =
                     column.owidRowByEntityNameAndTime.get(entityName)
                 searchableEntity.sortColumnValues[column.slug] =
@@ -1101,8 +1152,8 @@ function FlippedListItem({
     )
 }
 
-function makeColumnLabel(column: CoreColumn): string {
-    return column.titlePublicOrDisplayName.title
+function makeLabel(label: string, formattedTime?: string): string {
+    return formattedTime ? `${label} (${formattedTime})` : label
 }
 
 function indicatorIdToSlug(indicatorId: number): ColumnSlug {
