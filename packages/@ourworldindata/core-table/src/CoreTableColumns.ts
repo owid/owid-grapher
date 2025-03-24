@@ -601,6 +601,22 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         })
         return valueByEntityNameAndTime
     }
+
+    // todo: remove? Should not be on CoreTable
+    @imemo get valueByEntityNameAndTime(): Map<EntityName, Map<Time, JS_TYPE>> {
+        const valueByEntityNameAndTime = new Map<
+            EntityName,
+            Map<Time, JS_TYPE>
+        >()
+        this.owidRows.forEach((row) => {
+            if (!valueByEntityNameAndTime.has(row.entityName))
+                valueByEntityNameAndTime.set(row.entityName, new Map())
+            valueByEntityNameAndTime
+                .get(row.entityName)!
+                .set(row.time, row.value)
+        })
+        return valueByEntityNameAndTime
+    }
 }
 
 export type CoreColumn = AbstractCoreColumn<any>

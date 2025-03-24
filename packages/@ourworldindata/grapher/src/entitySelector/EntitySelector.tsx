@@ -11,7 +11,6 @@ import {
     isFiniteWithGuard,
     CoreValueType,
     clamp,
-    maxBy,
     getUserCountryInformation,
     regions,
     sortBy,
@@ -47,7 +46,7 @@ import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { SortIcon } from "../controls/SortIcon"
 import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
-import { ColumnSlug, OwidColumnDef } from "@ourworldindata/types"
+import { ColumnSlug, OwidColumnDef, Time } from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
@@ -59,7 +58,7 @@ export interface EntitySelectorState {
     searchInput: string
     sortConfig: SortConfig
     localEntityNames?: string[]
-    sortColumnsBySlug?: CoreColumnBySlug
+    interpolatedSortColumnsBySlug?: CoreColumnBySlug
     isLoadingExternalSortColumn?: boolean
 }
 
@@ -75,6 +74,7 @@ export interface EntitySelectorManager {
     canChangeEntity?: boolean
     canHighlightEntities?: boolean
     focusArray?: FocusArray
+    endTime?: Time
 }
 
 interface SortConfig {
@@ -233,11 +233,11 @@ export class EntitySelector extends React.Component<{
         }
     }
 
-    private setSortColumn(column?: CoreColumn): void {
+    private setInterpolatedSortColumn(column?: CoreColumn): void {
         if (!column) return
         this.set({
-            sortColumnsBySlug: {
-                ...this.sortColumnsBySlug,
+            interpolatedSortColumnsBySlug: {
+                ...this.interpolatedSortColumnsBySlug,
                 [column.slug]: column,
             },
         })
@@ -273,6 +273,10 @@ export class EntitySelector extends React.Component<{
         return this.props.manager
     }
 
+    @computed private get endTime(): Time {
+        return this.manager.endTime!
+    }
+
     @computed private get title(): string {
         return this.manager.canHighlightEntities
             ? `Select ${this.entityTypePlural}`
@@ -296,12 +300,14 @@ export class EntitySelector extends React.Component<{
         return this.manager.entitySelectorState.localEntityNames
     }
 
-    @computed private get sortColumnsBySlug(): CoreColumnBySlug {
-        return this.manager.entitySelectorState.sortColumnsBySlug ?? {}
+    @computed private get interpolatedSortColumnsBySlug(): CoreColumnBySlug {
+        return (
+            this.manager.entitySelectorState.interpolatedSortColumnsBySlug ?? {}
+        )
     }
 
-    @computed private get sortColumns(): CoreColumn[] {
-        return Object.values(this.sortColumnsBySlug)
+    @computed private get interpolatedSortColumns(): CoreColumn[] {
+        return Object.values(this.interpolatedSortColumnsBySlug)
     }
 
     @computed private get isLoadingExternalSortColumn(): boolean {
@@ -467,12 +473,12 @@ export class EntitySelector extends React.Component<{
                     this.localEntityNames.includes(entityName)
             }
 
-            for (const column of this.sortColumns) {
-                const rows = column.owidRowsByEntityName.get(entityName) ?? []
-                searchableEntity.sortColumnValues[column.slug] = maxBy(
-                    rows,
-                    (row) => row.originalTime
-                )?.value
+            for (const column of this.interpolatedSortColumns) {
+                const time = clamp(this.endTime, column.minTime, column.maxTime)
+                const rowsByTime =
+                    column.owidRowByEntityNameAndTime.get(entityName)
+                searchableEntity.sortColumnValues[column.slug] =
+                    rowsByTime?.get(time)?.value
             }
 
             return searchableEntity
@@ -661,7 +667,7 @@ export class EntitySelector extends React.Component<{
         const { slug, indicatorId } = external
 
         // the indicator has already been loaded
-        if (this.sortColumnsBySlug[slug]) return
+        if (this.interpolatedSortColumnsBySlug[slug]) return
 
         // load the external indicator
         try {
@@ -671,8 +677,10 @@ export class EntitySelector extends React.Component<{
                 this.manager.dataApiUrl
             )
             const variableTable = buildVariableTable(variable)
-            const column = variableTable.get(slug)
-            if (column) this.setSortColumn(column)
+            const column = variableTable
+                .interpolateColumnWithTolerance(slug, Infinity)
+                .get(slug)
+            if (column) this.setInterpolatedSortColumn(column)
         } catch {
             console.error(`Failed to load variable with id ${indicatorId}`)
         } finally {
@@ -684,14 +692,18 @@ export class EntitySelector extends React.Component<{
         if (selected) {
             const { value: slug } = selected as DropdownOption
 
+            // if an external indicator has been selected, load it
             const external = this.externalSortIndicatorDefinitions.find(
                 (external) => external.slug === slug
             )
+            if (external) await this.loadAndSetExternalSortColumn(external)
 
-            if (external) {
-                await this.loadAndSetExternalSortColumn(external)
-            } else {
-                this.setSortColumn(this.table.get(slug))
+            // apply tolerance if an indicator is selected for the first time
+            if (!this.interpolatedSortColumnsBySlug[slug]) {
+                const interpolatedColumn = this.table
+                    .interpolateColumnWithTolerance(slug)
+                    .get(slug)
+                this.setInterpolatedSortColumn(interpolatedColumn)
             }
 
             this.updateSortSlug(slug)
@@ -829,7 +841,7 @@ export class EntitySelector extends React.Component<{
     @computed private get displayColumn(): CoreColumn | undefined {
         const { sortConfig } = this
         if (this.isSortedByName) return undefined
-        return this.sortColumnsBySlug[sortConfig.slug]
+        return this.interpolatedSortColumnsBySlug[sortConfig.slug]
     }
 
     @computed private get barScale(): ScaleLinear<number, number> {
