@@ -120,7 +120,7 @@ const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
         ),
         // checks if a column has GDP per capita data
         isMatch: (column: CoreColumn): boolean => {
-            const label = makeColumnLabel(column)
+            const label = column.titlePublicOrDisplayName.title
 
             // matches "gdp per capita" and content within parentheses
             const potentialMatches =
@@ -269,6 +269,25 @@ export class EntitySelector extends React.Component<{
         })
     }
 
+    private clampEndTimeWithinColumnTimeRange(column: CoreColumn): Time {
+        return clamp(this.endTime, column.minTime, column.maxTime)
+    }
+
+    private makeLabelForSortColumn(
+        column?: CoreColumn,
+        customTitle?: string
+    ): string {
+        if (!column) return customTitle ?? ""
+
+        const title = customTitle ?? column.titlePublicOrDisplayName.title
+
+        const time = this.clampEndTimeWithinColumnTimeRange(column)
+        if (time === this.endTime) return makeLabel(title)
+
+        const formattedTime = column.formatTime(time)
+        return makeLabel(title, formattedTime)
+    }
+
     @computed private get manager(): EntitySelectorManager {
         return this.props.manager
     }
@@ -394,12 +413,17 @@ export class EntitySelector extends React.Component<{
                     const column = this.table.get(external.slug)
                     options.push({
                         value: column.slug,
-                        label: makeColumnLabel(column),
+                        label: this.makeLabelForSortColumn(column),
                     })
                 } else {
+                    const column =
+                        this.interpolatedSortColumnsBySlug[external.slug]
                     options.push({
                         value: external.slug,
-                        label: external.label,
+                        label: this.makeLabelForSortColumn(
+                            column,
+                            external.label
+                        ),
                     })
                 }
             })
@@ -414,7 +438,7 @@ export class EntitySelector extends React.Component<{
         options.push(
             ...remainingChartColumns.map((column) => ({
                 value: column.slug,
-                label: makeColumnLabel(column),
+                label: this.makeLabelForSortColumn(column),
             }))
         )
 
@@ -474,7 +498,7 @@ export class EntitySelector extends React.Component<{
             }
 
             for (const column of this.interpolatedSortColumns) {
-                const time = clamp(this.endTime, column.minTime, column.maxTime)
+                const time = this.clampEndTimeWithinColumnTimeRange(column)
                 const rowsByTime =
                     column.owidRowByEntityNameAndTime.get(entityName)
                 searchableEntity.sortColumnValues[column.slug] =
@@ -1087,8 +1111,8 @@ function FlippedListItem({
     )
 }
 
-function makeColumnLabel(column: CoreColumn): string {
-    return column.titlePublicOrDisplayName.title
+function makeLabel(label: string, formattedTime?: string): string {
+    return formattedTime ? `${label} (${formattedTime})` : label
 }
 
 function indicatorIdToSlug(indicatorId: number): ColumnSlug {
