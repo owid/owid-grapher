@@ -3587,7 +3587,8 @@ export class Grapher
         if (!this.isOnMapTab) return
         if (this.mapConfig.selectedCountries.numSelectedEntities === 0) {
             this.mapConfig.zoomCountry = undefined
-            this.mapConfig.globe = false
+            if (this.mapConfig.projection === MapProjectionName.World)
+                this.mapConfig.globe = false
         }
         for (const entityName of entityNames) {
             const members = getMemberCountries(entityName)
