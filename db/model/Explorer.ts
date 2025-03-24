@@ -96,7 +96,7 @@ export async function getExplorerBySlug(
         .where({ slug })
         .first()
 
-    if (row && row.lastEditedByUserId) {
+    if (row) {
         row.lastCommit = createLastCommit(
             row,
             (row as any).fullName,
@@ -120,11 +120,11 @@ export async function getAllExplorers(
         .select(`${ExplorersTableName}.*`, "users.fullName", "users.email")
 
     rows.forEach((row) => {
-        const fullName = (row as any).fullName
-        const email = (row as any).email
-        if (row.lastEditedByUserId) {
-            row.lastCommit = createLastCommit(row, fullName, email)
-        }
+        row.lastCommit = createLastCommit(
+            row,
+            (row as any).fullName,
+            (row as any).email
+        )
     })
     return rows
 }
