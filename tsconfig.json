@@ -38,9 +38,6 @@
             "path": "./devTools/markdownTest"
         },
         {
-            "path": "./devTools/explorerTools"
-        },
-        {
             "path": "./devTools/regionsUpdater"
         },
         {
