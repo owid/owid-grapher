@@ -313,12 +313,6 @@ deleteRouteWithRWTransaction(
     handleDeleteExplorer
 )
 
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/explorers/:slug",
-    handleDeleteExplorer
-)
-
 // Misc routes
 getRouteWithROTransaction(apiRouter, "/all-work", fetchAllWork)
 getRouteWithROTransaction(
