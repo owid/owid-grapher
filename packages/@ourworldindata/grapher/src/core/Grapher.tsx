@@ -461,7 +461,7 @@ export class Grapher
      */
     @observable.ref entityYearHighlight?: EntityYearHighlight = undefined
 
-    @observable.ref hideFacetControl?: boolean = undefined
+    @observable.ref hideFacetControl = true
 
     // the desired faceting strategy, which might not be possible if we change the data
     @observable selectedFacetStrategy?: FacetStrategy = undefined

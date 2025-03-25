@@ -25,7 +25,7 @@ import {
     ExplorerProgram,
 } from "@ourworldindata/explorer"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
-import { AdminManager } from "../explorerAdminClient/AdminManager.js"
+import { AdminManager } from "./AdminManager.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer

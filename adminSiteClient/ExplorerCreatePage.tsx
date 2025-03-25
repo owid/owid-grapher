@@ -22,11 +22,11 @@ import {
     ExplorerProgram,
     isEmpty,
 } from "@ourworldindata/explorer"
-import { AdminManager } from "../explorerAdminClient/AdminManager.js"
+import { AdminManager } from "./AdminManager.js"
 import {
     AutofillColDefCommand,
     SelectAllHitsCommand,
-} from "../explorerAdminClient/ExplorerCommands.js"
+} from "./ExplorerCommands.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ENV } from "../settings/clientSettings.js"
 

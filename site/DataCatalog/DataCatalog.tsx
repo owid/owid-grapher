@@ -676,7 +676,7 @@ const TopicsRefinementList = ({
                                     <span className="body-3-bold">
                                         {facetName}
                                     </span>{" "}
-                                    <span className="body-3-medium">
+                                    <span className="body-3-regular">
                                         ({commafyNumber(count)})
                                     </span>
                                 </button>
