@@ -5,9 +5,9 @@
         "rootDir": "."
     },
     "references": [
-        { "path": "../explorerAdminClient" },
         { "path": "../settings" },
         { "path": "../site" },
-        { "path": "../adminShared" }
+        { "path": "../adminShared" },
+        { "path": "../gitCms" }
     ]
 }
