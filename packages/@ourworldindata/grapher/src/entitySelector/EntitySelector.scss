@@ -109,8 +109,12 @@
             align-items: center;
         }
 
-        .grapher-dropdown {
+        .entity-selector__dropdown {
             flex-grow: 1;
+
+            .time {
+                color: $gray-60;
+            }
         }
 
         .label {

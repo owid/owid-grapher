@@ -97,8 +97,9 @@ interface PartitionedEntities {
 }
 
 interface DropdownOption {
-    value: string
+    value: string // slug
     label: string
+    formattedTime?: string
 }
 
 const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
@@ -124,7 +125,7 @@ const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
         ),
         // checks if a column has GDP per capita data
         isMatch: (column: CoreColumn): boolean => {
-            const label = column.titlePublicOrDisplayName.title
+            const label = makeLabelForSortColumn(column)
 
             // matches "gdp per capita" and content within parentheses
             const potentialMatches =
@@ -297,22 +298,10 @@ export class EntitySelector extends React.Component<{
         return clamp(time, column.minTime, column.maxTime)
     }
 
-    private makeLabelForSortColumn(
-        column?: CoreColumn,
-        customTitle?: string
-    ): string {
-        if (!column) return customTitle ?? ""
-
-        const title = customTitle ?? column.titlePublicOrDisplayName.title
-
+    private formatTimeForSortColumnLabel(column: CoreColumn): string {
         const endTime = this.toColumnCompatibleTime(this.endTime, column)
         const clampedTime = this.clampWithinColumnTimeRange(endTime, column)
-
-        // don't add time to the label if it's the same as the currently selected time
-        if (endTime === clampedTime) return makeLabel(title)
-
-        const formattedTime = column.formatTime(clampedTime)
-        return makeLabel(title, formattedTime)
+        return column.formatTime(clampedTime)
     }
 
     @computed private get manager(): EntitySelectorManager {
@@ -444,17 +433,19 @@ export class EntitySelector extends React.Component<{
                 if (chartColumn) {
                     options.push({
                         value: chartColumn.slug,
-                        label: this.makeLabelForSortColumn(chartColumn),
+                        label: makeLabelForSortColumn(chartColumn),
+                        formattedTime:
+                            this.formatTimeForSortColumnLabel(chartColumn),
                     })
                 } else {
                     const column =
                         this.interpolatedSortColumnsBySlug[external.slug]
                     options.push({
                         value: external.slug,
-                        label: this.makeLabelForSortColumn(
-                            column,
-                            external.label
-                        ),
+                        label: external.label,
+                        formattedTime: column
+                            ? this.formatTimeForSortColumnLabel(column)
+                            : undefined,
                     })
                 }
             })
@@ -469,7 +460,8 @@ export class EntitySelector extends React.Component<{
             if (!matchingSlugs.includes(column.slug)) {
                 options.push({
                     value: column.slug,
-                    label: this.makeLabelForSortColumn(column),
+                    label: makeLabelForSortColumn(column),
+                    formattedTime: this.formatTimeForSortColumnLabel(column),
                 })
             }
         }
@@ -843,11 +835,22 @@ export class EntitySelector extends React.Component<{
                     Sort by
                 </div>
                 <div className="entity-selector__sort-dropdown-and-button">
-                    <Dropdown
+                    <Dropdown<DropdownOption>
+                        className="entity-selector__dropdown"
                         options={this.sortOptions}
                         onChange={this.onChangeSortSlug}
                         value={this.sortValue}
                         isLoading={this.isLoadingExternalSortColumn}
+                        formatOptionLabel={(option) => (
+                            <>
+                                {option.label}
+                                {option.formattedTime && (
+                                    <span className="time">
+                                        , {option.formattedTime}
+                                    </span>
+                                )}
+                            </>
+                        )}
                         aria-labelledby="entity-selector__sort-dropdown-label"
                     />
                     <button
@@ -1180,8 +1183,8 @@ function FlippedListItem({
     )
 }
 
-function makeLabel(label: string, formattedTime?: string): string {
-    return formattedTime ? `${label} (${formattedTime})` : label
+function makeLabelForSortColumn(column: CoreColumn): string {
+    return column.titlePublicOrDisplayName.title
 }
 
 function indicatorIdToSlug(indicatorId: number): ColumnSlug {

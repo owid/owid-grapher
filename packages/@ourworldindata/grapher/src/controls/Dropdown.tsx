@@ -2,10 +2,11 @@ import * as React from "react"
 import Select, { Props } from "react-select"
 import cx from "classnames"
 
-export function Dropdown(props: Props): React.ReactElement {
+export function Dropdown<DropdownOption>(
+    props: Props<DropdownOption, false>
+): React.ReactElement {
     return (
-        <Select
-            className="grapher-dropdown"
+        <Select<DropdownOption, false>
             menuPlacement="bottom"
             components={{
                 IndicatorSeparator: null,
@@ -30,6 +31,7 @@ export function Dropdown(props: Props): React.ReactElement {
                 menu: () => "menu",
             }}
             {...props}
+            className={cx("grapher-dropdown", props.className)}
         />
     )
 }

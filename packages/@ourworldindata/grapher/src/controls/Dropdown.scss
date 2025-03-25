@@ -20,6 +20,8 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
 
+    $option-checkmark-width: 12px;
+
     .control {
         min-height: auto;
         font: $medium 13px/16px $lato;
@@ -65,7 +67,7 @@
         color: $dark-text;
 
         .option {
-            padding: 8px 28px 8px 18px;
+            padding: 8px calc(16px + $option-checkmark-width + 2px) 8px 16px;
             &:hover,
             &.focus {
                 cursor: pointer;
@@ -84,7 +86,7 @@
                 &:after {
                     content: " ";
                     background: url($option-checkmark) no-repeat;
-                    width: 12px;
+                    width: $option-checkmark-width;
                     height: 9px;
                     position: absolute;
                     right: 18px;
