@@ -830,7 +830,7 @@ export class EntitySelector extends React.Component<{
     private renderSortBar(): React.ReactElement {
         return (
             <div className="entity-selector__sort-bar">
-                <span className="label grapher_label-2-medium grapher_light">
+                <span className="label grapher_label-2-regular grapher_light">
                     Sort by
                 </span>
                 <Dropdown
@@ -959,7 +959,7 @@ export class EntitySelector extends React.Component<{
                     {selected.length > 0 && (
                         <Flipped flipId="__selection" translate opacity>
                             <div className="entity-section__header">
-                                <div className="entity-section__title grapher_body-3-medium-italic grapher_light">
+                                <div className="entity-section__title grapher_body-3-regular-italic grapher_light">
                                     Selection{" "}
                                     {numSelectedEntities > 0 &&
                                         `(${numSelectedEntities})`}
@@ -999,7 +999,7 @@ export class EntitySelector extends React.Component<{
                 {!hideAvailableEntities && (
                     <div className="entity-section">
                         <Flipped flipId="__available" translate opacity>
-                            <div className="entity-section__title grapher_body-3-medium-italic grapher_light">
+                            <div className="entity-section__title grapher_body-3-regular-italic grapher_light">
                                 All {this.entityTypePlural}
                             </div>
                         </Flipped>
@@ -1120,7 +1120,7 @@ function SelectableEntity({
             )}
             <Input label={label} checked={checked} onChange={onChange} />
             {bar && (
-                <span className="value grapher_label-1-medium">
+                <span className="value grapher_label-1-regular">
                     {bar.formattedValue}
                 </span>
             )}

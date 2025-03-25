@@ -129,6 +129,15 @@
     @include grapher_body-3-regular;
 }
 
+@mixin grapher_body-3-regular-italic {
+    @include grapher_body-3-regular;
+    font-style: italic;
+}
+
+.grapher_body-3-regular-italic {
+    @include grapher_body-3-regular-italic;
+}
+
 @mixin grapher_body-3-medium-italic {
     @include grapher_body-3-medium;
     font-style: italic;
