@@ -4,7 +4,7 @@ import "./instrument.js"
 
 import "./admin.scss"
 import "@ourworldindata/grapher/src/core/grapher.scss"
-import "../explorerAdminClient/ExplorerCreatePage.scss"
+import "../adminSiteClient/ExplorerCreatePage.scss"
 import "handsontable/dist/handsontable.full.css"
 import updateLocale from "dayjs/plugin/updateLocale"
 import { dayjs } from "@ourworldindata/utils"

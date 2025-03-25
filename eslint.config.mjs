@@ -23,7 +23,6 @@ export default tseslint.config(
             // TODO: Apply to all React files when we move off class components,
             // since they are not supported.
             "adminSiteClient/**/*.tsx",
-            "explorerAdminClient/**/*.tsx",
             "packages/@ourworldindata/components/src/**/*.tsx",
             "site/**/*.tsx",
         ],
@@ -131,7 +130,6 @@ export default tseslint.config(
             "db/**/*",
             "devTools/**/*",
             "functions/**/*",
-            "explorerAdminClient/**/*",
             "explorerAdminServer/**/*",
             "settings/**/*",
         ],
