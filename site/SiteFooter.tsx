@@ -29,7 +29,7 @@ const EXPLORE_LINKS: LinkData[] = [
 const RESOURCE_LINKS: LinkData[] = [
     { title: "Latest Articles", url: "/latest" },
     { title: "SDG Tracker", url: "/sdgs" },
-    { title: "Teaching Materials", url: "/teaching" },
+    { title: "Teaching with OWID", url: "/teaching" },
 ]
 
 const LEGAL_LINKS: LinkData[] = [
