@@ -51,12 +51,8 @@
 
     .donation-options {
         display: flex;
-        & > * {
-            margin-right: 8px;
-            &:last-child {
-                margin-right: 0;
-            }
-        }
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
     .donation-options--grid {
@@ -95,6 +91,7 @@
 
     .donation-custom-amount {
         display: flex;
+        align-items: center;
         padding: 8px 16px;
         border: 1px solid $blue-20;
         @include body-3-medium;

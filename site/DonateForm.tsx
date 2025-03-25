@@ -28,11 +28,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
-const ONETIME_DONATION_AMOUNTS = [20, 50, 100, 500, 1000]
-const MONTHLY_DONATION_AMOUNTS = [5, 10, 25, 50, 100]
+const DEFAULT_AMOUNT_INDEX = 2
 
-const ONETIME_DEFAULT_INDEX = 2
-const MONTHLY_DEFAULT_INDEX = 2
+const amountsByInterval = {
+    once: [20, 50, 100, 500, 1000],
+    monthly: [5, 10, 25, 50, 100],
+    annual: [50, 100, 500, 1000, 5000],
+} as const
 
 const analytics = new SiteAnalytics()
 
@@ -103,7 +105,7 @@ function EveryOrgSection() {
 export class DonateForm extends React.Component<{ countryCode?: string }> {
     @observable interval: DonationInterval = "once"
     @observable presetAmount?: number =
-        ONETIME_DONATION_AMOUNTS[ONETIME_DEFAULT_INDEX]
+        amountsByInterval.once[DEFAULT_AMOUNT_INDEX]
     @observable customAmount: string = ""
     @observable name: string = ""
     @observable showOnList: boolean = true
@@ -120,12 +122,7 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
 
     @action.bound setInterval(interval: DonationInterval) {
         this.interval = interval
-        this.presetAmount =
-            this.intervalAmounts[
-                interval === "monthly"
-                    ? MONTHLY_DEFAULT_INDEX
-                    : ONETIME_DEFAULT_INDEX
-            ]
+        this.presetAmount = this.intervalAmounts[DEFAULT_AMOUNT_INDEX]
     }
 
     @action.bound setPresetAmount(amount?: number) {
@@ -170,10 +167,8 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
             : this.presetAmount
     }
 
-    @computed get intervalAmounts(): number[] {
-        return this.interval === "monthly"
-            ? MONTHLY_DONATION_AMOUNTS
-            : ONETIME_DONATION_AMOUNTS
+    @computed get intervalAmounts() {
+        return amountsByInterval[this.interval]
     }
 
     @computed get currencySymbol(): string {
@@ -318,6 +313,14 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
                             onClick={() => this.setInterval("monthly")}
                             className={cx("donation-options__button", {
                                 active: this.interval === "monthly",
+                            })}
+                        />
+                        <input
+                            type="button"
+                            value="Annually"
+                            onClick={() => this.setInterval("annual")}
+                            className={cx("donation-options__button", {
+                                active: this.interval === "annual",
                             })}
                         />
                     </div>
