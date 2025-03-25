@@ -51,11 +51,10 @@
 
     .donation-options {
         display: flex;
-        & > * {
-            margin-right: 8px;
-            &:last-child {
-                margin-right: 0;
-            }
+        gap: 8px;
+
+        @include sm-only {
+            flex-wrap: wrap;
         }
     }
 
@@ -95,6 +94,7 @@
 
     .donation-custom-amount {
         display: flex;
+        align-items: center;
         padding: 8px 16px;
         border: 1px solid $blue-20;
         @include body-3-medium;
@@ -208,7 +208,7 @@
     .donation-payment__or {
         @include body-2-semibold;
         color: $blue-60;
-        margin-bottom: 8px;
+        margin-bottom: 16px;
     }
 
     .donation-note {

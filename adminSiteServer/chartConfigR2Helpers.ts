@@ -118,7 +118,8 @@ async function saveConfigToR2(
         )
     } catch (err) {
         throw new JsonError(
-            `Failed to save the config to R2. Inner error: ${err}`
+            `Failed to save the config to R2. Inner error: ${err}`,
+            500
         )
     }
 }
@@ -163,7 +164,8 @@ export async function deleteGrapherConfigFromR2(
         )
     } catch (err) {
         throw new JsonError(
-            `Failed to delete the grapher config to R2 at ${directory}/${filename}. Inner error: ${err}`
+            `Failed to delete the grapher config to R2 at ${directory}/${filename}. Inner error: ${err}`,
+            500
         )
     }
 }

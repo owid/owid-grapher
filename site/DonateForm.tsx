@@ -1,5 +1,4 @@
 import * as React from "react"
-import ReactDOM from "react-dom"
 import * as Sentry from "@sentry/react"
 import cx from "classnames"
 import { observable, action, computed } from "mobx"
@@ -29,19 +28,84 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
-const ONETIME_DONATION_AMOUNTS = [20, 50, 100, 500, 1000]
-const MONTHLY_DONATION_AMOUNTS = [5, 10, 25, 50, 100]
+const DEFAULT_AMOUNT_INDEX = 2
 
-const ONETIME_DEFAULT_INDEX = 2
-const MONTHLY_DEFAULT_INDEX = 2
+const amountsByInterval = {
+    once: [20, 50, 100, 500, 1000],
+    monthly: [5, 10, 25, 50, 100],
+    annual: [50, 100, 500, 1000, 5000],
+} as const
 
 const analytics = new SiteAnalytics()
 
+// The rule doesn't support class components in the same file.
+// eslint-disable-next-line react-refresh/only-export-components
+function EveryOrgSection() {
+    return (
+        <div className="donation-payment">
+            <p className="donation-payment__or">
+                For US donors, our partner every.org facilitates tax-deductible
+                giving and offers more payment options.
+            </p>
+            <a
+                href="https://www.every.org/ourworldindata?donateTo=ourworldindata#/donate/card"
+                className="donation-submit donation-submit--light"
+            >
+                Donate via every.org
+                <FontAwesomeIcon
+                    icon={faArrowRight}
+                    className="donation-submit__icon"
+                />
+            </a>
+
+            <ul className="donation-payment-benefits">
+                <li className="donation-payment-benefits__item">
+                    🇺🇸 Your donation is tax-deductible in the US{" "}
+                    <Tippy
+                        appendTo={() => document.body}
+                        content={
+                            <div>
+                                <p>
+                                    Your donation is made to Every.org, a
+                                    tax-exempt US 501(c)(3) charity that grants
+                                    unrestricted funds to Our World in Data on
+                                    your behalf. This means that if you are a US
+                                    taxpayer, 100% of your donation is
+                                    tax-deductible to the extent allowed by US
+                                    law.
+                                </p>
+                                <p>
+                                    After your donation payment is confirmed by
+                                    Every.org, you will immediately get a
+                                    tax-deductible receipt emailed to you.
+                                </p>
+                            </div>
+                        }
+                        interactive
+                        placement="bottom"
+                        theme="owid-footnote"
+                        trigger="mouseenter focus click"
+                    >
+                        <FontAwesomeIcon icon={faInfoCircle} />
+                    </Tippy>
+                </li>
+                <li className="donation-payment-benefits__item">
+                    You can donate in US dollars using PayPal, Venmo, direct US
+                    bank transfer (ACH), credit card and more
+                </li>
+                <li className="donation-payment-benefits__item">
+                    You can use this option for donor-advised fund (DAF) grants
+                </li>
+            </ul>
+        </div>
+    )
+}
+
 @observer
-export class DonateForm extends React.Component {
+export class DonateForm extends React.Component<{ countryCode?: string }> {
     @observable interval: DonationInterval = "once"
     @observable presetAmount?: number =
-        ONETIME_DONATION_AMOUNTS[ONETIME_DEFAULT_INDEX]
+        amountsByInterval.once[DEFAULT_AMOUNT_INDEX]
     @observable customAmount: string = ""
     @observable name: string = ""
     @observable showOnList: boolean = true
@@ -58,12 +122,7 @@ export class DonateForm extends React.Component {
 
     @action.bound setInterval(interval: DonationInterval) {
         this.interval = interval
-        this.presetAmount =
-            this.intervalAmounts[
-                interval === "monthly"
-                    ? MONTHLY_DEFAULT_INDEX
-                    : ONETIME_DEFAULT_INDEX
-            ]
+        this.presetAmount = this.intervalAmounts[DEFAULT_AMOUNT_INDEX]
     }
 
     @action.bound setPresetAmount(amount?: number) {
@@ -108,10 +167,8 @@ export class DonateForm extends React.Component {
             : this.presetAmount
     }
 
-    @computed get intervalAmounts(): number[] {
-        return this.interval === "monthly"
-            ? MONTHLY_DONATION_AMOUNTS
-            : ONETIME_DONATION_AMOUNTS
+    @computed get intervalAmounts() {
+        return amountsByInterval[this.interval]
     }
 
     @computed get currencySymbol(): string {
@@ -230,6 +287,15 @@ export class DonateForm extends React.Component {
     render() {
         return (
             <form className="donate-form" onSubmit={this.onSubmit}>
+                {this.props.countryCode === "USA" && (
+                    <>
+                        <EveryOrgSection />
+                        <p className="donation-payment__or">
+                            You can also donate via Stripe by using the form
+                            below.
+                        </p>
+                    </>
+                )}
                 <fieldset>
                     <legend className="overline-black-caps">Frequency</legend>
                     <div className="donation-options">
@@ -247,6 +313,14 @@ export class DonateForm extends React.Component {
                             onClick={() => this.setInterval("monthly")}
                             className={cx("donation-options__button", {
                                 active: this.interval === "monthly",
+                            })}
+                        />
+                        <input
+                            type="button"
+                            value="Annually"
+                            onClick={() => this.setInterval("annual")}
+                            className={cx("donation-options__button", {
+                                active: this.interval === "annual",
                             })}
                         />
                     </div>
@@ -403,66 +477,7 @@ export class DonateForm extends React.Component {
                         </li>
                     </ul>
                 </div>
-                <div className="donation-payment">
-                    <p className="donation-payment__or">
-                        For US donors, our partner every.org facilitates
-                        tax-deductible giving and offers more payment options.
-                    </p>
-                    <a
-                        href="https://www.every.org/ourworldindata?donateTo=ourworldindata#/donate/card"
-                        className="donation-submit donation-submit--light"
-                    >
-                        Donate via every.org
-                        <FontAwesomeIcon
-                            icon={faArrowRight}
-                            className="donation-submit__icon"
-                        />
-                    </a>
-
-                    <ul className="donation-payment-benefits">
-                        <li className="donation-payment-benefits__item">
-                            🇺🇸 Your donation is tax-deductible in the US{" "}
-                            <Tippy
-                                appendTo={() => document.body}
-                                content={
-                                    <div>
-                                        <p>
-                                            Your donation is made to Every.org,
-                                            a tax-exempt US 501(c)(3) charity
-                                            that grants unrestricted funds to
-                                            Our World in Data on your behalf.
-                                            This means that if you are a US
-                                            taxpayer, 100% of your donation is
-                                            tax-deductible to the extent allowed
-                                            by US law.
-                                        </p>
-                                        <p>
-                                            After your donation payment is
-                                            confirmed by Every.org, you will
-                                            immediately get a tax-deductible
-                                            receipt emailed to you.
-                                        </p>
-                                    </div>
-                                }
-                                interactive
-                                placement="bottom"
-                                theme="owid-footnote"
-                                trigger="mouseenter focus click"
-                            >
-                                <FontAwesomeIcon icon={faInfoCircle} />
-                            </Tippy>
-                        </li>
-                        <li className="donation-payment-benefits__item">
-                            You can donate in US dollars using PayPal, Venmo,
-                            direct US bank transfer (ACH), credit card and more
-                        </li>
-                        <li className="donation-payment-benefits__item">
-                            You can use this option for donor-advised fund (DAF)
-                            grants
-                        </li>
-                    </ul>
-                </div>
-
+                {this.props.countryCode !== "USA" && <EveryOrgSection />}
                 <p className="donation-note">
                     This site is protected by reCAPTCHA and the Google{" "}
                     <a href="https://policies.google.com/privacy">
@@ -477,18 +492,4 @@ export class DonateForm extends React.Component {
             </form>
         )
     }
-}
-
-export class DonateFormRunner {
-    async run() {
-        ReactDOM.render(
-            <DonateForm />,
-            document.querySelector(".donate-form-container")
-        )
-    }
-}
-
-export async function runDonateForm() {
-    const donateForm = new DonateFormRunner()
-    await donateForm.run()
 }

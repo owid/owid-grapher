@@ -16,3 +16,5 @@ export const DEFAULT_HEADERS = {
 // actual requests.
 
 export const STRIPE_API_VERSION = "2023-10-16"
+export const STRIPE_CUSTOMER_PORTAL_URL =
+    "https://billing.stripe.com/p/login/14k17H5yh646b4s4gg"
