@@ -29,24 +29,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
-const ONETIME_DONATION_AMOUNTS = [20, 50, 100, 500, 1000] as const
-const MONTHLY_DONATION_AMOUNTS = [5, 10, 25, 50, 100] as const
-const ANNUAL_DONATION_AMOUNTS = [60, 120, 300, 600, 1200] as const
+const DEFAULT_AMOUNT_INDEX = 2
 
-const ONETIME_DEFAULT_INDEX = 2
-const MONTHLY_DEFAULT_INDEX = 2
-const ANNUAL_DEFAULT_INDEX = 2
-
-const intervalToAmounts = {
-    once: ONETIME_DONATION_AMOUNTS,
-    monthly: MONTHLY_DONATION_AMOUNTS,
-    annual: ANNUAL_DONATION_AMOUNTS,
-} as const
-
-const intervalToDefaultAmountIndex = {
-    once: ONETIME_DEFAULT_INDEX,
-    monthly: MONTHLY_DEFAULT_INDEX,
-    annual: ANNUAL_DEFAULT_INDEX,
+const amountsByInterval = {
+    once: [20, 50, 100, 500, 1000],
+    monthly: [5, 10, 25, 50, 100],
+    annual: [50, 100, 500, 1000, 5000],
 } as const
 
 const analytics = new SiteAnalytics()
@@ -55,7 +43,7 @@ const analytics = new SiteAnalytics()
 export class DonateForm extends React.Component {
     @observable interval: DonationInterval = "once"
     @observable presetAmount?: number =
-        ONETIME_DONATION_AMOUNTS[ONETIME_DEFAULT_INDEX]
+        amountsByInterval.once[DEFAULT_AMOUNT_INDEX]
     @observable customAmount: string = ""
     @observable name: string = ""
     @observable showOnList: boolean = true
@@ -71,9 +59,8 @@ export class DonateForm extends React.Component {
     }
 
     @action.bound setInterval(interval: DonationInterval) {
-        const defaultAmountIndex = intervalToDefaultAmountIndex[interval]
         this.interval = interval
-        this.presetAmount = this.intervalAmounts[defaultAmountIndex]
+        this.presetAmount = this.intervalAmounts[DEFAULT_AMOUNT_INDEX]
     }
 
     @action.bound setPresetAmount(amount?: number) {
@@ -119,7 +106,7 @@ export class DonateForm extends React.Component {
     }
 
     @computed get intervalAmounts() {
-        return intervalToAmounts[this.interval]
+        return amountsByInterval[this.interval]
     }
 
     @computed get currencySymbol(): string {
