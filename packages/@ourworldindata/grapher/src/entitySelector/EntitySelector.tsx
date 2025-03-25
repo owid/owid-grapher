@@ -20,6 +20,7 @@ import {
     getUserNavigatorLanguagesNonEnglish,
     getRegionAlternativeNames,
     toDate,
+    maxBy,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -60,6 +61,7 @@ export interface EntitySelectorState {
     sortConfig: SortConfig
     localEntityNames?: string[]
     interpolatedSortColumnsBySlug?: CoreColumnBySlug
+    externalSortColumnsBySlug?: CoreColumnBySlug
     isLoadingExternalSortColumn?: boolean
 }
 
@@ -102,7 +104,7 @@ interface DropdownOption {
 
 const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
     {
-        label: "Population",
+        label: "Population (2023)",
         indicatorId: POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
         slug: indicatorIdToSlug(
             POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR
@@ -114,7 +116,7 @@ const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
             ),
     },
     {
-        label: "GDP per capita (int. $)",
+        label: "GDP per capita (int. $; 2022)",
         indicatorId: GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
         slug: indicatorIdToSlug(
             GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR
@@ -244,6 +246,16 @@ export class EntitySelector extends React.Component<{
         })
     }
 
+    private setExternalSortColumn(column?: CoreColumn): void {
+        if (!column) return
+        this.set({
+            externalSortColumnsBySlug: {
+                ...this.externalSortColumnsBySlug,
+                [column.slug]: column,
+            },
+        })
+    }
+
     private clearSearchInput(): void {
         this.set({ searchInput: "" })
     }
@@ -347,6 +359,14 @@ export class EntitySelector extends React.Component<{
 
     @computed private get interpolatedSortColumns(): CoreColumn[] {
         return Object.values(this.interpolatedSortColumnsBySlug)
+    }
+
+    @computed private get externalSortColumnsBySlug(): CoreColumnBySlug {
+        return this.manager.entitySelectorState.externalSortColumnsBySlug ?? {}
+    }
+
+    @computed private get externalSortColumns(): CoreColumn[] {
+        return Object.values(this.externalSortColumnsBySlug)
     }
 
     @computed private get isLoadingExternalSortColumn(): boolean {
@@ -515,6 +535,14 @@ export class EntitySelector extends React.Component<{
             if (this.localEntityNames) {
                 searchableEntity.isLocal =
                     this.localEntityNames.includes(entityName)
+            }
+
+            for (const column of this.externalSortColumns) {
+                const rows = column.owidRowsByEntityName.get(entityName) ?? []
+                searchableEntity.sortColumnValues[column.slug] = maxBy(
+                    rows,
+                    (row) => row.originalTime
+                )?.value
             }
 
             for (const column of this.interpolatedSortColumns) {
@@ -715,7 +743,7 @@ export class EntitySelector extends React.Component<{
         const { slug, indicatorId } = external
 
         // the indicator has already been loaded
-        if (this.interpolatedSortColumnsBySlug[slug]) return
+        if (this.externalSortColumnsBySlug[slug]) return
 
         // load the external indicator
         try {
@@ -725,10 +753,8 @@ export class EntitySelector extends React.Component<{
                 this.manager.dataApiUrl
             )
             const variableTable = buildVariableTable(variable)
-            const column = variableTable
-                .interpolateColumnWithTolerance(slug, Infinity)
-                .get(slug)
-            if (column) this.setInterpolatedSortColumn(column)
+            const column = variableTable.get(slug)
+            if (column) this.setExternalSortColumn(column)
         } catch {
             console.error(`Failed to load variable with id ${indicatorId}`)
         } finally {
@@ -747,7 +773,7 @@ export class EntitySelector extends React.Component<{
             if (external) await this.loadAndSetExternalSortColumn(external)
 
             // apply tolerance if an indicator is selected for the first time
-            if (!this.interpolatedSortColumnsBySlug[slug]) {
+            if (!external && !this.interpolatedSortColumnsBySlug[slug]) {
                 const interpolatedColumn = this.table
                     .interpolateColumnWithTolerance(slug)
                     .get(slug)
@@ -889,7 +915,10 @@ export class EntitySelector extends React.Component<{
     @computed private get displayColumn(): CoreColumn | undefined {
         const { sortConfig } = this
         if (this.isSortedByName) return undefined
-        return this.interpolatedSortColumnsBySlug[sortConfig.slug]
+        return (
+            this.interpolatedSortColumnsBySlug[sortConfig.slug] ??
+            this.externalSortColumnsBySlug[sortConfig.slug]
+        )
     }
 
     @computed private get barScale(): ScaleLinear<number, number> {
