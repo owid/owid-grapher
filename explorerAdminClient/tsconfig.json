@@ -1,8 +1,0 @@
-{
-    "extends": "../devTools/tsconfigs/tsconfig.base.json",
-    "compilerOptions": {
-        "outDir": "../itsJustJavascript/explorerAdminClient",
-        "rootDir": "."
-    },
-    "references": [{ "path": "../gitCms" }]
-}

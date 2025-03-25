@@ -32,8 +32,12 @@ import {
     GIT_CMS_REPO_URL,
 } from "../gitCms/GitCmsConstants.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
-import { AdminManager } from "../explorerAdminClient/AdminManager.js"
+import { AdminManager } from "./AdminManager.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+
+// export interface AdminManager {
+//     loadingIndicatorSetting?: "loading" | "off" | "default"
+// }
 
 @observer
 class ExplorerRow extends Component<{

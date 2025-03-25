@@ -25,11 +25,11 @@ import {
 } from "@ourworldindata/explorer"
 import { GitCmsClient } from "../gitCms/GitCmsClient.js"
 import { GIT_CMS_BASE_ROUTE } from "../gitCms/GitCmsConstants.js"
-import { AdminManager } from "../explorerAdminClient/AdminManager.js"
+import { AdminManager } from "./AdminManager.js"
 import {
     AutofillColDefCommand,
     SelectAllHitsCommand,
-} from "../explorerAdminClient/ExplorerCommands.js"
+} from "./ExplorerCommands.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ENV } from "../settings/clientSettings.js"
 
