@@ -20,6 +20,7 @@ import {
     getUserNavigatorLanguagesNonEnglish,
     getRegionAlternativeNames,
     toDate,
+    max,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -484,8 +485,12 @@ export class EntitySelector extends React.Component<{
         )
     }
 
+    private isEntityNameSlug(slug: ColumnSlug): boolean {
+        return slug === this.table.entityNameSlug
+    }
+
     @computed private get isSortedByName(): boolean {
-        return this.sortConfig.slug === this.table.entityNameSlug
+        return this.isEntityNameSlug(this.sortConfig.slug)
     }
 
     @computed private get entityType(): string {
@@ -739,6 +744,7 @@ export class EntitySelector extends React.Component<{
             )
             const variableTable = buildVariableTable(variable)
             const column = variableTable
+                .filterByEntityNames(this.availableEntityNames)
                 .interpolateColumnWithTolerance(slug, Infinity)
                 .get(slug)
             if (column) this.setInterpolatedSortColumn(column)
@@ -903,32 +909,48 @@ export class EntitySelector extends React.Component<{
         )
     }
 
-    @computed private get displayColumn(): CoreColumn | undefined {
+    @computed private get selectedSortColumn(): CoreColumn | undefined {
         const { sortConfig } = this
         if (this.isSortedByName) return undefined
         return this.interpolatedSortColumnsBySlug[sortConfig.slug]
     }
 
+    @computed private get selectedSortColumnMaxValue(): number | undefined {
+        const { selectedSortColumn, endTime } = this
+        if (!selectedSortColumn) return undefined
+        const time = this.clampWithinColumnTimeRange(
+            this.toColumnCompatibleTime(endTime, selectedSortColumn),
+            selectedSortColumn
+        )
+        const values = selectedSortColumn.valuesByTime.get(time)
+        return max(values)
+    }
+
     @computed private get barScale(): ScaleLinear<number, number> {
         return scaleLinear()
-            .domain([0, this.displayColumn?.maxValue ?? 1])
+            .domain([0, this.selectedSortColumnMaxValue ?? 1])
             .range([0, 1])
     }
 
     private getBarConfigForEntity(
         entity: SearchableEntity
     ): BarConfig | undefined {
-        const { displayColumn, barScale } = this
+        const { selectedSortColumn, barScale } = this
 
-        if (!displayColumn) return undefined
+        if (!selectedSortColumn) return undefined
 
-        const value = entity.sortColumnValues[displayColumn.slug]
+        const value = entity.sortColumnValues[selectedSortColumn.slug]
 
         if (!isFiniteWithGuard(value)) return { formattedValue: "No data" }
 
+        const formattedValue =
+            selectedSortColumn.formatValueShortWithAbbreviations(value)
+
+        if (value < 0) return { formattedValue, width: 0 }
+
         return {
             formattedValue:
-                displayColumn.formatValueShortWithAbbreviations(value),
+                selectedSortColumn.formatValueShortWithAbbreviations(value),
             width: clamp(barScale(value), 0, 1),
         }
     }

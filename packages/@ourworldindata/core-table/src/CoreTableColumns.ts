@@ -583,6 +583,16 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // todo: remove? Should not be on CoreTable
+    @imemo get valuesByTime(): Map<Time, JS_TYPE[]> {
+        const map = new Map<Time, JS_TYPE[]>()
+        this.owidRows.forEach((row) => {
+            if (!map.has(row.time)) map.set(row.time, [])
+            map.get(row.time)!.push(row.value)
+        })
+        return map
+    }
+
+    // todo: remove? Should not be on CoreTable
     // NOTE: this uses the original times, so any tolerance is effectively unapplied.
     @imemo get valueByEntityNameAndOriginalTime(): Map<
         EntityName,
