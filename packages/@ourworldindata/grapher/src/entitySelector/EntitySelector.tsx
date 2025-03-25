@@ -836,25 +836,31 @@ export class EntitySelector extends React.Component<{
     private renderSortBar(): React.ReactElement {
         return (
             <div className="entity-selector__sort-bar">
-                <span className="label grapher_label-2-regular grapher_light">
-                    Sort by
-                </span>
-                <Dropdown
-                    options={this.sortOptions}
-                    onChange={this.onChangeSortSlug}
-                    value={this.sortValue}
-                    isLoading={this.isLoadingExternalSortColumn}
-                />
-                <button
-                    type="button"
-                    className="sort"
-                    onClick={this.onChangeSortOrder}
+                <div
+                    id="entity-selector__sort-dropdown-label"
+                    className="label grapher_label-2-regular grapher_light"
                 >
-                    <SortIcon
-                        type={this.isSortedByName ? "text" : "numeric"}
-                        order={this.sortConfig.order}
+                    Sort by
+                </div>
+                <div className="entity-selector__sort-dropdown-and-button">
+                    <Dropdown
+                        options={this.sortOptions}
+                        onChange={this.onChangeSortSlug}
+                        value={this.sortValue}
+                        isLoading={this.isLoadingExternalSortColumn}
+                        aria-labelledby="entity-selector__sort-dropdown-label"
                     />
-                </button>
+                    <button
+                        type="button"
+                        className="sort"
+                        onClick={this.onChangeSortOrder}
+                    >
+                        <SortIcon
+                            type={this.isSortedByName ? "text" : "numeric"}
+                            order={this.sortConfig.order}
+                        />
+                    </button>
+                </div>
             </div>
         )
     }

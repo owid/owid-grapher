@@ -2,7 +2,7 @@
     --padding: var(--modal-padding, 16px);
 
     $sort-button-size: 32px;
-    $sort-button-margin: 16px;
+    $sort-button-margin: 8px;
 
     color: $dark-text;
 
@@ -101,10 +101,13 @@
 
     .entity-selector__sort-bar {
         padding: 0 var(--padding);
-        display: flex;
-        align-items: center;
         margin-top: 8px;
         margin-bottom: 16px;
+
+        .entity-selector__sort-dropdown-and-button {
+            display: flex;
+            align-items: center;
+        }
 
         .grapher-dropdown {
             flex-grow: 1;
@@ -112,7 +115,7 @@
 
         .label {
             flex-shrink: 0;
-            margin-right: 8px;
+            margin-bottom: 6px;
         }
 
         button.sort {
