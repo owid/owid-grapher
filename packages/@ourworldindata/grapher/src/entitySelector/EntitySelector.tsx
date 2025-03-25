@@ -304,9 +304,6 @@ export class EntitySelector extends React.Component<{
         const endTime = this.toColumnCompatibleTime(this.endTime, column)
         const clampedTime = this.clampWithinColumnTimeRange(endTime, column)
 
-        // don't add time to the label if it's the same as the currently selected time
-        if (endTime === clampedTime) return makeLabel(title)
-
         const formattedTime = column.formatTime(clampedTime)
         return makeLabel(title, formattedTime)
     }
