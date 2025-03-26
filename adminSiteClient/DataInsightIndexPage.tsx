@@ -431,6 +431,7 @@ export function DataInsightIndexPage() {
                           image: dataInsight.image
                               ? {
                                     ...dataInsight.image,
+                                    id: uploadedImage.id,
                                     filename: uploadedImage.filename!,
                                     cloudflareId: uploadedImage.cloudflareId!,
                                     originalWidth: uploadedImage.originalWidth!,
