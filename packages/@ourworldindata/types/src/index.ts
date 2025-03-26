@@ -571,6 +571,8 @@ export {
     type DbPlainMim,
     MimIncomeGroup,
     MimsTableName,
+    type DbPlainMimWithParentTagName,
+    type MimByParentTagNameDictionary,
 } from "./dbTypes/Mims.js"
 export {
     type DbEnrichedMultiDimDataPage,

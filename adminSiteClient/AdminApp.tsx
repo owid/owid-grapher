@@ -49,6 +49,7 @@ import { ChartViewIndexPage } from "./ChartViewIndexPage.js"
 import { ImageIndexPage } from "./ImagesIndexPage.js"
 import { DataInsightIndexPage } from "./DataInsightIndexPage.js"
 import { MultiDimIndexPage } from "./MultiDimIndexPage.js"
+import { MimsPage } from "./MimsPage.js"
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -193,6 +194,11 @@ export class AdminApp extends React.Component<{
                                             )}
                                         />
                                     )}
+                                />
+                                <Route
+                                    exact
+                                    path="/mims"
+                                    component={MimsPage}
                                 />
                                 <Route
                                     exact
