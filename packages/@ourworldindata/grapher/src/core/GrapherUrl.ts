@@ -39,7 +39,7 @@ export const grapherConfigToQueryParams = (
         zoomToSelection: config.zoomToSelection,
         endpointsOnly: config.compareEndPointsOnly,
         time: timeParam,
-        region: config.map?.projection,
+        region: config.map?.region,
         facet: config.selectedFacetStrategy,
         uniformYAxis: match(config.yAxis?.facetDomain)
             .with(FacetAxisDomain.shared, () => 0)
@@ -88,7 +88,7 @@ export const grapherObjectToQueryParams = (
         zoomToSelection: grapher.zoomToSelection ? "true" : undefined,
         endpointsOnly: grapher.compareEndPointsOnly ? "1" : "0",
         time: grapher.timeParam,
-        region: grapher.map.projection,
+        region: grapher.map.region,
         facet: grapher.selectedFacetStrategy,
         uniformYAxis:
             grapher.yAxis.facetDomain === FacetAxisDomain.independent

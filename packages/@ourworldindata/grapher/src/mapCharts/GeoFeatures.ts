@@ -1,5 +1,5 @@
 import * as topojson from "topojson-client"
-import { MapProjectionName } from "@ourworldindata/types"
+import { MapRegionName } from "@ourworldindata/types"
 import { GeoFeature, RenderFeature } from "./MapChartConstants"
 import { Bounds, PointVector } from "@ourworldindata/utils"
 import { MapProjectionGeos } from "./MapProjections"
@@ -15,14 +15,13 @@ const GeoFeatures: GeoFeature[] = (
 ).features
 
 // Get the svg path specification string for every feature
-const geoPathCache = new Map<MapProjectionName, string[]>()
-const geoPathsFor = (projectionName: MapProjectionName): string[] => {
-    if (geoPathCache.has(projectionName))
-        return geoPathCache.get(projectionName)!
+const geoPathCache = new Map<MapRegionName, string[]>()
+const geoPathsForProjectionOf = (regionName: MapRegionName): string[] => {
+    if (geoPathCache.has(regionName)) return geoPathCache.get(regionName)!
 
     // Use this context to round the path coordinates to a set number of decimal places
     const ctx = new GeoPathRoundingContext()
-    const projectionGeo = MapProjectionGeos[projectionName].context(ctx)
+    const projectionGeo = MapProjectionGeos[regionName].context(ctx)
     const strs = GeoFeatures.map((feature) => {
         ctx.beginPath() // restart the path
         projectionGeo(feature)
@@ -31,16 +30,17 @@ const geoPathsFor = (projectionName: MapProjectionName): string[] => {
 
     projectionGeo.context(null) // reset the context for future calls
 
-    geoPathCache.set(projectionName, strs)
-    return geoPathCache.get(projectionName)!
+    geoPathCache.set(regionName, strs)
+    return geoPathCache.get(regionName)!
 }
 
 // Get the bounding box for every geographical feature
-const geoBoundsCache = new Map<MapProjectionName, Bounds[]>()
-export const geoBoundsFor = (projectionName: MapProjectionName): Bounds[] => {
-    if (geoBoundsCache.has(projectionName))
-        return geoBoundsCache.get(projectionName)!
-    const projectionGeo = MapProjectionGeos[projectionName]
+const geoBoundsCache = new Map<MapRegionName, Bounds[]>()
+export const geoBoundsForProjectionOf = (
+    regionName: MapRegionName
+): Bounds[] => {
+    if (geoBoundsCache.has(regionName)) return geoBoundsCache.get(regionName)!
+    const projectionGeo = MapProjectionGeos[regionName]
     const bounds = GeoFeatures.map((feature) => {
         const corners = projectionGeo.bounds(feature)
 
@@ -58,19 +58,19 @@ export const geoBoundsFor = (projectionName: MapProjectionName): Bounds[] => {
         return bounds
     })
 
-    geoBoundsCache.set(projectionName, bounds)
-    return geoBoundsCache.get(projectionName)!
+    geoBoundsCache.set(regionName, bounds)
+    return geoBoundsCache.get(regionName)!
 }
 
 // Bundle GeoFeatures with the calculated info needed to render them
-const renderFeaturesCache = new Map<MapProjectionName, RenderFeature[]>()
-export const renderFeaturesFor = (
-    projectionName: MapProjectionName
+const renderFeaturesCache = new Map<MapRegionName, RenderFeature[]>()
+export const renderFeaturesForProjectionOf = (
+    regionName: MapRegionName
 ): RenderFeature[] => {
-    if (renderFeaturesCache.has(projectionName))
-        return renderFeaturesCache.get(projectionName)!
-    const geoBounds = geoBoundsFor(projectionName)
-    const geoPaths = geoPathsFor(projectionName)
+    if (renderFeaturesCache.has(regionName))
+        return renderFeaturesCache.get(regionName)!
+    const geoBounds = geoBoundsForProjectionOf(regionName)
+    const geoPaths = geoPathsForProjectionOf(regionName)
     const feats = GeoFeatures.map((geo, index) => ({
         id: geo.id as string,
         geo: geo,
@@ -79,6 +79,6 @@ export const renderFeaturesFor = (
         center: geoBounds[index].centerPos,
     }))
 
-    renderFeaturesCache.set(projectionName, feats)
-    return renderFeaturesCache.get(projectionName)!
+    renderFeaturesCache.set(regionName, feats)
+    return renderFeaturesCache.get(regionName)!
 }

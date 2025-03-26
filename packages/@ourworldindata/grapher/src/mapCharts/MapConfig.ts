@@ -1,5 +1,5 @@
 import { observable } from "mobx"
-import { MapProjectionName } from "@ourworldindata/types"
+import { MapRegionName } from "@ourworldindata/types"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
     ColumnSlug,
@@ -23,7 +23,7 @@ class MapConfigDefaults {
     @observable timeTolerance?: number
     @observable toleranceStrategy?: ToleranceStrategy
     @observable hideTimeline?: boolean
-    @observable projection = MapProjectionName.World
+    @observable region = MapRegionName.World
 
     @observable colorScale = new ColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value

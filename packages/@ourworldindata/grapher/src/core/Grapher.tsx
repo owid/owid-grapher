@@ -88,7 +88,7 @@ import {
     grapherKeysToSerialize,
     GrapherQueryParams,
     LegacyGrapherInterface,
-    MapProjectionName,
+    MapRegionName,
     LogoOption,
     ComparisonLineConfig,
     ColumnSlugs,
@@ -318,7 +318,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideFacetYDomainToggle?: boolean
     hideXScaleToggle?: boolean
     hideYScaleToggle?: boolean
-    hideMapProjectionMenu?: boolean
+    hideMapRegionDropdown?: boolean
     hideTableFilterToggle?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     hasTableTab?: boolean
@@ -703,8 +703,7 @@ export class Grapher
             this.compareEndPointsOnly = endpointsOnly === "1" ? true : undefined
 
         const region = params.region
-        if (region !== undefined)
-            this.map.projection = region as MapProjectionName
+        if (region !== undefined) this.map.region = region as MapRegionName
 
         // selection
         const selection = getSelectedEntityNamesParam(
@@ -3428,7 +3427,7 @@ export class Grapher
         this.minTime = authorsVersion.minTime
         this.maxTime = authorsVersion.maxTime
         this.map.time = authorsVersion.map.time
-        this.map.projection = authorsVersion.map.projection
+        this.map.region = authorsVersion.map.region
         this.showSelectionOnlyInDataTable =
             authorsVersion.showSelectionOnlyInDataTable
         this.showNoDataArea = authorsVersion.showNoDataArea
@@ -3828,7 +3827,7 @@ export class Grapher
     @observable hideFacetYDomainToggle = false
     @observable hideXScaleToggle = false
     @observable hideYScaleToggle = false
-    @observable hideMapProjectionMenu = false
+    @observable hideMapRegionDropdown = false
     @observable hideTableFilterToggle = false
     // enforces hiding an annotation, even if that means that a crucial piece of information is missing from the chart title
     @observable forceHideAnnotationFieldsInTitle: AnnotationFieldsInTitle = {

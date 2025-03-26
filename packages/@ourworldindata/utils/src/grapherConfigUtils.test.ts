@@ -3,7 +3,7 @@ import { expect, it, describe } from "vitest"
 import {
     DimensionProperty,
     GrapherInterface,
-    MapProjectionName,
+    MapRegionName,
     GRAPHER_TAB_OPTIONS,
 } from "@ourworldindata/types"
 import {
@@ -93,20 +93,20 @@ describe(mergeGrapherConfigs, () => {
             mergeGrapherConfigs(
                 {
                     map: {
-                        projection: MapProjectionName.World,
+                        region: MapRegionName.World,
                         time: 2000,
                     },
                 },
                 {
                     map: {
-                        projection: MapProjectionName.Africa,
+                        region: MapRegionName.Africa,
                         hideTimeline: true,
                     },
                 }
             )
         ).toEqual({
             map: {
-                projection: MapProjectionName.Africa,
+                region: MapRegionName.Africa,
                 time: 2000,
                 hideTimeline: true,
             },
@@ -262,7 +262,7 @@ describe(diffGrapherConfigs, () => {
                     title: "Chart",
                     tab: GRAPHER_TAB_OPTIONS.chart,
                     map: {
-                        projection: MapProjectionName.World,
+                        region: MapRegionName.World,
                         hideTimeline: true,
                     },
                 },
@@ -270,7 +270,7 @@ describe(diffGrapherConfigs, () => {
                     title: "Reference chart",
                     tab: GRAPHER_TAB_OPTIONS.chart,
                     map: {
-                        projection: MapProjectionName.World,
+                        region: MapRegionName.World,
                         hideTimeline: false,
                     },
                 }
@@ -281,14 +281,14 @@ describe(diffGrapherConfigs, () => {
                 {
                     tab: GRAPHER_TAB_OPTIONS.chart,
                     map: {
-                        projection: MapProjectionName.World,
+                        region: MapRegionName.World,
                         hideTimeline: true,
                     },
                 },
                 {
                     tab: GRAPHER_TAB_OPTIONS.chart,
                     map: {
-                        projection: MapProjectionName.World,
+                        region: MapRegionName.World,
                         hideTimeline: true,
                     },
                 }
