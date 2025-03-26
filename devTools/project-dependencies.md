@@ -9,7 +9,6 @@ graph TD;
     coreTable;
     db;
     explorer;
-    explorerAdminClient;
     explorerAdminServer;
     gitCms;
     grapher;
@@ -20,7 +19,6 @@ graph TD;
 
     adminSiteClient --> clientUtils;
     adminSiteClient --> explorer;
-    adminSiteClient --> explorerAdminClient;
     adminSiteClient --> grapher;
     adminSiteClient --> settings;
     adminSiteClient --> site;
@@ -54,13 +52,6 @@ graph TD;
     explorer --> coreTable;
     explorer --> grapher;
     explorer --> gridLang;
-
-    explorerAdminClient --> clientUtils;
-    explorerAdminClient --> coreTable;
-    explorerAdminClient --> explorer;
-    explorerAdminClient --> gitCms;
-    explorerAdminClient --> grapher;
-    explorerAdminClient --> gridLang;
 
     explorerAdminServer --> clientUtils;
     explorerAdminServer --> coreTable;

@@ -11,7 +11,7 @@ export const SiteResources = () => {
                 <a href="/sdgs">SDG Tracker</a>
             </li>
             <li>
-                <a href="/teaching">Teaching Materials</a>
+                <a href="/teaching">Teaching with OWID</a>
             </li>
         </ul>
     )
