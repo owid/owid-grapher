@@ -156,10 +156,11 @@
     }
 
     .donation-submit {
+        display: inline-block;
+        border: 1px solid $vermillion;
         padding: 12px 24px;
         background-color: $vermillion;
         color: white;
-        border: none;
         @include body-2-semibold;
         cursor: pointer;
 
@@ -178,8 +179,6 @@
     }
 
     .donation-submit--light {
-        display: inline-block;
-        border: 1px solid $vermillion;
         background-color: $white;
         color: $vermillion;
 

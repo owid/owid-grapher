@@ -40,7 +40,11 @@ const analytics = new SiteAnalytics()
 
 // The rule doesn't support class components in the same file.
 // eslint-disable-next-line react-refresh/only-export-components
-function EveryOrgSection() {
+function EveryOrgSection({
+    buttonVariant,
+}: {
+    buttonVariant: "primary" | "secondary"
+}) {
     return (
         <div className="donation-payment">
             <p className="donation-payment__or">
@@ -49,7 +53,9 @@ function EveryOrgSection() {
             </p>
             <a
                 href="https://www.every.org/ourworldindata?donateTo=ourworldindata#/donate/card"
-                className="donation-submit donation-submit--light"
+                className={cx("donation-submit", {
+                    "donation-submit--light": buttonVariant === "secondary",
+                })}
             >
                 Donate via every.org
                 <FontAwesomeIcon
@@ -175,6 +181,10 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
         return getCurrencySymbol(this.currencyCode)
     }
 
+    @computed get isUsa(): boolean {
+        return this.props.countryCode === "USA"
+    }
+
     async submitDonation(): Promise<void> {
         const requestBodyForClientSideValidation: DonationRequest = {
             // Don't send the name if the reader doesn't want to appear on the
@@ -287,9 +297,9 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
     render() {
         return (
             <form className="donate-form" onSubmit={this.onSubmit}>
-                {this.props.countryCode === "USA" && (
+                {this.isUsa && (
                     <>
-                        <EveryOrgSection />
+                        <EveryOrgSection buttonVariant="primary" />
                         <p className="donation-payment__or">
                             You can also donate via Stripe by using the form
                             below.
@@ -433,7 +443,9 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
                     <button
                         aria-label="Submit donation"
                         type="submit"
-                        className="donation-submit"
+                        className={cx("donation-submit", {
+                            "donation-submit--light": this.isUsa,
+                        })}
                         disabled={this.isLoading || this.isSubmitting}
                         onClick={() => analytics.logSiteClick("donate-now")}
                     >
@@ -477,7 +489,7 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
                         </li>
                     </ul>
                 </div>
-                {this.props.countryCode !== "USA" && <EveryOrgSection />}
+                {!this.isUsa && <EveryOrgSection buttonVariant="secondary" />}
                 <p className="donation-note">
                     This site is protected by reCAPTCHA and the Google{" "}
                     <a href="https://policies.google.com/privacy">
