@@ -34,6 +34,7 @@ import {
     PostsGdocsTableName,
     OwidGdocBaseInterface,
     TagGraphRoot,
+    MimByParentTagNameDictionary,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash-es"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -885,6 +886,65 @@ export async function generateTopicTagGraph(
     )
 
     return createTagGraph(tagGraphTopicsOnly, __rootId)
+}
+
+/**
+ * Fetch all area and topic tag names from the database.
+ * Areas are the top-level children of the tag graph root, and don't have a slug.
+ * Topics are any tags that have a slug.
+ */
+const getAllAreaAndTopicTagNames = async (
+    trx: KnexReadonlyTransaction
+): Promise<string[]> => {
+    const results = await knexRaw<{ name: string }>(
+        trx,
+        `-- sql
+        WITH topic_tags AS (
+            SELECT name
+            FROM tags
+            WHERE slug IS NOT NULL
+        ),
+        area_tags AS (
+            SELECT t.name
+            FROM tags t
+            JOIN tag_graph tg ON tg.childId = t.id
+            JOIN tags root ON tg.parentId = root.id
+            WHERE root.name = '${TagGraphRootName}'
+        )
+        SELECT name FROM topic_tags
+        UNION
+        SELECT name FROM area_tags`
+    )
+
+    return results.map((row) => row.name)
+}
+
+export const getMimsByParentTagName = async (
+    trx: KnexReadonlyTransaction
+): Promise<MimByParentTagNameDictionary> => {
+    const areaAndTopicTags = await getAllAreaAndTopicTagNames(trx)
+
+    // Prepopulate a dictionary with every topic tag and area
+    // This is to ensure that we have a key for every tag, even if it has no MIMs
+    const blankMimsByParentTagName = areaAndTopicTags.reduce(
+        (acc, tag) => ({
+            ...acc,
+            [tag]: [],
+        }),
+        {} as MimByParentTagNameDictionary
+    )
+
+    const mimsByParentTagName = (await knexRaw(
+        trx,
+        `-- sql
+        SELECT m.*, t.name AS parentTagName, t.id AS parentTagId FROM mims m
+        JOIN tags t ON m.parentTagId = t.id
+        ORDER BY m.ranking ASC`
+    ).then((rows) =>
+        groupBy(rows, "parentTagName")
+    )) as MimByParentTagNameDictionary
+
+    return { ...blankMimsByParentTagName, ...mimsByParentTagName }
 }
 
 export const getUniqueTopicCount = async (
