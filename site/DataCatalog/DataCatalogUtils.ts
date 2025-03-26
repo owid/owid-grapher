@@ -264,3 +264,24 @@ export async function querySearch(
         .search<IDataCatalogHit>(searchParams)
         .then(formatAlgoliaSearchResponse)
 }
+
+// Function to query the pages index for data insights
+export const queryDataInsights = async (
+    searchClient: SearchClient,
+    state: DataCatalogState
+): Promise<DataCatalogPageSearchResult> => {
+    const index = searchClient.initIndex(getIndexName(SearchIndexName.Pages))
+    const { query, page } = state
+
+    const facetFilters = [`type:data-insight`]
+    facetFilters.push(...setToFacetFilters(state.topics, "tags"))
+
+    const results = await index.search<IPageHit>(query, {
+        page,
+        hitsPerPage: 2,
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        facetFilters,
+    })
+    return results
+}

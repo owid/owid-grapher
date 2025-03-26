@@ -41,6 +41,7 @@ import {
     DataCatalogRibbonResult,
     DataCatalogSearchResult,
     getCountryData,
+    queryDataInsights,
     queryRibbons,
     querySearch,
     syncDataCatalogURL,
@@ -64,8 +65,6 @@ import {
     TOUCH_DEVICE_MEDIA_QUERY,
 } from "../SiteConstants.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import { getIndexName } from "../search/searchClient.js"
-import { IPageHit, SearchIndexName } from "../search/searchTypes.js"
 import { PagesHit } from "../search/SearchPanel.js"
 
 const analytics = new SiteAnalytics()
@@ -825,35 +824,7 @@ const DataCatalogSearchbar = ({
     )
 }
 
-// Page search results component for Data Catalog
-
-// Function to query the pages index
-const queryPageSearch = async (
-    searchClient: SearchClient,
-    state: DataCatalogState
-): Promise<DataCatalogPageSearchResult> => {
-    // if (!state.query) {
-    //     return {
-    //         hits: [],
-    //         nbHits: 0,
-    //         page: 0,
-    //         nbPages: 0,
-    //     }
-    // }
-
-    const index = searchClient.initIndex(getIndexName(SearchIndexName.Pages))
-    const { query, page } = state
-
-    const results = await index.search<IPageHit>(query, {
-        page,
-        hitsPerPage: 4,
-        highlightPreTag: "<mark>",
-        highlightPostTag: "</mark>",
-    })
-    return results
-}
-
-const DataCatalogPagesResults = ({
+const DataCatalogDataInsights = ({
     results,
 }: {
     results?: DataCatalogPageSearchResult
@@ -873,11 +844,11 @@ const DataCatalogPagesResults = ({
                 <header className="search-results__header-container">
                     <div className="search-results__header">
                         <h2 className="h2-bold search-results__section-title">
-                            Research & Writing
+                            Data insights
                         </h2>
-                        {nbHits > 4 && (
+                        {nbHits > 2 && (
                             <div className="search-results__show-more-container">
-                                <em>{`Showing 4 of ${commafyNumber(nbHits)} results`}</em>
+                                <em>{`Showing 2 of ${commafyNumber(nbHits)} results`}</em>
                             </div>
                         )}
                     </div>
@@ -947,7 +918,7 @@ export const DataCatalog = ({
                 ? await queryRibbons(searchClient, state, tagGraph)
                 : await querySearch(searchClient, state)
 
-            const pages = await queryPageSearch(searchClient, state)
+            const pages = await queryDataInsights(searchClient, state)
 
             setCache((prevCache) => ({
                 ...prevCache,
@@ -1013,7 +984,7 @@ export const DataCatalog = ({
                 removeTopic={actions.removeTopic}
             />
 
-            <DataCatalogPagesResults results={cache["pages"].get(stateAsUrl)} />
+            <DataCatalogDataInsights results={cache["pages"].get(stateAsUrl)} />
 
             {shouldShowRibbons ? (
                 <DataCatalogRibbonView
