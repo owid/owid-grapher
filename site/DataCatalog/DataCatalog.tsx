@@ -37,6 +37,7 @@ import {
 import {
     checkShouldShowRibbonView,
     DataCatalogCache,
+    DataCatalogPageSearchResult,
     DataCatalogRibbonResult,
     DataCatalogSearchResult,
     getCountryData,
@@ -63,6 +64,9 @@ import {
     TOUCH_DEVICE_MEDIA_QUERY,
 } from "../SiteConstants.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import { getIndexName } from "../search/searchClient.js"
+import { IPageHit, SearchIndexName } from "../search/searchTypes.js"
+import { PagesHit } from "../search/SearchPanel.js"
 
 const analytics = new SiteAnalytics()
 
@@ -821,6 +825,80 @@ const DataCatalogSearchbar = ({
     )
 }
 
+// Page search results component for Data Catalog
+
+// Function to query the pages index
+const queryPageSearch = async (
+    searchClient: SearchClient,
+    state: DataCatalogState
+): Promise<DataCatalogPageSearchResult> => {
+    // if (!state.query) {
+    //     return {
+    //         hits: [],
+    //         nbHits: 0,
+    //         page: 0,
+    //         nbPages: 0,
+    //     }
+    // }
+
+    const index = searchClient.initIndex(getIndexName(SearchIndexName.Pages))
+    const { query, page } = state
+
+    const results = await index.search<IPageHit>(query, {
+        page,
+        hitsPerPage: 4,
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+    })
+    return results
+}
+
+const DataCatalogPagesResults = ({
+    results,
+}: {
+    results?: DataCatalogPageSearchResult
+}) => {
+    const hits = results?.hits
+    if (!hits || !hits.length) return null
+
+    const { nbHits } = results
+
+    return (
+        <div
+            className="search-results span-cols-12 col-start-2"
+            style={{ marginBottom: "2rem" }}
+            data-active-filter="all"
+        >
+            <section className="search-results__pages">
+                <header className="search-results__header-container">
+                    <div className="search-results__header">
+                        <h2 className="h2-bold search-results__section-title">
+                            Research & Writing
+                        </h2>
+                        {nbHits > 4 && (
+                            <div className="search-results__show-more-container">
+                                <em>{`Showing 4 of ${commafyNumber(nbHits)} results`}</em>
+                            </div>
+                        )}
+                    </div>
+                </header>
+                <div className="search-results__list-container">
+                    <ul className="search-results__pages-list grid grid-cols-2 grid-sm-cols-1">
+                        {hits.map((hit) => (
+                            <li
+                                className="search-results__page-hit"
+                                key={hit.objectID}
+                            >
+                                <PagesHit hit={hit} />
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </section>
+        </div>
+    )
+}
+
 export const DataCatalog = ({
     initialState,
     tagGraph,
@@ -836,6 +914,7 @@ export const DataCatalog = ({
     const [cache, setCache] = useState<DataCatalogCache>({
         ribbons: new Map(),
         search: new Map(),
+        pages: new Map(),
     })
     const AREA_NAMES = useMemo(
         () => tagGraph.children.map((child) => child.name),
@@ -867,9 +946,13 @@ export const DataCatalog = ({
             const results = shouldShowRibbons
                 ? await queryRibbons(searchClient, state, tagGraph)
                 : await querySearch(searchClient, state)
+
+            const pages = await queryPageSearch(searchClient, state)
+
             setCache((prevCache) => ({
                 ...prevCache,
                 [cacheKey]: prevCache[cacheKey].set(stateAsUrl, results as any),
+                pages: prevCache.pages.set(stateAsUrl, pages),
             }))
         }
 
@@ -929,6 +1012,9 @@ export const DataCatalog = ({
                 topics={state.topics}
                 removeTopic={actions.removeTopic}
             />
+
+            <DataCatalogPagesResults results={cache["pages"].get(stateAsUrl)} />
+
             {shouldShowRibbons ? (
                 <DataCatalogRibbonView
                     addTopic={actions.addTopic}

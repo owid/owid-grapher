@@ -4,7 +4,11 @@ import {
     SearchResponse,
 } from "instantsearch.js"
 import { getIndexName } from "../search/searchClient.js"
-import { ChartRecordType, SearchIndexName } from "../search/searchTypes.js"
+import {
+    ChartRecordType,
+    IPageHit,
+    SearchIndexName,
+} from "../search/searchTypes.js"
 import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { DataCatalogState } from "./DataCatalogState.js"
 import { countriesByName, Region } from "@ourworldindata/utils"
@@ -63,9 +67,12 @@ export type DataCatalogRibbonResult = SearchResponse<IDataCatalogHit> & {
     title: string
 }
 
+export type DataCatalogPageSearchResult = SearchResponse<IPageHit>
+
 export type DataCatalogCache = {
     ribbons: Map<string, DataCatalogRibbonResult[]>
     search: Map<string, DataCatalogSearchResult>
+    pages: Map<string, DataCatalogPageSearchResult>
 }
 
 /**

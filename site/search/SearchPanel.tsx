@@ -66,8 +66,8 @@ import { getCanonicalUrl } from "@ourworldindata/components"
 const siteAnalytics = new SiteAnalytics()
 
 // The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
-function PagesHit({ hit }: { hit: IPageHit }) {
+
+export function PagesHit({ hit }: { hit: IPageHit }) {
     const dateline =
         hit.type === OwidGdocType.DataInsight && hit.date ? (
             <DataInsightDateline
@@ -147,7 +147,7 @@ const getNumberOfExplorerHits = (rawHits: IExplorerViewHit[]) =>
     uniqBy(rawHits, "explorerSlug").length
 
 // The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
+
 function ExplorerViewHits({
     countriesRegionsToSelect,
 }: {
@@ -199,7 +199,7 @@ function ExplorerViewHits({
 }
 
 // The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
+
 function ExplorerHit({
     groupedHit,
     cardPosition,
@@ -315,7 +315,7 @@ function ExplorerHit({
 }
 
 // The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
+
 function ShowMore({
     category,
     cutoffNumber,
@@ -365,7 +365,7 @@ function ShowMore({
 }
 
 // The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
+
 function Filters({
     isHidden,
     categoryFilterContainerRef,
@@ -434,7 +434,7 @@ function Filters({
 }
 
 // The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
+
 function NoResultsBoundary({ children }: { children: React.ReactElement }) {
     const { results } = useInstantSearch()
 
@@ -464,7 +464,7 @@ const PAGES_ATTRIBUTES_TO_SEARCH_NO_FULLTEXT: (keyof PageRecord)[] = [
 ] // Should be a subset of the `searchableAttributes` set up in `configureAlgolia` for the `pages` index; minus the "content" attribute
 
 // The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
+
 const SearchResults = (props: SearchResultsProps) => {
     const { scopedResults } = useInstantSearch()
     const { activeCategoryFilter, isHidden, handleCategoryFilterClick } = props
