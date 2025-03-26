@@ -17,6 +17,8 @@ import {
     MAP_HOVER_TARGET_RANGE,
     DEFAULT_STROKE_COLOR,
     CHOROPLETH_MAP_CLASSNAME,
+    MAP_VIEWPORTS,
+    MapViewport,
 } from "./MapChartConstants"
 import { Patterns } from "../core/GrapherConstants"
 import { ColorScaleBin } from "../color/ColorScaleBin"
@@ -90,23 +92,8 @@ export class ChoroplethMap extends React.Component<{
     }
 
     // Viewport for each projection, defined by center and width+height in fractional coordinates
-    @computed private get viewport(): {
-        x: number
-        y: number
-        width: number
-        height: number
-    } {
-        const viewports = {
-            World: { x: 0.565, y: 0.5, width: 1, height: 1 },
-            Europe: { x: 0.53, y: 0.22, width: 0.2, height: 0.2 },
-            Africa: { x: 0.49, y: 0.7, width: 0.21, height: 0.38 },
-            NorthAmerica: { x: 0.49, y: 0.4, width: 0.19, height: 0.32 },
-            SouthAmerica: { x: 0.52, y: 0.815, width: 0.1, height: 0.26 },
-            Asia: { x: 0.74, y: 0.45, width: 0.36, height: 0.5 },
-            Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2 },
-        }
-
-        return viewports[this.manager.projection]
+    @computed private get viewport(): MapViewport {
+        return MAP_VIEWPORTS[this.manager.projection]
     }
 
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
