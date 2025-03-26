@@ -13,6 +13,7 @@ import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { DataCatalogState } from "./DataCatalogState.js"
 import { countriesByName, Region } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
+import { SiteAnalytics } from "../SiteAnalytics.js"
 
 /**
  * Constants
@@ -285,3 +286,5 @@ export const queryDataInsights = async (
     })
     return results
 }
+
+export const analytics = new SiteAnalytics()
