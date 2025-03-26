@@ -388,10 +388,7 @@ $reset-button-margin: 16px;
         .search-results__pages,
         .search-results__explorers,
         .search-results__charts {
-            // both needed for .search-results__show-more-container absolute-positioning
-            display: inline-block;
-            position: relative;
-            width: 100%;
+            display: block;
         }
 
         // On the "All" tab, limit to the first 4 pages, 4 charts, and 2 explorer views
