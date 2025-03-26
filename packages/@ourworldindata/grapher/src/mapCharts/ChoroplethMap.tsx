@@ -225,11 +225,6 @@ export class ChoroplethMap extends React.Component<{
         return this.hoverEnterFeature || this.hoverNearbyFeature
     }
 
-    @action.bound private onClick(ev: React.MouseEvent<SVGGElement>): void {
-        if (this.hoverFeature !== undefined)
-            this.manager.onClick(this.hoverFeature.geo, ev)
-    }
-
     // If true selected countries will have an outline
     @observable private showSelectedStyle = false
 
