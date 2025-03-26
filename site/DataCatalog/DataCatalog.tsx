@@ -465,6 +465,39 @@ const DataCatalogRibbon = ({
     )
 }
 
+const TopicsRefinementListWrapper = ({
+    results,
+    topics,
+    addTopic,
+}: {
+    results?: DataCatalogSearchResult | DataCatalogRibbonResult[]
+    topics: Set<string>
+    addTopic: (topic: string) => void
+}) => {
+    // Extract facets based on result type
+    const facets = useMemo(() => {
+        if (!results) return {}
+
+        // If results is an array, it's DataCatalogRibbonResult[]
+        if (Array.isArray(results)) {
+            return Object.fromEntries(
+                results.map((result) => [result.title, result.nbHits])
+            )
+        }
+
+        // Otherwise it's DataCatalogSearchResult
+        return results.facets?.tags || {}
+    }, [results])
+
+    return (
+        <TopicsRefinementList
+            topics={topics}
+            facets={facets}
+            addTopic={addTopic}
+        />
+    )
+}
+
 const DataCatalogRibbonView = ({
     addTopic,
     results,
@@ -484,27 +517,18 @@ const DataCatalogRibbonView = ({
         return <DataCatalogRibbonViewSkeleton topics={topics} />
     }
 
-    const resultsSortedByHitCount = results?.sort((a, b) => b.nbHits - a.nbHits)
-
-    const ribbonFacets = resultsSortedByHitCount
-        ? Object.fromEntries(
-              resultsSortedByHitCount.map((result) => [
-                  result.title,
-                  result.nbHits,
-              ])
-          )
-        : {}
+    // const resultsSortedByHitCount = results?.sort((a, b) => b.nbHits - a.nbHits)
 
     return (
         <>
             <LandingPageRefinementsHeading topics={topics} />
-            <TopicsRefinementList
+            <TopicsRefinementListWrapper
                 topics={topics}
-                facets={ribbonFacets}
+                results={results}
                 addTopic={addTopic}
             />
             <div className="span-cols-14 grid grid-cols-12-full-width data-catalog-ribbons">
-                {resultsSortedByHitCount?.map((result) => (
+                {results?.map((result) => (
                     <DataCatalogRibbon
                         key={result.title}
                         result={result}
@@ -554,12 +578,12 @@ const DataCatalogResults = ({
     const hits = results?.hits
     if (!hits || !hits.length) return <DataCatalogNoResults />
 
-    const { facets, page, nbPages, nbHits } = results
+    const { page, nbPages, nbHits } = results
     return (
         <>
-            <TopicsRefinementList
+            <TopicsRefinementListWrapper
                 topics={topics}
-                facets={facets?.tags}
+                results={results}
                 addTopic={addTopic}
             />
             <div className="span-cols-12 col-start-2 data-catalog-search-hits">
@@ -982,6 +1006,12 @@ export const DataCatalog = ({
             <AppliedTopicFiltersList
                 topics={state.topics}
                 removeTopic={actions.removeTopic}
+            />
+
+            <TopicsRefinementListWrapper
+                topics={state.topics}
+                results={currentResults}
+                addTopic={actions.addTopic}
             />
 
             <DataCatalogDataInsights results={cache["pages"].get(stateAsUrl)} />
