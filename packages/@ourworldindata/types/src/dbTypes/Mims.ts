@@ -17,3 +17,12 @@ export interface DbInsertMim {
 }
 
 export type DbPlainMim = Required<DbInsertMim>
+
+export type DbPlainMimWithParentTagName = DbPlainMim & {
+    parentTagName: string
+}
+
+export type MimByParentTagNameDictionary = Record<
+    string,
+    DbPlainMimWithParentTagName[]
+>
