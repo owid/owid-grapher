@@ -102,6 +102,9 @@ function EveryOrgSection({
                 <li className="donation-payment-benefits__item">
                     You can use this option for donor-advised fund (DAF) grants
                 </li>
+                <li className="donation-payment-benefits__item">
+                    You can include your name on our public list of donors
+                </li>
             </ul>
         </div>
     )
