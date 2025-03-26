@@ -145,6 +145,12 @@ import {
 } from "./apiRoutes/dataInsights.js"
 import { getFigmaImageUrl } from "./apiRoutes/figma.js"
 import { sendMessageToSlack } from "./apiRoutes/slack.js"
+import {
+    createMim,
+    deleteMim,
+    fetchMims,
+    rerankMims,
+} from "./apiRoutes/mims.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -312,6 +318,12 @@ deleteRouteWithRWTransaction(
     "/explorers/:slug",
     handleDeleteExplorer
 )
+
+// Mim routes
+getRouteWithROTransaction(apiRouter, "/mims.json", fetchMims)
+postRouteWithRWTransaction(apiRouter, "/mims/new", createMim)
+postRouteWithRWTransaction(apiRouter, "/mims/rerank", rerankMims)
+deleteRouteWithRWTransaction(apiRouter, "/mims/:id", deleteMim)
 
 // Misc routes
 getRouteWithROTransaction(apiRouter, "/all-work", fetchAllWork)
