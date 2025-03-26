@@ -20,7 +20,6 @@ import {
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS,
     ExplorerProgram,
-    makeFullPath,
     isEmpty,
 } from "@ourworldindata/explorer"
 import { AdminManager } from "./AdminManager.js"
