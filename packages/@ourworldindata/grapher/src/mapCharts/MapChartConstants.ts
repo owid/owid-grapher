@@ -16,6 +16,9 @@ export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin
 export const MAP_HOVER_TARGET_RANGE = 20
 
+export const DEFAULT_STROKE_COLOR = "#333"
+export const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
+
 export interface MapEntity {
     id: string | number | undefined
     series:
