@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState } from "react"
+import React, { useEffect, useMemo, useReducer, useState } from "react"
 import { TagGraphRoot, Url } from "@ourworldindata/utils"
 import algoliasearch, { SearchClient } from "algoliasearch"
 import {
@@ -24,6 +24,7 @@ import {
     dataCatalogReducer,
     DataCatalogState,
     createActions,
+    CatalogComponentId,
 } from "./DataCatalogState.js"
 import { TopicsRefinementListWrapper } from "./TopicsRefinementListWrapper.js"
 import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
@@ -45,7 +46,6 @@ export const DataCatalog = ({
     const [state, dispatch] = useReducer(dataCatalogReducer, initialState)
     const actions = createActions(dispatch)
     const [isLoading, setIsLoading] = useState(false)
-    // Remove drawerOpen state as it's now in the DataCatalogSettings component
     const [cache, setCache] = useState<DataCatalogCache>({
         ribbons: new Map(),
         search: new Map(),
@@ -118,6 +118,42 @@ export const DataCatalog = ({
         }
     }, [actions])
 
+    // Components that can be reordered and toggled
+    const componentMap: Record<CatalogComponentId, JSX.Element> = {
+        [CatalogComponentId.APPLIED_FILTERS]: (
+            <AppliedTopicFiltersList
+                topics={state.topics}
+                removeTopic={actions.removeTopic}
+            />
+        ),
+        [CatalogComponentId.TOPICS_REFINEMENT]: (
+            <TopicsRefinementListWrapper
+                topics={state.topics}
+                results={currentResults}
+                addTopic={actions.addTopic}
+            />
+        ),
+        [CatalogComponentId.DATA_INSIGHTS]: (
+            <DataCatalogDataInsights results={cache["pages"].get(stateAsUrl)} />
+        ),
+        [CatalogComponentId.RESULTS]: shouldShowRibbons ? (
+            <DataCatalogRibbonView
+                addTopic={actions.addTopic}
+                isLoading={isLoading}
+                results={currentResults as DataCatalogRibbonResult[]}
+                selectedCountries={selectedCountries}
+                topics={state.topics}
+            />
+        ) : (
+            <DataCatalogResults
+                isLoading={isLoading}
+                results={currentResults as DataCatalogSearchResult}
+                selectedCountries={selectedCountries}
+                setPage={actions.setPage}
+            />
+        ),
+    }
+
     return (
         <>
             <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
@@ -144,36 +180,19 @@ export const DataCatalog = ({
                 </div>
             </div>
 
-            <AppliedTopicFiltersList
-                topics={state.topics}
-                removeTopic={actions.removeTopic}
+            {/* Render components according to the configured order and visibility */}
+            {state.componentOrder
+                .filter((id) => state.componentVisibility[id])
+                .map((id) => (
+                    <React.Fragment key={id}>{componentMap[id]}</React.Fragment>
+                ))}
+
+            <DataCatalogSettings
+                componentOrder={state.componentOrder}
+                componentVisibility={state.componentVisibility}
+                updateComponentOrder={actions.updateComponentOrder}
+                toggleComponentVisibility={actions.toggleComponentVisibility}
             />
-
-            <TopicsRefinementListWrapper
-                topics={state.topics}
-                results={currentResults}
-                addTopic={actions.addTopic}
-            />
-
-            <DataCatalogDataInsights results={cache["pages"].get(stateAsUrl)} />
-
-            {shouldShowRibbons ? (
-                <DataCatalogRibbonView
-                    addTopic={actions.addTopic}
-                    isLoading={isLoading}
-                    results={currentResults as DataCatalogRibbonResult[]}
-                    selectedCountries={selectedCountries}
-                    topics={state.topics}
-                />
-            ) : (
-                <DataCatalogResults
-                    isLoading={isLoading}
-                    results={currentResults as DataCatalogSearchResult}
-                    selectedCountries={selectedCountries}
-                    setPage={actions.setPage}
-                />
-            )}
-            <DataCatalogSettings />
         </>
     )
 }

@@ -2,13 +2,49 @@ import { Url } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { deserializeSet, serializeSet } from "./DataCatalogUtils.js"
 
+// Define component IDs as an enum
+export enum CatalogComponentId {
+    APPLIED_FILTERS = "appliedFilters",
+    TOPICS_REFINEMENT = "topicsRefinement",
+    DATA_INSIGHTS = "dataInsights",
+    RESULTS = "results",
+}
+
 export type DataCatalogState = Readonly<{
     query: string
     topics: Set<string>
     selectedCountryNames: Set<string>
     requireAllCountries: boolean
     page: number
+    componentOrder: CatalogComponentId[]
+    componentVisibility: Record<CatalogComponentId, boolean>
 }>
+
+export interface ComponentConfig {
+    id: CatalogComponentId
+    name: string
+    visible: boolean
+}
+
+// Define available components with default order
+export const DEFAULT_COMPONENTS: ComponentConfig[] = [
+    {
+        id: CatalogComponentId.APPLIED_FILTERS,
+        name: "Applied Filters",
+        visible: true,
+    },
+    {
+        id: CatalogComponentId.TOPICS_REFINEMENT,
+        name: "Topics",
+        visible: true,
+    },
+    {
+        id: CatalogComponentId.DATA_INSIGHTS,
+        name: "Data Insights",
+        visible: true,
+    },
+    { id: CatalogComponentId.RESULTS, name: "Results", visible: true },
+]
 
 type AddTopicAction = {
     type: "addTopic"
@@ -49,6 +85,16 @@ type SetPageAction = {
     page: number
 }
 
+type UpdateComponentOrderAction = {
+    type: "updateComponentOrder"
+    payload: CatalogComponentId[]
+}
+
+type ToggleComponentVisibilityAction = {
+    type: "toggleComponentVisibility"
+    payload: CatalogComponentId
+}
+
 export type DataCatalogAction =
     | AddCountryAction
     | AddTopicAction
@@ -58,6 +104,8 @@ export type DataCatalogAction =
     | SetQueryAction
     | SetStateAction
     | ToggleRequireAllCountriesAction
+    | UpdateComponentOrderAction
+    | ToggleComponentVisibilityAction
 
 export function dataCatalogReducer(
     state: DataCatalogState,
@@ -110,6 +158,17 @@ export function dataCatalogReducer(
             page,
         }))
         .with({ type: "setState" }, ({ state }) => state)
+        .with({ type: "updateComponentOrder" }, ({ payload }) => ({
+            ...state,
+            componentOrder: payload,
+        }))
+        .with({ type: "toggleComponentVisibility" }, ({ payload }) => ({
+            ...state,
+            componentVisibility: {
+                ...state.componentVisibility,
+                [payload]: !state.componentVisibility[payload],
+            },
+        }))
         .exhaustive()
 }
 
@@ -124,6 +183,8 @@ export function createActions(dispatch: (action: DataCatalogAction) => void) {
         setQuery: (query: string) => dispatch({ type: "setQuery", query }),
         setState: (state: DataCatalogState) => dispatch({ type: "setState", state }),
         toggleRequireAllCountries: () => dispatch({ type: "toggleRequireAllCountries" }),
+        updateComponentOrder: (componentOrder: CatalogComponentId[]) => dispatch({ type: "updateComponentOrder", payload: componentOrder }),
+        toggleComponentVisibility: (componentId: CatalogComponentId) => dispatch({ type: "toggleComponentVisibility", payload: componentId }),
     }
 }
 
@@ -135,10 +196,23 @@ export function getInitialDatacatalogState(): DataCatalogState {
             selectedCountryNames: new Set(),
             requireAllCountries: false,
             page: 0,
+            componentOrder: DEFAULT_COMPONENTS.map((c) => c.id),
+            componentVisibility: Object.fromEntries(
+                DEFAULT_COMPONENTS.map((c) => [c.id, c.visible])
+            ) as Record<CatalogComponentId, boolean>,
         }
 
     const url = Url.fromURL(window.location.href)
-    return urlToDataCatalogState(url)
+    const state = urlToDataCatalogState(url)
+
+    // Add component configuration with defaults
+    return {
+        ...state,
+        componentOrder: DEFAULT_COMPONENTS.map((c) => c.id),
+        componentVisibility: Object.fromEntries(
+            DEFAULT_COMPONENTS.map((c) => [c.id, c.visible])
+        ) as Record<CatalogComponentId, boolean>,
+    }
 }
 
 export function urlToDataCatalogState(url: Url): DataCatalogState {
@@ -148,6 +222,10 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
         selectedCountryNames: deserializeSet(url.queryParams.countries),
         requireAllCountries: url.queryParams.requireAllCountries === "true",
         page: url.queryParams.page ? parseInt(url.queryParams.page) - 1 : 0,
+        componentOrder: DEFAULT_COMPONENTS.map((c) => c.id),
+        componentVisibility: Object.fromEntries(
+            DEFAULT_COMPONENTS.map((c) => [c.id, c.visible])
+        ) as Record<CatalogComponentId, boolean>,
     }
 }
 
