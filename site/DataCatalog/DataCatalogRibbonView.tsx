@@ -2,6 +2,7 @@ import { Region } from "@ourworldindata/utils"
 import { DataCatalogRibbon } from "./DataCatalogRibbon.js"
 import { DataCatalogRibbonViewSkeleton } from "./DataCatalogSkeletons.js"
 import { DataCatalogRibbonResult } from "./DataCatalogUtils.js"
+import { CatalogComponentStyle } from "./DataCatalogState.js"
 
 export const DataCatalogRibbonView = ({
     addTopic,
@@ -9,12 +10,14 @@ export const DataCatalogRibbonView = ({
     selectedCountries,
     topics,
     isLoading,
+    style,
 }: {
     addTopic: (x: string) => void
     results?: DataCatalogRibbonResult[]
     selectedCountries: Region[]
     topics: Set<string>
     isLoading: boolean
+    style: CatalogComponentStyle
 }) => {
     if (isLoading) {
         return <DataCatalogRibbonViewSkeleton topics={topics} />
@@ -32,6 +35,7 @@ export const DataCatalogRibbonView = ({
                     result={result}
                     addTopic={addTopic}
                     selectedCountries={selectedCountries}
+                    style={style}
                 />
             ))}
         </div>

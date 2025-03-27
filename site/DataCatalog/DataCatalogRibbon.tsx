@@ -3,17 +3,20 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Region, commafyNumber } from "@ourworldindata/utils"
 import * as React from "react"
 import { ChartHit } from "../search/ChartHit.js"
-import { analytics } from "./DataCatalogUtils.js"
-import { DataCatalogRibbonResult } from "./DataCatalogUtils.js"
+import { analytics, DataCatalogRibbonResult } from "./DataCatalogUtils.js"
+import { CatalogComponentStyle } from "./DataCatalogState.js"
+import { ChartHitsTable } from "./ChartHitsTable.js"
 
 export const DataCatalogRibbon = ({
     result,
     addTopic,
     selectedCountries,
+    style,
 }: {
     result: DataCatalogRibbonResult
     addTopic: (x: string) => void
     selectedCountries: Region[]
+    style: CatalogComponentStyle
 }) => {
     if (result.nbHits === 0) return null
     const handleAddTopicClick = (e: React.MouseEvent) => {
@@ -41,27 +44,33 @@ export const DataCatalogRibbon = ({
                 </div>
             </button>
             <div className="data-catalog-ribbon-hits">
-                <ul className="data-catalog-ribbon-list grid grid-cols-4">
-                    {result.hits.map((hit, i) => (
-                        <li
-                            className="data-catalog-ribbon-hit"
-                            key={hit.objectID}
-                        >
-                            <ChartHit
-                                hit={hit}
-                                onClick={() => {
-                                    analytics.logDataCatalogResultClick(
-                                        hit,
-                                        i + 1,
-                                        "ribbon",
-                                        result.title
-                                    )
-                                }}
-                                searchQueryRegionsMatches={selectedCountries}
-                            />
-                        </li>
-                    ))}
-                </ul>
+                {style === CatalogComponentStyle.GRID ? (
+                    <ul className="data-catalog-ribbon-list grid grid-cols-4">
+                        {result.hits.map((hit, i) => (
+                            <li
+                                className="data-catalog-ribbon-hit"
+                                key={hit.objectID}
+                            >
+                                <ChartHit
+                                    hit={hit}
+                                    onClick={() => {
+                                        analytics.logDataCatalogResultClick(
+                                            hit,
+                                            i + 1,
+                                            "ribbon",
+                                            result.title
+                                        )
+                                    }}
+                                    searchQueryRegionsMatches={
+                                        selectedCountries
+                                    }
+                                />
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <ChartHitsTable hits={result.hits} />
+                )}
             </div>
             <button
                 className="data-catalog-ribbon__see-all-button"

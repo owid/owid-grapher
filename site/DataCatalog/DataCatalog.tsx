@@ -155,6 +155,7 @@ export const DataCatalog = ({
                 results={currentResults as DataCatalogRibbonResult[]}
                 selectedCountries={selectedCountries}
                 topics={state.topics}
+                style={state.componentStyles[CatalogComponentId.RESULTS]}
             />
         ) : (
             <DataCatalogResults

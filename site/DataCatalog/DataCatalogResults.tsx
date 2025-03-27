@@ -5,15 +5,7 @@ import { DataCatalogPagination } from "./DataCatalogPagination.js"
 import { DataCatalogNoResults } from "./DataCatalogNoResults.js"
 import { DataCatalogResultsSkeleton } from "./DataCatalogSkeletons.js"
 import { CatalogComponentStyle } from "./DataCatalogState.js"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
-} from "@material-ui/core"
+import { ChartHitsTable } from "./ChartHitsTable.js"
 
 export const DataCatalogResults = ({
     selectedCountries,
@@ -70,35 +62,14 @@ export const DataCatalogResults = ({
                         ))}
                     </ul>
                 ) : (
-                    <TableContainer component={Paper}>
-                        <Table aria-label="data catalog results table">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Title</TableCell>
-                                    <TableCell>Variable</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {hits.map((hit) => (
-                                    <TableRow
-                                        key={hit.objectID}
-                                        style={{ cursor: "pointer" }}
-                                        hover
-                                    >
-                                        <TableCell>{hit.title}</TableCell>
-                                        <TableCell>{hit.variantName}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                    <ChartHitsTable hits={hits} />
                 )}
+                <DataCatalogPagination
+                    currentPage={page}
+                    setPage={setPage}
+                    nbPages={nbPages}
+                />
             </div>
-            <DataCatalogPagination
-                currentPage={page}
-                setPage={setPage}
-                nbPages={nbPages}
-            />
         </>
     )
 }
