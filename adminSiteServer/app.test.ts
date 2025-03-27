@@ -52,6 +52,7 @@ import {
     knexReadWriteTransaction,
     knexReadonlyTransaction,
     setKnexInstance,
+    validateChartSlug,
 } from "../db/db.js"
 import { cleanTestDb, TABLES_IN_USE } from "../db/tests/testHelpers.js"
 import {
@@ -71,6 +72,7 @@ import {
     DbInsertPostGdoc,
     DbInsertPostGdocXTag,
     PostsGdocsXTagsTableName,
+    ExplorersTableName,
 } from "@ourworldindata/types"
 import path from "path"
 import fs from "fs"
@@ -1220,5 +1222,46 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
             TransactionCloseMode.KeepOpen,
             testKnexInstance
         )
+    })
+})
+
+describe("OwidAdminApp: validateChartSlug", { timeout: 10000 }, async () => {
+    it("should return true for a valid chart URL", async () => {
+        await testKnexInstance!(ChartConfigsTableName).insert({
+            id: "0191b6c7-3629-74fd-9ebc-abcf9a99c1d2",
+            patch: {},
+            full: { isPublished: true, slug: "life-expectancy" },
+        })
+        await knexReadonlyTransaction(
+            async (trx) => {
+                const { isValid } = await validateChartSlug(
+                    trx,
+                    "https://ourworldindata.org/grapher/life-expectancy"
+                )
+                expect(isValid).toBe(true)
+            },
+            TransactionCloseMode.KeepOpen,
+            testKnexInstance
+        )
+    })
+
+    it("should return true for a valid explorer URL", async () => {
+        await testKnexInstance!(ExplorersTableName).insert({
+            slug: "migration",
+            isPublished: true,
+            config: {},
+        })
+
+        await knexReadonlyTransaction(async (trx) => {
+            const { isValid } = await validateChartSlug(
+                trx,
+                "https://ourworldindata.org/explorers/migration"
+            )
+            expect(isValid).toBe(true)
+        })
+
+        await testKnexInstance!(ExplorersTableName)
+            .where({ slug: "migration" })
+            .delete()
     })
 })
