@@ -1,11 +1,12 @@
 import entities from "./regions.json"
-import { lazy } from "./Util.js"
+import { excludeUndefined, lazy } from "./Util.js"
 
 export enum RegionType {
     Country = "country",
     Other = "other",
     Aggregate = "aggregate",
     Continent = "continent",
+    IncomeGroup = "income_group",
 }
 
 export interface Country {
@@ -37,7 +38,7 @@ export interface Continent {
         | "North America"
         | "Oceania"
         | "South America"
-    regionType: "continent"
+    regionType: "continent" | "income_group"
     code: string
     translationCodes?: string[]
     members: string[]
@@ -46,6 +47,10 @@ export interface Continent {
 export type Region = Country | Aggregate | Continent
 
 export const regions: Region[] = entities as Region[]
+
+export const regionsByName = lazy(() =>
+    Object.fromEntries(regions.map((region) => [region.name, region]))
+)
 
 export const countries: Country[] = regions.filter(
     (entity) =>
@@ -73,13 +78,41 @@ export const getContinents = lazy(
         ) as Continent[]
 )
 
+export const getIncomeGroups = lazy(
+    () =>
+        entities.filter(
+            (entity) => entity.regionType === "income_group"
+        ) as Continent[]
+)
+
+export const getMemberCountries = (regionName: string): string[] => {
+    const region = regionsByName()[regionName]
+    if (!region) return []
+    if (region.code === "OWID_WRL") return []
+    if (!isContinent(region) && !isAggregate(region)) return []
+    return excludeUndefined(
+        region.members.map(
+            (countryCode) => countriesByCode()[countryCode]?.name
+        )
+    )
+}
+
 export const countriesByName = lazy(() =>
     Object.fromEntries(countries.map((country) => [country.name, country]))
+)
+
+export const countriesByCode = lazy(() =>
+    Object.fromEntries(countries.map((country) => [country.code, country]))
 )
 
 const countriesBySlug = lazy(() =>
     Object.fromEntries(countries.map((country) => [country.slug, country]))
 )
+
+const isContinent = (region: Region): region is Continent =>
+    region.regionType === "continent" || region.regionType === "income_group"
+const isAggregate = (region: Region): region is Aggregate =>
+    region.regionType === "aggregate"
 
 const regionsByNameOrVariantNameLowercase = lazy(
     () =>

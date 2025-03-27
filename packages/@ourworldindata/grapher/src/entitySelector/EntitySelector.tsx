@@ -12,7 +12,6 @@ import {
     isFiniteWithGuard,
     CoreValueType,
     clamp,
-    maxBy,
     getUserCountryInformation,
     regions,
     sortBy,
@@ -74,6 +73,9 @@ export interface EntitySelectorManager {
     canChangeEntity?: boolean
     canHighlightEntities?: boolean
     focusArray?: FocusArray
+    onSelectEntity: (entityName: string) => void
+    onDeselectEntity: (entityName: string[]) => void
+    endTime?: number
 }
 
 interface SortConfig {
@@ -142,8 +144,12 @@ export class EntitySelector extends React.Component<{
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
 
     private defaultSortConfig = {
-        slug: this.table.entityNameSlug,
-        order: SortOrder.asc,
+        slug:
+            this.numericalChartColumnsWithoutExternalSortColumns[0]?.slug ??
+            this.table.entityNameSlug,
+        order: this.numericalChartColumnsWithoutExternalSortColumns[0]?.slug
+            ? SortOrder.desc
+            : SortOrder.asc,
     }
 
     componentDidMount(): void {
@@ -462,11 +468,11 @@ export class EntitySelector extends React.Component<{
             }
 
             for (const column of this.sortColumns) {
-                const rows = column.owidRowsByEntityName.get(entityName) ?? []
-                searchableEntity.sortColumnValues[column.slug] = maxBy(
-                    rows,
-                    (row) => row.originalTime
-                )?.value
+                // TODO: tolerance
+                const value = column.valueByEntityNameAndOriginalTime
+                    ?.get(entityName)
+                    ?.get(this.manager.endTime!)
+                searchableEntity.sortColumnValues[column.slug] = value
             }
 
             return searchableEntity
@@ -625,6 +631,12 @@ export class EntitySelector extends React.Component<{
             this.manager.focusArray?.remove(entityName)
         }
 
+        if (this.selectionArray.selectedSet.has(entityName)) {
+            this.manager.onSelectEntity(entityName)
+        } else {
+            this.manager.onDeselectEntity([entityName])
+        }
+
         this.clearSearchInput()
 
         // close the modal or drawer automatically after selection if in single mode
@@ -638,6 +650,7 @@ export class EntitySelector extends React.Component<{
 
     @action.bound onClear(): void {
         const { partitionedSearchResults } = this
+        const selected = this.selectionArray.selectedEntityNames
         if (this.searchInput) {
             const { selected = [] } = partitionedSearchResults ?? {}
             const entityNames = selected.map((entity) => entity.name)
@@ -647,6 +660,7 @@ export class EntitySelector extends React.Component<{
             this.selectionArray.clearSelection()
             this.manager.focusArray?.clear()
         }
+        this.manager.onDeselectEntity(selected)
     }
 
     @action.bound async loadExternalSortColumn(
@@ -883,7 +897,8 @@ export class EntitySelector extends React.Component<{
             partitionedVisibleEntities: visibleEntities,
         } = this
         const { selected } = this.partitionedAvailableEntities
-        const { numSelectedEntities, selectedEntityNames } = this.selectionArray
+
+        const numSelectedEntities = selected.length
 
         // having a "Selection" and "Available entities" section both looks odd
         // when all entities are currently selected and there are only a few of them
@@ -893,7 +908,7 @@ export class EntitySelector extends React.Component<{
         return (
             <Flipper
                 spring={{ stiffness: 300, damping: 33 }}
-                flipKey={selectedEntityNames.join(",")}
+                flipKey={selected.map((s) => s.name).join(",")}
             >
                 <div className="entity-section">
                     {selected.length > 0 && (
