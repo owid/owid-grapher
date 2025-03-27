@@ -1,26 +1,19 @@
 import { Region, commafyNumber } from "@ourworldindata/utils"
-import * as React from "react"
 import { ChartHit } from "../search/ChartHit.js"
-import { analytics } from "./DataCatalogUtils.js"
+import { analytics, DataCatalogSearchResult } from "./DataCatalogUtils.js"
 import { DataCatalogPagination } from "./DataCatalogPagination.js"
 import { DataCatalogNoResults } from "./DataCatalogNoResults.js"
 import { DataCatalogResultsSkeleton } from "./DataCatalogSkeletons.js"
-import { DataCatalogSearchResult } from "./DataCatalogUtils.js"
-import { TopicsRefinementListWrapper } from "./TopicsRefinementListWrapper.js"
 
 export const DataCatalogResults = ({
     selectedCountries,
     results,
     setPage,
-    addTopic,
-    topics,
     isLoading,
 }: {
     results?: DataCatalogSearchResult
     selectedCountries: Region[]
     setPage: (page: number) => void
-    addTopic: (topic: string) => void
-    topics: Set<string>
     isLoading: boolean
 }) => {
     if (isLoading) return <DataCatalogResultsSkeleton />
@@ -31,11 +24,6 @@ export const DataCatalogResults = ({
     const { page, nbPages, nbHits } = results
     return (
         <>
-            <TopicsRefinementListWrapper
-                topics={topics}
-                results={results}
-                addTopic={addTopic}
-            />
             <div className="span-cols-12 col-start-2 data-catalog-search-hits">
                 {nbHits && (
                     <p className="data-catalog-search-list__results-count body-3-medium">

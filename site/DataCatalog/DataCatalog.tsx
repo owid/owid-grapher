@@ -205,20 +205,16 @@ export const DataCatalog = ({
                 <DataCatalogRibbonView
                     addTopic={actions.addTopic}
                     isLoading={isLoading}
-                    removeTopic={actions.removeTopic}
                     results={currentResults as DataCatalogRibbonResult[]}
                     selectedCountries={selectedCountries}
-                    tagGraph={tagGraph}
                     topics={state.topics}
                 />
             ) : (
                 <DataCatalogResults
-                    addTopic={actions.addTopic}
                     isLoading={isLoading}
                     results={currentResults as DataCatalogSearchResult}
                     selectedCountries={selectedCountries}
                     setPage={actions.setPage}
-                    topics={state.topics}
                 />
             )}
         </>
