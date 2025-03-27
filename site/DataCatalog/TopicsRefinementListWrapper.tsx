@@ -1,4 +1,3 @@
-import * as React from "react"
 import { useMemo } from "react"
 import { TopicsRefinementList } from "./TopicsRefinementList.js"
 import { LandingPageRefinementsHeading } from "./DataCatalogSkeletons.js"
@@ -32,13 +31,13 @@ export const TopicsRefinementListWrapper = ({
     }, [results])
 
     return (
-        <>
+        <div className="span-cols-12 col-start-2" style={{ marginTop: 32 }}>
             <LandingPageRefinementsHeading topics={topics} />
             <TopicsRefinementList
                 topics={topics}
                 facets={facets}
                 addTopic={addTopic}
             />
-        </>
+        </div>
     )
 }

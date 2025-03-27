@@ -24,7 +24,10 @@ export const DataCatalogResults = ({
     const { page, nbPages, nbHits } = results
     return (
         <>
-            <div className="span-cols-12 col-start-2 data-catalog-search-hits">
+            <div
+                className="span-cols-12 col-start-2 data-catalog-search-hits"
+                style={{ marginTop: 32 }}
+            >
                 {nbHits && (
                     <p className="data-catalog-search-list__results-count body-3-medium">
                         {commafyNumber(nbHits)}{" "}

@@ -7,6 +7,7 @@ export enum CatalogComponentId {
     APPLIED_FILTERS = "appliedFilters",
     TOPICS_REFINEMENT = "topicsRefinement",
     DATA_INSIGHTS = "dataInsights",
+    HIGHLIGHTS = "highlights",
     RESULTS = "results",
 }
 
@@ -43,6 +44,12 @@ export const DEFAULT_COMPONENTS: ComponentConfig[] = [
     {
         id: CatalogComponentId.DATA_INSIGHTS,
         name: "Data Insights",
+        visible: true,
+        maxItems: 2,
+    },
+    {
+        id: CatalogComponentId.HIGHLIGHTS,
+        name: "Highlights",
         visible: true,
         maxItems: 2,
     },

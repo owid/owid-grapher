@@ -22,17 +22,18 @@ export const DataCatalogRibbonView = ({
 
     // const resultsSortedByHitCount = results?.sort((a, b) => b.nbHits - a.nbHits)
     return (
-        <>
-            <div className="span-cols-14 grid grid-cols-12-full-width data-catalog-ribbons">
-                {results?.map((result) => (
-                    <DataCatalogRibbon
-                        key={result.title}
-                        result={result}
-                        addTopic={addTopic}
-                        selectedCountries={selectedCountries}
-                    />
-                ))}
-            </div>
-        </>
+        <div
+            className="span-cols-14 grid grid-cols-12-full-width data-catalog-ribbons"
+            style={{ marginTop: 32 }}
+        >
+            {results?.map((result) => (
+                <DataCatalogRibbon
+                    key={result.title}
+                    result={result}
+                    addTopic={addTopic}
+                    selectedCountries={selectedCountries}
+                />
+            ))}
+        </div>
     )
 }

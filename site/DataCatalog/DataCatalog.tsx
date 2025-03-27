@@ -33,6 +33,7 @@ import { AppliedTopicFiltersList } from "./AppliedTopicFiltersList.js"
 import { DataCatalogSearchbar } from "./DataCatalogSearchbar.js"
 import { DataCatalogDataInsights } from "./DataCatalogDataInsights.js"
 import { DataCatalogSettings } from "./DataCatalogSettings.js"
+import { DataCatalogHighlights } from "./DataCatalogHighlights.js"
 
 export const DataCatalog = ({
     initialState,
@@ -138,6 +139,13 @@ export const DataCatalog = ({
                 results={cache["pages"].get(stateAsUrl)}
                 componentCount={state.componentCount}
                 setComponentCount={actions.setComponentCount}
+            />
+        ),
+        [CatalogComponentId.HIGHLIGHTS]: (
+            <DataCatalogHighlights
+                results={currentResults}
+                selectedCountries={selectedCountries}
+                componentCount={state.componentCount}
             />
         ),
         [CatalogComponentId.RESULTS]: shouldShowRibbons ? (

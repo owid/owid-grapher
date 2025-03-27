@@ -32,7 +32,6 @@ export const DataCatalogDataInsights = ({
     return (
         <div
             className="search-results span-cols-12 col-start-2"
-            style={{ marginBottom: "2rem" }}
             data-active-filter="all"
         >
             <section className="search-results__pages">
