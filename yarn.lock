@@ -11294,7 +11294,6 @@ __metadata:
     minimist: "npm:^1.2.6"
     mobx: "npm:^5.15.7"
     mobx-react: "npm:5"
-    mobx-utils: "npm:5"
     mousetrap: "npm:^1.6.5"
     mysql2: "npm:^3.10.1"
     nodejs-polars: "npm:^0.7.2"
@@ -14126,15 +14125,6 @@ __metadata:
     mobx: ^4.0.0 || ^5.0.0
     react: ^0.13.0 || ^0.14.0 || ^15.0.0 || ^16.0.0
   checksum: 10/a5bb553d312f23cf9837e0d1f4388a6434b7b314b8cd66ae578ded8878acd5a842febe8b6028a6c61a9bed75c849419ae811a4814f0961c525dabd6f68bc298e
-  languageName: node
-  linkType: hard
-
-"mobx-utils@npm:5":
-  version: 5.6.2
-  resolution: "mobx-utils@npm:5.6.2"
-  peerDependencies:
-    mobx: ^4.13.1 || ^5.13.1
-  checksum: 10/12b8af84b979049ac944697d0dbfc1082194f230064864e0fce82493d794e81abd46c28dbc122a05e1c6baada069b1fead4356d6237f59d024fa141da30d139b
   languageName: node
   linkType: hard
 

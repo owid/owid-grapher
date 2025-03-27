@@ -115,7 +115,6 @@
         "minimist": "^1.2.6",
         "mobx": "^5.15.7",
         "mobx-react": "5",
-        "mobx-utils": "5",
         "mousetrap": "^1.6.5",
         "mysql2": "^3.10.1",
         "nodejs-polars": "^0.7.2",
