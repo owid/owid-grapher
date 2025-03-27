@@ -59,5 +59,15 @@
 
     a {
         color: #577291;
+        line-break: anywhere;
+    }
+}
+
+.mims-page-section__error-notice {
+    margin-bottom: 0;
+    line-height: 32px;
+    color: red;
+    span {
+        font-family: monospace;
     }
 }
