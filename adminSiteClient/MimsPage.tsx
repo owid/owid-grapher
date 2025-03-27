@@ -23,6 +23,7 @@ import {
     Json,
     MimByParentTagNameDictionary,
     MimIncomeGroup,
+    Url,
 } from "@ourworldindata/utils"
 import {
     faAngleDown,
@@ -123,6 +124,16 @@ function MimSection({
     const incomeGroups = Object.values(MimIncomeGroup)
 
     const [newMimInputValue, setNewMimInputValue] = useState("")
+    const [isValid, setIsValid] = useState(false)
+
+    useEffect(() => {
+        const url = Url.fromURL(newMimInputValue)
+        const isValid =
+            (url.isExplorer || url.isGrapher) &&
+            url.queryParams.country === undefined
+        setIsValid(!!isValid)
+    }, [newMimInputValue])
+
     const [newMimIncomeGroup, setNewMimIncomeGroup] = useState(
         MimIncomeGroup.All
     )
@@ -148,8 +159,9 @@ function MimSection({
                     />
                 )
             })}
-            <Flex className="mims-page-section__add-mim">
+            <Flex className="mims-page-section__add-mim" wrap="wrap">
                 <Input
+                    status={!newMimInputValue || isValid ? "" : "error"}
                     placeholder="https://ourworldindata.org/grapher/life-expectancy"
                     value={newMimInputValue}
                     onPressEnter={() => {
@@ -190,7 +202,7 @@ function MimSection({
                 </Dropdown>
 
                 <Button
-                    disabled={!newMimInputValue}
+                    disabled={!isValid}
                     onClick={() => {
                         const ranking = byIncomeGroup[newMimIncomeGroup]
                             ? byIncomeGroup[newMimIncomeGroup].length + 1
@@ -206,6 +218,12 @@ function MimSection({
                 >
                     Add MIM
                 </Button>
+                {newMimInputValue && !isValid && (
+                    <p className="mims-page-section__error-notice">
+                        URL must be an OWID grapher/explorer URL and not have a{" "}
+                        <span>country</span> query parameter.
+                    </p>
+                )}
             </Flex>
         </div>
     )
