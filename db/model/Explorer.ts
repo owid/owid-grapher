@@ -2,9 +2,20 @@ import { KnexReadonlyTransaction, KnexReadWriteTransaction } from "../db.js"
 import {
     DbInsertExplorer,
     DbPlainExplorer,
-    DbPlainExplorerWithLastCommit,
     ExplorersTableName,
 } from "@ourworldindata/types"
+
+type PlainExplorerWithLastCommit = Required<DbPlainExplorer> & {
+    // lastCommit is a relic from our git-CMS days, it should be broken down
+    // to individual fields in the future
+    lastCommit: string
+}
+
+// Define an interface for the join result from explorers and users tables
+interface ExplorerWithUserInfo extends DbPlainExplorer {
+    fullName: string | null
+    email: string | null
+}
 
 function createLastCommit(
     row: { lastEditedAt: Date; commitMessage: string },
@@ -68,8 +79,8 @@ export async function upsertExplorer(
 export async function getExplorerBySlug(
     knex: KnexReadonlyTransaction,
     slug: string
-): Promise<DbPlainExplorerWithLastCommit | undefined> {
-    const row = await knex<DbPlainExplorer>(ExplorersTableName)
+): Promise<PlainExplorerWithLastCommit | undefined> {
+    const row = await knex<ExplorerWithUserInfo>(ExplorersTableName)
         .leftJoin(
             "users",
             `${ExplorersTableName}.lastEditedByUserId`,
@@ -80,11 +91,7 @@ export async function getExplorerBySlug(
         .first()
 
     if (row) {
-        row.lastCommit = createLastCommit(
-            row,
-            (row as any).fullName,
-            (row as any).email
-        )
+        row.lastCommit = createLastCommit(row, row.fullName, row.email)
     }
 
     return row
@@ -92,9 +99,9 @@ export async function getExplorerBySlug(
 
 export async function getAllExplorers(
     knex: KnexReadonlyTransaction
-): Promise<DbPlainExplorerWithLastCommit[]> {
+): Promise<PlainExplorerWithLastCommit[]> {
     // Use left join to fetch users in one query
-    const rows = await knex<DbPlainExplorer>(ExplorersTableName)
+    const rows = await knex<ExplorerWithUserInfo>(ExplorersTableName)
         .leftJoin(
             "users",
             `${ExplorersTableName}.lastEditedByUserId`,
@@ -103,11 +110,7 @@ export async function getAllExplorers(
         .select(`${ExplorersTableName}.*`, "users.fullName", "users.email")
 
     rows.forEach((row) => {
-        row.lastCommit = createLastCommit(
-            row,
-            (row as any).fullName,
-            (row as any).email
-        )
+        row.lastCommit = createLastCommit(row, row.fullName, row.email)
     })
     return rows
 }

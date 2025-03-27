@@ -18,12 +18,6 @@ export type DbPlainExplorer = Required<DbInsertExplorer> & {
     config: string
 }
 
-export type DbPlainExplorerWithLastCommit = Required<DbPlainExplorer> & {
-    // lastCommit is a relic from our git-CMS days, it should be broken down
-    // to individual fields in the future
-    lastCommit: string
-}
-
 /** A sparse set of explorer metadata. Currently used to begin Algolia indexing with */
 export type MinimalExplorerInfo = {
     slug: string
