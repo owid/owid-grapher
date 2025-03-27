@@ -324,7 +324,7 @@ export function makeIdForHumanConsumption(...unsafeKeys: string[]): string {
     return makeSafeForFigma(unsafeKeys.join("__"))
 }
 
-export function toDate(dayAsYear: number): dayjs.Dayjs {
+export function convertDaysSinceEpochToDate(dayAsYear: number): dayjs.Dayjs {
     // Use dayjs' UTC mode
     // This will force dayjs to format in UTC time instead of local time,
     // making dates consistent no matter what timezone the user is in.
@@ -336,7 +336,7 @@ export function formatDay(
     options?: { format?: string }
 ): string {
     const format = options?.format ?? "MMM D, YYYY"
-    return toDate(dayAsYear).format(format)
+    return convertDaysSinceEpochToDate(dayAsYear).format(format)
 }
 
 export const formatYear = (year: number): string => {

@@ -136,7 +136,7 @@ export {
     getUniqueNamesFromParentTagArrays,
     getUserNavigatorLanguages,
     getUserNavigatorLanguagesNonEnglish,
-    toDate,
+    convertDaysSinceEpochToDate,
 } from "./Util.js"
 
 export {

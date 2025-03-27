@@ -19,7 +19,7 @@ import {
     FuzzySearch,
     getUserNavigatorLanguagesNonEnglish,
     getRegionAlternativeNames,
-    toDate,
+    convertDaysSinceEpochToDate,
     max,
 } from "@ourworldindata/utils"
 import {
@@ -140,7 +140,7 @@ const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
             if (column.slug === externalSlug) return true
 
             // then check the label
-            const label = makeLabelForSortColumn(column)
+            const label = getTitleForSortColumnLabel(column)
             // matches "gdp per capita" and content within parentheses
             const potentialMatches =
                 label.match(/\(.*?\)|(\bgdp per capita\b)/gi) ?? []
@@ -311,16 +311,21 @@ export class EntitySelector extends React.Component<{
         if (!isExternal) return time
 
         // assumes that external indicators have yearly data
-        const year = this.chartHasDailyData ? toDate(time).year() : time
+        const year = this.chartHasDailyData
+            ? convertDaysSinceEpochToDate(time).year()
+            : time
 
         // clamping is necessary since external indicators might not cover
         // the entire time range of the chart
         return clamp(year, column.minTime, column.maxTime)
     }
 
-    private formatTimeForSortColumnLabel(column: CoreColumn): string {
-        const endTime = this.toColumnCompatibleTime(this.endTime, column)
-        return column.formatTime(endTime)
+    private formatTimeForSortColumnLabel(
+        time: Time,
+        column: CoreColumn
+    ): string {
+        const compatibleTime = this.toColumnCompatibleTime(time, column)
+        return column.formatTime(compatibleTime)
     }
 
     @computed private get manager(): EntitySelectorManager {
@@ -376,14 +381,13 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get entitiesAreCountriesOrRegions(): boolean {
-        for (const entityName of this.availableEntityNames) {
-            // Ignore the World entity since we have charts that only have the
-            // World entity but no other countries or regions (e.g. 'World',
-            // 'Northern Hemisphere' and 'Southern hemisphere')
-            if (isWorldEntityName(entityName)) continue
-            if (regionNamesSet.has(entityName)) return true
-        }
-        return false
+        // Ignore the World entity since we have charts that only have the
+        // World entity but no other countries or regions (e.g. 'World',
+        // 'Northern Hemisphere' and 'Southern hemisphere')
+        return this.availableEntityNames.some(
+            (entityName) =>
+                regionNamesSet.has(entityName) && !isWorldEntityName(entityName)
+        )
     }
 
     @computed private get supportsSortingByExternalIndicators(): boolean {
@@ -456,9 +460,11 @@ export class EntitySelector extends React.Component<{
                 if (chartColumn) {
                     options.push({
                         value: chartColumn.slug,
-                        label: makeLabelForSortColumn(chartColumn),
-                        formattedTime:
-                            this.formatTimeForSortColumnLabel(chartColumn),
+                        label: getTitleForSortColumnLabel(chartColumn),
+                        formattedTime: this.formatTimeForSortColumnLabel(
+                            this.endTime,
+                            chartColumn
+                        ),
                     })
                 } else {
                     const column =
@@ -467,7 +473,10 @@ export class EntitySelector extends React.Component<{
                         value: external.slug,
                         label: external.label,
                         formattedTime: column
-                            ? this.formatTimeForSortColumnLabel(column)
+                            ? this.formatTimeForSortColumnLabel(
+                                  this.endTime,
+                                  column
+                              )
                             : undefined,
                     })
                 }
@@ -483,8 +492,11 @@ export class EntitySelector extends React.Component<{
             if (!matchingSlugs.includes(column.slug)) {
                 options.push({
                     value: column.slug,
-                    label: makeLabelForSortColumn(column),
-                    formattedTime: this.formatTimeForSortColumnLabel(column),
+                    label: getTitleForSortColumnLabel(column),
+                    formattedTime: this.formatTimeForSortColumnLabel(
+                        this.endTime,
+                        column
+                    ),
                 })
             }
         }
@@ -1197,7 +1209,7 @@ function FlippedListItem({
     )
 }
 
-function makeLabelForSortColumn(column: CoreColumn): string {
+function getTitleForSortColumnLabel(column: CoreColumn): string {
     return column.titlePublicOrDisplayName.title
 }
 
