@@ -118,7 +118,7 @@ class ExplorerRow extends Component<{
                 <td>
                     <button
                         className="btn btn-danger"
-                        onClick={() => indexPage.deleteFile(slug)}
+                        onClick={() => indexPage.deleteExplorer(slug)}
                     >
                         Delete{" "}
                     </button>
@@ -297,7 +297,7 @@ export class ExplorersIndexPage extends Component<{
         await this.fetchAllExplorers()
     }
 
-    @action.bound async deleteFile(slug: string) {
+    @action.bound async deleteExplorer(slug: string) {
         if (!confirm(`Are you sure you want to delete "${slug}"?`)) return
 
         this.loadingModalOn()

@@ -1,6 +1,8 @@
 import { JsonError, DbPlainUser } from "@ourworldindata/types"
 import e, { Request, Response } from "express"
 
+import { isValidSlug } from "../../serverUtils/serverUtil.js"
+
 import * as db from "../../db/db.js"
 
 import {
@@ -16,6 +18,9 @@ export async function addExplorerTags(
     trx: db.KnexReadonlyTransaction
 ) {
     const { slug } = req.params
+    if (!isValidSlug(slug)) {
+        throw new JsonError(`Invalid explorer slug ${slug}`)
+    }
     const { tagIds } = req.body
     const explorer = await trx.table("explorers").where({ slug }).first()
     if (!explorer)
@@ -35,6 +40,9 @@ export async function deleteExplorerTags(
     trx: db.KnexReadonlyTransaction
 ) {
     const { slug } = req.params
+    if (!isValidSlug(slug)) {
+        throw new JsonError(`Invalid explorer slug ${slug}`)
+    }
     await trx.table("explorer_tags").where({ explorerSlug: slug }).delete()
     return { success: true }
 }
@@ -45,9 +53,12 @@ export async function handleGetExplorer(
     trx: db.KnexReadonlyTransaction
 ) {
     const { slug } = req.params
+    if (!isValidSlug(slug)) {
+        throw new JsonError(`Invalid explorer slug ${slug}`)
+    }
     const explorer = await getExplorerBySlug(trx, slug)
     if (!explorer) {
-        return {}
+        throw new JsonError(`Explorer not found: ${slug}`, 404)
     }
     return explorer
 }
@@ -58,7 +69,7 @@ export async function handlePutExplorer(
     trx: db.KnexReadWriteTransaction
 ) {
     const { slug } = req.params
-    if (!slug) {
+    if (!isValidSlug(slug)) {
         throw new JsonError(`Invalid explorer slug ${slug}`)
     }
 
@@ -82,9 +93,11 @@ export async function handleDeleteExplorer(
     trx: db.KnexReadWriteTransaction
 ) {
     const { slug } = req.params
-    if (!slug) {
-        throw new JsonError("Invalid explorer slug " + slug)
+    if (!isValidSlug(slug)) {
+        throw new JsonError(`Invalid explorer slug ${slug}`)
     }
+
+    const user: DbPlainUser = res.locals.user
 
     const explorer = await getExplorerBySlug(trx, slug)
     if (!explorer) {
@@ -92,6 +105,10 @@ export async function handleDeleteExplorer(
     }
 
     await trx(ExplorersTableName).where({ slug }).delete()
+
+    if (explorer.isPublished) {
+        await triggerStaticBuild(user, `Unpublishing explorer ${slug}`)
+    }
 
     return { success: true }
 }

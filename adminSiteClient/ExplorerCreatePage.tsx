@@ -93,11 +93,16 @@ export class ExplorerCreatePage extends Component<{
     @action.bound private async fetchExplorerProgramOnLoad() {
         const { slug } = this.props
 
-        const response = await this.context.admin.requestJSON(
-            `/api/explorers/${slug}`,
-            {},
-            "GET"
-        )
+        let response
+        if (slug === "new") {
+            response = { tsv: "" }
+        } else {
+            response = await this.context.admin.requestJSON(
+                `/api/explorers/${slug}`,
+                {},
+                "GET"
+            )
+        }
 
         this.programOnDisk = new ExplorerProgram("", response.tsv ?? "")
         this.setProgram(this.draftIfAny ?? this.programOnDisk.toString())
@@ -150,7 +155,6 @@ export class ExplorerCreatePage extends Component<{
 
         this.loadingModalOff()
         this.programOnDisk = new ExplorerProgram("", this.program.toString())
-        console.log(this.programOnDisk.toString())
         this.setProgram(this.programOnDisk.toString())
         this.clearDraft()
     }
