@@ -27,7 +27,14 @@ import {
     DropResult,
 } from "react-beautiful-dnd"
 import { Disposer, observer } from "mobx-react"
-import { observable, computed, action, runInAction, autorun } from "mobx"
+import {
+    observable,
+    computed,
+    action,
+    runInAction,
+    autorun,
+    reaction,
+} from "mobx"
 import { match, P } from "ts-pattern"
 import {
     cloneDeep,
@@ -51,7 +58,7 @@ import {
     MapChart,
 } from "@ourworldindata/grapher"
 import { BindString, SelectField, Toggle } from "./Forms.js"
-import { from, Observable } from "rxjs"
+import { Observable } from "rxjs"
 import {
     catchError,
     debounceTime,
@@ -59,7 +66,6 @@ import {
     switchMap,
 } from "rxjs/operators"
 import { fromFetch } from "rxjs/fetch"
-import { toStream, fromStream } from "mobx-utils"
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons"
 import {
     parseVariableAnnotationsRow,
@@ -236,38 +242,19 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         setup that puts in place the fetch logic to retrieve variable annotations
         whenever any of the dataFetchParameters change */
     async componentDidMount() {
-        const url = getWindowUrl()
-        const queryParamsAsDataFetchParams =
-            fetchVariablesParametersFromQueryString(
-                url.queryParams,
-                this.config.sExpressionContext
+        // Here we convert a mobx property (dataFetchParameters) to an rxJS observable, and define a pipeline to
+        // debounce the signal and then use switchMap to create new fetch requests and cancel outstanding ones to
+        // finally subscribe to this observable and update the dependent properties on this class.
+        const dataFetchParametersObservable =
+            new Observable<FetchVariablesParameters>((subscriber) =>
+                reaction(
+                    () => this.dataFetchParameters, // this is a mobx observable
+                    (params) => subscriber.next(params),
+                    { fireImmediately: true }
+                )
             )
-        const nonDefaultDataFetchQueryParams = !isEqual(
-            this.dataFetchParameters,
-            queryParamsAsDataFetchParams
-        )
 
-        // Here we chain together a mobx property (dataFetchParameters) to
-        // an rxJS observable pipeline to debounce the signal and then
-        // use switchMap to create new fetch requests and cancel outstanding ones
-        // to finally turn this into a local mobx value again that we subscribe to
-        // with an autorun to finally update the dependent properties on this class.
-        const varStream = toStream(
-            () => this.dataFetchParameters,
-            !nonDefaultDataFetchQueryParams
-        )
-
-        const streamObservable = new Observable<FetchVariablesParameters>(
-            (subscriber) => {
-                varStream.subscribe({
-                    complete: () => subscriber.complete(),
-                    error: (err) => subscriber.error(err),
-                    next: (params) => subscriber.next(params),
-                })
-            }
-        )
-
-        const observable = streamObservable.pipe(
+        const fetchDataObservable = dataFetchParametersObservable.pipe(
             debounceTime(200), // debounce by 200 MS (this also introduces a min delay of 200ms)
             distinctUntilChanged(isEqual), // don't emit new values if the value hasn't changed
             switchMap((params) => {
@@ -294,7 +281,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         )
 
         // Set up the subscriber to run an action to update the dependencies
-        const subscription = observable.subscribe((currentData) => {
+        const subscription = fetchDataObservable.subscribe((currentData) => {
             if (currentData !== undefined) {
                 runInAction(() => {
                     this.resetViewStateAfterFetch()
