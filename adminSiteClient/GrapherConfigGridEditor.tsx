@@ -51,7 +51,7 @@ import {
     MapChart,
 } from "@ourworldindata/grapher"
 import { BindString, SelectField, Toggle } from "./Forms.js"
-import { from } from "rxjs"
+import { from, Observable } from "rxjs"
 import {
     catchError,
     debounceTime,
@@ -257,7 +257,17 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             !nonDefaultDataFetchQueryParams
         )
 
-        const observable = from(varStream).pipe(
+        const streamObservable = new Observable<FetchVariablesParameters>(
+            (subscriber) => {
+                varStream.subscribe({
+                    complete: () => subscriber.complete(),
+                    error: (err) => subscriber.error(err),
+                    next: (params) => subscriber.next(params),
+                })
+            }
+        )
+
+        const observable = streamObservable.pipe(
             debounceTime(200), // debounce by 200 MS (this also introduces a min delay of 200ms)
             distinctUntilChanged(isEqual), // don't emit new values if the value hasn't changed
             switchMap((params) => {
@@ -282,12 +292,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 )
             })
         )
-        // Turn the rxJs observable stream into a mobx value
-        const mobxValue = fromStream(observable)
-        // Set up the autorun to run an action to update the dependendencies
-        const disposer = autorun(() => {
-            const currentData = mobxValue.current
 
+        // Set up the subscriber to run an action to update the dependencies
+        const subscription = observable.subscribe((currentData) => {
             if (currentData !== undefined) {
                 runInAction(() => {
                     this.resetViewStateAfterFetch()
@@ -300,7 +307,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             }
         })
         // Add the disposer to the list of things we need to clean up on unmount
-        this.disposers.push(disposer)
+        this.disposers.push(() => subscription.unsubscribe())
 
         void this.getFieldDefinitions()
     }
