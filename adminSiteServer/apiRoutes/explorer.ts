@@ -1,16 +1,22 @@
-import { JsonError, DbPlainUser } from "@ourworldindata/types"
+import {
+    JsonError,
+    DbPlainUser,
+    ExplorersTableName,
+} from "@ourworldindata/types"
 import e, { Request, Response } from "express"
 
 import { isValidSlug } from "../../serverUtils/serverUtil.js"
 
 import * as db from "../../db/db.js"
 
-import {
-    ExplorersTableName,
-    upsertExplorer,
-    getExplorerBySlug,
-} from "../../db/model/Explorer.js"
+import { upsertExplorer, getExplorerBySlug } from "../../db/model/Explorer.js"
 import { triggerStaticBuild } from "./routeUtils.js"
+
+function validateExplorerSlug(slug: string): void {
+    if (!isValidSlug(slug)) {
+        throw new JsonError(`Invalid explorer slug ${slug}`)
+    }
+}
 
 export async function addExplorerTags(
     req: Request,
@@ -18,10 +24,10 @@ export async function addExplorerTags(
     trx: db.KnexReadonlyTransaction
 ) {
     const { slug } = req.params
-    if (!isValidSlug(slug)) {
-        throw new JsonError(`Invalid explorer slug ${slug}`)
-    }
     const { tagIds } = req.body
+
+    validateExplorerSlug(slug)
+
     const explorer = await trx.table("explorers").where({ slug }).first()
     if (!explorer)
         throw new JsonError(`No explorer found for slug ${slug}`, 404)
@@ -53,9 +59,7 @@ export async function handleGetExplorer(
     trx: db.KnexReadonlyTransaction
 ) {
     const { slug } = req.params
-    if (!isValidSlug(slug)) {
-        throw new JsonError(`Invalid explorer slug ${slug}`)
-    }
+    validateExplorerSlug(slug)
     const explorer = await getExplorerBySlug(trx, slug)
     if (!explorer) {
         throw new JsonError(`Explorer not found: ${slug}`, 404)
@@ -69,15 +73,18 @@ export async function handlePutExplorer(
     trx: db.KnexReadWriteTransaction
 ) {
     const { slug } = req.params
-    if (!isValidSlug(slug)) {
-        throw new JsonError(`Invalid explorer slug ${slug}`)
-    }
+    validateExplorerSlug(slug)
 
     const user: DbPlainUser = res.locals.user
 
     const { tsv, commitMessage } = req.body
 
-    await upsertExplorer(trx, slug, tsv, user.id, commitMessage)
+    await upsertExplorer(trx, {
+        slug,
+        tsv,
+        lastEditedByUserId: user.id,
+        commitMessage,
+    })
 
     const isPublished = (await getExplorerBySlug(trx, slug))!.isPublished
 
@@ -93,9 +100,7 @@ export async function handleDeleteExplorer(
     trx: db.KnexReadWriteTransaction
 ) {
     const { slug } = req.params
-    if (!isValidSlug(slug)) {
-        throw new JsonError(`Invalid explorer slug ${slug}`)
-    }
+    validateExplorerSlug(slug)
 
     const user: DbPlainUser = res.locals.user
 

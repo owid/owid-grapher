@@ -43,7 +43,7 @@ export class AddTSVToExplorers1742217630523 implements MigrationInterface {
         queryRunner.connection.logger = new SilentLogger()
         try {
             await queryRunner.query(
-                `ALTER TABLE explorers ADD COLUMN tsv LONGTEXT NOT NULL`
+                `ALTER TABLE explorers ADD COLUMN tsv MEDIUMTEXT NOT NULL`
             )
             await queryRunner.query(
                 `ALTER TABLE explorers ADD COLUMN lastEditedByUserId int DEFAULT NULL`

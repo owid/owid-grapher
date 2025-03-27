@@ -556,6 +556,7 @@ export {
 export {
     type DbPlainExplorer,
     type DbInsertExplorer,
+    type DbPlainExplorerWithLastCommit,
     ExplorersTableName,
     type MinimalExplorerInfo,
 } from "./dbTypes/Explorers.js"

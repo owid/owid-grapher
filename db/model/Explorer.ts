@@ -1,23 +1,10 @@
-import * as db from "../db.js"
-
-export const ExplorersTableName = "explorers"
-
-export interface DbPlainExplorer {
-    slug: string
-    tsv: string
-    isPublished: boolean
-    lastCommit: string
-    lastEditedByUserId: number
-    lastEditedAt: Date
-    commitMessage: string
-    createdAt: Date
-    updatedAt: Date
-}
-
-export interface DbEnrichedExplorer extends DbPlainExplorer {
-    // these properties are populated from Buildkite's pipeline "Mirror explorers to MySQL"
-    config: string
-}
+import { KnexReadonlyTransaction, KnexReadWriteTransaction } from "../db.js"
+import {
+    DbInsertExplorer,
+    DbPlainExplorer,
+    DbPlainExplorerWithLastCommit,
+    ExplorersTableName,
+} from "@ourworldindata/types"
 
 function createLastCommit(
     row: { lastEditedAt: Date; commitMessage: string },
@@ -34,17 +21,16 @@ function createLastCommit(
 }
 
 export async function upsertExplorer(
-    knex: db.KnexReadWriteTransaction,
-    slug: string,
-    tsv: string,
-    lastEditedByUserId: number,
-    commitMessage: string
+    knex: KnexReadWriteTransaction,
+    data: DbInsertExplorer
 ): Promise<string> {
+    const { slug, tsv, lastEditedByUserId, commitMessage } = data
     // Check if explorer with this catalog path already exists
     const existingExplorer = await knex<DbPlainExplorer>(ExplorersTableName)
         .where({ slug })
         .first()
 
+    // NOTE: We could do an actual upsert on the DB level here (see e.g. upsertMultiDimDataPage)
     if (existingExplorer) {
         // Update existing explorer with new config
         await knex<DbPlainExplorer>(ExplorersTableName)
@@ -60,22 +46,19 @@ export async function upsertExplorer(
         return existingExplorer.slug
     } else {
         // Create new explorer
-        // isPublished is currently set in the TSV
+        // isPublished is currently set in the
+        // NOTE: This is a temporary solution. We should get rid of `isPublished` from the         //   and use the `isPublished` column in the database instead.
         const unpublishedTSV = tsv.replace(
             /isPublished\ttrue/g,
             "isPublished\tfalse"
         )
 
-        await knex<DbEnrichedExplorer>(ExplorersTableName).insert({
+        await knex<DbPlainExplorer>(ExplorersTableName).insert({
             tsv: unpublishedTSV,
             slug,
-            lastCommit: "{}",
-            createdAt: new Date(),
-            updatedAt: new Date(),
             lastEditedByUserId,
             lastEditedAt: new Date(),
             commitMessage,
-            isPublished: false,
             config: "{}",
         })
         return slug
@@ -83,9 +66,9 @@ export async function upsertExplorer(
 }
 
 export async function getExplorerBySlug(
-    knex: db.KnexReadonlyTransaction,
+    knex: KnexReadonlyTransaction,
     slug: string
-): Promise<DbPlainExplorer | undefined> {
+): Promise<DbPlainExplorerWithLastCommit | undefined> {
     const row = await knex<DbPlainExplorer>(ExplorersTableName)
         .leftJoin(
             "users",
@@ -108,8 +91,8 @@ export async function getExplorerBySlug(
 }
 
 export async function getAllExplorers(
-    knex: db.KnexReadonlyTransaction
-): Promise<DbPlainExplorer[]> {
+    knex: KnexReadonlyTransaction
+): Promise<DbPlainExplorerWithLastCommit[]> {
     // Use left join to fetch users in one query
     const rows = await knex<DbPlainExplorer>(ExplorersTableName)
         .leftJoin(
