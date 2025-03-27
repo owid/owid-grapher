@@ -111,10 +111,18 @@ const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
             POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR
         ),
         // checks if a column has population data
-        isMatch: (column: CoreColumn): boolean =>
-            isPopulationVariableETLPath(
+        isMatch: (column: CoreColumn): boolean => {
+            // check the slug first
+            const externalSlug = indicatorIdToSlug(
+                POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR
+            )
+            if (column.slug === externalSlug) return true
+
+            // then check the catalog path
+            return isPopulationVariableETLPath(
                 (column.def as OwidColumnDef)?.catalogPath ?? ""
-            ),
+            )
+        },
     },
     {
         key: "gdpPerCapita",
@@ -125,8 +133,14 @@ const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
         ),
         // checks if a column has GDP per capita data
         isMatch: (column: CoreColumn): boolean => {
-            const label = makeLabelForSortColumn(column)
+            // check the slug first
+            const externalSlug = indicatorIdToSlug(
+                GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR
+            )
+            if (column.slug === externalSlug) return true
 
+            // then check the label
+            const label = makeLabelForSortColumn(column)
             // matches "gdp per capita" and content within parentheses
             const potentialMatches =
                 label.match(/\(.*?\)|(\bgdp per capita\b)/gi) ?? []
