@@ -358,6 +358,10 @@ export class EntitySelector extends React.Component<{
 
     @computed private get entitiesAreCountriesOrRegions(): boolean {
         for (const entityName of this.availableEntityNames) {
+            // Ignore the World entity since we have charts that only have the
+            // World entity but no other countries or regions (e.g. 'World',
+            // 'Northern Hemisphere' and 'Southern hemisphere')
+            if (isWorldEntityName(entityName)) continue
             if (regionNamesSet.has(entityName)) return true
         }
         return false
