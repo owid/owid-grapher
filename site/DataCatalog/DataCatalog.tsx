@@ -5,10 +5,6 @@ import {
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.js"
-// Update MUI imports to include Fab
-import { Drawer, IconButton, Box, Typography, Fab } from "@mui/material"
-import SettingsIcon from "@mui/icons-material/Settings"
-import CloseIcon from "@mui/icons-material/Close"
 import {
     analytics,
     checkShouldShowRibbonView,
@@ -35,6 +31,7 @@ import { DataCatalogResults } from "./DataCatalogResults.js"
 import { AppliedTopicFiltersList } from "./AppliedTopicFiltersList.js"
 import { DataCatalogSearchbar } from "./DataCatalogSearchbar.js"
 import { DataCatalogDataInsights } from "./DataCatalogDataInsights.js"
+import { DataCatalogSettings } from "./DataCatalogSettings.js"
 
 export const DataCatalog = ({
     initialState,
@@ -48,8 +45,7 @@ export const DataCatalog = ({
     const [state, dispatch] = useReducer(dataCatalogReducer, initialState)
     const actions = createActions(dispatch)
     const [isLoading, setIsLoading] = useState(false)
-    // Add state for drawer
-    const [drawerOpen, setDrawerOpen] = useState(false)
+    // Remove drawerOpen state as it's now in the DataCatalogSettings component
     const [cache, setCache] = useState<DataCatalogCache>({
         ribbons: new Map(),
         search: new Map(),
@@ -145,48 +141,8 @@ export const DataCatalog = ({
                             actions.toggleRequireAllCountries
                         }
                     />
-                    {/* Remove the inline settings button */}
                 </div>
             </div>
-
-            {/* Add floating action button for settings */}
-            <Fab
-                color="primary"
-                aria-label="settings"
-                onClick={() => setDrawerOpen(true)}
-                sx={{
-                    position: "fixed",
-                    bottom: 24,
-                    right: 24,
-                    zIndex: 1000,
-                }}
-            >
-                <SettingsIcon />
-            </Fab>
-
-            {/* Drawer component remains unchanged */}
-            <Drawer
-                anchor="right"
-                open={drawerOpen}
-                onClose={() => setDrawerOpen(false)}
-            >
-                <Box sx={{ width: 300, p: 3 }}>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            mb: 2,
-                        }}
-                    >
-                        <Typography variant="h6">Settings</Typography>
-                        <IconButton onClick={() => setDrawerOpen(false)}>
-                            <CloseIcon />
-                        </IconButton>
-                    </Box>
-                    <Box>{/* Drawer content will go here */}</Box>
-                </Box>
-            </Drawer>
 
             <AppliedTopicFiltersList
                 topics={state.topics}
@@ -217,6 +173,7 @@ export const DataCatalog = ({
                     setPage={actions.setPage}
                 />
             )}
+            <DataCatalogSettings />
         </>
     )
 }
