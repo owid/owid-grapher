@@ -18,13 +18,14 @@ export type DataCatalogState = Readonly<{
     page: number
     componentOrder: CatalogComponentId[]
     componentVisibility: Record<CatalogComponentId, boolean>
-    insightsToShow: number
+    componentCount: Record<CatalogComponentId, number>
 }>
 
 export interface ComponentConfig {
     id: CatalogComponentId
     name: string
     visible: boolean
+    maxItems?: number
 }
 
 // Define available components with default order
@@ -43,6 +44,7 @@ export const DEFAULT_COMPONENTS: ComponentConfig[] = [
         id: CatalogComponentId.DATA_INSIGHTS,
         name: "Data Insights",
         visible: true,
+        maxItems: 2,
     },
     { id: CatalogComponentId.RESULTS, name: "Results", visible: true },
 ]
@@ -96,9 +98,12 @@ type ToggleComponentVisibilityAction = {
     payload: CatalogComponentId
 }
 
-type SetInsightsToShowAction = {
-    type: "setInsightsToShow"
-    count: number
+type SetComponentCountAction = {
+    type: "setComponentCount"
+    payload: {
+        componentId: CatalogComponentId
+        count: number
+    }
 }
 
 export type DataCatalogAction =
@@ -112,7 +117,7 @@ export type DataCatalogAction =
     | ToggleRequireAllCountriesAction
     | UpdateComponentOrderAction
     | ToggleComponentVisibilityAction
-    | SetInsightsToShowAction
+    | SetComponentCountAction
 
 export function dataCatalogReducer(
     state: DataCatalogState,
@@ -176,9 +181,12 @@ export function dataCatalogReducer(
                 [payload]: !state.componentVisibility[payload],
             },
         }))
-        .with({ type: "setInsightsToShow" }, ({ count }) => ({
+        .with({ type: "setComponentCount" }, ({ payload }) => ({
             ...state,
-            insightsToShow: count,
+            componentCount: {
+                ...state.componentCount,
+                [payload.componentId]: payload.count,
+            },
         }))
         .exhaustive()
 }
@@ -196,7 +204,8 @@ export function createActions(dispatch: (action: DataCatalogAction) => void) {
         toggleRequireAllCountries: () => dispatch({ type: "toggleRequireAllCountries" }),
         updateComponentOrder: (componentOrder: CatalogComponentId[]) => dispatch({ type: "updateComponentOrder", payload: componentOrder }),
         toggleComponentVisibility: (componentId: CatalogComponentId) => dispatch({ type: "toggleComponentVisibility", payload: componentId }),
-        setInsightsToShow: (count: number) => dispatch({ type: "setInsightsToShow", count }),
+        setComponentCount: (componentId: CatalogComponentId, count: number) =>
+            dispatch({ type: "setComponentCount", payload: { componentId, count } }),
     }
 }
 
@@ -212,7 +221,9 @@ export function getInitialDatacatalogState(): DataCatalogState {
             componentVisibility: Object.fromEntries(
                 DEFAULT_COMPONENTS.map((c) => [c.id, c.visible])
             ) as Record<CatalogComponentId, boolean>,
-            insightsToShow: 2,
+            componentCount: Object.fromEntries(
+                DEFAULT_COMPONENTS.map((c) => [c.id, c.maxItems || 0])
+            ) as Record<CatalogComponentId, number>,
         }
 
     const url = Url.fromURL(window.location.href)
@@ -225,11 +236,25 @@ export function getInitialDatacatalogState(): DataCatalogState {
         componentVisibility: Object.fromEntries(
             DEFAULT_COMPONENTS.map((c) => [c.id, c.visible])
         ) as Record<CatalogComponentId, boolean>,
-        insightsToShow: 2,
+        componentCount: Object.fromEntries(
+            DEFAULT_COMPONENTS.map((c) => [c.id, c.maxItems || 0])
+        ) as Record<CatalogComponentId, number>,
     }
 }
 
 export function urlToDataCatalogState(url: Url): DataCatalogState {
+    // Create default component counts
+    const defaultComponentCount = Object.fromEntries(
+        DEFAULT_COMPONENTS.map((c) => [c.id, c.maxItems || 0])
+    ) as Record<CatalogComponentId, number>
+
+    // Check for specific component counts in URL
+    if (url.queryParams.insights) {
+        defaultComponentCount[CatalogComponentId.DATA_INSIGHTS] = parseInt(
+            url.queryParams.insights
+        )
+    }
+
     return {
         query: url.queryParams.q || "",
         topics: deserializeSet(url.queryParams.topics),
@@ -240,9 +265,7 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
         componentVisibility: Object.fromEntries(
             DEFAULT_COMPONENTS.map((c) => [c.id, c.visible])
         ) as Record<CatalogComponentId, boolean>,
-        insightsToShow: url.queryParams.insights
-            ? parseInt(url.queryParams.insights)
-            : 2,
+        componentCount: defaultComponentCount,
     }
 }
 
@@ -251,6 +274,11 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
         typeof window === "undefined" ? "" : window.location.href
     )
 
+    const defaultInsightsCount =
+        DEFAULT_COMPONENTS.find(
+            (c) => c.id === CatalogComponentId.DATA_INSIGHTS
+        )?.maxItems || 2
+
     const params = {
         q: state.query || undefined,
         topics: serializeSet(state.topics),
@@ -258,8 +286,11 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
         requireAllCountries: state.requireAllCountries ? "true" : undefined,
         page: state.page > 0 ? (state.page + 1).toString() : undefined,
         insights:
-            state.insightsToShow !== 2
-                ? state.insightsToShow.toString()
+            state.componentCount[CatalogComponentId.DATA_INSIGHTS] !==
+            defaultInsightsCount
+                ? state.componentCount[
+                      CatalogComponentId.DATA_INSIGHTS
+                  ].toString()
                 : undefined,
     }
 

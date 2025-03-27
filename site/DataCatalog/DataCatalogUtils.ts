@@ -10,7 +10,7 @@ import {
     SearchIndexName,
 } from "../search/searchTypes.js"
 import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
-import { DataCatalogState } from "./DataCatalogState.js"
+import { CatalogComponentId, DataCatalogState } from "./DataCatalogState.js"
 import { countriesByName, Region } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -279,7 +279,7 @@ export const queryDataInsights = async (
 
     const results = await index.search<IPageHit>(query, {
         page,
-        hitsPerPage: state.insightsToShow,
+        hitsPerPage: state.componentCount[CatalogComponentId.DATA_INSIGHTS],
         highlightPreTag: "<mark>",
         highlightPostTag: "</mark>",
         facetFilters,

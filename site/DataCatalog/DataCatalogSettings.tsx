@@ -24,17 +24,17 @@ import ArrowDownward from "@mui/icons-material/ArrowDownward"
 export const DataCatalogSettings = ({
     componentOrder = [],
     componentVisibility,
+    componentCount,
     updateComponentOrder,
     toggleComponentVisibility,
-    insightsToShow,
-    setInsightsToShow,
+    setComponentCount,
 }: {
     componentOrder?: CatalogComponentId[]
     componentVisibility?: Record<CatalogComponentId, boolean>
+    componentCount?: Record<CatalogComponentId, number>
     updateComponentOrder?: (order: CatalogComponentId[]) => void
     toggleComponentVisibility?: (id: CatalogComponentId) => void
-    insightsToShow: number
-    setInsightsToShow?: (count: number) => void
+    setComponentCount?: (id: CatalogComponentId, count: number) => void
 }) => {
     const [open, setOpen] = useState(false)
 
@@ -61,6 +61,9 @@ export const DataCatalogSettings = ({
         newOrder[index] = temp
         updateComponentOrder(newOrder)
     }
+
+    const insightsToShow =
+        componentCount?.[CatalogComponentId.DATA_INSIGHTS] || 2
 
     return (
         <>
@@ -131,7 +134,7 @@ export const DataCatalogSettings = ({
                         </List>
                     )}
 
-                    {setInsightsToShow && (
+                    {setComponentCount && (
                         <>
                             <Divider sx={{ my: 2 }} />
                             <List
@@ -152,7 +155,8 @@ export const DataCatalogSettings = ({
                                             value={insightsToShow}
                                             label="Data Insights to Show"
                                             onChange={(e) =>
-                                                setInsightsToShow(
+                                                setComponentCount(
+                                                    CatalogComponentId.DATA_INSIGHTS,
                                                     Number(e.target.value)
                                                 )
                                             }

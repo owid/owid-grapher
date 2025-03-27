@@ -1,25 +1,31 @@
 import { commafyNumber } from "@ourworldindata/utils"
 import { PagesHit } from "../search/SearchPanel.js"
 import { DataCatalogPageSearchResult } from "./DataCatalogUtils.js"
+import { CatalogComponentId } from "./DataCatalogState.js"
 
 export const DataCatalogDataInsights = ({
     results,
-    insightsToShow,
-    setInsightsToShow,
+    componentCount,
+    setComponentCount,
 }: {
     results?: DataCatalogPageSearchResult
-    insightsToShow: number
-    setInsightsToShow?: (count: number) => void
+    componentCount?: Record<CatalogComponentId, number>
+    setComponentCount?: (componentId: CatalogComponentId, count: number) => void
 }) => {
     const hits = results?.hits
     if (!hits || !hits.length) return null
 
     const { nbHits } = results
+    const insightsToShow =
+        componentCount?.[CatalogComponentId.DATA_INSIGHTS] || 2
     const showMoreAvailable = insightsToShow < nbHits
 
     const handleShowMore = () => {
-        if (setInsightsToShow) {
-            setInsightsToShow(insightsToShow + 2)
+        if (setComponentCount) {
+            setComponentCount(
+                CatalogComponentId.DATA_INSIGHTS,
+                insightsToShow + 2
+            )
         }
     }
 
@@ -38,7 +44,7 @@ export const DataCatalogDataInsights = ({
                         {nbHits > insightsToShow && (
                             <div className="search-results__show-more-container">
                                 <em>{`Showing ${insightsToShow} of ${commafyNumber(nbHits)} results`}</em>
-                                {showMoreAvailable && setInsightsToShow && (
+                                {showMoreAvailable && setComponentCount && (
                                     <button
                                         className="search-results__show-more-btn"
                                         onClick={handleShowMore}
