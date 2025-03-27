@@ -17,7 +17,7 @@ test("map tooltip renders iff mouseenter", () => {
 
     const grapherWrapperWithHover = grapherWrapper
         .find("path")
-        .findWhere((node) => node.key() === "Iceland")
+        .findWhere((node) => node.prop("data-feature-id") === "Iceland")
         .simulate("mouseenter", {
             clientX: 50,
             clientY: 50,

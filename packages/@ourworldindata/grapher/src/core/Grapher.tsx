@@ -2737,6 +2737,15 @@ export class Grapher
                 title: "Reset to original",
                 category: "Navigation",
             },
+            {
+                combo: "g",
+                fn: (): void => {
+                    this.mapConfig.globe.isActive =
+                        !this.mapConfig.globe.isActive
+                },
+                title: "Toggle globe view",
+                category: "Map",
+            },
         ]
 
         if (this.slideShow) {
