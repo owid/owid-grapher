@@ -14,23 +14,6 @@ const messageByInterval = {
     annual: "You will be charged annually and can cancel any time by writing to us at donate@ourworldindata.org.",
 } as const
 
-function getPaymentMethodTypes(
-    donation: DonationRequest
-): Stripe.Checkout.SessionCreateParams.PaymentMethodType[] {
-    if (donation.interval === "once" && donation.currency === "EUR") {
-        return [
-            "card",
-            "sepa_debit",
-            "giropay",
-            "ideal",
-            "bancontact",
-            "eps",
-            "sofort",
-        ]
-    }
-    return ["card"]
-}
-
 export async function createCheckoutSession(
     donation: DonationRequest,
     key: string
@@ -73,7 +56,6 @@ export async function createCheckoutSession(
     const options: Stripe.Checkout.SessionCreateParams = {
         success_url: successUrl,
         cancel_url: cancelUrl,
-        payment_method_types: getPaymentMethodTypes(donation),
         metadata, // attach the metadata to the checkout session
     }
 
