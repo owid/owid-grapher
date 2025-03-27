@@ -5,14 +5,29 @@ $toggle-height: 40px;
 
 .md-settings-row {
     display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    column-gap: 15px;
-    row-gap: 5px;
-    margin-top: 20px;
+    gap: 16px;
 
     .md-settings__configure-data {
+        flex-shrink: 0;
+        padding-top: 12px;
         color: $blue-60;
+
+        @include sm-only {
+            margin-bottom: 8px;
+            padding-top: 0;
+            font-size: 0.625rem;
+            color: $blue-50;
+        }
+    }
+
+    .md-settings__dropdowns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+
+        @include sm-only {
+            gap: 8px;
+        }
     }
 
     .md-settings__dropdown-toggle {
@@ -67,6 +82,10 @@ $toggle-height: 40px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    @include sm-only {
+        display: block;
     }
 }
 

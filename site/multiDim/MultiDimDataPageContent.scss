@@ -28,12 +28,21 @@ $zindex-controls-popup: 140;
 .MultiDimDataPageContent {
     @import "./MultiDimDataPageSettingsPanel.scss";
 
+    .header {
+        margin-bottom: 24px;
+    }
+
     .header__left {
-        padding-bottom: 20px;
+        margin-bottom: 16px;
+
+        @include sm-only {
+            padding-bottom: 0;
+        }
     }
 
     .settings-row__wrapper {
-        padding-bottom: 20px;
+        margin-bottom: 16px;
+        padding-top: 16px;
         border-top: 1px solid $blue-20;
     }
 
