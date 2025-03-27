@@ -299,23 +299,28 @@ export class EntitySelector extends React.Component<{
      * Converts the given time to be compatible with the time format
      * of the given column.
      *
-     * This is necessary for daily charts since the external sort indicators
-     * (population, gdp per capita) typically have yearly date.
+     * This is necessary for external sort indicators when they're loaded
+     * for charts with daily data.
      */
     private toColumnCompatibleTime(time: Time, column: CoreColumn): Time {
-        return this.chartHasDailyData && !column.display?.yearIsDay
-            ? toDate(time).year()
-            : time
-    }
+        const isExternal = this.externalSortIndicatorDefinitions.some(
+            (external) => column.slug === external.slug
+        )
 
-    private clampWithinColumnTimeRange(time: Time, column: CoreColumn): Time {
-        return clamp(time, column.minTime, column.maxTime)
+        // if the column comes from the chart, no conversion is needed
+        if (!isExternal) return time
+
+        // assumes that external indicators have yearly data
+        const year = this.chartHasDailyData ? toDate(time).year() : time
+
+        // clamping is necessary since external indicators might not cover
+        // the entire time range of the chart
+        return clamp(year, column.minTime, column.maxTime)
     }
 
     private formatTimeForSortColumnLabel(column: CoreColumn): string {
         const endTime = this.toColumnCompatibleTime(this.endTime, column)
-        const clampedTime = this.clampWithinColumnTimeRange(endTime, column)
-        return column.formatTime(clampedTime)
+        return column.formatTime(endTime)
     }
 
     @computed private get manager(): EntitySelectorManager {
@@ -544,13 +549,7 @@ export class EntitySelector extends React.Component<{
             }
 
             for (const column of this.interpolatedSortColumns) {
-                const endTime = this.toColumnCompatibleTime(
-                    this.endTime,
-                    column
-                )
-                // clamping is necessary for external indicators since they
-                // might not cover the entire time range of the chart
-                const time = this.clampWithinColumnTimeRange(endTime, column)
+                const time = this.toColumnCompatibleTime(this.endTime, column)
                 const rowsByTime =
                     column.owidRowByEntityNameAndTime.get(entityName)
                 searchableEntity.sortColumnValues[column.slug] =
@@ -945,10 +944,7 @@ export class EntitySelector extends React.Component<{
     @computed private get selectedSortColumnMaxValue(): number | undefined {
         const { selectedSortColumn, endTime } = this
         if (!selectedSortColumn) return undefined
-        const time = this.clampWithinColumnTimeRange(
-            this.toColumnCompatibleTime(endTime, selectedSortColumn),
-            selectedSortColumn
-        )
+        const time = this.toColumnCompatibleTime(endTime, selectedSortColumn)
         const values = selectedSortColumn.valuesByTime.get(time)
         return max(values)
     }
