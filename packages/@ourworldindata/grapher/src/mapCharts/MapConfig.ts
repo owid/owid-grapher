@@ -13,6 +13,13 @@ import {
     NoUndefinedValues,
     ToleranceStrategy,
 } from "@ourworldindata/utils"
+import { DEFAULT_VIEWPORT } from "./MapChartConstants"
+
+interface GlobeConfig {
+    isActive: boolean
+    rotation: [number, number]
+    zoom: number
+}
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.
@@ -24,6 +31,12 @@ class MapConfigDefaults {
     @observable toleranceStrategy?: ToleranceStrategy
     @observable hideTimeline?: boolean
     @observable region = MapRegionName.World
+
+    @observable globe: GlobeConfig = {
+        isActive: false,
+        rotation: DEFAULT_VIEWPORT.rotation,
+        zoom: 1,
+    }
 
     @observable colorScale = new ColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
