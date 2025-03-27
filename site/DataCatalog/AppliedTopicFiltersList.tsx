@@ -8,6 +8,9 @@ export const AppliedTopicFiltersList = ({
     topics: Set<string>
     removeTopic: (topic: string) => void
 }) => {
+    // Only render if there are topics
+    if (topics.size === 0) return null
+
     return (
         <ul
             className="data-catalog-applied-filters-list span-cols-12 col-start-2"

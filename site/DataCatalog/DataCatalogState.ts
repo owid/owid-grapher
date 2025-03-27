@@ -247,6 +247,35 @@ export function createActions(dispatch: (action: DataCatalogAction) => void) {
     }
 }
 
+// Helper functions to extract default component properties
+function getDefaultComponentOrder(): CatalogComponentId[] {
+    return DEFAULT_COMPONENTS.map((c) => c.id)
+}
+
+function getDefaultComponentVisibility(): Record<CatalogComponentId, boolean> {
+    return Object.fromEntries(
+        DEFAULT_COMPONENTS.map((c) => [c.id, c.visible])
+    ) as Record<CatalogComponentId, boolean>
+}
+
+function getDefaultComponentCount(): Record<CatalogComponentId, number> {
+    return Object.fromEntries(
+        DEFAULT_COMPONENTS.map((c) => [c.id, c.maxItems || 0])
+    ) as Record<CatalogComponentId, number>
+}
+
+function getDefaultComponentStyles(): Record<
+    CatalogComponentId,
+    CatalogComponentStyle
+> {
+    return Object.fromEntries(
+        DEFAULT_COMPONENTS.map((c) => [
+            c.id,
+            c.style || CatalogComponentStyle.GRID,
+        ])
+    ) as Record<CatalogComponentId, CatalogComponentStyle>
+}
+
 export function getInitialDatacatalogState(): DataCatalogState {
     if (typeof window === "undefined")
         return {
@@ -255,56 +284,22 @@ export function getInitialDatacatalogState(): DataCatalogState {
             selectedCountryNames: new Set(),
             requireAllCountries: false,
             page: 0,
-            componentOrder: DEFAULT_COMPONENTS.map((c) => c.id),
-            componentVisibility: Object.fromEntries(
-                DEFAULT_COMPONENTS.map((c) => [c.id, c.visible])
-            ) as Record<CatalogComponentId, boolean>,
-            componentCount: Object.fromEntries(
-                DEFAULT_COMPONENTS.map((c) => [c.id, c.maxItems || 0])
-            ) as Record<CatalogComponentId, number>,
-            componentStyles: Object.fromEntries(
-                DEFAULT_COMPONENTS.map((c) => [
-                    c.id,
-                    c.style || CatalogComponentStyle.GRID,
-                ])
-            ) as Record<CatalogComponentId, CatalogComponentStyle>,
+            componentOrder: getDefaultComponentOrder(),
+            componentVisibility: getDefaultComponentVisibility(),
+            componentCount: getDefaultComponentCount(),
+            componentStyles: getDefaultComponentStyles(),
         }
 
     const url = Url.fromURL(window.location.href)
     const state = urlToDataCatalogState(url)
 
-    // Add component configuration with defaults
-    return {
-        ...state,
-        componentOrder: DEFAULT_COMPONENTS.map((c) => c.id),
-        componentVisibility: Object.fromEntries(
-            DEFAULT_COMPONENTS.map((c) => [c.id, c.visible])
-        ) as Record<CatalogComponentId, boolean>,
-        componentCount: Object.fromEntries(
-            DEFAULT_COMPONENTS.map((c) => [c.id, c.maxItems || 0])
-        ) as Record<CatalogComponentId, number>,
-        componentStyles: Object.fromEntries(
-            DEFAULT_COMPONENTS.map((c) => [
-                c.id,
-                c.style || CatalogComponentStyle.GRID,
-            ])
-        ) as Record<CatalogComponentId, CatalogComponentStyle>,
-    }
+    return state
 }
 
 export function urlToDataCatalogState(url: Url): DataCatalogState {
-    // Create default component counts
-    const defaultComponentCount = Object.fromEntries(
-        DEFAULT_COMPONENTS.map((c) => [c.id, c.maxItems || 0])
-    ) as Record<CatalogComponentId, number>
-
-    // Create default component styles
-    const defaultComponentStyles = Object.fromEntries(
-        DEFAULT_COMPONENTS.map((c) => [
-            c.id,
-            c.style || CatalogComponentStyle.GRID,
-        ])
-    ) as Record<CatalogComponentId, CatalogComponentStyle>
+    // Start with default component properties
+    const defaultComponentCount = getDefaultComponentCount()
+    const defaultComponentStyles = getDefaultComponentStyles()
 
     // Check for specific component counts in URL
     if (url.queryParams.insights) {
@@ -329,10 +324,8 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
         selectedCountryNames: deserializeSet(url.queryParams.countries),
         requireAllCountries: url.queryParams.requireAllCountries === "true",
         page: url.queryParams.page ? parseInt(url.queryParams.page) - 1 : 0,
-        componentOrder: DEFAULT_COMPONENTS.map((c) => c.id),
-        componentVisibility: Object.fromEntries(
-            DEFAULT_COMPONENTS.map((c) => [c.id, c.visible])
-        ) as Record<CatalogComponentId, boolean>,
+        componentOrder: getDefaultComponentOrder(),
+        componentVisibility: getDefaultComponentVisibility(),
         componentCount: defaultComponentCount,
         componentStyles: defaultComponentStyles,
     }
