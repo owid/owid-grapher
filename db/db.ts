@@ -8,7 +8,7 @@ import {
     BAKED_BASE_URL,
 } from "../settings/serverSettings.js"
 import { registerExitHandler } from "./cleanup.js"
-import { createTagGraph, keyBy } from "@ourworldindata/utils"
+import { createTagGraph, keyBy, Url } from "@ourworldindata/utils"
 import {
     ImageMetadata,
     MinimalDataInsightInterface,
@@ -35,6 +35,7 @@ import {
     OwidGdocBaseInterface,
     TagGraphRoot,
     MimByParentTagNameDictionary,
+    ChartConfigsTableName,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash-es"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -945,6 +946,60 @@ export const getMimsByParentTagName = async (
     )) as MimByParentTagNameDictionary
 
     return { ...blankMimsByParentTagName, ...mimsByParentTagName }
+}
+
+/**
+ * Takes a URL and checks if it points to a valid grapher, explorer, or MDIM view.
+ * Doesn't validate query params as this would be quite complicated / overkill for our needs
+ */
+export async function validateChartSlug(
+    trx: KnexReadonlyTransaction,
+    urlString: string
+): Promise<{ isValid: boolean; reason: string }> {
+    const url = Url.fromURL(urlString)
+    if (url.isExplorer) {
+        const urlSlug = url.slug
+        if (!urlSlug)
+            return { isValid: false, reason: "Missing slug in explorer URL" }
+
+        const explorer = await trx("explorers")
+            .where({ slug: urlSlug, isPublished: true })
+            .first()
+
+        if (!explorer)
+            return {
+                isValid: false,
+                reason: "Explorer not found or not published",
+            }
+
+        return { isValid: true, reason: "" }
+    }
+
+    if (url.isGrapher) {
+        const slug = url.slug
+        if (!slug)
+            return { isValid: false, reason: "Missing slug in grapher URL" }
+
+        const grapher = await knexRaw(
+            trx,
+            `-- sql
+            SELECT id
+            FROM ${ChartConfigsTableName}
+            WHERE slug = ?
+            AND full->>"$.isPublished" = "true"`,
+            [slug]
+        ).then((rows) => rows[0])
+
+        if (!grapher)
+            return {
+                isValid: false,
+                reason: "Grapher not found or not published",
+            }
+
+        return { isValid: true, reason: "" }
+    }
+
+    return { isValid: false, reason: "URL is neither explorer nor grapher" }
 }
 
 export const getUniqueTopicCount = async (

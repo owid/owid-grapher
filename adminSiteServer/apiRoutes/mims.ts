@@ -14,6 +14,12 @@ export async function createMim(
         throw new JsonError("Missing required fields", 400)
     }
 
+    const { isValid, reason } = await db.validateChartSlug(_trx, url)
+
+    if (!isValid) {
+        throw new JsonError(`Invalid MIM URL. ${reason}`, 400)
+    }
+
     // Get the parentTagId from the parentTagName
     const parentTag = await _trx(TagsTableName)
         .select("id")
@@ -29,6 +35,21 @@ export async function createMim(
         )
     }
     const parentTagId = parentTag.id
+
+    const duplicateMim = await _trx(MimsTableName)
+        .where({
+            url,
+            parentTagId,
+            incomeGroup,
+        })
+        .first()
+
+    if (duplicateMim) {
+        throw new JsonError(
+            `MIM with URL "${url}", income group "${incomeGroup}", and parentTagName "${parentTagName}" already exists`,
+            400
+        )
+    }
 
     await db.knexRaw(
         _trx,
