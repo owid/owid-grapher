@@ -11,6 +11,12 @@ export enum CatalogComponentId {
     RESULTS = "results",
 }
 
+// Define component style options
+export enum CatalogComponentStyle {
+    GRID = "grid",
+    TABLE = "table",
+}
+
 export type DataCatalogState = Readonly<{
     query: string
     topics: Set<string>
@@ -20,6 +26,7 @@ export type DataCatalogState = Readonly<{
     componentOrder: CatalogComponentId[]
     componentVisibility: Record<CatalogComponentId, boolean>
     componentCount: Record<CatalogComponentId, number>
+    componentStyles: Record<CatalogComponentId, CatalogComponentStyle>
 }>
 
 export interface ComponentConfig {
@@ -27,6 +34,7 @@ export interface ComponentConfig {
     name: string
     visible: boolean
     maxItems?: number
+    style?: CatalogComponentStyle
 }
 
 // Define available components with default order
@@ -53,7 +61,12 @@ export const DEFAULT_COMPONENTS: ComponentConfig[] = [
         visible: true,
         maxItems: 2,
     },
-    { id: CatalogComponentId.RESULTS, name: "Results", visible: true },
+    {
+        id: CatalogComponentId.RESULTS,
+        name: "Results",
+        visible: true,
+        style: CatalogComponentStyle.GRID,
+    },
 ]
 
 type AddTopicAction = {
@@ -113,6 +126,14 @@ type SetComponentCountAction = {
     }
 }
 
+type SetComponentStyleAction = {
+    type: "setComponentStyle"
+    payload: {
+        componentId: CatalogComponentId
+        style: CatalogComponentStyle
+    }
+}
+
 export type DataCatalogAction =
     | AddCountryAction
     | AddTopicAction
@@ -125,6 +146,7 @@ export type DataCatalogAction =
     | UpdateComponentOrderAction
     | ToggleComponentVisibilityAction
     | SetComponentCountAction
+    | SetComponentStyleAction
 
 export function dataCatalogReducer(
     state: DataCatalogState,
@@ -195,6 +217,13 @@ export function dataCatalogReducer(
                 [payload.componentId]: payload.count,
             },
         }))
+        .with({ type: "setComponentStyle" }, ({ payload }) => ({
+            ...state,
+            componentStyles: {
+                ...state.componentStyles,
+                [payload.componentId]: payload.style,
+            },
+        }))
         .exhaustive()
 }
 
@@ -213,6 +242,8 @@ export function createActions(dispatch: (action: DataCatalogAction) => void) {
         toggleComponentVisibility: (componentId: CatalogComponentId) => dispatch({ type: "toggleComponentVisibility", payload: componentId }),
         setComponentCount: (componentId: CatalogComponentId, count: number) =>
             dispatch({ type: "setComponentCount", payload: { componentId, count } }),
+        setComponentStyle: (componentId: CatalogComponentId, style: CatalogComponentStyle) =>
+            dispatch({ type: "setComponentStyle", payload: { componentId, style } }),
     }
 }
 
@@ -231,6 +262,12 @@ export function getInitialDatacatalogState(): DataCatalogState {
             componentCount: Object.fromEntries(
                 DEFAULT_COMPONENTS.map((c) => [c.id, c.maxItems || 0])
             ) as Record<CatalogComponentId, number>,
+            componentStyles: Object.fromEntries(
+                DEFAULT_COMPONENTS.map((c) => [
+                    c.id,
+                    c.style || CatalogComponentStyle.GRID,
+                ])
+            ) as Record<CatalogComponentId, CatalogComponentStyle>,
         }
 
     const url = Url.fromURL(window.location.href)
@@ -246,6 +283,12 @@ export function getInitialDatacatalogState(): DataCatalogState {
         componentCount: Object.fromEntries(
             DEFAULT_COMPONENTS.map((c) => [c.id, c.maxItems || 0])
         ) as Record<CatalogComponentId, number>,
+        componentStyles: Object.fromEntries(
+            DEFAULT_COMPONENTS.map((c) => [
+                c.id,
+                c.style || CatalogComponentStyle.GRID,
+            ])
+        ) as Record<CatalogComponentId, CatalogComponentStyle>,
     }
 }
 
@@ -255,11 +298,29 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
         DEFAULT_COMPONENTS.map((c) => [c.id, c.maxItems || 0])
     ) as Record<CatalogComponentId, number>
 
+    // Create default component styles
+    const defaultComponentStyles = Object.fromEntries(
+        DEFAULT_COMPONENTS.map((c) => [
+            c.id,
+            c.style || CatalogComponentStyle.GRID,
+        ])
+    ) as Record<CatalogComponentId, CatalogComponentStyle>
+
     // Check for specific component counts in URL
     if (url.queryParams.insights) {
         defaultComponentCount[CatalogComponentId.DATA_INSIGHTS] = parseInt(
             url.queryParams.insights
         )
+    }
+
+    // Check for specific component styles in URL
+    if (
+        url.queryParams.resultsStyle &&
+        (url.queryParams.resultsStyle === CatalogComponentStyle.GRID ||
+            url.queryParams.resultsStyle === CatalogComponentStyle.TABLE)
+    ) {
+        defaultComponentStyles[CatalogComponentId.RESULTS] = url.queryParams
+            .resultsStyle as CatalogComponentStyle
     }
 
     return {
@@ -273,6 +334,7 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
             DEFAULT_COMPONENTS.map((c) => [c.id, c.visible])
         ) as Record<CatalogComponentId, boolean>,
         componentCount: defaultComponentCount,
+        componentStyles: defaultComponentStyles,
     }
 }
 
@@ -286,6 +348,10 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
             (c) => c.id === CatalogComponentId.DATA_INSIGHTS
         )?.maxItems || 2
 
+    const defaultResultsStyle =
+        DEFAULT_COMPONENTS.find((c) => c.id === CatalogComponentId.RESULTS)
+            ?.style || CatalogComponentStyle.GRID
+
     const params = {
         q: state.query || undefined,
         topics: serializeSet(state.topics),
@@ -298,6 +364,11 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
                 ? state.componentCount[
                       CatalogComponentId.DATA_INSIGHTS
                   ].toString()
+                : undefined,
+        resultsStyle:
+            state.componentStyles[CatalogComponentId.RESULTS] !==
+            defaultResultsStyle
+                ? state.componentStyles[CatalogComponentId.RESULTS]
                 : undefined,
     }
 

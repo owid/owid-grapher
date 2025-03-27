@@ -162,6 +162,7 @@ export const DataCatalog = ({
                 results={currentResults as DataCatalogSearchResult}
                 selectedCountries={selectedCountries}
                 setPage={actions.setPage}
+                style={state.componentStyles[CatalogComponentId.RESULTS]}
             />
         ),
     }
@@ -206,6 +207,8 @@ export const DataCatalog = ({
                 toggleComponentVisibility={actions.toggleComponentVisibility}
                 componentCount={state.componentCount}
                 setComponentCount={actions.setComponentCount}
+                componentStyles={state.componentStyles}
+                setComponentStyle={actions.setComponentStyle}
             />
         </>
     )

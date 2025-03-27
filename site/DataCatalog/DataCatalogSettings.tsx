@@ -15,26 +15,41 @@ import {
     Select,
     MenuItem,
     Divider,
+    ToggleButtonGroup,
+    ToggleButton,
 } from "@mui/material"
 import SettingsIcon from "@mui/icons-material/Settings"
-import { DEFAULT_COMPONENTS, CatalogComponentId } from "./DataCatalogState"
+import {
+    DEFAULT_COMPONENTS,
+    CatalogComponentId,
+    CatalogComponentStyle,
+} from "./DataCatalogState"
 import ArrowUpward from "@mui/icons-material/ArrowUpward"
 import ArrowDownward from "@mui/icons-material/ArrowDownward"
+import ViewListIcon from "@mui/icons-material/ViewList"
+import GridViewIcon from "@mui/icons-material/GridView"
 
 export const DataCatalogSettings = ({
     componentOrder = [],
     componentVisibility,
     componentCount,
+    componentStyles,
     updateComponentOrder,
     toggleComponentVisibility,
     setComponentCount,
+    setComponentStyle,
 }: {
-    componentOrder?: CatalogComponentId[]
-    componentVisibility?: Record<CatalogComponentId, boolean>
-    componentCount?: Record<CatalogComponentId, number>
-    updateComponentOrder?: (order: CatalogComponentId[]) => void
-    toggleComponentVisibility?: (id: CatalogComponentId) => void
-    setComponentCount?: (id: CatalogComponentId, count: number) => void
+    componentOrder: CatalogComponentId[]
+    componentVisibility: Record<CatalogComponentId, boolean>
+    componentCount: Record<CatalogComponentId, number>
+    componentStyles: Record<CatalogComponentId, CatalogComponentStyle>
+    updateComponentOrder: (order: CatalogComponentId[]) => void
+    toggleComponentVisibility: (id: CatalogComponentId) => void
+    setComponentCount: (id: CatalogComponentId, count: number) => void
+    setComponentStyle: (
+        id: CatalogComponentId,
+        style: CatalogComponentStyle
+    ) => void
 }) => {
     const [open, setOpen] = useState(false)
 
@@ -65,6 +80,19 @@ export const DataCatalogSettings = ({
     const insightsToShow =
         componentCount?.[CatalogComponentId.DATA_INSIGHTS] || 2
 
+    const resultsViewStyle =
+        componentStyles[CatalogComponentId.RESULTS] ||
+        CatalogComponentStyle.GRID
+
+    const handleViewStyleChange = (
+        _event: React.MouseEvent<HTMLElement>,
+        newStyle: CatalogComponentStyle
+    ) => {
+        if (newStyle !== null && setComponentStyle) {
+            setComponentStyle(CatalogComponentId.RESULTS, newStyle)
+        }
+    }
+
     return (
         <>
             <Fab
@@ -80,7 +108,7 @@ export const DataCatalogSettings = ({
                 <Box sx={{ width: 300, padding: 2 }}>
                     <Typography variant="h6">Data Catalog Settings</Typography>
 
-                    {updateComponentOrder && toggleComponentVisibility && (
+                    {
                         <List
                             subheader={
                                 <ListSubheader>
@@ -132,9 +160,9 @@ export const DataCatalogSettings = ({
                                 </ListItem>
                             ))}
                         </List>
-                    )}
+                    }
 
-                    {setComponentCount && (
+                    {
                         <>
                             <Divider sx={{ my: 2 }} />
                             <List
@@ -144,34 +172,84 @@ export const DataCatalogSettings = ({
                                     </ListSubheader>
                                 }
                             >
-                                <ListItem>
-                                    <FormControl fullWidth size="small">
-                                        <InputLabel id="insights-count-label">
-                                            Data Insights to Show
-                                        </InputLabel>
-                                        <Select
-                                            labelId="insights-count-label"
-                                            id="insights-count-select"
-                                            value={insightsToShow}
-                                            label="Data Insights to Show"
-                                            onChange={(e) =>
-                                                setComponentCount(
-                                                    CatalogComponentId.DATA_INSIGHTS,
-                                                    Number(e.target.value)
-                                                )
-                                            }
-                                        >
-                                            <MenuItem value={2}>2</MenuItem>
-                                            <MenuItem value={4}>4</MenuItem>
-                                            <MenuItem value={6}>6</MenuItem>
-                                            <MenuItem value={8}>8</MenuItem>
-                                            <MenuItem value={10}>10</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </ListItem>
+                                {
+                                    <ListItem>
+                                        <FormControl fullWidth size="small">
+                                            <InputLabel id="insights-count-label">
+                                                Data Insights to Show
+                                            </InputLabel>
+                                            <Select
+                                                labelId="insights-count-label"
+                                                id="insights-count-select"
+                                                value={insightsToShow}
+                                                label="Data Insights to Show"
+                                                onChange={(e) =>
+                                                    setComponentCount(
+                                                        CatalogComponentId.DATA_INSIGHTS,
+                                                        Number(e.target.value)
+                                                    )
+                                                }
+                                            >
+                                                <MenuItem value={2}>2</MenuItem>
+                                                <MenuItem value={4}>4</MenuItem>
+                                                <MenuItem value={6}>6</MenuItem>
+                                                <MenuItem value={8}>8</MenuItem>
+                                                <MenuItem value={10}>
+                                                    10
+                                                </MenuItem>
+                                            </Select>
+                                        </FormControl>
+                                    </ListItem>
+                                }
+
+                                {
+                                    <ListItem>
+                                        <Box sx={{ width: "100%" }}>
+                                            <Typography
+                                                variant="body2"
+                                                sx={{ mb: 1 }}
+                                            >
+                                                Results View
+                                            </Typography>
+                                            <ToggleButtonGroup
+                                                value={resultsViewStyle}
+                                                exclusive
+                                                onChange={handleViewStyleChange}
+                                                aria-label="results view style"
+                                                size="small"
+                                                fullWidth
+                                            >
+                                                <ToggleButton
+                                                    value={
+                                                        CatalogComponentStyle.GRID
+                                                    }
+                                                    aria-label="grid view"
+                                                >
+                                                    <GridViewIcon
+                                                        fontSize="small"
+                                                        sx={{ mr: 1 }}
+                                                    />
+                                                    Grid
+                                                </ToggleButton>
+                                                <ToggleButton
+                                                    value={
+                                                        CatalogComponentStyle.TABLE
+                                                    }
+                                                    aria-label="table view"
+                                                >
+                                                    <ViewListIcon
+                                                        fontSize="small"
+                                                        sx={{ mr: 1 }}
+                                                    />
+                                                    Table
+                                                </ToggleButton>
+                                            </ToggleButtonGroup>
+                                        </Box>
+                                    </ListItem>
+                                }
                             </List>
                         </>
-                    )}
+                    }
                 </Box>
             </Drawer>
         </>

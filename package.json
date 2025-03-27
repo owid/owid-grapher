@@ -58,6 +58,7 @@
         "@googleapis/docs": "^3.3.0",
         "@googleapis/drive": "^8.16.0",
         "@handsontable/react": "^15.1.0",
+        "@material-ui/core": "^4.12.4",
         "@mui/icons-material": "^7.0.0",
         "@mui/material": "^7.0.0",
         "@ourworldindata/components": "workspace:^",
