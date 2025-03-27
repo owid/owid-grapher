@@ -30,7 +30,9 @@ import {
     MapEntity,
     ChoroplethSeries,
     DEFAULT_STROKE_COLOR,
-    CHOROPLETH_MAP_CLASSNAME,
+    ChoroplethSeriesByName,
+    ChoroplethMapManager,
+    MAP_CHART_CLASSNAME,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
@@ -61,6 +63,7 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChoroplethMap } from "./ChoroplethMap"
+import { ChoroplethGlobe } from "./ChoroplethGlobe"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -71,7 +74,11 @@ interface MapChartProps {
 @observer
 export class MapChart
     extends React.Component<MapChartProps>
-    implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
+    implements
+        ChartInterface,
+        HorizontalColorLegendManager,
+        ColorScaleManager,
+        ChoroplethMapManager
 {
     @observable focusEntity?: MapEntity
     @observable focusBracket?: MapBracket
@@ -138,7 +145,7 @@ export class MapChart
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed get choroplethData(): Map<SeriesName, ChoroplethSeries> {
+    @computed get choroplethData(): ChoroplethSeriesByName {
         return this.seriesMap
     }
 
@@ -255,8 +262,8 @@ export class MapChart
         return mapColumn.owidRows
             .map((row) => {
                 const { entityName, value, originalTime } = row
-                const color = this.colorScale.getColor(value) || "red" // todo: color fix
-                if (!color) return undefined
+                const color =
+                    this.colorScale.getColor(value) || this.noDataColor
                 return {
                     seriesName: entityName,
                     time: originalTime,
@@ -269,7 +276,7 @@ export class MapChart
             .filter(isPresent)
     }
 
-    @computed private get seriesMap(): Map<SeriesName, ChoroplethSeries> {
+    @computed private get seriesMap(): ChoroplethSeriesByName {
         const map = new Map<SeriesName, ChoroplethSeries>()
         this.series.forEach((series) => {
             map.set(series.seriesName, series)
@@ -298,7 +305,7 @@ export class MapChart
     componentDidMount(): void {
         if (!this.manager.disableIntroAnimation) {
             select(this.base.current)
-                .selectAll(`.${CHOROPLETH_MAP_CLASSNAME} path`)
+                .selectAll(`.${MAP_CHART_CLASSNAME} path`)
                 .attr("data-fill", function () {
                     return (this as SVGPathElement).getAttribute("fill")
                 })
@@ -510,6 +517,14 @@ export class MapChart
         )
     }
 
+    renderMapOrGlobe(): React.ReactElement {
+        return this.mapConfig.globe.isActive ? (
+            <ChoroplethGlobe manager={this} />
+        ) : (
+            <ChoroplethMap manager={this} />
+        )
+    }
+
     renderStatic(): React.ReactElement {
         return (
             <>
@@ -517,12 +532,12 @@ export class MapChart
                     zoomed in. If it isn't, then we don't add a clipping element
                     since it introduces noise in SVG editing programs like Figma. */}
                 {this.region === MapRegionName.World ? (
-                    <ChoroplethMap manager={this} />
+                    this.renderMapOrGlobe()
                 ) : (
                     <>
                         {this.clipPath.element}
                         <g clipPath={this.clipPath.id}>
-                            <ChoroplethMap manager={this} />
+                            {this.renderMapOrGlobe()}
                         </g>
                     </>
                 )}
@@ -541,13 +556,11 @@ export class MapChart
         return (
             <g
                 ref={this.base}
-                className="mapTab"
+                className={MAP_CHART_CLASSNAME}
                 onMouseMove={this.onMapMouseMove}
             >
                 {this.clipPath.element}
-                <g clipPath={this.clipPath.id}>
-                    <ChoroplethMap manager={this} />
-                </g>
+                <g clipPath={this.clipPath.id}>{this.renderMapOrGlobe()}</g>
                 {this.renderMapLegend()}
                 {tooltipState.target && (
                     <MapTooltip
