@@ -1,35 +1,40 @@
 import React from "react"
 import {
     Bounds,
-    getRelativeMouse,
-    sortBy,
     difference,
+    InteractionState,
     makeIdForHumanConsumption,
+    MapRegionName,
+    sortBy,
 } from "@ourworldindata/utils"
-import { observable, computed, action } from "mobx"
+import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Quadtree, quadtree } from "d3-quadtree"
 import {
-    MapEntity,
-    ChoroplethMapManager,
-    RenderFeature,
-    ChoroplethSeries,
-    MAP_HOVER_TARGET_RANGE,
-    DEFAULT_STROKE_COLOR,
-    CHOROPLETH_MAP_CLASSNAME,
+    MapRenderFeature,
     MAP_VIEWPORTS,
     MapViewport,
+    SVGMouseEvent,
+    GEO_FEATURES_CLASSNAME,
+    ChoroplethMapManager,
+    ChoroplethSeriesByName,
+    DEFAULT_STROKE_WIDTH,
+    CHOROPLETH_MAP_CLASSNAME,
 } from "./MapChartConstants"
-import { Patterns } from "../core/GrapherConstants"
-import { ColorScaleBin } from "../color/ColorScaleBin"
-import { getCountriesByRegion } from "./WorldRegionsToProjection"
-import { MapRegionName } from "@ourworldindata/types"
 import {
     geoBoundsForProjectionOf,
     renderFeaturesForProjectionOf,
 } from "./GeoFeatures"
-
-declare type SVGMouseEvent = React.MouseEvent<SVGElement>
+import { getCountriesByRegion } from "./WorldRegionsToProjection"
+import {
+    CountryOutsideOfSelectedRegion,
+    CountryWithData,
+    CountryWithNoData,
+    NoDataPattern,
+} from "./MapComponents"
+import { MapConfig } from "./MapConfig"
+import { Patterns } from "../core/GrapherConstants"
+import { detectNearbyFeature, hasFocus } from "./MapHelpers"
 
 @observer
 export class ChoroplethMap extends React.Component<{
@@ -37,66 +42,43 @@ export class ChoroplethMap extends React.Component<{
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    private focusStrokeColor = "#111"
+    /** Show an outline for selected countries */
+    @observable private showSelectedStyle = false
 
-    private defaultStrokeWidth = 0.3
-    private focusStrokeWidth = 1.5
-    private selectedStrokeWidth = 1
-    private patternStrokeWidth = 0.7
-
-    private blurFillOpacity = 0.2
-    private blurStrokeOpacity = 0.5
+    @observable private hoverEnterFeature?: MapRenderFeature
+    @observable private hoverNearbyFeature?: MapRenderFeature
 
     @computed private get manager(): ChoroplethMapManager {
         return this.props.manager
+    }
+
+    @computed private get mapConfig(): MapConfig {
+        return this.manager.mapConfig
+    }
+
+    @computed private get region(): MapRegionName {
+        return this.mapConfig.region
     }
 
     @computed.struct private get bounds(): Bounds {
         return this.manager.choroplethMapBounds
     }
 
-    @computed.struct private get choroplethData(): Map<
-        string,
-        ChoroplethSeries
-    > {
+    @computed.struct private get choroplethData(): ChoroplethSeriesByName {
         return this.manager.choroplethData
     }
 
-    @computed.struct private get defaultFill(): string {
-        return this.manager.noDataColor
+    @computed private get hoverFeature(): MapRenderFeature | undefined {
+        return this.hoverEnterFeature || this.hoverNearbyFeature
     }
 
     // Combine bounding boxes to get the extents of the entire map
     @computed private get mapBounds(): Bounds {
-        return Bounds.merge(geoBoundsForProjectionOf(this.manager.region))
+        return Bounds.merge(geoBoundsForProjectionOf(this.region))
     }
 
-    @computed private get focusBracket(): ColorScaleBin | undefined {
-        return this.manager.focusBracket
-    }
-
-    @computed private get focusEntity(): MapEntity | undefined {
-        return this.manager.focusEntity
-    }
-
-    // Check if a geo entity is currently focused, either directly or via the bracket
-    private hasFocus(id: string): boolean {
-        const { choroplethData, focusBracket, focusEntity } = this
-        if (focusEntity && focusEntity.id === id) return true
-        else if (!focusBracket) return false
-
-        const datum = choroplethData.get(id) || null
-        if (focusBracket.contains(datum?.value)) return true
-        else return false
-    }
-
-    private isSelected(id: string): boolean | undefined {
-        return this.choroplethData.get(id)!.isSelected
-    }
-
-    // Viewport for each region, defined by center and width+height in fractional coordinates
     @computed private get viewport(): MapViewport {
-        return MAP_VIEWPORTS[this.manager.region]
+        return MAP_VIEWPORTS[this.region]
     }
 
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
@@ -138,16 +120,8 @@ export class ChoroplethMap extends React.Component<{
         return matrixStr
     }
 
-    // Features that aren't part of the current region (e.g. India if we're showing Africa)
-    @computed private get featuresOutsideRegion(): RenderFeature[] {
-        return difference(
-            renderFeaturesForProjectionOf(this.manager.region),
-            this.featuresInRegion
-        )
-    }
-
-    @computed private get featuresInRegion(): RenderFeature[] {
-        const { region } = this.manager
+    @computed private get featuresInRegion(): MapRenderFeature[] {
+        const { region } = this
         const features = renderFeaturesForProjectionOf(region)
         if (region === MapRegionName.World) return features
 
@@ -157,53 +131,74 @@ export class ChoroplethMap extends React.Component<{
         return features.filter((feature) => countriesByRegion.has(feature.id))
     }
 
-    @computed private get featuresWithNoData(): RenderFeature[] {
+    /** Features that aren't part of the current region (e.g. India if we're showing Africa) */
+    @computed
+    private get featuresOutsideOfSelectedRegion(): MapRenderFeature[] {
+        return difference(
+            renderFeaturesForProjectionOf(this.region),
+            this.featuresInRegion
+        )
+    }
+
+    @computed private get featuresWithData(): MapRenderFeature[] {
+        const features = this.featuresInRegion.filter((feature) =>
+            this.choroplethData.has(feature.id)
+        )
+
+        // sort features so that focused features are rendered last
+        return sortBy(features, (feature) => {
+            const isFocused = this.hasFocus(feature.id)
+            if (isFocused) return 2
+            const series = this.choroplethData.get(feature.id)
+            if (series?.isSelected) return 1
+            return 0
+        })
+    }
+
+    @computed private get featuresWithNoData(): MapRenderFeature[] {
         return difference(this.featuresInRegion, this.featuresWithData)
     }
 
-    @computed private get featuresWithData(): RenderFeature[] {
-        return this.featuresInRegion.filter((feature) =>
-            this.choroplethData.has(feature.id)
-        )
+    @computed private get quadtree(): Quadtree<MapRenderFeature> {
+        return quadtree<MapRenderFeature>()
+            .x((feature) => feature.center.x)
+            .y((feature) => feature.center.y)
+            .addAll(this.featuresInRegion)
     }
 
     // Map uses a hybrid approach to mouseover
     // If mouse is inside an element, that is prioritized
     // Otherwise we do a quadtree search for the closest center point of a feature bounds,
     // so that we can hover very small countries without trouble
+    @action.bound private detectNearbyFeature(
+        event: MouseEvent | TouchEvent
+    ): void {
+        if (this.hoverEnterFeature || !this.base.current) return
 
-    @computed private get quadtree(): Quadtree<RenderFeature> {
-        return quadtree<RenderFeature>()
-            .x(({ center }) => center.x)
-            .y(({ center }) => center.y)
-            .addAll(this.featuresInRegion)
+        const nearbyFeature = detectNearbyFeature({
+            quadtree: this.quadtree,
+            element: this.base.current,
+            event,
+        })
+
+        if (!nearbyFeature) {
+            this.hoverNearbyFeature = undefined
+            this.manager.onMapMouseLeave()
+            return
+        }
+
+        if (nearbyFeature.id !== this.hoverNearbyFeature?.id) {
+            this.hoverNearbyFeature = nearbyFeature
+            this.manager.onMapMouseOver(nearbyFeature.geo)
+        }
     }
 
-    @observable private hoverEnterFeature?: RenderFeature
-    @observable private hoverNearbyFeature?: RenderFeature
-    @action.bound private onMouseMove(ev: React.MouseEvent<SVGGElement>): void {
+    @action.bound private onMouseMove(ev: MouseEvent): void {
         if (ev.shiftKey) this.showSelectedStyle = true // Turn on highlight selection. To turn off, user can switch tabs.
-        if (this.hoverEnterFeature) return
-
-        const subunits = this.base.current?.querySelector(".subunits")
-        if (subunits) {
-            const { x, y } = getRelativeMouse(subunits, ev)
-            const distance = MAP_HOVER_TARGET_RANGE
-            const feature = this.quadtree.find(x, y, distance)
-
-            if (feature) {
-                if (feature.id !== this.hoverNearbyFeature?.id) {
-                    this.hoverNearbyFeature = feature
-                    this.manager.onMapMouseOver(feature.geo)
-                }
-            } else if (this.hoverNearbyFeature) {
-                this.hoverNearbyFeature = undefined
-                this.manager.onMapMouseLeave()
-            }
-        } else console.error("subunits was falsy")
+        this.detectNearbyFeature(ev)
     }
 
-    @action.bound private onMouseEnter(feature: RenderFeature): void {
+    @action.bound private onMouseEnter(feature: MapRenderFeature): void {
         this.hoverEnterFeature = feature
         this.manager.onMapMouseOver(feature.geo)
     }
@@ -213,31 +208,32 @@ export class ChoroplethMap extends React.Component<{
         this.manager.onMapMouseLeave()
     }
 
-    @computed private get hoverFeature(): RenderFeature | undefined {
-        return this.hoverEnterFeature || this.hoverNearbyFeature
+    private hasFocus(featureId: string): boolean {
+        const { focusEntity, focusBracket } = this.manager
+        const series = this.choroplethData.get(featureId)
+        return hasFocus({ featureId, series, focusEntity, focusBracket })
     }
 
-    // If true selected countries will have an outline
-    @observable private showSelectedStyle = false
+    private getFocusState(featureId: string): InteractionState {
+        const isFocused = this.hasFocus(featureId)
+        return {
+            active: isFocused,
+            background: !!this.manager.focusBracket && !isFocused,
+        }
+    }
 
     renderFeaturesOutsideRegion(): React.ReactElement | void {
-        if (this.featuresOutsideRegion.length === 0) return
+        if (this.featuresOutsideOfSelectedRegion.length === 0) return
 
-        const strokeWidth = this.defaultStrokeWidth / this.viewportScaleSqrt
+        const strokeWidth = DEFAULT_STROKE_WIDTH / this.viewportScaleSqrt
 
         return (
-            <g
-                id={makeIdForHumanConsumption("countries-outside-selection")}
-                className="nonProjectionFeatures"
-            >
-                {this.featuresOutsideRegion.map((feature) => (
-                    <path
+            <g id={makeIdForHumanConsumption("countries-outside-selection")}>
+                {this.featuresOutsideOfSelectedRegion.map((feature) => (
+                    <CountryOutsideOfSelectedRegion
                         key={feature.id}
-                        id={makeIdForHumanConsumption(feature.id)}
-                        d={feature.path}
+                        feature={feature}
                         strokeWidth={strokeWidth}
-                        stroke="#aaa"
-                        fill="#fff"
                     />
                 ))}
             </g>
@@ -246,69 +242,39 @@ export class ChoroplethMap extends React.Component<{
 
     renderFeaturesWithoutData(): React.ReactElement | void {
         if (this.featuresWithNoData.length === 0) return
+
+        // Ids should be unique per document (!) not just a grapher instance -
+        // we disregard this for other patterns that are defined the same everywhere
+        // because id collisions there are benign but here the pattern will be different
+        // depending on the region/projection so we include this in the id
+        const patternId = `${Patterns.noDataPatternForMapChart}-${this.region}`
+
         return (
             <g
                 id={makeIdForHumanConsumption("countries-without-data")}
                 className="noDataFeatures"
             >
                 <defs>
-                    <pattern
-                        // Ids should be unique per document (!) not just a grapher instance -
-                        // we disregard this for other patterns that are defined the same everywhere
-                        // because id collisions there are benign but here the pattern will be different
-                        // depending on the projection so we include this in the id
-                        id={`${Patterns.noDataPatternForMapChart}-${this.manager.region}`}
-                        key={Patterns.noDataPatternForMapChart}
-                        patternUnits="userSpaceOnUse"
-                        width="4"
-                        height="4"
-                        patternTransform={`rotate(-45 2 2) scale(${
-                            1 / this.viewportScale
-                        })`} // <-- This scale here is crucial and map specific
-                    >
-                        <path
-                            d="M -1,2 l 6,0"
-                            stroke="#ccc"
-                            strokeWidth={this.patternStrokeWidth}
-                        />
-                    </pattern>
+                    <NoDataPattern
+                        patternId={patternId}
+                        scale={1 / this.viewportScale} // The scale is crucial and projection specific
+                    />
                 </defs>
 
-                {this.featuresWithNoData.map((feature) => {
-                    const isFocus = this.hasFocus(feature.id)
-                    const outOfFocusBracket = !!this.focusBracket && !isFocus
-                    const stroke = isFocus ? this.focusStrokeColor : "#aaa"
-                    const fillOpacity = outOfFocusBracket
-                        ? this.blurFillOpacity
-                        : 1
-                    const strokeOpacity = outOfFocusBracket
-                        ? this.blurStrokeOpacity
-                        : 1
-                    const strokeWidth =
-                        (isFocus
-                            ? this.focusStrokeWidth
-                            : this.defaultStrokeWidth) / this.viewportScaleSqrt
-                    return (
-                        <path
-                            key={feature.id}
-                            id={makeIdForHumanConsumption(feature.id)}
-                            d={feature.path}
-                            strokeWidth={strokeWidth}
-                            stroke={stroke}
-                            strokeOpacity={strokeOpacity}
-                            cursor="pointer"
-                            fill={`url(#${Patterns.noDataPatternForMapChart}-${this.manager.region})`}
-                            fillOpacity={fillOpacity}
-                            onClick={(ev: SVGMouseEvent): void =>
-                                this.manager.onClick(feature.geo, ev)
-                            }
-                            onMouseEnter={(): void =>
-                                this.onMouseEnter(feature)
-                            }
-                            onMouseLeave={this.onMouseLeave}
-                        />
-                    )
-                })}
+                {this.featuresWithNoData.map((feature) => (
+                    <CountryWithNoData
+                        key={feature.id}
+                        feature={feature}
+                        patternId={patternId}
+                        focus={this.getFocusState(feature.id)}
+                        strokeScale={this.viewportScaleSqrt}
+                        onClick={(event) =>
+                            this.manager.onClick(feature.geo, event)
+                        }
+                        onMouseEnter={this.onMouseEnter}
+                        onMouseLeave={this.onMouseLeave}
+                    />
+                ))}
             </g>
         )
     }
@@ -318,59 +284,25 @@ export class ChoroplethMap extends React.Component<{
 
         return (
             <g id={makeIdForHumanConsumption("countries-with-data")}>
-                {sortBy(
-                    this.featuresWithData.map((feature) => {
-                        const isFocus = this.hasFocus(feature.id)
-                        const showSelectedStyle =
-                            this.showSelectedStyle &&
-                            this.isSelected(feature.id)
-                        const outOfFocusBracket =
-                            !!this.focusBracket && !isFocus
-                        const series = this.choroplethData.get(
-                            feature.id as string
-                        )
-                        const stroke =
-                            isFocus || showSelectedStyle
-                                ? this.focusStrokeColor
-                                : DEFAULT_STROKE_COLOR
-                        const fill = series ? series.color : this.defaultFill
-                        const fillOpacity = outOfFocusBracket
-                            ? this.blurFillOpacity
-                            : 1
-                        const strokeOpacity = outOfFocusBracket
-                            ? this.blurStrokeOpacity
-                            : 1
-                        const strokeWidth =
-                            (isFocus
-                                ? this.focusStrokeWidth
-                                : showSelectedStyle
-                                  ? this.selectedStrokeWidth
-                                  : this.defaultStrokeWidth) /
-                            this.viewportScaleSqrt
-
-                        return (
-                            <path
-                                key={feature.id}
-                                id={makeIdForHumanConsumption(feature.id)}
-                                d={feature.path}
-                                strokeWidth={strokeWidth}
-                                stroke={stroke}
-                                strokeOpacity={strokeOpacity}
-                                cursor="pointer"
-                                fill={fill}
-                                fillOpacity={fillOpacity}
-                                onClick={(ev: SVGMouseEvent): void =>
-                                    this.manager.onClick(feature.geo, ev)
-                                }
-                                onMouseEnter={(): void =>
-                                    this.onMouseEnter(feature)
-                                }
-                                onMouseLeave={this.onMouseLeave}
-                            />
-                        )
-                    }),
-                    (p) => p.props["strokeWidth"]
-                )}
+                {this.featuresWithData.map((feature) => {
+                    const series = this.choroplethData.get(feature.id)
+                    if (!series) return null
+                    return (
+                        <CountryWithData
+                            key={feature.id}
+                            feature={feature}
+                            series={series}
+                            focus={this.getFocusState(feature.id)}
+                            strokeScale={this.viewportScaleSqrt}
+                            showSelectedStyle={this.showSelectedStyle}
+                            onClick={(event) =>
+                                this.manager.onClick(feature.geo, event)
+                            }
+                            onMouseEnter={this.onMouseEnter}
+                            onMouseLeave={this.onMouseLeave}
+                        />
+                    )
+                })}
             </g>
         )
     }
@@ -404,7 +336,9 @@ export class ChoroplethMap extends React.Component<{
                     (ev: SVGMouseEvent): void =>
                         ev.preventDefault() /* Without this, title may get selected while shift clicking */
                 }
-                onMouseMove={this.onMouseMove}
+                onMouseMove={(ev: SVGMouseEvent): void =>
+                    this.onMouseMove(ev.nativeEvent)
+                }
                 onMouseLeave={this.onMouseLeave}
                 style={this.hoverFeature ? { cursor: "pointer" } : {}}
             >
@@ -416,7 +350,10 @@ export class ChoroplethMap extends React.Component<{
                     fill="rgba(255,255,255,0)"
                     opacity={0}
                 />
-                <g className="subunits" transform={matrixTransform}>
+                <g
+                    className={GEO_FEATURES_CLASSNAME}
+                    transform={matrixTransform}
+                >
                     {this.renderFeaturesOutsideRegion()}
                     {this.renderFeaturesWithoutData()}
                     {this.renderFeaturesWithData()}

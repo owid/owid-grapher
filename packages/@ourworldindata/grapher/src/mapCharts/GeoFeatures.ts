@@ -1,10 +1,16 @@
 import * as topojson from "topojson-client"
 import { MapRegionName } from "@ourworldindata/types"
-import { GeoFeature, RenderFeature } from "./MapChartConstants"
+import {
+    GeoFeature,
+    GlobeRenderFeature,
+    MapRenderFeature,
+    RenderFeatureType,
+} from "./MapChartConstants"
 import { Bounds, PointVector } from "@ourworldindata/utils"
 import { MapProjectionGeos } from "./MapProjections"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import { MapTopology } from "./MapTopology"
+import { geoCentroid } from "d3-geo"
 
 // Get the underlying geographical topology elements we're going to display
 const GeoFeatures: GeoFeature[] = (
@@ -63,15 +69,16 @@ export const geoBoundsForProjectionOf = (
 }
 
 // Bundle GeoFeatures with the calculated info needed to render them
-const renderFeaturesCache = new Map<MapRegionName, RenderFeature[]>()
+const renderFeaturesCache = new Map<MapRegionName, MapRenderFeature[]>()
 export const renderFeaturesForProjectionOf = (
     regionName: MapRegionName
-): RenderFeature[] => {
+): MapRenderFeature[] => {
     if (renderFeaturesCache.has(regionName))
         return renderFeaturesCache.get(regionName)!
     const geoBounds = geoBoundsForProjectionOf(regionName)
     const geoPaths = geoPathsForProjectionOf(regionName)
-    const feats = GeoFeatures.map((geo, index) => ({
+    const feats: MapRenderFeature[] = GeoFeatures.map((geo, index) => ({
+        type: RenderFeatureType.Map,
         id: geo.id as string,
         geo: geo,
         path: geoPaths[index],
@@ -81,4 +88,13 @@ export const renderFeaturesForProjectionOf = (
 
     renderFeaturesCache.set(regionName, feats)
     return renderFeaturesCache.get(regionName)!
+}
+
+export const getFeaturesForGlobe = (): GlobeRenderFeature[] => {
+    return GeoFeatures.map((geo) => ({
+        type: RenderFeatureType.Globe,
+        id: geo.id as string,
+        geo: geo,
+        centroid: geoCentroid(geo),
+    }))
 }
