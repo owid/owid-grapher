@@ -18,6 +18,7 @@ export type DataCatalogState = Readonly<{
     page: number
     componentOrder: CatalogComponentId[]
     componentVisibility: Record<CatalogComponentId, boolean>
+    insightsToShow: number
 }>
 
 export interface ComponentConfig {
@@ -95,6 +96,11 @@ type ToggleComponentVisibilityAction = {
     payload: CatalogComponentId
 }
 
+type SetInsightsToShowAction = {
+    type: "setInsightsToShow"
+    count: number
+}
+
 export type DataCatalogAction =
     | AddCountryAction
     | AddTopicAction
@@ -106,6 +112,7 @@ export type DataCatalogAction =
     | ToggleRequireAllCountriesAction
     | UpdateComponentOrderAction
     | ToggleComponentVisibilityAction
+    | SetInsightsToShowAction
 
 export function dataCatalogReducer(
     state: DataCatalogState,
@@ -169,6 +176,10 @@ export function dataCatalogReducer(
                 [payload]: !state.componentVisibility[payload],
             },
         }))
+        .with({ type: "setInsightsToShow" }, ({ count }) => ({
+            ...state,
+            insightsToShow: count,
+        }))
         .exhaustive()
 }
 
@@ -185,6 +196,7 @@ export function createActions(dispatch: (action: DataCatalogAction) => void) {
         toggleRequireAllCountries: () => dispatch({ type: "toggleRequireAllCountries" }),
         updateComponentOrder: (componentOrder: CatalogComponentId[]) => dispatch({ type: "updateComponentOrder", payload: componentOrder }),
         toggleComponentVisibility: (componentId: CatalogComponentId) => dispatch({ type: "toggleComponentVisibility", payload: componentId }),
+        setInsightsToShow: (count: number) => dispatch({ type: "setInsightsToShow", count }),
     }
 }
 
@@ -200,6 +212,7 @@ export function getInitialDatacatalogState(): DataCatalogState {
             componentVisibility: Object.fromEntries(
                 DEFAULT_COMPONENTS.map((c) => [c.id, c.visible])
             ) as Record<CatalogComponentId, boolean>,
+            insightsToShow: 2,
         }
 
     const url = Url.fromURL(window.location.href)
@@ -212,6 +225,7 @@ export function getInitialDatacatalogState(): DataCatalogState {
         componentVisibility: Object.fromEntries(
             DEFAULT_COMPONENTS.map((c) => [c.id, c.visible])
         ) as Record<CatalogComponentId, boolean>,
+        insightsToShow: 2,
     }
 }
 
@@ -226,6 +240,9 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
         componentVisibility: Object.fromEntries(
             DEFAULT_COMPONENTS.map((c) => [c.id, c.visible])
         ) as Record<CatalogComponentId, boolean>,
+        insightsToShow: url.queryParams.insights
+            ? parseInt(url.queryParams.insights)
+            : 2,
     }
 }
 
@@ -240,6 +257,10 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
         countries: serializeSet(state.selectedCountryNames),
         requireAllCountries: state.requireAllCountries ? "true" : undefined,
         page: state.page > 0 ? (state.page + 1).toString() : undefined,
+        insights:
+            state.insightsToShow !== 2
+                ? state.insightsToShow.toString()
+                : undefined,
     }
 
     Object.entries(params).forEach(([key, value]) => {

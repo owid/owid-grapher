@@ -134,7 +134,11 @@ export const DataCatalog = ({
             />
         ),
         [CatalogComponentId.DATA_INSIGHTS]: (
-            <DataCatalogDataInsights results={cache["pages"].get(stateAsUrl)} />
+            <DataCatalogDataInsights
+                results={cache["pages"].get(stateAsUrl)}
+                insightsToShow={state.insightsToShow}
+                setInsightsToShow={actions.setInsightsToShow}
+            />
         ),
         [CatalogComponentId.RESULTS]: shouldShowRibbons ? (
             <DataCatalogRibbonView
@@ -192,6 +196,8 @@ export const DataCatalog = ({
                 componentVisibility={state.componentVisibility}
                 updateComponentOrder={actions.updateComponentOrder}
                 toggleComponentVisibility={actions.toggleComponentVisibility}
+                insightsToShow={state.insightsToShow}
+                setInsightsToShow={actions.setInsightsToShow}
             />
         </>
     )

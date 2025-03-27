@@ -10,6 +10,11 @@ import {
     Box,
     Fab,
     IconButton,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    Divider,
 } from "@mui/material"
 import SettingsIcon from "@mui/icons-material/Settings"
 import { DEFAULT_COMPONENTS, CatalogComponentId } from "./DataCatalogState"
@@ -21,11 +26,15 @@ export const DataCatalogSettings = ({
     componentVisibility,
     updateComponentOrder,
     toggleComponentVisibility,
+    insightsToShow,
+    setInsightsToShow,
 }: {
     componentOrder?: CatalogComponentId[]
     componentVisibility?: Record<CatalogComponentId, boolean>
     updateComponentOrder?: (order: CatalogComponentId[]) => void
     toggleComponentVisibility?: (id: CatalogComponentId) => void
+    insightsToShow: number
+    setInsightsToShow?: (count: number) => void
 }) => {
     const [open, setOpen] = useState(false)
 
@@ -120,6 +129,44 @@ export const DataCatalogSettings = ({
                                 </ListItem>
                             ))}
                         </List>
+                    )}
+
+                    {setInsightsToShow && (
+                        <>
+                            <Divider sx={{ my: 2 }} />
+                            <List
+                                subheader={
+                                    <ListSubheader>
+                                        Display Settings
+                                    </ListSubheader>
+                                }
+                            >
+                                <ListItem>
+                                    <FormControl fullWidth size="small">
+                                        <InputLabel id="insights-count-label">
+                                            Data Insights to Show
+                                        </InputLabel>
+                                        <Select
+                                            labelId="insights-count-label"
+                                            id="insights-count-select"
+                                            value={insightsToShow}
+                                            label="Data Insights to Show"
+                                            onChange={(e) =>
+                                                setInsightsToShow(
+                                                    Number(e.target.value)
+                                                )
+                                            }
+                                        >
+                                            <MenuItem value={2}>2</MenuItem>
+                                            <MenuItem value={4}>4</MenuItem>
+                                            <MenuItem value={6}>6</MenuItem>
+                                            <MenuItem value={8}>8</MenuItem>
+                                            <MenuItem value={10}>10</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </ListItem>
+                            </List>
+                        </>
                     )}
                 </Box>
             </Drawer>

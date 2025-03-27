@@ -1,17 +1,27 @@
 import { commafyNumber } from "@ourworldindata/utils"
-import * as React from "react"
 import { PagesHit } from "../search/SearchPanel.js"
 import { DataCatalogPageSearchResult } from "./DataCatalogUtils.js"
 
 export const DataCatalogDataInsights = ({
     results,
+    insightsToShow,
+    setInsightsToShow,
 }: {
     results?: DataCatalogPageSearchResult
+    insightsToShow: number
+    setInsightsToShow?: (count: number) => void
 }) => {
     const hits = results?.hits
     if (!hits || !hits.length) return null
 
     const { nbHits } = results
+    const showMoreAvailable = insightsToShow < nbHits
+
+    const handleShowMore = () => {
+        if (setInsightsToShow) {
+            setInsightsToShow(insightsToShow + 2)
+        }
+    }
 
     return (
         <div
@@ -25,9 +35,17 @@ export const DataCatalogDataInsights = ({
                         <h2 className="h2-bold search-results__section-title">
                             Data insights
                         </h2>
-                        {nbHits > 2 && (
+                        {nbHits > insightsToShow && (
                             <div className="search-results__show-more-container">
-                                <em>{`Showing 2 of ${commafyNumber(nbHits)} results`}</em>
+                                <em>{`Showing ${insightsToShow} of ${commafyNumber(nbHits)} results`}</em>
+                                {showMoreAvailable && setInsightsToShow && (
+                                    <button
+                                        className="search-results__show-more-btn"
+                                        onClick={handleShowMore}
+                                    >
+                                        Show more
+                                    </button>
+                                )}
                             </div>
                         )}
                     </div>
@@ -37,6 +55,7 @@ export const DataCatalogDataInsights = ({
                         {hits.map((hit) => (
                             <li
                                 className="search-results__page-hit"
+                                style={{ display: "block" }} // override Search.scss
                                 key={hit.objectID}
                             >
                                 <PagesHit hit={hit} />

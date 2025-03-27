@@ -279,7 +279,7 @@ export const queryDataInsights = async (
 
     const results = await index.search<IPageHit>(query, {
         page,
-        hitsPerPage: 2,
+        hitsPerPage: state.insightsToShow,
         highlightPreTag: "<mark>",
         highlightPostTag: "</mark>",
         facetFilters,
