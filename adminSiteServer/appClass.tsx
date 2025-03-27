@@ -85,8 +85,8 @@ export class OwidAdminApp {
         // Require authentication (only for /admin requests)
         app.use(authMiddleware)
 
+        app.use("/", express.static("public"))
         app.use("/assets", express.static("dist/assets"))
-        app.use("/fonts", express.static("public/fonts"))
         app.use("/assets-admin", express.static("dist/assets-admin"))
 
         app.use("/api", publicApiRouter.router)
