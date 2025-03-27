@@ -29,17 +29,10 @@ export const DataCatalogHighlights = ({
     return (
         <div
             className="search-results span-cols-12 col-start-2"
-            style={{ marginBottom: "2rem" }}
+            style={{ marginTop: 32 }}
             data-active-filter="all"
         >
             <section className="search-results__pages">
-                <header className="search-results__header-container">
-                    <div className="search-results__header">
-                        <h2 className="h2-bold search-results__section-title">
-                            Highlights
-                        </h2>
-                    </div>
-                </header>
                 <ul className="data-catalog-highlights-container grid grid-cols-2 gap-4">
                     {highlights.map((hit) => (
                         <li

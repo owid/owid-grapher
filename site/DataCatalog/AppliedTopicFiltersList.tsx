@@ -1,6 +1,5 @@
 import { faClose } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import * as React from "react"
 
 export const AppliedTopicFiltersList = ({
     topics,
@@ -10,7 +9,10 @@ export const AppliedTopicFiltersList = ({
     removeTopic: (topic: string) => void
 }) => {
     return (
-        <ul className="data-catalog-applied-filters-list span-cols-12 col-start-2">
+        <ul
+            className="data-catalog-applied-filters-list span-cols-12 col-start-2"
+            style={{ marginTop: 32 }}
+        >
             {[...topics].map((topic) => {
                 return (
                     <li
