@@ -1,7 +1,7 @@
 import { Region } from "@ourworldindata/utils"
 import { SelectedCountriesPills } from "./SelectedCountriesPills.js"
 import { DataCatalogCountrySelector } from "./DataCatalogCountrySelector.js"
-import { DataCatalogAutocomplete } from "./DataCatalogAutcomplete.js"
+import { DataCatalogAutocomplete } from "./DataCatalogAutocomplete.js"
 
 export const DataCatalogSearchbar = ({
     selectedCountries,
