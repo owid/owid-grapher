@@ -42,7 +42,7 @@ export const DEFAULT_COMPONENTS: ComponentConfig[] = [
     {
         id: CatalogComponentId.APPLIED_FILTERS,
         name: "Applied Filters",
-        visible: true,
+        visible: false,
     },
     {
         id: CatalogComponentId.TOPICS_REFINEMENT,

@@ -171,13 +171,6 @@ export const DataCatalog = ({
     return (
         <>
             <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
-                <header className="data-catalog-heading span-cols-12 col-start-2">
-                    <h1 className="h1-semibold">Data Catalog</h1>
-                    <p className="body-2-regular">
-                        Search for a specific chart, or browse all our charts by
-                        area and topic.
-                    </p>
-                </header>
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
                     <DataCatalogSearchbar
                         addCountry={actions.addCountry}
@@ -193,6 +186,14 @@ export const DataCatalog = ({
                         }
                     />
                 </div>
+                {!state.componentVisibility[
+                    CatalogComponentId.APPLIED_FILTERS
+                ] && (
+                    <AppliedTopicFiltersList
+                        topics={state.topics}
+                        removeTopic={actions.removeTopic}
+                    />
+                )}
             </div>
 
             {/* Render components according to the configured order and visibility */}

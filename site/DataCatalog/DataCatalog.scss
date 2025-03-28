@@ -10,6 +10,7 @@
     background-color: $blue-5;
     margin-bottom: 16px;
     padding-bottom: 24px;
+    padding-top: 24px;
 }
 
 .data-catalog-heading {
@@ -506,9 +507,6 @@
 
 .data-catalog-applied-filters-list {
     list-style: none;
-    &:has(.data-catalog-applied-filters-item) {
-        margin-bottom: 8px;
-    }
 }
 
 .data-catalog-applied-filters-item {

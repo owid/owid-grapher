@@ -14,7 +14,7 @@ export const AppliedTopicFiltersList = ({
     return (
         <ul
             className="data-catalog-applied-filters-list span-cols-12 col-start-2"
-            style={{ marginTop: 32 }}
+            style={{ marginTop: 16 }}
         >
             {[...topics].map((topic) => {
                 return (
