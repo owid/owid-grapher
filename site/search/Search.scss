@@ -84,7 +84,7 @@ $reset-button-margin: 16px;
     border-bottom: 1px solid $blue-10;
     display: flex;
     flex-wrap: nowrap;
-    overflow-x: scroll;
+    overflow-x: auto;
     scrollbar-width: none;
 }
 
