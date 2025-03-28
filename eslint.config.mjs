@@ -1,9 +1,7 @@
 // @ts-check
 
 import eslint from "@eslint/js"
-// TODO: Remove this when the lib adds type declarations.
-// @ts-ignore
-import importPlugin from "eslint-plugin-import"
+import importPlugin from "eslint-plugin-import-x"
 import prettier from "eslint-config-prettier"
 import react from "eslint-plugin-react"
 import reactHooks from "eslint-plugin-react-hooks"
@@ -43,7 +41,7 @@ export default tseslint.config(
             },
         },
         settings: {
-            "import/resolver": {
+            "import-x/resolver": {
                 typescript: true,
                 node: true,
             },
@@ -78,11 +76,11 @@ export default tseslint.config(
             "@typescript-eslint/prefer-for-of": "warn",
             "@typescript-eslint/restrict-plus-operands": "warn",
             eqeqeq: "warn",
-            "import/named": "off",
-            "import/namespace": "off",
-            "import/default": "off",
-            "import/no-named-as-default-member": "off",
-            "import/no-unresolved": "off",
+            "import-x/named": "off",
+            "import-x/namespace": "off",
+            "import-x/default": "off",
+            "import-x/no-named-as-default-member": "off",
+            "import-x/no-unresolved": "off",
 
             "no-console": [
                 "warn",
