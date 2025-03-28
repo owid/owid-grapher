@@ -574,6 +574,10 @@ export class MapChart
                         colorScaleManager={this}
                         targetTime={this.targetTime}
                         sparklineWidth={sparklineWidth}
+                        dismissTooltip={() => {
+                            this.tooltipState.target = null
+                            this.focusEntity = undefined
+                        }}
                     />
                 )}
             </g>

@@ -37,6 +37,7 @@ interface MapTooltipProps {
     targetTime?: Time
     sparklineWidth?: number
     sparklineHeight?: number
+    dismissTooltip?: () => void
 }
 
 @observer
@@ -180,7 +181,7 @@ export class MapTooltip
                 subtitleFormat={targetNotice ? "notice" : undefined}
                 footer={footer}
                 dissolve={fading}
-                dismiss={() => (this.props.tooltipState.target = null)}
+                dismiss={this.props.dismissTooltip}
             >
                 <TooltipValue
                     column={yColumn}
