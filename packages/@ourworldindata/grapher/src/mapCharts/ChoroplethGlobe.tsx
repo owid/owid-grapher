@@ -344,12 +344,12 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private onTouchStart(event: TouchEvent): void {
+        event.preventDefault() // prevent scrolling and page zoom
+
         this.previousDistance = undefined
         this.touchStartTime = Date.now()
 
         if (event.touches.length >= 2) {
-            event.preventDefault() // prevent page zoom
-
             this.handlePinchGesture(event)
 
             // Prevent any hover effects during pinch
@@ -513,7 +513,7 @@ export class ChoroplethGlobe extends React.Component<{
                     cy={this.globeCenter[1]}
                     r={(this.globeSize / 2) * this.zoomScale}
                     fill="#fafafa"
-                    stroke="green"
+                    stroke="red"
                 />
                 <path
                     id={makeIdForHumanConsumption("globe-graticule")}
