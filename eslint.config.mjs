@@ -76,11 +76,8 @@ export default tseslint.config(
             "@typescript-eslint/prefer-for-of": "warn",
             "@typescript-eslint/restrict-plus-operands": "warn",
             eqeqeq: "warn",
-            "import-x/named": "off",
             "import-x/namespace": "off",
-            "import-x/default": "off",
             "import-x/no-named-as-default-member": "off",
-            "import-x/no-unresolved": "off",
 
             "no-console": [
                 "warn",

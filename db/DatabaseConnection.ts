@@ -1,4 +1,4 @@
-import mysql2 from "mysql2"
+import * as mysql2 from "mysql2"
 
 class TransactionContext {
     conn: mysql2.PoolConnection

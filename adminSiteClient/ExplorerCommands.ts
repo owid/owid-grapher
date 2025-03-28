@@ -4,7 +4,7 @@ import {
     CellPosition,
 } from "@ourworldindata/explorer"
 import Handsontable from "handsontable"
-import HotContextMenu from "handsontable/plugins/contextMenu"
+import { type MenuItemConfig } from "handsontable/plugins/contextMenu"
 
 abstract class HotCommand {
     protected program: ExplorerProgram
@@ -39,7 +39,7 @@ abstract class HotCommand {
     }
 
     // handles the "this" binding needed by HOT
-    toHotCommand(): HotContextMenu.MenuItemConfig {
+    toHotCommand(): MenuItemConfig {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const baseCommand = this
         return {
