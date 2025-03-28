@@ -324,15 +324,19 @@ export function makeIdForHumanConsumption(...unsafeKeys: string[]): string {
     return makeSafeForFigma(unsafeKeys.join("__"))
 }
 
+export function convertDaysSinceEpochToDate(dayAsYear: number): dayjs.Dayjs {
+    // Use dayjs' UTC mode
+    // This will force dayjs to format in UTC time instead of local time,
+    // making dates consistent no matter what timezone the user is in.
+    return dayjs.utc(EPOCH_DATE).add(dayAsYear, "days")
+}
+
 export function formatDay(
     dayAsYear: number,
     options?: { format?: string }
 ): string {
     const format = options?.format ?? "MMM D, YYYY"
-    // Use dayjs' UTC mode
-    // This will force dayjs to format in UTC time instead of local time,
-    // making dates consistent no matter what timezone the user is in.
-    return dayjs.utc(EPOCH_DATE).add(dayAsYear, "days").format(format)
+    return convertDaysSinceEpochToDate(dayAsYear).format(format)
 }
 
 export const formatYear = (year: number): string => {

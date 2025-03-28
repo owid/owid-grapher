@@ -19,7 +19,7 @@ import {
 } from "@ourworldindata/types"
 import {
     DimensionSlot,
-    WorldEntityName,
+    WORLD_ENTITY_NAME,
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
 } from "@ourworldindata/grapher"
@@ -140,8 +140,8 @@ class DimensionSlotView<
             // non-stacked charts with multiple y-dimensions should select a single entity by default.
             // if possible, the currently selected entity is persisted, otherwise "World" is preferred
             if (selection.numSelectedEntities !== 1) {
-                const entity = availableEntityNameSet.has(WorldEntityName)
-                    ? WorldEntityName
+                const entity = availableEntityNameSet.has(WORLD_ENTITY_NAME)
+                    ? WORLD_ENTITY_NAME
                     : sample(availableEntityNames)
                 if (entity) selection.setSelectedEntities([entity])
             }

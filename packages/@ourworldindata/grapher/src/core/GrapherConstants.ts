@@ -1,4 +1,4 @@
-import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
+import { EntityName, GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 import type { GrapherProgrammaticInterface } from "./Grapher"
 
@@ -60,14 +60,15 @@ export enum CookieKey {
     isAdmin = "isAdmin",
 }
 
-export const ThereWasAProblemLoadingThisChart = `There was a problem loading this chart`
+export const WORLD_ENTITY_NAME = "World"
 
-export const WorldEntityName = "World"
+export const isWorldEntityName = (entityName: EntityName): boolean =>
+    entityName === WORLD_ENTITY_NAME
 
 export const CONTINENTS_INDICATOR_ID = 900801 // "Countries Continent"
 export const POPULATION_INDICATOR_ID_USED_IN_ADMIN = 953899 // "Population (various sources, 2024-07-15)"
 export const POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR = 953903 // "Population (historical) (various sources, 2024-07-15)"
-export const GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR = 905490 // "World Development Indicators - World Bank (2024-05-20)"
+export const GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR = 900793 // "GDP per capita - Maddison Project Database (2024-04-26)"
 
 export const isContinentsVariableId = (id: string | number): boolean =>
     id.toString() === CONTINENTS_INDICATOR_ID.toString()

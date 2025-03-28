@@ -93,11 +93,11 @@ $zindex-controls-drawer: 150;
 @import "../../../components/src/OverlayHeader.scss";
 
 .grapher_dark {
-    color: $gray-80;
+    color: $dark-text;
 }
 
 .grapher_light {
-    color: $gray-70;
+    color: $light-text;
 }
 
 .GrapherComponent,
