@@ -292,8 +292,6 @@ reindex: itsJustJavascript
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexPagesToAlgolia.js
 	@echo '--- Running indexChartsToAlgolia...'
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexChartsToAlgolia.js
-	@echo '--- Running indexExplorerViewsToAlgolia...'
-	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorerViewsToAlgolia.js
 	@echo '--- Running indexExplorerViewsMdimViewsAndChartsToAlgolia...'
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorerViewsMdimViewsAndChartsToAlgolia.js
 
