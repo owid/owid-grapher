@@ -50,13 +50,14 @@ export class ChoroplethGlobe extends React.Component<{
     @observable private hoverEnterFeature?: GlobeRenderFeature
     @observable private hoverNearbyFeature?: GlobeRenderFeature
 
+    // dragging state
     private isDragging = false
-    private isPinching = false
-    private firstScreenX?: number
-    private firstScreenY?: number
     private previousScreenX?: number
     private previousScreenY?: number
-    private previousDistance?: number // for pinch gesture
+
+    // pinching state
+    private isPinching = false
+    private previousDistance?: number
 
     @computed private get isTouchDevice(): boolean {
         return isTouchDevice()
@@ -253,7 +254,7 @@ export class ChoroplethGlobe extends React.Component<{
             let sensitivity = 360 / globeCircumference
 
             // increase sensitivity on touch devices
-            if (this.isTouchDevice) sensitivity *= 1.5
+            if (this.isTouchDevice) sensitivity *= 1.8
 
             // slower rotation when zoomed in
             sensitivity /= this.zoomScale
@@ -285,9 +286,8 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private stopDragging(): void {
+        // reset state
         this.isDragging = false
-        this.firstScreenX = undefined
-        this.firstScreenY = undefined
         this.previousScreenX = undefined
         this.previousScreenY = undefined
 
@@ -324,8 +324,6 @@ export class ChoroplethGlobe extends React.Component<{
 
     @action.bound private startPinching(): void {
         this.isPinching = true
-
-        // dismiss tooltip
         this.clearHover()
     }
 
@@ -335,7 +333,6 @@ export class ChoroplethGlobe extends React.Component<{
         this.clearHover()
     }
 
-    // todo: remove boolean result
     @action.bound private onPinch(event: TouchEvent): void {
         // need at least two touch points for pinch
         if (event.touches.length < 2) {
@@ -373,7 +370,8 @@ export class ChoroplethGlobe extends React.Component<{
     @action.bound private onMouseDown(event: MouseEvent): void {
         event.preventDefault() // prevent text selection
 
-        this.wasDragging = false
+        // reset dragging state
+        this.stopDragging()
 
         // register mousemove and mouseup events on the document
         // so that dragging continues if the mouse leaves the map
@@ -385,33 +383,26 @@ export class ChoroplethGlobe extends React.Component<{
         })
     }
 
-    private wasDragging = false
-
     @action.bound private onMouseDrag(event: MouseEvent): void {
-        console.log("mouse drag")
-        this.wasDragging = true
         this.startDragging()
         this.onDrag(event)
     }
 
-    @action.bound private onMouseUp(event: MouseEvent): void {
-        console.log("mouse up")
-        this.stopDragging()
+    private stopDragTimerId: NodeJS.Timeout | undefined
+    @action.bound private onMouseUp(): void {
+        if (this.stopDragTimerId) clearTimeout(this.stopDragTimerId)
 
-        if (this.wasDragging) {
-            // Keep the flag for a short time to prevent the click
-            setTimeout(() => {
-                this.wasDragging = false
-            }, 300) // Adjust timing as needed
-        }
+        // stop dragging after a short delay so that the click event can be
+        // cancelled if the user was dragging
+        this.stopDragTimerId = setTimeout(() => {
+            this.stopDragging()
+        }, 300)
 
         document.removeEventListener("mousemove", this.onMouseDrag)
         document.removeEventListener("mouseup", this.onMouseUp)
     }
 
     @action.bound private onTouchStart(event: TouchEvent): void {
-        console.log("touch start")
-
         event.preventDefault() // prevent scrolling and page zoom
 
         // reset pinching and dragging state
@@ -419,59 +410,55 @@ export class ChoroplethGlobe extends React.Component<{
         this.stopDragging()
 
         // if this is a pinch gesture, handle it and return early
+        // since dragging doesn't need to be handled
         if (event.touches.length >= 2) {
             this.onPinch(event)
-            return // todo: this is new
+            return
         }
 
-        // store coords for the touch event
+        // store coords for dragging
         const { screenX, screenY } = getScreenCoords(event)
-        this.firstScreenX = screenX
-        this.firstScreenY = screenY
         this.previousScreenX = screenX
         this.previousScreenY = screenY
 
-        if (this.base.current) {
-            this.base.current.addEventListener("touchmove", this.onTouchMove, {
-                passive: false,
-            })
-            this.base.current.addEventListener("touchend", this.onTouchEnd, {
-                passive: true,
-            })
-            this.base.current.addEventListener("touchcancel", this.onTouchEnd, {
-                passive: true,
-            })
-        }
+        // register move and end events for dragging
+        this.base.current?.addEventListener("touchmove", this.onTouchMove, {
+            passive: false, // must be false to respect preventDefault
+        })
+        this.base.current?.addEventListener("touchend", this.onTouchEnd, {
+            passive: true,
+        })
+        this.base.current?.addEventListener("touchcancel", this.onTouchEnd, {
+            passive: true,
+        })
     }
 
     @action.bound private onTouchMove(event: TouchEvent): void {
-        console.log("touch move")
-
         event.preventDefault() // prevent scrolling
 
         // dismiss tooltip
         this.clearHover()
 
-        // todo: this has been removed
-        // First check if this is a pinch gesture
+        // check if this is a pinch gesture and if so return early
+        // since dragging doesn't need to be handled
         if (event.touches.length >= 2) {
             if (!this.isPinching) this.startPinching()
             this.onPinch(event)
-            // If we handled it as a pinch, don't process as drag
             return
         }
 
+        // reset pinching state if only one touch point is detected
         if (this.isPinching) this.stopPinching()
 
         // start dragging if movement is detected
         if (
             !this.isDragging &&
-            this.firstScreenX !== undefined &&
-            this.firstScreenY !== undefined
+            this.previousScreenX !== undefined &&
+            this.previousScreenY !== undefined
         ) {
             const { screenX, screenY } = getScreenCoords(event)
-            const dx = screenX - this.firstScreenX
-            const dy = screenY - this.firstScreenY
+            const dx = screenX - this.previousScreenX
+            const dy = screenY - this.previousScreenY
             const distance = Math.sqrt(dx * dx + dy * dy)
             if (distance > 5) this.startDragging()
         }
@@ -480,8 +467,6 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private onTouchEnd(event: TouchEvent): void {
-        console.log("touch end", { isDragging: this.isDragging })
-
         if (this.isPinching) {
             this.stopPinching()
         }
@@ -489,21 +474,15 @@ export class ChoroplethGlobe extends React.Component<{
         if (this.isDragging) {
             this.stopDragging()
         } else {
-            // if the touch event was a tap, fire a click event.
-            console.log("dispatching click event")
+            // if the touch event was a tap, fire a click event
             event.target?.dispatchEvent(
                 new MouseEvent("click", { bubbles: true })
             )
         }
 
-        if (this.base.current) {
-            this.base.current.removeEventListener("touchmove", this.onTouchMove)
-            this.base.current.removeEventListener("touchend", this.onTouchEnd)
-            this.base.current.removeEventListener(
-                "touchcancel",
-                this.onTouchEnd
-            )
-        }
+        this.base.current?.removeEventListener("touchmove", this.onTouchMove)
+        this.base.current?.removeEventListener("touchend", this.onTouchEnd)
+        this.base.current?.removeEventListener("touchcancel", this.onTouchEnd)
     }
 
     @action.bound private onMouseMove(event: MouseEvent): void {
@@ -512,8 +491,6 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private onMouseEnter(feature: GlobeRenderFeature): void {
-        // console.log("mouse enter", { dragging: this.isDragging })
-
         // don't show tooltips while dragging
         if (this.isDragging) {
             this.clearHover()
@@ -530,7 +507,8 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private onClick(event: SVGMouseEvent): void {
-        if (this.wasDragging) {
+        // prevent click event if the user was dragging
+        if (this.isDragging) {
             event.stopPropagation()
             return
         }
@@ -540,11 +518,6 @@ export class ChoroplethGlobe extends React.Component<{
         const feature = this.features.find(
             (f) => makeIdForHumanConsumption(f.id) === featureId
         )
-
-        console.log("click", {
-            dragging: this.isDragging,
-            featureId: feature?.id,
-        })
         if (!feature) return
 
         // update hover state
@@ -572,22 +545,18 @@ export class ChoroplethGlobe extends React.Component<{
         document.addEventListener("click", this.onDocumentClick, {
             capture: true,
         })
-        if (this.base.current) {
-            this.base.current.addEventListener("mousedown", this.onMouseDown, {
-                passive: false,
-            })
-            this.base.current.addEventListener("mousemove", this.onMouseMove, {
-                passive: true,
-            })
-            this.base.current.addEventListener(
-                "touchstart",
-                this.onTouchStart,
-                { passive: false }
-            )
-            this.base.current.addEventListener("wheel", this.onWheel, {
-                passive: false,
-            })
-        }
+        this.base.current?.addEventListener("mousedown", this.onMouseDown, {
+            passive: false,
+        })
+        this.base.current?.addEventListener("mousemove", this.onMouseMove, {
+            passive: true,
+        })
+        this.base.current?.addEventListener("touchstart", this.onTouchStart, {
+            passive: false,
+        })
+        this.base.current?.addEventListener("wheel", this.onWheel, {
+            passive: false,
+        })
     }
 
     @action.bound onDocumentClick(): void {
@@ -608,6 +577,7 @@ export class ChoroplethGlobe extends React.Component<{
             this.base.current.removeEventListener("wheel", this.onWheel)
         }
 
+        if (this.stopDragTimerId) clearTimeout(this.stopDragTimerId)
         if (this.rotateFrameId) cancelAnimationFrame(this.rotateFrameId)
     }
 
@@ -620,7 +590,7 @@ export class ChoroplethGlobe extends React.Component<{
                     cy={this.globeCenter[1]}
                     r={(this.globeSize / 2) * this.zoomScale}
                     fill="#fafafa"
-                    stroke="green"
+                    stroke="red"
                 />
                 <path
                     id={makeIdForHumanConsumption("globe-graticule")}
