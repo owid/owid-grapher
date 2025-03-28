@@ -10,6 +10,7 @@ export const SiteSearchNavigation = ({
     onClose: VoidFunction
     onActivate: VoidFunction
 }) => {
+    return null //hack: remove site-wide autocomplete to prevent conflicts with the data catalog autocomplete
     return (
         <div className={cx("SiteSearchNavigation", { active: isActive })}>
             <Autocomplete

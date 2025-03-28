@@ -95,7 +95,7 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
         return ["CO2", "Energy", "Education", "Poverty", "Democracy"].map(
             (term) => ({
                 title: term,
-                slug: `/search${queryParamsToStr({ q: term })}`,
+                slug: `/data${queryParamsToStr({ q: term })}`,
             })
         )
     },
@@ -240,6 +240,7 @@ export function DataCatalogAutocomplete({
     detachedMediaQuery = "(max-width: 1045px)",
     panelClassName,
     setQuery,
+    query = "",
 }: {
     onActivate?: () => void
     onClose?: () => void
@@ -248,6 +249,7 @@ export function DataCatalogAutocomplete({
     detachedMediaQuery?: string
     panelClassName?: string
     setQuery: (query: string) => void
+    query?: string
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -269,6 +271,9 @@ export function DataCatalogAutocomplete({
                 panel: panelClassName,
             },
             openOnFocus: true,
+            initialState: {
+                query,
+            },
             onStateChange({ state, prevState }) {
                 if (onActivate && !prevState.isOpen && state.isOpen) {
                     onActivate()
@@ -331,6 +336,7 @@ export function DataCatalogAutocomplete({
         detachedMediaQuery,
         panelClassName,
         containerRef,
+        query,
     ])
 
     // Register a global shortcut to open the search box on typing "/"
