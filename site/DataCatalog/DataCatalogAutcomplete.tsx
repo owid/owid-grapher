@@ -139,6 +139,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     params: {
                         hitsPerPage: 2,
                         distinct: true,
+                        filters: "NOT type:topic-page AND NOT type:country",
                     },
                 },
                 {
@@ -199,15 +200,15 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     },
 }
 
-const FiltersSource = (
+const CountriesSource = (
     addCountry: (country: string) => void,
-    setQuery: (query: string) => void
+    clearSearch: () => void
 ): AutocompleteSource<BaseItem> => {
     return {
         sourceId: "countries",
         onSelect({ item }) {
             addCountry(item.title as string)
-            setQuery("")
+            clearSearch()
         },
 
         getItemUrl() {
@@ -223,7 +224,7 @@ const FiltersSource = (
                         indexName: getIndexName(SearchIndexName.Pages),
                         query,
                         params: {
-                            hitsPerPage: 5,
+                            hitsPerPage: 3,
                             filters: "type:country",
                         },
                     },
@@ -249,6 +250,64 @@ const FiltersSource = (
                         </span>
                         <span className="aa-ItemWrapper__contentType">
                             Country
+                        </span>
+                    </div>
+                )
+            },
+        },
+    }
+}
+
+const TopicsSource = (
+    addTopic: (topic: string) => void,
+    clearSearch: () => void
+): AutocompleteSource<BaseItem> => {
+    return {
+        sourceId: "topics",
+        onSelect({ item }) {
+            addTopic(item.title as string)
+            clearSearch()
+        },
+
+        getItemUrl() {
+            return undefined
+        },
+        getItems({ query }) {
+            if (!query) return []
+
+            return getAlgoliaResults({
+                searchClient,
+                queries: [
+                    {
+                        indexName: getIndexName(SearchIndexName.Pages),
+                        query,
+                        params: {
+                            hitsPerPage: 3,
+                            filters: "type:topic-page",
+                        },
+                    },
+                ],
+            })
+        },
+
+        templates: {
+            header: () => <h5 className="overline-black-caps">Topics</h5>,
+            item: ({ item, components }) => {
+                return (
+                    <div
+                        className="aa-ItemWrapper"
+                        key={item.title as string}
+                        translate="no"
+                    >
+                        <span>
+                            <components.Highlight
+                                hit={item}
+                                attribute="title"
+                                tagName="strong"
+                            />
+                        </span>
+                        <span className="aa-ItemWrapper__contentType">
+                            Topic
                         </span>
                     </div>
                 )
@@ -298,8 +357,9 @@ export function DataCatalogAutocomplete({
     detachedMediaQuery = "(max-width: 1045px)",
     panelClassName,
     setQuery,
-    query = "",
+    query,
     addCountry,
+    addTopic,
 }: {
     onActivate?: () => void
     onClose?: () => void
@@ -309,13 +369,17 @@ export function DataCatalogAutocomplete({
     panelClassName?: string
     setQuery: (query: string) => void
     query?: string
-    addCountry?: (country: string) => void
+    addCountry: (country: string) => void
+    addTopic: (topic: string) => void
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
 
     const [search, setSearch] = useState<AutocompleteApi<BaseItem> | null>(null)
-    const setQueryRef = useRef(setQuery) // Store in ref for stable reference
-    const addCountryRef = useRef(addCountry) // Store in ref for stable reference
+
+    // Store in ref for stable reference
+    const setQueryRef = useRef(setQuery)
+    const addCountryRef = useRef(addCountry)
+    const addTopicRef = useRef(addTopic)
 
     useEffect(() => {
         setQueryRef.current = setQuery
@@ -326,7 +390,19 @@ export function DataCatalogAutocomplete({
     }, [addCountry])
 
     useEffect(() => {
+        addTopicRef.current = addTopic
+    }, [addTopic])
+
+    useEffect(() => {
         if (!containerRef.current) return
+
+        const clearSearch = () => {
+            setQueryRef.current("")
+            // Clear the input directly
+            if (search) {
+                search.setQuery("")
+            }
+        }
 
         const search = autocomplete({
             placeholder,
@@ -336,9 +412,6 @@ export function DataCatalogAutocomplete({
                 panel: panelClassName,
             },
             openOnFocus: true,
-            initialState: {
-                query,
-            },
             onStateChange({ state, prevState }) {
                 if (onActivate && !prevState.isOpen && state.isOpen) {
                     onActivate()
@@ -363,10 +436,12 @@ export function DataCatalogAutocomplete({
                 if (query) {
                     if (addCountryRef.current) {
                         sources.push(
-                            FiltersSource(
-                                addCountryRef.current,
-                                setQueryRef.current
-                            )
+                            CountriesSource(addCountryRef.current, clearSearch)
+                        )
+                    }
+                    if (addTopicRef.current) {
+                        sources.push(
+                            TopicsSource(addTopicRef.current, clearSearch)
                         )
                     }
                     sources.push(AlgoliaSource, AllResultsSource)
@@ -411,6 +486,13 @@ export function DataCatalogAutocomplete({
         containerRef,
         query,
     ])
+
+    // Sync external query changes (from the URL) to the input
+    useEffect(() => {
+        if (search && query !== undefined) {
+            search.setQuery(query)
+        }
+    }, [search, query])
 
     // Register a global shortcut to open the search box on typing "/"
     useEffect(() => {

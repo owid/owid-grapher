@@ -181,6 +181,7 @@ export const DataCatalog = ({
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
                     <DataCatalogSearchbar
                         addCountry={actions.addCountry}
+                        addTopic={actions.addTopic}
                         query={state.query}
                         removeCountry={actions.removeCountry}
                         requireAllCountries={state.requireAllCountries}

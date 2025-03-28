@@ -12,6 +12,7 @@ export const DataCatalogSearchbar = ({
     requireAllCountries,
     selectedCountryNames,
     toggleRequireAllCountries,
+    addTopic,
 }: {
     selectedCountries: Region[]
     selectedCountryNames: Set<string>
@@ -21,6 +22,7 @@ export const DataCatalogSearchbar = ({
     addCountry: (country: string) => void
     requireAllCountries: boolean
     toggleRequireAllCountries: () => void
+    addTopic: (topic: string) => void
 }) => {
     // Uses CSS to fake an input bar that will highlight correctly using :focus-within
     // without highlighting when the country selector is focused
@@ -37,6 +39,7 @@ export const DataCatalogSearchbar = ({
                     setQuery={setQuery}
                     query={query}
                     addCountry={addCountry}
+                    addTopic={addTopic}
                 />
             </div>
             <DataCatalogCountrySelector
