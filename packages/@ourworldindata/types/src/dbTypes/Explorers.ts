@@ -15,6 +15,7 @@ export type DbPlainExplorer = Required<DbInsertExplorer> & {
     // updatedAt is set automatically by MySQL
     updatedAt: Date
     // these properties are populated from Buildkite's pipeline "Mirror explorers to MySQL"
+    // it's used in getNonGrapherExplorerViewCount or in getPublishedExplorersBySlug
     config: string
 }
 
