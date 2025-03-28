@@ -17,6 +17,14 @@ export enum CatalogComponentStyle {
     TABLE = "table",
 }
 
+// Define search relaxation options
+export enum SearchRelaxationMode {
+    NONE = "none",
+    FIRST_WORDS = "firstWords",
+    LAST_WORDS = "lastWords",
+    ALL_OPTIONAL = "allOptional",
+}
+
 export type DataCatalogState = Readonly<{
     query: string
     topics: Set<string>
@@ -28,6 +36,7 @@ export type DataCatalogState = Readonly<{
     componentCount: Record<CatalogComponentId, number>
     componentStyles: Record<CatalogComponentId, CatalogComponentStyle>
     isStickyHeader: boolean
+    searchRelaxationMode: SearchRelaxationMode
 }>
 
 export interface ComponentConfig {
@@ -139,6 +148,11 @@ type ToggleStickyHeaderAction = {
     type: "toggleStickyHeader"
 }
 
+type SetSearchRelaxationModeAction = {
+    type: "setSearchRelaxationMode"
+    payload: SearchRelaxationMode
+}
+
 export type DataCatalogAction =
     | AddCountryAction
     | AddTopicAction
@@ -153,6 +167,7 @@ export type DataCatalogAction =
     | SetComponentCountAction
     | SetComponentStyleAction
     | ToggleStickyHeaderAction
+    | SetSearchRelaxationModeAction
 
 export function dataCatalogReducer(
     state: DataCatalogState,
@@ -234,6 +249,10 @@ export function dataCatalogReducer(
             ...state,
             isStickyHeader: !state.isStickyHeader,
         }))
+        .with({ type: "setSearchRelaxationMode" }, ({ payload }) => ({
+            ...state,
+            searchRelaxationMode: payload,
+        }))
         .exhaustive()
 }
 
@@ -255,6 +274,7 @@ export function createActions(dispatch: (action: DataCatalogAction) => void) {
         setComponentStyle: (componentId: CatalogComponentId, style: CatalogComponentStyle) =>
             dispatch({ type: "setComponentStyle", payload: { componentId, style } }),
         toggleStickyHeader: () => dispatch({ type: "toggleStickyHeader" }),
+        setSearchRelaxationMode: (mode: SearchRelaxationMode) => dispatch({ type: "setSearchRelaxationMode", payload: mode }),
     }
 }
 
@@ -300,6 +320,7 @@ export function getInitialDatacatalogState(): DataCatalogState {
             componentCount: getDefaultComponentCount(),
             componentStyles: getDefaultComponentStyles(),
             isStickyHeader: true,
+            searchRelaxationMode: SearchRelaxationMode.ALL_OPTIONAL,
         }
 
     const url = Url.fromURL(window.location.href)
@@ -341,6 +362,9 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
         componentCount: defaultComponentCount,
         componentStyles: defaultComponentStyles,
         isStickyHeader: url.queryParams.stickyHeader !== "false", // Default is true
+        searchRelaxationMode:
+            (url.queryParams.searchRelaxation as SearchRelaxationMode) ||
+            SearchRelaxationMode.ALL_OPTIONAL,
     }
 }
 
@@ -377,6 +401,10 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
                 ? state.componentStyles[CatalogComponentId.RESULTS]
                 : undefined,
         stickyHeader: state.isStickyHeader ? undefined : "false", // Only include if false (default is true)
+        searchRelaxation:
+            state.searchRelaxationMode !== SearchRelaxationMode.ALL_OPTIONAL
+                ? state.searchRelaxationMode
+                : undefined,
     }
 
     Object.entries(params).forEach(([key, value]) => {

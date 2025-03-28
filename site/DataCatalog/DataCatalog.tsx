@@ -200,6 +200,7 @@ export const DataCatalog = ({
                         toggleRequireAllCountries={
                             actions.toggleRequireAllCountries
                         }
+                        searchRelaxationMode={state.searchRelaxationMode}
                     />
                 </div>
                 {!state.componentVisibility[
@@ -230,6 +231,8 @@ export const DataCatalog = ({
                 setComponentStyle={actions.setComponentStyle}
                 isStickyHeader={state.isStickyHeader}
                 toggleStickyHeader={actions.toggleStickyHeader}
+                searchRelaxationMode={state.searchRelaxationMode}
+                setSearchRelaxationMode={actions.setSearchRelaxationMode}
             />
         </>
     )

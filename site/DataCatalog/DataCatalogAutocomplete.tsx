@@ -30,6 +30,7 @@ import {
     pageTypeDisplayNames,
     PageType,
 } from "../search/searchTypes.js"
+import { SearchRelaxationMode } from "./DataCatalogState"
 
 const siteAnalytics = new SiteAnalytics()
 
@@ -202,7 +203,8 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
 
 const CountriesSource = (
     addCountry: (country: string) => void,
-    clearSearch: () => void
+    clearSearch: () => void,
+    searchRelaxationMode: SearchRelaxationMode
 ): AutocompleteSource<BaseItem> => {
     return {
         sourceId: "countries",
@@ -226,6 +228,7 @@ const CountriesSource = (
                         params: {
                             hitsPerPage: 3,
                             filters: "type:country",
+                            removeWordsIfNoResults: searchRelaxationMode,
                         },
                     },
                 ],
@@ -260,7 +263,8 @@ const CountriesSource = (
 
 const TopicsSource = (
     addTopic: (topic: string) => void,
-    clearSearch: () => void
+    clearSearch: () => void,
+    searchRelaxationMode: SearchRelaxationMode
 ): AutocompleteSource<BaseItem> => {
     return {
         sourceId: "topics",
@@ -284,6 +288,7 @@ const TopicsSource = (
                         params: {
                             hitsPerPage: 3,
                             filters: "type:topic-page",
+                            removeWordsIfNoResults: searchRelaxationMode,
                         },
                     },
                 ],
@@ -360,6 +365,7 @@ export function DataCatalogAutocomplete({
     query,
     addCountry,
     addTopic,
+    searchRelaxationMode,
 }: {
     onActivate?: () => void
     onClose?: () => void
@@ -371,6 +377,7 @@ export function DataCatalogAutocomplete({
     query?: string
     addCountry: (country: string) => void
     addTopic: (topic: string) => void
+    searchRelaxationMode: SearchRelaxationMode
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -436,12 +443,20 @@ export function DataCatalogAutocomplete({
                 if (query) {
                     if (addCountryRef.current) {
                         sources.push(
-                            CountriesSource(addCountryRef.current, clearSearch)
+                            CountriesSource(
+                                addCountryRef.current,
+                                clearSearch,
+                                searchRelaxationMode
+                            )
                         )
                     }
                     if (addTopicRef.current) {
                         sources.push(
-                            TopicsSource(addTopicRef.current, clearSearch)
+                            TopicsSource(
+                                addTopicRef.current,
+                                clearSearch,
+                                searchRelaxationMode
+                            )
                         )
                     }
                     sources.push(AlgoliaSource, AllResultsSource)
@@ -485,6 +500,7 @@ export function DataCatalogAutocomplete({
         panelClassName,
         containerRef,
         query,
+        searchRelaxationMode,
     ])
 
     // Sync external query changes (from the URL) to the input

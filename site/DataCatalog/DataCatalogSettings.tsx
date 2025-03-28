@@ -18,12 +18,16 @@ import {
     ToggleButtonGroup,
     ToggleButton,
     FormControlLabel,
+    Radio,
+    RadioGroup,
+    FormLabel,
 } from "@mui/material"
 import SettingsIcon from "@mui/icons-material/Settings"
 import {
     DEFAULT_COMPONENTS,
     CatalogComponentId,
     CatalogComponentStyle,
+    SearchRelaxationMode,
 } from "./DataCatalogState"
 import ArrowUpward from "@mui/icons-material/ArrowUpward"
 import ArrowDownward from "@mui/icons-material/ArrowDownward"
@@ -36,17 +40,20 @@ export const DataCatalogSettings = ({
     componentCount,
     componentStyles,
     isStickyHeader,
+    searchRelaxationMode,
     updateComponentOrder,
     toggleComponentVisibility,
     setComponentCount,
     setComponentStyle,
     toggleStickyHeader,
+    setSearchRelaxationMode,
 }: {
     componentOrder: CatalogComponentId[]
     componentVisibility: Record<CatalogComponentId, boolean>
     componentCount: Record<CatalogComponentId, number>
     componentStyles: Record<CatalogComponentId, CatalogComponentStyle>
     isStickyHeader: boolean
+    searchRelaxationMode: SearchRelaxationMode
     updateComponentOrder: (order: CatalogComponentId[]) => void
     toggleComponentVisibility: (id: CatalogComponentId) => void
     setComponentCount: (id: CatalogComponentId, count: number) => void
@@ -55,6 +62,7 @@ export const DataCatalogSettings = ({
         style: CatalogComponentStyle
     ) => void
     toggleStickyHeader: () => void
+    setSearchRelaxationMode: (mode: SearchRelaxationMode) => void
 }) => {
     const [open, setOpen] = useState(false)
 
@@ -189,82 +197,130 @@ export const DataCatalogSettings = ({
                                         label="Sticky header"
                                     />
                                 </ListItem>
-
-                                {
-                                    <ListItem>
-                                        <FormControl fullWidth size="small">
-                                            <InputLabel id="insights-count-label">
-                                                Data Insights to Show
-                                            </InputLabel>
-                                            <Select
-                                                labelId="insights-count-label"
-                                                id="insights-count-select"
-                                                value={insightsToShow}
-                                                label="Data Insights to Show"
+                                <ListItem>
+                                    <Box sx={{ width: "100%" }}>
+                                        <FormControl component="fieldset">
+                                            <FormLabel component="legend">
+                                                Search Behavior
+                                            </FormLabel>
+                                            <RadioGroup
+                                                value={searchRelaxationMode}
                                                 onChange={(e) =>
-                                                    setComponentCount(
-                                                        CatalogComponentId.DATA_INSIGHTS,
-                                                        Number(e.target.value)
+                                                    setSearchRelaxationMode(
+                                                        e.target
+                                                            .value as SearchRelaxationMode
                                                     )
                                                 }
                                             >
-                                                <MenuItem value={2}>2</MenuItem>
-                                                <MenuItem value={4}>4</MenuItem>
-                                                <MenuItem value={6}>6</MenuItem>
-                                                <MenuItem value={8}>8</MenuItem>
-                                                <MenuItem value={10}>
-                                                    10
-                                                </MenuItem>
-                                            </Select>
+                                                <FormControlLabel
+                                                    value={
+                                                        SearchRelaxationMode.NONE
+                                                    }
+                                                    control={
+                                                        <Radio size="small" />
+                                                    }
+                                                    label="Strict matching"
+                                                />
+                                                <FormControlLabel
+                                                    value={
+                                                        SearchRelaxationMode.FIRST_WORDS
+                                                    }
+                                                    control={
+                                                        <Radio size="small" />
+                                                    }
+                                                    label="Remove first words"
+                                                />
+                                                <FormControlLabel
+                                                    value={
+                                                        SearchRelaxationMode.LAST_WORDS
+                                                    }
+                                                    control={
+                                                        <Radio size="small" />
+                                                    }
+                                                    label="Remove last words"
+                                                />
+                                                <FormControlLabel
+                                                    value={
+                                                        SearchRelaxationMode.ALL_OPTIONAL
+                                                    }
+                                                    control={
+                                                        <Radio size="small" />
+                                                    }
+                                                    label="All words optional"
+                                                />
+                                            </RadioGroup>
                                         </FormControl>
-                                    </ListItem>
-                                }
+                                    </Box>
+                                </ListItem>
 
-                                {
-                                    <ListItem>
-                                        <Box sx={{ width: "100%" }}>
-                                            <Typography
-                                                variant="body2"
-                                                sx={{ mb: 1 }}
+                                <ListItem>
+                                    <FormControl fullWidth size="small">
+                                        <InputLabel id="insights-count-label">
+                                            Data Insights to Show
+                                        </InputLabel>
+                                        <Select
+                                            labelId="insights-count-label"
+                                            id="insights-count-select"
+                                            value={insightsToShow}
+                                            label="Data Insights to Show"
+                                            onChange={(e) =>
+                                                setComponentCount(
+                                                    CatalogComponentId.DATA_INSIGHTS,
+                                                    Number(e.target.value)
+                                                )
+                                            }
+                                        >
+                                            <MenuItem value={2}>2</MenuItem>
+                                            <MenuItem value={4}>4</MenuItem>
+                                            <MenuItem value={6}>6</MenuItem>
+                                            <MenuItem value={8}>8</MenuItem>
+                                            <MenuItem value={10}>10</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </ListItem>
+                                <ListItem>
+                                    <Box sx={{ width: "100%" }}>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{ mb: 1 }}
+                                        >
+                                            Results View
+                                        </Typography>
+                                        <ToggleButtonGroup
+                                            value={resultsViewStyle}
+                                            exclusive
+                                            onChange={handleViewStyleChange}
+                                            aria-label="results view style"
+                                            size="small"
+                                            fullWidth
+                                        >
+                                            <ToggleButton
+                                                value={
+                                                    CatalogComponentStyle.GRID
+                                                }
+                                                aria-label="grid view"
                                             >
-                                                Results View
-                                            </Typography>
-                                            <ToggleButtonGroup
-                                                value={resultsViewStyle}
-                                                exclusive
-                                                onChange={handleViewStyleChange}
-                                                aria-label="results view style"
-                                                size="small"
-                                                fullWidth
+                                                <GridViewIcon
+                                                    fontSize="small"
+                                                    sx={{ mr: 1 }}
+                                                />
+                                                Grid
+                                            </ToggleButton>
+                                            <ToggleButton
+                                                value={
+                                                    CatalogComponentStyle.TABLE
+                                                }
+                                                aria-label="table view"
                                             >
-                                                <ToggleButton
-                                                    value={
-                                                        CatalogComponentStyle.GRID
-                                                    }
-                                                    aria-label="grid view"
-                                                >
-                                                    <GridViewIcon
-                                                        fontSize="small"
-                                                        sx={{ mr: 1 }}
-                                                    />
-                                                    Grid
-                                                </ToggleButton>
-                                                <ToggleButton
-                                                    value={
-                                                        CatalogComponentStyle.TABLE
-                                                    }
-                                                    aria-label="table view"
-                                                >
-                                                    <ViewListIcon
-                                                        fontSize="small"
-                                                        sx={{ mr: 1 }}
-                                                    />
-                                                    Table
-                                                </ToggleButton>
-                                            </ToggleButtonGroup>
-                                        </Box>
-                                    </ListItem>
-                                }
+                                                <ViewListIcon
+                                                    fontSize="small"
+                                                    sx={{ mr: 1 }}
+                                                />
+                                                Table
+                                            </ToggleButton>
+                                        </ToggleButtonGroup>
+                                    </Box>
+                                </ListItem>
                             </List>
                         </>
                     }
