@@ -11,6 +11,22 @@
     margin-bottom: 16px;
     padding-bottom: 24px;
     padding-top: 24px;
+
+    // Sticky header styles
+    &.sticky {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        transition: transform 0.3s ease;
+    }
+
+    &.sticky.hidden {
+        transform: translateY(-100%);
+    }
+
+    &.sticky.visible {
+        transform: translateY(0);
+    }
 }
 
 .data-catalog-heading {

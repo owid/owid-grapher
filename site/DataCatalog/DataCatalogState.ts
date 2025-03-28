@@ -27,6 +27,7 @@ export type DataCatalogState = Readonly<{
     componentVisibility: Record<CatalogComponentId, boolean>
     componentCount: Record<CatalogComponentId, number>
     componentStyles: Record<CatalogComponentId, CatalogComponentStyle>
+    isStickyHeader: boolean
 }>
 
 export interface ComponentConfig {
@@ -134,6 +135,10 @@ type SetComponentStyleAction = {
     }
 }
 
+type ToggleStickyHeaderAction = {
+    type: "toggleStickyHeader"
+}
+
 export type DataCatalogAction =
     | AddCountryAction
     | AddTopicAction
@@ -147,6 +152,7 @@ export type DataCatalogAction =
     | ToggleComponentVisibilityAction
     | SetComponentCountAction
     | SetComponentStyleAction
+    | ToggleStickyHeaderAction
 
 export function dataCatalogReducer(
     state: DataCatalogState,
@@ -224,6 +230,10 @@ export function dataCatalogReducer(
                 [payload.componentId]: payload.style,
             },
         }))
+        .with({ type: "toggleStickyHeader" }, () => ({
+            ...state,
+            isStickyHeader: !state.isStickyHeader,
+        }))
         .exhaustive()
 }
 
@@ -244,6 +254,7 @@ export function createActions(dispatch: (action: DataCatalogAction) => void) {
             dispatch({ type: "setComponentCount", payload: { componentId, count } }),
         setComponentStyle: (componentId: CatalogComponentId, style: CatalogComponentStyle) =>
             dispatch({ type: "setComponentStyle", payload: { componentId, style } }),
+        toggleStickyHeader: () => dispatch({ type: "toggleStickyHeader" }),
     }
 }
 
@@ -288,6 +299,7 @@ export function getInitialDatacatalogState(): DataCatalogState {
             componentVisibility: getDefaultComponentVisibility(),
             componentCount: getDefaultComponentCount(),
             componentStyles: getDefaultComponentStyles(),
+            isStickyHeader: true,
         }
 
     const url = Url.fromURL(window.location.href)
@@ -328,6 +340,7 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
         componentVisibility: getDefaultComponentVisibility(),
         componentCount: defaultComponentCount,
         componentStyles: defaultComponentStyles,
+        isStickyHeader: url.queryParams.stickyHeader !== "false", // Default is true
     }
 }
 
@@ -363,6 +376,7 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
             defaultResultsStyle
                 ? state.componentStyles[CatalogComponentId.RESULTS]
                 : undefined,
+        stickyHeader: state.isStickyHeader ? undefined : "false", // Only include if false (default is true)
     }
 
     Object.entries(params).forEach(([key, value]) => {

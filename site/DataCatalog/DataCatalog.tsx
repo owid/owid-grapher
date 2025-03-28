@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useReducer, useState } from "react"
 import { TagGraphRoot, Url } from "@ourworldindata/utils"
 import algoliasearch, { SearchClient } from "algoliasearch"
+import cx from "classnames"
 import {
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
@@ -34,6 +35,7 @@ import { DataCatalogSearchbar } from "./DataCatalogSearchbar.js"
 import { DataCatalogDataInsights } from "./DataCatalogDataInsights.js"
 import { DataCatalogSettings } from "./DataCatalogSettings.js"
 import { DataCatalogHighlights } from "./DataCatalogHighlights.js"
+import { ScrollDirection, useScrollDirection } from "../hooks.js"
 
 export const DataCatalog = ({
     initialState,
@@ -52,6 +54,7 @@ export const DataCatalog = ({
         search: new Map(),
         pages: new Map(),
     })
+    const scrollDirection = useScrollDirection()
     const AREA_NAMES = useMemo(
         () => tagGraph.children.map((child) => child.name),
         [tagGraph]
@@ -170,7 +173,20 @@ export const DataCatalog = ({
 
     return (
         <>
-            <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
+            <div
+                className={cx(
+                    "data-catalog-header span-cols-14 grid grid-cols-12-full-width",
+                    {
+                        sticky: state.isStickyHeader, // Only apply sticky if enabled in settings
+                        visible:
+                            scrollDirection === ScrollDirection.Up &&
+                            state.isStickyHeader,
+                        hidden:
+                            scrollDirection === ScrollDirection.Down &&
+                            state.isStickyHeader,
+                    }
+                )}
+            >
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
                     <DataCatalogSearchbar
                         addCountry={actions.addCountry}
@@ -212,6 +228,8 @@ export const DataCatalog = ({
                 setComponentCount={actions.setComponentCount}
                 componentStyles={state.componentStyles}
                 setComponentStyle={actions.setComponentStyle}
+                isStickyHeader={state.isStickyHeader}
+                toggleStickyHeader={actions.toggleStickyHeader}
             />
         </>
     )

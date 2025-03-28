@@ -17,6 +17,7 @@ import {
     Divider,
     ToggleButtonGroup,
     ToggleButton,
+    FormControlLabel,
 } from "@mui/material"
 import SettingsIcon from "@mui/icons-material/Settings"
 import {
@@ -34,15 +35,18 @@ export const DataCatalogSettings = ({
     componentVisibility,
     componentCount,
     componentStyles,
+    isStickyHeader,
     updateComponentOrder,
     toggleComponentVisibility,
     setComponentCount,
     setComponentStyle,
+    toggleStickyHeader,
 }: {
     componentOrder: CatalogComponentId[]
     componentVisibility: Record<CatalogComponentId, boolean>
     componentCount: Record<CatalogComponentId, number>
     componentStyles: Record<CatalogComponentId, CatalogComponentStyle>
+    isStickyHeader: boolean
     updateComponentOrder: (order: CatalogComponentId[]) => void
     toggleComponentVisibility: (id: CatalogComponentId) => void
     setComponentCount: (id: CatalogComponentId, count: number) => void
@@ -50,6 +54,7 @@ export const DataCatalogSettings = ({
         id: CatalogComponentId,
         style: CatalogComponentStyle
     ) => void
+    toggleStickyHeader: () => void
 }) => {
     const [open, setOpen] = useState(false)
 
@@ -172,6 +177,19 @@ export const DataCatalogSettings = ({
                                     </ListSubheader>
                                 }
                             >
+                                <ListItem>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={isStickyHeader}
+                                                onChange={toggleStickyHeader}
+                                                color="primary"
+                                            />
+                                        }
+                                        label="Sticky header"
+                                    />
+                                </ListItem>
+
                                 {
                                     <ListItem>
                                         <FormControl fullWidth size="small">
