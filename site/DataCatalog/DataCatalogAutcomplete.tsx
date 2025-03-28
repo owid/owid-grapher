@@ -199,6 +199,64 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     },
 }
 
+const FiltersSource = (
+    addCountry: (country: string) => void,
+    setQuery: (query: string) => void
+): AutocompleteSource<BaseItem> => {
+    return {
+        sourceId: "countries",
+        onSelect({ item }) {
+            addCountry(item.title as string)
+            setQuery("")
+        },
+
+        getItemUrl() {
+            return undefined
+        },
+        getItems({ query }) {
+            if (!query) return []
+
+            return getAlgoliaResults({
+                searchClient,
+                queries: [
+                    {
+                        indexName: getIndexName(SearchIndexName.Pages),
+                        query,
+                        params: {
+                            hitsPerPage: 5,
+                            filters: "type:country",
+                        },
+                    },
+                ],
+            })
+        },
+
+        templates: {
+            header: () => <h5 className="overline-black-caps">Countries</h5>,
+            item: ({ item, components }) => {
+                return (
+                    <div
+                        className="aa-ItemWrapper"
+                        key={item.title as string}
+                        translate="no"
+                    >
+                        <span>
+                            <components.Highlight
+                                hit={item}
+                                attribute="title"
+                                tagName="strong"
+                            />
+                        </span>
+                        <span className="aa-ItemWrapper__contentType">
+                            Country
+                        </span>
+                    </div>
+                )
+            },
+        },
+    }
+}
+
 const AllResultsSource: AutocompleteSource<BaseItem> = {
     sourceId: "runSearch",
     onSelect,
@@ -241,6 +299,7 @@ export function DataCatalogAutocomplete({
     panelClassName,
     setQuery,
     query = "",
+    addCountry,
 }: {
     onActivate?: () => void
     onClose?: () => void
@@ -250,15 +309,21 @@ export function DataCatalogAutocomplete({
     panelClassName?: string
     setQuery: (query: string) => void
     query?: string
+    addCountry?: (country: string) => void
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
 
     const [search, setSearch] = useState<AutocompleteApi<BaseItem> | null>(null)
     const setQueryRef = useRef(setQuery) // Store in ref for stable reference
+    const addCountryRef = useRef(addCountry) // Store in ref for stable reference
 
     useEffect(() => {
         setQueryRef.current = setQuery
     }, [setQuery])
+
+    useEffect(() => {
+        addCountryRef.current = addCountry
+    }, [addCountry])
 
     useEffect(() => {
         if (!containerRef.current) return
@@ -296,6 +361,14 @@ export function DataCatalogAutocomplete({
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
+                    if (addCountryRef.current) {
+                        sources.push(
+                            FiltersSource(
+                                addCountryRef.current,
+                                setQueryRef.current
+                            )
+                        )
+                    }
                     sources.push(AlgoliaSource, AllResultsSource)
                 } else {
                     sources.push(FeaturedSearchesSource)

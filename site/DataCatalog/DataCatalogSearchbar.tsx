@@ -36,6 +36,7 @@ export const DataCatalogSearchbar = ({
                     className="data-catalog-search-box-container"
                     setQuery={setQuery}
                     query={query}
+                    addCountry={addCountry}
                 />
             </div>
             <DataCatalogCountrySelector

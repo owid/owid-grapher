@@ -104,6 +104,10 @@
     flex-grow: 2;
 }
 
+.data-catalog-search-box-container .aa-Input {
+    margin-left: 8px;
+}
+
 .data-catalog-search-input {
     background-color: white;
     height: 48px;
@@ -144,6 +148,9 @@
     padding: 8px;
     white-space: nowrap;
     display: flex;
+    &:first-child {
+        margin-left: 8px;
+    }
     &:not(:last-child) {
         margin-right: 8px;
     }

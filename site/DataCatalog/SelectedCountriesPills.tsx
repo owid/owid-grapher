@@ -2,7 +2,6 @@ import { faClose } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Region } from "@ourworldindata/utils"
 import cx from "classnames"
-import * as React from "react"
 
 export const SelectedCountriesPills = ({
     selectedCountries,
