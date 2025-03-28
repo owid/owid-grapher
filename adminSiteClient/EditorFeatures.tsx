@@ -167,8 +167,4 @@ export class EditorFeatures {
             this.grapher.isOnChartTab
         )
     }
-
-    @computed get canToggleMapTab() {
-        return !this.grapher.isScatter
-    }
 }
