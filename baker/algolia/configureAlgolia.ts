@@ -192,7 +192,7 @@ export const configureAlgolia = async () => {
         disableExactOnAttributes: ["tags", "subtitle", "availableEntities"],
         disableTypoToleranceOnAttributes: ["subtitle", "availableEntities"],
         disablePrefixOnAttributes: ["subtitle"],
-        attributesForFaceting: ["tags", "availableEntities"],
+        attributesForFaceting: ["tags", "availableEntities", "type"],
     })
 
     const synonyms = [
