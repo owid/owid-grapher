@@ -53,6 +53,7 @@ export class ChoroplethGlobe extends React.Component<{
     private previousScreenX?: number
     private previousScreenY?: number
     private previousDistance?: number // for pinch gesture
+    private touchStartTime = 0
 
     @computed private get isTouchDevice(): boolean {
         return isTouchDevice()
@@ -237,6 +238,13 @@ export class ChoroplethGlobe extends React.Component<{
         this.isDragging = true
         document.body.style.cursor = "move"
 
+        // Clear any tooltips immediately when dragging starts
+        if (this.hoverEnterFeature || this.hoverNearbyFeature) {
+            this.hoverEnterFeature = undefined
+            this.hoverNearbyFeature = undefined
+            this.manager.onMapMouseLeave()
+        }
+
         // Create a capturing event listener that will run before the click and cancel it
         const clickBlocker = (e: Event): void => {
             e.stopPropagation()
@@ -337,6 +345,7 @@ export class ChoroplethGlobe extends React.Component<{
 
     @action.bound private onTouchStart(event: TouchEvent): void {
         this.previousDistance = undefined
+        this.touchStartTime = Date.now()
 
         if (event.touches.length >= 2) {
             this.handlePinchGesture(event)
@@ -347,8 +356,6 @@ export class ChoroplethGlobe extends React.Component<{
                 this.hoverNearbyFeature = undefined
                 this.manager.onMapMouseLeave()
             }
-        } else {
-            this.detectNearbyFeature(event)
         }
 
         if (this.base.current) {
@@ -412,8 +419,13 @@ export class ChoroplethGlobe extends React.Component<{
         this.onCursorDrag(event)
     }
 
-    @action.bound private onTouchEnd(): void {
+    @action.bound private onTouchEnd(event: TouchEvent): void {
         this.stopDragging()
+
+        // Only show tooltip on tap if it wasn't a drag (short duration between touchstart and touchend)
+        if (Date.now() - this.touchStartTime < 300) {
+            this.detectNearbyFeature(event)
+        }
 
         if (this.base.current) {
             this.base.current.removeEventListener("touchmove", this.onTouchMove)
@@ -432,7 +444,7 @@ export class ChoroplethGlobe extends React.Component<{
 
     @action.bound private onMouseEnter(feature: GlobeRenderFeature): void {
         // don't show tooltips while dragging
-        if (this.isDragging && !this.isTouchDevice) return
+        if (this.isDragging) return
 
         this.hoverEnterFeature = feature
         this.manager.onMapMouseOver(feature.geo)
@@ -499,7 +511,7 @@ export class ChoroplethGlobe extends React.Component<{
                     cy={this.globeCenter[1]}
                     r={(this.globeSize / 2) * this.zoomScale}
                     fill="#fafafa"
-                    stroke="blue"
+                    stroke="green"
                 />
                 <path
                     id={makeIdForHumanConsumption("globe-graticule")}
