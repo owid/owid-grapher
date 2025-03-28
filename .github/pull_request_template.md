@@ -18,6 +18,8 @@ Step-by-step instructions on how to test this change
 
 (delete all that do not apply)
 
+### Before merging
+
 - [ ] Google Analytics events were adapted to fit the changes in this PR
 - [ ] Changes to CSS/HTML were checked on Desktop and Mobile Safari at all three breakpoints
 - [ ] Changes to HTML were checked for accessibility concerns
@@ -28,4 +30,7 @@ If DB migrations exists:
 - [ ] The DB type definitions have been updated
 - [ ] The DB types in the ETL have been updated
 - [ ] If tables/views were added/removed, the Datasette export has been updated to take this into account
+
+### After merging
+
 - [ ] If a table was touched that is synced to R2, the sync script to update R2 has been run
