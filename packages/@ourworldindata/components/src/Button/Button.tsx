@@ -42,17 +42,16 @@ export const Button = ({
     iconPosition = "right",
     dataTrackNote,
 }: ButtonProps) => {
-    const classes = cx(
-        "owid-btn",
-        `owid-btn--${theme}`,
-        `owid-btn--icon-${iconPosition}`,
-        className
-    )
+    const classes = cx("owid-btn", `owid-btn--${theme}`, className)
     const content = (
         <>
-            {iconPosition === "left" && icon && <FontAwesomeIcon icon={icon} />}
+            {iconPosition === "left" && icon && (
+                <FontAwesomeIcon className="owid-btn--icon-left" icon={icon} />
+            )}
             {text && <span>{text}</span>}
-            {iconPosition !== "left" && icon && <FontAwesomeIcon icon={icon} />}
+            {iconPosition !== "left" && icon && (
+                <FontAwesomeIcon className="owid-btn--icon-right" icon={icon} />
+            )}
         </>
     )
 
