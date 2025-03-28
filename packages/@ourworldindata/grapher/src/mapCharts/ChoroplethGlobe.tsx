@@ -281,14 +281,6 @@ export class ChoroplethGlobe extends React.Component<{
 
         // update cursor style
         document.body.style.cursor = "move"
-
-        // cancel click event using a capturing event listener
-        const clickBlocker = (e: Event): void => {
-            e.stopPropagation()
-            e.preventDefault()
-            document.removeEventListener("click", clickBlocker, true)
-        }
-        document.addEventListener("click", clickBlocker, true)
     }
 
     @action.bound private stopDragging(): void {
@@ -373,27 +365,45 @@ export class ChoroplethGlobe extends React.Component<{
     @action.bound private onMouseDown(event: MouseEvent): void {
         event.preventDefault() // prevent text selection
 
+        this.wasDragging = false
+
         // register mousemove and mouseup events on the document
         // so that dragging continues if the mouse leaves the map
         document.addEventListener("mousemove", this.onMouseDrag, {
             passive: true,
         })
-        document.addEventListener("mouseup", this.onMouseUp, { passive: true })
+        document.addEventListener("mouseup", this.onMouseUp, {
+            passive: true,
+        })
     }
 
+    private wasDragging = false
+
     @action.bound private onMouseDrag(event: MouseEvent): void {
+        console.log("mouse drag")
+        this.wasDragging = true
         this.startDragging()
         this.onDrag(event)
     }
 
-    @action.bound private onMouseUp(): void {
+    @action.bound private onMouseUp(event: MouseEvent): void {
+        console.log("mouse up")
         this.stopDragging()
+
+        if (this.wasDragging) {
+            // Keep the flag for a short time to prevent the click
+            setTimeout(() => {
+                this.wasDragging = false
+            }, 300) // Adjust timing as needed
+        }
 
         document.removeEventListener("mousemove", this.onMouseDrag)
         document.removeEventListener("mouseup", this.onMouseUp)
     }
 
     @action.bound private onTouchStart(event: TouchEvent): void {
+        console.log("touch start")
+
         event.preventDefault() // prevent scrolling and page zoom
 
         // reset pinching and dragging state
@@ -427,6 +437,8 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private onTouchMove(event: TouchEvent): void {
+        console.log("touch move")
+
         event.preventDefault() // prevent scrolling
 
         // dismiss tooltip
@@ -456,21 +468,13 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private onTouchEnd(event: TouchEvent): void {
+        console.log("touch end", { isDragging: this.isDragging })
+
         if (this.isDragging) {
             this.stopDragging()
         } else {
             // if the touch event was a tap, fire a click event.
-            // if a feature was clicked, the click event will be handled
-            // by the onClick method. otherwise, the click event will be
-            // handled by the document click event listener registered below
-
-            // dismiss tooltip
-            const listener = () => {
-                this.clearHover()
-                document.removeEventListener("click", listener, true)
-            }
-            document.addEventListener("click", listener, true)
-
+            console.log("dispatching click event")
             event.target?.dispatchEvent(
                 new MouseEvent("click", { bubbles: true })
             )
@@ -492,6 +496,8 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private onMouseEnter(feature: GlobeRenderFeature): void {
+        // console.log("mouse enter", { dragging: this.isDragging })
+
         // don't show tooltips while dragging
         if (this.isDragging) {
             this.clearHover()
@@ -508,11 +514,21 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private onClick(event: SVGMouseEvent): void {
+        if (this.wasDragging) {
+            event.stopPropagation()
+            return
+        }
+
         // find the feature that was clicked
         const featureId = (event.target as SVGElement).id
         const feature = this.features.find(
             (f) => makeIdForHumanConsumption(f.id) === featureId
         )
+
+        console.log("click", {
+            dragging: this.isDragging,
+            featureId: feature?.id,
+        })
         if (!feature) return
 
         // update hover state
@@ -537,6 +553,9 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     async componentDidMount(): Promise<void> {
+        document.addEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
         if (this.base.current) {
             this.base.current.addEventListener("mousedown", this.onMouseDown, {
                 passive: false,
@@ -555,7 +574,14 @@ export class ChoroplethGlobe extends React.Component<{
         }
     }
 
+    @action.bound onDocumentClick(): void {
+        this.clearHover()
+    }
+
     componentWillUnmount(): void {
+        document.addEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
         if (this.base.current) {
             this.base.current.removeEventListener("mousedown", this.onMouseDown)
             this.base.current.removeEventListener("mousemove", this.onMouseMove)
@@ -578,7 +604,7 @@ export class ChoroplethGlobe extends React.Component<{
                     cy={this.globeCenter[1]}
                     r={(this.globeSize / 2) * this.zoomScale}
                     fill="#fafafa"
-                    stroke="gold"
+                    stroke="purple"
                 />
                 <path
                     id={makeIdForHumanConsumption("globe-graticule")}
