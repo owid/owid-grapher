@@ -55,7 +55,7 @@ export function CountryWithData<Feature extends RenderFeature>({
     focus: InteractionState
     showSelectedStyle: boolean
     strokeScale?: number
-    onClick: (geoFeature: GeoFeature, ev: SVGMouseEvent) => void
+    onClick: (event: SVGMouseEvent) => void
     onMouseEnter: (feature: Feature) => void
     onMouseLeave: () => void
 }): React.ReactElement {
@@ -85,7 +85,7 @@ export function CountryWithData<Feature extends RenderFeature>({
             cursor="pointer"
             fill={fill}
             fillOpacity={fillOpacity}
-            onClick={(ev: SVGMouseEvent): void => onClick(feature.geo, ev)}
+            onClick={onClick}
             onMouseEnter={(): void => onMouseEnter(feature)}
             onMouseLeave={onMouseLeave}
         />
@@ -107,7 +107,7 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     patternId: string
     focus: InteractionState
     strokeScale?: number
-    onClick: (geoFeature: GeoFeature, ev: SVGMouseEvent) => void
+    onClick: (event: SVGMouseEvent) => void
     onMouseEnter: (feature: Feature) => void
     onMouseLeave: () => void
 }): React.ReactElement {
@@ -127,7 +127,7 @@ export function CountryWithNoData<Feature extends RenderFeature>({
             cursor="pointer"
             fill={`url(#${patternId})`}
             fillOpacity={fillOpacity}
-            onClick={(ev: SVGMouseEvent): void => onClick(feature.geo, ev)}
+            onClick={onClick}
             onMouseEnter={(): void => onMouseEnter(feature)}
             onMouseLeave={onMouseLeave}
         />

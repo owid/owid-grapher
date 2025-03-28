@@ -266,7 +266,9 @@ export class ChoroplethMap extends React.Component<{
                         patternId={patternId}
                         focus={this.getFocusState(feature.id)}
                         strokeScale={this.viewportScale}
-                        onClick={this.manager.onClick}
+                        onClick={(event) =>
+                            this.manager.onClick(feature.geo, event)
+                        }
                         onMouseEnter={this.onMouseEnter}
                         onMouseLeave={this.onMouseLeave}
                     />
@@ -291,7 +293,9 @@ export class ChoroplethMap extends React.Component<{
                             focus={this.getFocusState(feature.id)}
                             strokeScale={this.viewportScale}
                             showSelectedStyle={this.showSelectedStyle}
-                            onClick={this.manager.onClick}
+                            onClick={(event) =>
+                                this.manager.onClick(feature.geo, event)
+                            }
                             onMouseEnter={this.onMouseEnter}
                             onMouseLeave={this.onMouseLeave}
                         />
