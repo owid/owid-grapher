@@ -113,7 +113,7 @@ describe("parse simple filters expressions", () => {
     it("should round trip binary logic operations correctly", async () => {
         checkIsomorphism(
             new StringContainsOperation(
-                new JsonPointerSymbol("/map/projection", context),
+                new JsonPointerSymbol("/map/region", context),
                 new StringAtom("Europe")
             )
         )
@@ -156,8 +156,8 @@ describe("transpile to expected SQL", () => {
         checkSql("(OR true false false)", "(true OR false OR false)")
         checkSql("(NOT true)", "(NOT true)")
         checkSql(
-            '(CONTAINS /map/projection "Europe")',
-            "(JSON_EXTRACT(grapherConfigAdmin, \"$.map.projection\") COLLATE utf8mb4_0900_ai_ci LIKE '%Europe%')"
+            '(CONTAINS /map/region "Europe")',
+            "(JSON_EXTRACT(grapherConfigAdmin, \"$.map.region\") COLLATE utf8mb4_0900_ai_ci LIKE '%Europe%')"
         )
         checkSql('(= "hello" "hello")', "('hello' = 'hello')")
         checkSql('(= "hello\\\\" "hello")', "('hello\\\\' = 'hello')")

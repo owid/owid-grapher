@@ -102,7 +102,7 @@ export {
     grapherKeysToSerialize,
     type GrapherQueryParams,
     type LegacyGrapherInterface,
-    MapProjectionName,
+    MapRegionName,
     LogoOption,
     type ComparisonLineConfig,
     type AxisConfigInterface,

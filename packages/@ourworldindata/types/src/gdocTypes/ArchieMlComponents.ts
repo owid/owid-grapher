@@ -42,7 +42,7 @@ export enum ChartControlKeyword {
     alignAxisScalesToggle = "alignAxisScalesToggle",
     xLogLinearSelector = "xLogLinearSelector",
     yLogLinearSelector = "yLogLinearSelector",
-    mapProjectionMenu = "mapProjectionMenu",
+    mapRegionDropdown = "mapRegionDropdown",
     tableFilterToggle = "tableFilterToggle",
 }
 

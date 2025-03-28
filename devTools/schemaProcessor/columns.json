@@ -12,7 +12,7 @@
     },
     {
         "type": "string",
-        "pointer": "/map/projection",
+        "pointer": "/map/region",
         "default": "World",
         "editor": "dropdown",
         "enumOptions": [
@@ -20,7 +20,7 @@
             "Europe",
             "Africa",
             "Asia",
-            "NortAmerica",
+            "NorthAmerica",
             "SouthAmerica",
             "Oceania"
         ]

@@ -1,13 +1,13 @@
 import {
     GrapherInterface,
-    MapProjectionName,
+    MapRegionName,
     GRAPHER_MAP_TYPE,
 } from "@ourworldindata/types"
 import {
     ChartDimension,
     MapChart,
     MapConfig,
-    MapProjectionLabels,
+    MAP_REGION_LABELS,
 } from "@ourworldindata/grapher"
 import { ColumnSlug, isEmpty, ToleranceStrategy } from "@ourworldindata/utils"
 import { action, computed } from "mobx"
@@ -34,8 +34,8 @@ class VariableSection extends Component<{
         }
     }
 
-    @action.bound onProjection(projection: string | undefined) {
-        this.props.mapConfig.projection = projection as MapProjectionName
+    @action.bound onRegion(region: string | undefined) {
+        this.props.mapConfig.region = region as MapRegionName
     }
 
     render() {
@@ -47,9 +47,6 @@ class VariableSection extends Component<{
                     <h2>Add some indicators on data tab first</h2>
                 </section>
             )
-
-        // const projections = Object.keys(MapProjectionLabels)
-        // const labels = Object.values(MapProjectionLabels)
 
         return (
             <Section name="Map">
@@ -65,11 +62,11 @@ class VariableSection extends Component<{
                 />
                 <SelectField
                     label="Region"
-                    value={mapConfig.projection}
-                    options={Object.entries(MapProjectionLabels).map(
+                    value={mapConfig.region}
+                    options={Object.entries(MAP_REGION_LABELS).map(
                         ([key, val]) => ({ value: key, label: val })
                     )}
-                    onValue={this.onProjection}
+                    onValue={this.onRegion}
                 />
             </Section>
         )

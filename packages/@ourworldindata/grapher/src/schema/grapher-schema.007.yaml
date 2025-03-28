@@ -1,7 +1,7 @@
 $schema: "http://json-schema.org/draft-07/schema#"
 # if you update the required keys, make sure that the mergeGrapherConfigs and
 # diffGrapherConfigs functions both reflect this change
-$id: "https://files.ourworldindata.org/schemas/grapher-schema.006.json"
+$id: "https://files.ourworldindata.org/schemas/grapher-schema.007.json"
 required:
     - $schema
     - dimensions
@@ -14,12 +14,12 @@ properties:
         type: string
         description: Url of the concrete schema version to use to validate this document
         format: uri
-        default: "https://files.ourworldindata.org/schemas/grapher-schema.006.json"
+        default: "https://files.ourworldindata.org/schemas/grapher-schema.007.json"
         # We restrict the $schema field to a single value since we expect all
         # configs in our database to be valid against the latest schema.
         # If we ever need to validate configs against multiple schema versions,
         # we can remove this constraint.
-        const: "https://files.ourworldindata.org/schemas/grapher-schema.006.json"
+        const: "https://files.ourworldindata.org/schemas/grapher-schema.007.json"
     id:
         type: integer
         description: Internal DB id. Useful internally for OWID but not required if just using grapher directly.
@@ -28,15 +28,15 @@ properties:
         type: object
         description: Configuration of the world map chart
         properties:
-            projection:
+            region:
                 type: string
-                description: Slightly misnamed - this does not change the map projection but instead specifies which world area to focus on.
+                description: Which region to focus on
                 enum:
                     - World
                     - Europe
                     - Africa
                     - Asia
-                    - NortAmerica
+                    - NorthAmerica
                     - SouthAmerica
                     - Oceania
                 default: World

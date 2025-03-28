@@ -78,6 +78,19 @@ const migrateFrom005To006 = (
     return config
 }
 
+export const migrateFrom006To007 = (
+    config: AnyConfigWithValidSchema
+): AnyConfigWithValidSchema => {
+    // rename map.projection to map.region
+    if (config.map?.projection) {
+        config.map.region = config.map.projection
+        delete config.map.projection
+    }
+
+    config.$schema = createSchemaForVersion("007")
+    return config
+}
+
 export const runMigration = (
     config: AnyConfigWithValidSchema
 ): AnyConfigWithValidSchema => {
@@ -89,5 +102,6 @@ export const runMigration = (
         .with("003", () => migrateFrom003To004(config))
         .with("004", () => migrateFrom004To005(config))
         .with("005", () => migrateFrom005To006(config))
+        .with("006", () => migrateFrom006To007(config))
         .exhaustive()
 }

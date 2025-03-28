@@ -2,6 +2,8 @@ import { expect, it } from "vitest"
 
 import { defaultGrapherConfig } from "../defaultGrapherConfig"
 import { migrateGrapherConfigToLatestVersion } from "./migrate"
+import { migrateFrom006To007 } from "./migrations"
+import { AnyConfigWithValidSchema } from "./helpers"
 
 it("returns a valid config as is", () => {
     const validConfig = {
@@ -71,4 +73,28 @@ it("terminates", () => {
             )
         }
     }
+})
+
+it("migrates version 006 to 007 correctly", () => {
+    const config: AnyConfigWithValidSchema = {
+        $schema:
+            "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+        hasMapTab: true,
+        map: {
+            projection: "Europe",
+            time: 2000,
+        },
+    }
+
+    // check that the $schema field is updated
+    expect(migrateFrom006To007(config)).toHaveProperty(
+        "$schema",
+        "https://files.ourworldindata.org/schemas/grapher-schema.007.json"
+    )
+
+    // check that the map.projection field is removed
+    expect(migrateFrom006To007(config)).not.toHaveProperty("map.projection")
+
+    // check that the map.region field is added
+    expect(migrateFrom006To007(config)).toHaveProperty("map.region", "Europe")
 })

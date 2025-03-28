@@ -22,9 +22,12 @@ import {
 } from "./MapChartConstants"
 import { Patterns } from "../core/GrapherConstants"
 import { ColorScaleBin } from "../color/ColorScaleBin"
-import { getCountriesByProjection } from "./WorldRegionsToProjection"
-import { MapProjectionName } from "@ourworldindata/types"
-import { geoBoundsFor, renderFeaturesFor } from "./GeoFeatures"
+import { getCountriesByRegion } from "./WorldRegionsToProjection"
+import { MapRegionName } from "@ourworldindata/types"
+import {
+    geoBoundsForProjectionOf,
+    renderFeaturesForProjectionOf,
+} from "./GeoFeatures"
 
 declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
@@ -65,7 +68,7 @@ export class ChoroplethMap extends React.Component<{
 
     // Combine bounding boxes to get the extents of the entire map
     @computed private get mapBounds(): Bounds {
-        return Bounds.merge(geoBoundsFor(this.manager.projection))
+        return Bounds.merge(geoBoundsForProjectionOf(this.manager.region))
     }
 
     @computed private get focusBracket(): ColorScaleBin | undefined {
@@ -91,9 +94,9 @@ export class ChoroplethMap extends React.Component<{
         return this.choroplethData.get(id)!.isSelected
     }
 
-    // Viewport for each projection, defined by center and width+height in fractional coordinates
+    // Viewport for each region, defined by center and width+height in fractional coordinates
     @computed private get viewport(): MapViewport {
-        return MAP_VIEWPORTS[this.manager.projection]
+        return MAP_VIEWPORTS[this.manager.region]
     }
 
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
@@ -131,33 +134,31 @@ export class ChoroplethMap extends React.Component<{
         return matrixStr
     }
 
-    // Features that aren't part of the current projection (e.g. India if we're showing Africa)
-    @computed private get featuresOutsideProjection(): RenderFeature[] {
+    // Features that aren't part of the current region (e.g. India if we're showing Africa)
+    @computed private get featuresOutsideRegion(): RenderFeature[] {
         return difference(
-            renderFeaturesFor(this.manager.projection),
-            this.featuresInProjection
+            renderFeaturesForProjectionOf(this.manager.region),
+            this.featuresInRegion
         )
     }
 
-    @computed private get featuresInProjection(): RenderFeature[] {
-        const { projection } = this.manager
-        const features = renderFeaturesFor(projection)
-        if (projection === MapProjectionName.World) return features
+    @computed private get featuresInRegion(): RenderFeature[] {
+        const { region } = this.manager
+        const features = renderFeaturesForProjectionOf(region)
+        if (region === MapRegionName.World) return features
 
-        const countriesByProjection = getCountriesByProjection(projection)
-        if (countriesByProjection === undefined) return []
+        const countriesByRegion = getCountriesByRegion(region)
+        if (countriesByRegion === undefined) return []
 
-        return features.filter((feature) =>
-            countriesByProjection.has(feature.id)
-        )
+        return features.filter((feature) => countriesByRegion.has(feature.id))
     }
 
     @computed private get featuresWithNoData(): RenderFeature[] {
-        return difference(this.featuresInProjection, this.featuresWithData)
+        return difference(this.featuresInRegion, this.featuresWithData)
     }
 
     @computed private get featuresWithData(): RenderFeature[] {
-        return this.featuresInProjection.filter((feature) =>
+        return this.featuresInRegion.filter((feature) =>
             this.choroplethData.has(feature.id)
         )
     }
@@ -171,7 +172,7 @@ export class ChoroplethMap extends React.Component<{
         return quadtree<RenderFeature>()
             .x(({ center }) => center.x)
             .y(({ center }) => center.y)
-            .addAll(this.featuresInProjection)
+            .addAll(this.featuresInRegion)
     }
 
     @observable private hoverEnterFeature?: RenderFeature
@@ -215,8 +216,8 @@ export class ChoroplethMap extends React.Component<{
     // If true selected countries will have an outline
     @observable private showSelectedStyle = false
 
-    renderFeaturesOutsideProjection(): React.ReactElement | void {
-        if (this.featuresOutsideProjection.length === 0) return
+    renderFeaturesOutsideRegion(): React.ReactElement | void {
+        if (this.featuresOutsideRegion.length === 0) return
 
         const strokeWidth = this.defaultStrokeWidth / this.viewportScale
 
@@ -225,7 +226,7 @@ export class ChoroplethMap extends React.Component<{
                 id={makeIdForHumanConsumption("countries-outside-selection")}
                 className="nonProjectionFeatures"
             >
-                {this.featuresOutsideProjection.map((feature) => (
+                {this.featuresOutsideRegion.map((feature) => (
                     <path
                         key={feature.id}
                         id={makeIdForHumanConsumption(feature.id)}
@@ -252,7 +253,7 @@ export class ChoroplethMap extends React.Component<{
                         // we disregard this for other patterns that are defined the same everywhere
                         // because id collisions there are benign but here the pattern will be different
                         // depending on the projection so we include this in the id
-                        id={`${Patterns.noDataPatternForMapChart}-${this.manager.projection}`}
+                        id={`${Patterns.noDataPatternForMapChart}-${this.manager.region}`}
                         key={Patterns.noDataPatternForMapChart}
                         patternUnits="userSpaceOnUse"
                         width="4"
@@ -292,7 +293,7 @@ export class ChoroplethMap extends React.Component<{
                             stroke={stroke}
                             strokeOpacity={strokeOpacity}
                             cursor="pointer"
-                            fill={`url(#${Patterns.noDataPatternForMapChart}-${this.manager.projection})`}
+                            fill={`url(#${Patterns.noDataPatternForMapChart}-${this.manager.region})`}
                             fillOpacity={fillOpacity}
                             onClick={(ev: SVGMouseEvent): void =>
                                 this.manager.onClick(feature.geo, ev)
@@ -376,7 +377,7 @@ export class ChoroplethMap extends React.Component<{
                 id={makeIdForHumanConsumption("map")}
                 transform={this.matrixTransform}
             >
-                {this.renderFeaturesOutsideProjection()}
+                {this.renderFeaturesOutsideRegion()}
                 {this.renderFeaturesWithoutData()}
                 {this.renderFeaturesWithData()}
             </g>
@@ -412,7 +413,7 @@ export class ChoroplethMap extends React.Component<{
                     opacity={0}
                 />
                 <g className="subunits" transform={matrixTransform}>
-                    {this.renderFeaturesOutsideProjection()}
+                    {this.renderFeaturesOutsideRegion()}
                     {this.renderFeaturesWithoutData()}
                     {this.renderFeaturesWithData()}
                 </g>

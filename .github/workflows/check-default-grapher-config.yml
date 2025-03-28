@@ -17,6 +17,10 @@ jobs:
               with:
                   ref: ${{ github.head_ref }}
 
+            - name: Enable corepack
+              run: corepack enable
+              shell: bash
+
             - uses: hustcer/setup-nu@v3
               with:
                   version: "0.101" # Don't use 0.101 here, as it was a float number and will be convert to 0.101, you can use v0.101/0.101.0 or '0.101'

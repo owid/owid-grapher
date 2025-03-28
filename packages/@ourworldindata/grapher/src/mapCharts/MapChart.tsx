@@ -47,7 +47,7 @@ import {
 } from "../color/ColorScaleBin"
 import {
     ColorSchemeName,
-    MapProjectionName,
+    MapRegionName,
     GRAPHER_TAB_OPTIONS,
     SeriesName,
     EntityName,
@@ -228,8 +228,8 @@ export class MapChart
         return this.manager.mapConfig || new MapConfig()
     }
 
-    @action.bound onProjectionChange(value: MapProjectionName): void {
-        this.mapConfig.projection = value
+    @action.bound onRegionChange(value: MapRegionName): void {
+        this.mapConfig.region = value
     }
 
     @computed private get formatTooltipValueIfCustom(): (
@@ -340,8 +340,8 @@ export class MapChart
         return this.bounds.padBottom(this.legendHeight + 4)
     }
 
-    @computed get projection(): MapProjectionName {
-        return this.mapConfig.projection
+    @computed get region(): MapRegionName {
+        return this.mapConfig.region
     }
 
     @computed get numericLegendData(): ColorScaleBin[] {
@@ -516,7 +516,7 @@ export class MapChart
                 {/* Clipping the chart area is only necessary when the map is
                     zoomed in. If it isn't, then we don't add a clipping element
                     since it introduces noise in SVG editing programs like Figma. */}
-                {this.projection === MapProjectionName.World ? (
+                {this.region === MapRegionName.World ? (
                     <ChoroplethMap manager={this} />
                 ) : (
                     <>

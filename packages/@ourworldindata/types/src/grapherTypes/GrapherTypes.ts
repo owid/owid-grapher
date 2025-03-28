@@ -521,7 +521,7 @@ export enum ColorSchemeName {
     SingleColorGradientDarkCopper = "SingleColorGradientDarkCopper",
 }
 
-export enum MapProjectionName {
+export enum MapRegionName {
     World = "World",
     Africa = "Africa",
     NorthAmerica = "NorthAmerica",
@@ -537,7 +537,7 @@ export interface MapConfigInterface {
     timeTolerance?: number
     toleranceStrategy?: ToleranceStrategy
     hideTimeline?: boolean
-    projection?: MapProjectionName
+    region?: MapRegionName
     colorScale?: Partial<ColorScaleConfigInterface>
     tooltipUseCustomLabels?: boolean
 }

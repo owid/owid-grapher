@@ -174,8 +174,8 @@ const mapControlKeywordToGrapherConfig = (
         case ChartControlKeyword.yLogLinearSelector:
             return { hideYScaleToggle: false }
 
-        case ChartControlKeyword.mapProjectionMenu:
-            return { hideMapProjectionMenu: false }
+        case ChartControlKeyword.mapRegionDropdown:
+            return { hideMapRegionDropdown: false }
 
         case ChartControlKeyword.tableFilterToggle:
             return { hideTableFilterToggle: false }

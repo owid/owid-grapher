@@ -65,7 +65,7 @@ export { LoadingIndicator } from "./loadingIndicator/LoadingIndicator"
 export { MapChart } from "./mapCharts/MapChart"
 export { MapConfig } from "./mapCharts/MapConfig"
 export {
-    MapProjectionLabels,
+    MAP_REGION_LABELS,
     MapProjectionGeos,
 } from "./mapCharts/MapProjections"
 export { SelectionArray } from "./selection/SelectionArray"
