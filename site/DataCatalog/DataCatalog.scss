@@ -23,14 +23,17 @@
     }
 }
 
-.data-catalog-search-form {
+.data-catalog-search-form,
+.data-catalog-search-box-container .aa-Autocomplete {
     position: relative;
     display: flex;
     // The approximate width of the country-selector button
     padding-right: 162px;
-    @include sm-only {
-        padding-right: 48px;
-    }
+}
+
+.data-catalog-search-box-container .aa-Form {
+    background: transparent;
+    height: 100%;
 }
 
 .data-catalog-pseudo-input {

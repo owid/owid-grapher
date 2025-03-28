@@ -4,8 +4,8 @@ import { Region } from "@ourworldindata/utils"
 import { useState, useEffect } from "react"
 import {} from "./DataCatalog.js"
 import { SelectedCountriesPills } from "./SelectedCountriesPills.js"
-import { DataCatalogSearchInput } from "./DataCatalogSearchInput.js"
 import { DataCatalogCountrySelector } from "./DataCatalogCountrySelector.js"
+import { DataCatalogAutocomplete } from "./DataCatalogAutcomplete.js"
 
 export const DataCatalogSearchbar = ({
     selectedCountries,
@@ -49,10 +49,10 @@ export const DataCatalogSearchbar = ({
                     selectedCountries={selectedCountries}
                     removeCountry={removeCountry}
                 />
-                <DataCatalogSearchInput
-                    value={localQuery}
-                    setLocalQuery={setLocalQuery}
-                    setGlobalQuery={setQuery}
+                <DataCatalogAutocomplete
+                    placeholder="Search for data..."
+                    className="data-catalog-search-box-container"
+                    setQuery={setQuery}
                 />
             </div>
             <DataCatalogCountrySelector
