@@ -51,6 +51,7 @@ export class ChoroplethGlobe extends React.Component<{
     @observable private hoverNearbyFeature?: GlobeRenderFeature
 
     private isDragging = false
+    private isPinching = false
     private firstScreenX?: number
     private firstScreenY?: number
     private previousScreenX?: number
@@ -321,8 +322,17 @@ export class ChoroplethGlobe extends React.Component<{
         this.previousScreenY = screenY
     }
 
+    @action.bound private startPinching(): void {
+        this.isPinching = true
+
+        // dismiss tooltip
+        this.clearHover()
+    }
+
     @action.bound private stopPinching(): void {
+        this.isPinching = false
         this.previousDistance = undefined
+        this.clearHover()
     }
 
     // todo: remove boolean result
@@ -445,10 +455,13 @@ export class ChoroplethGlobe extends React.Component<{
         // todo: this has been removed
         // First check if this is a pinch gesture
         if (event.touches.length >= 2) {
+            if (!this.isPinching) this.startPinching()
             this.onPinch(event)
             // If we handled it as a pinch, don't process as drag
             return
         }
+
+        if (this.isPinching) this.stopPinching()
 
         // start dragging if movement is detected
         if (
@@ -468,6 +481,10 @@ export class ChoroplethGlobe extends React.Component<{
 
     @action.bound private onTouchEnd(event: TouchEvent): void {
         console.log("touch end", { isDragging: this.isDragging })
+
+        if (this.isPinching) {
+            this.stopPinching()
+        }
 
         if (this.isDragging) {
             this.stopDragging()
@@ -603,7 +620,7 @@ export class ChoroplethGlobe extends React.Component<{
                     cy={this.globeCenter[1]}
                     r={(this.globeSize / 2) * this.zoomScale}
                     fill="#fafafa"
-                    stroke="orange"
+                    stroke="green"
                 />
                 <path
                     id={makeIdForHumanConsumption("globe-graticule")}
