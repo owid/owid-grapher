@@ -8,5 +8,3 @@ RUN apt-get update \
     && apt-get -y install --no-install-recommends default-mysql-client finger tmux bc \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
-
-RUN mkdir /owid-content && chown node:node /owid-content

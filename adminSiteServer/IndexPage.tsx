@@ -9,7 +9,6 @@ export const IndexPage = (props: {
     email: string
     username: string
     isSuperuser: boolean
-    gitCmsBranchName: string
 }) => {
     const assets = viteAssetsForAdmin()
     const script = `
@@ -20,7 +19,7 @@ export const IndexPage = (props: {
           isSuperuser: ${props.isSuperuser.toString()},
           settings: ${JSON.stringify({ ENV, GITHUB_USERNAME, DATA_API_FOR_ADMIN_UI })}
         })
-        admin.start(document.querySelector("#app"), '${props.gitCmsBranchName}')
+        admin.start(document.querySelector("#app"))
 `
 
     return (

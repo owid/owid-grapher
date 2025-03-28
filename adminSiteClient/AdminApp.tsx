@@ -115,14 +115,13 @@ class AdminLoader extends React.Component<{ admin: Admin }> {
 @observer
 export class AdminApp extends React.Component<{
     admin: Admin
-    gitCmsBranchName: string
 }> {
     get childContext() {
         return { admin: this.props.admin }
     }
 
     render(): React.ReactElement {
-        const { admin, gitCmsBranchName } = this.props
+        const { admin } = this.props
 
         return (
             <QueryClientProvider client={queryClient}>
@@ -211,9 +210,6 @@ export class AdminApp extends React.Component<{
                                         <AdminLayout title="Create Explorer">
                                             <ExplorerCreatePage
                                                 slug={match.params.slug}
-                                                gitCmsBranchName={
-                                                    gitCmsBranchName
-                                                }
                                                 manager={admin}
                                             />
                                         </AdminLayout>
