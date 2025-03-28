@@ -326,11 +326,11 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     // todo: remove boolean result
-    @action.bound private onPinch(event: TouchEvent): boolean {
+    @action.bound private onPinch(event: TouchEvent): void {
         // need at least two touch points for pinch
         if (event.touches.length < 2) {
             this.stopPinching()
-            return false
+            return
         }
 
         // dismiss tooltip
@@ -347,7 +347,7 @@ export class ChoroplethGlobe extends React.Component<{
         // if this is the first multi-touch event, just store the distance
         if (this.previousDistance === undefined) {
             this.previousDistance = distance
-            return true
+            return
         }
 
         // calculate the zoom factor based on the change in distance
@@ -358,8 +358,6 @@ export class ChoroplethGlobe extends React.Component<{
         // update state
         this.mapConfig.globe.zoom = clamp(newScale, 1, 3)
         this.previousDistance = distance
-
-        return true
     }
 
     @action.bound private onMouseDown(event: MouseEvent): void {
@@ -445,11 +443,12 @@ export class ChoroplethGlobe extends React.Component<{
         this.clearHover()
 
         // todo: this has been removed
-        // // First check if this is a pinch gesture
-        // if (this.onPinch(event)) {
-        //     // If we handled it as a pinch, don't process as drag
-        //     return
-        // }
+        // First check if this is a pinch gesture
+        if (event.touches.length >= 2) {
+            this.onPinch(event)
+            // If we handled it as a pinch, don't process as drag
+            return
+        }
 
         // start dragging if movement is detected
         if (
@@ -604,7 +603,7 @@ export class ChoroplethGlobe extends React.Component<{
                     cy={this.globeCenter[1]}
                     r={(this.globeSize / 2) * this.zoomScale}
                     fill="#fafafa"
-                    stroke="purple"
+                    stroke="orange"
                 />
                 <path
                     id={makeIdForHumanConsumption("globe-graticule")}
