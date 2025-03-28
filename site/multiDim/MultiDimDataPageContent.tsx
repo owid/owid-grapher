@@ -24,7 +24,6 @@ import {
     merge,
     fetchWithRetry,
 } from "@ourworldindata/utils"
-import cx from "classnames"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
@@ -347,10 +346,10 @@ export const MultiDimDataPageContent = ({
                 tags: [],
             }}
         >
-            <div className="DataPageContent MultiDimDataPageContent">
-                <div className="bg-blue-10">
-                    <div className="header__wrapper wrapper grid grid-cols-12 ">
-                        <div className="header__left span-cols-8 span-sm-cols-12">
+            <div className="DataPageContent MultiDimDataPageContent grid grid-cols-12-full-width">
+                <div className="bg-blue-10 span-cols-14">
+                    <div className="header__wrapper grid grid-cols-12-full-width">
+                        <div className="header__left col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
                             <div className="header__supertitle">Data</div>
                             <h1 className="header__title">
                                 {config.config.title.title}
@@ -366,13 +365,7 @@ export const MultiDimDataPageContent = ({
                                 tagToSlugMap={tagToSlugMap}
                             />
                         )}
-                        <div
-                            className={cx(
-                                "settings-row__wrapper",
-                                "span-sm-cols-12",
-                                hasTopicTags ? "span-cols-9" : "span-cols-12"
-                            )}
-                        >
+                        <div className="settings-row__wrapper col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-12">
                             <MultiDimSettingsPanel
                                 config={config}
                                 settings={settings}

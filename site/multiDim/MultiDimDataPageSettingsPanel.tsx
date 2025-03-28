@@ -143,22 +143,24 @@ export const MultiDimSettingsPanel = (props: {
 
     return (
         <div className="md-settings-row">
-            <span className="h5-black-caps md-settings__configure-data">
+            <div className="h5-black-caps md-settings__configure-data">
                 Configure the data
-            </span>
-            {Object.values(availableSettings).map((dim) => (
-                <DimensionDropdown
-                    key={dim.slug}
-                    dimension={dim}
-                    currentChoiceSlug={resolvedSettings[dim.slug]}
-                    onChange={(slug, value) =>
-                        onChange({
-                            ...resolvedSettings,
-                            [slug]: value,
-                        })
-                    }
-                />
-            ))}
+            </div>
+            <div className="md-settings__dropdowns">
+                {Object.values(availableSettings).map((dim) => (
+                    <DimensionDropdown
+                        key={dim.slug}
+                        dimension={dim}
+                        currentChoiceSlug={resolvedSettings[dim.slug]}
+                        onChange={(slug, value) =>
+                            onChange({
+                                ...resolvedSettings,
+                                [slug]: value,
+                            })
+                        }
+                    />
+                ))}
+            </div>
         </div>
     )
 }

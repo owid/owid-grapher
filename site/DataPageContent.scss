@@ -7,7 +7,7 @@
 .DataPageContent {
     .header__wrapper {
         padding-top: 24px;
-        padding-bottom: 24px;
+
         @include sm-up {
             padding-top: 48px;
             padding-bottom: 0;
@@ -15,8 +15,10 @@
     }
 
     .header__left {
+        margin-bottom: 16px;
+
         @include sm-up {
-            padding-bottom: 40px;
+            margin-bottom: 40px;
         }
     }
 
@@ -27,30 +29,52 @@
     .header__supertitle {
         @include overline-black-caps;
         color: $blue-50;
+
+        @include sm-only {
+            font-size: 0.625rem;
+        }
     }
+
     .header__title {
         @include display-2-semibold;
         display: inline;
         margin: 0 16px 0 0;
+
+        @include sm-only {
+            font-size: 2rem;
+            line-height: 1.125;
+        }
     }
+
     .header__source {
         display: inline-block;
         @include body-1-regular;
         color: $blue-50;
+
+        @include sm-only {
+            font-size: 1rem;
+            line-height: 1.5;
+        }
     }
 
     .header__right {
         @include sm-only {
-            padding-top: 24px;
-            padding-bottom: 24px;
-            margin-top: 24px;
+            padding-top: 16px;
+            padding-bottom: 16px;
             border-top: 1px solid $blue-20;
-            border-bottom: 1px solid $blue-20;
         }
+
         @include sm-up {
+            margin-bottom: 16px;
             padding-left: 24px;
             border-left: 1px solid $blue-20;
             align-self: start;
+        }
+    }
+
+    .sticky-nav-container {
+        @include sm-only {
+            border-top: 1px solid $blue-20;
         }
     }
 
