@@ -98,7 +98,6 @@ export interface ChartRecord {
 export type IChartHit = Hit<BaseHit> & ChartRecord
 
 export enum SearchIndexName {
-    ExplorerViews = "explorer-views",
     Charts = "charts",
     Pages = "pages",
     ExplorerViewsMdimViewsAndCharts = "explorer-views-and-charts",
@@ -109,6 +108,5 @@ export type SearchCategoryFilter = SearchIndexName | "all"
 export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
     ["All", "all"],
     ["Research & Writing", SearchIndexName.Pages],
-    ["Charts", SearchIndexName.Charts],
-    ["Data Explorers", SearchIndexName.ExplorerViews],
+    ["Charts", SearchIndexName.ExplorerViewsMdimViewsAndCharts],
 ]

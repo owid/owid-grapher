@@ -8,9 +8,6 @@ import {
     mapValues,
     isElementHidden,
     sortBy,
-    groupBy,
-    uniqBy,
-    Region,
     OwidGdocType,
 } from "@ourworldindata/utils"
 import {
@@ -18,18 +15,15 @@ import {
     Configure,
     SearchBox,
     Hits,
-    Highlight,
     Index,
     Snippet,
     useInstantSearch,
     PoweredBy,
-    useHits,
 } from "react-instantsearch"
 import algoliasearch, { SearchClient } from "algoliasearch"
 import {
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
-    BAKED_BASE_URL,
 } from "../../settings/clientSettings.js"
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -40,13 +34,11 @@ import {
     searchCategoryFilters,
     IPageHit,
     pageTypeDisplayNames,
-    IExplorerViewHit,
     PageRecord,
     checkIsWordpressPageType,
 } from "./searchTypes.js"
-import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowRight, faSearch } from "@fortawesome/free-solid-svg-icons"
+import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import {
     DEFAULT_SEARCH_PLACEHOLDER,
     getIndexName,
@@ -55,10 +47,7 @@ import {
 import { PreferenceType, getPreferenceValue } from "../cookiePreferences.js"
 import type { SearchResults as AlgoliaSearchResultsType } from "algoliasearch-helper"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import {
-    extractRegionNamesFromSearchQuery,
-    getEntityQueryStr,
-} from "./SearchUtils.js"
+import { extractRegionNamesFromSearchQuery } from "./SearchUtils.js"
 import { ChartHit } from "./ChartHit.js"
 import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
@@ -124,193 +113,6 @@ function PagesHit({ hit }: { hit: IPageHit }) {
                 />
             </div>
         </a>
-    )
-}
-
-interface ExplorerViewHitWithPosition extends IExplorerViewHit {
-    // Analytics data
-    // Position of this hit in the search results: For example, if there is one card with 3 views, and a second card with 2 views, the first card will have hitPosition 0, 1, and 2, and the second card will have hitPosition 3 and 4.
-    hitPositionOverall: number
-    // Position of this hit within the card: For example, if there are 3 views in a card, they will have positions 0, 1, and 2.
-    hitPositionWithinCard: number
-}
-
-interface GroupedExplorerViews {
-    explorerSlug: string
-    explorerTitle: string
-    explorerSubtitle: string
-    numViewsWithinExplorer: number
-    views: ExplorerViewHitWithPosition[]
-}
-
-const getNumberOfExplorerHits = (rawHits: IExplorerViewHit[]) =>
-    uniqBy(rawHits, "explorerSlug").length
-
-// The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
-function ExplorerViewHits({
-    countriesRegionsToSelect,
-}: {
-    countriesRegionsToSelect?: Region[]
-}) {
-    const { hits } = useHits<IExplorerViewHit>()
-
-    const groupedHits = useMemo(() => {
-        const groupedBySlug = groupBy(hits, "explorerSlug")
-        const arr = Object.values(groupedBySlug).map((explorerViews) => {
-            const firstView = explorerViews[0]
-            return {
-                explorerSlug: firstView.explorerSlug,
-                explorerTitle: firstView.explorerTitle,
-                explorerSubtitle: firstView.explorerSubtitle,
-                numViewsWithinExplorer: firstView.numViewsWithinExplorer,
-
-                // Run uniq, so if we end up in a situation where multiple views with the same title
-                // are returned, we only show the first of them
-                views: uniqBy(explorerViews, "viewTitle"),
-            }
-        })
-        let totalHits = 0
-        arr.forEach((group) => {
-            group.views = group.views.map((view, index) => ({
-                ...view,
-                hitPositionWithinCard: index,
-                hitPositionOverall: totalHits + index,
-            })) as ExplorerViewHitWithPosition[]
-            totalHits += group.views.length
-        })
-        return arr as GroupedExplorerViews[]
-    }, [hits])
-
-    return (
-        <div className="search-results__list-container">
-            <div className="search-results__explorer-list grid grid-cols-1">
-                {groupedHits.map((group, i) => (
-                    <ExplorerHit
-                        groupedHit={group}
-                        key={group.explorerSlug}
-                        cardPosition={i}
-                        countriesRegionsToSelect={countriesRegionsToSelect}
-                    />
-                ))}
-            </div>
-        </div>
-    )
-}
-
-// The rule doesn't support class components in the same file.
-// eslint-disable-next-line react-refresh/only-export-components
-function ExplorerHit({
-    groupedHit,
-    cardPosition,
-    countriesRegionsToSelect,
-}: {
-    groupedHit: GroupedExplorerViews
-    cardPosition: number
-    countriesRegionsToSelect?: Region[]
-}) {
-    const firstHit = groupedHit.views[0]
-
-    // If the explorer title contains something like "Ukraine" already, don't bother selecting Ukraine in it
-    const entitiesToSelectExcludingExplorerTitle =
-        countriesRegionsToSelect?.filter(
-            (e) => !groupedHit.explorerTitle.includes(e.name)
-        )
-    const queryStr = getEntityQueryStr(
-        entitiesToSelectExcludingExplorerTitle?.map((e) => e.name)
-    )
-
-    const exploreAllProps = {
-        href: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}${queryStr}`,
-        "data-algolia-index": getIndexName(SearchIndexName.ExplorerViews),
-        "data-algolia-object-id": firstHit.objectID,
-        "data-algolia-position": firstHit.hitPositionOverall + 1,
-        "data-algolia-card-position": cardPosition + 1,
-        "data-algolia-position-within-card": 0,
-        "data-algolia-event-name": "click_explorer",
-    }
-
-    return (
-        <div
-            key={groupedHit.explorerSlug}
-            className="search-results__explorer-hit"
-        >
-            <div className="search-results__explorer-hit-header">
-                <div className="search-results__explorer-hit-title-container">
-                    <h3 className="h3-bold search-results__explorer-hit-title">
-                        {groupedHit.explorerTitle} Data Explorer
-                    </h3>
-                    <p className="body-3-medium-italic search-results__explorer-hit-subtitle">
-                        {groupedHit.explorerSubtitle}
-                    </p>
-                </div>
-
-                <div className="search-results__explorer-hit-link hide-sm-only">
-                    <a {...exploreAllProps}>
-                        Explore all {groupedHit.numViewsWithinExplorer}{" "}
-                        indicators
-                    </a>
-                </div>
-            </div>
-            <ul className="search-results__explorer-views-list grid grid-cols-2 grid-sm-cols-1">
-                {groupedHit.views.map((view) => {
-                    const entitiesToSelectExcludingViewTitle =
-                        entitiesToSelectExcludingExplorerTitle?.filter(
-                            (e) =>
-                                !view.viewTitle.includes(e.name) &&
-                                !view.explorerTitle.includes(e.name)
-                        )
-                    const queryStr = getEntityQueryStr(
-                        entitiesToSelectExcludingViewTitle?.map((e) => e.name),
-                        view.viewQueryParams
-                    )
-                    return (
-                        <li
-                            key={view.objectID}
-                            className="ais-Hits-item search-results__explorer-view"
-                        >
-                            <a
-                                data-algolia-index={getIndexName(
-                                    SearchIndexName.ExplorerViews
-                                )}
-                                data-algolia-object-id={view.objectID}
-                                data-algolia-position={
-                                    view.hitPositionOverall + 1
-                                }
-                                data-algolia-card-position={cardPosition + 1}
-                                data-algolia-position-within-card={
-                                    view.hitPositionWithinCard + 1
-                                }
-                                data-algolia-event-name="click_explorer_view"
-                                href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${view.explorerSlug}${queryStr}`}
-                                className="search-results__explorer-view-title-container"
-                            >
-                                <Highlight
-                                    attribute="viewTitle"
-                                    hit={view}
-                                    highlightedTagName="strong"
-                                    className="search-results__explorer-view-title"
-                                />
-                                <span className="nowrap icon-container">
-                                    &zwj;
-                                    {/* Zero-width joiner to prevent line break between title and icon */}
-                                    <FontAwesomeIcon icon={faArrowRight} />
-                                </span>
-                            </a>
-                            <p className="body-3-medium-italic search-results__explorer-view-subtitle">
-                                {view.viewSubtitle}
-                            </p>
-                        </li>
-                    )
-                })}
-            </ul>
-            <a
-                className="search-results__explorer-hit-link-mobile hide-sm-up"
-                {...exploreAllProps}
-            >
-                Explore all {groupedHit.numViewsWithinExplorer} indicators
-            </a>
-        </div>
     )
 }
 
@@ -384,12 +186,6 @@ function Filters({
     const hitsLengthByIndexName = mapValues(resultsByIndexName, (results) =>
         get(results, ["results", "hits", "length"], 0)
     )
-
-    hitsLengthByIndexName[getIndexName(SearchIndexName.ExplorerViews)] =
-        getNumberOfExplorerHits(
-            resultsByIndexName[getIndexName(SearchIndexName.ExplorerViews)]
-                ?.results?.hits ?? []
-        )
 
     hitsLengthByIndexName[getIndexName("all")] = Object.values(
         hitsLengthByIndexName
@@ -510,17 +306,6 @@ const SearchResults = (props: SearchResultsProps) => {
                         "data-algolia-position"
                     )
 
-                    // Optional (only for explorers); Starts from 1
-                    const cardPosition =
-                        target.getAttribute("data-algolia-card-position") ??
-                        undefined
-
-                    // Optional (only for explorers); Starts from 1 in each card; or 0 for the full explorer link
-                    const positionWithinCard =
-                        target.getAttribute(
-                            "data-algolia-position-within-card"
-                        ) ?? undefined
-
                     const index = target.getAttribute("data-algolia-index")
                     const href = target.getAttribute("href")
                     const query = props.query
@@ -547,8 +332,6 @@ const SearchResults = (props: SearchResultsProps) => {
                             query,
                             position: String(globalPosition),
                             positionInSection,
-                            cardPosition,
-                            positionWithinCard,
                             url: href,
                             filter: activeCategoryFilter,
                         })
@@ -618,7 +401,11 @@ const SearchResults = (props: SearchResultsProps) => {
                     />
                 </section>
             </NoResultsBoundary>
-            <Index indexName={getIndexName(SearchIndexName.Charts)}>
+            <Index
+                indexName={getIndexName(
+                    SearchIndexName.ExplorerViewsMdimViewsAndCharts
+                )}
+            >
                 <Configure
                     hitsPerPage={40}
                     distinct
@@ -628,14 +415,16 @@ const SearchResults = (props: SearchResultsProps) => {
                     } /* Hack: This is the only way to _not_ send `restrictSearchableAttributes` along for this index */
                 />
                 <NoResultsBoundary>
-                    <section className="search-results__charts">
+                    <section className="search-results__explorer-views-and-charts">
                         <header className="search-results__header-container">
                             <div className="search-results__header">
                                 <h2 className="h2-bold search-results__section-title">
                                     Charts
                                 </h2>
                                 <ShowMore
-                                    category={SearchIndexName.Charts}
+                                    category={
+                                        SearchIndexName.ExplorerViewsMdimViewsAndCharts
+                                    }
                                     cutoffNumber={4}
                                     activeCategoryFilter={activeCategoryFilter}
                                     handleCategoryFilterClick={
@@ -647,7 +436,7 @@ const SearchResults = (props: SearchResultsProps) => {
                         <Hits<IChartHit>
                             classNames={{
                                 root: "search-results__list-container",
-                                list: "search-results__charts-list grid grid-cols-4 grid-sm-cols-2",
+                                list: "search-results__explorer-views-and-charts-list grid grid-cols-4 grid-sm-cols-2",
                                 item: "list-style-none span-md-cols-2",
                             }}
                             hitComponent={(props) => (
@@ -658,46 +447,6 @@ const SearchResults = (props: SearchResultsProps) => {
                                     }
                                 />
                             )}
-                        />
-                    </section>
-                </NoResultsBoundary>
-            </Index>
-            <Index indexName={getIndexName(SearchIndexName.ExplorerViews)}>
-                <Configure
-                    hitsPerPage={20}
-                    distinct={4}
-                    clickAnalytics={hasClickAnalyticsConsent}
-                    restrictSearchableAttributes={
-                        "" as any
-                    } /* Hack: This is the only way to _not_ send `restrictSearchableAttributes` along for this index */
-                />
-                <NoResultsBoundary>
-                    <section className="search-results__explorers">
-                        <header className="search-results__header-container">
-                            <div className="search-results__header">
-                                <h2 className="h2-bold search-results__section-title">
-                                    Data Explorers
-                                </h2>
-                                <ShowMore
-                                    category={SearchIndexName.ExplorerViews}
-                                    cutoffNumber={2}
-                                    activeCategoryFilter={activeCategoryFilter}
-                                    handleCategoryFilterClick={
-                                        handleCategoryFilterClick
-                                    }
-                                    getTotalNumberOfHits={(
-                                        results: AlgoliaSearchResultsType<IExplorerViewHit>
-                                    ) => getNumberOfExplorerHits(results.hits)}
-                                />
-                            </div>
-                            <h3 className="body-2-regular search-results__section-subtitle">
-                                Interactive visualization tools to explore a
-                                wide range of related indicators.
-                            </h3>
-                        </header>
-
-                        <ExplorerViewHits
-                            countriesRegionsToSelect={searchQueryRegionsMatches}
                         />
                     </section>
                 </NoResultsBoundary>

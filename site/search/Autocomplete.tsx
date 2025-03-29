@@ -86,14 +86,6 @@ const getItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({ item }) =>
 const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
     const indexName = parseIndexName(item.__autocomplete_indexName as string)
     return match(indexName)
-        .with(SearchIndexName.ExplorerViews, () => {
-            return urljoin(
-                BAKED_BASE_URL,
-                EXPLORERS_ROUTE_FOLDER,
-                item.explorerSlug as string,
-                item.viewQueryParams as string
-            )
-        })
         .with(SearchIndexName.Charts, () => {
             return urljoin(BAKED_GRAPHER_URL, item.slug as string)
         })
@@ -198,14 +190,6 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                         distinct: true,
                     },
                 },
-                {
-                    indexName: getIndexName(SearchIndexName.ExplorerViews),
-                    query,
-                    params: {
-                        hitsPerPage: 1,
-                        distinct: true,
-                    },
-                },
             ],
         })
     },
@@ -219,12 +203,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
             const indexLabel =
                 index === SearchIndexName.Charts
                     ? "Chart"
-                    : index === SearchIndexName.ExplorerViews
-                      ? "Explorer"
-                      : pageTypeDisplayNames[item.type as PageType]
-
-            const mainAttribute =
-                index === SearchIndexName.ExplorerViews ? "viewTitle" : "title"
+                    : pageTypeDisplayNames[item.type as PageType]
 
             return (
                 <div
@@ -235,7 +214,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     <span>
                         <components.Highlight
                             hit={item}
-                            attribute={mainAttribute}
+                            attribute={"title"}
                             tagName="strong"
                         />
                     </span>

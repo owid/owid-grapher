@@ -20,11 +20,7 @@ const deleteAlgoliaIndex = async () => {
         return
     }
 
-    for (const suffix of [
-        SearchIndexName.Pages,
-        SearchIndexName.Charts,
-        SearchIndexName.ExplorerViews,
-    ]) {
+    for (const suffix of [SearchIndexName.Pages, SearchIndexName.Charts]) {
         const indexName = getIndexName(suffix)
         const index = client.initIndex(indexName)
         try {
