@@ -231,6 +231,8 @@ const CountriesSource = (
                             hitsPerPage: 3,
                             filters: "type:country",
                             removeWordsIfNoResults: searchRelaxationMode,
+                            restrictSearchableAttributes: ["title"],
+                            queryType: "prefixAll",
                         },
                     },
                 ],
@@ -306,6 +308,7 @@ const TopicsSource = (
                             // Guinea" returns topics where the word new is used
                             // in the excerpt).
                             restrictSearchableAttributes: ["title"],
+                            queryType: "prefixAll",
                         },
                     },
                 ],
