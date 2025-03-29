@@ -295,6 +295,12 @@ const TopicsSource = (
                             filters:
                                 "type:topic-page OR type:linear-topic-page",
                             removeWordsIfNoResults: searchRelaxationMode,
+                            // we sometimes mention country names in the content
+                            // of topic pages, so searching in the content would
+                            // surface unwanted results (e.g. "population
+                            // france" surfaces "Time Use" because "France" is
+                            // mentioned in the content)
+                            restrictSearchableAttributes: ["title", "excerpt"],
                         },
                     },
                 ],
@@ -320,6 +326,57 @@ const TopicsSource = (
                         <span className="aa-ItemWrapper__contentType">
                             Topic
                         </span>
+                    </div>
+                )
+            },
+        },
+    }
+}
+
+const CombinedFiltersSource = (
+    addCountry: (country: string) => void,
+    addTopic: (topic: string) => void,
+    clearSearch: () => void
+): AutocompleteSource<BaseItem> => {
+    return {
+        sourceId: "combinedFilters",
+        onSelect({ item }) {
+            // Apply all countries
+            if (item.countries) {
+                ;(item.countries as string[]).forEach((country) => {
+                    addCountry(country)
+                })
+            }
+
+            // Apply topic if available
+            if (item.topicTag) {
+                addTopic(item.topicTag as string)
+            }
+
+            clearSearch()
+        },
+        getItemUrl() {
+            return undefined
+        },
+        getItems() {
+            // This is a placeholder - actual items are provided through the reshape function
+            return []
+        },
+        templates: {
+            header: () => (
+                <h5 className="overline-black-caps">Apply Filters</h5>
+            ),
+            item: ({ item }) => {
+                return (
+                    <div className="aa-ItemWrapper">
+                        <div className="aa-ItemContent">
+                            <div className="aa-ItemIcon">
+                                <FontAwesomeIcon icon={faSearch} />
+                            </div>
+                            <div className="aa-ItemContentBody">
+                                {item.title}
+                            </div>
+                        </div>
                     </div>
                 )
             },
@@ -447,6 +504,15 @@ export function DataCatalogAutocomplete({
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
+                    // Add the combined filters source
+                    sources.push(
+                        CombinedFiltersSource(
+                            addCountryRef.current,
+                            addTopicRef.current,
+                            clearSearch
+                        )
+                    )
+
                     if (addCountryRef.current) {
                         sources.push(
                             CountriesSource(
@@ -470,6 +536,65 @@ export function DataCatalogAutocomplete({
                     sources.push(FeaturedSearchesSource)
                 }
                 return sources
+            },
+            reshape({ sources, sourcesBySourceId }) {
+                // Only reshape if we have query results
+                if (
+                    !sourcesBySourceId.combinedFilters ||
+                    (!sourcesBySourceId.countries && !sourcesBySourceId.topics)
+                ) {
+                    return sources
+                }
+
+                const countries = sourcesBySourceId.countries.getItems() || []
+                const topics = sourcesBySourceId.topics.getItems() || []
+
+                // If we don't have any countries or topics, don't show combined filter
+                if (countries.length === 0 && topics.length === 0) {
+                    return sources.filter(
+                        (source) => source.sourceId !== "combinedFilters"
+                    )
+                }
+
+                const countryNames = countries.map(
+                    (country) => country.title as string
+                )
+                let topicName = null
+                let topicTag = null
+
+                if (topics.length > 0) {
+                    topicName = topics[0].title as string
+                    topicTag = (topics[0].tags as string[])?.[0] || topicName
+                }
+
+                // Create display text based on available results
+                let displayText = ""
+                if (topicName && countryNames.length > 0) {
+                    displayText = `${topicName} in ${countryNames.join(", ")}`
+                } else if (topicName) {
+                    displayText = topicName
+                } else if (countryNames.length > 0) {
+                    displayText = countryNames.join(", ")
+                }
+
+                // Update combined filter source with the data
+                return sources.map((source) => {
+                    if (source.sourceId === "combinedFilters") {
+                        return {
+                            ...source,
+                            getItems() {
+                                return [
+                                    {
+                                        title: displayText,
+                                        topicTag,
+                                        countries: countryNames,
+                                    },
+                                ]
+                            },
+                        }
+                    }
+                    return source
+                })
             },
             plugins: [recentSearchesPlugin],
         })
