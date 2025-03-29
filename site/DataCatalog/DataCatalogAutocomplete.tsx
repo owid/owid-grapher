@@ -32,6 +32,7 @@ import {
 } from "../search/searchTypes.js"
 import { SearchRelaxationMode } from "./DataCatalogState"
 import { CountryPill } from "./CountryPill"
+import { TopicPill } from "./TopicPill"
 
 const siteAnalytics = new SiteAnalytics()
 
@@ -251,7 +252,6 @@ const CountriesSource = (
                                 countriesByName()[item.title as string]?.code ||
                                 ""
                             }
-                            className="aa-CountryPill"
                         />
                         <span className="aa-ItemWrapper__contentType">
                             Country
@@ -314,20 +314,19 @@ const TopicsSource = (
 
         templates: {
             header: () => <h5 className="overline-black-caps">Topics</h5>,
-            item: ({ item, components }) => {
+            item: ({ item }) => {
+                const topicTag = (item.tags as string[])?.[0] || ""
+
                 return (
                     <div
                         className="aa-ItemWrapper"
                         key={item.title as string}
                         translate="no"
                     >
-                        <span>
-                            <components.Highlight
-                                hit={item}
-                                attribute="title"
-                                tagName="strong"
-                            />
-                        </span>
+                        <TopicPill
+                            name={topicTag}
+                            className="data-catalog-applied-filters-item__no-margin"
+                        />
                         <span className="aa-ItemWrapper__contentType">
                             Topic
                         </span>
@@ -386,17 +385,23 @@ const CombinedFiltersSource = (
                                 style={{
                                     display: "flex",
                                     alignItems: "center",
+                                    flexWrap: "wrap",
+                                    gap: "4px",
                                 }}
                             >
                                 {topicTag && (
-                                    <span className="aa-TopicTag">
-                                        {topicTag}
-                                    </span>
+                                    <TopicPill
+                                        name={topicTag}
+                                        className="data-catalog-applied-filters-item__no-margin"
+                                    />
                                 )}
                                 {countries.length > 0 && (
                                     <div
-                                        className="aa-CountryPillContainer"
-                                        style={{ display: "flex" }}
+                                        style={{
+                                            display: "flex",
+                                            flexWrap: "wrap",
+                                            gap: "4px",
+                                        }}
                                     >
                                         {countries.map((country) => (
                                             <CountryPill
@@ -406,7 +411,6 @@ const CombinedFiltersSource = (
                                                     countriesByName()[country]
                                                         ?.code || ""
                                                 }
-                                                className="aa-CountryPill"
                                             />
                                         ))}
                                     </div>

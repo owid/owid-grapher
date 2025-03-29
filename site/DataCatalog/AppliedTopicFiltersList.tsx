@@ -1,5 +1,4 @@
-import { faClose } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { TopicPill } from "./TopicPill"
 
 export const AppliedTopicFiltersList = ({
     topics,
@@ -16,23 +15,11 @@ export const AppliedTopicFiltersList = ({
             className="data-catalog-applied-filters-list span-cols-12 col-start-2"
             style={{ marginTop: 16 }}
         >
-            {[...topics].map((topic) => {
-                return (
-                    <li
-                        className="data-catalog-applied-filters-item"
-                        key={topic}
-                    >
-                        <button
-                            aria-label={`Remove filter ${topic}`}
-                            className="data-catalog-applied-filters-button body-3-medium"
-                            onClick={() => removeTopic(topic)}
-                        >
-                            {topic}
-                            <FontAwesomeIcon icon={faClose} />
-                        </button>
-                    </li>
-                )
-            })}
+            {[...topics].map((topic) => (
+                <li key={topic}>
+                    <TopicPill name={topic} onRemove={removeTopic} />
+                </li>
+            ))}
         </ul>
     )
 }
