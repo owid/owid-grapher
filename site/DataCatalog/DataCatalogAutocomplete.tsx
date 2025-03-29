@@ -16,7 +16,7 @@ import {
 } from "../../settings/clientSettings.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { queryParamsToStr } from "@ourworldindata/utils"
+import { countriesByName, queryParamsToStr } from "@ourworldindata/utils"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import Mousetrap from "mousetrap"
 import {
@@ -31,6 +31,7 @@ import {
     PageType,
 } from "../search/searchTypes.js"
 import { SearchRelaxationMode } from "./DataCatalogState"
+import { CountryPill } from "./CountryPill"
 
 const siteAnalytics = new SiteAnalytics()
 
@@ -237,20 +238,21 @@ const CountriesSource = (
 
         templates: {
             header: () => <h5 className="overline-black-caps">Countries</h5>,
-            item: ({ item, components }) => {
+            item: ({ item }) => {
                 return (
                     <div
                         className="aa-ItemWrapper"
                         key={item.title as string}
                         translate="no"
                     >
-                        <span>
-                            <components.Highlight
-                                hit={item}
-                                attribute="title"
-                                tagName="strong"
-                            />
-                        </span>
+                        <CountryPill
+                            name={item.title as string}
+                            code={
+                                countriesByName()[item.title as string]?.code ||
+                                ""
+                            }
+                            className="aa-CountryPill"
+                        />
                         <span className="aa-ItemWrapper__contentType">
                             Country
                         </span>
@@ -367,14 +369,45 @@ const CombinedFiltersSource = (
                 <h5 className="overline-black-caps">Apply Filters</h5>
             ),
             item: ({ item }) => {
+                const countries = (item.countries as string[]) || []
+                const topicTag = item.topicTag as string
+
                 return (
-                    <div className="aa-ItemWrapper">
+                    <div className="aa-ItemWrapper aa-CombinedFiltersWrapper">
                         <div className="aa-ItemContent">
                             <div className="aa-ItemIcon">
                                 <FontAwesomeIcon icon={faSearch} />
                             </div>
-                            <div className="aa-ItemContentBody">
-                                {item.title}
+                            <div
+                                className="aa-ItemContentBody"
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                }}
+                            >
+                                {topicTag && (
+                                    <span className="aa-TopicTag">
+                                        {topicTag}
+                                    </span>
+                                )}
+                                {countries.length > 0 && (
+                                    <div
+                                        className="aa-CountryPillContainer"
+                                        style={{ display: "flex" }}
+                                    >
+                                        {countries.map((country) => (
+                                            <CountryPill
+                                                key={country}
+                                                name={country}
+                                                code={
+                                                    countriesByName()[country]
+                                                        ?.code || ""
+                                                }
+                                                className="aa-CountryPill"
+                                            />
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

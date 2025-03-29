@@ -2,6 +2,7 @@ import { faClose } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Region } from "@ourworldindata/utils"
 import cx from "classnames"
+import { CountryPill } from "./CountryPill"
 
 export const SelectedCountriesPills = ({
     selectedCountries,
@@ -51,28 +52,13 @@ export const SelectedCountriesPills = ({
     return (
         <div className="data-catalog-selected-countries-container">
             {selectedCountries.map((country) => (
-                <div
+                <CountryPill
                     key={country.code}
-                    className={cx("data-catalog-selected-country-pill", {
-                        "data-catalog-selected-country-pill--hide-on-desktop":
-                            shouldMinifyOnDesktop,
-                    })}
-                >
-                    <img
-                        width={20}
-                        height={16}
-                        src={`/images/flags/${country.code}.svg`}
-                    />
-                    <span className="body-3-medium">{country.name}</span>
-                    <button
-                        aria-label={`Remove ${country.name}`}
-                        onClick={() => {
-                            removeCountry(country.name)
-                        }}
-                    >
-                        <FontAwesomeIcon icon={faClose} />
-                    </button>
-                </div>
+                    name={country.name}
+                    code={country.code}
+                    onRemove={removeCountry}
+                    hideOnDesktop={shouldMinifyOnDesktop}
+                />
             ))}
             {minifiedButton}
         </div>
