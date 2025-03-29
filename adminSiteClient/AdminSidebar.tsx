@@ -21,6 +21,7 @@ import {
     faPanorama,
     faImage,
     faLightbulb,
+    faStar,
 } from "@fortawesome/free-solid-svg-icons"
 
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
@@ -42,6 +43,11 @@ export const AdminSidebar = (): React.ReactElement => (
             <li>
                 <Link to="/multi-dims">
                     <FontAwesomeIcon icon={faChartLine} /> Multi-dims
+                </Link>
+            </li>
+            <li>
+                <Link to="/mims">
+                    <FontAwesomeIcon icon={faStar} /> MIMs
                 </Link>
             </li>
             <li>
