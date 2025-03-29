@@ -10,6 +10,7 @@ import {
     getAlgoliaResults,
 } from "@algolia/autocomplete-js"
 import algoliasearch from "algoliasearch"
+// Import the Algolia Hit and HighlightResult types
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
     ChartRecordType,
@@ -133,6 +134,13 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                 })
                 .exhaustive()
         })
+        .with(SearchIndexName.SearchSuggestions, () =>
+            urljoin(
+                BAKED_BASE_URL,
+                "/data",
+                queryParamsToStr({ q: item.suggestion as string })
+            )
+        )
         .exhaustive()
 }
 
@@ -248,6 +256,68 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     },
 }
 
+const QuerySuggestionsSource: AutocompleteSource<BaseItem> = {
+    sourceId: "querySuggestions",
+    onSelect({ navigator, item, state }) {
+        const suggestion = item.value as string
+
+        const itemUrl = urljoin(
+            BAKED_BASE_URL,
+            "/data",
+            queryParamsToStr({ q: suggestion })
+        )
+        navigator.navigate({
+            itemUrl,
+            item,
+            state,
+        })
+    },
+    getItemUrl({ item }) {
+        const suggestion = item.value as string
+
+        const itemUrl = urljoin(
+            BAKED_BASE_URL,
+            "/data",
+            queryParamsToStr({ q: suggestion })
+        )
+        return itemUrl
+    },
+    async getItems({ query }) {
+        // Only suggest queries when there are at least 2 characters
+        if (!query || query.length < 2) {
+            return []
+        }
+
+        return searchClient
+            .initIndex(
+                getIndexName(SearchIndexName.ExplorerViewsMdimViewsAndCharts)
+            )
+            .searchForFacetValues("searchSuggestions", query, {
+                maxFacetHits: 7,
+                highlightPreTag: "<strong>",
+                highlightPostTag: "</strong>",
+            })
+            .then((result) => {
+                return result.facetHits
+            })
+    },
+    templates: {
+        header: () => <h5 className="overline-black-caps">Suggestions</h5>,
+        item: ({ item }) => (
+            <div className="aa-ItemWrapper">
+                <span
+                    dangerouslySetInnerHTML={{
+                        __html: item.highlighted as string,
+                    }}
+                />
+                <span className="aa-ItemWrapper__count">
+                    {item.count as number}
+                </span>
+            </div>
+        ),
+    },
+}
+
 const AllResultsSource: AutocompleteSource<BaseItem> = {
     sourceId: "runSearch",
     onSelect,
@@ -333,7 +403,11 @@ export function Autocomplete({
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
-                    sources.push(AlgoliaSource, AllResultsSource)
+                    sources.push(
+                        QuerySuggestionsSource,
+                        AlgoliaSource,
+                        AllResultsSource
+                    )
                 } else {
                     sources.push(FeaturedSearchesSource)
                 }
