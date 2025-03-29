@@ -269,7 +269,12 @@ const TopicsSource = (
     return {
         sourceId: "topics",
         onSelect({ item }) {
-            addTopic(item.title as string)
+            // For some topics there is a discrepancy between the page title and the tag
+            // (e.g. "Happiness and Life Satisfaction" vs "Happiness & Life Satisfaction")
+            // so we need to make sure to use the tag name (and not the page title) when faceting
+            // We could be using searchForFacetValues() instead but it doesn't support
+            // the removeWordsIfNoResults parameter
+            addTopic((item.tags as string[])[0])
             clearSearch()
         },
 
@@ -287,7 +292,8 @@ const TopicsSource = (
                         query,
                         params: {
                             hitsPerPage: 3,
-                            filters: "type:topic-page",
+                            filters:
+                                "type:topic-page OR type:linear-topic-page",
                             removeWordsIfNoResults: searchRelaxationMode,
                         },
                     },
