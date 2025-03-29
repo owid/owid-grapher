@@ -301,8 +301,11 @@ const TopicsSource = (
                             // of topic pages, so searching in the content would
                             // surface unwanted results (e.g. "population
                             // france" surfaces "Time Use" because "France" is
-                            // mentioned in the content)
-                            restrictSearchableAttributes: ["title", "excerpt"],
+                            // mentioned in the content). Similarly, we don't
+                            // want to search in the excerpt (typing "Papua New
+                            // Guinea" returns topics where the word new is used
+                            // in the excerpt).
+                            restrictSearchableAttributes: ["title"],
                         },
                     },
                 ],
