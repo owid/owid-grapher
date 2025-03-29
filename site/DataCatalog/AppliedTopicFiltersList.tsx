@@ -16,7 +16,7 @@ export const AppliedTopicFiltersList = ({
             style={{ marginTop: 16 }}
         >
             {[...topics].map((topic) => (
-                <li key={topic}>
+                <li key={topic} className="data-catalog-applied-filters-item">
                     <TopicPill name={topic} onRemove={removeTopic} />
                 </li>
             ))}

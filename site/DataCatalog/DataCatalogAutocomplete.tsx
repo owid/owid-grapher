@@ -326,10 +326,7 @@ const TopicsSource = (
                         key={item.title as string}
                         translate="no"
                     >
-                        <TopicPill
-                            name={topicTag}
-                            className="data-catalog-applied-filters-item__no-margin"
-                        />
+                        <TopicPill name={topicTag} />
                         <span className="aa-ItemWrapper__contentType">
                             Topic
                         </span>
@@ -370,9 +367,6 @@ const CombinedFiltersSource = (
             return []
         },
         templates: {
-            header: () => (
-                <h5 className="overline-black-caps">Apply Filters</h5>
-            ),
             item: ({ item }) => {
                 const countries = (item.countries as string[]) || []
                 const topicTag = item.topicTag as string
@@ -380,9 +374,6 @@ const CombinedFiltersSource = (
                 return (
                     <div className="aa-ItemWrapper aa-CombinedFiltersWrapper">
                         <div className="aa-ItemContent">
-                            <div className="aa-ItemIcon">
-                                <FontAwesomeIcon icon={faSearch} />
-                            </div>
                             <div
                                 className="aa-ItemContentBody"
                                 style={{
@@ -392,12 +383,7 @@ const CombinedFiltersSource = (
                                     gap: "4px",
                                 }}
                             >
-                                {topicTag && (
-                                    <TopicPill
-                                        name={topicTag}
-                                        className="data-catalog-applied-filters-item__no-margin"
-                                    />
-                                )}
+                                {topicTag && <TopicPill name={topicTag} />}
                                 {countries.length > 0 && (
                                     <div
                                         style={{
@@ -593,7 +579,7 @@ export function DataCatalogAutocomplete({
                 const topics = sourcesBySourceId.topics.getItems() || []
 
                 // If we don't have any countries or topics, don't show combined filter
-                if (countries.length === 0 && topics.length === 0) {
+                if (countries.length === 0 || topics.length === 0) {
                     return sources.filter(
                         (source) => source.sourceId !== "combinedFilters"
                     )
