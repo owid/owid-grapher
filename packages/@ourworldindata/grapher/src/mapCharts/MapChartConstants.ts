@@ -11,6 +11,7 @@ import {
 import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
 import { ChartSeries } from "../chart/ChartInterface"
+import { GlobeController } from "./GlobeController"
 
 export declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
@@ -64,6 +65,10 @@ export interface ChoroplethMapManager {
     isStatic?: boolean
 }
 
+export interface ChoroplethGlobeManager extends ChoroplethMapManager {
+    globeController: GlobeController
+}
+
 export enum RenderFeatureType {
     Map = "map",
     Globe = "globe",
@@ -98,6 +103,7 @@ export interface MapChartManager extends ChartManager {
     mapConfig?: MapConfig
     endTime?: Time
     title?: string
+    globeController: GlobeController
 }
 
 export interface MapViewport {
