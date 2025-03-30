@@ -566,6 +566,9 @@ export class MapChart
             )
         }
 
+        const tooltipCountry =
+            tooltipState.target?.featureId ?? this.mapConfig.globe.focusCountry
+
         return (
             <g
                 ref={this.base}
@@ -574,9 +577,9 @@ export class MapChart
             >
                 {this.renderMapOrGlobe()}
                 {this.renderMapLegend()}
-                {tooltipState.target && (
+                {tooltipCountry && (
                     <MapTooltip
-                        entityName={tooltipState.target.featureId}
+                        entityName={tooltipCountry}
                         position={tooltipState.position}
                         fading={tooltipState.fading}
                         timeSeriesTable={this.inputTable}
@@ -586,8 +589,9 @@ export class MapChart
                         targetTime={this.targetTime}
                         sparklineWidth={sparklineWidth}
                         dismissTooltip={() => {
-                            this.tooltipState.target = null
                             this.focusEntity = undefined
+                            this.tooltipState.target = null
+                            this.globeController.dismissCountryFocus()
                         }}
                     />
                 )}
