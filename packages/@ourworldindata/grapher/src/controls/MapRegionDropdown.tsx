@@ -11,6 +11,7 @@ export interface MapRegionDropdownManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
     hideMapRegionDropdown?: boolean
+    shouldUseSimpleMapSearch?: boolean
 }
 
 interface DropdownOption {
@@ -29,13 +30,18 @@ export class MapRegionDropdown extends React.Component<{
     }
 
     @computed get showMenu(): boolean {
-        const { hideMapRegionDropdown, isOnMapTab, mapConfig } =
-                this.props.manager,
+        const {
+                hideMapRegionDropdown,
+                isOnMapTab,
+                mapConfig,
+                shouldUseSimpleMapSearch,
+            } = this.props.manager,
             { region, globe } = mapConfig ?? {}
         return (
             !hideMapRegionDropdown &&
             !!(isOnMapTab && region) &&
-            !globe?.isActive
+            !globe?.isActive &&
+            !shouldUseSimpleMapSearch
         )
     }
 
