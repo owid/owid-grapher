@@ -33,6 +33,7 @@ import {
     ChoroplethSeriesByName,
     ChoroplethMapManager,
     MAP_CHART_CLASSNAME,
+    ChoroplethGlobeManager,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
@@ -65,6 +66,7 @@ import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
+import { GlobeController } from "./GlobeController"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -79,7 +81,8 @@ export class MapChart
         ChartInterface,
         HorizontalColorLegendManager,
         ColorScaleManager,
-        ChoroplethMapManager
+        ChoroplethMapManager,
+        ChoroplethGlobeManager
 {
     @observable focusEntity?: MapEntity
     @observable focusBracket?: MapBracket
@@ -182,6 +185,10 @@ export class MapChart
 
     @computed get manager(): MapChartManager {
         return this.props.manager
+    }
+
+    @computed get globeController(): GlobeController {
+        return this.manager.globeController
     }
 
     @computed private get entityNamesWithData(): Set<EntityName> {
