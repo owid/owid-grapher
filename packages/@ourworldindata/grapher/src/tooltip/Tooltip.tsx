@@ -109,6 +109,8 @@ class TooltipCard extends React.Component<
             footer,
             dissolve,
             children,
+            x = 0,
+            y = 0,
             offsetX = 0,
             offsetY = 0,
         } = this.props
@@ -124,14 +126,14 @@ class TooltipCard extends React.Component<
 
             if (
                 this.props.offsetXDirection === "left" &&
-                this.props.x > (this.bounds?.width ?? 0)
+                x > (this.bounds?.width ?? 0)
             ) {
                 offsetX = -offsetX - (this.bounds?.width ?? 0)
             }
 
             // Ensure tooltip remains inside chart
-            let left = this.props.x + offsetX
-            let top = this.props.y + offsetY
+            let left = x + offsetX
+            let top = y + offsetY
             if (this.bounds) {
                 if (left + this.bounds.width > this.props.containerWidth)
                     left -= this.bounds.width + 2 * offsetX // flip left
