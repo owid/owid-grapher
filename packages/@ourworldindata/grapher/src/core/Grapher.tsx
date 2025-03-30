@@ -3376,15 +3376,6 @@ export class Grapher
         }
     }
 
-    @action.bound private switchToGlobeIfRegionSelectedByDefault(): void {
-        if (
-            this.map.region !== MapRegionName.World &&
-            this.shouldUseSimpleMapSearch
-        ) {
-            this.globeController.showGlobe()
-        }
-    }
-
     componentDidMount(): void {
         this.setBaseFontSize()
         this.setUpIntersectionObserver()
@@ -3412,8 +3403,6 @@ export class Grapher
         )
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
-
-        this.switchToGlobeIfRegionSelectedByDefault()
     }
 
     private _shortcutsBound = false
