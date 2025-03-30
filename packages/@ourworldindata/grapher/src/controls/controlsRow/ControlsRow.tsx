@@ -18,11 +18,16 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
 } from "../../core/GrapherConstants"
+import {
+    MapCountryDropdown,
+    MapCountryDropdownManager,
+} from "../MapCountryDropdown"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
         EntitySelectionManager,
         MapRegionDropdownManager,
+        MapCountryDropdownManager,
         SettingsMenuManager {
     sidePanelBounds?: Bounds
     showEntitySelectionToggle?: boolean
@@ -71,6 +76,7 @@ export class ControlsRow extends Component<{
             SettingsMenu.shouldShow(this.manager) ||
             EntitySelectionToggle.shouldShow(this.manager) ||
             MapRegionDropdown.shouldShow(this.manager) ||
+            MapCountryDropdown.shouldShow(this.manager) ||
             this.showContentSwitchers
         )
     }
@@ -80,9 +86,7 @@ export class ControlsRow extends Component<{
         return (
             <nav
                 className="controlsRow"
-                style={{
-                    padding: `0 ${this.framePaddingHorizontal}px`,
-                }}
+                style={{ padding: `0 ${this.framePaddingHorizontal}px` }}
             >
                 <div>
                     {this.showContentSwitchers && (
@@ -104,6 +108,10 @@ export class ControlsRow extends Component<{
                         }
                     />
                     <MapRegionDropdown
+                        manager={this.manager}
+                        maxWidth={this.availableWidth}
+                    />
+                    <MapCountryDropdown
                         manager={this.manager}
                         maxWidth={this.availableWidth}
                     />
