@@ -5,7 +5,7 @@ import { EntityName, MapRegionName } from "@ourworldindata/types"
 import { delay } from "@ourworldindata/utils"
 import { GlobeConfig } from "./MapConfig"
 import { getFeaturesForGlobe } from "./GeoFeatures"
-import { MAP_VIEWPORTS } from "./MapChartConstants"
+import { DEFAULT_VIEWPORT, MAP_VIEWPORTS } from "./MapChartConstants"
 
 const geoFeaturesById = new Map(getFeaturesForGlobe().map((f) => [f.id, f]))
 
@@ -21,6 +21,19 @@ export class GlobeController {
 
     toggleGlobe(): void {
         this.config.isActive = !this.config.isActive
+
+        // reset globe if it's being hidden
+        if (!this.config.isActive) this.resetGlobe()
+    }
+
+    private resetGlobe(): void {
+        this.config.rotation = DEFAULT_VIEWPORT.rotation
+        this.config.zoom = 1
+        this.config.focusCountry = undefined
+    }
+
+    showGlobe(): void {
+        this.config.isActive = true
     }
 
     jumpTo({
