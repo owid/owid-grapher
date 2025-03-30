@@ -363,6 +363,10 @@ export class ChoroplethGlobe extends React.Component<{
         event: MouseEvent
     ): void {
         this.setHoverEnterFeature(feature)
+
+        // rotate to the selected country on the globe
+        void this.globeController.rotateToCountry(feature.id)
+
         this.manager.onClick(feature.geo, event)
     }
 
