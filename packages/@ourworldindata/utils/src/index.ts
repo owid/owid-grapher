@@ -259,6 +259,7 @@ export {
     getOthers,
     countriesByName,
     getRegionAlternativeNames,
+    mappableCountries,
 } from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"
