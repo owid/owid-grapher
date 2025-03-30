@@ -1,11 +1,19 @@
 import * as React from "react"
-import { computed, action } from "mobx"
+import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { Dropdown } from "./Dropdown"
-import { DEFAULT_BOUNDS, mappableCountries } from "@ourworldindata/utils"
+import {
+    DEFAULT_BOUNDS,
+    EntityName,
+    getUserCountryInformation,
+    mappableCountries,
+    sortBy,
+} from "@ourworldindata/utils"
 import { GlobeController } from "../mapCharts/GlobeController"
 import { GLOBE_COUNTRY_ZOOM } from "../mapCharts/MapChartConstants"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
 
 export interface MapCountryDropdownManager {
     mapConfig?: MapConfig
@@ -18,6 +26,7 @@ export interface MapCountryDropdownManager {
 interface DropdownOption {
     label: string
     value: string
+    isLocal?: boolean
 }
 
 @observer
@@ -25,6 +34,8 @@ export class MapCountryDropdown extends React.Component<{
     manager: MapCountryDropdownManager
     maxWidth?: number
 }> {
+    @observable private localCountryName?: EntityName
+
     static shouldShow(manager: MapCountryDropdownManager): boolean {
         const menu = new MapCountryDropdown({ manager })
         return menu.showMenu
@@ -56,17 +67,46 @@ export class MapCountryDropdown extends React.Component<{
         )
     }
 
+    @computed private get sortedCountries(): EntityName[] {
+        return sortBy(mappableCountries.map((country) => country.name))
+    }
+
     @computed private get options(): DropdownOption[] {
-        return mappableCountries.map((country) => ({
-            value: country.name,
-            label: country.name,
-        }))
+        const toOption = (country: EntityName): DropdownOption => ({
+            value: country,
+            label: country,
+        })
+
+        if (this.localCountryName) {
+            return [
+                { ...toOption(this.localCountryName), isLocal: true },
+                ...this.sortedCountries
+                    .filter((country) => country !== this.localCountryName)
+                    .map(toOption),
+            ]
+        }
+
+        return this.sortedCountries.map(toOption)
     }
 
     @computed private get value(): DropdownOption | null {
         const { focusCountry } = this.manager.mapConfig?.globe ?? {}
         if (!focusCountry) return null
         return this.options.find((opt) => focusCountry === opt.value) ?? null
+    }
+
+    @action.bound async populateLocalEntities(): Promise<void> {
+        try {
+            const localCountryInfo = await getUserCountryInformation()
+            if (!localCountryInfo) return
+            this.localCountryName = localCountryInfo.name
+        } catch {
+            // ignore
+        }
+    }
+
+    componentDidMount(): void {
+        void this.populateLocalEntities()
     }
 
     render(): React.ReactElement | null {
@@ -82,6 +122,17 @@ export class MapCountryDropdown extends React.Component<{
                     value={this.value}
                     isSearchable={true}
                     placeholder="Zoom to a country..."
+                    formatOptionLabel={(option) => (
+                        <>
+                            {option.label}
+                            {option.isLocal && (
+                                <FontAwesomeIcon
+                                    className="local-icon"
+                                    icon={faLocationArrow}
+                                />
+                            )}
+                        </>
+                    )}
                 />
             </div>
         ) : null
