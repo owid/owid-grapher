@@ -21,8 +21,8 @@ export enum TooltipFooterIcon {
 
 export interface TooltipProps {
     id: number | string
-    x: number
-    y: number
+    x?: number
+    y?: number
     offsetX?: number
     offsetY?: number
     offsetXDirection?: "left" | "right"

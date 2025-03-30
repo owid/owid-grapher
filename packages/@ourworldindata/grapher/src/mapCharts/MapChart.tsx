@@ -576,7 +576,9 @@ export class MapChart
                 {this.renderMapLegend()}
                 {tooltipState.target && (
                     <MapTooltip
-                        tooltipState={tooltipState}
+                        entityName={tooltipState.target.featureId}
+                        position={tooltipState.position}
+                        fading={tooltipState.fading}
                         timeSeriesTable={this.inputTable}
                         formatValueIfCustom={this.formatTooltipValueIfCustom}
                         manager={this.manager}
