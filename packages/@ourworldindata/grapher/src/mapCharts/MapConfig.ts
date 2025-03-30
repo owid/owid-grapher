@@ -15,7 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import { DEFAULT_VIEWPORT } from "./MapChartConstants"
 
-interface GlobeConfig {
+export interface GlobeConfig {
     isActive: boolean
     rotation: [number, number]
     zoom: number
