@@ -226,6 +226,7 @@ export {
     lowercaseObjectKeys,
     detailOnDemandRegex,
     extractDetailsFromSyntax,
+    delay,
 } from "./Util.js"
 
 export { isPresent } from "./isPresent.js"

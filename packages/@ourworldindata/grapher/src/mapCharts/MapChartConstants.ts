@@ -35,6 +35,8 @@ export const MAP_CHART_CLASSNAME = "MapChart"
 export const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
 export const GEO_FEATURES_CLASSNAME = "GeoFeatures"
 
+export const GLOBE_COUNTRY_ZOOM = 2
+
 export interface MapEntity {
     id: string | number | undefined
     series:
