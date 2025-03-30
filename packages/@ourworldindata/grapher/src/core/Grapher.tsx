@@ -3274,6 +3274,10 @@ export class Grapher
         return this.isTouchDevice
     }
 
+    @computed get shouldUseSimpleMapSearch(): boolean {
+        return this.showEntitySelectorAs === GrapherWindowType.modal
+    }
+
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
     private bindToWindow(): void {
