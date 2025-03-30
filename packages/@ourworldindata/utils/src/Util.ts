@@ -2169,3 +2169,6 @@ export const getUserNavigatorLanguages = (): readonly string[] => {
 export const getUserNavigatorLanguagesNonEnglish = (): readonly string[] => {
     return getUserNavigatorLanguages().filter((lang) => !lang.startsWith("en"))
 }
+
+export const delay = (ms: number): Promise<void> =>
+    new Promise((resolve) => setTimeout(resolve, ms))

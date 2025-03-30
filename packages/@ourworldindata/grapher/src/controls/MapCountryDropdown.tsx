@@ -4,12 +4,15 @@ import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { Dropdown } from "./Dropdown"
 import { DEFAULT_BOUNDS, mappableCountries } from "@ourworldindata/utils"
+import { GlobeController } from "../mapCharts/GlobeController"
+import { GLOBE_COUNTRY_ZOOM } from "../mapCharts/MapChartConstants"
 
 export interface MapCountryDropdownManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
     hideMapRegionDropdown?: boolean
     shouldUseSimpleMapSearch?: boolean
+    globeController?: GlobeController
 }
 
 interface DropdownOption {
@@ -32,14 +35,25 @@ export class MapCountryDropdown extends React.Component<{
         return !!isOnMapTab && !!shouldUseSimpleMapSearch
     }
 
+    @computed private get manager(): MapCountryDropdownManager {
+        return this.props.manager
+    }
+
     @computed private get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
+    @action.bound private onFocus(): void {
+        this.manager.globeController?.dismissCountryFocus()
+    }
+
     @action.bound private onChange(selected: unknown): void {
-        const { mapConfig } = this.props.manager
-        if (selected && mapConfig)
-            mapConfig.globe.zoomCountry = (selected as DropdownOption).value
+        const option = selected as DropdownOption
+        this.manager.globeController?.focusOnCountry(option.value)
+        this.manager.globeController?.rotateToCountry(
+            option.value,
+            GLOBE_COUNTRY_ZOOM
+        )
     }
 
     @computed private get options(): DropdownOption[] {
@@ -50,9 +64,9 @@ export class MapCountryDropdown extends React.Component<{
     }
 
     @computed private get value(): DropdownOption | null {
-        const { zoomCountry } = this.props.manager.mapConfig?.globe ?? {}
-        if (!zoomCountry) return null
-        return this.options.find((opt) => zoomCountry === opt.value) ?? null
+        const { focusCountry } = this.manager.mapConfig?.globe ?? {}
+        if (!focusCountry) return null
+        return this.options.find((opt) => focusCountry === opt.value) ?? null
     }
 
     render(): React.ReactElement | null {
@@ -63,6 +77,7 @@ export class MapCountryDropdown extends React.Component<{
             >
                 <Dropdown
                     options={this.options}
+                    onFocus={this.onFocus}
                     onChange={this.onChange}
                     value={this.value}
                     isSearchable={true}
