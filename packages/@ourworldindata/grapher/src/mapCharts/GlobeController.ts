@@ -37,6 +37,10 @@ export class GlobeController {
         this.config.focusCountry = country
     }
 
+    dismissCountryFocus(): void {
+        this.config.focusCountry = undefined
+    }
+
     rotateToCountry(country: EntityName, zoom?: number): void {
         const geoFeature = geoFeaturesById.get(country)
         if (!geoFeature) return
