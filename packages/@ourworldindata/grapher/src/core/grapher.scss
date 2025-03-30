@@ -80,6 +80,7 @@ $zindex-controls-drawer: 150;
     @import "../sidePanel/SidePanel.scss";
     @import "../controls/Dropdown.scss";
     @import "../scatterCharts/NoDataSection.scss";
+    @import "../mapCharts/MapChart.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
