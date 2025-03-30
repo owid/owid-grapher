@@ -117,6 +117,7 @@ export interface MapViewport {
 
     // globe
     rotation: [number, number]
+    zoom: number
 }
 
 /** Viewport for each region, defined by center and width+height in fractional coordinates */
@@ -127,13 +128,15 @@ export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
         width: 1,
         height: 1,
         rotation: [30, -20], // Atlantic ocean (i.e. Americas & Europe)
+        zoom: 1,
     },
     Europe: {
         x: 0.53,
         y: 0.22,
         width: 0.2,
         height: 0.2,
-        rotation: [-10, -50],
+        rotation: [-10, -55],
+        zoom: 3,
     },
     Africa: {
         x: 0.49,
@@ -141,34 +144,39 @@ export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
         width: 0.21,
         height: 0.38,
         rotation: [-20, 0],
+        zoom: 1.65,
     },
     NorthAmerica: {
         x: 0.49,
         y: 0.4,
         width: 0.19,
         height: 0.32,
-        rotation: [110, -40],
+        rotation: [95, -48],
+        zoom: 1.5,
     },
     SouthAmerica: {
         x: 0.52,
         y: 0.815,
         width: 0.1,
         height: 0.26,
-        rotation: [60, 20],
+        rotation: [62, 22],
+        zoom: 1.75,
     },
     Asia: {
         x: 0.74,
         y: 0.45,
         width: 0.36,
         height: 0.5,
-        rotation: [-100, -35],
+        rotation: [-92, -25],
+        zoom: 1.55,
     },
     Oceania: {
         x: 0.51,
         y: 0.75,
         width: 0.1,
         height: 0.2,
-        rotation: [-140, 20],
+        rotation: [-153, 25],
+        zoom: 2,
     },
 }
 
