@@ -1,4 +1,7 @@
 @at-root {
+    // keep in sync with GRAPHER_MAX_TOOLTIP_WIDTH
+    $max-tooltip-width: 400px;
+
     .tooltip-container {
         $background-fill: #f0f0f0;
         $background-stroke: $gray-20;
@@ -14,10 +17,12 @@
 
         &.fixed-bottom {
             position: fixed;
-            left: 4px;
+            left: 50%;
             bottom: 4px;
             width: calc(100% - 8px);
-            z-index: $zindex-tooltip;
+            z-index: 1070;
+            max-width: $max-tooltip-width;
+            transform: translateX(-50%);
 
             > .Tooltip {
                 pointer-events: auto;
