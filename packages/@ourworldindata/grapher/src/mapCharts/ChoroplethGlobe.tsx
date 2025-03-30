@@ -26,8 +26,8 @@ import {
 } from "@ourworldindata/utils"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
-    ChoroplethMapManager,
     ChoroplethSeriesByName,
+    ChoroplethGlobeManager,
     GEO_FEATURES_CLASSNAME,
     GlobeRenderFeature,
     MAP_HOVER_TARGET_RANGE,
@@ -43,6 +43,7 @@ import {
 import { Patterns } from "../core/GrapherConstants"
 import { calculateDistance, detectNearbyFeature, hasFocus } from "./MapHelpers"
 import * as R from "remeda"
+import { GlobeController } from "./GlobeController"
 
 const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 const DEFAULT_SCALE = geoOrthographic().scale()
@@ -52,7 +53,7 @@ const MAX_ZOOM_SCALE = 5
 
 @observer
 export class ChoroplethGlobe extends React.Component<{
-    manager: ChoroplethMapManager
+    manager: ChoroplethGlobeManager
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
@@ -68,12 +69,16 @@ export class ChoroplethGlobe extends React.Component<{
         return isTouchDevice()
     }
 
-    @computed private get manager(): ChoroplethMapManager {
+    @computed private get manager(): ChoroplethGlobeManager {
         return this.props.manager
     }
 
     @computed private get mapConfig(): MapConfig {
         return this.manager.mapConfig
+    }
+
+    @computed private get globeController(): GlobeController {
+        return this.manager.globeController
     }
 
     @computed.struct private get bounds(): Bounds {

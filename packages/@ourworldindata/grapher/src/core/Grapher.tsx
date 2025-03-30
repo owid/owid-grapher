@@ -230,6 +230,7 @@ import {
     GRAPHER_LIGHT_TEXT,
 } from "../color/ColorConstants"
 import { FacetChart } from "../facetChart/FacetChart"
+import { GlobeController } from "../mapCharts/GlobeController"
 
 declare global {
     interface Window {
@@ -2737,10 +2738,7 @@ export class Grapher
             },
             {
                 combo: "g",
-                fn: (): void => {
-                    this.mapConfig.globe.isActive =
-                        !this.mapConfig.globe.isActive
-                },
+                fn: (): void => this.globeController.toggleGlobe(),
                 title: "Toggle globe view",
                 category: "Map",
             },
@@ -3666,6 +3664,7 @@ export class Grapher
     msPerTick = DEFAULT_MS_PER_TICK
 
     timelineController = new TimelineController(this)
+    globeController = new GlobeController(this.mapConfig.globe)
 
     @action.bound onTimelineClick(): void {
         const tooltip = this.tooltip?.get()
