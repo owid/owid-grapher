@@ -1,0 +1,15 @@
+.MapChart {
+    .ChoroplethGlobe {
+        .reset-button {
+            font-size: 13px;
+            padding: 4px 8px;
+            background: #fff;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+
+            .reset-button__icon {
+                margin-right: 6px;
+            }
+        }
+    }
+}

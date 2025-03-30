@@ -22,6 +22,7 @@ export interface MapCountryDropdownManager {
     hideMapRegionDropdown?: boolean
     shouldUseSimpleMapSearch?: boolean
     globeController?: GlobeController
+    onMapCountryDropdownFocus?: () => void
 }
 
 interface DropdownOption {
@@ -61,6 +62,7 @@ export class MapCountryDropdown extends React.Component<{
 
     @action.bound private onFocus(): void {
         this.manager.globeController?.dismissCountryFocus()
+        this.manager.onMapCountryDropdownFocus?.()
     }
 
     @action.bound private onChange(selected: unknown): void {
