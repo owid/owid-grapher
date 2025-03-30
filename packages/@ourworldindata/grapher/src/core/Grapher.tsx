@@ -3338,7 +3338,7 @@ export class Grapher
     }
 
     @computed get shouldPinTooltipToBottom(): boolean {
-        return this.isNarrow && this.isTouchDevice
+        return this.isTouchDevice
     }
 
     // Binds chart properties to global window title and URL. This should only
