@@ -1,10 +1,11 @@
 import { geoInterpolate } from "d3-geo"
 import { interpolateNumber } from "d3-interpolate"
 import { easeCubicOut } from "d3-ease"
-import { EntityName } from "@ourworldindata/types"
+import { EntityName, MapRegionName } from "@ourworldindata/types"
 import { delay } from "@ourworldindata/utils"
 import { GlobeConfig } from "./MapConfig"
 import { getFeaturesForGlobe } from "./GeoFeatures"
+import { MAP_VIEWPORTS } from "./MapChartConstants"
 
 const geoFeaturesById = new Map(getFeaturesForGlobe().map((f) => [f.id, f]))
 
@@ -49,6 +50,15 @@ export class GlobeController {
         const targetCoords: [number, number] = [-centroid[0], -centroid[1]]
 
         void this.rotateTo(targetCoords, zoom)
+    }
+
+    jumpToRegion(region: MapRegionName): void {
+        const viewport = MAP_VIEWPORTS[region]
+
+        const targetCoords = viewport.rotation
+        const targetZoom = viewport.zoom
+
+        this.jumpTo({ coords: targetCoords, zoom: targetZoom })
     }
 
     private currentAnimation?: AbortController

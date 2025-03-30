@@ -19,17 +19,19 @@ import {
     RenderFeatureType,
 } from "./MapChartConstants"
 
-export function CountryOutsideOfSelectedRegion({
+export function CountryOutsideOfSelectedRegion<Feature extends RenderFeature>({
     feature,
+    path,
     strokeWidth = DEFAULT_STROKE_WIDTH,
 }: {
-    feature: MapRenderFeature
+    feature: Feature
+    path?: string
     strokeWidth?: number
 }): React.ReactElement {
     return (
         <path
             id={makeIdForHumanConsumption(feature.id)}
-            d={feature.path}
+            d={isMapRenderFeature(feature) ? feature.path : path}
             strokeWidth={strokeWidth}
             stroke="#aaa"
             fill="#fff"
