@@ -39,6 +39,7 @@ import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
+    GRAPHER_MAX_TOOLTIP_WIDTH,
     Patterns,
 } from "../core/GrapherConstants"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -553,9 +554,13 @@ export class MapChart
     renderInteractive(): React.ReactElement {
         const { tooltipState } = this
 
-        const sparklineWidth = this.manager.shouldPinTooltipToBottom
-            ? this.bounds.width + (GRAPHER_FRAME_PADDING_HORIZONTAL - 1) * 2
-            : undefined
+        let sparklineWidth: number | undefined
+        if (this.manager.shouldPinTooltipToBottom) {
+            sparklineWidth = Math.min(
+                GRAPHER_MAX_TOOLTIP_WIDTH,
+                this.bounds.width + (GRAPHER_FRAME_PADDING_HORIZONTAL - 1) * 2
+            )
+        }
 
         return (
             <g

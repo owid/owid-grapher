@@ -2350,7 +2350,7 @@ export class Grapher
         return (
             this.hasChartTab &&
             (this.hasLineChart || this.isScatter) &&
-            !isMobile()
+            !this.isTouchDevice
         )
     }
 
