@@ -106,6 +106,7 @@ export interface MapChartManager extends ChartManager {
     endTime?: Time
     title?: string
     globeController: GlobeController
+    shouldUseSimpleMapSearch?: boolean
 }
 
 export interface MapViewport {
