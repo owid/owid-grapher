@@ -2,7 +2,6 @@ import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { getPaginationPageNumbers } from "@ourworldindata/utils"
 import cx from "classnames"
-import * as React from "react"
 import { useEffect } from "react"
 
 export const DataCatalogPagination = ({
