@@ -578,8 +578,8 @@ export function DataCatalogAutocomplete({
                 const countries = sourcesBySourceId.countries.getItems() || []
                 const topics = sourcesBySourceId.topics.getItems() || []
 
-                // If we don't have any countries or topics, don't show combined filter
-                if (countries.length === 0 || topics.length === 0) {
+                // If we don't have at least 2 filters, we don't show the combined option
+                if (countries.length + topics.length < 2) {
                     return sources.filter(
                         (source) => source.sourceId !== "combinedFilters"
                     )
