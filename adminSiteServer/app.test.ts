@@ -1248,8 +1248,10 @@ describe("OwidAdminApp: validateChartSlug", { timeout: 10000 }, async () => {
     it("should return true for a valid explorer URL", async () => {
         await testKnexInstance!(ExplorersTableName).insert({
             slug: "migration",
-            isPublished: true,
-            config: {},
+            config: {
+                isPublished: true,
+            },
+            tsv: "isPublished	true",
         })
 
         await knexReadonlyTransaction(async (trx) => {
