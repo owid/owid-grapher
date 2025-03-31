@@ -236,7 +236,7 @@ export class MapChart
             this.switchToLineChart(entityName)
         } else if (
             !this.mapConfig.globe.isActive &&
-            this.manager.shouldUseSimpleMapSearch
+            !this.manager.shouldShowEntitySelectorOnMapTab
         ) {
             this.zoomToCountryOnGlobe(entityName)
         }
