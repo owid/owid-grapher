@@ -361,14 +361,40 @@ export class ChoroplethGlobe extends React.Component<{
         this.manager.onMapMouseLeave()
     }
 
+    private getBoundsForFeature(feature: GlobeRenderFeature): Bounds {
+        const corners = this.globePath.bounds(feature.geo)
+        return Bounds.fromCorners(
+            new PointVector(...corners[0]),
+            new PointVector(...corners[1])
+        )
+    }
+
+    private calculateZoomForFeature(feature: GlobeRenderFeature): number {
+        const bounds = this.getBoundsForFeature(feature)
+
+        // choose a factor less than 1 to ensure the feature doesn't fill exactly to the edges
+        const bufferFactor = 0.8
+
+        const maxDimension = Math.max(bounds.width, bounds.height)
+        const scaleFactor = (this.globeSize * bufferFactor) / maxDimension
+        const zoom = this.zoomScale * scaleFactor
+
+        return R.clamp(zoom, { min: MIN_ZOOM_SCALE, max: MAX_ZOOM_SCALE })
+    }
+
     @action.bound private onClick(
         feature: GlobeRenderFeature,
         event: MouseEvent
     ): void {
         this.setHoverEnterFeature(feature)
 
+        // keep the zoom level as is if possible,
+        // but zoom out if the feature wouldn't be fully visible
+        const countryZoom = this.calculateZoomForFeature(feature)
+        const zoom = countryZoom < this.zoomScale ? countryZoom : undefined
+
         // rotate to the selected country on the globe
-        void this.globeController.rotateToCountry(feature.id)
+        void this.globeController.rotateToCountry(feature.id, zoom)
 
         this.manager.onClick(feature.geo, event)
     }
