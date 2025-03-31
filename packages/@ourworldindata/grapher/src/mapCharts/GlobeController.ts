@@ -55,6 +55,19 @@ export class GlobeController {
         this.config.focusCountry = undefined
     }
 
+    jumpToCountryOffset(country: EntityName, zoom?: number): void {
+        const geoFeature = geoFeaturesById.get(country)
+        if (!geoFeature) return
+
+        const { centroid } = geoFeature
+        const targetCoords: [number, number] = [
+            -centroid[0] + 40, // offset by an arbitrary amount
+            -centroid[1],
+        ]
+
+        this.jumpTo({ coords: targetCoords, zoom })
+    }
+
     rotateToCountry(country: EntityName, zoom?: number): void {
         const geoFeature = geoFeaturesById.get(country)
         if (!geoFeature) return
