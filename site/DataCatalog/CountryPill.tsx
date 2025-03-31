@@ -23,6 +23,7 @@ export const CountryPill = ({
                 "data-catalog-selected-country-pill--hide-on-desktop":
                     hideOnDesktop,
             })}
+            onClick={onRemove ? () => onRemove(name) : undefined}
         >
             <img
                 width={20}
@@ -30,14 +31,13 @@ export const CountryPill = ({
                 src={`/images/flags/${code}.svg`}
                 alt={`${name} flag`}
             />
-            <span className="body-3-medium">{name}</span>
+            <span className="data-catalog-selected-country-pill__name body-3-medium">
+                {name}
+            </span>
             {onRemove && (
-                <button
-                    aria-label={`Remove ${name}`}
-                    onClick={() => onRemove(name)}
-                >
+                <span className="data-catalog-selected-country-pill__remove body-3-medium">
                     <FontAwesomeIcon icon={faClose} />
-                </button>
+                </span>
             )}
         </div>
     )

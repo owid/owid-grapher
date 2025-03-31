@@ -165,35 +165,36 @@
     padding: 8px;
     white-space: nowrap;
     display: flex;
+    align-items: center;
+    cursor: pointer;
+    &:hover {
+        background-color: $blue-10;
+    }
     &:first-child {
         margin-left: 8px;
     }
     &:not(:last-child) {
         margin-right: 8px;
     }
-    span {
-        margin-left: 8px;
-        color: $blue-90;
-    }
-    button {
-        background-color: transparent;
-        border: none;
-        margin-left: 8px;
-        color: $blue-60;
-        padding: 0;
-        cursor: pointer;
-        margin-bottom: 2px;
-        svg {
-            width: 10px;
-            margin-bottom: -3px;
-            display: block;
-        }
-    }
+
     &.data-catalog-selected-country-pill--hide-on-desktop {
         display: none;
     }
     @include sm-only {
         display: none;
+    }
+}
+
+.data-catalog-selected-country-pill__name {
+    margin-left: 8px;
+    color: $blue-90;
+}
+
+.data-catalog-selected-country-pill__remove {
+    margin-left: 8px;
+    color: $blue-60;
+    svg {
+        width: 10px;
     }
 }
 
