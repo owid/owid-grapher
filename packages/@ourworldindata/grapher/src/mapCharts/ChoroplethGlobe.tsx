@@ -711,7 +711,12 @@ export class ChoroplethGlobe extends React.Component<{
             >
                 <button
                     className="reset-button"
-                    onClick={() => this.globeController.toggleGlobe()}
+                    onClick={() => {
+                        this.clearHover()
+                        this.onMouseLeaveFeature()
+                        this.globeController.toggleGlobe()
+                        this.mapConfig.region = MapRegionName.World
+                    }}
                 >
                     <FontAwesomeIcon
                         className="reset-button__icon"
