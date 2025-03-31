@@ -369,6 +369,9 @@ h3.article-block__heading {
     picture {
         // fixes strange extra height that is otherwise added to the element on firefox
         display: flex;
+
+        // fixes wrong img aspect ratio in Safari < 14, see https://stackoverflow.com/a/61196907/10670163
+        align-items: flex-start;
     }
 
     img {
