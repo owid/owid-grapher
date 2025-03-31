@@ -3666,7 +3666,7 @@ export class Grapher
     msPerTick = DEFAULT_MS_PER_TICK
 
     timelineController = new TimelineController(this)
-    globeController = new GlobeController(this.mapConfig.globe)
+    globeController = new GlobeController(this)
 
     private dismissTooltip(): void {
         const tooltip = this.tooltip?.get()
