@@ -189,7 +189,10 @@ export class MapChart
     }
 
     @computed get globeController(): GlobeController {
-        return this.manager.globeController
+        return (
+            this.manager.globeController ??
+            new GlobeController(this.mapConfig.globe)
+        )
     }
 
     @computed private get entityNamesWithData(): Set<EntityName> {
