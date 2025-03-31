@@ -3272,8 +3272,10 @@ export class Grapher
         return this.isTouchDevice
     }
 
-    @computed get shouldUseSimpleMapSearch(): boolean {
-        return this.showEntitySelectorAs === GrapherWindowType.modal
+    @computed get shouldShowEntitySelectorOnMapTab(): boolean {
+        // only show the entity selector on the map tab if it's
+        // rendered into the side panel or the drawer
+        return this.showEntitySelectorAs !== GrapherWindowType.modal
     }
 
     // Binds chart properties to global window title and URL. This should only
