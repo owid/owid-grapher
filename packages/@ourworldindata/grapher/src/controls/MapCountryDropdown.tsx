@@ -8,6 +8,7 @@ import {
     EntityName,
     getUserCountryInformation,
     mappableCountries,
+    MapRegionName,
     sortBy,
 } from "@ourworldindata/utils"
 import { GlobeController } from "../mapCharts/GlobeController"
@@ -50,6 +51,10 @@ export class MapCountryDropdown extends React.Component<{
         return this.props.manager
     }
 
+    @computed private get mapConfig(): MapConfig {
+        return this.manager.mapConfig ?? new MapConfig()
+    }
+
     @computed private get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
@@ -60,6 +65,20 @@ export class MapCountryDropdown extends React.Component<{
 
     @action.bound private onChange(selected: unknown): void {
         const option = selected as DropdownOption
+
+        const isGlobeActive = this.mapConfig.globe.isActive
+        const region = this.mapConfig.region
+
+        // reset the region if a non-world region is currently selected
+        if (!isGlobeActive && region !== MapRegionName.World) {
+            this.manager.globeController?.jumpToRegion(region)
+            this.mapConfig.region = MapRegionName.World
+        }
+
+        // switch to the globe if not already active
+        if (!isGlobeActive) this.manager.globeController?.showGlobe()
+
+        // focus on the country and rotate to it
         this.manager.globeController?.focusOnCountry(option.value)
         this.manager.globeController?.rotateToCountry(
             option.value,
