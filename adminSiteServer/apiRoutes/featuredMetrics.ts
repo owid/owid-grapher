@@ -1,9 +1,13 @@
-import { JsonError, TagsTableName, MimsTableName } from "@ourworldindata/types"
+import {
+    JsonError,
+    TagsTableName,
+    FeaturedMetricsTableName,
+} from "@ourworldindata/types"
 import { Request } from "express"
 import * as e from "express"
 import * as db from "../../db/db.js"
 
-export async function createMim(
+export async function createFeaturedMetric(
     req: Request,
     _res: e.Response<any, Record<string, any>>,
     _trx: db.KnexReadonlyTransaction
@@ -17,7 +21,7 @@ export async function createMim(
     const { isValid, reason } = await db.validateChartSlug(_trx, url)
 
     if (!isValid) {
-        throw new JsonError(`Invalid MIM URL. ${reason}`, 400)
+        throw new JsonError(`Invalid Featured Metric URL. ${reason}`, 400)
     }
 
     // Get the parentTagId from the parentTagName
@@ -36,7 +40,7 @@ export async function createMim(
     }
     const parentTagId = parentTag.id
 
-    const duplicateMim = await _trx(MimsTableName)
+    const duplicateFeaturedMetric = await _trx(FeaturedMetricsTableName)
         .where({
             url,
             parentTagId,
@@ -44,16 +48,16 @@ export async function createMim(
         })
         .first()
 
-    if (duplicateMim) {
+    if (duplicateFeaturedMetric) {
         throw new JsonError(
-            `MIM with URL "${url}", income group "${incomeGroup}", and parentTagName "${parentTagName}" already exists`,
+            `Featured Metric with URL "${url}", income group "${incomeGroup}", and parentTagName "${parentTagName}" already exists`,
             400
         )
     }
 
     await db.knexRaw(
         _trx,
-        `INSERT INTO mims (url, parentTagId, ranking, incomeGroup)
+        `INSERT INTO ${FeaturedMetricsTableName} (url, parentTagId, ranking, incomeGroup)
          VALUES (?, ?, ?, ?)`,
         [url, parentTagId, ranking, incomeGroup]
     )
@@ -61,62 +65,65 @@ export async function createMim(
     return { success: true }
 }
 
-export async function rerankMims(
+export async function rerankFeaturedMetrics(
     req: Request,
     _res: e.Response<any, Record<string, any>>,
     _trx: db.KnexReadonlyTransaction
 ) {
-    const mims = req.body
+    const featuredMetrics = req.body
 
-    if (!mims || !Array.isArray(mims)) {
+    if (!featuredMetrics || !Array.isArray(featuredMetrics)) {
         throw new JsonError("Invalid payload signature", 400)
     }
 
-    for (const { id, ranking } of mims) {
+    for (const { id, ranking } of featuredMetrics) {
         if (id === undefined || ranking === undefined) {
             throw new JsonError("Missing required fields", 400)
         }
 
-        await db.knexRaw(_trx, `UPDATE mims SET ranking = ? WHERE id = ?`, [
-            ranking,
-            id,
-        ])
+        await db.knexRaw(
+            _trx,
+            `UPDATE ${FeaturedMetricsTableName} SET ranking = ? WHERE id = ?`,
+            [ranking, id]
+        )
     }
 
     return { success: true }
 }
 
-export async function deleteMim(
+export async function deleteFeaturedMetric(
     req: Request,
     _res: e.Response<any, Record<string, any>>,
     _trx: db.KnexReadonlyTransaction
 ) {
     const { id } = req.params
 
-    const mim = await _trx(MimsTableName).where({ id }).first()
-    if (!mim) {
-        throw new JsonError(`No mim found with id '${id}'`, 404)
+    const featuredMetric = await _trx(FeaturedMetricsTableName)
+        .where({ id })
+        .first()
+    if (!featuredMetric) {
+        throw new JsonError(`No Featured Metric found with id '${id}'`, 404)
     }
 
-    await _trx(MimsTableName).where({ id }).delete()
+    await _trx(FeaturedMetricsTableName).where({ id }).delete()
 
-    await _trx(MimsTableName)
+    await _trx(FeaturedMetricsTableName)
         .where({
-            parentTagId: mim.parentTagId,
-            incomeGroup: mim.incomeGroup,
+            parentTagId: featuredMetric.parentTagId,
+            incomeGroup: featuredMetric.incomeGroup,
         })
-        .andWhere("ranking", ">", mim.ranking)
+        .andWhere("ranking", ">", featuredMetric.ranking)
         .decrement("ranking", 1)
 
     return { success: true }
 }
 
-export async function fetchMims(
+export async function fetchFeaturedMetrics(
     _req: Request,
     _res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
 ) {
-    const mims = await db.getMimsByParentTagName(trx)
+    const featuredMetrics = await db.getFeaturedMetricsByParentTagName(trx)
 
-    return { mims }
+    return { featuredMetrics }
 }
