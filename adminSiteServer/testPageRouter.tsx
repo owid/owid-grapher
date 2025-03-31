@@ -34,7 +34,6 @@ import {
     GrapherChartOrMapType,
 } from "@ourworldindata/types"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerChartCreationMode } from "@ourworldindata/explorer"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import {
@@ -46,7 +45,7 @@ import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"
 
-const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+const explorerAdminServer = new ExplorerAdminServer()
 
 const testPageRouter = Router()
 
@@ -808,23 +807,27 @@ getPlainRouteWithROTransaction(
     }
 )
 
-testPageRouter.get("/explorers", async (req, res) => {
-    let explorers = await explorerAdminServer.getAllPublishedExplorers()
-    const viewProps = getViewPropsFromQueryParams(req.query)
-    const chartCreationMode = getChartCreationModeFromQueryParams(req.query)
+getPlainRouteWithROTransaction(
+    testPageRouter,
+    "/explorers",
+    async (req, res, trx) => {
+        let explorers = await explorerAdminServer.getAllPublishedExplorers(trx)
+        const viewProps = getViewPropsFromQueryParams(req.query)
+        const chartCreationMode = getChartCreationModeFromQueryParams(req.query)
 
-    if (chartCreationMode) {
-        explorers = explorers.filter(
-            (explorer) => explorer.chartCreationMode === chartCreationMode
+        if (chartCreationMode) {
+            explorers = explorers.filter(
+                (explorer) => explorer.chartCreationMode === chartCreationMode
+            )
+        }
+
+        const slugs = explorers.map((explorer) => explorer.slug)
+
+        res.send(
+            renderToHtmlPage(<ExplorerTestPage slugs={slugs} {...viewProps} />)
         )
     }
-
-    const slugs = explorers.map((explorer) => explorer.slug)
-
-    res.send(
-        renderToHtmlPage(<ExplorerTestPage slugs={slugs} {...viewProps} />)
-    )
-})
+)
 
 interface ExplorerTestPageProps {
     slugs: string[]

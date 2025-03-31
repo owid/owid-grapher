@@ -44,16 +44,7 @@ export class ExplorerTagsPage extends Component {
             <AdminLayout title="Explorer Tags">
                 <main className="ExplorerTags">
                     <h3>Explorer tags</h3>
-                    <p>
-                        This page is for managing the tags for each explorer.
-                        Explorer data is currently stored in{" "}
-                        <a href="https://github.com/owid/owid-content">git</a>,
-                        but tags are stored in the database, which means it's
-                        hard to strictly enforce{" "}
-                        <a href="https://en.wikipedia.org/wiki/Referential_integrity">
-                            referential integrity.
-                        </a>
-                    </p>
+                    <p>This page is for managing the tags for each explorer.</p>
                     <p>
                         If you update an explorer's slug, you'll need to delete
                         the old row in this table and create a new one for the

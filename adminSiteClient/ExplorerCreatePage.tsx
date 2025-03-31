@@ -20,11 +20,8 @@ import {
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS,
     ExplorerProgram,
-    makeFullPath,
     isEmpty,
 } from "@ourworldindata/explorer"
-import { GitCmsClient } from "../gitCms/GitCmsClient.js"
-import { GIT_CMS_BASE_ROUTE } from "../gitCms/GitCmsConstants.js"
 import { AdminManager } from "./AdminManager.js"
 import {
     AutofillColDefCommand,
@@ -41,7 +38,6 @@ registerAllModules()
 @observer
 export class ExplorerCreatePage extends Component<{
     slug: string
-    gitCmsBranchName: string
     manager?: AdminManager
 }> {
     static contextType = AdminAppContext
@@ -94,14 +90,21 @@ export class ExplorerCreatePage extends Component<{
         this.disposers.forEach((disposer) => disposer())
     }
 
-    private gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)
-
     @action.bound private async fetchExplorerProgramOnLoad() {
         const { slug } = this.props
-        const response = await this.gitCmsClient.readRemoteFile({
-            filepath: makeFullPath(slug),
-        })
-        this.programOnDisk = new ExplorerProgram("", response.content ?? "")
+
+        let response
+        if (slug === "new") {
+            response = { tsv: "" }
+        } else {
+            response = await this.context.admin.requestJSON(
+                `/api/explorers/${slug}`,
+                {},
+                "GET"
+            )
+        }
+
+        this.programOnDisk = new ExplorerProgram("", response.tsv ?? "")
         this.setProgram(this.draftIfAny ?? this.programOnDisk.toString())
         this.isReady = true
         if (this.isModified)
@@ -134,11 +137,17 @@ export class ExplorerCreatePage extends Component<{
     @action.bound private async _save(slug: string, commitMessage: string) {
         this.loadingModalOn()
         this.program.slug = slug
-        const res = await this.gitCmsClient.writeRemoteFile({
-            filepath: this.program.fullPath,
-            content: this.program.toString(),
-            commitMessage,
-        })
+
+        // Call the API to save the explorer
+        const res = await this.context.admin.requestJSON(
+            `/api/explorers/${this.program.slug}`,
+            {
+                tsv: this.program.toString(),
+                commitMessage,
+            },
+            "PUT"
+        )
+
         if (!res.success) {
             alert(`Saving the explorer failed!\n\n${res.error}`)
             return
@@ -152,7 +161,7 @@ export class ExplorerCreatePage extends Component<{
 
     @action.bound private async saveAs() {
         const userSlug = prompt(
-            `Create a slug (URL friendly name) for this explorer. Your new file will be pushed to the '${this.props.gitCmsBranchName}' branch on GitHub.`,
+            `Create a slug (URL friendly name) for this explorer.`,
             this.program.slug
         )
         if (!userSlug) return
@@ -185,7 +194,7 @@ export class ExplorerCreatePage extends Component<{
         let commitMessage
         if (ENV !== "development") {
             commitMessage = prompt(
-                `Enter a message describing this change. Your change will be pushed to the '${this.props.gitCmsBranchName}' on GitHub.`,
+                `Enter a message describing this change.`,
                 `Updated ${this.program.slug}`
             )
             if (!commitMessage) return
@@ -203,8 +212,6 @@ export class ExplorerCreatePage extends Component<{
     @computed get whyIsExplorerProgramInvalid() {
         return this.program.whyIsExplorerProgramInvalid
     }
-
-    @observable gitCmsBranchName = this.props.gitCmsBranchName
 
     @action.bound private onSave() {
         if (this.program.isNewFile) void this.saveAs()
@@ -230,7 +237,7 @@ export class ExplorerCreatePage extends Component<{
                 disabled={!isModified && !isNewFile}
                 className={classNames("btn", "btn-primary")}
                 onClick={this.onSave}
-                title="Saves file to disk, commits and pushes to GitHub"
+                title="Saves explorer"
             >
                 Save
             </button>
@@ -243,7 +250,7 @@ export class ExplorerCreatePage extends Component<{
                 title={
                     isNewFile
                         ? "You need to save this file first."
-                        : "Saves file to disk, commits and pushes to GitHub"
+                        : "Saves as a new explorer"
                 }
                 className={classNames("btn", "btn-secondary")}
                 onClick={this.saveAs}

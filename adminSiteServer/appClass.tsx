@@ -1,4 +1,3 @@
-import { simpleGit } from "simple-git"
 import express, { NextFunction } from "express"
 import * as Sentry from "@sentry/node"
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -25,7 +24,6 @@ import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { getAndLoadGdocById } from "../db/model/Gdoc/GdocFactory.js"
 
 interface OwidAdminAppOptions {
-    gitCmsDir: string
     isDev: boolean
     isTest?: boolean
     quiet?: boolean
@@ -39,19 +37,6 @@ export class OwidAdminApp {
     app = express()
     private options: OwidAdminAppOptions
 
-    private async getGitCmsBranchName() {
-        const git = simpleGit({
-            baseDir: this.options.gitCmsDir,
-            binary: "git",
-            maxConcurrentProcesses: 1,
-        })
-        const branches = await git.branchLocal()
-        const gitCmsBranchName = await branches.current
-        return gitCmsBranchName
-    }
-
-    private gitCmsBranchName = ""
-
     server?: http.Server
     async stopListening() {
         if (!this.server) return
@@ -60,8 +45,6 @@ export class OwidAdminApp {
     }
 
     async startListening(adminServerPort: number, adminServerHost: string) {
-        this.gitCmsBranchName = await this.getGitCmsBranchName()
-
         const { app } = this
 
         // since the server is running behind a reverse proxy (nginx), we need to "trust"
@@ -102,7 +85,6 @@ export class OwidAdminApp {
                         email={res.locals.user.email}
                         username={res.locals.user.fullName}
                         isSuperuser={res.locals.user.isSuperuser}
-                        gitCmsBranchName={this.gitCmsBranchName}
                     />
                 )
             )

@@ -65,11 +65,8 @@ export class Admin {
     @observable loadingIndicatorSetting: "loading" | "off" | "default" =
         "default"
 
-    start(containerNode: HTMLElement, gitCmsBranchName: string): void {
-        ReactDOM.render(
-            <AdminApp admin={this} gitCmsBranchName={gitCmsBranchName} />,
-            containerNode
-        )
+    start(containerNode: HTMLElement): void {
+        ReactDOM.render(<AdminApp admin={this} />, containerNode)
     }
 
     url(path: string): string {

@@ -48,7 +48,6 @@ import {
     OwidGdocMinimalPostInterface,
     ImageMetadata,
 } from "@ourworldindata/utils"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
     EXPLORERS_ROUTE_FOLDER,
     explorerUrlMigrationsById,
@@ -149,7 +148,7 @@ mockSiteRouter.get("/assets/embedCharts.js", async (req, res) => {
     res.contentType("text/javascript").send(generateEmbedSnippet())
 })
 
-const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+const explorerAdminServer = new ExplorerAdminServer()
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
@@ -164,7 +163,8 @@ getPlainRouteWithROTransaction(
     `/${EXPLORERS_ROUTE_FOLDER}/:slug`,
     async (req, res, trx) => {
         res.set("Access-Control-Allow-Origin", "*")
-        const explorers = await explorerAdminServer.getAllPublishedExplorers()
+        const explorers =
+            await explorerAdminServer.getAllPublishedExplorers(trx)
         const explorerProgram = explorers.find(
             (program) => program.slug === req.params.slug
         )
@@ -189,8 +189,10 @@ getPlainRouteWithROTransaction(
 
         const { migrationId, baseQueryStr } = explorerRedirect
         const { explorerSlug } = explorerUrlMigrationsById[migrationId]
-        const program =
-            await explorerAdminServer.getExplorerFromSlug(explorerSlug)
+        const program = await explorerAdminServer.getExplorerFromSlug(
+            trx,
+            explorerSlug
+        )
         const explorerPage = await renderExplorerPage(program, trx, {
             urlMigrationSpec: {
                 explorerUrlMigrationId: migrationId,

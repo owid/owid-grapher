@@ -77,7 +77,6 @@ import {
     getEnrichedChartById,
 } from "../db/model/Chart.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
 import {
     getBlockContentFromSnapshot,
@@ -799,9 +798,11 @@ const getExplorerTitleByUrl = async (
     url: Url
 ): Promise<string | undefined> => {
     if (!url.isExplorer || !url.slug) return
-    // todo / optim: ok to instanciate multiple simple-git?
-    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-    const explorer = await explorerAdminServer.getExplorerFromSlug(url.slug)
+    const explorerAdminServer = new ExplorerAdminServer()
+    const explorer = await explorerAdminServer.getExplorerFromSlug(
+        knex,
+        url.slug
+    )
     if (!explorer) return
 
     if (url.queryStr) {

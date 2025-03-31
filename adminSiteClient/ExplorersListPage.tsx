@@ -18,41 +18,27 @@ import { Component } from "react"
 import {
     DefaultNewExplorerSlug,
     ExplorersRouteResponse,
-    EXPLORERS_GIT_CMS_FOLDER,
     EXPLORERS_PREVIEW_ROUTE,
     EXPLORERS_ROUTE_FOLDER,
     GetAllExplorersRoute,
     UNSAVED_EXPLORER_DRAFT,
     ExplorerProgram,
 } from "@ourworldindata/explorer"
-import { GitCmsClient } from "../gitCms/GitCmsClient.js"
-import {
-    GIT_CMS_BASE_ROUTE,
-    GIT_CMS_DEFAULT_BRANCH,
-    GIT_CMS_REPO_URL,
-} from "../gitCms/GitCmsConstants.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { AdminManager } from "./AdminManager.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-
-// export interface AdminManager {
-//     loadingIndicatorSetting?: "loading" | "off" | "default"
-// }
 
 @observer
 class ExplorerRow extends Component<{
     explorer: ExplorerProgram
     indexPage: ExplorersIndexPage
-    gitCmsBranchName: string
     searchHighlight?: (text: string) => any
 }> {
     render() {
-        const { explorer, searchHighlight, gitCmsBranchName, indexPage } =
-            this.props
+        const { explorer, searchHighlight, indexPage } = this.props
         const {
             slug,
             lastCommit,
-            filename,
             googleSheet,
             isPublished,
             explorerTitle,
@@ -62,16 +48,8 @@ class ExplorerRow extends Component<{
         } = explorer
 
         const publishedUrl = `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`
-        const repoPath = `${GIT_CMS_REPO_URL}/commits/${gitCmsBranchName}/${EXPLORERS_GIT_CMS_FOLDER}/`
-        const lastCommitLink = `${GIT_CMS_REPO_URL}/commit/${lastCommit?.hash}`
 
         const titleToShow = explorerTitle ?? title ?? ""
-
-        const fileHistoryButton = (
-            <a key="explorers" href={repoPath + filename}>
-                Full History
-            </a>
-        )
 
         const googleSheetButton = googleSheet ? (
             <>
@@ -112,10 +90,10 @@ class ExplorerRow extends Component<{
                 <td>
                     <div>{lastCommit?.message}</div>
                     <div style={{ fontSize: "80%", opacity: 0.8 }}>
-                        <a href={lastCommitLink}>
+                        <a>
                             {lastCommit ? dayjs(lastCommit.date).fromNow() : ""}
                         </a>{" "}
-                        by {lastCommit?.author_name} | {fileHistoryButton}
+                        by {lastCommit?.author_name}
                         {googleSheetButton}
                     </div>
                 </td>
@@ -132,9 +110,7 @@ class ExplorerRow extends Component<{
                 <td>
                     <button
                         className="btn btn-danger"
-                        onClick={() =>
-                            indexPage.togglePublishedStatus(filename)
-                        }
+                        onClick={() => indexPage.togglePublishedStatus(slug)}
                     >
                         {isPublished ? "Unpublish" : "Publish"}
                     </button>
@@ -142,7 +118,7 @@ class ExplorerRow extends Component<{
                 <td>
                     <button
                         className="btn btn-danger"
-                        onClick={() => indexPage.deleteFile(filename)}
+                        onClick={() => indexPage.deleteExplorer(slug)}
                     >
                         Delete{" "}
                     </button>
@@ -157,7 +133,6 @@ class ExplorerList extends Component<{
     explorers: ExplorerProgram[]
     searchHighlight?: (text: string) => any
     indexPage: ExplorersIndexPage
-    gitCmsBranchName: string
 }> {
     render() {
         const { props } = this
@@ -180,7 +155,6 @@ class ExplorerList extends Component<{
                             key={explorer.slug}
                             explorer={explorer}
                             searchHighlight={props.searchHighlight}
-                            gitCmsBranchName={props.gitCmsBranchName}
                         />
                     ))}
                 </tbody>
@@ -197,12 +171,10 @@ export class ExplorersIndexPage extends Component<{
     context!: AdminAppContextType
 
     @observable explorers: ExplorerProgram[] = []
-    @observable needsPull = false
     @observable maxVisibleRows = 50
     @observable numTotalRows?: number
     @observable searchInput?: string
     @observable highlightSearch?: string
-    private gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)
 
     @computed get explorersToShow(): ExplorerProgram[] {
         return orderBy(
@@ -214,12 +186,6 @@ export class ExplorersIndexPage extends Component<{
 
     @action.bound onShowMore() {
         this.maxVisibleRows += 100
-    }
-
-    @action.bound private async pullFromGithub() {
-        const result = await this.gitCmsClient.pullFromGithub()
-        alert(JSON.stringify(result))
-        window.location.reload()
     }
 
     render() {
@@ -253,13 +219,6 @@ export class ExplorersIndexPage extends Component<{
                     </div>
                     <div style={{ textAlign: "right" }}>
                         <a
-                            className="btn btn-secondary"
-                            href="#"
-                            onClick={this.pullFromGithub}
-                        >
-                            Pull updates from GitHub
-                        </a>{" "}
-                        <a
                             className="btn btn-primary"
                             href={`/admin/${EXPLORERS_ROUTE_FOLDER}/${DefaultNewExplorerSlug}`}
                         >
@@ -271,20 +230,12 @@ export class ExplorersIndexPage extends Component<{
                     explorers={explorersToShow}
                     searchHighlight={highlight}
                     indexPage={this}
-                    gitCmsBranchName={this.gitCmsBranchName}
                 />
-                <a
-                    href={`${GIT_CMS_REPO_URL}/commits/${this.gitCmsBranchName}`}
-                >
-                    See branch '{this.gitCmsBranchName}' history on GitHub
-                </a>
                 <br />
                 <br />
             </main>
         )
     }
-
-    @observable gitCmsBranchName = GIT_CMS_DEFAULT_BRANCH
 
     @observable isReady = false
 
@@ -294,7 +245,6 @@ export class ExplorersIndexPage extends Component<{
         const response = await fetch(`/admin/${GetAllExplorersRoute}`)
         const json = (await response.json()) as ExplorersRouteResponse
         if (!json.success) alert(JSON.stringify(json.errorMessage))
-        this.needsPull = json.needsPull
         this.isReady = true
         runInAction(() => {
             if (searchInput === this.searchInput) {
@@ -304,7 +254,6 @@ export class ExplorersIndexPage extends Component<{
                 )
                 this.numTotalRows = json.explorers.length
                 this.highlightSearch = searchInput
-                this.gitCmsBranchName = json.gitCmsBranchName
             }
         })
     }
@@ -321,29 +270,43 @@ export class ExplorersIndexPage extends Component<{
         this.manager.loadingIndicatorSetting = "default"
     }
 
-    @action.bound async togglePublishedStatus(filename: string) {
-        const explorer = this.explorers.find(
-            (exp) => exp.filename === filename
-        )!
+    @action.bound async togglePublishedStatus(slug: string) {
+        const explorer = this.explorers.find((exp) => exp.slug === slug)!
         const newVersion = explorer.setPublished(!explorer.isPublished)
 
         this.loadingModalOn()
-        await this.gitCmsClient.writeRemoteFile({
-            filepath: newVersion.fullPath,
-            content: newVersion.toString(),
-            commitMessage: `Setting publish status of ${filename} to ${newVersion.isPublished}`,
-        })
+
+        // Call the API to save the explorer
+        const commitMessage = `Setting publish status of ${explorer.slug} to ${newVersion.isPublished}`
+
+        const res = await this.context.admin.requestJSON(
+            `/api/explorers/${explorer.slug}`,
+            {
+                tsv: newVersion.toString(),
+                commitMessage: commitMessage,
+            },
+            "PUT"
+        )
+
+        if (!res.success) {
+            alert(`Saving the explorer failed!\n\n${res.error}`)
+            return
+        }
+
         this.resetLoadingModal()
         await this.fetchAllExplorers()
     }
 
-    @action.bound async deleteFile(filename: string) {
-        if (!confirm(`Are you sure you want to delete "${filename}"?`)) return
+    @action.bound async deleteExplorer(slug: string) {
+        if (!confirm(`Are you sure you want to delete "${slug}"?`)) return
 
         this.loadingModalOn()
-        await this.gitCmsClient.deleteRemoteFile({
-            filepath: `${EXPLORERS_GIT_CMS_FOLDER}/${filename}`,
-        })
+
+        await this.context.admin.requestJSON(
+            `/api/explorers/${slug}`,
+            {},
+            "DELETE"
+        )
         this.resetLoadingModal()
         await this.fetchAllExplorers()
     }

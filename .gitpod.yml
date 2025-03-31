@@ -21,7 +21,6 @@ tasks:
           mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY '';"
           nvm install
           npm install -g yarn
-          git clone https://github.com/owid/owid-content
           yarn install
           cp .env.example .env && echo $'\n' >> .env
           tsc -b

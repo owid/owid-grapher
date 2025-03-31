@@ -25,7 +25,13 @@ import {
     deleteDataset,
     republishCharts,
 } from "./apiRoutes/datasets.js"
-import { addExplorerTags, deleteExplorerTags } from "./apiRoutes/explorer.js"
+import {
+    addExplorerTags,
+    deleteExplorerTags,
+    handleGetExplorer,
+    handlePutExplorer,
+    handleDeleteExplorer,
+} from "./apiRoutes/explorer.js"
 import {
     getAllGdocIndexItems,
     getIndividualGdoc,
@@ -297,6 +303,15 @@ putRouteWithRWTransaction(
     handlePutMultiDim
 )
 patchRouteWithRWTransaction(apiRouter, "/multi-dims/:id", handlePatchMultiDim)
+
+// Explorer routes
+getRouteWithROTransaction(apiRouter, "/explorers/:slug", handleGetExplorer)
+putRouteWithRWTransaction(apiRouter, "/explorers/:slug", handlePutExplorer)
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/explorers/:slug",
+    handleDeleteExplorer
+)
 
 // Misc routes
 getRouteWithROTransaction(apiRouter, "/all-work", fetchAllWork)

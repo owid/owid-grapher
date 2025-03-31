@@ -131,7 +131,7 @@ export const bakeAllPublishedExplorers = async (
     await fs.remove(outputFolder)
     await fs.mkdirp(outputFolder)
 
-    const published = await explorerAdminServer.getAllPublishedExplorers()
+    const published = await explorerAdminServer.getAllPublishedExplorers(knex)
     await bakeExplorersToDir(outputFolder, published, knex)
 }
 
@@ -153,7 +153,7 @@ export const bakeAllExplorerRedirects = async (
     explorerAdminServer: ExplorerAdminServer,
     knex: db.KnexReadonlyTransaction
 ) => {
-    const explorers = await explorerAdminServer.getAllExplorers()
+    const explorers = await explorerAdminServer.getAllExplorers(knex)
     const redirects = explorerRedirectTable.rows
     for (const redirect of redirects) {
         const { migrationId, path: redirectPath, baseQueryStr } = redirect
