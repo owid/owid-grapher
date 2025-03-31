@@ -26,6 +26,8 @@ import {
     DataCatalogState,
     createActions,
     CatalogComponentId,
+    DEFAULT_COMPONENTS,
+    CatalogContentType,
 } from "./DataCatalogState.js"
 import { TopicsRefinementListWrapper } from "./TopicsRefinementListWrapper.js"
 import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
@@ -36,6 +38,7 @@ import { DataCatalogDataInsights } from "./DataCatalogDataInsights.js"
 import { DataCatalogSettings } from "./DataCatalogSettings.js"
 import { DataCatalogHighlights } from "./DataCatalogHighlights.js"
 import { ScrollDirection, useScrollDirection } from "../hooks.js"
+import { ContentTypeToggle } from "./ContentTypeToggle.js"
 
 export const DataCatalog = ({
     initialState,
@@ -124,6 +127,12 @@ export const DataCatalog = ({
 
     // Components that can be reordered and toggled
     const componentMap: Record<CatalogComponentId, JSX.Element> = {
+        [CatalogComponentId.CONTENT_TYPE_TOGGLE]: (
+            <ContentTypeToggle
+                contentTypeFilter={state.contentTypeFilter}
+                setContentTypeFilter={actions.setContentTypeFilter}
+            />
+        ),
         [CatalogComponentId.APPLIED_FILTERS]: (
             <AppliedTopicFiltersList
                 topics={state.topics}
@@ -171,6 +180,23 @@ export const DataCatalog = ({
         ),
     }
 
+    // Helper function to check if a component should be shown based on content type
+    const shouldShowComponent = (id: CatalogComponentId): boolean => {
+        // Check if component is visible
+        if (!state.componentVisibility[id]) return false
+
+        // Always show if filter is set to ALL
+        if (state.contentTypeFilter === CatalogContentType.ALL) return true
+
+        // Find component config
+        const component = DEFAULT_COMPONENTS.find((c) => c.id === id)
+
+        // If component has no type specified or type includes the selected filter, show it
+        return (
+            !component?.type || component.type.includes(state.contentTypeFilter)
+        )
+    }
+
     return (
         <>
             <div
@@ -213,12 +239,10 @@ export const DataCatalog = ({
                 )}
             </div>
 
-            {/* Render components according to the configured order and visibility */}
-            {state.componentOrder
-                .filter((id) => state.componentVisibility[id])
-                .map((id) => (
-                    <React.Fragment key={id}>{componentMap[id]}</React.Fragment>
-                ))}
+            {/* Render components according to component order, visibility and type filter */}
+            {state.componentOrder.filter(shouldShowComponent).map((id) => (
+                <React.Fragment key={id}>{componentMap[id]}</React.Fragment>
+            ))}
 
             <DataCatalogSettings
                 componentOrder={state.componentOrder}

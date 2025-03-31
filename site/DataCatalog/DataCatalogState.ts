@@ -9,6 +9,7 @@ export enum CatalogComponentId {
     DATA_INSIGHTS = "dataInsights",
     HIGHLIGHTS = "highlights",
     RESULTS = "results",
+    CONTENT_TYPE_TOGGLE = "contentTypeToggle",
 }
 
 // Define component style options
@@ -25,6 +26,13 @@ export enum SearchRelaxationMode {
     ALL_OPTIONAL = "allOptional",
 }
 
+// Define content type filter options
+export enum CatalogContentType {
+    ALL = "all",
+    DATA = "data",
+    WRITING = "writing",
+}
+
 export type DataCatalogState = Readonly<{
     query: string
     topics: Set<string>
@@ -37,6 +45,7 @@ export type DataCatalogState = Readonly<{
     componentStyles: Record<CatalogComponentId, CatalogComponentStyle>
     isStickyHeader: boolean
     searchRelaxationMode: SearchRelaxationMode
+    contentTypeFilter: CatalogContentType
 }>
 
 export interface ComponentConfig {
@@ -45,6 +54,7 @@ export interface ComponentConfig {
     visible: boolean
     maxItems?: number
     style?: CatalogComponentStyle
+    type?: CatalogContentType[]
 }
 
 // Define available components with default order
@@ -53,6 +63,11 @@ export const DEFAULT_COMPONENTS: ComponentConfig[] = [
         id: CatalogComponentId.APPLIED_FILTERS,
         name: "Applied Filters",
         visible: false,
+    },
+    {
+        id: CatalogComponentId.CONTENT_TYPE_TOGGLE,
+        name: "Content Type Filter",
+        visible: true,
     },
     {
         id: CatalogComponentId.TOPICS_REFINEMENT,
@@ -64,18 +79,21 @@ export const DEFAULT_COMPONENTS: ComponentConfig[] = [
         name: "Data Insights",
         visible: true,
         maxItems: 2,
+        type: [CatalogContentType.DATA, CatalogContentType.WRITING],
     },
     {
         id: CatalogComponentId.HIGHLIGHTS,
         name: "Highlights",
         visible: true,
         maxItems: 2,
+        type: [CatalogContentType.DATA],
     },
     {
         id: CatalogComponentId.RESULTS,
         name: "Results",
         visible: true,
         style: CatalogComponentStyle.GRID,
+        type: [CatalogContentType.DATA],
     },
 ]
 
@@ -153,6 +171,11 @@ type SetSearchRelaxationModeAction = {
     payload: SearchRelaxationMode
 }
 
+type SetContentTypeFilterAction = {
+    type: "setContentTypeFilter"
+    payload: CatalogContentType
+}
+
 export type DataCatalogAction =
     | AddCountryAction
     | AddTopicAction
@@ -168,6 +191,7 @@ export type DataCatalogAction =
     | SetComponentStyleAction
     | ToggleStickyHeaderAction
     | SetSearchRelaxationModeAction
+    | SetContentTypeFilterAction
 
 export function dataCatalogReducer(
     state: DataCatalogState,
@@ -253,6 +277,10 @@ export function dataCatalogReducer(
             ...state,
             searchRelaxationMode: payload,
         }))
+        .with({ type: "setContentTypeFilter" }, ({ payload }) => ({
+            ...state,
+            contentTypeFilter: payload,
+        }))
         .exhaustive()
 }
 
@@ -275,6 +303,7 @@ export function createActions(dispatch: (action: DataCatalogAction) => void) {
             dispatch({ type: "setComponentStyle", payload: { componentId, style } }),
         toggleStickyHeader: () => dispatch({ type: "toggleStickyHeader" }),
         setSearchRelaxationMode: (mode: SearchRelaxationMode) => dispatch({ type: "setSearchRelaxationMode", payload: mode }),
+        setContentTypeFilter: (filter: CatalogContentType) => dispatch({ type: "setContentTypeFilter", payload: filter }),
     }
 }
 
@@ -321,6 +350,7 @@ export function getInitialDatacatalogState(): DataCatalogState {
             componentStyles: getDefaultComponentStyles(),
             isStickyHeader: true,
             searchRelaxationMode: SearchRelaxationMode.ALL_OPTIONAL,
+            contentTypeFilter: CatalogContentType.ALL,
         }
 
     const url = Url.fromURL(window.location.href)
@@ -365,6 +395,9 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
         searchRelaxationMode:
             (url.queryParams.searchRelaxation as SearchRelaxationMode) ||
             SearchRelaxationMode.ALL_OPTIONAL,
+        contentTypeFilter:
+            (url.queryParams.contentType as CatalogContentType) ||
+            CatalogContentType.ALL,
     }
 }
 
@@ -404,6 +437,10 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
         searchRelaxation:
             state.searchRelaxationMode !== SearchRelaxationMode.ALL_OPTIONAL
                 ? state.searchRelaxationMode
+                : undefined,
+        contentType:
+            state.contentTypeFilter !== CatalogContentType.ALL
+                ? state.contentTypeFilter
                 : undefined,
     }
 
