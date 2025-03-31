@@ -2,7 +2,7 @@ import { Region } from "@ourworldindata/utils"
 import { SelectedCountriesPills } from "./SelectedCountriesPills.js"
 import { DataCatalogCountrySelector } from "./DataCatalogCountrySelector.js"
 import { DataCatalogAutocomplete } from "./DataCatalogAutocomplete.js"
-import { SearchRelaxationMode } from "./DataCatalogState.js"
+import { QueryType, SearchRelaxationMode } from "./DataCatalogState.js"
 
 export const DataCatalogSearchbar = ({
     selectedCountries,
@@ -15,6 +15,7 @@ export const DataCatalogSearchbar = ({
     toggleRequireAllCountries,
     addTopic,
     searchRelaxationMode,
+    queryType,
 }: {
     selectedCountries: Region[]
     selectedCountryNames: Set<string>
@@ -26,6 +27,7 @@ export const DataCatalogSearchbar = ({
     toggleRequireAllCountries: () => void
     addTopic: (topic: string) => void
     searchRelaxationMode: SearchRelaxationMode
+    queryType: QueryType
 }) => {
     // Uses CSS to fake an input bar that will highlight correctly using :focus-within
     // without highlighting when the country selector is focused
@@ -44,6 +46,7 @@ export const DataCatalogSearchbar = ({
                     addCountry={addCountry}
                     addTopic={addTopic}
                     searchRelaxationMode={searchRelaxationMode}
+                    queryType={queryType}
                 />
             </div>
             <DataCatalogCountrySelector

@@ -227,6 +227,7 @@ export const DataCatalog = ({
                             actions.toggleRequireAllCountries
                         }
                         searchRelaxationMode={state.searchRelaxationMode}
+                        queryType={state.queryType}
                     />
                 </div>
                 {!state.componentVisibility[
@@ -257,6 +258,8 @@ export const DataCatalog = ({
                 toggleStickyHeader={actions.toggleStickyHeader}
                 searchRelaxationMode={state.searchRelaxationMode}
                 setSearchRelaxationMode={actions.setSearchRelaxationMode}
+                queryType={state.queryType}
+                setQueryType={actions.setQueryType}
             />
         </>
     )

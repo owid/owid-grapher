@@ -21,6 +21,7 @@ import {
     Radio,
     RadioGroup,
     FormLabel,
+    FormHelperText,
 } from "@mui/material"
 import SettingsIcon from "@mui/icons-material/Settings"
 import {
@@ -28,6 +29,7 @@ import {
     CatalogComponentId,
     CatalogComponentStyle,
     SearchRelaxationMode,
+    QueryType,
 } from "./DataCatalogState"
 import ArrowUpward from "@mui/icons-material/ArrowUpward"
 import ArrowDownward from "@mui/icons-material/ArrowDownward"
@@ -41,12 +43,14 @@ export const DataCatalogSettings = ({
     componentStyles,
     isStickyHeader,
     searchRelaxationMode,
+    queryType,
     updateComponentOrder,
     toggleComponentVisibility,
     setComponentCount,
     setComponentStyle,
     toggleStickyHeader,
     setSearchRelaxationMode,
+    setQueryType,
 }: {
     componentOrder: CatalogComponentId[]
     componentVisibility: Record<CatalogComponentId, boolean>
@@ -54,6 +58,7 @@ export const DataCatalogSettings = ({
     componentStyles: Record<CatalogComponentId, CatalogComponentStyle>
     isStickyHeader: boolean
     searchRelaxationMode: SearchRelaxationMode
+    queryType: QueryType
     updateComponentOrder: (order: CatalogComponentId[]) => void
     toggleComponentVisibility: (id: CatalogComponentId) => void
     setComponentCount: (id: CatalogComponentId, count: number) => void
@@ -63,6 +68,7 @@ export const DataCatalogSettings = ({
     ) => void
     toggleStickyHeader: () => void
     setSearchRelaxationMode: (mode: SearchRelaxationMode) => void
+    setQueryType: (type: QueryType) => void
 }) => {
     const [open, setOpen] = useState(false)
 
@@ -248,6 +254,69 @@ export const DataCatalogSettings = ({
                                                     }
                                                     label="All words optional"
                                                 />
+                                            </RadioGroup>
+                                        </FormControl>
+                                    </Box>
+                                </ListItem>
+
+                                <ListItem>
+                                    <Box sx={{ width: "100%" }}>
+                                        <FormControl component="fieldset">
+                                            <FormLabel component="legend">
+                                                Query Type
+                                            </FormLabel>
+                                            <RadioGroup
+                                                value={queryType}
+                                                onChange={(e) =>
+                                                    setQueryType(
+                                                        e.target
+                                                            .value as QueryType
+                                                    )
+                                                }
+                                            >
+                                                <FormControlLabel
+                                                    value={QueryType.PREFIX_ALL}
+                                                    control={
+                                                        <Radio size="small" />
+                                                    }
+                                                    label="prefixAll"
+                                                />
+                                                <FormHelperText>
+                                                    Every word in the query is a
+                                                    prefix.
+                                                </FormHelperText>
+
+                                                <FormControlLabel
+                                                    value={
+                                                        QueryType.PREFIX_LAST
+                                                    }
+                                                    control={
+                                                        <Radio size="small" />
+                                                    }
+                                                    label="prefixLast"
+                                                />
+                                                <FormHelperText>
+                                                    Only the last word in the
+                                                    query is treated as a
+                                                    prefix. Other words in the
+                                                    query must be complete
+                                                    matches.
+                                                </FormHelperText>
+
+                                                <FormControlLabel
+                                                    value={
+                                                        QueryType.PREFIX_NONE
+                                                    }
+                                                    control={
+                                                        <Radio size="small" />
+                                                    }
+                                                    label="prefixNone"
+                                                />
+                                                <FormHelperText>
+                                                    Prefix search is turned off.
+                                                    Only matches with full words
+                                                    are considered.
+                                                </FormHelperText>
                                             </RadioGroup>
                                         </FormControl>
                                     </Box>

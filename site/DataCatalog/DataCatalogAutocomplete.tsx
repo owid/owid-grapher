@@ -30,7 +30,7 @@ import {
     pageTypeDisplayNames,
     PageType,
 } from "../search/searchTypes.js"
-import { SearchRelaxationMode } from "./DataCatalogState"
+import { QueryType, SearchRelaxationMode } from "./DataCatalogState"
 import { CountryPill } from "./CountryPill"
 import { TopicPill } from "./TopicPill"
 
@@ -206,7 +206,8 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
 const CountriesSource = (
     addCountry: (country: string) => void,
     clearSearch: () => void,
-    searchRelaxationMode: SearchRelaxationMode
+    searchRelaxationMode: SearchRelaxationMode,
+    queryType: QueryType
 ): AutocompleteSource<BaseItem> => {
     return {
         sourceId: "countries",
@@ -232,7 +233,7 @@ const CountriesSource = (
                             filters: "type:country",
                             removeWordsIfNoResults: searchRelaxationMode,
                             restrictSearchableAttributes: ["title"],
-                            queryType: "prefixAll",
+                            queryType: queryType,
                         },
                     },
                 ],
@@ -268,7 +269,8 @@ const CountriesSource = (
 const TopicsSource = (
     addTopic: (topic: string) => void,
     clearSearch: () => void,
-    searchRelaxationMode: SearchRelaxationMode
+    searchRelaxationMode: SearchRelaxationMode,
+    queryType: QueryType
 ): AutocompleteSource<BaseItem> => {
     return {
         sourceId: "topics",
@@ -308,7 +310,7 @@ const TopicsSource = (
                             // Guinea" returns topics where the word new is used
                             // in the excerpt).
                             restrictSearchableAttributes: ["title"],
-                            queryType: "prefixAll",
+                            queryType: queryType,
                         },
                     },
                 ],
@@ -458,6 +460,7 @@ export function DataCatalogAutocomplete({
     addCountry,
     addTopic,
     searchRelaxationMode,
+    queryType,
 }: {
     onActivate?: () => void
     onClose?: () => void
@@ -470,6 +473,7 @@ export function DataCatalogAutocomplete({
     addCountry: (country: string) => void
     addTopic: (topic: string) => void
     searchRelaxationMode: SearchRelaxationMode
+    queryType: QueryType
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -547,7 +551,8 @@ export function DataCatalogAutocomplete({
                             CountriesSource(
                                 addCountryRef.current,
                                 clearSearch,
-                                searchRelaxationMode
+                                searchRelaxationMode,
+                                queryType
                             )
                         )
                     }
@@ -556,7 +561,8 @@ export function DataCatalogAutocomplete({
                             TopicsSource(
                                 addTopicRef.current,
                                 clearSearch,
-                                searchRelaxationMode
+                                searchRelaxationMode,
+                                queryType
                             )
                         )
                     }
@@ -661,6 +667,7 @@ export function DataCatalogAutocomplete({
         containerRef,
         query,
         searchRelaxationMode,
+        queryType,
     ])
 
     // Sync external query changes (from the URL) to the input

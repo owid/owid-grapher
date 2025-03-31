@@ -33,6 +33,12 @@ export enum CatalogContentType {
     WRITING = "writing",
 }
 
+export enum QueryType {
+    PREFIX_ALL = "prefixAll",
+    PREFIX_LAST = "prefixLast",
+    PREFIX_NONE = "prefixNone",
+}
+
 export type DataCatalogState = Readonly<{
     query: string
     topics: Set<string>
@@ -46,6 +52,7 @@ export type DataCatalogState = Readonly<{
     isStickyHeader: boolean
     searchRelaxationMode: SearchRelaxationMode
     contentTypeFilter: CatalogContentType
+    queryType: QueryType
 }>
 
 export interface ComponentConfig {
@@ -176,6 +183,11 @@ type SetContentTypeFilterAction = {
     payload: CatalogContentType
 }
 
+type SetQueryTypeAction = {
+    type: "setQueryType"
+    payload: QueryType
+}
+
 export type DataCatalogAction =
     | AddCountryAction
     | AddTopicAction
@@ -192,6 +204,7 @@ export type DataCatalogAction =
     | ToggleStickyHeaderAction
     | SetSearchRelaxationModeAction
     | SetContentTypeFilterAction
+    | SetQueryTypeAction
 
 export function dataCatalogReducer(
     state: DataCatalogState,
@@ -281,6 +294,10 @@ export function dataCatalogReducer(
             ...state,
             contentTypeFilter: payload,
         }))
+        .with({ type: "setQueryType" }, ({ payload }) => ({
+            ...state,
+            queryType: payload,
+        }))
         .exhaustive()
 }
 
@@ -304,6 +321,7 @@ export function createActions(dispatch: (action: DataCatalogAction) => void) {
         toggleStickyHeader: () => dispatch({ type: "toggleStickyHeader" }),
         setSearchRelaxationMode: (mode: SearchRelaxationMode) => dispatch({ type: "setSearchRelaxationMode", payload: mode }),
         setContentTypeFilter: (filter: CatalogContentType) => dispatch({ type: "setContentTypeFilter", payload: filter }),
+        setQueryType: (type: QueryType) => dispatch({ type: "setQueryType", payload: type }),
     }
 }
 
@@ -351,6 +369,7 @@ export function getInitialDatacatalogState(): DataCatalogState {
             isStickyHeader: true,
             searchRelaxationMode: SearchRelaxationMode.ALL_OPTIONAL,
             contentTypeFilter: CatalogContentType.ALL,
+            queryType: QueryType.PREFIX_ALL,
         }
 
     const url = Url.fromURL(window.location.href)
@@ -398,6 +417,8 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
         contentTypeFilter:
             (url.queryParams.contentType as CatalogContentType) ||
             CatalogContentType.ALL,
+        queryType:
+            (url.queryParams.queryType as QueryType) || QueryType.PREFIX_ALL,
     }
 }
 
@@ -441,6 +462,10 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
         contentType:
             state.contentTypeFilter !== CatalogContentType.ALL
                 ? state.contentTypeFilter
+                : undefined,
+        queryType:
+            state.queryType !== QueryType.PREFIX_ALL
+                ? state.queryType
                 : undefined,
     }
 
