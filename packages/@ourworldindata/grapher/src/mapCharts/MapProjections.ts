@@ -4,10 +4,10 @@ import {
     geoAzimuthalEqualArea,
     GeoPath,
 } from "d3-geo"
-import { MapProjectionName } from "@ourworldindata/types"
+import { MapRegionName } from "@ourworldindata/types"
 import { geoRobinson, geoPatterson } from "./d3-geo-projection.js"
 
-export const MapProjectionLabels: Record<MapProjectionName, string> = {
+export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
     World: "World",
     Africa: "Africa",
     NorthAmerica: "North America",
@@ -17,7 +17,7 @@ export const MapProjectionLabels: Record<MapProjectionName, string> = {
     Oceania: "Oceania",
 }
 
-export const MapProjectionGeos: { [key in MapProjectionName]: GeoPath } = {
+export const MapProjectionGeos: { [key in MapRegionName]: GeoPath } = {
     World: geoPath().projection(geoRobinson()),
 
     Africa: geoPath().projection(

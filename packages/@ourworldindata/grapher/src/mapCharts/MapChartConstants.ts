@@ -1,7 +1,7 @@
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { Bounds, PointVector, ColumnSlug } from "@ourworldindata/utils"
 import {
-    MapProjectionName,
+    MapRegionName,
     Color,
     Time,
     GrapherChartType,
@@ -38,7 +38,7 @@ export interface ChoroplethSeries extends ChartSeries {
 export interface ChoroplethMapManager {
     choroplethData: Map<SeriesName, ChoroplethSeries>
     choroplethMapBounds: Bounds
-    projection: MapProjectionName
+    region: MapRegionName
     noDataColor: string
     focusBracket?: MapBracket
     focusEntity?: MapEntity
@@ -76,8 +76,8 @@ export interface MapViewport {
     height: number
 }
 
-/** Viewport for each projection, defined by center and width+height in fractional coordinates */
-export const MAP_VIEWPORTS: Record<MapProjectionName, MapViewport> = {
+/** Viewport for each region, defined by center and width+height in fractional coordinates */
+export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
     World: {
         x: 0.565,
         y: 0.5,

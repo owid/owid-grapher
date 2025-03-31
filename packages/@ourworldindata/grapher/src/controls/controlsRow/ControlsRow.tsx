@@ -10,9 +10,9 @@ import {
     EntitySelectionManager,
 } from "../EntitySelectionToggle"
 import {
-    MapProjectionMenu,
-    MapProjectionMenuManager,
-} from "../MapProjectionMenu"
+    MapRegionDropdown,
+    MapRegionDropdownManager,
+} from "../MapRegionDropdown"
 import { SettingsMenu, SettingsMenuManager } from "../SettingsMenu"
 import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
@@ -22,7 +22,7 @@ import {
 export interface ControlsRowManager
     extends ContentSwitchersManager,
         EntitySelectionManager,
-        MapProjectionMenuManager,
+        MapRegionDropdownManager,
         SettingsMenuManager {
     sidePanelBounds?: Bounds
     showEntitySelectionToggle?: boolean
@@ -70,7 +70,7 @@ export class ControlsRow extends Component<{
         return (
             SettingsMenu.shouldShow(this.manager) ||
             EntitySelectionToggle.shouldShow(this.manager) ||
-            MapProjectionMenu.shouldShow(this.manager) ||
+            MapRegionDropdown.shouldShow(this.manager) ||
             this.showContentSwitchers
         )
     }
@@ -103,7 +103,7 @@ export class ControlsRow extends Component<{
                             this.sidePanelWidth + this.framePaddingHorizontal
                         }
                     />
-                    <MapProjectionMenu
+                    <MapRegionDropdown
                         manager={this.manager}
                         maxWidth={this.availableWidth}
                     />

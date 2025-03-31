@@ -1,17 +1,17 @@
 import { regions, getContinents, lazy } from "@ourworldindata/utils"
-import { MapProjectionName } from "@ourworldindata/types"
+import { MapRegionName } from "@ourworldindata/types"
 
 // A map of the form:
 // - Africa: [Algeria, Angola, ...]
 // - NorthAmerica: [Canada, United States, ...]
-const countriesByProjectionMap = lazy(
+const countriesByRegionMap = lazy(
     () =>
         new Map(
             getContinents().map(({ name: continentName, members }) => {
                 const continentNameNoSpace = continentName.replace(
                     / /,
                     ""
-                ) as MapProjectionName
+                ) as MapRegionName
                 return [
                     continentNameNoSpace,
                     new Set(
@@ -25,6 +25,6 @@ const countriesByProjectionMap = lazy(
         )
 )
 
-export const getCountriesByProjection = (
-    projection: MapProjectionName
-): Set<string> | undefined => countriesByProjectionMap().get(projection)
+export const getCountriesByRegion = (
+    region: MapRegionName
+): Set<string> | undefined => countriesByRegionMap().get(region)
