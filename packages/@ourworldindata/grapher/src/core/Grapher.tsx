@@ -3376,6 +3376,15 @@ export class Grapher
         }
     }
 
+    @action.bound private switchToGlobeIfRegionSelectedByDefault(): void {
+        if (
+            this.map.region !== MapRegionName.World &&
+            this.shouldUseSimpleMapSearch
+        ) {
+            this.globeController.showGlobe()
+        }
+    }
+
     componentDidMount(): void {
         this.setBaseFontSize()
         this.setUpIntersectionObserver()
@@ -3403,6 +3412,8 @@ export class Grapher
         )
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
+
+        this.switchToGlobeIfRegionSelectedByDefault()
     }
 
     private _shortcutsBound = false
@@ -3739,9 +3750,17 @@ export class Grapher
     timelineController = new TimelineController(this)
     globeController = new GlobeController(this.mapConfig.globe)
 
-    @action.bound onTimelineClick(): void {
+    private dismissTooltip(): void {
         const tooltip = this.tooltip?.get()
         if (tooltip) tooltip.dismiss?.()
+    }
+
+    @action.bound onTimelineClick(): void {
+        this.dismissTooltip()
+    }
+
+    @action.bound onMapCountryDropdownFocus(): void {
+        this.dismissTooltip()
     }
 
     // todo: restore this behavior??
