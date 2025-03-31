@@ -83,7 +83,10 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get globeController(): GlobeController {
-        return this.manager.globeController
+        return (
+            this.manager.globeController ??
+            new GlobeController(this.mapConfig.globe)
+        )
     }
 
     @computed.struct private get bounds(): Bounds {

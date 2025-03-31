@@ -68,7 +68,7 @@ export interface ChoroplethMapManager {
 }
 
 export interface ChoroplethGlobeManager extends ChoroplethMapManager {
-    globeController: GlobeController
+    globeController?: GlobeController
 }
 
 export enum RenderFeatureType {
@@ -105,7 +105,7 @@ export interface MapChartManager extends ChartManager {
     mapConfig?: MapConfig
     endTime?: Time
     title?: string
-    globeController: GlobeController
+    globeController?: GlobeController
     shouldUseSimpleMapSearch?: boolean
 }
 
