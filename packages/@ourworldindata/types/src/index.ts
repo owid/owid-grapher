@@ -571,13 +571,13 @@ export {
     ImagesTableName,
 } from "./dbTypes/Images.js"
 export {
-    type DbInsertMim,
-    type DbPlainMim,
-    MimIncomeGroup,
-    MimsTableName,
-    type DbPlainMimWithParentTagName,
-    type MimByParentTagNameDictionary,
-} from "./dbTypes/Mims.js"
+    type DbInsertFeaturedMetric,
+    type DbPlainFeaturedMetric,
+    FeaturedMetricIncomeGroup,
+    FeaturedMetricsTableName,
+    type DbPlainFeaturedMetricWithParentTagName,
+    type FeaturedMetricByParentTagNameDictionary,
+} from "./dbTypes/FeaturedMetrics.js"
 export {
     type DbEnrichedMultiDimDataPage,
     type DbInsertMultiDimDataPage,

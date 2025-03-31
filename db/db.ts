@@ -36,8 +36,11 @@ import {
     PostsGdocsTableName,
     OwidGdocBaseInterface,
     TagGraphRoot,
-    MimByParentTagNameDictionary,
+    FeaturedMetricByParentTagNameDictionary,
     ChartConfigsTableName,
+    FeaturedMetricsTableName,
+    TagsTableName,
+    TagGraphTableName,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -941,14 +944,14 @@ const getAllAreaAndTopicTagNames = async (
         `-- sql
         WITH topic_tags AS (
             SELECT name
-            FROM tags
+            FROM ${TagsTableName}
             WHERE slug IS NOT NULL
         ),
         area_tags AS (
             SELECT t.name
-            FROM tags t
-            JOIN tag_graph tg ON tg.childId = t.id
-            JOIN tags root ON tg.parentId = root.id
+            FROM ${TagsTableName} t
+            JOIN ${TagGraphTableName} tg ON tg.childId = t.id
+            JOIN ${TagsTableName} root ON tg.parentId = root.id
             WHERE root.name = '${TagGraphRootName}'
         )
         SELECT name FROM topic_tags
@@ -959,32 +962,35 @@ const getAllAreaAndTopicTagNames = async (
     return results.map((row) => row.name)
 }
 
-export const getMimsByParentTagName = async (
+export const getFeaturedMetricsByParentTagName = async (
     trx: KnexReadonlyTransaction
-): Promise<MimByParentTagNameDictionary> => {
+): Promise<FeaturedMetricByParentTagNameDictionary> => {
     const areaAndTopicTags = await getAllAreaAndTopicTagNames(trx)
 
     // Prepopulate a dictionary with every topic tag and area
-    // This is to ensure that we have a key for every tag, even if it has no MIMs
-    const blankMimsByParentTagName = areaAndTopicTags.reduce(
+    // This is to ensure that we have a key for every tag, even if it has no FeaturedMetrics
+    const blankFeaturedMetricsByParentTagName = areaAndTopicTags.reduce(
         (acc, tag) => ({
             ...acc,
             [tag]: [],
         }),
-        {} as MimByParentTagNameDictionary
+        {} as FeaturedMetricByParentTagNameDictionary
     )
 
-    const mimsByParentTagName = (await knexRaw(
+    const featuredMetricsByParentTagName = (await knexRaw(
         trx,
         `-- sql
-        SELECT m.*, t.name AS parentTagName, t.id AS parentTagId FROM mims m
-        JOIN tags t ON m.parentTagId = t.id
+        SELECT m.*, t.name AS parentTagName, t.id AS parentTagId FROM ${FeaturedMetricsTableName} m
+        JOIN ${TagsTableName} t ON m.parentTagId = t.id
         ORDER BY m.ranking ASC`
     ).then((rows) =>
         groupBy(rows, "parentTagName")
-    )) as MimByParentTagNameDictionary
+    )) as FeaturedMetricByParentTagNameDictionary
 
-    return { ...blankMimsByParentTagName, ...mimsByParentTagName }
+    return {
+        ...blankFeaturedMetricsByParentTagName,
+        ...featuredMetricsByParentTagName,
+    }
 }
 
 /**

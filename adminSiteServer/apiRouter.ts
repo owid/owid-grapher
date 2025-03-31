@@ -146,11 +146,11 @@ import {
 import { getFigmaImageUrl } from "./apiRoutes/figma.js"
 import { sendMessageToSlack } from "./apiRoutes/slack.js"
 import {
-    createMim,
-    deleteMim,
-    fetchMims,
-    rerankMims,
-} from "./apiRoutes/mims.js"
+    createFeaturedMetric,
+    deleteFeaturedMetric,
+    fetchFeaturedMetrics,
+    rerankFeaturedMetrics,
+} from "./apiRoutes/featuredMetrics.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -319,11 +319,27 @@ deleteRouteWithRWTransaction(
     handleDeleteExplorer
 )
 
-// Mim routes
-getRouteWithROTransaction(apiRouter, "/mims.json", fetchMims)
-postRouteWithRWTransaction(apiRouter, "/mims/new", createMim)
-postRouteWithRWTransaction(apiRouter, "/mims/rerank", rerankMims)
-deleteRouteWithRWTransaction(apiRouter, "/mims/:id", deleteMim)
+// Featured Metric routes
+getRouteWithROTransaction(
+    apiRouter,
+    "/featured-metrics.json",
+    fetchFeaturedMetrics
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/featured-metrics/new",
+    createFeaturedMetric
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/featured-metrics/rerank",
+    rerankFeaturedMetrics
+)
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/featured-metrics/:id",
+    deleteFeaturedMetric
+)
 
 // Misc routes
 getRouteWithROTransaction(apiRouter, "/all-work", fetchAllWork)
