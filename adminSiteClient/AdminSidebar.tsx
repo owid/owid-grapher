@@ -46,8 +46,8 @@ export const AdminSidebar = (): React.ReactElement => (
                 </Link>
             </li>
             <li>
-                <Link to="/mims">
-                    <FontAwesomeIcon icon={faStar} /> MIMs
+                <Link to="/featured-metrics" style={{ fontSize: 12 }}>
+                    <FontAwesomeIcon icon={faStar} /> Featured Metrics
                 </Link>
             </li>
             <li>
