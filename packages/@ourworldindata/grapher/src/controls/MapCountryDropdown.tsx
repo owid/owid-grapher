@@ -6,7 +6,10 @@ import { Dropdown } from "./Dropdown"
 import {
     DEFAULT_BOUNDS,
     EntityName,
+    FuzzySearch,
+    getRegionAlternativeNames,
     getUserCountryInformation,
+    getUserNavigatorLanguagesNonEnglish,
     mappableCountries,
     MapRegionName,
     sortBy,
@@ -29,6 +32,7 @@ interface DropdownOption {
     label: string
     value: string
     isLocal?: boolean
+    alternativeNames?: string[]
 }
 
 @observer
@@ -36,6 +40,7 @@ export class MapCountryDropdown extends React.Component<{
     manager: MapCountryDropdownManager
     maxWidth?: number
 }> {
+    @observable private searchInput = ""
     @observable private localCountryName?: EntityName
 
     static shouldShow(manager: MapCountryDropdownManager): boolean {
@@ -58,6 +63,14 @@ export class MapCountryDropdown extends React.Component<{
 
     @computed private get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+    }
+
+    @computed get fuzzy(): FuzzySearch<DropdownOption> {
+        return FuzzySearch.withKeyArray(
+            this.options,
+            (entity) => [entity.label, ...(entity.alternativeNames ?? [])],
+            (entity) => entity.label
+        )
     }
 
     @action.bound private onFocus(): void {
@@ -93,9 +106,12 @@ export class MapCountryDropdown extends React.Component<{
     }
 
     @computed private get options(): DropdownOption[] {
+        const langs = getUserNavigatorLanguagesNonEnglish()
+
         const toOption = (country: EntityName): DropdownOption => ({
             value: country,
             label: country,
+            alternativeNames: getRegionAlternativeNames(country, langs),
         })
 
         if (this.localCountryName) {
@@ -108,6 +124,11 @@ export class MapCountryDropdown extends React.Component<{
         }
 
         return this.sortedCountries.map(toOption)
+    }
+
+    @computed private get filteredOptions(): DropdownOption[] {
+        if (!this.searchInput) return this.options
+        return this.fuzzy.search(this.searchInput)
     }
 
     @computed private get value(): DropdownOption | null {
@@ -137,11 +158,17 @@ export class MapCountryDropdown extends React.Component<{
                 style={{ width: this.maxWidth }}
             >
                 <Dropdown
-                    options={this.options}
+                    options={
+                        this.searchInput ? this.filteredOptions : this.options
+                    }
                     onFocus={this.onFocus}
                     onChange={this.onChange}
                     value={this.value}
                     isSearchable={true}
+                    filterOption={() => true} // disable the default filtering
+                    onInputChange={(inputValue) =>
+                        (this.searchInput = inputValue)
+                    }
                     placeholder="Zoom to a country..."
                     formatOptionLabel={(option) => (
                         <>
