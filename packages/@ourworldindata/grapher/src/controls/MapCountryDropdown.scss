@@ -6,4 +6,10 @@
         font-size: 0.9em;
         color: #a1a1a1;
     }
+
+    input[type="text"] {
+        // prevent auto-zoom on iOS
+        font-size: 16px !important;
+        height: 16px;
+    }
 }
