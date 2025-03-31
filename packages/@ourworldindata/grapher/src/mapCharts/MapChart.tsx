@@ -223,6 +223,7 @@ export class MapChart
     }
 
     @action.bound private zoomToCountryOnGlobe(entityName: EntityName): void {
+        this.globeController.jumpToCountryOffset(entityName)
         this.globeController.showGlobe()
         this.globeController.focusOnCountry(entityName)
         this.globeController.rotateToCountry(entityName, GLOBE_COUNTRY_ZOOM)

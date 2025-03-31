@@ -91,7 +91,10 @@ export class MapCountryDropdown extends React.Component<{
         }
 
         // switch to the globe if not already active
-        if (!isGlobeActive) this.manager.globeController?.showGlobe()
+        if (!isGlobeActive) {
+            this.manager.globeController?.jumpToCountryOffset(option.value)
+            this.manager.globeController?.showGlobe()
+        }
 
         // focus on the country and rotate to it
         this.manager.globeController?.focusOnCountry(option.value)
