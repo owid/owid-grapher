@@ -3,37 +3,45 @@ import { interpolateNumber } from "d3-interpolate"
 import { easeCubicOut } from "d3-ease"
 import { EntityName, MapRegionName } from "@ourworldindata/types"
 import { delay } from "@ourworldindata/utils"
-import { GlobeConfig } from "./MapConfig"
+import { GlobeConfig, MapConfig } from "./MapConfig"
 import { getFeaturesForGlobe } from "./GeoFeatures"
 import { DEFAULT_VIEWPORT, MAP_VIEWPORTS } from "./MapChartConstants"
 
 const geoFeaturesById = new Map(getFeaturesForGlobe().map((f) => [f.id, f]))
 
+interface GlobeControllerManager {
+    mapConfig: MapConfig
+}
+
 export class GlobeController {
-    private config: GlobeConfig
+    private manager: GlobeControllerManager
 
     private tickStep = 0.1
     private msPerTick = 60
 
-    constructor(config: GlobeConfig) {
-        this.config = config
+    constructor(manager: GlobeControllerManager) {
+        this.manager = manager
+    }
+
+    private get globeConfig(): GlobeConfig {
+        return this.manager.mapConfig.globe
     }
 
     toggleGlobe(): void {
-        this.config.isActive = !this.config.isActive
+        this.globeConfig.isActive = !this.globeConfig.isActive
 
         // reset globe if it's being hidden
-        if (!this.config.isActive) this.resetGlobe()
+        if (!this.globeConfig.isActive) this.resetGlobe()
     }
 
     private resetGlobe(): void {
-        this.config.rotation = DEFAULT_VIEWPORT.rotation
-        this.config.zoom = 1
-        this.config.focusCountry = undefined
+        this.globeConfig.rotation = DEFAULT_VIEWPORT.rotation
+        this.globeConfig.zoom = 1
+        this.globeConfig.focusCountry = undefined
     }
 
     showGlobe(): void {
-        this.config.isActive = true
+        this.globeConfig.isActive = true
     }
 
     jumpTo({
@@ -43,16 +51,16 @@ export class GlobeController {
         coords?: [number, number]
         zoom?: number
     }): void {
-        if (coords) this.config.rotation = coords
-        if (zoom) this.config.zoom = zoom
+        if (coords) this.globeConfig.rotation = coords
+        if (zoom) this.globeConfig.zoom = zoom
     }
 
     focusOnCountry(country: EntityName): void {
-        this.config.focusCountry = country
+        this.globeConfig.focusCountry = country
     }
 
     dismissCountryFocus(): void {
-        this.config.focusCountry = undefined
+        this.globeConfig.focusCountry = undefined
     }
 
     jumpToCountryOffset(country: EntityName, zoom?: number): void {
@@ -118,10 +126,10 @@ export class GlobeController {
         targetCoords: [number, number],
         targetZoom?: number
     ): Promise<void> {
-        const currentCoords = this.config.rotation
+        const currentCoords = this.globeConfig.rotation
         const animatedCoords = geoInterpolate(currentCoords, targetCoords)
 
-        const currentZoom = this.config.zoom
+        const currentZoom = this.globeConfig.zoom
         const animatedZoom =
             targetZoom !== undefined
                 ? interpolateNumber(currentZoom, targetZoom)
@@ -132,16 +140,17 @@ export class GlobeController {
             if (signal.aborted) return
 
             // animate globe rotation
-            this.config.rotation = animatedCoords(easeCubicOut(t))
+            this.globeConfig.rotation = animatedCoords(easeCubicOut(t))
 
             // animate zoom
-            if (animatedZoom) this.config.zoom = animatedZoom(easeCubicOut(t))
+            if (animatedZoom)
+                this.globeConfig.zoom = animatedZoom(easeCubicOut(t))
 
             await delay(this.msPerTick)
         }
 
         // ensure we end exactly at the target values
-        this.config.rotation = targetCoords
-        if (targetZoom !== undefined) this.config.zoom = targetZoom
+        this.globeConfig.rotation = targetCoords
+        if (targetZoom !== undefined) this.globeConfig.zoom = targetZoom
     }
 }
