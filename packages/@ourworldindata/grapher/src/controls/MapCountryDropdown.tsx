@@ -23,7 +23,7 @@ export interface MapCountryDropdownManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
     hideMapRegionDropdown?: boolean
-    shouldUseSimpleMapSearch?: boolean
+    shouldShowEntitySelectorOnMapTab?: boolean
     globeController?: GlobeController
     onMapCountryDropdownFocus?: () => void
 }
@@ -49,8 +49,9 @@ export class MapCountryDropdown extends React.Component<{
     }
 
     @computed private get showMenu(): boolean {
-        const { shouldUseSimpleMapSearch, isOnMapTab } = this.props.manager
-        return !!isOnMapTab && !!shouldUseSimpleMapSearch
+        const { shouldShowEntitySelectorOnMapTab, isOnMapTab } =
+            this.props.manager
+        return !!isOnMapTab && !shouldShowEntitySelectorOnMapTab
     }
 
     @computed private get manager(): MapCountryDropdownManager {
