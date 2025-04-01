@@ -34,6 +34,17 @@ import { QueryType, SearchRelaxationMode } from "./DataCatalogState"
 import { CountryPill } from "./CountryPill"
 import { TopicPill } from "./TopicPill"
 
+// Define enum for source IDs
+enum Sources {
+    RECENT_SEARCHES = "recentSearches",
+    SUGGESTED_SEARCH = "suggestedSearch",
+    AUTOCOMPLETE = "autocomplete",
+    COUNTRIES = "countries",
+    TOPICS = "topics",
+    COMBINED_FILTERS = "combinedFilters",
+    RUN_SEARCH = "runSearch",
+}
+
 const siteAnalytics = new SiteAnalytics()
 
 type BaseItem = Record<string, unknown>
@@ -91,7 +102,7 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
 }
 
 const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
-    sourceId: "suggestedSearch",
+    sourceId: Sources.SUGGESTED_SEARCH,
     onSelect,
     getItemUrl,
     getItems() {
@@ -118,7 +129,7 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
 }
 
 const AlgoliaSource: AutocompleteSource<BaseItem> = {
-    sourceId: "autocomplete",
+    sourceId: Sources.AUTOCOMPLETE,
     onSelect({ navigator, item, state }) {
         const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
         siteAnalytics.logInstantSearchClick({
@@ -210,7 +221,7 @@ const CountriesSource = (
     queryType: QueryType
 ): AutocompleteSource<BaseItem> => {
     return {
-        sourceId: "countries",
+        sourceId: Sources.COUNTRIES,
         onSelect({ item }) {
             addCountry(item.title as string)
             clearSearch()
@@ -273,7 +284,7 @@ const TopicsSource = (
     queryType: QueryType
 ): AutocompleteSource<BaseItem> => {
     return {
-        sourceId: "topics",
+        sourceId: Sources.TOPICS,
         onSelect({ item }) {
             // For some topics there is a discrepancy between the page title and the tag
             // (e.g. "Happiness and Life Satisfaction" vs "Happiness & Life Satisfaction")
@@ -345,18 +356,18 @@ const CombinedFiltersSource = (
     clearSearch: () => void
 ): AutocompleteSource<BaseItem> => {
     return {
-        sourceId: "combinedFilters",
+        sourceId: Sources.COMBINED_FILTERS,
         onSelect({ item }) {
+            // Apply the topic
+            if (item.topic) {
+                addTopic(item.topic as string)
+            }
+
             // Apply all countries
             if (item.countries) {
                 ;(item.countries as string[]).forEach((country) => {
                     addCountry(country)
                 })
-            }
-
-            // Apply topic if available
-            if (item.topicTag) {
-                addTopic(item.topicTag as string)
             }
 
             clearSearch()
@@ -371,7 +382,7 @@ const CombinedFiltersSource = (
         templates: {
             item: ({ item }) => {
                 const countries = (item.countries as string[]) || []
-                const topicTag = item.topicTag as string
+                const topic = item.topic as string | undefined
 
                 return (
                     <div className="aa-ItemWrapper aa-CombinedFiltersWrapper">
@@ -385,7 +396,7 @@ const CombinedFiltersSource = (
                                     gap: "4px",
                                 }}
                             >
-                                {topicTag && <TopicPill name={topicTag} />}
+                                {topic && <TopicPill name={topic} />}
                                 {countries.length > 0 && (
                                     <div
                                         style={{
@@ -416,7 +427,7 @@ const CombinedFiltersSource = (
 }
 
 const AllResultsSource: AutocompleteSource<BaseItem> = {
-    sourceId: "runSearch",
+    sourceId: Sources.RUN_SEARCH,
     onSelect,
     getItemUrl,
     getItems({ query }) {
@@ -573,63 +584,57 @@ export function DataCatalogAutocomplete({
                 return sources
             },
             reshape({ sources, sourcesBySourceId }) {
-                // Only reshape if we have query results
-                if (
-                    !sourcesBySourceId.combinedFilters ||
-                    (!sourcesBySourceId.countries && !sourcesBySourceId.topics)
-                ) {
-                    return sources
-                }
-
-                const countries = sourcesBySourceId.countries.getItems() || []
-                const topics = sourcesBySourceId.topics.getItems() || []
-
-                // If we don't have at least 2 filters, we don't show the combined option
-                if (countries.length + topics.length < 2) {
-                    return sources.filter(
-                        (source) => source.sourceId !== "combinedFilters"
-                    )
-                }
+                const countries =
+                    sourcesBySourceId[Sources.COUNTRIES]?.getItems() || []
+                const topics =
+                    sourcesBySourceId[Sources.TOPICS]?.getItems() || []
 
                 const countryNames = countries.map(
                     (country) => country.title as string
                 )
-                let topicName = null
-                let topicTag = null
 
-                if (topics.length > 0) {
-                    topicName = topics[0].title as string
-                    topicTag = (topics[0].tags as string[])?.[0] || topicName
-                }
+                return (
+                    sources
+                        .filter(
+                            // Remove the countries and topics sources since their
+                            // components are already included in the combined filters
+                            // source
+                            (source) =>
+                                ![Sources.TOPICS, Sources.COUNTRIES].includes(
+                                    source.sourceId as Sources
+                                )
+                        )
+                        // Update combined filter source with one item per topic
+                        .map((source) => {
+                            if (source.sourceId === Sources.COMBINED_FILTERS) {
+                                return {
+                                    ...source,
+                                    getItems() {
+                                        // If there are topics, create one item per topic with all countries
+                                        if (topics.length > 0) {
+                                            return topics.map((topic) => ({
+                                                topic: (
+                                                    topic.tags as string[]
+                                                )?.[0], // use the first tag on the topic page record as the topic name
+                                                countries: countryNames,
+                                            }))
+                                        }
+                                        // If there are no topics but there are countries, create a single item with all countries
+                                        else if (countryNames.length > 0) {
+                                            return [
+                                                {
+                                                    countries: countryNames,
+                                                },
+                                            ]
+                                        }
 
-                // Create display text based on available results
-                let displayText = ""
-                if (topicName && countryNames.length > 0) {
-                    displayText = `${topicName} in ${countryNames.join(", ")}`
-                } else if (topicName) {
-                    displayText = topicName
-                } else if (countryNames.length > 0) {
-                    displayText = countryNames.join(", ")
-                }
-
-                // Update combined filter source with the data
-                return sources.map((source) => {
-                    if (source.sourceId === "combinedFilters") {
-                        return {
-                            ...source,
-                            getItems() {
-                                return [
-                                    {
-                                        title: displayText,
-                                        topicTag,
-                                        countries: countryNames,
+                                        return []
                                     },
-                                ]
-                            },
-                        }
-                    }
-                    return source
-                })
+                                }
+                            }
+                            return source
+                        })
+                )
             },
             plugins: [recentSearchesPlugin],
         })
