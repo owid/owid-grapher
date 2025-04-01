@@ -35,6 +35,7 @@ export async function createCheckoutSession(
         amount,
         currency,
         showOnList,
+        subscribeToDonorNewsletter,
         interval,
         successUrl,
         cancelUrl,
@@ -51,6 +52,7 @@ export async function createCheckoutSession(
         // for auditing purposes. Note: Stripe metadata are key-value pairs of
         // strings, hence the (voluntarily explicit) conversion.
         showOnList: showOnList.toString(),
+        subscribeToDonorNewsletter: subscribeToDonorNewsletter.toString(),
     }
 
     const options: Stripe.Checkout.SessionCreateParams = {

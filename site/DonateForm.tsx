@@ -118,6 +118,7 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
     @observable customAmount: string = ""
     @observable name: string = ""
     @observable showOnList: boolean = true
+    @observable subscribeToDonorNewsletter: boolean = true
     @observable errorMessage?: string
     @observable isSubmitting: boolean = false
     @observable isLoading: boolean = true
@@ -158,6 +159,10 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
         this.errorMessage = undefined
     }
 
+    @action.bound toggleSubscribeToDonorNewsletter() {
+        this.subscribeToDonorNewsletter = !this.subscribeToDonorNewsletter
+    }
+
     @action.bound setErrorMessage(message?: string) {
         this.errorMessage = message
     }
@@ -195,6 +200,7 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
             // their mind.
             name: this.showOnList ? this.name : "",
             showOnList: this.showOnList,
+            subscribeToDonorNewsletter: this.subscribeToDonorNewsletter,
             currency: this.currencyCode,
             amount: this.amount,
             interval: this.interval,
@@ -394,10 +400,23 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
                     </div>
                 </fieldset>
 
-                <fieldset className="donation-public-checkbox">
+                <fieldset className="donation-checkbox">
                     <Checkbox
                         label={
-                            <span className="donation-public-checkbox__label">
+                            <span className="donation-checkbox__label">
+                                Subscribe to our donor newsletter (sent at most
+                                twice a year)
+                            </span>
+                        }
+                        checked={this.subscribeToDonorNewsletter}
+                        onChange={() => this.toggleSubscribeToDonorNewsletter()}
+                    />
+                </fieldset>
+
+                <fieldset className="donation-checkbox">
+                    <Checkbox
+                        label={
+                            <span className="donation-checkbox__label">
                                 Include my name on our{" "}
                                 <a href="/funding" target="_blank">
                                     public list of donors

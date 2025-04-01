@@ -13,6 +13,7 @@ export interface DonateSessionResponse {
 export const DonationRequestTypeObject = Type.Object({
     name: Type.Optional(Type.String()),
     showOnList: Type.Boolean(),
+    subscribeToDonorNewsletter: Type.Boolean(),
     currency: Type.Union([
         Type.Literal("GBP"),
         Type.Literal("EUR"),

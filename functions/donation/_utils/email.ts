@@ -1,9 +1,5 @@
-import { JsonError } from "@ourworldindata/utils"
-
-export interface MailgunEnvVars {
-    MAILGUN_SENDING_KEY: string
-    MAILGUN_DOMAIN: string
-}
+import * as Sentry from "@sentry/cloudflare"
+import { Env } from "../../_common/env.js"
 
 export interface EmailParams {
     from: string
@@ -17,7 +13,7 @@ export interface EmailParams {
     "o:testmode"?: boolean
 }
 
-export const hasMailgunEnvVars = (env: unknown): env is MailgunEnvVars => {
+export const hasMailgunEnvVars = (env: Env) => {
     return (
         typeof env === "object" &&
         "MAILGUN_SENDING_KEY" in env &&
@@ -33,23 +29,22 @@ export const hasMailgunEnvVars = (env: unknown): env is MailgunEnvVars => {
 
 // Neither nodemailer nor mailgun.js work in Cloudflare Workers, so we have to
 // use the Mailgun API directly
-export const sendMail = async (
-    data: EmailParams,
-    env: unknown
-): Promise<void> => {
-    if (!hasMailgunEnvVars(env))
-        throw new JsonError(
-            "Missing environment variables. Please check that MAILGUN_API_KEY and MAILGUN_DOMAIN are set.",
-            500
-        )
+export const sendMail = async (data: EmailParams, env: Env): Promise<void> => {
+    if (!hasMailgunEnvVars(env)) {
+        const message =
+            "Missing environment variables. Please check that MAILGUN_API_KEY and MAILGUN_DOMAIN are set."
+        console.error(message, data)
+        Sentry.captureMessage(message, { level: "error" })
+        return
+    }
+
     // Convert `email` into a URLSearchParams object, skipping any undefined fields
     const bodySearchParams = new URLSearchParams()
     for (const [key, value] of Object.entries(data)) {
         if (value) bodySearchParams.set(key, value)
     }
     const body = bodySearchParams.toString()
-
-    const res = await fetch(
+    const response = await fetch(
         `https://api.mailgun.net/v3/${env.MAILGUN_DOMAIN}/messages`,
         {
             method: "POST",
@@ -65,11 +60,12 @@ export const sendMail = async (
             },
         }
     )
-
-    if (!res.ok) {
-        throw new JsonError(
-            `Failed to send email through Mailgun: ${res.statusText}`,
-            res.status
-        )
+    if (!response.ok) {
+        const data = await response.json()
+        console.error("Failed to send email", data)
+        Sentry.captureMessage("Failed to send email", {
+            level: "error",
+            extra: { response: data },
+        })
     }
 }
