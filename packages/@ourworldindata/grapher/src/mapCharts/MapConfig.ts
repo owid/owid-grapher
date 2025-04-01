@@ -33,7 +33,7 @@ class MapConfigDefaults {
     @observable region = MapRegionName.World
 
     @observable globe: GlobeConfig = {
-        isActive: true, // TODO: make this false by default
+        isActive: false,
         rotation: DEFAULT_VIEWPORT.rotation,
         zoom: 1,
     }
