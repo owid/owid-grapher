@@ -3313,6 +3313,15 @@ export class Grapher
         }
     }
 
+    private showGlobeIfAuthorSelectedRegion(): void {
+        if (
+            this.mapConfig.region !== MapRegionName.World &&
+            !this.shouldShowEntitySelectorOnMapTab
+        ) {
+            this.globeController.showGlobe()
+        }
+    }
+
     componentDidMount(): void {
         this.setBaseFontSize()
         this.setUpIntersectionObserver()
@@ -3340,6 +3349,8 @@ export class Grapher
         )
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
+
+        this.showGlobeIfAuthorSelectedRegion()
     }
 
     private _shortcutsBound = false
