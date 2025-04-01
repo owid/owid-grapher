@@ -225,7 +225,10 @@ export function GdocPost({
 }
 
 function DeprecationNotice({ blocks }: { blocks: EnrichedBlockText[] }) {
-    const { isIntersecting, ref } = useIntersectionObserver()
+    const { isIntersecting, ref } = useIntersectionObserver({
+        // Stops the notice from flashing to full width on page load
+        initialIsIntersecting: true,
+    })
     return (
         <>
             {/* Non-sticky sentinel element for observing intersection. */}
