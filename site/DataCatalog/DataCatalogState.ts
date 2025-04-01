@@ -54,6 +54,7 @@ export type DataCatalogState = Readonly<{
     contentTypeFilter: CatalogContentType
     queryType: QueryType
     typoTolerance: boolean
+    minQueryLength: number
 }>
 
 export interface ComponentConfig {
@@ -194,6 +195,11 @@ type SetTypoToleranceAction = {
     payload: boolean
 }
 
+type SetMinQueryLengthAction = {
+    type: "setMinQueryLength"
+    payload: number
+}
+
 export type DataCatalogAction =
     | AddCountryAction
     | AddTopicAction
@@ -212,6 +218,7 @@ export type DataCatalogAction =
     | SetContentTypeFilterAction
     | SetQueryTypeAction
     | SetTypoToleranceAction
+    | SetMinQueryLengthAction
 
 export function dataCatalogReducer(
     state: DataCatalogState,
@@ -309,6 +316,10 @@ export function dataCatalogReducer(
             ...state,
             typoTolerance: payload,
         }))
+        .with({ type: "setMinQueryLength" }, ({ payload }) => ({
+            ...state,
+            minQueryLength: payload,
+        }))
         .exhaustive()
 }
 
@@ -334,6 +345,7 @@ export function createActions(dispatch: (action: DataCatalogAction) => void) {
         setContentTypeFilter: (filter: CatalogContentType) => dispatch({ type: "setContentTypeFilter", payload: filter }),
         setQueryType: (type: QueryType) => dispatch({ type: "setQueryType", payload: type }),
         setTypoTolerance: (enabled: boolean) => dispatch({ type: "setTypoTolerance", payload: enabled }),
+        setMinQueryLength: (length: number) => dispatch({ type: "setMinQueryLength", payload: length }),
     }
 }
 
@@ -381,8 +393,9 @@ export function getInitialDatacatalogState(): DataCatalogState {
             isStickyHeader: true,
             searchRelaxationMode: SearchRelaxationMode.ALL_OPTIONAL,
             contentTypeFilter: CatalogContentType.ALL,
-            queryType: QueryType.PREFIX_ALL,
+            queryType: QueryType.PREFIX_LAST,
             typoTolerance: false,
+            minQueryLength: 3,
         }
 
     const url = Url.fromURL(window.location.href)
@@ -431,8 +444,11 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
             (url.queryParams.contentType as CatalogContentType) ||
             CatalogContentType.ALL,
         queryType:
-            (url.queryParams.queryType as QueryType) || QueryType.PREFIX_ALL,
+            (url.queryParams.queryType as QueryType) || QueryType.PREFIX_LAST,
         typoTolerance: url.queryParams.typoTolerance === "true",
+        minQueryLength: url.queryParams.minQueryLength
+            ? parseInt(url.queryParams.minQueryLength)
+            : 3,
     }
 }
 
@@ -478,10 +494,14 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
                 ? state.contentTypeFilter
                 : undefined,
         queryType:
-            state.queryType !== QueryType.PREFIX_ALL
+            state.queryType !== QueryType.PREFIX_LAST
                 ? state.queryType
                 : undefined,
         typoTolerance: state.typoTolerance ? "true" : undefined,
+        minQueryLength:
+            state.minQueryLength !== 3
+                ? state.minQueryLength.toString()
+                : undefined,
     }
 
     Object.entries(params).forEach(([key, value]) => {

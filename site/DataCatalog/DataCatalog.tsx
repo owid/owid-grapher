@@ -229,6 +229,7 @@ export const DataCatalog = ({
                         searchRelaxationMode={state.searchRelaxationMode}
                         queryType={state.queryType}
                         typoTolerance={state.typoTolerance}
+                        minQueryLength={state.minQueryLength}
                     />
                 </div>
                 {!state.componentVisibility[
@@ -263,6 +264,8 @@ export const DataCatalog = ({
                 setQueryType={actions.setQueryType}
                 typoTolerance={state.typoTolerance}
                 setTypoTolerance={actions.setTypoTolerance}
+                minQueryLength={state.minQueryLength}
+                setMinQueryLength={actions.setMinQueryLength}
             />
         </>
     )

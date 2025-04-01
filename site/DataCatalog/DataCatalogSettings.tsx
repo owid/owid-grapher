@@ -45,6 +45,7 @@ export const DataCatalogSettings = ({
     searchRelaxationMode,
     queryType,
     typoTolerance,
+    minQueryLength,
     updateComponentOrder,
     toggleComponentVisibility,
     setComponentCount,
@@ -53,6 +54,7 @@ export const DataCatalogSettings = ({
     setSearchRelaxationMode,
     setQueryType,
     setTypoTolerance,
+    setMinQueryLength,
 }: {
     componentOrder: CatalogComponentId[]
     componentVisibility: Record<CatalogComponentId, boolean>
@@ -62,6 +64,7 @@ export const DataCatalogSettings = ({
     searchRelaxationMode: SearchRelaxationMode
     queryType: QueryType
     typoTolerance: boolean
+    minQueryLength: number
     updateComponentOrder: (order: CatalogComponentId[]) => void
     toggleComponentVisibility: (id: CatalogComponentId) => void
     setComponentCount: (id: CatalogComponentId, count: number) => void
@@ -73,6 +76,7 @@ export const DataCatalogSettings = ({
     setSearchRelaxationMode: (mode: SearchRelaxationMode) => void
     setQueryType: (type: QueryType) => void
     setTypoTolerance: (enabled: boolean) => void
+    setMinQueryLength: (length: number) => void
 }) => {
     const [open, setOpen] = useState(false)
 
@@ -210,6 +214,31 @@ export const DataCatalogSettings = ({
                                         }
                                         label="Typo tolerance"
                                     />
+                                </ListItem>
+
+                                <ListItem>
+                                    <FormControl fullWidth size="small">
+                                        <InputLabel id="min-query-length-label">
+                                            Minimum query length
+                                        </InputLabel>
+                                        <Select
+                                            labelId="min-query-length-label"
+                                            id="min-query-length-select"
+                                            value={minQueryLength}
+                                            label="Minimum query length"
+                                            onChange={(e) =>
+                                                setMinQueryLength(
+                                                    Number(e.target.value)
+                                                )
+                                            }
+                                        >
+                                            <MenuItem value={1}>1</MenuItem>
+                                            <MenuItem value={2}>2</MenuItem>
+                                            <MenuItem value={3}>3</MenuItem>
+                                            <MenuItem value={4}>4</MenuItem>
+                                            <MenuItem value={5}>5</MenuItem>
+                                        </Select>
+                                    </FormControl>
                                 </ListItem>
 
                                 <ListItem>

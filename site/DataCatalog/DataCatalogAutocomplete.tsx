@@ -477,6 +477,7 @@ export function DataCatalogAutocomplete({
     searchRelaxationMode,
     queryType,
     typoTolerance,
+    minQueryLength,
 }: {
     onActivate?: () => void
     onClose?: () => void
@@ -491,6 +492,7 @@ export function DataCatalogAutocomplete({
     searchRelaxationMode: SearchRelaxationMode
     queryType: QueryType
     typoTolerance: boolean
+    minQueryLength: number
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -553,7 +555,7 @@ export function DataCatalogAutocomplete({
             },
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
-                if (query) {
+                if (query && query.length >= minQueryLength) {
                     // Add the combined filters source
                     sources.push(
                         CombinedFiltersSource(
@@ -682,6 +684,7 @@ export function DataCatalogAutocomplete({
         searchRelaxationMode,
         queryType,
         typoTolerance,
+        minQueryLength,
     ])
 
     // Sync external query changes (from the URL) to the input
