@@ -10,7 +10,7 @@ import {
     ENV,
 } from "../settings/serverSettings.js"
 import { BCryptHasher } from "../db/hashers.js"
-import { Secret, verify } from "jsonwebtoken"
+import * as jose from "jose"
 import { DbPlainSession, DbPlainUser, JsonError } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 
@@ -47,36 +47,26 @@ export async function authCloudflareSSOMiddleware(
         return next()
     }
 
-    // Get the Cloudflare public key
-    const certsUrl = "https://owid.cloudflareaccess.com/cdn-cgi/access/certs"
-    const response = await fetch(certsUrl)
-    const certs = await response.json()
-    const publicCerts = certs.public_certs
-    if (!publicCerts) {
-        console.error("Missing public certificates from Cloudflare.")
-        return next()
-    }
-    // Verify the JWT token
-    let certVerificationErr
-    let payload: any
-    const verified = publicCerts.some((certObj: { cert: Secret }) => {
-        try {
-            payload = verify(jwt, certObj.cert, {
-                audience: audTag,
-                algorithms: ["RS256"],
-            })
-            return true
-        } catch (err) {
-            certVerificationErr = err
-        }
-        return false
-    })
+    // Validate the JWT token using the public key from Cloudflare Access
+    // see https://developers.cloudflare.com/cloudflare-one/identity/authorization-cookie/validating-json/#javascript-example
+    const teamDomain = "https://owid.cloudflareaccess.com"
+    const certsUrl = `${teamDomain}/cdn-cgi/access/certs`
 
-    if (!verified) {
+    const jwks = jose.createRemoteJWKSet(new URL(certsUrl))
+
+    let verified: jose.JWTVerifyResult<jose.JWTPayload>
+    try {
+        verified = await jose.jwtVerify(jwt, jwks, {
+            audience: audTag,
+            issuer: teamDomain,
+        })
+    } catch (err) {
         // Authorization token invalid: verification failed, token expired or wrong audience.
-        console.error(certVerificationErr)
+        console.error(err)
         return next()
     }
+
+    const payload = verified.payload
 
     if (!payload.email) {
         console.error("Missing email in JWT claims.")

@@ -7754,15 +7754,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jsonwebtoken@npm:^9.0.0":
-  version: 9.0.0
-  resolution: "@types/jsonwebtoken@npm:9.0.0"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10/f70b26ca2ec2d63a4c5e5e93bdee13aecfc74872361c04a17dacbe8df50a31b592e41f5f37cf6b4937ea42f47b2d8823a417be115a0f87d3db579be3689ecce3
-  languageName: node
-  linkType: hard
-
 "@types/lodash-es@npm:^4":
   version: 4.17.12
   resolution: "@types/lodash-es@npm:4.17.12"
@@ -13242,7 +13233,6 @@ __metadata:
     "@types/indefinite": "npm:^2.3.4"
     "@types/ini": "npm:^4"
     "@types/js-cookie": "npm:^3.0.2"
-    "@types/jsonwebtoken": "npm:^9.0.0"
     "@types/lodash-es": "npm:^4"
     "@types/mdast": "npm:^4.0.4"
     "@types/minimist": "npm:^1.2.2"
@@ -13308,11 +13298,11 @@ __metadata:
     indefinite: "npm:^2.5.1"
     ini: "npm:^4.1.2"
     instantsearch.js: "npm:^4.72.1"
+    jose: "npm:^6.0.12"
     js-base64: "npm:^3.7.7"
     js-cookie: "npm:^3.0.1"
     jsdom: "npm:^26.1.0"
     json8-pointer: "npm:^1.0.6"
-    jsonwebtoken: "npm:^9.0.0"
     knex: "npm:^3.1.0"
     lerna: "npm:^8.2.3"
     lint-staged: "npm:^16.1.2"
@@ -14712,6 +14702,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jose@npm:^6.0.12":
+  version: 6.0.12
+  resolution: "jose@npm:6.0.12"
+  checksum: 10/48b7aee43a88e157eb973c7e950f5835175264ecda01a7fcb1750ad6cc02672153e2bd486b65db969841b38c01b1596d86cb71f65e2ccb5311b67127ba4f8549
+  languageName: node
+  linkType: hard
+
 "joycon@npm:^3.1.1":
   version: 3.1.1
   resolution: "joycon@npm:3.1.1"
@@ -14957,18 +14954,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonwebtoken@npm:^9.0.0":
-  version: 9.0.0
-  resolution: "jsonwebtoken@npm:9.0.0"
-  dependencies:
-    jws: "npm:^3.2.2"
-    lodash: "npm:^4.17.21"
-    ms: "npm:^2.1.1"
-    semver: "npm:^7.3.8"
-  checksum: 10/769ea563e9851b4d8a00d7f4bd90e10233344e6c62f01a3a154756a8832fa2ba2f14341080529bf5a72961ae8a74007ade6493c89143e5c800e218bee48b0149
-  languageName: node
-  linkType: hard
-
 "jsprim@npm:^2.0.2":
   version: 2.0.2
   resolution: "jsprim@npm:2.0.2"
@@ -15005,17 +14990,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jwa@npm:^1.4.1":
-  version: 1.4.1
-  resolution: "jwa@npm:1.4.1"
-  dependencies:
-    buffer-equal-constant-time: "npm:1.0.1"
-    ecdsa-sig-formatter: "npm:1.0.11"
-    safe-buffer: "npm:^5.0.1"
-  checksum: 10/0bc002b71dd70480fedc7d442a4d2b9185a9947352a027dcb4935864ad2323c57b5d391adf968a3622b61e940cef4f3484d5813b95864539272d41cac145d6f3
-  languageName: node
-  linkType: hard
-
 "jwa@npm:^2.0.0":
   version: 2.0.0
   resolution: "jwa@npm:2.0.0"
@@ -15024,16 +14998,6 @@ __metadata:
     ecdsa-sig-formatter: "npm:1.0.11"
     safe-buffer: "npm:^5.0.1"
   checksum: 10/ab983f6685d99d13ddfbffef9b1c66309a536362a8412d49ba6e687d834a1240ce39290f30ac7dbe241e0ab6c76fee7ff795776ce534e11d148158c9b7193498
-  languageName: node
-  linkType: hard
-
-"jws@npm:^3.2.2":
-  version: 3.2.2
-  resolution: "jws@npm:3.2.2"
-  dependencies:
-    jwa: "npm:^1.4.1"
-    safe-buffer: "npm:^5.0.1"
-  checksum: 10/70b016974af8a76d25030c80a0097b24ed5b17a9cf10f43b163c11cb4eb248d5d04a3fe48c0d724d2884c32879d878ccad7be0663720f46b464f662f7ed778fe
   languageName: node
   linkType: hard
 
