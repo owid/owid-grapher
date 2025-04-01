@@ -1275,10 +1275,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cloudflare/workers-types@npm:^4.20240919.0":
-  version: 4.20250121.0
-  resolution: "@cloudflare/workers-types@npm:4.20250121.0"
-  checksum: 10/4f7800e8f82b91f93745c2ad9f1223173dc7584d9efa1c28185bb6a64daf4ba2cd693aee2be94cb800441fd06b75f08be2ea5afbce3eb39b9b76a9794e8a24a2
+"@cloudflare/workers-types@npm:^4.20250327.0":
+  version: 4.20250327.0
+  resolution: "@cloudflare/workers-types@npm:4.20250327.0"
+  checksum: 10/75a47dd2315d53c8a3c077e8f816ac1041835e5521f555ce20a76aa707afb7b2c03a88a1605085543bcc004e3c58249d18caafffbd419eb9284834f43fceaf7e
   languageName: node
   linkType: hard
 
@@ -5699,10 +5699,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.8.3":
-  version: 20.8.3
-  resolution: "@types/node@npm:20.8.3"
-  checksum: 10/6f69c2fc4b2f95764317fc23c6b92b0c3480e5026d47dcb7b882308908dd6beab3dd02c54344811c8db44f84abd3ef00e35097e2f6d2b79cff21f33981a504a1
+"@types/node@npm:*, @types/node@npm:>=18.0.0, @types/node@npm:>=8.1.0, @types/node@npm:^22.8.7":
+  version: 22.13.15
+  resolution: "@types/node@npm:22.13.15"
+  dependencies:
+    undici-types: "npm:~6.20.0"
+  checksum: 10/4d120b0f98d9cc9f941a408b84a261cf90ab074dabdfd41bcd900f883109599a45928c92df1c3a25601ae7e108a985b3bb4adfdf4d527840de42d23d0f04f920
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^18.11.18":
+  version: 18.19.85
+  resolution: "@types/node@npm:18.19.85"
+  dependencies:
+    undici-types: "npm:~5.26.4"
+  checksum: 10/5ddf14485757677aaf7c79e63fe47cfc41b5a86449e949b3d63ede3f87f09e17fefb706343de9831f17b56be1831420826a04a1263ee5eaf2601fda34600d9cf
   languageName: node
   linkType: hard
 
@@ -14947,7 +14958,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "owid-functions@workspace:functions"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20240919.0"
+    "@cloudflare/workers-types": "npm:^4.20250327.0"
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
@@ -19234,6 +19245,20 @@ __metadata:
     has-symbols: "npm:^1.1.0"
     which-boxed-primitive: "npm:^1.1.1"
   checksum: 10/fadb347020f66b2c8aeacf8b9a79826fa34cc5e5457af4eb0bbc4e79bd87fed0fa795949825df534320f7c13f199259516ad30abc55a6e7b91d8d996ca069e50
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~5.26.4":
+  version: 5.26.5
+  resolution: "undici-types@npm:5.26.5"
+  checksum: 10/0097779d94bc0fd26f0418b3a05472410408877279141ded2bd449167be1aed7ea5b76f756562cb3586a07f251b90799bab22d9019ceba49c037c76445f7cddd
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.20.0":
+  version: 6.20.0
+  resolution: "undici-types@npm:6.20.0"
+  checksum: 10/583ac7bbf4ff69931d3985f4762cde2690bb607844c16a5e2fbb92ed312fe4fa1b365e953032d469fa28ba8b224e88a595f0b10a449332f83fa77c695e567dbe
   languageName: node
   linkType: hard
 
