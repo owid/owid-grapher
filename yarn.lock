@@ -11058,6 +11058,7 @@ __metadata:
     url-slug: "npm:^3.0.2"
     usehooks-ts: "npm:^3.1.0"
     uuidv7: "npm:^1.0.1"
+    versor: "npm:^0.2.0"
     vite: "npm:^6.3.5"
     vitest: "npm:^3.1.3"
     workerpool: "npm:^9.2.0"
@@ -19527,6 +19528,13 @@ __metadata:
     core-util-is: "npm:1.0.2"
     extsprintf: "npm:^1.2.0"
   checksum: 10/da548149dd9c130a8a2587c9ee71ea30128d1526925707e2d01ed9c5c45c9e9f86733c66a328247cdd5f7c1516fb25b0f959ba754bfbe15072aa99ff96468a29
+  languageName: node
+  linkType: hard
+
+"versor@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "versor@npm:0.2.0"
+  checksum: 10/ac56c17e22f56effe1fb8a1cab8180141afae242e062e15a92b8ebc6cf45b5e09c9ac3aa94427472dea8fd9ebdde3ba2299494b744aac3b56bfd9ffeecc39551
   languageName: node
   linkType: hard
 

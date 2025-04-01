@@ -9,6 +9,11 @@ import {
     GeoPermissibleObjects,
 } from "d3-geo"
 import { Quadtree, quadtree } from "d3-quadtree"
+import { select } from "d3-selection"
+import { drag } from "d3-drag"
+import { zoom } from "d3-zoom"
+// @ts-expect-error no types available
+import versor from "versor"
 import {
     makeIdForHumanConsumption,
     clamp,
@@ -34,8 +39,7 @@ import {
     NoDataPattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
-import { calculateDistance, detectNearbyFeature, hasFocus } from "./MapHelpers"
-import { isTargetOutsideElement } from "../chart/ChartUtils"
+import { detectNearbyFeature, hasFocus } from "./MapHelpers"
 
 const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 
@@ -54,14 +58,8 @@ export class ChoroplethGlobe extends React.Component<{
     @observable private hoverEnterFeature?: GlobeRenderFeature
     @observable private hoverNearbyFeature?: GlobeRenderFeature
 
-    // dragging state
     private isDragging = false
-    private previousScreenX?: number
-    private previousScreenY?: number
-
-    // pinching state
-    private isPinching = false
-    private previousDistance?: number
+    private isZooming = false
 
     @computed private get isTouchDevice(): boolean {
         return isTouchDevice()
@@ -238,30 +236,12 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     private rotateFrameId: number | undefined
-    @action.bound private rotateGlobe(
-        startCoords: [number, number],
-        endCoords: [number, number]
-    ): void {
+    @action.bound private rotateGlobe(targetCoords: [number, number]): void {
         if (this.rotateFrameId) cancelAnimationFrame(this.rotateFrameId)
         this.rotateFrameId = requestAnimationFrame(() => {
-            const dx = endCoords[0] - startCoords[0]
-            const dy = endCoords[1] - startCoords[1]
-
-            // if the user drags a distance equal to the circumference
-            // of the globe, the globe should rotate by 360 degrees
-            const globeCircumference = Math.PI * this.globeSize
-            let sensitivity = 360 / globeCircumference
-
-            // increase sensitivity on touch devices
-            if (this.isTouchDevice) sensitivity *= 1.8
-
-            // slower rotation when zoomed in
-            sensitivity /= this.zoomScale
-
-            const [rx, ry] = this.projection.rotate()
             this.mapConfig.globe.rotation = [
-                rx + dx * sensitivity,
-                clamp(ry - dy * sensitivity, -90, 90),
+                targetCoords[0],
+                clamp(targetCoords[1], -90, 90),
             ]
         })
     }
@@ -288,222 +268,16 @@ export class ChoroplethGlobe extends React.Component<{
         }
     }
 
-    @action.bound private startDragging(): void {
-        this.isDragging = true
-
-        // dismiss tooltip
-        this.clearHover()
-
-        // update cursor style
-        document.body.style.cursor = "move"
-    }
-
-    @action.bound private stopDragging(): void {
-        // reset state
-        this.isDragging = false
-        this.previousScreenX = undefined
-        this.previousScreenY = undefined
-
-        // reset cursor style
-        document.body.style.cursor = "default"
-    }
-
-    @action.bound private onDrag(event: MouseEvent | TouchEvent): void {
-        const { screenX, screenY } = getScreenCoords(event)
-
-        // dismiss tooltip
-        this.clearHover()
-
-        // return early if no previous screen coords are given
-        if (
-            this.previousScreenX === undefined ||
-            this.previousScreenY === undefined
-        ) {
-            this.previousScreenX = screenX
-            this.previousScreenY = screenY
-            return
-        }
-
-        // rotate globe from the previous screen coords to the current screen coords
-        this.rotateGlobe(
-            [this.previousScreenX, this.previousScreenY],
-            [screenX, screenY]
-        )
-
-        // update screen coords
-        this.previousScreenX = screenX
-        this.previousScreenY = screenY
-    }
-
-    @action.bound private startPinching(): void {
-        this.isPinching = true
-        this.clearHover()
-    }
-
-    @action.bound private stopPinching(): void {
-        this.isPinching = false
-        this.previousDistance = undefined
-        this.clearHover()
-    }
-
-    @action.bound private onPinch(event: TouchEvent): void {
-        // need at least two touch points for pinch
-        if (event.touches.length < 2) {
-            this.stopPinching()
-            return
-        }
-
-        // dismiss tooltip
-        this.clearHover()
-
-        // calculate the distance between the first two touch points
-        const touch1 = event.touches[0]
-        const touch2 = event.touches[1]
-        const distance = calculateDistance(
-            [touch1.clientX, touch1.clientY],
-            [touch2.clientX, touch2.clientY]
-        )
-
-        // if this is the first multi-touch event, just store the distance
-        if (this.previousDistance === undefined) {
-            this.previousDistance = distance
-            return
-        }
-
-        // apply new zoom factor
-        this.zoomGlobe(distance - this.previousDistance)
-
-        // update state
-        this.previousDistance = distance
-    }
-
-    @action.bound private onMouseDown(event: MouseEvent): void {
-        event.preventDefault() // prevent text selection
-
-        // reset dragging state
-        this.stopDragging()
-
-        // register mousemove and mouseup events on the document
-        // so that dragging continues if the mouse leaves the globe
-        const passive = { passive: true }
-        document.addEventListener("mousemove", this.onMouseDrag, passive)
-        document.addEventListener("mouseup", this.onMouseUp, passive)
-    }
-
-    @action.bound private onMouseDrag(event: MouseEvent): void {
-        if (!this.isDragging) this.startDragging()
-        this.onDrag(event)
-    }
-
-    private stopDragPinchTimerId: NodeJS.Timeout | undefined
-    @action.bound private onMouseUp(): void {
-        // stop dragging and pinching after a short delay so that the click
-        // event can be cancelled if the user was dragging or pinching
-        if (this.stopDragPinchTimerId) clearTimeout(this.stopDragPinchTimerId)
-        this.stopDragPinchTimerId = setTimeout(() => {
-            this.stopDragging()
-            this.stopPinching()
-        }, 300)
-
-        document.removeEventListener("mousemove", this.onMouseDrag)
-        document.removeEventListener("mouseup", this.onMouseUp)
-    }
-
-    @action.bound private onTouchStart(event: TouchEvent): void {
-        event.preventDefault() // prevent scrolling and page zoom
-
-        // if this is a pinch gesture, handle it and return early
-        // since dragging doesn't need to be handled
-        if (event.touches.length >= 2) {
-            if (!this.isPinching) this.startPinching()
-            this.onPinch(event)
-            return
-        }
-
-        // reset pinching and dragging state
-        this.stopPinching()
-        this.stopDragging()
-
-        // store coords for dragging
-        const { screenX, screenY } = getScreenCoords(event)
-        this.previousScreenX = screenX
-        this.previousScreenY = screenY
-
-        // register move and end events for dragging
-        const base = this.base.current
-        const passive = { passive: true },
-            nonPassive = { passive: false } // allows calling preventDefault()
-        base?.addEventListener("touchmove", this.onTouchMove, nonPassive)
-        base?.addEventListener("touchend", this.onTouchEnd, passive)
-        base?.addEventListener("touchcancel", this.onTouchEnd, passive)
-    }
-
-    @action.bound private onTouchMove(event: TouchEvent): void {
-        event.preventDefault() // prevent scrolling and page zoom
-
-        // dismiss tooltip
-        this.clearHover()
-
-        // if this is a pinch gesture, handle it and return early
-        // since dragging doesn't need to be handled
-        if (event.touches.length >= 2) {
-            if (!this.isPinching) this.startPinching()
-            this.onPinch(event)
-            return
-        }
-
-        // reset pinching state if only one touch point is detected
-        if (this.isPinching) this.stopPinching()
-
-        // start dragging if movement is detected
-        if (
-            !this.isDragging &&
-            this.previousScreenX !== undefined &&
-            this.previousScreenY !== undefined
-        ) {
-            const { screenX, screenY } = getScreenCoords(event)
-            const distance = calculateDistance(
-                [this.previousScreenX, this.previousScreenY],
-                [screenX, screenY]
-            )
-            if (distance > 5) this.startDragging()
-        }
-
-        if (this.isDragging) this.onDrag(event)
-    }
-
-    @action.bound private onTouchEnd(event: TouchEvent): void {
-        if (this.isPinching) this.stopPinching()
-
-        // either stop dragging or fire a click event if the touch event was a tap
-        if (this.isDragging) {
-            this.stopDragging()
-        } else {
-            event.target?.dispatchEvent(
-                new MouseEvent("click", { bubbles: true })
-            )
-        }
-
-        const base = this.base.current
-        base?.removeEventListener("touchmove", this.onTouchMove)
-        base?.removeEventListener("touchend", this.onTouchEnd)
-        base?.removeEventListener("touchcancel", this.onTouchEnd)
-    }
-
     @action.bound private onMouseMove(event: MouseEvent): void {
         if (event.shiftKey) this.showSelectedStyle = true // Turn on highlight selection. To turn off, user can switch tabs.
-        if (!this.isDragging) this.detectNearbyFeature(event)
+        this.detectNearbyFeature(event)
     }
 
     @action.bound private onMouseEnterFeature(
         feature: GlobeRenderFeature
     ): void {
-        // don't show tooltips while dragging
-        if (this.isDragging) {
-            this.clearHover()
-            return
-        }
-
+        // ignore mouse enter if dragging or zooming
+        if (this.isDragging || this.isZooming) return
         this.hoverEnterFeature = feature
         this.manager.onMapMouseOver(feature.geo)
     }
@@ -514,12 +288,6 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private onClick(event: SVGMouseEvent): void {
-        // prevent click event if the user was dragging or pinching
-        if (this.isDragging || this.isPinching) {
-            event.stopPropagation()
-            return
-        }
-
         // find the feature that was clicked
         const { featureId } = (event.target as SVGElement).dataset
         const feature = this.features.find((f) => f.id === featureId)
@@ -532,58 +300,78 @@ export class ChoroplethGlobe extends React.Component<{
         this.manager.onClick(feature.geo, event)
     }
 
-    @action.bound private onWheel(event: WheelEvent): void {
-        const base = this.base.current
+    componentDidMount(): void {
+        // adapted from https://observablehq.com/d/569d101dd5bd332b
+        const globeDrag = (): any => {
+            let startCoords: [number, number, number],
+                startQuat: [number, number, number, number],
+                startRot: [number, number]
 
-        if (!event.target || !base) return
+            const startDrag = (event: any): void => {
+                const { x, y } = event
+                startCoords = versor.cartesian(this.projection.invert([x, y]))
+                startRot = this.globeRotation
+                startQuat = versor(startRot)
+            }
 
-        // this handler is registered on the document, so we need to check
-        // if the event target is inside the globe element first
-        const isOnGlobe = !isTargetOutsideElement(event.target, base)
+            const dragging = (event: any): void => {
+                this.isDragging = true
+                this.clearHover() // dismiss tooltip
 
-        if (isOnGlobe) {
-            event.preventDefault() // prevent scrolling
-            this.zoomGlobe(-event.deltaY)
+                const { x, y } = event
+                const currCoords = versor.cartesian(
+                    this.projection.rotate(startRot).invert([x, y])
+                )
+                const delta = versor.delta(startCoords, currCoords)
+                const quat = versor.multiply(startQuat, delta)
+                const rotation = versor.rotation(quat)
+
+                // ignore the gamma channel for more intuitive rotation
+                // see https://www.jasondavies.com/maps/rotate/ for an explanation
+                this.rotateGlobe([rotation[0], rotation[1]])
+            }
+
+            const endDrag = (): void => {
+                this.isDragging = false
+            }
+
+            return drag()
+                .on("start", startDrag)
+                .on("drag", dragging)
+                .on("end", endDrag)
+        }
+
+        const globeZoom = (): any => {
+            const zooming = (event: any): void => {
+                this.isZooming = true
+                this.clearHover() // dismiss tooltip
+
+                // we don't rely on event.transform.k because that might be
+                // out of sync with the actual zoom level if the zoom level
+                // was changed elsewhere (e.g. by automatically zooming in
+                // on a country)
+                this.zoomGlobe(-event.sourceEvent.deltaY)
+            }
+
+            const endZoom = (): void => {
+                this.isZooming = false
+            }
+
+            return zoom()
+                .scaleExtent([MIN_ZOOM_SCALE, MAX_ZOOM_SCALE])
+                .touchable(() => this.isTouchDevice)
+                .on("zoom", zooming)
+                .on("end", endZoom)
+        }
+
+        if (this.base.current) {
+            select(this.base.current).call(globeDrag()).call(globeZoom())
         }
     }
 
-    @action.bound onDocumentClick(): void {
-        this.clearHover()
-    }
-
-    async componentDidMount(): Promise<void> {
-        const capture = { capture: true },
-            passive = { passive: true },
-            nonPassive = { passive: false } // allows calling preventDefault()
-
-        document.addEventListener("click", this.onDocumentClick, capture)
-
-        // it would be easier to add this event listener to the base element,
-        // but disabling page scrolling doesn't work in Safari in that case.
-        // instead, we add the event listener to the document and only execute
-        // code if the event target is inside the globe element
-        document.addEventListener("wheel", this.onWheel, nonPassive)
-
-        const base = this.base.current
-        base?.addEventListener("mousedown", this.onMouseDown, nonPassive)
-        base?.addEventListener("mousemove", this.onMouseMove, passive)
-        base?.addEventListener("touchstart", this.onTouchStart, nonPassive)
-    }
-
     componentWillUnmount(): void {
-        const capture = { capture: true }
-
-        if (this.stopDragPinchTimerId) clearTimeout(this.stopDragPinchTimerId)
         if (this.rotateFrameId) cancelAnimationFrame(this.rotateFrameId)
         if (this.zoomFrameId) cancelAnimationFrame(this.zoomFrameId)
-
-        document.removeEventListener("click", this.onDocumentClick, capture)
-        document.removeEventListener("wheel", this.onWheel)
-
-        const base = this.base.current
-        base?.removeEventListener("mousedown", this.onMouseDown)
-        base?.removeEventListener("mousemove", this.onMouseMove)
-        base?.removeEventListener("touchstart", this.onTouchStart)
     }
 
     renderGlobeOutline(): React.ReactElement {
@@ -679,7 +467,17 @@ export class ChoroplethGlobe extends React.Component<{
         const _cachedCentroids = this.quadtree
 
         return (
-            <g ref={this.base} style={{ touchAction: "none" }}>
+            <g
+                ref={this.base}
+                onMouseDown={
+                    (ev: SVGMouseEvent): void =>
+                        ev.preventDefault() /* Without this, title may get selected while shift clicking */
+                }
+                onMouseMove={(ev: SVGMouseEvent): void =>
+                    this.onMouseMove(ev.nativeEvent)
+                }
+                onMouseLeave={this.onMouseLeaveFeature}
+            >
                 {this.renderGlobeOutline()}
                 <g className={GEO_FEATURES_CLASSNAME}>
                     {this.renderFeaturesWithNoData()}
@@ -694,19 +492,4 @@ export class ChoroplethGlobe extends React.Component<{
             ? this.renderStatic()
             : this.renderInteractive()
     }
-}
-
-const getScreenCoords = (
-    event: MouseEvent | TouchEvent
-): { screenX: number; screenY: number } => {
-    return isTouchEvent(event)
-        ? event.touches[0]
-        : {
-              screenX: event.screenX,
-              screenY: event.screenY,
-          }
-}
-
-const isTouchEvent = (event: MouseEvent | TouchEvent): event is TouchEvent => {
-    return event.type.includes("touch")
 }
