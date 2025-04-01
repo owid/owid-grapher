@@ -53,6 +53,7 @@ export type DataCatalogState = Readonly<{
     searchRelaxationMode: SearchRelaxationMode
     contentTypeFilter: CatalogContentType
     queryType: QueryType
+    typoTolerance: boolean
 }>
 
 export interface ComponentConfig {
@@ -188,6 +189,11 @@ type SetQueryTypeAction = {
     payload: QueryType
 }
 
+type SetTypoToleranceAction = {
+    type: "setTypoTolerance"
+    payload: boolean
+}
+
 export type DataCatalogAction =
     | AddCountryAction
     | AddTopicAction
@@ -205,6 +211,7 @@ export type DataCatalogAction =
     | SetSearchRelaxationModeAction
     | SetContentTypeFilterAction
     | SetQueryTypeAction
+    | SetTypoToleranceAction
 
 export function dataCatalogReducer(
     state: DataCatalogState,
@@ -298,6 +305,10 @@ export function dataCatalogReducer(
             ...state,
             queryType: payload,
         }))
+        .with({ type: "setTypoTolerance" }, ({ payload }) => ({
+            ...state,
+            typoTolerance: payload,
+        }))
         .exhaustive()
 }
 
@@ -322,6 +333,7 @@ export function createActions(dispatch: (action: DataCatalogAction) => void) {
         setSearchRelaxationMode: (mode: SearchRelaxationMode) => dispatch({ type: "setSearchRelaxationMode", payload: mode }),
         setContentTypeFilter: (filter: CatalogContentType) => dispatch({ type: "setContentTypeFilter", payload: filter }),
         setQueryType: (type: QueryType) => dispatch({ type: "setQueryType", payload: type }),
+        setTypoTolerance: (enabled: boolean) => dispatch({ type: "setTypoTolerance", payload: enabled }),
     }
 }
 
@@ -370,6 +382,7 @@ export function getInitialDatacatalogState(): DataCatalogState {
             searchRelaxationMode: SearchRelaxationMode.ALL_OPTIONAL,
             contentTypeFilter: CatalogContentType.ALL,
             queryType: QueryType.PREFIX_ALL,
+            typoTolerance: false,
         }
 
     const url = Url.fromURL(window.location.href)
@@ -419,6 +432,7 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
             CatalogContentType.ALL,
         queryType:
             (url.queryParams.queryType as QueryType) || QueryType.PREFIX_ALL,
+        typoTolerance: url.queryParams.typoTolerance === "true",
     }
 }
 
@@ -467,6 +481,7 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
             state.queryType !== QueryType.PREFIX_ALL
                 ? state.queryType
                 : undefined,
+        typoTolerance: state.typoTolerance ? "true" : undefined,
     }
 
     Object.entries(params).forEach(([key, value]) => {

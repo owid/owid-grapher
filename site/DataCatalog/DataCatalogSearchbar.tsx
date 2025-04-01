@@ -16,6 +16,7 @@ export const DataCatalogSearchbar = ({
     addTopic,
     searchRelaxationMode,
     queryType,
+    typoTolerance,
 }: {
     selectedCountries: Region[]
     selectedCountryNames: Set<string>
@@ -28,6 +29,7 @@ export const DataCatalogSearchbar = ({
     addTopic: (topic: string) => void
     searchRelaxationMode: SearchRelaxationMode
     queryType: QueryType
+    typoTolerance: boolean
 }) => {
     // Uses CSS to fake an input bar that will highlight correctly using :focus-within
     // without highlighting when the country selector is focused
@@ -47,6 +49,7 @@ export const DataCatalogSearchbar = ({
                     addTopic={addTopic}
                     searchRelaxationMode={searchRelaxationMode}
                     queryType={queryType}
+                    typoTolerance={typoTolerance}
                 />
             </div>
             <DataCatalogCountrySelector

@@ -228,6 +228,7 @@ export const DataCatalog = ({
                         }
                         searchRelaxationMode={state.searchRelaxationMode}
                         queryType={state.queryType}
+                        typoTolerance={state.typoTolerance}
                     />
                 </div>
                 {!state.componentVisibility[
@@ -260,6 +261,8 @@ export const DataCatalog = ({
                 setSearchRelaxationMode={actions.setSearchRelaxationMode}
                 queryType={state.queryType}
                 setQueryType={actions.setQueryType}
+                typoTolerance={state.typoTolerance}
+                setTypoTolerance={actions.setTypoTolerance}
             />
         </>
     )

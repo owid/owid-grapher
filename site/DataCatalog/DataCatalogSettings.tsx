@@ -44,6 +44,7 @@ export const DataCatalogSettings = ({
     isStickyHeader,
     searchRelaxationMode,
     queryType,
+    typoTolerance,
     updateComponentOrder,
     toggleComponentVisibility,
     setComponentCount,
@@ -51,6 +52,7 @@ export const DataCatalogSettings = ({
     toggleStickyHeader,
     setSearchRelaxationMode,
     setQueryType,
+    setTypoTolerance,
 }: {
     componentOrder: CatalogComponentId[]
     componentVisibility: Record<CatalogComponentId, boolean>
@@ -59,6 +61,7 @@ export const DataCatalogSettings = ({
     isStickyHeader: boolean
     searchRelaxationMode: SearchRelaxationMode
     queryType: QueryType
+    typoTolerance: boolean
     updateComponentOrder: (order: CatalogComponentId[]) => void
     toggleComponentVisibility: (id: CatalogComponentId) => void
     setComponentCount: (id: CatalogComponentId, count: number) => void
@@ -69,6 +72,7 @@ export const DataCatalogSettings = ({
     toggleStickyHeader: () => void
     setSearchRelaxationMode: (mode: SearchRelaxationMode) => void
     setQueryType: (type: QueryType) => void
+    setTypoTolerance: (enabled: boolean) => void
 }) => {
     const [open, setOpen] = useState(false)
 
@@ -204,10 +208,26 @@ export const DataCatalogSettings = ({
                                     />
                                 </ListItem>
                                 <ListItem>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={typoTolerance}
+                                                onChange={() =>
+                                                    setTypoTolerance(
+                                                        !typoTolerance
+                                                    )
+                                                }
+                                                color="primary"
+                                            />
+                                        }
+                                        label="Typo tolerance"
+                                    />
+                                </ListItem>
+                                <ListItem>
                                     <Box sx={{ width: "100%" }}>
                                         <FormControl component="fieldset">
                                             <FormLabel component="legend">
-                                                Search Behavior
+                                                No results behaviour
                                             </FormLabel>
                                             <RadioGroup
                                                 value={searchRelaxationMode}
@@ -263,7 +283,7 @@ export const DataCatalogSettings = ({
                                     <Box sx={{ width: "100%" }}>
                                         <FormControl component="fieldset">
                                             <FormLabel component="legend">
-                                                Query Type
+                                                Prefix matching
                                             </FormLabel>
                                             <RadioGroup
                                                 value={queryType}

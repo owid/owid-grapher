@@ -218,7 +218,8 @@ const CountriesSource = (
     addCountry: (country: string) => void,
     clearSearch: () => void,
     searchRelaxationMode: SearchRelaxationMode,
-    queryType: QueryType
+    queryType: QueryType,
+    typoTolerance: boolean
 ): AutocompleteSource<BaseItem> => {
     return {
         sourceId: Sources.COUNTRIES,
@@ -245,6 +246,7 @@ const CountriesSource = (
                             removeWordsIfNoResults: searchRelaxationMode,
                             restrictSearchableAttributes: ["title"],
                             queryType: queryType,
+                            typoTolerance: typoTolerance,
                         },
                     },
                 ],
@@ -281,7 +283,8 @@ const TopicsSource = (
     addTopic: (topic: string) => void,
     clearSearch: () => void,
     searchRelaxationMode: SearchRelaxationMode,
-    queryType: QueryType
+    queryType: QueryType,
+    typoTolerance: boolean
 ): AutocompleteSource<BaseItem> => {
     return {
         sourceId: Sources.TOPICS,
@@ -322,6 +325,7 @@ const TopicsSource = (
                             // in the excerpt).
                             restrictSearchableAttributes: ["title"],
                             queryType: queryType,
+                            typoTolerance: typoTolerance,
                         },
                     },
                 ],
@@ -472,6 +476,7 @@ export function DataCatalogAutocomplete({
     addTopic,
     searchRelaxationMode,
     queryType,
+    typoTolerance,
 }: {
     onActivate?: () => void
     onClose?: () => void
@@ -485,6 +490,7 @@ export function DataCatalogAutocomplete({
     addTopic: (topic: string) => void
     searchRelaxationMode: SearchRelaxationMode
     queryType: QueryType
+    typoTolerance: boolean
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -563,7 +569,8 @@ export function DataCatalogAutocomplete({
                                 addCountryRef.current,
                                 clearSearch,
                                 searchRelaxationMode,
-                                queryType
+                                queryType,
+                                typoTolerance
                             )
                         )
                     }
@@ -573,7 +580,8 @@ export function DataCatalogAutocomplete({
                                 addTopicRef.current,
                                 clearSearch,
                                 searchRelaxationMode,
-                                queryType
+                                queryType,
+                                typoTolerance
                             )
                         )
                     }
@@ -673,6 +681,7 @@ export function DataCatalogAutocomplete({
         query,
         searchRelaxationMode,
         queryType,
+        typoTolerance,
     ])
 
     // Sync external query changes (from the URL) to the input
