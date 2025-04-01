@@ -8,7 +8,6 @@
         { "path": "../site" },
         { "path": "../db" },
         { "path": "../explorerAdminServer" },
-        { "path": "../gitCms" },
         { "path": "../adminSiteClient" },
         { "path": "../settings" },
         { "path": "../baker" },

@@ -8,9 +8,6 @@
     "files": [],
     "references": [
         {
-            "path": "./gitCms"
-        },
-        {
             "path": "./site"
         },
         {
