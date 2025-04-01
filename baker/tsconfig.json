@@ -9,7 +9,6 @@
         { "path": "../explorerAdminServer" },
         { "path": "../db" },
         { "path": "../settings" },
-        { "path": "../serverUtils" },
-        { "path": "../gitCms" }
+        { "path": "../serverUtils" }
     ]
 }

@@ -7,7 +7,6 @@
     "references": [
         { "path": "../settings" },
         { "path": "../site" },
-        { "path": "../adminShared" },
-        { "path": "../gitCms" }
+        { "path": "../adminShared" }
     ]
 }
