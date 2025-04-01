@@ -21,7 +21,6 @@ export {
     excludeUndefined,
     firstOfNonEmptyArray,
     lastOfNonEmptyArray,
-    mapToObjectLiteral,
     next,
     previous,
     domainExtent,
