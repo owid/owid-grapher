@@ -191,22 +191,10 @@ export const DataCatalogSettings = ({
                             <List
                                 subheader={
                                     <ListSubheader>
-                                        Display Settings
+                                        Search Settings
                                     </ListSubheader>
                                 }
                             >
-                                <ListItem>
-                                    <FormControlLabel
-                                        control={
-                                            <Switch
-                                                checked={isStickyHeader}
-                                                onChange={toggleStickyHeader}
-                                                color="primary"
-                                            />
-                                        }
-                                        label="Sticky header"
-                                    />
-                                </ListItem>
                                 <ListItem>
                                     <FormControlLabel
                                         control={
@@ -222,61 +210,6 @@ export const DataCatalogSettings = ({
                                         }
                                         label="Typo tolerance"
                                     />
-                                </ListItem>
-                                <ListItem>
-                                    <Box sx={{ width: "100%" }}>
-                                        <FormControl component="fieldset">
-                                            <FormLabel component="legend">
-                                                No results behaviour
-                                            </FormLabel>
-                                            <RadioGroup
-                                                value={searchRelaxationMode}
-                                                onChange={(e) =>
-                                                    setSearchRelaxationMode(
-                                                        e.target
-                                                            .value as SearchRelaxationMode
-                                                    )
-                                                }
-                                            >
-                                                <FormControlLabel
-                                                    value={
-                                                        SearchRelaxationMode.NONE
-                                                    }
-                                                    control={
-                                                        <Radio size="small" />
-                                                    }
-                                                    label="Strict matching"
-                                                />
-                                                <FormControlLabel
-                                                    value={
-                                                        SearchRelaxationMode.FIRST_WORDS
-                                                    }
-                                                    control={
-                                                        <Radio size="small" />
-                                                    }
-                                                    label="Remove first words"
-                                                />
-                                                <FormControlLabel
-                                                    value={
-                                                        SearchRelaxationMode.LAST_WORDS
-                                                    }
-                                                    control={
-                                                        <Radio size="small" />
-                                                    }
-                                                    label="Remove last words"
-                                                />
-                                                <FormControlLabel
-                                                    value={
-                                                        SearchRelaxationMode.ALL_OPTIONAL
-                                                    }
-                                                    control={
-                                                        <Radio size="small" />
-                                                    }
-                                                    label="All words optional"
-                                                />
-                                            </RadioGroup>
-                                        </FormControl>
-                                    </Box>
                                 </ListItem>
 
                                 <ListItem>
@@ -343,6 +276,84 @@ export const DataCatalogSettings = ({
                                 </ListItem>
 
                                 <ListItem>
+                                    <Box sx={{ width: "100%" }}>
+                                        <FormControl component="fieldset">
+                                            <FormLabel component="legend">
+                                                No results behaviour
+                                            </FormLabel>
+                                            <RadioGroup
+                                                value={searchRelaxationMode}
+                                                onChange={(e) =>
+                                                    setSearchRelaxationMode(
+                                                        e.target
+                                                            .value as SearchRelaxationMode
+                                                    )
+                                                }
+                                            >
+                                                <FormControlLabel
+                                                    value={
+                                                        SearchRelaxationMode.NONE
+                                                    }
+                                                    control={
+                                                        <Radio size="small" />
+                                                    }
+                                                    label="Strict matching"
+                                                />
+                                                <FormControlLabel
+                                                    value={
+                                                        SearchRelaxationMode.FIRST_WORDS
+                                                    }
+                                                    control={
+                                                        <Radio size="small" />
+                                                    }
+                                                    label="Remove first words"
+                                                />
+                                                <FormControlLabel
+                                                    value={
+                                                        SearchRelaxationMode.LAST_WORDS
+                                                    }
+                                                    control={
+                                                        <Radio size="small" />
+                                                    }
+                                                    label="Remove last words"
+                                                />
+                                                <FormControlLabel
+                                                    value={
+                                                        SearchRelaxationMode.ALL_OPTIONAL
+                                                    }
+                                                    control={
+                                                        <Radio size="small" />
+                                                    }
+                                                    label="All words optional"
+                                                />
+                                            </RadioGroup>
+                                        </FormControl>
+                                    </Box>
+                                </ListItem>
+                            </List>
+
+                            <Divider sx={{ my: 2 }} />
+                            <List
+                                subheader={
+                                    <ListSubheader>
+                                        Display Settings
+                                    </ListSubheader>
+                                }
+                            >
+                                <ListItem>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={isStickyHeader}
+                                                onChange={toggleStickyHeader}
+                                                color="primary"
+                                            />
+                                        }
+                                        label="Sticky header"
+                                    />
+                                </ListItem>
+
+                                <ListItem>
                                     <FormControl fullWidth size="small">
                                         <InputLabel id="insights-count-label">
                                             Data Insights to Show
@@ -367,6 +378,7 @@ export const DataCatalogSettings = ({
                                         </Select>
                                     </FormControl>
                                 </ListItem>
+
                                 <ListItem>
                                     <Box sx={{ width: "100%" }}>
                                         <Typography
