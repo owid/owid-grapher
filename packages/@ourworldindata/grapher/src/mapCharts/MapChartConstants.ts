@@ -58,7 +58,7 @@ export interface ChoroplethMapManager {
     mapConfig: MapConfig
     focusBracket?: MapBracket
     focusEntity?: MapEntity
-    onClick: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void
+    onClick: (d: GeoFeature, ev: MouseEvent) => void
     onMapMouseOver: (d: GeoFeature) => void
     onMapMouseLeave: () => void
     isStatic?: boolean
