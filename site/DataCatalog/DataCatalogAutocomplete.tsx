@@ -384,6 +384,11 @@ const CombinedFiltersSource = (
             return []
         },
         templates: {
+            header: () => {
+                return (
+                    <h5 className="overline-black-caps">🧪 Combined Filters</h5>
+                )
+            },
             item: ({ item }) => {
                 const countries = (item.countries as string[]) || []
                 const topic = item.topic as string | undefined
@@ -556,15 +561,6 @@ export function DataCatalogAutocomplete({
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query && query.length >= minQueryLength) {
-                    // Add the combined filters source
-                    sources.push(
-                        CombinedFiltersSource(
-                            addCountryRef.current,
-                            addTopicRef.current,
-                            clearSearch
-                        )
-                    )
-
                     if (addCountryRef.current) {
                         sources.push(
                             CountriesSource(
@@ -587,6 +583,15 @@ export function DataCatalogAutocomplete({
                             )
                         )
                     }
+
+                    // Add the combined filters source
+                    sources.push(
+                        CombinedFiltersSource(
+                            addCountryRef.current,
+                            addTopicRef.current,
+                            clearSearch
+                        )
+                    )
                     sources.push(AlgoliaSource, AllResultsSource)
                 } else {
                     sources.push(FeaturedSearchesSource)
@@ -605,15 +610,15 @@ export function DataCatalogAutocomplete({
 
                 return (
                     sources
-                        .filter(
-                            // Remove the countries and topics sources since their
-                            // components are already included in the combined filters
-                            // source
-                            (source) =>
-                                ![Sources.TOPICS, Sources.COUNTRIES].includes(
-                                    source.sourceId as Sources
-                                )
-                        )
+                        // .filter(
+                        //     // Remove the countries and topics sources since their
+                        //     // components are already included in the combined filters
+                        //     // source
+                        //     (source) =>
+                        //         ![Sources.TOPICS, Sources.COUNTRIES].includes(
+                        //             source.sourceId as Sources
+                        //         )
+                        // )
                         // Update combined filter source with one item per topic
                         .map((source) => {
                             if (source.sourceId === Sources.COMBINED_FILTERS) {
