@@ -78,6 +78,7 @@
         @include body-3-medium;
         color: $blue-50;
         border: 1px solid $blue-20;
+        border-radius: 0;
         background-color: $white;
         transition: background-color 0.1s;
         &:hover {
