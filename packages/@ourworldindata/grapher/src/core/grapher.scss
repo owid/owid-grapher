@@ -79,8 +79,9 @@ $zindex-controls-drawer: 150;
     @import "../slideInDrawer/SlideInDrawer.scss";
     @import "../sidePanel/SidePanel.scss";
     @import "../controls/Dropdown.scss";
+    @import "../controls/SearchDropdown.scss";
     @import "../scatterCharts/NoDataSection.scss";
-    @import "../mapCharts/MapChart.scss";
+    @import "../controls/CloseGlobeViewButton.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
