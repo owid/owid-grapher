@@ -10,7 +10,6 @@ import {
 } from "d3-geo"
 import { Quadtree, quadtree } from "d3-quadtree"
 import { select } from "d3-selection"
-import { drag } from "d3-drag"
 import { zoom } from "d3-zoom"
 // @ts-expect-error no types available
 import versor from "versor"
@@ -22,6 +21,8 @@ import {
     sortBy,
     InteractionState,
     isTouchDevice,
+    getRelativeMouse,
+    checkIsTouchEvent,
 } from "@ourworldindata/utils"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
@@ -29,6 +30,7 @@ import {
     ChoroplethSeriesByName,
     GEO_FEATURES_CLASSNAME,
     GlobeRenderFeature,
+    MAP_HOVER_TARGET_RANGE,
     SVGMouseEvent,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
@@ -39,7 +41,7 @@ import {
     NoDataPattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
-import { detectNearbyFeature, hasFocus } from "./MapHelpers"
+import { calculateDistance, detectNearbyFeature, hasFocus } from "./MapHelpers"
 
 const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 
@@ -58,8 +60,7 @@ export class ChoroplethGlobe extends React.Component<{
     @observable private hoverEnterFeature?: GlobeRenderFeature
     @observable private hoverNearbyFeature?: GlobeRenderFeature
 
-    private isDragging = false
-    private isZooming = false
+    private isPanningOrZooming = false
 
     @computed private get isTouchDevice(): boolean {
         return isTouchDevice()
@@ -83,6 +84,10 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed private get features(): GlobeRenderFeature[] {
         return getFeaturesForGlobe()
+    }
+
+    @computed private get featuresById(): Map<string, GlobeRenderFeature> {
+        return new Map(this.features.map((feature) => [feature.id, feature]))
     }
 
     @computed private get featuresWithData(): GlobeRenderFeature[] {
@@ -109,14 +114,16 @@ export class ChoroplethGlobe extends React.Component<{
     // Otherwise we do a quadtree search for the closest center point of a feature bounds,
     // so that we can hover very small countries without trouble
     @action.bound private detectNearbyFeature(
-        event: MouseEvent | TouchEvent
-    ): void {
+        event: MouseEvent | TouchEvent,
+        maxDistance = MAP_HOVER_TARGET_RANGE
+    ): GlobeRenderFeature | undefined {
         if (this.hoverEnterFeature || !this.base.current) return
 
         const nearbyFeature = detectNearbyFeature({
             quadtree: this.quadtree,
             element: this.base.current,
             event,
+            distance: maxDistance,
         })
 
         if (!nearbyFeature) {
@@ -129,6 +136,8 @@ export class ChoroplethGlobe extends React.Component<{
             this.hoverNearbyFeature = nearbyFeature
             this.manager.onMapMouseOver(nearbyFeature.geo)
         }
+
+        return nearbyFeature
     }
 
     /** Checks if a geo entity is currently focused, either directly or via the bracket */
@@ -276,8 +285,8 @@ export class ChoroplethGlobe extends React.Component<{
     @action.bound private onMouseEnterFeature(
         feature: GlobeRenderFeature
     ): void {
-        // ignore mouse enter if dragging or zooming
-        if (this.isDragging || this.isZooming) return
+        // ignore mouse enter if panning or zooming
+        if (this.isPanningOrZooming) return
         this.hoverEnterFeature = feature
         this.manager.onMapMouseOver(feature.geo)
     }
@@ -288,88 +297,162 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private onClick(event: SVGMouseEvent): void {
-        // find the feature that was clicked
+        let feature: GlobeRenderFeature | undefined
         const { featureId } = (event.target as SVGElement).dataset
-        const feature = this.features.find((f) => f.id === featureId)
-        if (!feature) return
+        if (featureId) {
+            // if a feature was clicked, find it and trigger its hover state
+            feature = this.featuresById.get(featureId)
+            if (feature) this.onMouseEnterFeature(feature)
+            else this.onMouseLeaveFeature()
+        } else {
+            // if no feature was clicked, try to detect the nearest feature
+            feature = this.detectNearbyFeature(event.nativeEvent, 40)
+        }
 
-        // update hover state
-        this.hoverEnterFeature = feature
-        this.manager.onMapMouseOver(feature.geo)
+        if (!feature) return
 
         this.manager.onClick(feature.geo, event)
     }
 
-    componentDidMount(): void {
-        // adapted from https://observablehq.com/d/569d101dd5bd332b
-        const globeDrag = (): any => {
+    @action.bound private onDocumentClick(): void {
+        this.clearHover()
+    }
+
+    private setUpPanningAndZooming(): void {
+        const base = this.base.current
+        if (!base) return
+
+        // possible interaction types are
+        // - zoom-scroll: zooming by scrolling via the wheel event
+        // - zoom-pinch: zooming by pinching using two fingers on touch devices
+        // - pan: panning by dragging the mouse or using a finger on touch devices
+        type InteractionType = "zoom-scroll" | "zoom-pinch" | "pan"
+
+        // Panning and zooming is powered by D3.
+        //
+        // Panning is adapted from https://observablehq.com/d/569d101dd5bd332b.
+        // The strategy ensures the geographic start point remains under the cursor
+        // where possible. See https://www.jasondavies.com/maps/rotate/ for more
+        // details.
+        //
+        // We could rely on D3's event.transform.k for zooming, but the
+        // transform value might be out of sync with the actual zoom level if
+        // the zoom level was changed elsewhere (e.g. by automatically zooming
+        // in on a country). That's why we compute the target zoom level ourselves.
+
+        const panAndZoom = (): any => {
+            let previousType: InteractionType | undefined
+
+            // for panning
             let startCoords: [number, number, number],
                 startQuat: [number, number, number, number],
                 startRot: [number, number]
 
-            const startDrag = (event: any): void => {
-                const { x, y } = event
-                startCoords = versor.cartesian(this.projection.invert([x, y]))
-                startRot = this.globeRotation
-                startQuat = versor(startRot)
+            // for zooming
+            let startDistance: number | undefined
+
+            const getInteractionType = (event: any): InteractionType => {
+                if (event.sourceEvent.type === "wheel") return "zoom-scroll"
+                if (isMultiTouchEvent(event.sourceEvent)) return "zoom-pinch"
+                return "pan"
             }
 
-            const dragging = (event: any): void => {
-                this.isDragging = true
-                this.clearHover() // dismiss tooltip
+            const panningOrZoomingStart = (event: any): void => {
+                const type = getInteractionType(event)
 
-                const { x, y } = event
-                const currCoords = versor.cartesian(
-                    this.projection.rotate(startRot).invert([x, y])
-                )
-                const delta = versor.delta(startCoords, currCoords)
-                const quat = versor.multiply(startQuat, delta)
-                const rotation = versor.rotation(quat)
+                const startPinching = (): void => {
+                    startDistance = calculatePinchDistance(event.sourceEvent)
+                }
 
-                // ignore the gamma channel for more intuitive rotation
-                // see https://www.jasondavies.com/maps/rotate/ for an explanation
-                this.rotateGlobe([rotation[0], rotation[1]])
+                const startPanning = (): void => {
+                    const pos = getRelativeMouse(base, event.sourceEvent)
+                    startCoords = versor.cartesian(
+                        this.projection.invert([pos.x, pos.y])
+                    )
+                    startRot = this.globeRotation
+                    startQuat = versor(startRot)
+                }
+
+                if (type === "zoom-pinch") startPinching()
+                else if (type === "pan") startPanning()
+
+                previousType = type
             }
 
-            const endDrag = (): void => {
-                this.isDragging = false
+            const panningOrZooming = (event: any): void => {
+                this.isPanningOrZooming = true
+                this.clearHover() // dismiss the tooltip
+
+                const wheeling = (): void => {
+                    this.zoomGlobe(-event.sourceEvent.deltaY)
+                }
+
+                const pinching = (): void => {
+                    const distance = calculatePinchDistance(event.sourceEvent)
+
+                    if (!startDistance) {
+                        startDistance = distance
+                        return
+                    }
+
+                    this.zoomGlobe(distance - startDistance)
+                    startDistance = distance
+                }
+
+                const panning = (): void => {
+                    const pos = getRelativeMouse(base, event.sourceEvent)
+                    const currCoords = versor.cartesian(
+                        this.projection.rotate(startRot).invert([pos.x, pos.y])
+                    )
+                    const delta = versor.delta(startCoords, currCoords)
+                    const quat = versor.multiply(startQuat, delta)
+                    const rotation = versor.rotation(quat)
+
+                    // ignore the gamma channel for more intuitive rotation
+                    // see https://observablehq.com/@d3/three-axis-rotation
+                    // for a visual explanation of three-axis rotation
+                    this.rotateGlobe([rotation[0], rotation[1]])
+                }
+
+                const type = getInteractionType(event)
+
+                // bail if a zoom-pinch gesture turned into a pan
+                // because this might lead to erratic jumps
+                if (previousType === "zoom-pinch" && type === "pan") return
+
+                if (type === "zoom-scroll") wheeling()
+                else if (type === "zoom-pinch") pinching()
+                else if (type === "pan") panning()
+
+                previousType = type
             }
 
-            return drag()
-                .on("start", startDrag)
-                .on("drag", dragging)
-                .on("end", endDrag)
-        }
-
-        const globeZoom = (): any => {
-            const zooming = (event: any): void => {
-                this.isZooming = true
-                this.clearHover() // dismiss tooltip
-
-                // we don't rely on event.transform.k because that might be
-                // out of sync with the actual zoom level if the zoom level
-                // was changed elsewhere (e.g. by automatically zooming in
-                // on a country)
-                this.zoomGlobe(-event.sourceEvent.deltaY)
-            }
-
-            const endZoom = (): void => {
-                this.isZooming = false
+            const panningOrZoomingEnd = (): void => {
+                this.isPanningOrZooming = false
+                startDistance = undefined
+                previousType = undefined
             }
 
             return zoom()
                 .scaleExtent([MIN_ZOOM_SCALE, MAX_ZOOM_SCALE])
                 .touchable(() => this.isTouchDevice)
-                .on("zoom", zooming)
-                .on("end", endZoom)
+                .on("start", panningOrZoomingStart)
+                .on("zoom", panningOrZooming)
+                .on("end", panningOrZoomingEnd)
         }
 
-        if (this.base.current) {
-            select(this.base.current).call(globeDrag()).call(globeZoom())
-        }
+        select(base).call(panAndZoom())
+    }
+
+    componentDidMount(): void {
+        document.addEventListener("click", this.onDocumentClick, true)
+
+        this.setUpPanningAndZooming()
     }
 
     componentWillUnmount(): void {
+        document.removeEventListener("click", this.onDocumentClick, true)
+
         if (this.rotateFrameId) cancelAnimationFrame(this.rotateFrameId)
         if (this.zoomFrameId) cancelAnimationFrame(this.zoomFrameId)
     }
@@ -469,6 +552,7 @@ export class ChoroplethGlobe extends React.Component<{
         return (
             <g
                 ref={this.base}
+                onClick={this.onClick}
                 onMouseDown={
                     (ev: SVGMouseEvent): void =>
                         ev.preventDefault() /* Without this, title may get selected while shift clicking */
@@ -479,7 +563,12 @@ export class ChoroplethGlobe extends React.Component<{
                 onMouseLeave={this.onMouseLeaveFeature}
             >
                 {this.renderGlobeOutline()}
-                <g className={GEO_FEATURES_CLASSNAME}>
+                <g
+                    className={GEO_FEATURES_CLASSNAME}
+                    style={{
+                        pointerEvents: this.isTouchDevice ? "none" : "auto",
+                    }}
+                >
                     {this.renderFeaturesWithNoData()}
                     {this.renderFeaturesWithData()}
                 </g>
@@ -492,4 +581,18 @@ export class ChoroplethGlobe extends React.Component<{
             ? this.renderStatic()
             : this.renderInteractive()
     }
+}
+
+const isMultiTouchEvent = (
+    event: MouseEvent | TouchEvent
+): event is TouchEvent => {
+    return checkIsTouchEvent(event) && event.touches.length >= 2
+}
+
+const calculatePinchDistance = (event: TouchEvent): number => {
+    const { touches } = event
+    return calculateDistance(
+        [touches[0].clientX, touches[0].clientY],
+        [touches[1].clientX, touches[1].clientY]
+    )
 }
