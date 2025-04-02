@@ -136,6 +136,11 @@ migrate: node_modules
 	yarn buildLerna && yarn runDbMigrations
 
 refresh:
+	@if grep -q "ENV=production" .env; then \
+		echo "ERROR: Cannot run refresh in production environment."; \
+		exit 1; \
+	fi
+
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-metadata-mysql.sh
 
