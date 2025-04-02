@@ -391,7 +391,7 @@ const defaultCatalogState: DataCatalogState = {
     isStickyHeader: true,
     searchRelaxationMode: SearchRelaxationMode.ALL_OPTIONAL,
     contentTypeFilter: CatalogContentType.ALL,
-    queryType: QueryType.PREFIX_LAST,
+    queryType: QueryType.PREFIX_ALL,
     typoTolerance: false,
     minQueryLength: 3,
 }
