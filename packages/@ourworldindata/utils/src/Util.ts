@@ -1249,7 +1249,7 @@ export function checkIsStringIndexable(
     return R.isPlainObject(x) || R.isArray(x)
 }
 
-function checkIsTouchEvent(
+export function checkIsTouchEvent(
     event: unknown
 ): event is React.TouchEvent | TouchEvent {
     if (isObject(event)) {

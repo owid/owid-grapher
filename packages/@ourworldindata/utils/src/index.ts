@@ -87,6 +87,7 @@ export {
     stringifyUnknownError,
     toRectangularMatrix,
     checkIsStringIndexable,
+    checkIsTouchEvent,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
     removeAllWhitespace,
