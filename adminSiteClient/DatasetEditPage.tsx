@@ -282,17 +282,6 @@ class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
                             <FontAwesomeIcon icon={faGithub} /> View on GitHub
                         </a>
                     )}
-                    {/* Download additional content (old) */}
-                    {dataset.zipFile && (
-                        <Link
-                            native
-                            to={`/datasets/${dataset.id}/downloadZip`}
-                            className="btn btn-secondary"
-                        >
-                            <FontAwesomeIcon icon={faDownload} />{" "}
-                            additional-material.zip
-                        </Link>
-                    )}
                 </section>
 
                 {/* DATASET METADATA */}

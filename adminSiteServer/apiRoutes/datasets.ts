@@ -121,13 +121,6 @@ export async function getDataset(
 
     if (!dataset) throw new JsonError(`No dataset by id '${datasetId}'`, 404)
 
-    const zipFile = await db.knexRawFirst<{ filename: string }>(
-        trx,
-        `SELECT filename FROM dataset_files WHERE datasetId=?`,
-        [datasetId]
-    )
-    if (zipFile) dataset.zipFile = zipFile
-
     const variables = await db.knexRaw<
         Pick<
             DbRawVariable,
@@ -350,9 +343,6 @@ export async function deleteDataset(
         `DELETE d FROM country_latest_data AS d JOIN variables AS v ON d.variable_id=v.id WHERE v.datasetId=?`,
         [datasetId]
     )
-    await db.knexRaw(trx, `DELETE FROM dataset_files WHERE datasetId=?`, [
-        datasetId,
-    ])
     await db.knexRaw(trx, `DELETE FROM variables WHERE datasetId=?`, [
         datasetId,
     ])
