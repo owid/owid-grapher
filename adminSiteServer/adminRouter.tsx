@@ -38,7 +38,7 @@ import {
 } from "../baker/GrapherBaker.js"
 import { getChartConfigById, getChartConfigBySlug } from "../db/model/Chart.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
-import { DbPlainDatasetFile, DbPlainDataset } from "@ourworldindata/types"
+import { DbPlainDataset } from "@ourworldindata/types"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import {
     getMultiDimDataPageByCatalogPath,
@@ -163,23 +163,6 @@ getPlainRouteWithROTransaction(
         })
         await writeDatasetCSV(trx, datasetId, writeStream)
         res.end()
-    }
-)
-
-getPlainRouteWithROTransaction(
-    adminRouter,
-    "/datasets/:datasetId/downloadZip",
-    async (req, res, trx) => {
-        const datasetId = expectInt(req.params.datasetId)
-
-        res.attachment("additional-material.zip")
-
-        const file = await db.knexRawFirst<
-            Pick<DbPlainDatasetFile, "filename" | "file">
-        >(trx, `SELECT filename, file FROM dataset_files WHERE datasetId=?`, [
-            datasetId,
-        ])
-        res.send(file?.file)
     }
 )
 

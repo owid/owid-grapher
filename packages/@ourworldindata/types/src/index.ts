@@ -524,11 +524,6 @@ export {
     CountryLatestDataTableName,
 } from "./dbTypes/CountryLatestData.js"
 export {
-    type DbPlainDatasetFile,
-    type DbInsertDatasetFile,
-    DatasetFilesTableName,
-} from "./dbTypes/DatasetFiles.js"
-export {
     type DbPlainDataset,
     type DbInsertDataset,
     DatasetsTableName,
