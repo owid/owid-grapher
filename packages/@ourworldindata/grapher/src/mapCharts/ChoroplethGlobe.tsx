@@ -82,12 +82,12 @@ export class ChoroplethGlobe extends React.Component<{
         return this.manager.choroplethData
     }
 
-    @computed private get features(): GlobeRenderFeature[] {
-        return getFeaturesForGlobe()
+    @computed private get hoverFeature(): GlobeRenderFeature | undefined {
+        return this.hoverEnterFeature || this.hoverNearbyFeature
     }
 
-    @computed private get featuresById(): Map<string, GlobeRenderFeature> {
-        return new Map(this.features.map((feature) => [feature.id, feature]))
+    @computed private get features(): GlobeRenderFeature[] {
+        return getFeaturesForGlobe()
     }
 
     @computed private get featuresWithData(): GlobeRenderFeature[] {
@@ -287,30 +287,37 @@ export class ChoroplethGlobe extends React.Component<{
     ): void {
         // ignore mouse enter if panning or zooming
         if (this.isPanningOrZooming) return
+        this.setHoverEnterFeature(feature)
+    }
+
+    @action.bound private onMouseLeaveFeature(): void {
+        this.clearHoverEnterFeature()
+    }
+
+    @action.bound private setHoverEnterFeature(
+        feature: GlobeRenderFeature
+    ): void {
+        if (this.hoverEnterFeature?.id === feature.id) return
+
         this.hoverEnterFeature = feature
         this.manager.onMapMouseOver(feature.geo)
     }
 
-    @action.bound private onMouseLeaveFeature(): void {
+    @action.bound private clearHoverEnterFeature(): void {
         this.hoverEnterFeature = undefined
         this.manager.onMapMouseLeave()
     }
 
-    // invoked when clicking on the parent svg group element
-    @action.bound private onParentClick(
-        event: React.MouseEvent<SVGElement>
+    @action.bound private onClick(
+        feature: GlobeRenderFeature,
+        event: MouseEvent
     ): void {
-        let feature: GlobeRenderFeature | undefined
-        const { featureId } = (event.target as SVGElement).dataset
-        if (featureId) {
-            // if a feature was clicked, find it and trigger its hover state
-            feature = this.featuresById.get(featureId)
-            if (feature) this.onMouseEnterFeature(feature)
-            else this.onMouseLeaveFeature()
-        } else {
-            // if the click was outside of a feature, try to detect a nearby feature
-            this.detectNearbyFeature(event.nativeEvent)
-        }
+        this.setHoverEnterFeature(feature)
+        this.manager.onClick(feature.geo, event)
+    }
+
+    @action.bound private onTouchStart(feature: GlobeRenderFeature): void {
+        this.setHoverEnterFeature(feature)
     }
 
     @action.bound private onDocumentClick(): void {
@@ -453,13 +460,13 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     componentDidMount(): void {
-        document.addEventListener("click", this.onDocumentClick, true)
+        document.addEventListener("touchstart", this.onDocumentClick, true)
 
         this.setUpPanningAndZooming()
     }
 
     componentWillUnmount(): void {
-        document.removeEventListener("click", this.onDocumentClick, true)
+        document.removeEventListener("touchstart", this.onDocumentClick, true)
 
         if (this.rotateFrameId) cancelAnimationFrame(this.rotateFrameId)
         if (this.zoomFrameId) cancelAnimationFrame(this.zoomFrameId)
@@ -507,8 +514,9 @@ export class ChoroplethGlobe extends React.Component<{
                         patternId={patternId}
                         focus={this.getFocusState(feature.id)}
                         onClick={(event) =>
-                            this.manager.onClick(feature.geo, event)
+                            this.onClick(feature, event.nativeEvent)
                         }
+                        onTouchStart={() => this.onTouchStart(feature)}
                         onMouseEnter={this.onMouseEnterFeature}
                         onMouseLeave={this.onMouseLeaveFeature}
                     />
@@ -534,8 +542,9 @@ export class ChoroplethGlobe extends React.Component<{
                             focus={this.getFocusState(feature.id)}
                             showSelectedStyle={this.showSelectedStyle}
                             onClick={(event) =>
-                                this.manager.onClick(feature.geo, event)
+                                this.onClick(feature, event.nativeEvent)
                             }
+                            onTouchStart={() => this.onTouchStart(feature)}
                             onMouseEnter={this.onMouseEnterFeature}
                             onMouseLeave={this.onMouseLeaveFeature}
                         />
@@ -564,7 +573,6 @@ export class ChoroplethGlobe extends React.Component<{
         return (
             <g
                 ref={this.base}
-                onClick={this.onParentClick}
                 onMouseDown={
                     (ev: SVGMouseEvent): void =>
                         ev.preventDefault() /* Without this, title may get selected while shift clicking */
@@ -573,6 +581,7 @@ export class ChoroplethGlobe extends React.Component<{
                     this.onMouseMove(ev.nativeEvent)
                 }
                 onMouseLeave={this.onMouseLeaveFeature}
+                style={{ cursor: this.hoverFeature ? "pointer" : undefined }}
             >
                 {this.renderGlobeOutline()}
                 <g className={GEO_FEATURES_CLASSNAME}>

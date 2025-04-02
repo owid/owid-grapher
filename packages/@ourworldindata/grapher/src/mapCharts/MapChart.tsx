@@ -200,10 +200,7 @@ export class MapChart
         return makeSelectionArray(this.manager.selection)
     }
 
-    @action.bound onClick(
-        d: GeoFeature,
-        ev: React.MouseEvent<SVGElement>
-    ): void {
+    @action.bound onClick(d: GeoFeature, ev: MouseEvent): void {
         const entityName = d.id as EntityName
         if (!this.isEntityClickable(entityName)) return
 

@@ -45,6 +45,7 @@ export function CountryWithData<Feature extends RenderFeature>({
     showSelectedStyle,
     strokeScale = 1,
     onClick,
+    onTouchStart,
     onMouseEnter,
     onMouseLeave,
 }: {
@@ -54,9 +55,10 @@ export function CountryWithData<Feature extends RenderFeature>({
     focus: InteractionState
     showSelectedStyle: boolean
     strokeScale?: number
-    onClick: (event: SVGMouseEvent) => void
-    onMouseEnter: (feature: Feature) => void
-    onMouseLeave: () => void
+    onClick?: (event: SVGMouseEvent) => void
+    onTouchStart?: (event: React.TouchEvent<SVGElement>) => void
+    onMouseEnter?: (feature: Feature, event: MouseEvent) => void
+    onMouseLeave?: () => void
 }): React.ReactElement {
     const shouldShowSelectedStyle = showSelectedStyle && series.isSelected
     const stroke =
@@ -85,7 +87,10 @@ export function CountryWithData<Feature extends RenderFeature>({
             fill={fill}
             fillOpacity={fillOpacity}
             onClick={onClick}
-            onMouseEnter={(): void => onMouseEnter(feature)}
+            onTouchStart={onTouchStart}
+            onMouseEnter={(event): void =>
+                onMouseEnter?.(feature, event.nativeEvent)
+            }
             onMouseLeave={onMouseLeave}
         />
     )
@@ -98,6 +103,7 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     focus,
     strokeScale = 1,
     onClick,
+    onTouchStart,
     onMouseEnter,
     onMouseLeave,
 }: {
@@ -106,9 +112,10 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     patternId: string
     focus: InteractionState
     strokeScale?: number
-    onClick: (event: SVGMouseEvent) => void
-    onMouseEnter: (feature: Feature) => void
-    onMouseLeave: () => void
+    onClick?: (event: SVGMouseEvent) => void
+    onTouchStart?: (event: React.TouchEvent<SVGElement>) => void
+    onMouseEnter?: (feature: Feature, event: MouseEvent) => void
+    onMouseLeave?: () => void
 }): React.ReactElement {
     const stroke = focus.active ? FOCUS_STROKE_COLOR : "#aaa"
     const fillOpacity = focus.background ? BLUR_FILL_OPACITY : 1
@@ -128,7 +135,10 @@ export function CountryWithNoData<Feature extends RenderFeature>({
             fill={`url(#${patternId})`}
             fillOpacity={fillOpacity}
             onClick={onClick}
-            onMouseEnter={(): void => onMouseEnter(feature)}
+            onTouchStart={onTouchStart}
+            onMouseEnter={(event): void =>
+                onMouseEnter?.(feature, event.nativeEvent)
+            }
             onMouseLeave={onMouseLeave}
         />
     )
