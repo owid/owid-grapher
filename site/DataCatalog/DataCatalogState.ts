@@ -392,8 +392,8 @@ const defaultCatalogState: DataCatalogState = {
     searchRelaxationMode: SearchRelaxationMode.ALL_OPTIONAL,
     contentTypeFilter: CatalogContentType.ALL,
     queryType: QueryType.PREFIX_ALL,
-    typoTolerance: false,
-    minQueryLength: 3,
+    typoTolerance: true,
+    minQueryLength: 2,
 }
 
 export function getInitialDatacatalogState(): DataCatalogState {
@@ -420,7 +420,7 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
             url.queryParams.requireAllCountries === "true"
     if (url.queryParams.page) state.page = parseInt(url.queryParams.page) - 1
     if (url.queryParams.stickyHeader)
-        state.isStickyHeader = url.queryParams.stickyHeader !== "false"
+        state.isStickyHeader = url.queryParams.stickyHeader === "true"
     if (url.queryParams.searchRelaxation)
         state.searchRelaxationMode = url.queryParams
             .searchRelaxation as SearchRelaxationMode
@@ -502,7 +502,10 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
             state.queryType !== defaultCatalogState.queryType
                 ? state.queryType
                 : undefined,
-        typoTolerance: state.typoTolerance ? "true" : undefined,
+        typoTolerance:
+            state.typoTolerance !== defaultCatalogState.typoTolerance
+                ? state.typoTolerance.toString()
+                : undefined,
         minQueryLength:
             state.minQueryLength !== defaultCatalogState.minQueryLength
                 ? state.minQueryLength.toString()
