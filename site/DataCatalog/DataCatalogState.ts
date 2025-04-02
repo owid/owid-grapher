@@ -378,25 +378,26 @@ function getDefaultComponentStyles(): Record<
     ) as Record<CatalogComponentId, CatalogComponentStyle>
 }
 
+const defaultCatalogState: DataCatalogState = {
+    query: "",
+    topics: new Set(),
+    selectedCountryNames: new Set(),
+    requireAllCountries: false,
+    page: 0,
+    componentOrder: getDefaultComponentOrder(),
+    componentVisibility: getDefaultComponentVisibility(),
+    componentCount: getDefaultComponentCount(),
+    componentStyles: getDefaultComponentStyles(),
+    isStickyHeader: true,
+    searchRelaxationMode: SearchRelaxationMode.ALL_OPTIONAL,
+    contentTypeFilter: CatalogContentType.ALL,
+    queryType: QueryType.PREFIX_LAST,
+    typoTolerance: false,
+    minQueryLength: 3,
+}
+
 export function getInitialDatacatalogState(): DataCatalogState {
-    if (typeof window === "undefined")
-        return {
-            query: "",
-            topics: new Set(),
-            selectedCountryNames: new Set(),
-            requireAllCountries: false,
-            page: 0,
-            componentOrder: getDefaultComponentOrder(),
-            componentVisibility: getDefaultComponentVisibility(),
-            componentCount: getDefaultComponentCount(),
-            componentStyles: getDefaultComponentStyles(),
-            isStickyHeader: true,
-            searchRelaxationMode: SearchRelaxationMode.ALL_OPTIONAL,
-            contentTypeFilter: CatalogContentType.ALL,
-            queryType: QueryType.PREFIX_LAST,
-            typoTolerance: false,
-            minQueryLength: 3,
-        }
+    if (typeof window === "undefined") return defaultCatalogState
 
     const url = Url.fromURL(window.location.href)
     const state = urlToDataCatalogState(url)
@@ -405,15 +406,42 @@ export function getInitialDatacatalogState(): DataCatalogState {
 }
 
 export function urlToDataCatalogState(url: Url): DataCatalogState {
-    // Start with default component properties
-    const defaultComponentCount = getDefaultComponentCount()
-    const defaultComponentStyles = getDefaultComponentStyles()
+    // Start with the default state
+    const state = { ...defaultCatalogState }
+
+    // Override with URL parameters
+    if (url.queryParams.q) state.query = url.queryParams.q
+    if (url.queryParams.topics)
+        state.topics = deserializeSet(url.queryParams.topics)
+    if (url.queryParams.countries)
+        state.selectedCountryNames = deserializeSet(url.queryParams.countries)
+    if (url.queryParams.requireAllCountries)
+        state.requireAllCountries =
+            url.queryParams.requireAllCountries === "true"
+    if (url.queryParams.page) state.page = parseInt(url.queryParams.page) - 1
+    if (url.queryParams.stickyHeader)
+        state.isStickyHeader = url.queryParams.stickyHeader !== "false"
+    if (url.queryParams.searchRelaxation)
+        state.searchRelaxationMode = url.queryParams
+            .searchRelaxation as SearchRelaxationMode
+    if (url.queryParams.contentType)
+        state.contentTypeFilter = url.queryParams
+            .contentType as CatalogContentType
+    if (url.queryParams.queryType)
+        state.queryType = url.queryParams.queryType as QueryType
+    if (url.queryParams.typoTolerance)
+        state.typoTolerance = url.queryParams.typoTolerance === "true"
+    if (url.queryParams.minQueryLength)
+        state.minQueryLength = parseInt(url.queryParams.minQueryLength)
 
     // Check for specific component counts in URL
     if (url.queryParams.insights) {
-        defaultComponentCount[CatalogComponentId.DATA_INSIGHTS] = parseInt(
-            url.queryParams.insights
-        )
+        state.componentCount = {
+            ...state.componentCount,
+            [CatalogComponentId.DATA_INSIGHTS]: parseInt(
+                url.queryParams.insights
+            ),
+        }
     }
 
     // Check for specific component styles in URL
@@ -422,34 +450,14 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
         (url.queryParams.resultsStyle === CatalogComponentStyle.GRID ||
             url.queryParams.resultsStyle === CatalogComponentStyle.TABLE)
     ) {
-        defaultComponentStyles[CatalogComponentId.RESULTS] = url.queryParams
-            .resultsStyle as CatalogComponentStyle
+        state.componentStyles = {
+            ...state.componentStyles,
+            [CatalogComponentId.RESULTS]: url.queryParams
+                .resultsStyle as CatalogComponentStyle,
+        }
     }
 
-    return {
-        query: url.queryParams.q || "",
-        topics: deserializeSet(url.queryParams.topics),
-        selectedCountryNames: deserializeSet(url.queryParams.countries),
-        requireAllCountries: url.queryParams.requireAllCountries === "true",
-        page: url.queryParams.page ? parseInt(url.queryParams.page) - 1 : 0,
-        componentOrder: getDefaultComponentOrder(),
-        componentVisibility: getDefaultComponentVisibility(),
-        componentCount: defaultComponentCount,
-        componentStyles: defaultComponentStyles,
-        isStickyHeader: url.queryParams.stickyHeader !== "false", // Default is true
-        searchRelaxationMode:
-            (url.queryParams.searchRelaxation as SearchRelaxationMode) ||
-            SearchRelaxationMode.ALL_OPTIONAL,
-        contentTypeFilter:
-            (url.queryParams.contentType as CatalogContentType) ||
-            CatalogContentType.ALL,
-        queryType:
-            (url.queryParams.queryType as QueryType) || QueryType.PREFIX_LAST,
-        typoTolerance: url.queryParams.typoTolerance === "true",
-        minQueryLength: url.queryParams.minQueryLength
-            ? parseInt(url.queryParams.minQueryLength)
-            : 3,
-    }
+    return state
 }
 
 export function dataCatalogStateToUrl(state: DataCatalogState) {
@@ -458,13 +466,9 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
     )
 
     const defaultInsightsCount =
-        DEFAULT_COMPONENTS.find(
-            (c) => c.id === CatalogComponentId.DATA_INSIGHTS
-        )?.maxItems || 2
-
+        defaultCatalogState.componentCount[CatalogComponentId.DATA_INSIGHTS]
     const defaultResultsStyle =
-        DEFAULT_COMPONENTS.find((c) => c.id === CatalogComponentId.RESULTS)
-            ?.style || CatalogComponentStyle.GRID
+        defaultCatalogState.componentStyles[CatalogComponentId.RESULTS]
 
     const params = {
         q: state.query || undefined,
@@ -486,20 +490,21 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
                 : undefined,
         stickyHeader: state.isStickyHeader ? undefined : "false", // Only include if false (default is true)
         searchRelaxation:
-            state.searchRelaxationMode !== SearchRelaxationMode.ALL_OPTIONAL
+            state.searchRelaxationMode !==
+            defaultCatalogState.searchRelaxationMode
                 ? state.searchRelaxationMode
                 : undefined,
         contentType:
-            state.contentTypeFilter !== CatalogContentType.ALL
+            state.contentTypeFilter !== defaultCatalogState.contentTypeFilter
                 ? state.contentTypeFilter
                 : undefined,
         queryType:
-            state.queryType !== QueryType.PREFIX_LAST
+            state.queryType !== defaultCatalogState.queryType
                 ? state.queryType
                 : undefined,
         typoTolerance: state.typoTolerance ? "true" : undefined,
         minQueryLength:
-            state.minQueryLength !== 3
+            state.minQueryLength !== defaultCatalogState.minQueryLength
                 ? state.minQueryLength.toString()
                 : undefined,
     }
