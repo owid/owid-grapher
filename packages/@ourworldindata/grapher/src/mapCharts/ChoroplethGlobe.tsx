@@ -478,7 +478,7 @@ export class ChoroplethGlobe extends React.Component<{
                 <path
                     id={makeIdForHumanConsumption("globe-graticule")}
                     d={this.graticule}
-                    stroke="#f2f2f2"
+                    stroke="#e7e7e7"
                     strokeWidth={1}
                     fill="none"
                     style={{ pointerEvents: "none" }}
