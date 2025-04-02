@@ -296,7 +296,10 @@ export class ChoroplethGlobe extends React.Component<{
         this.manager.onMapMouseLeave()
     }
 
-    @action.bound private onClick(event: SVGMouseEvent): void {
+    // invoked when clicking on the parent svg group element
+    @action.bound private onParentClick(
+        event: React.MouseEvent<SVGElement>
+    ): void {
         let feature: GlobeRenderFeature | undefined
         const { featureId } = (event.target as SVGElement).dataset
         if (featureId) {
@@ -305,13 +308,9 @@ export class ChoroplethGlobe extends React.Component<{
             if (feature) this.onMouseEnterFeature(feature)
             else this.onMouseLeaveFeature()
         } else {
-            // if no feature was clicked, try to detect the nearest feature
-            feature = this.detectNearbyFeature(event.nativeEvent, 40)
+            // if the click was outside of a feature, try to detect a nearby feature
+            this.detectNearbyFeature(event.nativeEvent)
         }
-
-        if (!feature) return
-
-        this.manager.onClick(feature.geo, event)
     }
 
     @action.bound private onDocumentClick(): void {
@@ -395,7 +394,16 @@ export class ChoroplethGlobe extends React.Component<{
                         return
                     }
 
-                    this.zoomGlobe(distance - startDistance)
+                    const delta = distance - startDistance
+
+                    // We sometimes get two events for the same pinch gesture,
+                    // with one of the events having a delta of 0. We simply
+                    // ignore the delta-0 events. This fixes a bug where the
+                    // rendered SVG country paths would interfere with the
+                    // pinch-to-zoom gesture.
+                    if (delta === 0) return
+
+                    this.zoomGlobe(delta)
                     startDistance = distance
                 }
 
@@ -498,7 +506,9 @@ export class ChoroplethGlobe extends React.Component<{
                         path={this.getPath(feature)}
                         patternId={patternId}
                         focus={this.getFocusState(feature.id)}
-                        onClick={this.onClick}
+                        onClick={(event) =>
+                            this.manager.onClick(feature.geo, event)
+                        }
                         onMouseEnter={this.onMouseEnterFeature}
                         onMouseLeave={this.onMouseLeaveFeature}
                     />
@@ -523,7 +533,9 @@ export class ChoroplethGlobe extends React.Component<{
                             path={this.getPath(feature)}
                             focus={this.getFocusState(feature.id)}
                             showSelectedStyle={this.showSelectedStyle}
-                            onClick={this.onClick}
+                            onClick={(event) =>
+                                this.manager.onClick(feature.geo, event)
+                            }
                             onMouseEnter={this.onMouseEnterFeature}
                             onMouseLeave={this.onMouseLeaveFeature}
                         />
@@ -552,7 +564,7 @@ export class ChoroplethGlobe extends React.Component<{
         return (
             <g
                 ref={this.base}
-                onClick={this.onClick}
+                onClick={this.onParentClick}
                 onMouseDown={
                     (ev: SVGMouseEvent): void =>
                         ev.preventDefault() /* Without this, title may get selected while shift clicking */
@@ -563,12 +575,7 @@ export class ChoroplethGlobe extends React.Component<{
                 onMouseLeave={this.onMouseLeaveFeature}
             >
                 {this.renderGlobeOutline()}
-                <g
-                    className={GEO_FEATURES_CLASSNAME}
-                    style={{
-                        pointerEvents: this.isTouchDevice ? "none" : "auto",
-                    }}
-                >
+                <g className={GEO_FEATURES_CLASSNAME}>
                     {this.renderFeaturesWithNoData()}
                     {this.renderFeaturesWithData()}
                 </g>
