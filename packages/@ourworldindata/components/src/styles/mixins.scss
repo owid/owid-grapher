@@ -67,7 +67,8 @@
 }
 
 @mixin dod-span {
-    border-bottom: 1px dotted $blue-90;
+    text-decoration: underline;
+    text-decoration-style: dotted;
     cursor: help;
 
     span {
