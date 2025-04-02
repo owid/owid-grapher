@@ -20,6 +20,7 @@ export function Dropdown<DropdownOption>(
                     return cx("control", {
                         focus: state.isFocused,
                         active: state.menuIsOpen,
+                        "has-value": state.hasValue,
                     })
                 },
                 option: (state) => {
@@ -29,6 +30,8 @@ export function Dropdown<DropdownOption>(
                     })
                 },
                 menu: () => "menu",
+                placeholder: () => "placeholder",
+                clearIndicator: () => "clear-indicator",
             }}
             {...props}
             className={cx("grapher-dropdown", props.className)}
