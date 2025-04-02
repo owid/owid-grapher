@@ -172,7 +172,7 @@ export class ChoroplethMap extends React.Component<{
     // so that we can hover very small countries without trouble
     @action.bound private detectNearbyFeature(
         event: MouseEvent | TouchEvent
-    ): void {
+    ): MapRenderFeature | undefined {
         if (this.hoverEnterFeature || !this.base.current) return
 
         const nearbyFeature = detectNearbyFeature({
@@ -191,21 +191,55 @@ export class ChoroplethMap extends React.Component<{
             this.hoverNearbyFeature = nearbyFeature
             this.manager.onMapMouseOver(nearbyFeature.geo)
         }
+
+        return nearbyFeature
     }
 
-    @action.bound private onMouseMove(ev: MouseEvent): void {
-        if (ev.shiftKey) this.showSelectedStyle = true // Turn on highlight selection. To turn off, user can switch tabs.
-        this.detectNearbyFeature(ev)
+    @action.bound private onMouseMove(event: MouseEvent): void {
+        if (event.shiftKey) this.showSelectedStyle = true // Turn on highlight selection. To turn off, user can switch tabs.
+        this.detectNearbyFeature(event)
     }
 
     @action.bound private onMouseEnter(feature: MapRenderFeature): void {
+        this.setHoverEnterFeature(feature)
+    }
+
+    @action.bound private onMouseLeave(): void {
+        this.clearHoverEnterFeature()
+    }
+
+    @action.bound private setHoverEnterFeature(
+        feature: MapRenderFeature
+    ): void {
+        if (this.hoverEnterFeature?.id === feature.id) return
+
         this.hoverEnterFeature = feature
         this.manager.onMapMouseOver(feature.geo)
     }
 
-    @action.bound private onMouseLeave(): void {
+    @action.bound private clearHoverEnterFeature(): void {
         this.hoverEnterFeature = undefined
         this.manager.onMapMouseLeave()
+    }
+
+    @action.bound private onTouchStart(feature: MapRenderFeature): void {
+        this.setHoverEnterFeature(feature)
+    }
+
+    @action.bound private onClick(
+        feature: MapRenderFeature,
+        event: MouseEvent
+    ): void {
+        this.setHoverEnterFeature(feature)
+        this.manager.onClick(feature.geo, event)
+    }
+
+    @action.bound private onDocumentClick(): void {
+        if (this.hoverEnterFeature || this.hoverNearbyFeature) {
+            this.hoverEnterFeature = undefined
+            this.hoverNearbyFeature = undefined
+            this.manager.onMapMouseLeave()
+        }
     }
 
     private hasFocus(featureId: string): boolean {
@@ -269,8 +303,9 @@ export class ChoroplethMap extends React.Component<{
                         focus={this.getFocusState(feature.id)}
                         strokeScale={this.viewportScaleSqrt}
                         onClick={(event) =>
-                            this.manager.onClick(feature.geo, event)
+                            this.onClick(feature, event.nativeEvent)
                         }
+                        onTouchStart={() => this.onTouchStart(feature)}
                         onMouseEnter={this.onMouseEnter}
                         onMouseLeave={this.onMouseLeave}
                     />
@@ -296,8 +331,9 @@ export class ChoroplethMap extends React.Component<{
                             strokeScale={this.viewportScaleSqrt}
                             showSelectedStyle={this.showSelectedStyle}
                             onClick={(event) =>
-                                this.manager.onClick(feature.geo, event)
+                                this.onClick(feature, event.nativeEvent)
                             }
+                            onTouchStart={() => this.onTouchStart(feature)}
                             onMouseEnter={this.onMouseEnter}
                             onMouseLeave={this.onMouseLeave}
                         />
@@ -320,6 +356,14 @@ export class ChoroplethMap extends React.Component<{
         )
     }
 
+    componentDidMount(): void {
+        document.addEventListener("touchstart", this.onDocumentClick, true)
+    }
+
+    componentWillUnmount(): void {
+        document.removeEventListener("touchstart", this.onDocumentClick, true)
+    }
+
     renderInteractive(): React.ReactElement {
         const { bounds, matrixTransform } = this
 
@@ -340,7 +384,7 @@ export class ChoroplethMap extends React.Component<{
                     this.onMouseMove(ev.nativeEvent)
                 }
                 onMouseLeave={this.onMouseLeave}
-                style={this.hoverFeature ? { cursor: "pointer" } : {}}
+                style={{ cursor: this.hoverFeature ? "pointer" : undefined }}
             >
                 <rect
                     x={bounds.x}
