@@ -517,30 +517,34 @@ export class MapChart
         )
     }
 
-    renderMapOrGlobe(): React.ReactElement {
-        return this.mapConfig.globe.isActive ? (
+    renderMapOrGlobe({ clipping = true } = {}): React.ReactElement {
+        const mapOrGlobe = this.mapConfig.globe.isActive ? (
             <ChoroplethGlobe manager={this} />
         ) : (
             <ChoroplethMap manager={this} />
         )
+
+        if (!clipping) return mapOrGlobe
+
+        return (
+            <>
+                {this.clipPath.element}
+                <g clipPath={this.clipPath.id}>{mapOrGlobe}</g>
+            </>
+        )
     }
 
     renderStatic(): React.ReactElement {
+        // Clipping the chart area is only necessary when the map is
+        // zoomed in or we're showing the globe. If that isn't the case,
+        // then we don't add a clipping element since it introduces noise
+        // in SVG editing programs like Figma.
+        const clipping =
+            this.mapConfig.globe.isActive || this.region !== MapRegionName.World
+
         return (
             <>
-                {/* Clipping the chart area is only necessary when the map is
-                    zoomed in. If it isn't, then we don't add a clipping element
-                    since it introduces noise in SVG editing programs like Figma. */}
-                {this.region === MapRegionName.World ? (
-                    this.renderMapOrGlobe()
-                ) : (
-                    <>
-                        {this.clipPath.element}
-                        <g clipPath={this.clipPath.id}>
-                            {this.renderMapOrGlobe()}
-                        </g>
-                    </>
-                )}
+                {this.renderMapOrGlobe({ clipping })}
                 {this.renderMapLegend()}
             </>
         )
@@ -559,8 +563,7 @@ export class MapChart
                 className={MAP_CHART_CLASSNAME}
                 onMouseMove={this.onMapMouseMove}
             >
-                {this.clipPath.element}
-                <g clipPath={this.clipPath.id}>{this.renderMapOrGlobe()}</g>
+                {this.renderMapOrGlobe()}
                 {this.renderMapLegend()}
                 {tooltipState.target && (
                     <MapTooltip
