@@ -22,6 +22,7 @@ import {
     MapCountryDropdown,
     MapCountryDropdownManager,
 } from "../MapCountryDropdown"
+import { CloseGlobeViewButton } from "../CloseGlobeViewButton"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
@@ -77,6 +78,7 @@ export class ControlsRow extends Component<{
             EntitySelectionToggle.shouldShow(this.manager) ||
             MapRegionDropdown.shouldShow(this.manager) ||
             MapCountryDropdown.shouldShow(this.manager) ||
+            CloseGlobeViewButton.shouldShow(this.manager) ||
             this.showContentSwitchers
         )
     }
@@ -107,11 +109,17 @@ export class ControlsRow extends Component<{
                             this.sidePanelWidth + this.framePaddingHorizontal
                         }
                     />
+
+                    {/* only one of the following will be rendered */}
                     <MapRegionDropdown
                         manager={this.manager}
                         maxWidth={this.availableWidth}
                     />
                     <MapCountryDropdown
+                        manager={this.manager}
+                        maxWidth={this.availableWidth}
+                    />
+                    <CloseGlobeViewButton
                         manager={this.manager}
                         maxWidth={this.availableWidth}
                     />

@@ -2,7 +2,6 @@ import * as React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
-import { Dropdown } from "./Dropdown"
 import {
     DEFAULT_BOUNDS,
     EntityName,
@@ -18,6 +17,7 @@ import { GlobeController } from "../mapCharts/GlobeController"
 import { GLOBE_COUNTRY_ZOOM } from "../mapCharts/MapChartConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
+import { SearchDropdown } from "./SearchDropdown"
 
 export interface MapCountryDropdownManager {
     mapConfig?: MapConfig
@@ -49,9 +49,13 @@ export class MapCountryDropdown extends React.Component<{
     }
 
     @computed private get showMenu(): boolean {
-        const { shouldShowEntitySelectorOnMapTab, isOnMapTab } =
+        const { shouldShowEntitySelectorOnMapTab, isOnMapTab, mapConfig } =
             this.props.manager
-        return !!isOnMapTab && !shouldShowEntitySelectorOnMapTab
+        return !!(
+            isOnMapTab &&
+            !shouldShowEntitySelectorOnMapTab &&
+            !mapConfig?.globe.isActive
+        )
     }
 
     @computed private get manager(): MapCountryDropdownManager {
@@ -161,7 +165,7 @@ export class MapCountryDropdown extends React.Component<{
                 className="map-country-dropdown"
                 style={{ width: this.maxWidth }}
             >
-                <Dropdown
+                <SearchDropdown
                     options={
                         this.searchInput ? this.filteredOptions : this.options
                     }
@@ -173,7 +177,7 @@ export class MapCountryDropdown extends React.Component<{
                     onInputChange={(inputValue) =>
                         (this.searchInput = inputValue)
                     }
-                    placeholder="Zoom to a country..."
+                    placeholder="Search to zoom..."
                     formatOptionLabel={(option) => (
                         <>
                             {option.label}

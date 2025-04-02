@@ -47,8 +47,6 @@ import { calculateDistance, detectNearbyFeature, hasFocus } from "./MapHelpers"
 import * as R from "remeda"
 import { GlobeController } from "./GlobeController"
 import { getCountriesByRegion } from "./WorldRegionsToProjection"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faMap } from "@fortawesome/free-solid-svg-icons"
 
 const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 const DEFAULT_SCALE = geoOrthographic().scale()
@@ -694,38 +692,6 @@ export class ChoroplethGlobe extends React.Component<{
         )
     }
 
-    renderResetButton(): React.ReactElement {
-        const width = 98
-        const height = 23
-        const margin = 2
-
-        return (
-            <foreignObject
-                x={this.bounds.right - width - margin}
-                y={this.bounds.top + margin}
-                width={width}
-                height={height}
-            >
-                <button
-                    className="reset-button"
-                    onClick={() => {
-                        this.clearHover()
-                        this.onMouseLeaveFeature()
-                        this.globeController.toggleGlobe()
-                        this.mapConfig.region = MapRegionName.World
-                    }}
-                >
-                    <FontAwesomeIcon
-                        className="reset-button__icon"
-                        icon={faMap}
-                        size="sm"
-                    />
-                    World map
-                </button>
-            </foreignObject>
-        )
-    }
-
     renderStatic(): React.ReactElement {
         return (
             <>
@@ -744,26 +710,23 @@ export class ChoroplethGlobe extends React.Component<{
         const _cachedCentroids = this.quadtree
 
         return (
-            <g className="ChoroplethGlobe">
-                <g
-                    ref={this.base}
-                    onMouseDown={
-                        (ev: SVGMouseEvent): void =>
-                            ev.preventDefault() /* Without this, title may get selected while shift clicking */
-                    }
-                    onMouseMove={(ev: SVGMouseEvent): void =>
-                        this.onMouseMove(ev.nativeEvent)
-                    }
-                    onMouseLeave={this.onMouseLeaveFeature}
-                >
-                    {this.renderGlobeOutline()}
-                    <g className={GEO_FEATURES_CLASSNAME}>
-                        {this.renderFeaturesOutsideRegion()}
-                        {this.renderFeaturesWithNoData()}
-                        {this.renderFeaturesWithData()}
-                    </g>
+            <g
+                ref={this.base}
+                onMouseDown={
+                    (ev: SVGMouseEvent): void =>
+                        ev.preventDefault() /* Without this, title may get selected while shift clicking */
+                }
+                onMouseMove={(ev: SVGMouseEvent): void =>
+                    this.onMouseMove(ev.nativeEvent)
+                }
+                onMouseLeave={this.onMouseLeaveFeature}
+            >
+                {this.renderGlobeOutline()}
+                <g className={GEO_FEATURES_CLASSNAME}>
+                    {this.renderFeaturesOutsideRegion()}
+                    {this.renderFeaturesWithNoData()}
+                    {this.renderFeaturesWithData()}
                 </g>
-                {this.renderResetButton()}
             </g>
         )
     }

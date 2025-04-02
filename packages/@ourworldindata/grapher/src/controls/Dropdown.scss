@@ -22,6 +22,11 @@
 
     $option-checkmark-width: 12px;
 
+    .placeholder {
+        font-size: 14px;
+        color: $gray-60;
+    }
+
     .control {
         min-height: auto;
         font: $medium 13px/16px $lato;
