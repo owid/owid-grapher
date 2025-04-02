@@ -110,6 +110,10 @@ export class ChoroplethMap extends React.Component<{
         )
     }
 
+    @computed private get viewportScaleSqrt(): number {
+        return Math.sqrt(this.viewportScale)
+    }
+
     @computed private get matrixTransform(): string {
         const { bounds, mapBounds, viewport, viewportScale } = this
 
@@ -219,7 +223,7 @@ export class ChoroplethMap extends React.Component<{
     renderFeaturesOutsideRegion(): React.ReactElement | void {
         if (this.featuresOutsideRegion.length === 0) return
 
-        const strokeWidth = this.defaultStrokeWidth / this.viewportScale
+        const strokeWidth = this.defaultStrokeWidth / this.viewportScaleSqrt
 
         return (
             <g
@@ -283,7 +287,7 @@ export class ChoroplethMap extends React.Component<{
                     const strokeWidth =
                         (isFocus
                             ? this.focusStrokeWidth
-                            : this.defaultStrokeWidth) / this.viewportScale
+                            : this.defaultStrokeWidth) / this.viewportScaleSqrt
                     return (
                         <path
                             key={feature.id}
@@ -342,7 +346,7 @@ export class ChoroplethMap extends React.Component<{
                                 : showSelectedStyle
                                   ? this.selectedStrokeWidth
                                   : this.defaultStrokeWidth) /
-                            this.viewportScale
+                            this.viewportScaleSqrt
 
                         return (
                             <path
