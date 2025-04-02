@@ -222,6 +222,7 @@ export const bakeCountries = async (
     baker: SiteBaker,
     trx: db.KnexReadonlyTransaction
 ) => {
+    baker.progressBar.tick({ name: "Baking countries" })
     const html = await countriesIndexPage(baker.baseUrl)
     await baker.writeFile("/countries.html", html)
 
@@ -231,6 +232,4 @@ export const bakeCountries = async (
         const html = await countryProfilePage(trx, country.slug, baker.baseUrl)
         await baker.writeFile(path, html)
     }
-
-    baker.progressBar.tick({ name: "✅ baked countries" })
 }
