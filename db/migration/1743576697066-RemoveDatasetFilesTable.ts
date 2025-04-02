@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class RemoveDatasetFilesTable1743576697066
@@ -7,5 +8,5 @@ export class RemoveDatasetFilesTable1743576697066
         await queryRunner.query(`DROP TABLE IF EXISTS dataset_files`)
     }
 
-    public async down(_queryRunner: QueryRunner): Promise<void> {}
+    public async down(): Promise<void> {}
 }
