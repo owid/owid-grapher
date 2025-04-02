@@ -19,7 +19,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { countriesByName, queryParamsToStr } from "@ourworldindata/utils"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import Mousetrap from "mousetrap"
-import { partition } from "lodash"
 import {
     parseIndexName,
     getIndexName,
@@ -34,7 +33,6 @@ import {
 import { QueryType, SearchRelaxationMode } from "./DataCatalogState"
 import { CountryPill } from "./CountryPill"
 import { TopicPill } from "./TopicPill"
-import { getLongestMutuallyExclusiveResults } from "./ForDocumentationPurposes.js"
 
 // Define enum for source IDs
 enum Sources {
@@ -338,6 +336,7 @@ const TopicsSource = (
             header: () => <h5 className="overline-black-caps">Topics</h5>,
             item: ({ item }) => {
                 const topicTag = (item.tags as string[])?.[0] || ""
+
                 return (
                     <div
                         className="aa-ItemWrapper"
@@ -594,23 +593,13 @@ export function DataCatalogAutocomplete({
                 }
                 return sources
             },
-            reshape({ sources, sourcesBySourceId, state }) {
+            reshape({ sources, sourcesBySourceId }) {
                 const countries =
                     sourcesBySourceId[Sources.COUNTRIES]?.getItems() || []
                 const topics =
                     sourcesBySourceId[Sources.TOPICS]?.getItems() || []
 
-                const [filteredCountries, filteredTopics] = partition(
-                    getLongestMutuallyExclusiveResults(state.query.split(" "), [
-                        ...countries,
-                        ...topics,
-                    ]),
-                    (item) => {
-                        return item.type === "country"
-                    }
-                )
-
-                const countryNames = filteredCountries.map(
+                const countryNames = countries.map(
                     (country) => country.title as string
                 )
 
@@ -632,15 +621,13 @@ export function DataCatalogAutocomplete({
                                     ...source,
                                     getItems() {
                                         // If there are topics, create one item per topic with all countries
-                                        if (filteredTopics.length > 0) {
-                                            return filteredTopics.map(
-                                                (topic) => ({
-                                                    topic: (
-                                                        topic.tags as string[]
-                                                    )?.[0], // use the first tag on the topic page record as the topic name
-                                                    countries: countryNames,
-                                                })
-                                            )
+                                        if (topics.length > 0) {
+                                            return topics.map((topic) => ({
+                                                topic: (
+                                                    topic.tags as string[]
+                                                )?.[0], // use the first tag on the topic page record as the topic name
+                                                countries: countryNames,
+                                            }))
                                         }
                                         // If there are no topics but there are countries, create a single item with all countries
                                         else if (countryNames.length > 0) {
