@@ -1,8 +1,8 @@
 import { geoInterpolate } from "d3-geo"
 import { interpolateNumber } from "d3-interpolate"
 import { easeCubicOut } from "d3-ease"
-import { EntityName, MapRegionName } from "@ourworldindata/types"
-import { GlobeConfig, MapConfig } from "./MapConfig"
+import { EntityName, GlobeConfig, MapRegionName } from "@ourworldindata/types"
+import { MapConfig } from "./MapConfig"
 import { getFeaturesForGlobe } from "./GeoFeatures"
 import {
     DEFAULT_VIEWPORT,
@@ -94,6 +94,16 @@ export class GlobeController {
 
     dismissCountryHover(): void {
         this.globeConfig.hoverCountry = undefined
+    }
+
+    jumpToCountry(country: EntityName, zoom?: number): void {
+        const geoFeature = geoFeaturesById.get(country)
+        if (!geoFeature) return
+
+        const { centroid } = geoFeature
+        const targetCoords: [number, number] = [-centroid[0], -centroid[1]]
+
+        this.jumpTo({ coords: targetCoords, zoom })
     }
 
     jumpToCountryOffset(country: EntityName, zoom?: number): void {

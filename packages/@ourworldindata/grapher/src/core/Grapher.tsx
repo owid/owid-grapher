@@ -151,6 +151,7 @@ import { TooltipManager } from "../tooltip/TooltipProps"
 
 import { DimensionSlot } from "../chart/DimensionSlot"
 import {
+    getEntityNamesParam,
     getFocusedSeriesNamesParam,
     getSelectedEntityNamesParam,
 } from "./EntityUrlBuilder"
@@ -226,7 +227,7 @@ import {
 } from "../entitySelector/EntitySelector"
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
-import { grapherObjectToQueryParams } from "./GrapherUrl.js"
+import { grapherObjectToQueryParams, parseGlobeRotation } from "./GrapherUrl.js"
 import { FocusArray } from "../focus/FocusArray"
 import {
     GRAPHER_BACKGROUND_BEIGE,
@@ -735,13 +736,37 @@ export class Grapher
         if (endpointsOnly !== undefined)
             this.compareEndPointsOnly = endpointsOnly === "1" ? true : undefined
 
+        // globe
+        const globe = params.globe
+        if (globe !== undefined) {
+            this.mapConfig.globe.isActive = globe === "1"
+        }
+
+        // globe rotation
+        const globeRotation = params.globeRotation
+        if (globeRotation !== undefined) {
+            this.mapConfig.globe.rotation = parseGlobeRotation(globeRotation)
+        }
+
+        // globe zoom
+        const globeZoom = params.globeZoom
+        if (globeZoom !== undefined) {
+            this.mapConfig.globe.zoom = +globeZoom
+        }
+
+        // region
         const region = params.region
         if (region !== undefined) this.map.region = region as MapRegionName
 
+        // map selection
+        const mapSelection = getEntityNamesParam(params.mapSelect)
+        if (mapSelection) {
+            this.mapConfig.selectedCountries.setSelectedEntities(mapSelection)
+        }
+
         // selection
-        const selection = getSelectedEntityNamesParam(
-            Url.fromQueryParams(params)
-        )
+        const url = Url.fromQueryParams(params)
+        const selection = getSelectedEntityNamesParam(url)
         if (this.addCountryMode !== EntitySelectionMode.Disabled && selection)
             this.selection.setSelectedEntities(selection)
 
@@ -3569,8 +3594,10 @@ export class Grapher
         this.showSelectionOnlyInDataTable =
             authorsVersion.showSelectionOnlyInDataTable
         this.showNoDataArea = authorsVersion.showNoDataArea
+        this.mapConfig.globe.isActive = authorsVersion.mapConfig.globe.isActive
         this.clearSelection()
         this.clearFocus()
+        this.mapConfig.selectedCountries.clearSelection()
     }
 
     // Todo: come up with a more general pattern?
