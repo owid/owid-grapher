@@ -35,7 +35,7 @@ export const DataCatalogPage = (props: {
                 ></script>
             </Head>
             <body className="DataCatalogPage">
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader />
                 <main
                     id="data-catalog-page-root"
                     className="grid grid-cols-12-full-width"

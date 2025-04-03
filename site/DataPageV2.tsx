@@ -150,7 +150,7 @@ export const DataPageV2 = (props: {
                 />
             </Head>
             <body className="DataPage">
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader />
                 <main>
                     <script
                         dangerouslySetInnerHTML={{

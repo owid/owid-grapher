@@ -35,7 +35,7 @@ export const DataInsightsIndexPage = (props: DataInsightsIndexPageProps) => {
                 atom={DATA_INSIGHT_ATOM_FEED_PROPS}
             ></Head>
             <body>
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader />
                 <main
                     id="data-insights-index-page-container"
                     className="data-insights-index-page grid grid-cols-12-full-width"

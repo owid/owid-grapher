@@ -21,7 +21,7 @@ export const CountriesIndexPage = (props: {
                 baseUrl={baseUrl}
             />
             <body className="CountriesIndexPage">
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader />
                 <main className="wrapper">
                     <h1>Data by country</h1>
                     <ul>

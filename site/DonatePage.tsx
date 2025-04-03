@@ -26,7 +26,7 @@ export const DonatePage = (props: {
             />
         </Head>
         <body>
-            <SiteHeader baseUrl={props.baseUrl} hideDonationFlag />
+            <SiteHeader hideDonationFlag />
             <main className="donate-page">
                 <div className="donate-page-intro">
                     <div className="wrapper grid grid-cols-12">
