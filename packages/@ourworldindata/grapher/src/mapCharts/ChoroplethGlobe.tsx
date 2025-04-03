@@ -313,11 +313,9 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private clearHover(): void {
-        if (this.hoverEnterFeature || this.hoverNearbyFeature) {
-            this.hoverEnterFeature = undefined
-            this.hoverNearbyFeature = undefined
-            this.manager.onMapMouseLeave()
-        }
+        this.hoverEnterFeature = undefined
+        this.hoverNearbyFeature = undefined
+        this.manager.onMapMouseLeave()
         this.globeController.dismissCountryFocus()
     }
 
