@@ -331,6 +331,7 @@ export class ChoroplethGlobe extends React.Component<{
 
     @action.bound private onClick(feature: GlobeRenderFeature): void {
         this.setHoverEnterFeature(feature)
+        this.mapConfig.selectedCountries.selectEntity(feature.id)
     }
 
     @action.bound private onTouchStart(feature: GlobeRenderFeature): void {
