@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/node"
 require("express-async-errors") // todo: why the require?
 import cookieParser from "cookie-parser"
 import http from "http"
-import { BAKED_BASE_URL, ENV_IS_STAGING } from "../settings/serverSettings.js"
+import { BAKED_BASE_URL, ENV } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import { IndexPage } from "./IndexPage.js"
 import {
@@ -57,7 +57,7 @@ export class OwidAdminApp {
 
         app.use(express.urlencoded({ extended: true, limit: "50mb" }))
 
-        if (ENV_IS_STAGING) {
+        if (ENV == "staging") {
             // Try to log in with tailscale if we're in staging
             app.use(tailscaleAuthMiddleware)
         } else {
