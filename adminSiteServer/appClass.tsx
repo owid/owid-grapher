@@ -57,7 +57,7 @@ export class OwidAdminApp {
 
         app.use(express.urlencoded({ extended: true, limit: "50mb" }))
 
-        if (ENV == "staging") {
+        if (ENV === "staging") {
             // Try to log in with tailscale if we're in staging
             app.use(tailscaleAuthMiddleware)
         } else {
