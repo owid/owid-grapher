@@ -4008,6 +4008,11 @@ export class Grapher
         )
     }
 
+    /** If the entity controls are hidden, then selecting entities from the map should also be disabled  */
+    @computed get shouldEnableEntitySelectionOnMapTab(): boolean {
+        return !this.hideEntityControls
+    }
+
     // This is just a helper method to return the correct table for providing entity choices. We want to
     // provide the root table, not the transformed table.
     // A user may have added time or other filters that would filter out all rows from certain entities, but
