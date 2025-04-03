@@ -233,8 +233,9 @@ export class ChoroplethMap extends React.Component<{
     @action.bound private onClick(feature: MapRenderFeature): void {
         this.setHoverEnterFeature(feature)
 
-        // focus the country on the globe
+        // focus the country on the globe and select it
         this.manager.globeController?.focusOnCountry(feature.id)
+        this.manager.mapConfig.selectedCountries.selectEntity(feature.id)
     }
 
     @action.bound private onDocumentClick(): void {
