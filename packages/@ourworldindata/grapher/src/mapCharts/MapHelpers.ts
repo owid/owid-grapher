@@ -5,7 +5,6 @@ import {
     ChoroplethSeries,
     GEO_FEATURES_CLASSNAME,
     MAP_HOVER_TARGET_RANGE,
-    MapEntity,
     RenderFeature,
 } from "./MapChartConstants"
 
@@ -33,15 +32,15 @@ export function detectNearbyFeature<Feature extends RenderFeature>({
 export function hasFocus({
     featureId,
     series,
-    focusEntity,
+    hoverFeatureId,
     focusBracket,
 }: {
     featureId: string
     series?: ChoroplethSeries
-    focusEntity?: MapEntity
+    hoverFeatureId?: string
     focusBracket?: ColorScaleBin
 }): boolean {
-    if (focusEntity && focusEntity.id === featureId) return true
+    if (hoverFeatureId === featureId) return true
     else if (!focusBracket) return false
 
     if (focusBracket.contains(series?.value)) return true
