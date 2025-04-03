@@ -24,6 +24,7 @@ export interface GlobeConfig {
     isActive: boolean
     rotation: [number, number]
     zoom: number
+    hoverCountry?: EntityName
     focusCountry?: EntityName
 }
 

@@ -88,6 +88,14 @@ export class GlobeController {
         this.globeConfig.focusCountry = undefined
     }
 
+    setHoverCountry(country: EntityName): void {
+        this.globeConfig.hoverCountry = country
+    }
+
+    dismissCountryHover(): void {
+        this.globeConfig.hoverCountry = undefined
+    }
+
     jumpToCountryOffset(country: EntityName, zoom?: number): void {
         const geoFeature = geoFeaturesById.get(country)
         if (!geoFeature) return

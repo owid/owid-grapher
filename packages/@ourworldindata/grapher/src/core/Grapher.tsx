@@ -3156,6 +3156,11 @@ export class Grapher
                             <EntitySelector
                                 manager={this}
                                 selection={entitySelectorArray}
+                                onSelectEntity={this.onSelectEntity}
+                                onDeselectEntity={this.onDeselectEntity}
+                                onClearEntities={this.onClearEntities}
+                                onMouseEnterEntity={this.onMouseEnterEntity}
+                                onMouseLeaveEntity={this.onMouseLeaveEntity}
                             />
                         </SidePanel>
                     )}
@@ -3182,6 +3187,11 @@ export class Grapher
                         manager={this}
                         selection={entitySelectorArray}
                         autoFocus={true}
+                        onSelectEntity={this.onSelectEntity}
+                        onDeselectEntity={this.onDeselectEntity}
+                        onClearEntities={this.onClearEntities}
+                        onMouseEnterEntity={this.onMouseEnterEntity}
+                        onMouseLeaveEntity={this.onMouseLeaveEntity}
                     />
                 </SlideInDrawer>
 
@@ -3777,6 +3787,7 @@ export class Grapher
         this.dismissTooltip()
     }
 
+    // called when an entity is selected in the entity selector
     @action.bound onSelectEntity(entityName: EntityName): void {
         if (this.isOnMapTab) {
             const country = countriesByName()[entityName]
@@ -3786,17 +3797,29 @@ export class Grapher
         }
     }
 
+    // called when an entity is deselected in the entity selector
     @action.bound onDeselectEntity(entityName: EntityName): void {
         // remove focus from an entity that has been removed from the selection
         this.focusArray.remove(entityName)
     }
 
-    @action.bound onClearAllEntities(): void {
+    // called when all entities are cleared in the entity selector
+    @action.bound onClearEntities(): void {
         // remove focus from all entities if all entities have been deselected
         this.focusArray.clear()
 
         // switch back to the 2d map if all entities were deselected
         if (this.isOnMapTab) this.globeController.hideGlobe()
+    }
+
+    // called when an entity is hovered in the entity selector
+    @action.bound onMouseEnterEntity(entityName: EntityName): void {
+        this.globeController.setHoverCountry(entityName)
+    }
+
+    // called when an entity is un-hovered in the entity selector
+    @action.bound onMouseLeaveEntity(): void {
+        this.globeController.dismissCountryHover()
     }
 
     // todo: restore this behavior??
