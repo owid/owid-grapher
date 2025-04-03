@@ -39,6 +39,7 @@ import {
     FeaturedMetricsTableName,
     TagsTableName,
     TagGraphTableName,
+    ExplorersTableName,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash-es"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -929,14 +930,9 @@ export const getFeaturedMetricsByParentTagName = async (
     const areaAndTopicTags = await getAllAreaAndTopicTagNames(trx)
 
     // Prepopulate a dictionary with every topic tag and area
-    // This is to ensure that we have a key for every tag, even if it has no FeaturedMetrics
-    const blankFeaturedMetricsByParentTagName = areaAndTopicTags.reduce(
-        (acc, tag) => ({
-            ...acc,
-            [tag]: [],
-        }),
-        {} as FeaturedMetricByParentTagNameDictionary
-    )
+    const blankFeaturedMetricsByParentTagName = Object.fromEntries(
+        areaAndTopicTags.map((tag) => [tag, []])
+    ) as FeaturedMetricByParentTagNameDictionary
 
     const featuredMetricsByParentTagName = (await knexRaw(
         trx,
@@ -968,7 +964,7 @@ export async function validateChartSlug(
         if (!urlSlug)
             return { isValid: false, reason: "Missing slug in explorer URL" }
 
-        const explorer = await trx("explorers")
+        const explorer = await trx(ExplorersTableName)
             .where({ slug: urlSlug, isPublished: true })
             .first()
 

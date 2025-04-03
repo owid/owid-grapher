@@ -10,7 +10,7 @@ import * as db from "../../db/db.js"
 export async function createFeaturedMetric(
     req: Request,
     _res: e.Response<any, Record<string, any>>,
-    _trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadonlyTransaction
 ) {
     const { url, parentTagName, ranking, incomeGroup } = req.body
 
@@ -18,14 +18,14 @@ export async function createFeaturedMetric(
         throw new JsonError("Missing required fields", 400)
     }
 
-    const { isValid, reason } = await db.validateChartSlug(_trx, url)
+    const { isValid, reason } = await db.validateChartSlug(trx, url)
 
     if (!isValid) {
         throw new JsonError(`Invalid Featured Metric URL. ${reason}`, 400)
     }
 
     // Get the parentTagId from the parentTagName
-    const parentTag = await _trx(TagsTableName)
+    const parentTag = await trx(TagsTableName)
         .select("id")
         .where({
             name: parentTagName,
@@ -40,7 +40,7 @@ export async function createFeaturedMetric(
     }
     const parentTagId = parentTag.id
 
-    const duplicateFeaturedMetric = await _trx(FeaturedMetricsTableName)
+    const duplicateFeaturedMetric = await trx(FeaturedMetricsTableName)
         .where({
             url,
             parentTagId,
@@ -56,7 +56,7 @@ export async function createFeaturedMetric(
     }
 
     await db.knexRaw(
-        _trx,
+        trx,
         `INSERT INTO ${FeaturedMetricsTableName} (url, parentTagId, ranking, incomeGroup)
          VALUES (?, ?, ?, ?)`,
         [url, parentTagId, ranking, incomeGroup]
@@ -68,7 +68,7 @@ export async function createFeaturedMetric(
 export async function rerankFeaturedMetrics(
     req: Request,
     _res: e.Response<any, Record<string, any>>,
-    _trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadonlyTransaction
 ) {
     const featuredMetrics = req.body
 
@@ -82,7 +82,7 @@ export async function rerankFeaturedMetrics(
         }
 
         await db.knexRaw(
-            _trx,
+            trx,
             `UPDATE ${FeaturedMetricsTableName} SET ranking = ? WHERE id = ?`,
             [ranking, id]
         )
@@ -94,20 +94,20 @@ export async function rerankFeaturedMetrics(
 export async function deleteFeaturedMetric(
     req: Request,
     _res: e.Response<any, Record<string, any>>,
-    _trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadonlyTransaction
 ) {
     const { id } = req.params
 
-    const featuredMetric = await _trx(FeaturedMetricsTableName)
+    const featuredMetric = await trx(FeaturedMetricsTableName)
         .where({ id })
         .first()
     if (!featuredMetric) {
         throw new JsonError(`No Featured Metric found with id '${id}'`, 404)
     }
 
-    await _trx(FeaturedMetricsTableName).where({ id }).delete()
+    await trx(FeaturedMetricsTableName).where({ id }).delete()
 
-    await _trx(FeaturedMetricsTableName)
+    await trx(FeaturedMetricsTableName)
         .where({
             parentTagId: featuredMetric.parentTagId,
             incomeGroup: featuredMetric.incomeGroup,
