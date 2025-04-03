@@ -465,7 +465,9 @@ export class ChoroplethGlobe extends React.Component<{
 
             const panningOrZooming = (event: any): void => {
                 this.isPanningOrZooming = true
+
                 this.clearHover() // dismiss the tooltip
+                this.mapConfig.region = MapRegionName.World // reset region
 
                 const wheeling = (): void => {
                     this.zoomGlobe(-event.sourceEvent.deltaY)
