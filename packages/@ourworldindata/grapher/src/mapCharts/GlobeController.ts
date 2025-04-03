@@ -1,16 +1,16 @@
 import { geoInterpolate } from "d3-geo"
 import { interpolateNumber } from "d3-interpolate"
 import { easeCubicOut } from "d3-ease"
-import { EntityName, GlobeConfig, MapRegionName } from "@ourworldindata/types"
+import { EntityName, GlobeConfig, GlobeRegionName } from "@ourworldindata/types"
 import { MapConfig } from "./MapConfig"
-import { getFeaturesForGlobe } from "./GeoFeatures"
+import { getGeoFeaturesForGlobe } from "./GeoFeatures"
 import {
-    DEFAULT_VIEWPORT,
+    DEFAULT_GLOBE_ROTATION,
     GLOBE_COUNTRY_ZOOM,
-    MAP_VIEWPORTS,
+    GLOBE_VIEWPORTS,
 } from "./MapChartConstants"
 
-const geoFeaturesById = new Map(getFeaturesForGlobe().map((f) => [f.id, f]))
+const geoFeaturesById = new Map(getGeoFeaturesForGlobe().map((f) => [f.id, f]))
 
 interface GlobeControllerManager {
     mapConfig: MapConfig
@@ -37,7 +37,7 @@ export class GlobeController {
     }
 
     private resetGlobe(): void {
-        this.globeConfig.rotation = DEFAULT_VIEWPORT.rotation
+        this.globeConfig.rotation = DEFAULT_GLOBE_ROTATION
         this.globeConfig.zoom = 1
         this.globeConfig.focusCountry = undefined
     }
@@ -122,8 +122,8 @@ export class GlobeController {
         void this.rotateTo(targetCoords, zoom)
     }
 
-    jumpToRegion(region: MapRegionName): void {
-        const viewport = MAP_VIEWPORTS[region]
+    jumpToRegion(region: GlobeRegionName): void {
+        const viewport = GLOBE_VIEWPORTS[region]
 
         const targetCoords = viewport.rotation
         const targetZoom = viewport.zoom

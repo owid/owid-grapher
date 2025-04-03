@@ -35,7 +35,7 @@ import {
     SVGMouseEvent,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
-import { getFeaturesForGlobe } from "./GeoFeatures"
+import { getGeoFeaturesForGlobe } from "./GeoFeatures"
 import {
     CountryOutsideOfSelectedRegion,
     CountryWithData,
@@ -91,7 +91,7 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get features(): GlobeRenderFeature[] {
-        return getFeaturesForGlobe()
+        return getGeoFeaturesForGlobe()
     }
 
     @computed private get featuresInRegion(): GlobeRenderFeature[] {
@@ -581,7 +581,9 @@ export class ChoroplethGlobe extends React.Component<{
 
     renderFeaturesWithNoData(): React.ReactElement | void {
         if (this.featuresWithNoData.length === 0) return
-        const patternId = Patterns.noDataPatternForMapChart
+
+        const patternId = Patterns.noDataPatternForGlobe
+
         return (
             <g
                 id={makeIdForHumanConsumption("countries-without-data")}

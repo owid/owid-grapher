@@ -95,7 +95,6 @@ import {
     Time,
     EntityName,
     OwidColumnDef,
-    OwidVariableRow,
     ColorSchemeName,
     AxisConfigInterface,
     GrapherStaticFormat,
@@ -159,7 +158,6 @@ import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { FullScreen } from "../fullScreen/FullScreen"
-import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
@@ -2508,13 +2506,6 @@ export class Grapher
         return !hideRelativeToggle
     }
 
-    // Filter data to what can be display on the map (across all times)
-    @computed get mappableData(): OwidVariableRow<any>[] {
-        return this.inputTable
-            .get(this.mapColumnSlug)
-            .owidRows.filter((row) => isOnTheMap(row.entityName))
-    }
-
     static renderGrapherIntoContainer(
         config: GrapherProgrammaticInterface,
         containerNode: Element
@@ -3889,7 +3880,6 @@ export class Grapher
         if (this.isOnMapTab) {
             const country = countriesByName()[entityName]
             if (country.isMappable) {
-                this.mapConfig.region = MapRegionName.World
                 this.globeController.focusOnCountry(country.name)
             }
         }

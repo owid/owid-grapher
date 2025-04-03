@@ -94,7 +94,8 @@ export const isPopulationVariableETLPath = (path: string): boolean => {
 
 export enum Patterns {
     noDataPattern = "noDataPattern",
-    noDataPatternForMapChart = "noDataPatternForMapChart",
+    noDataPatternForMap = "noDataPatternForMap",
+    noDataPatternForGlobe = "noDataPatternForGlobe",
 }
 
 export const grapherInterfaceWithHiddenControls: GrapherProgrammaticInterface =

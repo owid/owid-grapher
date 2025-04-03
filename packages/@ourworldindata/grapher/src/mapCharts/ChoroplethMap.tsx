@@ -4,34 +4,24 @@ import {
     difference,
     isTouchDevice,
     makeIdForHumanConsumption,
-    MapRegionName,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Quadtree, quadtree } from "d3-quadtree"
 import {
     MapRenderFeature,
-    MAP_VIEWPORTS,
-    MapViewport,
     SVGMouseEvent,
     GEO_FEATURES_CLASSNAME,
     ChoroplethMapManager,
     ChoroplethSeriesByName,
-    DEFAULT_STROKE_WIDTH,
     CHOROPLETH_MAP_CLASSNAME,
 } from "./MapChartConstants"
+import { getGeoFeaturesForMap } from "./GeoFeatures"
 import {
-    geoBoundsForProjectionOf,
-    renderFeaturesForProjectionOf,
-} from "./GeoFeatures"
-import { getCountriesByRegion } from "./WorldRegionsToProjection"
-import {
-    CountryOutsideOfSelectedRegion,
     CountryWithData,
     CountryWithNoData,
     NoDataPattern,
 } from "./MapComponents"
-import { MapConfig } from "./MapConfig"
 import { Patterns } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,
@@ -51,16 +41,10 @@ export class ChoroplethMap extends React.Component<{
         return isTouchDevice()
     }
 
+    private viewport = { x: 0.565, y: 0.5, width: 1, height: 1 } as const
+
     @computed private get manager(): ChoroplethMapManager {
         return this.props.manager
-    }
-
-    @computed private get mapConfig(): MapConfig {
-        return this.manager.mapConfig
-    }
-
-    @computed private get region(): MapRegionName {
-        return this.mapConfig.region
     }
 
     @computed.struct private get bounds(): Bounds {
@@ -77,11 +61,8 @@ export class ChoroplethMap extends React.Component<{
 
     // Combine bounding boxes to get the extents of the entire map
     @computed private get mapBounds(): Bounds {
-        return Bounds.merge(geoBoundsForProjectionOf(this.region))
-    }
-
-    @computed private get viewport(): MapViewport {
-        return MAP_VIEWPORTS[this.region]
+        const allBounds = this.features.map((feature) => feature.bounds)
+        return Bounds.merge(allBounds)
     }
 
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
@@ -123,28 +104,12 @@ export class ChoroplethMap extends React.Component<{
         return matrixStr
     }
 
-    @computed private get featuresInRegion(): MapRenderFeature[] {
-        const { region } = this
-        const features = renderFeaturesForProjectionOf(region)
-        if (region === MapRegionName.World) return features
-
-        const countriesByRegion = getCountriesByRegion(region)
-        if (countriesByRegion === undefined) return []
-
-        return features.filter((feature) => countriesByRegion.has(feature.id))
-    }
-
-    /** Features that aren't part of the current region (e.g. India if we're showing Africa) */
-    @computed
-    private get featuresOutsideOfSelectedRegion(): MapRenderFeature[] {
-        return difference(
-            renderFeaturesForProjectionOf(this.region),
-            this.featuresInRegion
-        )
+    @computed private get features(): MapRenderFeature[] {
+        return getGeoFeaturesForMap()
     }
 
     @computed private get featuresWithData(): MapRenderFeature[] {
-        const features = this.featuresInRegion.filter((feature) =>
+        const features = this.features.filter((feature) =>
             this.choroplethData.has(feature.id)
         )
 
@@ -157,14 +122,14 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get featuresWithNoData(): MapRenderFeature[] {
-        return difference(this.featuresInRegion, this.featuresWithData)
+        return difference(this.features, this.featuresWithData)
     }
 
     @computed private get quadtree(): Quadtree<MapRenderFeature> {
         return quadtree<MapRenderFeature>()
             .x((feature) => feature.center.x)
             .y((feature) => feature.center.y)
-            .addAll(this.featuresInRegion)
+            .addAll(this.features)
     }
 
     // Map uses a hybrid approach to mouseover
@@ -248,32 +213,9 @@ export class ChoroplethMap extends React.Component<{
         }
     }
 
-    renderFeaturesOutsideRegion(): React.ReactElement | void {
-        if (this.featuresOutsideOfSelectedRegion.length === 0) return
-
-        const strokeWidth = DEFAULT_STROKE_WIDTH / this.viewportScaleSqrt
-
-        return (
-            <g id={makeIdForHumanConsumption("countries-outside-selection")}>
-                {this.featuresOutsideOfSelectedRegion.map((feature) => (
-                    <CountryOutsideOfSelectedRegion
-                        key={feature.id}
-                        feature={feature}
-                        strokeWidth={strokeWidth}
-                    />
-                ))}
-            </g>
-        )
-    }
-
     renderFeaturesWithoutData(): React.ReactElement | void {
         if (this.featuresWithNoData.length === 0) return
-
-        // Ids should be unique per document (!) not just a grapher instance -
-        // we disregard this for other patterns that are defined the same everywhere
-        // because id collisions there are benign but here the pattern will be different
-        // depending on the region/projection so we include this in the id
-        const patternId = `${Patterns.noDataPatternForMapChart}-${this.region}`
+        const patternId = Patterns.noDataPatternForMap
 
         return (
             <g
@@ -350,7 +292,6 @@ export class ChoroplethMap extends React.Component<{
                 id={makeIdForHumanConsumption("map")}
                 transform={this.matrixTransform}
             >
-                {this.renderFeaturesOutsideRegion()}
                 {this.renderFeaturesWithoutData()}
                 {this.renderFeaturesWithData()}
             </g>
@@ -409,7 +350,6 @@ export class ChoroplethMap extends React.Component<{
                     className={GEO_FEATURES_CLASSNAME}
                     transform={matrixTransform}
                 >
-                    {this.renderFeaturesOutsideRegion()}
                     {this.renderFeaturesWithoutData()}
                     {this.renderFeaturesWithData()}
                 </g>
