@@ -44,6 +44,8 @@ import {
     GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
     isPopulationVariableETLPath,
     isWorldEntityName,
+    MAP_GRAPHER_ENTITY_TYPE,
+    MAP_GRAPHER_ENTITY_TYPE_PLURAL,
 } from "../core/GrapherConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { SortIcon } from "../controls/SortIcon"
@@ -78,6 +80,7 @@ export interface EntitySelectorManager {
     canHighlightEntities?: boolean
     focusArray?: FocusArray
     endTime?: Time
+    isOnMapTab?: boolean
 }
 
 interface SortConfig {
@@ -164,6 +167,7 @@ const regionNamesSet = new Set(regions.map((region) => region.name))
 @observer
 export class EntitySelector extends React.Component<{
     manager: EntitySelectorManager
+    selection?: SelectionArray
     onDismiss?: () => void
     autoFocus?: boolean
 }> {
@@ -344,11 +348,13 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get title(): string {
-        return this.manager.canHighlightEntities
+        return this.manager.isOnMapTab
             ? `Select ${this.entityTypePlural}`
-            : this.manager.canChangeEntity
-              ? `Choose ${a(this.entityType)}`
-              : `Add/remove ${this.entityTypePlural}`
+            : this.manager.canHighlightEntities
+              ? `Select ${this.entityTypePlural}`
+              : this.manager.canChangeEntity
+                ? `Choose ${a(this.entityType)}`
+                : `Add/remove ${this.entityTypePlural}`
     }
 
     @computed private get searchInput(): string {
@@ -528,17 +534,21 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get entityType(): string {
+        if (this.manager.isOnMapTab) return MAP_GRAPHER_ENTITY_TYPE
         return this.manager.entityType || DEFAULT_GRAPHER_ENTITY_TYPE
     }
 
     @computed private get entityTypePlural(): string {
+        if (this.manager.isOnMapTab) return MAP_GRAPHER_ENTITY_TYPE_PLURAL
         return (
             this.manager.entityTypePlural || DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
         )
     }
 
     @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.selection)
+        return makeSelectionArray(
+            this.props.selection ?? this.manager.selection
+        )
     }
 
     @computed private get allEntitiesSelected(): boolean {

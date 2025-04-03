@@ -9,6 +9,7 @@ import {
     Color,
     HorizontalAlign,
     PrimitiveType,
+    mappableCountries,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -98,6 +99,13 @@ export class MapChart
                 this.mapConfig.toleranceStrategy
             )
         return transformedTable
+    }
+
+    transformTableForSelection(table: OwidTable): OwidTable {
+        const mappableCountryNames = mappableCountries.map(
+            (country) => country.name
+        )
+        return table.filterByEntityNames(mappableCountryNames)
     }
 
     private dropNonMapEntities(table: OwidTable): OwidTable {
