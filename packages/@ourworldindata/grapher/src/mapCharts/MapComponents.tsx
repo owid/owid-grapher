@@ -44,7 +44,6 @@ export function CountryWithData<Feature extends RenderFeature>({
     series,
     path,
     focus,
-    showSelectedStyle,
     strokeScale = 1,
     onClick,
     onTouchStart,
@@ -55,14 +54,13 @@ export function CountryWithData<Feature extends RenderFeature>({
     series: ChoroplethSeries
     path?: string
     focus: InteractionState
-    showSelectedStyle: boolean
     strokeScale?: number
     onClick?: (event: SVGMouseEvent) => void
     onTouchStart?: (event: React.TouchEvent<SVGElement>) => void
     onMouseEnter?: (feature: Feature, event: MouseEvent) => void
     onMouseLeave?: () => void
 }): React.ReactElement {
-    const shouldShowSelectedStyle = showSelectedStyle && series.isSelected
+    const shouldShowSelectedStyle = series.isSelected
     const stroke =
         focus.active || shouldShowSelectedStyle
             ? FOCUS_STROKE_COLOR

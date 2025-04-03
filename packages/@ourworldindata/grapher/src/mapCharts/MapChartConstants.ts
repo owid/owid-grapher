@@ -1,13 +1,6 @@
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { Bounds, PointVector, ColumnSlug } from "@ourworldindata/utils"
-import {
-    MapRegionName,
-    Color,
-    Time,
-    GrapherChartType,
-    GrapherTabOption,
-    SeriesName,
-} from "@ourworldindata/types"
+import { MapRegionName, Color, SeriesName } from "@ourworldindata/types"
 import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
 import { ChartSeries } from "../chart/ChartInterface"
@@ -59,16 +52,12 @@ export interface ChoroplethMapManager {
     choroplethData: ChoroplethSeriesByName
     choroplethMapBounds: Bounds
     mapConfig: MapConfig
+    globeController?: GlobeController
     focusBracket?: MapBracket
     focusEntity?: MapEntity
-    onClick: (d: GeoFeature, ev: MouseEvent) => void
     onMapMouseOver: (d: GeoFeature) => void
     onMapMouseLeave: () => void
     isStatic?: boolean
-}
-
-export interface ChoroplethGlobeManager extends ChoroplethMapManager {
-    globeController?: GlobeController
 }
 
 export enum RenderFeatureType {
@@ -96,17 +85,8 @@ export interface GlobeRenderFeature extends RenderFeature {
 
 export interface MapChartManager extends ChartManager {
     mapColumnSlug?: ColumnSlug
-    mapIsClickable?: boolean
-    tab?: GrapherTabOption // Used to switch to chart tab on map click
-    type?: GrapherChartType // Used to determine the "Click to select" text in MapTooltip
-    isLineChartThatTurnedIntoDiscreteBar?: boolean // Used to determine whether to reset the timeline on map click
-    hasTimeline?: boolean // Used to determine whether to reset the timeline on map click
-    resetHandleTimeBounds?: () => void // Used to reset the timeline on map click
     mapConfig?: MapConfig
-    endTime?: Time
-    title?: string
     globeController?: GlobeController
-    shouldShowEntitySelectorOnMapTab?: boolean
 }
 
 export interface MapViewport {
