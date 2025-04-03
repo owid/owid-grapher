@@ -143,14 +143,19 @@ export const migrateSelectedEntityNamesParam: UrlMigration = (
  * Accessors
  */
 
+export const getEntityNamesParam = (
+    param: string | undefined
+): EntityName[] | undefined => {
+    if (param === undefined) return undefined
+    return entityNamesFromV2Param(param).map(codeToEntityName)
+}
+
 export const getSelectedEntityNamesParam = (
     url: Url
 ): EntityName[] | undefined => {
     // Expects an already-migrated URL as input
     const { country } = url.queryParams
-    return country !== undefined
-        ? entityNamesFromV2Param(country).map(codeToEntityName)
-        : undefined
+    return getEntityNamesParam(country)
 }
 
 export const generateSelectedEntityNamesParam = (
@@ -187,9 +192,7 @@ export const setSelectedEntityNamesParam = (
 export const getFocusedSeriesNamesParam = (
     queryParam: string | undefined
 ): SeriesName[] | undefined => {
-    return queryParam !== undefined
-        ? entityNamesFromV2Param(queryParam).map(codeToEntityName)
-        : undefined
+    return getEntityNamesParam(queryParam)
 }
 
 export const generateFocusedSeriesNamesParam = (

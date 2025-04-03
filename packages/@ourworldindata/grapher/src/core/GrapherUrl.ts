@@ -10,6 +10,7 @@ import {
 } from "./EntityUrlBuilder.js"
 import { match } from "ts-pattern"
 import { Grapher } from "./Grapher.js"
+import * as R from "remeda"
 
 // This function converts a (potentially partial) GrapherInterface to the query params this translates to.
 // This is helpful for when we have a patch config to a parent chart, and we want to know which query params we need to get the parent chart as close as possible to the patched child chart.
@@ -62,6 +63,10 @@ export const grapherConfigToQueryParams = (
         // These cannot be specified in config, so we always set them to undefined
         showSelectionOnlyInTable: undefined,
         overlay: undefined,
+        globe: undefined,
+        globeRotation: undefined,
+        globeZoom: undefined,
+        mapSelect: undefined,
     }
 
     // Drop undefined values and convert all to string
@@ -105,6 +110,23 @@ export const grapherObjectToQueryParams = (
         focus: grapher.areFocusedSeriesNamesDifferentThanAuthors
             ? generateFocusedSeriesNamesParam(grapher.focusArray.seriesNames)
             : undefined,
+        globe: grapher.mapConfig.globe.isActive ? "1" : "0",
+        globeRotation: stringifyGlobeRotation(grapher.mapConfig.globe.rotation),
+        globeZoom: R.round(grapher.mapConfig.globe.zoom, 2).toString(),
+        mapSelect: generateSelectedEntityNamesParam(
+            grapher.mapConfig.selectedCountries.selectedEntityNames
+        ),
     }
     return params
+}
+
+function stringifyGlobeRotation(globeRotation: number[]): string {
+    return globeRotation.map((r) => R.round(r, 5)).join(",")
+}
+
+export function parseGlobeRotation(globeRotation: string): [number, number] {
+    return globeRotation
+        .split(",")
+        .map((s) => +s)
+        .slice(0, 2) as [number, number]
 }
