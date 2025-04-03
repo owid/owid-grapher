@@ -636,6 +636,8 @@ export type GrapherQueryParams = {
     uniformYAxis?: string
     showSelectionOnlyInTable?: string
     showNoDataArea?: string
+    globe?: string
+    mapSelect?: string
 }
 
 export type LegacyGrapherQueryParams = GrapherQueryParams & {
@@ -661,6 +663,8 @@ const GRAPHER_ALL_QUERY_PARAMS: Required<LegacyGrapherQueryParams> = {
     showSelectionOnlyInTable: "",
     showNoDataArea: "",
     year: "",
+    globe: "",
+    mapSelect: "",
 }
 export const GRAPHER_QUERY_PARAM_KEYS = Object.keys(
     GRAPHER_ALL_QUERY_PARAMS
