@@ -26,7 +26,7 @@ export const BlogIndexPage = (props: {
                 baseUrl={baseUrl}
             />
             <body className="blog">
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader />
 
                 <main className="wrapper">
                     <div className="site-content">

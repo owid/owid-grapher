@@ -145,7 +145,6 @@ export default function OwidGdocPage({
             </Head>
             <body>
                 <SiteHeader
-                    baseUrl={baseUrl}
                     isOnHomepage={gdoc.content.type === OwidGdocType.Homepage}
                 />
                 <div id="owid-document-root">

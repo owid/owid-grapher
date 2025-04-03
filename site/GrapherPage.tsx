@@ -126,7 +126,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { runtimeAssetMap: r
                 />
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader />
                 <main>
                     <figure
                         className={HIDE_IF_JS_DISABLED_CLASSNAME}

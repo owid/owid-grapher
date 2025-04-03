@@ -64,7 +64,7 @@ export function MultiDimDataPage({
                 />
             </Head>
             <body className="DataPage MultiDimDataPage">
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader />
                 <main>
                     <script
                         dangerouslySetInnerHTML={{

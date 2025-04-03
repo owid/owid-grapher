@@ -43,7 +43,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                 baseUrl={baseUrl}
             />
             <body className="CountryProfilePage">
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader />
                 <main className="wrapper">
                     <header>
                         <img

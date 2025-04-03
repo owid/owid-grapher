@@ -25,7 +25,7 @@ export const ThankYouPage = (props: { baseUrl: string }) => (
             <meta name="robots" content="noindex" />
         </Head>
         <body>
-            <SiteHeader baseUrl={props.baseUrl} />
+            <SiteHeader />
             <main className="thank-you-page">
                 <div className="wrapper grid grid-cols-12">
                     <div className="thank-you-page__content span-cols-5 span-sm-cols-12">

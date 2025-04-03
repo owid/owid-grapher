@@ -27,7 +27,7 @@ export const MultiEmbedderTestPage = (
         <Html>
             <Head canonicalUrl={slug} pageTitle={title} baseUrl="/" />
             <body>
-                <SiteHeader baseUrl={""} />
+                <SiteHeader />
                 <main style={{ padding: "1rem" }}>
                     {globalEntitySelector ? (
                         <div

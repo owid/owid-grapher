@@ -15,7 +15,7 @@ export default function NotFoundPage({ baseUrl }: { baseUrl: string }) {
                 baseUrl={baseUrl}
             />
             <body className="NotFoundPage">
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader />
                 <main>
                     <NotFoundPageIcon />
                     <div className="NotFoundPage__copy">

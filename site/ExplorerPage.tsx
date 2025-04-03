@@ -124,10 +124,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                 <IFrameDetector />
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
-                <SiteHeader
-                    baseUrl={baseUrl}
-                    hideAlertBanner={hideAlertBanner || false}
-                />
+                <SiteHeader hideAlertBanner={hideAlertBanner || false} />
                 {subNav}
                 <main id={ExplorerContainerId}>
                     <div className="js--show-warning-block-if-js-disabled" />

@@ -126,7 +126,7 @@ export const LongFormPage = (props: {
                 )}
             </Head>
             <body className={bodyClasses.join(" ")}>
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader />
                 <main>
                     <article
                         className={`page${

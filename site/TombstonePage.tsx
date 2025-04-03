@@ -36,7 +36,7 @@ export default function TombstonePage({
                 baseUrl={baseUrl}
             />
             <body className="NotFoundPage">
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader />
                 <main>
                     <div className="NotFoundPage__copy">
                         <NotFoundPageIcon />

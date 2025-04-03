@@ -26,7 +26,7 @@ export const StaticCollectionPage = (
                 baseUrl={baseUrl}
             />
             <body>
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader />
                 <main className="collections-page grid grid-cols-12-full-width">
                     <header className="collections-page__header grid grid-cols-12-full-width span-cols-14">
                         <h1 className="display-2-semibold span-cols-12 col-start-2 collection-title">

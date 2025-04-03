@@ -29,7 +29,7 @@ export const ExplorerIndexPage = ({
                 baseUrl={baseUrl}
             ></Head>
             <body>
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader />
                 <main className="explorer-index-page grid grid-cols-12-full-width">
                     <ExplorerIndex baseUrl={baseUrl} explorers={explorers} />
                 </main>

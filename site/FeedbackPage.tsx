@@ -17,7 +17,7 @@ export class FeedbackPage extends Component<{ baseUrl: string }> {
                     baseUrl={baseUrl}
                 />
                 <body className="FeedbackPage">
-                    <SiteHeader baseUrl={baseUrl} />
+                    <SiteHeader />
                     <main>
                         <FeedbackForm />
                     </main>
