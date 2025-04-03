@@ -10,11 +10,14 @@ import ArticleBlock from "../components/ArticleBlock.js"
 import { getLayout } from "../components/layout.js"
 import cx from "classnames"
 
-export interface AuthorProps {
+type AuthorProps = Omit<
+    OwidGdocAuthorInterface,
+    "markdown" | "publicationContext" | "revisionId"
+> & {
     content: OwidGdocAuthorContent
 }
 
-const AuthorHeader = (gdoc: OwidGdocAuthorInterface) => {
+const AuthorHeader = (gdoc: AuthorProps) => {
     const {
         title,
         role,
@@ -99,7 +102,7 @@ export const AuthorWork = ({ blocks }: { blocks: OwidEnrichedGdocBlock[] }) => {
     )
 }
 
-export const Author = (gdoc: OwidGdocAuthorInterface): React.ReactElement => {
+export const Author = (gdoc: AuthorProps): React.ReactElement => {
     return (
         <>
             <AuthorHeader {...gdoc} />

@@ -10,6 +10,8 @@ import {
     OwidGdocType,
     spansToUnformattedPlainText,
     get,
+    extractGdocPageData,
+    OwidGdocPageData,
 } from "@ourworldindata/utils"
 import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
 import { DebugProvider } from "./DebugProvider.js"
@@ -25,7 +27,7 @@ import { addPreferSmallFilenameToDataInsightImages } from "../gdocs/utils.js"
 
 declare global {
     interface Window {
-        _OWID_GDOC_PROPS: any
+        _OWID_GDOC_PROPS: OwidGdocPageData
     }
 }
 
@@ -138,7 +140,7 @@ export default function OwidGdocPage({
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `window._OWID_GDOC_PROPS = ${JSON.stringify(
-                            gdoc
+                            extractGdocPageData(gdoc)
                         )}`,
                     }}
                 ></script>
