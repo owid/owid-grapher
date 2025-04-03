@@ -14,6 +14,7 @@ import {
     ToleranceStrategy,
 } from "@ourworldindata/utils"
 import { DEFAULT_VIEWPORT } from "./MapChartConstants"
+import { SelectionArray } from "../selection/SelectionArray"
 
 export interface GlobeConfig {
     isActive: boolean
@@ -31,7 +32,9 @@ class MapConfigDefaults {
     @observable timeTolerance?: number
     @observable toleranceStrategy?: ToleranceStrategy
     @observable hideTimeline?: boolean
+
     @observable region = MapRegionName.World
+    @observable selectedCountries = new SelectionArray()
 
     @observable globe: GlobeConfig = {
         isActive: false,
