@@ -563,7 +563,11 @@ export class MapChart
         }
 
         const tooltipCountry =
-            tooltipState.target?.featureId ?? this.mapConfig.globe.focusCountry
+            tooltipState.target?.featureId ??
+            // show a pinned-to-the-bottom tooltip when focused on a country
+            (this.manager.shouldPinTooltipToBottom
+                ? this.mapConfig.globe.focusCountry
+                : undefined)
 
         return (
             <g

@@ -65,6 +65,7 @@ import {
     omit,
     isTouchDevice,
     isArrayDifferentFromReference,
+    countriesByName,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -3774,6 +3775,28 @@ export class Grapher
 
     @action.bound onMapCountryDropdownFocus(): void {
         this.dismissTooltip()
+    }
+
+    @action.bound onSelectEntity(entityName: EntityName): void {
+        if (this.isOnMapTab) {
+            const country = countriesByName()[entityName]
+            if (country.isMappable) {
+                this.globeController.focusOnCountry(country.name)
+            }
+        }
+    }
+
+    @action.bound onDeselectEntity(entityName: EntityName): void {
+        // remove focus from an entity that has been removed from the selection
+        this.focusArray.remove(entityName)
+    }
+
+    @action.bound onClearAllEntities(): void {
+        // remove focus from all entities if all entities have been deselected
+        this.focusArray.clear()
+
+        // switch back to the 2d map if all entities were deselected
+        if (this.isOnMapTab) this.globeController.hideGlobe()
     }
 
     // todo: restore this behavior??
