@@ -19,7 +19,6 @@ import {
     ChoroplethSeriesByName,
     DEFAULT_STROKE_WIDTH,
     CHOROPLETH_MAP_CLASSNAME,
-    GLOBE_COUNTRY_ZOOM,
 } from "./MapChartConstants"
 import {
     geoBoundsForProjectionOf,
@@ -232,16 +231,10 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @action.bound private onClick(feature: MapRenderFeature): void {
-        // switch to the globe view on clicking the map
-        this.manager.globeController?.jumpToCountryOffset(feature.id)
-        this.manager.globeController?.showGlobe()
-        this.manager.globeController?.focusOnCountry(feature.id)
-        this.manager.globeController?.rotateToCountry(
-            feature.id,
-            GLOBE_COUNTRY_ZOOM
-        )
-
         this.setHoverEnterFeature(feature)
+
+        // focus the country on the globe
+        this.manager.globeController?.focusOnCountry(feature.id)
     }
 
     @action.bound private onDocumentClick(): void {
