@@ -39,7 +39,6 @@ export interface ChoroplethSeries extends ChartSeries {
     value: number | string
     time: number
     isSelected?: boolean
-    highlightFillColor: Color
 }
 
 export type ChoroplethSeriesByName = Map<SeriesName, ChoroplethSeries>
