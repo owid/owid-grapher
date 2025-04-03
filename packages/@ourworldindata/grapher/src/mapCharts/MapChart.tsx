@@ -33,8 +33,6 @@ import {
     ChoroplethSeriesByName,
     ChoroplethMapManager,
     MAP_CHART_CLASSNAME,
-    ChoroplethGlobeManager,
-    GLOBE_COUNTRY_ZOOM,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
@@ -53,18 +51,11 @@ import {
 import {
     ColorSchemeName,
     MapRegionName,
-    GRAPHER_TAB_OPTIONS,
     SeriesName,
-    EntityName,
 } from "@ourworldindata/types"
-import {
-    autoDetectYColumnSlugs,
-    makeClipPath,
-    makeSelectionArray,
-} from "../chart/ChartUtils"
+import { autoDetectYColumnSlugs, makeClipPath } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import { SelectionArray } from "../selection/SelectionArray"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
@@ -82,15 +73,11 @@ export class MapChart
         ChartInterface,
         HorizontalColorLegendManager,
         ColorScaleManager,
-        ChoroplethMapManager,
-        ChoroplethGlobeManager
+        ChoroplethMapManager
 {
     @observable focusEntity?: MapEntity
     @observable focusBracket?: MapBracket
-    @observable tooltipState = new TooltipState<{
-        featureId: string
-        clickable: boolean
-    }>()
+    @observable tooltipState = new TooltipState<{ featureId: string }>()
 
     transformTable(table: OwidTable): OwidTable {
         if (!table.has(this.mapColumnSlug)) return table
@@ -166,9 +153,8 @@ export class MapChart
         }
 
         if (feature.id !== undefined) {
-            const featureId = feature.id as string,
-                clickable = this.isEntityClickable(featureId)
-            this.tooltipState.target = { featureId, clickable }
+            const featureId = feature.id as string
+            this.tooltipState.target = { featureId }
         }
     }
 
@@ -190,53 +176,6 @@ export class MapChart
 
     @computed get globeController(): GlobeController {
         return this.manager.globeController ?? new GlobeController(this)
-    }
-
-    @computed private get entityNamesWithData(): Set<EntityName> {
-        // We intentionally use `inputTable` here instead of `transformedTable`, because of countries where there is no data
-        // available in the map view for the current year, but data might still be available for other chart types
-        return this.inputTable.entitiesWith([this.mapColumnSlug])
-    }
-
-    // Determine if we can go to line chart by clicking on a given map entity
-    private isEntityClickable(entityName?: EntityName): boolean {
-        if (!this.manager.mapIsClickable || !entityName) return false
-        return this.entityNamesWithData.has(entityName)
-    }
-
-    @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.selection)
-    }
-
-    @action.bound private switchToLineChart(entityName: EntityName): void {
-        this.selectionArray.setSelectedEntities([entityName])
-        this.manager.tab = GRAPHER_TAB_OPTIONS.chart
-        if (
-            this.manager.isLineChartThatTurnedIntoDiscreteBar &&
-            this.manager.hasTimeline
-        ) {
-            this.manager.resetHandleTimeBounds?.()
-        }
-    }
-
-    @action.bound private zoomToCountryOnGlobe(entityName: EntityName): void {
-        this.globeController.jumpToCountryOffset(entityName)
-        this.globeController.showGlobe()
-        this.globeController.focusOnCountry(entityName)
-        this.globeController.rotateToCountry(entityName, GLOBE_COUNTRY_ZOOM)
-    }
-
-    @action.bound onClick(d: GeoFeature, event: MouseEvent): void {
-        const entityName = d.id as EntityName
-        const isClickable = this.isEntityClickable(entityName)
-
-        if (isClickable && event.shiftKey) {
-            this.selectionArray.toggleSelection(entityName)
-        } else if (isClickable) {
-            this.switchToLineChart(entityName)
-        } else if (!this.mapConfig.globe.isActive) {
-            this.zoomToCountryOnGlobe(entityName)
-        }
     }
 
     componentWillUnmount(): void {
@@ -276,7 +215,7 @@ export class MapChart
     }
 
     @computed get series(): ChoroplethSeries[] {
-        const { mapColumn, selectionArray, targetTime } = this
+        const { mapColumn, targetTime } = this
         if (mapColumn.isMissing) return []
         if (targetTime === undefined) return []
 
@@ -289,7 +228,7 @@ export class MapChart
                     seriesName: entityName,
                     time: originalTime,
                     value,
-                    isSelected: selectionArray.selectedSet.has(entityName),
+                    isSelected: false,
                     color,
                     highlightFillColor: color,
                 }
