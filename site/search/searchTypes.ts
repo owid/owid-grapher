@@ -52,22 +52,6 @@ export interface PageRecord {
 
 export type IPageHit = PageRecord & Hit<BaseHit>
 
-export type IExplorerViewHit = Hit<BaseHit> & {
-    objectID: string
-
-    // Explorer-wide fields
-    explorerSlug: string
-    explorerTitle: string
-    explorerSubtitle: string
-    numViewsWithinExplorer: number
-
-    // View-specific fields
-    viewTitle: string
-    viewSubtitle: string
-    viewQueryParams: string
-    viewTitleIndexWithinExplorer: number
-}
-
 export enum ChartRecordType {
     Chart = "chart",
     ExplorerView = "explorerView",
