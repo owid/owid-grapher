@@ -289,9 +289,6 @@ const SearchResults = (props: SearchResultsProps) => {
                     const objectId = target.getAttribute(
                         "data-algolia-object-id"
                     )
-                    const eventName =
-                        target.getAttribute("data-algolia-event-name") ??
-                        undefined
 
                     const allVisibleHits = Array.from(
                         document.querySelectorAll(
@@ -322,7 +319,6 @@ const SearchResults = (props: SearchResultsProps) => {
                         query
                     ) {
                         logSiteSearchClickToAlgoliaInsights({
-                            eventName,
                             index,
                             queryID,
                             objectIDs: [objectId],
