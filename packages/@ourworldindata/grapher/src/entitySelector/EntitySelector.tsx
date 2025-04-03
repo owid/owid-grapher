@@ -84,9 +84,6 @@ export interface EntitySelectorManager {
     canHighlightEntities?: boolean
     endTime?: Time
     isOnMapTab?: boolean
-    onSelectEntity?: (entityName: EntityName) => void
-    onDeselectEntity?: (entityName: EntityName) => void
-    onClearAllEntities?: () => void
 }
 
 interface SortConfig {
@@ -174,8 +171,13 @@ const regionNamesSet = new Set(regions.map((region) => region.name))
 export class EntitySelector extends React.Component<{
     manager: EntitySelectorManager
     selection?: SelectionArray
-    onDismiss?: () => void
     autoFocus?: boolean
+    onSelectEntity?: (entityName: EntityName) => void
+    onDeselectEntity?: (entityName: EntityName) => void
+    onClearEntities?: () => void
+    onMouseEnterEntity?: (entityName: EntityName) => void
+    onMouseLeaveEntity?: () => void
+    onDismiss?: () => void
 }> {
     static contextType = DrawerContext
 
@@ -736,28 +738,28 @@ export class EntitySelector extends React.Component<{
 
     @action.bound onDeselectEntities(entityNames: EntityName[]): void {
         for (const entityName of entityNames) {
-            this.manager.onDeselectEntity?.(entityName)
+            this.props.onDeselectEntity?.(entityName)
         }
     }
 
     private timeoutId?: NodeJS.Timeout
-    @action.bound onChange(entityName: string): void {
+    @action.bound onChange(entityName: EntityName): void {
         if (this.isMultiMode) {
             this.selectionArray.toggleSelection(entityName)
 
             if (this.selectionArray.selectedSet.has(entityName)) {
-                this.manager.onSelectEntity?.(entityName)
+                this.props.onSelectEntity?.(entityName)
             } else {
-                this.manager.onDeselectEntity?.(entityName)
+                this.props.onDeselectEntity?.(entityName)
             }
 
             if (this.selectionArray.numSelectedEntities === 0) {
-                this.manager.onClearAllEntities?.()
+                this.props.onClearEntities?.()
             }
         } else {
             const dropEntityNames = this.selectionArray.selectedEntityNames
             this.selectionArray.setSelectedEntities([entityName])
-            this.manager.onSelectEntity?.(entityName)
+            this.props.onSelectEntity?.(entityName)
             this.onDeselectEntities(dropEntityNames)
 
             // close the modal or drawer automatically after selection
@@ -780,8 +782,16 @@ export class EntitySelector extends React.Component<{
             const dropEntityNames = this.selectionArray.selectedEntityNames
             this.selectionArray.clearSelection()
             this.onDeselectEntities(dropEntityNames)
-            this.manager.onClearAllEntities?.()
+            this.props.onClearEntities?.()
         }
+    }
+
+    @action.bound onMouseEnter(entityName: EntityName): void {
+        this.props.onMouseEnterEntity?.(entityName)
+    }
+
+    @action.bound onMouseLeave(): void {
+        this.props.onMouseLeaveEntity?.()
     }
 
     @action.bound async loadAndSetExternalSortColumn(
@@ -953,7 +963,9 @@ export class EntitySelector extends React.Component<{
                             type={this.isMultiMode ? "checkbox" : "radio"}
                             checked={this.isEntitySelected(entity)}
                             bar={this.getBarConfigForEntity(entity)}
-                            onChange={() => this.onChange(entity.name)}
+                            onChange={this.onChange}
+                            onMouseEnter={this.onMouseEnter}
+                            onMouseLeave={this.onMouseLeave}
                             isLocal={entity.isLocal}
                         />
                     </li>
@@ -974,7 +986,9 @@ export class EntitySelector extends React.Component<{
                             type="radio"
                             checked={this.isEntitySelected(entity)}
                             bar={this.getBarConfigForEntity(entity)}
-                            onChange={() => this.onChange(entity.name)}
+                            onChange={this.onChange}
+                            onMouseEnter={this.onMouseEnter}
+                            onMouseLeave={this.onMouseLeave}
                             isLocal={entity.isLocal}
                         />
                     </li>
@@ -1081,7 +1095,9 @@ export class EntitySelector extends React.Component<{
                                     type="checkbox"
                                     checked={true}
                                     bar={this.getBarConfigForEntity(entity)}
-                                    onChange={() => this.onChange(entity.name)}
+                                    onChange={this.onChange}
+                                    onMouseEnter={this.onMouseEnter}
+                                    onMouseLeave={this.onMouseLeave}
                                     isLocal={entity.isLocal}
                                 />
                             </FlippedListItem>
@@ -1114,9 +1130,9 @@ export class EntitySelector extends React.Component<{
                                             bar={this.getBarConfigForEntity(
                                                 entity
                                             )}
-                                            onChange={() =>
-                                                this.onChange(entity.name)
-                                            }
+                                            onChange={this.onChange}
+                                            onMouseEnter={this.onMouseEnter}
+                                            onMouseLeave={this.onMouseLeave}
                                             isLocal={entity.isLocal}
                                         />
                                     </FlippedListItem>
@@ -1169,13 +1185,17 @@ function SelectableEntity({
     type,
     bar,
     onChange,
+    onMouseEnter,
+    onMouseLeave,
     isLocal,
 }: {
     name: string
     checked: boolean
     type: "checkbox" | "radio"
     bar?: BarConfig
-    onChange: () => void
+    onChange: (entityName: EntityName) => void
+    onMouseEnter?: (entityName: EntityName) => void
+    onMouseLeave?: () => void
     isLocal?: boolean
 }) {
     const Input = {
@@ -1207,11 +1227,17 @@ function SelectableEntity({
             className={cx("selectable-entity", {
                 "selectable-entity--with-bar": bar && bar.width !== undefined,
             })}
+            onMouseEnter={() => onMouseEnter?.(name)}
+            onMouseLeave={() => onMouseLeave?.()}
         >
             {bar && bar.width !== undefined && (
                 <div className="bar" style={{ width: `${bar.width * 100}%` }} />
             )}
-            <Input label={label} checked={checked} onChange={onChange} />
+            <Input
+                label={label}
+                checked={checked}
+                onChange={() => onChange(name)}
+            />
             {bar && (
                 <span className="value grapher_label-1-regular">
                     {bar.formattedValue}
