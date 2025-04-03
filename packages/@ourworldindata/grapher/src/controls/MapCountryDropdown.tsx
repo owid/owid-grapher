@@ -14,7 +14,6 @@ import {
     sortBy,
 } from "@ourworldindata/utils"
 import { GlobeController } from "../mapCharts/GlobeController"
-import { GLOBE_COUNTRY_ZOOM } from "../mapCharts/MapChartConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
 import { SearchDropdown } from "./SearchDropdown"
@@ -85,28 +84,17 @@ export class MapCountryDropdown extends React.Component<{
 
     @action.bound private onChange(selected: unknown): void {
         const option = selected as DropdownOption
-
-        const isGlobeActive = this.mapConfig.globe.isActive
-        const region = this.mapConfig.region
+        const country = option.value
 
         // reset the region if a non-world region is currently selected
+        const region = this.mapConfig.region
         if (region !== MapRegionName.World) {
             this.manager.globeController?.jumpToRegion(region)
             this.mapConfig.region = MapRegionName.World
         }
 
-        // switch to the globe if not already active
-        if (!isGlobeActive) {
-            this.manager.globeController?.jumpToCountryOffset(option.value)
-            this.manager.globeController?.showGlobe()
-        }
-
-        // focus on the country and rotate to it
-        this.manager.globeController?.focusOnCountry(option.value)
-        this.manager.globeController?.rotateToCountry(
-            option.value,
-            GLOBE_COUNTRY_ZOOM
-        )
+        // focus the country on the globe
+        this.manager.globeController?.focusOnCountry(country)
     }
 
     @computed private get sortedCountries(): EntityName[] {
