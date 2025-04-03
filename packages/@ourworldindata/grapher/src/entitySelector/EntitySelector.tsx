@@ -51,11 +51,15 @@ import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { SortIcon } from "../controls/SortIcon"
 import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
-import { ColumnSlug, OwidColumnDef, Time } from "@ourworldindata/types"
+import {
+    ColumnSlug,
+    EntityName,
+    OwidColumnDef,
+    Time,
+} from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
-import { FocusArray } from "../focus/FocusArray"
 
 type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
@@ -78,9 +82,11 @@ export interface EntitySelectorManager {
     isEntitySelectorModalOrDrawerOpen?: boolean
     canChangeEntity?: boolean
     canHighlightEntities?: boolean
-    focusArray?: FocusArray
     endTime?: Time
     isOnMapTab?: boolean
+    onSelectEntity?: (entityName: EntityName) => void
+    onDeselectEntity?: (entityName: EntityName) => void
+    onClearAllEntities?: () => void
 }
 
 interface SortConfig {
@@ -728,40 +734,53 @@ export class EntitySelector extends React.Component<{
         }
     }
 
+    @action.bound onDeselectEntities(entityNames: EntityName[]): void {
+        for (const entityName of entityNames) {
+            this.manager.onDeselectEntity?.(entityName)
+        }
+    }
+
     private timeoutId?: NodeJS.Timeout
     @action.bound onChange(entityName: string): void {
         if (this.isMultiMode) {
             this.selectionArray.toggleSelection(entityName)
-        } else {
-            this.selectionArray.setSelectedEntities([entityName])
-        }
 
-        // remove focus from an entity that has been removed from the selection
-        if (!this.selectionArray.selectedSet.has(entityName)) {
-            this.manager.focusArray?.remove(entityName)
+            if (this.selectionArray.selectedSet.has(entityName)) {
+                this.manager.onSelectEntity?.(entityName)
+            } else {
+                this.manager.onDeselectEntity?.(entityName)
+            }
+
+            if (this.selectionArray.numSelectedEntities === 0) {
+                this.manager.onClearAllEntities?.()
+            }
+        } else {
+            const dropEntityNames = this.selectionArray.selectedEntityNames
+            this.selectionArray.setSelectedEntities([entityName])
+            this.manager.onSelectEntity?.(entityName)
+            this.onDeselectEntities(dropEntityNames)
+
+            // close the modal or drawer automatically after selection
+            if (this.manager.isEntitySelectorModalOrDrawerOpen) {
+                this.timeoutId = setTimeout(() => this.close(), 200)
+            }
         }
 
         this.clearSearchInput()
-
-        // close the modal or drawer automatically after selection if in single mode
-        if (
-            !this.isMultiMode &&
-            this.manager.isEntitySelectorModalOrDrawerOpen
-        ) {
-            this.timeoutId = setTimeout(() => this.close(), 200)
-        }
     }
 
     @action.bound onClear(): void {
         const { partitionedSearchResults } = this
         if (this.searchInput) {
             const { selected = [] } = partitionedSearchResults ?? {}
-            const entityNames = selected.map((entity) => entity.name)
-            this.selectionArray.deselectEntities(entityNames)
-            this.manager.focusArray?.remove(...entityNames)
+            const dropEntityNames = selected.map((entity) => entity.name)
+            this.selectionArray.deselectEntities(dropEntityNames)
+            this.onDeselectEntities(dropEntityNames)
         } else {
+            const dropEntityNames = this.selectionArray.selectedEntityNames
             this.selectionArray.clearSelection()
-            this.manager.focusArray?.clear()
+            this.onDeselectEntities(dropEntityNames)
+            this.manager.onClearAllEntities?.()
         }
     }
 
