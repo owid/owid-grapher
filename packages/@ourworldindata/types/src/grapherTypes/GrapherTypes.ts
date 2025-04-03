@@ -533,6 +533,9 @@ export enum MapRegionName {
     Oceania = "Oceania",
 }
 
+// 'World' doesn't make sense as a region for the globe
+export type GlobeRegionName = Exclude<MapRegionName, MapRegionName.World>
+
 export interface GlobeConfig {
     isActive: boolean
     rotation: [number, number]

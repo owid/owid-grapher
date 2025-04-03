@@ -4,6 +4,7 @@ import {
     MapRegionName,
     SeriesName,
     InteractionState,
+    GlobeRegionName,
 } from "@ourworldindata/types"
 import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
@@ -35,6 +36,17 @@ export const GEO_FEATURES_CLASSNAME = "GeoFeatures"
 export const GLOBE_MIN_ZOOM = 1
 export const GLOBE_MAX_ZOOM = 5
 export const GLOBE_COUNTRY_ZOOM = 2.5
+export const DEFAULT_GLOBE_ROTATION: [number, number] = [30, -20] // Atlantic ocean (i.e. Americas & Europe)
+
+export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
+    World: "World",
+    Africa: "Africa",
+    NorthAmerica: "North America",
+    SouthAmerica: "South America",
+    Asia: "Asia",
+    Europe: "Europe",
+    Oceania: "Oceania",
+}
 
 export interface ChoroplethSeries extends ChartSeries {
     value: number | string
@@ -86,76 +98,16 @@ export interface MapChartManager extends ChartManager {
     shouldEnableEntitySelectionOnMapTab?: boolean
 }
 
-export interface MapViewport {
-    // map
-    x: number
-    y: number
-    width: number
-    height: number
-
-    // globe
+export interface GlobeViewport {
     rotation: [number, number]
     zoom: number
 }
 
-/** Viewport for each region, defined by center and width+height in fractional coordinates */
-export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
-    World: {
-        x: 0.565,
-        y: 0.5,
-        width: 1,
-        height: 1,
-        rotation: [30, -20], // Atlantic ocean (i.e. Americas & Europe)
-        zoom: 1,
-    },
-    Europe: {
-        x: 0.53,
-        y: 0.22,
-        width: 0.2,
-        height: 0.2,
-        rotation: [-10, -55],
-        zoom: 3,
-    },
-    Africa: {
-        x: 0.49,
-        y: 0.7,
-        width: 0.21,
-        height: 0.38,
-        rotation: [-20, 0],
-        zoom: 1.65,
-    },
-    NorthAmerica: {
-        x: 0.49,
-        y: 0.4,
-        width: 0.19,
-        height: 0.32,
-        rotation: [95, -48],
-        zoom: 1.5,
-    },
-    SouthAmerica: {
-        x: 0.52,
-        y: 0.815,
-        width: 0.1,
-        height: 0.26,
-        rotation: [62, 22],
-        zoom: 1.75,
-    },
-    Asia: {
-        x: 0.74,
-        y: 0.45,
-        width: 0.36,
-        height: 0.5,
-        rotation: [-92, -25],
-        zoom: 1.55,
-    },
-    Oceania: {
-        x: 0.51,
-        y: 0.75,
-        width: 0.1,
-        height: 0.2,
-        rotation: [-153, 25],
-        zoom: 2,
-    },
+export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
+    Europe: { rotation: [-10, -55], zoom: 3 },
+    Africa: { rotation: [-20, 0], zoom: 1.65 },
+    NorthAmerica: { rotation: [95, -48], zoom: 1.5 },
+    SouthAmerica: { rotation: [62, 22], zoom: 1.75 },
+    Asia: { rotation: [-92, -25], zoom: 1.55 },
+    Oceania: { rotation: [-153, 25], zoom: 2 },
 }
-
-export const DEFAULT_VIEWPORT = MAP_VIEWPORTS.World
