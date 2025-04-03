@@ -1533,6 +1533,33 @@ export class Grapher
                     this.startHandleTimeBound = idealStartTime
             }
         }
+
+        const isChartTab = (tab: GrapherTabName): boolean =>
+            tab !== GRAPHER_TAB_NAMES.Table &&
+            tab !== GRAPHER_TAB_NAMES.WorldMap
+        const isMapTab = (tab: GrapherTabName): boolean =>
+            tab === GRAPHER_TAB_NAMES.WorldMap
+
+        // sync entity selection between the map and the chart tab if entity
+        // selection isn't disabled for the chart, and the map has been interacted
+        // with, i.e. at least one country has been selected on the map
+        const shouldSyncSelection =
+            this.addCountryMode !== EntitySelectionMode.Disabled &&
+            this.mapConfig.selectedCountries.numSelectedEntities > 0
+
+        // switching from the chart tab to the map tab
+        if (isChartTab(oldTab) && isMapTab(newTab) && shouldSyncSelection) {
+            this.mapConfig.selectedCountries.setSelectedEntities(
+                this.selection.selectedEntityNames
+            )
+        }
+
+        // switching from the map tab to the chart tab
+        if (isMapTab(oldTab) && isChartTab(newTab) && shouldSyncSelection) {
+            this.selection.setSelectedEntities(
+                this.mapConfig.selectedCountries.selectedEntityNames
+            )
+        }
     }
 
     // todo: can we remove this?
