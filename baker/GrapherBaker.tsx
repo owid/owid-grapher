@@ -56,6 +56,7 @@ import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { ArchivalManifest } from "./archival/archivalUtils.js"
+import type { ArchiveMetaInformation } from "../site/archive/archiveTypes.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -65,12 +66,12 @@ const renderDatapageIfApplicable = async (
         imageMetadataDictionary,
         staticAssetMap,
         runtimeAssetMap,
-        isArchival,
+        archiveInformation,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
-        isArchival?: boolean
+        archiveInformation?: ArchiveMetaInformation
     } = {}
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
@@ -96,7 +97,7 @@ const renderDatapageIfApplicable = async (
             imageMetadataDictionary,
             staticAssetMap,
             runtimeAssetMap,
-            isArchival,
+            archiveInformation,
         },
         knex
     )
@@ -114,25 +115,25 @@ export const renderDataPageOrGrapherPage = async (
         imageMetadataDictionary,
         staticAssetMap,
         runtimeAssetMap,
-        isArchival,
+        archiveInformation,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
-        isArchival?: boolean
+        archiveInformation?: ArchiveMetaInformation
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
         imageMetadataDictionary,
         staticAssetMap,
         runtimeAssetMap,
-        isArchival,
+        archiveInformation,
     })
     if (datapage) return datapage
     return renderGrapherPage(grapher, knex, {
         staticAssetMap,
         runtimeAssetMap,
-        isArchival,
+        archiveInformation,
     })
 }
 
@@ -146,7 +147,7 @@ export async function renderDataPageV2(
         imageMetadataDictionary = {},
         staticAssetMap,
         runtimeAssetMap,
-        isArchival,
+        archiveInformation,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -156,7 +157,7 @@ export async function renderDataPageV2(
         imageMetadataDictionary?: Record<string, ImageMetadata>
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
-        isArchival?: boolean
+        archiveInformation?: ArchiveMetaInformation
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -230,7 +231,7 @@ export async function renderDataPageV2(
     // If we're baking to an archival page, then we want to skip a bunch of sections
     // where the links would break
 
-    if (!isArchival) {
+    if (!archiveInformation) {
         // Get the charts this variable is being used in (aka "related charts")
         // and exclude the current chart to avoid duplicates
         datapageData.allCharts = await getRelatedChartsForVariable(
@@ -266,6 +267,7 @@ export async function renderDataPageV2(
             tagToSlugMap={tagToSlugMap}
             staticAssetMap={staticAssetMap}
             runtimeAssetMap={runtimeAssetMap}
+            archiveInformation={archiveInformation}
         />
     )
 }
@@ -290,25 +292,25 @@ const renderGrapherPage = async (
     {
         staticAssetMap,
         runtimeAssetMap,
-        isArchival,
+        archiveInformation,
     }: {
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
-        isArchival?: boolean
+        archiveInformation?: ArchiveMetaInformation
     } = {}
 ) => {
     const postSlug = urlToSlug(grapher.originUrl || "") as string | undefined
     // TODO: update this to use gdocs posts
     const postId =
-        postSlug && !isArchival
+        postSlug && !archiveInformation
             ? await getPostIdFromSlug(knex, postSlug)
             : undefined
     const relatedCharts =
-        postId && !isArchival
+        postId && !archiveInformation
             ? await getPostRelatedCharts(knex, postId)
             : undefined
     const relatedArticles =
-        grapher.id && !isArchival
+        grapher.id && !archiveInformation
             ? await getRelatedArticles(knex, grapher.id)
             : undefined
 
@@ -321,6 +323,7 @@ const renderGrapherPage = async (
             baseGrapherUrl={BAKED_GRAPHER_URL}
             staticAssetMap={staticAssetMap}
             runtimeAssetMap={runtimeAssetMap}
+            archiveInformation={archiveInformation}
         />
     )
 }
@@ -334,11 +337,13 @@ export const bakeSingleGrapherPageForArchival = async (
         staticAssetMap,
         runtimeAssetMap,
         manifest,
+        archiveInformation,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
         manifest: ArchivalManifest
+        archiveInformation?: ArchiveMetaInformation
     }
 ) => {
     const outPathHtml = `${bakedSiteDir}/grapher/${grapher.slug}.html`
@@ -348,7 +353,7 @@ export const bakeSingleGrapherPageForArchival = async (
             imageMetadataDictionary,
             staticAssetMap,
             runtimeAssetMap,
-            isArchival: true,
+            archiveInformation,
         })
     )
     const outPathManifest = `${bakedSiteDir}/grapher/${grapher.slug}.manifest.json`

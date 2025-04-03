@@ -2,17 +2,7 @@ import { Button } from "@ourworldindata/components"
 import { SiteLogos } from "../SiteLogos.js"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { dayjs } from "@ourworldindata/utils"
-
-export interface UrlAndMaybeDate {
-    url: string
-    date?: Date
-}
-export interface ArchiveSiteNavigationProps {
-    archiveDate: Date
-    liveUrl?: string
-    previousVersion?: UrlAndMaybeDate
-    nextVersion?: UrlAndMaybeDate
-}
+import { ArchiveSiteNavigationProps } from "./archiveTypes.js"
 
 export const ArchiveSiteNavigation = (props: ArchiveSiteNavigationProps) => {
     return (

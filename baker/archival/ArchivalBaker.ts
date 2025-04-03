@@ -15,6 +15,7 @@ import {
 } from "./archivalUtils.js"
 import pMap from "p-map"
 import { GrapherChecksumsObjectWithHash } from "./archivalChecksum.js"
+import type { ArchiveMetaInformation } from "../../site/archive/archiveTypes.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
@@ -270,11 +271,16 @@ export const bakeGrapherPagesToFolder = async (
                 archivalDate: date.formattedDate,
                 chartConfigId,
             })
+            const archiveInformation: ArchiveMetaInformation = {
+                archiveDate: date.date,
+                liveUrl: `https://ourworldindata.org/grapher/${config.slug}`,
+            }
             await bakeSingleGrapherPageForArchival(dir, config, trx, {
                 imageMetadataDictionary,
                 staticAssetMap,
                 runtimeAssetMap: runtimeFiles,
                 manifest,
+                archiveInformation,
             })
             manifests[chartId] = manifest
 
