@@ -39,6 +39,7 @@ import { DataCatalogSettings } from "./DataCatalogSettings.js"
 import { DataCatalogHighlights } from "./DataCatalogHighlights.js"
 import { ScrollDirection, useScrollDirection } from "../hooks.js"
 import { ContentTypeToggle } from "./ContentTypeToggle.js"
+import { DataCatalogFuzzyMatcher } from "./DataCatalogFuzzyMatcher.js"
 
 export const DataCatalog = ({
     initialState,
@@ -137,6 +138,13 @@ export const DataCatalog = ({
             <AppliedTopicFiltersList
                 topics={state.topics}
                 removeTopic={actions.removeTopic}
+            />
+        ),
+        [CatalogComponentId.FUZZY_MATCHER]: (
+            <DataCatalogFuzzyMatcher
+                addCountry={actions.addCountry}
+                addTopic={actions.addTopic}
+                minQueryLength={state.minQueryLength}
             />
         ),
         [CatalogComponentId.TOPICS_REFINEMENT]: (

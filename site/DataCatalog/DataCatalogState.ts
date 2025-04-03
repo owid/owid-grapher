@@ -10,6 +10,7 @@ export enum CatalogComponentId {
     HIGHLIGHTS = "highlights",
     RESULTS = "results",
     CONTENT_TYPE_TOGGLE = "contentTypeToggle",
+    FUZZY_MATCHER = "fuzzyMatcher",
 }
 
 // Define component style options
@@ -77,6 +78,11 @@ export const DEFAULT_COMPONENTS: ComponentConfig[] = [
         id: CatalogComponentId.CONTENT_TYPE_TOGGLE,
         name: "Content Type Filter",
         visible: true,
+    },
+    {
+        id: CatalogComponentId.FUZZY_MATCHER,
+        name: "Fuzzy Matcher",
+        visible: false,
     },
     {
         id: CatalogComponentId.TOPICS_REFINEMENT,

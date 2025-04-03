@@ -76,6 +76,7 @@ import {
 } from "../db/db.js"
 import { getMinimalGdocPostsByIds } from "../db/model/Gdoc/GdocBase.js"
 import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
+import { memoize } from "lodash"
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require("express-async-errors")
@@ -548,11 +549,18 @@ getPlainRouteWithROTransaction(
     }
 )
 
+const generateTopicTagGraphMemoized = memoize(
+    async (trx: KnexReadonlyTransaction) => {
+        console.log("Generating topic tag graph (will be cached)")
+        return await db.generateTopicTagGraph(trx)
+    }
+)
+
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/topicTagGraph.json",
     async (req, res, trx) => {
-        const headerMenu = await db.generateTopicTagGraph(trx)
+        const headerMenu = await generateTopicTagGraphMemoized(trx)
         res.send(headerMenu)
     }
 )

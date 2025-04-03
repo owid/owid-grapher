@@ -838,3 +838,54 @@
         display: block;
     }
 }
+
+.data-catalog-fuzzy-matches {
+    margin-top: 12px;
+    border-top: 1px solid #eaeaea;
+    padding-top: 8px;
+    font-size: 0.9rem;
+}
+
+.fuzzy-match-title {
+    margin-bottom: 6px;
+    color: #666;
+    font-weight: 500;
+}
+
+.fuzzy-match-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.fuzzy-match-tag {
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: #e0e0e0;
+    }
+}
+
+.fuzzy-match-country {
+    background: #e6f2ff;
+    border-color: #b3d7ff;
+
+    &:hover {
+        background: #d1e6ff;
+    }
+}
+
+.fuzzy-match-topic {
+    background: #e6fff2;
+    border-color: #b3ffda;
+
+    &:hover {
+        background: #d1ffe6;
+    }
+}
