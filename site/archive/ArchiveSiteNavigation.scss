@@ -1,0 +1,65 @@
+.archive-site-navigation {
+    .archive-header-logo-bar {
+        position: relative;
+        z-index: $zindex-lightbox;
+        border-bottom: $header-border-height solid $vermillion;
+        background-color: $oxford-blue;
+
+        .site-logos {
+            justify-content: start;
+
+            .logos-wrapper {
+                display: flex;
+            }
+        }
+
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    .archive-navigation-bar {
+        background-color: $blue-50;
+        color: $white;
+
+        padding-top: 18px;
+        padding-bottom: 24px;
+
+        display: flex;
+        flex-direction: column;
+
+        .wrapper {
+            width: 100%;
+        }
+
+        .archive-navigation-bar__date {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            @include subtitle-1;
+
+            &::before {
+                content: "Archive";
+                text-transform: uppercase;
+                @include h5-black-caps;
+            }
+        }
+
+        .archive-navigation-bar__buttons {
+            margin-top: 16px;
+
+            .archive-navigation-bar__button-left {
+                grid-column: 1;
+                justify-self: left;
+            }
+            .archive-navigation-bar__button-center {
+                grid-column: 2;
+                justify-self: center;
+            }
+            .archive-navigation-bar__button-right {
+                grid-column: 3;
+                justify-self: right;
+            }
+        }
+    }
+}
