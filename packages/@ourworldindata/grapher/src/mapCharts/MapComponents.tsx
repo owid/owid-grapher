@@ -43,7 +43,7 @@ export function CountryWithData<Feature extends RenderFeature>({
     feature,
     series,
     path,
-    focus,
+    hover,
     strokeScale = 1,
     onClick,
     onTouchStart,
@@ -53,7 +53,7 @@ export function CountryWithData<Feature extends RenderFeature>({
     feature: Feature
     series: ChoroplethSeries
     path?: string
-    focus: InteractionState
+    hover: InteractionState
     strokeScale?: number
     onClick?: (event: SVGMouseEvent) => void
     onTouchStart?: (event: React.TouchEvent<SVGElement>) => void
@@ -62,14 +62,14 @@ export function CountryWithData<Feature extends RenderFeature>({
 }): React.ReactElement {
     const shouldShowSelectedStyle = series.isSelected
     const stroke =
-        focus.active || shouldShowSelectedStyle
+        hover.active || shouldShowSelectedStyle
             ? FOCUS_STROKE_COLOR
             : DEFAULT_STROKE_COLOR
     const fill = series.color
-    const fillOpacity = focus.background ? BLUR_FILL_OPACITY : 1
-    const strokeOpacity = focus.background ? BLUR_STROKE_OPACITY : 1
+    const fillOpacity = hover.background ? BLUR_FILL_OPACITY : 1
+    const strokeOpacity = hover.background ? BLUR_STROKE_OPACITY : 1
     const strokeWidth =
-        (focus.active
+        (hover.active
             ? FOCUS_STROKE_WIDTH
             : shouldShowSelectedStyle
               ? SELECTED_STROKE_WIDTH
@@ -100,7 +100,7 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     feature,
     path,
     patternId,
-    focus,
+    hover,
     strokeScale = 1,
     onClick,
     onTouchStart,
@@ -110,18 +110,18 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     feature: Feature
     path?: string
     patternId: string
-    focus: InteractionState
+    hover: InteractionState
     strokeScale?: number
     onClick?: (event: SVGMouseEvent) => void
     onTouchStart?: (event: React.TouchEvent<SVGElement>) => void
     onMouseEnter?: (feature: Feature, event: MouseEvent) => void
     onMouseLeave?: () => void
 }): React.ReactElement {
-    const stroke = focus.active ? FOCUS_STROKE_COLOR : "#aaa"
-    const fillOpacity = focus.background ? BLUR_FILL_OPACITY : 1
-    const strokeOpacity = focus.background ? BLUR_STROKE_OPACITY : 1
+    const stroke = hover.active ? FOCUS_STROKE_COLOR : "#aaa"
+    const fillOpacity = hover.background ? BLUR_FILL_OPACITY : 1
+    const strokeOpacity = hover.background ? BLUR_STROKE_OPACITY : 1
     const strokeWidth =
-        (focus.active ? FOCUS_STROKE_WIDTH : DEFAULT_STROKE_WIDTH) / strokeScale
+        (hover.active ? FOCUS_STROKE_WIDTH : DEFAULT_STROKE_WIDTH) / strokeScale
 
     return (
         <path

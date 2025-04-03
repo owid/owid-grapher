@@ -1,6 +1,11 @@
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { Bounds, PointVector, ColumnSlug } from "@ourworldindata/utils"
-import { MapRegionName, Color, SeriesName } from "@ourworldindata/types"
+import {
+    MapRegionName,
+    Color,
+    SeriesName,
+    InteractionState,
+} from "@ourworldindata/types"
 import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
 import { ChartSeries } from "../chart/ChartInterface"
@@ -44,8 +49,7 @@ export interface ChoroplethMapManager {
     choroplethMapBounds: Bounds
     mapConfig: MapConfig
     globeController?: GlobeController
-    focusBracket?: MapBracket
-    hoverFeatureId?: string
+    getHoverState: (featureId: string) => InteractionState
     onMapMouseOver: (d: GeoFeature) => void
     onMapMouseLeave: () => void
     isStatic?: boolean
