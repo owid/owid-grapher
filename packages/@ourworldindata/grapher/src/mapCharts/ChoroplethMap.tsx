@@ -2,7 +2,6 @@ import React from "react"
 import {
     Bounds,
     difference,
-    InteractionState,
     isTouchDevice,
     makeIdForHumanConsumption,
     MapRegionName,
@@ -36,7 +35,7 @@ import {
 } from "./MapComponents"
 import { MapConfig } from "./MapConfig"
 import { Patterns } from "../core/GrapherConstants"
-import { detectNearbyFeature, hasFocus } from "./MapHelpers"
+import { detectNearbyFeature } from "./MapHelpers"
 
 @observer
 export class ChoroplethMap extends React.Component<{
@@ -150,8 +149,8 @@ export class ChoroplethMap extends React.Component<{
 
         // sort features so that focused features are rendered last
         return sortBy(features, (feature) => {
-            const isFocused = this.hasFocus(feature.id)
-            if (isFocused) return 2
+            const isHovered = this.manager.getHoverState(feature.id).active
+            if (isHovered) return 2
             const series = this.choroplethData.get(feature.id)
             if (series?.isSelected) return 1
             return 0
@@ -253,20 +252,6 @@ export class ChoroplethMap extends React.Component<{
         }
     }
 
-    private hasFocus(featureId: string): boolean {
-        const { hoverFeatureId, focusBracket } = this.manager
-        const series = this.choroplethData.get(featureId)
-        return hasFocus({ featureId, series, hoverFeatureId, focusBracket })
-    }
-
-    private getFocusState(featureId: string): InteractionState {
-        const isFocused = this.hasFocus(featureId)
-        return {
-            active: isFocused,
-            background: !!this.manager.focusBracket && !isFocused,
-        }
-    }
-
     renderFeaturesOutsideRegion(): React.ReactElement | void {
         if (this.featuresOutsideOfSelectedRegion.length === 0) return
 
@@ -311,7 +296,7 @@ export class ChoroplethMap extends React.Component<{
                         key={feature.id}
                         feature={feature}
                         patternId={patternId}
-                        focus={this.getFocusState(feature.id)}
+                        hover={this.manager.getHoverState(feature.id)}
                         strokeScale={this.viewportScaleSqrt}
                         onClick={() => this.onClick(feature)}
                         onTouchStart={() => this.onTouchStart(feature)}
@@ -336,7 +321,7 @@ export class ChoroplethMap extends React.Component<{
                             key={feature.id}
                             feature={feature}
                             series={series}
-                            focus={this.getFocusState(feature.id)}
+                            hover={this.manager.getHoverState(feature.id)}
                             strokeScale={this.viewportScaleSqrt}
                             onClick={() => this.onClick(feature)}
                             onTouchStart={() => this.onTouchStart(feature)}
