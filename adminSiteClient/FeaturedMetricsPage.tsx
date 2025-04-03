@@ -125,7 +125,7 @@ function FeaturedMetricList({
     )
 }
 
-function FeaturedMetricsection({
+function FeaturedMetricSection({
     parentTagName,
     featuredMetrics,
     addFeaturedMetric,
@@ -162,6 +162,19 @@ function FeaturedMetricsection({
     const [newFeaturedMetricIncomeGroup, setNewFeaturedMetricIncomeGroup] =
         useState(FeaturedMetricIncomeGroup.All)
 
+    const handleAddFeaturedMetric = () => {
+        const ranking = byIncomeGroup[newFeaturedMetricIncomeGroup]
+            ? byIncomeGroup[newFeaturedMetricIncomeGroup].length + 1
+            : 1
+        addFeaturedMetric.mutate({
+            url: newFeaturedMetricInputValue,
+            incomeGroup: newFeaturedMetricIncomeGroup,
+            ranking,
+            parentTagName,
+        })
+        setNewFeaturedMetricInputValue("")
+    }
+
     return (
         <div className="featured-metrics-page-section">
             <h4 className="featured-metrics-page-section__heading">
@@ -197,25 +210,13 @@ function FeaturedMetricsection({
                     placeholder="https://ourworldindata.org/grapher/life-expectancy"
                     value={newFeaturedMetricInputValue}
                     onPressEnter={() => {
-                        if (!newFeaturedMetricInputValue) {
+                        if (!newFeaturedMetricInputValue || !isValid) {
                             notification.error({
-                                message: "Please enter a URL",
+                                message: "Please enter a valid URL",
                             })
                             return
                         }
-                        const ranking = byIncomeGroup[
-                            newFeaturedMetricIncomeGroup
-                        ]
-                            ? byIncomeGroup[newFeaturedMetricIncomeGroup]
-                                  .length + 1
-                            : 1
-                        addFeaturedMetric.mutate({
-                            url: newFeaturedMetricInputValue,
-                            incomeGroup: newFeaturedMetricIncomeGroup,
-                            ranking,
-                            parentTagName,
-                        })
-                        setNewFeaturedMetricInputValue("")
+                        handleAddFeaturedMetric()
                     }}
                     onChange={(e) =>
                         setNewFeaturedMetricInputValue(e.target.value)
@@ -240,21 +241,7 @@ function FeaturedMetricsection({
 
                 <Button
                     disabled={!isValid}
-                    onClick={() => {
-                        const ranking = byIncomeGroup[
-                            newFeaturedMetricIncomeGroup
-                        ]
-                            ? byIncomeGroup[newFeaturedMetricIncomeGroup]
-                                  .length + 1
-                            : 1
-                        addFeaturedMetric.mutate({
-                            url: newFeaturedMetricInputValue,
-                            incomeGroup: newFeaturedMetricIncomeGroup,
-                            ranking,
-                            parentTagName,
-                        })
-                        setNewFeaturedMetricInputValue("")
-                    }}
+                    onClick={() => handleAddFeaturedMetric()}
                 >
                     Add
                 </Button>
@@ -427,7 +414,7 @@ export function FeaturedMetricsPage() {
                     Object.keys(filteredFeaturedMetrics).map(
                         (parentTagName) => {
                             return (
-                                <FeaturedMetricsection
+                                <FeaturedMetricSection
                                     addFeaturedMetric={addFeaturedMetric}
                                     deleteFeaturedMetric={deleteFeaturedMetric}
                                     rerankFeaturedMetrics={

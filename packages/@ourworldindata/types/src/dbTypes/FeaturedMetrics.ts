@@ -1,11 +1,11 @@
 export const FeaturedMetricsTableName = "featured_metrics"
 
 export enum FeaturedMetricIncomeGroup {
-    Low = "low",
-    LowerMiddle = "lower-middle",
-    UpperMiddle = "upper-middle",
-    High = "high",
     All = "all",
+    High = "high",
+    UpperMiddle = "upper-middle",
+    LowerMiddle = "lower-middle",
+    Low = "low",
 }
 
 export interface DbInsertFeaturedMetric {
