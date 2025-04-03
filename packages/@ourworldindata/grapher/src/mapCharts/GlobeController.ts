@@ -97,6 +97,16 @@ export class GlobeController {
         this.globeConfig.hoverCountry = undefined
     }
 
+    jumpToCountry(country: EntityName, zoom?: number): void {
+        const geoFeature = geoFeaturesById.get(country)
+        if (!geoFeature) return
+
+        const { centroid } = geoFeature
+        const targetCoords: [number, number] = [-centroid[0], -centroid[1]]
+
+        this.jumpTo({ coords: targetCoords, zoom })
+    }
+
     jumpToCountryOffset(country: EntityName, zoom?: number): void {
         const geoFeature = geoFeaturesById.get(country)
         if (!geoFeature) return
