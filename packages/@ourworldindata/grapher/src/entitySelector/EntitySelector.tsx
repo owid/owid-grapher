@@ -185,13 +185,14 @@ export class EntitySelector extends React.Component<{
     searchField: React.RefObject<HTMLInputElement> = React.createRef()
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
 
-    private defaultSortConfig = {
+    private defaultSortConfig: SortConfig = {
         slug: this.table.entityNameSlug,
         order: SortOrder.asc,
     }
 
     componentDidMount(): void {
         void this.populateLocalEntities()
+        this.setDefaultSortConfig()
 
         if (this.props.autoFocus && !isTouchDevice())
             this.searchField.current?.focus()
@@ -238,6 +239,15 @@ export class EntitySelector extends React.Component<{
         }
     }
 
+    @action.bound private setDefaultSortConfig(): void {
+        // default to sorting by the first chart column on the map tab
+        if (this.manager.isOnMapTab && this.numericalChartColumns[0]) {
+            const { slug } = this.numericalChartColumns[0]
+            this.setInterpolatedSortColumnBySlug(slug)
+            this.defaultSortConfig = { slug, order: SortOrder.desc }
+        }
+    }
+
     @action.bound async populateLocalEntities(): Promise<void> {
         try {
             const localCountryInfo = await getUserCountryInformation()
@@ -272,14 +282,21 @@ export class EntitySelector extends React.Component<{
         }
     }
 
-    private setInterpolatedSortColumn(column?: CoreColumn): void {
-        if (!column) return
+    private setInterpolatedSortColumn(column: CoreColumn): void {
         this.set({
             interpolatedSortColumnsBySlug: {
                 ...this.interpolatedSortColumnsBySlug,
                 [column.slug]: column,
             },
         })
+    }
+
+    private setInterpolatedSortColumnBySlug(slug: ColumnSlug): void {
+        if (this.interpolatedSortColumnsBySlug[slug]) return
+        const interpolatedColumn = this.table
+            .interpolateColumnWithTolerance(slug)
+            .get(slug)
+        this.setInterpolatedSortColumn(interpolatedColumn)
     }
 
     private clearSearchInput(): void {
@@ -833,15 +850,8 @@ export class EntitySelector extends React.Component<{
             if (external) await this.loadAndSetExternalSortColumn(external)
 
             // apply tolerance if an indicator is selected for the first time
-            if (
-                !external &&
-                !this.isEntityNameSlug(slug) &&
-                !this.interpolatedSortColumnsBySlug[slug]
-            ) {
-                const interpolatedColumn = this.table
-                    .interpolateColumnWithTolerance(slug)
-                    .get(slug)
-                this.setInterpolatedSortColumn(interpolatedColumn)
+            if (!external && !this.isEntityNameSlug(slug)) {
+                this.setInterpolatedSortColumnBySlug(slug)
             }
 
             this.updateSortSlug(slug)
