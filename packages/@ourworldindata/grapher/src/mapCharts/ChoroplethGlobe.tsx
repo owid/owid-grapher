@@ -18,7 +18,6 @@ import {
     clamp,
     difference,
     Bounds,
-    sortBy,
     isTouchDevice,
     getRelativeMouse,
     checkIsTouchEvent,
@@ -43,7 +42,11 @@ import {
     NoDataPattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
-import { calculateDistance, detectNearbyFeature } from "./MapHelpers"
+import {
+    calculateDistance,
+    detectNearbyFeature,
+    sortFeaturesByInteractionState,
+} from "./MapHelpers"
 import { GlobeController } from "./GlobeController"
 import { getCountriesByRegion } from "./WorldRegionsToProjection"
 
@@ -114,13 +117,11 @@ export class ChoroplethGlobe extends React.Component<{
             this.choroplethData.has(feature.id)
         )
 
-        // sort features so that focused features are rendered last
-        return sortBy(features, (feature) => {
-            const isHovered = this.manager.getHoverState(feature.id).active
-            if (isHovered) return 2
-            const series = this.choroplethData.get(feature.id)
-            if (series?.isSelected) return 1
-            return 0
+        // sort features so that hovered or selected features are rendered last
+        return sortFeaturesByInteractionState(features, {
+            isHovered: (featureId: string) =>
+                this.manager.getHoverState(featureId).active,
+            isSelected: (featureId) => this.manager.isSelected(featureId),
         })
     }
 
@@ -620,6 +621,7 @@ export class ChoroplethGlobe extends React.Component<{
                         feature={feature}
                         path={this.getPath(feature)}
                         patternId={patternId}
+                        isSelected={this.manager.isSelected(feature.id)}
                         hover={this.manager.getHoverState(feature.id)}
                         onClick={() => this.onClick(feature)}
                         onTouchStart={() => this.onTouchStart(feature)}
@@ -645,6 +647,7 @@ export class ChoroplethGlobe extends React.Component<{
                             feature={feature}
                             series={series}
                             path={this.getPath(feature)}
+                            isSelected={this.manager.isSelected(feature.id)}
                             hover={this.manager.getHoverState(feature.id)}
                             onClick={() => this.onClick(feature)}
                             onTouchStart={() => this.onTouchStart(feature)}
