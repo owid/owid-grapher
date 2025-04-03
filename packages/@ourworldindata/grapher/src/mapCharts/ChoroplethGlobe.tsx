@@ -28,8 +28,8 @@ import {
 } from "@ourworldindata/utils"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
+    ChoroplethMapManager,
     ChoroplethSeriesByName,
-    ChoroplethGlobeManager,
     GEO_FEATURES_CLASSNAME,
     GlobeRenderFeature,
     MAP_HOVER_TARGET_RANGE,
@@ -56,12 +56,9 @@ const MAX_ZOOM_SCALE = 5
 
 @observer
 export class ChoroplethGlobe extends React.Component<{
-    manager: ChoroplethGlobeManager
+    manager: ChoroplethMapManager
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
-
-    /** Show an outline for selected countries */
-    @observable private showSelectedStyle = false
 
     @observable private hoverEnterFeature?: GlobeRenderFeature
     @observable private hoverNearbyFeature?: GlobeRenderFeature
@@ -72,7 +69,7 @@ export class ChoroplethGlobe extends React.Component<{
         return isTouchDevice()
     }
 
-    @computed private get manager(): ChoroplethGlobeManager {
+    @computed private get manager(): ChoroplethMapManager {
         return this.props.manager
     }
 
@@ -90,10 +87,6 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed.struct private get choroplethData(): ChoroplethSeriesByName {
         return this.manager.choroplethData
-    }
-
-    @computed private get hoverFeature(): GlobeRenderFeature | undefined {
-        return this.hoverEnterFeature || this.hoverNearbyFeature
     }
 
     @computed private get features(): GlobeRenderFeature[] {
@@ -321,7 +314,6 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private onMouseMove(event: MouseEvent): void {
-        if (event.shiftKey) this.showSelectedStyle = true // Turn on highlight selection. To turn off, user can switch tabs.
         this.detectNearbyFeature(event)
     }
 
@@ -376,10 +368,7 @@ export class ChoroplethGlobe extends React.Component<{
         return clamp(zoom, MIN_ZOOM_SCALE, MAX_ZOOM_SCALE)
     }
 
-    @action.bound private onClick(
-        feature: GlobeRenderFeature,
-        event: MouseEvent
-    ): void {
+    @action.bound private onClick(feature: GlobeRenderFeature): void {
         this.setHoverEnterFeature(feature)
 
         // keep the zoom level as is if possible,
@@ -389,8 +378,6 @@ export class ChoroplethGlobe extends React.Component<{
 
         // rotate to the selected country on the globe
         void this.globeController.rotateToCountry(feature.id, zoom)
-
-        this.manager.onClick(feature.geo, event)
     }
 
     @action.bound private onTouchStart(feature: GlobeRenderFeature): void {
@@ -652,9 +639,7 @@ export class ChoroplethGlobe extends React.Component<{
                         path={this.getPath(feature)}
                         patternId={patternId}
                         focus={this.getFocusState(feature.id)}
-                        onClick={(event) =>
-                            this.onClick(feature, event.nativeEvent)
-                        }
+                        onClick={() => this.onClick(feature)}
                         onTouchStart={() => this.onTouchStart(feature)}
                         onMouseEnter={this.onMouseEnterFeature}
                         onMouseLeave={this.onMouseLeaveFeature}
@@ -679,10 +664,7 @@ export class ChoroplethGlobe extends React.Component<{
                             series={series}
                             path={this.getPath(feature)}
                             focus={this.getFocusState(feature.id)}
-                            showSelectedStyle={this.showSelectedStyle}
-                            onClick={(event) =>
-                                this.onClick(feature, event.nativeEvent)
-                            }
+                            onClick={() => this.onClick(feature)}
                             onTouchStart={() => this.onTouchStart(feature)}
                             onMouseEnter={this.onMouseEnterFeature}
                             onMouseLeave={this.onMouseLeaveFeature}
