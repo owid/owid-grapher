@@ -2,7 +2,6 @@ import { ColorScaleBin } from "../color/ColorScaleBin"
 import { Bounds, PointVector, ColumnSlug } from "@ourworldindata/utils"
 import {
     MapRegionName,
-    Color,
     SeriesName,
     InteractionState,
 } from "@ourworldindata/types"
@@ -19,10 +18,10 @@ export type MapBracket = ColorScaleBin
 export const MAP_HOVER_TARGET_RANGE = 20
 
 export const DEFAULT_STROKE_COLOR = "#333"
-export const FOCUS_STROKE_COLOR = "#111"
+export const HOVER_STROKE_COLOR = "#111"
 
 export const DEFAULT_STROKE_WIDTH = 0.3
-export const FOCUS_STROKE_WIDTH = 1.5
+export const HOVER_STROKE_WIDTH = 1.5
 export const SELECTED_STROKE_WIDTH = 1
 export const PATTERN_STROKE_WIDTH = 0.7
 
@@ -38,7 +37,6 @@ export const GLOBE_COUNTRY_ZOOM = 2
 export interface ChoroplethSeries extends ChartSeries {
     value: number | string
     time: number
-    isSelected?: boolean
 }
 
 export type ChoroplethSeriesByName = Map<SeriesName, ChoroplethSeries>
@@ -49,6 +47,7 @@ export interface ChoroplethMapManager {
     mapConfig: MapConfig
     globeController?: GlobeController
     getHoverState: (featureId: string) => InteractionState
+    isSelected: (featureId: string) => boolean
     onMapMouseOver: (d: GeoFeature) => void
     onMapMouseLeave: () => void
     isStatic?: boolean
