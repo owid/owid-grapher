@@ -2,7 +2,7 @@ import { StrictMode } from "react"
 import { hydrate, render } from "react-dom"
 import {
     DataPageV2ContentFields,
-    getOwidGdocFromJSON,
+    deserializeOwidGdocPageData,
     isNil,
     OwidGdocType,
     parseIntOrUndefined,
@@ -150,7 +150,7 @@ function runSiteNavigation(hideDonationFlag?: boolean) {
     if (siteNavigationElem) {
         let isOnHomepage = false
         if (window._OWID_GDOC_PROPS) {
-            const props = getOwidGdocFromJSON(window._OWID_GDOC_PROPS)
+            const props = deserializeOwidGdocPageData(window._OWID_GDOC_PROPS)
             isOnHomepage = props?.content?.type === OwidGdocType.Homepage
         }
 
@@ -182,7 +182,7 @@ function runSiteTools() {
 
 const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
     const wrapper = document.querySelector("#owid-document-root")
-    const props = getOwidGdocFromJSON(window._OWID_GDOC_PROPS)
+    const props = deserializeOwidGdocPageData(window._OWID_GDOC_PROPS)
     hydrate(
         <StrictMode>
             <DebugProvider debug={debug}>
