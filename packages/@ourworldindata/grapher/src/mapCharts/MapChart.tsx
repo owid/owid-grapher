@@ -191,6 +191,10 @@ export class MapChart
         return this.manager.globeController ?? new GlobeController(this)
     }
 
+    @computed get shouldEnableEntitySelectionOnMapTab(): boolean {
+        return !!this.manager.shouldEnableEntitySelectionOnMapTab
+    }
+
     componentWillUnmount(): void {
         this.onMapMouseLeave()
         this.onLegendMouseLeave()
