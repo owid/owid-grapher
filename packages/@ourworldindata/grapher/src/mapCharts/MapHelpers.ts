@@ -1,8 +1,6 @@
 import { Quadtree } from "d3-quadtree"
 import { getRelativeMouse } from "@ourworldindata/utils"
-import { ColorScaleBin } from "../color/ColorScaleBin"
 import {
-    ChoroplethSeries,
     GEO_FEATURES_CLASSNAME,
     MAP_HOVER_TARGET_RANGE,
     RenderFeature,
@@ -27,24 +25,6 @@ export function detectNearbyFeature<Feature extends RenderFeature>({
 
     const { x, y } = getRelativeMouse(groupElement, event)
     return quadtree.find(x, y, distance)
-}
-
-export function hasFocus({
-    featureId,
-    series,
-    hoverFeatureId,
-    focusBracket,
-}: {
-    featureId: string
-    series?: ChoroplethSeries
-    hoverFeatureId?: string
-    focusBracket?: ColorScaleBin
-}): boolean {
-    if (hoverFeatureId === featureId) return true
-    else if (!focusBracket) return false
-
-    if (focusBracket.contains(series?.value)) return true
-    else return false
 }
 
 export const calculateDistance = (
