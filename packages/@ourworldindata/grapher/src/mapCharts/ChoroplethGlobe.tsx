@@ -18,7 +18,6 @@ import {
     difference,
     Bounds,
     sortBy,
-    InteractionState,
     isTouchDevice,
     getRelativeMouse,
     checkIsTouchEvent,
@@ -43,7 +42,7 @@ import {
     NoDataPattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
-import { calculateDistance, detectNearbyFeature, hasFocus } from "./MapHelpers"
+import { calculateDistance, detectNearbyFeature } from "./MapHelpers"
 import * as R from "remeda"
 import { GlobeController } from "./GlobeController"
 import { getCountriesByRegion } from "./WorldRegionsToProjection"
@@ -117,8 +116,8 @@ export class ChoroplethGlobe extends React.Component<{
 
         // sort features so that focused features are rendered last
         return sortBy(features, (feature) => {
-            const isFocused = this.hasFocus(feature.id)
-            if (isFocused) return 2
+            const isHovered = this.manager.getHoverState(feature.id).active
+            if (isHovered) return 2
             const series = this.choroplethData.get(feature.id)
             if (series?.isSelected) return 1
             return 0
@@ -158,23 +157,6 @@ export class ChoroplethGlobe extends React.Component<{
         }
 
         return nearbyFeature
-    }
-
-    /** Checks if a geo entity is currently focused, either directly or via the bracket */
-    private hasFocus(featureId: string): boolean {
-        const { hoverFeatureId, focusBracket } = this.manager
-        const { focusCountry } = this.mapConfig.globe
-        if (focusCountry) return focusCountry === featureId
-        const series = this.choroplethData.get(featureId)
-        return hasFocus({ featureId, series, hoverFeatureId, focusBracket })
-    }
-
-    private getFocusState(featureId: string): InteractionState {
-        const isFocused = this.hasFocus(featureId)
-        return {
-            active: isFocused,
-            background: !!this.manager.focusBracket && !isFocused,
-        }
     }
 
     @computed private get globeSize(): number {
@@ -608,7 +590,7 @@ export class ChoroplethGlobe extends React.Component<{
                         feature={feature}
                         path={this.getPath(feature)}
                         patternId={patternId}
-                        focus={this.getFocusState(feature.id)}
+                        hover={this.manager.getHoverState(feature.id)}
                         onClick={(event) => {
                             // don't invoke a second click on parent that
                             // catches clicks on 'nearby' features
@@ -639,7 +621,7 @@ export class ChoroplethGlobe extends React.Component<{
                             feature={feature}
                             series={series}
                             path={this.getPath(feature)}
-                            focus={this.getFocusState(feature.id)}
+                            hover={this.manager.getHoverState(feature.id)}
                             onClick={(event) => {
                                 // don't invoke a second click on parent that
                                 // catches clicks on 'nearby' features
