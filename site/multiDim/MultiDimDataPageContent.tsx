@@ -398,14 +398,12 @@ export const MultiDimDataPageContent = ({
                         )}
                     </div>
                 </div>
-                <div className="grid grid-cols-12-full-width">
-                    <div className="col-start-2 span-cols-12">
-                        {relatedResearch && relatedResearch.length > 0 && (
-                            <DataPageResearchAndWriting
-                                relatedResearch={relatedResearch}
-                            />
-                        )}
-                    </div>
+                <div className="col-start-2 span-cols-12">
+                    {relatedResearch && relatedResearch.length > 0 && (
+                        <DataPageResearchAndWriting
+                            relatedResearch={relatedResearch}
+                        />
+                    )}
                 </div>
                 {varDatapageData && (
                     <MetadataSection
