@@ -3098,7 +3098,7 @@ export class Grapher
     }
 
     private renderReady(): React.ReactElement | null {
-        if (!this.hasBeenVisible) return null
+        if (!this.isReady || !this.hasBeenVisible) return null
 
         if (this.renderToStatic) {
             return <StaticCaptionedChart manager={this} />
