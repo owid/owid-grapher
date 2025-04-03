@@ -59,6 +59,7 @@ import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
+import { SelectionArray } from "../selection/SelectionArray"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -114,6 +115,10 @@ export class MapChart
             this.manager.transformedTable ??
             this.transformTable(this.inputTable)
         )
+    }
+
+    @computed get selectionArray(): SelectionArray {
+        return this.mapConfig.selectedCountries
     }
 
     @computed get failMessage(): string {
@@ -228,7 +233,6 @@ export class MapChart
                     seriesName: entityName,
                     time: originalTime,
                     value,
-                    isSelected: false,
                     color,
                 }
             })
@@ -309,6 +313,10 @@ export class MapChart
         const series = this.choroplethData.get(featureId)
         if (hoverBracket.contains(series?.value)) return true
         else return false
+    }
+
+    isSelected(featureId: string): boolean {
+        return this.selectionArray.selectedSet.has(featureId)
     }
 
     getHoverState(featureId: string): InteractionState {
