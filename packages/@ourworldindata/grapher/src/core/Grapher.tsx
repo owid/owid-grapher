@@ -2355,14 +2355,6 @@ export class Grapher
         return this.version.toString()
     }
 
-    @computed get mapIsClickable(): boolean {
-        return (
-            this.hasChartTab &&
-            (this.hasLineChart || this.isScatter) &&
-            !this.isTouchDevice
-        )
-    }
-
     @computed get relativeToggleLabel(): string {
         if (this.isOnScatterTab) return "Display average annual change"
         else if (this.isOnLineChartTab || this.isOnSlopeChartTab)
