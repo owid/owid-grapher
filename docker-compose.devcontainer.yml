@@ -13,6 +13,8 @@
 # container extension when you open the repo in VS Code (a popup will ask you to open the VS Code window again
 # inside a the devcontainer)
 
+# yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/refs/heads/main/schema/compose-spec.json
+
 services:
     app:
         build:
@@ -61,6 +63,7 @@ services:
         command: "/app/grapher-only-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
+            - mysql_load_data:/var/lib/mysql
             - ./tmp-downloads:/tmp-downloads
         environment:
             DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
@@ -73,4 +76,4 @@ services:
 
 volumes:
     mysql_data:
-    try-node-node_modules:
+    mysql_load_data:

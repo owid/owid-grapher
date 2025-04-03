@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/refs/heads/main/schema/compose-spec.json
+
 services:
     # Stock mysql database. Root password is hardcoded for now
     db:
@@ -21,6 +23,7 @@ services:
             - ./devTools/docker:/app
             - ./db/migration:/migration
             - ./tmp-downloads:/tmp-downloads
+            - mysql_data_testing_temp:/var/lib/mysql
         environment:
             DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
             DB_ROOT_HOST: db
@@ -32,3 +35,4 @@ services:
 
 volumes:
     mysql_data_testing:
+    mysql_data_testing_temp:

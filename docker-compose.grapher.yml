@@ -24,6 +24,8 @@
 # and navigate to http://localhost:8080 to work with the grapher admin.
 #
 
+# yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/refs/heads/main/schema/compose-spec.json
+
 services:
     # Stock mysql database. Root password is hardcoded for now
     db:
@@ -48,6 +50,7 @@ services:
         command: "/app/grapher-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
+            - mysql_load_data:/var/lib/mysql
             - ./tmp-downloads:/tmp-downloads
         environment:
             DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
@@ -60,3 +63,4 @@ services:
 
 volumes:
     mysql_data_public:
+    mysql_load_data:
