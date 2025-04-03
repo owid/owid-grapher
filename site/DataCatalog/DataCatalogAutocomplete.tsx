@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import * as React from "react"
 import { render } from "react-dom"
 import {
@@ -467,7 +467,6 @@ const AllResultsSource: AutocompleteSource<BaseItem> = {
 export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
 
 export function DataCatalogAutocomplete({
-    onActivate,
     onClose,
     className,
     placeholder = DEFAULT_SEARCH_PLACEHOLDER,
@@ -484,7 +483,6 @@ export function DataCatalogAutocomplete({
     typoTolerance,
     minQueryLength,
 }: {
-    onActivate?: () => void
     onClose?: () => void
     className?: string
     placeholder?: string
@@ -507,6 +505,21 @@ export function DataCatalogAutocomplete({
     const setQueryRef = useRef(setQuery)
     const addCountryRef = useRef(addCountry)
     const addTopicRef = useRef(addTopic)
+
+    const positionPanel = useCallback(() => {
+        // Forced DOM manipulation of the algolia autocomplete panel position
+        // This ensures the panel is properly positioned at the bottom of the search input
+        setTimeout(() => {
+            const panel = document.querySelector<HTMLElement>(".aa-Panel")
+            const pseudoInput = document.querySelector<HTMLElement>(
+                ".data-catalog-pseudo-input"
+            )
+            if (panel && pseudoInput) {
+                const bounds = pseudoInput.getBoundingClientRect()
+                panel.style.top = `${bounds.height + 5}px`
+            }
+        }, 10)
+    }, [])
 
     useEffect(() => {
         setQueryRef.current = setQuery
@@ -533,6 +546,8 @@ export function DataCatalogAutocomplete({
 
         const search = autocomplete({
             placeholder,
+            panelPlacement: "full-width",
+            panelContainer: ".data-catalog-search-box-container",
             detachedMediaQuery,
             container: containerRef.current,
             classNames: {
@@ -540,8 +555,8 @@ export function DataCatalogAutocomplete({
             },
             openOnFocus: true,
             onStateChange({ state, prevState }) {
-                if (onActivate && !prevState.isOpen && state.isOpen) {
-                    onActivate()
+                if (!prevState.isOpen && state.isOpen) {
+                    positionPanel()
                 } else if (onClose && prevState.isOpen && !state.isOpen) {
                     onClose()
                 }
@@ -679,7 +694,6 @@ export function DataCatalogAutocomplete({
 
         return () => search.destroy()
     }, [
-        onActivate,
         onClose,
         placeholder,
         detachedMediaQuery,
@@ -690,6 +704,7 @@ export function DataCatalogAutocomplete({
         queryType,
         typoTolerance,
         minQueryLength,
+        positionPanel,
     ])
 
     // Sync external query changes (from the URL) to the input
