@@ -254,9 +254,9 @@ export class ChoroplethMap extends React.Component<{
     }
 
     private hasFocus(featureId: string): boolean {
-        const { focusEntity, focusBracket } = this.manager
+        const { hoverFeatureId, focusBracket } = this.manager
         const series = this.choroplethData.get(featureId)
-        return hasFocus({ featureId, series, focusEntity, focusBracket })
+        return hasFocus({ featureId, series, hoverFeatureId, focusBracket })
     }
 
     private getFocusState(featureId: string): InteractionState {
