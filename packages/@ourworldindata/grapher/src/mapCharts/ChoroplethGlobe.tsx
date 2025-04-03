@@ -357,7 +357,10 @@ export class ChoroplethGlobe extends React.Component<{
         const countryZoom = this.calculateZoomForFeature(feature)
         const zoom = countryZoom < this.zoomScale ? countryZoom : undefined
 
-        // rotate to the selected country on the globe
+        // reset the region if necessary
+        this.mapConfig.region = MapRegionName.World
+
+        // rotate to the selected country on the globe and select it
         void this.globeController.rotateToCountry(feature.id, zoom)
 
         // select the country if allowed
