@@ -4,6 +4,7 @@ import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faEye, faRightLeft, faPen } from "@fortawesome/free-solid-svg-icons"
 import classnames from "classnames"
+import { MAP_GRAPHER_ENTITY_TYPE_PLURAL } from "../core/GrapherConstants.js"
 
 export interface EntitySelectionManager {
     canHighlightEntities?: boolean
@@ -13,6 +14,7 @@ export interface EntitySelectionManager {
     entityTypePlural?: string
     isEntitySelectorModalOrDrawerOpen?: boolean
     isOnChartTab?: boolean
+    isOnMapTab?: boolean
     hideEntityControls?: boolean
 }
 
@@ -32,9 +34,10 @@ export class EntitySelectionToggle extends React.Component<{
     }
 
     @computed get showToggle(): boolean {
-        const { isOnChartTab, hideEntityControls } = this.props.manager
+        const { isOnChartTab, isOnMapTab, hideEntityControls } =
+            this.props.manager
         if (hideEntityControls) return false
-        return !!(isOnChartTab && this.label)
+        return !!((isOnChartTab || isOnMapTab) && this.label)
     }
 
     @computed get label(): EntitySelectionLabel | null {
@@ -44,27 +47,34 @@ export class EntitySelectionToggle extends React.Component<{
             canHighlightEntities,
             canChangeEntity,
             canAddEntities,
+            isOnMapTab,
         } = this.props.manager
 
-        return canHighlightEntities
+        return isOnMapTab
             ? {
                   action: "Select",
-                  entity: entityTypePlural,
-                  icon: <FontAwesomeIcon icon={faEye} />,
+                  entity: MAP_GRAPHER_ENTITY_TYPE_PLURAL,
+                  icon: <FontAwesomeIcon icon={faPen} />,
               }
-            : canChangeEntity
+            : canHighlightEntities
               ? {
-                    action: "Change",
-                    entity: entityType,
-                    icon: <FontAwesomeIcon icon={faRightLeft} />,
+                    action: "Select",
+                    entity: entityTypePlural,
+                    icon: <FontAwesomeIcon icon={faEye} />,
                 }
-              : canAddEntities
+              : canChangeEntity
                 ? {
-                      action: "Edit",
-                      entity: entityTypePlural,
-                      icon: <FontAwesomeIcon icon={faPen} />,
+                      action: "Change",
+                      entity: entityType,
+                      icon: <FontAwesomeIcon icon={faRightLeft} />,
                   }
-                : null
+                : canAddEntities
+                  ? {
+                        action: "Edit",
+                        entity: entityTypePlural,
+                        icon: <FontAwesomeIcon icon={faPen} />,
+                    }
+                  : null
     }
 
     render(): React.ReactElement | null {
