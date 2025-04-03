@@ -162,11 +162,11 @@ export class ChoroplethGlobe extends React.Component<{
 
     /** Checks if a geo entity is currently focused, either directly or via the bracket */
     private hasFocus(featureId: string): boolean {
-        const { focusEntity, focusBracket } = this.manager
+        const { hoverFeatureId, focusBracket } = this.manager
         const { focusCountry } = this.mapConfig.globe
         if (focusCountry) return focusCountry === featureId
         const series = this.choroplethData.get(featureId)
-        return hasFocus({ featureId, series, focusEntity, focusBracket })
+        return hasFocus({ featureId, series, hoverFeatureId, focusBracket })
     }
 
     private getFocusState(featureId: string): InteractionState {

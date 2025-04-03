@@ -27,7 +27,6 @@ import {
     GeoFeature,
     MapBracket,
     MapChartManager,
-    MapEntity,
     ChoroplethSeries,
     DEFAULT_STROKE_COLOR,
     ChoroplethSeriesByName,
@@ -75,7 +74,8 @@ export class MapChart
         ColorScaleManager,
         ChoroplethMapManager
 {
-    @observable focusEntity?: MapEntity
+    /** The id of the currently hovered feature/country */
+    @observable hoverFeatureId?: string
     @observable focusBracket?: MapBracket
     @observable tooltipState = new TooltipState<{ featureId: string }>()
 
@@ -143,17 +143,9 @@ export class MapChart
 
     base: React.RefObject<SVGGElement> = React.createRef()
     @action.bound onMapMouseOver(feature: GeoFeature): void {
-        const series =
-            feature.id === undefined
-                ? undefined
-                : this.seriesMap.get(feature.id as string)
-        this.focusEntity = {
-            id: feature.id,
-            series: series || { value: "No data" },
-        }
-
         if (feature.id !== undefined) {
             const featureId = feature.id as string
+            this.hoverFeatureId = featureId
             this.tooltipState.target = { featureId }
         }
     }
@@ -166,7 +158,7 @@ export class MapChart
     }
 
     @action.bound onMapMouseLeave(): void {
-        this.focusEntity = undefined
+        this.hoverFeatureId = undefined
         this.tooltipState.target = null
     }
 
@@ -291,8 +283,14 @@ export class MapChart
         return this.colorScale.config.equalSizeBins
     }
 
-    @computed get focusValue(): string | number | undefined {
-        return this.focusEntity?.series?.value
+    /** The value of the currently hovered feature/country */
+    @computed get hoverValue(): string | number | undefined {
+        if (!this.hoverFeatureId) return undefined
+
+        const series = this.choroplethData.get(this.hoverFeatureId)
+        if (!series) return "No data"
+
+        return series.value
     }
 
     @computed get fontSize(): number {
@@ -361,25 +359,25 @@ export class MapChart
     }
 
     @computed get numericFocusBracket(): ColorScaleBin | undefined {
-        const { focusBracket, focusValue } = this
+        const { focusBracket, hoverValue } = this
         const { numericLegendData } = this
 
         if (focusBracket) return focusBracket
 
-        if (focusValue !== undefined)
-            return numericLegendData.find((bin) => bin.contains(focusValue))
+        if (hoverValue !== undefined)
+            return numericLegendData.find((bin) => bin.contains(hoverValue))
 
         return undefined
     }
 
     @computed get categoricalFocusBracket(): CategoricalBin | undefined {
-        const { focusBracket, focusValue } = this
+        const { focusBracket, hoverValue } = this
         const { categoricalLegendData } = this
         if (focusBracket && focusBracket instanceof CategoricalBin)
             return focusBracket
 
-        if (focusValue !== undefined)
-            return categoricalLegendData.find((bin) => bin.contains(focusValue))
+        if (hoverValue !== undefined)
+            return categoricalLegendData.find((bin) => bin.contains(hoverValue))
 
         return undefined
     }
@@ -544,7 +542,7 @@ export class MapChart
                         targetTime={this.targetTime}
                         sparklineWidth={sparklineWidth}
                         dismissTooltip={() => {
-                            this.focusEntity = undefined
+                            this.hoverFeatureId = undefined
                             this.tooltipState.target = null
                             this.globeController.dismissCountryFocus()
                         }}

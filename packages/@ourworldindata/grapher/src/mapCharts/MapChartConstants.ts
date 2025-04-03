@@ -30,15 +30,6 @@ export const GEO_FEATURES_CLASSNAME = "GeoFeatures"
 
 export const GLOBE_COUNTRY_ZOOM = 2
 
-export interface MapEntity {
-    id: string | number | undefined
-    series:
-        | ChoroplethSeries
-        | {
-              value: string
-          }
-}
-
 export interface ChoroplethSeries extends ChartSeries {
     value: number | string
     time: number
@@ -54,7 +45,7 @@ export interface ChoroplethMapManager {
     mapConfig: MapConfig
     globeController?: GlobeController
     focusBracket?: MapBracket
-    focusEntity?: MapEntity
+    hoverFeatureId?: string
     onMapMouseOver: (d: GeoFeature) => void
     onMapMouseLeave: () => void
     isStatic?: boolean
