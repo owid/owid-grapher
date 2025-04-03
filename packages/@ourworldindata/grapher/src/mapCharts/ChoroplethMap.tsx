@@ -5,7 +5,6 @@ import {
     isTouchDevice,
     makeIdForHumanConsumption,
     MapRegionName,
-    sortBy,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -35,7 +34,10 @@ import {
 } from "./MapComponents"
 import { MapConfig } from "./MapConfig"
 import { Patterns } from "../core/GrapherConstants"
-import { detectNearbyFeature } from "./MapHelpers"
+import {
+    detectNearbyFeature,
+    sortFeaturesByInteractionState,
+} from "./MapHelpers"
 
 @observer
 export class ChoroplethMap extends React.Component<{
@@ -147,13 +149,11 @@ export class ChoroplethMap extends React.Component<{
             this.choroplethData.has(feature.id)
         )
 
-        // sort features so that focused features are rendered last
-        return sortBy(features, (feature) => {
-            const isHovered = this.manager.getHoverState(feature.id).active
-            if (isHovered) return 2
-            const series = this.choroplethData.get(feature.id)
-            if (series?.isSelected) return 1
-            return 0
+        // sort features so that hovered or selected features are rendered last
+        return sortFeaturesByInteractionState(features, {
+            isHovered: (featureId: string) =>
+                this.manager.getHoverState(featureId).active,
+            isSelected: (featureId) => this.manager.isSelected(featureId),
         })
     }
 
@@ -296,6 +296,7 @@ export class ChoroplethMap extends React.Component<{
                         key={feature.id}
                         feature={feature}
                         patternId={patternId}
+                        isSelected={this.manager.isSelected(feature.id)}
                         hover={this.manager.getHoverState(feature.id)}
                         strokeScale={this.viewportScaleSqrt}
                         onClick={() => this.onClick(feature)}
@@ -321,6 +322,7 @@ export class ChoroplethMap extends React.Component<{
                             key={feature.id}
                             feature={feature}
                             series={series}
+                            isSelected={this.manager.isSelected(feature.id)}
                             hover={this.manager.getHoverState(feature.id)}
                             strokeScale={this.viewportScaleSqrt}
                             onClick={() => this.onClick(feature)}
