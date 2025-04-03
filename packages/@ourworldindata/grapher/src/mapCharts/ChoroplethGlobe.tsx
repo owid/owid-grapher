@@ -331,6 +331,9 @@ export class ChoroplethGlobe extends React.Component<{
     @action.bound private onClick(feature: GlobeRenderFeature): void {
         this.setHoverEnterFeature(feature)
 
+        // reset the region if necessary
+        this.mapConfig.region = MapRegionName.World
+
         // select the country if allowed
         if (this.manager.shouldEnableEntitySelectionOnMapTab)
             this.mapConfig.selectedCountries.selectEntity(feature.id)
