@@ -21,6 +21,7 @@ import {
     getRegionAlternativeNames,
     convertDaysSinceEpochToDate,
     max,
+    checkIsOwidIncomeGroupName,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -230,9 +231,15 @@ export class EntitySelector extends React.Component<{
             const localCountryInfo = await getUserCountryInformation()
             if (!localCountryInfo) return
 
+            const countryRegionsWithoutIncomeGroups = localCountryInfo.regions
+                ? localCountryInfo.regions.filter(
+                      (region) => !checkIsOwidIncomeGroupName(region)
+                  )
+                : []
+
             const userEntityCodes = [
                 localCountryInfo.code,
-                ...(localCountryInfo.regions ?? []),
+                ...countryRegionsWithoutIncomeGroups,
             ]
 
             const userRegions = regions.filter((region) =>

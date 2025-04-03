@@ -47,6 +47,23 @@ export type Region = Country | Aggregate | Continent
 
 export const regions: Region[] = entities as Region[]
 
+export type OwidIncomeGroupName =
+    | "OWID_LIC"
+    | "OWID_LMC"
+    | "OWID_UMC"
+    | "OWID_HIC"
+
+export function checkIsOwidIncomeGroupName(
+    name: string
+): name is OwidIncomeGroupName {
+    return (
+        name === "OWID_LIC" ||
+        name === "OWID_LMC" ||
+        name === "OWID_UMC" ||
+        name === "OWID_HIC"
+    )
+}
+
 export const countries: Country[] = regions.filter(
     (entity) =>
         entity.regionType === "country" &&

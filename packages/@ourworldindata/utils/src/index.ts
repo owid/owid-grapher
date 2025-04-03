@@ -259,6 +259,8 @@ export {
     type Region,
     countries,
     type Country,
+    type OwidIncomeGroupName,
+    checkIsOwidIncomeGroupName,
     getCountryBySlug,
     getCountryByName,
     getRegionByNameOrVariantName,
