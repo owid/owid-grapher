@@ -472,6 +472,12 @@ export class EntitySelector extends React.Component<{
         return this.sortOptions.some((option) => option.value === slug)
     }
 
+    isEntityFilterValid(entityFilter: EntityRegionType): boolean {
+        return this.filterOptions.some(
+            (option) => option.value === entityFilter
+        )
+    }
+
     @computed private get entityFilter(): EntityRegionType {
         return (
             this.manager.entitySelectorState.entityFilter ??
