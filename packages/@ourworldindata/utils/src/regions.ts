@@ -94,6 +94,15 @@ export const countriesByName = lazy(() =>
     Object.fromEntries(countries.map((country) => [country.name, country]))
 )
 
+export const incomeGroupsByName = lazy(
+    () =>
+        Object.fromEntries(
+            regions
+                .filter((region) => checkIsOwidIncomeGroupName(region.code))
+                .map((region) => [region.code, region])
+        ) as Record<OwidIncomeGroupName, Aggregate>
+)
+
 const countriesBySlug = lazy(() =>
     Object.fromEntries(countries.map((country) => [country.slug, country]))
 )

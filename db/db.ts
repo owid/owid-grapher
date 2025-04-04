@@ -42,6 +42,7 @@ import {
     TagsTableName,
     TagGraphTableName,
     ExplorersTableName,
+    DbPlainFeaturedMetricWithParentTagName,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -991,6 +992,19 @@ export const getFeaturedMetricsByParentTagName = async (
         ...blankFeaturedMetricsByParentTagName,
         ...featuredMetricsByParentTagName,
     }
+}
+
+export async function getFeaturedMetricsWithParentTagName(
+    trx: KnexReadonlyTransaction
+): Promise<DbPlainFeaturedMetricWithParentTagName[]> {
+    return getFeaturedMetricsByParentTagName(trx).then((dictionary) =>
+        Object.entries(dictionary).flatMap(([parentTagName, metrics]) =>
+            metrics.map((metric) => ({
+                ...metric,
+                parentTagName,
+            }))
+        )
+    )
 }
 
 /**
