@@ -19,6 +19,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { countriesByName, queryParamsToStr } from "@ourworldindata/utils"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import Mousetrap from "mousetrap"
+import { match, P } from "ts-pattern"
 import {
     parseIndexName,
     getIndexName,
@@ -48,6 +49,12 @@ enum Sources {
 const siteAnalytics = new SiteAnalytics()
 
 type BaseItem = Record<string, unknown>
+
+enum AutocompleteItemType {
+    Country = "country",
+    TopicPage = "topic-page",
+    LinearTopicPage = "linear-topic-page",
+}
 
 const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
     key: "RECENT_SEARCH",
@@ -153,7 +160,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     params: {
                         hitsPerPage: 2,
                         distinct: true,
-                        filters: "NOT type:topic-page AND NOT type:country",
+                        filters: `NOT type:${AutocompleteItemType.TopicPage} AND NOT type:${AutocompleteItemType.Country}`,
                     },
                 },
                 {
@@ -242,7 +249,7 @@ const CountriesSource = (
                         query,
                         params: {
                             hitsPerPage: 3,
-                            filters: "type:country",
+                            filters: `type:${AutocompleteItemType.Country}`,
                             removeWordsIfNoResults: searchRelaxationMode,
                             restrictSearchableAttributes: ["title"],
                             queryType: queryType,
@@ -312,8 +319,7 @@ const TopicsSource = (
                         query,
                         params: {
                             hitsPerPage: 3,
-                            filters:
-                                "type:topic-page OR type:linear-topic-page",
+                            filters: `type:${AutocompleteItemType.TopicPage} OR type:${AutocompleteItemType.LinearTopicPage}`,
                             removeWordsIfNoResults: searchRelaxationMode,
                             // we sometimes mention country names in the content
                             // of topic pages, so searching in the content would
@@ -559,6 +565,38 @@ export function DataCatalogAutocomplete({
                     positionPanel()
                 } else if (onClose && prevState.isOpen && !state.isOpen) {
                     onClose()
+                }
+
+                // Add item to state on select
+                const activeItemChanged =
+                    state.activeItemId !== prevState.activeItemId
+
+                if (state.isOpen && activeItemChanged) {
+                    // Find the active item and source
+                    const activeItem = state.collections
+                        .flatMap((collection) => collection.items)
+                        .find(
+                            (item) =>
+                                item.__autocomplete_id === state.activeItemId
+                        )
+                    if (!activeItem) return
+
+                    match(activeItem.type as AutocompleteItemType)
+                        .with(AutocompleteItemType.Country, () => {
+                            addCountryRef.current(activeItem.title as string)
+                        })
+                        .with(
+                            P.union(
+                                AutocompleteItemType.TopicPage,
+                                AutocompleteItemType.LinearTopicPage
+                            ),
+                            () => {
+                                addTopicRef.current(
+                                    (activeItem.tags as string[])[0]
+                                )
+                            }
+                        )
+                        .exhaustive()
                 }
             },
             onSubmit({ state }) {
