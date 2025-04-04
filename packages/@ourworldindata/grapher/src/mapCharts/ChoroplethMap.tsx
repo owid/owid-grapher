@@ -3,6 +3,7 @@ import {
     Bounds,
     difference,
     InteractionState,
+    isTouchDevice,
     makeIdForHumanConsumption,
     MapRegionName,
     sortBy,
@@ -47,6 +48,10 @@ export class ChoroplethMap extends React.Component<{
 
     @observable private hoverEnterFeature?: MapRenderFeature
     @observable private hoverNearbyFeature?: MapRenderFeature
+
+    @computed private get isTouchDevice(): boolean {
+        return isTouchDevice()
+    }
 
     @computed private get manager(): ChoroplethMapManager {
         return this.props.manager
@@ -205,6 +210,10 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @action.bound private onMouseLeave(): void {
+        // Fixes an issue where clicking on a country that overlaps with the
+        // tooltip causes the tooltip to disappear shortly after being rendered
+        if (this.isTouchDevice) return
+
         this.clearHoverEnterFeature()
     }
 
