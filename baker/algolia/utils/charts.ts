@@ -134,6 +134,7 @@ export const getChartsRecords = async (
 
         const record = {
             objectID: c.id.toString(),
+            id: `grapher/${c.slug}`,
             type: ChartRecordType.Chart,
             chartId: c.id,
             slug: c.slug,

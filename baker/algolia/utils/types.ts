@@ -1,5 +1,9 @@
-import { DbEnrichedVariable } from "@ourworldindata/types"
+import {
+    DbEnrichedVariable,
+    FeaturedMetricIncomeGroup,
+} from "@ourworldindata/types"
 import { ChartRecord } from "../../../site/search/searchTypes.js"
+import { OwidIncomeGroupName } from "@ourworldindata/utils"
 
 /** Charts */
 export interface RawChartRecordRow {
@@ -126,4 +130,17 @@ export type EnrichedExplorerRecord =
 export type FinalizedExplorerRecord = ChartRecord & {
     viewTitleIndexWithinExplorer: number
     isFirstExplorerView: boolean
+}
+
+/**
+ * Maps OWID income groups to Featured Metric income groups.
+ */
+export const incomeGroupMap: Record<
+    Exclude<FeaturedMetricIncomeGroup, FeaturedMetricIncomeGroup.All>,
+    OwidIncomeGroupName
+> = {
+    [FeaturedMetricIncomeGroup.Low]: "OWID_LIC",
+    [FeaturedMetricIncomeGroup.LowerMiddle]: "OWID_LMC",
+    [FeaturedMetricIncomeGroup.UpperMiddle]: "OWID_UMC",
+    [FeaturedMetricIncomeGroup.High]: "OWID_HIC",
 }

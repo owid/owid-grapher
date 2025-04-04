@@ -149,14 +149,36 @@ function FeaturedMetricSection({
 
     const [newFeaturedMetricInputValue, setNewFeaturedMetricInputValue] =
         useState("")
-    const [isValid, setIsValid] = useState(false)
+    const [{ isValid, reason }, setIsValid] = useState({
+        isValid: false,
+        reason: "",
+    })
 
     useEffect(() => {
         const url = Url.fromURL(newFeaturedMetricInputValue)
-        const isValid =
-            (url.isExplorer || url.isGrapher) &&
-            url.queryParams.country === undefined
-        setIsValid(!!isValid)
+        if (!url.isExplorer && !url.isGrapher) {
+            setIsValid({
+                isValid: false,
+                reason: "URL must be an OWID grapher/explorer URL",
+            })
+        } else if (url.isExplorer && !url.queryStr) {
+            setIsValid({
+                isValid: false,
+                reason: "Explorer URLs must have the view's query string (without countries or tab)",
+            })
+        } else if (url.queryParams.country) {
+            setIsValid({
+                isValid: false,
+                reason: "URL must not have a country query parameter",
+            })
+        } else if (url.queryParams.tab) {
+            setIsValid({
+                isValid: false,
+                reason: "URL must not have a tab query parameter",
+            })
+        } else {
+            setIsValid({ isValid: true, reason: "" })
+        }
     }, [newFeaturedMetricInputValue])
 
     const [newFeaturedMetricIncomeGroup, setNewFeaturedMetricIncomeGroup] =
@@ -247,8 +269,7 @@ function FeaturedMetricSection({
                 </Button>
                 {newFeaturedMetricInputValue && !isValid && (
                     <p className="featured-metrics-page-section__error-notice">
-                        URL must be an OWID grapher/explorer URL and not have a{" "}
-                        <span>country</span> query parameter.
+                        {reason}
                     </p>
                 )}
             </Flex>
@@ -301,10 +322,33 @@ function FeaturedMetricsExplainer() {
                         </>
                     ),
                 },
+                {
+                    key: "explorers",
+                    label: "How do I set an Explorer Featured Metric?",
+                    children: (
+                        <>
+                            <p>
+                                Explorer Featured Metrics require the whole
+                                explorer's query string, minus its countries and
+                                tab parameters.
+                            </p>
+                            <p>e.g.</p>
+                            <p>
+                                <span>
+                                    https://ourworldindata.org/explorers/monkeypox?Metric=Confirmed+cases&Frequency=7-day+average&Relative+to+population=false
+                                </span>
+                            </p>
+                            <p>
+                                If the default view of the explorer is the one
+                                you want, you can get its full query string
+                                representation by clicking another view, and
+                                then navigating back to the default.
+                            </p>
+                        </>
+                    ),
+                },
             ]}
-        >
-            What are Featured Metrics?
-        </Collapse>
+        />
     )
 }
 
