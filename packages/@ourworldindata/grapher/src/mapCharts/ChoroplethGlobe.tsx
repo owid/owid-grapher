@@ -250,7 +250,10 @@ export class ChoroplethGlobe extends React.Component<{
         this.rotateFrameId = requestAnimationFrame(() => {
             this.mapConfig.globe.rotation = [
                 targetCoords[0],
-                clamp(targetCoords[1], -90, 90),
+                // Clamping the latitude to [-90, 90] would allow rotation up to the poles.
+                // However, the panning strategy used doesn't work well around the poles.
+                // That's why we clamp the latitude to a narrower range.
+                clamp(targetCoords[1], -65, 65),
             ]
         })
     }
@@ -332,13 +335,13 @@ export class ChoroplethGlobe extends React.Component<{
         const base = this.base.current
         if (!base) return
 
-        // possible interaction types are
+        // Possible interaction types are
         // - zoom-scroll: zooming by scrolling via the wheel event
         // - zoom-pinch: zooming by pinching using two fingers on touch devices
         // - pan: panning by dragging the mouse or using a finger on touch devices
         type InteractionType = "zoom-scroll" | "zoom-pinch" | "pan"
 
-        // Panning and zooming is powered by D3.
+        // Panning and zooming are powered by D3.
         //
         // Panning is adapted from https://observablehq.com/d/569d101dd5bd332b.
         // The strategy ensures the geographic start point remains under the cursor
@@ -356,7 +359,7 @@ export class ChoroplethGlobe extends React.Component<{
             // for panning
             let startCoords: [number, number, number],
                 startQuat: [number, number, number, number],
-                startRot: [number, number]
+                startRot: [number, number, number]
 
             // for zooming
             let startDistance: number | undefined
@@ -379,7 +382,7 @@ export class ChoroplethGlobe extends React.Component<{
                     startCoords = versor.cartesian(
                         this.projection.invert([pos.x, pos.y])
                     )
-                    startRot = this.globeRotation
+                    startRot = this.projection.rotate()
                     startQuat = versor(startRot)
                 }
 
@@ -427,9 +430,10 @@ export class ChoroplethGlobe extends React.Component<{
                     const quat = versor.multiply(startQuat, delta)
                     const rotation = versor.rotation(quat)
 
-                    // ignore the gamma channel for more intuitive rotation
-                    // see https://observablehq.com/@d3/three-axis-rotation
-                    // for a visual explanation of three-axis rotation
+                    // Ignore the gamma channel for more intuitive rotation
+                    // (see https://observablehq.com/@d3/three-axis-rotation
+                    // for a visual explanation of three-axis rotation).
+                    // As a side effect, rotation around the poles feels off.
                     this.rotateGlobe([rotation[0], rotation[1]])
                 }
 
