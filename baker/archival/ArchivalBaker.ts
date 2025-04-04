@@ -10,12 +10,19 @@ import { bakeSingleGrapherPageForArchival } from "../GrapherBaker.js"
 import { hashAndCopyFile, hashAndWriteFile } from "./archivalFileUtils.js"
 import {
     ArchivalManifest,
+    assembleGrapherArchivalUrl,
     assembleManifest,
     getDateForArchival,
 } from "./archivalUtils.js"
 import pMap from "p-map"
-import { GrapherChecksumsObjectWithHash } from "./archivalChecksum.js"
-import type { ArchiveMetaInformation } from "../../site/archive/archiveTypes.js"
+import {
+    getLatestArchivedVersionsFromDb,
+    GrapherChecksumsObjectWithHash,
+} from "./archivalChecksum.js"
+import type {
+    ArchiveMetaInformation,
+    UrlAndMaybeDate,
+} from "../../site/archive/archiveTypes.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
@@ -207,6 +214,10 @@ export const bakeGrapherPagesToFolder = async (
         const grapherIds = grapherChecksumsObjsToBeArchived.map(
             (c) => c.chartId
         )
+        const latestArchivalVersions = await getLatestArchivedVersionsFromDb(
+            trx,
+            grapherIds
+        ).then((rows) => keyBy(rows, (v) => v.grapherId))
         const grapherConfigs = await db
             .knexRaw<{
                 chartId: number
@@ -271,9 +282,21 @@ export const bakeGrapherPagesToFolder = async (
                 archivalDate: date.formattedDate,
                 chartConfigId,
             })
+            const previousVersionInfo = latestArchivalVersions[chartId]
+            const previousVersion: UrlAndMaybeDate | undefined =
+                previousVersionInfo
+                    ? {
+                          date: previousVersionInfo.archivalTimestamp,
+                          url: assembleGrapherArchivalUrl(
+                              previousVersionInfo.archivalTimestamp,
+                              previousVersionInfo.grapherSlug
+                          ),
+                      }
+                    : undefined
             const archiveInformation: ArchiveMetaInformation = {
                 archiveDate: date.date,
                 liveUrl: `https://ourworldindata.org/grapher/${config.slug}`,
+                previousVersion,
             }
             await bakeSingleGrapherPageForArchival(dir, config, trx, {
                 imageMetadataDictionary,
