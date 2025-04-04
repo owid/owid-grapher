@@ -291,6 +291,10 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private onMouseLeaveFeature(): void {
+        // Fixes an issue where clicking on a country that overlaps with the
+        // tooltip causes the tooltip to disappear shortly after being rendered
+        if (this.isTouchDevice) return
+
         this.clearHoverEnterFeature()
     }
 
