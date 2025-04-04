@@ -28,6 +28,8 @@ import {
     ChoroplethMapManager,
     ChoroplethSeriesByName,
     GEO_FEATURES_CLASSNAME,
+    GLOBE_MAX_ZOOM,
+    GLOBE_MIN_ZOOM,
     GlobeRenderFeature,
     MAP_HOVER_TARGET_RANGE,
     SVGMouseEvent,
@@ -52,9 +54,6 @@ import { getCountriesByRegion } from "./WorldRegionsToProjection"
 
 const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 const DEFAULT_SCALE = geoOrthographic().scale()
-
-const MIN_ZOOM_SCALE = 1
-const MAX_ZOOM_SCALE = 5
 
 @observer
 export class ChoroplethGlobe extends React.Component<{
@@ -282,8 +281,8 @@ export class ChoroplethGlobe extends React.Component<{
             const sensitivity = 0.01
             const newZoom = this.zoomScale * (1 + delta * sensitivity)
             this.mapConfig.globe.zoom = R.clamp(newZoom, {
-                min: MIN_ZOOM_SCALE,
-                max: MAX_ZOOM_SCALE,
+                min: GLOBE_MIN_ZOOM,
+                max: GLOBE_MAX_ZOOM,
             })
         })
     }
@@ -506,7 +505,7 @@ export class ChoroplethGlobe extends React.Component<{
             }
 
             return zoom()
-                .scaleExtent([MIN_ZOOM_SCALE, MAX_ZOOM_SCALE])
+                .scaleExtent([GLOBE_MIN_ZOOM, GLOBE_MAX_ZOOM])
                 .touchable(() => this.isTouchDevice)
                 .on("start", panningOrZoomingStart)
                 .on("zoom", panningOrZooming)
