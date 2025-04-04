@@ -248,7 +248,7 @@
         "vite": "^6.2.4",
         "vite-plugin-checker": "^0.9.1",
         "vitest": "^3.1.1",
-        "wrangler": "^4.5.1"
+        "wrangler": "^4.7.1"
     },
     "resolutions": {
         "@types/node": "20.8.3",
