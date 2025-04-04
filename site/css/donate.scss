@@ -229,7 +229,8 @@
 
 .donate-page-faqs {
     padding-bottom: 80px;
-    .article-block__text {
+
+    & > .article-block__text {
         @include body-2-regular;
         color: $blue-60;
     }
