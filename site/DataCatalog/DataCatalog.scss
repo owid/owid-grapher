@@ -161,6 +161,15 @@
     align-items: center;
 }
 
+section[data-autocomplete-source-id="topics"],
+section[data-autocomplete-source-id="countries"] {
+    .aa-ItemWrapper {
+        display: flex;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+}
+
 .data-catalog-selected-country-pill {
     background-color: $blue-5;
     padding: 8px;

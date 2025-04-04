@@ -218,13 +218,28 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                             tagName="strong"
                         />
                     </span>
-                    <span className="aa-ItemWrapper__contentType">
-                        {indexLabel}
-                    </span>
                 </div>
             )
         },
     },
+}
+
+// Extract the unmatched part of the query using Algolia's matchedWords
+const getUnmatchedQueryPart = (item: BaseItem, query: string): string => {
+    const matchedWords =
+        (item._highlightResult as any)?.title?.matchedWords || []
+
+    if (!query || matchedWords.length === 0) return ""
+
+    // Split the query into words and filter out those that matched
+    const queryWords = query.toLowerCase().split(/\s+/)
+    const unmatchedWords = queryWords.filter(
+        (word) =>
+            !matchedWords.some(
+                (matchedWord: string) => matchedWord.toLowerCase() === word
+            )
+    )
+    return unmatchedWords.join(" ")
 }
 
 const CountriesSource = (
@@ -261,29 +276,28 @@ const CountriesSource = (
         },
 
         templates: {
-            header: () => <h5 className="overline-black-caps">Countries</h5>,
-            item: ({ item }) => {
+            item: ({ item, state }) => {
+                const unmatchedQuery = getUnmatchedQueryPart(item, state.query)
+
                 return (
                     <div
                         className="aa-ItemWrapper"
                         key={item.title as string}
                         translate="no"
                     >
-                        <div style={{ display: "flex", gap: "8px" }}>
-                            <DataCatalogAppliedFilters
-                                filters={pendingFilters}
-                            />
-                            <CountryPill
-                                name={item.title as string}
-                                code={
-                                    countriesByName()[item.title as string]
-                                        ?.code || ""
-                                }
-                            />
-                        </div>
-                        <span className="aa-ItemWrapper__contentType">
-                            Country
-                        </span>
+                        <DataCatalogAppliedFilters filters={pendingFilters} />
+                        <CountryPill
+                            name={item.title as string}
+                            code={
+                                countriesByName()[item.title as string]?.code ||
+                                ""
+                            }
+                        />
+                        {unmatchedQuery && (
+                            <div className="body-3-regular">
+                                {unmatchedQuery}
+                            </div>
+                        )}
                     </div>
                 )
             },
@@ -333,9 +347,9 @@ const TopicsSource = (
         },
 
         templates: {
-            header: () => <h5 className="overline-black-caps">Topics</h5>,
-            item: ({ item }) => {
+            item: ({ item, state }) => {
                 const topicTag = (item.tags as string[])?.[0] || ""
+                const unmatchedQuery = getUnmatchedQueryPart(item, state.query)
 
                 return (
                     <div
@@ -343,15 +357,13 @@ const TopicsSource = (
                         key={item.title as string}
                         translate="no"
                     >
-                        <div style={{ display: "flex", gap: "8px" }}>
-                            <DataCatalogAppliedFilters
-                                filters={pendingFilters}
-                            />
-                            <TopicPill name={topicTag} />
-                        </div>
-                        <span className="aa-ItemWrapper__contentType">
-                            Topic
-                        </span>
+                        <DataCatalogAppliedFilters filters={pendingFilters} />
+                        <TopicPill name={topicTag} />
+                        {unmatchedQuery && (
+                            <div className="body-3-regular">
+                                {unmatchedQuery}
+                            </div>
+                        )}
                     </div>
                 )
             },
@@ -554,13 +566,13 @@ export function DataCatalogAutocomplete({
     useEffect(() => {
         if (!containerRef.current) return
 
-        const clearSearch = () => {
-            setQueryRef.current("")
-            // Clear the input directly
-            if (search) {
-                search.setQuery("")
-            }
-        }
+        // const clearSearch = () => {
+        //     setQueryRef.current("")
+        //     // Clear the input directly
+        //     if (search) {
+        //         search.setQuery("")
+        //     }
+        // }
 
         const search = autocomplete({
             placeholder,
@@ -585,19 +597,6 @@ export function DataCatalogAutocomplete({
 
                 if (!activeItemChanged) return
 
-                // clear the input if the user selects a result
-                if (prevState.activeItemId === null) {
-                    clearSearch()
-                }
-
-                // If the active item changed, we need to update the pending filters
-                // If the active item is null, we need to remove the last pending filter
-                if (state.activeItemId === null) {
-                    // Remove the last pending filter
-                    // removeLastPendingFilterRef.current()
-                    return
-                }
-
                 // If the active item is not null, we need to add it to the pending filters
                 // Find the active item and source
                 const activeItem = state.collections
@@ -607,6 +606,8 @@ export function DataCatalogAutocomplete({
                     )
 
                 if (!activeItem) return
+
+                search.setQuery(getUnmatchedQueryPart(activeItem, state.query))
 
                 const shouldAddActiveItem = prevState.activeItemId === null
 
@@ -671,13 +672,13 @@ export function DataCatalogAutocomplete({
                     )
 
                     // Add the combined filters source
-                    sources.push(
-                        CombinedFiltersSource(
-                            addPendingFilterRef.current,
-                            clearSearch
-                        )
-                    )
-                    sources.push(AlgoliaSource, AllResultsSource)
+                    // sources.push(
+                    //     CombinedFiltersSource(
+                    //         addPendingFilterRef.current,
+                    //         clearSearch
+                    //     )
+                    // )
+                    sources.push(/*AlgoliaSource,*/ AllResultsSource)
                 } else {
                     sources.push(FeaturedSearchesSource)
                 }
