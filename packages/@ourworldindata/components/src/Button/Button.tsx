@@ -46,11 +46,17 @@ export const Button = ({
     const content = (
         <>
             {iconPosition === "left" && icon && (
-                <FontAwesomeIcon className="owid-btn--icon-left" icon={icon} />
+                <FontAwesomeIcon
+                    className={cx({ "owid-btn--icon-left": text })}
+                    icon={icon}
+                />
             )}
             {text && <span>{text}</span>}
             {iconPosition !== "left" && icon && (
-                <FontAwesomeIcon className="owid-btn--icon-right" icon={icon} />
+                <FontAwesomeIcon
+                    className={cx({ "owid-btn--icon-right": text })}
+                    icon={icon}
+                />
             )}
         </>
     )
