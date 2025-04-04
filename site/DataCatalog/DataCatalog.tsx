@@ -63,6 +63,7 @@ import {
     TOUCH_DEVICE_MEDIA_QUERY,
 } from "../SiteConstants.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import { Autocomplete } from "../search/Autocomplete.js"
 
 const analytics = new SiteAnalytics()
 
@@ -99,7 +100,11 @@ const DataCatalogSearchInput = ({
                     setGlobalQuery(value)
                 }}
             >
-                <input
+                <Autocomplete
+                    className="data-catalog-search-input"
+                    panelClassName="homepage-search__panel"
+                />
+                {/* <input
                     autoFocus
                     type="text"
                     className="data-catalog-search-input body-3-regular"
@@ -116,7 +121,7 @@ const DataCatalogSearchInput = ({
                     onBlur={() => {
                         setGlobalQuery(value)
                     }}
-                />
+                /> */}
                 <button
                     className="data-catalog-clear-input-button"
                     disabled={!value}

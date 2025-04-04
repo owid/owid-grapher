@@ -102,6 +102,7 @@ export enum SearchIndexName {
     Charts = "charts",
     Pages = "pages",
     ExplorerViewsMdimViewsAndCharts = "explorer-views-and-charts",
+    SearchSuggestions = "search-suggestions",
 }
 
 export type SearchCategoryFilter = SearchIndexName | "all"
