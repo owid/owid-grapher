@@ -128,14 +128,12 @@ export const DEFAULT_COMPONENTS: ComponentConfig[] = [
 
 type AddFilterAction = {
     type: "addFilter"
-    filterType: CatalogFilterType
-    name: string
+    filter: CatalogFilter
 }
 
 type RemoveFilterAction = {
     type: "removeFilter"
-    filterType: CatalogFilterType
-    name: string
+    filter: CatalogFilter
 }
 
 type SetQueryAction = {
@@ -240,16 +238,16 @@ export function dataCatalogReducer(
             page: 0,
             query,
         }))
-        .with({ type: "addFilter" }, ({ filterType, name }) => {
+        .with({ type: "addFilter" }, ({ filter: { type, name } }) => {
             // Check if filter already exists
             const filterExists = state.filters.some(
-                (filter) => filter.type === filterType && filter.name === name
+                (filter) => filter.type === type && filter.name === name
             )
 
             // Only add if it doesn't exist
             const newFilters = filterExists
                 ? state.filters
-                : [...state.filters, { type: filterType, name }]
+                : [...state.filters, { type, name }]
 
             return {
                 ...state,
@@ -257,10 +255,9 @@ export function dataCatalogReducer(
                 filters: newFilters,
             }
         })
-        .with({ type: "removeFilter" }, ({ filterType, name }) => {
+        .with({ type: "removeFilter" }, ({ filter: { type, name } }) => {
             const newFilters = state.filters.filter(
-                (filter) =>
-                    !(filter.type === filterType && filter.name === name)
+                (filter) => !(filter.type === type && filter.name === name)
             )
 
             // Check if we're removing the last country filter
@@ -341,20 +338,20 @@ export function dataCatalogReducer(
 export function createActions(dispatch: (action: DataCatalogAction) => void) {
     // prettier-ignore
     return {
-        addFilter: (filterType: CatalogFilterType, name: string) =>
-            dispatch({ type: "addFilter", filterType, name }),
-        removeFilter: (filterType: CatalogFilterType, name: string) =>
-            dispatch({ type: "removeFilter", filterType, name }),
+        addFilter: (filter: CatalogFilter) =>
+            dispatch({ type: "addFilter", filter }),
+        removeFilter: (filter: CatalogFilter) =>
+            dispatch({ type: "removeFilter", filter }),
 
         // Convenience methods for backwards compatibility
         addTopic: (topic: string) =>
-            dispatch({ type: "addFilter", filterType: CatalogFilterType.TOPIC, name: topic }),
+            dispatch({ type: "addFilter", filter: { type: CatalogFilterType.TOPIC, name: topic } }),
         removeTopic: (topic: string) =>
-            dispatch({ type: "removeFilter", filterType: CatalogFilterType.TOPIC, name: topic }),
+            dispatch({ type: "removeFilter", filter: { type: CatalogFilterType.TOPIC, name: topic } }),
         addCountry: (country: string) =>
-            dispatch({ type: "addFilter", filterType: CatalogFilterType.COUNTRY, name: country }),
+            dispatch({ type: "addFilter", filter: { type: CatalogFilterType.COUNTRY, name: country } }),
         removeCountry: (country: string) =>
-            dispatch({ type: "removeFilter", filterType: CatalogFilterType.COUNTRY, name: country }),
+            dispatch({ type: "removeFilter", filter: { type: CatalogFilterType.COUNTRY, name: country } }),
 
         setPage: (page: number) => dispatch({ type: "setPage", page }),
         setQuery: (query: string) => dispatch({ type: "setQuery", query }),

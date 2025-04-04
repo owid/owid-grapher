@@ -1,9 +1,10 @@
 import { faClose } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { CatalogFilter, CatalogFilterType } from "./DataCatalogState.js"
 
 export interface TopicPillProps {
     name: string
-    onRemove?: (name: string) => void
+    onRemove?: (filter: CatalogFilter) => void
 }
 
 export const TopicPill = ({ name, onRemove }: TopicPillProps) => {
@@ -11,7 +12,11 @@ export const TopicPill = ({ name, onRemove }: TopicPillProps) => {
         /* TODO: button */
         <span
             className={"data-catalog-applied-filters-button body-3-medium"}
-            onClick={() => (onRemove ? onRemove(name) : undefined)}
+            onClick={() =>
+                onRemove
+                    ? onRemove({ type: CatalogFilterType.TOPIC, name })
+                    : undefined
+            }
         >
             {name}
             {onRemove && <FontAwesomeIcon icon={faClose} />}

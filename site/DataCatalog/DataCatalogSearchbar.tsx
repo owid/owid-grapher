@@ -7,18 +7,17 @@ import {
     QueryType,
     SearchRelaxationMode,
 } from "./DataCatalogState.js"
-import { AppliedFilters } from "./AppliedFilters.js"
+import { DataCatalogAppliedFilters } from "./DataCatalogAppliedFilters.js"
+import { useEffect, useState } from "react"
 
 export const DataCatalogSearchbar = ({
     query,
     setQuery,
-    removeCountry,
+    addFilter,
     removeFilter,
-    addCountry,
     requireAllCountries,
     selectedCountryNames,
     toggleRequireAllCountries,
-    addTopic,
     searchRelaxationMode,
     queryType,
     typoTolerance,
@@ -29,12 +28,10 @@ export const DataCatalogSearchbar = ({
     selectedCountryNames: Set<string>
     query: string
     setQuery: (query: string) => void
-    removeCountry: (country: string) => void
-    removeFilter: (filterType: CatalogFilterType, name: string) => void
-    addCountry: (country: string) => void
+    addFilter: (filter: CatalogFilter) => void
+    removeFilter: (filter: CatalogFilter) => void
     requireAllCountries: boolean
     toggleRequireAllCountries: () => void
-    addTopic: (topic: string) => void
     searchRelaxationMode: SearchRelaxationMode
     queryType: QueryType
     typoTolerance: boolean
@@ -43,17 +40,68 @@ export const DataCatalogSearchbar = ({
 }) => {
     // Uses CSS to fake an input bar that will highlight correctly using :focus-within
     // without highlighting when the country selector is focused
+
+    // TOOD: pending filters attempt not conclusive
+    // const [pendingFilters, setPendingFilters] = useState<CatalogFilter[]>([])
+
+    // useEffect(() => {
+    //     setPendingFilters(filters)
+    // }, [filters])
+
+    // const addPendingFilter = (filter: CatalogFilter) => {
+    //     setPendingFilters((prev) => [...prev, filter])
+    // }
+
+    // const upsertLastPendingFilter = (
+    //     shouldAdd: boolean,
+    //     filter: CatalogFilter
+    // ) => {
+    //     setPendingFilters((prev) => {
+    //         const prevFilters = [...prev]
+    //         if (!shouldAdd) {
+    //             prevFilters.pop()
+    //         }
+    //         return [...prevFilters, filter]
+    //     })
+    // }
+
+    // const removeLastPendingFilter = () => {
+    //     setPendingFilters((prev) => {
+    //         const prevFilters = [...prev]
+    //         prevFilters.pop()
+    //         return prevFilters
+    //     })
+    // }
+
+    const upsertLastFilter = (shouldAdd: boolean, filter: CatalogFilter) => {
+        if (!shouldAdd) {
+            removeLastFilter()
+        }
+        addFilter(filter)
+    }
+    const removeLastFilter = () => {
+        const lastFilter = filters[filters.length - 1]
+        if (lastFilter) {
+            removeFilter(lastFilter)
+        }
+    }
+
     return (
         <>
             <div className="data-catalog-pseudo-input">
-                <AppliedFilters filters={filters} removeFilter={removeFilter} />
+                <DataCatalogAppliedFilters
+                    filters={filters}
+                    removeFilter={removeFilter}
+                />
                 <DataCatalogAutocomplete
                     placeholder="Search for data..."
                     className="data-catalog-search-box-container"
                     setQuery={setQuery}
                     query={query}
-                    addCountry={addCountry}
-                    addTopic={addTopic}
+                    addFilter={addFilter}
+                    upsertLastFilter={upsertLastFilter}
+                    removeLastFilter={removeLastFilter}
+                    pendingFilters={filters}
                     searchRelaxationMode={searchRelaxationMode}
                     queryType={queryType}
                     typoTolerance={typoTolerance}
@@ -64,8 +112,18 @@ export const DataCatalogSearchbar = ({
                 requireAllCountries={requireAllCountries}
                 toggleRequireAllCountries={toggleRequireAllCountries}
                 selectedCountryNames={selectedCountryNames}
-                addCountry={addCountry}
-                removeCountry={removeCountry}
+                addCountry={(country: string) => {
+                    addFilter({
+                        type: CatalogFilterType.COUNTRY,
+                        name: country,
+                    })
+                }}
+                removeCountry={(country: string) => {
+                    removeFilter({
+                        type: CatalogFilterType.COUNTRY,
+                        name: country,
+                    })
+                }}
             />
         </>
     )

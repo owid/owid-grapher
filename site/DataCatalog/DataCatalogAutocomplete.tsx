@@ -31,9 +31,15 @@ import {
     pageTypeDisplayNames,
     PageType,
 } from "../search/searchTypes.js"
-import { QueryType, SearchRelaxationMode } from "./DataCatalogState"
+import {
+    CatalogFilter,
+    CatalogFilterType,
+    QueryType,
+    SearchRelaxationMode,
+} from "./DataCatalogState"
 import { CountryPill } from "./CountryPill"
 import { TopicPill } from "./TopicPill"
+import { DataCatalogAppliedFilters } from "./DataCatalogAppliedFilters.js"
 
 // Define enum for source IDs
 enum Sources {
@@ -222,19 +228,13 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
 }
 
 const CountriesSource = (
-    addCountry: (country: string) => void,
-    clearSearch: () => void,
+    pendingFilters: CatalogFilter[],
     searchRelaxationMode: SearchRelaxationMode,
     queryType: QueryType,
     typoTolerance: boolean
 ): AutocompleteSource<BaseItem> => {
     return {
         sourceId: Sources.COUNTRIES,
-        onSelect({ item }) {
-            addCountry(item.title as string)
-            clearSearch()
-        },
-
         getItemUrl() {
             return undefined
         },
@@ -269,13 +269,18 @@ const CountriesSource = (
                         key={item.title as string}
                         translate="no"
                     >
-                        <CountryPill
-                            name={item.title as string}
-                            code={
-                                countriesByName()[item.title as string]?.code ||
-                                ""
-                            }
-                        />
+                        <div style={{ display: "flex", gap: "8px" }}>
+                            <DataCatalogAppliedFilters
+                                filters={pendingFilters}
+                            />
+                            <CountryPill
+                                name={item.title as string}
+                                code={
+                                    countriesByName()[item.title as string]
+                                        ?.code || ""
+                                }
+                            />
+                        </div>
                         <span className="aa-ItemWrapper__contentType">
                             Country
                         </span>
@@ -287,24 +292,13 @@ const CountriesSource = (
 }
 
 const TopicsSource = (
-    addTopic: (topic: string) => void,
-    clearSearch: () => void,
+    pendingFilters: CatalogFilter[],
     searchRelaxationMode: SearchRelaxationMode,
     queryType: QueryType,
     typoTolerance: boolean
 ): AutocompleteSource<BaseItem> => {
     return {
         sourceId: Sources.TOPICS,
-        onSelect({ item }) {
-            // For some topics there is a discrepancy between the page title and the tag
-            // (e.g. "Happiness and Life Satisfaction" vs "Happiness & Life Satisfaction")
-            // so we need to make sure to use the tag name (and not the page title) when faceting
-            // We could be using searchForFacetValues() instead but it doesn't support
-            // the removeWordsIfNoResults parameter
-            addTopic((item.tags as string[])[0])
-            clearSearch()
-        },
-
         getItemUrl() {
             return undefined
         },
@@ -349,7 +343,12 @@ const TopicsSource = (
                         key={item.title as string}
                         translate="no"
                     >
-                        <TopicPill name={topicTag} />
+                        <div style={{ display: "flex", gap: "8px" }}>
+                            <DataCatalogAppliedFilters
+                                filters={pendingFilters}
+                            />
+                            <TopicPill name={topicTag} />
+                        </div>
                         <span className="aa-ItemWrapper__contentType">
                             Topic
                         </span>
@@ -361,8 +360,7 @@ const TopicsSource = (
 }
 
 const CombinedFiltersSource = (
-    addCountry: (country: string) => void,
-    addTopic: (topic: string) => void,
+    addPendingFilter: (filter: CatalogFilter) => void,
     clearSearch: () => void
 ): AutocompleteSource<BaseItem> => {
     return {
@@ -370,13 +368,19 @@ const CombinedFiltersSource = (
         onSelect({ item }) {
             // Apply the topic
             if (item.topic) {
-                addTopic(item.topic as string)
+                addPendingFilter({
+                    type: CatalogFilterType.TOPIC,
+                    name: item.topic as string,
+                })
             }
 
             // Apply all countries
             if (item.countries) {
                 ;(item.countries as string[]).forEach((country) => {
-                    addCountry(country)
+                    addPendingFilter({
+                        type: CatalogFilterType.COUNTRY,
+                        name: country,
+                    })
                 })
             }
 
@@ -482,8 +486,10 @@ export function DataCatalogAutocomplete({
     panelClassName,
     setQuery,
     query,
-    addCountry,
-    addTopic,
+    addFilter,
+    pendingFilters,
+    upsertLastFilter,
+    removeLastFilter,
     searchRelaxationMode,
     queryType,
     typoTolerance,
@@ -496,8 +502,10 @@ export function DataCatalogAutocomplete({
     panelClassName?: string
     setQuery: (query: string) => void
     query?: string
-    addCountry: (country: string) => void
-    addTopic: (topic: string) => void
+    addFilter: (filter: CatalogFilter) => void
+    pendingFilters: CatalogFilter[]
+    upsertLastFilter: (shouldAdd: boolean, filter: CatalogFilter) => void
+    removeLastFilter: () => void
     searchRelaxationMode: SearchRelaxationMode
     queryType: QueryType
     typoTolerance: boolean
@@ -509,8 +517,17 @@ export function DataCatalogAutocomplete({
 
     // Store in ref for stable reference
     const setQueryRef = useRef(setQuery)
-    const addCountryRef = useRef(addCountry)
-    const addTopicRef = useRef(addTopic)
+    const addPendingFilterRef = useRef(addFilter)
+    const upsertLastFilterRef = useRef(upsertLastFilter)
+    const removeLastFilterRef = useRef(removeLastFilter)
+    const pendingFiltersRef = useRef<CatalogFilter[]>(pendingFilters)
+
+    // Update the ref whenever pendingFilters change. This is to prevent the
+    // autocomplete instance from being recreated on every filter change, while
+    // keeping the state in the parent
+    useEffect(() => {
+        pendingFiltersRef.current = pendingFilters
+    }, [pendingFilters])
 
     const positionPanel = useCallback(() => {
         // Forced DOM manipulation of the algolia autocomplete panel position
@@ -529,15 +546,10 @@ export function DataCatalogAutocomplete({
 
     useEffect(() => {
         setQueryRef.current = setQuery
-    }, [setQuery])
-
-    useEffect(() => {
-        addCountryRef.current = addCountry
-    }, [addCountry])
-
-    useEffect(() => {
-        addTopicRef.current = addTopic
-    }, [addTopic])
+        addPendingFilterRef.current = addFilter
+        upsertLastFilterRef.current = upsertLastFilter
+        removeLastFilterRef.current = removeLastFilter
+    }, [addFilter, removeLastFilter, setQuery, upsertLastFilter])
 
     useEffect(() => {
         if (!containerRef.current) return
@@ -571,35 +583,60 @@ export function DataCatalogAutocomplete({
                 const activeItemChanged =
                     state.activeItemId !== prevState.activeItemId
 
-                if (state.isOpen && activeItemChanged) {
-                    // Find the active item and source
-                    const activeItem = state.collections
-                        .flatMap((collection) => collection.items)
-                        .find(
-                            (item) =>
-                                item.__autocomplete_id === state.activeItemId
-                        )
-                    if (!activeItem) return
+                if (!activeItemChanged) return
 
-                    match(activeItem.type as AutocompleteItemType)
-                        .with(AutocompleteItemType.Country, () => {
-                            addCountryRef.current(activeItem.title as string)
-                        })
-                        .with(
-                            P.union(
-                                AutocompleteItemType.TopicPage,
-                                AutocompleteItemType.LinearTopicPage
-                            ),
-                            () => {
-                                addTopicRef.current(
-                                    (activeItem.tags as string[])[0]
-                                )
-                            }
-                        )
-                        .otherwise(() => {
-                            // Catch-all for other non-referenced item types
-                        })
+                // clear the input if the user selects a result
+                if (prevState.activeItemId === null) {
+                    clearSearch()
                 }
+
+                // If the active item changed, we need to update the pending filters
+                // If the active item is null, we need to remove the last pending filter
+                if (state.activeItemId === null) {
+                    // Remove the last pending filter
+                    // removeLastPendingFilterRef.current()
+                    return
+                }
+
+                // If the active item is not null, we need to add it to the pending filters
+                // Find the active item and source
+                const activeItem = state.collections
+                    .flatMap((collection) => collection.items)
+                    .find(
+                        (item) => item.__autocomplete_id === state.activeItemId
+                    )
+
+                if (!activeItem) return
+
+                const shouldAddActiveItem = prevState.activeItemId === null
+
+                match(activeItem.type as AutocompleteItemType)
+                    .with(AutocompleteItemType.Country, () => {
+                        upsertLastFilterRef.current(shouldAddActiveItem, {
+                            type: CatalogFilterType.COUNTRY,
+                            name: activeItem.title as string,
+                        })
+                    })
+                    .with(
+                        P.union(
+                            AutocompleteItemType.TopicPage,
+                            AutocompleteItemType.LinearTopicPage
+                        ),
+                        () => {
+                            upsertLastFilterRef.current(shouldAddActiveItem, {
+                                type: CatalogFilterType.TOPIC,
+                                // For some topics there is a discrepancy between the page title and the tag
+                                // (e.g. "Happiness and Life Satisfaction" vs "Happiness & Life Satisfaction")
+                                // so we need to make sure to use the tag name (and not the page title) when faceting
+                                // We could be using searchForFacetValues() instead but it doesn't support
+                                // the removeWordsIfNoResults parameter
+                                name: (activeItem.tags as string[])[0],
+                            })
+                        }
+                    )
+                    .otherwise(() => {
+                        // Catch-all for other non-referenced item types
+                    })
             },
             onSubmit({ state }) {
                 if (!state.query) return
@@ -616,34 +653,27 @@ export function DataCatalogAutocomplete({
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query && query.length >= minQueryLength) {
-                    if (addCountryRef.current) {
-                        sources.push(
-                            CountriesSource(
-                                addCountryRef.current,
-                                clearSearch,
-                                searchRelaxationMode,
-                                queryType,
-                                typoTolerance
-                            )
+                    sources.push(
+                        CountriesSource(
+                            pendingFiltersRef.current,
+                            searchRelaxationMode,
+                            queryType,
+                            typoTolerance
                         )
-                    }
-                    if (addTopicRef.current) {
-                        sources.push(
-                            TopicsSource(
-                                addTopicRef.current,
-                                clearSearch,
-                                searchRelaxationMode,
-                                queryType,
-                                typoTolerance
-                            )
+                    )
+                    sources.push(
+                        TopicsSource(
+                            pendingFiltersRef.current,
+                            searchRelaxationMode,
+                            queryType,
+                            typoTolerance
                         )
-                    }
+                    )
 
                     // Add the combined filters source
                     sources.push(
                         CombinedFiltersSource(
-                            addCountryRef.current,
-                            addTopicRef.current,
+                            addPendingFilterRef.current,
                             clearSearch
                         )
                     )

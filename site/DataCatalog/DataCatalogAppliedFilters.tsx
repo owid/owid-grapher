@@ -4,12 +4,12 @@ import { TopicPill } from "./TopicPill.js"
 import { countriesByName } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
-export const AppliedFilters = ({
+export const DataCatalogAppliedFilters = ({
     filters,
     removeFilter,
 }: {
     filters: CatalogFilter[]
-    removeFilter: (filterType: CatalogFilterType, name: string) => void
+    removeFilter?: (filter: CatalogFilter) => void
 }) => {
     if (filters.length === 0) return null
 
@@ -27,17 +27,13 @@ export const AppliedFilters = ({
                                 code={
                                     countriesByName()[filter.name]?.code || ""
                                 }
-                                onRemove={() =>
-                                    removeFilter(filter.type, filter.name)
-                                }
+                                onRemove={removeFilter}
                             />
                         ))
                         .with({ type: CatalogFilterType.TOPIC }, (filter) => (
                             <TopicPill
                                 name={filter.name}
-                                onRemove={() =>
-                                    removeFilter(filter.type, filter.name)
-                                }
+                                onRemove={removeFilter}
                             />
                         ))
                         .exhaustive()}

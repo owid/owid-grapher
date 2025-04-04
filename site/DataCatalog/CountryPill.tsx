@@ -1,11 +1,12 @@
 import { faClose } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import cx from "classnames"
+import { CatalogFilter, CatalogFilterType } from "./DataCatalogState.js"
 
 export interface CountryPillProps {
     name: string
     code: string
-    onRemove?: (name: string) => void
+    onRemove?: (filter: CatalogFilter) => void
     hideOnDesktop?: boolean
     className?: string
 }
@@ -23,7 +24,11 @@ export const CountryPill = ({
                 "data-catalog-selected-country-pill--hide-on-desktop":
                     hideOnDesktop,
             })}
-            onClick={onRemove ? () => onRemove(name) : undefined}
+            onClick={
+                onRemove
+                    ? () => onRemove({ type: CatalogFilterType.COUNTRY, name })
+                    : undefined
+            }
         >
             <img
                 width={20}

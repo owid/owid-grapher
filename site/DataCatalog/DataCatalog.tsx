@@ -34,7 +34,7 @@ import {
 import { TopicsRefinementListWrapper } from "./TopicsRefinementListWrapper.js"
 import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
 import { DataCatalogResults } from "./DataCatalogResults.js"
-import { AppliedFilters } from "./AppliedFilters.js"
+import { DataCatalogAppliedFilters } from "./DataCatalogAppliedFilters.js"
 import { DataCatalogSearchbar } from "./DataCatalogSearchbar.js"
 import { DataCatalogDataInsights } from "./DataCatalogDataInsights.js"
 import { DataCatalogSettings } from "./DataCatalogSettings.js"
@@ -150,7 +150,7 @@ export const DataCatalog = ({
             />
         ),
         [CatalogComponentId.APPLIED_FILTERS]: (
-            <AppliedFilters
+            <DataCatalogAppliedFilters
                 filters={state.filters}
                 removeFilter={actions.removeFilter}
             />
@@ -238,10 +238,8 @@ export const DataCatalog = ({
             >
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
                     <DataCatalogSearchbar
-                        addCountry={actions.addCountry}
-                        addTopic={actions.addTopic}
+                        addFilter={actions.addFilter}
                         query={state.query}
-                        removeCountry={actions.removeCountry}
                         removeFilter={actions.removeFilter}
                         requireAllCountries={state.requireAllCountries}
                         selectedCountries={selectedCountries}
