@@ -1517,6 +1517,16 @@ export class Grapher
         }
     }
 
+    @computed private get entitySelector(): EntitySelector {
+        const entitySelectorArray = this.isOnMapTab
+            ? this.mapConfig.selectedCountries
+            : this.selection
+        return new EntitySelector({
+            manager: this,
+            selection: entitySelectorArray,
+        })
+    }
+
     @action.bound onTabChange(
         oldTab: GrapherTabName,
         newTab: GrapherTabName
@@ -1584,6 +1594,35 @@ export class Grapher
             this.selection.setSelectedEntities(
                 this.mapConfig.selectedCountries.selectedEntityNames
             )
+        }
+
+        if (isMapTab(newTab) || isChartTab(newTab)) {
+            const { mapColumnSlug, entitySelector } = this
+            const { interpolatedSortColumnsBySlug } = this.entitySelectorState
+
+            // make sure the initial sort config is set
+            entitySelector.initSortConfig()
+            const sortSlug = entitySelector.sortConfig.slug
+
+            // the map and chart tab might have a different set of sort columns;
+            // if the currently selected sort column is invalid, reset if to the default
+            if (!entitySelector.isSortSlugValid(sortSlug)) {
+                this.entitySelectorState.sortConfig =
+                    entitySelector.getDefaultSortConfig()
+            }
+
+            // the map column slug might be interpolated with different
+            // tolerance values on the chart and the map tab
+            if (interpolatedSortColumnsBySlug?.[mapColumnSlug]) {
+                // if the map column slug is currently selected, re-calculate tolerance;
+                // otherwise, delete it and it will be re-calculated when necessary
+                if (sortSlug === mapColumnSlug) {
+                    interpolatedSortColumnsBySlug[mapColumnSlug] =
+                        entitySelector.interpolateSortColumn(mapColumnSlug)
+                } else {
+                    delete interpolatedSortColumnsBySlug[mapColumnSlug]
+                }
+            }
         }
     }
 
