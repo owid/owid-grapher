@@ -252,6 +252,7 @@ export {
     getAggregates,
     type Aggregate,
     type AggregateSource,
+    aggregateSources,
     getOthers,
     countriesByName,
     getRegionAlternativeNames,

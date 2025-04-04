@@ -22,7 +22,7 @@ import {
     max,
     checkIsOwidIncomeGroupName,
     groupBy,
-    Aggregate,
+    aggregateSources,
     AggregateSource,
     getRegionByName,
 } from "@ourworldindata/utils"
@@ -978,24 +978,16 @@ export class EntitySelector extends React.Component<{
             )
         }
 
-        // add groups for institution-defined regions
-        if (regionsGroupedByType.aggregate) {
-            const aggregates = regionsGroupedByType.aggregate as Aggregate[]
-            const aggregatesGroupedBySource = groupBy(
-                aggregates,
-                (region) => region.definedBy
+        for (const source of aggregateSources) {
+            // The regions file includes a definedBy field for aggregates,
+            // which could be used here. However, non-OWID regions aren't
+            // standardized, meaning we might miss some entities.
+            // Instead, we rely on the convention that non-OWID regions
+            // are suffixed with (source) and check the entity name.
+            const entityNames = availableEntityNames.filter((entityName) =>
+                entityName.toLowerCase().trim().endsWith(`(${source})`)
             )
-
-            for (const [source, members] of Object.entries(
-                aggregatesGroupedBySource
-            )) {
-                if (source) {
-                    entitiesByType.set(
-                        source as AggregateSource,
-                        members.map((region) => region.name)
-                    )
-                }
-            }
+            if (entityNames.length > 0) entitiesByType.set(source, entityNames)
         }
 
         return entitiesByType
