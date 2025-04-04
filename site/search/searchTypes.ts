@@ -77,6 +77,9 @@ export interface ChartRecord {
     numRelatedArticles: number
     views_7d: number
     score: number
+    // we set attributeForDistinct on this, so we can use it to deduplicate
+    // when we have multiple records for the same chart (e.g. with featured metrics)
+    id: string
 }
 
 export type IChartHit = Hit<BaseHit> & ChartRecord

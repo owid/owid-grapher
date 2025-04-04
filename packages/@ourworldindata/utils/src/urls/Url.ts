@@ -167,6 +167,34 @@ export class Url {
             ),
         })
     }
+
+    areQueryParamsEqual(otherUrl: Url): boolean {
+        const thisParams = this.queryParams
+        const otherParams = otherUrl.queryParams
+
+        // First check if they have the same number of keys
+        const thisKeys = Object.keys(thisParams)
+        const otherKeys = Object.keys(otherParams)
+        if (thisKeys.length !== otherKeys.length) {
+            return false
+        }
+
+        // Check if all keys exist in both objects and have the same values
+        for (const key of thisKeys) {
+            if (!(key in otherParams)) {
+                return false
+            }
+
+            const thisValue = thisParams[key]
+            const otherValue = otherParams[key]
+
+            if (thisValue !== otherValue) {
+                return false
+            }
+        }
+
+        return true
+    }
 }
 
 export const setWindowUrl = (url: Url): void => {
