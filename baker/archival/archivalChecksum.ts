@@ -86,10 +86,10 @@ export const getLatestArchivedVersionsFromDb = async (
         WHERE (grapherId, archivalTimestamp) IN (SELECT grapherId, MAX(archivalTimestamp) FROM archived_chart_versions a2 GROUP BY grapherId)
             AND (
                  grapherId IN (:chartIds)
-                 OR :chartIds IS NULL
+                 OR (:chartIdsIsNull)
             )
         `,
-        { chartIds: chartIds ?? null }
+        { chartIds: chartIds ?? null, chartIdsIsNull: !chartIds }
     )
 }
 
