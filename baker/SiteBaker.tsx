@@ -159,18 +159,6 @@ function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
     let total = minimum + bakeSteps.size
     // Redirects has two progress bar ticks
     if (bakeSteps.has("redirects")) total++
-    // Add a tick for the validation step that occurs when these two steps run
-    if (bakeSteps.has("dods") && bakeSteps.has("charts")) total++
-    // Add ticks for prefetching attachments, which will only run if any of these steps are enabled
-    if (
-        bakeSteps.has("gdocPosts") ||
-        bakeSteps.has("gdocTombstones") ||
-        bakeSteps.has("dataInsights") ||
-        bakeSteps.has("authors") ||
-        bakeSteps.has("multiDimPages")
-    ) {
-        total += 9
-    }
     return total
 }
 
@@ -201,6 +189,7 @@ export class SiteBaker {
 
     private async bakeCountryProfiles(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("countryProfiles")) return
+        this.progressBar.tick({ name: "Baking country profiles" })
         await Promise.all(
             countryProfileSpecs.map(async (spec) => {
                 // Delete all country profiles before regenerating them
@@ -229,7 +218,6 @@ export class SiteBaker {
                 }
             })
         )
-        this.progressBar.tick({ name: "✅ baked country profiles" })
     }
 
     // Bake an individual post/page
@@ -311,27 +299,24 @@ export class SiteBaker {
         picks?: [string[], string[], string[], string[], string[], string[]]
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
-            console.log("Prefetching attachments...")
-
+            console.log("Prefetching donors")
             const donors = await getPublicDonorNames(knex)
-            this.progressBar.tick({
-                name: `✅ Prefetched donors`,
-            })
+            console.log(`✅ Prefetched ${donors.length} donors`)
 
+            console.log("Prefetching gdocs")
             const publishedGdocs = await getAllMinimalGdocBaseObjects(knex)
             const publishedGdocsDictionary = keyBy(publishedGdocs, "id")
-            this.progressBar.tick({
-                name: `✅ Prefetched ${publishedGdocs.length} gdocs`,
-            })
+            console.log(`✅ Prefetched ${publishedGdocs.length} gdocs`)
 
+            console.log("Prefetching images")
             const imageMetadataDictionary = await getAllImages(knex).then(
                 (images) => keyBy(images, "filename")
             )
+            console.log(
+                `✅ Prefetched ${Object.keys(imageMetadataDictionary).length} images`
+            )
 
-            this.progressBar.tick({
-                name: `✅ Prefetched ${Object.values(imageMetadataDictionary).length} images`,
-            })
-
+            console.log("Prefetching explorers")
             const publishedExplorersBySlug = await this.explorerAdminServer
                 .getAllPublishedExplorersBySlugCached(knex)
                 .then((results) =>
@@ -339,10 +324,11 @@ export class SiteBaker {
                         return makeExplorerLinkedChart(explorer, explorer.slug)
                     })
                 )
-            this.progressBar.tick({
-                name: `✅ Prefetched ${Object.values(publishedExplorersBySlug).length} explorers`,
-            })
+            console.log(
+                `✅ Prefetched ${Object.keys(publishedExplorersBySlug).length} explorers`
+            )
 
+            console.log("Prefetching charts")
             // Get all grapher links from the database so that we only prefetch the ones that are actually in use
             // 2024-06-25 before/after: 6266/2194
             const grapherLinks = await db
@@ -382,9 +368,7 @@ export class SiteBaker {
             }
 
             const publishedChartsBySlug = keyBy(publishedCharts, "originalSlug")
-            this.progressBar.tick({
-                name: `✅ Prefetched ${publishedCharts.length} charts`,
-            })
+            console.log(`✅ Prefetched ${publishedCharts.length} charts`)
 
             // The only reason we need linkedIndicators is for the KeyIndicator+KeyIndicatorCollection components.
             // The homepage is currently the only place that uses them (and it handles its data fetching separately)
@@ -394,6 +378,7 @@ export class SiteBaker {
                 excludeHomepage: true,
             })
 
+            console.log("Prefetching linked indicators")
             const linkedIndicatorCharts = publishedCharts.filter(
                 (chart) =>
                     allLinkedIndicatorSlugs.has(chart.originalSlug) &&
@@ -411,22 +396,17 @@ export class SiteBaker {
                     }
                 })
             )
-            this.progressBar.tick({
-                name: `✅ Prefetched ${linkedIndicators.length} linked indicators`,
-            })
             const datapageIndicatorsById = keyBy(linkedIndicators, "id")
+            console.log(`✅ Prefetched ${linkedIndicators.length} indicators`)
 
+            console.log("Prefetching authors")
             const publishedAuthors = await getMinimalAuthors(knex)
+            console.log(`✅ Prefetched ${publishedAuthors.length} authors`)
 
-            this.progressBar.tick({
-                name: `✅ Prefetched ${publishedAuthors.length} authors`,
-            })
-
+            console.log("Prefetching chart views")
             const chartViewsInfo = await getChartViewsInfo(knex)
             const chartViewsInfoByName = keyBy(chartViewsInfo, "name")
-            this.progressBar.tick({
-                name: `✅ Prefetched ${chartViewsInfo.length} chart views`,
-            })
+            console.log(`✅ Prefetched ${chartViewsInfo.length} chart views`)
 
             const prefetchedAttachments = {
                 donors,
@@ -440,7 +420,6 @@ export class SiteBaker {
                 linkedIndicators: datapageIndicatorsById,
                 linkedChartViews: chartViewsInfoByName,
             }
-            this.progressBar.tick({ name: "✅ Prefetched attachments" })
             this._prefetchedAttachmentsCache = prefetchedAttachments
         }
         if (picks) {
@@ -510,6 +489,7 @@ export class SiteBaker {
 
     private async removeDeletedPosts(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("removeDeletedPosts")) return
+        this.progressBar.tick({ name: "Removing deleted posts" })
 
         const postsApi = await getPostsFromSnapshots(knex)
 
@@ -531,12 +511,11 @@ export class SiteBaker {
             await fs.unlink(outPath)
             this.stage(outPath, `DELETING ${outPath}`)
         }
-
-        this.progressBar.tick({ name: "✅ removed deleted posts" })
     }
 
     private async bakePosts(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("wordpressPosts")) return
+        this.progressBar.tick({ name: "Baking WordPress posts" })
         const alreadyPublishedViaGdocsSlugsSet =
             await db.getSlugsWithPublishedGdocsSuccessors(knex)
         const redirects = await getRedirectsFromDb(knex)
@@ -559,14 +538,13 @@ export class SiteBaker {
                 ),
             { concurrency: 10 }
         )
-
-        this.progressBar.tick({ name: "✅ baked posts" })
     }
 
     // Bake all GDoc posts, or a subset of them if slugs are provided
 
     async bakeGDocPosts(knex: db.KnexReadonlyTransaction, slugs?: string[]) {
         if (!this.bakeSteps.has("gdocPosts")) return
+        this.progressBar.tick({ name: "Baking Google doc posts" })
         // We don't need to call `load` on these, because we prefetch all attachments
         const publishedGdocs = await db
             .getPublishedGdocsWithTags(knex)
@@ -636,12 +614,11 @@ export class SiteBaker {
                 )
             }
         }
-
-        this.progressBar.tick({ name: "✅ baked google doc posts" })
     }
 
     async bakeGDocTombstones(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("gdocTombstones")) return
+        this.progressBar.tick({ name: "Baking Google doc tombstones" })
         const tombstones = await getTombstones(knex)
 
         for (const tombstone of tombstones) {
@@ -668,14 +645,13 @@ export class SiteBaker {
                 )
             }
         }
-
-        this.progressBar.tick({ name: "✅ baked google doc tombstones" })
     }
 
     // Bake unique individual pages
 
     private async bakeSpecialPages(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("specialPages")) return
+        this.progressBar.tick({ name: "Baking special pages" })
         await this.stageWrite(
             `${this.bakedSiteDir}/index.html`,
             await renderFrontPage(knex)
@@ -721,11 +697,11 @@ export class SiteBaker {
             `${this.bakedSiteDir}/data.html`,
             await renderDataCatalogPage(knex)
         )
-        this.progressBar.tick({ name: "✅ baked special pages" })
     }
 
     private async bakeExplorers(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("explorers")) return
+        this.progressBar.tick({ name: "Baking explorers" })
 
         await bakeAllExplorerRedirects(
             this.bakedSiteDir,
@@ -738,14 +714,13 @@ export class SiteBaker {
             this.explorerAdminServer,
             knex
         )
-
-        this.progressBar.tick({ name: "✅ baked explorers" })
     }
 
     private async validateGrapherDodReferences(
         knex: db.KnexReadonlyTransaction
     ) {
         if (!this.bakeSteps.has("dods") || !this.bakeSteps.has("charts")) return
+        console.log("Validating grapher DoDs")
         if (!GDOCS_DETAILS_ON_DEMAND_ID) {
             console.error(
                 "GDOCS_DETAILS_ON_DEMAND_ID not set. Unable to validate dods."
@@ -756,9 +731,9 @@ export class SiteBaker {
         const { details } = await GdocPost.getDetailsOnDemandGdoc(knex)
 
         if (!details) {
-            this.progressBar.tick({
-                name: "✅ no details exist. skipping grapher dod validation step",
-            })
+            console.log(
+                "No details on demand exist. Skipping grapher dod validation step."
+            )
             return
         }
 
@@ -799,20 +774,18 @@ export class SiteBaker {
                 }
             }
         }
-
-        this.progressBar.tick({ name: "✅ validated grapher dods" })
     }
 
     private async bakeMultiDimPages(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("multiDimPages")) return
+        this.progressBar.tick({ name: "Baking multi-dim pages" })
         const { imageMetadata } = await this.getPrefetchedGdocAttachments(knex)
         await bakeAllMultiDimDataPages(knex, this.bakedSiteDir, imageMetadata)
-
-        this.progressBar.tick({ name: "✅ baked multi-dim pages" })
     }
 
     private async bakeDetailsOnDemand(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("dods")) return
+        this.progressBar.tick({ name: "Baking dods.json" })
         if (!GDOCS_DETAILS_ON_DEMAND_ID) {
             console.error(
                 "GDOCS_DETAILS_ON_DEMAND_ID not set. Unable to bake dods."
@@ -837,7 +810,6 @@ export class SiteBaker {
                 `${this.bakedSiteDir}/dods.json`,
                 JSON.stringify(details)
             )
-            this.progressBar.tick({ name: "✅ baked dods.json" })
         } else {
             throw Error("Details on demand not found")
         }
@@ -845,6 +817,7 @@ export class SiteBaker {
 
     private async bakeDataInsights(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("dataInsights")) return
+        this.progressBar.tick({ name: "Baking data insights" })
         const {
             dataInsights: latestDataInsights,
             imageMetadata: latestDataInsightsImageMetadata,
@@ -914,6 +887,7 @@ export class SiteBaker {
 
     private async bakeAuthors(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("authors")) return
+        this.progressBar.tick({ name: "Baking author pages" })
 
         const publishedAuthors = await GdocAuthor.getPublishedAuthors(knex)
 
@@ -971,14 +945,13 @@ export class SiteBaker {
                 )
             }
         }
-
-        this.progressBar.tick({ name: "✅ baked author pages" })
     }
 
     // Bake the blog index
 
     private async bakeBlogIndex(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("blogIndex")) return
+        this.progressBar.tick({ name: "Baking blog index" })
         const allPosts = await getBlogIndex(knex)
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
 
@@ -987,13 +960,13 @@ export class SiteBaker {
             const html = await renderBlogByPageNum(i, knex)
             await this.stageWrite(`${this.bakedSiteDir}/${slug}.html`, html)
         }
-        this.progressBar.tick({ name: "✅ baked blog index" })
     }
 
     // Bake the RSS feed
 
     private async bakeRSS(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("rss")) return
+        this.progressBar.tick({ name: "Baking RSS feeds" })
         await this.stageWrite(
             `${this.bakedSiteDir}/atom.xml`,
             await makeAtomFeed(knex)
@@ -1006,7 +979,6 @@ export class SiteBaker {
             `${this.bakedSiteDir}/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
             await makeDataInsightsAtomFeed(knex)
         )
-        this.progressBar.tick({ name: "✅ baked rss" })
     }
 
     // We don't have an icon for every single tag (yet), but for the icons that we *do* have,
@@ -1032,6 +1004,7 @@ export class SiteBaker {
     // Bake the static assets
     private async bakeAssets(trx: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("assets")) return
+        this.progressBar.tick({ name: "Baking assets" })
 
         await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/dist/assets ${this.bakedSiteDir}/assets`
@@ -1061,25 +1034,23 @@ export class SiteBaker {
         this.stage(`${this.bakedSiteDir}/assets/embedCharts.js`)
 
         await fs.ensureDir(`${this.bakedSiteDir}/grapher`)
-        this.progressBar.tick({ name: "✅ baked assets" })
     }
 
     async bakeRedirects(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("redirects")) return
+        this.progressBar.tick({ name: "Baking site redirects" })
         const redirects = await getRedirects(knex)
-        this.progressBar.tick({ name: "✅ got redirects" })
         await this.stageWrite(
             path.join(this.bakedSiteDir, `_redirects`),
             redirects.join("\n")
         )
 
+        this.progressBar.tick({ name: "Baking grapher redirects" })
         const grapherRedirects = await getGrapherRedirectsMap(knex, "")
         await this.stageWrite(
             path.join(this.bakedSiteDir, `grapher/_grapherRedirects.json`),
             JSON.stringify(Object.fromEntries(grapherRedirects), null, 2)
         )
-
-        this.progressBar.tick({ name: "✅ baked redirects" })
     }
 
     async bakeWordpressPages(knex: db.KnexReadonlyTransaction) {
@@ -1098,13 +1069,13 @@ export class SiteBaker {
         await this.bakeCountryProfiles(knex)
         await this.bakeExplorers(knex)
         if (this.bakeSteps.has("charts")) {
+            this.progressBar.tick({
+                name: "Baking all changed grapher pages and deleting removed graphers",
+            })
             await bakeAllChangedGrapherPagesAndDeleteRemovedGraphers(
                 this.bakedSiteDir,
                 knex
             )
-            this.progressBar.tick({
-                name: "✅ bakeAllChangedGrapherPagesAndDeleteRemovedGraphers",
-            })
         }
         await this.bakeMultiDimPages(knex)
         await this.bakeDetailsOnDemand(knex)
@@ -1164,10 +1135,10 @@ export class SiteBaker {
     }
 
     private flushCache() {
+        this.progressBar.tick({ name: "Flushing cache" })
         // Clear caches to allow garbage collection while waiting for next run
         postsFlushCache()
         siteBakingFlushCache()
         redirectsFlushCache()
-        this.progressBar.tick({ name: "✅ cache flushed" })
     }
 }
