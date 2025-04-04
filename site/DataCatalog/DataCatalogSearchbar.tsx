@@ -18,6 +18,7 @@ export const DataCatalogSearchbar = ({
     queryType,
     typoTolerance,
     minQueryLength,
+    appliedFilters,
 }: {
     selectedCountries: Region[]
     selectedCountryNames: Set<string>
@@ -32,6 +33,7 @@ export const DataCatalogSearchbar = ({
     queryType: QueryType
     typoTolerance: boolean
     minQueryLength: number
+    appliedFilters: React.ReactNode
 }) => {
     // Uses CSS to fake an input bar that will highlight correctly using :focus-within
     // without highlighting when the country selector is focused
@@ -42,6 +44,7 @@ export const DataCatalogSearchbar = ({
                     selectedCountries={selectedCountries}
                     removeCountry={removeCountry}
                 />
+                {appliedFilters}
                 <DataCatalogAutocomplete
                     placeholder="Search for data..."
                     className="data-catalog-search-box-container"

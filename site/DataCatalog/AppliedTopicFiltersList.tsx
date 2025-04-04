@@ -11,10 +11,7 @@ export const AppliedTopicFiltersList = ({
     if (topics.size === 0) return null
 
     return (
-        <ul
-            className="data-catalog-applied-filters-list span-cols-12 col-start-2"
-            style={{ marginTop: 16 }}
-        >
+        <ul className="data-catalog-applied-filters-list span-cols-12 col-start-2">
             {[...topics].map((topic) => (
                 <li key={topic} className="data-catalog-applied-filters-item">
                     <TopicPill name={topic} onRemove={removeTopic} />

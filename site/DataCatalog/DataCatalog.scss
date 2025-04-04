@@ -524,13 +524,13 @@
 }
 
 .data-catalog-applied-filters-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     list-style: none;
 }
 
 .data-catalog-applied-filters-item {
-    display: inline-block;
-    margin-right: 8px;
-    margin-bottom: 8px;
     white-space: nowrap;
 }
 

@@ -238,16 +238,18 @@ export const DataCatalog = ({
                         queryType={state.queryType}
                         typoTolerance={state.typoTolerance}
                         minQueryLength={state.minQueryLength}
+                        appliedFilters={
+                            !state.componentVisibility[
+                                CatalogComponentId.APPLIED_FILTERS
+                            ] && (
+                                <AppliedTopicFiltersList
+                                    topics={state.topics}
+                                    removeTopic={actions.removeTopic}
+                                />
+                            )
+                        }
                     />
                 </div>
-                {!state.componentVisibility[
-                    CatalogComponentId.APPLIED_FILTERS
-                ] && (
-                    <AppliedTopicFiltersList
-                        topics={state.topics}
-                        removeTopic={actions.removeTopic}
-                    />
-                )}
             </div>
 
             {/* Render components according to component order, visibility and type filter */}
