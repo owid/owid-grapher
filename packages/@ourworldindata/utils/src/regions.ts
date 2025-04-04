@@ -64,7 +64,8 @@ export type OwidIncomeGroupName =
     | "OWID_UMC"
     | "OWID_HIC"
 
-export type AggregateSource = "who" | "unsd" | "wb"
+export const aggregateSources = ["who", "unsd", "wb"] as const
+export type AggregateSource = (typeof aggregateSources)[number]
 
 export function checkIsOwidIncomeGroupName(
     name: string
