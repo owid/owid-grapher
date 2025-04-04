@@ -24,6 +24,7 @@ import {
     FeaturedMetricByParentTagNameDictionary,
     FeaturedMetricIncomeGroup,
     Url,
+    GRAPHER_QUERY_PARAM_KEYS,
 } from "@ourworldindata/utils"
 import {
     faAngleDown,
@@ -129,16 +130,25 @@ function filterUrlQueryParams(url: string): string {
     if (!url) return ""
     if (!url.includes("?")) return url
 
-    url = url.replace(/([?&])country=[^&]*(&|$)/g, (match, prefix, suffix) => {
-        // If the suffix is & (meaning there are more params), keep the prefix
-        // If the suffix is empty (end of string), keep nothing unless prefix is ? and it's the only param
-        return suffix === "&" ? prefix : prefix === "?" ? "?" : ""
-    })
+    function removeQueryParam(url: string, paramName: string): string {
+        return url.replace(
+            new RegExp(`([?&])${paramName}=[^&]*(&|$)`, "g"),
+            (_, prefix, suffix) => {
+                // If the suffix is & (meaning there are more params), keep the prefix
+                // If the suffix is empty (end of string), keep nothing unless prefix is ? and it's the only param
+                return suffix === "&" ? prefix : prefix === "?" ? "?" : ""
+            }
+        )
+    }
 
-    // Remove tab parameter using the same approach
-    url = url.replace(/([?&])tab=[^&]*(&|$)/g, (match, prefix, suffix) => {
-        return suffix === "&" ? prefix : prefix === "?" ? "?" : ""
-    })
+    url = GRAPHER_QUERY_PARAM_KEYS.reduce(
+        (currentUrl, param) => removeQueryParam(currentUrl, param),
+        url
+    )
+
+    if (url.endsWith("?")) {
+        url = url.slice(0, -1)
+    }
 
     return url
 }
@@ -186,17 +196,19 @@ function FeaturedMetricSection({
         } else if (url.isExplorer && !url.queryStr) {
             setIsValid({
                 isValid: false,
-                reason: "Explorer URLs must have the view's query string (without countries or tab)",
+                reason: "Explorer URLs must have the view's query string",
             })
-        } else if (url.queryParams.country) {
+        } else if (
+            GRAPHER_QUERY_PARAM_KEYS.some((param) => url.queryParams[param])
+        ) {
+            const invalidParams = GRAPHER_QUERY_PARAM_KEYS.filter(
+                (param) => url.queryParams[param]
+            )
             setIsValid({
                 isValid: false,
-                reason: "URL must not have a country query parameter",
-            })
-        } else if (url.queryParams.tab) {
-            setIsValid({
-                isValid: false,
-                reason: "URL must not have a tab query parameter",
+                reason: `URL must not contain grapher query parameters: ${invalidParams.join(
+                    ", "
+                )}`,
             })
         } else {
             setIsValid({ isValid: true, reason: "" })
@@ -349,8 +361,9 @@ function FeaturedMetricsExplainer() {
                         <>
                             <p>
                                 Explorer Featured Metrics require the whole
-                                explorer's query string, minus its countries and
-                                tab parameters.
+                                explorer's query string, minus any query
+                                paramters that customize the grapher chart (e.g.
+                                tab, country, etc.)
                             </p>
                             <p>e.g.</p>
                             <p>
