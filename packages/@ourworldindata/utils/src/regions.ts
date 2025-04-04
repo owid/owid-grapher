@@ -28,7 +28,7 @@ export interface Country extends BaseRegion {
 
 export interface Aggregate extends BaseRegion {
     regionType: RegionType.Aggregate
-    definedBy?: string
+    definedBy?: AggregateSource
     translationCodes?: string[]
     members: string[]
 }
@@ -63,6 +63,8 @@ export type OwidIncomeGroupName =
     | "OWID_LMC"
     | "OWID_UMC"
     | "OWID_HIC"
+
+export type AggregateSource = "who" | "unsd" | "wb"
 
 export function checkIsOwidIncomeGroupName(
     name: string
@@ -106,6 +108,10 @@ export const getContinents = lazy(
         entities.filter(
             (entity) => entity.regionType === RegionType.Continent
         ) as Continent[]
+)
+
+const regionsByName = lazy(() =>
+    Object.fromEntries(regions.map((region) => [region.name, region]))
 )
 
 export const countriesByName = lazy(() =>
@@ -156,6 +162,9 @@ export const getCountryByName = (name: string): Country | undefined =>
 
 export const getCountryBySlug = (slug: string): Country | undefined =>
     countriesBySlug()[slug]
+
+export const getRegionByName = (name: string): Region | undefined =>
+    regionsByName()[name]
 
 export const getRegionByNameOrVariantName = (
     nameOrVariantName: string
