@@ -125,6 +125,24 @@ function FeaturedMetricList({
     )
 }
 
+function filterUrlQueryParams(url: string): string {
+    if (!url) return ""
+    if (!url.includes("?")) return url
+
+    url = url.replace(/([?&])country=[^&]*(&|$)/g, (match, prefix, suffix) => {
+        // If the suffix is & (meaning there are more params), keep the prefix
+        // If the suffix is empty (end of string), keep nothing unless prefix is ? and it's the only param
+        return suffix === "&" ? prefix : prefix === "?" ? "?" : ""
+    })
+
+    // Remove tab parameter using the same approach
+    url = url.replace(/([?&])tab=[^&]*(&|$)/g, (match, prefix, suffix) => {
+        return suffix === "&" ? prefix : prefix === "?" ? "?" : ""
+    })
+
+    return url
+}
+
 function FeaturedMetricSection({
     parentTagName,
     featuredMetrics,
@@ -149,6 +167,10 @@ function FeaturedMetricSection({
 
     const [newFeaturedMetricInputValue, setNewFeaturedMetricInputValue] =
         useState("")
+    const handleInputChange = (inputValue: string) => {
+        setNewFeaturedMetricInputValue(filterUrlQueryParams(inputValue))
+    }
+
     const [{ isValid, reason }, setIsValid] = useState({
         isValid: false,
         reason: "",
@@ -194,7 +216,7 @@ function FeaturedMetricSection({
             ranking,
             parentTagName,
         })
-        setNewFeaturedMetricInputValue("")
+        handleInputChange("")
     }
 
     return (
@@ -240,9 +262,7 @@ function FeaturedMetricSection({
                         }
                         handleAddFeaturedMetric()
                     }}
-                    onChange={(e) =>
-                        setNewFeaturedMetricInputValue(e.target.value)
-                    }
+                    onChange={(e) => handleInputChange(e.target.value)}
                 />
                 <Dropdown
                     menu={{
