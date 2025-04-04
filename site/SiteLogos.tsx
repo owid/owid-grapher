@@ -30,11 +30,11 @@ export const OxfordAndGcdlLogos = () => (
     </>
 )
 
-export const SiteLogos = () => {
+export const SiteLogos = ({ homeUrl = "/" }: { homeUrl?: string }) => {
     return (
         <div className="site-logos">
             <div className="logo-owid">
-                <a href="/">
+                <a href={homeUrl}>
                     Our World
                     <br /> in Data
                 </a>

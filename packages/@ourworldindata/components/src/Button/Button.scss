@@ -47,3 +47,22 @@
         background-color: $blue-90;
     }
 }
+
+.owid-btn--solid-dark-blue {
+    background-color: $blue-95;
+    color: #fff;
+
+    &:hover {
+        background-color: #164377;
+    }
+}
+
+.owid-btn--outline-white {
+    border-color: $white;
+    color: $white;
+
+    &:hover {
+        background-color: $white;
+        color: $blue-90;
+    }
+}

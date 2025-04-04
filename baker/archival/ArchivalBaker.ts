@@ -10,11 +10,19 @@ import { bakeSingleGrapherPageForArchival } from "../GrapherBaker.js"
 import { hashAndCopyFile, hashAndWriteFile } from "./archivalFileUtils.js"
 import {
     ArchivalManifest,
+    assembleGrapherArchivalUrl,
     assembleManifest,
     getDateForArchival,
 } from "./archivalUtils.js"
 import pMap from "p-map"
-import { GrapherChecksumsObjectWithHash } from "./archivalChecksum.js"
+import {
+    getLatestArchivedVersionsFromDb,
+    GrapherChecksumsObjectWithHash,
+} from "./archivalChecksum.js"
+import type {
+    ArchiveMetaInformation,
+    UrlAndMaybeDate,
+} from "../../site/archive/archiveTypes.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
@@ -112,7 +120,7 @@ const bakeOwidMjsFile = async (
 const ASSET_FILES = ["owid.mjs.map", "owid.mjs", "owid.css"]
 const IGNORED_FILES = [".vite"]
 export const bakeAssets = async (archiveDir: string) => {
-    const srcDir = path.join(projBaseDir, "dist/assets")
+    const srcDir = path.join(projBaseDir, "dist/assets-archive")
     const targetDir = path.join(archiveDir, "assets")
 
     await fs.mkdirp(targetDir)
@@ -206,6 +214,10 @@ export const bakeGrapherPagesToFolder = async (
         const grapherIds = grapherChecksumsObjsToBeArchived.map(
             (c) => c.chartId
         )
+        const latestArchivalVersions = await getLatestArchivedVersionsFromDb(
+            trx,
+            grapherIds
+        ).then((rows) => keyBy(rows, (v) => v.grapherId))
         const grapherConfigs = await db
             .knexRaw<{
                 chartId: number
@@ -270,11 +282,28 @@ export const bakeGrapherPagesToFolder = async (
                 archivalDate: date.formattedDate,
                 chartConfigId,
             })
+            const previousVersionInfo = latestArchivalVersions[chartId]
+            const previousVersion: UrlAndMaybeDate | undefined =
+                previousVersionInfo
+                    ? {
+                          date: previousVersionInfo.archivalTimestamp,
+                          url: assembleGrapherArchivalUrl(
+                              previousVersionInfo.archivalTimestamp,
+                              previousVersionInfo.grapherSlug
+                          ),
+                      }
+                    : undefined
+            const archiveInformation: ArchiveMetaInformation = {
+                archiveDate: date.date,
+                liveUrl: `https://ourworldindata.org/grapher/${config.slug}`,
+                previousVersion,
+            }
             await bakeSingleGrapherPageForArchival(dir, config, trx, {
                 imageMetadataDictionary,
                 staticAssetMap,
                 runtimeAssetMap: runtimeFiles,
                 manifest,
+                archiveInformation,
             })
             manifests[chartId] = manifest
 
