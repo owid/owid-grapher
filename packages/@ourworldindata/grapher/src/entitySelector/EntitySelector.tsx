@@ -60,6 +60,7 @@ import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 import * as R from "remeda"
+import { MapConfig } from "../mapCharts/MapConfig"
 
 type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
@@ -84,6 +85,8 @@ export interface EntitySelectorManager {
     canHighlightEntities?: boolean
     endTime?: Time
     isOnMapTab?: boolean
+    mapConfig?: MapConfig
+    mapColumnSlug?: ColumnSlug
 }
 
 interface SortConfig {
@@ -185,14 +188,14 @@ export class EntitySelector extends React.Component<{
     searchField: React.RefObject<HTMLInputElement> = React.createRef()
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
 
-    private defaultSortConfig: SortConfig = {
+    private sortConfigName: SortConfig = {
         slug: this.table.entityNameSlug,
         order: SortOrder.asc,
     }
 
     componentDidMount(): void {
         void this.populateLocalEntities()
-        this.setDefaultSortConfig()
+        this.initSortConfig()
 
         if (this.props.autoFocus && !isTouchDevice())
             this.searchField.current?.focus()
@@ -239,13 +242,19 @@ export class EntitySelector extends React.Component<{
         }
     }
 
-    @action.bound private setDefaultSortConfig(): void {
+    getDefaultSortConfig(): SortConfig {
         // default to sorting by the first chart column on the map tab
         if (this.manager.isOnMapTab && this.numericalChartColumns[0]) {
             const { slug } = this.numericalChartColumns[0]
             this.setInterpolatedSortColumnBySlug(slug)
-            this.defaultSortConfig = { slug, order: SortOrder.desc }
+            return { slug, order: SortOrder.desc }
+        } else {
+            return this.sortConfigName
         }
+    }
+
+    @action.bound initSortConfig(): void {
+        this.set({ sortConfig: this.getDefaultSortConfig() })
     }
 
     @action.bound async populateLocalEntities(): Promise<void> {
@@ -291,12 +300,23 @@ export class EntitySelector extends React.Component<{
         })
     }
 
+    interpolateSortColumn(slug: ColumnSlug): CoreColumn {
+        // use map tolerance if on the map tab
+        const tolerance = this.manager.isOnMapTab
+            ? this.manager.mapConfig?.timeTolerance
+            : undefined
+        const toleranceStrategy = this.manager.isOnMapTab
+            ? this.manager.mapConfig?.toleranceStrategy
+            : undefined
+
+        return this.table
+            .interpolateColumnWithTolerance(slug, tolerance, toleranceStrategy)
+            .get(slug)
+    }
+
     private setInterpolatedSortColumnBySlug(slug: ColumnSlug): void {
         if (this.interpolatedSortColumnsBySlug[slug]) return
-        const interpolatedColumn = this.table
-            .interpolateColumnWithTolerance(slug)
-            .get(slug)
-        this.setInterpolatedSortColumn(interpolatedColumn)
+        this.setInterpolatedSortColumn(this.interpolateSortColumn(slug))
     }
 
     private clearSearchInput(): void {
@@ -386,11 +406,14 @@ export class EntitySelector extends React.Component<{
         return this.manager.entitySelectorState.searchInput ?? ""
     }
 
-    @computed private get sortConfig(): SortConfig {
+    @computed get sortConfig(): SortConfig {
         return (
-            this.manager.entitySelectorState.sortConfig ??
-            this.defaultSortConfig
+            this.manager.entitySelectorState.sortConfig ?? this.sortConfigName
         )
+    }
+
+    isSortSlugValid(slug: ColumnSlug): boolean {
+        return this.sortOptions.some((option) => option.value === slug)
     }
 
     @computed private get localEntityNames(): string[] | undefined {
@@ -435,7 +458,14 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get numericalChartColumns(): CoreColumn[] {
-        const activeSlugs = this.manager.activeColumnSlugs ?? []
+        const {
+            activeColumnSlugs = [],
+            mapColumnSlug,
+            isOnMapTab,
+        } = this.manager
+
+        const activeSlugs = isOnMapTab ? [mapColumnSlug] : activeColumnSlugs
+
         return activeSlugs
             .map((slug) => this.table.get(slug))
             .filter(
