@@ -6,46 +6,56 @@ export enum RegionType {
     Other = "other",
     Aggregate = "aggregate",
     Continent = "continent",
+    IncomeGroup = "income_group",
 }
 
-export interface Country {
-    code: string
-    shortCode?: string
+export interface BaseRegion {
+    regionType: RegionType
     name: string
-    shortName?: string
+    code: string
     slug: string
-    regionType: "country" | "other"
+}
+
+export interface Country extends BaseRegion {
+    regionType: RegionType.Country | RegionType.Other
+    shortCode?: string
+    shortName?: string
     isMappable?: boolean
     isHistorical?: boolean
     isUnlisted?: boolean
     variantNames?: string[]
 }
 
-export interface Aggregate {
-    name: string
-    regionType: "aggregate"
-    code: string
+export interface Aggregate extends BaseRegion {
+    regionType: RegionType.Aggregate
     translationCodes?: string[]
     members: string[]
 }
 
-export interface Continent {
-    name:
-        | "Africa"
-        | "Asia"
-        | "Europe"
-        | "North America"
-        | "Oceania"
-        | "South America"
-    regionType: "continent"
-    code: string
+export interface Continent extends BaseRegion {
+    name: OwidContinentName
+    regionType: RegionType.Continent
     translationCodes?: string[]
     members: string[]
 }
 
-export type Region = Country | Aggregate | Continent
+interface IncomeGroup extends BaseRegion {
+    name: OwidIncomeGroupName
+    regionType: RegionType.IncomeGroup
+    members: string[]
+}
+
+export type Region = Country | Aggregate | Continent | IncomeGroup
 
 export const regions: Region[] = entities as Region[]
+
+type OwidContinentName =
+    | "Africa"
+    | "Asia"
+    | "Europe"
+    | "North America"
+    | "Oceania"
+    | "South America"
 
 export type OwidIncomeGroupName =
     | "OWID_LIC"
