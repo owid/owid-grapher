@@ -33,6 +33,7 @@ help:
 	@echo '  make dbtest                 run db test suite that needs a running mysql db'
 	@echo '  make svgtest                compare current rendering against reference SVGs'
 	@echo '  make local-bake             do a full local site bake'
+	@echo '  make archive                create an archived version of our charts'
 	@echo
 	@echo '  GRAPHER + CLOUDFLARE (staff-only)'
 	@echo '  make up.full                start dev environment via docker-compose and tmux'
@@ -309,6 +310,11 @@ local-bake: itsJustJavascript
 	@echo '==> Baking site'
 	yarn buildVite
 	yarn buildLocalBake
+
+archive: itsJustJavascript
+	@echo '==> Creating an archived version of our charts'
+	PRIMARY_ENV_FILE=.env.archive yarn buildViteArchive
+	PRIMARY_ENV_FILE=.env.archive yarn tsx --tsconfig tsconfig.tsx.json ./baker/archival/archiveChangedGrapherPages.ts --latestDir
 
 clean:
 	rm -rf node_modules itsJustJavascript

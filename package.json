@@ -11,6 +11,7 @@
         "buildTsc": "tsc -b -verbose",
         "buildLerna": "lerna run build",
         "buildViteAdmin": "vite build --config vite.config-admin.mts",
+        "buildViteArchive": "vite build --config vite.config-archive.mts",
         "buildViteSite": "vite build --config vite.config-site.mts",
         "buildVite": "yarn buildViteSite && yarn buildViteAdmin",
         "bakeGdocPosts": "tsx --tsconfig tsconfig.tsx.json baker/bakeGdocPosts.ts",

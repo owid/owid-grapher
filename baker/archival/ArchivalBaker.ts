@@ -120,7 +120,7 @@ const bakeOwidMjsFile = async (
 const ASSET_FILES = ["owid.mjs.map", "owid.mjs", "owid.css"]
 const IGNORED_FILES = [".vite"]
 export const bakeAssets = async (archiveDir: string) => {
-    const srcDir = path.join(projBaseDir, "dist/assets")
+    const srcDir = path.join(projBaseDir, "dist/assets-archive")
     const targetDir = path.join(archiveDir, "assets")
 
     await fs.mkdirp(targetDir)
