@@ -169,6 +169,7 @@
         "url-slug": "^3.0.2",
         "usehooks-ts": "^3.1.0",
         "uuidv7": "^1.0.1",
+        "versor": "^0.2.0",
         "workerpool": "^6.2.0",
         "yaml": "^2.7.0",
         "yargs": "^17.7.2",
