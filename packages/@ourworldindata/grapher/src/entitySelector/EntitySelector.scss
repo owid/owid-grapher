@@ -112,8 +112,9 @@
         .entity-selector__dropdown {
             flex-grow: 1;
 
-            .time {
-                color: $gray-60;
+            // make the options menu wider to cover the sort button
+            .menu {
+                width: calc(100% + $sort-button-margin + $sort-button-size);
             }
         }
 
@@ -160,6 +161,15 @@
                 background: $gray-10;
                 color: $gray-60;
             }
+        }
+    }
+
+    .entity-selector__filter-bar {
+        margin-top: 16px;
+        margin-bottom: 8px;
+
+        .label {
+            margin-bottom: 6px;
         }
     }
 
@@ -292,20 +302,35 @@
             list-style-type: none;
         }
 
+        // add borders in between elements
         li + li .selectable-entity {
             border-top: $row-border;
         }
 
+        // add a top border to the first element
         li:first-of-type .selectable-entity {
             border-top: $row-border;
         }
 
+        // add a bottom border to the last element
         li:last-of-type .selectable-entity {
             border-bottom: $row-border;
         }
+
+        // make an exception for the top border if requested
+        .hide-top-border li:first-of-type .selectable-entity {
+            border-top: none;
+        }
     }
 
-    .grapher-dropdown .menu {
-        width: calc(100% + $sort-button-margin + $sort-button-size);
+    .grapher-dropdown {
+        .control .detail,
+        .option .detail {
+            color: $gray-60;
+        }
+
+        .option.active .detail {
+            color: $blue-50;
+        }
     }
 }

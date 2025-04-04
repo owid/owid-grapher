@@ -63,6 +63,8 @@ export const grapherConfigToQueryParams = (
         // These cannot be specified in config, so we always set them to undefined
         showSelectionOnlyInTable: undefined,
         overlay: undefined,
+        globe: undefined,
+        mapCountry: undefined,
     }
 
     // Drop undefined values and convert all to string
@@ -106,6 +108,10 @@ export const grapherObjectToQueryParams = (
         focus: grapher.areFocusedSeriesNamesDifferentThanAuthors
             ? generateFocusedSeriesNamesParam(grapher.focusArray.seriesNames)
             : undefined,
+        globe: grapher.mapConfig.globe.isActive ? "1" : "0",
+        mapCountry: generateSelectedEntityNamesParam(
+            grapher.mapConfig.selectedCountries.selectedEntityNames
+        ),
     }
     return params
 }

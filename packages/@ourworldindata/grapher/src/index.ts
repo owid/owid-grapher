@@ -64,10 +64,7 @@ export { legacyToOwidTableAndDimensions } from "./core/LegacyToOwidTable"
 export { LoadingIndicator } from "./loadingIndicator/LoadingIndicator"
 export { MapChart } from "./mapCharts/MapChart"
 export { MapConfig } from "./mapCharts/MapConfig"
-export {
-    MAP_REGION_LABELS,
-    MapProjectionGeos,
-} from "./mapCharts/MapProjections"
+export { MAP_REGION_LABELS } from "./mapCharts/MapChartConstants"
 export { SelectionArray } from "./selection/SelectionArray"
 export { FocusArray } from "./focus/FocusArray"
 export {

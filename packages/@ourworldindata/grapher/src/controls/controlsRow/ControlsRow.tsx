@@ -9,20 +9,21 @@ import {
     EntitySelectionToggle,
     EntitySelectionManager,
 } from "../EntitySelectionToggle"
-import {
-    MapRegionDropdown,
-    MapRegionDropdownManager,
-} from "../MapRegionDropdown"
 import { SettingsMenu, SettingsMenuManager } from "../SettingsMenu"
 import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
 } from "../../core/GrapherConstants"
+import {
+    MapCountryDropdown,
+    MapCountryDropdownManager,
+} from "../MapCountryDropdown"
+import { CloseGlobeViewButton } from "../CloseGlobeViewButton"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
         EntitySelectionManager,
-        MapRegionDropdownManager,
+        MapCountryDropdownManager,
         SettingsMenuManager {
     sidePanelBounds?: Bounds
     showEntitySelectionToggle?: boolean
@@ -70,7 +71,8 @@ export class ControlsRow extends Component<{
         return (
             SettingsMenu.shouldShow(this.manager) ||
             EntitySelectionToggle.shouldShow(this.manager) ||
-            MapRegionDropdown.shouldShow(this.manager) ||
+            MapCountryDropdown.shouldShow(this.manager) ||
+            CloseGlobeViewButton.shouldShow(this.manager) ||
             this.showContentSwitchers
         )
     }
@@ -80,9 +82,7 @@ export class ControlsRow extends Component<{
         return (
             <nav
                 className="controlsRow"
-                style={{
-                    padding: `0 ${this.framePaddingHorizontal}px`,
-                }}
+                style={{ padding: `0 ${this.framePaddingHorizontal}px` }}
             >
                 <div>
                     {this.showContentSwitchers && (
@@ -103,7 +103,13 @@ export class ControlsRow extends Component<{
                             this.sidePanelWidth + this.framePaddingHorizontal
                         }
                     />
-                    <MapRegionDropdown
+
+                    {/* only one of the following will be rendered */}
+                    <MapCountryDropdown
+                        manager={this.manager}
+                        maxWidth={this.availableWidth}
+                    />
+                    <CloseGlobeViewButton
                         manager={this.manager}
                         maxWidth={this.availableWidth}
                     />

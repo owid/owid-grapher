@@ -103,6 +103,7 @@ export {
     type GrapherQueryParams,
     type LegacyGrapherInterface,
     MapRegionName,
+    type GlobeRegionName,
     LogoOption,
     type ComparisonLineConfig,
     type AxisConfigInterface,

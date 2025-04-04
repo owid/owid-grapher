@@ -66,6 +66,8 @@ import {
     omit,
     isTouchDevice,
     isArrayDifferentFromReference,
+    countriesByName,
+    last,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -95,7 +97,6 @@ import {
     Time,
     EntityName,
     OwidColumnDef,
-    OwidVariableRow,
     ColorSchemeName,
     AxisConfigInterface,
     GrapherStaticFormat,
@@ -150,6 +151,7 @@ import { TooltipManager } from "../tooltip/TooltipProps"
 
 import { DimensionSlot } from "../chart/DimensionSlot"
 import {
+    getEntityNamesParam,
     getFocusedSeriesNamesParam,
     getSelectedEntityNamesParam,
 } from "./EntityUrlBuilder"
@@ -157,7 +159,6 @@ import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { FullScreen } from "../fullScreen/FullScreen"
-import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
@@ -173,7 +174,10 @@ import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesModal, SourcesModalManager } from "../modal/SourcesModal"
 import { DataTableManager } from "../dataTable/DataTable"
-import { MapChartManager } from "../mapCharts/MapChartConstants"
+import {
+    GLOBE_COUNTRY_ZOOM,
+    MapChartManager,
+} from "../mapCharts/MapChartConstants"
 import { MapChart } from "../mapCharts/MapChart"
 import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "../controls/CommandPalette"
@@ -230,6 +234,7 @@ import {
     GRAPHER_LIGHT_TEXT,
 } from "../color/ColorConstants"
 import { FacetChart } from "../facetChart/FacetChart"
+import { GlobeController } from "../mapCharts/GlobeController"
 
 declare global {
     interface Window {
@@ -702,13 +707,42 @@ export class Grapher
         if (endpointsOnly !== undefined)
             this.compareEndPointsOnly = endpointsOnly === "1" ? true : undefined
 
+        // globe
+        const globe = params.globe
+        if (globe !== undefined) {
+            this.mapConfig.globe.isActive = globe === "1"
+        }
+
+        // region
         const region = params.region
-        if (region !== undefined) this.map.region = region as MapRegionName
+        if (region !== undefined) {
+            this.map.region = region as MapRegionName
+
+            // show regions on the globe
+            if (this.map.region !== MapRegionName.World) {
+                this.globeController.jumpToRegion(this.map.region)
+                this.globeController.showGlobe()
+            }
+        }
+
+        // map selection
+        const mapSelection = getEntityNamesParam(params.mapCountry)
+        if (mapSelection) {
+            this.mapConfig.selectedCountries.setSelectedEntities(mapSelection)
+
+            // rotate to the country that was selected last
+            const lastEntityName = last(mapSelection)
+            if (lastEntityName) {
+                this.globeController.jumpToCountry(
+                    lastEntityName,
+                    GLOBE_COUNTRY_ZOOM
+                )
+            }
+        }
 
         // selection
-        const selection = getSelectedEntityNamesParam(
-            Url.fromQueryParams(params)
-        )
+        const url = Url.fromQueryParams(params)
+        const selection = getSelectedEntityNamesParam(url)
         if (this.addCountryMode !== EntitySelectionMode.Disabled && selection)
             this.selection.setSelectedEntities(selection)
 
@@ -1457,6 +1491,33 @@ export class Grapher
             } else {
                 this.endHandleTimeBound = Infinity
             }
+        }
+
+        const isChartTab = (tab: GrapherTabName): boolean =>
+            tab !== GRAPHER_TAB_NAMES.Table &&
+            tab !== GRAPHER_TAB_NAMES.WorldMap
+        const isMapTab = (tab: GrapherTabName): boolean =>
+            tab === GRAPHER_TAB_NAMES.WorldMap
+
+        // sync entity selection between the map and the chart tab if entity
+        // selection isn't disabled for the chart, and the map has been interacted
+        // with, i.e. at least one country has been selected on the map
+        const shouldSyncSelection =
+            this.addCountryMode !== EntitySelectionMode.Disabled &&
+            this.mapConfig.selectedCountries.numSelectedEntities > 0
+
+        // switching from the chart tab to the map tab
+        if (isChartTab(oldTab) && isMapTab(newTab) && shouldSyncSelection) {
+            this.mapConfig.selectedCountries.setSelectedEntities(
+                this.selection.selectedEntityNames
+            )
+        }
+
+        // switching from the map tab to the chart tab
+        if (isMapTab(oldTab) && isChartTab(newTab) && shouldSyncSelection) {
+            this.selection.setSelectedEntities(
+                this.mapConfig.selectedCountries.selectedEntityNames
+            )
         }
     }
 
@@ -2283,14 +2344,6 @@ export class Grapher
         return this.version.toString()
     }
 
-    @computed get mapIsClickable(): boolean {
-        return (
-            this.hasChartTab &&
-            (this.hasLineChart || this.isScatter) &&
-            !this.isTouchDevice
-        )
-    }
-
     @computed get relativeToggleLabel(): string {
         if (this.isOnScatterTab) return "Display average annual change"
         else if (this.isOnLineChartTab || this.isOnSlopeChartTab)
@@ -2342,13 +2395,6 @@ export class Grapher
 
         if (isOnMarimekkoTab && xColumnSlug === undefined) return false
         return !hideRelativeToggle
-    }
-
-    // Filter data to what can be display on the map (across all times)
-    @computed get mappableData(): OwidVariableRow<any>[] {
-        return this.inputTable
-            .get(this.mapColumnSlug)
-            .owidRows.filter((row) => isOnTheMap(row.entityName))
     }
 
     static renderGrapherIntoContainer(
@@ -2739,10 +2785,7 @@ export class Grapher
             },
             {
                 combo: "g",
-                fn: (): void => {
-                    this.mapConfig.globe.isActive =
-                        !this.mapConfig.globe.isActive
-                },
+                fn: (): void => this.globeController.toggleGlobe(),
                 title: "Toggle globe view",
                 category: "Map",
             },
@@ -3078,6 +3121,10 @@ export class Grapher
             return <StaticCaptionedChart manager={this} />
         }
 
+        const entitySelectorArray = this.isOnMapTab
+            ? this.mapConfig.selectedCountries
+            : this.selection
+
         return (
             <>
                 {/* captioned chart and entity selector */}
@@ -3085,7 +3132,15 @@ export class Grapher
                     <CaptionedChart manager={this} />
                     {this.sidePanelBounds && (
                         <SidePanel bounds={this.sidePanelBounds}>
-                            <EntitySelector manager={this} />
+                            <EntitySelector
+                                manager={this}
+                                selection={entitySelectorArray}
+                                onSelectEntity={this.onSelectEntity}
+                                onDeselectEntity={this.onDeselectEntity}
+                                onClearEntities={this.onClearEntities}
+                                onMouseEnterEntity={this.onMouseEnterEntity}
+                                onMouseLeaveEntity={this.onMouseLeaveEntity}
+                            />
                         </SidePanel>
                     )}
                 </div>
@@ -3107,7 +3162,16 @@ export class Grapher
                             !this.isEntitySelectorModalOrDrawerOpen
                     }}
                 >
-                    <EntitySelector manager={this} autoFocus={true} />
+                    <EntitySelector
+                        manager={this}
+                        selection={entitySelectorArray}
+                        autoFocus={true}
+                        onSelectEntity={this.onSelectEntity}
+                        onDeselectEntity={this.onDeselectEntity}
+                        onClearEntities={this.onClearEntities}
+                        onMouseEnterEntity={this.onMouseEnterEntity}
+                        onMouseLeaveEntity={this.onMouseLeaveEntity}
+                    />
                 </SlideInDrawer>
 
                 {/* tooltip: either pin to the bottom or render into the chart area */}
@@ -3274,6 +3338,12 @@ export class Grapher
         return this.isTouchDevice
     }
 
+    @computed get shouldShowEntitySelectorOnMapTab(): boolean {
+        // only show the entity selector on the map tab if it's
+        // rendered into the side panel or the drawer
+        return this.shouldShowEntitySelectorAs !== GrapherWindowType.modal
+    }
+
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
     private bindToWindow(): void {
@@ -3309,6 +3379,15 @@ export class Grapher
         }
     }
 
+    private showGlobeIfAuthorSelectedRegion(): void {
+        if (
+            this.mapConfig.region !== MapRegionName.World &&
+            !this.shouldShowEntitySelectorOnMapTab
+        ) {
+            this.globeController.showGlobe()
+        }
+    }
+
     componentDidMount(): void {
         this.setBaseFontSize()
         this.setUpIntersectionObserver()
@@ -3336,6 +3415,8 @@ export class Grapher
         )
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
+
+        this.showGlobeIfAuthorSelectedRegion()
     }
 
     private _shortcutsBound = false
@@ -3440,8 +3521,10 @@ export class Grapher
         this.showSelectionOnlyInDataTable =
             authorsVersion.showSelectionOnlyInDataTable
         this.showNoDataArea = authorsVersion.showNoDataArea
+        this.mapConfig.globe.isActive = authorsVersion.mapConfig.globe.isActive
         this.clearSelection()
         this.clearFocus()
+        this.mapConfig.selectedCountries.clearSelection()
     }
 
     // Todo: come up with a more general pattern?
@@ -3664,10 +3747,55 @@ export class Grapher
     msPerTick = DEFAULT_MS_PER_TICK
 
     timelineController = new TimelineController(this)
+    globeController = new GlobeController(this)
 
-    @action.bound onTimelineClick(): void {
+    private dismissTooltip(): void {
         const tooltip = this.tooltip?.get()
         if (tooltip) tooltip.dismiss?.()
+    }
+
+    @action.bound onTimelineClick(): void {
+        this.dismissTooltip()
+    }
+
+    @action.bound onMapCountryDropdownFocus(): void {
+        this.dismissTooltip()
+    }
+
+    // called when an entity is selected in the entity selector
+    @action.bound onSelectEntity(entityName: EntityName): void {
+        if (this.isOnMapTab) {
+            const country = countriesByName()[entityName]
+            if (country.isMappable) {
+                this.mapConfig.region = MapRegionName.World
+                this.globeController.focusOnCountry(country.name)
+            }
+        }
+    }
+
+    // called when an entity is deselected in the entity selector
+    @action.bound onDeselectEntity(entityName: EntityName): void {
+        // remove focus from an entity that has been removed from the selection
+        this.focusArray.remove(entityName)
+    }
+
+    // called when all entities are cleared in the entity selector
+    @action.bound onClearEntities(): void {
+        // remove focus from all entities if all entities have been deselected
+        this.focusArray.clear()
+
+        // switch back to the 2d map if all entities were deselected
+        this.globeController.hideGlobe()
+    }
+
+    // called when an entity is hovered in the entity selector
+    @action.bound onMouseEnterEntity(entityName: EntityName): void {
+        this.globeController.setHoverCountry(entityName)
+    }
+
+    // called when an entity is un-hovered in the entity selector
+    @action.bound onMouseLeaveEntity(): void {
+        this.globeController.dismissCountryHover()
     }
 
     // todo: restore this behavior??
@@ -3758,7 +3886,7 @@ export class Grapher
         )
     }
 
-    @computed get showEntitySelectorAs(): GrapherWindowType {
+    @computed get shouldShowEntitySelectorAs(): GrapherWindowType {
         if (
             this.frameBounds.width > 940 &&
             // don't use the panel if the grapher is embedded
@@ -3774,36 +3902,64 @@ export class Grapher
     }
 
     @computed get isEntitySelectorPanelActive(): boolean {
+        if (this.hideEntityControls) return false
+
+        const shouldShowPanel =
+            this.shouldShowEntitySelectorAs === GrapherWindowType.panel
+
+        if (
+            this.isOnMapTab &&
+            this.shouldShowEntitySelectorOnMapTab &&
+            shouldShowPanel
+        )
+            return true
+
         return (
-            !this.hideEntityControls &&
-            this.canChangeAddOrHighlightEntities &&
             this.isOnChartTab &&
-            this.showEntitySelectorAs === GrapherWindowType.panel
+            this.canChangeAddOrHighlightEntities &&
+            shouldShowPanel
         )
     }
 
     @computed get showEntitySelectionToggle(): boolean {
+        if (this.hideEntityControls) return false
+
+        const shouldShowDrawer =
+            this.shouldShowEntitySelectorAs === GrapherWindowType.drawer
+        const shouldShowModal =
+            this.shouldShowEntitySelectorAs === GrapherWindowType.modal
+
+        if (
+            this.isOnMapTab &&
+            this.shouldShowEntitySelectorOnMapTab &&
+            shouldShowDrawer
+        )
+            return true
+
         return (
-            !this.hideEntityControls &&
-            this.canChangeAddOrHighlightEntities &&
             this.isOnChartTab &&
-            (this.showEntitySelectorAs === GrapherWindowType.modal ||
-                this.showEntitySelectorAs === GrapherWindowType.drawer)
+            this.canChangeAddOrHighlightEntities &&
+            (shouldShowModal || shouldShowDrawer)
         )
     }
 
     @computed get isEntitySelectorModalOpen(): boolean {
         return (
             this.isEntitySelectorModalOrDrawerOpen &&
-            this.showEntitySelectorAs === GrapherWindowType.modal
+            this.shouldShowEntitySelectorAs === GrapherWindowType.modal
         )
     }
 
     @computed get isEntitySelectorDrawerOpen(): boolean {
         return (
             this.isEntitySelectorModalOrDrawerOpen &&
-            this.showEntitySelectorAs === GrapherWindowType.drawer
+            this.shouldShowEntitySelectorAs === GrapherWindowType.drawer
         )
+    }
+
+    /** If the entity controls are hidden, then selecting entities from the map should also be disabled  */
+    @computed get shouldEnableEntitySelectionOnMapTab(): boolean {
+        return !this.hideEntityControls && this.shouldShowEntitySelectorOnMapTab
     }
 
     // This is just a helper method to return the correct table for providing entity choices. We want to

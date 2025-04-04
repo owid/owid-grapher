@@ -9,6 +9,7 @@ import {
     Color,
     HorizontalAlign,
     PrimitiveType,
+    mappableCountries,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -27,7 +28,6 @@ import {
     GeoFeature,
     MapBracket,
     MapChartManager,
-    MapEntity,
     ChoroplethSeries,
     DEFAULT_STROKE_COLOR,
     ChoroplethSeriesByName,
@@ -50,21 +50,17 @@ import {
 } from "../color/ColorScaleBin"
 import {
     ColorSchemeName,
+    InteractionState,
     MapRegionName,
-    GRAPHER_TAB_OPTIONS,
     SeriesName,
-    EntityName,
 } from "@ourworldindata/types"
-import {
-    autoDetectYColumnSlugs,
-    makeClipPath,
-    makeSelectionArray,
-} from "../chart/ChartUtils"
+import { autoDetectYColumnSlugs, makeClipPath } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import { SelectionArray } from "../selection/SelectionArray"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
+import { GlobeController } from "./GlobeController"
+import { SelectionArray } from "../selection/SelectionArray"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -81,12 +77,14 @@ export class MapChart
         ColorScaleManager,
         ChoroplethMapManager
 {
-    @observable focusEntity?: MapEntity
-    @observable focusBracket?: MapBracket
-    @observable tooltipState = new TooltipState<{
-        featureId: string
-        clickable: boolean
-    }>()
+    /**
+     * The currently hovered map bracket.
+     *
+     * Hovering a map bracket highlights all countries within that bracket on the map.
+     */
+    @observable hoverBracket?: MapBracket
+
+    @observable tooltipState = new TooltipState<{ featureId: string }>()
 
     transformTable(table: OwidTable): OwidTable {
         if (!table.has(this.mapColumnSlug)) return table
@@ -98,6 +96,13 @@ export class MapChart
                 this.mapConfig.toleranceStrategy
             )
         return transformedTable
+    }
+
+    transformTableForSelection(table: OwidTable): OwidTable {
+        const mappableCountryNames = mappableCountries.map(
+            (country) => country.name
+        )
+        return table.filterByEntityNames(mappableCountryNames)
     }
 
     private dropNonMapEntities(table: OwidTable): OwidTable {
@@ -115,6 +120,10 @@ export class MapChart
             this.manager.transformedTable ??
             this.transformTable(this.inputTable)
         )
+    }
+
+    @computed get selectionArray(): SelectionArray {
+        return this.mapConfig.selectedCountries
     }
 
     @computed get failMessage(): string {
@@ -152,19 +161,9 @@ export class MapChart
 
     base: React.RefObject<SVGGElement> = React.createRef()
     @action.bound onMapMouseOver(feature: GeoFeature): void {
-        const series =
-            feature.id === undefined
-                ? undefined
-                : this.seriesMap.get(feature.id as string)
-        this.focusEntity = {
-            id: feature.id,
-            series: series || { value: "No data" },
-        }
-
         if (feature.id !== undefined) {
-            const featureId = feature.id as string,
-                clickable = this.isEntityClickable(featureId)
-            this.tooltipState.target = { featureId, clickable }
+            const featureId = feature.id as string
+            this.tooltipState.target = { featureId }
         }
     }
 
@@ -176,7 +175,6 @@ export class MapChart
     }
 
     @action.bound onMapMouseLeave(): void {
-        this.focusEntity = undefined
         this.tooltipState.target = null
     }
 
@@ -184,49 +182,26 @@ export class MapChart
         return this.props.manager
     }
 
-    @computed private get entityNamesWithData(): Set<EntityName> {
-        // We intentionally use `inputTable` here instead of `transformedTable`, because of countries where there is no data
-        // available in the map view for the current year, but data might still be available for other chart types
-        return this.inputTable.entitiesWith([this.mapColumnSlug])
+    @computed get globeController(): GlobeController {
+        return this.manager.globeController ?? new GlobeController(this)
     }
 
-    // Determine if we can go to line chart by clicking on a given map entity
-    private isEntityClickable(entityName?: EntityName): boolean {
-        if (!this.manager.mapIsClickable || !entityName) return false
-        return this.entityNamesWithData.has(entityName)
-    }
-
-    @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.selection)
-    }
-
-    @action.bound onClick(d: GeoFeature, ev: MouseEvent): void {
-        const entityName = d.id as EntityName
-        if (!this.isEntityClickable(entityName)) return
-
-        if (!ev.shiftKey) {
-            this.selectionArray.setSelectedEntities([entityName])
-            this.manager.tab = GRAPHER_TAB_OPTIONS.chart
-            if (
-                this.manager.isLineChartThatTurnedIntoDiscreteBar &&
-                this.manager.hasTimeline
-            ) {
-                this.manager.resetHandleTimeBounds?.()
-            }
-        } else this.selectionArray.toggleSelection(entityName)
+    @computed get shouldEnableEntitySelectionOnMapTab(): boolean {
+        return !!this.manager.shouldEnableEntitySelectionOnMapTab
     }
 
     componentWillUnmount(): void {
         this.onMapMouseLeave()
         this.onLegendMouseLeave()
+        document.removeEventListener("keydown", this.onDocumentKeyDown)
     }
 
     @action.bound onLegendMouseOver(bracket: MapBracket): void {
-        this.focusBracket = bracket
+        this.hoverBracket = bracket
     }
 
     @action.bound onLegendMouseLeave(): void {
-        this.focusBracket = undefined
+        this.hoverBracket = undefined
     }
 
     @computed get mapConfig(): MapConfig {
@@ -253,7 +228,7 @@ export class MapChart
     }
 
     @computed get series(): ChoroplethSeries[] {
-        const { mapColumn, selectionArray, targetTime } = this
+        const { mapColumn, targetTime } = this
         if (mapColumn.isMissing) return []
         if (targetTime === undefined) return []
 
@@ -266,9 +241,7 @@ export class MapChart
                     seriesName: entityName,
                     time: originalTime,
                     value,
-                    isSelected: selectionArray.selectedSet.has(entityName),
                     color,
-                    highlightFillColor: color,
                 }
             })
             .filter(isPresent)
@@ -300,6 +273,13 @@ export class MapChart
     defaultBaseColorScheme = ColorSchemeName.BuGn
     hasNoDataBin = true
 
+    @action.bound onDocumentKeyDown(e: KeyboardEvent): void {
+        // hide the globe on hitting the Escape key
+        if (e.key === "Escape" && this.mapConfig.globe.isActive) {
+            this.globeController.hideGlobe()
+        }
+    }
+
     componentDidMount(): void {
         if (!this.manager.disableIntroAnimation) {
             select(this.base.current)
@@ -319,6 +299,8 @@ export class MapChart
                 })
         }
         exposeInstanceOnWindow(this)
+
+        document.addEventListener("keydown", this.onDocumentKeyDown)
     }
 
     @computed get legendData(): ColorScaleBin[] {
@@ -329,8 +311,45 @@ export class MapChart
         return this.colorScale.config.equalSizeBins
     }
 
-    @computed get focusValue(): string | number | undefined {
-        return this.focusEntity?.series?.value
+    /** The id of the currently hovered feature/country */
+    @computed get hoverFeatureId(): string | undefined {
+        return this.tooltipState.target?.featureId
+    }
+
+    /** The value of the currently hovered feature/country */
+    @computed get hoverValue(): string | number | undefined {
+        const featureId = this.tooltipState.target?.featureId
+        if (!featureId) return
+
+        const series = this.choroplethData.get(featureId)
+        if (!series) return "No data"
+
+        return series.value
+    }
+
+    private isHovered(featureId: string): boolean {
+        const { mapConfig, hoverFeatureId, hoverBracket } = this
+
+        if (mapConfig.globe.hoverCountry === featureId) return true
+
+        if (hoverFeatureId === featureId) return true
+        else if (!hoverBracket) return false
+
+        const series = this.choroplethData.get(featureId)
+        if (hoverBracket.contains(series?.value)) return true
+        else return false
+    }
+
+    isSelected(featureId: string): boolean {
+        return this.selectionArray.selectedSet.has(featureId)
+    }
+
+    getHoverState(featureId: string): InteractionState {
+        const isHovered = this.isHovered(featureId)
+        return {
+            active: isHovered,
+            background: !!this.hoverBracket && !isHovered,
+        }
     }
 
     @computed get fontSize(): number {
@@ -398,26 +417,27 @@ export class MapChart
         return this.categoricalLegendData.length > 1
     }
 
-    @computed get numericFocusBracket(): ColorScaleBin | undefined {
-        const { focusBracket, focusValue } = this
+    @computed get numericHoverBracket(): ColorScaleBin | undefined {
+        const { hoverBracket, hoverValue } = this
         const { numericLegendData } = this
 
-        if (focusBracket) return focusBracket
+        if (hoverBracket) return hoverBracket
 
-        if (focusValue !== undefined)
-            return numericLegendData.find((bin) => bin.contains(focusValue))
+        if (hoverValue !== undefined)
+            return numericLegendData.find((bin) => bin.contains(hoverValue))
 
         return undefined
     }
 
-    @computed get categoricalFocusBracket(): CategoricalBin | undefined {
-        const { focusBracket, focusValue } = this
+    @computed get categoricalHoverBracket(): CategoricalBin | undefined {
+        const { hoverBracket, hoverValue } = this
         const { categoricalLegendData } = this
-        if (focusBracket && focusBracket instanceof CategoricalBin)
-            return focusBracket
 
-        if (focusValue !== undefined)
-            return categoricalLegendData.find((bin) => bin.contains(focusValue))
+        if (hoverBracket && hoverBracket instanceof CategoricalBin)
+            return hoverBracket
+
+        if (hoverValue !== undefined)
+            return categoricalLegendData.find((bin) => bin.contains(hoverValue))
 
         return undefined
     }
@@ -559,6 +579,13 @@ export class MapChart
             )
         }
 
+        const tooltipCountry =
+            tooltipState.target?.featureId ??
+            // show a pinned-to-the-bottom tooltip when focused on a country
+            (this.manager.shouldPinTooltipToBottom
+                ? this.mapConfig.globe.focusCountry
+                : undefined)
+
         return (
             <g
                 ref={this.base}
@@ -567,9 +594,11 @@ export class MapChart
             >
                 {this.renderMapOrGlobe()}
                 {this.renderMapLegend()}
-                {tooltipState.target && (
+                {tooltipCountry && (
                     <MapTooltip
-                        tooltipState={tooltipState}
+                        entityName={tooltipCountry}
+                        position={tooltipState.position}
+                        fading={tooltipState.fading}
                         timeSeriesTable={this.inputTable}
                         formatValueIfCustom={this.formatTooltipValueIfCustom}
                         manager={this.manager}
@@ -578,7 +607,7 @@ export class MapChart
                         sparklineWidth={sparklineWidth}
                         dismissTooltip={() => {
                             this.tooltipState.target = null
-                            this.focusEntity = undefined
+                            this.globeController.dismissCountryFocus()
                         }}
                     />
                 )}

@@ -1,5 +1,5 @@
 import { observable } from "mobx"
-import { MapRegionName } from "@ourworldindata/types"
+import { EntityName, MapRegionName } from "@ourworldindata/types"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
     ColumnSlug,
@@ -13,12 +13,15 @@ import {
     NoUndefinedValues,
     ToleranceStrategy,
 } from "@ourworldindata/utils"
-import { DEFAULT_VIEWPORT } from "./MapChartConstants"
+import { SelectionArray } from "../selection/SelectionArray"
+import { DEFAULT_GLOBE_ROTATION } from "./MapChartConstants"
 
-interface GlobeConfig {
+export interface GlobeConfig {
     isActive: boolean
     rotation: [number, number]
     zoom: number
+    hoverCountry?: EntityName
+    focusCountry?: EntityName
 }
 
 // MapConfig holds the data and underlying logic needed by MapTab.
@@ -30,11 +33,13 @@ class MapConfigDefaults {
     @observable timeTolerance?: number
     @observable toleranceStrategy?: ToleranceStrategy
     @observable hideTimeline?: boolean
+
     @observable region = MapRegionName.World
+    @observable selectedCountries = new SelectionArray()
 
     @observable globe: GlobeConfig = {
-        isActive: true, // TODO: make this false by default
-        rotation: DEFAULT_VIEWPORT.rotation,
+        isActive: false,
+        rotation: DEFAULT_GLOBE_ROTATION,
         zoom: 1,
     }
 

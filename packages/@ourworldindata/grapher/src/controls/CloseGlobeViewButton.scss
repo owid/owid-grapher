@@ -1,0 +1,23 @@
+.CloseGlobeViewButton {
+    @include grapher_label-2-medium;
+
+    padding: 0 8px;
+    color: $dark-text;
+    border: 1px solid $gray-20;
+    border-radius: 4px;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+
+    &:hover {
+        background: $gray-10;
+        border-color: $gray-10;
+        cursor: pointer;
+    }
+
+    svg {
+        font-size: 12px;
+        margin-right: 6px;
+    }
+}

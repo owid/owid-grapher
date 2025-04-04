@@ -2,6 +2,7 @@ import { Time } from "@ourworldindata/types"
 import {
     TimeBound,
     TimeBoundValue,
+    delay,
     findClosestTime,
     last,
 } from "@ourworldindata/utils"
@@ -20,9 +21,6 @@ export interface TimelineManager {
     onPlay?: () => void
     onTimelineClick?: () => void
 }
-
-const delay = (ms: number): Promise<void> =>
-    new Promise((resolve) => setTimeout(resolve, ms))
 
 export class TimelineController {
     manager: TimelineManager

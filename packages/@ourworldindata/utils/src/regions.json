@@ -2791,6 +2791,7 @@
         "name": "Australia and New Zealand (UNSD)",
         "slug": "australia-and-new-zealand-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["053"],
         "members": ["AUS", "CXR", "CCK", "HMD", "NZL", "NFK"]
     },
@@ -2799,6 +2800,7 @@
         "name": "Central America (UNSD)",
         "slug": "central-america-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["013"],
         "members": ["BLZ", "CRI", "SLV", "GTM", "HND", "MEX", "NIC", "PAN"]
     },
@@ -2807,6 +2809,7 @@
         "name": "Caribbean (UNSD)",
         "slug": "caribbean-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["029"],
         "members": [
             "AIA",
@@ -2844,6 +2847,7 @@
         "name": "Central Asia (UNSD)",
         "slug": "central-asia-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["143"],
         "members": ["KAZ", "KGZ", "TJK", "TKM", "UZB"]
     },
@@ -2852,6 +2856,7 @@
         "name": "Eastern Africa (UNSD)",
         "slug": "eastern-africa-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["014"],
         "members": [
             "IOT",
@@ -2883,6 +2888,7 @@
         "name": "Eastern Asia (UNSD)",
         "slug": "eastern-asia-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["030"],
         "members": ["CHN", "HKG", "JPN", "MAC", "MNG", "PRK", "KOR"]
     },
@@ -2891,6 +2897,7 @@
         "name": "Eastern Europe (UNSD)",
         "slug": "eastern-europe-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["151"],
         "members": [
             "BLR",
@@ -2910,6 +2917,7 @@
         "name": "Middle Africa (UNSD)",
         "slug": "middle-africa-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["017"],
         "members": [
             "AGO",
@@ -2928,6 +2936,7 @@
         "name": "Melanesia (UNSD)",
         "slug": "melanesia-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["054"],
         "members": ["FJI", "NCL", "PNG", "SLB", "VUT"]
     },
@@ -2936,6 +2945,7 @@
         "name": "Micronesia (UNSD)",
         "slug": "micronesia-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["057"],
         "members": ["GUM", "KIR", "MHL", "FSM", "NRU", "MNP", "PLW", "UMI"]
     },
@@ -2944,6 +2954,7 @@
         "name": "Northern Africa (UNSD)",
         "slug": "northern-africa-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["015"],
         "members": ["DZA", "EGY", "LBY", "MAR", "SDN", "TUN", "ESH"]
     },
@@ -2952,6 +2963,7 @@
         "name": "Northern America (UNSD)",
         "slug": "northern-america-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["003"],
         "members": ["BMU", "CAN", "GRL", "SPM", "USA"]
     },
@@ -2960,6 +2972,7 @@
         "name": "Northern Europe (UNSD)",
         "slug": "northern-europe-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["154"],
         "members": [
             "ALA",
@@ -2985,6 +2998,7 @@
         "name": "Polynesia (UNSD)",
         "slug": "polynesia-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["061"],
         "members": [
             "ASM",
@@ -3004,6 +3018,7 @@
         "name": "Southern Africa (UNSD)",
         "slug": "southern-africa-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["018"],
         "members": ["BWA", "LSO", "NAM", "ZAF", "SWZ"]
     },
@@ -3012,6 +3027,7 @@
         "name": "South America (UNSD)",
         "slug": "south-america-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["005"],
         "members": [
             "ARG",
@@ -3037,6 +3053,7 @@
         "name": "Southern Asia (UNSD)",
         "slug": "southern-asia-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["034"],
         "members": [
             "AFG",
@@ -3055,6 +3072,7 @@
         "name": "South-eastern Asia (UNSD)",
         "slug": "south-eastern-asia-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["035"],
         "members": [
             "BRN",
@@ -3075,6 +3093,7 @@
         "name": "Southern Europe (UNSD)",
         "slug": "southern-europe-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["039"],
         "members": [
             "ALB",
@@ -3100,6 +3119,7 @@
         "name": "Western Africa (UNSD)",
         "slug": "western-africa-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["011"],
         "members": [
             "BEN",
@@ -3126,6 +3146,7 @@
         "name": "Western Asia (UNSD)",
         "slug": "western-asia-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["145"],
         "members": [
             "ARM",
@@ -3152,6 +3173,7 @@
         "name": "Western Europe (UNSD)",
         "slug": "western-europe-unsd",
         "regionType": "aggregate",
+        "definedBy": "unsd",
         "translationCodes": ["155"],
         "members": [
             "AUT",
@@ -3248,6 +3270,7 @@
         "name": "East Asia and Pacific (WB)",
         "slug": "east-asia-and-pacific-wb",
         "regionType": "aggregate",
+        "definedBy": "wb",
         "translationCodes": ["030", "009"],
         "members": [
             "ASM",
@@ -3307,6 +3330,7 @@
         "name": "Europe and Central Asia (WB)",
         "slug": "europe-and-central-asia-wb",
         "regionType": "aggregate",
+        "definedBy": "wb",
         "translationCodes": ["143", "150"],
         "members": [
             "AIA",
@@ -3406,6 +3430,7 @@
         "name": "Latin America and Caribbean (WB)",
         "slug": "latin-america-and-caribbean-wb",
         "regionType": "aggregate",
+        "definedBy": "wb",
         "translationCodes": ["419", "029"],
         "members": [
             "ABW",
@@ -3461,6 +3486,7 @@
         "name": "Middle East and North Africa (WB)",
         "slug": "middle-east-and-north-africa-wb",
         "regionType": "aggregate",
+        "definedBy": "wb",
         "translationCodes": ["145", "015"],
         "members": [
             "ARE",
@@ -3494,6 +3520,7 @@
         "name": "North America (WB)",
         "slug": "north-america-wb",
         "regionType": "aggregate",
+        "definedBy": "wb",
         "translationCodes": ["003"],
         "members": ["BMU", "CAN", "SPM", "USA"]
     },
@@ -3502,6 +3529,7 @@
         "name": "South Asia (WB)",
         "slug": "south-asia-wb",
         "regionType": "aggregate",
+        "definedBy": "wb",
         "translationCodes": ["034"],
         "members": [
             "AFG",
@@ -3521,6 +3549,7 @@
         "name": "Sub-Saharan Africa (WB)",
         "slug": "sub-saharan-africa-wb",
         "regionType": "aggregate",
+        "definedBy": "wb",
         "translationCodes": ["202"],
         "members": [
             "AGO",
@@ -3580,6 +3609,7 @@
         "name": "Africa (WHO)",
         "slug": "africa-who",
         "regionType": "aggregate",
+        "definedBy": "who",
         "translationCodes": ["002"],
         "members": [
             "DZA",
@@ -3636,6 +3666,7 @@
         "name": "Americas (WHO)",
         "slug": "americas-who",
         "regionType": "aggregate",
+        "definedBy": "who",
         "translationCodes": ["019"],
         "members": [
             "AIA",
@@ -3684,6 +3715,7 @@
         "name": "Eastern Mediterranean (WHO)",
         "slug": "eastern-mediterranean-who",
         "regionType": "aggregate",
+        "definedBy": "who",
         "translationCodes": ["145"],
         "members": [
             "AFG",
@@ -3714,6 +3746,7 @@
         "name": "Europe (WHO)",
         "slug": "europe-who",
         "regionType": "aggregate",
+        "definedBy": "who",
         "translationCodes": ["150"],
         "members": [
             "ALB",
@@ -3776,6 +3809,7 @@
         "name": "South-East Asia (WHO)",
         "slug": "south-east-asia-who",
         "regionType": "aggregate",
+        "definedBy": "who",
         "translationCodes": ["035"],
         "members": [
             "BGD",
@@ -3796,6 +3830,7 @@
         "name": "Western Pacific (WHO)",
         "slug": "western-pacific-who",
         "regionType": "aggregate",
+        "definedBy": "who",
         "translationCodes": ["030", "035", "009"],
         "members": [
             "AUS",

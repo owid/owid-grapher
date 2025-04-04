@@ -226,6 +226,7 @@ export {
     lowercaseObjectKeys,
     detailOnDemandRegex,
     extractDetailsFromSyntax,
+    delay,
 } from "./Util.js"
 
 export { isPresent } from "./isPresent.js"
@@ -270,9 +271,13 @@ export {
     type Continent,
     getAggregates,
     type Aggregate,
+    type AggregateSource,
+    aggregateSources,
     getOthers,
     countriesByName,
     getRegionAlternativeNames,
+    mappableCountries,
+    regionsByName,
 } from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"
