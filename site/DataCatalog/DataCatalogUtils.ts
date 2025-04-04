@@ -10,7 +10,11 @@ import {
     SearchIndexName,
 } from "../search/searchTypes.js"
 import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
-import { CatalogComponentId, DataCatalogState } from "./DataCatalogState.js"
+import {
+    CatalogComponentId,
+    DataCatalogState,
+    CatalogFilterType,
+} from "./DataCatalogState.js"
 import { countriesByName, Region } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -79,6 +83,15 @@ export type DataCatalogCache = {
 /**
  * Utils
  */
+export function getFiltersOfType(
+    state: DataCatalogState,
+    type: CatalogFilterType
+): Set<string> {
+    return new Set(
+        state.filters.filter((f) => f.type === type).map((f) => f.name)
+    )
+}
+
 function checkIfNoTopicsOrOneAreaTopicApplied(
     topics: Set<string>,
     areas: string[]
@@ -166,8 +179,8 @@ export function getCountryData(selectedCountries: Set<string>): Region[] {
     return regionData
 }
 
-export function serializeSet(set: Set<string>) {
-    return set.size ? [...set].join("~") : undefined
+export function serializeSet(set?: Set<string>) {
+    return set && set.size ? [...set].join("~") : undefined
 }
 
 export function deserializeSet(str?: string): Set<string> {
@@ -178,8 +191,9 @@ export function dataCatalogStateToAlgoliaQueries(
     state: DataCatalogState,
     topicNames: string[]
 ) {
+    const countryFilters = getFiltersOfType(state, CatalogFilterType.COUNTRY)
     const countryFacetFilters = formatCountryFacetFilters(
-        state.selectedCountryNames,
+        countryFilters,
         state.requireAllCountries
     )
     return topicNames.map((topic) => {
@@ -197,11 +211,14 @@ export function dataCatalogStateToAlgoliaQueries(
 }
 
 export function dataCatalogStateToAlgoliaQuery(state: DataCatalogState) {
+    const countryFilters = getFiltersOfType(state, CatalogFilterType.COUNTRY)
+    const topicFilters = getFiltersOfType(state, CatalogFilterType.TOPIC)
+
     const facetFilters = formatCountryFacetFilters(
-        state.selectedCountryNames,
+        countryFilters,
         state.requireAllCountries
     )
-    facetFilters.push(...setToFacetFilters(state.topics, "tags"))
+    facetFilters.push(...setToFacetFilters(topicFilters, "tags"))
 
     return [
         {
@@ -244,7 +261,8 @@ export async function queryRibbons(
     state: DataCatalogState,
     tagGraph: TagGraphRoot
 ): Promise<DataCatalogRibbonResult[]> {
-    const topicsForRibbons = getTopicsForRibbons(state.topics, tagGraph)
+    const topicFilters = getFiltersOfType(state, CatalogFilterType.TOPIC)
+    const topicsForRibbons = getTopicsForRibbons(topicFilters, tagGraph)
     const searchParams = dataCatalogStateToAlgoliaQueries(
         state,
         topicsForRibbons
@@ -273,9 +291,10 @@ export const queryDataInsights = async (
 ): Promise<DataCatalogPageSearchResult> => {
     const index = searchClient.initIndex(getIndexName(SearchIndexName.Pages))
     const { query, page } = state
+    const topicFilters = getFiltersOfType(state, CatalogFilterType.TOPIC)
 
     const facetFilters = [`type:data-insight`]
-    facetFilters.push(...setToFacetFilters(state.topics, "tags"))
+    facetFilters.push(...setToFacetFilters(topicFilters, "tags"))
 
     const results = await index.search<IPageHit>(query, {
         page,

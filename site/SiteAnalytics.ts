@@ -1,7 +1,13 @@
 import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
 import { SearchCategoryFilter } from "./search/searchTypes.js"
-import { DataCatalogState } from "./DataCatalog/DataCatalogState.js"
-import { IDataCatalogHit } from "./DataCatalog/DataCatalogUtils.js"
+import {
+    CatalogFilterType,
+    DataCatalogState,
+} from "./DataCatalog/DataCatalogState.js"
+import {
+    getFiltersOfType,
+    IDataCatalogHit,
+} from "./DataCatalog/DataCatalogUtils.js"
 import { set } from "lodash"
 
 export class SiteAnalytics extends GrapherAnalytics {
@@ -92,8 +98,13 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventAction: "search",
             eventContext: JSON.stringify({
                 ...state,
-                topics: Array.from(state.topics),
-                selectedCountryNames: Array.from(state.selectedCountryNames),
+                // TODO: fix ReferenceError: Cannot access 'SiteAnalytics' before initialization
+                // topics: Array.from(
+                //     getFiltersOfType(state, CatalogFilterType.TOPIC)
+                // ),
+                // selectedCountryNames: Array.from(
+                //     getFiltersOfType(state, CatalogFilterType.COUNTRY)
+                // ),
             }),
         })
     }

@@ -1,14 +1,19 @@
 import { Region } from "@ourworldindata/utils"
-import { SelectedCountriesPills } from "./SelectedCountriesPills.js"
 import { DataCatalogCountrySelector } from "./DataCatalogCountrySelector.js"
 import { DataCatalogAutocomplete } from "./DataCatalogAutocomplete.js"
-import { QueryType, SearchRelaxationMode } from "./DataCatalogState.js"
+import {
+    CatalogFilter,
+    CatalogFilterType,
+    QueryType,
+    SearchRelaxationMode,
+} from "./DataCatalogState.js"
+import { AppliedFilters } from "./AppliedFilters.js"
 
 export const DataCatalogSearchbar = ({
-    selectedCountries,
     query,
     setQuery,
     removeCountry,
+    removeFilter,
     addCountry,
     requireAllCountries,
     selectedCountryNames,
@@ -18,13 +23,14 @@ export const DataCatalogSearchbar = ({
     queryType,
     typoTolerance,
     minQueryLength,
-    appliedFilters,
+    filters,
 }: {
     selectedCountries: Region[]
     selectedCountryNames: Set<string>
     query: string
     setQuery: (query: string) => void
     removeCountry: (country: string) => void
+    removeFilter: (filterType: CatalogFilterType, name: string) => void
     addCountry: (country: string) => void
     requireAllCountries: boolean
     toggleRequireAllCountries: () => void
@@ -33,18 +39,14 @@ export const DataCatalogSearchbar = ({
     queryType: QueryType
     typoTolerance: boolean
     minQueryLength: number
-    appliedFilters: React.ReactNode
+    filters: CatalogFilter[]
 }) => {
     // Uses CSS to fake an input bar that will highlight correctly using :focus-within
     // without highlighting when the country selector is focused
     return (
         <>
             <div className="data-catalog-pseudo-input">
-                <SelectedCountriesPills
-                    selectedCountries={selectedCountries}
-                    removeCountry={removeCountry}
-                />
-                {appliedFilters}
+                <AppliedFilters filters={filters} removeFilter={removeFilter} />
                 <DataCatalogAutocomplete
                     placeholder="Search for data..."
                     className="data-catalog-search-box-container"

@@ -17,6 +17,7 @@ import {
     queryRibbons,
     querySearch,
     syncDataCatalogURL,
+    getFiltersOfType,
 } from "./DataCatalogUtils.js"
 import {
     dataCatalogStateToUrl,
@@ -28,11 +29,12 @@ import {
     CatalogComponentId,
     DEFAULT_COMPONENTS,
     CatalogContentType,
+    CatalogFilterType,
 } from "./DataCatalogState.js"
 import { TopicsRefinementListWrapper } from "./TopicsRefinementListWrapper.js"
 import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
 import { DataCatalogResults } from "./DataCatalogResults.js"
-import { AppliedTopicFiltersList } from "./AppliedTopicFiltersList.js"
+import { AppliedFilters } from "./AppliedFilters.js"
 import { DataCatalogSearchbar } from "./DataCatalogSearchbar.js"
 import { DataCatalogDataInsights } from "./DataCatalogDataInsights.js"
 import { DataCatalogSettings } from "./DataCatalogSettings.js"
@@ -63,13 +65,26 @@ export const DataCatalog = ({
         () => tagGraph.children.map((child) => child.name),
         [tagGraph]
     )
-    const shouldShowRibbons = useMemo(
-        () => checkShouldShowRibbonView(state.query, state.topics, AREA_NAMES),
-        [state.query, state.topics, AREA_NAMES]
+
+    // Extract country names and topics from filters
+    const selectedCountryNames = useMemo(
+        () => getFiltersOfType(state, CatalogFilterType.COUNTRY),
+        [state]
     )
+
+    const topics = useMemo(
+        () => getFiltersOfType(state, CatalogFilterType.TOPIC),
+        [state]
+    )
+
+    const shouldShowRibbons = useMemo(
+        () => checkShouldShowRibbonView(state.query, topics, AREA_NAMES),
+        [state.query, topics, AREA_NAMES]
+    )
+
     const selectedCountries = useMemo(
-        () => getCountryData(state.selectedCountryNames),
-        [state.selectedCountryNames]
+        () => getCountryData(selectedCountryNames),
+        [selectedCountryNames]
     )
 
     const stateAsUrl = dataCatalogStateToUrl(state)
@@ -135,9 +150,9 @@ export const DataCatalog = ({
             />
         ),
         [CatalogComponentId.APPLIED_FILTERS]: (
-            <AppliedTopicFiltersList
-                topics={state.topics}
-                removeTopic={actions.removeTopic}
+            <AppliedFilters
+                filters={state.filters}
+                removeFilter={actions.removeFilter}
             />
         ),
         [CatalogComponentId.FUZZY_MATCHER]: (
@@ -149,7 +164,7 @@ export const DataCatalog = ({
         ),
         [CatalogComponentId.TOPICS_REFINEMENT]: (
             <TopicsRefinementListWrapper
-                topics={state.topics}
+                topics={topics}
                 results={currentResults}
                 addTopic={actions.addTopic}
             />
@@ -174,7 +189,7 @@ export const DataCatalog = ({
                 isLoading={isLoading}
                 results={currentResults as DataCatalogRibbonResult[]}
                 selectedCountries={selectedCountries}
-                topics={state.topics}
+                topics={topics}
                 style={state.componentStyles[CatalogComponentId.RESULTS]}
             />
         ) : (
@@ -227,9 +242,10 @@ export const DataCatalog = ({
                         addTopic={actions.addTopic}
                         query={state.query}
                         removeCountry={actions.removeCountry}
+                        removeFilter={actions.removeFilter}
                         requireAllCountries={state.requireAllCountries}
                         selectedCountries={selectedCountries}
-                        selectedCountryNames={state.selectedCountryNames}
+                        selectedCountryNames={selectedCountryNames}
                         setQuery={actions.setQuery}
                         toggleRequireAllCountries={
                             actions.toggleRequireAllCountries
@@ -238,16 +254,7 @@ export const DataCatalog = ({
                         queryType={state.queryType}
                         typoTolerance={state.typoTolerance}
                         minQueryLength={state.minQueryLength}
-                        appliedFilters={
-                            !state.componentVisibility[
-                                CatalogComponentId.APPLIED_FILTERS
-                            ] && (
-                                <AppliedTopicFiltersList
-                                    topics={state.topics}
-                                    removeTopic={actions.removeTopic}
-                                />
-                            )
-                        }
+                        filters={state.filters}
                     />
                 </div>
             </div>

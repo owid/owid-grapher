@@ -1,6 +1,10 @@
 import { Url } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import { deserializeSet, serializeSet } from "./DataCatalogUtils.js"
+import {
+    deserializeSet,
+    getFiltersOfType,
+    serializeSet,
+} from "./DataCatalogUtils.js"
 
 // Define component IDs as an enum
 export enum CatalogComponentId {
@@ -40,10 +44,20 @@ export enum QueryType {
     PREFIX_NONE = "prefixNone",
 }
 
+// Define filter types
+export enum CatalogFilterType {
+    COUNTRY = "country",
+    TOPIC = "topic",
+}
+
+export type CatalogFilter = {
+    type: CatalogFilterType
+    name: string
+}
+
 export type DataCatalogState = Readonly<{
     query: string
-    topics: Set<string>
-    selectedCountryNames: Set<string>
+    filters: CatalogFilter[] // Array of filter objects
     requireAllCountries: boolean
     page: number
     componentOrder: CatalogComponentId[]
@@ -112,29 +126,21 @@ export const DEFAULT_COMPONENTS: ComponentConfig[] = [
     },
 ]
 
-type AddTopicAction = {
-    type: "addTopic"
-    topic: string
+type AddFilterAction = {
+    type: "addFilter"
+    filterType: CatalogFilterType
+    name: string
 }
 
-type RemoveTopicAction = {
-    type: "removeTopic"
-    topic: string
+type RemoveFilterAction = {
+    type: "removeFilter"
+    filterType: CatalogFilterType
+    name: string
 }
 
 type SetQueryAction = {
     type: "setQuery"
     query: string
-}
-
-type AddCountryAction = {
-    type: "addCountry"
-    country: string
-}
-
-type RemoveCountryAction = {
-    type: "removeCountry"
-    country: string
 }
 
 type ToggleRequireAllCountriesAction = {
@@ -207,10 +213,8 @@ type SetMinQueryLengthAction = {
 }
 
 export type DataCatalogAction =
-    | AddCountryAction
-    | AddTopicAction
-    | RemoveCountryAction
-    | RemoveTopicAction
+    | AddFilterAction
+    | RemoveFilterAction
     | SetPageAction
     | SetQueryAction
     | SetStateAction
@@ -236,36 +240,41 @@ export function dataCatalogReducer(
             page: 0,
             query,
         }))
-        .with({ type: "addTopic" }, ({ topic }) => ({
-            ...state,
-            page: 0,
-            topics: new Set(state.topics).add(topic),
-        }))
-        .with({ type: "removeTopic" }, ({ topic }) => {
-            const newTopics = new Set(state.topics)
-            newTopics.delete(topic)
+        .with({ type: "addFilter" }, ({ filterType, name }) => {
+            // Check if filter already exists
+            const filterExists = state.filters.some(
+                (filter) => filter.type === filterType && filter.name === name
+            )
+
+            // Only add if it doesn't exist
+            const newFilters = filterExists
+                ? state.filters
+                : [...state.filters, { type: filterType, name }]
+
             return {
                 ...state,
                 page: 0,
-                topics: newTopics,
+                filters: newFilters,
             }
         })
-        .with({ type: "addCountry" }, ({ country }) => ({
-            ...state,
-            page: 0,
-            selectedCountryNames: new Set(state.selectedCountryNames).add(
-                country
-            ),
-        }))
-        .with({ type: "removeCountry" }, ({ country }) => {
-            const newCountries = new Set(state.selectedCountryNames)
-            newCountries.delete(country)
+        .with({ type: "removeFilter" }, ({ filterType, name }) => {
+            const newFilters = state.filters.filter(
+                (filter) =>
+                    !(filter.type === filterType && filter.name === name)
+            )
+
+            // Check if we're removing the last country filter
+            const hasCountryFilters = newFilters.some(
+                (filter) => filter.type === CatalogFilterType.COUNTRY
+            )
+
             return {
                 ...state,
                 page: 0,
-                requireAllCountries:
-                    newCountries.size === 0 ? false : state.requireAllCountries,
-                selectedCountryNames: newCountries,
+                requireAllCountries: hasCountryFilters
+                    ? state.requireAllCountries
+                    : false,
+                filters: newFilters,
             }
         })
         .with({ type: "toggleRequireAllCountries" }, () => ({
@@ -332,10 +341,21 @@ export function dataCatalogReducer(
 export function createActions(dispatch: (action: DataCatalogAction) => void) {
     // prettier-ignore
     return {
-        addCountry: (country: string) => dispatch({ type: "addCountry", country }),
-        addTopic: (topic: string) => dispatch({ type: "addTopic", topic }),
-        removeCountry: (country: string) => dispatch({ type: "removeCountry", country }),
-        removeTopic: (topic: string) => dispatch({ type: "removeTopic", topic }),
+        addFilter: (filterType: CatalogFilterType, name: string) =>
+            dispatch({ type: "addFilter", filterType, name }),
+        removeFilter: (filterType: CatalogFilterType, name: string) =>
+            dispatch({ type: "removeFilter", filterType, name }),
+
+        // Convenience methods for backwards compatibility
+        addTopic: (topic: string) =>
+            dispatch({ type: "addFilter", filterType: CatalogFilterType.TOPIC, name: topic }),
+        removeTopic: (topic: string) =>
+            dispatch({ type: "removeFilter", filterType: CatalogFilterType.TOPIC, name: topic }),
+        addCountry: (country: string) =>
+            dispatch({ type: "addFilter", filterType: CatalogFilterType.COUNTRY, name: country }),
+        removeCountry: (country: string) =>
+            dispatch({ type: "removeFilter", filterType: CatalogFilterType.COUNTRY, name: country }),
+
         setPage: (page: number) => dispatch({ type: "setPage", page }),
         setQuery: (query: string) => dispatch({ type: "setQuery", query }),
         setState: (state: DataCatalogState) => dispatch({ type: "setState", state }),
@@ -384,10 +404,9 @@ function getDefaultComponentStyles(): Record<
     ) as Record<CatalogComponentId, CatalogComponentStyle>
 }
 
-const defaultCatalogState: DataCatalogState = {
+const getDefaultCatalogState = (): DataCatalogState => ({
     query: "",
-    topics: new Set(),
-    selectedCountryNames: new Set(),
+    filters: [],
     requireAllCountries: false,
     page: 0,
     componentOrder: getDefaultComponentOrder(),
@@ -400,10 +419,10 @@ const defaultCatalogState: DataCatalogState = {
     queryType: QueryType.PREFIX_ALL,
     typoTolerance: true,
     minQueryLength: 2,
-}
+})
 
 export function getInitialDatacatalogState(): DataCatalogState {
-    if (typeof window === "undefined") return defaultCatalogState
+    if (typeof window === "undefined") return getDefaultCatalogState()
 
     const url = Url.fromURL(window.location.href)
     const state = urlToDataCatalogState(url)
@@ -413,14 +432,33 @@ export function getInitialDatacatalogState(): DataCatalogState {
 
 export function urlToDataCatalogState(url: Url): DataCatalogState {
     // Start with the default state
-    const state = { ...defaultCatalogState }
+    const state = { ...getDefaultCatalogState() }
 
     // Override with URL parameters
     if (url.queryParams.q) state.query = url.queryParams.q
-    if (url.queryParams.topics)
-        state.topics = deserializeSet(url.queryParams.topics)
-    if (url.queryParams.countries)
-        state.selectedCountryNames = deserializeSet(url.queryParams.countries)
+
+    // Handle topics as filters
+    if (url.queryParams.topics) {
+        const topicNames = deserializeSet(url.queryParams.topics)
+        for (const name of topicNames) {
+            state.filters.push({
+                type: CatalogFilterType.TOPIC,
+                name,
+            })
+        }
+    }
+
+    // Handle countries as filters
+    if (url.queryParams.countries) {
+        const countryNames = deserializeSet(url.queryParams.countries)
+        for (const name of countryNames) {
+            state.filters.push({
+                type: CatalogFilterType.COUNTRY,
+                name,
+            })
+        }
+    }
+
     if (url.queryParams.requireAllCountries)
         state.requireAllCountries =
             url.queryParams.requireAllCountries === "true"
@@ -471,6 +509,8 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
         typeof window === "undefined" ? "" : window.location.href
     )
 
+    const defaultCatalogState = getDefaultCatalogState()
+
     const defaultInsightsCount =
         defaultCatalogState.componentCount[CatalogComponentId.DATA_INSIGHTS]
     const defaultResultsStyle =
@@ -478,8 +518,10 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
 
     const params = {
         q: state.query || undefined,
-        topics: serializeSet(state.topics),
-        countries: serializeSet(state.selectedCountryNames),
+        topics: serializeSet(getFiltersOfType(state, CatalogFilterType.TOPIC)),
+        countries: serializeSet(
+            getFiltersOfType(state, CatalogFilterType.COUNTRY)
+        ),
         requireAllCountries: state.requireAllCountries ? "true" : undefined,
         page: state.page > 0 ? (state.page + 1).toString() : undefined,
         insights:

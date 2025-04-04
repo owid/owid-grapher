@@ -596,7 +596,9 @@ export function DataCatalogAutocomplete({
                                 )
                             }
                         )
-                        .exhaustive()
+                        .otherwise(() => {
+                            // Catch-all for other non-referenced item types
+                        })
                 }
             },
             onSubmit({ state }) {

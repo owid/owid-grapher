@@ -171,12 +171,6 @@
     &:hover {
         background-color: $blue-10;
     }
-    &:first-child {
-        margin-left: 8px;
-    }
-    &:not(:last-child) {
-        margin-right: 8px;
-    }
 
     &.data-catalog-selected-country-pill--hide-on-desktop {
         display: none;
@@ -523,9 +517,10 @@
     }
 }
 
-.data-catalog-applied-filters-list {
+.data-catalog-applied-filters {
     display: flex;
     align-items: center;
+    margin-left: 8px;
     gap: 8px;
     list-style: none;
 }
