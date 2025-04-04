@@ -28,6 +28,7 @@ export interface Country extends BaseRegion {
 
 export interface Aggregate extends BaseRegion {
     regionType: RegionType.Aggregate
+    definedBy?: string
     translationCodes?: string[]
     members: string[]
 }

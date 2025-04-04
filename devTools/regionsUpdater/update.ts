@@ -98,6 +98,7 @@ interface Entity {
     short_name?: string
     slug?: string
     region_type?: string
+    defined_by?: string
     is_mappable?: boolean
     is_historical?: boolean
     is_unlisted?: boolean
@@ -271,6 +272,7 @@ async function main() {
         // drop redundant attrs
         if (entity.short_name === entity.name) delete entity.short_name
         if (entity.region_type !== "country") delete entity.is_mappable
+        if (entity.defined_by === "owid") delete entity.defined_by
 
         // update geojson with canonical names & validate mappability flag
         const outline = owidGeoJson.features.find(
@@ -319,6 +321,7 @@ async function main() {
                 "shortName",
                 "slug",
                 "regionType",
+                "definedBy",
                 "isMappable",
                 "isHistorical",
                 "isUnlisted",
