@@ -52,22 +52,6 @@ export interface PageRecord {
 
 export type IPageHit = PageRecord & Hit<BaseHit>
 
-export type IExplorerViewHit = Hit<BaseHit> & {
-    objectID: string
-
-    // Explorer-wide fields
-    explorerSlug: string
-    explorerTitle: string
-    explorerSubtitle: string
-    numViewsWithinExplorer: number
-
-    // View-specific fields
-    viewTitle: string
-    viewSubtitle: string
-    viewQueryParams: string
-    viewTitleIndexWithinExplorer: number
-}
-
 export enum ChartRecordType {
     Chart = "chart",
     ExplorerView = "explorerView",
@@ -98,7 +82,6 @@ export interface ChartRecord {
 export type IChartHit = Hit<BaseHit> & ChartRecord
 
 export enum SearchIndexName {
-    ExplorerViews = "explorer-views",
     Charts = "charts",
     Pages = "pages",
     ExplorerViewsMdimViewsAndCharts = "explorer-views-and-charts",
@@ -109,6 +92,5 @@ export type SearchCategoryFilter = SearchIndexName | "all"
 export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
     ["All", "all"],
     ["Research & Writing", SearchIndexName.Pages],
-    ["Charts", SearchIndexName.Charts],
-    ["Data Explorers", SearchIndexName.ExplorerViews],
+    ["Charts", SearchIndexName.ExplorerViewsMdimViewsAndCharts],
 ]

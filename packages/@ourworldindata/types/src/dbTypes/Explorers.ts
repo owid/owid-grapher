@@ -25,4 +25,6 @@ export type MinimalExplorerInfo = {
     title: string
     subtitle: string
     tags: string[]
+    createdAt: Date
+    updatedAt: Date
 }

@@ -245,13 +245,15 @@ export const getPublishedExplorersBySlug = async (
         knex,
         `-- sql
         SELECT
-            slug,
-            config->>"$.explorerTitle" as title,
-            config->>"$.explorerSubtitle" as subtitle
+            e.slug,
+            e.config->>"$.explorerTitle" as title,
+            e.config->>"$.explorerSubtitle" as subtitle,
+            e.createdAt,
+            e.updatedAt 
         FROM
-            explorers
+            explorers e
         WHERE
-            isPublished = TRUE`
+            e.isPublished = TRUE`
     ).then((rows) => {
         const processed = rows.map((row: any) => {
             const tagsForExplorer = tagsBySlug[row.slug]
@@ -262,6 +264,8 @@ export const getPublishedExplorersBySlug = async (
                 tags: tagsForExplorer
                     ? tagsForExplorer.tags.map((tag) => tag.name)
                     : [],
+                createdAt: row.createdAt,
+                updatedAt: row.updatedAt,
             }
         })
         return keyBy(processed, "slug")

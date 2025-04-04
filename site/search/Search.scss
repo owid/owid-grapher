@@ -84,7 +84,7 @@ $reset-button-margin: 16px;
     border-bottom: 1px solid $blue-10;
     display: flex;
     flex-wrap: nowrap;
-    overflow-x: scroll;
+    overflow-x: auto;
     scrollbar-width: none;
 }
 
@@ -150,11 +150,6 @@ $reset-button-margin: 16px;
     }
 }
 
-.search-results__section-subtitle {
-    margin-top: 4px;
-    color: $blue-90;
-}
-
 .search-results__show-more-container {
     @include body-3-medium;
     em {
@@ -213,8 +208,7 @@ $reset-button-margin: 16px;
 }
 
 .search-results__pages-list,
-.search-results__explorer-list,
-.search-results__charts-list {
+.search-results__explorer-views-and-charts-list {
     gap: var(--grid-gap);
     @include sm-only {
         padding-bottom: 24px;
@@ -222,7 +216,7 @@ $reset-button-margin: 16px;
 }
 
 // For charts, make it clearer that the title etc. belong to the chart above
-.search-results__charts-list {
+.search-results__explorer-views-and-charts-list {
     row-gap: calc(2 * var(--grid-gap));
 }
 
@@ -273,112 +267,12 @@ $reset-button-margin: 16px;
     display: block;
 }
 
-.search-results__explorer-hit {
-    background-color: $blue-10;
-    height: 100%;
-    padding: 24px;
-    display: block;
-
-    h4 {
-        margin: 0;
-        color: $blue-90;
-    }
-
-    p {
-        color: $blue-50;
-        font-weight: 400;
-    }
-
-    .search-results__explorer-hit-link-mobile {
-        @include body-3-medium;
-        @include owid-link-60;
-        margin-top: 16px;
-        display: block;
-    }
-
-    .search-results__explorer-hit-header {
-        display: flex;
-        justify-content: space-between;
-
-        .search-results__explorer-hit-title-container {
-            min-width: 0;
-        }
-
-        .search-results__explorer-hit-title {
-            display: inline;
-            color: $blue-90;
-            margin: 0 8px 0 0;
-        }
-
-        .search-results__explorer-hit-subtitle {
-            margin: 0 8px 0 0;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
-        }
-
-        .search-results__explorer-hit-link {
-            margin-top: 0;
-            flex: 0 0 auto;
-            text-align: right;
-
-            a {
-                @include body-3-medium;
-                @include owid-link-60;
-            }
-        }
-    }
-
-    .search-results__explorer-views-list {
-        margin-top: 16px;
-        list-style: none;
-        gap: 16px;
-
-        .search-results__explorer-view {
-            margin-left: 24px;
-            overflow: hidden;
-
-            .search-results__explorer-view-title-container {
-                color: $blue-90;
-                @include owid-link-90;
-
-                svg {
-                    font-size: 0.75em;
-                    margin-left: 6px;
-                }
-            }
-
-            .search-results__explorer-view-subtitle {
-                margin-top: 0;
-                margin-bottom: 0;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                overflow: hidden;
-            }
-
-            @include sm-only {
-                // *If on "All" tab on small screens*, only show the first two views on mobile, and hide view subtitles
-                @at-root .search-results[data-active-filter="all"] & {
-                    &:nth-child(n + 3) {
-                        display: none;
-                    }
-
-                    .search-results__explorer-view-subtitle {
-                        display: none;
-                    }
-                }
-            }
-        }
-    }
-}
-
 /*
 *  Tabs / Filtering
 **/
 
 .search-results__pages,
-.search-results__explorers,
-.search-results__charts {
+.search-results__explorer-views-and-charts {
     display: none;
 }
 
@@ -386,18 +280,16 @@ $reset-button-margin: 16px;
 .search-results {
     &[data-active-filter="all"] {
         .search-results__pages,
-        .search-results__explorers,
-        .search-results__charts {
+        .search-results__explorer-views-and-charts {
             // both needed for .search-results__show-more-container absolute-positioning
             display: inline-block;
             position: relative;
             width: 100%;
         }
 
-        // On the "All" tab, limit to the first 4 pages, 4 charts, and 2 explorer views
+        // On the "All" tab, limit to the first 4 pages, 4 charts
         .search-results__page-hit:nth-child(n + 5),
-        .chart-hit:nth-child(n + 5),
-        .search-results__explorer-hit:nth-child(n + 3) {
+        .chart-hit:nth-child(n + 5) {
             display: none;
         }
     }
@@ -406,11 +298,8 @@ $reset-button-margin: 16px;
         display: inline;
     }
 
-    &[data-active-filter="charts"] .search-results__charts {
-        display: inline;
-    }
-
-    &[data-active-filter="explorer-views"] .search-results__explorers {
+    &[data-active-filter="explorer-views-and-charts"]
+        .search-results__explorer-views-and-charts {
         display: inline;
     }
 }
