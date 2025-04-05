@@ -16,8 +16,6 @@ import {
     DBRawPostGdocWithTags,
     parsePostsGdocsWithTagsRow,
     DBEnrichedPostGdocWithTags,
-    DbEnrichedPostGdoc,
-    DbRawPostGdoc,
     parsePostsGdocsRow,
     TagGraphRootName,
     FlatTagGraph,
@@ -408,43 +406,6 @@ export const getImageMetadataByFilenames = async (
         [filenames]
     )
     return keyBy(rows, "filename")
-}
-
-export const getPublishedGdocPosts = async (
-    knex: KnexReadonlyTransaction
-): Promise<DbEnrichedPostGdoc[]> => {
-    return knexRaw<DbRawPostGdoc>(
-        knex,
-        `-- sql
-        SELECT
-        g.manualBreadcrumbs,
-        g.content,
-        g.createdAt,
-        g.id,
-        g.markdown,
-        g.publicationContext,
-        g.published,
-        g.publishedAt,
-        g.revisionId,
-        g.slug,
-        g.updatedAt,
-        g.authors
-    FROM
-        posts_gdocs g
-    WHERE
-        g.published = 1
-        AND g.type IN (:types)
-        AND g.publishedAt <= NOW()
-    ORDER BY g.publishedAt DESC`,
-        {
-            types: [
-                OwidGdocType.Article,
-                OwidGdocType.LinearTopicPage,
-                OwidGdocType.TopicPage,
-                OwidGdocType.AboutPage,
-            ],
-        }
-    ).then((rows) => rows.map(parsePostsGdocsRow))
 }
 
 export const getPublishedGdocsWithTags = async (

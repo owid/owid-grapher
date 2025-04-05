@@ -3,7 +3,13 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import { dayjs, countries, DbPlainChart } from "@ourworldindata/utils"
+import {
+    dayjs,
+    countries,
+    DbPlainChart,
+    DbRawPostGdoc,
+    OwidGdocType,
+} from "@ourworldindata/utils"
 import {
     EXPLORERS_ROUTE_FOLDER,
     ExplorerProgram,
@@ -48,6 +54,31 @@ const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl => {
     }
 }
 
+async function getGdocPosts(knex: db.KnexReadonlyTransaction) {
+    return db.knexRaw<DbRawPostGdoc>(
+        knex,
+        `-- sql
+        SELECT
+        slug,
+        updatedAt
+    FROM
+        posts_gdocs
+    WHERE
+        published = 1
+        AND type IN (:types)
+        AND publishedAt <= NOW()
+    ORDER BY publishedAt DESC`,
+        {
+            types: [
+                OwidGdocType.Article,
+                OwidGdocType.LinearTopicPage,
+                OwidGdocType.TopicPage,
+                OwidGdocType.AboutPage,
+            ],
+        }
+    )
+}
+
 export const makeSitemap = async (
     explorerAdminServer: ExplorerAdminServer,
     knex: db.KnexReadonlyTransaction
@@ -59,7 +90,7 @@ export const makeSitemap = async (
         undefined,
         (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
     )
-    const gdocPosts = await db.getPublishedGdocPosts(knex)
+    const gdocPosts = await getGdocPosts(knex)
     const authorPages = await getMinimalAuthors(knex)
 
     const publishedDataInsights = await db.getPublishedDataInsights(knex)

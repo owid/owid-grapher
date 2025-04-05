@@ -10,6 +10,7 @@ import {
     OwidGdocType,
     spansToUnformattedPlainText,
     get,
+    pick,
 } from "@ourworldindata/utils"
 import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
 import { DebugProvider } from "./DebugProvider.js"
@@ -138,7 +139,30 @@ export default function OwidGdocPage({
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `window._OWID_GDOC_PROPS = ${JSON.stringify(
-                            gdoc
+                            pick(gdoc, [
+                                "id",
+                                "slug",
+                                "content",
+                                "createdAt",
+                                "published",
+                                "publishedAt",
+                                "revisionId",
+                                "publicationContext",
+                                "breadcrumbs",
+                                "manualBreadcrumbs",
+                                "homepageMetadata",
+                                "latestDataInsights",
+                                "latestWorkLinks",
+                                "linkedAuthors",
+                                "linkedDocuments",
+                                "linkedCharts",
+                                "linkedIndicators",
+                                "imageMetadata",
+                                "relatedCharts",
+                                "tags",
+                                "donors",
+                                "relatedCharts",
+                            ])
                         )}`,
                     }}
                 ></script>
