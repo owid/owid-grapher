@@ -3252,8 +3252,6 @@ export class Grapher
                                 onSelectEntity={this.onSelectEntity}
                                 onDeselectEntity={this.onDeselectEntity}
                                 onClearEntities={this.onClearEntities}
-                                onMouseEnterEntity={this.onMouseEnterEntity}
-                                onMouseLeaveEntity={this.onMouseLeaveEntity}
                             />
                         </SidePanel>
                     )}
@@ -3283,8 +3281,6 @@ export class Grapher
                         onSelectEntity={this.onSelectEntity}
                         onDeselectEntity={this.onDeselectEntity}
                         onClearEntities={this.onClearEntities}
-                        onMouseEnterEntity={this.onMouseEnterEntity}
-                        onMouseLeaveEntity={this.onMouseLeaveEntity}
                     />
                 </SlideInDrawer>
 
@@ -3896,6 +3892,8 @@ export class Grapher
     @action.bound onDeselectEntity(entityName: EntityName): void {
         // remove focus from an entity that has been removed from the selection
         this.focusArray.remove(entityName)
+
+        this.globeController.dismissCountryFocus()
     }
 
     // called when all entities are cleared in the entity selector
@@ -3905,16 +3903,6 @@ export class Grapher
 
         // switch back to the 2d map if all entities were deselected
         if (this.isOnMapTab) this.globeController.hideGlobe()
-    }
-
-    // called when an entity is hovered in the entity selector
-    @action.bound onMouseEnterEntity(entityName: EntityName): void {
-        this.globeController.setHoverCountry(entityName)
-    }
-
-    // called when an entity is un-hovered in the entity selector
-    @action.bound onMouseLeaveEntity(): void {
-        this.globeController.dismissCountryHover()
     }
 
     // todo: restore this behavior??
