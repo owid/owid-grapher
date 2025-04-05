@@ -62,10 +62,11 @@ export class GlobeController {
         if (zoom) this.globeConfig.zoom = zoom
     }
 
+    /** Highlights a country on the globe and rotates to it */
     focusOnCountry(country: EntityName): void {
         if (this.globeConfig.isActive) {
-            // if we're on the globe view, focus the country and rotate to it
-            this.setCountryFocus(country)
+            // if we're on the globe view, highlight the country and rotate to it
+            this.setFocusCountry(country)
             this.rotateToCountry(country)
         } else {
             // switch to the globe view first. before switching to the globe,
@@ -75,25 +76,17 @@ export class GlobeController {
             this.showGlobe()
 
             // then focus the country and rotate to it
-            this.setCountryFocus(country)
+            this.setFocusCountry(country)
             this.rotateToCountry(country, GLOBE_COUNTRY_ZOOM)
         }
     }
 
-    private setCountryFocus(country: EntityName): void {
+    setFocusCountry(country: EntityName): void {
         this.globeConfig.focusCountry = country
     }
 
     dismissCountryFocus(): void {
         this.globeConfig.focusCountry = undefined
-    }
-
-    setHoverCountry(country: EntityName): void {
-        this.globeConfig.hoverCountry = country
-    }
-
-    dismissCountryHover(): void {
-        this.globeConfig.hoverCountry = undefined
     }
 
     jumpToCountry(country: EntityName, zoom?: number): void {
