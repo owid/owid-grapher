@@ -178,8 +178,6 @@ export class EntitySelector extends React.Component<{
     onSelectEntity?: (entityName: EntityName) => void
     onDeselectEntity?: (entityName: EntityName) => void
     onClearEntities?: () => void
-    onMouseEnterEntity?: (entityName: EntityName) => void
-    onMouseLeaveEntity?: () => void
     onDismiss?: () => void
 }> {
     static contextType = DrawerContext
@@ -833,14 +831,6 @@ export class EntitySelector extends React.Component<{
         }
     }
 
-    @action.bound onMouseEnter(entityName: EntityName): void {
-        this.props.onMouseEnterEntity?.(entityName)
-    }
-
-    @action.bound onMouseLeave(): void {
-        this.props.onMouseLeaveEntity?.()
-    }
-
     @action.bound async loadAndSetExternalSortColumn(
         external: ExternalSortIndicatorDefinition
     ): Promise<void> {
@@ -1004,8 +994,6 @@ export class EntitySelector extends React.Component<{
                             checked={this.isEntitySelected(entity)}
                             bar={this.getBarConfigForEntity(entity)}
                             onChange={this.onChange}
-                            onMouseEnter={this.onMouseEnter}
-                            onMouseLeave={this.onMouseLeave}
                             isLocal={entity.isLocal}
                         />
                     </li>
@@ -1027,8 +1015,6 @@ export class EntitySelector extends React.Component<{
                             checked={this.isEntitySelected(entity)}
                             bar={this.getBarConfigForEntity(entity)}
                             onChange={this.onChange}
-                            onMouseEnter={this.onMouseEnter}
-                            onMouseLeave={this.onMouseLeave}
                             isLocal={entity.isLocal}
                         />
                     </li>
@@ -1136,8 +1122,6 @@ export class EntitySelector extends React.Component<{
                                     checked={true}
                                     bar={this.getBarConfigForEntity(entity)}
                                     onChange={this.onChange}
-                                    onMouseEnter={this.onMouseEnter}
-                                    onMouseLeave={this.onMouseLeave}
                                     isLocal={entity.isLocal}
                                 />
                             </FlippedListItem>
@@ -1171,8 +1155,6 @@ export class EntitySelector extends React.Component<{
                                                 entity
                                             )}
                                             onChange={this.onChange}
-                                            onMouseEnter={this.onMouseEnter}
-                                            onMouseLeave={this.onMouseLeave}
                                             isLocal={entity.isLocal}
                                         />
                                     </FlippedListItem>
