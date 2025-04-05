@@ -329,7 +329,7 @@ export class MapChart
     private isHovered(featureId: string): boolean {
         const { mapConfig, hoverFeatureId, hoverBracket } = this
 
-        if (mapConfig.globe.hoverCountry === featureId) return true
+        if (mapConfig.globe.focusCountry === featureId) return true
 
         if (hoverFeatureId === featureId) return true
         else if (!hoverBracket) return false
