@@ -12,7 +12,7 @@ import { geoCentroid, geoPath } from "d3-geo"
 import { geoRobinson } from "./d3-geo-projection"
 
 // Get the underlying geographical topology elements we're going to display
-const GeoFeatures: GeoFeature[] = (
+export const GeoFeatures: GeoFeature[] = (
     topojson.feature(
         MapTopology as any,
         MapTopology.objects.world as any

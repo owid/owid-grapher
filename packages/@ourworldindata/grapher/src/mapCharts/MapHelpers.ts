@@ -2,6 +2,7 @@ import { Quadtree } from "d3-quadtree"
 import { geoOrthographic, geoPath, GeoPermissibleObjects } from "d3-geo"
 import {
     EntityName,
+    Bounds,
     getAggregates,
     getContinents,
     getIncomeGroups,
@@ -13,12 +14,17 @@ import {
 } from "@ourworldindata/utils"
 import {
     DEFAULT_GLOBE_SIZE,
+    ANNOTATION_FONT_SIZE_DEFAULT,
+    ANNOTATION_FONT_SIZE_MIN,
+    Direction,
+    Ellipse,
     GEO_FEATURES_CLASSNAME,
     MAP_HOVER_TARGET_RANGE,
     RenderFeature,
 } from "./MapChartConstants"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { MapTopology } from "./MapTopology.js"
+import { GeoProjection } from "d3"
 
 export function detectNearbyFeature<Feature extends RenderFeature>({
     quadtree,
@@ -124,4 +130,152 @@ export const isOnTheMap = (entityName: EntityName): boolean => {
             MapTopology.objects.world.geometries.map((region: any) => region.id)
         )
     return _isOnTheMapCache.has(entityName)
+}
+
+export function isPointInEllipse(
+    point: { x: number; y: number },
+    ellipse: Ellipse
+): boolean {
+    const dx = point.x - ellipse.cx
+    const dy = point.y - ellipse.cy
+    return (
+        (dx * dx) / (ellipse.rx * ellipse.rx) +
+            (dy * dy) / (ellipse.ry * ellipse.ry) <=
+        1
+    )
+}
+
+export function makeEllipseFromPointsForProjection(
+    projection: GeoProjection,
+    {
+        center,
+        left,
+        top,
+    }: {
+        center: [number, number]
+        left: [number, number]
+        top: [number, number]
+    }
+): Ellipse {
+    const projCenter = projection(center)!
+    const projLeft = projection(left)!
+    const projTop = projection(top)!
+
+    const ellipseRadiusX = Math.abs(projCenter[0] - projLeft[0])
+    const ellipseRadiusY = Math.abs(projCenter[1] - projTop[1])
+
+    return {
+        cx: projCenter[0],
+        cy: projCenter[1],
+        rx: ellipseRadiusX,
+        ry: ellipseRadiusY,
+    }
+}
+
+export function getExternalLabelPosition({
+    anchorPoint,
+    textBounds,
+    direction,
+    markerLength,
+}: {
+    anchorPoint: [number, number]
+    textBounds: Bounds
+    direction: Direction
+    markerLength: number
+}): [number, number] {
+    const [x, y] = anchorPoint
+    const l = markerLength
+    const w = textBounds.width,
+        h = textBounds.height
+
+    switch (direction) {
+        case "right":
+            return [x + l, y - h / 2]
+        case "left":
+            return [x - w - l, y - h / 2]
+        case "bottom":
+            return [x - w / 2, y + l]
+        case "top":
+            return [x - w / 2, y - h / 2 - l]
+    }
+}
+
+export function getExternalMarkerStartPosition({
+    anchorPoint,
+    direction,
+    offset = 0,
+}: {
+    anchorPoint: [number, number]
+    direction: Direction
+    offset?: number // extend anchor by this amount
+}): [number, number] {
+    const [x, y] = anchorPoint
+
+    switch (direction) {
+        case "right":
+            return [x - offset, y]
+        case "left":
+            return [x + offset, y]
+        case "bottom":
+            return [x, y - offset]
+        case "top":
+            return [x, y + offset]
+    }
+}
+
+export function getExternalMarkerEndPosition({
+    textBounds,
+    direction,
+}: {
+    textBounds: Bounds
+    direction: Direction
+}): [number, number] {
+    const { x, y, width, height } = textBounds
+
+    switch (direction) {
+        case "right":
+            return [x, y + height / 2]
+        case "left":
+            return [x + width, y + height / 2]
+        case "bottom":
+            return [x + width / 2, y]
+        case "top":
+            return [x + width / 2, y + height]
+    }
+}
+
+export function placeLabelWithinEllipse(
+    label: string,
+    ellipse: Ellipse
+): { placedBounds: Bounds; fontSize: number } | undefined {
+    const defaultFontSize = ANNOTATION_FONT_SIZE_DEFAULT
+    let textBounds = Bounds.forText(label, { fontSize: defaultFontSize })
+
+    // place label at the given center position
+    let placedBounds = textBounds.set({
+        x: ellipse.cx - textBounds.width / 2,
+        y: ellipse.cy - textBounds.height / 2,
+    })
+
+    let labelFitsInsideEllipse = isPointInEllipse(placedBounds.topLeft, ellipse)
+
+    if (labelFitsInsideEllipse)
+        return { placedBounds, fontSize: defaultFontSize }
+
+    const step = 1
+    for (
+        let fontSize = defaultFontSize - step;
+        fontSize >= ANNOTATION_FONT_SIZE_MIN;
+        fontSize -= step
+    ) {
+        textBounds = Bounds.forText(label, { fontSize })
+        placedBounds = textBounds.set({
+            x: ellipse.cx - textBounds.width / 2,
+            y: ellipse.cy - textBounds.height / 2,
+        })
+        labelFitsInsideEllipse = isPointInEllipse(placedBounds.topLeft, ellipse)
+        if (labelFitsInsideEllipse) return { placedBounds, fontSize }
+    }
+
+    return undefined
 }

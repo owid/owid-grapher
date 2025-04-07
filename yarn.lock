@@ -5592,6 +5592,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/polylabel@npm:^1.1.3":
+  version: 1.1.3
+  resolution: "@types/polylabel@npm:1.1.3"
+  checksum: 10/e51ec7b7ce9d3e576e78013825bc9ec2ed595aeaddbe15a95fa209fddc229a5e73411f1ed57e80cadd9679603bbdcd8c350733ed794c3af7b519bf570371d906
+  languageName: node
+  linkType: hard
+
 "@types/progress@npm:^2.0.5":
   version: 2.0.5
   resolution: "@types/progress@npm:2.0.5"
@@ -10953,6 +10960,7 @@ __metadata:
     "@types/minimist": "npm:^1.2.2"
     "@types/mousetrap": "npm:^1.6.9"
     "@types/papaparse": "npm:^5.3.15"
+    "@types/polylabel": "npm:^1.1.3"
     "@types/progress": "npm:^2.0.5"
     "@types/react": "npm:^17.0.69"
     "@types/react-beautiful-dnd": "npm:^13.1.2"
@@ -11039,6 +11047,7 @@ __metadata:
     openai: "npm:^4.85.4"
     p-map: "npm:^4.0.0"
     papaparse: "npm:^5.4.1"
+    polylabel: "npm:^2.0.1"
     prettier: "npm:^3.5.0"
     progress: "npm:^2.0.3"
     react: "npm:^17.0.2"
@@ -15237,6 +15246,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"polylabel@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "polylabel@npm:2.0.1"
+  dependencies:
+    tinyqueue: "npm:^3.0.0"
+  checksum: 10/cfd4043487720e725710b19eca84f675c930e4754c60317f113a222d0b807c46cf0d2d4c2d854bae737433daa048cc6220c41e786f30929e7301015458f16c74
+  languageName: node
+  linkType: hard
+
 "portfinder@npm:^1.0.28":
   version: 1.0.28
   resolution: "portfinder@npm:1.0.28"
@@ -18438,6 +18456,13 @@ __metadata:
   version: 1.0.2
   resolution: "tinypool@npm:1.0.2"
   checksum: 10/6109322f14b3763f65c8fa49fddab72cd3edd96b82dd50e05e63de74867329ff5353bff4377281ec963213d9314f37f4a353e9ee34bbac85fd4c1e4a568d6076
+  languageName: node
+  linkType: hard
+
+"tinyqueue@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "tinyqueue@npm:3.0.0"
+  checksum: 10/44195ae628e98f4de49acefac1fafa63a7f2b5d8a5c23ace6f49917109db3435db8ec9854f87c0d50f8a8c6a73f1526f3941921618a071e4ee1d246afacf69bb
   languageName: node
   linkType: hard
 
