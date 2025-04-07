@@ -247,6 +247,7 @@ export {
     type Region,
     countries,
     type Country,
+    type IncomeGroup,
     type OwidIncomeGroupName,
     checkIsOwidIncomeGroupName,
     getCountryBySlug,
@@ -264,6 +265,13 @@ export {
     getRegionAlternativeNames,
     mappableCountries,
     regionsByName,
+    getIncomeGroups,
+    checkIsCountry,
+    getMemberNamesOfRegion,
+    getRegionByName,
+    checkIsContinent,
+    checkIsIncomeGroup,
+    checkHasMembers,
 } from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"
