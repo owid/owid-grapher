@@ -1,5 +1,5 @@
 import { ColorScaleBin } from "../color/ColorScaleBin"
-import { Bounds, PointVector, ColumnSlug } from "@ourworldindata/utils"
+import { Bounds, ColumnSlug } from "@ourworldindata/utils"
 import {
     MapRegionName,
     SeriesName,
@@ -12,6 +12,7 @@ import { ChartSeries } from "../chart/ChartInterface"
 import { GlobeController } from "./GlobeController"
 import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
+import { CoreColumn } from "@ourworldindata/core-table"
 
 export declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
@@ -53,6 +54,17 @@ export const DEFAULT_GLOBE_ROTATIONS_FOR_TIME: Record<
     UTC_EVENING: [90, -15], // North & South America
 }
 
+export const ANNOTATION_COLOR_DARK = HOVER_STROKE_COLOR
+export const ANNOTATION_COLOR_LIGHT = "#fff"
+
+export const ANNOTATION_FONT_SIZE_INTERNAL_DEFAULT = 11
+export const ANNOTATION_FONT_SIZE_INTERNAL_MIN = 7
+export const ANNOTATION_FONT_SIZE_EXTERNAL_DEFAULT = 8
+export const ANNOTATION_FONT_SIZE_EXTERNAL_MAX = 11
+
+export const ANNOTATION_MARKER_LINE_LENGTH_DEFAULT = 6
+export const ANNOTATION_MARKER_LINE_LENGTH_MAX = 10
+
 export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
     World: "World",
     Africa: "Africa",
@@ -82,10 +94,13 @@ export interface ChoroplethMapManager {
     choroplethData: ChoroplethSeriesByName
     choroplethMapBounds: Bounds
     mapConfig: MapConfig
+    mapColumn: CoreColumn
     globeController?: GlobeController
     mapRegionDropdownValue?: MapRegionDropdownValue
     resetMapRegionDropdownValue?: () => void
     selectionArray: MapSelectionArray
+    hoverFeatureId?: string
+    fontSize?: number
     getHoverState: (featureId: string) => InteractionState
     isSelected: (featureId: string) => boolean
     onMapMouseOver: (d: GeoFeature) => void
@@ -103,18 +118,18 @@ export interface RenderFeature {
     type: RenderFeatureType
     id: string
     geo: GeoFeature
+    geoCentroid: [number, number] // unprojected
+    geoBounds: Bounds // unprojected
 }
 
 export interface MapRenderFeature extends RenderFeature {
     type: RenderFeatureType.Map
     path: string
-    bounds: Bounds
-    center: PointVector
+    projBounds: Bounds
 }
 
 export interface GlobeRenderFeature extends RenderFeature {
     type: RenderFeatureType.Globe
-    centroid: [number, number]
 }
 
 export interface MapChartManager extends ChartManager {
@@ -138,3 +153,56 @@ export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
     Asia: { rotation: [-81, -26], zoom: 1.85 },
     Oceania: { rotation: [-153, 25], zoom: 2 },
 }
+
+export interface Circle {
+    cx: number // center x
+    cy: number // center y
+    r: number // radius
+}
+
+export interface Ellipse {
+    cx: number // center x
+    cy: number // center y
+    rx: number // radius on the x-axis
+    ry: number // radius on the y-axis
+}
+
+// ellipse expressed in lon/lat
+export interface EllipseCoords {
+    cx: number
+    cy: number
+    left: number // left x
+    top: number // top y
+}
+
+interface BaseAnnotation {
+    id: string
+    feature: RenderFeature
+    placedBounds: Bounds
+    text: string
+    fontSize: number
+    color: string
+}
+
+export interface InternalAnnotation extends BaseAnnotation {
+    type: "internal"
+    ellipse: Ellipse
+}
+
+export interface ExternalAnnotation extends BaseAnnotation {
+    type: "external"
+    direction: Direction
+    anchor: [number, number]
+}
+
+export type Annotation = InternalAnnotation | ExternalAnnotation
+
+export type Direction =
+    | "left"
+    | "right"
+    | "top"
+    | "bottom"
+    | "leftTop"
+    | "leftBottom"
+    | "rightTop"
+    | "rightBottom"
