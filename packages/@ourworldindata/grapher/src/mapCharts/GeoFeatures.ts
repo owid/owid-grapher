@@ -5,19 +5,23 @@ import {
     MapRenderFeature,
     RenderFeatureType,
 } from "./MapChartConstants"
-import { Bounds, PointVector } from "@ourworldindata/utils"
+import { Bounds, lazy, PointVector } from "@ourworldindata/utils"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import { MapTopology } from "./MapTopology"
-import { geoCentroid, geoPath } from "d3-geo"
+import { geoBounds, geoCentroid, geoPath } from "d3-geo"
 import { geoRobinson } from "./d3-geo-projection"
 
 // Get the underlying geographical topology elements we're going to display
-const GeoFeatures: GeoFeature[] = (
+export const GeoFeatures: GeoFeature[] = (
     topojson.feature(
         MapTopology as any,
         MapTopology.objects.world as any
     ) as any
 ).features
+
+export const GeoFeaturesById = new Map(
+    GeoFeatures.map((feature) => [feature.id, feature])
+)
 
 const projection = geoPath().projection(geoRobinson())
 
@@ -59,26 +63,47 @@ const geoBoundsForWorldProjection = (): Bounds[] => {
     return bounds
 }
 
+const geoCentroidsForFeatures = GeoFeatures.map((feature) =>
+    geoCentroid(feature.geometry)
+)
+
+const geoBoundsForFeatures = GeoFeatures.map((feature) => {
+    const corners = geoBounds(feature)
+    return Bounds.fromCorners(
+        new PointVector(...corners[0]),
+        new PointVector(...corners[1])
+    )
+})
+
 // Bundle GeoFeatures with the calculated info needed to render them
-export const getGeoFeaturesForMap = (): MapRenderFeature[] => {
-    const geoBounds = geoBoundsForWorldProjection()
-    const geoPaths = geoPathsForWorldProjection()
+export const getGeoFeaturesForMap = lazy((): MapRenderFeature[] => {
+    const projBounds = geoBoundsForWorldProjection()
+    const projPaths = geoPathsForWorldProjection()
     const feats: MapRenderFeature[] = GeoFeatures.map((geo, index) => ({
         type: RenderFeatureType.Map,
         id: geo.id as string,
         geo: geo,
-        path: geoPaths[index],
-        bounds: geoBounds[index],
-        center: geoBounds[index].centerPos,
+        projBounds: projBounds[index], // projected
+        geoBounds: geoBoundsForFeatures[index], // unprojected
+        geoCentroid: geoCentroidsForFeatures[index], // unprojected
+        path: projPaths[index],
     }))
     return feats
-}
+})
 
-export const getGeoFeaturesForGlobe = (): GlobeRenderFeature[] => {
-    return GeoFeatures.map((geo) => ({
-        type: RenderFeatureType.Globe,
-        id: geo.id as string,
-        geo: geo,
-        centroid: geoCentroid(geo),
-    }))
-}
+export const getGeoFeaturesForGlobe = lazy((): GlobeRenderFeature[] => {
+    return GeoFeatures.map((geo, index) => {
+        const corners = geoBounds(geo)
+        const bounds = Bounds.fromCorners(
+            new PointVector(...corners[0]),
+            new PointVector(...corners[1])
+        )
+        return {
+            type: RenderFeatureType.Globe,
+            id: geo.id as string,
+            geo: geo,
+            geoCentroid: geoCentroidsForFeatures[index],
+            geoBounds: bounds,
+        }
+    })
+})
