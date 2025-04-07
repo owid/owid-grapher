@@ -8,7 +8,6 @@ import {
     SearchRelaxationMode,
 } from "./DataCatalogState.js"
 import { DataCatalogAppliedFilters } from "./DataCatalogAppliedFilters.js"
-import { useEffect, useState } from "react"
 
 export const DataCatalogSearchbar = ({
     query,

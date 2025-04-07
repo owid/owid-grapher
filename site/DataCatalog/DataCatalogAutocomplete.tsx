@@ -8,29 +8,17 @@ import {
     autocomplete,
     getAlgoliaResults,
 } from "@algolia/autocomplete-js"
-import algoliasearch from "algoliasearch"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
-import {
-    ALGOLIA_ID,
-    ALGOLIA_SEARCH_KEY,
-} from "../../settings/clientSettings.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { countriesByName, queryParamsToStr } from "@ourworldindata/utils"
-import { SiteAnalytics } from "../SiteAnalytics.js"
 import Mousetrap from "mousetrap"
 import { match, P } from "ts-pattern"
 import {
-    parseIndexName,
     getIndexName,
     DEFAULT_SEARCH_PLACEHOLDER,
 } from "../search/searchClient.js"
-import {
-    indexNameToSubdirectoryMap,
-    SearchIndexName,
-    pageTypeDisplayNames,
-    PageType,
-} from "../search/searchTypes.js"
+import { SearchIndexName } from "../search/searchTypes.js"
 import {
     CatalogFilter,
     CatalogFilterType,
@@ -40,27 +28,16 @@ import {
 import { CountryPill } from "./CountryPill"
 import { TopicPill } from "./TopicPill"
 import { DataCatalogAppliedFilters } from "./DataCatalogAppliedFilters.js"
+import {
+    AutocompleteItemType,
+    searchClient,
+    AutocompleteSources,
+    getActiveItemCollection,
+} from "./DataCatalogUtils.js"
+import { AlgoliaSource } from "./AlgoliaSource.js"
+import { CombinedFiltersSource } from "./CombinedFiltersSource.js"
 
-// Define enum for source IDs
-enum Sources {
-    RECENT_SEARCHES = "recentSearches",
-    SUGGESTED_SEARCH = "suggestedSearch",
-    AUTOCOMPLETE = "autocomplete",
-    COUNTRIES = "countries",
-    TOPICS = "topics",
-    COMBINED_FILTERS = "combinedFilters",
-    RUN_SEARCH = "runSearch",
-}
-
-const siteAnalytics = new SiteAnalytics()
-
-type BaseItem = Record<string, unknown>
-
-enum AutocompleteItemType {
-    Country = "country",
-    TopicPage = "topic-page",
-    LinearTopicPage = "linear-topic-page",
-}
+export type BaseItem = Record<string, unknown>
 
 const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
     key: "RECENT_SEARCH",
@@ -85,8 +62,6 @@ const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
     },
 })
 
-const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
-
 // This is the same simple function for the two non-Algolia sources
 const onSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
     navigator,
@@ -101,21 +76,8 @@ const onSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
 const getItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({ item }) =>
     item.slug as string
 
-// The slugs we index to Algolia don't include the /grapher/ or /explorers/ directories
-// Prepend them with this function when we need them
-const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
-    const indexName = parseIndexName(item.__autocomplete_indexName as string)
-    const subdirectory = indexNameToSubdirectoryMap[indexName]
-    switch (indexName) {
-        case SearchIndexName.ExplorerViews:
-            return `${subdirectory}/${item.explorerSlug}${item.viewQueryParams}`
-        default:
-            return `${subdirectory}/${item.slug}`
-    }
-}
-
 const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
-    sourceId: Sources.SUGGESTED_SEARCH,
+    sourceId: AutocompleteSources.SUGGESTED_SEARCH,
     onSelect,
     getItemUrl,
     getItems() {
@@ -135,89 +97,6 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
             return (
                 <div>
                     <span>{item.title}</span>
-                </div>
-            )
-        },
-    },
-}
-
-const AlgoliaSource: AutocompleteSource<BaseItem> = {
-    sourceId: Sources.AUTOCOMPLETE,
-    onSelect({ navigator, item, state }) {
-        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
-        siteAnalytics.logInstantSearchClick({
-            query: state.query,
-            url: itemUrl,
-            position: String(state.activeItemId),
-        })
-        navigator.navigate({ itemUrl, item, state })
-    },
-    getItemUrl({ item }) {
-        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
-        return itemUrl
-    },
-    getItems({ query }) {
-        return getAlgoliaResults({
-            searchClient,
-            queries: [
-                {
-                    indexName: getIndexName(SearchIndexName.Pages),
-                    query,
-                    params: {
-                        hitsPerPage: 2,
-                        distinct: true,
-                        filters: `NOT type:${AutocompleteItemType.TopicPage} AND NOT type:${AutocompleteItemType.Country}`,
-                    },
-                },
-                {
-                    indexName: getIndexName(SearchIndexName.Charts),
-                    query,
-                    params: {
-                        hitsPerPage: 2,
-                        distinct: true,
-                    },
-                },
-                {
-                    indexName: getIndexName(SearchIndexName.ExplorerViews),
-                    query,
-                    params: {
-                        hitsPerPage: 1,
-                        distinct: true,
-                    },
-                },
-            ],
-        })
-    },
-
-    templates: {
-        header: () => <h5 className="overline-black-caps">Top Results</h5>,
-        item: ({ item, components }) => {
-            const index = parseIndexName(
-                item.__autocomplete_indexName as string
-            )
-            const indexLabel =
-                index === SearchIndexName.Charts
-                    ? "Chart"
-                    : index === SearchIndexName.ExplorerViews
-                      ? "Explorer"
-                      : pageTypeDisplayNames[item.type as PageType]
-
-            const mainAttribute =
-                index === SearchIndexName.ExplorerViews ? "viewTitle" : "title"
-
-            return (
-                <div
-                    className="aa-ItemWrapper"
-                    key={item.title as string}
-                    translate="no"
-                >
-                    <span>
-                        <components.Highlight
-                            hit={item}
-                            attribute={mainAttribute}
-                            tagName="strong"
-                        />
-                    </span>
                 </div>
             )
         },
@@ -249,7 +128,7 @@ const CountriesSource = (
     typoTolerance: boolean
 ): AutocompleteSource<BaseItem> => {
     return {
-        sourceId: Sources.COUNTRIES,
+        sourceId: AutocompleteSources.COUNTRIES,
         getItemUrl() {
             return undefined
         },
@@ -286,6 +165,11 @@ const CountriesSource = (
                         translate="no"
                     >
                         <DataCatalogAppliedFilters filters={pendingFilters} />
+                        {unmatchedQuery && (
+                            <div className="body-3-regular">
+                                {unmatchedQuery}
+                            </div>
+                        )}
                         <CountryPill
                             name={item.title as string}
                             code={
@@ -293,11 +177,6 @@ const CountriesSource = (
                                 ""
                             }
                         />
-                        {unmatchedQuery && (
-                            <div className="body-3-regular">
-                                {unmatchedQuery}
-                            </div>
-                        )}
                     </div>
                 )
             },
@@ -312,7 +191,7 @@ const TopicsSource = (
     typoTolerance: boolean
 ): AutocompleteSource<BaseItem> => {
     return {
-        sourceId: Sources.TOPICS,
+        sourceId: AutocompleteSources.TOPICS,
         getItemUrl() {
             return undefined
         },
@@ -358,98 +237,12 @@ const TopicsSource = (
                         translate="no"
                     >
                         <DataCatalogAppliedFilters filters={pendingFilters} />
-                        <TopicPill name={topicTag} />
                         {unmatchedQuery && (
                             <div className="body-3-regular">
                                 {unmatchedQuery}
                             </div>
                         )}
-                    </div>
-                )
-            },
-        },
-    }
-}
-
-const CombinedFiltersSource = (
-    addPendingFilter: (filter: CatalogFilter) => void,
-    clearSearch: () => void
-): AutocompleteSource<BaseItem> => {
-    return {
-        sourceId: Sources.COMBINED_FILTERS,
-        onSelect({ item }) {
-            // Apply the topic
-            if (item.topic) {
-                addPendingFilter({
-                    type: CatalogFilterType.TOPIC,
-                    name: item.topic as string,
-                })
-            }
-
-            // Apply all countries
-            if (item.countries) {
-                ;(item.countries as string[]).forEach((country) => {
-                    addPendingFilter({
-                        type: CatalogFilterType.COUNTRY,
-                        name: country,
-                    })
-                })
-            }
-
-            clearSearch()
-        },
-        getItemUrl() {
-            return undefined
-        },
-        getItems() {
-            // This is a placeholder - actual items are provided through the reshape function
-            return []
-        },
-        templates: {
-            header: () => {
-                return (
-                    <h5 className="overline-black-caps">🧪 Combined Filters</h5>
-                )
-            },
-            item: ({ item }) => {
-                const countries = (item.countries as string[]) || []
-                const topic = item.topic as string | undefined
-
-                return (
-                    <div className="aa-ItemWrapper aa-CombinedFiltersWrapper">
-                        <div className="aa-ItemContent">
-                            <div
-                                className="aa-ItemContentBody"
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    flexWrap: "wrap",
-                                    gap: "4px",
-                                }}
-                            >
-                                {topic && <TopicPill name={topic} />}
-                                {countries.length > 0 && (
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            flexWrap: "wrap",
-                                            gap: "4px",
-                                        }}
-                                    >
-                                        {countries.map((country) => (
-                                            <CountryPill
-                                                key={country}
-                                                name={country}
-                                                code={
-                                                    countriesByName()[country]
-                                                        ?.code || ""
-                                                }
-                                            />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        <TopicPill name={topicTag} />
                     </div>
                 )
             },
@@ -458,7 +251,7 @@ const CombinedFiltersSource = (
 }
 
 const AllResultsSource: AutocompleteSource<BaseItem> = {
-    sourceId: Sources.RUN_SEARCH,
+    sourceId: AutocompleteSources.RUN_SEARCH,
     onSelect,
     getItemUrl,
     getItems({ query }) {
@@ -566,13 +359,13 @@ export function DataCatalogAutocomplete({
     useEffect(() => {
         if (!containerRef.current) return
 
-        // const clearSearch = () => {
-        //     setQueryRef.current("")
-        //     // Clear the input directly
-        //     if (search) {
-        //         search.setQuery("")
-        //     }
-        // }
+        const clearSearch = () => {
+            setQueryRef.current("")
+            // Clear the input directly
+            if (search) {
+                search.setQuery("")
+            }
+        }
 
         const search = autocomplete({
             placeholder,
@@ -597,19 +390,28 @@ export function DataCatalogAutocomplete({
 
                 if (!activeItemChanged) return
 
+                // Find the active item and its source
+                const activeItemCollection = getActiveItemCollection(state)
+
+                const activeItem = activeItemCollection?.items.find(
+                    (item) => item.__autocomplete_id === state.activeItemId
+                )
+
+                if (
+                    !activeItem ||
+                    !activeItemCollection ||
+                    activeItemCollection.source.sourceId ===
+                        AutocompleteSources.RUN_SEARCH
+                )
+                    return
+
                 // If the active item is not null, we need to add it to the pending filters
-                // Find the active item and source
-                const activeItem = state.collections
-                    .flatMap((collection) => collection.items)
-                    .find(
-                        (item) => item.__autocomplete_id === state.activeItemId
-                    )
-
-                if (!activeItem) return
-
                 search.setQuery(getUnmatchedQueryPart(activeItem, state.query))
 
-                const shouldAddActiveItem = prevState.activeItemId === null
+                const shouldAddActiveItem =
+                    prevState.activeItemId === null ||
+                    getActiveItemCollection(prevState)?.source.sourceId ===
+                        AutocompleteSources.RUN_SEARCH
 
                 match(activeItem.type as AutocompleteItemType)
                     .with(AutocompleteItemType.Country, () => {
@@ -653,7 +455,9 @@ export function DataCatalogAutocomplete({
             },
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
+                const debugOnlyCoreSources = true
                 if (query && query.length >= minQueryLength) {
+                    sources.push(AlgoliaSource, AllResultsSource)
                     sources.push(
                         CountriesSource(
                             pendingFiltersRef.current,
@@ -672,23 +476,37 @@ export function DataCatalogAutocomplete({
                     )
 
                     // Add the combined filters source
-                    // sources.push(
-                    //     CombinedFiltersSource(
-                    //         addPendingFilterRef.current,
-                    //         clearSearch
-                    //     )
-                    // )
-                    sources.push(/*AlgoliaSource,*/ AllResultsSource)
+                    sources.push(
+                        CombinedFiltersSource(
+                            addPendingFilterRef.current,
+                            clearSearch
+                        )
+                    )
                 } else {
                     sources.push(FeaturedSearchesSource)
                 }
+
+                // Only keep core sources
+                if (debugOnlyCoreSources) {
+                    return sources.filter(
+                        (source) =>
+                            ![
+                                AutocompleteSources.AUTOCOMPLETE,
+                                AutocompleteSources.COMBINED_FILTERS,
+                            ].includes(source.sourceId as AutocompleteSources)
+                    )
+                }
+
                 return sources
             },
             reshape({ sources, sourcesBySourceId }) {
                 const countries =
-                    sourcesBySourceId[Sources.COUNTRIES]?.getItems() || []
+                    sourcesBySourceId[
+                        AutocompleteSources.COUNTRIES
+                    ]?.getItems() || []
                 const topics =
-                    sourcesBySourceId[Sources.TOPICS]?.getItems() || []
+                    sourcesBySourceId[AutocompleteSources.TOPICS]?.getItems() ||
+                    []
 
                 const countryNames = countries.map(
                     (country) => country.title as string
@@ -707,7 +525,10 @@ export function DataCatalogAutocomplete({
                         // )
                         // Update combined filter source with one item per topic
                         .map((source) => {
-                            if (source.sourceId === Sources.COMBINED_FILTERS) {
+                            if (
+                                source.sourceId ===
+                                AutocompleteSources.COMBINED_FILTERS
+                            ) {
                                 return {
                                     ...source,
                                     getItems() {

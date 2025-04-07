@@ -411,7 +411,7 @@ const getDefaultCatalogState = (): DataCatalogState => ({
     componentCount: getDefaultComponentCount(),
     componentStyles: getDefaultComponentStyles(),
     isStickyHeader: true,
-    searchRelaxationMode: SearchRelaxationMode.ALL_OPTIONAL,
+    searchRelaxationMode: SearchRelaxationMode.FIRST_WORDS,
     contentTypeFilter: CatalogContentType.ALL,
     queryType: QueryType.PREFIX_ALL,
     typoTolerance: true,

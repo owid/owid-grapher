@@ -3,9 +3,10 @@ import {
     SearchForFacetValuesResponse,
     SearchResponse,
 } from "instantsearch.js"
-import { getIndexName } from "../search/searchClient.js"
+import { getIndexName, parseIndexName } from "../search/searchClient.js"
 import {
     ChartRecordType,
+    indexNameToSubdirectoryMap,
     IPageHit,
     SearchIndexName,
 } from "../search/searchTypes.js"
@@ -16,8 +17,14 @@ import {
     CatalogFilterType,
 } from "./DataCatalogState.js"
 import { countriesByName, Region } from "@ourworldindata/utils"
-import { SearchClient } from "algoliasearch"
+import algoliasearch, { SearchClient } from "algoliasearch"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import { BaseItem } from "./DataCatalogAutocomplete.js"
+import {
+    ALGOLIA_ID,
+    ALGOLIA_SEARCH_KEY,
+} from "../../settings/clientSettings.js"
+import { AutocompleteState } from "@algolia/autocomplete-js"
 
 /**
  * Constants
@@ -78,6 +85,21 @@ export type DataCatalogCache = {
     ribbons: Map<string, DataCatalogRibbonResult[]>
     search: Map<string, DataCatalogSearchResult>
     pages: Map<string, DataCatalogPageSearchResult>
+}
+
+export enum AutocompleteSources {
+    RECENT_SEARCHES = "recentSearches",
+    SUGGESTED_SEARCH = "suggestedSearch",
+    AUTOCOMPLETE = "autocomplete",
+    COUNTRIES = "countries",
+    TOPICS = "topics",
+    COMBINED_FILTERS = "combinedFilters",
+    RUN_SEARCH = "runSearch",
+}
+export enum AutocompleteItemType {
+    Country = "country",
+    TopicPage = "topic-page",
+    LinearTopicPage = "linear-topic-page",
 }
 
 /**
@@ -307,3 +329,26 @@ export const queryDataInsights = async (
 }
 
 export const analytics = new SiteAnalytics()
+
+export const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+
+// The slugs we index to Algolia don't include the /grapher/ or /explorers/ directories
+// Prepend them with this function when we need them
+export const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
+    const indexName = parseIndexName(item.__autocomplete_indexName as string)
+    const subdirectory = indexNameToSubdirectoryMap[indexName]
+    switch (indexName) {
+        case SearchIndexName.ExplorerViews:
+            return `${subdirectory}/${item.explorerSlug}${item.viewQueryParams}`
+        default:
+            return `${subdirectory}/${item.slug}`
+    }
+}
+
+export const getActiveItemCollection = (state: AutocompleteState<BaseItem>) => {
+    return state.collections.find((collection) =>
+        collection.items.some(
+            (item) => item.__autocomplete_id === state.activeItemId
+        )
+    )
+}
