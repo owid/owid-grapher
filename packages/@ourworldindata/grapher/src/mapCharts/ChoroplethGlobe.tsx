@@ -40,6 +40,7 @@ import {
 import { MapConfig } from "./MapConfig"
 import { getGeoFeaturesForGlobe } from "./GeoFeatures"
 import {
+    BackgroundCountry,
     CountryWithData,
     CountryWithNoData,
     NoDataPattern,
@@ -50,6 +51,7 @@ import {
     detectNearbyFeature,
     isPointPlacedOnVisibleHemisphere,
     sortFeaturesByInteractionState,
+    getForegroundFeatures,
 } from "./MapHelpers"
 import * as R from "remeda"
 import { GlobeController } from "./GlobeController"
@@ -95,8 +97,17 @@ export class ChoroplethGlobe extends React.Component<{
         return getGeoFeaturesForGlobe()
     }
 
+    @computed private get foregroundFeatures(): GlobeRenderFeature[] {
+        return getForegroundFeatures(this.features, this.manager.selectionArray)
+    }
+
+    @computed
+    private get backgroundFeatures(): GlobeRenderFeature[] {
+        return difference(this.features, this.foregroundFeatures)
+    }
+
     @computed private get featuresWithData(): GlobeRenderFeature[] {
-        const features = this.features.filter((feature) =>
+        const features = this.foregroundFeatures.filter((feature) =>
             this.choroplethData.has(feature.id)
         )
 
@@ -109,7 +120,7 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get featuresWithNoData(): GlobeRenderFeature[] {
-        return difference(this.features, this.featuresWithData)
+        return difference(this.foregroundFeatures, this.featuresWithData)
     }
 
     // Map uses a hybrid approach to mouseover
@@ -206,7 +217,7 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get visibleFeatures(): GlobeRenderFeature[] {
-        return this.features.filter((feature) =>
+        return this.foregroundFeatures.filter((feature) =>
             this.isFeatureCentroidVisibleOnGlobe(feature)
         )
     }
@@ -535,6 +546,22 @@ export class ChoroplethGlobe extends React.Component<{
         )
     }
 
+    renderFeaturesInBackground(): React.ReactElement | void {
+        if (this.backgroundFeatures.length === 0) return
+
+        return (
+            <g id={makeIdForHumanConsumption("countries-background")}>
+                {this.backgroundFeatures.map((feature) => (
+                    <BackgroundCountry
+                        key={feature.id}
+                        feature={feature}
+                        path={this.getPath(feature)}
+                    />
+                ))}
+            </g>
+        )
+    }
+
     renderFeaturesWithNoData(): React.ReactElement | void {
         if (this.featuresWithNoData.length === 0) return
 
@@ -611,6 +638,7 @@ export class ChoroplethGlobe extends React.Component<{
             <>
                 {this.renderGlobeOutline()}
                 <g id={makeIdForHumanConsumption("globe")}>
+                    {this.renderFeaturesInBackground()}
                     {this.renderFeaturesWithNoData()}
                     {this.renderFeaturesWithData()}
                 </g>
@@ -641,6 +669,7 @@ export class ChoroplethGlobe extends React.Component<{
             >
                 {this.renderGlobeOutline()}
                 <g className={GEO_FEATURES_CLASSNAME}>
+                    {this.renderFeaturesInBackground()}
                     {this.renderFeaturesWithNoData()}
                     {this.renderFeaturesWithData()}
                 </g>

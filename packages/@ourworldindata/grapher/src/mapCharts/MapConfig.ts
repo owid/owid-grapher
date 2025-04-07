@@ -17,7 +17,7 @@ import {
     NoUndefinedValues,
     ToleranceStrategy,
 } from "@ourworldindata/utils"
-import { SelectionArray } from "../selection/SelectionArray"
+import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { DEFAULT_GLOBE_ROTATION } from "./MapChartConstants"
 import * as R from "remeda"
 
@@ -32,7 +32,7 @@ class MapConfigDefaults {
     @observable hideTimeline?: boolean
 
     @observable region = MapRegionName.World
-    @observable selection = new SelectionArray()
+    @observable selection = new MapSelectionArray()
 
     @observable globe: GlobeConfig = {
         isActive: false,
@@ -60,7 +60,7 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
 
         // Only relevant for testing
         if (obj.selection && R.isArray<string>(obj.selection)) {
-            this.selection = new SelectionArray(obj.selection as string[])
+            this.selection = new MapSelectionArray(obj.selection as string[])
         }
     }
 

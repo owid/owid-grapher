@@ -259,6 +259,10 @@
                 background: rgba(219, 229, 240, 0.4);
             }
 
+            &--muted {
+                opacity: 0.4;
+            }
+
             &--with-bar:hover {
                 background: rgba(219, 229, 240, 0.6);
             }

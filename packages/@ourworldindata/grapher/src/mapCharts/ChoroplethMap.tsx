@@ -18,6 +18,7 @@ import {
 } from "./MapChartConstants"
 import { getGeoFeaturesForMap } from "./GeoFeatures"
 import {
+    BackgroundCountry,
     CountryWithData,
     CountryWithNoData,
     NoDataPattern,
@@ -25,6 +26,7 @@ import {
 import { Patterns } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,
+    getForegroundFeatures,
     sortFeaturesByInteractionState,
 } from "./MapHelpers"
 
@@ -106,8 +108,17 @@ export class ChoroplethMap extends React.Component<{
         return getGeoFeaturesForMap()
     }
 
+    @computed private get foregroundFeatures(): MapRenderFeature[] {
+        return getForegroundFeatures(this.features, this.manager.selectionArray)
+    }
+
+    @computed
+    private get backgroundFeatures(): MapRenderFeature[] {
+        return difference(this.features, this.foregroundFeatures)
+    }
+
     @computed private get featuresWithData(): MapRenderFeature[] {
-        const features = this.features.filter((feature) =>
+        const features = this.foregroundFeatures.filter((feature) =>
             this.choroplethData.has(feature.id)
         )
 
@@ -120,14 +131,14 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get featuresWithNoData(): MapRenderFeature[] {
-        return difference(this.features, this.featuresWithData)
+        return difference(this.foregroundFeatures, this.featuresWithData)
     }
 
     @computed private get quadtree(): Quadtree<MapRenderFeature> {
         return quadtree<MapRenderFeature>()
             .x((feature) => feature.center.x)
             .y((feature) => feature.center.y)
-            .addAll(this.features)
+            .addAll(this.foregroundFeatures)
     }
 
     // Map uses a hybrid approach to mouseover
@@ -219,6 +230,18 @@ export class ChoroplethMap extends React.Component<{
         }
     }
 
+    renderFeaturesInBackground(): React.ReactElement | void {
+        if (this.backgroundFeatures.length === 0) return
+
+        return (
+            <g id={makeIdForHumanConsumption("countries-background")}>
+                {this.backgroundFeatures.map((feature) => (
+                    <BackgroundCountry key={feature.id} feature={feature} />
+                ))}
+            </g>
+        )
+    }
+
     renderFeaturesWithoutData(): React.ReactElement | void {
         if (this.featuresWithNoData.length === 0) return
         const patternId = Patterns.noDataPatternForMap
@@ -298,6 +321,7 @@ export class ChoroplethMap extends React.Component<{
                 id={makeIdForHumanConsumption("map")}
                 transform={this.matrixTransform}
             >
+                {this.renderFeaturesInBackground()}
                 {this.renderFeaturesWithoutData()}
                 {this.renderFeaturesWithData()}
             </g>
@@ -356,6 +380,7 @@ export class ChoroplethMap extends React.Component<{
                     className={GEO_FEATURES_CLASSNAME}
                     transform={matrixTransform}
                 >
+                    {this.renderFeaturesInBackground()}
                     {this.renderFeaturesWithoutData()}
                     {this.renderFeaturesWithData()}
                 </g>

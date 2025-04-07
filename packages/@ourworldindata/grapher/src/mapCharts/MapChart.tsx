@@ -1,4 +1,5 @@
 import React from "react"
+import * as R from "remeda"
 import {
     Bounds,
     DEFAULT_BOUNDS,
@@ -10,6 +11,8 @@ import {
     HorizontalAlign,
     PrimitiveType,
     mappableCountries,
+    regions,
+    checkHasMembers,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -22,7 +25,6 @@ import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
 import { MapTooltip } from "./MapTooltip"
 import { TooltipState } from "../tooltip/Tooltip.js"
-import { isOnTheMap } from "./EntitiesOnTheMap"
 import {
     OwidTable,
     CoreColumn,
@@ -64,8 +66,9 @@ import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
-import { SelectionArray } from "../selection/SelectionArray"
 import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
+import { isOnTheMap } from "./MapHelpers.js"
+import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -107,16 +110,55 @@ export class MapChart
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
-        // drop non-map entities from the table
-        table = this.dropNonMapEntities(table)
+        table = this.addMissingMapEntities(table)
+        table = this.dropNonMapEntitiesForSelection(table)
+        return table
+    }
 
+    private dropNonMapEntities(table: OwidTable): OwidTable {
+        const entityNamesToSelect =
+            table.availableEntityNames.filter(isOnTheMap)
+        return table.filterByEntityNames(entityNamesToSelect)
+    }
+
+    private dropNonMapEntitiesForSelection(table: OwidTable): OwidTable {
+        const { selectionArray } = this
+
+        const allMappableCountryNames = mappableCountries.map((c) => c.name)
+        const allRegionNames = regions
+            .filter((r) => checkHasMembers(r) && r.code !== "OWID_WRL")
+            .map((r) => r.name)
+
+        // if no regions are currently selected, keep all mappable countries and regions
+        if (!selectionArray.hasRegions) {
+            return table.filterByEntityNames([
+                ...allRegionNames,
+                ...allMappableCountryNames,
+            ])
+        }
+
+        return table.filterByEntityNames(
+            R.unique([
+                // keep all regions
+                ...allRegionNames,
+                // only keep those countries that are within the selected regions
+                ...selectionArray.countryNamesForSelectedRegions,
+                // keep the user's selection
+                ...selectionArray.selectedEntityNames,
+            ])
+        )
+    }
+
+    private addMissingMapEntities(table: OwidTable): OwidTable {
         // the given table might not have data for all mappable countries, but
         // on the map tab, we do want every country to be selectable, even if
         // it doesn't have data for any of the years. that's why we add a
         // missing-data row for every mappable country that isn't in the table
+
         const missingMappableCountries = mappableCountries.filter(
             (country) => !table.availableEntityNameSet.has(country.name)
         )
+
         const rows = missingMappableCountries.map((country) => ({
             entityName: country.name,
             time: table.maxTime!, // arbitrary time
@@ -130,12 +172,6 @@ export class MapChart
         return table
     }
 
-    private dropNonMapEntities(table: OwidTable): OwidTable {
-        const entityNamesToSelect =
-            table.availableEntityNames.filter(isOnTheMap)
-        return table.filterByEntityNames(entityNamesToSelect)
-    }
-
     @computed get inputTable(): OwidTable {
         return this.manager.table
     }
@@ -147,7 +183,7 @@ export class MapChart
         )
     }
 
-    @computed get selectionArray(): SelectionArray {
+    @computed get selectionArray(): MapSelectionArray {
         return this.mapConfig.selection
     }
 
