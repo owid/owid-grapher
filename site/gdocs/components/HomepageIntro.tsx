@@ -98,7 +98,7 @@ function FeaturedWorkTile({
             )}
             {authors && (
                 <p className="body-3-medium-italic homepage-intro__featured-work-authors">
-                    {formatAuthors({ authors })}
+                    {formatAuthors(authors)}
                 </p>
             )}
         </a>

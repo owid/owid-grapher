@@ -1,6 +1,5 @@
-import { IndexPost, formatDate } from "@ourworldindata/utils"
+import { IndexPost, formatAuthors, formatDate } from "@ourworldindata/utils"
 import { formatUrls } from "../formatting.js"
-import { formatAuthors } from "../clientFormatting.js"
 
 const PostCard = ({
     post,
@@ -30,9 +29,7 @@ const PostCard = ({
                         )}
                     </div>
                     <div className="entry-meta">
-                        <span className="authors">{`By ${formatAuthors({
-                            authors: post.authors,
-                        })}`}</span>{" "}
+                        <span className="authors">{`By ${formatAuthors(post.authors)}`}</span>{" "}
                         {hideDate ? null : (
                             <>
                                 &mdash; <time>{formatDate(post.date)}</time>

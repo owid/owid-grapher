@@ -71,18 +71,15 @@ export const getETLPathComponents = (path: string): ETLPathComponents => {
     return { channel, producer, version, dataset, table, indicator }
 }
 
-export const formatAuthors = ({
-    authors,
-    forBibtex,
-}: {
-    authors: string[]
-    forBibtex?: boolean
-}): string => {
-    let authorsText = authors.slice(0, -1).join(forBibtex ? " and " : ", ")
-    if (authorsText.length === 0) authorsText = authors[0]
-    else authorsText += ` and ${last(authors)}`
+export function formatAuthors(authors: string[]): string {
+    if (authors.length === 0) return ""
+    if (authors.length === 1) return authors[0]
+    if (authors.length === 2) return authors.join(" and ")
+    return authors.slice(0, -1).join(", ") + `, and ${last(authors)}`
+}
 
-    return authorsText
+export function formatAuthorsForBibtex(authors: string[]): string {
+    return authors.join(" and ")
 }
 
 const isDate = (date: string): boolean => {

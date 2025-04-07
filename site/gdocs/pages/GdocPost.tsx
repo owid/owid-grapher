@@ -10,7 +10,7 @@ import {
     LICENSE_ID,
     isEmpty,
     OwidGdocType,
-    formatAuthors,
+    formatAuthorsForBibtex,
     EnrichedBlockText,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "@ourworldindata/components"
@@ -65,10 +65,7 @@ export function GdocPost({
         Boolean(content["deprecation-notice"])
 
     const bibtex = `@article{owid-${slug.replace(/\//g, "-")},
-    author = {${formatAuthors({
-        authors: content.authors,
-        forBibtex: true,
-    })}},
+    author = {${formatAuthorsForBibtex(content.authors)}},
     title = {${content.title}},
     journal = {Our World in Data},
     year = {${publishedAt?.getFullYear()}},

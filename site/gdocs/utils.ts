@@ -168,9 +168,7 @@ export function getShortPageCitation(
     title: string,
     publishedAt: Date | null
 ) {
-    return `${formatAuthors({
-        authors: authors,
-    })} (${publishedAt?.getFullYear()}) - “${title}”`
+    return `${formatAuthors(authors)} (${publishedAt?.getFullYear()}) - “${title}”`
 }
 
 export const getSubnavItem = (

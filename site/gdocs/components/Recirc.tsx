@@ -1,7 +1,6 @@
-import { EnrichedBlockRecirc } from "@ourworldindata/utils"
+import { EnrichedBlockRecirc, formatAuthors } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
 import SpanElement from "./SpanElement.js"
-import { formatAuthors } from "../../clientFormatting.js"
 
 function RecircItem({ url }: { url: string }) {
     const { linkedDocument } = useLinkedDocument(url)
@@ -14,9 +13,7 @@ function RecircItem({ url }: { url: string }) {
             </h3>
             {linkedDocument.authors ? (
                 <div className="body-3-medium-italic">
-                    {formatAuthors({
-                        authors: linkedDocument.authors,
-                    })}
+                    {formatAuthors(linkedDocument.authors)}
                 </div>
             ) : null}
         </aside>
