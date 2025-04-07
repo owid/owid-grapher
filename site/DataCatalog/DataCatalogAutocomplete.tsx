@@ -257,7 +257,7 @@ const AllResultsSource: AutocompleteSource<BaseItem> = {
     getItems({ query }) {
         return [
             {
-                slug: `/search${queryParamsToStr({ q: query })}`,
+                slug: `/data${queryParamsToStr({ q: query })}`,
                 title: `All search results for "${query}"`,
             },
         ]
