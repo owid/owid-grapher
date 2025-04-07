@@ -232,8 +232,8 @@ function calculateTargetForCountry(country: EntityName): Target | undefined {
     const geoFeature = geoFeaturesById.get(country)
     if (!geoFeature) return
 
-    const { centroid } = geoFeature
-    const coords: [number, number] = [-centroid[0], -centroid[1]]
+    const { geoCentroid } = geoFeature
+    const coords: [number, number] = [-geoCentroid[0], -geoCentroid[1]]
 
     return { coords, zoom: GLOBE_COUNTRY_ZOOM }
 }
@@ -387,7 +387,7 @@ function findVisibleCountrySubset(countryNames: string[]): string[] {
 
         // check if the centroid is visible
         const isCentroidVisible = isPointPlacedOnVisibleHemisphere(
-            feature.centroid,
+            feature.geoCentroid,
             centerPoint
         )
         if (!isCentroidVisible) return false
@@ -428,7 +428,7 @@ function clusterCountriesByCentroidLongitude(
         const feature = geoFeaturesById.get(countryName)
         if (!feature) return
 
-        const lon = R.round(feature.centroid[0], 5)
+        const lon = R.round(feature.geoCentroid[0], 5)
         nameToLon[countryName] = lon
         lonToName[lon] = countryName
     })
