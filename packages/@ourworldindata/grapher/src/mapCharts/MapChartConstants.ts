@@ -11,6 +11,7 @@ import { MapConfig } from "./MapConfig"
 import { ChartSeries } from "../chart/ChartInterface"
 import { GlobeController } from "./GlobeController"
 import { SelectionArray } from "../selection/SelectionArray"
+import { CoreColumn } from "@ourworldindata/core-table"
 
 export declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
@@ -40,6 +41,9 @@ export const GLOBE_COUNTRY_ZOOM = 2.5
 export const DEFAULT_GLOBE_ROTATION: [number, number] = [30, -20] // Atlantic ocean (i.e. Americas & Europe)
 export const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 
+export const ANNOTATION_FONT_SIZE_DEFAULT = 11
+export const ANNOTATION_FONT_SIZE_MIN = 8
+
 export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
     World: "World",
     Africa: "Africa",
@@ -61,6 +65,7 @@ export interface ChoroplethMapManager {
     choroplethData: ChoroplethSeriesByName
     choroplethMapBounds: Bounds
     mapConfig: MapConfig
+    mapColumn: CoreColumn
     globeController?: GlobeController
     selectionArray: SelectionArray
     getHoverState: (featureId: string) => InteractionState
@@ -116,3 +121,33 @@ export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
     Asia: { rotation: [-92, -25], zoom: 1.55 },
     Oceania: { rotation: [-153, 25], zoom: 2 },
 }
+
+export interface Ellipse {
+    cx: number // center x
+    cy: number // center y
+    rx: number // radius on the x-axis
+    ry: number // radius on the y-axis
+}
+
+interface BaseAnnotation {
+    featureId: string
+    label: string
+    bounds: Bounds
+    fontSize: number
+}
+
+export interface InternalAnnotation extends BaseAnnotation {
+    type: "internal"
+    ellipse: Ellipse
+}
+
+export interface ExternalAnnotation extends BaseAnnotation {
+    type: "external"
+    direction: Direction
+    anchor: [number, number]
+    isHidden?: boolean
+}
+
+export type Annotation = InternalAnnotation | ExternalAnnotation
+
+export type Direction = "left" | "right" | "top" | "bottom"

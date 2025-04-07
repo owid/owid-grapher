@@ -64,7 +64,10 @@ export { legacyToOwidTableAndDimensions } from "./core/LegacyToOwidTable"
 export { LoadingIndicator } from "./loadingIndicator/LoadingIndicator"
 export { MapChart } from "./mapCharts/MapChart"
 export { MapConfig } from "./mapCharts/MapConfig"
-export { MAP_REGION_LABELS } from "./mapCharts/MapChartConstants"
+export {
+    MAP_REGION_LABELS,
+    type GeoFeature,
+} from "./mapCharts/MapChartConstants"
 export { SelectionArray } from "./selection/SelectionArray"
 export { FocusArray } from "./focus/FocusArray"
 export {
@@ -85,3 +88,4 @@ export {
     getChartTypeFromConfig,
     getChartTypeFromConfigAndQueryParams,
 } from "./chart/ChartUtils.js"
+export { GeoFeatures } from "./mapCharts/GeoFeatures"
