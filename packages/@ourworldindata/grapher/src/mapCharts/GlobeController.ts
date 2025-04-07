@@ -3,12 +3,21 @@ import { geoCentroid, geoInterpolate, geoOrthographic, geoPath } from "d3-geo"
 import { interpolateNumber } from "d3-interpolate"
 import { easeCubicOut } from "d3-ease"
 import * as R from "remeda"
-import { EntityName, GlobeConfig, GlobeRegionName } from "@ourworldindata/types"
+import {
+    EntityName,
+    GlobeConfig,
+    GlobeRegionName,
+    MapRegionName,
+} from "@ourworldindata/types"
 import {
     Bounds,
     excludeUndefined,
     PartialBy,
     PointVector,
+    checkIsOwidContinent,
+    getCountryNamesForRegion,
+    getRegionByName,
+    checkHasMembers,
 } from "@ourworldindata/utils"
 import { MapConfig } from "./MapConfig"
 import { getGeoFeaturesForGlobe } from "./GeoFeatures"
@@ -23,10 +32,11 @@ import {
     GLOBE_MIN_ZOOM,
     GLOBE_VIEWPORTS,
     GlobeRenderFeature,
+    MAP_REGION_NAMES,
 } from "./MapChartConstants"
 import { isPointPlacedOnVisibleHemisphere } from "./MapHelpers"
 import { ckmeans } from "simple-statistics"
-import { SelectionArray } from "../selection/SelectionArray"
+import { MapSelectionArray } from "../selection/MapSelectionArray"
 
 const geoFeaturesById = new Map<string, GlobeRenderFeature>(
     getGeoFeaturesForGlobe().map((f: GlobeRenderFeature) => [f.id, f])
@@ -75,6 +85,9 @@ export class GlobeController {
         this.globeConfig.rotation = DEFAULT_GLOBE_ROTATION
         this.globeConfig.zoom = 1
         this.globeConfig.focusCountry = undefined
+
+        // also reset the current region
+        this.manager.mapConfig.region = MapRegionName.World
     }
 
     private setFocusCountry(country: EntityName): void {
@@ -130,6 +143,11 @@ export class GlobeController {
         const target = calculateTargetForSelection(
             this.manager.mapConfig.selection
         )
+        if (target) this.showGlobeAndRotateTo(target)
+    }
+
+    rotateToRegion(regionName: string): void {
+        const target = calculateTargetForRegion(regionName)
         if (target) this.showGlobeAndRotateTo(target)
     }
 
@@ -230,11 +248,47 @@ function calculateTargetBasedOnTime(): Target {
     return { coords, zoom: 1 }
 }
 
-function calculateTargetForSelection(
-    selection: SelectionArray
-): Target | undefined {
-    const countryNames = selection.selectedEntityNames
+function calculateTargetForRegion(regionName: string): Target | undefined {
+    const region = getRegionByName(regionName)
+    if (!region || !checkHasMembers(region)) return
+    const countryNames = getCountryNamesForRegion(region)
+    return calculateTargetForCountryCollection(countryNames)
+}
 
+function calculateTargetForSelection(
+    selection: MapSelectionArray
+): Target | undefined {
+    // if at least one country is selected, then rotate to the countries (and ignore the regions)
+    if (selection.selectedCountryNamesInForeground.length > 0) {
+        return calculateTargetForCountryCollection(
+            selection.selectedCountryNamesInForeground
+        )
+    }
+
+    // if a single owid continent is selected, then rotate to it
+    // (the hard-coded coords/zoom values are nicer than dynamically computing it)
+    if (
+        selection.selectedRegions.length === 1 &&
+        checkIsOwidContinent(selection.selectedRegions[0])
+    ) {
+        return calculateTargetForOwidContinent(
+            MAP_REGION_NAMES[
+                selection.selectedRegions[0].name
+            ] as GlobeRegionName
+        )
+    }
+
+    // rotate and zoom to all countries in the selected regions
+    const countryNames = [
+        ...selection.selectedCountryNamesInForeground,
+        ...selection.countryNamesForSelectedRegions,
+    ]
+    return calculateTargetForCountryCollection(countryNames)
+}
+
+function calculateTargetForCountryCollection(
+    countryNames: string[]
+): Target | undefined {
     // early return if the selection is empty or a single country is selected
     if (countryNames.length === 0) return
     if (countryNames.length === 1) {
@@ -296,9 +350,10 @@ function getCoordsAndZoomForCountryCollection(countryNames: string[]): {
 
     const bounds = excludeUndefined(
         countryNames.map((countryName) => {
-            const feature = geoFeaturesById.get(countryName)!
+            const feature = geoFeaturesById.get(countryName)
+            if (!feature) return
             const corners = geoPath().projection(projection).bounds(feature.geo)
-            if (corners[0][0] === Number.POSITIVE_INFINITY) return undefined
+            if (corners[0][0] === Number.POSITIVE_INFINITY) return
             return Bounds.fromCorners(
                 new PointVector(...corners[0]),
                 new PointVector(...corners[1])
