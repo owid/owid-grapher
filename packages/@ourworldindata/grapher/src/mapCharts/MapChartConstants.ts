@@ -11,6 +11,7 @@ import { MapConfig } from "./MapConfig"
 import { ChartSeries } from "../chart/ChartInterface"
 import { GlobeController } from "./GlobeController"
 import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
+import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 
 export declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
@@ -62,6 +63,14 @@ export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
     Oceania: "Oceania",
 }
 
+export const MAP_REGION_NAMES: Record<string, MapRegionName> =
+    Object.fromEntries(
+        Object.entries(MAP_REGION_LABELS).map(([key, value]) => [
+            value,
+            key as MapRegionName,
+        ])
+    )
+
 export interface ChoroplethSeries extends ChartSeries {
     value: number | string
     time: number
@@ -76,6 +85,7 @@ export interface ChoroplethMapManager {
     globeController?: GlobeController
     mapRegionDropdownValue?: MapRegionDropdownValue
     resetMapRegionDropdownValue?: () => void
+    selectionArray: MapSelectionArray
     getHoverState: (featureId: string) => InteractionState
     isSelected: (featureId: string) => boolean
     onMapMouseOver: (d: GeoFeature) => void

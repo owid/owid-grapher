@@ -242,6 +242,7 @@ export {
     type Region,
     countries,
     type Country,
+    type IncomeGroup,
     type OwidIncomeGroupName,
     checkIsOwidIncomeGroupName,
     getCountryBySlug,
@@ -258,6 +259,12 @@ export {
     countriesByName,
     getRegionAlternativeNames,
     mappableCountries,
+    checkIsCountry,
+    checkIsOwidContinent,
+    checkIsIncomeGroup,
+    getIncomeGroups,
+    getCountryNamesForRegion,
+    checkHasMembers,
     getRegionByName,
 } from "./regions.js"
 
