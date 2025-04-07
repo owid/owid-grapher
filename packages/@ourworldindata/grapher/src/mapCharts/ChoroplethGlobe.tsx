@@ -28,6 +28,7 @@ import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
     ChoroplethMapManager,
     ChoroplethSeriesByName,
+    DEFAULT_GLOBE_SIZE,
     GEO_FEATURES_CLASSNAME,
     GLOBE_MAX_ZOOM,
     GLOBE_MIN_ZOOM,
@@ -38,6 +39,7 @@ import {
 import { MapConfig } from "./MapConfig"
 import { getGeoFeaturesForGlobe } from "./GeoFeatures"
 import {
+    BackgroundCountry,
     CountryWithData,
     CountryWithNoData,
     NoDataPattern,
@@ -47,10 +49,10 @@ import {
     calculateDistance,
     detectNearbyFeature,
     sortFeaturesByInteractionState,
+    getForegroundFeatures,
 } from "./MapHelpers"
 import { GlobeController } from "./GlobeController"
 
-const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 const DEFAULT_SCALE = geoOrthographic().scale()
 
 @observer
@@ -92,8 +94,17 @@ export class ChoroplethGlobe extends React.Component<{
         return getGeoFeaturesForGlobe()
     }
 
+    @computed private get foregroundFeatures(): GlobeRenderFeature[] {
+        return getForegroundFeatures(this.features, this.manager.selectionArray)
+    }
+
+    @computed
+    private get backgroundFeatures(): GlobeRenderFeature[] {
+        return difference(this.features, this.foregroundFeatures)
+    }
+
     @computed private get featuresWithData(): GlobeRenderFeature[] {
-        const features = this.features.filter((feature) =>
+        const features = this.foregroundFeatures.filter((feature) =>
             this.choroplethData.has(feature.id)
         )
 
@@ -106,7 +117,7 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get featuresWithNoData(): GlobeRenderFeature[] {
-        return difference(this.features, this.featuresWithData)
+        return difference(this.foregroundFeatures, this.featuresWithData)
     }
 
     // Map uses a hybrid approach to mouseover
@@ -229,7 +240,7 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get visibleFeatures(): GlobeRenderFeature[] {
-        return this.features.filter((feature) =>
+        return this.foregroundFeatures.filter((feature) =>
             this.isFeatureCentroidVisibleOnGlobe(feature)
         )
     }
@@ -316,10 +327,10 @@ export class ChoroplethGlobe extends React.Component<{
         // select/deselect the country if allowed
         const country = feature.id
         if (this.manager.shouldEnableEntitySelectionOnMapTab)
-            this.mapConfig.selectedCountries.toggleSelection(country)
+            this.mapConfig.selection.toggleSelection(country)
 
         // make sure country focus is dismissed for unselected countries
-        if (!this.mapConfig.selectedCountries.selectedSet.has(country))
+        if (!this.mapConfig.selection.selectedSet.has(country))
             this.globeController.dismissCountryFocus()
     }
 
@@ -547,6 +558,22 @@ export class ChoroplethGlobe extends React.Component<{
         )
     }
 
+    renderFeaturesInBackground(): React.ReactElement | void {
+        if (this.backgroundFeatures.length === 0) return
+
+        return (
+            <g id={makeIdForHumanConsumption("countries-background")}>
+                {this.backgroundFeatures.map((feature) => (
+                    <BackgroundCountry
+                        key={feature.id}
+                        feature={feature}
+                        path={this.getPath(feature)}
+                    />
+                ))}
+            </g>
+        )
+    }
+
     renderFeaturesWithNoData(): React.ReactElement | void {
         if (this.featuresWithNoData.length === 0) return
 
@@ -611,6 +638,7 @@ export class ChoroplethGlobe extends React.Component<{
             <>
                 {this.renderGlobeOutline()}
                 <g id={makeIdForHumanConsumption("globe")}>
+                    {this.renderFeaturesInBackground()}
                     {this.renderFeaturesWithNoData()}
                     {this.renderFeaturesWithData()}
                 </g>
@@ -636,6 +664,7 @@ export class ChoroplethGlobe extends React.Component<{
             >
                 {this.renderGlobeOutline()}
                 <g className={GEO_FEATURES_CLASSNAME}>
+                    {this.renderFeaturesInBackground()}
                     {this.renderFeaturesWithNoData()}
                     {this.renderFeaturesWithData()}
                 </g>

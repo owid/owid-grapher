@@ -1,14 +1,29 @@
-import { geoInterpolate } from "d3-geo"
+import { geoCentroid, geoInterpolate } from "d3-geo"
 import { interpolateNumber } from "d3-interpolate"
 import { easeCubicOut } from "d3-ease"
-import { EntityName, GlobeRegionName } from "@ourworldindata/types"
+import {
+    EntityName,
+    GlobeRegionName,
+    MapRegionName,
+} from "@ourworldindata/types"
+import {
+    checkHasMembers,
+    clamp,
+    excludeUndefined,
+    getMemberNamesOfRegion,
+    getRegionByName,
+} from "@ourworldindata/utils"
 import { GlobeConfig, MapConfig } from "./MapConfig"
 import { getGeoFeaturesForGlobe } from "./GeoFeatures"
 import {
     DEFAULT_GLOBE_ROTATION,
     GLOBE_COUNTRY_ZOOM,
+    GLOBE_MAX_ZOOM,
+    GLOBE_MIN_ZOOM,
     GLOBE_VIEWPORTS,
 } from "./MapChartConstants"
+import { calculateZoomToFit } from "./MapHelpers"
+import { Geometry } from "geojson"
 
 const geoFeaturesById = new Map(getGeoFeaturesForGlobe().map((f) => [f.id, f]))
 
@@ -50,6 +65,9 @@ export class GlobeController {
         this.globeConfig.rotation = DEFAULT_GLOBE_ROTATION
         this.globeConfig.zoom = 1
         this.globeConfig.focusCountry = undefined
+
+        // also reset the current region when switching to the map
+        this.manager.mapConfig.region = MapRegionName.World
     }
 
     private setFocusCountry(country: EntityName): void {
@@ -142,6 +160,36 @@ export class GlobeController {
         void this.rotateTo(coords, zoom)
     }
 
+    jumpToRegion(regionName: string): void {
+        const geometry = makeGeometryForRegion(regionName)
+        if (!geometry) return
+
+        const centroid = geoCentroid(geometry)
+        const targetCoords: [number, number] = [-centroid[0], -centroid[1]]
+        const targetZoom = clamp(
+            calculateZoomToFit(geometry),
+            GLOBE_MIN_ZOOM,
+            GLOBE_MAX_ZOOM
+        )
+
+        this.jumpTo({ coords: targetCoords, zoom: targetZoom })
+    }
+
+    rotateToRegion(regionName: string): void {
+        const geometry = makeGeometryForRegion(regionName)
+        if (!geometry) return
+
+        const centroid = geoCentroid(geometry)
+        const targetCoords: [number, number] = [-centroid[0], -centroid[1]]
+        const targetZoom = clamp(
+            calculateZoomToFit(geometry),
+            GLOBE_MIN_ZOOM,
+            GLOBE_MAX_ZOOM
+        )
+
+        void this.rotateTo(targetCoords, targetZoom)
+    }
+
     private currentAnimation?: AbortController
     private async rotateTo(
         coords: [number, number],
@@ -220,5 +268,26 @@ export class GlobeController {
                 this.globeConfig.rotation = targetCoords
                 if (targetZoom !== undefined) this.globeConfig.zoom = targetZoom
             })
+    }
+}
+
+function makeGeometryForRegion(regionName: string):
+    | {
+          type: "GeometryCollection"
+          geometries: Geometry[]
+      }
+    | undefined {
+    const region = getRegionByName(regionName)
+    if (!region || !checkHasMembers(region)) return
+
+    // find the geo features of all member countries
+    const countryNames = getMemberNamesOfRegion(region)
+    const features = excludeUndefined(
+        countryNames.map((name) => geoFeaturesById.get(name))
+    )
+
+    return {
+        type: "GeometryCollection",
+        geometries: features.map((feature) => feature.geo.geometry),
     }
 }

@@ -10,6 +10,14 @@ import {
     HorizontalAlign,
     PrimitiveType,
     mappableCountries,
+    intersectionOfSets,
+    Continent,
+    Aggregate,
+    IncomeGroup,
+    regions,
+    getMemberNamesOfRegion,
+    checkHasMembers,
+    getRegionByName,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -22,7 +30,6 @@ import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
 import { MapTooltip } from "./MapTooltip"
 import { TooltipState } from "../tooltip/Tooltip.js"
-import { isOnTheMap } from "./EntitiesOnTheMap"
 import {
     OwidTable,
     CoreColumn,
@@ -65,6 +72,7 @@ import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
 import { SelectionArray } from "../selection/SelectionArray"
+import { isOnTheMap } from "./MapHelpers.js"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -106,23 +114,8 @@ export class MapChart
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
-        // drop non-map entities from the table
-        table = this.dropNonMapEntities(table)
-
-        // the given table might not have data for all mappable countries, but
-        // on the map tab, we do want every country to be selectable, even if
-        // it doesn't have data for any of the years. that's why we add a
-        // missing-data row for every mappable country that isn't in the table
-        const missingMappableCountries = mappableCountries.filter(
-            (country) => !table.availableEntityNameSet.has(country.name)
-        )
-        const rows = missingMappableCountries.map((country) => ({
-            entityName: country.name,
-            time: table.maxTime!, // arbitrary time
-            value: ErrorValueTypes.MissingValuePlaceholder,
-        }))
-        table = table.appendRows(rows, "Add mappable countries without data")
-
+        table = this.addMissingMapEntities(table)
+        table = this.dropNonMapEntitiesForSelection(table)
         return table
     }
 
@@ -130,6 +123,58 @@ export class MapChart
         const entityNamesToSelect =
             table.availableEntityNames.filter(isOnTheMap)
         return table.filterByEntityNames(entityNamesToSelect)
+    }
+
+    private dropNonMapEntitiesForSelection(table: OwidTable): OwidTable {
+        const allMappableCountryNames = mappableCountries.map((c) => c.name)
+        const allRegionNames = regions
+            .filter((r) => checkHasMembers(r) && r.code !== "OWID_WRL")
+            .map((r) => r.name)
+
+        const selectedRegionNames = intersectionOfSets([
+            new Set(allRegionNames),
+            this.selectionArray.selectedSet,
+        ])
+
+        // if no regions are currently selected, keep all mappable countries and regions
+        if (selectedRegionNames.size === 0) {
+            return table.filterByEntityNames([
+                ...allRegionNames,
+                ...allMappableCountryNames,
+            ])
+        }
+
+        // only keep those countries that are within the selected regions
+        const selectedRegions = Array.from(selectedRegionNames).map(
+            (name) =>
+                getRegionByName(name) as Aggregate | Continent | IncomeGroup
+        )
+        const countriesInSelectedRegions = selectedRegions.flatMap((region) =>
+            getMemberNamesOfRegion(region)
+        )
+        return table.filterByEntityNames([
+            ...allRegionNames,
+            ...countriesInSelectedRegions,
+        ])
+    }
+
+    private addMissingMapEntities(table: OwidTable): OwidTable {
+        // the given table might not have data for all mappable countries, but
+        // on the map tab, we do want every country to be selectable, even if
+        // it doesn't have data for any of the years. that's why we add a
+        // missing-data row for every mappable country that isn't in the table
+
+        const missingMappableCountries = mappableCountries.filter(
+            (country) => !table.availableEntityNameSet.has(country.name)
+        )
+
+        const rows = missingMappableCountries.map((country) => ({
+            entityName: country.name,
+            time: table.maxTime!, // arbitrary time
+            value: ErrorValueTypes.MissingValuePlaceholder,
+        }))
+
+        return table.appendRows(rows, "Add mappable countries without data")
     }
 
     @computed get inputTable(): OwidTable {
@@ -144,7 +189,7 @@ export class MapChart
     }
 
     @computed get selectionArray(): SelectionArray {
-        return this.mapConfig.selectedCountries
+        return this.mapConfig.selection
     }
 
     @computed get failMessage(): string {

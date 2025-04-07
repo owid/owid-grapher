@@ -110,7 +110,7 @@ export const grapherObjectToQueryParams = (
             : undefined,
         globe: grapher.mapConfig.globe.isActive ? "1" : "0",
         mapSelect: generateSelectedEntityNamesParam(
-            grapher.mapConfig.selectedCountries.selectedEntityNames
+            grapher.mapConfig.selection.selectedEntityNames
         ),
     }
     return params
