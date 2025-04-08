@@ -362,8 +362,8 @@ function FeaturedMetricsExplainer() {
                             <p>
                                 Explorer Featured Metrics require the whole
                                 explorer's query string, minus any query
-                                paramters that customize the grapher chart (e.g.
-                                tab, country, etc.)
+                                parameters that customize the grapher chart
+                                (country, tab, etc...)
                             </p>
                             <p>e.g.</p>
                             <p>

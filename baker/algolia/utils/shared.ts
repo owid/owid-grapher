@@ -233,6 +233,7 @@ export async function createFeaturedMetricRecords(
             tags: [featuredMetric.parentTagName],
             objectID,
             availableEntities,
+            originalAvailableEntities: correspondingRecord.availableEntities,
             score,
         }
 
