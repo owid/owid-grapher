@@ -45,6 +45,7 @@ import { Patterns } from "../core/GrapherConstants"
 import { calculateDistance, detectNearbyFeature, hasFocus } from "./MapHelpers"
 
 const DEFAULT_GLOBE_SIZE = 500 // defined by d3
+const DEFAULT_SCALE = geoOrthographic().scale()
 
 const MIN_ZOOM_SCALE = 1
 const MAX_ZOOM_SCALE = 5
@@ -169,8 +170,7 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed private get globeScale(): number {
         const { globeSize, zoomScale } = this
-        const currentScale = geoOrthographic().scale()
-        return zoomScale * currentScale * (globeSize / DEFAULT_GLOBE_SIZE)
+        return zoomScale * DEFAULT_SCALE * (globeSize / DEFAULT_GLOBE_SIZE)
     }
 
     @computed private get globeRadius(): number {
@@ -203,8 +203,17 @@ export class ChoroplethGlobe extends React.Component<{
         return this.pathContext.result()
     }
 
-    /** Check if a country is visible on the rendered 3d globe from the current viewing angle */
-    private isFeatureVisibleOnGlobe(feature: GlobeRenderFeature): boolean {
+    /**
+     * Check if a country is visible on the rendered 3d globe from the current
+     * viewing angle, without taking into account the zoom level.
+     *
+     * More specifically, this function checks if the feature's _centroid_ is
+     * visible on the globe, i.e. parts of a country could still be visible
+     * even if the centroid is not.
+     */
+    private isFeatureCentroidVisibleOnGlobe(
+        feature: GlobeRenderFeature
+    ): boolean {
         const { globeRotation } = this
         const { centroid } = feature
 
@@ -238,7 +247,7 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed private get visibleFeatures(): GlobeRenderFeature[] {
         return this.features.filter((feature) =>
-            this.isFeatureVisibleOnGlobe(feature)
+            this.isFeatureCentroidVisibleOnGlobe(feature)
         )
     }
 
@@ -506,13 +515,18 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     componentDidMount(): void {
-        document.addEventListener("touchstart", this.onDocumentClick, true)
+        document.addEventListener("touchstart", this.onDocumentClick, {
+            capture: true,
+            passive: true,
+        })
 
         this.setUpPanningAndZooming()
     }
 
     componentWillUnmount(): void {
-        document.removeEventListener("touchstart", this.onDocumentClick, true)
+        document.removeEventListener("touchstart", this.onDocumentClick, {
+            capture: true,
+        })
 
         if (this.rotateFrameId) cancelAnimationFrame(this.rotateFrameId)
         if (this.zoomFrameId) cancelAnimationFrame(this.zoomFrameId)
