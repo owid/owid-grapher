@@ -21,6 +21,7 @@ const DATA_CATALOG_ATTRIBUTES = [
     "title",
     "slug",
     "availableEntities",
+    "originalAvailableEntities",
     "variantName",
     "type",
     "queryParams",
@@ -46,6 +47,7 @@ export type IDataCatalogHit = {
     title: string
     slug: string
     availableEntities: string[]
+    originalAvailableEntities?: string[]
     objectID: string
     variantName: string | null
     type: ChartRecordType
