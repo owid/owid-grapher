@@ -18,6 +18,21 @@ interface ExplorerWithUserInfo extends DbPlainExplorer {
     email: string | null
 }
 
+// Define a type for the explorer configuration
+type ExplorerConfig = {
+    blocks?: {
+        type: string
+        block?: {
+            grapherId?: string | number
+            yVariableIds?: string
+            xVariableId?: string
+            colorVariableId?: string
+            sizeVariableId?: string
+        }[]
+    }[]
+    isPublished?: string
+}
+
 function createLastCommit(
     row: { lastEditedAt: Date; commitMessage: string },
     fullName?: string | null,
@@ -32,7 +47,7 @@ function createLastCommit(
     return JSON.stringify(lastCommit)
 }
 
-function detectChartIds(config: any): number[] {
+function detectChartIds(config: ExplorerConfig): number[] {
     const chartIds: number[] = []
     if (config.blocks && Array.isArray(config.blocks)) {
         for (const block of config.blocks) {
@@ -48,9 +63,7 @@ function detectChartIds(config: any): number[] {
     return chartIds
 }
 
-function detectVariableIdsAndCatalogPaths(config: {
-    [key: string]: any
-}): Set<string> {
+function detectVariableIdsAndCatalogPaths(config: ExplorerConfig): Set<string> {
     const variableIdsAndCatalogPaths = new Set<string>()
     if (config.blocks && Array.isArray(config.blocks)) {
         for (const block of config.blocks) {
@@ -96,7 +109,7 @@ async function validateChartIds(
 export async function upsertExplorerCharts(
     knex: KnexReadWriteTransaction,
     slug: string,
-    config: any
+    config: ExplorerConfig
 ): Promise<void> {
     const detected = detectChartIds(config)
     const validChartIds = new Set(await validateChartIds(knex, detected))
@@ -153,7 +166,7 @@ async function validateVariableIds(
 export async function upsertExplorerVariables(
     knex: KnexReadWriteTransaction,
     slug: string,
-    config: any
+    config: ExplorerConfig
 ): Promise<void> {
     // Get all variable ids and catalog paths from the explorer config.
     const proposed = detectVariableIdsAndCatalogPaths(config)
@@ -275,8 +288,8 @@ export async function upsertExplorer(
         })
     }
 
-    upsertExplorerCharts(knex, slug, JSON.parse(config))
-    upsertExplorerVariables(knex, slug, JSON.parse(config))
+    await upsertExplorerCharts(knex, slug, JSON.parse(config))
+    await upsertExplorerVariables(knex, slug, JSON.parse(config))
 
     return slug
 }
