@@ -366,11 +366,16 @@ export class ChoroplethMap extends React.Component<{
     }
 
     componentDidMount(): void {
-        document.addEventListener("touchstart", this.onDocumentClick, true)
+        document.addEventListener("touchstart", this.onDocumentClick, {
+            capture: true,
+            passive: true,
+        })
     }
 
     componentWillUnmount(): void {
-        document.removeEventListener("touchstart", this.onDocumentClick, true)
+        document.removeEventListener("touchstart", this.onDocumentClick, {
+            capture: true,
+        })
     }
 
     renderInteractive(): React.ReactElement {
