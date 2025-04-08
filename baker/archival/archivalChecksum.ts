@@ -75,22 +75,20 @@ export const getLatestArchivedVersionsFromDb = async (
 ): Promise<
     Pick<
         DbPlainArchivedChartVersion,
-        "grapherId" | "grapherSlug" | "archivalTimestamp" | "hashOfInputs"
+        "grapherId" | "grapherSlug" | "archivalTimestamp"
     >[]
 > => {
-    return db.knexRaw(
-        knex,
-        `-- sql
-        SELECT grapherId, grapherSlug, archivalTimestamp, hashOfInputs
-        FROM archived_chart_versions a1
-        WHERE (grapherId, archivalTimestamp) IN (SELECT grapherId, MAX(archivalTimestamp) FROM archived_chart_versions a2 GROUP BY grapherId)
-            AND (
-                 grapherId IN (:chartIds)
-                 OR (:chartIdsIsNull)
-            )
-        `,
-        { chartIds: chartIds ?? null, chartIdsIsNull: !chartIds }
-    )
+    const queryBuilder = knex(ArchivedChartVersionsTableName)
+        .select("grapherId", "grapherSlug", "archivalTimestamp")
+        .whereRaw(
+            `(grapherId, archivalTimestamp) IN (SELECT grapherId, MAX(archivalTimestamp) FROM archived_chart_versions a2 GROUP BY grapherId)`
+        )
+
+    if (chartIds) {
+        queryBuilder.whereIn("grapherId", chartIds)
+    }
+
+    return await queryBuilder
 }
 
 const hashChecksumsObj = (checksums: GrapherChecksums) => {
