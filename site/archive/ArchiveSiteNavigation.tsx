@@ -47,9 +47,10 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                                 className="archive-navigation-bar__button-left"
                                 href={props.previousVersion.url}
                                 theme="outline-white"
-                                text="Go to the previous version"
                                 icon={faArrowLeft}
                                 iconPosition="left"
+                                text="Go to the previous version"
+                                dataTrackNote="archive-header-go-to-previous"
                             />
                         )}
                         {props.liveUrl && (
@@ -58,8 +59,8 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                                 href={props.liveUrl}
                                 theme="solid-dark-blue"
                                 icon={null}
-                                text="Go to the latest version"
-                                dataTrackNote="archive-header-back-to-homepage"
+                                text="Go to the live version"
+                                dataTrackNote="archive-header-go-to-live"
                             />
                         )}
                         {props.nextVersion && (
@@ -67,9 +68,10 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                                 className="archive-navigation-bar__button-right"
                                 href={props.nextVersion.url}
                                 theme="outline-white"
-                                text="Go to the next version"
                                 icon={faArrowRight}
                                 iconPosition="right"
+                                text="Go to the next version"
+                                dataTrackNote="archive-header-go-to-next"
                             />
                         )}
                     </div>
