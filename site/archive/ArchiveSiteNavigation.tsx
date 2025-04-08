@@ -31,14 +31,17 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
 
     return (
         <nav className="archive-navigation-bar">
-            <div className="wrapper">
+            <div className="archive-navigation-bar__wrapper">
+                <div className="archive-navigation-bar__archive_text">
+                    Archive
+                </div>
                 <div className="archive-navigation-bar__date">
                     <span className="archive-navigation-bar__date-value">
                         {dayjs.utc(props.archiveDate).format(DATE_FORMAT)}
                     </span>
                 </div>
                 {hasButtons && (
-                    <div className="archive-navigation-bar__buttons grid grid-cols-3">
+                    <div className="archive-navigation-bar__buttons grid grid-cols-3 grid-sm-cols-1">
                         {props.previousVersion && (
                             <Button
                                 className="archive-navigation-bar__button-left"
