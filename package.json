@@ -223,7 +223,7 @@
         "@vitest/coverage-v8": "^3.1.1",
         "@wojtekmaj/enzyme-adapter-react-17": "^0.8.0",
         "@yarnpkg/types": "^4.0.0",
-        "bundlewatch": "^0.4.0",
+        "bundlewatch": "^0.4.1",
         "cypress": "^14.1.0",
         "enzyme": "^3.11.0",
         "eslint": "^9.23.0",
