@@ -23,6 +23,7 @@ import {
     isTouchDevice,
     getRelativeMouse,
     checkIsTouchEvent,
+    PointVector,
 } from "@ourworldindata/utils"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
@@ -170,6 +171,10 @@ export class ChoroplethGlobe extends React.Component<{
         const { globeSize, zoomScale } = this
         const currentScale = geoOrthographic().scale()
         return zoomScale * currentScale * (globeSize / DEFAULT_GLOBE_SIZE)
+    }
+
+    @computed private get globeRadius(): number {
+        return (this.globeSize / 2) * this.zoomScale
     }
 
     @computed private get globeRotation(): [number, number] {
@@ -359,7 +364,8 @@ export class ChoroplethGlobe extends React.Component<{
             // for panning
             let startCoords: [number, number, number],
                 startQuat: [number, number, number, number],
-                startRot: [number, number, number]
+                startRot: [number, number, number],
+                previousPos: [number, number]
 
             // for zooming
             let startDistance: number | undefined
@@ -378,12 +384,13 @@ export class ChoroplethGlobe extends React.Component<{
                 }
 
                 const startPanning = (): void => {
-                    const pos = getRelativeMouse(base, event.sourceEvent)
-                    startCoords = versor.cartesian(
-                        this.projection.invert([pos.x, pos.y])
-                    )
+                    const posVector = getRelativeMouse(base, event.sourceEvent)
+                    const pos: [number, number] = [posVector.x, posVector.y]
+
+                    startCoords = versor.cartesian(this.projection.invert(pos))
                     startRot = this.projection.rotate()
                     startQuat = versor(startRot)
+                    previousPos = pos
                 }
 
                 if (type === "zoom-pinch") startPinching()
@@ -422,19 +429,50 @@ export class ChoroplethGlobe extends React.Component<{
                 }
 
                 const panning = (): void => {
-                    const pos = getRelativeMouse(base, event.sourceEvent)
-                    const currCoords = versor.cartesian(
-                        this.projection.rotate(startRot).invert([pos.x, pos.y])
-                    )
-                    const delta = versor.delta(startCoords, currCoords)
-                    const quat = versor.multiply(startQuat, delta)
-                    const rotation = versor.rotation(quat)
+                    const posVector = getRelativeMouse(base, event.sourceEvent)
+                    const pos: [number, number] = [posVector.x, posVector.y]
 
-                    // Ignore the gamma channel for more intuitive rotation
-                    // (see https://observablehq.com/@d3/three-axis-rotation
-                    // for a visual explanation of three-axis rotation).
-                    // As a side effect, rotation around the poles feels off.
-                    this.rotateGlobe([rotation[0], rotation[1]])
+                    // True if the cursor is currently over the globe
+                    const isDraggingGlobe = isPointInCircle(posVector, {
+                        cx: this.globeCenter[0],
+                        cy: this.globeCenter[1],
+                        r: this.globeRadius,
+                    })
+
+                    if (isDraggingGlobe) {
+                        // If the user is dragging the globe, then use a
+                        // rotation strategy that ensures the geographic start
+                        // point remains under the cursor where possible
+
+                        const currCoords = versor.cartesian(
+                            this.projection.rotate(startRot).invert(pos)
+                        )
+                        const delta = versor.delta(startCoords, currCoords)
+                        const quat = versor.multiply(startQuat, delta)
+                        const rotation = versor.rotation(quat)
+
+                        // Ignore the gamma channel for more intuitive rotation
+                        // see https://observablehq.com/@d3/three-axis-rotation
+                        // for a visual explanation of three-axis rotation.
+                        // As a side effect, rotation around the poles feels off.
+                        this.rotateGlobe([rotation[0], rotation[1]])
+                    } else {
+                        // If the user's cursor is outside of the globe, then
+                        // adjust the globe's rotation based on the cursor's
+                        // movement, applying a sensitivity factor to control
+                        // the speed of rotation
+
+                        const sensitivity = 0.8
+                        const r = this.globeRotation
+                        const dx = pos[0] - previousPos[0]
+                        const dy = pos[1] - previousPos[1]
+                        this.rotateGlobe([
+                            r[0] + sensitivity * dx,
+                            r[1] - sensitivity * dy,
+                        ])
+                    }
+
+                    previousPos = pos
                 }
 
                 const type = getInteractionType(event)
@@ -487,7 +525,7 @@ export class ChoroplethGlobe extends React.Component<{
                     id={makeIdForHumanConsumption("globe-sphere")}
                     cx={this.globeCenter[0]}
                     cy={this.globeCenter[1]}
-                    r={(this.globeSize / 2) * this.zoomScale}
+                    r={this.globeRadius}
                     fill="#fafafa"
                 />
                 <path
@@ -619,4 +657,17 @@ const calculatePinchDistance = (event: TouchEvent): number => {
         [touches[0].clientX, touches[0].clientY],
         [touches[1].clientX, touches[1].clientY]
     )
+}
+
+function isPointInCircle(
+    point: PointVector,
+    circle: { cx: number; cy: number; r: number }
+): boolean {
+    const { x, y } = point
+    const { cx, cy, r } = circle
+
+    const distanceSquared = (x - cx) ** 2 + (y - cy) ** 2
+    const radiusSquared = r ** 2
+
+    return distanceSquared <= radiusSquared
 }
