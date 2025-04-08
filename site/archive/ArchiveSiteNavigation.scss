@@ -1,21 +1,19 @@
-.archive-site-navigation {
-    .archive-header-logo-bar {
-        position: relative;
-        z-index: $zindex-lightbox;
-        border-bottom: $header-border-height solid $vermillion;
-        background-color: $oxford-blue;
+.archive-header-logo-bar {
+    position: relative;
+    z-index: $zindex-lightbox;
+    border-bottom: $header-border-height solid $vermillion;
+    background-color: $oxford-blue;
 
-        .site-logos {
-            justify-content: start;
+    .site-logos {
+        justify-content: start;
 
-            .logos-wrapper {
-                display: flex;
-            }
+        .logos-wrapper {
+            display: flex;
         }
-
-        padding-top: 12px;
-        padding-bottom: 12px;
     }
+
+    padding-top: 12px;
+    padding-bottom: 12px;
 }
 
 .archive-navigation-bar {
