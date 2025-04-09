@@ -23,6 +23,8 @@ import type {
     ArchiveMetaInformation,
     UrlAndMaybeDate,
 } from "../../site/archive/archiveTypes.js"
+import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
+import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../settings/serverSettings.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
@@ -54,14 +56,36 @@ export const copyPublicDir = async (archiveDir: string) => {
     })
 }
 
-export const bakeDods = async (archiveDir: string) => {
-    const srcFile = path.join(projBaseDir, "localBake/dods.json")
-    const targetDir = path.join(archiveDir, "assets")
+export const bakeDods = async (
+    knex: db.KnexReadonlyTransaction,
+    archiveDir: string
+) => {
+    if (!GDOCS_DETAILS_ON_DEMAND_ID) {
+        throw new Error(
+            "GDOCS_DETAILS_ON_DEMAND_ID not set. Unable to bake dods."
+        )
+    }
 
-    const newFilename = await hashAndCopyFile(srcFile, targetDir).then(
-        (filename) => path.basename(filename)
-    )
-    return { "dods.json": `/assets/${newFilename}` }
+    const { details, parseErrors } = await GdocPost.getDetailsOnDemandGdoc(knex)
+    if (parseErrors.length) {
+        throw new Error(
+            `Error(s) baking details: ${parseErrors
+                .map((e) => e.message)
+                .join(", ")}`
+        )
+    }
+
+    if (details) {
+        const targetPath = path.join(archiveDir, "assets", "dods.json")
+        const resultFilename = await hashAndWriteFile(
+            targetPath,
+            JSON.stringify(details)
+        ).then((fullPath) => path.basename(fullPath))
+
+        return { "dods.json": `/assets/${resultFilename}` }
+    } else {
+        throw Error("Details on demand not found")
+    }
 }
 
 const bakeVariableDataFiles = async (
@@ -190,7 +214,7 @@ const archiveVariableIds = async (
 export const bakeGrapherPagesToFolder = async (
     dir: string,
     grapherChecksumsObjsToBeArchived: GrapherChecksumsObjectWithHash[],
-    { copyToLatestDir = false }: { copyToLatestDir?: boolean } = {}
+    { shouldCopyToLatestDir = false }: { shouldCopyToLatestDir?: boolean } = {}
 ) => {
     const archiveDir = path.resolve(projBaseDir, dir)
 
@@ -203,10 +227,9 @@ export const bakeGrapherPagesToFolder = async (
 
     console.log(`Baking site locally to dir '${dir}'`)
 
-    const commonRuntimeFiles = await bakeDods(archiveDir)
-
     const manifests: Record<number, ArchivalManifest> = {}
     await db.knexReadonlyTransaction(async (trx) => {
+        const commonRuntimeFiles = await bakeDods(trx, archiveDir)
         const imageMetadataDictionary = await getAllImages(trx).then((images) =>
             keyBy(images, "filename")
         )
@@ -312,35 +335,40 @@ export const bakeGrapherPagesToFolder = async (
         console.log(`Baked ${grapherConfigs.length} grapher pages`)
     })
 
-    if (copyToLatestDir) {
-        // we want to the baked site to an overwrite-only `latest` directory,
-        // where we never delete files, only add new ones or overwrite existing ones
-        const latestDir = path.join(archiveDir, "latest")
-        await fs.mkdirp(latestDir)
-
-        let filesCopied = 0,
-            dirsCopied = 0
-        for await (const file of await fs.opendir(dir, { recursive: true })) {
-            console.log(`Copying ${file.name}`)
-            const relativePath = path.relative(dir, file.path)
-
-            if (file.isDirectory()) {
-                dirsCopied++
-                await fs.mkdirp(path.join(latestDir, relativePath))
-            } else if (file.isFile()) {
-                filesCopied++
-                await fs.copy(
-                    path.join(file.path, file.name),
-                    path.join(latestDir, relativePath, file.name),
-                    { overwrite: true }
-                )
-            }
-        }
-
-        console.log(
-            `Copied ${dir} to ${latestDir} (${filesCopied} files, ${dirsCopied} dirs)`
-        )
+    if (shouldCopyToLatestDir) {
+        await copyToLatestDir(archiveDir, dir)
     }
 
     return { date, manifests }
+}
+
+async function copyToLatestDir(archiveDir: string, dir: string) {
+    // we want to copy the baked site to an overwrite-only `latest` directory,
+    // where we never delete files, only add new ones or overwrite existing ones
+
+    const latestDir = path.join(archiveDir, "latest")
+    await fs.mkdirp(latestDir)
+
+    let filesCopied = 0,
+        dirsCopied = 0
+    for await (const file of await fs.opendir(dir, { recursive: true })) {
+        console.log(`Copying ${file.name}`)
+        const relativePath = path.relative(dir, file.path)
+
+        if (file.isDirectory()) {
+            dirsCopied++
+            await fs.mkdirp(path.join(latestDir, relativePath))
+        } else if (file.isFile()) {
+            filesCopied++
+            await fs.copy(
+                path.join(file.path, file.name),
+                path.join(latestDir, relativePath, file.name),
+                { overwrite: true }
+            )
+        }
+    }
+
+    console.log(
+        `Copied ${dir} to ${latestDir} (${filesCopied} files, ${dirsCopied} dirs)`
+    )
 }
