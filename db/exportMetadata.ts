@@ -33,7 +33,7 @@ async function dataExport(): Promise<void> {
 
     // Dump all tables including schema
     await execWrapper(
-        `mysqldump --default-character-set=utf8mb4 --no-tablespaces -u '${GRAPHER_DB_USER}' -h '${GRAPHER_DB_HOST}' -P ${GRAPHER_DB_PORT} ${GRAPHER_DB_NAME} ${excludeTables
+        `mysqldump --default-character-set=utf8mb4 --no-tablespaces --column-statistics -u '${GRAPHER_DB_USER}' -h '${GRAPHER_DB_HOST}' -P ${GRAPHER_DB_PORT} ${GRAPHER_DB_NAME} ${excludeTables
             .map(
                 (tableName) => `--ignore-table=${GRAPHER_DB_NAME}.${tableName}`
             )
