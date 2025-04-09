@@ -158,7 +158,6 @@
         "simple-statistics": "^7.3.2",
         "string-pixel-width": "^1.10.0",
         "striptags": "^3.2.0",
-        "svgo": "^3.0.2",
         "timezone-mock": "^1.0.18",
         "topojson-client": "^3.1.0",
         "ts-pattern": "^5.0.5",
