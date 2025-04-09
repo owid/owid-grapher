@@ -54,7 +54,7 @@ export const SiteNavigationTopics = ({
                 <div className="heading">Browse by topic</div>
                 <ul>
                     {tagGraph.children.map((area) => (
-                        <li key={area.slug}>
+                        <li key={area.id}>
                             <button
                                 aria-label={`Toggle ${area.name} sub-menu`}
                                 onClick={() => {
@@ -80,7 +80,7 @@ export const SiteNavigationTopics = ({
                     onClick={stopPropagation}
                 >
                     {getAllChildrenOfArea(activeArea).map((topic) => (
-                        <SiteNavigationTopic key={topic.slug} topic={topic} />
+                        <SiteNavigationTopic key={topic.id} topic={topic} />
                     ))}
                 </ul>
             )}
