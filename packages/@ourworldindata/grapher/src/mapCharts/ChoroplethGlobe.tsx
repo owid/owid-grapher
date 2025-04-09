@@ -282,8 +282,8 @@ export class ChoroplethGlobe extends React.Component<{
             const newZoom = this.zoomScale * (1 + delta * sensitivity)
             this.mapConfig.globe.zoom = clamp(
                 newZoom,
-                MIN_ZOOM_SCALE,
-                MAX_ZOOM_SCALE
+                GLOBE_MIN_ZOOM,
+                GLOBE_MAX_ZOOM
             )
         })
     }
