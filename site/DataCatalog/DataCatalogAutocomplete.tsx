@@ -81,22 +81,32 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
     onSelect,
     getItemUrl,
     getItems() {
-        return ["CO2", "Energy", "Education", "Poverty", "Democracy"].map(
-            (term) => ({
+        return ["CO2", "Energy", "Education", "Poverty", "Democracy"]
+            .map((term) => term.toLowerCase())
+            .map((term) => ({
                 title: term,
                 slug: `/data${queryParamsToStr({ q: term })}`,
-            })
-        )
+                type: AutocompleteItemType.Featured,
+            }))
+    },
+    getItemInputValue({ item }) {
+        return item.title as string
     },
 
     templates: {
-        header: () => (
-            <h5 className="overline-black-caps">Featured Searches</h5>
-        ),
         item: ({ item }) => {
             return (
-                <div>
-                    <span>{item.title}</span>
+                <div
+                    className="aa-ItemWrapper"
+                    key={item.title as string}
+                    translate="no"
+                >
+                    <div className="aa-ItemContent">
+                        <div className="aa-ItemIcon">
+                            <FontAwesomeIcon icon={faSearch} />
+                        </div>
+                        <div>{item.title}</div>
+                    </div>
                 </div>
             )
         },
@@ -118,7 +128,7 @@ const getUnmatchedQueryPart = (item: BaseItem, query: string): string => {
                 (matchedWord: string) => matchedWord.toLowerCase() === word
             )
     )
-    return unmatchedWords.join(" ")
+    return unmatchedWords.join(" ").toLowerCase()
 }
 
 const CountriesSource = (
@@ -131,6 +141,9 @@ const CountriesSource = (
         sourceId: AutocompleteSources.COUNTRIES,
         getItemUrl() {
             return undefined
+        },
+        getItemInputValue({ item, state }) {
+            return getUnmatchedQueryPart(item, state.query) || " " // hack: an empty string returns the query
         },
         getItems({ query }) {
             if (!query) return []
@@ -195,6 +208,9 @@ const TopicsSource = (
         getItemUrl() {
             return undefined
         },
+        getItemInputValue({ item, state }) {
+            return getUnmatchedQueryPart(item, state.query) || " " // hack: an empty string returns the query
+        },
         getItems({ query }) {
             if (!query) return []
 
@@ -250,17 +266,21 @@ const TopicsSource = (
     }
 }
 
-const AllResultsSource: AutocompleteSource<BaseItem> = {
-    sourceId: AutocompleteSources.RUN_SEARCH,
+const CurrentQuerySource: AutocompleteSource<BaseItem> = {
+    sourceId: AutocompleteSources.CURRENT_QUERY,
     onSelect,
     getItemUrl,
     getItems({ query }) {
         return [
             {
                 slug: `/data${queryParamsToStr({ q: query })}`,
-                title: `All search results for "${query}"`,
+                title: query,
+                type: AutocompleteItemType.CurrentQuery,
             },
         ]
+    },
+    getItemInputValue({ item }) {
+        return item.title as string
     },
 
     templates: {
@@ -271,7 +291,12 @@ const AllResultsSource: AutocompleteSource<BaseItem> = {
                         <div className="aa-ItemIcon">
                             <FontAwesomeIcon icon={faSearch} />
                         </div>
-                        <div className="aa-ItemContentBody">{item.title}</div>
+                        <div
+                            className="aa-ItemContentBody"
+                            style={{ fontWeight: "bold" }}
+                        >
+                            {item.title}
+                        </div>
                     </div>
                 </div>
             )
@@ -376,6 +401,7 @@ export function DataCatalogAutocomplete({
             classNames: {
                 panel: panelClassName,
             },
+            debug: true,
             openOnFocus: true,
             onStateChange({ state, prevState }) {
                 if (!prevState.isOpen && state.isOpen) {
@@ -401,17 +427,22 @@ export function DataCatalogAutocomplete({
                     !activeItem ||
                     !activeItemCollection ||
                     activeItemCollection.source.sourceId ===
-                        AutocompleteSources.RUN_SEARCH
+                        AutocompleteSources.CURRENT_QUERY
                 )
                     return
 
                 // If the active item is not null, we need to add it to the pending filters
-                search.setQuery(getUnmatchedQueryPart(activeItem, state.query))
+                // search.setQuery(getUnmatchedQueryPart(activeItem, state.query))
 
+                const prevSourceId = getActiveItemCollection(prevState)?.source
+                    .sourceId as AutocompleteSources | undefined
                 const shouldAddActiveItem =
                     prevState.activeItemId === null ||
-                    getActiveItemCollection(prevState)?.source.sourceId ===
-                        AutocompleteSources.RUN_SEARCH
+                    (prevSourceId !== undefined &&
+                        ![
+                            AutocompleteSources.COUNTRIES,
+                            AutocompleteSources.TOPICS,
+                        ].includes(prevSourceId))
 
                 match(activeItem.type as AutocompleteItemType)
                     .with(AutocompleteItemType.Country, () => {
@@ -438,7 +469,7 @@ export function DataCatalogAutocomplete({
                         }
                     )
                     .otherwise(() => {
-                        // Catch-all for other non-referenced item types
+                        // do nothing. Updating the query is handled through the getItemInputValue fn
                     })
             },
             onSubmit({ state }) {
@@ -457,7 +488,7 @@ export function DataCatalogAutocomplete({
                 const sources: AutocompleteSource<BaseItem>[] = []
                 const debugOnlyCoreSources = true
                 if (query && query.length >= minQueryLength) {
-                    sources.push(AlgoliaSource, AllResultsSource)
+                    sources.push(CurrentQuerySource, AlgoliaSource)
                     sources.push(
                         CountriesSource(
                             pendingFiltersRef.current,
@@ -490,10 +521,9 @@ export function DataCatalogAutocomplete({
                 if (debugOnlyCoreSources) {
                     return sources.filter(
                         (source) =>
-                            ![
-                                AutocompleteSources.AUTOCOMPLETE,
-                                AutocompleteSources.COMBINED_FILTERS,
-                            ].includes(source.sourceId as AutocompleteSources)
+                            ![AutocompleteSources.COMBINED_FILTERS].includes(
+                                source.sourceId as AutocompleteSources
+                            )
                     )
                 }
 

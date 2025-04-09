@@ -229,13 +229,9 @@ section[data-autocomplete-source-id="autocomplete"] {
     }
 }
 
-section[data-autocomplete-source-id="runSearch"] {
-    &:not(:first-child) {
-        border-top: 1px solid $blue-10;
-        margin-top: 10px;
-        padding-top: 10px;
-    }
-
+section[data-autocomplete-source-id="runSearch"],
+section[data-autocomplete-source-id="autocomplete"],
+section[data-autocomplete-source-id="suggestedSearch"] {
     .aa-Item {
         padding: 9px;
     }

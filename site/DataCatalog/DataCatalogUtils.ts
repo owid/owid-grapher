@@ -9,8 +9,9 @@ import {
     indexNameToSubdirectoryMap,
     IPageHit,
     SearchIndexName,
+    WordpressPageType,
 } from "../search/searchTypes.js"
-import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
+import { TagGraphNode, TagGraphRoot, OwidGdocType } from "@ourworldindata/types"
 import {
     CatalogComponentId,
     DataCatalogState,
@@ -94,12 +95,18 @@ export enum AutocompleteSources {
     COUNTRIES = "countries",
     TOPICS = "topics",
     COMBINED_FILTERS = "combinedFilters",
-    RUN_SEARCH = "runSearch",
+    CURRENT_QUERY = "runSearch",
 }
+
 export enum AutocompleteItemType {
-    Country = "country",
-    TopicPage = "topic-page",
-    LinearTopicPage = "linear-topic-page",
+    Country = WordpressPageType.Country,
+    TopicPage = OwidGdocType.TopicPage,
+    LinearTopicPage = OwidGdocType.LinearTopicPage,
+    Chart = ChartRecordType.Chart,
+    ExplorerView = ChartRecordType.ExplorerView,
+    MultiDimView = ChartRecordType.MultiDimView,
+    Featured = "featured",
+    CurrentQuery = "currentQuery",
 }
 
 /**
