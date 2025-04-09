@@ -25,6 +25,10 @@ import type {
 } from "../../site/archive/archiveTypes.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../settings/serverSettings.js"
+import {
+    getEnrichedChartsByIds,
+    getRawChartsByIds,
+} from "../../db/model/Chart.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
@@ -241,28 +245,18 @@ export const bakeGrapherPagesToFolder = async (
             trx,
             grapherIds
         ).then((rows) => keyBy(rows, (v) => v.grapherId))
-        const grapherConfigs = await db
-            .knexRaw<{
-                chartId: number
-                chartConfigId: string
-                fullConfig: JsonString
-            }>(
-                trx,
-                `-- sql
-            SELECT c.id AS chartId, cc.id AS chartConfigId, cc.full AS fullConfig
-            FROM charts c
-            JOIN chart_configs cc ON cc.id = c.configId
-            WHERE c.id IN (?)
-        `,
-                [grapherIds]
-            )
-            .then((rows) =>
-                rows.map((r) => ({
-                    chartId: r.chartId,
-                    chartConfigId: r.chartConfigId,
-                    config: parseChartConfig(r.fullConfig),
-                }))
-            )
+        const grapherConfigs = await getEnrichedChartsByIds(
+            trx,
+            grapherIds
+        ).then((rows) =>
+            rows.map((r) => ({
+                chartId: r.id,
+                chartConfigId: r.configId,
+                config: r.config,
+            }))
+        )
+        if (grapherIds.length !== grapherConfigs.length)
+            throw new Error("Couldn't find some grapher config during archival")
         const allVariableIds = new Set(
             grapherConfigs.flatMap(
                 (c) => c.config.dimensions?.map((d) => d.variableId) ?? []

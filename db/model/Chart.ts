@@ -156,6 +156,25 @@ export async function getRawChartById(
     return chart
 }
 
+export async function getRawChartsByIds(
+    knex: db.KnexReadonlyTransaction,
+    ids: number[]
+): Promise<(DbPlainChart & { config: DbRawChartConfig["full"] })[]> {
+    const charts = await db.knexRaw<
+        DbPlainChart & { config: DbRawChartConfig["full"] }
+    >(
+        knex,
+        `-- sql
+            SELECT c.*, cc.full AS config
+            FROM charts c
+            JOIN chart_configs cc ON c.configId = cc.id
+            WHERE id IN (?)
+        `,
+        [ids]
+    )
+    return charts
+}
+
 export async function getPatchConfigByChartId(
     knex: db.KnexReadonlyTransaction,
     id: number
@@ -181,6 +200,17 @@ export async function getEnrichedChartById(
     const rawChart = await getRawChartById(knex, id)
     if (!rawChart) return null
     return { ...rawChart, config: parseChartConfig(rawChart.config) }
+}
+
+export async function getEnrichedChartsByIds(
+    knex: db.KnexReadonlyTransaction,
+    ids: number[]
+): Promise<(DbPlainChart & { config: DbEnrichedChartConfig["full"] })[]> {
+    const charts = await getRawChartsByIds(knex, ids)
+    return charts.map((rawChart) => ({
+        ...rawChart,
+        config: parseChartConfig(rawChart.config),
+    }))
 }
 
 export async function getChartSlugById(
