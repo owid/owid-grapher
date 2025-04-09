@@ -3,7 +3,6 @@ import { expect, it, describe } from "vitest"
 import * as cheerio from "cheerio"
 import { WP_ColumnStyle } from "@ourworldindata/utils"
 import { splitContentIntoSectionsAndColumns } from "./formatting.js"
-import { formatAuthors } from "./clientFormatting.js"
 import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 
 const paragraph = `<p>Some paragraph</p>`
@@ -154,27 +153,5 @@ describe("splits consecutive charts in side-by-side columns", () => {
         splitContentIntoSectionsAndColumns($)
         testColumnsContent($, chart, chart2, WP_ColumnStyle.SideBySide)
         testColumnsContent($, chart3, "", WP_ColumnStyle.StickyLeft)
-    })
-})
-
-describe(formatAuthors, () => {
-    it("formats authors nicely", () => {
-        const authors = ["Author 1", "Author 2", "Author 3"]
-        expect(formatAuthors({ authors })).toEqual(
-            "Author 1, Author 2 and Author 3"
-        )
-
-        expect(formatAuthors({ authors: ["Author 1"] })).toEqual("Author 1")
-        expect(formatAuthors({ authors: ["Author 1", "Author 2"] })).toEqual(
-            "Author 1 and Author 2"
-        )
-
-        expect(formatAuthors({ authors, forBibtex: true })).toEqual(
-            "Author 1 and Author 2 and Author 3"
-        )
-
-        expect(formatAuthors({ authors, forBibtex: false })).toEqual(
-            "Author 1, Author 2 and Author 3"
-        )
     })
 })

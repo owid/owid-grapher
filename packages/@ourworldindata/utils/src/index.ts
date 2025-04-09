@@ -143,6 +143,7 @@ export {
     getAttributionFragmentsFromVariable,
     getETLPathComponents,
     formatAuthors,
+    formatAuthorsForBibtex,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     getPhraseForProcessingLevel,

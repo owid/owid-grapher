@@ -1,4 +1,4 @@
-import { formatAuthors } from "./clientFormatting.js"
+import { formatAuthors } from "@ourworldindata/utils"
 
 export const Byline = ({
     authors,
@@ -16,9 +16,7 @@ export const Byline = ({
                     }}
                 ></div>
             ) : (
-                <a href="/team">{`by ${formatAuthors({
-                    authors,
-                })}`}</a>
+                <a href="/team">{`by ${formatAuthors(authors)}`}</a>
             )}
         </div>
     )

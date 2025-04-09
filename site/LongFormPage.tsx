@@ -9,7 +9,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook } from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import { TableOfContents } from "../site/TableOfContents.js"
-import { FormattedPost, TocHeading, omit } from "@ourworldindata/utils"
+import {
+    FormattedPost,
+    TocHeading,
+    formatAuthors,
+    formatAuthorsForBibtex,
+    omit,
+} from "@ourworldindata/utils"
 import { FormattingOptions } from "@ourworldindata/types"
 import { BreadcrumbsFromSubnav } from "./Breadcrumb/Breadcrumb.js"
 import { Byline } from "./Byline.js"
@@ -17,7 +23,6 @@ import { PageInfo } from "./PageInfo.js"
 import { BackToTopic } from "./BackToTopic.js"
 import StickyNav from "./blocks/StickyNav.js"
 import { CodeSnippet } from "@ourworldindata/components"
-import { formatAuthors } from "./clientFormatting.js"
 import { Html } from "./Html.js"
 
 export interface PageOverrides {
@@ -90,15 +95,10 @@ export const LongFormPage = (props: {
         bodyClasses.push(formattingOptions.bodyClassName)
     }
 
-    const citationText = `${formatAuthors({
-        authors: citationAuthors,
-    })} (${citationPublishedYear}) - "${citationTitle}". Published online at OurWorldinData.org. Retrieved from: '${citationCanonicalUrl}' [Online Resource]`
+    const citationText = `${formatAuthors(citationAuthors)} (${citationPublishedYear}) - "${citationTitle}". Published online at OurWorldinData.org. Retrieved from: '${citationCanonicalUrl}' [Online Resource]`
 
     const bibtex = `@article{owid${citationSlug.replace(/-/g, "")},
-    author = {${formatAuthors({
-        authors: citationAuthors,
-        forBibtex: true,
-    })}},
+    author = {${formatAuthorsForBibtex(citationAuthors)}},
     title = {${citationTitle}},
     journal = {Our World in Data},
     year = {${citationPublishedYear}},

@@ -4,11 +4,11 @@ import {
     EnrichedBlockResearchAndWriting,
     EnrichedBlockResearchAndWritingLink,
     RESEARCH_AND_WRITING_ID,
+    formatAuthors,
     formatDate,
     slugify,
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
-import { formatAuthors } from "../../clientFormatting.js"
 import Image from "./Image.js"
 import { DocumentContext } from "../DocumentContext.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
@@ -123,7 +123,7 @@ function ResearchAndWritingLink(
             ) : null}
             {authors && !shouldHideAuthors ? (
                 <p className="research-and-writing-link__authors body-3-medium-italic">
-                    {formatAuthors({ authors })}
+                    {formatAuthors(authors)}
                 </p>
             ) : null}
         </a>

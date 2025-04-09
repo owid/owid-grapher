@@ -34,9 +34,7 @@ export default function DataPageResearchAndWriting({
                             <div className="related-article__authors body-3-medium-italic">
                                 {research.authors &&
                                     research.authors.length &&
-                                    formatAuthors({
-                                        authors: research.authors,
-                                    })}
+                                    formatAuthors(research.authors)}
                             </div>
                         </div>
                     </a>
