@@ -35,6 +35,8 @@ import {
     faCircleXmark,
     faMagnifyingGlass,
     faLocationArrow,
+    faArrowRightArrowLeft,
+    faFilter,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -1070,6 +1072,7 @@ export class EntitySelector extends React.Component<{
                     id="entity-selector__filter-dropdown-label"
                     className="label grapher_label-2-regular grapher_light"
                 >
+                    <FontAwesomeIcon icon={faFilter} size="sm" />
                     Filter by type
                 </span>
                 <Dropdown<FilterDropdownOption>
@@ -1134,6 +1137,7 @@ export class EntitySelector extends React.Component<{
                     id="entity-selector__sort-dropdown-label"
                     className="label grapher_label-2-regular grapher_light"
                 >
+                    <FontAwesomeIcon icon={faArrowRightArrowLeft} size="sm" />
                     Sort by
                 </div>
                 <div className="entity-selector__sort-dropdown-and-button">

@@ -121,6 +121,11 @@
         .label {
             flex-shrink: 0;
             margin-bottom: 6px;
+
+            svg {
+                margin-right: 6px;
+                transform: rotate(-90deg);
+            }
         }
 
         button.sort {
@@ -170,6 +175,10 @@
 
         .label {
             margin-bottom: 6px;
+
+            svg {
+                margin-right: 6px;
+            }
         }
     }
 
