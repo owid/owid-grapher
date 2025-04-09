@@ -234,10 +234,7 @@ export class MapChart
             this.selectionArray.toggleSelection(entityName)
         } else if (isClickable) {
             this.switchToLineChart(entityName)
-        } else if (
-            !this.mapConfig.globe.isActive &&
-            !this.manager.shouldShowEntitySelectorOnMapTab
-        ) {
+        } else if (!this.mapConfig.globe.isActive) {
             this.zoomToCountryOnGlobe(entityName)
         }
     }
