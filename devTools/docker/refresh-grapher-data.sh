@@ -28,33 +28,13 @@ import_db() {
 
 fillGrapherDb() {
     echo "==> Refreshing grapher database"
+    _mysql --database="" -e "DROP DATABASE IF EXISTS $GRAPHER_DB_NAME;CREATE DATABASE $GRAPHER_DB_NAME;ALTER DATABASE $GRAPHER_DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs;"
 
-    # Use a fixed backup database name
-    BACKUP_DB_NAME="${GRAPHER_DB_NAME}_bak"
-
-    # Check if the original database exists
-    DB_EXISTS=$(_mysql --database="" -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='$GRAPHER_DB_NAME'" 2>/dev/null | grep -c "$GRAPHER_DB_NAME" || true)
-
-    # If it exists, drop any existing backup and rename current to backup
-    if [ "$DB_EXISTS" -gt 0 ]; then
-        echo "Creating backup of current database as $BACKUP_DB_NAME"
-        _mysql --database="" -e "DROP DATABASE IF EXISTS $BACKUP_DB_NAME;"
-        _mysql --database="" -e "CREATE DATABASE $BACKUP_DB_NAME;"
-        _mysql --database="" -e "ALTER DATABASE $BACKUP_DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs;"
-        _mysql --database="" -e "RENAME TABLES $GRAPHER_DB_NAME.* TO $BACKUP_DB_NAME.*;"
-    fi
-
-    # Create a new database
-    _mysql --database="" -e "DROP DATABASE IF EXISTS $GRAPHER_DB_NAME;
-                             CREATE DATABASE $GRAPHER_DB_NAME;
-                             ALTER DATABASE $GRAPHER_DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs;"
-
-    # Import data
     if [ -f "${DATA_FOLDER}/owid_metadata.sql.gz" ]; then
         echo "Importing live Grapher metadata database (owid_metadata)"
         import_db $DATA_FOLDER/owid_metadata.sql.gz
     else
-        echo "owid_metadata.sql.gz missing in ${DATA_FOLDER}. Refresh aborted."
+        echo "owid_metata.sql.gz missing in ${DATA_FOLDER}. Refresh aborted."
         return 1
     fi
 
