@@ -1602,16 +1602,15 @@ export class Grapher
             )
         }
 
+        // update state of the entity selector if necessary
         if (isMapTab(newTab) || isChartTab(newTab)) {
             const { mapColumnSlug, entitySelector } = this
             const { interpolatedSortColumnsBySlug } = this.entitySelectorState
 
-            // make sure the initial sort config is set
-            entitySelector.initSortConfig()
             const sortSlug = entitySelector.sortConfig.slug
 
             // the map and chart tab might have a different set of sort columns;
-            // if the currently selected sort column is invalid, reset if to the default
+            // if the currently selected sort column is invalid, reset it to the default
             if (!entitySelector.isSortSlugValid(sortSlug)) {
                 this.entitySelectorState.sortConfig =
                     entitySelector.getDefaultSortConfig()
