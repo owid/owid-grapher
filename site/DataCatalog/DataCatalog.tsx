@@ -253,6 +253,7 @@ export const DataCatalog = ({
                         typoTolerance={state.typoTolerance}
                         minQueryLength={state.minQueryLength}
                         filters={state.filters}
+                        enableCombinedFilters={state.enableCombinedFilters}
                     />
                 </div>
             </div>
@@ -281,6 +282,8 @@ export const DataCatalog = ({
                 setTypoTolerance={actions.setTypoTolerance}
                 minQueryLength={state.minQueryLength}
                 setMinQueryLength={actions.setMinQueryLength}
+                enableCombinedFilters={state.enableCombinedFilters}
+                toggleCombinedFilters={actions.toggleCombinedFilters}
             />
         </>
     )

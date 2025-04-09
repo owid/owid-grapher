@@ -55,6 +55,8 @@ export const DataCatalogSettings = ({
     setQueryType,
     setTypoTolerance,
     setMinQueryLength,
+    enableCombinedFilters,
+    toggleCombinedFilters,
 }: {
     componentOrder: CatalogComponentId[]
     componentVisibility: Record<CatalogComponentId, boolean>
@@ -77,6 +79,8 @@ export const DataCatalogSettings = ({
     setQueryType: (type: QueryType) => void
     setTypoTolerance: (enabled: boolean) => void
     setMinQueryLength: (length: number) => void
+    enableCombinedFilters: boolean
+    toggleCombinedFilters: () => void
 }) => {
     const [open, setOpen] = useState(false)
 
@@ -213,6 +217,19 @@ export const DataCatalogSettings = ({
                                             />
                                         }
                                         label="Typo tolerance"
+                                    />
+                                </ListItem>
+
+                                <ListItem>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={enableCombinedFilters}
+                                                onChange={toggleCombinedFilters}
+                                                color="primary"
+                                            />
+                                        }
+                                        label="Enable combined filters"
                                     />
                                 </ListItem>
 

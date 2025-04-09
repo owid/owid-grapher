@@ -22,6 +22,7 @@ export const DataCatalogSearchbar = ({
     typoTolerance,
     minQueryLength,
     filters,
+    enableCombinedFilters,
 }: {
     selectedCountries: Region[]
     selectedCountryNames: Set<string>
@@ -36,6 +37,7 @@ export const DataCatalogSearchbar = ({
     typoTolerance: boolean
     minQueryLength: number
     filters: CatalogFilter[]
+    enableCombinedFilters: boolean
 }) => {
     // Uses CSS to fake an input bar that will highlight correctly using :focus-within
     // without highlighting when the country selector is focused
@@ -105,6 +107,7 @@ export const DataCatalogSearchbar = ({
                     queryType={queryType}
                     typoTolerance={typoTolerance}
                     minQueryLength={minQueryLength}
+                    enableCombinedFilters={enableCombinedFilters}
                 />
             </div>
             <DataCatalogCountrySelector

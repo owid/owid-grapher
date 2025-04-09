@@ -324,6 +324,7 @@ export function DataCatalogAutocomplete({
     queryType,
     typoTolerance,
     minQueryLength,
+    enableCombinedFilters,
 }: {
     onClose?: () => void
     className?: string
@@ -340,6 +341,7 @@ export function DataCatalogAutocomplete({
     queryType: QueryType
     typoTolerance: boolean
     minQueryLength: number
+    enableCombinedFilters: boolean
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -486,7 +488,6 @@ export function DataCatalogAutocomplete({
             },
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
-                const debugOnlyCoreSources = true
                 if (query && query.length >= minQueryLength) {
                     sources.push(CurrentQuerySource, AlgoliaSource)
                     sources.push(
@@ -505,26 +506,17 @@ export function DataCatalogAutocomplete({
                             typoTolerance
                         )
                     )
-
                     // Add the combined filters source
-                    sources.push(
-                        CombinedFiltersSource(
-                            addPendingFilterRef.current,
-                            clearSearch
+                    if (enableCombinedFilters) {
+                        sources.push(
+                            CombinedFiltersSource(
+                                addPendingFilterRef.current,
+                                clearSearch
+                            )
                         )
-                    )
+                    }
                 } else {
                     sources.push(FeaturedSearchesSource)
-                }
-
-                // Only keep core sources
-                if (debugOnlyCoreSources) {
-                    return sources.filter(
-                        (source) =>
-                            ![AutocompleteSources.COMBINED_FILTERS].includes(
-                                source.sourceId as AutocompleteSources
-                            )
-                    )
                 }
 
                 return sources
@@ -626,6 +618,7 @@ export function DataCatalogAutocomplete({
         queryType,
         typoTolerance,
         minQueryLength,
+        enableCombinedFilters,
         positionPanel,
     ])
 

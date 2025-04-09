@@ -70,6 +70,7 @@ export type DataCatalogState = Readonly<{
     queryType: QueryType
     typoTolerance: boolean
     minQueryLength: number
+    enableCombinedFilters: boolean
 }>
 
 export interface ComponentConfig {
@@ -210,6 +211,10 @@ type SetMinQueryLengthAction = {
     payload: number
 }
 
+type ToggleCombinedFiltersAction = {
+    type: "toggleCombinedFilters"
+}
+
 export type DataCatalogAction =
     | AddFilterAction
     | RemoveFilterAction
@@ -227,6 +232,7 @@ export type DataCatalogAction =
     | SetQueryTypeAction
     | SetTypoToleranceAction
     | SetMinQueryLengthAction
+    | ToggleCombinedFiltersAction
 
 export function dataCatalogReducer(
     state: DataCatalogState,
@@ -332,6 +338,10 @@ export function dataCatalogReducer(
             ...state,
             minQueryLength: payload,
         }))
+        .with({ type: "toggleCombinedFilters" }, () => ({
+            ...state,
+            enableCombinedFilters: !state.enableCombinedFilters,
+        }))
         .exhaustive()
 }
 
@@ -369,6 +379,7 @@ export function createActions(dispatch: (action: DataCatalogAction) => void) {
         setQueryType: (type: QueryType) => dispatch({ type: "setQueryType", payload: type }),
         setTypoTolerance: (enabled: boolean) => dispatch({ type: "setTypoTolerance", payload: enabled }),
         setMinQueryLength: (length: number) => dispatch({ type: "setMinQueryLength", payload: length }),
+        toggleCombinedFilters: () => dispatch({ type: "toggleCombinedFilters" }),
     }
 }
 
@@ -416,6 +427,7 @@ const getDefaultCatalogState = (): DataCatalogState => ({
     queryType: QueryType.PREFIX_ALL,
     typoTolerance: true,
     minQueryLength: 2,
+    enableCombinedFilters: false,
 })
 
 export function getInitialDatacatalogState(): DataCatalogState {
@@ -474,6 +486,9 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
         state.typoTolerance = url.queryParams.typoTolerance === "true"
     if (url.queryParams.minQueryLength)
         state.minQueryLength = parseInt(url.queryParams.minQueryLength)
+    if (url.queryParams.enableCombinedFilters)
+        state.enableCombinedFilters =
+            url.queryParams.enableCombinedFilters === "true"
 
     // Check for specific component counts in URL
     if (url.queryParams.insights) {
@@ -554,6 +569,11 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
         minQueryLength:
             state.minQueryLength !== defaultCatalogState.minQueryLength
                 ? state.minQueryLength.toString()
+                : undefined,
+        enableCombinedFilters:
+            state.enableCombinedFilters !==
+            defaultCatalogState.enableCombinedFilters
+                ? state.enableCombinedFilters.toString()
                 : undefined,
     }
 
