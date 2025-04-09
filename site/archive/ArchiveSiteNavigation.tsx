@@ -41,10 +41,10 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                     </span>
                 </div>
                 {hasButtons && (
-                    <div className="archive-navigation-bar__buttons grid grid-cols-3 grid-sm-cols-1">
+                    <div className="archive-navigation-bar__buttons grid grid-cols-3">
                         {props.previousVersion && (
                             <Button
-                                className="archive-navigation-bar__button-left"
+                                className="archive-navigation-bar__button archive-navigation-bar__button-left"
                                 href={props.previousVersion.url}
                                 theme="outline-white"
                                 icon={faArrowLeft}
@@ -55,7 +55,7 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                         )}
                         {props.liveUrl && (
                             <Button
-                                className="archive-navigation-bar__button-center"
+                                className="archive-navigation-bar__button archive-navigation-bar__button-center"
                                 href={props.liveUrl}
                                 theme="solid-dark-blue"
                                 icon={null}
@@ -65,7 +65,7 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                         )}
                         {props.nextVersion && (
                             <Button
-                                className="archive-navigation-bar__button-right"
+                                className="archive-navigation-bar__button archive-navigation-bar__button-right"
                                 href={props.nextVersion.url}
                                 theme="outline-white"
                                 icon={faArrowRight}

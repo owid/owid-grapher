@@ -45,24 +45,45 @@
 
     .archive-navigation-bar__buttons {
         margin-top: 16px;
-        row-gap: 8px;
+        gap: 15px;
         width: 100%;
 
-        // On small screens, stack the buttons vertically and make them full width
-        // On big screens, display them in a row, and make sure the previous/latest/next buttons are always
-        // aligned to the left, center, and right respectively - no matter if one of the others is missing
-        @include sm-up {
-            .archive-navigation-bar__button-left {
-                grid-column: 1;
-                justify-self: left;
+        --archive-mobile-button-width: 40px;
+
+        .archive-navigation-bar__button-left {
+            grid-column: 1;
+            justify-self: left;
+        }
+        .archive-navigation-bar__button-center {
+            grid-column: 2;
+            justify-self: center;
+        }
+        .archive-navigation-bar__button-right {
+            grid-column: 3;
+            justify-self: right;
+        }
+
+        // On small screens, make the prev/next buttons icon-only and narrow, with the center one taking the rest of the space
+        @include sm-only {
+            grid-template-columns:
+                var(--archive-mobile-button-width)
+                1fr var(--archive-mobile-button-width);
+
+            .archive-navigation-bar__button {
+                width: 100%;
             }
-            .archive-navigation-bar__button-center {
-                grid-column: 2;
-                justify-self: center;
-            }
+
+            .archive-navigation-bar__button-left,
             .archive-navigation-bar__button-right {
-                grid-column: 3;
-                justify-self: right;
+                padding-left: 0;
+                padding-right: 0;
+
+                > span {
+                    display: none;
+                }
+                > svg {
+                    margin: 0;
+                }
             }
         }
     }
