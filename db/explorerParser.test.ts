@@ -29,6 +29,7 @@ describe("parseExplorer", () => {
         const tsv = `explorerTitle\tMy Explorer
 isPublished\tfalse
 explorerSubtitle\tThis is a test explorer
+selection\tWorld\tUnited States
 graphers
 \tgrapherId\tTest Radio\ttype\tySlugs
 \t488\tA\tLineChart\tgdp
@@ -45,6 +46,7 @@ columns
             explorerTitle: "My Explorer",
             isPublished: "false",
             explorerSubtitle: "This is a test explorer",
+            selection: ["World", "United States"],
             blocks: [
                 {
                     type: "graphers",

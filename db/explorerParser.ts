@@ -1,5 +1,7 @@
 // This code was adapted from https://github.com/owid/automation/blob/main/automation/mirror_explorers.py
 
+import { ExplorerGrammar } from "@ourworldindata/explorer"
+
 interface Statement {
     verb: string
     args: string[]
@@ -8,33 +10,20 @@ interface Statement {
 
 const JSON_VERSION = 1
 
-// Added FLAGS constant from mirror_explorers.py
-const FLAGS: Set<string> = new Set([
-    "backgroundSeriesLimit",
-    "downloadDataLink",
-    "entityType",
-    "explorerSubtitle",
-    "explorerTitle",
-    "facet",
-    "googleSheet",
-    "hasMapTab",
-    "hideAlertBanner",
-    "hideControls",
-    "hideTitleAnnotation",
-    "indexViewsSeparately",
-    "isPublished",
-    "sourceDesc",
-    "subNavCurrentId",
-    "subNavId",
-    "subtitle",
-    "tab",
-    "thumbnail",
-    "title",
-    "type",
-    "wpBlockId",
-    "yAxisMin",
-    "ySlugs",
-])
+// Constant (non-array) fields
+const FLAGS: Set<string> = new Set(
+    Object.keys(ExplorerGrammar).filter(
+        (key) =>
+            ![
+                "table",
+                "graphers",
+                "columns",
+                "selection",
+                "pickerColumnSlugs",
+                "yVariableIds",
+            ].includes(key)
+    )
+)
 
 function isBlock(verb: string, args: string[]): boolean {
     if (verb === "graphers" || verb === "columns") return true
