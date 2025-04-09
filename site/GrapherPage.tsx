@@ -33,6 +33,7 @@ import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 import GrapherImage from "./GrapherImage.js"
 import { Html } from "./Html.js"
+import { ArchiveMetaInformation } from "./archive/archiveTypes.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
@@ -42,6 +43,7 @@ export const GrapherPage = (props: {
     baseGrapherUrl: string
     staticAssetMap?: AssetMap
     runtimeAssetMap?: AssetMap
+    archiveInformation?: ArchiveMetaInformation
 }) => {
     const { grapher, relatedCharts, relatedArticles, baseGrapherUrl, baseUrl } =
         props
@@ -126,7 +128,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { runtimeAssetMap: r
                 />
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
-                <SiteHeader />
+                <SiteHeader archiveInformation={props.archiveInformation} />
                 <main>
                     <figure
                         className={HIDE_IF_JS_DISABLED_CLASSNAME}

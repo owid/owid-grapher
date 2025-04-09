@@ -34,6 +34,7 @@ import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
+import type { ArchiveMetaInformation } from "../site/archive/archiveTypes.js"
 
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
@@ -47,6 +48,7 @@ export const DataPageV2 = (props: {
     staticAssetMap?: AssetMap
     runtimeAssetMap?: AssetMap
     dataApiUrl?: string
+    archiveInformation?: ArchiveMetaInformation
 }) => {
     const {
         grapher,
@@ -150,7 +152,7 @@ export const DataPageV2 = (props: {
                 />
             </Head>
             <body className="DataPage">
-                <SiteHeader />
+                <SiteHeader archiveInformation={props.archiveInformation} />
                 <main>
                     <script
                         dangerouslySetInnerHTML={{

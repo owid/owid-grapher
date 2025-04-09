@@ -28,8 +28,13 @@ export interface ArchivalManifest {
 
 const DATE_TIME_FORMAT = "YYYYMMDD-HHmmss"
 
-export const getDateForArchival = (): ArchivalTimestamp => {
-    const date = dayjs().utc()
+export const getDateForArchival = (dateInput?: Date): ArchivalTimestamp => {
+    const date = dayjs(dateInput)
+        .utc()
+        // it's important here that we explicitly set the milliseconds to 0 -
+        // otherwise we run the risk of MySQL rounding up to the next second,
+        // which would break the archival URL
+        .millisecond(0)
     const formattedDate = date.format(DATE_TIME_FORMAT)
 
     return { date: date.toDate(), formattedDate }
@@ -42,6 +47,20 @@ const getOwidGrapherCommitSha = lazy(async () => {
         return undefined
     }
 })
+
+export const assembleGrapherArchivalUrl = (
+    archivalDate: string | Date,
+    chartSlug: string
+) => {
+    let formattedDate: string
+    if (typeof archivalDate === "string") {
+        formattedDate = archivalDate
+    } else {
+        formattedDate = getDateForArchival(archivalDate).formattedDate
+    }
+
+    return `/${formattedDate}/grapher/${chartSlug}`
+}
 
 export const assembleManifest = async (manifestInfo: {
     staticAssetMap: AssetMap

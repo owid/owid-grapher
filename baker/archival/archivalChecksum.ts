@@ -69,19 +69,26 @@ const getGrapherChecksumsFromDb = async (knex: db.KnexReadonlyTransaction) => {
     return rows
 }
 
-// Not currently used, but this method/query will be useful for debugging and for future work
-const _getLatestArchivedVersionsFromDb = async (
-    knex: db.KnexReadonlyTransaction
-) => {
-    return db.knexRaw(
-        knex,
-        `-- sql
-        SELECT grapherId, archivalTimestamp, hashOfInputs
-        FROM archived_chart_versions a1
-        WHERE (grapherId, archivalTimestamp) IN (SELECT grapherId, MAX(archivalTimestamp) FROM archived_chart_versions a2 GROUP BY grapherId)
-        GROUP BY id
-        `
-    )
+export const getLatestArchivedVersionsFromDb = async (
+    knex: db.KnexReadonlyTransaction,
+    chartIds?: number[]
+): Promise<
+    Pick<
+        DbPlainArchivedChartVersion,
+        "grapherId" | "grapherSlug" | "archivalTimestamp"
+    >[]
+> => {
+    const queryBuilder = knex(ArchivedChartVersionsTableName)
+        .select("grapherId", "grapherSlug", "archivalTimestamp")
+        .whereRaw(
+            `(grapherId, archivalTimestamp) IN (SELECT grapherId, MAX(archivalTimestamp) FROM archived_chart_versions a2 GROUP BY grapherId)`
+        )
+
+    if (chartIds) {
+        queryBuilder.whereIn("grapherId", chartIds)
+    }
+
+    return await queryBuilder
 }
 
 const hashChecksumsObj = (checksums: GrapherChecksums) => {

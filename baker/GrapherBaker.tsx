@@ -56,6 +56,7 @@ import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { ArchivalManifest } from "./archival/archivalUtils.js"
+import type { ArchiveMetaInformation } from "../site/archive/archiveTypes.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -65,10 +66,12 @@ const renderDatapageIfApplicable = async (
         imageMetadataDictionary,
         staticAssetMap,
         runtimeAssetMap,
+        archiveInformation,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
+        archiveInformation?: ArchiveMetaInformation
     } = {}
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
@@ -94,6 +97,7 @@ const renderDatapageIfApplicable = async (
             imageMetadataDictionary,
             staticAssetMap,
             runtimeAssetMap,
+            archiveInformation,
         },
         knex
     )
@@ -111,19 +115,26 @@ export const renderDataPageOrGrapherPage = async (
         imageMetadataDictionary,
         staticAssetMap,
         runtimeAssetMap,
+        archiveInformation,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
+        archiveInformation?: ArchiveMetaInformation
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
         imageMetadataDictionary,
         staticAssetMap,
         runtimeAssetMap,
+        archiveInformation,
     })
     if (datapage) return datapage
-    return renderGrapherPage(grapher, knex, { staticAssetMap, runtimeAssetMap })
+    return renderGrapherPage(grapher, knex, {
+        staticAssetMap,
+        runtimeAssetMap,
+        archiveInformation,
+    })
 }
 
 export async function renderDataPageV2(
@@ -136,6 +147,7 @@ export async function renderDataPageV2(
         imageMetadataDictionary = {},
         staticAssetMap,
         runtimeAssetMap,
+        archiveInformation,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -145,6 +157,7 @@ export async function renderDataPageV2(
         imageMetadataDictionary?: Record<string, ImageMetadata>
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
+        archiveInformation?: ArchiveMetaInformation
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -212,27 +225,35 @@ export async function renderDataPageV2(
         grapher.slug
     )
 
-    // Get the charts this variable is being used in (aka "related charts")
-    // and exclude the current chart to avoid duplicates
-    datapageData.allCharts = await getRelatedChartsForVariable(
-        knex,
-        variableId,
-        grapher && "id" in grapher ? [grapher.id as number] : []
-    )
+    let imageMetadata: Record<string, ImageMetadata> = {}
+    let tagToSlugMap: Record<string, string> = {}
 
-    datapageData.relatedResearch =
-        await getRelatedResearchAndWritingForVariables(knex, [variableId])
+    // If we're baking to an archival page, then we want to skip a bunch of sections
+    // where the links would break
 
-    const relatedResearchFilenames = datapageData.relatedResearch
-        .map((r) => r.imageUrl)
-        .filter((f): f is string => !!f)
+    if (!archiveInformation) {
+        // Get the charts this variable is being used in (aka "related charts")
+        // and exclude the current chart to avoid duplicates
+        datapageData.allCharts = await getRelatedChartsForVariable(
+            knex,
+            variableId,
+            grapher && "id" in grapher ? [grapher.id as number] : []
+        )
 
-    const imageMetadata = lodash.pick(
-        imageMetadataDictionary,
-        uniq(relatedResearchFilenames)
-    )
+        datapageData.relatedResearch =
+            await getRelatedResearchAndWritingForVariables(knex, [variableId])
 
-    const tagToSlugMap = await getTagToSlugMap(knex)
+        const relatedResearchFilenames = datapageData.relatedResearch
+            .map((r) => r.imageUrl)
+            .filter((f): f is string => !!f)
+
+        imageMetadata = lodash.pick(
+            imageMetadataDictionary,
+            uniq(relatedResearchFilenames)
+        )
+
+        tagToSlugMap = await getTagToSlugMap(knex)
+    }
 
     return renderToHtmlPage(
         <DataPageV2
@@ -246,6 +267,7 @@ export async function renderDataPageV2(
             tagToSlugMap={tagToSlugMap}
             staticAssetMap={staticAssetMap}
             runtimeAssetMap={runtimeAssetMap}
+            archiveInformation={archiveInformation}
         />
     )
 }
@@ -270,22 +292,27 @@ const renderGrapherPage = async (
     {
         staticAssetMap,
         runtimeAssetMap,
+        archiveInformation,
     }: {
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
+        archiveInformation?: ArchiveMetaInformation
     } = {}
 ) => {
     const postSlug = urlToSlug(grapher.originUrl || "") as string | undefined
     // TODO: update this to use gdocs posts
-    const postId = postSlug
-        ? await getPostIdFromSlug(knex, postSlug)
-        : undefined
-    const relatedCharts = postId
-        ? await getPostRelatedCharts(knex, postId)
-        : undefined
-    const relatedArticles = grapher.id
-        ? await getRelatedArticles(knex, grapher.id)
-        : undefined
+    const postId =
+        postSlug && !archiveInformation
+            ? await getPostIdFromSlug(knex, postSlug)
+            : undefined
+    const relatedCharts =
+        postId && !archiveInformation
+            ? await getPostRelatedCharts(knex, postId)
+            : undefined
+    const relatedArticles =
+        grapher.id && !archiveInformation
+            ? await getRelatedArticles(knex, grapher.id)
+            : undefined
 
     return renderToHtmlPage(
         <GrapherPage
@@ -296,6 +323,7 @@ const renderGrapherPage = async (
             baseGrapherUrl={BAKED_GRAPHER_URL}
             staticAssetMap={staticAssetMap}
             runtimeAssetMap={runtimeAssetMap}
+            archiveInformation={archiveInformation}
         />
     )
 }
@@ -309,11 +337,13 @@ export const bakeSingleGrapherPageForArchival = async (
         staticAssetMap,
         runtimeAssetMap,
         manifest,
+        archiveInformation,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
         manifest: ArchivalManifest
+        archiveInformation?: ArchiveMetaInformation
     }
 ) => {
     const outPathHtml = `${bakedSiteDir}/grapher/${grapher.slug}.html`
@@ -323,6 +353,7 @@ export const bakeSingleGrapherPageForArchival = async (
             imageMetadataDictionary,
             staticAssetMap,
             runtimeAssetMap,
+            archiveInformation,
         })
     )
     const outPathManifest = `${bakedSiteDir}/grapher/${grapher.slug}.manifest.json`
