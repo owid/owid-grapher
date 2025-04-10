@@ -271,7 +271,7 @@ export class ChoroplethGlobe extends React.Component<{
     /* Naively placed annotations that might be overlapping */
     @computed private get initialAnnotations(): Annotation[] {
         return excludeUndefined(
-            this.featuresWithData
+            this.features
                 .filter((feature) =>
                     this.isFeatureCentroidVisibleOnGlobe(feature)
                 )
@@ -279,7 +279,7 @@ export class ChoroplethGlobe extends React.Component<{
                     const series = this.choroplethData.get(feature.id)
                     const placement = annotationPlacementsById.get(feature.id)
 
-                    if (!series || !placement) return undefined
+                    if (!placement) return undefined
 
                     const ellipse = makeEllipseFromPointsForProjection(
                         this.projection,
@@ -287,13 +287,15 @@ export class ChoroplethGlobe extends React.Component<{
                     )
 
                     const formattedValue =
-                        this.manager.mapColumn.formatValueShortWithAbbreviations(
-                            series.value
-                        )
+                        series?.value !== undefined
+                            ? this.manager.mapColumn.formatValueShortWithAbbreviations(
+                                  series.value
+                              )
+                            : "No data"
                     let { placedBounds, fontSize } =
                         placeLabelWithinEllipse(formattedValue, ellipse) ?? {}
 
-                    if (placedBounds)
+                    if (placedBounds && fontSize)
                         return {
                             type: "internal",
                             featureId: feature.id,
@@ -353,16 +355,16 @@ export class ChoroplethGlobe extends React.Component<{
             (annotation) => annotation.type === "external"
         )
 
-        // hide overlapping annotations
-        for (let i = 0; i < initialAnnotations.length; i++) {
-            for (let j = i + 1; j < initialAnnotations.length; j++) {
-                const a1 = initialAnnotations[i],
-                    a2 = initialAnnotations[j]
-                if (a1.featureId === a2.featureId || a1.isHidden || a2.isHidden)
-                    continue
-                if (a1.bounds.intersects(a2.bounds)) a2.isHidden = true
-            }
-        }
+        // // hide overlapping annotations
+        // for (let i = 0; i < initialAnnotations.length; i++) {
+        //     for (let j = i + 1; j < initialAnnotations.length; j++) {
+        //         const a1 = initialAnnotations[i],
+        //             a2 = initialAnnotations[j]
+        //         if (a1.featureId === a2.featureId || a1.isHidden || a2.isHidden)
+        //             continue
+        //         if (a1.bounds.intersects(a2.bounds)) a2.isHidden = true
+        //     }
+        // }
 
         return initialAnnotations.filter((annotation) => !annotation.isHidden)
     }
@@ -820,6 +822,7 @@ export class ChoroplethGlobe extends React.Component<{
                         : getExternalMarkerStartPosition({
                               anchorPoint: anchor,
                               direction,
+                              offset: -(0.5 / (1 / this.zoomScale)),
                           })
 
                     const markerEnd = getExternalMarkerEndPosition({

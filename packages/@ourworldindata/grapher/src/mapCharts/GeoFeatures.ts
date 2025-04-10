@@ -5,10 +5,10 @@ import {
     MapRenderFeature,
     RenderFeatureType,
 } from "./MapChartConstants"
-import { Bounds, PointVector } from "@ourworldindata/utils"
+import { Bounds, PointVector, sortBy } from "@ourworldindata/utils"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import { MapTopology } from "./MapTopology"
-import { geoCentroid, geoPath } from "d3-geo"
+import { geoArea, geoCentroid, geoPath } from "d3-geo"
 import { geoRobinson } from "./d3-geo-projection"
 
 // Get the underlying geographical topology elements we're going to display
@@ -82,3 +82,8 @@ export const getGeoFeaturesForGlobe = (): GlobeRenderFeature[] => {
         centroid: geoCentroid(geo),
     }))
 }
+
+console.log(
+    "geo features",
+    sortBy(GeoFeatures, (f) => geoArea(f)).map((f) => f.id)
+)

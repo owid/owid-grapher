@@ -1,5 +1,11 @@
 import { Quadtree } from "d3-quadtree"
-import { geoOrthographic, geoPath, GeoPermissibleObjects } from "d3-geo"
+import {
+    geoContains,
+    geoOrthographic,
+    geoPath,
+    GeoPermissibleObjects,
+} from "d3-geo"
+import * as topojson from "topojson-client"
 import {
     EntityName,
     Bounds,
@@ -21,10 +27,12 @@ import {
     GEO_FEATURES_CLASSNAME,
     MAP_HOVER_TARGET_RANGE,
     RenderFeature,
+    GlobeRenderFeature,
 } from "./MapChartConstants"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { MapTopology } from "./MapTopology.js"
 import { GeoProjection } from "d3"
+import { GeoFeatures } from "./GeoFeatures"
 
 export function detectNearbyFeature<Feature extends RenderFeature>({
     quadtree,
