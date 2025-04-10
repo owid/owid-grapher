@@ -86,6 +86,7 @@ export {
     toRectangularMatrix,
     checkIsPlainObjectWithGuard,
     checkIsStringIndexable,
+    checkIsTouchEvent,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
     removeAllWhitespace,

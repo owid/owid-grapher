@@ -1290,7 +1290,7 @@ export function checkIsStringIndexable(
     return isPlainObject(x) || isArray(x)
 }
 
-function checkIsTouchEvent(
+export function checkIsTouchEvent(
     event: unknown
 ): event is React.TouchEvent | TouchEvent {
     if (isObject(event)) {
