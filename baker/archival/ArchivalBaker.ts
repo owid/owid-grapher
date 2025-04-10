@@ -3,8 +3,6 @@ import {
     DbEnrichedImage,
     DbPlainArchivedChartVersion,
     GrapherInterface,
-    JsonString,
-    parseChartConfig,
 } from "@ourworldindata/types"
 import fs from "fs-extra"
 import { keyBy } from "lodash"
@@ -33,10 +31,7 @@ import type {
 } from "../../site/archive/archiveTypes.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../settings/serverSettings.js"
-import {
-    getEnrichedChartsByIds,
-    getRawChartsByIds,
-} from "../../db/model/Chart.js"
+import { getEnrichedChartsByIds } from "../../db/model/Chart.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
@@ -220,6 +215,7 @@ const archiveVariableIds = async (
         },
         { concurrency: 40 }
     )
+    // merge all the results into a single object
     return results.reduce((acc, result) => ({ ...acc, ...result }), {})
 }
 
@@ -227,6 +223,46 @@ interface MinimalChartInfo {
     chartId: number
     chartConfigId: string
     config: GrapherInterface
+}
+
+const assembleCommonBakeInformation = async (
+    knex: db.KnexReadonlyTransaction,
+    archiveDir: string,
+    grapherChecksumsObjsToBeArchived: GrapherChecksumsObjectWithHash[]
+) => {
+    const commonRuntimeFiles = await bakeDods(knex, archiveDir)
+    const imageMetadataDictionary = await getAllImages(knex).then((images) =>
+        keyBy(images, "filename")
+    )
+
+    const grapherIds = grapherChecksumsObjsToBeArchived.map((c) => c.chartId)
+    const latestArchivalVersions = await getLatestArchivedVersionsFromDb(
+        knex,
+        grapherIds
+    ).then((rows) => keyBy(rows, (v) => v.grapherId))
+    const grapherConfigs = await getEnrichedChartsByIds(knex, grapherIds).then(
+        (rows) =>
+            rows.map((r) => ({
+                chartId: r.id,
+                chartConfigId: r.configId,
+                config: r.config,
+            }))
+    )
+    if (grapherIds.length !== grapherConfigs.length)
+        throw new Error("Couldn't find some grapher config during archival")
+    const allVariableIds = new Set(
+        grapherConfigs.flatMap(
+            (c) => c.config.dimensions?.map((d) => d.variableId) ?? []
+        )
+    )
+
+    return {
+        commonRuntimeFiles,
+        imageMetadataDictionary,
+        latestArchivalVersions,
+        allVariableIds,
+        grapherConfigs,
+    }
 }
 
 export const bakeGrapherPagesToFolder = async (
@@ -247,34 +283,10 @@ export const bakeGrapherPagesToFolder = async (
 
     const manifests: Record<number, ArchivalManifest> = {}
     await db.knexReadonlyTransaction(async (trx) => {
-        const commonRuntimeFiles = await bakeDods(trx, archiveDir)
-        const imageMetadataDictionary = await getAllImages(trx).then((images) =>
-            keyBy(images, "filename")
-        )
-
-        const grapherIds = grapherChecksumsObjsToBeArchived.map(
-            (c) => c.chartId
-        )
-        const latestArchivalVersions = await getLatestArchivedVersionsFromDb(
+        const commonCtx = await assembleCommonBakeInformation(
             trx,
-            grapherIds
-        ).then((rows) => keyBy(rows, (v) => v.grapherId))
-        const grapherConfigs = await getEnrichedChartsByIds(
-            trx,
-            grapherIds
-        ).then((rows) =>
-            rows.map((r) => ({
-                chartId: r.id,
-                chartConfigId: r.configId,
-                config: r.config,
-            }))
-        )
-        if (grapherIds.length !== grapherConfigs.length)
-            throw new Error("Couldn't find some grapher config during archival")
-        const allVariableIds = new Set(
-            grapherConfigs.flatMap(
-                (c) => c.config.dimensions?.map((d) => d.variableId) ?? []
-            )
+            archiveDir,
+            grapherChecksumsObjsToBeArchived
         )
 
         // There's a curiosity here in that we re-bake variable files even if they didn't change (their checksums are the same), but the grapher config of an underlying chart changed.
@@ -282,9 +294,11 @@ export const bakeGrapherPagesToFolder = async (
         // It's not ideal, but in the grand scheme of things it's not a worry also - the median incremental update will probably touch less than 10 charts and less than 20 variables or so.
         // On the other hand, detecting whether a variable file is up-to-date would require a lot of extra logic.
         const variableFiles = await archiveVariableIds(
-            [...allVariableIds],
+            [...commonCtx.allVariableIds],
             archiveDir
         )
+
+        const { grapherConfigs } = commonCtx
 
         let i = 0
         for (const grapherInfo of grapherConfigs) {
@@ -299,14 +313,11 @@ export const bakeGrapherPagesToFolder = async (
                 )
 
             await bakeGrapherPageForArchival(trx, dir, grapherInfo, {
-                commonRuntimeFiles,
+                ...commonCtx,
                 staticAssetMap,
-                imageMetadataDictionary,
                 variableFiles,
                 checksumsObj,
                 date,
-                previousVersionInfo:
-                    latestArchivalVersions[grapherInfo.chartId],
             }).then((manifest) => {
                 manifests[grapherInfo.chartId] = manifest
             })
@@ -332,9 +343,12 @@ interface GrapherBakeContext {
     variableFiles: Record<number, AssetMap>
     checksumsObj: GrapherChecksumsObjectWithHash
     date: ArchivalTimestamp
-    previousVersionInfo: Pick<
-        DbPlainArchivedChartVersion,
-        "grapherId" | "grapherSlug" | "archivalTimestamp"
+    latestArchivalVersions: Record<
+        number,
+        Pick<
+            DbPlainArchivedChartVersion,
+            "grapherId" | "grapherSlug" | "archivalTimestamp"
+        >
     >
 }
 
@@ -352,7 +366,7 @@ async function bakeGrapherPageForArchival(
         variableFiles,
         checksumsObj,
         date,
-        previousVersionInfo,
+        latestArchivalVersions,
     } = ctx
 
     const runtimeFiles = { ...commonRuntimeFiles }
@@ -375,6 +389,8 @@ async function bakeGrapherPageForArchival(
         archivalDate: date.formattedDate,
         chartConfigId,
     })
+    const previousVersionInfo =
+        latestArchivalVersions[chartInfo.chartId] ?? undefined
     const previousVersion: UrlAndMaybeDate | undefined = previousVersionInfo
         ? {
               date: previousVersionInfo.archivalTimestamp,
