@@ -6056,15 +6056,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/workerpool@npm:^6.1.0":
-  version: 6.1.0
-  resolution: "@types/workerpool@npm:6.1.0"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10/1a0c56b0cc225facd518a1e507de8b269f0dbf540c0358270ca8f55aba20dfe0fc2a6f8f4aa7c447431bc6d2d7002d576ead9bfa8ff06848fb1a85b67be123ef
-  languageName: node
-  linkType: hard
-
 "@types/yargs-parser@npm:*":
   version: 21.0.3
   resolution: "@types/yargs-parser@npm:21.0.3"
@@ -11235,7 +11226,6 @@ __metadata:
     "@types/topojson-server": "npm:^3.0.1"
     "@types/url-join": "npm:^4.0.1"
     "@types/url-parse": "npm:^1.4.8"
-    "@types/workerpool": "npm:^6.1.0"
     "@types/yargs": "npm:^17.0.33"
     "@vitejs/plugin-react": "npm:^4.3.4"
     "@vitest/coverage-v8": "npm:^3.1.1"
@@ -11361,7 +11351,7 @@ __metadata:
     vite: "npm:^6.2.4"
     vite-plugin-checker: "npm:^0.9.1"
     vitest: "npm:^3.1.1"
-    workerpool: "npm:^6.2.0"
+    workerpool: "npm:^9.2.0"
     wrangler: "npm:^4.7.1"
     yaml: "npm:^2.7.0"
     yargs: "npm:^17.7.2"
@@ -20138,10 +20128,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workerpool@npm:^6.2.0":
-  version: 6.2.0
-  resolution: "workerpool@npm:6.2.0"
-  checksum: 10/c7dce6eae02098d70fe9924503bd95688564a1316cbb96fe55600f7ede0e66f1f2fea4d18aaec71fcee32373d17eda0bf87ac4dac8e5823e90ca1524aac90bdc
+"workerpool@npm:^9.2.0":
+  version: 9.2.0
+  resolution: "workerpool@npm:9.2.0"
+  checksum: 10/53b7a08001493a2bc24899f562ff6cc0824c942f656c05a68436c3db2c228cb1eea3090d8e726ecba4b02c08b35ace46e1a5435eee50444e683334329a7510da
   languageName: node
   linkType: hard
 
