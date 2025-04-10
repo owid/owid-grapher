@@ -82,10 +82,10 @@ export interface HorizontalColorLegendManager {
     legendTextColor?: Color
     legendTickSize?: number
     categoricalLegendData?: CategoricalBin[]
-    categoricalHoverBracket?: CategoricalBin
+    categoricalFocusBracket?: CategoricalBin
     categoricalBinStroke?: Color
     numericLegendData?: ColorScaleBin[]
-    numericHoverBracket?: ColorScaleBin
+    numericFocusBracket?: ColorScaleBin
     numericBinSize?: number
     numericBinStroke?: Color
     numericBinStrokeWidth?: number
@@ -499,7 +499,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
     @action.bound private onMouseMove(ev: MouseEvent | TouchEvent): void {
         const { manager, base, positionedBins } = this
-        const { numericHoverBracket } = manager
+        const { numericFocusBracket } = manager
         if (base.current) {
             const mouse = getRelativeMouse(base.current, ev)
 
@@ -512,7 +512,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
             // If outside legend bounds, trigger onMouseLeave if there is an existing bin in focus.
             if (!this.bounds.contains(mouse)) {
-                if (numericHoverBracket && manager.onLegendMouseLeave)
+                if (numericFocusBracket && manager.onLegendMouseLeave)
                     return manager.onLegendMouseLeave()
                 return
             }
@@ -553,7 +553,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             positionedBins,
             height,
         } = this
-        const { numericHoverBracket } = manager
+        const { numericFocusBracket } = manager
 
         const stroke = this.numericBinStroke
         const strokeWidth = this.numericBinStrokeWidth
@@ -590,8 +590,8 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                         positionedBins.map((positionedBin, index) => {
                             const bin = positionedBin.bin
                             const isFocus =
-                                numericHoverBracket &&
-                                bin.equals(numericHoverBracket)
+                                numericFocusBracket &&
+                                bin.equals(numericFocusBracket)
                             return (
                                 <NumericBinRect
                                     key={index}

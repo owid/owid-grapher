@@ -41,7 +41,7 @@ export class ChoroplethMap extends React.Component<{
         return isTouchDevice()
     }
 
-    private viewport = { x: 0.565, y: 0.5, width: 1, height: 1 } as const
+    private viewport = { x: 0.565, y: 0.5 } as const
 
     @computed private get manager(): ChoroplethMapManager {
         return this.props.manager
@@ -67,12 +67,10 @@ export class ChoroplethMap extends React.Component<{
 
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
     @computed private get viewportScale(): number {
-        const { bounds, viewport, mapBounds } = this
-        const viewportWidth = viewport.width * mapBounds.width
-        const viewportHeight = viewport.height * mapBounds.height
+        const { bounds, mapBounds } = this
         return Math.min(
-            bounds.width / viewportWidth,
-            bounds.height / viewportHeight
+            bounds.width / mapBounds.width,
+            bounds.height / mapBounds.height
         )
     }
 
@@ -196,12 +194,25 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @action.bound private onClick(feature: MapRenderFeature): void {
-        this.setHoverEnterFeature(feature)
-        this.manager.globeController?.focusOnCountry(feature.id)
+        const {
+            shouldEnableEntitySelectionOnMapTab,
+            shouldShowEntitySelectorOnMapTab,
+            mapConfig: { selectedCountries },
+            globeController,
+        } = this.manager
 
-        // focus the country on the globe and select it
-        if (this.manager.shouldEnableEntitySelectionOnMapTab) {
-            this.manager.mapConfig.selectedCountries.selectEntity(feature.id)
+        this.setHoverEnterFeature(feature)
+
+        if (shouldEnableEntitySelectionOnMapTab) {
+            selectedCountries.toggleSelection(feature.id)
+        }
+
+        if (selectedCountries.selectedSet.has(feature.id)) {
+            if (shouldShowEntitySelectorOnMapTab) {
+                globeController?.showGlobeAndRotateToCountry(feature.id)
+            } else {
+                globeController?.focusOnCountry(feature.id)
+            }
         }
     }
 

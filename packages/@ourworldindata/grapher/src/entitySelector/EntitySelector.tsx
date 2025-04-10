@@ -1207,8 +1207,6 @@ function SelectableEntity({
     type,
     bar,
     onChange,
-    onMouseEnter,
-    onMouseLeave,
     isLocal,
 }: {
     name: string
@@ -1216,8 +1214,6 @@ function SelectableEntity({
     type: "checkbox" | "radio"
     bar?: BarConfig
     onChange: (entityName: EntityName) => void
-    onMouseEnter?: (entityName: EntityName) => void
-    onMouseLeave?: () => void
     isLocal?: boolean
 }) {
     const Input = {
@@ -1249,8 +1245,6 @@ function SelectableEntity({
             className={cx("selectable-entity", {
                 "selectable-entity--with-bar": bar && bar.width !== undefined,
             })}
-            onMouseEnter={() => onMouseEnter?.(name)}
-            onMouseLeave={() => onMouseLeave?.()}
         >
             {bar && bar.width !== undefined && (
                 <div className="bar" style={{ width: `${bar.width * 100}%` }} />

@@ -21,6 +21,8 @@ import {
     GrapherChartOrMapType,
     GRAPHER_MAP_TYPE,
     ColumnSlug,
+    GrapherTabName,
+    GRAPHER_TAB_NAMES,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -477,3 +479,9 @@ export function findStartTimeForSlopeChart(
 
     return candidate.time
 }
+
+export const isChartTab = (tab: GrapherTabName): boolean =>
+    tab !== GRAPHER_TAB_NAMES.Table && tab !== GRAPHER_TAB_NAMES.WorldMap
+
+export const isMapTab = (tab: GrapherTabName): boolean =>
+    tab === GRAPHER_TAB_NAMES.WorldMap
