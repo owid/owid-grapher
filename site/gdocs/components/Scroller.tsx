@@ -1,5 +1,5 @@
-import { useState, useRef } from "react"
-import { InView } from "react-intersection-observer"
+import { useState, useRef, useEffect, useCallback } from "react"
+import { useIntersectionObserver } from "usehooks-ts"
 import {
     EnrichedBlockScroller,
     EnrichedScrollerItem,
@@ -8,6 +8,35 @@ import {
 import { useEmbedChart } from "../../hooks.js"
 import SpanElements from "./SpanElements.js"
 import cx from "classnames"
+
+function ScrollerParagraph({
+    value,
+    index,
+    onVisible,
+}: {
+    value: EnrichedScrollerItem
+    index: number
+    onVisible: (index: number, url: string) => void
+}) {
+    const { ref, isIntersecting } = useIntersectionObserver({
+        threshold: 0.67,
+    })
+
+    useEffect(() => {
+        if (isIntersecting) {
+            onVisible(index, value.url)
+        }
+    }, [index, isIntersecting, onVisible, value.url])
+
+    return (
+        <div ref={ref} className="scroller__paragraph-intersection-wrapper">
+            <p className="scroller__paragraph">
+                <SpanElements spans={value.text.value} />
+            </p>
+        </div>
+    )
+}
+
 export default function Scroller({
     d,
     className = "",
@@ -16,32 +45,30 @@ export default function Scroller({
     className?: string
 }) {
     const [figureSrc, setFigureSrc] = useState(d.blocks[0].url)
-
     const refChartContainer = useRef<HTMLDivElement>(null)
 
     const [activeChartIdx, setActiveChartIdx] = useState(0)
     useEmbedChart(activeChartIdx, refChartContainer)
+
+    const onVisible = useCallback(
+        (index: number, url: string) => {
+            setActiveChartIdx(index)
+            setFigureSrc(url)
+        },
+        [setActiveChartIdx, setFigureSrc]
+    )
 
     return (
         <section className={cx("scroller", className)}>
             <div className="scroller__paragraph-container span-cols-6 col-start-1 span-sm-cols-12">
                 {d.blocks.map((value: EnrichedScrollerItem, i: number) => {
                     return (
-                        <InView
+                        <ScrollerParagraph
                             key={i}
-                            className="scroller__paragraph-intersection-wrapper"
-                            threshold={0.67}
-                            onChange={(isVisible: boolean) => {
-                                if (isVisible) {
-                                    setFigureSrc(value.url)
-                                    setActiveChartIdx(i)
-                                }
-                            }}
-                        >
-                            <p className="scroller__paragraph">
-                                <SpanElements spans={value.text.value} />
-                            </p>
-                        </InView>
+                            value={value}
+                            index={i}
+                            onVisible={onVisible}
+                        />
                     )
                 })}
             </div>
