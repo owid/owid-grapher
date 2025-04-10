@@ -914,6 +914,17 @@ export class CoreTable<
         )
     }
 
+    appendRows(rows: ROW_TYPE[], opDescription: string): this {
+        return this.concat(
+            [
+                new (this.constructor as typeof CoreTable)(rows, this.defs, {
+                    parent: this,
+                }),
+            ],
+            opDescription
+        )
+    }
+
     updateDefs(fn: (def: COL_DEF_TYPE) => COL_DEF_TYPE): this {
         return this.transform(
             this.columnStore,
