@@ -7,9 +7,8 @@ import { getIndexName } from "../search/searchClient.js"
 import { ChartRecordType, SearchIndexName } from "../search/searchTypes.js"
 import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { DataCatalogState } from "./DataCatalogState.js"
-import { countriesByName, debounce, Region } from "@ourworldindata/utils"
+import { countriesByName, FuzzySearch, Region } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
-import * as React from "react"
 
 /**
  * Constants
@@ -267,85 +266,34 @@ export async function querySearch(
 
 export function useAutocomplete(
     query: string,
-    client: SearchClient
-): { countries: string[]; tags: string[] } {
-    const lastWord = query.split(" ").at(-1) ?? ""
-    const [countries, setCountries] = React.useState<string[]>([])
-    const [tags, setTags] = React.useState<string[]>([])
-
-    // Cache maps to store previous results
-    const countriesCache = React.useRef<Map<string, string[]>>(new Map())
-    const tagsCache = React.useRef<Map<string, string[]>>(new Map())
-
-    const index = client.initIndex(CHARTS_INDEX)
-
-    // Create debounced function
-    const debouncedFetchRef = React.useRef(
-        debounce(async (word: string) => {
-            // Check if we already have results for this word in cache
-            if (
-                countriesCache.current.has(word) &&
-                tagsCache.current.has(word)
-            ) {
-                setCountries(countriesCache.current.get(word) || [])
-                setTags(tagsCache.current.get(word) || [])
-                return
-            }
-
-            try {
-                const [countriesResponse, tagsResponse] = await Promise.all([
-                    index.searchForFacetValues("availableEntities", word),
-                    index.searchForFacetValues("tags", word),
-                ])
-
-                // Filter results to only include items with at least 100 hits and no parantheses
-                const filteredCountries = countriesResponse.facetHits
-                    .filter(
-                        (country) =>
-                            country.count >= 100 && !country.value.includes("(")
-                    )
-                    .map((country) => country.value)
-
-                const filteredTags = tagsResponse.facetHits
-                    .filter((tag) => tag.count >= 100)
-                    .map((tag) => tag.value)
-
-                setCountries(filteredCountries)
-                setTags(filteredTags)
-
-                countriesCache.current.set(word, filteredCountries)
-                tagsCache.current.set(word, filteredTags)
-            } catch (error) {
-                console.error("Error fetching autocomplete suggestions:", error)
-            }
-        }, 300)
+    allTopics: string[],
+    appliedFilters: {
+        selectedCountryNames: Set<string>
+        selectedTopics: Set<string>
+    }
+): { name: string; type: "country" | "topic" }[] {
+    const sortOptions = {
+        threshold: 0.5,
+        limit: 3,
+    }
+    const allCountries = countriesByName()
+    const allCountryNames = Object.values(allCountries).map(
+        (country) => country.name
     )
+    const lastWord = query.split(" ").at(-1) ?? ""
+    const countries = FuzzySearch.withKey(
+        allCountryNames,
+        (country) => country,
+        sortOptions
+    )
+        .search(lastWord)
+        .filter((country) => !appliedFilters.selectedCountryNames.has(country))
+        .map((name) => ({ name, type: "country" as const }))
+    const tags = FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
+        .search(lastWord)
+        .slice(0, 3)
+        .filter((topic) => !appliedFilters.selectedTopics.has(topic))
+        .map((name) => ({ name, type: "topic" as const }))
 
-    React.useEffect(() => {
-        if (lastWord.length < 2) {
-            setCountries([])
-            setTags([])
-            return
-        }
-
-        if (
-            countriesCache.current.has(lastWord) &&
-            tagsCache.current.has(lastWord)
-        ) {
-            setCountries(countriesCache.current.get(lastWord) || [])
-            setTags(tagsCache.current.get(lastWord) || [])
-            return // Skip the API call completely
-        }
-
-        const currentDebouncedFetch = debouncedFetchRef.current
-
-        void currentDebouncedFetch(lastWord)
-
-        // Cleanup function to cancel pending debounced calls when component unmounts
-        return () => {
-            currentDebouncedFetch.cancel()
-        }
-    }, [lastWord])
-
-    return { countries, tags }
+    return [...countries, ...tags]
 }

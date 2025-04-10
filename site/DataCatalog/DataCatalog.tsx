@@ -9,6 +9,7 @@ import {
     TagGraphRoot,
     Url,
     getPaginationPageNumbers,
+    TagGraphNode,
 } from "@ourworldindata/utils"
 import algoliasearch, { SearchClient } from "algoliasearch"
 import {
@@ -26,6 +27,7 @@ import {
     faMinus,
     faPlus,
     faSearch,
+    faTag,
     faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons"
 import { LabeledSwitch } from "@ourworldindata/components"
@@ -114,8 +116,11 @@ const DataCatalogSearchInput = ({
                             setGlobalQuery("")
                         }
                     }}
-                    onBlur={() => {
-                        setGlobalQuery(value)
+                    onBlur={(e) => {
+                        const recipient = e.relatedTarget
+                        if (!recipient?.hasAttribute("data-prevent-onblur")) {
+                            setGlobalQuery(value)
+                        }
                     }}
                 />
                 <button
@@ -656,7 +661,7 @@ const TopicsRefinementList = ({
                 className="data-catalog-refinements-expand-button"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
-                <h5 className="h5-black-caps">Topics</h5>
+                <h5 className="h5-black-caps">Filter by topic</h5>
                 <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
             </button>
             <ul
@@ -766,7 +771,199 @@ const DataCatalogPagination = ({
     )
 }
 
+function AutocompleteItemContents({
+    type,
+    name,
+}: {
+    type: string
+    name: string
+}) {
+    if (type === "country") {
+        return (
+            <span className="block">
+                <img
+                    className="flag"
+                    aria-hidden={true}
+                    height={12}
+                    width={16}
+                    src={`/images/flags/${countriesByName()[name].code}.svg`}
+                />
+                {name}
+            </span>
+        )
+    }
+    if (type === "topic") {
+        return (
+            <span className="block">
+                <FontAwesomeIcon icon={faTag} />
+                {name}
+            </span>
+        )
+    }
+    if (type === "query") {
+        return (
+            <span>
+                <FontAwesomeIcon icon={faSearch} />
+                {name}
+            </span>
+        )
+    }
+    return null
+}
+
+const DataCatalogAutocomplete = ({
+    localQuery,
+    allTopics,
+    selectedCountryNames,
+    selectedTopics,
+    query,
+    setLocalQuery,
+    setQuery,
+    addCountry,
+    addTopic,
+}: {
+    localQuery: string
+    allTopics: string[]
+    selectedCountryNames: Set<string>
+    selectedTopics: Set<string>
+    query: string
+    setLocalQuery: (query: string) => void
+    setQuery: (query: string) => void
+    addCountry: (country: string) => void
+    addTopic: (topic: string) => void
+}) => {
+    const items = useAutocomplete(localQuery, allTopics, {
+        selectedCountryNames,
+        selectedTopics,
+    })
+    const itemsToRender = [{ name: localQuery, type: "query" }, ...items]
+    const [highlightedIndex, setHighlightedIndex] = useState<number>(-1)
+    const highlightedIndexRef = useRef<number>(-1)
+
+    useEffect(() => {
+        // Reset highlighted index when the query changes
+        if (localQuery) {
+            setHighlightedIndex(-1)
+        }
+    }, [localQuery])
+
+    // Keep the ref in sync with state
+    useEffect(() => {
+        highlightedIndexRef.current = highlightedIndex
+    }, [highlightedIndex])
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const key = e.key
+            const input = document.querySelector(
+                ".data-catalog-search-input"
+            ) as HTMLInputElement
+            switch (key) {
+                case "ArrowDown":
+                    e.preventDefault()
+                    if (
+                        highlightedIndexRef.current <
+                        itemsToRender.length - 1
+                    ) {
+                        setHighlightedIndex((prev) => prev + 1)
+                    }
+                    break
+                case "ArrowUp":
+                    e.preventDefault()
+                    if (highlightedIndexRef.current > -1) {
+                        setHighlightedIndex((prev) => prev - 1)
+                    }
+                    break
+                case "Enter":
+                    if (highlightedIndexRef.current === -1) {
+                        input.blur()
+                        break
+                    }
+                    e.preventDefault()
+                    if (highlightedIndexRef.current > -1) {
+                        const item = itemsToRender[highlightedIndexRef.current]
+                        if (item.type === "country") {
+                            addCountry(item.name)
+                        }
+                        if (item.type === "topic") {
+                            addTopic(item.name)
+                        }
+                        if (item.type === "query") {
+                            setLocalQuery(item.name)
+                            setQuery(item.name)
+                            input.blur()
+                        } else {
+                            const queryMinusLastWord = query
+                                .split(" ")
+                                .slice(0, -1)
+                                .join(" ")
+                            setLocalQuery(queryMinusLastWord)
+                            setQuery(queryMinusLastWord)
+                        }
+                    }
+                    break
+                case "Escape":
+                    e.preventDefault()
+                    input.blur()
+                    break
+            }
+        }
+
+        document.addEventListener("keydown", handleKeyDown)
+
+        // Cleanup function to remove the event listener
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown)
+        }
+    }, [items]) // Empty dependency array, only runs on mount
+
+    if (!localQuery) return null
+    return (
+        <div className="data-catalog-autocomplete-container">
+            {items.length > 0 && (
+                <ul>
+                    {itemsToRender.map(({ name, type }, index) => (
+                        <li
+                            key={name}
+                            className={cx("data-catalog-autocomplete-item", {
+                                "data-catalog-autocomplete-item--is-highlighted":
+                                    highlightedIndex === index,
+                            })}
+                        >
+                            <button
+                                data-prevent-onblur
+                                className="data-catalog-autocomplete-button"
+                                onClick={() => {
+                                    const queryMinusLastWord = query
+                                        .split(" ")
+                                        .slice(0, -1)
+                                        .join(" ")
+                                    if (type === "country") {
+                                        addCountry(name)
+                                    }
+                                    if (type === "topic") {
+                                        addTopic(name)
+                                    }
+                                    setLocalQuery(queryMinusLastWord)
+                                    setQuery(queryMinusLastWord)
+                                }}
+                            >
+                                <AutocompleteItemContents
+                                    type={type}
+                                    name={name}
+                                />
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    )
+}
+
 const DataCatalogSearchbar = ({
+    allTopics,
+    selectedTopics,
     selectedCountries,
     query,
     setQuery,
@@ -776,8 +973,9 @@ const DataCatalogSearchbar = ({
     requireAllCountries,
     selectedCountryNames,
     toggleRequireAllCountries,
-    searchClient,
 }: {
+    allTopics: string[]
+    selectedTopics: Set<string>
     selectedCountries: Region[]
     selectedCountryNames: Set<string>
     query: string
@@ -787,7 +985,6 @@ const DataCatalogSearchbar = ({
     addTopic: (topic: string) => void
     requireAllCountries: boolean
     toggleRequireAllCountries: () => void
-    searchClient: SearchClient
 }) => {
     // Storing this in local state so that query params don't update during typing
     const [localQuery, setLocalQuery] = useState(query)
@@ -795,8 +992,6 @@ const DataCatalogSearchbar = ({
     useEffect(() => {
         setLocalQuery(query)
     }, [query])
-
-    const { countries, tags } = useAutocomplete(localQuery, searchClient)
 
     // Uses CSS to fake an input bar that will highlight correctly using :focus-within
     // without highlighting when the country selector is focused
@@ -819,6 +1014,17 @@ const DataCatalogSearchbar = ({
                     setLocalQuery={setLocalQuery}
                     setGlobalQuery={setQuery}
                 />
+                <DataCatalogAutocomplete
+                    localQuery={localQuery}
+                    allTopics={allTopics}
+                    selectedCountryNames={selectedCountryNames}
+                    selectedTopics={selectedTopics}
+                    query={query}
+                    setLocalQuery={setLocalQuery}
+                    setQuery={setQuery}
+                    addCountry={addCountry}
+                    addTopic={addTopic}
+                />
             </div>
             <DataCatalogCountrySelector
                 requireAllCountries={requireAllCountries}
@@ -827,47 +1033,6 @@ const DataCatalogSearchbar = ({
                 addCountry={addCountry}
                 removeCountry={removeCountry}
             />
-            <div className="data-catalog-autocomplete-container">
-                {countries.length > 0 && (
-                    <ul>
-                        {countries.map((country: string) => (
-                            <li
-                                key={country}
-                                className="data-catalog-autocomplete-item"
-                            >
-                                <button
-                                    className="data-catalog-autocomplete-button"
-                                    onClick={() => {
-                                        addCountry(country)
-                                    }}
-                                >
-                                    {country}
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-
-                {tags.length > 0 && (
-                    <ul>
-                        {tags.map((tag: string) => (
-                            <li
-                                key={tag}
-                                className="data-catalog-autocomplete-item"
-                            >
-                                <button
-                                    className="data-catalog-autocomplete-button"
-                                    onClick={() => {
-                                        addTopic(tag)
-                                    }}
-                                >
-                                    {tag}
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </div>
         </>
     )
 }
@@ -892,6 +1057,22 @@ export const DataCatalog = ({
         () => tagGraph.children.map((child) => child.name),
         [tagGraph]
     )
+    const ALL_TOPICS = useMemo(() => {
+        function getAllTopics(node: TagGraphNode): Set<string> {
+            return node.children.reduce((acc, child) => {
+                if (child.children.length) {
+                    const topics = getAllTopics(child)
+                    return new Set([...acc, ...topics])
+                }
+                if (child.isTopic) {
+                    acc.add(child.name)
+                }
+                return acc
+            }, new Set<string>())
+        }
+        return Array.from(getAllTopics(tagGraph))
+    }, [tagGraph])
+
     const shouldShowRibbons = useMemo(
         () => checkShouldShowRibbonView(state.query, state.topics, AREA_NAMES),
         [state.query, state.topics, AREA_NAMES]
@@ -963,12 +1144,13 @@ export const DataCatalog = ({
                 </header>
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
                     <DataCatalogSearchbar
+                        allTopics={ALL_TOPICS}
+                        selectedTopics={state.topics}
                         addCountry={actions.addCountry}
                         addTopic={actions.addTopic}
                         query={state.query}
                         removeCountry={actions.removeCountry}
                         requireAllCountries={state.requireAllCountries}
-                        searchClient={searchClient}
                         selectedCountries={selectedCountries}
                         selectedCountryNames={state.selectedCountryNames}
                         setQuery={actions.setQuery}
