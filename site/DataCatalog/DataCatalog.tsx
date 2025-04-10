@@ -43,6 +43,7 @@ import {
     queryRibbons,
     querySearch,
     syncDataCatalogURL,
+    useAutocomplete,
 } from "./DataCatalogUtils.js"
 import {
     dataCatalogStateToUrl,
@@ -771,9 +772,11 @@ const DataCatalogSearchbar = ({
     setQuery,
     removeCountry,
     addCountry,
+    addTopic,
     requireAllCountries,
     selectedCountryNames,
     toggleRequireAllCountries,
+    searchClient,
 }: {
     selectedCountries: Region[]
     selectedCountryNames: Set<string>
@@ -781,8 +784,10 @@ const DataCatalogSearchbar = ({
     setQuery: (query: string) => void
     removeCountry: (country: string) => void
     addCountry: (country: string) => void
+    addTopic: (topic: string) => void
     requireAllCountries: boolean
     toggleRequireAllCountries: () => void
+    searchClient: SearchClient
 }) => {
     // Storing this in local state so that query params don't update during typing
     const [localQuery, setLocalQuery] = useState(query)
@@ -790,6 +795,8 @@ const DataCatalogSearchbar = ({
     useEffect(() => {
         setLocalQuery(query)
     }, [query])
+
+    const { countries, tags } = useAutocomplete(localQuery, searchClient)
 
     // Uses CSS to fake an input bar that will highlight correctly using :focus-within
     // without highlighting when the country selector is focused
@@ -820,6 +827,47 @@ const DataCatalogSearchbar = ({
                 addCountry={addCountry}
                 removeCountry={removeCountry}
             />
+            <div className="data-catalog-autocomplete-container">
+                {countries.length > 0 && (
+                    <ul>
+                        {countries.map((country: string) => (
+                            <li
+                                key={country}
+                                className="data-catalog-autocomplete-item"
+                            >
+                                <button
+                                    className="data-catalog-autocomplete-button"
+                                    onClick={() => {
+                                        addCountry(country)
+                                    }}
+                                >
+                                    {country}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+
+                {tags.length > 0 && (
+                    <ul>
+                        {tags.map((tag: string) => (
+                            <li
+                                key={tag}
+                                className="data-catalog-autocomplete-item"
+                            >
+                                <button
+                                    className="data-catalog-autocomplete-button"
+                                    onClick={() => {
+                                        addTopic(tag)
+                                    }}
+                                >
+                                    {tag}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
         </>
     )
 }
@@ -916,9 +964,11 @@ export const DataCatalog = ({
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
                     <DataCatalogSearchbar
                         addCountry={actions.addCountry}
+                        addTopic={actions.addTopic}
                         query={state.query}
                         removeCountry={actions.removeCountry}
                         requireAllCountries={state.requireAllCountries}
+                        searchClient={searchClient}
                         selectedCountries={selectedCountries}
                         selectedCountryNames={state.selectedCountryNames}
                         setQuery={actions.setQuery}
