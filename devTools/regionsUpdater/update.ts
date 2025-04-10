@@ -1,6 +1,5 @@
 import { readFile, writeFile } from "fs/promises"
 import { execFileSync } from "child_process"
-import { createHash } from "crypto"
 import { parse } from "papaparse"
 import { topology } from "topojson-server"
 import {
@@ -239,13 +238,11 @@ function transformGeography(orig: FeatureCollection): FeatureCollection {
 }
 
 async function didChange(path: string, newData: string): Promise<boolean> {
-    const oldData = await readFile(path).catch(() => "")
-    const newHash = createHash("md5").update(newData).digest("hex")
-    const oldHash = createHash("md5").update(oldData).digest("hex")
-    const message = newHash === oldHash ? "No changes" : "Contents changed"
+    const oldData = await readFile(path, "utf8").catch(() => "")
+    const message = newData === oldData ? "No changes" : "Contents changed"
     console.log(`${message}: ${path}`)
 
-    return newHash !== oldHash
+    return newData !== oldData
 }
 
 async function main() {

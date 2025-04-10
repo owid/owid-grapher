@@ -12,7 +12,6 @@ import {
     TESTING_ONLY_reset_guid,
 } from "@ourworldindata/utils"
 import fs, { stat } from "fs-extra"
-import md5 from "md5"
 import path from "path"
 import stream from "stream"
 import {
@@ -27,6 +26,7 @@ import { getHeapStatistics } from "v8"
 import { queryStringsByChartType } from "./chart-configurations.js"
 import * as d3 from "d3"
 import prettier from "prettier"
+import { hashMd5 } from "../../serverUtils/hash.js"
 
 // the owid-grapher-svgs repo is usually cloned as a sibling to the owid-grapher repo
 export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/configs"
@@ -466,7 +466,7 @@ async function formatSvg(svg: string): Promise<string> {
 /** Remove all non-deterministic parts of the svg and then calculate an md5 hash */
 export async function processSvgAndCalculateHash(svg: string): Promise<string> {
     const processed = await prepareSvgForComparison(svg)
-    return md5(processed)
+    return hashMd5(processed)
 }
 export interface RenderSvgAndSaveJobDescription {
     dir: string

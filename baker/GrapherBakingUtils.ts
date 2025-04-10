@@ -3,9 +3,9 @@ import { glob } from "glob"
 import * as lodash from "lodash"
 
 import * as db from "../db/db.js"
-import md5 from "md5"
 import { DbPlainTag, Url, without } from "@ourworldindata/utils"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
+import { hashMd5 } from "../serverUtils/hash.js"
 
 // Splits a grapher URL like https://ourworldindata.org/grapher/soil-lifespans?tab=chart
 // into its slug (soil-lifespans) and queryStr (?tab=chart)
@@ -28,7 +28,7 @@ export const grapherSlugToExportFileKey = (
     }: { shouldHashQueryStr?: boolean; separator?: string } = {}
 ) => {
     const maybeHashedQueryStr = shouldHashQueryStr
-        ? md5(queryStr ?? "")
+        ? hashMd5(queryStr ?? "")
         : queryStr
     return `${slug}${queryStr ? `${separator}${maybeHashedQueryStr}` : ""}`
 }
