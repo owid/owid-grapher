@@ -1,5 +1,7 @@
 export const ExplorersTableName = "explorers"
 
+import { JsonString } from "../domainTypes/Various.js"
+
 export interface DbInsertExplorer {
     slug: string
     tsv: string
@@ -14,9 +16,9 @@ export type DbPlainExplorer = Required<DbInsertExplorer> & {
     createdAt: Date
     // updatedAt is set automatically by MySQL
     updatedAt: Date
-    // these properties are populated from Buildkite's pipeline "Mirror explorers to MySQL"
-    // it's used in getNonGrapherExplorerViewCount or in getPublishedExplorersBySlug
-    config: string
+    // config is a parsed version of the TSV
+    // it is used in getNonGrapherExplorerViewCount or in getPublishedExplorersBySlug
+    config: JsonString
 }
 
 /** A sparse set of explorer metadata. Currently used to begin Algolia indexing with */
