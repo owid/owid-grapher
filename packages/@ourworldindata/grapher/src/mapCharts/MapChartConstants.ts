@@ -64,6 +64,7 @@ export interface ChoroplethMapManager {
     isSelected: (featureId: string) => boolean
     onMapMouseOver: (d: GeoFeature) => void
     onMapMouseLeave: () => void
+    shouldShowEntitySelectorOnMapTab?: boolean
     shouldEnableEntitySelectionOnMapTab?: boolean
     isStatic?: boolean
 }
@@ -95,6 +96,7 @@ export interface MapChartManager extends ChartManager {
     mapColumnSlug?: ColumnSlug
     mapConfig?: MapConfig
     globeController?: GlobeController
+    shouldShowEntitySelectorOnMapTab?: boolean
     shouldEnableEntitySelectionOnMapTab?: boolean
 }
 

@@ -50,31 +50,35 @@ export class EntitySelectionToggle extends React.Component<{
             isOnMapTab,
         } = this.props.manager
 
-        return isOnMapTab
-            ? {
-                  action: "Select",
-                  entity: MAP_GRAPHER_ENTITY_TYPE_PLURAL,
-                  icon: <FontAwesomeIcon icon={faPen} />,
-              }
-            : canHighlightEntities
-              ? {
-                    action: "Select",
-                    entity: entityTypePlural,
-                    icon: <FontAwesomeIcon icon={faEye} />,
-                }
-              : canChangeEntity
-                ? {
-                      action: "Change",
-                      entity: entityType,
-                      icon: <FontAwesomeIcon icon={faRightLeft} />,
-                  }
-                : canAddEntities
-                  ? {
-                        action: "Edit",
-                        entity: entityTypePlural,
-                        icon: <FontAwesomeIcon icon={faPen} />,
-                    }
-                  : null
+        if (isOnMapTab)
+            return {
+                action: "Select",
+                entity: MAP_GRAPHER_ENTITY_TYPE_PLURAL,
+                icon: <FontAwesomeIcon icon={faPen} />,
+            }
+
+        if (canHighlightEntities)
+            return {
+                action: "Select",
+                entity: entityTypePlural,
+                icon: <FontAwesomeIcon icon={faEye} />,
+            }
+
+        if (canChangeEntity)
+            return {
+                action: "Change",
+                entity: entityType,
+                icon: <FontAwesomeIcon icon={faRightLeft} />,
+            }
+
+        if (canAddEntities)
+            return {
+                action: "Edit",
+                entity: entityTypePlural,
+                icon: <FontAwesomeIcon icon={faPen} />,
+            }
+
+        return null
     }
 
     render(): React.ReactElement | null {
