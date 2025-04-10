@@ -334,9 +334,14 @@ export class ChoroplethGlobe extends React.Component<{
         // reset the region if necessary
         this.mapConfig.region = MapRegionName.World
 
-        // select the country if allowed
+        // select/deselect the country if allowed
+        const country = feature.id
         if (this.manager.shouldEnableEntitySelectionOnMapTab)
-            this.mapConfig.selectedCountries.selectEntity(feature.id)
+            this.mapConfig.selectedCountries.toggleSelection(country)
+
+        // make sure country focus is dismissed for unselected countries
+        if (!this.mapConfig.selectedCountries.selectedSet.has(country))
+            this.globeController.dismissCountryFocus()
     }
 
     @action.bound private onTouchStart(feature: GlobeRenderFeature): void {
