@@ -40,7 +40,7 @@
     outline: 1px solid $blue-20;
     background-color: #fff;
     &:focus-within {
-        outline: 1px solid $blue-40;
+        outline: 1px solid $blue-5;
     }
 }
 
@@ -410,7 +410,68 @@
     }
 }
 
+.data-catalog-pseudo-input:not(:focus-within)
+    .data-catalog-autocomplete-container {
+    // display: none;
+}
+
 .data-catalog-autocomplete-container {
+    position: absolute;
+    background-color: white;
+    padding: 0 8px;
+    border-top: 2px solid $blue-5;
+    width: 100%;
+    top: 48px;
+    box-shadow: $box-shadow-xl;
+
+    li {
+        list-style: none;
+    }
+}
+
+.data-catalog-autocomplete-item {
+    padding: 8px;
+    &:first-child {
+        margin-top: 8px;
+    }
+    &:last-child {
+        margin-bottom: 8px;
+    }
+    &:hover {
+        background-color: $blue-5;
+        color: $blue-90;
+    }
+}
+
+.data-catalog-autocomplete-item--is-highlighted {
+    background-color: $blue-5;
+    color: $blue-90;
+}
+
+.data-catalog-autocomplete-button {
+    width: 100%;
+    padding: 0;
+    text-align: left;
+    background-color: transparent;
+
+    span {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px;
+        color: $blue-90;
+        font-size: 13px;
+        line-height: 16px;
+        &.block {
+            outline: 1px solid $blue-20;
+        }
+        img,
+        svg {
+            margin-right: 6px;
+        }
+        img {
+            border: 1px solid $blue-20;
+        }
+    }
 }
 
 .data-catalog-refinement-list {
