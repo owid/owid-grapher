@@ -1,5 +1,7 @@
 export const ExplorersTableName = "explorers"
 
+import { JsonString } from "@ourworldindata/types"
+
 export interface DbInsertExplorer {
     slug: string
     tsv: string
@@ -16,7 +18,7 @@ export type DbPlainExplorer = Required<DbInsertExplorer> & {
     updatedAt: Date
     // config is a parsed version of the TSV
     // it is used in getNonGrapherExplorerViewCount or in getPublishedExplorersBySlug
-    config: string
+    config: JsonString
 }
 
 /** A sparse set of explorer metadata. Currently used to begin Algolia indexing with */

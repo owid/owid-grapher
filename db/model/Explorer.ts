@@ -4,6 +4,7 @@ import {
     DbPlainExplorer,
     ExplorersTableName,
 } from "@ourworldindata/types"
+import { areSetsEqual } from "@ourworldindata/utils"
 import { parseExplorer } from "../explorerParser.js"
 
 type PlainExplorerWithLastCommit = Required<DbPlainExplorer> & {
@@ -121,10 +122,7 @@ export async function upsertExplorerCharts(
     )
 
     console.log(`Upserting chart links for explorer [${slug}]`)
-    if (
-        validChartIds.size !== existing.size ||
-        [...validChartIds].some((id) => !existing.has(id))
-    ) {
+    if (!areSetsEqual(validChartIds, existing)) {
         await knex("explorer_charts").where({ explorerSlug: slug }).delete()
         for (const chartId of validChartIds) {
             await knex("explorer_charts").insert({
@@ -133,14 +131,6 @@ export async function upsertExplorerCharts(
             })
         }
     }
-}
-
-function setEquals(a: Set<number>, b: Set<number>): boolean {
-    if (a.size !== b.size) return false
-    for (const v of a) {
-        if (!b.has(v)) return false
-    }
-    return true
 }
 
 async function validateVariableIds(
@@ -223,7 +213,7 @@ export async function upsertExplorerVariables(
         existingRows.map((row: any) => row.variableId)
     )
 
-    if (!setEquals(proposedUnion, existing)) {
+    if (!areSetsEqual(proposedUnion, existing)) {
         console.log("Linking explorer to variables", {
             n_variables: proposedUnion.size,
         })
@@ -233,12 +223,12 @@ export async function upsertExplorerVariables(
             isPublished
         )
         await knex("explorer_variables").where({ explorerSlug: slug }).delete()
-        for (const variableId of validIds) {
-            await knex("explorer_variables").insert({
+        await knex("explorer_variables").insert(
+            validIds.map((variableId) => ({
                 explorerSlug: slug,
                 variableId,
-            })
-        }
+            }))
+        )
     }
 }
 

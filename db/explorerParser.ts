@@ -58,7 +58,7 @@ function tsvToRecords(
     block: string[],
     slug: string,
     start: number
-): Record<string, any>[] {
+): Record<string, string>[] {
     if (block[0].endsWith("\t")) {
         console.warn("loose tab on block header", {
             name: slug,
@@ -74,7 +74,7 @@ function tsvToRecords(
     const records: Record<string, any>[] = []
     for (const line of block.slice(1)) {
         const rowData = line.split("\t")
-        const record: Record<string, any> = {}
+        const record: Record<string, string> = {}
         header.forEach((col, idx) => {
             record[col] = rowData[idx]
         })
@@ -84,7 +84,7 @@ function tsvToRecords(
 }
 
 function parseLineByLine(lines: string[], slug: string): Statement[] {
-    const filtered = lines.filter((l) => l.trim() || l.startsWith("##"))
+    const filtered = lines.filter((l) => l.trim() && !l.startsWith("##"))
     const data: Statement[] = []
     let i = 0
     while (i < filtered.length) {
