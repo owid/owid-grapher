@@ -36,6 +36,7 @@
 .data-catalog-pseudo-input {
     display: flex;
     flex-grow: 1;
+    flex-basis: 100%;
     outline: 1px solid $blue-20;
     background-color: #fff;
     &:focus-within {
@@ -95,6 +96,7 @@
 .data-catalog-search-controls-container {
     position: relative;
     display: flex;
+    flex-wrap: wrap;
 }
 
 .data-catalog-search-box-container {
@@ -406,6 +408,9 @@
     &:hover {
         background-color: $accent-pale-blue;
     }
+}
+
+.data-catalog-autocomplete-container {
 }
 
 .data-catalog-refinement-list {
