@@ -33,8 +33,7 @@ export const LatestDataInsightCards = (props: {
         <div className={cx(className, "data-insight-cards-container")}>
             <h2 className="h2-bold ">Our latest Data Insights</h2>
             <a href="/data-insights" className="see-all-button">
-                See all Data Insights{" "}
-                <FontAwesomeIcon icon={faArrowRight} />
+                See all Data Insights <FontAwesomeIcon icon={faArrowRight} />
             </a>
             <LatestDataInsights
                 className="data-insights-carousel"
