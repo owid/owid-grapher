@@ -9,7 +9,6 @@ import {
     Color,
     HorizontalAlign,
     PrimitiveType,
-    mappableCountries,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -102,10 +101,7 @@ export class MapChart
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
-        const mappableCountryNames = mappableCountries.map(
-            (country) => country.name
-        )
-        return table.filterByEntityNames(mappableCountryNames)
+        return this.dropNonMapEntities(table)
     }
 
     private dropNonMapEntities(table: OwidTable): OwidTable {
@@ -193,6 +189,10 @@ export class MapChart
 
     @computed get shouldEnableEntitySelectionOnMapTab(): boolean {
         return !!this.manager.shouldEnableEntitySelectionOnMapTab
+    }
+
+    @computed get shouldShowEntitySelectorOnMapTab(): boolean {
+        return !!this.manager.shouldShowEntitySelectorOnMapTab
     }
 
     componentWillUnmount(): void {
@@ -439,6 +439,16 @@ export class MapChart
             return categoricalLegendData.find((bin) => bin.contains(hoverValue))
 
         return undefined
+    }
+
+    // rename so that they're picked up by the legend component
+    @computed get categoricalFocusBracket(): CategoricalBin | undefined {
+        return this.categoricalHoverBracket
+    }
+
+    // rename so that they're picked up by the legend component
+    @computed get numericFocusBracket(): ColorScaleBin | undefined {
+        return this.numericHoverBracket
     }
 
     @computed get categoricalBinStroke(): Color {
