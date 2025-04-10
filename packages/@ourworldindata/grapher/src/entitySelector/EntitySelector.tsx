@@ -1065,6 +1065,13 @@ export class EntitySelector extends React.Component<{
         )
     }
 
+    @computed private get shouldShowFilterBar(): boolean {
+        return (
+            this.filterOptions.length > 1 &&
+            this.filterOptions[0].count !== this.filterOptions[1].count
+        )
+    }
+
     private renderFilterBar(): React.ReactElement {
         return (
             <div className="entity-selector__filter-bar">
@@ -1204,23 +1211,26 @@ export class EntitySelector extends React.Component<{
     }
 
     private renderAllEntitiesInSingleMode(): React.ReactElement {
-        const { sortedAvailableEntities } = this
+        const { filteredAvailableEntities, shouldShowFilterBar } = this
 
         return (
-            <ul>
-                {sortedAvailableEntities.map((entity) => (
-                    <li key={entity.name}>
-                        <SelectableEntity
-                            name={entity.name}
-                            type="radio"
-                            checked={this.isEntitySelected(entity)}
-                            bar={this.getBarConfigForEntity(entity)}
-                            onChange={this.onChange}
-                            isLocal={entity.isLocal}
-                        />
-                    </li>
-                ))}
-            </ul>
+            <>
+                {shouldShowFilterBar && this.renderFilterBar()}
+                <ul className={cx({ "hide-top-border": shouldShowFilterBar })}>
+                    {filteredAvailableEntities.map((entity) => (
+                        <li key={entity.name}>
+                            <SelectableEntity
+                                name={entity.name}
+                                type="radio"
+                                checked={this.isEntitySelected(entity)}
+                                bar={this.getBarConfigForEntity(entity)}
+                                onChange={this.onChange}
+                                isLocal={entity.isLocal}
+                            />
+                        </li>
+                    ))}
+                </ul>
+            </>
         )
     }
 
@@ -1272,7 +1282,11 @@ export class EntitySelector extends React.Component<{
     }
 
     private renderAllEntitiesInMultiMode(): React.ReactElement {
-        const { filteredAvailableEntities, selectedEntities } = this
+        const {
+            filteredAvailableEntities,
+            selectedEntities,
+            shouldShowFilterBar,
+        } = this
         const { numSelectedEntities, selectedEntityNames } = this.selectionArray
 
         // having a "Selection" and "Available entities" section both looks odd
@@ -1280,10 +1294,6 @@ export class EntitySelector extends React.Component<{
         const hasFewEntities = filteredAvailableEntities.length < 10
         const shouldHideAvailableEntities =
             hasFewEntities && this.allEntitiesSelected
-
-        const shouldShowFilterBar =
-            this.filterOptions.length > 1 &&
-            this.filterOptions[0].count !== this.filterOptions[1].count
 
         return (
             <Flipper
