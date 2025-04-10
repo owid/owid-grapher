@@ -21,7 +21,7 @@ export const SiteMobileArea = ({
     }, [isActive])
 
     return (
-        <li key={area.slug} className="SiteMobileArea" ref={areaRef}>
+        <li key={area.id} className="SiteMobileArea" ref={areaRef}>
             <SiteNavigationToggle
                 ariaLabel={
                     isActive ? `Collapse ${area.name}` : `Expand ${area.name}`
@@ -31,10 +31,7 @@ export const SiteMobileArea = ({
                 dropdown={
                     <ul>
                         {getAllChildrenOfArea(area).map((topic) => (
-                            <SiteNavigationTopic
-                                key={topic.slug}
-                                topic={topic}
-                            />
+                            <SiteNavigationTopic key={topic.id} topic={topic} />
                         ))}
                     </ul>
                 }

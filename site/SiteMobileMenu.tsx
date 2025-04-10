@@ -36,7 +36,7 @@ export const SiteMobileMenu = ({
                     <ul className="section__dropdown--topics">
                         {tagGraph?.children.map((area) => (
                             <SiteMobileArea
-                                key={area.slug}
+                                key={area.id}
                                 area={area}
                                 isActive={activeArea === area}
                                 toggleArea={toggleArea}
