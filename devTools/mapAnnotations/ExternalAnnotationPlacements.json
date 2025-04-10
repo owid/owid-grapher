@@ -9,13 +9,17 @@
         "id": "Algeria"
     },
     {
-        "id": "Andorra"
+        "id": "Andorra",
+        "direction": "right",
+        "anchorPoint": [1.7101710171017146, 42.522088204914255]
     },
     {
         "id": "Angola"
     },
     {
-        "id": "Antigua and Barbuda"
+        "id": "Antigua and Barbuda",
+        "direction": "right",
+        "anchorPoint": [-61.792032978869415, 17.371980618251754]
     },
     {
         "id": "Argentina"
@@ -36,7 +40,9 @@
         "id": "Bahamas"
     },
     {
-        "id": "Bahrain"
+        "id": "Bahrain",
+        "direction": "top",
+        "anchorPoint": [50.5121072, 26.2230343]
     },
     {
         "id": "Bangladesh"
@@ -99,7 +105,9 @@
         "id": "Canada"
     },
     {
-        "id": "Cape Verde"
+        "id": "Cape Verde",
+        "direction": "left",
+        "anchorPoint": [-24.816292404283473, 15.93703692965643]
     },
     {
         "id": "Central African Republic"
@@ -117,7 +125,9 @@
         "id": "Colombia"
     },
     {
-        "id": "Comoros"
+        "id": "Comoros",
+        "direction": "right",
+        "anchorPoint": [43.92808704317099, -11.750538182507086]
     },
     {
         "id": "Congo"
@@ -150,7 +160,9 @@
         "id": "Djibouti"
     },
     {
-        "id": "Dominica"
+        "id": "Dominica",
+        "direction": "right",
+        "anchorPoint": [-61.2940115, 15.4600251]
     },
     {
         "id": "Dominican Republic"
@@ -185,7 +197,9 @@
         "id": "Ethiopia"
     },
     {
-        "id": "Fiji"
+        "id": "Fiji",
+        "direction": "right",
+        "anchorPoint": [179.34876116370708, -17.335400376491393]
     },
     {
         "id": "Finland"
@@ -223,7 +237,9 @@
         "id": "Greenland"
     },
     {
-        "id": "Grenada"
+        "id": "Grenada",
+        "direction": "right",
+        "anchorPoint": [-61.6419433, 12.1136361]
     },
     {
         "id": "Guatemala"
@@ -286,7 +302,9 @@
         "id": "Kenya"
     },
     {
-        "id": "Kiribati"
+        "id": "Kiribati",
+        "direction": "right",
+        "anchorPoint": [-157.3477270169999, 1.860785223000107]
     },
     {
         "id": "Kosovo"
@@ -336,34 +354,46 @@
         "id": "Malaysia"
     },
     {
-        "id": "Maldives"
+        "id": "Maldives",
+        "direction": "left",
+        "anchorPoint": [73.3940658, 3.7251316]
     },
     {
         "id": "Mali"
     },
     {
-        "id": "Malta"
+        "id": "Malta",
+        "direction": "right",
+        "anchorPoint": [14.52745274527453, 35.87259935954535]
     },
     {
-        "id": "Marshall Islands"
+        "id": "Marshall Islands",
+        "direction": "right",
+        "anchorPoint": [171.3582017, 7.096103]
     },
     {
         "id": "Mauritania"
     },
     {
-        "id": "Mauritius"
+        "id": "Mauritius",
+        "direction": "right",
+        "anchorPoint": [57.76777677767777, -20.34422800678503]
     },
     {
         "id": "Mexico"
     },
     {
-        "id": "Micronesia (country)"
+        "id": "Micronesia (country)",
+        "direction": "bottom",
+        "anchorPoint": [151.6112425, 7.3384087]
     },
     {
         "id": "Moldova"
     },
     {
-        "id": "Monaco"
+        "id": "Monaco",
+        "direction": "bottom",
+        "anchorPoint": [7.3990011, 43.7305365]
     },
     {
         "id": "Mongolia"
@@ -384,7 +414,9 @@
         "id": "Namibia"
     },
     {
-        "id": "Nauru"
+        "id": "Nauru",
+        "direction": "right",
+        "anchorPoint": [166.9666561, -0.5324023]
     },
     {
         "id": "Nepal"
@@ -423,10 +455,14 @@
         "id": "Pakistan"
     },
     {
-        "id": "Palau"
+        "id": "Palau",
+        "direction": "right",
+        "anchorPoint": [134.59945994599462, 7.486400241586679]
     },
     {
-        "id": "Palestine"
+        "id": "Palestine",
+        "direction": "left",
+        "anchorPoint": [34.974641, 31.866582]
     },
     {
         "id": "Panama"
@@ -465,22 +501,34 @@
         "id": "Rwanda"
     },
     {
-        "id": "Saint Kitts and Nevis"
+        "id": "Saint Kitts and Nevis",
+        "direction": "left",
+        "anchorPoint": [-62.8082808280828, 17.295698407731408]
     },
     {
-        "id": "Saint Lucia"
+        "id": "Saint Lucia",
+        "direction": "right",
+        "anchorPoint": [-60.90715, 13.9069086]
     },
     {
-        "id": "Saint Vincent and the Grenadines"
+        "id": "Saint Vincent and the Grenadines",
+        "direction": "left",
+        "anchorPoint": [-61.3016838, 13.2485126]
     },
     {
-        "id": "Samoa"
+        "id": "Samoa",
+        "direction": "right",
+        "anchorPoint": [-172.22322232223223, -13.573208033693973]
     },
     {
-        "id": "San Marino"
+        "id": "San Marino",
+        "direction": "right",
+        "anchorPoint": [12.511251125112523, 43.94573855823084]
     },
     {
-        "id": "Sao Tome and Principe"
+        "id": "Sao Tome and Principe",
+        "direction": "left",
+        "anchorPoint": [6.461439457092617, 0.212133437981513]
     },
     {
         "id": "Saudi Arabia"
@@ -492,13 +540,17 @@
         "id": "Serbia"
     },
     {
-        "id": "Seychelles"
+        "id": "Seychelles",
+        "direction": "right",
+        "anchorPoint": [55.535553555355534, -4.701435709977233]
     },
     {
         "id": "Sierra Leone"
     },
     {
-        "id": "Singapore"
+        "id": "Singapore",
+        "direction": "right",
+        "anchorPoint": [103.9207781, 1.2000828]
     },
     {
         "id": "Slovakia"
@@ -560,7 +612,9 @@
         "anchorPoint": [1.432672, 6.0485326]
     },
     {
-        "id": "Tonga"
+        "id": "Tonga",
+        "direction": "right",
+        "anchorPoint": [-174.42790240510834, -20.234360936951674]
     },
     {
         "id": "Trinidad and Tobago"
@@ -575,7 +629,9 @@
         "id": "Turkmenistan"
     },
     {
-        "id": "Tuvalu"
+        "id": "Tuvalu",
+        "direction": "right",
+        "anchorPoint": [-180.08751627052027, -9.385114159563201]
     },
     {
         "id": "Uganda"
