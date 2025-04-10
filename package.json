@@ -246,7 +246,6 @@
         "wrangler": "^4.7.1"
     },
     "resolutions": {
-        "@types/node": "20.8.3",
         "whatwg-url": "14.1.0"
     },
     "prettier": {

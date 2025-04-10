@@ -12,6 +12,6 @@
         "svg2png-wasm": "^1.4.1"
     },
     "devDependencies": {
-        "@cloudflare/workers-types": "^4.20240919.0"
+        "@cloudflare/workers-types": "^4.20250327.0"
     }
 }
