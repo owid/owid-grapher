@@ -205,6 +205,8 @@ import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     findValidChartTypeCombination,
+    isChartTab,
+    isMapTab,
     mapChartTypeNameToQueryParam,
     mapQueryParamToChartTypeName,
 } from "../chart/ChartUtils"
@@ -718,7 +720,7 @@ export class Grapher
         if (region !== undefined) {
             this.map.region = region as MapRegionName
 
-            // show regions on the globe
+            // show region on the globe
             if (this.map.region !== MapRegionName.World) {
                 this.globeController.jumpToRegion(this.map.region)
                 this.globeController.showGlobe()
@@ -730,7 +732,8 @@ export class Grapher
         if (mapSelection) {
             this.mapConfig.selectedCountries.setSelectedEntities(mapSelection)
 
-            // rotate to the country that was selected last
+            // rotate to the last country. this isn't necessarily the country
+            // that was selected last, but it's a good-enough heuristic
             const lastEntityName = last(mapSelection)
             if (lastEntityName) {
                 this.globeController.jumpToCountry(
@@ -1492,7 +1495,7 @@ export class Grapher
         })
     }
 
-    @action.bound onTabChange(
+    @action.bound private onChartSwitching(
         oldTab: GrapherTabName,
         newTab: GrapherTabName
     ): void {
@@ -1510,18 +1513,18 @@ export class Grapher
                 this.endHandleTimeBound = Infinity
             }
         }
+    }
 
-        const isChartTab = (tab: GrapherTabName): boolean =>
-            tab !== GRAPHER_TAB_NAMES.Table &&
-            tab !== GRAPHER_TAB_NAMES.WorldMap
-        const isMapTab = (tab: GrapherTabName): boolean =>
-            tab === GRAPHER_TAB_NAMES.WorldMap
-
+    @action.bound private syncEntitySelectionBetweenChartAndMap(
+        oldTab: GrapherTabName,
+        newTab: GrapherTabName
+    ): void {
         // sync entity selection between the map and the chart tab if entity
-        // selection isn't disabled for the chart, and the map has been interacted
+        // selection is enabled for the map, and the map has been interacted
         // with, i.e. at least one country has been selected on the map
         const shouldSyncSelection =
             this.addCountryMode !== EntitySelectionMode.Disabled &&
+            this.shouldEnableEntitySelectionOnMapTab &&
             this.mapConfig.selectedCountries.numSelectedEntities > 0
 
         // switching from the chart tab to the map tab
@@ -1537,12 +1540,14 @@ export class Grapher
                 this.mapConfig.selectedCountries.selectedEntityNames
             )
         }
+    }
 
-        // update state of the entity selector if necessary
+    @action.bound private validateEntitySelectorState(
+        newTab: GrapherTabName
+    ): void {
         if (isMapTab(newTab) || isChartTab(newTab)) {
             const { mapColumnSlug, entitySelector } = this
             const { interpolatedSortColumnsBySlug } = this.entitySelectorState
-
             const sortSlug = entitySelector.sortConfig.slug
 
             // the map and chart tab might have a different set of sort columns;
@@ -1565,6 +1570,15 @@ export class Grapher
                 }
             }
         }
+    }
+
+    @action.bound onTabChange(
+        oldTab: GrapherTabName,
+        newTab: GrapherTabName
+    ): void {
+        this.onChartSwitching(oldTab, newTab)
+        this.syncEntitySelectionBetweenChartAndMap(oldTab, newTab)
+        this.validateEntitySelectorState(newTab)
     }
 
     // todo: can we remove this?
@@ -3421,11 +3435,8 @@ export class Grapher
         }
     }
 
-    private showGlobeIfAuthorSelectedRegion(): void {
-        if (
-            this.mapConfig.region !== MapRegionName.World &&
-            !this.shouldShowEntitySelectorOnMapTab
-        ) {
+    private showGlobeIfAuthorSpecifiedRegion(): void {
+        if (this.mapConfig.region !== MapRegionName.World) {
             this.globeController.showGlobe()
         }
     }
@@ -3458,7 +3469,7 @@ export class Grapher
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
 
-        this.showGlobeIfAuthorSelectedRegion()
+        this.showGlobeIfAuthorSpecifiedRegion()
     }
 
     private _shortcutsBound = false
@@ -3819,7 +3830,8 @@ export class Grapher
         // remove focus from an entity that has been removed from the selection
         this.focusArray.remove(entityName)
 
-        this.globeController.dismissCountryFocus()
+        // remove country focus on the map
+        if (this.isOnMapTab) this.globeController.dismissCountryFocus()
     }
 
     // called when all entities are cleared in the entity selector
@@ -3863,6 +3875,8 @@ export class Grapher
     }
 
     @computed get canSelectMultipleEntities(): boolean {
+        if (this.isOnMapTab) return true
+
         if (this.numSelectableEntityNames < 2) return false
         if (this.addCountryMode === EntitySelectionMode.MultipleEntities)
             return true
