@@ -1,6 +1,6 @@
 export const ExplorersTableName = "explorers"
 
-import { JsonString } from "@ourworldindata/types"
+import { JsonString } from "../domainTypes/Various.js"
 
 export interface DbInsertExplorer {
     slug: string
