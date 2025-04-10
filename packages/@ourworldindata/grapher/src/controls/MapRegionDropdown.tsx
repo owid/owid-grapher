@@ -3,9 +3,9 @@ import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { MapRegionName } from "@ourworldindata/types"
-import { MAP_REGION_LABELS } from "../mapCharts/MapProjections"
 import { Dropdown } from "./Dropdown"
 import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
+import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
 
 export interface MapRegionDropdownManager {
     mapConfig?: MapConfig
