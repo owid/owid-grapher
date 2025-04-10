@@ -5779,13 +5779,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/randomstring@npm:^1.1.8":
-  version: 1.1.8
-  resolution: "@types/randomstring@npm:1.1.8"
-  checksum: 10/22a9e4b09583ad8e7fa7ca214133abc014636d7d6eb49ca9ee671c09b241311107b0a6ea48205bf795ac61fbe5b185ac415aed2dd27c7f5806235bfea0e5532f
-  languageName: node
-  linkType: hard
-
 "@types/range-parser@npm:*":
   version: 1.2.3
   resolution: "@types/range-parser@npm:1.2.3"
@@ -11227,7 +11220,6 @@ __metadata:
     "@types/mousetrap": "npm:^1.6.9"
     "@types/papaparse": "npm:^5.3.15"
     "@types/progress": "npm:^2.0.5"
-    "@types/randomstring": "npm:^1.1.8"
     "@types/react": "npm:^17.0.69"
     "@types/react-beautiful-dnd": "npm:^13.1.2"
     "@types/react-color": "npm:^3.0.2"
@@ -11317,7 +11309,6 @@ __metadata:
     papaparse: "npm:^5.4.1"
     prettier: "npm:^3.5.0"
     progress: "npm:^2.0.3"
-    randomstring: "npm:^1.3.0"
     react: "npm:^17.0.2"
     react-animate-height: "npm:^3.1.1"
     react-beautiful-dnd: "npm:^13.1.1"
@@ -15884,24 +15875,6 @@ __metadata:
     discontinuous-range: "npm:1.0.0"
     ret: "npm:~0.1.10"
   checksum: 10/ae6d213ec8018b2d22960d2b73ee7a4e25f85050a11dc485b6d3a06ace318ca567353b1d75d8d11f529b7ed6bdeb52644b789307ef42812bf5da2ade4f85e113
-  languageName: node
-  linkType: hard
-
-"randombytes@npm:2.0.3":
-  version: 2.0.3
-  resolution: "randombytes@npm:2.0.3"
-  checksum: 10/13e1abd143404dd87024bf345fb1a446b2e2ee46d8e1a5a073e8370c9b1e58000d81a97d4327ba7089087213eb6d8c77fa67ab4e91aa00605126d634fcccb9d4
-  languageName: node
-  linkType: hard
-
-"randomstring@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "randomstring@npm:1.3.0"
-  dependencies:
-    randombytes: "npm:2.0.3"
-  bin:
-    randomstring: bin/randomstring
-  checksum: 10/6ecfee8fae44ca6fcf4be5dc739d86a2457ac3d6d3142ac65f5df72b57deddb897797659e2b339772380a941774e3d55d4988a64ae3f2f0588fdf5b55b56c901
   languageName: node
   linkType: hard
 

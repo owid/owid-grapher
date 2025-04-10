@@ -1,7 +1,6 @@
 import * as Sentry from "@sentry/node"
 import express from "express"
 import crypto from "crypto"
-import randomstring from "randomstring"
 import * as db from "../db/db.js"
 import {
     CLOUDFLARE_AUD,
@@ -215,7 +214,11 @@ function saltedHmac(salt: string, value: string): string {
 }
 
 export async function logInAsUser(user: Pick<DbPlainUser, "email" | "id">) {
-    const sessionId = randomstring.generate()
+    // Create a random string of 32 characters. Use base64url because that one's cookie-safe without any issues.
+    const sessionId = crypto
+        .randomBytes(32)
+        .toString("base64url")
+        .substring(0, 32)
 
     const sessionJson = JSON.stringify({
         user_email: user.email,
