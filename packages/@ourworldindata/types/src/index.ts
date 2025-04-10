@@ -571,6 +571,14 @@ export {
     ImagesTableName,
 } from "./dbTypes/Images.js"
 export {
+    type DbInsertFeaturedMetric,
+    type DbPlainFeaturedMetric,
+    FeaturedMetricIncomeGroup,
+    FeaturedMetricsTableName,
+    type DbPlainFeaturedMetricWithParentTagName,
+    type FeaturedMetricByParentTagNameDictionary,
+} from "./dbTypes/FeaturedMetrics.js"
+export {
     type DbEnrichedMultiDimDataPage,
     type DbInsertMultiDimDataPage,
     type DbPlainMultiDimDataPage,

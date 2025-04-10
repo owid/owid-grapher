@@ -145,6 +145,12 @@ import {
 } from "./apiRoutes/dataInsights.js"
 import { getFigmaImageUrl } from "./apiRoutes/figma.js"
 import { sendMessageToSlack } from "./apiRoutes/slack.js"
+import {
+    createFeaturedMetric,
+    deleteFeaturedMetric,
+    fetchFeaturedMetrics,
+    rerankFeaturedMetrics,
+} from "./apiRoutes/featuredMetrics.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -311,6 +317,28 @@ deleteRouteWithRWTransaction(
     apiRouter,
     "/explorers/:slug",
     handleDeleteExplorer
+)
+
+// Featured Metric routes
+getRouteWithROTransaction(
+    apiRouter,
+    "/featured-metrics.json",
+    fetchFeaturedMetrics
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/featured-metrics/new",
+    createFeaturedMetric
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/featured-metrics/rerank",
+    rerankFeaturedMetrics
+)
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/featured-metrics/:id",
+    deleteFeaturedMetric
 )
 
 // Misc routes
