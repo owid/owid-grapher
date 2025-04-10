@@ -31,9 +31,9 @@ export const LatestDataInsightCards = (props: {
 
     return (
         <div className={cx(className, "data-insight-cards-container")}>
-            <h2 className="h2-bold ">Our latest Daily Data Insights</h2>
+            <h2 className="h2-bold ">Our latest Data Insights</h2>
             <a href="/data-insights" className="see-all-button">
-                See all Daily Data Insights{" "}
+                See all Data Insights{" "}
                 <FontAwesomeIcon icon={faArrowRight} />
             </a>
             <LatestDataInsights
@@ -179,7 +179,7 @@ export const DataInsightPage = (
     return (
         <div className="grid grid-cols-12-full-width data-insight-page">
             <div className="span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 col-sm-start-2 span-sm-cols-12 data-insight-breadcrumbs">
-                <a href="/data-insights">Daily Data Insights</a>
+                <a href="/data-insights">Data Insights</a>
                 <FontAwesomeIcon icon={faChevronRight} />
                 <span>{props.content.title}</span>
             </div>

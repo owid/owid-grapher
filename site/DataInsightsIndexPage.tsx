@@ -28,9 +28,9 @@ export const DataInsightsIndexPage = (props: DataInsightsIndexPageProps) => {
         <Html>
             <Head
                 canonicalUrl={`${baseUrl}/data-insights`}
-                pageTitle="Daily Data Insights"
+                pageTitle="Data Insights"
                 baseUrl={baseUrl}
-                pageDesc="Bite-sized insights on how the world is changing, published every weekday"
+                pageDesc="Bite-sized insights on how the world is changing, published every few days"
                 imageUrl={`${baseUrl}/data-insights-thumbnail.png`}
                 atom={DATA_INSIGHT_ATOM_FEED_PROPS}
             ></Head>
