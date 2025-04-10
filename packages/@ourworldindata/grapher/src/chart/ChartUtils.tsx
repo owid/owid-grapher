@@ -18,6 +18,8 @@ import {
     GrapherInterface,
     GrapherChartOrMapType,
     GRAPHER_MAP_TYPE,
+    GrapherTabName,
+    GRAPHER_TAB_NAMES,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -379,3 +381,9 @@ function maybeLineChartThatTurnedIntoDiscreteBar(
 
     return chartType
 }
+
+export const isChartTab = (tab: GrapherTabName): boolean =>
+    tab !== GRAPHER_TAB_NAMES.Table && tab !== GRAPHER_TAB_NAMES.WorldMap
+
+export const isMapTab = (tab: GrapherTabName): boolean =>
+    tab === GRAPHER_TAB_NAMES.WorldMap
