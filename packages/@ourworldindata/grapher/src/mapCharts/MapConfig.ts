@@ -20,7 +20,7 @@ export interface GlobeConfig {
     isActive: boolean
     rotation: [number, number]
     zoom: number
-    focusCountry?: EntityName
+    focusCountry?: EntityName // show tooltip for a focused country
 }
 
 // MapConfig holds the data and underlying logic needed by MapTab.
