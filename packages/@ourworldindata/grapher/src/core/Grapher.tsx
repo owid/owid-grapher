@@ -66,7 +66,7 @@ import {
     omit,
     isTouchDevice,
     isArrayDifferentFromReference,
-    countriesByName,
+    getCountryByName,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -3888,9 +3888,9 @@ export class Grapher
 
     // called when an entity is selected in the entity selector
     @action.bound onSelectEntity(entityName: EntityName): void {
-        if (this.isOnMapTab) {
-            const country = countriesByName()[entityName]
-            if (country.isMappable) {
+        if (this.isOnMapTab && this.mapConfig.globe.isActive) {
+            const country = getCountryByName(entityName)
+            if (country?.isMappable) {
                 this.globeController.focusOnCountry(country.name)
             }
         }
