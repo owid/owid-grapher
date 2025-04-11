@@ -10,6 +10,7 @@ $paddingX: 12px; // keep in sync with PADDING_X
     white-space: nowrap;
 
     ul {
+        display: flex;
         list-style: none;
         height: $actionButtonHeight;
         padding: 0;
