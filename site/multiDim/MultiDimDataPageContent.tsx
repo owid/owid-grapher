@@ -8,7 +8,6 @@ import {
     GrapherState,
     getCachingInputTableFetcher,
     GrapherProgrammaticInterface,
-    legacyToOwidTableAndDimensionsWithMandatorySlug,
 } from "@ourworldindata/grapher"
 import {
     DataPageDataV2,
@@ -155,7 +154,7 @@ export function DataPageContent({
                     : undefined
 
             void Promise.allSettled([datapageDataPromise, grapherConfigPromise])
-                .then(([datapageData, grapherConfig]) => {
+                .then(async ([datapageData, grapherConfig]) => {
                     if (datapageData.status === "rejected")
                         throw new Error(
                             `Fetching variable by uuid failed: ${grapherConfigUuid}`,
@@ -169,7 +168,7 @@ export function DataPageContent({
                         }
                         if (config.manager) config.manager.editUrl = editUrl
                         else config.manager = { editUrl }
-                        void inputTableFetcher(
+                        await void inputTableFetcher(
                             grapherConfig.value.dimensions!,
                             grapherConfig.value.selectedEntityColors
                         ).then((inputTable) => {

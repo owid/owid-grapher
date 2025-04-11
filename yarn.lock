@@ -5889,9 +5889,9 @@ __metadata:
   linkType: hard
 
 "@types/unist@npm:^2, @types/unist@npm:^2.0.0":
-  version: 2.0.11
-  resolution: "@types/unist@npm:2.0.11"
-  checksum: 10/6d436e832bc35c6dde9f056ac515ebf2b3384a1d7f63679d12358766f9b313368077402e9c1126a14d827f10370a5485e628bf61aa91117cf4fc882423191a4e
+  version: 2.0.9
+  resolution: "@types/unist@npm:2.0.9"
+  checksum: 10/53e63a9ecebc8dca8b9dbc69cd0369ea0c993188ebb6e3b41c222281b4e95d8e0b524bcb1556fd210ea7f39771551be0c1c8fe0000bdcc0cd184cd2cd2794256
   languageName: node
   linkType: hard
 
@@ -11072,6 +11072,7 @@ __metadata:
     react-hook-form: "npm:^7.51.3"
     react-horizontal-scrolling-menu: "npm:^4.0.3"
     react-instantsearch: "npm:^7.12.2"
+    react-intersection-observer: "npm:^9.16.0"
     react-markdown: "npm:^8.0.7"
     react-move: "npm:^6.5.0"
     react-recaptcha: "npm:^2.3.10"
@@ -16503,6 +16504,19 @@ __metadata:
     react: ">= 16.8.0 < 19"
     react-dom: ">= 16.8.0 < 19"
   checksum: 10/fe663d366142a203c71d9bc78dbba0180a74bfbe95c3e937772318e2ec5e5e0c5eff957df71d40c679c05522f9bb48627ad7425dcabfd3b21cc137f1fca322af
+  languageName: node
+  linkType: hard
+
+"react-intersection-observer@npm:^9.16.0":
+  version: 9.16.0
+  resolution: "react-intersection-observer@npm:9.16.0"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+  checksum: 10/ded14524d9311cfb9dd9e65eb04748d07a1868f8c40dd628bec8a8474d43ee2373604fdc1e6a7d468a8e2e680638e41b91048ab9669555d50217c5c0c51247e0
   languageName: node
   linkType: hard
 

@@ -2789,7 +2789,7 @@ export class GrapherState {
         return this.archivedChartInfo.archiveUrl + this.queryStr
     }
 
-    @computed private get hasUserChangedTimeHandles(): boolean {
+    @computed get hasUserChangedTimeHandles(): boolean {
         const authorsVersion = this.authorsVersion
         return (
             this.minTime !== authorsVersion.minTime ||
