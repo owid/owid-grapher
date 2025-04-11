@@ -69,6 +69,7 @@
 @mixin dod-span {
     text-decoration: underline;
     text-decoration-style: dotted;
+    text-underline-offset: 2px;
     cursor: help;
 
     span {
