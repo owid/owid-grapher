@@ -6,9 +6,11 @@ import { MapRegionName } from "@ourworldindata/types"
 import { Dropdown } from "./Dropdown"
 import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
+import { GlobeController } from "../mapCharts/GlobeController"
 
 export interface MapRegionDropdownManager {
     mapConfig?: MapConfig
+    globeController?: GlobeController
     isOnMapTab?: boolean
     hideMapRegionDropdown?: boolean
     shouldShowEntitySelectorOnMapTab?: boolean
@@ -36,11 +38,10 @@ export class MapRegionDropdown extends React.Component<{
                 mapConfig,
                 shouldShowEntitySelectorOnMapTab,
             } = this.props.manager,
-            { region, globe } = mapConfig ?? {}
+            { region } = mapConfig ?? {}
         return (
             !hideMapRegionDropdown &&
             !!(isOnMapTab && region) &&
-            !globe?.isActive &&
             !!shouldShowEntitySelectorOnMapTab
         )
     }
@@ -51,17 +52,29 @@ export class MapRegionDropdown extends React.Component<{
 
     @action.bound onChange(selected: unknown): void {
         const { mapConfig } = this.props.manager
-        if (selected && mapConfig)
-            mapConfig.region = (selected as DropdownOption).value
+        if (selected && mapConfig) {
+            const region = (selected as DropdownOption).value
+            mapConfig.region = region
+
+            if (region === MapRegionName.World) {
+                this.props.manager.globeController?.hideGlobe()
+            } else {
+                this.props.manager.globeController?.rotateToOwidContinent(
+                    region
+                )
+            }
+        }
     }
 
     @computed get options(): DropdownOption[] {
-        return Object.values(MapRegionName).map((region) => {
-            return {
-                value: region,
-                label: MAP_REGION_LABELS[region],
-            }
-        })
+        return Object.values(MapRegionName)
+            .filter((region) => region !== MapRegionName.World)
+            .map((region) => {
+                return {
+                    value: region,
+                    label: MAP_REGION_LABELS[region],
+                }
+            })
     }
 
     @computed get value(): DropdownOption | null {
@@ -79,6 +92,7 @@ export class MapRegionDropdown extends React.Component<{
                     options={this.options}
                     onChange={this.onChange}
                     value={this.value}
+                    placeholder="Select to zoom..."
                 />
             </div>
         ) : null

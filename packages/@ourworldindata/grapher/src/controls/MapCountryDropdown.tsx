@@ -87,9 +87,7 @@ export class MapCountryDropdown extends React.Component<{
         const country = option.value
 
         // reset the region if a non-world region is currently selected
-        const region = this.mapConfig.region
-        if (region !== MapRegionName.World) {
-            this.manager.globeController?.jumpToRegion(region)
+        if (this.mapConfig.region !== MapRegionName.World) {
             this.mapConfig.region = MapRegionName.World
         }
 
