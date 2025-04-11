@@ -134,6 +134,10 @@ export {
     getUserNavigatorLanguagesNonEnglish,
     convertDaysSinceEpochToDate,
     logPerf,
+    sleep,
+    lowercaseObjectKeys,
+    detailOnDemandRegex,
+    extractDetailsFromSyntax,
 } from "./Util.js"
 
 export {
@@ -204,10 +208,6 @@ export {
     uniqWith,
     upperFirst,
     without,
-    lowercaseObjectKeys,
-    detailOnDemandRegex,
-    extractDetailsFromSyntax,
-    delay,
 } from "./Util.js"
 
 export { isPresent } from "./isPresent.js"
