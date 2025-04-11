@@ -10,6 +10,7 @@ import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
 import { ChartSeries } from "../chart/ChartInterface"
 import { GlobeController } from "./GlobeController"
+import { SelectionArray } from "../selection/SelectionArray"
 
 export declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
@@ -37,6 +38,7 @@ export const GLOBE_MIN_ZOOM = 1
 export const GLOBE_MAX_ZOOM = 5
 export const GLOBE_COUNTRY_ZOOM = 2.5
 export const DEFAULT_GLOBE_ROTATION: [number, number] = [30, -20] // Atlantic ocean (i.e. Americas & Europe)
+export const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 
 export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
     World: "World",
@@ -60,6 +62,7 @@ export interface ChoroplethMapManager {
     choroplethMapBounds: Bounds
     mapConfig: MapConfig
     globeController?: GlobeController
+    selectionArray: SelectionArray
     getHoverState: (featureId: string) => InteractionState
     isSelected: (featureId: string) => boolean
     onMapMouseOver: (d: GeoFeature) => void

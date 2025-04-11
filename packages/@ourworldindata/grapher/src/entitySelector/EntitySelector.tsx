@@ -492,10 +492,11 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get entityFilter(): EntityRegionType {
+        const defaultFilter = this.manager.isOnMapTab ? "countries" : "all"
         return (
             this.manager.entitySelectorState.entityFilter ??
             this.filterOptions[0].value ??
-            "all"
+            defaultFilter
         )
     }
 
@@ -1050,14 +1051,13 @@ export class EntitySelector extends React.Component<{
             })
         )
 
-        return [
-            {
-                value: "all",
-                label: entityFilterLabels.all,
-                count: this.availableEntities.length,
-            },
-            ...options,
-        ]
+        const optionAll: FilterDropdownOption = {
+            value: "all",
+            label: entityFilterLabels.all,
+            count: this.availableEntities.length,
+        }
+
+        return this.manager.isOnMapTab ? options : [optionAll, ...options]
     }
 
     @action.bound private onChangeEntityFilter(selected: unknown): void {
@@ -1392,6 +1392,21 @@ export class EntitySelector extends React.Component<{
                         </ul>
                     </div>
                 )}
+
+                {shouldShowFilterBar &&
+                    this.manager.isOnMapTab &&
+                    this.entityFilter !== "all" &&
+                    this.entityFilter !== "countries" && (
+                        <Flipped flipId="__regions-help" translate opacity>
+                            <div className="regions-help grapher_body-3-regular-italic">
+                                {this.entityFilter === "continents"
+                                    ? "Selecting a continent highlights all countries in that continent"
+                                    : this.entityFilter === "incomeGroups"
+                                      ? "Selecting an income group highlights all countries in that group"
+                                      : "Selecting a region highlights all countries in that region"}
+                            </div>
+                        </Flipped>
+                    )}
             </Flipper>
         )
     }
