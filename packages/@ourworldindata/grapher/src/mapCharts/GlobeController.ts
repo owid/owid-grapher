@@ -2,7 +2,6 @@ import { geoInterpolate } from "d3-geo"
 import { interpolateNumber } from "d3-interpolate"
 import { easeCubicOut } from "d3-ease"
 import { EntityName, MapRegionName } from "@ourworldindata/types"
-import { delay } from "@ourworldindata/utils"
 import { GlobeConfig, MapConfig } from "./MapConfig"
 import { getFeaturesForGlobe } from "./GeoFeatures"
 import { DEFAULT_VIEWPORT, MAP_VIEWPORTS } from "./MapChartConstants"
@@ -135,22 +134,43 @@ export class GlobeController {
                 ? interpolateNumber(currentZoom, targetZoom)
                 : undefined
 
-        for (let t = this.tickStep; t <= 1; t += this.tickStep) {
-            // Check if the animation was canceled
-            if (signal.aborted) return
+        const animPromise = new Promise<void>((resolve, reject) => {
+            const now = Date.now()
+            const duration = this.msPerTick * (1 / this.tickStep)
+            const step = (): void => {
+                const elapsed = Date.now() - now
+                const t = Math.min(1, elapsed / duration)
 
-            // animate globe rotation
-            this.globeConfig.rotation = animatedCoords(easeCubicOut(t))
+                // Check if the animation was canceled
+                if (signal.aborted) {
+                    reject()
+                    return
+                }
 
-            // animate zoom
-            if (animatedZoom)
-                this.globeConfig.zoom = animatedZoom(easeCubicOut(t))
+                // animate globe rotation
+                this.globeConfig.rotation = animatedCoords(easeCubicOut(t))
 
-            await delay(this.msPerTick)
-        }
+                // animate zoom
+                if (animatedZoom)
+                    this.globeConfig.zoom = animatedZoom(easeCubicOut(t))
 
-        // ensure we end exactly at the target values
-        this.globeConfig.rotation = targetCoords
-        if (targetZoom !== undefined) this.globeConfig.zoom = targetZoom
+                if (t < 1) {
+                    requestAnimationFrame(step)
+                } else {
+                    resolve()
+                }
+            }
+            requestAnimationFrame(step)
+        })
+
+        await animPromise
+            .catch(() => {
+                // ignore
+            })
+            .then(() => {
+                // ensure we end exactly at the target values
+                this.globeConfig.rotation = targetCoords
+                if (targetZoom !== undefined) this.globeConfig.zoom = targetZoom
+            })
     }
 }
