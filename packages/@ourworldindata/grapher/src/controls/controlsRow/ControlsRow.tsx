@@ -111,15 +111,16 @@ export class ControlsRow extends Component<{
                     />
 
                     {/* only one of the following will be rendered */}
-                    <MapRegionDropdown
-                        manager={this.manager}
-                        maxWidth={this.availableWidth}
-                    />
                     <MapCountryDropdown
                         manager={this.manager}
                         maxWidth={this.availableWidth}
                     />
                     <CloseGlobeViewButton
+                        manager={this.manager}
+                        maxWidth={this.availableWidth}
+                    />
+
+                    <MapRegionDropdown
                         manager={this.manager}
                         maxWidth={this.availableWidth}
                     />
