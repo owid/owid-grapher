@@ -152,6 +152,7 @@ import {
     TimeBoundValue,
     ScaleType,
     VerticalAlign,
+    type BreadcrumbItem,
     type GridParameters,
     HorizontalAlign,
     type OwidEnrichedGdocBlock,
@@ -1359,6 +1360,66 @@ export const formatDate = (date: Date): string => {
  * stage, the manual approach is probably simpler.
  */
 export const getOwidGdocFromJSON = (json: OwidGdocJSON): OwidGdoc => {
+    return {
+        ...json,
+        createdAt: new Date(json.createdAt),
+        publishedAt: json.publishedAt ? new Date(json.publishedAt) : null,
+        updatedAt: json.updatedAt ? new Date(json.updatedAt) : null,
+    }
+}
+
+// We want to infer the return type from the existing types instead of having to
+// manually specify it.
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+export function extractGdocPageData(gdoc: OwidGdoc) {
+    return pick(gdoc, [
+        "id",
+        "slug",
+        "content",
+        "createdAt",
+        "updatedAt",
+        "published",
+        "publishedAt",
+        "breadcrumbs",
+        "manualBreadcrumbs",
+        "homepageMetadata",
+        "latestDataInsights",
+        "latestWorkLinks",
+        "linkedAuthors",
+        "linkedDocuments",
+        "linkedCharts",
+        "linkedIndicators",
+        "imageMetadata",
+        "relatedCharts",
+        "tags",
+        "donors",
+    ])
+}
+
+// Muanually update the type for invariants that should hold at this point, i.e.
+// id and slug must be strings etc.
+export type OwidGdocPageData = ReturnType<typeof extractGdocPageData> & {
+    id: string
+    slug: string
+    createdAt: string
+    publishedAt: string | null
+    updatedAt: string | null
+    published: boolean
+    manualBreadcrumbs: BreadcrumbItem[] | null
+}
+
+export type OwidGdocPageProps = Omit<
+    OwidGdocPageData,
+    "createdAt" | "publishedAt" | "updatedAt"
+> & {
+    createdAt: Date
+    publishedAt: Date | null
+    updatedAt: Date | null
+}
+
+export function deserializeOwidGdocPageData(
+    json: OwidGdocPageData
+): OwidGdocPageProps {
     return {
         ...json,
         createdAt: new Date(json.createdAt),

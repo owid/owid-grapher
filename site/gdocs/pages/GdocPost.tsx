@@ -42,15 +42,20 @@ const citationDescriptionsByArticleType: Record<
         "Our articles and data visualizations rely on work from many different people and organizations. When citing this page, please also cite the underlying data sources. This page can be cited as:",
 }
 
+type GdocPostProps = Omit<
+    OwidGdocPostInterface,
+    "markdown" | "publicationContext" | "revisionId"
+> & {
+    isPreviewing?: boolean
+}
+
 export function GdocPost({
     content,
     publishedAt,
     slug,
     breadcrumbs,
     manualBreadcrumbs,
-}: OwidGdocPostInterface & {
-    isPreviewing?: boolean
-}) {
+}: GdocPostProps) {
     const postType = content.type ?? OwidGdocType.Article
     const citationDescription = citationDescriptionsByArticleType[postType]
     const shortPageCitation = getShortPageCitation(
