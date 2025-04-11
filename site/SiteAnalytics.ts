@@ -1,8 +1,8 @@
 import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
-import { SearchCategoryFilter } from "./search/searchTypes.js"
-import { DataCatalogState } from "./DataCatalog/DataCatalogState.js"
-import { IDataCatalogHit } from "./DataCatalog/DataCatalogUtils.js"
-import { set } from "lodash"
+import type { SearchCategoryFilter } from "./search/searchTypes.js"
+import type { DataCatalogState } from "./DataCatalog/DataCatalogState.js"
+import type { IDataCatalogHit } from "./DataCatalog/DataCatalogUtils.js"
+import { set } from "@ourworldindata/utils"
 
 export class SiteAnalytics extends GrapherAnalytics {
     logPageNotFoundError(url: string) {

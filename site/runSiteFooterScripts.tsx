@@ -210,16 +210,44 @@ const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
     )
 }
 
+interface SiteFooterScriptsArgs {
+    debug?: boolean
+    isPreviewing?: boolean
+    context?: SiteFooterContext
+    container?: HTMLElement
+    hideDonationFlag?: boolean
+}
+
+export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
+    const { context, isPreviewing } = args || {}
+
+    switch (context) {
+        case SiteFooterContext.dataPageV2:
+            hydrateDataPageV2Content({ isPreviewing })
+            // runAllGraphersLoadedListener()
+            runLightbox()
+            // runSiteNavigation(hideDonationFlag)
+            runSiteTools()
+            // runCookiePreferencesManager()
+            void runDetailsOnDemand()
+            break
+        case SiteFooterContext.grapherPage:
+            // runSiteNavigation(hideDonationFlag)
+            // runAllGraphersLoadedListener()
+            runSiteTools()
+            // runCookiePreferencesManager()
+            void runDetailsOnDemand()
+            break
+        default:
+            console.error(
+                `runSiteFooterScriptsForArchive: context ${context} not supported`
+            )
+            throw new Error(`Unsupported context: ${context}`)
+    }
+}
+
 export const runSiteFooterScripts = (
-    args:
-        | {
-              debug?: boolean
-              isPreviewing?: boolean
-              context?: SiteFooterContext
-              container?: HTMLElement
-              hideDonationFlag?: boolean
-          }
-        | undefined
+    args: SiteFooterScriptsArgs | undefined
 ) => {
     // We used to destructure this in the function signature, but that caused
     // a weird issue reported by bugsnag: https://app.bugsnag.com/our-world-in-data/our-world-in-data-website/errors/63ca39b631e8660009464eb4?event_id=63d384c500acc25fc0810000&i=sk&m=ef
