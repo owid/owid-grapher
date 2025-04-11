@@ -227,14 +227,14 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
             // runAllGraphersLoadedListener()
             runLightbox()
             // runSiteNavigation(hideDonationFlag)
-            runSiteTools()
+            // runSiteTools()
             // runCookiePreferencesManager()
             void runDetailsOnDemand()
             break
         case SiteFooterContext.grapherPage:
             // runSiteNavigation(hideDonationFlag)
             // runAllGraphersLoadedListener()
-            runSiteTools()
+            // runSiteTools()
             // runCookiePreferencesManager()
             void runDetailsOnDemand()
             break
