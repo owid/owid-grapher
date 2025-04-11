@@ -265,7 +265,8 @@ const assembleCommonBakeInformation = async (
     }
 }
 
-export const bakeGrapherPagesToFolder = async (
+export const bakeArchivalGrapherPagesToFolder = async (
+    knex: db.KnexReadonlyTransaction,
     dir: string,
     grapherChecksumsObjsToBeArchived: GrapherChecksumsObjectWithHash[],
     { shouldCopyToLatestDir = false }: { shouldCopyToLatestDir?: boolean } = {}
@@ -282,52 +283,49 @@ export const bakeGrapherPagesToFolder = async (
     console.log(`Baking site locally to dir '${dir}'`)
 
     const manifests: Record<number, ArchivalManifest> = {}
-    await db.knexReadonlyTransaction(async (trx) => {
-        const commonCtx = await assembleCommonBakeInformation(
-            trx,
-            archiveDir,
-            grapherChecksumsObjsToBeArchived
+
+    const commonCtx = await assembleCommonBakeInformation(
+        knex,
+        archiveDir,
+        grapherChecksumsObjsToBeArchived
+    )
+
+    // There's a curiosity here in that we re-bake variable files even if they didn't change (their checksums are the same), but the grapher config of an underlying chart changed.
+    // What's happening in practice is that the variable file is then re-fetched, re-hashed, and is then overriding the existing file under the same name.
+    // It's not ideal, but in the grand scheme of things it's not a worry also - the median incremental update will probably touch less than 10 charts and less than 20 variables or so.
+    // On the other hand, detecting whether a variable file is up-to-date would require a lot of extra logic.
+    const variableFiles = await archiveVariableIds(
+        [...commonCtx.allVariableIds],
+        archiveDir
+    )
+
+    const { grapherConfigs } = commonCtx
+
+    let i = 0
+    for (const grapherInfo of grapherConfigs) {
+        i++
+
+        const checksumsObj = grapherChecksumsObjsToBeArchived.find(
+            (c) => c.chartId === grapherInfo.chartId
         )
-
-        // There's a curiosity here in that we re-bake variable files even if they didn't change (their checksums are the same), but the grapher config of an underlying chart changed.
-        // What's happening in practice is that the variable file is then re-fetched, re-hashed, and is then overriding the existing file under the same name.
-        // It's not ideal, but in the grand scheme of things it's not a worry also - the median incremental update will probably touch less than 10 charts and less than 20 variables or so.
-        // On the other hand, detecting whether a variable file is up-to-date would require a lot of extra logic.
-        const variableFiles = await archiveVariableIds(
-            [...commonCtx.allVariableIds],
-            archiveDir
-        )
-
-        const { grapherConfigs } = commonCtx
-
-        let i = 0
-        for (const grapherInfo of grapherConfigs) {
-            i++
-
-            const checksumsObj = grapherChecksumsObjsToBeArchived.find(
-                (c) => c.chartId === grapherInfo.chartId
+        if (!checksumsObj)
+            throw new Error(
+                `Could not find checksums for chartId ${grapherInfo.chartId}, this shouldn't happen`
             )
-            if (!checksumsObj)
-                throw new Error(
-                    `Could not find checksums for chartId ${grapherInfo.chartId}, this shouldn't happen`
-                )
 
-            await bakeGrapherPageForArchival(trx, dir, grapherInfo, {
-                ...commonCtx,
-                staticAssetMap,
-                variableFiles,
-                checksumsObj,
-                date,
-            }).then((manifest) => {
-                manifests[grapherInfo.chartId] = manifest
-            })
+        await bakeGrapherPageForArchival(knex, dir, grapherInfo, {
+            ...commonCtx,
+            staticAssetMap,
+            variableFiles,
+            checksumsObj,
+            date,
+        }).then((manifest) => {
+            manifests[grapherInfo.chartId] = manifest
+        })
 
-            console.log(
-                `${i}/${grapherConfigs.length} ${grapherInfo.config.slug}`
-            )
-        }
-        console.log(`Baked ${grapherConfigs.length} grapher pages`)
-    })
+        console.log(`${i}/${grapherConfigs.length} ${grapherInfo.config.slug}`)
+    }
+    console.log(`Baked ${grapherConfigs.length} grapher pages`)
 
     if (shouldCopyToLatestDir) {
         await copyToLatestDir(archiveDir, dir)

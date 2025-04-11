@@ -168,7 +168,7 @@ export async function getRawChartsByIds(
             SELECT c.*, cc.full AS config
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
-            WHERE id IN (?)
+            WHERE c.id IN (?)
         `,
         [ids]
     )
