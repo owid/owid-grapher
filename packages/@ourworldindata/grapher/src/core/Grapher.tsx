@@ -1297,6 +1297,14 @@ export class Grapher
             this.focusArray.clearAllAndAdd(...this.focusedSeriesNames)
     }
 
+    @action.bound private applyOriginalRegionAsAuthored(): void {
+        this.mapConfig.region = this.authorsVersion.mapConfig.region
+    }
+
+    @action.bound onCloseGlobeViewButtonClick(): void {
+        this.applyOriginalRegionAsAuthored()
+    }
+
     @computed get hasData(): boolean {
         return this.dimensions.length > 0 || this.newSlugs.length > 0
     }
