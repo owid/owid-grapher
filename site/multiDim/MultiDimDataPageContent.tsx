@@ -8,7 +8,6 @@ import {
     getCachingInputTableFetcher,
     GrapherProgrammaticInterface,
     getVariableMetadataRoute,
-    legacyToOwidTableAndDimensionsWithMandatorySlug,
 } from "@ourworldindata/grapher"
 import {
     DataPageDataV2,
@@ -169,7 +168,7 @@ export const MultiDimDataPageContent = ({
     const grapherStateRef = useRef<GrapherState>(new GrapherState({}))
     const grapherFigureRef = useRef<HTMLDivElement>(null)
     const [searchParams, setSearchParams] = useSearchParams()
-    const [manager, setManager] = useState({ canonicalUrl })
+    const [_manager, setManager] = useState({ canonicalUrl })
     const [varDatapageData, setVarDatapageData] =
         useState<DataPageDataV2 | null>(null)
     const inputTableFetcher = useMemo(
@@ -228,7 +227,7 @@ export const MultiDimDataPageContent = ({
             setManager((prev) => ({ ...prev, editUrl }))
 
             void Promise.allSettled([datapageDataPromise, grapherConfigPromise])
-                .then(([datapageData, grapherConfig]) => {
+                .then(async ([datapageData, grapherConfig]) => {
                     if (datapageData.status === "rejected")
                         throw new Error(
                             `Fetching variable by uuid failed: ${grapherConfigUuid}`,
@@ -241,7 +240,7 @@ export const MultiDimDataPageContent = ({
                             ...baseGrapherConfig,
                         }
 
-                        inputTableFetcher(
+                        await inputTableFetcher(
                             grapherConfig.value.dimensions!,
                             grapherConfig.value.selectedEntityColors
                         ).then((inputTable) => {
@@ -266,7 +265,7 @@ export const MultiDimDataPageContent = ({
                 })
                 .catch(console.error)
         },
-        [config, isPreviewing]
+        [config, inputTableFetcher, isPreviewing]
     )
 
     const handleSettingsChange = useCallback(
