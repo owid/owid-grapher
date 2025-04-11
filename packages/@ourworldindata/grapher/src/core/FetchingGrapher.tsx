@@ -3,7 +3,6 @@ import {
     GrapherInterface,
     MultipleOwidVariableDataDimensionsMap,
     OwidChartDimensionInterface,
-    OwidChartDimensionInterfaceWithMandatorySlug,
     OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/types"
 import React from "react"
