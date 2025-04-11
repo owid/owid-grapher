@@ -29,6 +29,15 @@ export class GlobeController {
         return this.manager.mapConfig.globe
     }
 
+    showGlobe(): void {
+        this.globeConfig.isActive = true
+    }
+
+    hideGlobe(): void {
+        this.globeConfig.isActive = false
+        this.resetGlobe()
+    }
+
     toggleGlobe(): void {
         this.globeConfig.isActive = !this.globeConfig.isActive
 
@@ -42,50 +51,7 @@ export class GlobeController {
         this.globeConfig.focusCountry = undefined
     }
 
-    showGlobe(): void {
-        this.globeConfig.isActive = true
-    }
-
-    hideGlobe(): void {
-        this.globeConfig.isActive = false
-        this.resetGlobe()
-    }
-
-    jumpTo({
-        coords,
-        zoom,
-    }: {
-        coords?: [number, number]
-        zoom?: number
-    }): void {
-        if (coords) this.globeConfig.rotation = coords
-        if (zoom) this.globeConfig.zoom = zoom
-    }
-
-    private showGlobeAndRotateToCountry(country: EntityName): void {
-        // switch to the globe view first. before switching to the globe,
-        // jump to the country's offset position so that rotating to it
-        // is predictable
-        this.jumpToCountryOffset(country)
-        this.showGlobe()
-
-        // then rotate to the country
-        this.rotateToCountry(country, GLOBE_COUNTRY_ZOOM)
-    }
-
-    /** Highlights a country on the globe and rotates to it */
-    focusOnCountry(country: EntityName): void {
-        if (this.globeConfig.isActive) {
-            // if we're on the globe view, highlight the country and rotate to it
-            this.setFocusCountry(country)
-            this.rotateToCountry(country)
-        } else {
-            this.setFocusCountry(country)
-            this.showGlobeAndRotateToCountry(country)
-        }
-    }
-
-    setFocusCountry(country: EntityName): void {
+    private setFocusCountry(country: EntityName): void {
         this.globeConfig.focusCountry = country
     }
 
@@ -93,46 +59,86 @@ export class GlobeController {
         this.globeConfig.focusCountry = undefined
     }
 
-    jumpToCountry(country: EntityName, zoom?: number): void {
-        const geoFeature = geoFeaturesById.get(country)
-        if (!geoFeature) return
-
-        const { centroid } = geoFeature
-        const targetCoords: [number, number] = [-centroid[0], -centroid[1]]
-
-        this.jumpTo({ coords: targetCoords, zoom })
+    private jumpTo({
+        coords,
+        zoom,
+        xOffset = 0,
+    }: {
+        coords?: [number, number]
+        zoom?: number
+        xOffset?: number // optionally offset the x coordinate
+    }): void {
+        if (coords) this.globeConfig.rotation = [coords[0] + xOffset, coords[1]]
+        if (zoom) this.globeConfig.zoom = zoom
     }
 
-    jumpToCountryOffset(country: EntityName, zoom?: number): void {
-        const geoFeature = geoFeaturesById.get(country)
-        if (!geoFeature) return
-
-        const { centroid } = geoFeature
-        const targetCoords: [number, number] = [
-            -centroid[0] + 40, // offset by an arbitrary amount
-            -centroid[1],
-        ]
-
-        this.jumpTo({ coords: targetCoords, zoom })
+    focusOnCountry(country: EntityName): void {
+        this.rotateToCountry(country)
+        this.setFocusCountry(country)
     }
 
-    rotateToCountry(country: EntityName, zoom?: number): void {
-        const geoFeature = geoFeaturesById.get(country)
-        if (!geoFeature) return
+    rotateToCountry(country: EntityName): void {
+        // jump to the country's offset position before switching to
+        // the globe so that rotating to it is predictable
+        if (!this.globeConfig.isActive) {
+            this.jumpToCountry(country, 40)
+            this.showGlobe()
+        }
 
-        const { centroid } = geoFeature
-        const targetCoords: [number, number] = [-centroid[0], -centroid[1]]
-
-        void this.rotateTo(targetCoords, zoom)
+        this._rotateToCountry(country, GLOBE_COUNTRY_ZOOM)
     }
 
-    jumpToRegion(region: GlobeRegionName): void {
-        const viewport = GLOBE_VIEWPORTS[region]
+    rotateToOwidContinent(continent: GlobeRegionName): void {
+        // jump to the continents's offset position before switching to
+        // the globe so that rotating to it is predictable
+        if (!this.globeConfig.isActive) {
+            this.jumpToOwidContinent(continent, 40)
+            this.showGlobe()
+        }
 
-        const targetCoords = viewport.rotation
-        const targetZoom = viewport.zoom
+        this._rotateToOwidContinent(continent)
+    }
 
-        this.jumpTo({ coords: targetCoords, zoom: targetZoom })
+    private getCoordsForCountry(
+        country: EntityName
+    ): [number, number] | undefined {
+        const geoFeature = geoFeaturesById.get(country)
+        if (!geoFeature) return undefined
+
+        const { centroid } = geoFeature
+        return [-centroid[0], -centroid[1]]
+    }
+
+    private getCoordsForOwidContinent(
+        continent: GlobeRegionName
+    ): [number, number] {
+        return GLOBE_VIEWPORTS[continent].rotation
+    }
+
+    private getZoomForOwidContinent(continent: GlobeRegionName): number {
+        return GLOBE_VIEWPORTS[continent].zoom
+    }
+
+    private jumpToCountry(country: EntityName, xOffset = 0): void {
+        const coords = this.getCoordsForCountry(country)
+        this.jumpTo({ coords, xOffset })
+    }
+
+    private _rotateToCountry(country: EntityName, zoom?: number): void {
+        const coords = this.getCoordsForCountry(country)
+        if (coords) void this.rotateTo(coords, zoom)
+    }
+
+    jumpToOwidContinent(continent: GlobeRegionName, xOffset = 0): void {
+        const coords = this.getCoordsForOwidContinent(continent)
+        const zoom = this.getZoomForOwidContinent(continent)
+        this.jumpTo({ coords, zoom, xOffset })
+    }
+
+    private _rotateToOwidContinent(continent: GlobeRegionName): void {
+        const coords = this.getCoordsForOwidContinent(continent)
+        const zoom = this.getZoomForOwidContinent(continent)
+        void this.rotateTo(coords, zoom)
     }
 
     private currentAnimation?: AbortController

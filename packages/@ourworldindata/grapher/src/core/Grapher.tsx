@@ -761,7 +761,7 @@ export class Grapher
 
             // show region on the globe
             if (this.map.region !== MapRegionName.World) {
-                this.globeController.jumpToRegion(this.map.region)
+                this.globeController.jumpToOwidContinent(this.map.region)
                 this.globeController.showGlobe()
             }
         }
