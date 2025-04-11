@@ -2,11 +2,9 @@ import { ColorScaleBin } from "../color/ColorScaleBin"
 import { Bounds, PointVector, ColumnSlug } from "@ourworldindata/utils"
 import {
     MapRegionName,
-    Color,
-    Time,
-    GrapherChartType,
-    GrapherTabOption,
     SeriesName,
+    InteractionState,
+    GlobeRegionName,
 } from "@ourworldindata/types"
 import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
@@ -21,10 +19,10 @@ export type MapBracket = ColorScaleBin
 export const MAP_HOVER_TARGET_RANGE = 20
 
 export const DEFAULT_STROKE_COLOR = "#333"
-export const FOCUS_STROKE_COLOR = "#111"
+export const HOVER_STROKE_COLOR = "#111"
 
 export const DEFAULT_STROKE_WIDTH = 0.3
-export const FOCUS_STROKE_WIDTH = 1.5
+export const HOVER_STROKE_WIDTH = 1.5
 export const SELECTED_STROKE_WIDTH = 1
 export const PATTERN_STROKE_WIDTH = 0.7
 
@@ -35,22 +33,24 @@ export const MAP_CHART_CLASSNAME = "MapChart"
 export const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
 export const GEO_FEATURES_CLASSNAME = "GeoFeatures"
 
-export const GLOBE_COUNTRY_ZOOM = 2
+export const GLOBE_MIN_ZOOM = 1
+export const GLOBE_MAX_ZOOM = 5
+export const GLOBE_COUNTRY_ZOOM = 2.5
+export const DEFAULT_GLOBE_ROTATION: [number, number] = [30, -20] // Atlantic ocean (i.e. Americas & Europe)
 
-export interface MapEntity {
-    id: string | number | undefined
-    series:
-        | ChoroplethSeries
-        | {
-              value: string
-          }
+export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
+    World: "World",
+    Africa: "Africa",
+    NorthAmerica: "North America",
+    SouthAmerica: "South America",
+    Asia: "Asia",
+    Europe: "Europe",
+    Oceania: "Oceania",
 }
 
 export interface ChoroplethSeries extends ChartSeries {
     value: number | string
     time: number
-    isSelected?: boolean
-    highlightFillColor: Color
 }
 
 export type ChoroplethSeriesByName = Map<SeriesName, ChoroplethSeries>
@@ -59,16 +59,14 @@ export interface ChoroplethMapManager {
     choroplethData: ChoroplethSeriesByName
     choroplethMapBounds: Bounds
     mapConfig: MapConfig
-    focusBracket?: MapBracket
-    focusEntity?: MapEntity
-    onClick: (d: GeoFeature, ev: MouseEvent) => void
+    globeController?: GlobeController
+    getHoverState: (featureId: string) => InteractionState
+    isSelected: (featureId: string) => boolean
     onMapMouseOver: (d: GeoFeature) => void
     onMapMouseLeave: () => void
+    shouldShowEntitySelectorOnMapTab?: boolean
+    shouldEnableEntitySelectionOnMapTab?: boolean
     isStatic?: boolean
-}
-
-export interface ChoroplethGlobeManager extends ChoroplethMapManager {
-    globeController?: GlobeController
 }
 
 export enum RenderFeatureType {
@@ -96,89 +94,22 @@ export interface GlobeRenderFeature extends RenderFeature {
 
 export interface MapChartManager extends ChartManager {
     mapColumnSlug?: ColumnSlug
-    mapIsClickable?: boolean
-    tab?: GrapherTabOption // Used to switch to chart tab on map click
-    type?: GrapherChartType // Used to determine the "Click to select" text in MapTooltip
-    isLineChartThatTurnedIntoDiscreteBar?: boolean // Used to determine whether to reset the timeline on map click
-    hasTimeline?: boolean // Used to determine whether to reset the timeline on map click
-    resetHandleTimeBounds?: () => void // Used to reset the timeline on map click
     mapConfig?: MapConfig
-    endTime?: Time
-    title?: string
     globeController?: GlobeController
     shouldShowEntitySelectorOnMapTab?: boolean
+    shouldEnableEntitySelectionOnMapTab?: boolean
 }
 
-export interface MapViewport {
-    // map
-    x: number
-    y: number
-    width: number
-    height: number
-
-    // globe
+export interface GlobeViewport {
     rotation: [number, number]
     zoom: number
 }
 
-/** Viewport for each region, defined by center and width+height in fractional coordinates */
-export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
-    World: {
-        x: 0.565,
-        y: 0.5,
-        width: 1,
-        height: 1,
-        rotation: [30, -20], // Atlantic ocean (i.e. Americas & Europe)
-        zoom: 1,
-    },
-    Europe: {
-        x: 0.53,
-        y: 0.22,
-        width: 0.2,
-        height: 0.2,
-        rotation: [-10, -55],
-        zoom: 3,
-    },
-    Africa: {
-        x: 0.49,
-        y: 0.7,
-        width: 0.21,
-        height: 0.38,
-        rotation: [-20, 0],
-        zoom: 1.65,
-    },
-    NorthAmerica: {
-        x: 0.49,
-        y: 0.4,
-        width: 0.19,
-        height: 0.32,
-        rotation: [95, -48],
-        zoom: 1.5,
-    },
-    SouthAmerica: {
-        x: 0.52,
-        y: 0.815,
-        width: 0.1,
-        height: 0.26,
-        rotation: [62, 22],
-        zoom: 1.75,
-    },
-    Asia: {
-        x: 0.74,
-        y: 0.45,
-        width: 0.36,
-        height: 0.5,
-        rotation: [-92, -25],
-        zoom: 1.55,
-    },
-    Oceania: {
-        x: 0.51,
-        y: 0.75,
-        width: 0.1,
-        height: 0.2,
-        rotation: [-153, 25],
-        zoom: 2,
-    },
+export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
+    Europe: { rotation: [-10, -55], zoom: 3 },
+    Africa: { rotation: [-20, 0], zoom: 1.65 },
+    NorthAmerica: { rotation: [95, -48], zoom: 1.5 },
+    SouthAmerica: { rotation: [62, 22], zoom: 1.75 },
+    Asia: { rotation: [-92, -25], zoom: 1.55 },
+    Oceania: { rotation: [-153, 25], zoom: 2 },
 }
-
-export const DEFAULT_VIEWPORT = MAP_VIEWPORTS.World
