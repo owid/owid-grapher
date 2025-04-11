@@ -22,6 +22,7 @@ import {
     fetchWithRetry,
     ChartViewInfo,
     searchParamsToMultiDimView,
+    MultiDimDataPageConfig,
 } from "@ourworldindata/utils"
 import { action } from "mobx"
 import ReactDOM from "react-dom"
@@ -32,7 +33,10 @@ import {
     buildExplorerProps,
     isEmpty,
 } from "@ourworldindata/explorer"
-import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
+import {
+    GRAPHER_PREVIEW_CLASS,
+    MultiDimDataPageConfigEnriched,
+} from "@ourworldindata/types"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
@@ -42,6 +46,7 @@ import {
 } from "../../settings/clientSettings.js"
 import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
 import { match } from "ts-pattern"
+import MultiDim from "../multiDim/MultiDim.js"
 
 type EmbedType = "grapher" | "explorer" | "multiDim" | "chartView"
 
@@ -217,6 +222,7 @@ class MultiEmbedder {
             embedDynamicCollectionGrapher(grapherRef, figure)
         }
     }
+
     async renderGrapherIntoFigure(figure: Element) {
         const embedUrlRaw = figure.getAttribute(GRAPHER_EMBEDDED_FIGURE_ATTR)
         if (!embedUrlRaw) return
@@ -229,6 +235,37 @@ class MultiEmbedder {
             embedUrl,
         })
     }
+
+    async _renderMultiDimWithControlsIntoFigure(
+        figure: Element,
+        multiDimConfig: MultiDimDataPageConfigEnriched,
+        queryStr: string
+    ) {
+        figure.classList.remove(GRAPHER_PREVIEW_CLASS)
+        const figureConfigAttr = figure.getAttribute(
+            GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR
+        )
+        const localGrapherConfig = figureConfigAttr
+            ? JSON.parse(figureConfigAttr)
+            : {}
+        localGrapherConfig.manager = {
+            selection: new SelectionArray(this.selection.selectedEntityNames),
+        }
+        if (localGrapherConfig.manager?.selection) {
+            this.graphersAndExplorersToUpdate.add(
+                localGrapherConfig.manager.selection
+            )
+        }
+        ReactDOM.render(
+            <MultiDim
+                config={MultiDimDataPageConfig.fromObject(multiDimConfig)}
+                localGrapherConfig={localGrapherConfig}
+                queryStr={queryStr}
+            />,
+            figure
+        )
+    }
+
     async renderMultiDimIntoFigure(figure: Element) {
         const embedUrlRaw = figure.getAttribute(GRAPHER_EMBEDDED_FIGURE_ATTR)
         if (!embedUrlRaw) return
@@ -240,18 +277,26 @@ class MultiEmbedder {
         const multiDimConfig = await fetchWithRetry(mdimConfigUrl).then((res) =>
             res.json()
         )
-        const view = searchParamsToMultiDimView(
-            multiDimConfig,
-            new URLSearchParams(queryStr)
-        )
 
-        const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${view.fullConfigId}.config.json`
-
-        await this._renderGrapherComponentIntoFigure(figure, {
-            configUrl,
-            embedUrl,
-        })
+        if (embedUrl.queryParams.hideControls === "true") {
+            const view = searchParamsToMultiDimView(
+                multiDimConfig,
+                new URLSearchParams(queryStr)
+            )
+            const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${view.fullConfigId}.config.json`
+            await this._renderGrapherComponentIntoFigure(figure, {
+                configUrl,
+                embedUrl,
+            })
+        } else {
+            await this._renderMultiDimWithControlsIntoFigure(
+                figure,
+                multiDimConfig,
+                queryStr
+            )
+        }
     }
+
     async renderChartViewIntoFigure(figure: Element) {
         const viewConfigRaw = figure.getAttribute(
             GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR
