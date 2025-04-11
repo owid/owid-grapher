@@ -3,7 +3,7 @@ import { Time } from "@ourworldindata/types"
 import {
     TimeBound,
     TimeBoundValue,
-    delay,
+    sleep,
     findClosestTime,
 } from "@ourworldindata/utils"
 
@@ -115,7 +115,7 @@ export class TimelineController {
                 this.stop()
                 break
             }
-            await delay(manager.msPerTick ?? 0)
+            await sleep(manager.msPerTick ?? 0)
         }
 
         return tickCount
