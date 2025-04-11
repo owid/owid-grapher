@@ -10,6 +10,8 @@ export function SearchDropdown<DropdownOption>(
             className="grapher-search-dropdown"
             isClearable={true}
             noOptionsMessage={() => null}
+            // prevent auto-zoom on ios
+            styles={{ input: (provided) => ({ ...provided, fontSize: 16 }) }}
             {...props}
         />
     )
