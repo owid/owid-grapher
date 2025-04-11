@@ -21,6 +21,7 @@ import {
     getWindowUrl,
     setWindowUrl,
     lazy,
+    RegionType,
 } from "@ourworldindata/utils"
 import { GrapherAnalytics } from "../../core/GrapherAnalytics"
 import { WORLD_ENTITY_NAME } from "../../core/GrapherConstants"
@@ -53,7 +54,7 @@ const getAllEntitiesSortedWithWorld = lazy(() =>
                 name: WORLD_ENTITY_NAME,
                 code: "OWID_WRL",
                 slug: "world",
-                regionType: "other",
+                regionType: RegionType.Other,
             },
         ])
 )
