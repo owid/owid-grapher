@@ -2,7 +2,7 @@ import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
-import { DEFAULT_BOUNDS, MapRegionName } from "@ourworldindata/utils"
+import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { GlobeController } from "../mapCharts/GlobeController"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons"
@@ -11,6 +11,7 @@ export interface CloseGlobeViewButtonManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
     globeController?: GlobeController
+    onCloseGlobeViewButtonClick?: () => void
 }
 
 @observer
@@ -42,7 +43,7 @@ export class CloseGlobeViewButton extends React.Component<{
 
     @action.bound private onClick(): void {
         this.manager.globeController?.toggleGlobe()
-        this.mapConfig.region = MapRegionName.World
+        this.manager.onCloseGlobeViewButtonClick?.()
     }
 
     render(): React.ReactElement | null {
