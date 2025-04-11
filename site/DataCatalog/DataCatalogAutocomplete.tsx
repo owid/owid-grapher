@@ -582,10 +582,23 @@ export function DataCatalogAutocomplete({
                             }
                         })
                         .with(AutocompleteSources.TOPICS, () => {
-                            // filter out topics that have already been selected
                             return {
                                 ...source,
                                 getItems() {
+                                    // Check if any topic filter has already been applied
+                                    const hasTopicFilter =
+                                        pendingFiltersRef.current.some(
+                                            (filter) =>
+                                                filter.type ===
+                                                CatalogFilterType.TOPIC
+                                        )
+
+                                    // If there's already a topic filter, don't return any topics
+                                    if (hasTopicFilter) {
+                                        return []
+                                    }
+
+                                    // filter out topics that have already been selected
                                     return source.getItems().filter((item) => {
                                         // For topics, check against the tag name since that's what's used in filters
                                         const topicTag =
