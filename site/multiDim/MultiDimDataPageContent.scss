@@ -26,8 +26,6 @@ $zindex-controls-backdrop: 130;
 $zindex-controls-popup: 140;
 
 .MultiDimDataPageContent {
-    @import "./MultiDimDataPageSettingsPanel.scss";
-
     .header {
         margin-bottom: 24px;
     }

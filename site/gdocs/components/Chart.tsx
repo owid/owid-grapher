@@ -46,6 +46,7 @@ export default function Chart({
     const isMultiDim = linkedChart.configType === ChartConfigType.MultiDim
     const hasControls = url.queryParams.hideControls !== "true"
     const isExplorerWithControls = isExplorer && hasControls
+    const isMultiDimWithControls = isMultiDim && hasControls
 
     // config passed to grapher charts
     let customizedChartConfig: GrapherProgrammaticInterface = {}
@@ -100,7 +101,9 @@ export default function Chart({
         <div
             className={cx(d.position, className, {
                 "full-width-on-mobile":
-                    !isExplorerWithControls && fullWidthOnMobile,
+                    !isExplorerWithControls &&
+                    !isMultiDimWithControls &&
+                    fullWidthOnMobile,
             })}
             style={{ gridRow: d.row, gridColumn: d.column }}
             ref={refChartContainer}
@@ -108,10 +111,12 @@ export default function Chart({
             <figure
                 // Use unique `key` to force React to re-render tree
                 key={resolvedUrl}
-                className={cx(
-                    { [GRAPHER_PREVIEW_CLASS]: !isExplorer },
-                    isExplorerWithControls ? "explorer" : "chart"
-                )}
+                className={cx({
+                    [GRAPHER_PREVIEW_CLASS]: !isExplorer,
+                    chart: !isExplorerWithControls && !isMultiDimWithControls,
+                    explorer: isExplorerWithControls,
+                    "multi-dim": isMultiDimWithControls,
+                })}
                 data-is-multi-dim={isMultiDim || undefined}
                 data-grapher-src={isExplorer ? undefined : resolvedUrl}
                 data-grapher-config={
