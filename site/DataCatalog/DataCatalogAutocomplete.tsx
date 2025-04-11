@@ -157,7 +157,7 @@ const CountriesSource = (
                         indexName: getIndexName(SearchIndexName.Pages),
                         query,
                         params: {
-                            hitsPerPage: 3,
+                            hitsPerPage: 2,
                             filters: `type:${AutocompleteItemType.Country}`,
                             removeWordsIfNoResults: searchRelaxationMode,
                             restrictSearchableAttributes: ["title"],
