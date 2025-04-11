@@ -23,6 +23,7 @@ import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"
+import { useResizeObserver } from "usehooks-ts"
 
 // keep in sync with $duration in KeyIndicatorCollection.scss
 const HEIGHT_ANIMATION_DURATION_IN_SECONDS = 0.4
@@ -316,26 +317,7 @@ function KeyIndicatorLink({
 
 const useHeight = () => {
     const ref = useRef<HTMLDivElement>(null)
-
-    const [height, setHeight] = useState<number | undefined>(undefined)
-
-    useEffect(() => {
-        const element = ref.current as HTMLDivElement
-
-        const resizeObserver = new ResizeObserver(
-            (entries: ResizeObserverEntry[]) => {
-                if (!Array.isArray(entries)) return
-                if (entries.length === 0) return
-
-                const entry = entries[0]
-                setHeight(entry.target.scrollHeight)
-            }
-        )
-
-        resizeObserver.observe(element)
-
-        return () => resizeObserver.unobserve(element)
-    }, [])
+    const { height } = useResizeObserver({ ref })
 
     return { ref, height }
 }
