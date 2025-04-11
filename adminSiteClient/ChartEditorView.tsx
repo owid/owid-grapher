@@ -132,9 +132,9 @@ export class ChartEditorView<
             ...config,
             dataApiUrlForAdmin:
                 this.manager.admin.settings.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
-            bounds: this.bounds,
             staticFormat: this.staticFormat,
         })
+        this.grapherState.externalBounds = this.bounds
         this.manager.editor.grapherState.renderToStatic =
             !!this.editor?.showStaticPreview
         this._isGrapherSet = true
