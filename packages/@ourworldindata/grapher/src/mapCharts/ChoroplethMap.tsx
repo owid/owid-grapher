@@ -208,6 +208,13 @@ export class ChoroplethMap extends React.Component<{
             selectedCountries.toggleSelection(feature.id)
         }
 
+        if (
+            selectedCountries.selectedSet.has(feature.id) &&
+            shouldShowEntitySelectorOnMapTab
+        ) {
+            globeController?.rotateToCountry(feature.id)
+        }
+
         // rotate to the selected country on the globe on mobile
         if (!shouldShowEntitySelectorOnMapTab) {
             globeController?.focusOnCountry(feature.id)

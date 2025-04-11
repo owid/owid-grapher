@@ -74,6 +74,11 @@ export class GlobeController {
     }
 
     focusOnCountry(country: EntityName): void {
+        this.rotateToCountry(country)
+        this.setFocusCountry(country)
+    }
+
+    rotateToCountry(country: EntityName): void {
         // jump to the country's offset position before switching to
         // the globe so that rotating to it is predictable
         if (!this.globeConfig.isActive) {
@@ -81,8 +86,7 @@ export class GlobeController {
             this.showGlobe()
         }
 
-        this.rotateToCountry(country, GLOBE_COUNTRY_ZOOM)
-        this.setFocusCountry(country)
+        this._rotateToCountry(country, GLOBE_COUNTRY_ZOOM)
     }
 
     rotateToOwidContinent(continent: GlobeRegionName): void {
@@ -121,7 +125,7 @@ export class GlobeController {
         this.jumpTo({ coords, xOffset })
     }
 
-    private rotateToCountry(country: EntityName, zoom?: number): void {
+    private _rotateToCountry(country: EntityName, zoom?: number): void {
         const coords = this.getCoordsForCountry(country)
         if (coords) void this.rotateTo(coords, zoom)
     }
@@ -132,7 +136,7 @@ export class GlobeController {
         this.jumpTo({ coords, zoom, xOffset })
     }
 
-    _rotateToOwidContinent(continent: GlobeRegionName): void {
+    private _rotateToOwidContinent(continent: GlobeRegionName): void {
         const coords = this.getCoordsForOwidContinent(continent)
         const zoom = this.getZoomForOwidContinent(continent)
         void this.rotateTo(coords, zoom)
