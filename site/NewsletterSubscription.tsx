@@ -111,10 +111,10 @@ export const NewsletterSubscriptionForm = ({
                     onChange={updateFrequencies}
                 />
                 <label htmlFor={idDataInsights}>
-                    <div className="label-title">Daily Data Insights</div>
+                    <div className="label-title">Data Insights</div>
                     <div className="label-text">
                         Receive our bite-sized insights on how the world is
-                        changing, every weekday.
+                        changing, every few days.
                     </div>
                 </label>
             </div>

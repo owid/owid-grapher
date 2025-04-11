@@ -18,16 +18,16 @@ export default function LatestDataInsightsBlock({
     return (
         <section className={cx(className, "latest-data-insights-block")}>
             <header className="latest-data-insights-block__header span-cols-8 col-start-2 span-sm-cols-12 col-sm-start-2">
-                <h2 className="h2-bold">Daily Data Insights</h2>
+                <h2 className="h2-bold">Data Insights</h2>
                 <p className="body-2-regular">
                     Bite-sized insights on how the world is changing, published
-                    every weekday.
+                    every few days.
                 </p>
             </header>
             <Button
                 href="/data-insights"
                 className="latest-data-insights-block__see-all-data-insights-button body-3-medium span-cols-4 col-start-10 span-sm-cols-12 col-sm-start-2"
-                text="See all Daily Data Insights"
+                text="See all Data Insights"
                 theme="outline-vermillion"
             />
             <LatestDataInsights

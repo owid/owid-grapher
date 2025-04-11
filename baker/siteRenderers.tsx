@@ -391,7 +391,7 @@ export async function makeAtomFeedFromDataInsights({
 }) {
     return `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-<title>Our World in Data - Daily Data Insights</title>
+<title>Our World in Data - Data Insights</title>
 <subtitle>Bite-sized insights on how the world is changing, written by our team</subtitle>
 <id>${htmlUrl}/</id>
 <link type="text/html" rel="alternate" href="${htmlUrl}"/>

@@ -33,7 +33,7 @@ export const TOUCH_DEVICE_MEDIA_QUERY =
 export const DATA_INSIGHTS_ATOM_FEED_NAME = "atom-data-insights.xml"
 
 export const DATA_INSIGHT_ATOM_FEED_PROPS = {
-    title: "Atom feed for Daily Data Insights",
+    title: "Atom feed for Data Insights",
     href: `https://ourworldindata.org/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
 }
 
@@ -88,7 +88,7 @@ export const RSS_FEEDS = [
         icon: faRss,
     },
     {
-        title: "Daily Data Insights",
+        title: "Data Insights",
         url: `/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
         icon: faRss,
     },

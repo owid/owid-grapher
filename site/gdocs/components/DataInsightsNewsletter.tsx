@@ -41,11 +41,11 @@ export default function DataInsightsNewsletter({
                     <Icon className="data-insights-newsletter__icon" />
                     <div className="data-insights-newsletter__left__text">
                         <h3 className="data-insights-newsletter__heading h3-bold">
-                            Get Daily Data Insights delivered to your inbox
+                            Get Data Insights delivered to your inbox
                         </h3>
                         <p className="data-insights-newsletter__description body-3-medium">
-                            Receive an email from us when we publish a Daily
-                            Data Insight (every weekday).
+                            Receive an email from us when we publish a Data
+                            Insight (every few days).
                         </p>
                     </div>
                 </div>
@@ -72,7 +72,7 @@ export default function DataInsightsNewsletter({
                         />
                         <input type="hidden" name="group[85302][16]" value="" />
                         <Button
-                            ariaLabel="Subscribe to the Daily Data Insights newsletter"
+                            ariaLabel="Subscribe to the Data Insights newsletter"
                             theme="solid-vermillion"
                             text="Subscribe"
                             type="submit"

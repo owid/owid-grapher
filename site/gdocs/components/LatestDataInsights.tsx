@@ -97,7 +97,7 @@ export default function LatestDataInsights({
                         <Button
                             className="latest-data-insights__card latest-data-insights__card__see-all body-3-medium"
                             href="/data-insights"
-                            text="See all our Daily Data Insights"
+                            text="See all our Data Insights"
                             theme="outline-vermillion"
                         />
                     )}
