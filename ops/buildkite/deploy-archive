@@ -9,7 +9,7 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-TARGET_DIR=/home/owid/live-data/bakedSite
+TARGET_DIR=/home/owid/live-data/archive
 
 # This is important, so `build_vite` and `bake_archive` load the correct env overrides
 export PRIMARY_ENV_FILE=.env.archive
