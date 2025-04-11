@@ -266,42 +266,50 @@ const TopicsSource = (
     }
 }
 
-const CurrentQuerySource: AutocompleteSource<BaseItem> = {
-    sourceId: AutocompleteSources.CURRENT_QUERY,
-    onSelect,
-    getItemUrl,
-    getItems({ query }) {
-        return [
-            {
-                slug: `/data${queryParamsToStr({ q: query })}`,
-                title: query,
-                type: AutocompleteItemType.CurrentQuery,
-            },
-        ]
-    },
-    getItemInputValue({ item }) {
-        return item.title as string
-    },
+const CurrentQuerySource = (
+    pendingFilters: CatalogFilter[]
+): AutocompleteSource<BaseItem> => {
+    return {
+        sourceId: AutocompleteSources.CURRENT_QUERY,
+        onSelect,
+        getItemUrl,
+        getItems({ query }) {
+            return [
+                {
+                    slug: `/data${queryParamsToStr({ q: query })}`,
+                    title: query,
+                    type: AutocompleteItemType.CurrentQuery,
+                },
+            ]
+        },
+        getItemInputValue({ item }) {
+            return item.title as string
+        },
 
-    templates: {
-        item: ({ item }) => {
-            return (
-                <div className="aa-ItemWrapper">
-                    <div className="aa-ItemContent">
-                        <div className="aa-ItemIcon">
-                            <FontAwesomeIcon icon={faSearch} />
-                        </div>
-                        <div
-                            className="aa-ItemContentBody"
-                            style={{ fontWeight: "bold" }}
-                        >
-                            {item.title}
+        templates: {
+            item: ({ item }) => {
+                console.log(pendingFilters)
+                return (
+                    <div className="aa-ItemWrapper">
+                        <div className="aa-ItemContent">
+                            <div className="aa-ItemIcon">
+                                <FontAwesomeIcon icon={faSearch} />
+                            </div>
+                            <DataCatalogAppliedFilters
+                                filters={pendingFilters}
+                            />
+                            <div
+                                className="aa-ItemContentBody"
+                                style={{ fontWeight: "bold" }}
+                            >
+                                {item.title}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )
+                )
+            },
         },
-    },
+    }
 }
 
 export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
@@ -489,7 +497,10 @@ export function DataCatalogAutocomplete({
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query && query.length >= minQueryLength) {
-                    sources.push(CurrentQuerySource, AlgoliaSource)
+                    sources.push(
+                        CurrentQuerySource(pendingFiltersRef.current),
+                        AlgoliaSource
+                    )
                     sources.push(
                         CountriesSource(
                             pendingFiltersRef.current,
