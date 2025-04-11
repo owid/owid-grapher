@@ -731,16 +731,6 @@ export class Grapher
         const mapSelection = getEntityNamesParam(params.mapSelect)
         if (mapSelection) {
             this.mapConfig.selectedCountries.setSelectedEntities(mapSelection)
-
-            // rotate to the last country. this isn't necessarily the country
-            // that was selected last, but it's a good-enough heuristic
-            const lastEntityName = last(mapSelection)
-            if (lastEntityName) {
-                this.globeController.jumpToCountry(
-                    lastEntityName,
-                    GLOBE_COUNTRY_ZOOM
-                )
-            }
         }
 
         // selection
@@ -3195,7 +3185,6 @@ export class Grapher
                             <EntitySelector
                                 manager={this}
                                 selection={entitySelectorArray}
-                                onSelectEntity={this.onSelectEntity}
                                 onDeselectEntity={this.onDeselectEntity}
                                 onClearEntities={this.onClearEntities}
                             />
@@ -3224,7 +3213,6 @@ export class Grapher
                         manager={this}
                         selection={entitySelectorArray}
                         autoFocus={true}
-                        onSelectEntity={this.onSelectEntity}
                         onDeselectEntity={this.onDeselectEntity}
                         onClearEntities={this.onClearEntities}
                     />
@@ -3813,16 +3801,6 @@ export class Grapher
 
     @action.bound onMapCountryDropdownFocus(): void {
         this.dismissTooltip()
-    }
-
-    // called when an entity is selected in the entity selector
-    @action.bound onSelectEntity(entityName: EntityName): void {
-        if (this.isOnMapTab) {
-            const country = countriesByName()[entityName]
-            if (country.isMappable) {
-                this.globeController.focusOnCountry(country.name)
-            }
-        }
     }
 
     // called when an entity is deselected in the entity selector
