@@ -66,8 +66,6 @@ import {
     omit,
     isTouchDevice,
     isArrayDifferentFromReference,
-    countriesByName,
-    last,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -174,10 +172,7 @@ import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesModal, SourcesModalManager } from "../modal/SourcesModal"
 import { DataTableManager } from "../dataTable/DataTable"
-import {
-    GLOBE_COUNTRY_ZOOM,
-    MapChartManager,
-} from "../mapCharts/MapChartConstants"
+import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { MapChart } from "../mapCharts/MapChart"
 import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "../controls/CommandPalette"
@@ -722,7 +717,7 @@ export class Grapher
 
             // show region on the globe
             if (this.map.region !== MapRegionName.World) {
-                this.globeController.jumpToRegion(this.map.region)
+                this.globeController.jumpToOwidContinent(this.map.region)
                 this.globeController.showGlobe()
             }
         }
