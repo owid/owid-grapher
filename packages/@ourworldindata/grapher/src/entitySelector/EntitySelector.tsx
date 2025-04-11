@@ -121,6 +121,7 @@ export interface EntitySelectorManager {
     onSelectEntity?: (entityName: EntityName) => void
     onDeselectEntity?: (entityName: EntityName) => void
     onClearEntities?: () => void
+    yColumnSlugs?: ColumnSlug[]
 }
 
 interface SortConfig {
@@ -297,14 +298,20 @@ export class EntitySelector extends React.Component<{
     }
 
     getDefaultSortConfig(): SortConfig {
+        const { isOnMapTab } = this.manager
+
         // default to sorting by the first chart column on the map tab
-        if (this.manager.isOnMapTab && this.numericalChartColumns[0]) {
+        // or if there's only one y-axis dimension
+        const hasSingleYDimension = this.yColumnSlugs.length === 1
+        const shouldSortByValue = isOnMapTab || hasSingleYDimension
+
+        if (shouldSortByValue && this.numericalChartColumns[0]) {
             const { slug } = this.numericalChartColumns[0]
             this.setInterpolatedSortColumnBySlug(slug)
             return { slug, order: SortOrder.desc }
-        } else {
-            return this.sortConfigName
         }
+
+        return this.sortConfigName
     }
 
     @action.bound initSortConfig(): void {
@@ -448,6 +455,10 @@ export class EntitySelector extends React.Component<{
 
     @computed private get endTime(): Time {
         return this.manager.endTime ?? this.table.maxTime!
+    }
+
+    @computed private get yColumnSlugs(): ColumnSlug[] {
+        return this.manager.yColumnSlugs ?? []
     }
 
     @computed private get title(): string {
