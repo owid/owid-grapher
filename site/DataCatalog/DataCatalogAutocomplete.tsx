@@ -39,6 +39,8 @@ import { CombinedFiltersSource } from "./CombinedFiltersSource.js"
 
 export type BaseItem = Record<string, unknown>
 
+const EMPTY_STRING = " "
+
 const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
     key: "RECENT_SEARCH",
     limit: 3,
@@ -143,7 +145,7 @@ const CountriesSource = (
             return undefined
         },
         getItemInputValue({ item, state }) {
-            return getUnmatchedQueryPart(item, state.query) || " " // hack: an empty string returns the query
+            return getUnmatchedQueryPart(item, state.query) || EMPTY_STRING // hack: an actual empty string returns the query
         },
         getItems({ query }) {
             if (!query) return []
@@ -209,7 +211,7 @@ const TopicsSource = (
             return undefined
         },
         getItemInputValue({ item, state }) {
-            return getUnmatchedQueryPart(item, state.query) || " " // hack: an empty string returns the query
+            return getUnmatchedQueryPart(item, state.query) || EMPTY_STRING // hack: an actual empty string returns the query
         },
         getItems({ query }) {
             if (!query) return []
@@ -288,7 +290,6 @@ const CurrentQuerySource = (
 
         templates: {
             item: ({ item }) => {
-                console.log(pendingFilters)
                 return (
                     <div className="aa-ItemWrapper">
                         <div className="aa-ItemContent">
@@ -479,7 +480,18 @@ export function DataCatalogAutocomplete({
                         }
                     )
                     .otherwise(() => {
-                        // do nothing. Updating the query is handled through the getItemInputValue fn
+                        const shouldRemoveLastFilter =
+                            prevState.activeItemId !== null &&
+                            prevSourceId !== undefined &&
+                            [
+                                AutocompleteSources.COUNTRIES,
+                                AutocompleteSources.TOPICS,
+                            ].includes(prevSourceId)
+                        if (shouldRemoveLastFilter) {
+                            removeLastFilterRef.current()
+                        }
+
+                        // Updating the query is handled through the getItemInputValue fn
                     })
             },
             onSubmit({ state }) {
@@ -496,11 +508,19 @@ export function DataCatalogAutocomplete({
             },
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
-                if (query && query.length >= minQueryLength) {
+                if (!query && pendingFiltersRef.current.length === 0) {
+                    sources.push(FeaturedSearchesSource)
+                    return sources
+                }
+
+                if (query && query !== EMPTY_STRING) {
                     sources.push(
                         CurrentQuerySource(pendingFiltersRef.current),
                         AlgoliaSource
                     )
+                }
+
+                if (query && query.length >= minQueryLength) {
                     sources.push(
                         CountriesSource(
                             pendingFiltersRef.current,
@@ -526,10 +546,7 @@ export function DataCatalogAutocomplete({
                             )
                         )
                     }
-                } else {
-                    sources.push(FeaturedSearchesSource)
                 }
-
                 return sources
             },
             reshape({ sources, sourcesBySourceId }) {
