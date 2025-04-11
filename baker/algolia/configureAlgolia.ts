@@ -173,6 +173,8 @@ export const configureAlgolia = async () => {
             "unordered(subtitle)",
             "unordered(tags)",
             "unordered(availableEntities)",
+            "searchSuggestions",
+            "unordered(type)", // this helps surfacing more charts for "population growth chart" suggested queries
         ],
         ranking: ["typo", "words", "exact", "attribute", "custom", "proximity"],
         customRanking: [
@@ -192,7 +194,20 @@ export const configureAlgolia = async () => {
         disableExactOnAttributes: ["tags", "subtitle", "availableEntities"],
         disableTypoToleranceOnAttributes: ["subtitle", "availableEntities"],
         disablePrefixOnAttributes: ["subtitle"],
-        attributesForFaceting: ["tags", "availableEntities"],
+        attributesForFaceting: [
+            "tags",
+            "availableEntities",
+            "searchable(searchSuggestions)",
+        ],
+    })
+
+    const searchSuggestionsIndex = client.initIndex(
+        getIndexName(SearchIndexName.SearchSuggestions)
+    )
+
+    await searchSuggestionsIndex.setSettings({
+        ...baseSettings,
+        searchableAttributes: ["suggestion"],
     })
 
     const synonyms = [
@@ -371,6 +386,9 @@ export const configureAlgolia = async () => {
         replaceExistingSynonyms: true,
     })
     await explorerViewsIndex.saveSynonyms(algoliaSynonyms, {
+        replaceExistingSynonyms: true,
+    })
+    await searchSuggestionsIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true,
     })
 
