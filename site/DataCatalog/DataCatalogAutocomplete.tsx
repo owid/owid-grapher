@@ -412,7 +412,7 @@ export function DataCatalogAutocomplete({
             classNames: {
                 panel: panelClassName,
             },
-            debug: true,
+            // debug: true,
             openOnFocus: true,
             onStateChange({ state, prevState }) {
                 if (!prevState.isOpen && state.isOpen) {
@@ -562,92 +562,125 @@ export function DataCatalogAutocomplete({
                     (country) => country.title as string
                 )
 
-                return sources.map((source) =>
-                    match(source.sourceId)
-                        .with(AutocompleteSources.COUNTRIES, () => {
-                            // filter out countries that have already been selected
-                            return {
-                                ...source,
-                                getItems() {
-                                    return source.getItems().filter((item) => {
-                                        // For countries, check if the country name is already selected
-                                        return !pendingFiltersRef.current.some(
-                                            (filter) =>
-                                                filter.type ===
-                                                    CatalogFilterType.COUNTRY &&
-                                                filter.name === item.title
-                                        )
-                                    })
-                                },
-                            }
-                        })
-                        .with(AutocompleteSources.TOPICS, () => {
-                            return {
-                                ...source,
-                                getItems() {
-                                    // Check if any topic filter has already been applied
-                                    const hasTopicFilter =
-                                        pendingFiltersRef.current.some(
-                                            (filter) =>
-                                                filter.type ===
-                                                CatalogFilterType.TOPIC
-                                        )
-
-                                    // If there's already a topic filter, don't return any topics
-                                    if (hasTopicFilter) {
-                                        return []
-                                    }
-
-                                    // filter out topics that have already been selected
-                                    return source.getItems().filter((item) => {
-                                        // For topics, check against the tag name since that's what's used in filters
-                                        const topicTag =
-                                            (item.tags as string[])?.[0] || ""
-                                        return !pendingFiltersRef.current.some(
-                                            (filter) =>
-                                                filter.type ===
-                                                    CatalogFilterType.TOPIC &&
-                                                filter.name === topicTag
-                                        )
-                                    })
-                                },
-                            }
-                        })
-                        // Update combined filter source with one item per topic
-                        .with(
-                            AutocompleteSources.COMBINED_FILTERS,
-
-                            () => {
+                return sources
+                    .map((source) =>
+                        match(source.sourceId)
+                            .with(AutocompleteSources.COUNTRIES, () => {
+                                // filter out countries that have already been selected
                                 return {
                                     ...source,
                                     getItems() {
-                                        // If there are topics, create one item per topic with all countries
-                                        if (topics.length > 0) {
-                                            return topics.map((topic) => ({
-                                                topic: (
-                                                    topic.tags as string[]
-                                                )?.[0], // use the first tag on the topic page record as the topic name
-                                                countries: countryNames,
-                                            }))
-                                        }
-                                        // If there are no topics but there are countries, create a single item with all countries
-                                        else if (countryNames.length > 0) {
-                                            return [
-                                                {
-                                                    countries: countryNames,
-                                                },
-                                            ]
-                                        }
-
-                                        return []
+                                        return source
+                                            .getItems()
+                                            .filter((item) => {
+                                                // For countries, check if the country name is already selected
+                                                return !pendingFiltersRef.current.some(
+                                                    (filter) =>
+                                                        filter.type ===
+                                                            CatalogFilterType.COUNTRY &&
+                                                        filter.name ===
+                                                            item.title
+                                                )
+                                            })
                                     },
                                 }
-                            }
-                        )
-                        .otherwise(() => {
-                            return source
-                        })
-                )
+                            })
+                            .with(AutocompleteSources.TOPICS, () => {
+                                return {
+                                    ...source,
+                                    getItems() {
+                                        // Check if any topic filter has already been applied
+                                        const hasTopicFilter =
+                                            pendingFiltersRef.current.some(
+                                                (filter) =>
+                                                    filter.type ===
+                                                    CatalogFilterType.TOPIC
+                                            )
+
+                                        // If there's already a topic filter, don't return any topics
+                                        if (hasTopicFilter) {
+                                            return []
+                                        }
+
+                                        // filter out topics that have already been selected
+                                        return source
+                                            .getItems()
+                                            .filter((item) => {
+                                                // For topics, check against the tag name since that's what's used in filters
+                                                const topicTag =
+                                                    (
+                                                        item.tags as string[]
+                                                    )?.[0] || ""
+                                                return !pendingFiltersRef.current.some(
+                                                    (filter) =>
+                                                        filter.type ===
+                                                            CatalogFilterType.TOPIC &&
+                                                        filter.name === topicTag
+                                                )
+                                            })
+                                    },
+                                }
+                            })
+                            // Update combined filter source with one item per topic
+                            .with(
+                                AutocompleteSources.COMBINED_FILTERS,
+
+                                () => {
+                                    return {
+                                        ...source,
+                                        getItems() {
+                                            // If there are topics, create one item per topic with all countries
+                                            if (topics.length > 0) {
+                                                return topics.map((topic) => ({
+                                                    topic: (
+                                                        topic.tags as string[]
+                                                    )?.[0], // use the first tag on the topic page record as the topic name
+                                                    countries: countryNames,
+                                                }))
+                                            }
+                                            // If there are no topics but there are countries, create a single item with all countries
+                                            else if (countryNames.length > 0) {
+                                                return [
+                                                    {
+                                                        countries: countryNames,
+                                                    },
+                                                ]
+                                            }
+
+                                            return []
+                                        },
+                                    }
+                                }
+                            )
+                            .otherwise(() => {
+                                return source
+                            })
+                    )
+                    .slice()
+                    .sort(
+                        // sort on whether at least one of the items in getItems() is a full match
+                        (a, b) => {
+                            const aItems =
+                                sourcesBySourceId[a.sourceId]?.getItems()
+                            const bItems =
+                                sourcesBySourceId[b.sourceId]?.getItems()
+
+                            if (!aItems || !bItems) return 0
+
+                            const aFullMatch = aItems.some(
+                                (item) =>
+                                    (item._highlightResult as any)?.title
+                                        ?.fullyHighlighted === true
+                            )
+                            const bFullMatch = bItems.some(
+                                (item) =>
+                                    (item._highlightResult as any)?.title
+                                        ?.fullyHighlighted === true
+                            )
+
+                            return Number(bFullMatch) - Number(aFullMatch)
+                        }
+                    )
             },
             plugins: [recentSearchesPlugin],
         })
