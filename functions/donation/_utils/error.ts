@@ -1,15 +1,7 @@
 import { stringifyUnknownError } from "@ourworldindata/utils"
+import { Env } from "../../_common/env.js"
 
-export interface SlackEnvVars {
-    SLACK_BOT_OAUTH_TOKEN?: string
-    SLACK_ERROR_CHANNEL_ID?: string
-}
-
-export const logError = async (
-    error: string,
-    filePath: string,
-    env: SlackEnvVars
-) => {
+export const logError = async (error: string, filePath: string, env: Env) => {
     console.error(error)
 
     // Reporting to Slack
@@ -19,10 +11,7 @@ export const logError = async (
     )
 }
 
-export const sendErrorMessageToSlack = async (
-    message: string,
-    env: SlackEnvVars
-) => {
+export const sendErrorMessageToSlack = async (message: string, env: Env) => {
     if (!env.SLACK_BOT_OAUTH_TOKEN || !env.SLACK_ERROR_CHANNEL_ID) {
         console.warn(
             "Missing SLACK_BOT_OAUTH_TOKEN or SLACK_ERROR_CHANNEL_ID. Continuing without logging errors to Slack."

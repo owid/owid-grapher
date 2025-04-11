@@ -1,4 +1,4 @@
-import fetch from "node-fetch"
+import * as Sentry from "@sentry/cloudflare"
 import { createCheckoutSession } from "./_utils/checkout.js"
 import {
     DonateSessionResponse,
@@ -8,17 +8,13 @@ import {
     stringifyUnknownError,
 } from "@ourworldindata/utils"
 import { Value } from "@sinclair/typebox/value"
+import { Env } from "../_common/env.js"
 import { DEFAULT_HEADERS, CORS_HEADERS } from "./_utils/constants.js"
-import { SlackEnvVars, logError } from "./_utils/error.js"
-
-type DonateEnvVars = {
-    STRIPE_API_KEY: string
-    RECAPTCHA_SECRET_KEY: string
-} & SlackEnvVars
+import { logError } from "./_utils/error.js"
 
 const filePath = "donation/donate.ts"
 
-const hasDonateEnvVars = (env: any): env is DonateEnvVars => {
+const hasDonateEnvVars = (env: Env) => {
     return !!env.STRIPE_API_KEY && !!env.RECAPTCHA_SECRET_KEY
 }
 
@@ -30,13 +26,13 @@ export const onRequestOptions: PagesFunction = async () => {
     })
 }
 
-export const onRequestPost: PagesFunction = async ({
+export const onRequestPost: PagesFunction<Env> = async ({
     request,
     env,
     waitUntil,
 }: {
     request: Request
-    env: unknown
+    env: Env
     waitUntil: (promise: Promise<any>) => void
 }) => {
     try {
@@ -86,7 +82,9 @@ export const onRequestPost: PagesFunction = async ({
         // request to Slack is complete. Not using "await" to avoid delaying
         // sending the response to the client.
         waitUntil(logError(error, filePath, env))
-
+        if (!(error instanceof JsonError) || error.status >= 500) {
+            Sentry.captureException(error)
+        }
         return new Response(
             JSON.stringify({ error: stringifyUnknownError(error) }),
             {

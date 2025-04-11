@@ -1,12 +1,14 @@
+import * as Sentry from "@sentry/cloudflare"
 import Stripe from "stripe"
+import { Env } from "../_common/env.js"
 import {
     DEFAULT_HEADERS,
     STRIPE_API_VERSION,
     STRIPE_CUSTOMER_PORTAL_URL,
 } from "./_utils/constants.js"
 import { JsonError, stringifyUnknownError } from "@ourworldindata/utils"
-import { MailgunEnvVars, sendMail } from "./_utils/email.js"
-import { SlackEnvVars, logError } from "./_utils/error.js"
+import { sendMail } from "./_utils/email.js"
+import { logError } from "./_utils/error.js"
 
 interface MessageData {
     email: string
@@ -16,15 +18,9 @@ interface MessageData {
     isSubscription: boolean
 }
 
-type ThankYouEnvVars = {
-    STRIPE_WEBHOOK_SECRET: string
-    STRIPE_API_KEY: string
-} & MailgunEnvVars &
-    SlackEnvVars
-
 const filePath = "donation/thank-you.ts"
 
-const hasThankYouEnvVars = (env: unknown): env is ThankYouEnvVars => {
+const hasThankYouEnvVars = (env: Env) => {
     return (
         typeof env === "object" &&
         "STRIPE_WEBHOOK_SECRET" in env &&
@@ -111,10 +107,7 @@ function constructHtmlMessage(data: MessageData): string {
         <p>Wishing you the best,<br /><i>The Our World in Data Team</i></p>`
 }
 
-async function sendThankYouEmail(
-    data: MessageData,
-    env: ThankYouEnvVars
-): Promise<void> {
+async function sendThankYouEmail(env: Env, data: MessageData): Promise<void> {
     await sendMail(
         {
             from: `Our World in Data <donate@ourworldindata.org>`,
@@ -128,13 +121,49 @@ async function sendThankYouEmail(
     )
 }
 
-export const onRequestPost: PagesFunction = async ({
+async function subscribeToNewsletter(env: Env, email: string): Promise<void> {
+    const subscriberDigest = await crypto.subtle.digest(
+        // MD5 is not part of the WebCrypto standard but is supported in
+        // Cloudflare Workers for interacting with legacy systems that require
+        // MD5.
+        // https://developers.cloudflare.com/workers/runtime-apis/web-crypto/
+        { name: "MD5" },
+        new TextEncoder().encode(email.toLowerCase())
+    )
+    const subscriberHash = [...new Uint8Array(subscriberDigest)]
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("")
+    const response = await fetch(
+        `https://${env.MAILCHIMP_API_SERVER}.api.mailchimp.com/3.0/lists/${env.MAILCHIMP_DONOR_LIST_ID}/members/${subscriberHash}`,
+        {
+            method: "PUT",
+            headers: {
+                Authorization: `Basic ${btoa(`anystring:${env.MAILCHIMP_API_KEY}`)}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                email_address: email,
+                status_if_new: "subscribed",
+            }),
+        }
+    )
+    if (!response.ok) {
+        const data = await response.json()
+        console.error("Failed to subscribe user to donor newsletter", data)
+        Sentry.captureMessage("Failed to subscribe user to donor newsletter", {
+            level: "error",
+            extra: { response: data },
+        })
+    }
+}
+
+export const onRequestPost: PagesFunction<Env> = async ({
     request,
     env,
     waitUntil,
 }: {
     request: Request
-    env: unknown
+    env: Env
     waitUntil: (promise: Promise<any>) => void
 }) => {
     try {
@@ -162,8 +191,8 @@ export const onRequestPost: PagesFunction = async ({
         switch (event.type) {
             case "checkout.session.completed": {
                 const session = event.data.object
-                await sendThankYouEmail(
-                    {
+                waitUntil(
+                    sendThankYouEmail(env, {
                         email: session.customer_details.email,
                         customerId: session.customer as string,
                         // We support two checkout modes: "payment" (for one-time payments) and "subscription"
@@ -172,9 +201,16 @@ export const onRequestPost: PagesFunction = async ({
                         isSubscription: session.mode === "subscription",
                         name: session.metadata.name,
                         showOnList: session.metadata.showOnList === "true",
-                    },
-                    env
+                    }).catch(Sentry.captureException)
                 )
+                if (session.metadata.subscribeToDonorNewsletter === "true") {
+                    waitUntil(
+                        subscribeToNewsletter(
+                            env,
+                            session.customer_details.email
+                        ).catch(Sentry.captureException)
+                    )
+                }
                 break
             }
             default: {
@@ -192,7 +228,9 @@ export const onRequestPost: PagesFunction = async ({
         // request to Slack is complete. Not using "await" to avoid delaying
         // sending the response to the client.
         waitUntil(logError(error, filePath, env))
-
+        if (!(error instanceof JsonError) || error.status >= 500) {
+            Sentry.captureException(error)
+        }
         return new Response(
             JSON.stringify({ error: stringifyUnknownError(error) }),
             {
