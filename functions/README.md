@@ -172,9 +172,11 @@ The thank-you webhook can subscribe donors to a Mailchimp newsletter list. To te
     - `MAILCHIMP_API_SERVER`: The server prefix for our Mailchimp account (e.g., "us1"). You can find this in the URL when you log into Mailchimp (e.g., `https://us1.admin.mailchimp.com`).
     - `MAILCHIMP_DONOR_LIST_ID`: The ID of the donor newsletter Mailchimp list you want to subscribe donors to. You can find this in 1Password.
 
-2. When testing a donation, make sure to check the "Subscribe to donor newsletter" option on the donation form.
+2. Run the Stripe client as described in the preceding section.
 
-3. After completing the donation, check the Mailchimp list to verify that the donor was subscribed successfully.
+3. When testing a donation, make sure to check the "Subscribe to donor newsletter" option on the donation form.
+
+4. After completing the donation, check the Mailchimp list to verify that the donor was subscribed successfully.
 
 Note: The integration uses Mailchimp's MD5 hash of the subscriber's email address as the unique identifier. If a subscriber already exists in the list, their status will be updated to "subscribed" if they were previously unsubscribed.
 
