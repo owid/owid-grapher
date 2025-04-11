@@ -562,23 +562,49 @@ export function DataCatalogAutocomplete({
                     (country) => country.title as string
                 )
 
-                return (
-                    sources
-                        // .filter(
-                        //     // Remove the countries and topics sources since their
-                        //     // components are already included in the combined filters
-                        //     // source
-                        //     (source) =>
-                        //         ![Sources.TOPICS, Sources.COUNTRIES].includes(
-                        //             source.sourceId as Sources
-                        //         )
-                        // )
+                return sources.map((source) =>
+                    match(source.sourceId)
+                        .with(AutocompleteSources.COUNTRIES, () => {
+                            // filter out countries that have already been selected
+                            return {
+                                ...source,
+                                getItems() {
+                                    return source.getItems().filter((item) => {
+                                        // For countries, check if the country name is already selected
+                                        return !pendingFiltersRef.current.some(
+                                            (filter) =>
+                                                filter.type ===
+                                                    CatalogFilterType.COUNTRY &&
+                                                filter.name === item.title
+                                        )
+                                    })
+                                },
+                            }
+                        })
+                        .with(AutocompleteSources.TOPICS, () => {
+                            // filter out topics that have already been selected
+                            return {
+                                ...source,
+                                getItems() {
+                                    return source.getItems().filter((item) => {
+                                        // For topics, check against the tag name since that's what's used in filters
+                                        const topicTag =
+                                            (item.tags as string[])?.[0] || ""
+                                        return !pendingFiltersRef.current.some(
+                                            (filter) =>
+                                                filter.type ===
+                                                    CatalogFilterType.TOPIC &&
+                                                filter.name === topicTag
+                                        )
+                                    })
+                                },
+                            }
+                        })
                         // Update combined filter source with one item per topic
-                        .map((source) => {
-                            if (
-                                source.sourceId ===
-                                AutocompleteSources.COMBINED_FILTERS
-                            ) {
+                        .with(
+                            AutocompleteSources.COMBINED_FILTERS,
+
+                            () => {
                                 return {
                                     ...source,
                                     getItems() {
@@ -604,6 +630,8 @@ export function DataCatalogAutocomplete({
                                     },
                                 }
                             }
+                        )
+                        .otherwise(() => {
                             return source
                         })
                 )
