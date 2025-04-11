@@ -62,7 +62,7 @@ export class GlobeController {
         if (zoom) this.globeConfig.zoom = zoom
     }
 
-    showGlobeAndRotateToCountry(country: EntityName): void {
+    private showGlobeAndRotateToCountry(country: EntityName): void {
         // switch to the globe view first. before switching to the globe,
         // jump to the country's offset position so that rotating to it
         // is predictable
