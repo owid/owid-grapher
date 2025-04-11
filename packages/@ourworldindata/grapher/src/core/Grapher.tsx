@@ -488,7 +488,7 @@ export class Grapher
     dataApiUrl =
         this.props.dataApiUrl ?? "https://api.ourworldindata.org/v1/indicators/"
 
-    @observable.ref externalQueryParams: QueryParams
+    @observable.ref externalQueryParams: QueryParams = {}
 
     private framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
     private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
@@ -571,10 +571,6 @@ export class Grapher
         this.populateFromQueryParams(
             legacyToCurrentGrapherQueryParams(props.queryStr ?? "")
         )
-        this.externalQueryParams = omit(
-            Url.fromQueryStr(props.queryStr ?? "").queryParams,
-            GRAPHER_QUERY_PARAM_KEYS
-        )
 
         if (this.isEditor) {
             this.ensureValidConfigWhenEditing()
@@ -654,6 +650,8 @@ export class Grapher
     }
 
     @action.bound populateFromQueryParams(params: GrapherQueryParams): void {
+        this.externalQueryParams = omit(params, GRAPHER_QUERY_PARAM_KEYS)
+
         // Set tab if specified
         if (params.tab) {
             const tab = this.mapQueryParamToGrapherTab(params.tab)

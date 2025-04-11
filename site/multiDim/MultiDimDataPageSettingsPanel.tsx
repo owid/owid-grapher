@@ -116,13 +116,17 @@ const DimensionDropdown = (props: {
     )
 }
 
-export const MultiDimSettingsPanel = (props: {
+export const MultiDimSettingsPanel = ({
+    className,
+    config,
+    settings,
+    onChange,
+}: {
+    className?: string
     config: MultiDimDataPageConfig
     settings: MultiDimDimensionChoices
     onChange: (settings: MultiDimDimensionChoices) => void
 }) => {
-    const { config, settings, onChange } = props
-
     const { dimensions } = config
 
     // Non-partial version of `settings` with all dimensions filled in
@@ -142,7 +146,7 @@ export const MultiDimSettingsPanel = (props: {
     }, [resolvedSettings, config])
 
     return (
-        <div className="md-settings-row">
+        <div className={cx("md-settings-row", className)}>
             <div className="h5-black-caps md-settings__configure-data">
                 Configure the data
             </div>
