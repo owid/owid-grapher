@@ -203,16 +203,14 @@ export class ChoroplethMap extends React.Component<{
 
         this.setHoverEnterFeature(feature)
 
+        // select/deselect the country if allowed
         if (shouldEnableEntitySelectionOnMapTab) {
             selectedCountries.toggleSelection(feature.id)
         }
 
-        if (selectedCountries.selectedSet.has(feature.id)) {
-            if (shouldShowEntitySelectorOnMapTab) {
-                globeController?.showGlobeAndRotateToCountry(feature.id)
-            } else {
-                globeController?.focusOnCountry(feature.id)
-            }
+        // rotate to the selected country on the globe on mobile
+        if (!shouldShowEntitySelectorOnMapTab) {
+            globeController?.focusOnCountry(feature.id)
         }
     }
 

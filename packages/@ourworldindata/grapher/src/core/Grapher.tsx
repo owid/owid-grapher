@@ -66,8 +66,7 @@ import {
     omit,
     isTouchDevice,
     isArrayDifferentFromReference,
-    countriesByName,
-    last,
+    getCountryByName,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -174,10 +173,7 @@ import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesModal, SourcesModalManager } from "../modal/SourcesModal"
 import { DataTableManager } from "../dataTable/DataTable"
-import {
-    GLOBE_COUNTRY_ZOOM,
-    MapChartManager,
-} from "../mapCharts/MapChartConstants"
+import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { MapChart } from "../mapCharts/MapChart"
 import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "../controls/CommandPalette"
@@ -729,16 +725,6 @@ export class Grapher
         const mapSelection = getEntityNamesParam(params.mapSelect)
         if (mapSelection) {
             this.mapConfig.selectedCountries.setSelectedEntities(mapSelection)
-
-            // rotate to the last country. this isn't necessarily the country
-            // that was selected last, but it's a good-enough heuristic
-            const lastEntityName = last(mapSelection)
-            if (lastEntityName) {
-                this.globeController.jumpToCountry(
-                    lastEntityName,
-                    GLOBE_COUNTRY_ZOOM
-                )
-            }
         }
 
         // selection
@@ -3815,9 +3801,9 @@ export class Grapher
 
     // called when an entity is selected in the entity selector
     @action.bound onSelectEntity(entityName: EntityName): void {
-        if (this.isOnMapTab) {
-            const country = countriesByName()[entityName]
-            if (country.isMappable) {
+        if (this.isOnMapTab && this.mapConfig.globe.isActive) {
+            const country = getCountryByName(entityName)
+            if (country?.isMappable) {
                 this.globeController.focusOnCountry(country.name)
             }
         }

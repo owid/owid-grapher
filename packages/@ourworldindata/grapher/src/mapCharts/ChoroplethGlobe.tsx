@@ -328,43 +328,11 @@ export class ChoroplethGlobe extends React.Component<{
         this.manager.onMapMouseLeave()
     }
 
-    private getBoundsForFeature(feature: GlobeRenderFeature): Bounds {
-        const corners = this.globePath.bounds(feature.geo)
-        return Bounds.fromCorners(
-            new PointVector(...corners[0]),
-            new PointVector(...corners[1])
-        )
-    }
-
-    private calculateZoomForFeature(feature: GlobeRenderFeature): number {
-        const bounds = this.getBoundsForFeature(feature)
-
-        // choose a factor less than 1 to ensure the feature doesn't fill exactly to the edges
-        const bufferFactor = 0.8
-
-        const maxDimension = Math.max(bounds.width, bounds.height)
-        const scaleFactor = (this.globeSize * bufferFactor) / maxDimension
-        const zoom = this.zoomScale * scaleFactor
-
-        return R.clamp(zoom, { min: GLOBE_MIN_ZOOM, max: GLOBE_MAX_ZOOM })
-    }
-
     @action.bound private onClick(feature: GlobeRenderFeature): void {
         this.setHoverEnterFeature(feature)
 
-        // keep the zoom level as is if possible,
-        // but zoom out if the feature wouldn't be fully visible
-        const countryZoom = this.calculateZoomForFeature(feature)
-        const zoom = countryZoom < this.zoomScale ? countryZoom : undefined
-
-        // reset the region if necessary
-        this.mapConfig.region = MapRegionName.World
-
-        // rotate to the country on the globe if it has been selected
-        const country = feature.id
-        void this.globeController.rotateToCountry(country, zoom)
-
         // select/deselect the country if allowed
+        const country = feature.id
         if (this.manager.shouldEnableEntitySelectionOnMapTab)
             this.mapConfig.selectedCountries.toggleSelection(country)
 
