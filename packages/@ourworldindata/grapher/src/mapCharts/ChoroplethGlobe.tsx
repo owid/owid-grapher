@@ -24,11 +24,12 @@ import {
     getRelativeMouse,
     checkIsTouchEvent,
     PointVector,
+    MapRegionName,
 } from "@ourworldindata/utils"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
-    ChoroplethMapManager,
     ChoroplethSeriesByName,
+    ChoroplethGlobeManager,
     GEO_FEATURES_CLASSNAME,
     GlobeRenderFeature,
     MAP_HOVER_TARGET_RANGE,
@@ -37,12 +38,15 @@ import {
 import { MapConfig } from "./MapConfig"
 import { getFeaturesForGlobe } from "./GeoFeatures"
 import {
+    CountryOutsideOfSelectedRegion,
     CountryWithData,
     CountryWithNoData,
     NoDataPattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
 import { calculateDistance, detectNearbyFeature, hasFocus } from "./MapHelpers"
+import { GlobeController } from "./GlobeController"
+import { getCountriesByRegion } from "./WorldRegionsToProjection"
 
 const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 const DEFAULT_SCALE = geoOrthographic().scale()
@@ -52,7 +56,7 @@ const MAX_ZOOM_SCALE = 5
 
 @observer
 export class ChoroplethGlobe extends React.Component<{
-    manager: ChoroplethMapManager
+    manager: ChoroplethGlobeManager
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
@@ -68,12 +72,16 @@ export class ChoroplethGlobe extends React.Component<{
         return isTouchDevice()
     }
 
-    @computed private get manager(): ChoroplethMapManager {
+    @computed private get manager(): ChoroplethGlobeManager {
         return this.props.manager
     }
 
-    @computed private get mapConfig(): MapConfig {
+    @computed get mapConfig(): MapConfig {
         return this.manager.mapConfig
+    }
+
+    @computed private get globeController(): GlobeController {
+        return this.manager.globeController ?? new GlobeController(this)
     }
 
     @computed.struct private get bounds(): Bounds {
@@ -92,8 +100,25 @@ export class ChoroplethGlobe extends React.Component<{
         return getFeaturesForGlobe()
     }
 
+    @computed private get featuresInRegion(): GlobeRenderFeature[] {
+        const { region } = this.mapConfig
+        if (region === MapRegionName.World) return this.features
+
+        const countriesByRegion = getCountriesByRegion(region)
+        if (countriesByRegion === undefined) return []
+
+        return this.features.filter((feature) =>
+            countriesByRegion.has(feature.id)
+        )
+    }
+
+    @computed
+    private get featuresOutsideOfSelectedRegion(): GlobeRenderFeature[] {
+        return difference(this.features, this.featuresInRegion)
+    }
+
     @computed private get featuresWithData(): GlobeRenderFeature[] {
-        const features = this.features.filter((feature) =>
+        const features = this.featuresInRegion.filter((feature) =>
             this.choroplethData.has(feature.id)
         )
 
@@ -108,7 +133,7 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get featuresWithNoData(): GlobeRenderFeature[] {
-        return difference(this.features, this.featuresWithData)
+        return difference(this.featuresInRegion, this.featuresWithData)
     }
 
     // Map uses a hybrid approach to mouseover
@@ -145,6 +170,8 @@ export class ChoroplethGlobe extends React.Component<{
     /** Checks if a geo entity is currently focused, either directly or via the bracket */
     private hasFocus(featureId: string): boolean {
         const { focusEntity, focusBracket } = this.manager
+        const { focusCountry } = this.mapConfig.globe
+        if (focusCountry) return focusCountry === featureId
         const series = this.choroplethData.get(featureId)
         return hasFocus({ featureId, series, focusEntity, focusBracket })
     }
@@ -246,7 +273,7 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get visibleFeatures(): GlobeRenderFeature[] {
-        return this.features.filter((feature) =>
+        return this.featuresInRegion.filter((feature) =>
             this.isFeatureCentroidVisibleOnGlobe(feature)
         )
     }
@@ -287,11 +314,10 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @action.bound private clearHover(): void {
-        if (this.hoverEnterFeature || this.hoverNearbyFeature) {
-            this.hoverEnterFeature = undefined
-            this.hoverNearbyFeature = undefined
-            this.manager.onMapMouseLeave()
-        }
+        this.hoverEnterFeature = undefined
+        this.hoverNearbyFeature = undefined
+        this.manager.onMapMouseLeave()
+        this.globeController.dismissCountryFocus()
     }
 
     @action.bound private onMouseMove(event: MouseEvent): void {
@@ -329,11 +355,41 @@ export class ChoroplethGlobe extends React.Component<{
         this.manager.onMapMouseLeave()
     }
 
+    private getBoundsForFeature(feature: GlobeRenderFeature): Bounds {
+        const corners = this.globePath.bounds(feature.geo)
+        return Bounds.fromCorners(
+            new PointVector(...corners[0]),
+            new PointVector(...corners[1])
+        )
+    }
+
+    private calculateZoomForFeature(feature: GlobeRenderFeature): number {
+        const bounds = this.getBoundsForFeature(feature)
+
+        // choose a factor less than 1 to ensure the feature doesn't fill exactly to the edges
+        const bufferFactor = 0.8
+
+        const maxDimension = Math.max(bounds.width, bounds.height)
+        const scaleFactor = (this.globeSize * bufferFactor) / maxDimension
+        const zoom = this.zoomScale * scaleFactor
+
+        return clamp(zoom, MIN_ZOOM_SCALE, MAX_ZOOM_SCALE)
+    }
+
     @action.bound private onClick(
         feature: GlobeRenderFeature,
         event: MouseEvent
     ): void {
         this.setHoverEnterFeature(feature)
+
+        // keep the zoom level as is if possible,
+        // but zoom out if the feature wouldn't be fully visible
+        const countryZoom = this.calculateZoomForFeature(feature)
+        const zoom = countryZoom < this.zoomScale ? countryZoom : undefined
+
+        // rotate to the selected country on the globe
+        void this.globeController.rotateToCountry(feature.id, zoom)
+
         this.manager.onClick(feature.geo, event)
     }
 
@@ -410,7 +466,9 @@ export class ChoroplethGlobe extends React.Component<{
 
             const panningOrZooming = (event: any): void => {
                 this.isPanningOrZooming = true
+
                 this.clearHover() // dismiss the tooltip
+                this.mapConfig.region = MapRegionName.World // reset region
 
                 const wheeling = (): void => {
                     this.zoomGlobe(-event.sourceEvent.deltaY)
@@ -515,6 +573,11 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     componentDidMount(): void {
+        // rotate to the selected region
+        if (this.mapConfig.region !== MapRegionName.World) {
+            this.globeController.jumpToRegion(this.mapConfig.region)
+        }
+
         document.addEventListener("touchstart", this.onDocumentClick, {
             capture: true,
             passive: true,
@@ -551,6 +614,22 @@ export class ChoroplethGlobe extends React.Component<{
                     style={{ pointerEvents: "none" }}
                 />
             </>
+        )
+    }
+
+    renderFeaturesOutsideRegion(): React.ReactElement | void {
+        if (this.featuresOutsideOfSelectedRegion.length === 0) return
+
+        return (
+            <g id={makeIdForHumanConsumption("countries-outside-selection")}>
+                {this.featuresOutsideOfSelectedRegion.map((feature) => (
+                    <CountryOutsideOfSelectedRegion
+                        key={feature.id}
+                        feature={feature}
+                        path={this.getPath(feature)}
+                    />
+                ))}
+            </g>
         )
     }
 
@@ -619,6 +698,7 @@ export class ChoroplethGlobe extends React.Component<{
             <>
                 {this.renderGlobeOutline()}
                 <g id={makeIdForHumanConsumption("globe")}>
+                    {this.renderFeaturesOutsideRegion()}
                     {this.renderFeaturesWithNoData()}
                     {this.renderFeaturesWithData()}
                 </g>
@@ -641,10 +721,10 @@ export class ChoroplethGlobe extends React.Component<{
                     this.onMouseMove(ev.nativeEvent)
                 }
                 onMouseLeave={this.onMouseLeaveFeature}
-                style={{ cursor: this.hoverFeature ? "pointer" : undefined }}
             >
                 {this.renderGlobeOutline()}
                 <g className={GEO_FEATURES_CLASSNAME}>
+                    {this.renderFeaturesOutsideRegion()}
                     {this.renderFeaturesWithNoData()}
                     {this.renderFeaturesWithData()}
                 </g>

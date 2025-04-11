@@ -137,6 +137,10 @@ export {
     getUserNavigatorLanguages,
     getUserNavigatorLanguagesNonEnglish,
     convertDaysSinceEpochToDate,
+    sleep,
+    lowercaseObjectKeys,
+    detailOnDemandRegex,
+    extractDetailsFromSyntax,
 } from "./Util.js"
 
 export {
@@ -223,9 +227,6 @@ export {
     upperFirst,
     without,
     zip,
-    lowercaseObjectKeys,
-    detailOnDemandRegex,
-    extractDetailsFromSyntax,
 } from "./Util.js"
 
 export { isPresent } from "./isPresent.js"
@@ -273,6 +274,7 @@ export {
     getOthers,
     countriesByName,
     getRegionAlternativeNames,
+    mappableCountries,
 } from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"

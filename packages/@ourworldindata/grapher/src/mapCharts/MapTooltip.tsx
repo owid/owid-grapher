@@ -1,11 +1,10 @@
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
+import { TooltipFadeMode, TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
     TooltipValue,
-    TooltipState,
     makeTooltipToleranceNotice,
     makeTooltipRoundingNotice,
 } from "../tooltip/Tooltip"
@@ -24,19 +23,22 @@ import {
     PrimitiveType,
     excludeUndefined,
     anyToString,
+    PointVector,
 } from "@ourworldindata/utils"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
 import { MapSparkline, MapSparklineManager } from "./MapSparkline.js"
 
 interface MapTooltipProps {
-    tooltipState: TooltipState<{ featureId: string; clickable: boolean }>
+    entityName: EntityName
     manager: MapChartManager
+    position?: PointVector
     colorScaleManager: ColorScaleManager
     formatValueIfCustom: (d: PrimitiveType) => string | undefined
     timeSeriesTable: OwidTable
     targetTime?: Time
     sparklineWidth?: number
     sparklineHeight?: number
+    fading?: TooltipFadeMode
     dismissTooltip?: () => void
 }
 
@@ -61,7 +63,7 @@ export class MapTooltip
     }
 
     @computed get entityName(): EntityName {
-        return this.props.tooltipState.target?.featureId ?? ""
+        return this.props.entityName
     }
 
     @computed get targetTime(): Time | undefined {
@@ -107,12 +109,8 @@ export class MapTooltip
     }
 
     render(): React.ReactElement {
-        const { mapTable, mapColumn, datum, lineColorScale } = this
-        const {
-            targetTime,
-            formatValueIfCustom,
-            tooltipState: { target, position, fading },
-        } = this.props
+        const { mapTable, mapColumn, datum, lineColorScale, entityName } = this
+        const { targetTime, formatValueIfCustom, position, fading } = this.props
 
         const { timeColumn } = mapTable
         const displayTime = !timeColumn.isMissing
@@ -170,13 +168,13 @@ export class MapTooltip
                 id="mapTooltip"
                 tooltipManager={this.props.manager}
                 key="mapTooltip"
-                x={position.x}
-                y={position.y}
+                x={position?.x}
+                y={position?.y}
                 style={{ maxWidth: "250px" }}
                 offsetX={20}
                 offsetY={-16}
                 offsetYDirection={"downward"}
-                title={target?.featureId}
+                title={entityName}
                 subtitle={datum ? displayDatumTime : displayTime}
                 subtitleFormat={targetNotice ? "notice" : undefined}
                 footer={footer}
