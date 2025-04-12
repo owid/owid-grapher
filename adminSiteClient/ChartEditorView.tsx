@@ -130,8 +130,6 @@ export class ChartEditorView<
         // 2025-01-04 Daniel Not sure this is the best way to do things
         this.grapherState.updateFromObject({
             ...config,
-            dataApiUrlForAdmin:
-                this.manager.admin.settings.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
             staticFormat: this.staticFormat,
         })
         this.grapherState.externalBounds = this.bounds
