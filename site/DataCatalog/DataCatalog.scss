@@ -461,8 +461,14 @@
         color: $blue-90;
         font-size: 13px;
         line-height: 16px;
-        &.block {
+        &.country {
             outline: 1px solid $blue-20;
+        }
+        &.topic {
+            background-color: $blue-10;
+            padding: 4px 12px;
+            border-radius: 50px;
+            color: $blue-90;
         }
         img,
         svg {
