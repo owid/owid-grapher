@@ -318,7 +318,7 @@
     box-shadow: 4px 0 30px 0 #00000020;
 
     @include sm-only {
-        width: calc(100vw - 32px);
+        width: calc(100vw - 48px);
     }
 }
 
