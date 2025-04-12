@@ -27,7 +27,6 @@ import {
     faMinus,
     faPlus,
     faSearch,
-    faTag,
     faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons"
 import { LabeledSwitch } from "@ourworldindata/components"
@@ -780,7 +779,7 @@ function AutocompleteItemContents({
 }) {
     if (type === "country") {
         return (
-            <span className="block">
+            <span className="country">
                 <img
                     className="flag"
                     aria-hidden={true}
@@ -793,12 +792,7 @@ function AutocompleteItemContents({
         )
     }
     if (type === "topic") {
-        return (
-            <span className="block">
-                <FontAwesomeIcon icon={faTag} />
-                {name}
-            </span>
-        )
+        return <span className="topic">{name}</span>
     }
     if (type === "query") {
         return (
@@ -911,11 +905,19 @@ const DataCatalogAutocomplete = ({
 
         document.addEventListener("keydown", handleKeyDown)
 
-        // Cleanup function to remove the event listener
         return () => {
             document.removeEventListener("keydown", handleKeyDown)
         }
-    }, [items]) // Empty dependency array, only runs on mount
+    }, [
+        items,
+        itemsToRender,
+        addCountry,
+        addTopic,
+        setLocalQuery,
+        setQuery,
+        highlightedIndexRef,
+        query,
+    ])
 
     if (!localQuery) return null
     return (
