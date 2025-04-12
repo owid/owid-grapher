@@ -1,6 +1,6 @@
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
-import * as Sentry from "@sentry/react"
+
 import {
     observable,
     computed,
@@ -156,7 +156,6 @@ import { SettingsMenu } from "../controls/SettingsMenu"
 import { TooltipContainer } from "../tooltip/Tooltip"
 import { EntitySelectorModal } from "../modal/EntitySelectorModal"
 import { DownloadModal } from "../modal/DownloadModal"
-import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesModal } from "../modal/SourcesModal"
@@ -209,7 +208,6 @@ import {
     GRAPHER_LIGHT_TEXT,
 } from "../color/ColorConstants"
 import { FacetChart } from "../facetChart/FacetChart"
-import { FetchingGrapher } from "./FetchingGrapher.js"
 import { getErrorMessageRelatedQuestionUrl } from "./relatedQuestion.js"
 
 declare global {
@@ -230,9 +228,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     table?: OwidTable
     bakedGrapherURL?: string
     adminBaseUrl?: string
-    dataApiUrl?: string
     env?: string
-    dataApiUrlForAdmin?: string
     entityYearHighlight?: EntityYearHighlight
     baseFontSize?: number
     staticBounds?: Bounds
@@ -403,7 +399,6 @@ export class GrapherState {
         typeof window !== "undefined" && (window as any).isEditor === true
     @observable bakedGrapherURL: string | undefined = undefined
     adminBaseUrl: string | undefined = undefined
-    dataApiUrl: string = "https://api.ourworldindata.org/v1/indicators/"
     @observable.ref externalQueryParams: QueryParams = {}
     private framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
     private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
@@ -425,7 +420,6 @@ export class GrapherState {
 
     @observable.ref legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
     @observable entitySelectorState: Partial<EntitySelectorState> = {}
-    dataApiUrlForAdmin: string | undefined = undefined
     @computed get dataTableSlugs(): ColumnSlug[] {
         return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
     }
@@ -478,7 +472,6 @@ export class GrapherState {
         } else {
             this.updateFromObject(options)
         }
-        if (options.dataApiUrl) this.dataApiUrl = options.dataApiUrl
 
         if (options.staticFormat) this._staticFormat = options.staticFormat
         this.staticBounds =
@@ -3084,89 +3077,6 @@ export class Grapher extends React.Component<GrapherProps> {
 
     get staticSVG(): string {
         return this.grapherState.generateStaticSvg()
-    }
-
-    static renderGrapherIntoContainer(
-        config: GrapherProgrammaticInterface,
-        containerNode: Element,
-        {
-            archivedChartInfo,
-        }: { archivedChartInfo?: ArchivedChartOrArchivePageMeta } = {}
-    ): void {
-        const setBoundsFromContainerAndRender = (
-            entries: ResizeObserverEntry[]
-        ): void => {
-            const entry = entries?.[0] // We always observe exactly one element
-            if (!entry)
-                throw new Error(
-                    "Couldn't resize grapher, expected exactly one ResizeObserverEntry"
-                )
-
-            // Don't bother rendering if the container is hidden
-            // see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetParent
-            if ((entry.target as HTMLElement).offsetParent === null) return
-
-            const grapherConfigWithBounds = {
-                ...config,
-                bounds: Bounds.fromRect(entry.contentRect),
-            }
-
-            ReactDOM.render(
-                <Sentry.ErrorBoundary>
-                    <FetchingGrapher
-                        config={grapherConfigWithBounds}
-                        dataApiUrl={config.dataApiUrl!}
-                        archivedChartInfo={archivedChartInfo}
-                    />
-                </Sentry.ErrorBoundary>,
-                containerNode
-            )
-        }
-
-        if (typeof window !== "undefined" && "ResizeObserver" in window) {
-            const resizeObserver = new ResizeObserver(
-                // Use a leading debounce to render immediately upon first load, and also immediately upon orientation change on mobile
-                debounce(setBoundsFromContainerAndRender, 400, {
-                    leading: true,
-                })
-            )
-            resizeObserver.observe(containerNode)
-        } else if (
-            typeof window === "object" &&
-            typeof document === "object" &&
-            !navigator.userAgent.includes("jsdom")
-        ) {
-            // only show the warning when we're in something that roughly resembles a browser
-            console.warn(
-                "ResizeObserver not available; grapher will not be able to render"
-            )
-        }
-    }
-
-    static renderSingleGrapherOnGrapherPage(
-        jsonConfig: GrapherProgrammaticInterface,
-        {
-            archivedChartInfo,
-        }: { archivedChartInfo?: ArchivedChartOrArchivePageMeta } = {}
-    ): void {
-        const container = document.getElementsByTagName("figure")[0]
-        try {
-            Grapher.renderGrapherIntoContainer(
-                {
-                    ...jsonConfig,
-                    bindUrlToWindow: true,
-                    enableKeyboardShortcuts: true,
-                    queryStr: window.location.search,
-                    archivedChartInfo,
-                },
-                container,
-                { archivedChartInfo }
-            )
-        } catch (err) {
-            container.innerHTML = `<p>Unable to load interactive visualization</p>`
-            container.setAttribute("id", "fallback")
-            throw err
-        }
     }
 
     @action.bound setError(err: Error): void {

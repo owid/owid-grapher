@@ -11,6 +11,7 @@ import {
     SelectionArray,
     migrateGrapherConfigToLatestVersion,
     GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR,
+    renderGrapherIntoContainer,
 } from "@ourworldindata/grapher"
 import {
     fetchText,
@@ -172,7 +173,6 @@ class MultiEmbedder {
             queryStr,
             adminBaseUrl: ADMIN_BASE_URL,
             bakedGrapherURL: BAKED_GRAPHER_URL,
-            dataApiUrl: DATA_API_URL,
         }
 
         const fetchedGrapherPageConfig = await fetchWithRetry(configUrl).then(
@@ -215,7 +215,7 @@ class MultiEmbedder {
         if (config.manager?.selection)
             this.graphersAndExplorersToUpdate.add(config.manager.selection)
 
-        Grapher.renderGrapherIntoContainer(config, figure)
+        renderGrapherIntoContainer(config, figure, DATA_API_URL)
 
         // Special handling for shared collections
         // TODO: re-enable this
