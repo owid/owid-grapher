@@ -830,7 +830,10 @@ const DataCatalogAutocomplete = ({
         selectedCountryNames,
         selectedTopics,
     })
-    const itemsToRender = [{ name: localQuery, type: "query" }, ...items]
+    const itemsToRender = useMemo(
+        () => [{ name: localQuery, type: "query" }, ...items],
+        [localQuery, items]
+    )
     const [highlightedIndex, setHighlightedIndex] = useState<number>(-1)
     const highlightedIndexRef = useRef<number>(-1)
 
