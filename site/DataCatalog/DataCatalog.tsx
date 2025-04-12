@@ -834,20 +834,6 @@ const DataCatalogAutocomplete = ({
         () => [{ name: localQuery, type: "query" }, ...items],
         [localQuery, items]
     )
-    const [highlightedIndex, setHighlightedIndex] = useState<number>(-1)
-    const highlightedIndexRef = useRef<number>(-1)
-
-    useEffect(() => {
-        // Reset highlighted index when the query changes
-        if (localQuery) {
-            setHighlightedIndex(-1)
-        }
-    }, [localQuery])
-
-    // Keep the ref in sync with state
-    useEffect(() => {
-        highlightedIndexRef.current = highlightedIndex
-    }, [highlightedIndex])
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -855,53 +841,43 @@ const DataCatalogAutocomplete = ({
             const input = document.querySelector(
                 ".data-catalog-search-input"
             ) as HTMLInputElement
+            const pseudoinput = document.querySelector(
+                ".data-catalog-pseudo-input:focus-within"
+            ) as HTMLInputElement
+            if (!pseudoinput) {
+                return
+            }
+            const focusableItems = [
+                ...document.querySelectorAll(
+                    ".data-catalog-autocomplete-button"
+                ),
+            ] as HTMLElement[]
+            const currentIndex = document.activeElement
+                ? focusableItems.indexOf(document.activeElement as HTMLElement)
+                : null
+
             switch (key) {
                 case "ArrowDown":
                     e.preventDefault()
-                    if (
-                        highlightedIndexRef.current <
-                        itemsToRender.length - 1
-                    ) {
-                        setHighlightedIndex((prev) => prev + 1)
+                    if (currentIndex === null) {
+                        focusableItems[0].focus()
+                    } else if (currentIndex < itemsToRender.length - 1) {
+                        focusableItems[currentIndex + 1].focus()
                     }
                     break
                 case "ArrowUp":
                     e.preventDefault()
-                    if (highlightedIndexRef.current > -1) {
-                        setHighlightedIndex((prev) => prev - 1)
-                    }
-                    break
-                case "Enter":
-                    if (highlightedIndexRef.current === -1) {
-                        input.blur()
-                        break
-                    }
-                    e.preventDefault()
-                    if (highlightedIndexRef.current > -1) {
-                        const item = itemsToRender[highlightedIndexRef.current]
-                        if (item.type === "country") {
-                            addCountry(item.name)
-                        }
-                        if (item.type === "topic") {
-                            addTopic(item.name)
-                        }
-                        if (item.type === "query") {
-                            setLocalQuery(item.name)
-                            setQuery(item.name)
-                            input.blur()
-                        } else {
-                            const queryMinusLastWord = query
-                                .split(" ")
-                                .slice(0, -1)
-                                .join(" ")
-                            setLocalQuery(queryMinusLastWord)
-                            setQuery(queryMinusLastWord)
-                        }
+                    if (currentIndex === null) {
+                        focusableItems[0].focus()
+                    } else if (currentIndex > 0) {
+                        focusableItems[currentIndex - 1].focus()
+                    } else if (currentIndex === 0) {
+                        input.focus()
                     }
                     break
                 case "Escape":
                     e.preventDefault()
-                    input.blur()
+                    ;(document.activeElement as HTMLElement).blur()
                     break
             }
         }
@@ -918,50 +894,49 @@ const DataCatalogAutocomplete = ({
         addTopic,
         setLocalQuery,
         setQuery,
-        highlightedIndexRef,
         query,
     ])
 
     if (!localQuery) return null
     return (
         <div className="data-catalog-autocomplete-container">
-            {items.length > 0 && (
-                <ul>
-                    {itemsToRender.map(({ name, type }, index) => (
-                        <li
-                            key={name}
-                            className={cx("data-catalog-autocomplete-item", {
-                                "data-catalog-autocomplete-item--is-highlighted":
-                                    highlightedIndex === index,
-                            })}
+            <ul>
+                {itemsToRender.map(({ name, type }) => (
+                    <li
+                        key={name}
+                        className={cx("data-catalog-autocomplete-item")}
+                    >
+                        <button
+                            data-prevent-onblur
+                            className="data-catalog-autocomplete-button"
+                            onClick={() => {
+                                const queryMinusLastWord = query
+                                    .split(" ")
+                                    .slice(0, -1)
+                                    .join(" ")
+                                if (type === "country") {
+                                    addCountry(name)
+                                }
+                                if (type === "topic") {
+                                    addTopic(name)
+                                }
+                                if (type === "query") {
+                                    setLocalQuery(name)
+                                    setQuery(name)
+                                    ;(
+                                        document.activeElement as HTMLElement
+                                    ).blur()
+                                    return
+                                }
+                                setLocalQuery(queryMinusLastWord)
+                                setQuery(queryMinusLastWord)
+                            }}
                         >
-                            <button
-                                data-prevent-onblur
-                                className="data-catalog-autocomplete-button"
-                                onClick={() => {
-                                    const queryMinusLastWord = query
-                                        .split(" ")
-                                        .slice(0, -1)
-                                        .join(" ")
-                                    if (type === "country") {
-                                        addCountry(name)
-                                    }
-                                    if (type === "topic") {
-                                        addTopic(name)
-                                    }
-                                    setLocalQuery(queryMinusLastWord)
-                                    setQuery(queryMinusLastWord)
-                                }}
-                            >
-                                <AutocompleteItemContents
-                                    type={type}
-                                    name={name}
-                                />
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            )}
+                            <AutocompleteItemContents type={type} name={name} />
+                        </button>
+                    </li>
+                ))}
+            </ul>
         </div>
     )
 }

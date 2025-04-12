@@ -430,7 +430,6 @@
 }
 
 .data-catalog-autocomplete-item {
-    padding: 8px;
     &:first-child {
         margin-top: 8px;
     }
@@ -443,14 +442,15 @@
     }
 }
 
-.data-catalog-autocomplete-item--is-highlighted {
+.data-catalog-autocomplete-button:focus {
     background-color: $blue-5;
     color: $blue-90;
+    outline: none;
 }
 
 .data-catalog-autocomplete-button {
     width: 100%;
-    padding: 0;
+    padding: 8px;
     text-align: left;
     background-color: transparent;
 
