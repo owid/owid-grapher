@@ -60,10 +60,7 @@ import {
     LandingPageRefinementsHeading,
 } from "./DataCatalogSkeletons.js"
 import { useMediaQuery } from "usehooks-ts"
-import {
-    SMALL_BREAKPOINT_MEDIA_QUERY,
-    TOUCH_DEVICE_MEDIA_QUERY,
-} from "../SiteConstants.js"
+import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
@@ -77,7 +74,6 @@ const DataCatalogSearchInput = ({
     setLocalQuery: (query: string) => void
     setGlobalQuery: (query: string) => void
 }) => {
-    const isTouchDevice = useMediaQuery(TOUCH_DEVICE_MEDIA_QUERY)
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const inputRef = useRef<HTMLInputElement | null>(null)
     let placeholder = ""
@@ -94,8 +90,8 @@ const DataCatalogSearchInput = ({
                 className="data-catalog-search-form"
                 onSubmit={(e) => {
                     e.preventDefault()
-                    // unfocus input to hide mobile keyboard
-                    if (isTouchDevice && inputRef.current) {
+                    // unfocus input to hide autocomplete/hide mobile keyboard
+                    if (inputRef.current) {
                         inputRef.current.blur()
                     }
                     setGlobalQuery(value)
