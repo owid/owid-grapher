@@ -34,7 +34,6 @@ export function FetchingGrapher(
     const grapherState = React.useRef<GrapherState>(
         new GrapherState({
             ...props.config,
-            dataApiUrl: props.dataApiUrl,
         })
     )
 
