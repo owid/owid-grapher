@@ -72,7 +72,6 @@ export interface EntitySelectorManager {
     entityType?: string
     entityTypePlural?: string
     activeColumnSlugs?: string[]
-    dataApiUrl: string
     isEntitySelectorModalOrDrawerOpen?: boolean
     canChangeEntity?: boolean
     canHighlightEntities?: boolean
@@ -754,56 +753,9 @@ export class EntitySelector extends React.Component<{
             this.manager.focusArray?.clear()
         }
     }
-
-    @action.bound async loadAndSetExternalSortColumn(
-        external: ExternalSortIndicatorDefinition
-    ): Promise<void> {
-        const { slug, indicatorId } = external
-
-        // the indicator has already been loaded
-        if (this.interpolatedSortColumnsBySlug[slug]) return
-
-        // load the external indicator
-        try {
-            this.set({ isLoadingExternalSortColumn: true })
-            const variable = await loadVariableDataAndMetadata(
-                indicatorId,
-                this.manager.dataApiUrl
-            )
-            const variableTable = buildVariableTable(variable)
-            const column = variableTable
-                .filterByEntityNames(this.availableEntityNames)
-                .interpolateColumnWithTolerance(slug, Infinity)
-                .get(slug)
-            if (column) this.setInterpolatedSortColumn(column)
-        } catch {
-            console.error(`Failed to load variable with id ${indicatorId}`)
-        } finally {
-            this.set({ isLoadingExternalSortColumn: false })
-        }
-    }
-
     @action.bound async onChangeSortSlug(selected: unknown): Promise<void> {
         if (selected) {
             const { value: slug } = selected as DropdownOption
-
-            // if an external indicator has been selected, load it
-            const external = this.externalSortIndicatorDefinitions.find(
-                (external) => external.slug === slug
-            )
-            if (external) await this.loadAndSetExternalSortColumn(external)
-
-            // apply tolerance if an indicator is selected for the first time
-            if (
-                !external &&
-                !this.isEntityNameSlug(slug) &&
-                !this.interpolatedSortColumnsBySlug[slug]
-            ) {
-                const interpolatedColumn = this.table
-                    .interpolateColumnWithTolerance(slug)
-                    .get(slug)
-                this.setInterpolatedSortColumn(interpolatedColumn)
-            }
 
             this.updateSortSlug(slug)
         }
