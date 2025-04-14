@@ -127,6 +127,12 @@ const roundCoords = (coords: [number, number]) => [
 ]
 
 async function main() {
+    const numFeatures = externalAnnotationPlacements.length
+    const missingFeatures = externalAnnotationPlacements.filter(
+        (e) => !e.anchorPoint && !e.comment
+    )
+    console.log(`${missingFeatures.length} / ${numFeatures}`)
+
     const annotations = GeoFeatures.map((feature: GeoFeature) => {
         const ellipse = calculateLabelEllipseForGeoFeature(feature)
 
@@ -160,6 +166,7 @@ async function main() {
                     ? {
                           direction: external.direction,
                           anchorPoint: external.anchorPoint,
+                          overlap: external.overlap,
                       }
                     : undefined,
         })

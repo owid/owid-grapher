@@ -41,8 +41,9 @@ export const GLOBE_COUNTRY_ZOOM = 2.5
 export const DEFAULT_GLOBE_ROTATION: [number, number] = [30, -20] // Atlantic ocean (i.e. Americas & Europe)
 export const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 
-export const ANNOTATION_FONT_SIZE_DEFAULT = 11
-export const ANNOTATION_FONT_SIZE_MIN = 8
+export const ANNOTATION_FONT_SIZE_DEFAULT = 8
+export const ANNOTATION_FONT_SIZE_MIN = 6
+export const ANNOTATION_FONT_SIZE_MAX = 10
 
 export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
     World: "World",
@@ -86,12 +87,12 @@ export interface RenderFeature {
     type: RenderFeatureType
     id: string
     geo: GeoFeature
+    bounds: Bounds
 }
 
 export interface MapRenderFeature extends RenderFeature {
     type: RenderFeatureType.Map
     path: string
-    bounds: Bounds
     center: PointVector
 }
 
@@ -129,25 +130,39 @@ export interface Ellipse {
     ry: number // radius on the y-axis
 }
 
-interface BaseAnnotation {
-    featureId: string
+interface BaseAnnotation<Feature extends RenderFeature> {
+    id: string
+    feature: Feature
     label: string
     bounds: Bounds
     fontSize: number
+    color: string
 }
 
-export interface InternalAnnotation extends BaseAnnotation {
+export interface InternalAnnotation<Feature extends RenderFeature>
+    extends BaseAnnotation<Feature> {
     type: "internal"
     ellipse: Ellipse
 }
 
-export interface ExternalAnnotation extends BaseAnnotation {
+export interface ExternalAnnotation<Feature extends RenderFeature>
+    extends BaseAnnotation<Feature> {
     type: "external"
     direction: Direction
     anchor: [number, number]
     isHidden?: boolean
 }
 
-export type Annotation = InternalAnnotation | ExternalAnnotation
+export type Annotation<Feature extends RenderFeature> =
+    | InternalAnnotation<Feature>
+    | ExternalAnnotation<Feature>
 
-export type Direction = "left" | "right" | "top" | "bottom"
+export type Direction =
+    | "left"
+    | "right"
+    | "top"
+    | "bottom"
+    | "leftTop"
+    | "leftBottom"
+    | "rightTop"
+    | "rightBottom"

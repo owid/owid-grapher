@@ -8,7 +8,7 @@ import {
 import { Bounds, PointVector, sortBy } from "@ourworldindata/utils"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import { MapTopology } from "./MapTopology"
-import { geoArea, geoCentroid, geoPath } from "d3-geo"
+import { geoArea, geoBounds, geoCentroid, geoPath } from "d3-geo"
 import { geoRobinson } from "./d3-geo-projection"
 
 // Get the underlying geographical topology elements we're going to display
@@ -75,15 +75,23 @@ export const getGeoFeaturesForMap = (): MapRenderFeature[] => {
 }
 
 export const getGeoFeaturesForGlobe = (): GlobeRenderFeature[] => {
-    return GeoFeatures.map((geo) => ({
-        type: RenderFeatureType.Globe,
-        id: geo.id as string,
-        geo: geo,
-        centroid: geoCentroid(geo),
-    }))
+    return GeoFeatures.map((geo) => {
+        const corners = geoBounds(geo)
+        const bounds = Bounds.fromCorners(
+            new PointVector(...corners[0]),
+            new PointVector(...corners[1])
+        )
+        return {
+            type: RenderFeatureType.Globe,
+            id: geo.id as string,
+            geo: geo,
+            centroid: geoCentroid(geo),
+            bounds,
+        }
+    })
 }
 
-console.log(
-    "geo features",
-    sortBy(GeoFeatures, (f) => geoArea(f)).map((f) => f.id)
-)
+// console.log(
+//     "geo features",
+//     sortBy(GeoFeatures, (f) => geoArea(f)).map((f) => f.id)
+// )

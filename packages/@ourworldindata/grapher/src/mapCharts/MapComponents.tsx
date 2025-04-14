@@ -18,6 +18,7 @@ import {
     RenderFeature,
     RenderFeatureType,
 } from "./MapChartConstants"
+import { isMapRenderFeature } from "./MapHelpers"
 
 export function BackgroundCountry<Feature extends RenderFeature>({
     feature,
@@ -167,12 +168,6 @@ export function NoDataPattern({
             />
         </pattern>
     )
-}
-
-function isMapRenderFeature(
-    feature: RenderFeature
-): feature is MapRenderFeature {
-    return feature.type === RenderFeatureType.Map
 }
 
 function getStrokeWidth({

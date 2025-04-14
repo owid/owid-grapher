@@ -3,6 +3,7 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     geoContains,
+    GeoGeometryObjects,
     geoGraticule,
     geoOrthographic,
     GeoPath,
@@ -29,9 +30,11 @@ import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
     Annotation,
     ANNOTATION_FONT_SIZE_DEFAULT,
+    ANNOTATION_FONT_SIZE_MAX,
     ChoroplethMapManager,
     ChoroplethSeriesByName,
     DEFAULT_GLOBE_SIZE,
+    DEFAULT_STROKE_WIDTH,
     ExternalAnnotation,
     GEO_FEATURES_CLASSNAME,
     GLOBE_MAX_ZOOM,
@@ -55,15 +58,26 @@ import {
     detectNearbyFeature,
     sortFeaturesByInteractionState,
     getForegroundFeatures,
-    makeEllipseFromPointsForProjection,
+    makeEllipseFromPointsForProjection as makeEllipseFromPoints,
     getExternalLabelPosition,
     getExternalMarkerStartPosition,
     getExternalMarkerEndPosition,
     placeLabelWithinEllipse,
+    placeLabelInOcean as placeLabelBridingFeatures,
+    getCountriesWithinRadius,
+    adjustLabelPositionsToMinimiseLabelCollisions,
+    hideLabelsCollidingWithLandMass,
 } from "./MapHelpers"
 import * as R from "remeda"
 import { GlobeController } from "./GlobeController"
 import { annotationPlacementsById } from "./MapAnnotationPlacements"
+import { forceCollide, forceSimulation, forceX, forceY } from "d3"
+// @ts-expect-error no types available
+import { bboxCollide } from "d3-bboxCollide"
+// todo: only install/import what's needed (look into helpers)
+import * as turf from "@turf/turf"
+import { isDarkColor } from "../color/ColorUtils"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 
 const DEFAULT_SCALE = geoOrthographic().scale()
 
@@ -222,7 +236,8 @@ export class ChoroplethGlobe extends React.Component<{
      * even if the centroid is not.
      */
     private isFeatureCentroidVisibleOnGlobe(
-        feature: GlobeRenderFeature
+        feature: GlobeRenderFeature,
+        threshold = 0 // 1 = at the exact center, 0 = anywhere on the visible hemisphere
     ): boolean {
         const { globeRotation } = this
         const { centroid } = feature
@@ -245,7 +260,7 @@ export class ChoroplethGlobe extends React.Component<{
                 Math.cos(rotationPhi) *
                 Math.cos(lambda - rotationLambda)
 
-        return cosDelta > 0
+        return cosDelta > threshold
     }
 
     @computed private get graticule(): string {
@@ -269,60 +284,69 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     /* Naively placed annotations that might be overlapping */
-    @computed private get initialAnnotations(): Annotation[] {
+    @computed
+    private get initialAnnotations(): Annotation<GlobeRenderFeature>[] {
         return excludeUndefined(
-            this.features
+            this.featuresWithData
                 .filter((feature) =>
-                    this.isFeatureCentroidVisibleOnGlobe(feature)
+                    this.isFeatureCentroidVisibleOnGlobe(feature, 0.3)
                 )
                 .map((feature) => {
                     const series = this.choroplethData.get(feature.id)
                     const placement = annotationPlacementsById.get(feature.id)
+                    if (!series || !placement) return undefined
 
-                    if (!placement) return undefined
-
-                    const ellipse = makeEllipseFromPointsForProjection(
-                        this.projection,
-                        placement.ellipse
+                    const ellipse = makeEllipseFromPoints(
+                        placement.ellipse,
+                        this.projection
                     )
 
                     const formattedValue =
-                        series?.value !== undefined
-                            ? this.manager.mapColumn.formatValueShortWithAbbreviations(
-                                  series.value
-                              )
-                            : "No data"
+                        this.manager.mapColumn.formatValueShortWithAbbreviations(
+                            series.value
+                        )
+                    const scaleFactor = 1 / this.zoomScale
                     let { placedBounds, fontSize } =
-                        placeLabelWithinEllipse(formattedValue, ellipse) ?? {}
+                        placeLabelWithinEllipse(formattedValue, ellipse, {
+                            fontSizeScale: scaleFactor,
+                        }) ?? {}
 
-                    if (placedBounds && fontSize)
-                        return {
-                            type: "internal",
-                            featureId: feature.id,
-                            label: formattedValue,
-                            ellipse: ellipse,
-                            bounds: placedBounds, // todo: rename to placedBounds
-                            fontSize: fontSize,
-                        }
+                    const color = isDarkColor(series.color)
+                        ? "#fff"
+                        : GRAPHER_DARK_TEXT
+
+                    // if (placedBounds && fontSize)
+                    //     return {
+                    //         type: "internal",
+                    //         id: feature.id,
+                    //         feature,
+                    //         label: formattedValue,
+                    //         ellipse: ellipse,
+                    //         bounds: placedBounds, // todo: rename to placedBounds
+                    //         fontSize: fontSize,
+                    //         color,
+                    //     }
 
                     if (!placement.external) return undefined
 
-                    const { direction } = placement.external
-                    const anchor = this.projection(
+                    // todo: rename overlap
+                    const { direction, overlap: overlapCountries = [] } =
+                        placement.external
+                    const anchorPoint = this.projection(
                         placement.external.anchorPoint
                     )
 
-                    // todo: find a good marker length
-                    const markerLength = Math.max(2 / (1 / this.zoomScale), 4)
+                    const markerLength = Math.max(8, 2 / scaleFactor)
 
+                    fontSize = Math.min(8 / scaleFactor, 10)
                     const textBounds = Bounds.forText(formattedValue, {
-                        fontSize: ANNOTATION_FONT_SIZE_DEFAULT,
-                    })
+                        fontSize,
+                    }).set({ height: fontSize - 1 })
                     const labelPosition = getExternalLabelPosition({
-                        anchorPoint: anchor,
+                        anchorPoint,
                         textBounds,
                         direction,
-                        markerLength,
+                        markerLength, // todo: set to 0, and use min marker length
                     })
 
                     // place label at the given center position
@@ -331,42 +355,88 @@ export class ChoroplethGlobe extends React.Component<{
                         y: labelPosition[1],
                     })
 
+                    const allOverlapCountries = [
+                        ...overlapCountries,
+                        feature.id,
+                    ]
+                    if (allOverlapCountries) {
+                        const overlapFeatures = excludeUndefined(
+                            allOverlapCountries.map((country) =>
+                                this.featuresById.get(country)
+                            )
+                        )
+                        placedBounds = placeLabelBridingFeatures({
+                            features: overlapFeatures,
+                            placedBounds,
+                            direction,
+                            projection: this.projection,
+                            step: markerLength,
+                        })
+                    }
+
                     return {
                         type: "external",
-                        featureId: feature.id,
+                        id: feature.id,
+                        feature,
                         label: formattedValue,
                         bounds: placedBounds,
-                        anchor,
+                        anchor: anchorPoint,
                         direction,
-                        fontSize: ANNOTATION_FONT_SIZE_DEFAULT,
+                        fontSize,
                     }
                 })
         )
     }
 
-    @computed private get internalAnnotations(): InternalAnnotation[] {
+    @computed
+    private get internalAnnotations(): InternalAnnotation<GlobeRenderFeature>[] {
         return this.initialAnnotations.filter(
             (annotation) => annotation.type === "internal"
         )
     }
 
-    @computed private get externalAnnotations(): ExternalAnnotation[] {
+    @computed
+    private get externalAnnotations(): ExternalAnnotation<GlobeRenderFeature>[] {
         const initialAnnotations = this.initialAnnotations.filter(
             (annotation) => annotation.type === "external"
         )
+        const initialAnnotationsById = new Map(
+            initialAnnotations.map((a) => [a.id, a])
+        )
 
-        // // hide overlapping annotations
-        // for (let i = 0; i < initialAnnotations.length; i++) {
-        //     for (let j = i + 1; j < initialAnnotations.length; j++) {
-        //         const a1 = initialAnnotations[i],
-        //             a2 = initialAnnotations[j]
-        //         if (a1.featureId === a2.featureId || a1.isHidden || a2.isHidden)
-        //             continue
-        //         if (a1.bounds.intersects(a2.bounds)) a2.isHidden = true
-        //     }
-        // }
+        const tempPlacedAnnotations =
+            adjustLabelPositionsToMinimiseLabelCollisions(initialAnnotations)
 
-        return initialAnnotations.filter((annotation) => !annotation.isHidden)
+        const all = initialAnnotations.map((a) => a.id)
+
+        const filteredAnnotations = hideLabelsCollidingWithLandMass(
+            tempPlacedAnnotations,
+            this.features,
+            this.projection
+        )
+
+        const filtered = filteredAnnotations.map((a) => a.id)
+        console.log(
+            "hidden",
+            all.length,
+            filtered.length,
+            difference(all, filtered)
+        )
+
+        const filteredAnnotationsAtOriginalPositions = filteredAnnotations.map(
+            (annotation) => {
+                const origBounds = initialAnnotationsById.get(
+                    annotation.id
+                )!.bounds
+                return { ...annotation, bounds: origBounds }
+            }
+        )
+
+        const placedAnnotations = adjustLabelPositionsToMinimiseLabelCollisions(
+            filteredAnnotationsAtOriginalPositions
+        )
+
+        return placedAnnotations
     }
 
     private rotateFrameId: number | undefined
@@ -755,16 +825,15 @@ export class ChoroplethGlobe extends React.Component<{
         return (
             <g id={makeIdForHumanConsumption("annotations")}>
                 {this.internalAnnotations.map((annotation) => {
-                    const { featureId, label, ellipse, bounds, fontSize } =
-                        annotation
+                    const { id, label, color, bounds, fontSize } = annotation
 
                     return (
                         <g
-                            key={featureId}
-                            id={makeIdForHumanConsumption(featureId)}
+                            key={id}
+                            id={makeIdForHumanConsumption(id)}
                             style={{ pointerEvents: "none" }}
                         >
-                            <ellipse
+                            {/* <ellipse
                                 cx={ellipse.cx}
                                 cy={ellipse.cy}
                                 rx={ellipse.rx}
@@ -776,7 +845,7 @@ export class ChoroplethGlobe extends React.Component<{
                                 {...bounds.toProps()}
                                 fill="none"
                                 stroke="black"
-                            />
+                            /> */}
                             <text
                                 x={bounds.topLeft.x}
                                 y={bounds.topLeft.y}
@@ -784,6 +853,8 @@ export class ChoroplethGlobe extends React.Component<{
                                 dominantBaseline="hanging"
                                 // dy={dyFromAlign(VerticalAlign.bottom)}
                                 fontSize={fontSize}
+                                strokeWidth={DEFAULT_STROKE_WIDTH}
+                                fill={color}
                             >
                                 {label}
                             </text>
@@ -791,66 +862,87 @@ export class ChoroplethGlobe extends React.Component<{
                     )
                 })}
                 {this.externalAnnotations.map((annotation) => {
-                    const {
-                        featureId,
-                        label,
+                    const { id, label, direction, anchor, bounds, fontSize } =
+                        annotation
+
+                    // const markerStartOffset = 1 / (1 / this.zoomScale)
+                    // const markerStartWithOffset =
+                    //     getExternalMarkerStartPosition({
+                    //         anchorPoint: anchor,
+                    //         direction,
+                    //         offset: markerStartOffset,
+                    //     })
+
+                    // const feature = this.featuresById.get(featureId)
+                    // if (!feature) return null
+
+                    // const isMarkerStartWithOffsetInFeature = geoContains(
+                    //     feature.geo.geometry,
+                    //     this.projection.invert(markerStartWithOffset)
+                    // )
+
+                    // const markerStart = isMarkerStartWithOffsetInFeature
+                    //     ? markerStartWithOffset
+                    //     : getExternalMarkerStartPosition({
+                    //           anchorPoint: anchor,
+                    //           direction,
+                    //           offset: -(0.5 / (1 / this.zoomScale)),
+                    //       })
+
+                    // this is just the anchor now
+                    const markerStart = getExternalMarkerStartPosition({
+                        anchorPoint: anchor,
                         direction,
-                        anchor,
-                        bounds,
-                        fontSize,
-                    } = annotation
-
-                    const markerStartOffset = 1 / (1 / this.zoomScale)
-                    const markerStartWithOffset =
-                        getExternalMarkerStartPosition({
-                            anchorPoint: anchor,
-                            direction,
-                            offset: markerStartOffset,
-                        })
-
-                    const feature = this.featuresById.get(featureId)
-                    if (!feature) return null
-
-                    const isMarkerStartWithOffsetInFeature = geoContains(
-                        feature.geo.geometry,
-                        this.projection.invert(markerStartWithOffset)
-                    )
-
-                    const markerStart = isMarkerStartWithOffsetInFeature
-                        ? markerStartWithOffset
-                        : getExternalMarkerStartPosition({
-                              anchorPoint: anchor,
-                              direction,
-                              offset: -(0.5 / (1 / this.zoomScale)),
-                          })
+                        offset: 0,
+                    })
 
                     const markerEnd = getExternalMarkerEndPosition({
                         textBounds: bounds,
                         direction,
                     })
 
+                    const corners = [
+                        bounds.topLeft,
+                        bounds.topRight,
+                        bounds.bottomRight,
+                        bounds.bottomLeft,
+                    ]
+
                     return (
                         <g
-                            key={featureId}
-                            id={makeIdForHumanConsumption(featureId)}
+                            key={id}
+                            id={makeIdForHumanConsumption(id)}
                             style={{ pointerEvents: "none" }}
                         >
+                            {/* <circle
+                                cx={bounds.centerX}
+                                cy={bounds.centerY}
+                                r={bounds.height / 2}
+                                fill="orange"
+                                fillOpacity={1}
+                                stroke="black"
+                            /> */}
                             <line
                                 x1={markerStart[0]}
                                 y1={markerStart[1]}
                                 x2={markerEnd[0]}
                                 y2={markerEnd[1]}
                                 stroke="black"
+                                strokeWidth={DEFAULT_STROKE_WIDTH * 1.5}
                             />
-                            <rect
+                            {/* <rect
                                 {...bounds.toProps()}
                                 fill="none"
                                 stroke="black"
-                            />
+                            /> */}
+                            {/* {corners.map((corner) => (
+                                <circle cx={cor} />
+                            ))} */}
                             <text
                                 x={bounds.x}
                                 y={bounds.y + bounds.height - 1}
                                 fontSize={fontSize}
+                                strokeWidth={DEFAULT_STROKE_WIDTH}
                             >
                                 {label}
                             </text>
