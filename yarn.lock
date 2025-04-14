@@ -1275,10 +1275,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cloudflare/workers-types@npm:^4.20250327.0":
-  version: 4.20250327.0
-  resolution: "@cloudflare/workers-types@npm:4.20250327.0"
-  checksum: 10/75a47dd2315d53c8a3c077e8f816ac1041835e5521f555ce20a76aa707afb7b2c03a88a1605085543bcc004e3c58249d18caafffbd419eb9284834f43fceaf7e
+"@cloudflare/workers-types@npm:^4.20250414.0":
+  version: 4.20250414.0
+  resolution: "@cloudflare/workers-types@npm:4.20250414.0"
+  checksum: 10/cb372bc5795a8eae7231d0b76315ca70c1a84ed2ca94b1f779ec31547d4b6761a666eee26cea453d373c1d3808bcbd8476e7f10e4d2c9c8785d24a10cfbac2c0
   languageName: node
   linkType: hard
 
@@ -5700,20 +5700,20 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*, @types/node@npm:>=18.0.0, @types/node@npm:>=8.1.0, @types/node@npm:^22.8.7":
-  version: 22.13.15
-  resolution: "@types/node@npm:22.13.15"
+  version: 22.14.1
+  resolution: "@types/node@npm:22.14.1"
   dependencies:
-    undici-types: "npm:~6.20.0"
-  checksum: 10/4d120b0f98d9cc9f941a408b84a261cf90ab074dabdfd41bcd900f883109599a45928c92df1c3a25601ae7e108a985b3bb4adfdf4d527840de42d23d0f04f920
+    undici-types: "npm:~6.21.0"
+  checksum: 10/561b1ad98ef5176d6da856ffbbe494f16655149f6a7d561de0423c8784910c81267d7d6459f59d68a97b3cbae9b5996b3b5dfe64f4de3de2239d295dcf4a4dcc
   languageName: node
   linkType: hard
 
 "@types/node@npm:^18.11.18":
-  version: 18.19.85
-  resolution: "@types/node@npm:18.19.85"
+  version: 18.19.86
+  resolution: "@types/node@npm:18.19.86"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 10/5ddf14485757677aaf7c79e63fe47cfc41b5a86449e949b3d63ede3f87f09e17fefb706343de9831f17b56be1831420826a04a1263ee5eaf2601fda34600d9cf
+  checksum: 10/83e8f07305b102776c1970c2fbe2347eba15f6cca3d50cf8991d5f4e463ee7e204fbb3dec599892d25e613ed3b93f7fb5794b0de874ea6ba884affbe99670cc2
   languageName: node
   linkType: hard
 
@@ -14958,7 +14958,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "owid-functions@workspace:functions"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20250327.0"
+    "@cloudflare/workers-types": "npm:^4.20250414.0"
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
@@ -19255,10 +19255,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.20.0":
-  version: 6.20.0
-  resolution: "undici-types@npm:6.20.0"
-  checksum: 10/583ac7bbf4ff69931d3985f4762cde2690bb607844c16a5e2fbb92ed312fe4fa1b365e953032d469fa28ba8b224e88a595f0b10a449332f83fa77c695e567dbe
+"undici-types@npm:~6.21.0":
+  version: 6.21.0
+  resolution: "undici-types@npm:6.21.0"
+  checksum: 10/ec8f41aa4359d50f9b59fa61fe3efce3477cc681908c8f84354d8567bb3701fafdddf36ef6bff307024d3feb42c837cf6f670314ba37fc8145e219560e473d14
   languageName: node
   linkType: hard
 
