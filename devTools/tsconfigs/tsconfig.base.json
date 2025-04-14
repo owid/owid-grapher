@@ -9,14 +9,6 @@
         "declaration": true,
         "declarationMap": true,
 
-        // To get newer APIs like Set.prototype.intersection(), we need to use
-        // ESNext lib on Node 22 and current version of TypeScript (5.7.2).
-        // However, using the ESNext option doesn't work with
-        // @types/node@20.8.3, which we are currently pinned to, to fix an
-        // unrelated bug with types in Cloudflare Functions, thus we only use
-        // ESNext.Collection.
-        // https://github.com/microsoft/TypeScript/issues/59919
-        // https://developers.cloudflare.com/workers/languages/typescript/#transitive-loading-of-typesnode-overrides-cloudflareworkers-types
         "lib": [
             "dom",
             "dom.iterable",
@@ -24,7 +16,7 @@
             "es2021",
             "es2022",
             "es2023",
-            "ESNext.Collection"
+            "ESNext" // For new Set methods like Set.prototype.intersection().
         ],
         // Using es2022 as a `target` caused the following error in wrangler:
         // "Uncaught TypeError: PointVector is not a constructor".
