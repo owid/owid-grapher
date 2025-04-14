@@ -6,10 +6,11 @@ import {
 } from "@ourworldindata/utils"
 import { viteAssetsForSite } from "./viteUtils.js"
 import { ScriptLoadErrorDetector } from "./NoJSDetector.js"
-import { ABOUT_LINKS, RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
+import { ABOUT_LINKS, PROD_URL, RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
 import { Button } from "@ourworldindata/components"
 import { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { OxfordAndGcdlLogos } from "./SiteLogos.js"
+import { IS_ARCHIVE } from "../settings/clientSettings.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -19,6 +20,8 @@ interface SiteFooterProps {
     isPreviewing?: boolean
     archiveInfo?: ArchiveMetaInformation
 }
+
+const linkBaseUrl = IS_ARCHIVE ? PROD_URL : ""
 
 type LinkData = { title: string; url: string }
 
@@ -43,17 +46,23 @@ const LEGAL_LINKS: LinkData[] = [
     },
 ]
 
-const FooterLink = (props: LinkData) => (
-    <li>
-        <a
-            href={props.url}
-            className="body-3-medium"
-            data-track-note="footer_navigation"
-        >
-            {props.title}
-        </a>
-    </li>
-)
+const FooterLink = (props: LinkData) => {
+    const url = props.url.startsWith("/")
+        ? `${linkBaseUrl}${props.url}`
+        : props.url
+
+    return (
+        <li>
+            <a
+                href={url}
+                className="body-3-medium"
+                data-track-note="footer_navigation"
+            >
+                {props.title}
+            </a>
+        </li>
+    )
+}
 
 const FooterLinkList = (props: { links: LinkData[] }) => (
     <ul className="footer-link-list">
@@ -61,6 +70,41 @@ const FooterLinkList = (props: { links: LinkData[] }) => (
             <FooterLink title={link.title} url={link.url} key={link.title} />
         ))}
     </ul>
+)
+
+const FooterLinkColumnsProd = () => (
+    <div className="footer-right span-cols-6 span-sm-cols-12 col-start-8 col-sm-start-2 grid grid-cols-3 grid-sm-cols-2">
+        <div className="footer-link-column">
+            <h5 className="h5-black-caps">Explore</h5>
+            <FooterLinkList links={EXPLORE_LINKS} />
+            <h5 className="h5-black-caps">Resources</h5>
+            <FooterLinkList links={RESOURCE_LINKS} />
+        </div>
+        <div className="footer-link-column">
+            <h5 className="h5-black-caps">About</h5>
+            <FooterLinkList links={ABOUT_LINKS} />
+        </div>
+        <div className="footer-link-column">
+            <h5 className="h5-black-caps">
+                <FontAwesomeIcon icon={faRss} />
+                RSS Feeds
+            </h5>
+            <FooterLinkList links={RSS_FEEDS} />
+        </div>
+    </div>
+)
+
+const FooterLinkColumnsArchive = () => (
+    <div className="footer-right span-cols-6 span-sm-cols-12 col-start-8 col-sm-start-2 grid grid-cols-2">
+        <div className="footer-link-column">
+            <h5 className="h5-black-caps">About the project</h5>
+            <FooterLinkList links={ABOUT_LINKS} />
+        </div>
+        <div className="footer-link-column">
+            <h5 className="h5-black-caps">Resources</h5>
+            <FooterLinkList links={RESOURCE_LINKS} />
+        </div>
+    </div>
 )
 
 export const SiteFooter = (props: SiteFooterProps) => {
@@ -93,7 +137,7 @@ export const SiteFooter = (props: SiteFooterProps) => {
                         </div>
 
                         <Button
-                            href="/donate"
+                            href={`${linkBaseUrl}/donate`}
                             className="body-2-semibold donate-button"
                             dataTrackNote="donate_footer"
                             text="Donate now"
@@ -140,25 +184,11 @@ export const SiteFooter = (props: SiteFooterProps) => {
                         </a>
                     </div>
                 </div>
-                <div className="footer-right span-cols-6 span-sm-cols-12 col-start-8 col-sm-start-2 grid grid-cols-3 grid-sm-cols-2">
-                    <div className="footer-link-column">
-                        <h5 className="h5-black-caps">Explore</h5>
-                        <FooterLinkList links={EXPLORE_LINKS} />
-                        <h5 className="h5-black-caps">Resources</h5>
-                        <FooterLinkList links={RESOURCE_LINKS} />
-                    </div>
-                    <div className="footer-link-column">
-                        <h5 className="h5-black-caps">About</h5>
-                        <FooterLinkList links={ABOUT_LINKS} />
-                    </div>
-                    <div className="footer-link-column">
-                        <h5 className="h5-black-caps">
-                            <FontAwesomeIcon icon={faRss} />
-                            RSS Feeds
-                        </h5>
-                        <FooterLinkList links={RSS_FEEDS} />
-                    </div>
-                </div>
+                {props.archiveInfo ? (
+                    <FooterLinkColumnsArchive />
+                ) : (
+                    <FooterLinkColumnsProd />
+                )}
                 <div className="footer-base span-cols-12 col-start-2 grid grid-cols-2 grid-sm-cols-1">
                     <div className="footer-base__socials">
                         <h5 className="h5-black-caps">Follow us</h5>
