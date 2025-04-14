@@ -139,5 +139,21 @@
             "request": "attach",
             "restart": true
         },
+        {
+            "name": "Vitest Debug",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+            "args": [
+                "run",
+                "Explorer"
+            ],
+            "autoAttachChildProcesses": true,
+            "smartStep": true,
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "console": "integratedTerminal"
+        }
     ]
 }
