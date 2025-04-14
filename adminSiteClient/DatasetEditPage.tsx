@@ -3,7 +3,6 @@ import { observer } from "mobx-react"
 import { observable, computed, runInAction, action } from "mobx"
 import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
-import filenamify from "filenamify"
 
 import { OwidSource, DbChartTagJoin, OwidOrigin } from "@ourworldindata/utils"
 
@@ -18,7 +17,6 @@ import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload, faHatWizard } from "@fortawesome/free-solid-svg-icons"
-import { faGithub } from "@fortawesome/free-brands-svg-icons"
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
 import { Button } from "antd"
 import urljoin from "url-join"
@@ -201,20 +199,12 @@ class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
         )
     }
 
-    @computed get gitHistoryUrl() {
-        return `https://github.com/${
-            this.context.admin.settings.GITHUB_USERNAME
-        }/owid-datasets/tree/master/datasets/${encodeURIComponent(
-            filenamify(this.props.dataset.name)
-        )}`
-    }
-
     render() {
         if (this.isDeleted) return <Redirect to="/datasets" />
 
         const { dataset } = this.props
         const { newDataset } = this
-        const isBulkImport = dataset.namespace !== "owid"
+        const _isBulkImport = dataset.namespace !== "owid"
         return (
             <main className="DatasetEditPage">
                 <Prompt
@@ -270,17 +260,6 @@ class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
                             Explore in Wizard
                         </Button>
                     </a>
-                    {/* View on GitHub link (old) */}
-                    {!isBulkImport && !dataset.isPrivate && (
-                        <a
-                            href={this.gitHistoryUrl}
-                            target="_blank"
-                            className="btn btn-secondary"
-                            rel="noopener"
-                        >
-                            <FontAwesomeIcon icon={faGithub} /> View on GitHub
-                        </a>
-                    )}
                 </section>
 
                 {/* DATASET METADATA */}

@@ -16,7 +16,6 @@ type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE" | "PATCH"
 
 interface ClientSettings {
     ENV: "development" | "production"
-    GITHUB_USERNAME: string
     DATA_API_FOR_ADMIN_UI?: string
 }
 
