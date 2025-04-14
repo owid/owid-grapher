@@ -26,6 +26,9 @@ export type ImageUploadResponse =
 export function fileToBase64(file: File): Promise<FileToBase64Result | null> {
     if (typeof file === "string") return Promise.resolve(null)
 
+    // We absolutely need a filename, so we can't process a Blob which doesn't have one
+    if (!("name" in file)) return Promise.resolve(null)
+
     return new Promise((resolve) => {
         const reader = new FileReader()
         reader.onload = () => {
