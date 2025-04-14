@@ -59,7 +59,7 @@ export const assembleGrapherArchivalUrl = (
         formattedDate = getDateForArchival(archivalDate).formattedDate
     }
 
-    return `/${formattedDate}/grapher/${chartSlug}`
+    return `/${formattedDate}/grapher/${chartSlug}.html`
 }
 
 export const assembleManifest = async (manifestInfo: {
