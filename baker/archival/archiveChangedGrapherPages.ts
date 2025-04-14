@@ -10,7 +10,7 @@ import {
     findChangedGrapherPages,
     insertChartVersions,
 } from "./archivalChecksum.js"
-import { bakeGrapherPagesToFolder } from "./ArchivalBaker.js"
+import { bakeArchivalGrapherPagesToFolder } from "./ArchivalBaker.js"
 
 interface Options {
     dir: string
@@ -36,7 +36,8 @@ const findChangedPagesAndArchive = async (opts: Options) => {
             return
         }
 
-        const { date, manifests } = await bakeGrapherPagesToFolder(
+        const { date, manifests } = await bakeArchivalGrapherPagesToFolder(
+            trx,
             opts.dir,
             needToBeArchived,
             { shouldCopyToLatestDir: opts.latestDir }

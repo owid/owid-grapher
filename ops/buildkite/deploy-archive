@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+#  deploy-archive
+#
+#  Bake archive and copy to R2.
+#
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+TARGET_DIR=/home/owid/live-data/archive
+
+# This is important, so `build_vite` and `bake_archive` load the correct env overrides
+export PRIMARY_ENV_FILE=.env.archive
+
+build_vite() {
+    echo "--- Building Vite archive..."
+    (
+        cd owid-grapher
+        yarn buildViteArchive
+    )
+}
+
+bake_archive() {
+    echo "--- Baking archive..."
+    (
+        cd owid-grapher
+        yarn buildArchive --latestDir --dir "$TARGET_DIR"
+    )
+}
+
+copy_to_r2_rclone() {
+    echo "--- Syncing ${TARGET_DIR}..."
+    rclone copy "$TARGET_DIR" r2:owid-archive --checkers=64 --transfers=64
+}
+
+deploy_archive() {
+    echo "--- Deploying archive to Cloudflare"
+
+    if [[ "$BRANCH" != "master" ]]; then
+        echo "Error: You're not on the master branch. Exiting."
+        exit 1
+    fi
+
+    build_vite
+
+    # Create a new directory for the archive
+    mkdir -p "$TARGET_DIR"
+
+    bake_archive
+
+    # Copy to R2
+    copy_to_r2_rclone
+
+    echo "--- Archive baked and deployed to R2 ✅"
+}
+
+deploy_archive
