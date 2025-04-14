@@ -16,7 +16,7 @@ const parseIntOrUndefined = (value: string | undefined): number | undefined => {
 type Environment = "development" | "staging" | "production"
 export const ENV: Environment =
     (process.env.ENV as Environment) || "development"
-export const ARCHIVE: boolean = process.env.ARCHIVE === "true"
+export const IS_ARCHIVE: boolean = process.env.IS_ARCHIVE === "true"
 export const COMMIT_SHA = process.env.COMMIT_SHA
 
 export const SENTRY_DSN: string | undefined = process.env.SENTRY_DSN
@@ -129,5 +129,5 @@ export const IS_RUNNING_INSIDE_VITEST: boolean = !!process.env.VITEST
 
 /// Generated properties only, these cannot be overridden directly
 // Whether to only enable cookie-less tracking & never show the cookie notice
-export const REDUCED_TRACKING = ARCHIVE
+export const REDUCED_TRACKING = IS_ARCHIVE
 export const LOAD_SENTRY = !REDUCED_TRACKING && !IS_RUNNING_INSIDE_VITEST

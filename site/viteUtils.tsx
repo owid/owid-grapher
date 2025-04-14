@@ -12,7 +12,7 @@ import { readFromAssetMap, sortBy } from "@ourworldindata/utils"
 import urljoin from "url-join"
 import { AssetMap } from "@ourworldindata/types"
 import { VITE_ENTRYPOINT_INFO, ViteEntryPoint } from "./viteConstants.js"
-import { ARCHIVE } from "../settings/clientSettings.js"
+import { IS_ARCHIVE } from "../settings/clientSettings.js"
 
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 
@@ -186,7 +186,7 @@ const prodAssets = (
     }
 }
 
-const useProductionAssets = ENV !== "development" || VITE_PREVIEW || ARCHIVE
+const useProductionAssets = ENV !== "development" || VITE_PREVIEW || IS_ARCHIVE
 
 const viteAssets = (
     entrypoint: ViteEntryPoint,
