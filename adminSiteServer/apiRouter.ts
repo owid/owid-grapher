@@ -22,7 +22,6 @@ import {
     updateDataset,
     setArchived,
     setTags,
-    deleteDataset,
     republishCharts,
 } from "./apiRoutes/datasets.js"
 import {
@@ -244,7 +243,6 @@ postRouteWithRWTransaction(
     setArchived
 )
 postRouteWithRWTransaction(apiRouter, "/datasets/:datasetId/setTags", setTags)
-deleteRouteWithRWTransaction(apiRouter, "/datasets/:datasetId", deleteDataset)
 postRouteWithRWTransaction(
     apiRouter,
     "/datasets/:datasetId/charts",

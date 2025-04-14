@@ -313,30 +313,6 @@ export async function setTags(
     return { success: true }
 }
 
-export async function deleteDataset(
-    req: Request,
-    _res: e.Response<any, Record<string, any>>,
-    trx: db.KnexReadWriteTransaction
-) {
-    const datasetId = expectInt(req.params.datasetId)
-
-    const dataset = await getDatasetById(trx, datasetId)
-    if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
-
-    await db.knexRaw(
-        trx,
-        `DELETE d FROM country_latest_data AS d JOIN variables AS v ON d.variable_id=v.id WHERE v.datasetId=?`,
-        [datasetId]
-    )
-    await db.knexRaw(trx, `DELETE FROM variables WHERE datasetId=?`, [
-        datasetId,
-    ])
-    await db.knexRaw(trx, `DELETE FROM sources WHERE datasetId=?`, [datasetId])
-    await db.knexRaw(trx, `DELETE FROM datasets WHERE id=?`, [datasetId])
-
-    return { success: true }
-}
-
 export async function republishCharts(
     req: Request,
     _res: e.Response<any, Record<string, any>>,
