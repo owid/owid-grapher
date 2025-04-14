@@ -81,6 +81,8 @@
     }
 
     .key-indicator-chart {
+        height: $grapher-height;
+
         @include sm-only {
             order: -1;
             margin-bottom: 16px;
