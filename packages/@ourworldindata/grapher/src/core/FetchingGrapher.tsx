@@ -22,6 +22,28 @@ export interface FetchingGrapherProps {
     dataApiUrl: string
     archivedChartInfo: ArchivedChartOrArchivePageMeta | undefined
 }
+
+async function loadSortColumnsAndAddToTable() {
+    // if an external indicator has been selected, load it
+    // await this.loadAndSetExternalSortColumn(external)
+    // // apply tolerance if an indicator is selected for the first time
+    // if (
+    //     !external &&
+    //     !this.isEntityNameSlug(slug) &&
+    //     !this.interpolatedSortColumnsBySlug[slug]
+    // ) {
+    //     const interpolatedColumn = this.table
+    //         .interpolateColumnWithTolerance(slug)
+    //         .get(slug)
+    //     this.setInterpolatedSortColumn(interpolatedColumn)
+    //     const variableTable = buildVariableTable(variable)
+    //     const column = variableTable
+    //         .filterByEntityNames(this.availableEntityNames)
+    //         .interpolateColumnWithTolerance(slug, Infinity)
+    //         .get(slug)
+    //     if (column) this.setInterpolatedSortColumn(column)
+    // }
+}
 export function FetchingGrapher(
     props: FetchingGrapherProps
 ): JSX.Element | null {
