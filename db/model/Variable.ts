@@ -1,5 +1,4 @@
 import _ from "lodash"
-import { Writable } from "stream"
 import * as db from "../db.js"
 import {
     retryPromise,
@@ -607,52 +606,6 @@ export async function getDataForMultipleVariables(
         allVariablesDataAndMetadata.map((item) => [item.metadata.id, item])
     )
     return allVariablesDataAndMetadataMap
-}
-
-export async function writeVariableCSV(
-    variableIds: number[],
-    stream: Writable,
-    knex: db.KnexReadonlyTransaction
-): Promise<void> {
-    // get variables as dataframe
-    const variablesDF = (
-        await readSQLasDF(
-            `-- sql
-        SELECT
-            id as variableId,
-            name as variableName,
-            columnOrder
-        FROM variables v
-        WHERE id IN (?)`,
-            [variableIds],
-            knex
-        )
-    ).withColumn(pl.col("variableId").cast(pl.Int32))
-
-    // Throw an error if not all variables exist
-    if (variablesDF.shape.height !== variableIds.length) {
-        const fetchedVariableIds = variablesDF.getColumn("variableId").toArray()
-        const missingVariables = _.difference(variableIds, fetchedVariableIds)
-        throw Error(`Variable IDs do not exist: ${missingVariables.join(", ")}`)
-    }
-
-    // get data values as dataframe
-    const dataValuesDF = await dataAsDF(
-        variablesDF.getColumn("variableId").toArray(),
-        knex
-    )
-
-    dataValuesDF
-        .join(variablesDF, { on: "variableId" })
-        .sort(["columnOrder", "variableId"])
-        // variables as columns
-        .pivot("value", {
-            index: ["entityName", "year"],
-            columns: "variableName",
-        })
-        .sort(["entityName", "year"])
-        .rename({ entityName: "Entity", year: "Year" })
-        .writeCSV(stream)
 }
 
 export const entitiesAsDF = async (

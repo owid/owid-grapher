@@ -1,14 +1,11 @@
 // Misc non-SPA views
 import express, { Request, Response, Router } from "express"
 import { rateLimit } from "express-rate-limit"
-import filenamify from "filenamify"
 import * as React from "react"
-import { Writable } from "stream"
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { logInWithCredentials, logOut } from "./authentication.js"
 import { LoginPage } from "./LoginPage.js"
 import * as db from "../db/db.js"
-import { writeDatasetCSV } from "../db/model/Dataset.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     renderExplorerPage,
@@ -38,7 +35,6 @@ import {
 } from "../baker/GrapherBaker.js"
 import { getChartConfigById, getChartConfigBySlug } from "../db/model/Chart.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
-import { DbPlainDataset } from "@ourworldindata/types"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import {
     getMultiDimDataPageByCatalogPath,
@@ -138,33 +134,6 @@ adminRouter.post(
 )
 
 adminRouter.get("/logout", logOut)
-
-getPlainRouteWithROTransaction(
-    adminRouter,
-    "/datasets/:datasetId.csv",
-    async (req, res, trx) => {
-        const datasetId = expectInt(req.params.datasetId)
-
-        const datasetName = (
-            await db.knexRawFirst<Pick<DbPlainDataset, "name">>(
-                trx,
-                `SELECT name FROM datasets WHERE id=?`,
-                [datasetId]
-            )
-        )?.name
-
-        res.attachment(filenamify(datasetName!) + ".csv")
-
-        const writeStream = new Writable({
-            write(chunk, encoding, callback) {
-                res.write(chunk.toString())
-                callback(null)
-            },
-        })
-        await writeDatasetCSV(trx, datasetId, writeStream)
-        res.end()
-    }
-)
 
 getPlainRouteWithROTransaction(
     adminRouter,
