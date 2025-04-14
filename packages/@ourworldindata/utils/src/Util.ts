@@ -152,7 +152,6 @@ import {
     TimeBoundValue,
     ScaleType,
     VerticalAlign,
-    type BreadcrumbItem,
     type GridParameters,
     HorizontalAlign,
     type OwidEnrichedGdocBlock,
@@ -180,6 +179,8 @@ import {
     GRAPHER_CHART_TYPES,
     DbPlainTag,
     AssetMap,
+    OwidGdocAboutInterface,
+    OwidGdocHomepageInterface,
 } from "@ourworldindata/types"
 import { PointVector } from "./PointVector.js"
 import * as React from "react"
@@ -1371,8 +1372,9 @@ export const getOwidGdocFromJSON = (json: OwidGdocJSON): OwidGdoc => {
 // We want to infer the return type from the existing types instead of having to
 // manually specify it.
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
-export function extractGdocPageData(gdoc: OwidGdoc) {
-    return pick(gdoc, [
+export function extractGdocPageData<T extends OwidGdoc>(gdoc: T) {
+    // Generic properties every gdoc has
+    const commonProps = typeSafePick(gdoc, [
         "id",
         "slug",
         "content",
@@ -1382,9 +1384,6 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
         "publishedAt",
         "breadcrumbs",
         "manualBreadcrumbs",
-        "homepageMetadata",
-        "latestDataInsights",
-        "latestWorkLinks",
         "linkedAuthors",
         "linkedDocuments",
         "linkedCharts",
@@ -1392,30 +1391,52 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
         "imageMetadata",
         "relatedCharts",
         "tags",
-        "donors",
     ])
+
+    return match(gdoc.content)
+        .with({ type: OwidGdocType.AboutPage }, () => {
+            const aboutGdoc = gdoc as OwidGdocAboutInterface // better if we didn't have to do that
+            return {
+                ...commonProps,
+                ...typeSafePick(aboutGdoc, ["donors"]),
+            }
+        })
+        .with({ type: OwidGdocType.Homepage }, () => {
+            const homepageGdoc = gdoc as OwidGdocHomepageInterface
+            return {
+                ...commonProps,
+                ...typeSafePick(homepageGdoc, ["homepageMetadata"]),
+            }
+        })
+        .with({ type: OwidGdocType.DataInsight }, () => {
+            const dataInsightGdoc = gdoc as OwidGdocDataInsightInterface
+            return {
+                ...commonProps,
+                ...typeSafePick(dataInsightGdoc, ["latestDataInsights"]),
+            }
+        })
+        .with({ type: OwidGdocType.Author }, () => {
+            const authorGdoc = gdoc as OwidGdocAuthorInterface
+            return {
+                ...commonProps,
+                ...typeSafePick(authorGdoc, ["latestWorkLinks"]),
+            }
+        })
+        .otherwise(() => commonProps)
 }
 
 // Muanually update the type for invariants that should hold at this point, i.e.
 // id and slug must be strings etc.
-export type OwidGdocPageData = ReturnType<typeof extractGdocPageData> & {
-    id: string
-    slug: string
+export type OwidGdocPageData = Omit<
+    ReturnType<typeof extractGdocPageData>,
+    "createdAt" | "publishedAt" | "publishedAt"
+> & {
     createdAt: string
     publishedAt: string | null
     updatedAt: string | null
-    published: boolean
-    manualBreadcrumbs: BreadcrumbItem[] | null
 }
 
-export type OwidGdocPageProps = Omit<
-    OwidGdocPageData,
-    "createdAt" | "publishedAt" | "updatedAt"
-> & {
-    createdAt: Date
-    publishedAt: Date | null
-    updatedAt: Date | null
-}
+export type OwidGdocPageProps = ReturnType<typeof extractGdocPageData>
 
 export function deserializeOwidGdocPageData(
     json: OwidGdocPageData
@@ -2209,4 +2230,22 @@ export const getUserNavigatorLanguages = (): readonly string[] => {
 
 export const getUserNavigatorLanguagesNonEnglish = (): readonly string[] => {
     return getUserNavigatorLanguages().filter((lang) => !lang.startsWith("en"))
+}
+
+/**
+ * A type-safe version of lodash's pick that preserves the types of the picked properties
+ */
+export function typeSafePick<T extends object, K extends keyof T>(
+    obj: T,
+    keys: K[]
+): Pick<T, K> {
+    return keys.reduce(
+        (result, key) => {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                result[key] = obj[key]
+            }
+            return result
+        },
+        {} as Pick<T, K>
+    )
 }
