@@ -41,6 +41,11 @@
     .archive-navigation-bar__date {
         text-align: center;
         @include subtitle-1;
+
+        .archive-navigation-bar__time-value {
+            font-size: 0.7em;
+            color: $gray-10;
+        }
     }
 
     .archive-navigation-bar__buttons {

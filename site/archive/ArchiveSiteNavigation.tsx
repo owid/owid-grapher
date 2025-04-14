@@ -22,12 +22,14 @@ const ArchiveHeaderLogoBar = () => (
 )
 
 const DATE_FORMAT = "MMMM D, YYYY"
+const TIME_FORMAT = "HH:mm"
 const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
     const hasButtons = !!(
         props.liveUrl ||
         props.previousVersion ||
         props.nextVersion
     )
+    const dayjsDate = dayjs.utc(props.archiveDate)
 
     return (
         <nav className="archive-navigation-bar">
@@ -37,7 +39,11 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                 </div>
                 <div className="archive-navigation-bar__date">
                     <span className="archive-navigation-bar__date-value">
-                        {dayjs.utc(props.archiveDate).format(DATE_FORMAT)}
+                        {dayjsDate.format(DATE_FORMAT)}
+                    </span>
+                    &nbsp;
+                    <span className="archive-navigation-bar__time-value">
+                        at {dayjsDate.format(TIME_FORMAT)} UTC
                     </span>
                 </div>
                 {hasButtons && (
