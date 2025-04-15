@@ -41,9 +41,9 @@ export const GLOBE_COUNTRY_ZOOM = 2.5
 export const DEFAULT_GLOBE_ROTATION: [number, number] = [30, -20] // Atlantic ocean (i.e. Americas & Europe)
 export const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 
-export const ANNOTATION_FONT_SIZE_DEFAULT = 8
-export const ANNOTATION_FONT_SIZE_MIN = 6
-export const ANNOTATION_FONT_SIZE_MAX = 10
+export const ANNOTATION_FONT_SIZE_DEFAULT = 11
+export const ANNOTATION_FONT_SIZE_MIN = 7
+export const ANNOTATION_MARKER_LINE_LENGTH = 4
 
 export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
     World: "World",
@@ -69,6 +69,7 @@ export interface ChoroplethMapManager {
     mapColumn: CoreColumn
     globeController?: GlobeController
     selectionArray: SelectionArray
+    fontSize?: number
     getHoverState: (featureId: string) => InteractionState
     isSelected: (featureId: string) => boolean
     onMapMouseOver: (d: GeoFeature) => void

@@ -37,7 +37,7 @@ class MapConfigDefaults {
     @observable selection = new SelectionArray()
 
     @observable globe: GlobeConfig = {
-        isActive: true,
+        isActive: false,
         rotation: DEFAULT_GLOBE_ROTATION,
         zoom: 1,
     }

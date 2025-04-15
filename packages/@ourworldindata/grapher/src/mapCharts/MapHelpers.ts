@@ -6,7 +6,6 @@ import {
     geoPath,
     GeoPermissibleObjects,
 } from "d3-geo"
-import * as topojson from "topojson-client"
 import {
     EntityName,
     Bounds,
@@ -21,6 +20,8 @@ import {
     PointVector,
     clone,
     excludeUndefined,
+    VerticalAlign,
+    HorizontalAlign,
 } from "@ourworldindata/utils"
 import {
     DEFAULT_GLOBE_SIZE,
@@ -32,7 +33,6 @@ import {
     MAP_HOVER_TARGET_RANGE,
     RenderFeature,
     GlobeRenderFeature,
-    ANNOTATION_FONT_SIZE_MAX,
     ExternalAnnotation,
     MapRenderFeature,
     RenderFeatureType,
@@ -160,7 +160,7 @@ export const isOnTheMap = (entityName: EntityName): boolean => {
     return _isOnTheMapCache.has(entityName)
 }
 
-export function isPointInEllipse(
+export function checkIsPointInEllipse(
     point: { x: number; y: number },
     ellipse: Ellipse
 ): boolean {
@@ -183,20 +183,17 @@ export function makeEllipseForProjection({
         top: [number, number]
     }
     projection: GeoProjection
-}): Ellipse {
-    const projCenter = projection(center)!
-    const projLeft = projection(left)!
-    const projTop = projection(top)!
+}): Ellipse | undefined {
+    const projCenter = projection(center)
+    const projLeft = projection(left)
+    const projTop = projection(top)
 
-    const ellipseRadiusX = Math.abs(projCenter[0] - projLeft[0])
-    const ellipseRadiusY = Math.abs(projCenter[1] - projTop[1])
+    if (!projCenter || !projLeft || !projTop) return undefined
 
-    return {
-        cx: projCenter[0],
-        cy: projCenter[1],
-        rx: ellipseRadiusX,
-        ry: ellipseRadiusY,
-    }
+    const rx = Math.abs(projCenter[0] - projLeft[0])
+    const ry = Math.abs(projCenter[1] - projTop[1])
+
+    return { cx: projCenter[0], cy: projCenter[1], rx, ry }
 }
 
 /**
@@ -215,9 +212,9 @@ export function placeLabelExternally({
     markerLength: number
 }): [number, number] {
     const [x, y] = anchorPoint
-    const m = markerLength
     const w = textBounds.width,
         h = textBounds.height
+    const m = markerLength
 
     switch (direction) {
         case "right":
@@ -271,184 +268,145 @@ export function getExternalMarkerEndPosition({
 export function placeLabelAtEllipseCenter({
     text,
     ellipse,
-    fontSizeScale,
+    fontSizeScale = 1,
 }: {
     text: string
     ellipse: Ellipse
-    fontSizeScale: number
+    fontSizeScale?: number
 }): { placedBounds: Bounds; fontSize: number } | undefined {
-    // todo: font size
-    const defaultFontSize = Math.min(
-        ANNOTATION_FONT_SIZE_DEFAULT / fontSizeScale,
-        ANNOTATION_FONT_SIZE_MAX
-    )
+    const defaultFontSize = ANNOTATION_FONT_SIZE_DEFAULT / fontSizeScale
 
-    // place label at the given center position
-    let textBounds = Bounds.forText(text, { fontSize: defaultFontSize }).set({
-        height: defaultFontSize - 1, // todo: small correction
-    })
-    let placedBounds = textBounds.set({
-        x: ellipse.cx - textBounds.width / 2,
-        y: ellipse.cy - textBounds.height / 2,
+    // place label at the center of the ellipse
+    const ellipseCenter = { x: ellipse.cx, y: ellipse.cy }
+    let placedBounds = makePlacedBoundsForText({
+        text,
+        fontSize: defaultFontSize,
+        position: ellipseCenter,
+        center: true,
     })
 
-    let textFits = isPointInEllipse(placedBounds.topLeft, ellipse)
-
+    // return early if the label fits into the ellipse
+    let textFits = checkIsPointInEllipse(placedBounds.topLeft, ellipse)
     if (textFits) return { placedBounds, fontSize: defaultFontSize }
 
+    // reduce the font size to make the label fit into the ellipse
     const step = 1
     for (
         let fontSize = ANNOTATION_FONT_SIZE_DEFAULT - step;
         fontSize >= ANNOTATION_FONT_SIZE_MIN;
         fontSize -= step
     ) {
-        // TODO: font size
-        const scaledFontSize = Math.min(
-            fontSize / fontSizeScale,
-            ANNOTATION_FONT_SIZE_MAX
-        )
-        textBounds = Bounds.forText(text, {
+        const scaledFontSize = fontSize / fontSizeScale
+        placedBounds = makePlacedBoundsForText({
+            text,
             fontSize: scaledFontSize,
-        }).set({ height: scaledFontSize - 1 }) // todo: small correction
-        placedBounds = textBounds.set({
-            x: ellipse.cx - textBounds.width / 2,
-            y: ellipse.cy - textBounds.height / 2,
+            position: ellipseCenter,
+            center: true,
         })
-        textFits = isPointInEllipse(placedBounds.topLeft, ellipse)
+
+        textFits = checkIsPointInEllipse(placedBounds.topLeft, ellipse)
         if (textFits) return { placedBounds, fontSize: scaledFontSize }
     }
 
     return undefined
 }
 
-function getCornersForDirection({
-    placedBounds,
-    direction,
+export function makePlacedBoundsForText({
+    text,
+    fontSize,
+    position,
+    center = false,
 }: {
-    placedBounds: Bounds
-    direction: Direction
-}): PointVector[] {
-    return [
-        placedBounds.topLeft,
-        placedBounds.topRight,
-        placedBounds.bottomRight,
-        placedBounds.bottomLeft,
-    ]
-    // switch (direction) {
-    //     case "right":
-    //         return [placedBounds.topLeft, placedBounds.bottomLeft]
-    //     case "left":
-    //         return [placedBounds.topRight, placedBounds.bottomRight]
-    //     case "top":
-    //         return [placedBounds.bottomLeft, placedBounds.bottomRight]
-    //     case "bottom":
-    //         return [placedBounds.topLeft, placedBounds.topRight]
-    //     // todo
-    //     case "leftTop":
-    //         return [placedBounds.bottomRight, placedBounds.bottomLeft]
-    //     case "leftBottom":
-    //         return [placedBounds.topRight, placedBounds.topLeft]
-    //     case "rightTop":
-    //         return [placedBounds.bottomLeft, placedBounds.bottomRight]
-    //     case "rightBottom":
-    //         return [placedBounds.topLeft, placedBounds.topRight]
-    // }
+    text: string
+    fontSize: number
+    position: { x: number; y: number }
+    center?: boolean
+}): Bounds {
+    // make bounds for text
+    const textBounds = Bounds.forText(text, { fontSize }).set({
+        height: fontSize - 1, // todo: apply in bounds?
+    })
+
+    // place bounds at the given position
+    const x = center ? position.x - textBounds.width / 2 : position.x
+    const y = center ? position.y - textBounds.height / 2 : position.y
+    return textBounds.set({ x, y })
 }
 
-// makes sure Lesotho or Eswatini are placed in the ocean and not inside South Africa
-export function placeLabelBridingFeatures<Feature extends RenderFeature>({
-    features,
+function extendPositionIntoDirectionByStep({
+    bounds,
+    direction,
+    step,
+}: {
+    bounds: Bounds
+    direction: Direction
+    step: number
+}) {
+    const { x, y } = bounds
+    switch (direction) {
+        case "right":
+            return { x: x + step, y }
+        case "left":
+            return { x: x - step, y }
+        case "top":
+            return { x, y: y - step }
+        case "bottom":
+            return { x, y: y + step }
+        case "leftTop":
+            return { x: x - step, y: y - step }
+        case "rightTop":
+            return { x: x + step, y: y - step }
+        case "leftBottom":
+            return { x: x - step, y: y + step }
+        case "rightBottom":
+            return { x: x + step, y: y + step }
+    }
+}
+
+export function extendMarkerLineToBridgeGivenFeatures<
+    Feature extends RenderFeature,
+>({
+    bridgeFeatures,
     direction,
     placedBounds,
     projection,
     step,
 }: {
-    features: Feature[]
+    bridgeFeatures: Feature[]
     direction: Direction
     placedBounds: Bounds
     projection: any
     step: number
 }): Bounds {
-    let corners = getCornersForDirection({ placedBounds, direction }).map(
-        (corner) => projection.invert([corner.x, corner.y])
+    let annotationLabel = makeTurfPolygonFromBounds(placedBounds, (position) =>
+        projection.invert(position)
     )
 
-    let maxRecursionDepth = 10
-
     let newBounds = placedBounds
-    for (const feature of features) {
-        for (let i = 0; i < corners.length; i++) {
-            let recursionDepth = 0
-            while (
-                // todo: could use turf here
-                geoContains(feature.geo.geometry, corners[i]) &&
-                recursionDepth <= maxRecursionDepth
-            ) {
-                recursionDepth += 1
+    for (const otherFeature of bridgeFeatures) {
+        const polygon = makeTurfPolygonForFeature(otherFeature)
 
-                if (direction === "right") {
-                    newBounds = newBounds.set({
-                        x: newBounds.x + step,
-                        y: newBounds.y,
-                    })
-                } else if (direction === "left") {
-                    newBounds = newBounds.set({
-                        x: newBounds.x - step,
-                        y: newBounds.y,
-                    })
-                } else if (direction === "top") {
-                    newBounds = newBounds.set({
-                        x: newBounds.x,
-                        y: newBounds.y - step,
-                    })
-                } else if (direction === "bottom") {
-                    newBounds = newBounds.set({
-                        x: newBounds.x,
-                        y: newBounds.y + step,
-                    })
-                } else if (direction === "leftTop") {
-                    newBounds = newBounds.set({
-                        x: newBounds.x - step,
-                        y: newBounds.y - step,
-                    })
-                } else if (direction === "rightTop") {
-                    newBounds = newBounds.set({
-                        x: newBounds.x + step,
-                        y: newBounds.y - step,
-                    })
-                } else if (direction === "leftBottom") {
-                    newBounds = newBounds.set({
-                        x: newBounds.x - step,
-                        y: newBounds.y + step,
-                    })
-                } else if (direction === "rightBottom") {
-                    newBounds = newBounds.set({
-                        x: newBounds.x + step,
-                        y: newBounds.y + step,
-                    })
-                }
+        for (let tick = 0; tick < 10; tick++) {
+            if (!turf.booleanIntersects(annotationLabel, polygon)) break
 
-                corners = getCornersForDirection({
-                    placedBounds: newBounds,
+            newBounds = newBounds.set(
+                extendPositionIntoDirectionByStep({
+                    bounds: newBounds,
                     direction,
-                }).map((corner) => projection.invert([corner.x, corner.y]))
-            }
+                    step,
+                })
+            )
+
+            annotationLabel = makeTurfPolygonFromBounds(newBounds, (position) =>
+                projection.invert(position)
+            )
         }
     }
 
     return newBounds
 }
 
-function isPointInCircle(
-    point: { x: number; y: number },
-    circle: { cx: number; cy: number; r: number }
-): boolean {
-    const dx = point.x - circle.cx
-    const dy = point.y - circle.cy
-    return dx * dx + dy * dy <= circle.r * circle.r
-}
-
-// todo: should depend on the directio
+// todo: should depend on the direction
 // const _countriesWithinRadiusCache = new Map<string, any[]>()
 export function getNearbyFeatures<Feature extends RenderFeature>({
     feature,

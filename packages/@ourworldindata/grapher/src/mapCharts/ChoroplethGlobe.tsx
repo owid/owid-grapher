@@ -30,7 +30,8 @@ import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
     Annotation,
     ANNOTATION_FONT_SIZE_DEFAULT,
-    ANNOTATION_FONT_SIZE_MAX,
+    ANNOTATION_FONT_SIZE_MIN,
+    ANNOTATION_MARKER_LINE_LENGTH,
     ChoroplethMapManager,
     ChoroplethSeriesByName,
     DEFAULT_GLOBE_SIZE,
@@ -63,7 +64,7 @@ import {
     placeLabelExternally,
     getExternalMarkerEndPosition,
     placeLabelAtEllipseCenter,
-    placeLabelBridingFeatures,
+    extendMarkerLineToBridgeGivenFeatures,
     getNearbyFeatures,
     minimiseLabelCollisions,
     checkAnnotationCollidesWithLandmass,
@@ -286,6 +287,10 @@ export class ChoroplethGlobe extends React.Component<{
             .addAll(this.visibleFeatures)
     }
 
+    @computed private get shouldShowAnnotations(): boolean {
+        return this.manager.shouldShowEntitySelectorOnMapTab ?? false
+    }
+
     private formatAnnotationLabel(value: string | number): string {
         return this.manager.mapColumn.formatValueShortWithAbbreviations(value)
     }
@@ -305,14 +310,11 @@ export class ChoroplethGlobe extends React.Component<{
             projection,
         })
 
+        if (!ellipse) return
+
         const formattedValue = this.formatAnnotationLabel(series.value)
-        const scaleFactor = 1 / this.zoomScale // todo: scale factor
         let { placedBounds, fontSize } =
-            placeLabelAtEllipseCenter({
-                text: formattedValue,
-                ellipse,
-                fontSizeScale: scaleFactor,
-            }) ?? {}
+            placeLabelAtEllipseCenter({ text: formattedValue, ellipse }) ?? {}
 
         const color = isDarkColor(series.color) ? "#fff" : GRAPHER_DARK_TEXT
 
@@ -344,10 +346,9 @@ export class ChoroplethGlobe extends React.Component<{
         const { direction } = external
 
         const anchorPoint = this.projection(external.anchorPoint)
-        // todo: marker length and font size
-        const scaleFactor = 1 / this.zoomScale // todo: scale factor
-        const markerLength = Math.max(8, 2 / scaleFactor)
-        const fontSize = Math.min(8 / scaleFactor, 10)
+
+        const fontSize = ANNOTATION_FONT_SIZE_MIN
+        const markerLength = ANNOTATION_MARKER_LINE_LENGTH
 
         const formattedValue = this.formatAnnotationLabel(series.value)
         const textBounds = Bounds.forText(formattedValue, {
@@ -366,21 +367,22 @@ export class ChoroplethGlobe extends React.Component<{
             y: labelPosition[1],
         })
 
-        // todo: also do this computation for the fetaure itself?
-        if (external.bridgeCountries) {
-            const bridgeFeatures = excludeUndefined(
-                external.bridgeCountries.map((country) =>
-                    this.featuresById.get(country)
-                )
-            )
-            placedBounds = placeLabelBridingFeatures({
-                features: bridgeFeatures,
-                placedBounds,
-                direction,
-                projection,
-                step: markerLength,
-            })
-        }
+        // make sure the external label doesn't overlap with bridge countries (including itself)
+        const bridgeCountries = [
+            feature.id,
+            ...(external.bridgeCountries ?? []),
+        ]
+        const bridgeFeatures = excludeUndefined(
+            bridgeCountries.map((country) => this.featuresById.get(country))
+        )
+
+        placedBounds = extendMarkerLineToBridgeGivenFeatures({
+            bridgeFeatures,
+            placedBounds,
+            direction,
+            projection,
+            step: 1.5 * markerLength,
+        })
 
         return {
             type: "external",
@@ -400,6 +402,8 @@ export class ChoroplethGlobe extends React.Component<{
     /* Naively placed annotations that might be overlapping */
     @computed
     private get initialAnnotations(): Annotation<GlobeRenderFeature>[] {
+        if (!this.shouldShowAnnotations) return []
+
         const features = this.showAllAnnotations
             ? this.featuresWithData
             : this.mapConfig.selection.selectedEntityNames.map((name) =>

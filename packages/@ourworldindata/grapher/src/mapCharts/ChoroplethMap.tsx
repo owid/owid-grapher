@@ -22,6 +22,8 @@ import {
     Annotation,
     DEFAULT_STROKE_WIDTH,
     Direction,
+    ANNOTATION_FONT_SIZE_MIN,
+    ANNOTATION_MARKER_LINE_LENGTH,
 } from "./MapChartConstants"
 import { getGeoFeaturesForMap } from "./GeoFeatures"
 import {
@@ -41,7 +43,7 @@ import {
     makeEllipseForProjection,
     minimiseLabelCollisions,
     placeLabelAtEllipseCenter,
-    placeLabelBridingFeatures,
+    extendMarkerLineToBridgeGivenFeatures,
     placeLabelExternally,
     sortFeaturesByInteractionState,
 } from "./MapHelpers"
@@ -172,6 +174,10 @@ export class ChoroplethMap extends React.Component<{
         return geoRobinson()
     }
 
+    @computed private get shouldShowAnnotations(): boolean {
+        return this.manager.shouldShowEntitySelectorOnMapTab ?? false
+    }
+
     private formatAnnotationLabel(value: string | number): string {
         return this.manager.mapColumn.formatValueShortWithAbbreviations(value)
     }
@@ -191,13 +197,14 @@ export class ChoroplethMap extends React.Component<{
             projection,
         })
 
+        if (!ellipse) return
+
         const formattedValue = this.formatAnnotationLabel(series.value)
-        const scaleFactor = this.viewportScaleSqrt // todo
         let { placedBounds, fontSize } =
             placeLabelAtEllipseCenter({
                 text: formattedValue,
                 ellipse,
-                fontSizeScale: scaleFactor,
+                fontSizeScale: this.viewportScaleSqrt,
             }) ?? {}
 
         const color = isDarkColor(series.color) ? "#fff" : GRAPHER_DARK_TEXT
@@ -230,10 +237,10 @@ export class ChoroplethMap extends React.Component<{
         const { direction } = external
 
         const anchorPoint = this.projection(external.anchorPoint)
-        // todo: marker length and font size
-        const scaleFactor = this.viewportScaleSqrt
-        const markerLength = Math.max(8, 2 / scaleFactor)
-        const fontSize = Math.min(8 / scaleFactor, 10)
+
+        const fontSize = ANNOTATION_FONT_SIZE_MIN / this.viewportScaleSqrt
+        const markerLength =
+            ANNOTATION_MARKER_LINE_LENGTH / this.viewportScaleSqrt
 
         const formattedValue = this.formatAnnotationLabel(series.value)
         const textBounds = Bounds.forText(formattedValue, {
@@ -252,21 +259,21 @@ export class ChoroplethMap extends React.Component<{
             y: labelPosition[1],
         })
 
-        // todo: also do this computation for the fetaure itself?
-        if (external.bridgeCountries) {
-            const bridgeFeatures = excludeUndefined(
-                external.bridgeCountries.map((country) =>
-                    this.featuresById.get(country)
-                )
-            )
-            placedBounds = placeLabelBridingFeatures({
-                features: bridgeFeatures,
-                placedBounds,
-                direction,
-                projection,
-                step: markerLength,
-            })
-        }
+        // make sure the external label doesn't overlap with bridge countries (including itself)
+        const bridgeCountries = [
+            feature.id,
+            ...(external.bridgeCountries ?? []),
+        ]
+        const bridgeFeatures = excludeUndefined(
+            bridgeCountries.map((country) => this.featuresById.get(country))
+        )
+        placedBounds = extendMarkerLineToBridgeGivenFeatures({
+            bridgeFeatures,
+            placedBounds,
+            direction,
+            projection,
+            step: 1.5 * markerLength,
+        })
 
         return {
             type: "external",
@@ -286,6 +293,8 @@ export class ChoroplethMap extends React.Component<{
     /* Naively placed annotations that might be overlapping */
     @computed
     private get initialAnnotations(): Annotation<MapRenderFeature>[] {
+        if (!this.shouldShowAnnotations) return []
+
         const features = this.showAllAnnotations
             ? this.featuresWithData
             : this.manager.mapConfig.selection.selectedEntityNames
@@ -506,7 +515,10 @@ export class ChoroplethMap extends React.Component<{
                                 dominantBaseline="hanging"
                                 // dy={dyFromAlign(VerticalAlign.bottom)}
                                 fontSize={fontSize}
-                                strokeWidth={DEFAULT_STROKE_WIDTH}
+                                strokeWidth={
+                                    DEFAULT_STROKE_WIDTH /
+                                    this.viewportScaleSqrt
+                                }
                                 fill={color}
                             >
                                 {text}
@@ -542,7 +554,10 @@ export class ChoroplethMap extends React.Component<{
                                 x2={markerEnd[0]}
                                 y2={markerEnd[1]}
                                 stroke={annotation.color}
-                                strokeWidth={DEFAULT_STROKE_WIDTH * 1.5}
+                                strokeWidth={
+                                    (DEFAULT_STROKE_WIDTH * 1.5) /
+                                    this.viewportScaleSqrt
+                                }
                             />
                             {/* <rect
                                 {...placedBounds.toProps()}
@@ -553,7 +568,10 @@ export class ChoroplethMap extends React.Component<{
                                 x={placedBounds.x}
                                 y={placedBounds.y + placedBounds.height - 1}
                                 fontSize={fontSize}
-                                strokeWidth={DEFAULT_STROKE_WIDTH}
+                                strokeWidth={
+                                    DEFAULT_STROKE_WIDTH /
+                                    this.viewportScaleSqrt
+                                }
                                 fill={annotation.color}
                             >
                                 {text}
