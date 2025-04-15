@@ -73,6 +73,7 @@ import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
 import { SelectionArray } from "../selection/SelectionArray"
 import { isOnTheMap } from "./MapHelpers.js"
+import { lineOffset } from "@turf/turf"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -166,6 +167,14 @@ export class MapChart
 
         const missingMappableCountries = mappableCountries.filter(
             (country) => !table.availableEntityNameSet.has(country.name)
+        )
+
+        console.log(
+            "missing",
+            missingMappableCountries,
+            mappableCountries
+                .map((c) => c.name)
+                .includes("French Southern Territories")
         )
 
         const rows = missingMappableCountries.map((country) => ({

@@ -11,7 +11,7 @@ import externalAnnotationPlacements from "./ExternalAnnotationPlacements.json"
 const GRAPHER_ROOT = __dirname.replace(/\/(itsJustJavascript\/)?devTools.*/, "")
 const GRAPHER_MAP_ANNOTATIONS_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/grapher/src/mapCharts/MapAnnotationPlacements.json`
 
-const COUNTRIES_WITH_EXTERNAL_LABEL_ONLY = ["Chile", "Indonesia"]
+const COUNTRIES_WITH_EXTERNAL_LABEL_ONLY = ["Chile", "Indonesia", "East Timor"]
 
 export interface Ellipse {
     cx: number // center x
@@ -134,6 +134,9 @@ async function main() {
         (e) => !e.anchorPoint && !e.comment
     )
     console.log(`${missingFeatures.length} / ${numFeatures}`)
+    for (const feature of missingFeatures) {
+        console.log(feature.id)
+    }
 
     const annotations = GeoFeatures.map((feature: GeoFeature) => {
         const ellipse = calculateLabelEllipseForGeoFeature(feature)
