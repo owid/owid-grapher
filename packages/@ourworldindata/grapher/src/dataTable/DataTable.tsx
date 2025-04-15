@@ -27,7 +27,6 @@ import {
     valuesByEntityAtTimes,
     es6mapValues,
     sortBy,
-    countBy,
     union,
     exposeInstanceOnWindow,
     DataValue,
@@ -46,6 +45,7 @@ import {
 } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
+import * as R from "remeda"
 
 interface DataTableState {
     sort: DataTableSortState
@@ -617,8 +617,8 @@ export class DataTable extends React.Component<{
 
         this.columnsToShow.forEach((column): boolean => {
             const numberOfEntitiesWithDataSortedByTime = sortBy(
-                Object.entries(countBy(column.uniqTimesAsc)),
-                (value) => parseInt(value[0])
+                Object.entries(R.countBy(column.uniqTimesAsc, R.identity())),
+                ([time, _count]) => parseInt(time)
             )
 
             const firstTimeWithSufficientData =

@@ -167,7 +167,6 @@ export {
     clone,
     cloneDeep,
     compact,
-    countBy,
     debounce,
     difference,
     extend,
