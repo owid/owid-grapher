@@ -23,10 +23,10 @@ import {
     knexReadonlyTransaction,
 } from "../../db/db.js"
 import { DbRawChartConfig, excludeUndefined } from "@ourworldindata/utils"
-import { chunk } from "lodash"
 import ProgressBar from "progress"
 import { bytesToBase64, hexToBytes } from "../../serverUtils/serverUtil.js"
 import { HexString, R2GrapherConfigDirectory } from "@ourworldindata/types"
+import * as R from "remeda"
 
 type HashAndId = Pick<DbRawChartConfig, "fullMd5" | "id">
 
@@ -152,7 +152,7 @@ async function syncWithR2(
     const errors = []
 
     // Chunk the inserts so that we don't need to keep all the full configs in memory
-    for (const batch of chunk([...hashesOfFilesToToUpsert.entries()], 1000)) {
+    for (const batch of R.chunk([...hashesOfFilesToToUpsert.entries()], 1000)) {
         // Get the full configs for the batch
         const fullConfigs = await knexRaw<
             Pick<DbRawChartConfig, "id" | "full">

@@ -164,7 +164,6 @@ export { multiDimDimensionsToViewId } from "./multiDim.js"
 
 export {
     capitalize,
-    chunk,
     clamp,
     clone,
     cloneDeep,

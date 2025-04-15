@@ -7,9 +7,10 @@ import {
     ExplorerChoiceOption,
     ExplorerChoice,
 } from "./ExplorerConstants.js"
-import { chunk, getStylesForTargetHeight } from "@ourworldindata/utils"
+import { getStylesForTargetHeight } from "@ourworldindata/utils"
 import { GridBoolean } from "./gridLang/GridLangConstants.js"
 import classNames from "classnames"
+import * as R from "remeda"
 
 const AVAILABLE_OPTION_CLASS = "AvailableOption"
 const UNAVAILABLE_OPTION_CLASS = "UnavailableOption"
@@ -216,7 +217,7 @@ export class ExplorerControlPanel extends Component<{
         const { title, type } = choice
         const { options } = this
         if (type === ExplorerControlType.Radio && options.length > 4)
-            return chunk(options, 3).map((optionsGroup, column) =>
+            return R.chunk(options, 3).map((optionsGroup, column) =>
                 this.renderColumn(`${title}${column}`, column > 0, optionsGroup)
             )
         return this.renderColumn(title, type === ExplorerControlType.Checkbox)

@@ -5,7 +5,7 @@ import "../serverUtils/instrument.js"
 import fs from "fs-extra"
 import path from "path"
 import { glob } from "glob"
-import { keyBy, without, mapValues, pick, chunk } from "lodash"
+import { keyBy, without, mapValues, pick } from "lodash"
 import ProgressBar from "progress"
 import * as db from "../db/db.js"
 import {
@@ -101,6 +101,7 @@ import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimData
 import { getPublicDonorNames } from "../db/model/Donor.js"
 import { getChartViewsInfo } from "../db/model/ChartView.js"
 import { getGrapherRedirectsMap } from "./redirectsFromDb.js"
+import * as R from "remeda"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -346,7 +347,7 @@ export class SiteBaker {
             )
             const publishedCharts: LinkedChart[] = []
 
-            for (const publishedChartsRawChunk of chunk(
+            for (const publishedChartsRawChunk of R.chunk(
                 publishedChartsRaw,
                 20
             )) {

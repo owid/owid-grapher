@@ -1,6 +1,6 @@
 import { Fragment } from "react"
 import cx from "classnames"
-import { OwidProcessingLevel, chunk, excludeNull } from "@ourworldindata/utils"
+import { OwidProcessingLevel, excludeNull } from "@ourworldindata/utils"
 import {
     makeSource,
     makeLastUpdated,
@@ -10,6 +10,7 @@ import {
     makeUnitConversionFactor,
     makeLinks,
 } from "@ourworldindata/components"
+import * as R from "remeda"
 
 interface SourcesKeyDataTableProps {
     attribution?: string
@@ -48,7 +49,7 @@ export const SourcesKeyDataTable = (props: SourcesKeyDataTableProps) => {
         links ? { label: "Links", content: links } : null,
     ])
 
-    const rows = chunk(keyDataWithoutSource, 2)
+    const rows = R.chunk(keyDataWithoutSource, 2)
 
     return (
         <div className="sources-key-data-table">
