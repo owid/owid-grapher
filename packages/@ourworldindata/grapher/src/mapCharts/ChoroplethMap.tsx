@@ -21,6 +21,7 @@ import {
     ANNOTATION_FONT_SIZE_DEFAULT,
     Annotation,
     DEFAULT_STROKE_WIDTH,
+    Direction,
 } from "./MapChartConstants"
 import { getGeoFeaturesForMap } from "./GeoFeatures"
 import {
@@ -31,8 +32,17 @@ import {
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
 import {
+    checkAnnotationCollidesWithLandmass,
+    checkAnnotationMarkerCollidesWithLabel,
     detectNearbyFeature,
+    getExternalMarkerEndPosition,
     getForegroundFeatures,
+    getNearbyFeatures,
+    makeEllipseForProjection,
+    minimiseLabelCollisions,
+    placeLabelAtEllipseCenter,
+    placeLabelBridingFeatures,
+    placeLabelExternally,
     sortFeaturesByInteractionState,
 } from "./MapHelpers"
 import { annotationPlacementsById } from "./MapAnnotationPlacements"
@@ -74,7 +84,7 @@ export class ChoroplethMap extends React.Component<{
 
     // Combine bounding boxes to get the extents of the entire map
     @computed private get mapBounds(): Bounds {
-        const allBounds = this.features.map((feature) => feature.bounds)
+        const allBounds = this.features.map((feature) => feature.projBounds)
         return Bounds.merge(allBounds)
     }
 
@@ -133,12 +143,14 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get featuresWithData(): MapRenderFeature[] {
-        const features = this.foregroundFeatures.filter((feature) =>
+        return this.foregroundFeatures.filter((feature) =>
             this.choroplethData.has(feature.id)
         )
+    }
 
+    @computed private get sortedFeaturesWithData(): MapRenderFeature[] {
         // sort features so that hovered or selected features are rendered last
-        return sortFeaturesByInteractionState(features, {
+        return sortFeaturesByInteractionState(this.featuresWithData, {
             isHovered: (featureId: string) =>
                 this.manager.getHoverState(featureId).active,
             isSelected: (featureId) => this.manager.isSelected(featureId),
@@ -151,8 +163,8 @@ export class ChoroplethMap extends React.Component<{
 
     @computed private get quadtree(): Quadtree<MapRenderFeature> {
         return quadtree<MapRenderFeature>()
-            .x((feature) => feature.center.x)
-            .y((feature) => feature.center.y)
+            .x((feature) => feature.projBounds.centerX)
+            .y((feature) => feature.projBounds.centerY)
             .addAll(this.foregroundFeatures)
     }
 
@@ -160,144 +172,204 @@ export class ChoroplethMap extends React.Component<{
         return geoRobinson()
     }
 
-    // @computed private get initialAnnotations(): Annotation<MapRenderFeature>[] {
-    //     return excludeUndefined(
-    //         this.featuresWithData.map((feature) => {
-    //             const series = this.choroplethData.get(feature.id)
-    //             const placement = annotationPlacementsById.get(feature.id)
-    //             if (!series || !placement) return undefined
+    private formatAnnotationLabel(value: string | number): string {
+        return this.manager.mapColumn.formatValueShortWithAbbreviations(value)
+    }
 
-    //             const ellipse = makeEllipseFromPointsForProjection(
-    //                 placement.ellipse,
-    //                 this.projection
-    //             )
+    private makeInternalAnnotationForFeature(
+        feature: MapRenderFeature
+    ): InternalAnnotation<MapRenderFeature> | undefined {
+        const { projection } = this
 
-    //             const formattedValue =
-    //                 this.manager.mapColumn.formatValueShortWithAbbreviations(
-    //                     series.value
-    //                 )
-    //             // const scaleFactor = 1 / this.viewportScaleSqrt
-    //             let { placedBounds, fontSize } =
-    //                 placeLabelWithinEllipse(formattedValue, ellipse, {
-    //                     fontSizeScale: this.viewportScaleSqrt,
-    //                 }) ?? {}
+        const series = this.choroplethData.get(feature.id)
+        const placement = annotationPlacementsById.get(feature.id)
+        if (!series || !placement) return
 
-    //             const color = isDarkColor(series.color)
-    //                 ? "#fff"
-    //                 : GRAPHER_DARK_TEXT
+        // project ellipse onto the globe
+        const ellipse = makeEllipseForProjection({
+            ellipse: placement.ellipse,
+            projection,
+        })
 
-    //             // if (placedBounds && fontSize)
-    //             //     return {
-    //             //         type: "internal",
-    //             //         id: feature.id,
-    //             //         feature,
-    //             //         label: formattedValue,
-    //             //         ellipse: ellipse,
-    //             //         bounds: placedBounds, // todo: rename to placedBounds
-    //             //         fontSize: fontSize,
-    //             //         color,
-    //             //     }
+        const formattedValue = this.formatAnnotationLabel(series.value)
+        const scaleFactor = this.viewportScaleSqrt // todo
+        let { placedBounds, fontSize } =
+            placeLabelAtEllipseCenter({
+                text: formattedValue,
+                ellipse,
+                fontSizeScale: scaleFactor,
+            }) ?? {}
 
-    //             if (!placement.external) return undefined
+        const color = isDarkColor(series.color) ? "#fff" : GRAPHER_DARK_TEXT
 
-    //             // todo: rename overlap
-    //             const { direction, overlap: overlapCountries } =
-    //                 placement.external
-    //             const anchorPoint = this.projection(
-    //                 placement.external.anchorPoint
-    //             )
+        if (placedBounds && fontSize)
+            return {
+                type: "internal",
+                id: feature.id,
+                feature,
+                placedBounds,
+                text: formattedValue,
+                ellipse: ellipse,
+                fontSize: fontSize,
+                color,
+            }
 
-    //             // todo: find a good marker length
-    //             const markerLength = 4 / this.viewportScaleSqrt
-    //             console.log("marker len", markerLength)
+        return
+    }
 
-    //             fontSize = 8 / this.viewportScaleSqrt
-    //             const textBounds = Bounds.forText(formattedValue, {
-    //                 fontSize,
-    //             }).set({ height: fontSize - 1 })
-    //             const labelPosition = getExternalLabelPosition({
-    //                 anchorPoint,
-    //                 textBounds,
-    //                 direction,
-    //                 markerLength,
-    //             })
+    private makeExternalAnnotationForFeature(
+        feature: MapRenderFeature
+    ): ExternalAnnotation<MapRenderFeature> | undefined {
+        const { projection } = this
 
-    //             // place label at the given center position
-    //             placedBounds = textBounds.set({
-    //                 x: labelPosition[0],
-    //                 y: labelPosition[1],
-    //             })
+        const series = this.choroplethData.get(feature.id)
+        const placement = annotationPlacementsById.get(feature.id)
+        const external = placement?.external
+        if (!series || !placement || !external) return
 
-    //             if (overlapCountries) {
-    //                 const overlapFeatures = excludeUndefined(
-    //                     overlapCountries.map((country) =>
-    //                         this.featuresById.get(country)
-    //                     )
-    //                 )
-    //                 placedBounds = placeLabelInOcean({
-    //                     features: overlapFeatures,
-    //                     placedBounds,
-    //                     direction,
-    //                     projection: this.projection,
-    //                     step: 0.5 * markerLength,
-    //                 })
-    //             }
+        const { direction } = external
 
-    //             return {
-    //                 type: "external",
-    //                 id: feature.id,
-    //                 feature,
-    //                 label: formattedValue,
-    //                 bounds: placedBounds,
-    //                 anchor: anchorPoint,
-    //                 direction,
-    //                 fontSize,
-    //                 color,
-    //             }
-    //         })
-    //     )
-    // }
+        const anchorPoint = this.projection(external.anchorPoint)
+        // todo: marker length and font size
+        const scaleFactor = this.viewportScaleSqrt
+        const markerLength = Math.max(8, 2 / scaleFactor)
+        const fontSize = Math.min(8 / scaleFactor, 10)
 
-    // @computed
-    // private get internalAnnotations(): InternalAnnotation<MapRenderFeature>[] {
-    //     return this.initialAnnotations.filter(
-    //         (annotation) => annotation.type === "internal"
-    //     )
-    // }
+        const formattedValue = this.formatAnnotationLabel(series.value)
+        const textBounds = Bounds.forText(formattedValue, {
+            fontSize,
+        }).set({ height: fontSize - 1 }) // todo: small correction
+        const labelPosition = placeLabelExternally({
+            anchorPoint,
+            textBounds,
+            direction,
+            markerLength,
+        })
 
-    // @computed
-    // private get externalAnnotations(): ExternalAnnotation<MapRenderFeature>[] {
-    //     const initialAnnotations = this.initialAnnotations.filter(
-    //         (annotation) => annotation.type === "external"
-    //     )
-    //     const initialAnnotationsById = new Map(
-    //         initialAnnotations.map((a) => [a.id, a])
-    //     )
+        // place label at the given center position
+        let placedBounds = textBounds.set({
+            x: labelPosition[0],
+            y: labelPosition[1],
+        })
 
-    //     const tempPlacedAnnotations =
-    //         adjustLabelPositionsToMinimiseLabelCollisions(initialAnnotations)
+        // todo: also do this computation for the fetaure itself?
+        if (external.bridgeCountries) {
+            const bridgeFeatures = excludeUndefined(
+                external.bridgeCountries.map((country) =>
+                    this.featuresById.get(country)
+                )
+            )
+            placedBounds = placeLabelBridingFeatures({
+                features: bridgeFeatures,
+                placedBounds,
+                direction,
+                projection,
+                step: markerLength,
+            })
+        }
 
-    //     const filteredAnnotations = hideLabelsCollidingWithLandMass(
-    //         tempPlacedAnnotations,
-    //         this.features,
-    //         this.projection
-    //     )
+        return {
+            type: "external",
+            id: feature.id,
+            feature,
+            text: formattedValue,
+            placedBounds,
+            anchor: anchorPoint,
+            direction,
+            fontSize,
+            color: GRAPHER_DARK_TEXT,
+        }
+    }
 
-    //     const filteredAnnotationsAtOriginalPositions = filteredAnnotations.map(
-    //         (annotation) => {
-    //             const origBounds = initialAnnotationsById.get(
-    //                 annotation.id
-    //             )!.bounds
-    //             return { ...annotation, bounds: origBounds }
-    //         }
-    //     )
+    private showAllAnnotations = true
 
-    //     const placedAnnotations = adjustLabelPositionsToMinimiseLabelCollisions(
-    //         filteredAnnotationsAtOriginalPositions
-    //     )
+    /* Naively placed annotations that might be overlapping */
+    @computed
+    private get initialAnnotations(): Annotation<MapRenderFeature>[] {
+        const features = this.showAllAnnotations
+            ? this.featuresWithData
+            : this.manager.mapConfig.selection.selectedEntityNames
+                  .map((name) => this.featuresById.get(name))
+                  .filter((feature) => feature !== undefined)
 
-    //     return placedAnnotations
-    // }
+        return excludeUndefined(
+            features.map((feature) => {
+                // try to fit the annotation inside the feature
+                const internalAnnotation =
+                    this.makeInternalAnnotationForFeature(feature)
+                if (internalAnnotation) return internalAnnotation
+
+                // place the annotation outside of the feature
+                const externalAnnotation =
+                    this.makeExternalAnnotationForFeature(feature)
+                if (externalAnnotation) return externalAnnotation
+
+                return undefined
+            })
+        )
+    }
+
+    @computed
+    private get internalAnnotations(): InternalAnnotation<MapRenderFeature>[] {
+        return this.initialAnnotations.filter(
+            (annotation) => annotation.type === "internal"
+        )
+    }
+
+    @computed
+    private get externalAnnotations(): ExternalAnnotation<MapRenderFeature>[] {
+        const { projection } = this
+
+        const initialAnnotations = this.initialAnnotations.filter(
+            (annotation) => annotation.type === "external"
+        )
+        const initialAnnotationsById = new Map(
+            initialAnnotations.map((a) => [a.id, a])
+        )
+
+        const nonOverlappingAnnotations =
+            minimiseLabelCollisions(initialAnnotations)
+
+        const filteredAnnotations = nonOverlappingAnnotations.filter(
+            (annotation) => {
+                const nearbyFeatures = getNearbyFeatures({
+                    feature: annotation.feature,
+                    allFeatures: this.features,
+                })
+                const nearbyAnnotations = excludeUndefined(
+                    nearbyFeatures.map((feature) =>
+                        initialAnnotationsById.get(feature.id)
+                    )
+                )
+                return (
+                    !checkAnnotationMarkerCollidesWithLabel({
+                        annotation,
+                        nearbyAnnotations,
+                    }) &&
+                    !checkAnnotationCollidesWithLandmass({
+                        annotation,
+                        nearbyFeatures,
+                        projection,
+                    })
+                )
+            }
+        )
+
+        const filteredAnnotationsAtOriginalPositions = filteredAnnotations.map(
+            (annotation) => {
+                const origBounds = initialAnnotationsById.get(
+                    annotation.id
+                )!.placedBounds
+                return { ...annotation, placedBounds: origBounds }
+            }
+        )
+
+        const placedAnnotations = minimiseLabelCollisions(
+            filteredAnnotationsAtOriginalPositions
+        )
+
+        return placedAnnotations
+    }
 
     // Map uses a hybrid approach to mouseover
     // If mouse is inside an element, that is prioritized
@@ -399,138 +471,99 @@ export class ChoroplethMap extends React.Component<{
         }
     }
 
-    // renderAnnotations(): React.ReactElement | void {
-    //     if (this.initialAnnotations.length === 0) return
+    renderAnnotations(): React.ReactElement | void {
+        if (this.initialAnnotations.length === 0) return
 
-    //     return (
-    //         <g id={makeIdForHumanConsumption("annotations")}>
-    //             {this.internalAnnotations.map((annotation) => {
-    //                 const { id, label, ellipse, bounds, fontSize } = annotation
+        return (
+            <g id={makeIdForHumanConsumption("annotations")}>
+                {this.internalAnnotations.map((annotation) => {
+                    const { id, text, color, placedBounds, fontSize } =
+                        annotation
 
-    //                 return (
-    //                     <g
-    //                         key={id}
-    //                         id={makeIdForHumanConsumption(id)}
-    //                         style={{ pointerEvents: "none" }}
-    //                     >
-    //                         {/* <ellipse
-    //                             cx={ellipse.cx}
-    //                             cy={ellipse.cy}
-    //                             rx={ellipse.rx}
-    //                             ry={ellipse.ry}
-    //                             fill="gold"
-    //                             fillOpacity={0.4}
-    //                         /> */}
-    //                         {/* <rect
-    //                             {...bounds.toProps()}
-    //                             fill="none"
-    //                             stroke="black"
-    //                         /> */}
-    //                         <text
-    //                             x={bounds.topLeft.x}
-    //                             y={bounds.topLeft.y}
-    //                             // TODO: shouldn't use dominant-baseline
-    //                             dominantBaseline="hanging"
-    //                             // dy={dyFromAlign(VerticalAlign.bottom)}
-    //                             fontSize={fontSize}
-    //                             strokeWidth={DEFAULT_STROKE_WIDTH}
-    //                             fill={annotation.color}
-    //                         >
-    //                             {label}
-    //                         </text>
-    //                     </g>
-    //                 )
-    //             })}
-    //             {this.externalAnnotations.map((annotation) => {
-    //                 const { id, label, direction, anchor, bounds, fontSize } =
-    //                     annotation
+                    return (
+                        <g
+                            key={id}
+                            id={makeIdForHumanConsumption(id)}
+                            style={{ pointerEvents: "none" }}
+                        >
+                            {/* <ellipse
+                                cx={ellipse.cx}
+                                cy={ellipse.cy}
+                                rx={ellipse.rx}
+                                ry={ellipse.ry}
+                                fill="gold"
+                                fillOpacity={0.4}
+                            />
+                            <rect
+                                {...bounds.toProps()}
+                                fill="none"
+                                stroke="black"
+                            /> */}
+                            <text
+                                x={placedBounds.topLeft.x}
+                                y={placedBounds.topLeft.y}
+                                // TODO: shouldn't use dominant-baseline
+                                dominantBaseline="hanging"
+                                // dy={dyFromAlign(VerticalAlign.bottom)}
+                                fontSize={fontSize}
+                                strokeWidth={DEFAULT_STROKE_WIDTH}
+                                fill={color}
+                            >
+                                {text}
+                            </text>
+                        </g>
+                    )
+                })}
+                {this.externalAnnotations.map((annotation) => {
+                    const {
+                        id,
+                        text,
+                        direction,
+                        anchor,
+                        placedBounds,
+                        fontSize,
+                    } = annotation
 
-    //                 // const markerStartOffset = 1 / (1 / this.zoomScale)
-    //                 // const markerStartWithOffset =
-    //                 //     getExternalMarkerStartPosition({
-    //                 //         anchorPoint: anchor,
-    //                 //         direction,
-    //                 //         offset: markerStartOffset,
-    //                 //     })
+                    const markerStart = anchor
+                    const markerEnd = getExternalMarkerEndPosition({
+                        textBounds: placedBounds,
+                        direction,
+                    })
 
-    //                 // const feature = this.featuresById.get(featureId)
-    //                 // if (!feature) return null
-
-    //                 // const isMarkerStartWithOffsetInFeature = geoContains(
-    //                 //     feature.geo.geometry,
-    //                 //     this.projection.invert(markerStartWithOffset)
-    //                 // )
-
-    //                 // const markerStart = isMarkerStartWithOffsetInFeature
-    //                 //     ? markerStartWithOffset
-    //                 //     : getExternalMarkerStartPosition({
-    //                 //           anchorPoint: anchor,
-    //                 //           direction,
-    //                 //           offset: -(0.5 / (1 / this.zoomScale)),
-    //                 //       })
-
-    //                 const markerStart = getExternalMarkerStartPosition({
-    //                     anchorPoint: anchor,
-    //                     direction,
-    //                     // offset: 2,
-    //                 })
-
-    //                 const markerEnd = getExternalMarkerEndPosition({
-    //                     textBounds: bounds,
-    //                     direction,
-    //                 })
-
-    //                 const corners = [
-    //                     bounds.topLeft,
-    //                     bounds.topRight,
-    //                     bounds.bottomRight,
-    //                     bounds.bottomLeft,
-    //                 ]
-
-    //                 return (
-    //                     <g
-    //                         key={id}
-    //                         id={makeIdForHumanConsumption(id)}
-    //                         style={{ pointerEvents: "none" }}
-    //                     >
-    //                         {/* <circle
-    //                             cx={bounds.centerX}
-    //                             cy={bounds.centerY}
-    //                             r={bounds.height / 2}
-    //                             fill="orange"
-    //                             fillOpacity={1}
-    //                             stroke="black"
-    //                         /> */}
-    //                         <line
-    //                             x1={markerStart[0]}
-    //                             y1={markerStart[1]}
-    //                             x2={markerEnd[0]}
-    //                             y2={markerEnd[1]}
-    //                             stroke="black"
-    //                             strokeWidth={DEFAULT_STROKE_WIDTH * 1.5}
-    //                         />
-    //                         {/* <rect
-    //                             {...bounds.toProps()}
-    //                             fill="none"
-    //                             stroke="black"
-    //                         /> */}
-    //                         {/* {corners.map((corner) => (
-    //                             <circle cx={cor} />
-    //                         ))} */}
-    //                         <text
-    //                             x={bounds.x}
-    //                             y={bounds.y + bounds.height - 1}
-    //                             fontSize={fontSize}
-    //                             strokeWidth={DEFAULT_STROKE_WIDTH}
-    //                         >
-    //                             {label}
-    //                         </text>
-    //                     </g>
-    //                 )
-    //             })}
-    //         </g>
-    //     )
-    // }
+                    return (
+                        <g
+                            key={id}
+                            id={makeIdForHumanConsumption(id)}
+                            style={{ pointerEvents: "none" }}
+                        >
+                            <line
+                                x1={markerStart[0]}
+                                y1={markerStart[1]}
+                                x2={markerEnd[0]}
+                                y2={markerEnd[1]}
+                                stroke={annotation.color}
+                                strokeWidth={DEFAULT_STROKE_WIDTH * 1.5}
+                            />
+                            {/* <rect
+                                {...placedBounds.toProps()}
+                                fill="none"
+                                stroke="black"
+                            /> */}
+                            <text
+                                x={placedBounds.x}
+                                y={placedBounds.y + placedBounds.height - 1}
+                                fontSize={fontSize}
+                                strokeWidth={DEFAULT_STROKE_WIDTH}
+                                fill={annotation.color}
+                            >
+                                {text}
+                            </text>
+                        </g>
+                    )
+                })}
+            </g>
+        )
+    }
 
     renderFeaturesInBackground(): React.ReactElement | void {
         if (this.backgroundFeatures.length === 0) return
@@ -579,11 +612,11 @@ export class ChoroplethMap extends React.Component<{
     }
 
     renderFeaturesWithData(): React.ReactElement | void {
-        if (this.featuresWithData.length === 0) return
+        if (this.sortedFeaturesWithData.length === 0) return
 
         return (
             <g id={makeIdForHumanConsumption("countries-with-data")}>
-                {this.featuresWithData.map((feature) => {
+                {this.sortedFeaturesWithData.map((feature) => {
                     const series = this.choroplethData.get(feature.id)
                     if (!series) return null
                     return (
@@ -614,6 +647,7 @@ export class ChoroplethMap extends React.Component<{
                 {this.renderFeaturesInBackground()}
                 {this.renderFeaturesWithoutData()}
                 {this.renderFeaturesWithData()}
+                {this.renderAnnotations()}
             </g>
         )
     }
@@ -668,7 +702,7 @@ export class ChoroplethMap extends React.Component<{
                     {this.renderFeaturesInBackground()}
                     {this.renderFeaturesWithoutData()}
                     {this.renderFeaturesWithData()}
-                    {/* {this.renderAnnotations()} */}
+                    {this.renderAnnotations()}
                 </g>
             </g>
         )

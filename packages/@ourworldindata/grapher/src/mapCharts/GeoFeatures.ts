@@ -59,23 +59,36 @@ const geoBoundsForWorldProjection = (): Bounds[] => {
     return bounds
 }
 
+const geoCentroidsForFeatures = GeoFeatures.map((feature) =>
+    geoCentroid(feature.geometry)
+)
+
+const geoBoundsForFeatures = GeoFeatures.map((feature) => {
+    const corners = geoBounds(feature)
+    return Bounds.fromCorners(
+        new PointVector(...corners[0]),
+        new PointVector(...corners[1])
+    )
+})
+
 // Bundle GeoFeatures with the calculated info needed to render them
 export const getGeoFeaturesForMap = (): MapRenderFeature[] => {
-    const geoBounds = geoBoundsForWorldProjection()
-    const geoPaths = geoPathsForWorldProjection()
+    const projBounds = geoBoundsForWorldProjection()
+    const projPaths = geoPathsForWorldProjection()
     const feats: MapRenderFeature[] = GeoFeatures.map((geo, index) => ({
         type: RenderFeatureType.Map,
         id: geo.id as string,
         geo: geo,
-        path: geoPaths[index],
-        bounds: geoBounds[index],
-        center: geoBounds[index].centerPos,
+        projBounds: projBounds[index], // projected
+        geoBounds: geoBoundsForFeatures[index], // unprojected
+        geoCentroid: geoCentroidsForFeatures[index], // unprojected
+        path: projPaths[index],
     }))
     return feats
 }
 
 export const getGeoFeaturesForGlobe = (): GlobeRenderFeature[] => {
-    return GeoFeatures.map((geo) => {
+    return GeoFeatures.map((geo, index) => {
         const corners = geoBounds(geo)
         const bounds = Bounds.fromCorners(
             new PointVector(...corners[0]),
@@ -85,13 +98,8 @@ export const getGeoFeaturesForGlobe = (): GlobeRenderFeature[] => {
             type: RenderFeatureType.Globe,
             id: geo.id as string,
             geo: geo,
-            centroid: geoCentroid(geo),
-            bounds,
+            geoCentroid: geoCentroidsForFeatures[index],
+            geoBounds: bounds,
         }
     })
 }
-
-// console.log(
-//     "geo features",
-//     sortBy(GeoFeatures, (f) => geoArea(f)).map((f) => f.id)
-// )

@@ -87,18 +87,18 @@ export interface RenderFeature {
     type: RenderFeatureType
     id: string
     geo: GeoFeature
-    bounds: Bounds
+    geoCentroid: [number, number] // unprojected
+    geoBounds: Bounds // unprojected
 }
 
 export interface MapRenderFeature extends RenderFeature {
     type: RenderFeatureType.Map
     path: string
-    center: PointVector
+    projBounds: Bounds
 }
 
 export interface GlobeRenderFeature extends RenderFeature {
     type: RenderFeatureType.Globe
-    centroid: [number, number]
 }
 
 export interface MapChartManager extends ChartManager {
@@ -121,6 +121,12 @@ export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
     SouthAmerica: { rotation: [62, 22], zoom: 1.75 },
     Asia: { rotation: [-92, -25], zoom: 1.55 },
     Oceania: { rotation: [-153, 25], zoom: 2 },
+}
+
+export interface Circle {
+    cx: number // center x
+    cy: number // center y
+    r: number // radius
 }
 
 export interface Ellipse {

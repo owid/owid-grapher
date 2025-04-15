@@ -36,6 +36,7 @@ import {
     ExternalAnnotation,
     MapRenderFeature,
     RenderFeatureType,
+    Circle,
 } from "./MapChartConstants"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { MapTopology } from "./MapTopology.js"
@@ -355,7 +356,7 @@ function getCornersForDirection({
 }
 
 // makes sure Lesotho or Eswatini are placed in the ocean and not inside South Africa
-export function placeLabelInOcean<Feature extends RenderFeature>({
+export function placeLabelBridingFeatures<Feature extends RenderFeature>({
     features,
     direction,
     placedBounds,
@@ -452,51 +453,26 @@ function isPointInCircle(
 export function getNearbyFeatures<Feature extends RenderFeature>({
     feature,
     allFeatures,
-    projection,
     radius = 10, // todo
 }: {
     feature: Feature
     allFeatures: Feature[]
-    projection: any
     radius?: number
 }): Feature[] {
-    // if (_countriesWithinRadiusCache.has(feature.id))
-    //     return _countriesWithinRadiusCache.get(feature.id)!
-
-    // todo: clean this up
-    const center = isMapRenderFeature(feature)
-        ? projection.invert([feature.center.x, feature.center.y])
-        : isGlobeRenderFeature(feature)
-          ? feature.centroid
-          : [0, 0]
     const circle = {
-        cx: center[0],
-        cy: center[1],
+        cx: feature.geoCentroid[0],
+        cy: feature.geoCentroid[1],
         r: radius,
     }
-    const countries = allFeatures
-        .filter((f) => {
-            const bounds = isMapRenderFeature(feature)
-                ? [
-                      projection.invert([
-                          f.bounds.topLeft.x,
-                          f.bounds.topLeft.y,
-                      ]),
-                      projection.invert([
-                          f.bounds.bottomRight.x,
-                          f.bounds.bottomRight.y,
-                      ]),
-                  ]
-                : [
-                      [f.bounds.topLeft.x, f.bounds.topLeft.y],
-                      [f.bounds.bottomRight.x, f.bounds.bottomRight.y],
-                  ]
-            return circleRectangleOverlap(circle, {
-                topLeft: { x: bounds[0][0], y: bounds[0][1] },
-                bottomRight: { x: bounds[1][0], y: bounds[1][1] },
+
+    const countries = allFeatures.filter(
+        (otherFeature) =>
+            otherFeature.id !== feature.id &&
+            checkRectangleOverlapsWithCircle({
+                circle,
+                rectangle: otherFeature.geoBounds,
             })
-        })
-        .filter((f) => f.id !== feature.id)
+    )
     // _countriesWithinRadiusCache.set(feature.id, countries)
     return countries
 }
@@ -513,20 +489,20 @@ export function isGlobeRenderFeature(
     return feature.type === RenderFeatureType.Globe
 }
 
-export function circleRectangleOverlap(
-    circle: { cx: number; cy: number; r: number },
-    rect: {
-        topLeft: { x: number; y: number }
-        bottomRight: { x: number; y: number }
-    }
-): boolean {
+function checkRectangleOverlapsWithCircle({
+    circle,
+    rectangle,
+}: {
+    circle: Circle
+    rectangle: Bounds
+}): boolean {
     const closestX = R.clamp(circle.cx, {
-        min: rect.topLeft.x,
-        max: rect.bottomRight.x,
+        min: rectangle.topLeft.x,
+        max: rectangle.bottomRight.x,
     })
     const closestY = R.clamp(circle.cy, {
-        min: rect.topLeft.y,
-        max: rect.bottomRight.y,
+        min: rectangle.topLeft.y,
+        max: rectangle.bottomRight.y,
     })
 
     const dx = circle.cx - closestX
@@ -576,7 +552,7 @@ export function minimiseLabelCollisions<Feature extends RenderFeature>(
                     d.annotation.placedBounds.width / 2 + padding,
                     d.annotation.placedBounds.height / 2 + padding,
                 ],
-            ])
+            ]).strength(0.1)
         )
         .tick(10) // todo: default is 300
 
@@ -595,7 +571,7 @@ export function minimiseLabelCollisions<Feature extends RenderFeature>(
 }
 
 export function checkAnnotationCollidesWithLandmass<
-    Feature extends GlobeRenderFeature,
+    Feature extends RenderFeature,
 >({
     annotation,
     nearbyFeatures,
@@ -618,7 +594,7 @@ export function checkAnnotationCollidesWithLandmass<
 }
 
 export function checkAnnotationMarkerCollidesWithLabel<
-    Feature extends GlobeRenderFeature,
+    Feature extends RenderFeature,
 >({
     annotation,
     nearbyAnnotations,

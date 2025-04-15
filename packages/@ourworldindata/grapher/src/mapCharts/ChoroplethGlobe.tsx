@@ -59,11 +59,11 @@ import {
     detectNearbyFeature,
     sortFeaturesByInteractionState,
     getForegroundFeatures,
-    makeEllipseForProjection as makeEllipseForProjection,
+    makeEllipseForProjection,
     placeLabelExternally,
     getExternalMarkerEndPosition,
     placeLabelAtEllipseCenter,
-    placeLabelInOcean as placeLabelBridingFeatures,
+    placeLabelBridingFeatures,
     getNearbyFeatures,
     minimiseLabelCollisions,
     checkAnnotationCollidesWithLandmass,
@@ -243,13 +243,13 @@ export class ChoroplethGlobe extends React.Component<{
         threshold = 0 // 1 = at the exact center, 0 = anywhere on the visible hemisphere
     ): boolean {
         const { globeRotation } = this
-        const { centroid } = feature
+        const { geoCentroid } = feature
 
         const toRadians = (degree: number): number => (degree * Math.PI) / 180
 
         // convert centroid degrees to radians
-        const lambda = toRadians(centroid[0])
-        const phi = toRadians(centroid[1])
+        const lambda = toRadians(geoCentroid[0])
+        const phi = toRadians(geoCentroid[1])
 
         // get current rotation in radians
         const rotationLambda = toRadians(-globeRotation[0])
@@ -281,8 +281,8 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed private get quadtree(): Quadtree<GlobeRenderFeature> {
         return quadtree<GlobeRenderFeature>()
-            .x((feature) => this.projection(feature.centroid)[0])
-            .y((feature) => this.projection(feature.centroid)[1])
+            .x((feature) => this.projection(feature.geoCentroid)[0])
+            .y((feature) => this.projection(feature.geoCentroid)[1])
             .addAll(this.visibleFeatures)
     }
 
@@ -457,7 +457,6 @@ export class ChoroplethGlobe extends React.Component<{
                 const nearbyFeatures = getNearbyFeatures({
                     feature: annotation.feature,
                     allFeatures: this.visibleFeatures,
-                    projection,
                 })
                 const nearbyAnnotations = excludeUndefined(
                     nearbyFeatures.map((feature) =>
