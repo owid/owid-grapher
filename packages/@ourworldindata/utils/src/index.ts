@@ -62,7 +62,6 @@ export {
     rollingMap,
     keyMap,
     intersectionOfSets,
-    unionOfSets,
     differenceOfSets,
     areSetsEqual,
     isSubsetOf,
