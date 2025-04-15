@@ -6,7 +6,6 @@ import {
     formatDay,
     retryPromise,
     rollingMap,
-    groupMap,
     next,
     previous,
     intersectionOfSets,
@@ -307,15 +306,6 @@ describe(trimObject, () => {
         expect(trimObject({ foo: undefined, bar: 1, test: "" }, true)).toEqual({
             bar: 1,
         })
-    })
-})
-
-describe(groupMap, () => {
-    it("groups by key", () => {
-        const group = groupMap([0, 1, "a", 1, 1], (v) => v)
-        expect(group.get(0)).toEqual([0])
-        expect(group.get(1)).toEqual([1, 1, 1])
-        expect(group.get("a")).toEqual(["a"])
     })
 })
 

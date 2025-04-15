@@ -60,7 +60,6 @@ export {
     anyToString,
     scrollIntoViewIfNeeded,
     rollingMap,
-    groupMap,
     keyMap,
     intersectionOfSets,
     unionOfSets,
