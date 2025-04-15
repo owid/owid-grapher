@@ -5,7 +5,6 @@ import {
     Grapher,
     GrapherAnalytics,
     GrapherProgrammaticInterface,
-    getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import {
     DataPageDataV2,
@@ -16,13 +15,10 @@ import {
     getNextUpdateFromVariable,
     omitUndefinedValues,
     getAttributionFragmentsFromVariable,
-    OwidVariableWithSourceAndDimension,
-    memoize,
     compact,
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
     merge,
-    fetchWithRetry,
 } from "@ourworldindata/utils"
 import {
     ADMIN_BASE_URL,
@@ -46,6 +42,10 @@ import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 import { processRelatedResearch } from "../dataPage.js"
 import DataPageResearchAndWriting from "../DataPageResearchAndWriting.js"
 import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
+import {
+    cachedGetGrapherConfigByUuid,
+    cachedGetVariableMetadata,
+} from "./api.js"
 
 declare global {
     interface Window {
@@ -109,24 +109,6 @@ const getDatapageDataV2 = async (
         return datapageJson
     }
 }
-
-const cachedGetVariableMetadata = memoize(
-    (variableId: number): Promise<OwidVariableWithSourceAndDimension> =>
-        fetchWithRetry(getVariableMetadataRoute(DATA_API_URL, variableId)).then(
-            (resp) => resp.json()
-        )
-)
-
-const cachedGetGrapherConfigByUuid = memoize(
-    (
-        grapherConfigUuid: string,
-        isPreviewing: boolean
-    ): Promise<GrapherInterface> => {
-        return fetchWithRetry(
-            `/grapher/by-uuid/${grapherConfigUuid}.config.json${isPreviewing ? "?nocache" : ""}`
-        ).then((resp) => resp.json())
-    }
-)
 
 const useTitleFragments = (config: MultiDimDataPageConfig) => {
     const title = config.config.title
