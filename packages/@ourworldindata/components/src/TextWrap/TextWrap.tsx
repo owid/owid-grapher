@@ -121,8 +121,8 @@ export class TextWrap {
             }
 
             // Append any unclosed tags to the end of the line
-            const appendCloseTags = [...currentlyOpenTags]
-                .reverse()
+            const appendCloseTags = currentlyOpenTags
+                .toReversed()
                 .map((t) => `</${t.tag}>`)
                 .join("")
             line.text = prependOpenTags + line.text + appendCloseTags

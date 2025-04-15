@@ -1,8 +1,6 @@
 import * as React from "react"
 import {
     extend,
-    reverse,
-    clone,
     last,
     pointsToPath,
     getRelativeMouse,
@@ -180,7 +178,7 @@ class Areas extends React.Component<AreasProps> {
                     ],
                 ]
             }
-            const points = [...placedPoints, ...reverse(clone(prevPoints))]
+            const points = [...placedPoints, ...prevPoints.toReversed()]
             const opacity = !this.isFocusModeActive
                 ? AREA_OPACITY.default // normal opacity
                 : focusedSeriesName === series.seriesName
@@ -318,7 +316,7 @@ export class StackedAreaChart extends AbstractStackedChart {
                 hover: this.hoverStateForSeries(series),
             }))
             .filter((series) => !series.isAllZeros)
-            .reverse()
+            .toReversed()
     }
 
     @computed get maxLineLegendWidth(): number {
@@ -608,28 +606,23 @@ export class StackedAreaChart extends AbstractStackedChart {
                 <TooltipTable
                     columns={[formatColumn]}
                     totals={[totalValue]}
-                    rows={series
-                        .slice()
-                        .reverse()
-                        .map((series) => {
-                            const { seriesName: name, color, points } = series
-                            const point = points[hoveredPointIndex]
-                            const focused = name === target.series
-                            const values = [
-                                point?.fake ? undefined : point?.value,
-                            ]
-                            const opacity = focused
-                                ? AREA_OPACITY.focus
-                                : AREA_OPACITY.default
-                            const swatch = { color, opacity }
+                    rows={series.toReversed().map((series) => {
+                        const { seriesName: name, color, points } = series
+                        const point = points[hoveredPointIndex]
+                        const focused = name === target.series
+                        const values = [point?.fake ? undefined : point?.value]
+                        const opacity = focused
+                            ? AREA_OPACITY.focus
+                            : AREA_OPACITY.default
+                        const swatch = { color, opacity }
 
-                            return {
-                                name,
-                                swatch,
-                                focused,
-                                values,
-                            }
-                        })}
+                        return {
+                            name,
+                            swatch,
+                            focused,
+                            values,
+                        }
+                    })}
                 />
             </Tooltip>
         )

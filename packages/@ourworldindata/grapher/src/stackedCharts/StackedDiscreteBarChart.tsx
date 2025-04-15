@@ -457,9 +457,8 @@ export class StackedDiscreteBarChart
         }
         const sortedItems = sortBy(this.sizedItems, sortByFunc)
         const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
-        if (sortOrder === SortOrder.desc) sortedItems.reverse()
-
-        return sortedItems
+        if (sortOrder === SortOrder.desc) return sortedItems.toReversed()
+        else return sortedItems
     }
 
     @computed private get placedItems(): PlacedItem[] {

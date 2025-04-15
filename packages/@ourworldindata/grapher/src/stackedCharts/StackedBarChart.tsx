@@ -267,7 +267,7 @@ export class StackedBarChart
                     color: series.color,
                 }
             })
-            .reverse() // Vertical legend orders things in the opposite direction we want
+            .toReversed() // Vertical legend orders things in the opposite direction we want
     }
 
     // used by <HorizontalCategoricalColorLegend />
@@ -383,7 +383,7 @@ export class StackedBarChart
             ({ point }) => (point?.value ?? 0) >= 0
         )
         const sortedHoverPoints = [
-            ...positivePoints.slice().reverse(),
+            ...positivePoints.toReversed(),
             ...negativePoints,
         ]
 

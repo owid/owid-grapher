@@ -1344,26 +1344,23 @@ export class LineChart
         const { dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
-        return this.series
-            .slice()
-            .reverse()
-            .map((series) => {
-                return {
-                    ...series,
-                    placedPoints: series.points.map(
-                        (point): PlacedPoint => ({
-                            time: point.x,
-                            x: round(horizontalAxis.place(point.x), 1),
-                            y: round(verticalAxis.place(point.y), 1),
-                            color: this.hasColorScale
-                                ? darkenColorForLine(
-                                      this.getColorScaleColor(point.colorValue)
-                                  )
-                                : series.color,
-                        })
-                    ),
-                }
-            })
+        return this.series.toReversed().map((series) => {
+            return {
+                ...series,
+                placedPoints: series.points.map(
+                    (point): PlacedPoint => ({
+                        time: point.x,
+                        x: round(horizontalAxis.place(point.x), 1),
+                        y: round(verticalAxis.place(point.y), 1),
+                        color: this.hasColorScale
+                            ? darkenColorForLine(
+                                  this.getColorScaleColor(point.colorValue)
+                              )
+                            : series.color,
+                    })
+                ),
+            }
+        })
     }
 
     private hoverStateForSeries(series: LineChartSeries): InteractionState {

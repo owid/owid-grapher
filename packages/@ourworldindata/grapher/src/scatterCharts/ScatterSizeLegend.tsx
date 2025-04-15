@@ -66,7 +66,7 @@ export class ScatterSizeLegend {
         const { sizeScale } = this.manager
         const [domainStart, domainEnd] = sizeScale.domain()
         if (domainStart === domainEnd) return [domainStart]
-        const [largestTick, ...restTicks] = sizeScale.ticks(6).reverse()
+        const [largestTick, ...restTicks] = sizeScale.ticks(6).toReversed()
         if (largestTick === undefined) return []
         const ticks = [largestTick]
         restTicks.forEach((value) => {

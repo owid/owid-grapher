@@ -452,7 +452,7 @@ export const reverseColumnStore = (
 ): CoreColumnStore => {
     const newStore: CoreColumnStore = {}
     Object.keys(columnStore).forEach((slug) => {
-        newStore[slug] = columnStore[slug].slice().reverse()
+        newStore[slug] = columnStore[slug].toReversed()
     })
     return newStore
 }

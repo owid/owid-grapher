@@ -193,7 +193,6 @@ export {
     partition,
     pick,
     range,
-    reverse,
     round,
     set,
     sortBy,

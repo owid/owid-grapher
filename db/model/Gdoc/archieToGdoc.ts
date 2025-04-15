@@ -214,8 +214,7 @@ function articleToBatchUpdates(
     // The batch updates are in their logical order here. To work in one batch update
     // we want to insert gdoc DOM spans in reverse order, so we reverse the batches here.
     // The code above already works under the assumption that the batches will be reversed.
-    batchUpdates.reverse()
-    return batchUpdates
+    return batchUpdates.toReversed()
 }
 
 async function deleteGdocContent(

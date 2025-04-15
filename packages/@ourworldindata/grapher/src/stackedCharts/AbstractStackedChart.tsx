@@ -286,7 +286,7 @@ export class AbstractStackedChart
                     rows: col.owidRows,
                 }
             })
-            .reverse() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
+            .toReversed() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
     }
 
     @computed
@@ -302,7 +302,7 @@ export class AbstractStackedChart
                     rows: owidRowsByEntityName.get(seriesName) || [],
                 }
             })
-            .reverse() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
+            .toReversed() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
     }
 
     @computed
@@ -453,7 +453,7 @@ export class AbstractStackedChart
                             color: series.color,
                         })
                 )
-                .reverse()
+                .toReversed()
             return { categoricalLegendData }
         }
         return undefined

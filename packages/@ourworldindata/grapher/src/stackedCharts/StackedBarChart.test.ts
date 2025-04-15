@@ -41,7 +41,7 @@ describe("stackedbar chart with columns as series", () => {
         expect(chart.series.length).toEqual(2)
         // The stacking happens bottom to top, so we need to .reverse()
         expect(
-            chart.series.map((series) => series.seriesName).reverse()
+            chart.series.map((series) => series.seriesName).toReversed()
         ).toEqual([SampleColumnSlugs.GDP, SampleColumnSlugs.Population])
     })
 })
