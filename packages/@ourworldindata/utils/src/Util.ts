@@ -1,3 +1,4 @@
+import * as R from "remeda"
 import {
     capitalize,
     chunk,
@@ -1374,7 +1375,7 @@ export const getOwidGdocFromJSON = (json: OwidGdocJSON): OwidGdoc => {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 export function extractGdocPageData<T extends OwidGdoc>(gdoc: T) {
     // Generic properties every gdoc has
-    const commonProps = typeSafePick(gdoc, [
+    const commonProps = R.pick(gdoc, [
         "id",
         "slug",
         "content",
@@ -1398,28 +1399,28 @@ export function extractGdocPageData<T extends OwidGdoc>(gdoc: T) {
             const aboutGdoc = gdoc as OwidGdocAboutInterface // better if we didn't have to do that
             return {
                 ...commonProps,
-                ...typeSafePick(aboutGdoc, ["donors"]),
+                ...R.pick(aboutGdoc, ["donors"]),
             }
         })
         .with({ type: OwidGdocType.Homepage }, () => {
             const homepageGdoc = gdoc as OwidGdocHomepageInterface
             return {
                 ...commonProps,
-                ...typeSafePick(homepageGdoc, ["homepageMetadata"]),
+                ...R.pick(homepageGdoc, ["homepageMetadata"]),
             }
         })
         .with({ type: OwidGdocType.DataInsight }, () => {
             const dataInsightGdoc = gdoc as OwidGdocDataInsightInterface
             return {
                 ...commonProps,
-                ...typeSafePick(dataInsightGdoc, ["latestDataInsights"]),
+                ...R.pick(dataInsightGdoc, ["latestDataInsights"]),
             }
         })
         .with({ type: OwidGdocType.Author }, () => {
             const authorGdoc = gdoc as OwidGdocAuthorInterface
             return {
                 ...commonProps,
-                ...typeSafePick(authorGdoc, ["latestWorkLinks"]),
+                ...R.pick(authorGdoc, ["latestWorkLinks"]),
             }
         })
         .otherwise(() => commonProps)
@@ -2230,22 +2231,4 @@ export const getUserNavigatorLanguages = (): readonly string[] => {
 
 export const getUserNavigatorLanguagesNonEnglish = (): readonly string[] => {
     return getUserNavigatorLanguages().filter((lang) => !lang.startsWith("en"))
-}
-
-/**
- * A type-safe version of lodash's pick that preserves the types of the picked properties
- */
-export function typeSafePick<T extends object, K extends keyof T>(
-    obj: T,
-    keys: K[]
-): Pick<T, K> {
-    return keys.reduce(
-        (result, key) => {
-            if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                result[key] = obj[key]
-            }
-            return result
-        },
-        {} as Pick<T, K>
-    )
 }
