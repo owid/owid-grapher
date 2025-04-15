@@ -1,4 +1,4 @@
-import { Parser, Expression } from "expr-eval"
+import Formula from "fparser"
 import { scaleLinear, scaleLog } from "d3-scale"
 import { ScaleType } from "@ourworldindata/types"
 
@@ -9,12 +9,9 @@ export function generateComparisonLinePoints(
     xScaleType: ScaleType,
     yScaleType: ScaleType
 ): [number, number][] {
-    const expr = parseEquation(lineFunction)?.simplify({
-        e: Math.E,
-        pi: Math.PI,
-    })
+    const formula = parseEquation(lineFunction)
     const yFunc = (x: number): number | undefined =>
-        evalExpression(expr, { x }, undefined)
+        evalFormula(formula, { x }, undefined)
 
     // Construct control data by running the equation across sample points
     const numPoints = 500
@@ -37,8 +34,8 @@ export function generateComparisonLinePoints(
     return controlData
 }
 
-function evalExpression<D>(
-    expr: Expression | undefined,
+function evalFormula<D>(
+    expr: Formula | undefined,
     context: Record<string, number>,
     defaultOnError: D
 ): number | D {
@@ -50,9 +47,9 @@ function evalExpression<D>(
     }
 }
 
-function parseEquation(equation: string): Expression | undefined {
+function parseEquation(equation: string): Formula | undefined {
     try {
-        return Parser.parse(equation)
+        return new Formula(equation)
     } catch (e) {
         console.error(e)
         return undefined

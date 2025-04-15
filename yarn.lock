@@ -3305,7 +3305,6 @@ __metadata:
     esbuild-sass-plugin: "npm:^3.3.1"
     eslint: "npm:^9.21.0"
     eslint-plugin-react-hooks: "npm:^5.2.0"
-    expr-eval: "npm:^2.0.2"
     js-cookie: "npm:^3.0.1"
     mobx: "npm:^5.15.7"
     mobx-react: "npm:5"
@@ -3355,7 +3354,7 @@ __metadata:
     esbuild-sass-plugin: "npm:^3.3.1"
     eslint: "npm:^9.21.0"
     eslint-plugin-react-hooks: "npm:^5.2.0"
-    expr-eval: "npm:^2.0.2"
+    fparser: "npm:^3.1.0"
     js-cookie: "npm:^3.0.1"
     mobx: "npm:^5.15.7"
     mobx-react: "npm:5"
@@ -9944,13 +9943,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expr-eval@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "expr-eval@npm:2.0.2"
-  checksum: 10/b603f1ed2423636d84fd9984ed47af5cf90b42139faf5c535a778a12e916347b1e722364e3946ff3fc59537e01ea2eb3b4c3cc32a47bf80a097d1796e0b56fa6
-  languageName: node
-  linkType: hard
-
 "express-async-errors@npm:^3.1.1":
   version: 3.1.1
   resolution: "express-async-errors@npm:3.1.1"
@@ -10361,6 +10353,13 @@ __metadata:
   version: 0.2.0
   resolution: "forwarded@npm:0.2.0"
   checksum: 10/29ba9fd347117144e97cbb8852baae5e8b2acb7d1b591ef85695ed96f5b933b1804a7fac4a15dd09ca7ac7d0cdc104410e8102aae2dd3faa570a797ba07adb81
+  languageName: node
+  linkType: hard
+
+"fparser@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "fparser@npm:3.1.0"
+  checksum: 10/5c75ca1b705ffa24676b7f83b46ec467fff3602242d4c8fe4e97d7afa43e327fc70415e70598a1ad908cce3ba61688497be36fb34259335e4c64a73a8ffe9dd2
   languageName: node
   linkType: hard
 
@@ -11010,13 +11009,13 @@ __metadata:
     eslint-plugin-react: "npm:^7.37.4"
     eslint-plugin-react-hooks: "npm:^5.2.0"
     eslint-plugin-react-refresh: "npm:^0.4.19"
-    expr-eval: "npm:^2.0.2"
     express: "npm:^4.21.2"
     express-async-errors: "npm:^3.1.1"
     express-rate-limit: "npm:^7.5.0"
     figma-api: "npm:^2.0.1-beta"
     filenamify: "npm:^6.0.0"
     flag-icons: "npm:^7.3.1"
+    fparser: "npm:^3.1.0"
     fs-extra: "npm:^11.1.1"
     glob: "npm:^10.3.3"
     google-auth-library: "npm:^9.15.1"
