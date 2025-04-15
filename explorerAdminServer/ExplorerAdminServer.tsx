@@ -1,8 +1,8 @@
+import * as R from "remeda"
 import {
     ExplorerProgram,
     ExplorersRouteResponse,
 } from "@ourworldindata/explorer"
-import { keyBy, sortBy } from "@ourworldindata/utils"
 import { getExplorerBySlug, getAllExplorers } from "../db/model/Explorer"
 
 import * as db from "../db/db.js"
@@ -46,12 +46,12 @@ export class ExplorerAdminServer {
     async getAllPublishedExplorers(knex: db.KnexReadonlyTransaction) {
         const explorers = await this.getAllExplorers(knex)
         const publishedExplorers = explorers.filter((exp) => exp.isPublished)
-        return sortBy(publishedExplorers, (exp) => exp.explorerTitle)
+        return R.sortBy(publishedExplorers, (exp) => exp.explorerTitle ?? "")
     }
 
     async getAllPublishedExplorersBySlug(knex: db.KnexReadonlyTransaction) {
         return this.getAllPublishedExplorers(knex).then((publishedExplorers) =>
-            keyBy(publishedExplorers, "slug")
+            R.indexBy(publishedExplorers, (explorer) => explorer.slug)
         )
     }
 

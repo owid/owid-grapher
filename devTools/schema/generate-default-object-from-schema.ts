@@ -2,7 +2,7 @@
 
 import parseArgs from "minimist"
 import fs from "fs-extra"
-import { range } from "lodash"
+import { range } from "lodash-es"
 
 const TEMPLATE_FILENAME = "./devTools/schema/template"
 

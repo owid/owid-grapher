@@ -1,3 +1,4 @@
+import * as R from "remeda"
 import fs from "fs-extra"
 import path from "path"
 import ProgressBar from "progress"
@@ -10,7 +11,6 @@ import {
 } from "@ourworldindata/types"
 import {
     MultiDimDataPageConfig,
-    keyBy,
     OwidVariableWithSource,
     pick,
     uniq,
@@ -62,7 +62,7 @@ export async function getRelevantVariableMetadata(
         { concurrency: 10 }
     )
 
-    return keyBy(metadata, (m) => m.id)
+    return R.indexBy(metadata, (m) => m.id)
 }
 
 const getFaqEntries = async (
@@ -173,7 +173,7 @@ export async function renderMultiDimDataPageFromConfig({
             knex,
             relatedResearchFilenames
         )
-        imageMetadata = keyBy(images, "filename")
+        imageMetadata = R.indexBy(images, (image) => image.filename)
     }
 
     const props = {

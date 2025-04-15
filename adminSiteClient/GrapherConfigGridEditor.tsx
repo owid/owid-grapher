@@ -45,7 +45,7 @@ import {
     omitBy,
     pick,
     range,
-} from "lodash"
+} from "lodash-es"
 
 import { BaseEditorComponent, HotColumn, HotTable } from "@handsontable/react"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"

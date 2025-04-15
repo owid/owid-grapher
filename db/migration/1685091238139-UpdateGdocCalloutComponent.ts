@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { cloneDeep, forEach, forOwn, isArray, isObject } from "lodash"
+import { cloneDeep, forEach, forOwn, isArray, isObject } from "lodash-es"
 import { OwidGdocPostContent } from "@ourworldindata/utils"
 
 export class UpdateGdocCalloutComponent1685091238139

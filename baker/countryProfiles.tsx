@@ -9,7 +9,7 @@ import {
     DbRawChartConfig,
     parseChartConfig,
 } from "@ourworldindata/types"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import {
     CountryProfileIndicator,
     CountryProfilePage,

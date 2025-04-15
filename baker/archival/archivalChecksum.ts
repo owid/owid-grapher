@@ -5,7 +5,7 @@ import {
     JsonString,
 } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
-import { partition, pick } from "lodash"
+import { partition, pick } from "lodash-es"
 import { stringify } from "safe-stable-stringify"
 import { hashHex } from "../../serverUtils/hash.js"
 import { ArchivalManifest, ArchivalTimestamp } from "./archivalUtils.js"

@@ -1,5 +1,5 @@
 import cx from "classnames"
-import { get } from "lodash"
+import { get } from "lodash-es"
 
 export type Container =
     | "default"

@@ -8,7 +8,7 @@ import {
     IReactionDisposer,
 } from "mobx"
 import YAML from "yaml"
-import * as lodash from "lodash"
+import * as _ from "lodash-es"
 import { Prompt, Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
@@ -51,7 +51,6 @@ import { Grapher } from "@ourworldindata/grapher"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { DATA_API_URL, ETL_API_URL } from "../settings/clientSettings.js"
-import _ from "lodash"
 import urljoin from "url-join"
 
 interface VariablePageData
@@ -116,9 +115,9 @@ class VariableEditable
 
     constructor(json: any) {
         for (const key in this) {
-            if (key === "display") lodash.extend(this.display, json.display)
+            if (key === "display") _.extend(this.display, json.display)
             else if (key === "presentation")
-                lodash.extend(this.presentation, json.presentation)
+                _.extend(this.presentation, json.presentation)
             else this[key] = json[key]
         }
     }
@@ -705,7 +704,7 @@ class VariableEditor extends Component<{
                     {
                         property: DimensionProperty.y,
                         variableId: this.props.variable.id,
-                        display: lodash.clone(this.newVariable.display),
+                        display: _.clone(this.newVariable.display),
                     },
                 ],
             }

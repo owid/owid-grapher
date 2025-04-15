@@ -1,6 +1,6 @@
 import { DbPlainUser, UsersTableName, JsonError } from "@ourworldindata/types"
 import { parseIntOrUndefined } from "@ourworldindata/utils"
-import { pick } from "lodash"
+import { pick } from "lodash-es"
 import { getUserById, updateUser, insertUser } from "../../db/model/User.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import * as db from "../../db/db.js"

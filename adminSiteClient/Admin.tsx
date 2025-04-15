@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/react"
 import ReactDOM from "react-dom"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { observable, computed, action } from "mobx"
 import urljoin from "url-join"
 

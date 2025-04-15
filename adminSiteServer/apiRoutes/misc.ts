@@ -6,7 +6,7 @@
 import { DbRawPostGdoc, JsonError } from "@ourworldindata/types"
 
 import * as db from "../../db/db.js"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { Request } from "../authentication.js"
 import e from "express"

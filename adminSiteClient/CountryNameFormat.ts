@@ -1,4 +1,4 @@
-import { keyBy } from "@ourworldindata/utils"
+import * as R from "remeda"
 
 // export type CountryNameFormatType = 'NonStandardCountryName' | 'OurWorldInDataName' | 'IsoAlpha2' | 'IsoAlpha3' | 'ImfCode' | 'MarcCode' | 'CowLetter' | 'CowCode' | 'UnctadCode' | 'NCDCode' | 'KansasCode' | 'PennCode' | 'ContinentName' | 'ContinentCode'
 
@@ -120,4 +120,7 @@ export const CountryNameFormatDefs = [
     },
 ]
 
-export const CountryDefByKey = keyBy(CountryNameFormatDefs, "key")
+export const CountryDefByKey = R.indexBy(
+    CountryNameFormatDefs,
+    (def) => def.key
+)

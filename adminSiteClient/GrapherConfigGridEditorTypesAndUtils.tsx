@@ -53,7 +53,7 @@ import {
     ImmutableTree,
 } from "@react-awesome-query-builder/antd"
 import { match } from "ts-pattern"
-import { isNil } from "lodash"
+import { isNil } from "lodash-es"
 import * as R from "remeda"
 
 export function parseVariableAnnotationsRow(

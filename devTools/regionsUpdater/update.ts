@@ -8,7 +8,7 @@ import {
     type MultiPolygon,
 } from "geojson"
 import prettier from "prettier"
-import _ from "lodash"
+import * as _ from "lodash-es"
 
 const ETL_REGIONS_URL =
         process.env.ETL_REGIONS_URL ||

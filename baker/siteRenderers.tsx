@@ -11,7 +11,7 @@ import { ThankYouPage } from "../site/ThankYouPage.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import ReactDOMServer from "react-dom/server.js"
-import lodash from "lodash"
+import * as lodash from "lodash-es"
 import { formatCountryProfile, isCanonicalInternalUrl } from "./formatting.js"
 import * as cheerio from "cheerio"
 import {

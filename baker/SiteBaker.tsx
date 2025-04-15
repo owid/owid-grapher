@@ -5,7 +5,7 @@ import "../serverUtils/instrument.js"
 import fs from "fs-extra"
 import path from "path"
 import { glob } from "glob"
-import { keyBy, without, mapValues, pick } from "lodash"
+import { keyBy, without, mapValues, pick } from "lodash-es"
 import ProgressBar from "progress"
 import * as db from "../db/db.js"
 import {

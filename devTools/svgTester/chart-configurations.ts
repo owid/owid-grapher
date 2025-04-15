@@ -1,4 +1,4 @@
-import _ from "lodash"
+import * as _ from "lodash-es"
 import {
     GRAPHER_CHART_TYPES,
     StackMode,

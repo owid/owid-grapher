@@ -35,7 +35,7 @@ import {
     OwidGdocBaseInterface,
     TagGraphRoot,
 } from "@ourworldindata/types"
-import { groupBy } from "lodash"
+import { groupBy } from "lodash-es"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 

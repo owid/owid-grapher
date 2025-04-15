@@ -5,9 +5,13 @@ import {
 } from "@ourworldindata/types"
 import { fetchWithRetry } from "@ourworldindata/utils"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
-import { memoize } from "lodash"
+import { memoize } from "lodash-es"
+import type { MemoizedFunction } from "lodash"
 
-export const cachedGetVariableMetadata = memoize(
+export const cachedGetVariableMetadata: ((
+    variableId: number
+) => Promise<OwidVariableWithSourceAndDimension>) &
+    MemoizedFunction = memoize(
     async (variableId: number): Promise<OwidVariableWithSourceAndDimension> => {
         const response = await fetchWithRetry(
             getVariableMetadataRoute(DATA_API_URL, variableId)
@@ -15,7 +19,12 @@ export const cachedGetVariableMetadata = memoize(
         return await response.json()
     }
 )
-export const cachedGetGrapherConfigByUuid = memoize(
+
+export const cachedGetGrapherConfigByUuid: ((
+    grapherConfigUuid: string,
+    isPreviewing: boolean
+) => Promise<GrapherInterface>) &
+    MemoizedFunction = memoize(
     async (
         grapherConfigUuid: string,
         isPreviewing: boolean

@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 import fs from "fs/promises"
-import { get, set } from "lodash"
+import { get, set } from "lodash-es"
 
 /**
  * This file includes the code I used to generate the data we're inserting into the new column

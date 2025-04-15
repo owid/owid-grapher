@@ -4,7 +4,7 @@ import parseArgs from "minimist"
 import fs from "fs-extra"
 import path from "path"
 import workerpool from "workerpool"
-import _ from "lodash"
+import * as _ from "lodash-es"
 
 import * as utils from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"

@@ -1,4 +1,4 @@
-import { get, groupBy } from "lodash"
+import { get, groupBy } from "lodash-es"
 import { match, P } from "ts-pattern"
 import {
     ARCHVED_THUMBNAIL_FILENAME,

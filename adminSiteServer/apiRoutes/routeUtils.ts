@@ -1,7 +1,7 @@
 import { DbPlainUser } from "@ourworldindata/types"
 import { DeployQueueServer } from "../../baker/DeployQueueServer.js"
 import { BAKE_ON_CHANGE } from "../../settings/serverSettings.js"
-import { isObject } from "lodash"
+import { isObject } from "lodash-es"
 
 // Call this to trigger build and deployment of static charts on change
 export const triggerStaticBuild = async (

@@ -12,7 +12,7 @@ import {
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { UNCATEGORIZED_TAG_ID } from "../../settings/serverSettings.js"
 import * as db from "../../db/db.js"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import e from "express"
 import { Request } from "../authentication.js"
 import * as R from "remeda"

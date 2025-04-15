@@ -1,4 +1,5 @@
-import { memoize } from "@ourworldindata/utils"
+import { memoize } from "lodash-es"
+import type { MemoizedFunction } from "lodash"
 import * as db from "../db/db.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
 
@@ -65,7 +66,10 @@ export const getWordpressRedirectsMap = async (
     return new Map(redirectsFromDb.map((row) => [row.source, row.target]))
 }
 
-export const getGrapherAndWordpressRedirectsMap = memoize(
+export const getGrapherAndWordpressRedirectsMap: ((
+    knex: db.KnexReadonlyTransaction
+) => Promise<Map<string, string>>) &
+    MemoizedFunction = memoize(
     async (knex: db.KnexReadonlyTransaction): Promise<Map<string, string>> => {
         // source: pathnames only (e.g. /transport)
         // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)

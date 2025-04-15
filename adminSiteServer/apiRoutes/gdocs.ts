@@ -13,7 +13,7 @@ import {
     PostsTableName,
 } from "@ourworldindata/types"
 import { checkIsGdocPostExcludingFragments } from "@ourworldindata/utils"
-import { isEmpty } from "lodash"
+import { isEmpty } from "lodash-es"
 import { match } from "ts-pattern"
 import {
     checkHasChanges,
@@ -46,7 +46,7 @@ import { GdocHomepage } from "../../db/model/Gdoc/GdocHomepage.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { triggerStaticBuild, enqueueLightningChange } from "./routeUtils.js"
 import * as db from "../../db/db.js"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { Request } from "../authentication.js"
 import e from "express"
 
