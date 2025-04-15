@@ -7,7 +7,12 @@ import { ABOUT_LINKS } from "../../SiteConstants.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import Footnotes from "../components/Footnotes.js"
 
-export default function AboutPage({ content, slug }: OwidGdocAboutInterface) {
+type AboutPageProps = Omit<
+    OwidGdocAboutInterface,
+    "markdown" | "publicationContext" | "revisionId"
+>
+
+export default function AboutPage({ content, slug }: AboutPageProps) {
     const shouldOverrideTitle = content["override-title"]
     return (
         <main className="about-page centered-article-container grid grid-cols-12-full-width">

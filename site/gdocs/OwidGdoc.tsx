@@ -1,5 +1,5 @@
 import * as React from "react"
-import { OwidGdocType, OwidGdocAboutInterface } from "@ourworldindata/types"
+import { OwidGdocType } from "@ourworldindata/types"
 import { get, OwidGdocPageProps } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import { GdocPost } from "./pages/GdocPost.js"
@@ -47,7 +47,7 @@ export function OwidGdoc({
             (props) => <GdocPost {...props} />
         )
         .with({ content: { type: OwidGdocType.AboutPage } }, (props) => (
-            <AboutPage {...(props as OwidGdocAboutInterface)} />
+            <AboutPage {...props} />
         ))
         .with({ content: { type: OwidGdocType.DataInsight } }, (props) => (
             <DataInsightPage {...props} />
