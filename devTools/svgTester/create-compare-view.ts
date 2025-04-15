@@ -4,7 +4,7 @@ import parseArgs from "minimist"
 import fs from "fs-extra"
 import path from "path"
 import * as utils from "./utils.js"
-import _ from "lodash"
+import * as _ from "lodash-es"
 
 const DEFAULT_REPORT_FILENAME = "../owid-grapher-svgs/differences.html"
 

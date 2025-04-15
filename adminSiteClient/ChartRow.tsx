@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { action, runInAction } from "mobx"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { Link } from "./Link.js"
 import { Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"

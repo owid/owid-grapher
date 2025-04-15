@@ -1,5 +1,5 @@
 import * as React from "react"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import {
     groupBy,
     sortBy,

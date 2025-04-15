@@ -7,7 +7,7 @@ import {
     isEqual,
     isObject,
     set,
-} from "lodash"
+} from "lodash-es"
 import { OwidGdocPostContent } from "@ourworldindata/utils"
 
 export class UpdateGdocRecircComponent1685107433682

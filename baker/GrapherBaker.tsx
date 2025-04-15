@@ -10,7 +10,7 @@ import {
     mergeGrapherConfigs,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,

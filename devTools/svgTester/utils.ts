@@ -20,7 +20,7 @@ import {
 } from "../../baker/GrapherImageBaker.js"
 import { getVariableData } from "../../db/model/Variable.js"
 
-import _ from "lodash"
+import * as _ from "lodash-es"
 import util from "util"
 import { getHeapStatistics } from "v8"
 import { queryStringsByChartType } from "./chart-configurations.js"

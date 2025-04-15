@@ -46,7 +46,7 @@ import {
     EnrichedBlockAllCharts,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import { compact, get, isArray, partition } from "lodash"
+import { compact, get, isArray, partition } from "lodash-es"
 import * as cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
 import * as R from "remeda"

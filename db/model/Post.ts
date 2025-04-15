@@ -32,6 +32,7 @@ import {
     keyBy,
     LARGEST_IMAGE_WIDTH,
 } from "@ourworldindata/utils"
+import type { MemoizedFunction } from "lodash"
 import { Knex } from "knex"
 import {
     BAKED_BASE_URL,
@@ -277,7 +278,10 @@ export const getFullPost = async (
 const selectHomepagePosts: FilterFnPostRestApi = (post) =>
     post.meta?.owid_publication_context_meta_field?.homepage === true
 
-export const getBlogIndex = memoize(
+export const getBlogIndex: ((
+    knex: db.KnexReadonlyTransaction
+) => Promise<IndexPost[]>) &
+    MemoizedFunction = memoize(
     async (knex: db.KnexReadonlyTransaction): Promise<IndexPost[]> => {
         const gdocPosts = await getAndLoadListedGdocPosts(knex)
         const imagesByFilename = await db

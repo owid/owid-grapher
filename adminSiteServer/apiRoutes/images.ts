@@ -8,7 +8,7 @@ import {
 } from "../imagesHelpers.js"
 import { extractSqlError, triggerStaticBuild } from "./routeUtils.js"
 import * as db from "../../db/db.js"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 
 import { Request } from "../authentication.js"
 import e from "express"

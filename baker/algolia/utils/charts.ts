@@ -1,4 +1,4 @@
-import { isNil, uniq } from "lodash"
+import { isNil, uniq } from "lodash-es"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { KeyChartLevel, OwidGdocLinkType } from "@ourworldindata/types"
 import * as db from "../../../db/db.js"

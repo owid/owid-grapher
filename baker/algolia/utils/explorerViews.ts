@@ -5,7 +5,15 @@ import {
     DecisionMatrix,
     TableDef,
 } from "@ourworldindata/explorer"
-import { at, get, groupBy, mapValues, orderBy, partition, uniq } from "lodash"
+import {
+    at,
+    get,
+    groupBy,
+    mapValues,
+    orderBy,
+    partition,
+    uniq,
+} from "lodash-es"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import { obtainAvailableEntitiesForGraphers } from "../../updateChartEntities.js"

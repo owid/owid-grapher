@@ -1,6 +1,6 @@
 import fs from "fs-extra"
 import { glob } from "glob"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 
 import * as db from "../db/db.js"
 import { DbPlainTag, Url, without } from "@ourworldindata/utils"

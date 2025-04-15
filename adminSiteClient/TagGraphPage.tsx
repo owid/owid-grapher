@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, action, runInAction, toJS, computed } from "mobx"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { AdminLayout } from "./AdminLayout.js"
 import {
     MinimalTagWithIsTopic,

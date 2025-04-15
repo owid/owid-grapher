@@ -15,7 +15,7 @@ import { getDatasetById, setTagsForDataset } from "../../db/model/Dataset.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "./routeUtils.js"
 import * as db from "../../db/db.js"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { Request } from "express"
 import * as e from "express"
 

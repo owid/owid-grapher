@@ -49,7 +49,7 @@ import {
     uniqWith,
     upperFirst,
     without,
-} from "lodash"
+} from "lodash-es"
 
 export {
     capitalize,
@@ -563,7 +563,9 @@ const _getUserCountryInformation = async (): Promise<
 // Memoized because this will pretty much never change during a session.
 // The memoization, however, also means that any failures will also be cached.
 // This is okay currently, because currently this information is very much an optional nice-to-have.
-export const getUserCountryInformation = memoize(_getUserCountryInformation)
+export const getUserCountryInformation: () => Promise<
+    UserCountryInformation | undefined
+> = memoize(_getUserCountryInformation)
 
 export const stripHTML = (html: string): string => striptags(html)
 

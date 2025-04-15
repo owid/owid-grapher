@@ -1,4 +1,4 @@
-import { keyBy } from "lodash"
+import { keyBy } from "lodash-es"
 import * as db from "../db.js"
 import {
     DbPlainAnalyticsPageview,

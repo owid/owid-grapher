@@ -1,5 +1,5 @@
 import cx from "classnames"
-import { isEmpty } from "lodash"
+import { isEmpty } from "lodash-es"
 import { useEffect, useRef } from "react"
 
 import { OwidGdocAboutInterface } from "@ourworldindata/types"

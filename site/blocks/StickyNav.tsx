@@ -57,7 +57,7 @@ class StickyNav extends Component<
         window.requestAnimationFrame(() => this.setHeadingPositions())
     }
 
-    handleScroll = throttle(() => {
+    handleScroll: () => void = throttle(() => {
         this.setCurrentHeading()
     }, 50)
 

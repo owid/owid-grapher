@@ -5,7 +5,7 @@ import {
     GrapherInterface,
 } from "@ourworldindata/types"
 import fs from "fs-extra"
-import { keyBy } from "lodash"
+import { keyBy } from "lodash-es"
 import path from "path"
 import * as db from "../../db/db.js"
 import { getAllImages } from "../../db/model/Image.js"

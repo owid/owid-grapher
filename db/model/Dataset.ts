@@ -2,7 +2,7 @@ import { Writable } from "stream"
 
 import * as db from "../db.js"
 import { writeVariableCSV } from "./Variable.js"
-import _ from "lodash"
+import * as _ from "lodash-es"
 import { DbPlainDataset, DatasetsTableName } from "@ourworldindata/types"
 
 // @Entity("datasets")

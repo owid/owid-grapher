@@ -162,7 +162,7 @@ import {
     htmlToSpans,
 } from "./htmlToEnriched.js"
 import { P, match } from "ts-pattern"
-import { isObject, parseInt } from "lodash"
+import { isObject, parseInt } from "lodash-es"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 import * as R from "remeda"
 

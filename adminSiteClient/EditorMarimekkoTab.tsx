@@ -1,5 +1,5 @@
 import { Grapher } from "@ourworldindata/grapher"
-import lodash from "lodash"
+import * as lodash from "lodash-es"
 import { action, IReactionDisposer, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"

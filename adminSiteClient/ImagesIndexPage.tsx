@@ -33,7 +33,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { type File, fileToBase64 } from "./imagesHelpers.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
-import { Dictionary, keyBy } from "lodash"
+import { keyBy } from "lodash-es"
 import cx from "classnames"
 import { NotificationInstance } from "antd/es/notification/interface.js"
 
@@ -280,7 +280,7 @@ function createColumns({
 }: {
     api: ImageEditorApi
     users: UserMap
-    usage: Dictionary<UsageInfo[]>
+    usage: Record<string, UsageInfo[]>
     notificationApi: NotificationInstance
 }): TableColumnsType<DbEnrichedImageWithUserId> {
     return [
@@ -524,7 +524,7 @@ export function ImageIndexPage() {
         notification.useNotification()
     const [images, setImages] = useState<ImageMap>({})
     const [users, setUsers] = useState<UserMap>({})
-    const [usage, setUsage] = useState<Dictionary<UsageInfo[]>>({})
+    const [usage, setUsage] = useState<Record<string, UsageInfo[]>>({})
     const [filenameSearchValue, setFilenameSearchValue] = useState("")
 
     const api = useMemo(
@@ -532,7 +532,7 @@ export function ImageIndexPage() {
             getUsage: async () => {
                 const usage = await admin.requestJSON<{
                     success: true
-                    usage: Dictionary<UsageInfo[]>
+                    usage: Record<string, UsageInfo[]>
                 }>(`/api/images/usage`, {}, "GET")
                 setUsage(usage.usage)
             },

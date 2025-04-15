@@ -24,7 +24,7 @@ import {
     mergeGrapherConfigs,
     uniqBy,
 } from "@ourworldindata/utils"
-import { omit, pick } from "lodash"
+import { omit, pick } from "lodash-es"
 import {
     ApiChartViewOverview,
     DataInsightMinimalInformation,
