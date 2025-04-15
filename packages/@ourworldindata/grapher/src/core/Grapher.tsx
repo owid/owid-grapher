@@ -194,6 +194,7 @@ import {
 } from "../captionedChart/StaticChartRasterizer.js"
 import { SidePanel } from "../sidePanel/SidePanel"
 import {
+    CoreColumnBySlug,
     EntitySelector,
     type EntitySelectorState,
 } from "../entitySelector/EntitySelector"
@@ -402,6 +403,10 @@ export class GrapherState {
     private framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
     private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
     @observable.ref _inputTable: OwidTable = new OwidTable()
+
+    @observable.ref interpolatedSortColumnsBySlug:
+        | CoreColumnBySlug
+        | undefined = undefined
 
     get inputTable(): OwidTable {
         return this._inputTable

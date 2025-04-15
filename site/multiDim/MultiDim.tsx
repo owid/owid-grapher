@@ -25,7 +25,6 @@ import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 const baseGrapherConfig: GrapherProgrammaticInterface = {
     bakedGrapherURL: BAKED_GRAPHER_URL,
     adminBaseUrl: ADMIN_BASE_URL,
-    dataApiUrl: DATA_API_URL,
     canHideExternalControlsInEmbed: true,
     isEmbeddedInAnOwidPage: true,
 }

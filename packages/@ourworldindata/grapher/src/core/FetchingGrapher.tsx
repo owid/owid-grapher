@@ -1,4 +1,5 @@
 import {
+    ColumnSlug,
     GrapherInterface,
     MultipleOwidVariableDataDimensionsMap,
     OwidChartDimensionInterface,
@@ -11,9 +12,16 @@ import {
     GrapherState,
 } from "./Grapher.js"
 import { loadVariableDataAndMetadata } from "./loadVariable.js"
-import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
-import { OwidTable } from "@ourworldindata/core-table"
+import {
+    buildVariableTable,
+    legacyToOwidTableAndDimensionsWithMandatorySlug,
+} from "./LegacyToOwidTable.js"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { isEqual } from "@ourworldindata/utils"
+import {
+    CoreColumnBySlug,
+    EXTERNAL_SORT_INDICATOR_DEFINITIONS,
+} from "../entitySelector/EntitySelector.js"
 import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
 
 export interface FetchingGrapherProps {
@@ -23,26 +31,31 @@ export interface FetchingGrapherProps {
     archivedChartInfo: ArchivedChartOrArchivePageMeta | undefined
 }
 
-async function loadSortColumnsAndAddToTable() {
-    // if an external indicator has been selected, load it
-    // await this.loadAndSetExternalSortColumn(external)
-    // // apply tolerance if an indicator is selected for the first time
-    // if (
-    //     !external &&
-    //     !this.isEntityNameSlug(slug) &&
-    //     !this.interpolatedSortColumnsBySlug[slug]
-    // ) {
-    //     const interpolatedColumn = this.table
-    //         .interpolateColumnWithTolerance(slug)
-    //         .get(slug)
-    //     this.setInterpolatedSortColumn(interpolatedColumn)
-    //     const variableTable = buildVariableTable(variable)
-    //     const column = variableTable
-    //         .filterByEntityNames(this.availableEntityNames)
-    //         .interpolateColumnWithTolerance(slug, Infinity)
-    //         .get(slug)
-    //     if (column) this.setInterpolatedSortColumn(column)
-    // }
+async function loadSortColumn(
+    indicatorId: number,
+    slug: ColumnSlug,
+    dataApiUrl: string
+): Promise<CoreColumn> {
+    const variable = await loadVariableDataAndMetadata(indicatorId, dataApiUrl)
+    const variableTable = buildVariableTable(variable)
+    const column = variableTable
+        .interpolateColumnWithTolerance(slug, Infinity)
+        .get(slug)!
+    return column
+}
+
+async function loadSortColumns(dataApiUrl: string): Promise<CoreColumnBySlug> {
+    const promises = EXTERNAL_SORT_INDICATOR_DEFINITIONS.map(
+        async (sortIndicator) => {
+            const { indicatorId, slug } = sortIndicator
+            return loadSortColumn(indicatorId, slug, dataApiUrl)
+        }
+    )
+    const columns = await Promise.all(promises)
+    const columnMap = Object.fromEntries(
+        columns.map((column) => [column.slug, column])
+    )
+    return columnMap
 }
 export function FetchingGrapher(
     props: FetchingGrapherProps
@@ -98,6 +111,14 @@ export function FetchingGrapher(
         props.config?.selectedEntityColors,
         props.archivedChartInfo,
     ])
+
+    React.useEffect(() => {
+        async function fetchSortColumns(): Promise<void> {
+            const sortColumns = await loadSortColumns(props.dataApiUrl)
+            grapherState.current.interpolatedSortColumnsBySlug = sortColumns
+        }
+        void fetchSortColumns()
+    })
 
     return <Grapher grapherState={grapherState.current} />
 }
