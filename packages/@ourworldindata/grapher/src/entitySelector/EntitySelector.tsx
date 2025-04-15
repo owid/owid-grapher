@@ -49,19 +49,16 @@ import { SortIcon } from "../controls/SortIcon"
 import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
 import { ColumnSlug, OwidColumnDef, Time } from "@ourworldindata/types"
-import { buildVariableTable } from "../core/LegacyToOwidTable"
-import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 import { FocusArray } from "../focus/FocusArray"
 import * as R from "remeda"
 
-type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
+export type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
 export interface EntitySelectorState {
     searchInput: string
     sortConfig: SortConfig
     localEntityNames?: string[]
-    interpolatedSortColumnsBySlug?: CoreColumnBySlug
     isLoadingExternalSortColumn?: boolean
 }
 
@@ -77,6 +74,7 @@ export interface EntitySelectorManager {
     canHighlightEntities?: boolean
     focusArray?: FocusArray
     endTime?: Time
+    interpolatedSortColumnsBySlug?: CoreColumnBySlug
 }
 
 interface SortConfig {
@@ -102,7 +100,7 @@ interface DropdownOption {
     formattedTime?: string
 }
 
-const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
+export const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
     {
         key: "population",
         label: "Population",
@@ -259,16 +257,6 @@ export class EntitySelector extends React.Component<{
         }
     }
 
-    private setInterpolatedSortColumn(column?: CoreColumn): void {
-        if (!column) return
-        this.set({
-            interpolatedSortColumnsBySlug: {
-                ...this.interpolatedSortColumnsBySlug,
-                [column.slug]: column,
-            },
-        })
-    }
-
     private clearSearchInput(): void {
         this.set({ searchInput: "" })
     }
@@ -366,9 +354,7 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get interpolatedSortColumnsBySlug(): CoreColumnBySlug {
-        return (
-            this.manager.entitySelectorState.interpolatedSortColumnsBySlug ?? {}
-        )
+        return this.manager.interpolatedSortColumnsBySlug ?? {}
     }
 
     @computed private get interpolatedSortColumns(): CoreColumn[] {
