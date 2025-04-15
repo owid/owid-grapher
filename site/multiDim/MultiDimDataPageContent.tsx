@@ -4,6 +4,8 @@ import { useSearchParams } from "react-router-dom-v5-compat"
 import {
     Grapher,
     GrapherAnalytics,
+    GrapherState,
+    getCachingInputTableFetcher,
     GrapherProgrammaticInterface,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
@@ -123,7 +125,9 @@ const cachedGetGrapherConfigByUuid = memoize(
         isPreviewing: boolean
     ): Promise<GrapherInterface> => {
         return fetchWithRetry(
-            `/grapher/by-uuid/${grapherConfigUuid}.config.json${isPreviewing ? "?nocache" : ""}`
+            `/grapher/by-uuid/${grapherConfigUuid}.config.json${
+                isPreviewing ? "?nocache" : ""
+            }`
         ).then((resp) => resp.json())
     }
 )
@@ -161,12 +165,16 @@ export const MultiDimDataPageContent = ({
     tagToSlugMap,
     imageMetadata,
 }: MultiDimDataPageContentProps) => {
-    const grapherRef = useRef<Grapher | null>(null)
+    const grapherStateRef = useRef<GrapherState>(new GrapherState({}))
     const grapherFigureRef = useRef<HTMLDivElement>(null)
     const [searchParams, setSearchParams] = useSearchParams()
-    const [manager, setManager] = useState({ canonicalUrl })
+    const [_manager, setManager] = useState({ canonicalUrl })
     const [varDatapageData, setVarDatapageData] =
         useState<DataPageDataV2 | null>(null)
+    const inputTableFetcher = useMemo(
+        () => getCachingInputTableFetcher(DATA_API_URL, undefined),
+        []
+    )
 
     const config = useMemo(
         () => MultiDimDataPageConfig.fromObject(configObj),
@@ -188,7 +196,7 @@ export const MultiDimDataPageContent = ({
 
     const updateGrapher = useCallback(
         (
-            grapher: Grapher,
+            grapherState: GrapherState,
             settings: MultiDimDimensionChoices,
             grapherQueryParams: GrapherQueryParams
         ) => {
@@ -219,7 +227,7 @@ export const MultiDimDataPageContent = ({
             setManager((prev) => ({ ...prev, editUrl }))
 
             void Promise.allSettled([datapageDataPromise, grapherConfigPromise])
-                .then(([datapageData, grapherConfig]) => {
+                .then(async ([datapageData, grapherConfig]) => {
                     if (datapageData.status === "rejected")
                         throw new Error(
                             `Fetching variable by uuid failed: ${grapherConfigUuid}`,
@@ -231,27 +239,38 @@ export const MultiDimDataPageContent = ({
                             ...grapherConfig.value,
                             ...baseGrapherConfig,
                         }
+
+                        await inputTableFetcher(
+                            grapherConfig.value.dimensions!,
+                            grapherConfig.value.selectedEntityColors
+                        ).then((inputTable) => {
+                            if (inputTable) grapherState.inputTable = inputTable
+                        })
+
                         // Batch the grapher updates to avoid getting intermediate
                         // grapherChangedParams values, which make the URL update
                         // multiple times while flashing.
                         // https://stackoverflow.com/a/48610973/9846837
                         unstable_batchedUpdates(() => {
-                            grapher.setAuthoredVersion(config)
-                            grapher.reset()
-                            grapher.updateFromObject(config)
-                            grapher.downloadData()
-                            grapher.populateFromQueryParams(grapherQueryParams)
+                            grapherState.setAuthoredVersion(config)
+                            grapherState.reset()
+                            grapherState.updateFromObject(config)
+                            // TODO: the input table is not yet set - make sure to fetch the data and set it
+
+                            grapherState.populateFromQueryParams(
+                                grapherQueryParams
+                            )
                         })
                     }
                 })
                 .catch(console.error)
         },
-        [config, isPreviewing]
+        [config, inputTableFetcher, isPreviewing]
     )
 
     const handleSettingsChange = useCallback(
         (settings: MultiDimDimensionChoices) => {
-            const grapher = grapherRef.current
+            const grapher = grapherStateRef.current
             if (!grapher) return
 
             const oldGrapherParams = grapher.changedParams
@@ -277,9 +296,14 @@ export const MultiDimDataPageContent = ({
 
     // Set state from query params on page load.
     useEffect(() => {
-        const grapher = grapherRef.current
+        const grapher = grapherStateRef.current
         if (!grapher) return
         const queryParams = Object.fromEntries(searchParams.entries())
+        // this is not taking into account what used to be passed as "manager"
+        grapher.externalBounds = bounds
+        grapher.bakedGrapherURL = BAKED_GRAPHER_URL
+        grapher.adminBaseUrl = ADMIN_BASE_URL
+        grapher.dataApiUrl = DATA_API_URL
         updateGrapher(grapher, settings, queryParams)
         // NOTE (Martin): This is the only way I was able to set the initial
         // state on page load. Reconsider after the Grapher state refactor, i.e.
@@ -290,8 +314,8 @@ export const MultiDimDataPageContent = ({
 
     // De-mobx grapher.changedParams by transforming it into React state
     const grapherChangedParams = useMobxStateToReactState(
-        useCallback(() => grapherRef.current?.changedParams, []),
-        !!grapherRef.current
+        useCallback(() => grapherStateRef.current?.changedParams, []),
+        !!grapherStateRef.current
     )
 
     useEffect(() => {
@@ -304,8 +328,8 @@ export const MultiDimDataPageContent = ({
     }, [grapherChangedParams, settings, setSearchParams])
 
     const grapherCurrentTitle = useMobxStateToReactState(
-        useCallback(() => grapherRef.current?.currentTitle, []),
-        !!grapherRef.current
+        useCallback(() => grapherStateRef.current?.currentTitle, []),
+        !!grapherStateRef.current
     )
 
     useEffect(() => {
@@ -315,6 +339,12 @@ export const MultiDimDataPageContent = ({
     }, [grapherCurrentTitle])
 
     const bounds = useElementBounds(grapherFigureRef)
+
+    useEffect(() => {
+        if (bounds) {
+            grapherStateRef.current.externalBounds = bounds
+        }
+    }, [bounds])
 
     const hasTopicTags = !!config.config.topicTags?.length
 
@@ -383,10 +413,7 @@ export const MultiDimDataPageContent = ({
                         >
                             <figure data-grapher-src ref={grapherFigureRef}>
                                 <Grapher
-                                    ref={grapherRef}
-                                    {...baseGrapherConfig}
-                                    bounds={bounds}
-                                    manager={manager}
+                                    grapherState={grapherStateRef.current}
                                 />
                             </figure>
                         </div>
