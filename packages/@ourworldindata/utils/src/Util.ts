@@ -1429,21 +1429,6 @@ export async function copyToClipboard(text: string): Promise<void> {
     return
 }
 
-export function findDuplicates<T>(arr: T[]): T[] {
-    const set = new Set()
-    const duplicates: Set<T> = new Set()
-    arr.forEach((item) => {
-        if (set.has(item)) {
-            if (!duplicates.has(item)) {
-                duplicates.add(item)
-            }
-        } else {
-            set.add(item)
-        }
-    })
-    return [...duplicates]
-}
-
 // Memoization for immutable getters. Run the function once for this instance and cache the result.
 export const imemo = <Type>(
     _target: unknown,

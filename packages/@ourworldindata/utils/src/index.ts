@@ -104,7 +104,6 @@ export {
     checkNodeIsSpanLink,
     getPaginationPageNumbers,
     spansToUnformattedPlainText,
-    findDuplicates,
     checkIsOwidGdocType,
     isArrayOfNumbers,
     greatestCommonDivisor,
