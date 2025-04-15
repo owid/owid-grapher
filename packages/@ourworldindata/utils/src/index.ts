@@ -204,8 +204,6 @@ export {
     range,
     reverse,
     round,
-    sample,
-    sampleSize,
     set,
     sortBy,
     sortedIndexBy,
