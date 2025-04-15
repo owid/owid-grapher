@@ -108,6 +108,7 @@ export interface OwidGdocBaseInterface {
     linkedAuthors?: LinkedAuthor[]
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     linkedCharts?: Record<string, LinkedChart>
+    linkedChartViews?: Record<string, ChartViewInfo>
     linkedIndicators?: Record<number, LinkedIndicator>
     imageMetadata?: Record<string, ImageMetadata>
     relatedCharts?: RelatedChart[]
