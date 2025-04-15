@@ -11,8 +11,6 @@ import {
     get,
     Bounds,
     FontFamily,
-    dropWhile,
-    dropRightWhile,
     cloneDeep,
 } from "@ourworldindata/utils"
 import { DetailsMarker } from "@ourworldindata/types"
@@ -21,6 +19,7 @@ import fromMarkdown from "mdast-util-from-markdown"
 import type { Root, Content } from "mdast"
 import { match } from "ts-pattern"
 import { urlRegex } from "../markdown/remarkPlainLinks.js"
+import * as R from "remeda"
 
 const SUPERSCRIPT_NUMERALS = {
     "0": "\u2070",
@@ -827,8 +826,8 @@ export function convertMarkdownToIRTokens(
         convertMarkdownNodeToIRTokens(item, fontParams)
     )
     // ensure that there are no leading or trailing line breaks
-    return dropRightWhile(
-        dropWhile(children, (token) => token instanceof IRLineBreak),
+    return R.dropLastWhile(
+        R.dropWhile(children, (token) => token instanceof IRLineBreak),
         (token) => token instanceof IRLineBreak
     )
 }

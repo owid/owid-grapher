@@ -173,8 +173,6 @@ export {
     debounce,
     difference,
     drop,
-    dropRightWhile,
-    dropWhile,
     extend,
     get,
     groupBy,
