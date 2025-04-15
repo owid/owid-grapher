@@ -173,7 +173,6 @@ export {
     get,
     groupBy,
     identity,
-    invert,
     isArray,
     isBoolean,
     isEmpty,

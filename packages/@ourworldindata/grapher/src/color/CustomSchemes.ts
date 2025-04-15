@@ -1,5 +1,6 @@
-import { omit, invert, lazy } from "@ourworldindata/utils"
+import { omit, lazy } from "@ourworldindata/utils"
 import { ColorSchemeInterface, ColorSchemeName } from "@ourworldindata/types"
+import * as R from "remeda"
 
 // TODO: Initialize CustomColorSchemes lazily
 export const CustomColorSchemes: ColorSchemeInterface[] = []
@@ -33,7 +34,7 @@ export const OwidDistinctColors = {
     Coral: "#d73c50",
 } as const
 
-const OwidDistinctColorsNames = lazy(() => invert(OwidDistinctColors))
+const OwidDistinctColorsNames = lazy(() => R.invert(OwidDistinctColors))
 
 // These are variations of some of the colors above where the original color would have too little
 // contrast against a white background for thin lines or text elements
@@ -62,7 +63,9 @@ export const OwidDistinctLinesColors = {
 }
 
 // Used for looking up names from color hex values
-const OwidDistinctLinesColorNames = lazy(() => invert(OwidDistinctLinesColors))
+const OwidDistinctLinesColorNames = lazy(() =>
+    R.invert(OwidDistinctLinesColors)
+)
 
 // Below are 5 variations of the same colors in different permutations
 export const CategoricalColorsPaletteA = [
@@ -255,7 +258,7 @@ export const EnergyColors = {
 }
 
 // Used for looking up color names from hex values
-const EnergyColorsNames = lazy(() => invert(EnergyColors))
+const EnergyColorsNames = lazy(() => R.invert(EnergyColors))
 
 const EnergyColorPalette = [
     EnergyColors.Coal,
@@ -336,7 +339,7 @@ export const ContinentColors = {
 } as const
 
 // Used for looking up color names from hex values
-const ContinentColorsNames = lazy(() => invert(ContinentColors))
+const ContinentColorsNames = lazy(() => R.invert(ContinentColors))
 
 const ContinentColorPalette = [
     ContinentColors.Africa,
