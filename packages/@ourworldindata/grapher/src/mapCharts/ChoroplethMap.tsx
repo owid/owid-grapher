@@ -189,7 +189,7 @@ export class ChoroplethMap extends React.Component<{
 
         const series = this.choroplethData.get(feature.id)
         const placement = annotationPlacementsById.get(feature.id)
-        if (!series || !placement) return
+        if (!series || !placement || !placement.ellipse) return
 
         // project ellipse onto the globe
         const ellipse = makeEllipseForProjection({

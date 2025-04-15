@@ -3,7 +3,7 @@ import { Direction } from "./MapChartConstants"
 
 interface AnnotationPlacement {
     id: string
-    ellipse: {
+    ellipse?: {
         center: [number, number]
         left: [number, number]
         top: [number, number]

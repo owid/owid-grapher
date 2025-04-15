@@ -11,6 +11,8 @@ import externalAnnotationPlacements from "./ExternalAnnotationPlacements.json"
 const GRAPHER_ROOT = __dirname.replace(/\/(itsJustJavascript\/)?devTools.*/, "")
 const GRAPHER_MAP_ANNOTATIONS_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/grapher/src/mapCharts/MapAnnotationPlacements.json`
 
+const COUNTRIES_WITH_EXTERNAL_LABEL_ONLY = ["Chile", "Indonesia"]
+
 export interface Ellipse {
     cx: number // center x
     cy: number // center y
@@ -150,11 +152,15 @@ async function main() {
             )
         }
 
-        const ellipseCoords = {
-            center: roundCoords(center),
-            left: roundCoords(left),
-            top: roundCoords(top),
-        }
+        const hasInternalAnnotation =
+            !COUNTRIES_WITH_EXTERNAL_LABEL_ONLY.includes(feature.id as any)
+        const ellipseCoords = hasInternalAnnotation
+            ? {
+                  center: roundCoords(center),
+                  left: roundCoords(left),
+                  top: roundCoords(top),
+              }
+            : undefined
 
         const externalPlacement = externalAnnotationPlacementsById.get(
             feature.id as string
@@ -166,6 +172,10 @@ async function main() {
                   bridgeCountries: externalPlacement.bridge,
               }
             : undefined
+
+        if (!ellipseCoords && !external) {
+            console.warn(`${feature.id} doesn't have a label placement`)
+        }
 
         return omitUndefinedValues({
             id: feature.id,
