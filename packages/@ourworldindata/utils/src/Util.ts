@@ -64,7 +64,6 @@ import {
     unset,
     upperFirst,
     without,
-    zip,
 } from "lodash"
 
 export {
@@ -131,7 +130,6 @@ export {
     unset,
     upperFirst,
     without,
-    zip,
 }
 import { extent, pairs } from "d3-array"
 export { pairs }

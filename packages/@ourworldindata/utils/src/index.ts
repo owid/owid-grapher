@@ -223,7 +223,6 @@ export {
     uniqWith,
     upperFirst,
     without,
-    zip,
     lowercaseObjectKeys,
     detailOnDemandRegex,
     extractDetailsFromSyntax,

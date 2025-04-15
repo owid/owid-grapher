@@ -3,7 +3,6 @@ import {
     DEFAULT_BOUNDS,
     uniq,
     sum,
-    zip,
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
@@ -41,6 +40,7 @@ import { TabLabel, Tabs } from "../tabs/Tabs"
 import { ExpandableTabs } from "../tabs/ExpandableTabs"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { isContinentsVariableId } from "../core/GrapherConstants"
+import * as R from "remeda"
 
 // keep in sync with variables in SourcesModal.scss
 const MAX_CONTENT_WIDTH = 640
@@ -248,7 +248,10 @@ export class SourcesModal extends React.Component<
                 6 // icon padding
 
             const visibleLabels: TabLabel[] = []
-            for (const [label, labelWidth] of zip(labels, clippedLabelWidths)) {
+            for (const [label, labelWidth] of R.zip(
+                labels,
+                clippedLabelWidths
+            )) {
                 width += labelWidth as number
                 if (width > maxWidth) break
                 visibleLabels.push(label!)
