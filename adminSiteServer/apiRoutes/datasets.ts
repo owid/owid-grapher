@@ -12,7 +12,6 @@ import {
     assignTagsForCharts,
 } from "../../db/model/Chart.js"
 import { getDatasetById, setTagsForDataset } from "../../db/model/Dataset.js"
-import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "./routeUtils.js"
 import * as db from "../../db/db.js"
