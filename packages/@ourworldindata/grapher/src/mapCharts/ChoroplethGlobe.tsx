@@ -31,7 +31,8 @@ import {
     Annotation,
     ANNOTATION_FONT_SIZE_DEFAULT,
     ANNOTATION_FONT_SIZE_MIN,
-    ANNOTATION_MARKER_LINE_LENGTH,
+    ANNOTATION_MARKER_LINE_LENGTH_DEFAULT,
+    ANNOTATION_MARKER_LINE_LENGTH_MAX,
     ChoroplethMapManager,
     ChoroplethSeriesByName,
     DEFAULT_GLOBE_SIZE,
@@ -347,8 +348,15 @@ export class ChoroplethGlobe extends React.Component<{
 
         const anchorPoint = this.projection(external.anchorPoint)
 
-        const fontSize = ANNOTATION_FONT_SIZE_MIN
-        const markerLength = ANNOTATION_MARKER_LINE_LENGTH
+        const scaleFactor = 1 / this.zoomScale
+        const fontSize = Math.min(
+            ANNOTATION_FONT_SIZE_MIN / scaleFactor,
+            ANNOTATION_FONT_SIZE_DEFAULT
+        )
+        const markerLength = Math.min(
+            ANNOTATION_MARKER_LINE_LENGTH_DEFAULT / scaleFactor,
+            ANNOTATION_MARKER_LINE_LENGTH_MAX
+        )
 
         const formattedValue = this.formatAnnotationLabel(series.value)
         const textBounds = Bounds.forText(formattedValue, {

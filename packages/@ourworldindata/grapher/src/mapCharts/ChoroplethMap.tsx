@@ -23,7 +23,7 @@ import {
     DEFAULT_STROKE_WIDTH,
     Direction,
     ANNOTATION_FONT_SIZE_MIN,
-    ANNOTATION_MARKER_LINE_LENGTH,
+    ANNOTATION_MARKER_LINE_LENGTH_DEFAULT,
 } from "./MapChartConstants"
 import { getGeoFeaturesForMap } from "./GeoFeatures"
 import {
@@ -240,7 +240,7 @@ export class ChoroplethMap extends React.Component<{
 
         const fontSize = ANNOTATION_FONT_SIZE_MIN / this.viewportScaleSqrt
         const markerLength =
-            ANNOTATION_MARKER_LINE_LENGTH / this.viewportScaleSqrt
+            ANNOTATION_MARKER_LINE_LENGTH_DEFAULT / this.viewportScaleSqrt
 
         const formattedValue = this.formatAnnotationLabel(series.value)
         const textBounds = Bounds.forText(formattedValue, {

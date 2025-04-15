@@ -43,7 +43,8 @@ export const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 
 export const ANNOTATION_FONT_SIZE_DEFAULT = 11
 export const ANNOTATION_FONT_SIZE_MIN = 7
-export const ANNOTATION_MARKER_LINE_LENGTH = 4
+export const ANNOTATION_MARKER_LINE_LENGTH_DEFAULT = 4
+export const ANNOTATION_MARKER_LINE_LENGTH_MAX = 8
 
 export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
     World: "World",
