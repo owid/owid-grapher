@@ -1,6 +1,7 @@
-import { last, maxBy, SeriesName, sortedIndexBy } from "@ourworldindata/utils"
+import { last, maxBy, SeriesName } from "@ourworldindata/utils"
 import { PlacedSeries } from "./LineLegendTypes"
 import { LEGEND_ITEM_MIN_SPACING } from "./LineLegendConstants"
+import * as R from "remeda"
 
 type Bracket = [number, number]
 
@@ -60,7 +61,7 @@ export function pickCandidate(
     let { candidates, sortedKeepSeries, keepSeriesHeight } = context
 
     // insert into sortedKeepSeries at the right position
-    const insertIndex = sortedIndexBy(
+    const insertIndex = R.sortedIndexBy(
         context.sortedKeepSeries,
         candidate,
         (s) => s.midY

@@ -197,7 +197,6 @@ export {
     round,
     set,
     sortBy,
-    sortedIndexBy,
     sortedUniqBy,
     startCase,
     sum,
