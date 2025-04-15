@@ -1061,16 +1061,6 @@ export const omitUndefinedValues = <T>(object: T): NoUndefinedValues<T> => {
     return result
 }
 
-export const omitNullableValues = <T>(object: T): NoUndefinedValues<T> => {
-    const result: any = {}
-    for (const key in object) {
-        if (object[key] !== undefined && object[key] !== null) {
-            result[key] = object[key]
-        }
-    }
-    return result
-}
-
 export function omitUndefinedValuesRecursive<T extends Record<string, any>>(
     obj: T
 ): NoUndefinedValues<T> {

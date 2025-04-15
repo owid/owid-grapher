@@ -73,7 +73,6 @@ export {
     findIndexFast,
     getClosestTimePairs,
     omitUndefinedValues,
-    omitNullableValues,
     isInIFrame,
     differenceObj,
     findDOMParent,
