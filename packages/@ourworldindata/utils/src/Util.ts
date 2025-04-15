@@ -1,3 +1,4 @@
+import * as R from "remeda"
 import {
     capitalize,
     chunk,
@@ -179,6 +180,8 @@ import {
     GRAPHER_CHART_TYPES,
     DbPlainTag,
     AssetMap,
+    OwidGdocAboutInterface,
+    OwidGdocHomepageInterface,
 } from "@ourworldindata/types"
 import { PointVector } from "./PointVector.js"
 import * as React from "react"
@@ -1359,6 +1362,89 @@ export const formatDate = (date: Date): string => {
  * stage, the manual approach is probably simpler.
  */
 export const getOwidGdocFromJSON = (json: OwidGdocJSON): OwidGdoc => {
+    return {
+        ...json,
+        createdAt: new Date(json.createdAt),
+        publishedAt: json.publishedAt ? new Date(json.publishedAt) : null,
+        updatedAt: json.updatedAt ? new Date(json.updatedAt) : null,
+    }
+}
+
+// We want to infer the return type from the existing types instead of having to
+// manually specify it.
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+export function extractGdocPageData<T extends OwidGdoc>(gdoc: T) {
+    // Generic properties every gdoc has
+    const commonProps = R.pick(gdoc, [
+        "id",
+        "slug",
+        "content",
+        "createdAt",
+        "updatedAt",
+        "published",
+        "publishedAt",
+        "breadcrumbs",
+        "manualBreadcrumbs",
+        "linkedAuthors",
+        "linkedDocuments",
+        "linkedCharts",
+        "linkedIndicators",
+        "imageMetadata",
+        "relatedCharts",
+        "tags",
+    ])
+
+    return match(gdoc.content)
+        .with({ type: OwidGdocType.AboutPage }, () => {
+            const aboutGdoc = gdoc as OwidGdocAboutInterface // better if we didn't have to do that
+            return {
+                ...commonProps,
+                ...R.pick(aboutGdoc, ["donors"]),
+            }
+        })
+        .with({ type: OwidGdocType.Homepage }, () => {
+            const homepageGdoc = gdoc as OwidGdocHomepageInterface
+            return {
+                ...commonProps,
+                ...R.pick(homepageGdoc, [
+                    "homepageMetadata",
+                    "latestDataInsights",
+                ]),
+            }
+        })
+        .with({ type: OwidGdocType.DataInsight }, () => {
+            const dataInsightGdoc = gdoc as OwidGdocDataInsightInterface
+            return {
+                ...commonProps,
+                ...R.pick(dataInsightGdoc, ["latestDataInsights"]),
+            }
+        })
+        .with({ type: OwidGdocType.Author }, () => {
+            const authorGdoc = gdoc as OwidGdocAuthorInterface
+            return {
+                ...commonProps,
+                ...R.pick(authorGdoc, ["latestWorkLinks"]),
+            }
+        })
+        .otherwise(() => commonProps)
+}
+
+// Muanually update the type for invariants that should hold at this point, i.e.
+// id and slug must be strings etc.
+export type OwidGdocPageData = Omit<
+    ReturnType<typeof extractGdocPageData>,
+    "createdAt" | "publishedAt" | "publishedAt"
+> & {
+    createdAt: string
+    publishedAt: string | null
+    updatedAt: string | null
+}
+
+export type OwidGdocPageProps = ReturnType<typeof extractGdocPageData>
+
+export function deserializeOwidGdocPageData(
+    json: OwidGdocPageData
+): OwidGdocPageProps {
     return {
         ...json,
         createdAt: new Date(json.createdAt),

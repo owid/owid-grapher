@@ -224,6 +224,7 @@ export interface OwidGdocHomepageInterface extends OwidGdocBaseInterface {
     content: OwidGdocHomepageContent
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     homepageMetadata?: OwidGdocHomepageMetadata
+    latestDataInsights?: LatestDataInsight[]
 }
 
 export interface OwidGdocAuthorContent {
@@ -341,7 +342,6 @@ export interface OwidGdocPostContent {
         | OwidGdocType.Article
         | OwidGdocType.TopicPage
         | OwidGdocType.LinearTopicPage
-        | OwidGdocType.AboutPage
         // TODO: Fragments need their own OwidGdocFragment interface and flow in the UI
         // Historically they were treated the same as GdocPosts but not baked
         // In reality, they have multiple possible data structures in their content (details, faqs, etc)

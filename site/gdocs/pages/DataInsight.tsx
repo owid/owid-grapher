@@ -97,7 +97,7 @@ function CopyLinkButton(props: { slug: string }) {
 }
 
 export const DataInsightBody = (
-    props: OwidGdocDataInsightInterface & {
+    props: DataInsightProps & {
         anchor?: string
         publishedAt: Date | string | null
         shouldLinkTitle?: boolean
@@ -163,7 +163,10 @@ export const DataInsightBody = (
 
 type DataInsightProps = {
     className?: string
-} & OwidGdocDataInsightInterface
+} & Omit<
+    OwidGdocDataInsightInterface,
+    "markdown" | "publicationContext" | "revisionId"
+>
 
 export const DataInsightPage = (
     props: DataInsightProps

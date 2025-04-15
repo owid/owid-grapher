@@ -9,6 +9,7 @@ import {
     get,
     OwidGdocHomepageInterface,
     OwidGdocAuthorInterface,
+    OwidGdocAboutInterface,
 } from "@ourworldindata/utils"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
@@ -28,6 +29,7 @@ export const GdocsSettingsContentField = ({
         | OwidGdocDataInsightInterface
         | OwidGdocHomepageInterface
         | OwidGdocAuthorInterface
+        | OwidGdocAboutInterface
     property: OwidGdocErrorMessageProperty
     render?: (props: {
         name: string

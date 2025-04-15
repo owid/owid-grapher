@@ -17,6 +17,7 @@ import {
     DEFAULT_THUMBNAIL_FILENAME,
     DbEnrichedImage,
     OwidGdocDataInsightInterface,
+    OwidGdocAboutInterface,
 } from "@ourworldindata/utils"
 import { formatPost } from "../../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
@@ -218,7 +219,10 @@ function generateGdocRecords(
     cloudflareImagesByFilename: Record<string, DbEnrichedImage>
 ): PageRecord[] {
     const getPostImportance = (
-        gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
+        gdoc:
+            | OwidGdocAboutInterface
+            | OwidGdocDataInsightInterface
+            | OwidGdocPostInterface
     ): number => {
         return match(gdoc.content.type)
             .with(OwidGdocType.Article, () =>

@@ -6,6 +6,7 @@ import {
     GdocInsightSettings,
     GdocHomepageSettings,
     GdocAuthorSettings,
+    GdocAboutPageSettings,
 } from "./GdocsSettingsForms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
@@ -337,8 +338,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                         OwidGdocType.Article,
                                         OwidGdocType.TopicPage,
                                         OwidGdocType.LinearTopicPage,
-                                        OwidGdocType.Fragment,
-                                        OwidGdocType.AboutPage
+                                        OwidGdocType.Fragment
                                     ),
                                 },
                             },
@@ -389,6 +389,22 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             },
                             (gdoc) => (
                                 <GdocAuthorSettings
+                                    gdoc={gdoc}
+                                    setCurrentGdoc={(updatedGdoc) =>
+                                        setCurrentGdoc(() => updatedGdoc)
+                                    }
+                                    errors={errors}
+                                />
+                            )
+                        )
+                        .with(
+                            {
+                                content: {
+                                    type: OwidGdocType.AboutPage,
+                                },
+                            },
+                            (gdoc) => (
+                                <GdocAboutPageSettings
                                     gdoc={gdoc}
                                     setCurrentGdoc={(updatedGdoc) =>
                                         setCurrentGdoc(() => updatedGdoc)

@@ -1,10 +1,6 @@
 import * as React from "react"
-import {
-    OwidGdocType,
-    OwidGdoc as OwidGdocInterface,
-    OwidGdocAboutInterface,
-} from "@ourworldindata/types"
-import { get } from "@ourworldindata/utils"
+import { OwidGdocType } from "@ourworldindata/types"
+import { get, OwidGdocPageProps } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import { GdocPost } from "./pages/GdocPost.js"
 import { DataInsightPage } from "./pages/DataInsight.js"
@@ -29,7 +25,7 @@ function AdminLinks() {
     )
 }
 
-type OwidGdocProps = OwidGdocInterface & {
+type OwidGdocProps = OwidGdocPageProps & {
     isPreviewing?: boolean
 }
 
@@ -51,7 +47,7 @@ export function OwidGdoc({
             (props) => <GdocPost {...props} />
         )
         .with({ content: { type: OwidGdocType.AboutPage } }, (props) => (
-            <AboutPage {...(props as OwidGdocAboutInterface)} />
+            <AboutPage {...props} />
         ))
         .with({ content: { type: OwidGdocType.DataInsight } }, (props) => (
             <DataInsightPage {...props} />
@@ -71,7 +67,7 @@ export function OwidGdoc({
                 style={{ height: 250 }}
             >
                 <h3 className="span-cols-12 col-start-2">
-                    Unknown article type: "{gdoc.content.type}"
+                    Unknown article type: "{gdoc.content?.type}"
                 </h3>
                 <p className="span-cols-12 col-start-2">
                     Must be one of: {Object.values(OwidGdocType).join(", ")}

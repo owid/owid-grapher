@@ -5,6 +5,7 @@ import {
     OwidGdoc,
     OwidGdocHomepageInterface,
     OwidGdocAuthorInterface,
+    OwidGdocAboutInterface,
 } from "@ourworldindata/utils"
 import { EXCERPT_MAX_LENGTH } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
@@ -269,6 +270,49 @@ export const GdocAuthorSettings = ({
                 <h3 className="form-section-heading">Author settings</h3>
                 <GdocsSettingsContentField
                     property="role"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
+            </div>
+        </div>
+    )
+}
+
+export const GdocAboutPageSettings = ({
+    gdoc,
+    setCurrentGdoc,
+    errors,
+}: {
+    gdoc: OwidGdocAboutInterface
+    setCurrentGdoc: (gdoc: OwidGdocAboutInterface) => void
+    errors?: OwidGdocErrorMessage[]
+}) => {
+    if (!gdoc || !errors) return null
+    return (
+        <div className="GdocsSettingsForm">
+            <GdocCommonErrors errors={errors} errorsToFilter={[]} />
+            <div className="form-group">
+                <h3 className="form-section-heading">Common settings</h3>
+                <GdocsSettingsContentField
+                    property="title"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
+                <GdocsSlug
+                    gdoc={gdoc}
+                    setCurrentGdoc={setCurrentGdoc}
+                    errors={errors}
+                />
+            </div>
+            <div className="form-group">
+                <h3 className="form-section-heading">About page settings</h3>
+                <GdocsSettingsContentField
+                    property="hide-nav"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
+                <GdocsSettingsContentField
+                    property="override-title"
                     gdoc={gdoc}
                     errors={errors}
                 />
