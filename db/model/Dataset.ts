@@ -1,4 +1,7 @@
+import { Writable } from "stream"
+
 import * as db from "../db.js"
+import { writeVariableCSV } from "./Variable.js"
 import _ from "lodash"
 import { DbPlainDataset, DatasetsTableName } from "@ourworldindata/types"
 
@@ -36,6 +39,26 @@ export async function getDatasetById(
         namespace: dataset.namespace ?? "owid",
         description: dataset.description ?? "",
     }
+}
+
+// Export dataset variables to CSV (not including metadata)
+export async function writeDatasetCSV(
+    knex: db.KnexReadonlyTransaction,
+    datasetId: number,
+    stream: Writable
+): Promise<void> {
+    // get variables of a dataset
+    const variableIds = (
+        await db.knexRaw<{ variableId: number }>(
+            knex,
+            `SELECT id as variableId
+            FROM variables v
+            WHERE datasetId=?`,
+            [datasetId]
+        )
+    ).map((row) => row.variableId)
+
+    await writeVariableCSV(variableIds, stream, knex)
 }
 
 export async function setTagsForDataset(

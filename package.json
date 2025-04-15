@@ -96,6 +96,7 @@
         "express-async-errors": "^3.1.1",
         "express-rate-limit": "^7.5.0",
         "figma-api": "^2.0.1-beta",
+        "filenamify": "^6.0.0",
         "fs-extra": "^11.1.1",
         "glob": "^10.3.3",
         "google-auth-library": "^9.15.1",

@@ -211,6 +211,14 @@ class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
                             by={dataset.dataEditedByUserName}
                         />
                     </p>
+
+                    <Link
+                        native
+                        to={`/datasets/${dataset.id}.csv`}
+                        className="btn btn-primary"
+                    >
+                        <FontAwesomeIcon icon={faDownload} /> Download CSV
+                    </Link>
                     {/* Link to Wizard dataset preview */}
                     <a
                         href={urljoin(
