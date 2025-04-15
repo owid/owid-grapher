@@ -2,8 +2,6 @@ import {
     checkIsPlainObjectWithGuard,
     omit,
     isArray,
-    isNull,
-    isUndefined,
     isString,
     isBoolean,
     isNumber,
@@ -114,8 +112,8 @@ function extractSchemaRecursive(
     // We shouldn't encounter primitives in the schema itself (since we recurse
     // only into expected structures which are almost always objects)
     if (
-        isNull(schema) ||
-        isUndefined(schema) ||
+        schema === null ||
+        schema === undefined ||
         isNumber(schema) ||
         isString(schema) ||
         isBoolean(schema) ||
