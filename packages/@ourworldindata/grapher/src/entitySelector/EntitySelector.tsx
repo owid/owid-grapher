@@ -10,7 +10,6 @@ import {
     orderBy,
     isFiniteWithGuard,
     CoreValueType,
-    clamp,
     getUserCountryInformation,
     regions,
     sortBy,
@@ -54,6 +53,7 @@ import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 import { FocusArray } from "../focus/FocusArray"
+import * as R from "remeda"
 
 type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
@@ -324,7 +324,7 @@ export class EntitySelector extends React.Component<{
 
         // clamping is necessary since external indicators might not cover
         // the entire time range of the chart
-        return clamp(year, column.minTime, column.maxTime)
+        return R.clamp(year, { min: column.minTime, max: column.maxTime })
     }
 
     private formatTimeForSortColumnLabel(
@@ -993,7 +993,7 @@ export class EntitySelector extends React.Component<{
         return {
             formattedValue:
                 selectedSortColumn.formatValueShortWithAbbreviations(value),
-            width: clamp(barScale(value), 0, 1),
+            width: R.clamp(barScale(value), { min: 0, max: 1 }),
         }
     }
 

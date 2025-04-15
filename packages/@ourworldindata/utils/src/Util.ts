@@ -1,7 +1,6 @@
 import * as R from "remeda"
 import {
     capitalize,
-    clamp,
     clone,
     cloneDeep,
     compact,
@@ -62,7 +61,6 @@ import {
 
 export {
     capitalize,
-    clamp,
     clone,
     cloneDeep,
     compact,

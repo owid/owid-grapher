@@ -8,7 +8,6 @@ import {
     max,
     numberMagnitude,
     sortedUniqBy,
-    clamp,
     Bounds,
     DEFAULT_BOUNDS,
     AxisAlign,
@@ -28,6 +27,7 @@ import { MarkdownTextWrap } from "@ourworldindata/components"
 import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
 import { GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants.js"
 import { makeAxisLabel } from "../chart/ChartUtils"
+import * as R from "remeda"
 
 interface TickLabelPlacement {
     value: number
@@ -299,11 +299,10 @@ abstract class AbstractAxis {
         // NOTE: This setting is used between both log & linear axes, check both when tweaking.
         // -@danielgavrilov, 2021-06-15
         return Math.round(
-            clamp(
-                this.rangeSize / (this.fontSize * 1.8),
-                this.minTicks,
-                this.maxTicks
-            )
+            R.clamp(this.rangeSize / (this.fontSize * 1.8), {
+                min: this.minTicks,
+                max: this.maxTicks,
+            })
         )
     }
 
