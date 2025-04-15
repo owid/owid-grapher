@@ -206,7 +206,6 @@ export {
     throttle,
     toString,
     union,
-    unset,
     uniq,
     uniqBy,
     uniqWith,

@@ -49,7 +49,6 @@ import {
     uniq,
     uniqBy,
     uniqWith,
-    unset,
     upperFirst,
     without,
 } from "lodash"
@@ -103,7 +102,6 @@ export {
     uniq,
     uniqBy,
     uniqWith,
-    unset,
     upperFirst,
     without,
 }
