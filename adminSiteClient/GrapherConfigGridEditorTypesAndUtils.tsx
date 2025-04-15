@@ -1,7 +1,6 @@
 // FIXME: Don't mix components and business logic in this file.
 /* eslint-disable react-refresh/only-export-components */
 import {
-    checkIsPlainObjectWithGuard,
     excludeUndefined,
     isArray,
     QueryParams,
@@ -55,6 +54,7 @@ import {
 } from "@react-awesome-query-builder/antd"
 import { match } from "ts-pattern"
 import { isNil } from "lodash"
+import * as R from "remeda"
 
 export function parseVariableAnnotationsRow(
     row: VariableAnnotationsResponseRow
@@ -352,7 +352,7 @@ export function postprocessJsonLogicTree(filterTree: JsonTree | JsonItem) {
     if (filterTree.type === "group" && filterTree.children1) {
         if (
             isArray(filterTree.children1) ||
-            checkIsPlainObjectWithGuard(filterTree.children1)
+            R.isPlainObject(filterTree.children1)
         )
             for (const child of Object.values(filterTree.children1))
                 postprocessJsonLogicTree(child)
@@ -390,7 +390,7 @@ export function filterTreeToSExpression(
         let children: Operation[] = []
         if (
             isArray(filterTree.children1) ||
-            checkIsPlainObjectWithGuard(filterTree.children1)
+            R.isPlainObject(filterTree.children1)
         )
             children = excludeUndefined(
                 Object.values(filterTree.children1).map((child) =>

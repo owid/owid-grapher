@@ -19,7 +19,6 @@ import {
     CITATION_ID,
     LICENSE_ID,
     RESEARCH_AND_WRITING_ID,
-    checkIsPlainObjectWithGuard,
     identity,
     isEmpty,
 } from "@ourworldindata/utils"
@@ -33,6 +32,7 @@ import urlSlug from "url-slug"
 import { extractUrl, parseAuthors, spansToSimpleString } from "./gdocUtils.js"
 import { htmlToSimpleTextBlock } from "./htmlToEnriched.js"
 import { RESEARCH_AND_WRITING_DEFAULT_HEADING } from "@ourworldindata/types"
+import * as R from "remeda"
 
 // Topic page headings have predictable heading names which are used in the sticky nav.
 // If the user hasn't explicitly defined a sticky-nav in archie to map nav items to headings,
@@ -256,7 +256,7 @@ export function extractRefs(text: string): {
             const isAlreadySeen = Boolean(
                 rawInlineRefs.find(
                     (rawInlineRef) =>
-                        checkIsPlainObjectWithGuard(rawInlineRef) &&
+                        R.isPlainObject(rawInlineRef) &&
                         "id" in rawInlineRef &&
                         typeof rawInlineRef.id === "string" &&
                         rawInlineRef.id === id

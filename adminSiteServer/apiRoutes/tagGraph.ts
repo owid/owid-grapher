@@ -1,5 +1,4 @@
 import { JsonError, FlatTagGraph } from "@ourworldindata/types"
-import { checkIsPlainObjectWithGuard } from "@ourworldindata/utils"
 import * as db from "../../db/db.js"
 import * as R from "remeda"
 import { Request } from "../authentication.js"
@@ -38,7 +37,7 @@ export async function handlePostTagGraph(
                 for (const tag of value) {
                     if (
                         !(
-                            checkIsPlainObjectWithGuard(tag) &&
+                            R.isPlainObject(tag) &&
                             R.isNumber(tag.weight) &&
                             R.isNumber(tag.parentId) &&
                             R.isNumber(tag.childId)

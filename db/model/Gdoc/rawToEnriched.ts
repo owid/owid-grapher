@@ -142,7 +142,6 @@ import {
     filterValidStringValues,
     uniq,
     excludeNullish,
-    checkIsPlainObjectWithGuard,
     omitUndefinedValues,
     Url,
     isArray,
@@ -165,6 +164,7 @@ import {
 import { P, match } from "ts-pattern"
 import { isObject, parseInt } from "lodash"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
+import * as R from "remeda"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -1713,7 +1713,7 @@ export function parseFaqs(
             parseErrors: [error],
         })
 
-        if (!checkIsPlainObjectWithGuard(faq))
+        if (!R.isPlainObject(faq))
             return createError({
                 message: "Faq is not a plain-object and cannot be parsed",
             })
@@ -1780,7 +1780,7 @@ export function parseDetails(details: unknown): {
             parseErrors: [error],
         })
 
-        if (!checkIsPlainObjectWithGuard(detail))
+        if (!R.isPlainObject(detail))
             return createError({
                 message: "Detail is not a plain-object and cannot be parsed",
             })
@@ -1864,7 +1864,7 @@ function parseResearchAndWritingBlock(
             }
         }
 
-        if (checkIsPlainObjectWithGuard(rawLink)) {
+        if (R.isPlainObject(rawLink)) {
             const { url, authors, filename, title, subtitle } = rawLink
             if (!url) return createLinkError("Link missing url")
             const enrichedUrl = extractUrl(url)

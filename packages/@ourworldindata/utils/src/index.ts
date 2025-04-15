@@ -86,7 +86,6 @@ export {
     values,
     stringifyUnknownError,
     toRectangularMatrix,
-    checkIsPlainObjectWithGuard,
     checkIsStringIndexable,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,

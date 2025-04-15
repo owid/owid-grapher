@@ -40,7 +40,6 @@ import {
     EnrichedTopicPageIntroRelatedTopic,
     EnrichedBlockKeyInsightsSlide,
     EnrichedBlockKeyInsights,
-    checkIsPlainObjectWithGuard,
     EnrichedBlockResearchAndWriting,
     EnrichedBlockResearchAndWritingLink,
     EnrichedBlockResearchAndWritingRow,
@@ -936,7 +935,7 @@ function finishWpComponent(
                 block: unknown
             ): block is EnrichedBlockKeyInsightsSlide {
                 return (
-                    checkIsPlainObjectWithGuard(block) &&
+                    R.isPlainObject(block) &&
                     block["type"] === "key-insight-slide"
                 )
             }
@@ -1033,9 +1032,9 @@ function finishWpComponent(
                 block: unknown
             ): block is EnrichedBlockResearchAndWritingLink {
                 return (
-                    checkIsPlainObjectWithGuard(block) &&
+                    R.isPlainObject(block) &&
                     "value" in block &&
-                    checkIsPlainObjectWithGuard(block["value"])
+                    R.isPlainObject(block["value"])
                 )
             }
 

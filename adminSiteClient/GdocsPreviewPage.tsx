@@ -11,7 +11,6 @@ import {
 import { AdminAppContext } from "./AdminAppContext.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
-    checkIsPlainObjectWithGuard,
     dayjs,
     GdocsContentSource,
     getOwidGdocFromJSON,
@@ -48,6 +47,7 @@ import {
     PUBLISHED_AT_FORMAT,
 } from "../settings/clientSettings.js"
 import { RouteComponentProps } from "react-router-dom"
+import * as R from "remeda"
 
 interface GdocsMatchParams {
     id: string
@@ -99,7 +99,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     )
 
     const handleError = useCallback((error: unknown) => {
-        if (checkIsPlainObjectWithGuard(error) && error.status === 500) {
+        if (R.isPlainObject(error) && error.status === 500) {
             console.log("Critical error", error)
             setCriticalErrorMessage(error.message as string)
         }

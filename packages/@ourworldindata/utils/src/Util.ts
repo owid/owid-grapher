@@ -1243,12 +1243,6 @@ export function toRectangularMatrix<T, F>(arr: T[][], fill: F): (T | F)[][] {
     })
 }
 
-export function checkIsPlainObjectWithGuard(
-    x: unknown
-): x is Record<string, unknown> {
-    return R.isPlainObject(x)
-}
-
 export function checkIsStringIndexable(
     x: unknown
 ): x is Record<string, unknown> {
