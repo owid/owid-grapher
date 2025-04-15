@@ -23,17 +23,35 @@ export type ImageUploadResponse =
  * Uploading as base64, because otherwise we'd need multipart/form-data parsing middleware in the server.
  * This seems easier as a one-off.
  **/
-export function fileToBase64(file: File): Promise<FileToBase64Result | null> {
+export function fileToBase64(
+    file: File,
+    /** If you use the antd Upload component, file has a name
+     * but if you're getting this blob online (e.g. via Figma) it might not have a name
+     * so we need to pass it in manually
+     */
+    manualFilename?: string
+): Promise<FileToBase64Result | null> {
     if (typeof file === "string") return Promise.resolve(null)
 
+    // Awkward solution to union type shenanigans
+    function getFilename(
+        file: Blob | RcFile,
+        filename?: string
+    ): string | undefined {
+        if ("name" in file) return file.name as string
+        return filename
+    }
+
+    const filename = getFilename(file, manualFilename)
+
     // We absolutely need a filename, so we can't process a Blob which doesn't have one
-    if (!("name" in file)) return Promise.resolve(null)
+    if (!filename) return Promise.resolve(null)
 
     return new Promise((resolve) => {
         const reader = new FileReader()
         reader.onload = () => {
             resolve({
-                filename: file.name,
+                filename,
                 content: reader.result?.toString() ?? "",
                 type: file.type,
             })
@@ -54,7 +72,7 @@ export async function uploadImageFromSourceUrl({
     const imageResponse = await fetch(sourceUrl)
     const blob = await imageResponse.blob()
 
-    const payload = await fileToBase64(blob)
+    const payload = await fileToBase64(blob, image.filename)
     if (!payload) {
         return {
             success: false,
