@@ -150,25 +150,27 @@ async function main() {
             )
         }
 
-        const external = externalAnnotationPlacementsById.get(
+        const ellipseCoords = {
+            center: roundCoords(center),
+            left: roundCoords(left),
+            top: roundCoords(top),
+        }
+
+        const externalPlacement = externalAnnotationPlacementsById.get(
             feature.id as string
         )
+        const external = externalPlacement?.anchorPoint
+            ? {
+                  direction: externalPlacement.direction,
+                  anchorPoint: externalPlacement.anchorPoint,
+                  bridgeCountries: externalPlacement.bridge,
+              }
+            : undefined
 
         return omitUndefinedValues({
             id: feature.id,
-            ellipse: {
-                center: roundCoords(center),
-                left: roundCoords(left),
-                top: roundCoords(top),
-            },
-            external:
-                external?.direction && external?.anchorPoint
-                    ? {
-                          direction: external.direction,
-                          anchorPoint: external.anchorPoint,
-                          overlap: external.overlap,
-                      }
-                    : undefined,
+            ellipse: ellipseCoords,
+            external,
         })
     })
 

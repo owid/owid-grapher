@@ -37,7 +37,7 @@
         "external": {
             "direction": "rightBottom",
             "anchorPoint": [1.540594233949264, 42.53556596072454],
-            "overlap": ["France", "Spain"]
+            "bridgeCountries": ["France", "Spain"]
         }
     },
     {
@@ -610,7 +610,7 @@
         "external": {
             "direction": "right",
             "anchorPoint": [32.0199676, -26.4973295],
-            "overlap": ["South Africa", "Mozambique"]
+            "bridgeCountries": ["South Africa", "Mozambique"]
         }
     },
     {
@@ -1063,7 +1063,7 @@
         "external": {
             "direction": "right",
             "anchorPoint": [29.018415, -29.743766],
-            "overlap": ["South Africa"]
+            "bridgeCountries": ["South Africa"]
         }
     },
     {
@@ -1492,7 +1492,7 @@
         "external": {
             "direction": "leftTop",
             "anchorPoint": [35.240489643179984, 32.36819120258201],
-            "overlap": ["Israel"]
+            "bridgeCountries": ["Israel"]
         }
     },
     {

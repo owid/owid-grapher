@@ -20,8 +20,6 @@ import {
     sortBy,
     PointVector,
     clone,
-    clamp,
-    zip,
     excludeUndefined,
 } from "@ourworldindata/utils"
 import {
@@ -48,12 +46,12 @@ import {
     GeoProjection,
     SimulationNodeDatum,
 } from "d3"
-import { GeoFeatures } from "./GeoFeatures"
 // @ts-expect-error no types available
 import { bboxCollide } from "d3-bboxCollide"
 // todo: only install/import what's needed (look into helpers)
 import * as turf from "@turf/turf"
 import { Feature } from "geojson"
+import * as R from "remeda"
 
 export function detectNearbyFeature<Feature extends RenderFeature>({
     quadtree,
@@ -174,18 +172,17 @@ export function isPointInEllipse(
     )
 }
 
-export function makeEllipseFromPointsForProjection(
-    {
-        center,
-        left,
-        top,
-    }: {
+export function makeEllipseForProjection({
+    ellipse: { center, left, top },
+    projection,
+}: {
+    ellipse: {
         center: [number, number]
         left: [number, number]
         top: [number, number]
-    },
+    }
     projection: GeoProjection
-): Ellipse {
+}): Ellipse {
     const projCenter = projection(center)!
     const projLeft = projection(left)!
     const projTop = projection(top)!
@@ -201,7 +198,11 @@ export function makeEllipseFromPointsForProjection(
     }
 }
 
-export function getExternalLabelPosition({
+/**
+ * Calculate the top-left corner of the externally placed label given the
+ * top-left corner of the anchor point and a direction
+ */
+export function placeLabelExternally({
     anchorPoint,
     textBounds,
     direction,
@@ -213,61 +214,28 @@ export function getExternalLabelPosition({
     markerLength: number
 }): [number, number] {
     const [x, y] = anchorPoint
-    const l = markerLength
+    const m = markerLength
     const w = textBounds.width,
         h = textBounds.height
 
     switch (direction) {
         case "right":
-            return [x + l, y - h / 2]
+            return [x + m, y - h / 2]
         case "left":
-            return [x - w - l, y - h / 2]
+            return [x - m - w, y - h / 2]
         case "bottom":
-            return [x - w / 2, y + l]
+            return [x - w / 2, y + m]
         case "top":
-            return [x - w / 2, y - h / 2 - l]
-        // todo
+            return [x - w / 2, y - h / 2 - m]
         case "leftTop":
-            return [x - w - l, y - h / 2 - l]
+            return [x - m - w, y - h / 2 - m / 2 - h]
         case "leftBottom":
-            return [x - w - l, y + l]
+            return [x - m - w, y - h / 2 + h + m / 2]
         case "rightTop":
-            return [x + l, y - h / 2 - l]
+            return [x + m, y - h / 2 - m / 2 - h]
         case "rightBottom":
-            return [x + l, y + l]
+            return [x + m, y - h / 2 + h + m / 2]
     }
-}
-
-export function getExternalMarkerStartPosition({
-    anchorPoint,
-    direction,
-    offset = 0,
-}: {
-    anchorPoint: [number, number]
-    direction: Direction
-    offset?: number // extend anchor by this amount
-}): [number, number] {
-    const [x, y] = anchorPoint
-    return [x, y]
-
-    // switch (direction) {
-    //     case "right":
-    //         return [x - offset, y]
-    //     case "left":
-    //         return [x + offset, y]
-    //     case "bottom":
-    //         return [x, y - offset]
-    //     case "top":
-    //         return [x, y + offset]
-    //     case "leftTop":
-    //         return [x - offset, y - h / 2 - l]
-    //     case "leftBottom":
-    //         return [x, y + h / 2 + l]
-    //     case "rightTop":
-    //         return [x + l, y - h / 2 - l]
-    //     case "rightBottom":
-    //         return [x + l, y + h / 2 + l]
-    // }
 }
 
 export function getExternalMarkerEndPosition({
@@ -299,27 +267,33 @@ export function getExternalMarkerEndPosition({
     }
 }
 
-export function placeLabelWithinEllipse(
-    label: string,
-    ellipse: Ellipse,
-    { fontSizeScale }: { fontSizeScale: number }
-): { placedBounds: Bounds; fontSize: number } | undefined {
+export function placeLabelAtEllipseCenter({
+    text,
+    ellipse,
+    fontSizeScale,
+}: {
+    text: string
+    ellipse: Ellipse
+    fontSizeScale: number
+}): { placedBounds: Bounds; fontSize: number } | undefined {
+    // todo: font size
     const defaultFontSize = Math.min(
         ANNOTATION_FONT_SIZE_DEFAULT / fontSizeScale,
         ANNOTATION_FONT_SIZE_MAX
     )
-    let textBounds = Bounds.forText(label, { fontSize: defaultFontSize })
 
     // place label at the given center position
+    let textBounds = Bounds.forText(text, { fontSize: defaultFontSize }).set({
+        height: defaultFontSize - 1, // todo: small correction
+    })
     let placedBounds = textBounds.set({
         x: ellipse.cx - textBounds.width / 2,
         y: ellipse.cy - textBounds.height / 2,
     })
 
-    let labelFitsInsideEllipse = isPointInEllipse(placedBounds.topLeft, ellipse)
+    let textFits = isPointInEllipse(placedBounds.topLeft, ellipse)
 
-    if (labelFitsInsideEllipse)
-        return { placedBounds, fontSize: defaultFontSize }
+    if (textFits) return { placedBounds, fontSize: defaultFontSize }
 
     const step = 1
     for (
@@ -327,20 +301,20 @@ export function placeLabelWithinEllipse(
         fontSize >= ANNOTATION_FONT_SIZE_MIN;
         fontSize -= step
     ) {
-        const actualFontSize = Math.min(
+        // TODO: font size
+        const scaledFontSize = Math.min(
             fontSize / fontSizeScale,
             ANNOTATION_FONT_SIZE_MAX
         )
-        textBounds = Bounds.forText(label, {
-            fontSize: actualFontSize,
-        })
+        textBounds = Bounds.forText(text, {
+            fontSize: scaledFontSize,
+        }).set({ height: scaledFontSize - 1 }) // todo: small correction
         placedBounds = textBounds.set({
             x: ellipse.cx - textBounds.width / 2,
             y: ellipse.cy - textBounds.height / 2,
         })
-        labelFitsInsideEllipse = isPointInEllipse(placedBounds.topLeft, ellipse)
-        if (labelFitsInsideEllipse)
-            return { placedBounds, fontSize: actualFontSize }
+        textFits = isPointInEllipse(placedBounds.topLeft, ellipse)
+        if (textFits) return { placedBounds, fontSize: scaledFontSize }
     }
 
     return undefined
@@ -474,15 +448,22 @@ function isPointInCircle(
 }
 
 // todo: should depend on the directio
-const _countriesWithinRadiusCache = new Map<string, any[]>()
-export function getCountriesWithinRadius<Feature extends RenderFeature>(
-    feature: Feature,
-    allFeatures: Feature[],
+// const _countriesWithinRadiusCache = new Map<string, any[]>()
+export function getNearbyFeatures<Feature extends RenderFeature>({
+    feature,
+    allFeatures,
+    projection,
+    radius = 10, // todo
+}: {
+    feature: Feature
+    allFeatures: Feature[]
     projection: any
-): Feature[] {
+    radius?: number
+}): Feature[] {
     // if (_countriesWithinRadiusCache.has(feature.id))
     //     return _countriesWithinRadiusCache.get(feature.id)!
-    const radius = 10
+
+    // todo: clean this up
     const center = isMapRenderFeature(feature)
         ? projection.invert([feature.center.x, feature.center.y])
         : isGlobeRenderFeature(feature)
@@ -539,8 +520,14 @@ export function circleRectangleOverlap(
         bottomRight: { x: number; y: number }
     }
 ): boolean {
-    const closestX = clamp(circle.cx, rect.topLeft.x, rect.bottomRight.x)
-    const closestY = clamp(circle.cy, rect.topLeft.y, rect.bottomRight.y)
+    const closestX = R.clamp(circle.cx, {
+        min: rect.topLeft.x,
+        max: rect.bottomRight.x,
+    })
+    const closestY = R.clamp(circle.cy, {
+        min: rect.topLeft.y,
+        max: rect.bottomRight.y,
+    })
 
     const dx = circle.cx - closestX
     const dy = circle.cy - closestY
@@ -548,186 +535,152 @@ export function circleRectangleOverlap(
     return dx * dx + dy * dy <= circle.r * circle.r
 }
 
-export function adjustLabelPositionsToMinimiseLabelCollisions<
-    Feature extends RenderFeature,
->(annotations: ExternalAnnotation<Feature>[]): ExternalAnnotation<Feature>[] {
+export function minimiseLabelCollisions<Feature extends RenderFeature>(
+    annotations: ExternalAnnotation<Feature>[],
+    padding = 1
+): ExternalAnnotation<Feature>[] {
     interface SimulationNode extends SimulationNodeDatum {
-        id: string
-        bounds: Bounds
+        annotation: ExternalAnnotation<Feature>
     }
 
-    const nodes: SimulationNode[] = annotations.map((a) => ({
-        id: a.id,
-        bounds: a.bounds,
-        x: a.bounds.centerX,
-        y: a.bounds.centerY,
-        fx:
-            a.direction === "right" ||
-            a.direction === "left" ||
-            a.direction === "rightBottom" ||
-            a.direction === "leftBottom" ||
-            a.direction === "rightTop" ||
-            a.direction === "leftTop"
-                ? a.bounds.centerX
-                : undefined,
-        fy:
-            a.direction === "top" || a.direction === "bottom"
-                ? a.bounds.centerY
-                : undefined,
-    }))
+    const simulationNodes: SimulationNode[] = annotations.map((annotation) => {
+        const { centerX, centerY } = annotation.placedBounds
+        const isTopOrBottom =
+            annotation.direction === "top" || annotation.direction === "bottom"
+        return {
+            annotation,
+            x: centerX,
+            y: centerY,
+            fx: !isTopOrBottom ? centerX : undefined,
+            fy: isTopOrBottom ? centerY : undefined,
+        }
+    })
 
-    forceSimulation(nodes)
+    forceSimulation(simulationNodes)
         .force(
             "x",
-            forceX((d: SimulationNode) => d.bounds.centerX)
+            forceX((d: SimulationNode) => d.annotation.placedBounds.centerX)
         )
         .force(
             "y",
-            forceY((d: SimulationNode) => d.bounds.centerY)
+            forceY((d: SimulationNode) => d.annotation.placedBounds.centerY)
         )
         .force(
             "collide",
             bboxCollide((d: SimulationNode) => [
-                [-d.bounds.width / 2 - 1, -d.bounds.height / 2 - 1],
-                [d.bounds.width / 2 + 1, d.bounds.height / 2 + 1],
+                [
+                    -d.annotation.placedBounds.width / 2 - padding,
+                    -d.annotation.placedBounds.height / 2 - padding,
+                ],
+                [
+                    d.annotation.placedBounds.width / 2 + padding,
+                    d.annotation.placedBounds.height / 2 + padding,
+                ],
             ])
         )
-        .tick(100) // todo: default is 300
+        .tick(10) // todo: default is 300
 
     return excludeUndefined(
-        zip(annotations, nodes).map(([annotation, node]) => {
-            if (!annotation || !node) return undefined
-            const originalBounds = annotation.bounds
+        annotations.map((annotation, index) => {
+            const node = simulationNodes[index]
+            const originalBounds = annotation.placedBounds
             const { x: centerX = 0, y: centerY = 0 } = node
-            const bounds = originalBounds.set({
+            const placedBounds = originalBounds.set({
                 x: centerX - originalBounds.width / 2,
                 y: centerY - originalBounds.height / 2,
             })
-            return { ...annotation, bounds }
+            return { ...annotation, placedBounds }
         })
     )
 }
 
-export function hideLabelsCollidingWithLandMass<Feature extends RenderFeature>(
-    annotations: ExternalAnnotation<Feature>[],
-    allFeatures: Feature[],
+export function checkAnnotationCollidesWithLandmass<
+    Feature extends GlobeRenderFeature,
+>({
+    annotation,
+    nearbyFeatures,
+    projection,
+}: {
+    annotation: ExternalAnnotation<Feature>
+    nearbyFeatures: Feature[]
     projection: any
-) {
-    const annotationsById = new Map(
-        annotations.map((annotation) => [annotation.id, annotation])
+}): boolean {
+    const annotationLabel = makeTurfPolygonFromBounds(
+        annotation.placedBounds,
+        (position) => projection.invert(position)
     )
-    return annotations.filter((annotation) => {
-        const nearbyFeatures = getCountriesWithinRadius(
-            annotation.feature,
-            allFeatures,
-            projection
-        )
-        console.log("nearby features", annotation.id, nearbyFeatures)
 
-        const nearbyAnnotations = excludeUndefined(
-            nearbyFeatures.map((f) => annotationsById.get(f.id))
-        )
-
-        const projCorners = [
-            [annotation.bounds.topLeft.x, annotation.bounds.topLeft.y],
-            [annotation.bounds.topRight.x, annotation.bounds.topRight.y],
-            [annotation.bounds.bottomRight.x, annotation.bounds.bottomRight.y],
-            [annotation.bounds.bottomLeft.x, annotation.bounds.bottomLeft.y],
-            [annotation.bounds.topLeft.x, annotation.bounds.topLeft.y],
-        ]
-        const unprojCorners = projCorners.map((corner) =>
-            projection.invert(corner)
-        )
-        const annotationPolygon = turf.polygon([unprojCorners])
-        const projAnnotationPolygon = turf.polygon([projCorners])
-
-        const currLine = turf.lineString([
-            getExternalMarkerStartPosition({
-                anchorPoint: annotation.anchor,
-                direction: annotation.direction,
-            }),
-            getExternalMarkerEndPosition({
-                textBounds: annotation.bounds,
-                direction: annotation.direction,
-            }),
-        ])
-
-        // check if the annotation's label crosses through any of the labels
-        const hasOverlapWithSomeLabel = nearbyAnnotations.some(
-            (nearbyAnnotation) => {
-                const projCorners = [
-                    [
-                        nearbyAnnotation.bounds.topLeft.x,
-                        nearbyAnnotation.bounds.topLeft.y,
-                    ],
-                    [
-                        nearbyAnnotation.bounds.topRight.x,
-                        nearbyAnnotation.bounds.topRight.y,
-                    ],
-                    [
-                        nearbyAnnotation.bounds.bottomRight.x,
-                        nearbyAnnotation.bounds.bottomRight.y,
-                    ],
-                    [
-                        nearbyAnnotation.bounds.bottomLeft.x,
-                        nearbyAnnotation.bounds.bottomLeft.y,
-                    ],
-                    [
-                        nearbyAnnotation.bounds.topLeft.x,
-                        nearbyAnnotation.bounds.topLeft.y,
-                    ],
-                ]
-                const nearbyLabel = turf.polygon([projCorners])
-                const hasOverlap = turf.booleanIntersects(currLine, nearbyLabel)
-
-                return hasOverlap
-            }
-        )
-
-        const hasOverlapWithSomeFeature = nearbyFeatures.some((feature) => {
-            // const countryPolygon = turf.buffer(createTurfPolygon(feature), 140)
-            const countryPolygon = createTurfPolygon(feature)
-            // console.log("turf here", countryPolygon)
-            if (!countryPolygon) return false
-            const hasOverlap = turf.booleanIntersects(
-                annotationPolygon,
-                countryPolygon
-            )
-            // if (hasOverlap)
-            console.log("has overlap?", annotation.id, feature.id, hasOverlap)
-
-            return hasOverlap
-        })
-
-        if (hasOverlapWithSomeFeature)
-            console.log("has overlap label", annotation.id)
-
-        // return !hasOverlapWithSomeLabel
-        return !hasOverlapWithSomeLabel && !hasOverlapWithSomeFeature
+    return nearbyFeatures.some((feature) => {
+        const countryPolygon = makeTurfPolygonForFeature(feature) // todo: buffer?
+        if (!countryPolygon) return false
+        return turf.booleanIntersects(annotationLabel, countryPolygon)
     })
 }
 
+export function checkAnnotationMarkerCollidesWithLabel<
+    Feature extends GlobeRenderFeature,
+>({
+    annotation,
+    nearbyAnnotations,
+}: {
+    annotation: ExternalAnnotation<Feature>
+    nearbyAnnotations: ExternalAnnotation<Feature>[]
+}): boolean {
+    // marker line from the anchor point to the label
+    const markerStart = annotation.anchor
+    const markerEnd = getExternalMarkerEndPosition({
+        textBounds: annotation.placedBounds,
+        direction: annotation.direction,
+    })
+    const currLine = turf.lineString([markerStart, markerEnd])
+
+    // check if the annotation's label crosses through any of the labels
+    return nearbyAnnotations.some((nearbyAnnotation) => {
+        const nearbyLabel = makeTurfPolygonFromBounds(
+            nearbyAnnotation.placedBounds
+        )
+        return turf.booleanIntersects(currLine, nearbyLabel)
+    })
+}
+
+function makeTurfPolygonFromBounds(
+    bounds: Bounds,
+    transform?: (position: number[]) => number[]
+) {
+    let corners = [
+        [bounds.topLeft.x, bounds.topLeft.y],
+        [bounds.topRight.x, bounds.topRight.y],
+        [bounds.bottomRight.x, bounds.bottomRight.y],
+        [bounds.bottomLeft.x, bounds.bottomLeft.y],
+        [bounds.topLeft.x, bounds.topLeft.y], // close the polygon
+    ]
+    if (transform) {
+        corners = corners.map((position) => transform(position))
+    }
+    return turf.polygon([corners])
+}
+
 // Function to create a Turf.js polygon from a geo feature
-const _turfPolygonCache = new Map<string, any>()
-const createTurfPolygon = <Feature extends RenderFeature>(
+// const _turfPolygonCache = new Map<string, any>()
+const makeTurfPolygonForFeature = <Feature extends RenderFeature>(
     feature: Feature
 ): any | null => {
-    if (_turfPolygonCache.has(feature.id))
-        return _turfPolygonCache.get(feature.id)!
+    // if (_turfPolygonCache.has(feature.id))
+    // return _turfPolygonCache.get(feature.id)!
 
     switch (feature.geo.geometry.type) {
         case "Polygon":
-            _turfPolygonCache.set(
-                feature.id,
-                turf.polygon(feature.geo.geometry.coordinates)
-            )
-            return _turfPolygonCache.get(feature.id)!
+            // _turfPolygonCache.set(
+            //     feature.id,
+            //     turf.polygon(feature.geo.geometry.coordinates)
+            // )
+            return turf.polygon(feature.geo.geometry.coordinates)
         case "MultiPolygon":
-            _turfPolygonCache.set(
-                feature.id,
-                turf.multiPolygon(feature.geo.geometry.coordinates)
-            )
-            return _turfPolygonCache.get(feature.id)!
+            // _turfPolygonCache.set(
+            //     feature.id,
+            //     turf.multiPolygon(feature.geo.geometry.coordinates)
+            // )
+            return turf.multiPolygon(feature.geo.geometry.coordinates)
         default:
             console.warn(
                 "Unsupported geometry type:",

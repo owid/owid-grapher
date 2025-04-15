@@ -15,7 +15,7 @@
         "id": "Andorra",
         "direction": "rightBottom",
         "anchorPoint": [1.540594233949264, 42.53556596072454],
-        "overlap": ["France", "Spain"]
+        "bridge": ["France", "Spain"]
     },
     {
         "id": "Angola",
@@ -254,7 +254,7 @@
         "id": "Eswatini",
         "direction": "right",
         "anchorPoint": [32.0199676, -26.4973295],
-        "overlap": ["South Africa", "Mozambique"]
+        "bridge": ["South Africa", "Mozambique"]
     },
     {
         "id": "Ethiopia"
@@ -443,7 +443,7 @@
         "id": "Lesotho",
         "direction": "right",
         "anchorPoint": [29.018415, -29.743766],
-        "overlap": ["South Africa"]
+        "bridge": ["South Africa"]
     },
     {
         "id": "Liberia",
@@ -620,7 +620,7 @@
         "id": "Palestine",
         "direction": "leftTop",
         "anchorPoint": [35.240489643179984, 32.36819120258201],
-        "overlap": ["Israel"]
+        "bridge": ["Israel"]
     },
     {
         "id": "Panama",

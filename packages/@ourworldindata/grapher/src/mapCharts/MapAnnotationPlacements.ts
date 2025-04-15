@@ -11,7 +11,7 @@ interface AnnotationPlacement {
     external?: {
         direction: Direction
         anchorPoint: [number, number]
-        overlap?: string[]
+        bridgeCountries?: string[]
     }
 }
 

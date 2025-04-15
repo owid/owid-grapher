@@ -133,8 +133,8 @@ export interface Ellipse {
 interface BaseAnnotation<Feature extends RenderFeature> {
     id: string
     feature: Feature
-    label: string
-    bounds: Bounds
+    placedBounds: Bounds
+    text: string
     fontSize: number
     color: string
 }
@@ -150,7 +150,6 @@ export interface ExternalAnnotation<Feature extends RenderFeature>
     type: "external"
     direction: Direction
     anchor: [number, number]
-    isHidden?: boolean
 }
 
 export type Annotation<Feature extends RenderFeature> =
