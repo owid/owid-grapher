@@ -70,7 +70,6 @@ export {
     mapNullToUndefined,
     lowerCaseFirstLetterUnlessAbbreviation,
     sortNumeric,
-    mapBy,
     findIndexFast,
     getClosestTimePairs,
     omitUndefinedValues,

@@ -954,18 +954,6 @@ export const sortNumeric = <T>(
             : (a: T, b: T): number => sortByFn(b) - sortByFn(a)
     )
 
-export const mapBy = <T, K, V>(
-    arr: T[],
-    keyAccessor: (t: T) => K,
-    valueAccessor: (t: T) => V
-): Map<K, V> => {
-    const map = new Map<K, V>()
-    arr.forEach((val) => {
-        map.set(keyAccessor(val), valueAccessor(val))
-    })
-    return map
-}
-
 // Adapted from lodash baseFindIndex which is ~2x as fast as the wrapped findIndex
 export const findIndexFast = (
     array: unknown[],
