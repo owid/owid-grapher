@@ -213,7 +213,6 @@ export {
     startCase,
     sum,
     sumBy,
-    takeWhile,
     tail,
     throttle,
     toString,
