@@ -47,9 +47,10 @@ import {
     EnrichedBlockAllCharts,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import { compact, get, isArray, isPlainObject, partition } from "lodash"
+import { compact, get, isArray, partition } from "lodash"
 import * as cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
+import * as R from "remeda"
 
 //#region Spans
 function spanFallback(element: CheerioElement): SpanFallback {
@@ -352,7 +353,7 @@ function getWpComponentDetails(element: CheerioElement): WpComponent {
     if (match.groups?.attributes) {
         try {
             const parsed = JSON.parse(match.groups?.attributes)
-            if (isPlainObject(parsed)) {
+            if (R.isPlainObject(parsed)) {
                 attributes = parsed
             }
         } catch {

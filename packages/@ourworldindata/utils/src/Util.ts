@@ -12,15 +12,12 @@ import {
     groupBy,
     identity,
     isArray,
-    isBoolean,
     isEmpty,
     isEqual,
     isInteger,
     isNil,
     isNumber,
     isObject,
-    isPlainObject,
-    isString,
     keyBy,
     mapValues,
     max,
@@ -70,14 +67,11 @@ export {
     groupBy,
     identity,
     isArray,
-    isBoolean,
     isEmpty,
     isEqual,
     isInteger,
     isNil,
     isNumber,
-    isPlainObject,
-    isString,
     keyBy,
     mapValues,
     max,
@@ -1117,7 +1111,7 @@ export function omitUndefinedValuesRecursive<T extends Record<string, any>>(
 ): NoUndefinedValues<T> {
     const result: any = {}
     for (const key in obj) {
-        if (isPlainObject(obj[key])) {
+        if (R.isPlainObject(obj[key])) {
             // re-apply the function if we encounter a non-empty object
             result[key] = omitUndefinedValuesRecursive(obj[key])
         } else if (obj[key] === undefined) {
@@ -1135,7 +1129,7 @@ export function omitEmptyObjectsRecursive<T extends Record<string, any>>(
 ): Partial<T> {
     const result: any = {}
     for (const key in obj) {
-        if (isPlainObject(obj[key])) {
+        if (R.isPlainObject(obj[key])) {
             const isObjectEmpty = isEmpty(omitEmptyObjectsRecursive(obj[key]))
             if (!isObjectEmpty) result[key] = obj[key]
         } else {
@@ -1258,13 +1252,13 @@ export function toRectangularMatrix<T, F>(arr: T[][], fill: F): (T | F)[][] {
 export function checkIsPlainObjectWithGuard(
     x: unknown
 ): x is Record<string, unknown> {
-    return isPlainObject(x)
+    return R.isPlainObject(x)
 }
 
 export function checkIsStringIndexable(
     x: unknown
 ): x is Record<string, unknown> {
-    return isPlainObject(x) || isArray(x)
+    return R.isPlainObject(x) || R.isArray(x)
 }
 
 function checkIsTouchEvent(
@@ -2115,7 +2109,7 @@ export function traverseObjects<T extends Record<string, any>>(
 ): Partial<T> {
     const result: any = {}
     for (const key in obj) {
-        if (isPlainObject(obj[key]) && isPlainObject(ref[key])) {
+        if (R.isPlainObject(obj[key]) && R.isPlainObject(ref[key])) {
             result[key] = traverseObjects(obj[key], ref[key], cb)
         } else {
             result[key] = cb(obj[key], ref[key], key)

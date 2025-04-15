@@ -2,12 +2,10 @@ import {
     checkIsPlainObjectWithGuard,
     omit,
     isArray,
-    isString,
-    isBoolean,
-    isNumber,
     mapValues,
 } from "@ourworldindata/utils"
 import { compileGetValueFunction } from "./patchHelper.js"
+import * as R from "remeda"
 
 export enum EditorOption {
     textfield = "textfield",
@@ -114,10 +112,10 @@ function extractSchemaRecursive(
     if (
         schema === null ||
         schema === undefined ||
-        isNumber(schema) ||
-        isString(schema) ||
-        isBoolean(schema) ||
-        isArray(schema)
+        R.isNumber(schema) ||
+        R.isString(schema) ||
+        R.isBoolean(schema) ||
+        R.isArray(schema)
     ) {
         console.error("shouldn't come here?", pointer)
         return

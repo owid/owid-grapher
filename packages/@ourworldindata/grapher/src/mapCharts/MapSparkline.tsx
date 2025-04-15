@@ -15,7 +15,6 @@ import {
     Bounds,
     isNumber,
     checkIsVeryShortUnit,
-    isString,
     first,
     last,
     min,
@@ -23,6 +22,7 @@ import {
 } from "@ourworldindata/utils"
 import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { ColorScale } from "../color/ColorScale.js"
+import * as R from "remeda"
 
 const DEFAULT_SPARKLINE_WIDTH = 250
 const DEFAULT_SPARKLINE_HEIGHT = 87
@@ -195,7 +195,7 @@ export class MapSparkline extends React.Component<{
             maxCustom =
                 isNumber(maxVal) &&
                 this.manager.lineColorScale?.getBinForValue(maxVal)?.label,
-            useCustom = isString(minCustom) && isString(maxCustom),
+            useCustom = R.isString(minCustom) && R.isString(maxCustom),
             minLabel = useCustom
                 ? minCustom
                 : yColumn.formatValueShort(minVal ?? 0, {

@@ -7,12 +7,12 @@ import {
 } from "@ourworldindata/types"
 import {
     parseIntOrUndefined,
-    isString,
     diffDateISOStringInDays,
     formatDay,
     isNegativeInfinity,
     isPositiveInfinity,
 } from "./Util.js"
+import * as R from "remeda"
 
 export const timeFromTimebounds = (
     timeBound: TimeBound,
@@ -50,7 +50,7 @@ const parseTimeBound = (str: string): TimeBound | undefined => {
 
 // Use this to not repeat logic
 const fromJSON = (value: TimeBound | string | undefined): number | undefined =>
-    isString(value) ? parseTimeBound(value) : value
+    R.isString(value) ? parseTimeBound(value) : value
 
 const toJSON = (
     bound: TimeBound | undefined
