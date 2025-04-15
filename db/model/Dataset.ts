@@ -1,17 +1,9 @@
 import { Writable } from "stream"
 
-import { getSourcesForDataset, sourceToDatapackage } from "./Source.js"
-
 import * as db from "../db.js"
 import { writeVariableCSV } from "./Variable.js"
 import _ from "lodash"
-import {
-    DbPlainDataset,
-    DatasetsTableName,
-    DbPlainTag,
-    VariablesTableName,
-    DbRawVariable,
-} from "@ourworldindata/types"
+import { DbPlainDataset, DatasetsTableName } from "@ourworldindata/types"
 
 // @Entity("datasets")
 // @Unique(["name", "namespace"])
@@ -69,18 +61,6 @@ export async function writeDatasetCSV(
     await writeVariableCSV(variableIds, stream, knex)
 }
 
-export async function datasetToCSV(
-    knex: db.KnexReadonlyTransaction,
-    datasetId: number
-): Promise<string> {
-    let csv = ""
-    await writeDatasetCSV(knex, datasetId, {
-        write: (s: string) => (csv += s),
-        end: () => null,
-    } as any)
-    return csv
-}
-
 export async function setTagsForDataset(
     trx: db.KnexReadWriteTransaction,
     datasetId: number,
@@ -97,56 +77,4 @@ export async function setTagsForDataset(
 
             [tagRows]
         )
-}
-
-// Return object representing datapackage.json for this dataset
-export async function datasetToDatapackage(
-    knex: db.KnexReadonlyTransaction,
-    datasetId: number
-): Promise<any> {
-    const datasetName = (await getDatasetById(knex, datasetId))?.name
-    const sources = await getSourcesForDataset(knex, datasetId)
-    const variables = (await knex
-        .table(VariablesTableName)
-        .where({ datasetId })) as DbRawVariable[]
-    const tags = await db.knexRaw<Pick<DbPlainTag, "id" | "name">>(
-        knex,
-        `SELECT t.id, t.name FROM dataset_tags dt JOIN tags t ON t.id=dt.tagId WHERE dt.datasetId=?`,
-        [datasetId]
-    )
-
-    const initialFields = [
-        { name: "Entity", type: "string" },
-        { name: "Year", type: "year" },
-    ]
-
-    const dataPackage = {
-        name: datasetName,
-        title: datasetName,
-        id: datasetId,
-        description:
-            (sources[0] &&
-                sources[0].description &&
-                sources[0].description.additionalInfo) ||
-            "",
-        sources: sources.map((s) => sourceToDatapackage(s)),
-        owidTags: tags.map((t: any) => t.name),
-        resources: [
-            {
-                path: `${datasetName}.csv`,
-                schema: {
-                    fields: initialFields.concat(
-                        variables.map((v) => ({
-                            name: v.name ?? "",
-                            type: "any",
-                            description: v.description,
-                            owidDisplaySettings: v.display,
-                        }))
-                    ),
-                },
-            },
-        ],
-    }
-
-    return dataPackage
 }

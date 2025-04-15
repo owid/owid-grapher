@@ -5765,13 +5765,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/shell-quote@npm:^1.7.1":
-  version: 1.7.1
-  resolution: "@types/shell-quote@npm:1.7.1"
-  checksum: 10/51e58326b8c6dcb72846b94cebe3dc4c84f3514469a8e52bd29c52c601e784b427b851d7477acbeef47bfcccf25d2a5768684d27e7fc95fdd003393c1bbb7bc3
-  languageName: node
-  linkType: hard
-
 "@types/shelljs@npm:^0.8.11":
   version: 0.8.11
   resolution: "@types/shelljs@npm:0.8.11"
@@ -10969,7 +10962,6 @@ __metadata:
     "@types/react-router": "npm:^5.1.20"
     "@types/react-router-dom": "npm:^4.3.3"
     "@types/react-tag-autocomplete": "npm:^6.1.1"
-    "@types/shell-quote": "npm:^1.7.1"
     "@types/shelljs": "npm:^0.8.11"
     "@types/string-pixel-width": "npm:^1.7.2"
     "@types/topojson-client": "npm:^3.1.1"
@@ -11077,7 +11069,6 @@ __metadata:
     sass: "npm:^1.77.8"
     search-insights: "npm:^2.14.0"
     sharp: "npm:^0.33.5"
-    shell-quote: "npm:^1.7.3"
     shelljs: "npm:^0.8.5"
     simple-git: "npm:^3.16.1"
     simple-statistics: "npm:^7.3.2"
@@ -17519,13 +17510,6 @@ __metadata:
   version: 3.0.0
   resolution: "shebang-regex@npm:3.0.0"
   checksum: 10/1a2bcae50de99034fcd92ad4212d8e01eedf52c7ec7830eedcf886622804fe36884278f2be8be0ea5fde3fd1c23911643a4e0f726c8685b61871c8908af01222
-  languageName: node
-  linkType: hard
-
-"shell-quote@npm:^1.7.3":
-  version: 1.7.3
-  resolution: "shell-quote@npm:1.7.3"
-  checksum: 10/0ab00c37c84ea3ac13d5f0d45c6850701254fd1d6653d0604a48973ba3911ad0dd9f414672253a01f68fe48bb651a7138317ed4543b75ce4192c1d610e453d4c
   languageName: node
   linkType: hard
 

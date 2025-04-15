@@ -1,6 +1,4 @@
 import shell from "shelljs"
-import util from "util"
-import { quote } from "shell-quote"
 
 interface ExecReturn {
     code: number
@@ -32,13 +30,3 @@ export const execWrapper = (
                 : reject(new ExecError({ code, stdout, stderr }))
         )
     })
-
-export const execFormatted = async (
-    cmd: string,
-    args: string[],
-    verbose = true
-): Promise<ExecReturn> => {
-    const formatCmd = util.format(cmd, ...args.map((word) => quote([word])))
-    if (verbose) console.log(formatCmd)
-    return await execWrapper(formatCmd, { silent: !verbose })
-}
