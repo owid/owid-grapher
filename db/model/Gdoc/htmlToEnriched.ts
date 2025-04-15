@@ -40,16 +40,16 @@ import {
     EnrichedTopicPageIntroRelatedTopic,
     EnrichedBlockKeyInsightsSlide,
     EnrichedBlockKeyInsights,
-    checkIsPlainObjectWithGuard,
     EnrichedBlockResearchAndWriting,
     EnrichedBlockResearchAndWritingLink,
     EnrichedBlockResearchAndWritingRow,
     EnrichedBlockAllCharts,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import { compact, get, isArray, isPlainObject, partition } from "lodash"
+import { compact, get, isArray, partition } from "lodash"
 import * as cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
+import * as R from "remeda"
 
 //#region Spans
 function spanFallback(element: CheerioElement): SpanFallback {
@@ -352,7 +352,7 @@ function getWpComponentDetails(element: CheerioElement): WpComponent {
     if (match.groups?.attributes) {
         try {
             const parsed = JSON.parse(match.groups?.attributes)
-            if (isPlainObject(parsed)) {
+            if (R.isPlainObject(parsed)) {
                 attributes = parsed
             }
         } catch {
@@ -935,7 +935,7 @@ function finishWpComponent(
                 block: unknown
             ): block is EnrichedBlockKeyInsightsSlide {
                 return (
-                    checkIsPlainObjectWithGuard(block) &&
+                    R.isPlainObject(block) &&
                     block["type"] === "key-insight-slide"
                 )
             }
@@ -1032,9 +1032,9 @@ function finishWpComponent(
                 block: unknown
             ): block is EnrichedBlockResearchAndWritingLink {
                 return (
-                    checkIsPlainObjectWithGuard(block) &&
+                    R.isPlainObject(block) &&
                     "value" in block &&
-                    checkIsPlainObjectWithGuard(block["value"])
+                    R.isPlainObject(block["value"])
                 )
             }
 

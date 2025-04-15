@@ -60,29 +60,26 @@ export class MigrateSelectedData1661264304751 implements MigrationInterface {
 
         // Migrate dimension and entity colors.
         // Iterate through the reversed array because in case of multiple entries for one entity, the last one applies.
-        legacyConfig.selectedData
-            .slice()
-            .reverse()
-            .forEach((item) => {
-                if (item.entityId && item.color) {
-                    // migrate entity color
-                    if (!legacyConfig.selectedEntityColors) {
-                        newConfig.selectedEntityColors ??= {}
-                        const entityName = entityNameById[item.entityId]
-                        if (entityName) {
-                            newConfig.selectedEntityColors[entityName] ??=
-                                item.color
-                        }
-                    }
-
-                    // migrate dimension color
-                    const dimension = newConfig.dimensions?.[item.index]
-                    if (dimension?.variableId) {
-                        dimension.display ??= {}
-                        dimension.display.color ??= item.color
+        legacyConfig.selectedData.toReversed().forEach((item) => {
+            if (item.entityId && item.color) {
+                // migrate entity color
+                if (!legacyConfig.selectedEntityColors) {
+                    newConfig.selectedEntityColors ??= {}
+                    const entityName = entityNameById[item.entityId]
+                    if (entityName) {
+                        newConfig.selectedEntityColors[entityName] ??=
+                            item.color
                     }
                 }
-            })
+
+                // migrate dimension color
+                const dimension = newConfig.dimensions?.[item.index]
+                if (dimension?.variableId) {
+                    dimension.display ??= {}
+                    dimension.display.color ??= item.color
+                }
+            }
+        })
 
         const migrateDimensionsTypes: GrapherChartType[] = [
             GRAPHER_CHART_TYPES.Marimekko,

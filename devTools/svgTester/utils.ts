@@ -27,6 +27,7 @@ import { queryStringsByChartType } from "./chart-configurations.js"
 import * as d3 from "d3"
 import prettier from "prettier"
 import { hashMd5 } from "../../serverUtils/hash.js"
+import * as R from "remeda"
 
 // the owid-grapher-svgs repo is usually cloned as a sibling to the owid-grapher repo
 export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/configs"
@@ -189,7 +190,7 @@ export async function selectChartIdsToProcess(
     let validChartIds = await findValidChartIds(inDir, options)
 
     if (options.randomCount !== undefined) {
-        validChartIds = _.sampleSize(validChartIds, options.randomCount)
+        validChartIds = R.sample(validChartIds, options.randomCount)
     }
 
     return _.sortBy(validChartIds)

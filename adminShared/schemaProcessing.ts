@@ -1,15 +1,6 @@
-import {
-    checkIsPlainObjectWithGuard,
-    omit,
-    isArray,
-    isNull,
-    isUndefined,
-    isString,
-    isBoolean,
-    isNumber,
-    mapValues,
-} from "@ourworldindata/utils"
+import { omit, isArray, mapValues } from "@ourworldindata/utils"
 import { compileGetValueFunction } from "./patchHelper.js"
+import * as R from "remeda"
 
 export enum EditorOption {
     textfield = "textfield",
@@ -114,16 +105,16 @@ function extractSchemaRecursive(
     // We shouldn't encounter primitives in the schema itself (since we recurse
     // only into expected structures which are almost always objects)
     if (
-        isNull(schema) ||
-        isUndefined(schema) ||
-        isNumber(schema) ||
-        isString(schema) ||
-        isBoolean(schema) ||
-        isArray(schema)
+        schema === null ||
+        schema === undefined ||
+        R.isNumber(schema) ||
+        R.isString(schema) ||
+        R.isBoolean(schema) ||
+        R.isArray(schema)
     ) {
         console.error("shouldn't come here?", pointer)
         return
-    } else if (checkIsPlainObjectWithGuard(schema)) {
+    } else if (R.isPlainObject(schema)) {
         // If the current schema fragment describes a normal object
         // then do not emit anything directly and recurse over the
         // described properties
@@ -131,7 +122,7 @@ function extractSchemaRecursive(
             Object.prototype.hasOwnProperty.call(schema, "type") &&
             schema.type === "object" &&
             Object.prototype.hasOwnProperty.call(schema, "properties") &&
-            checkIsPlainObjectWithGuard(schema.properties)
+            R.isPlainObject(schema.properties)
         ) {
             // Color scales are complex objects that are treated as opaque objects with a special
             // rich editor. We identify them by the property they are stored as. If we have a color
@@ -173,7 +164,7 @@ function extractSchemaRecursive(
                 schema.patternProperties as Record<string, any>
             ).every(
                 (item: any) =>
-                    checkIsPlainObjectWithGuard(item) &&
+                    R.isPlainObject(item) &&
                     Object.prototype.hasOwnProperty.call(item, "type") &&
                     isPlainTypeString((item as any).type)
             )
@@ -259,11 +250,7 @@ function recursiveDereference(
     schema: unknown,
     defs: Record<string, unknown>
 ): any {
-    if (
-        schema !== null &&
-        schema !== undefined &&
-        checkIsPlainObjectWithGuard(schema)
-    ) {
+    if (schema !== null && schema !== undefined && R.isPlainObject(schema)) {
         if (Object.prototype.hasOwnProperty.call(schema, "$ref")) {
             const ref = schema["$ref"] as string
             const localPrefix = "#/$defs/"
@@ -292,7 +279,7 @@ function dereference(schema: Record<string, unknown>): any {
 export function extractFieldDescriptionsFromSchema(
     schema: unknown
 ): FieldDescription[] {
-    if (checkIsPlainObjectWithGuard(schema)) {
+    if (R.isPlainObject(schema)) {
         const dereferenced = dereference(schema)
         const fieldDescriptions: FieldDescription[] = []
         extractSchemaRecursive(dereferenced, "", fieldDescriptions)

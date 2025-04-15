@@ -12,7 +12,6 @@ import {
     triggerDownloadFromUrl,
     uniq,
     uniqBy,
-    zip,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -45,6 +44,7 @@ import {
     DownloadIconSelected,
 } from "./DownloadIcons.js"
 import { match } from "ts-pattern"
+import * as R from "remeda"
 
 export interface DownloadModalManager {
     displaySlug: string
@@ -573,7 +573,7 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
 
     const attributions = getOriginAttributionFragments(originsUniq)
 
-    const sourceLinks = zip(attributions, originsUniq).map(
+    const sourceLinks = R.zip(attributions, originsUniq).map(
         ([attribution, origin]) => {
             const link = origin?.urlMain
 

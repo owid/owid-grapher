@@ -705,8 +705,8 @@ export class DiscreteBarChart
         }
         const sortedSeries = sortBy(raw, sortByFunc)
         const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
-        if (sortOrder === SortOrder.desc) sortedSeries.reverse()
-        return sortedSeries
+        if (sortOrder === SortOrder.desc) return sortedSeries.toReversed()
+        else return sortedSeries
     }
 
     @computed private get colorScheme(): ColorScheme {

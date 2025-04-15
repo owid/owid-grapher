@@ -104,12 +104,9 @@ export const TableOfContents = ({
                                 ) || ""
                             )
                         } else if (init) {
-                            currentHeadingRecord = records
-                                .reverse()
-                                .find(
-                                    (record) =>
-                                        record.boundingClientRect.top < 0
-                                )
+                            currentHeadingRecord = records.findLast(
+                                (record) => record.boundingClientRect.top < 0
+                            )
                             setActiveHeading(
                                 currentHeadingRecord?.target.id || ""
                             )

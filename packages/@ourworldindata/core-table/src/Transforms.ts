@@ -1,4 +1,4 @@
-import { ColumnSlug, zip, uniq, cloneDeep } from "@ourworldindata/utils"
+import { ColumnSlug, uniq, cloneDeep } from "@ourworldindata/utils"
 import {
     ErrorValue,
     CoreColumnDef,
@@ -13,6 +13,7 @@ import {
     ValueTooLow,
     DivideByZeroError,
 } from "./ErrorValues.js"
+import * as R from "remeda"
 
 enum TransformParamType {
     TimeSlug = "TimeSlug", // column with time
@@ -467,7 +468,7 @@ export const extractPotentialDataSlugsFromTransform = (
         extractTransformNameAndParams(transform) ?? {}
     if (!transformName) return
     const paramDefs = availableTransforms[transformName].params
-    const dataSlugs = zip(paramDefs, params)
+    const dataSlugs = R.zip(paramDefs, params)
         .filter(
             ([paramDef, param]) =>
                 param && paramDef && isMaybeDataSlugParam(paramDef)

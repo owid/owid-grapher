@@ -29,5 +29,5 @@ export const getBreadcrumbItems = (
         if (currentItem) breadcrumb.push(currentItem)
     }
     if (currentItem !== subnavItems[0]) breadcrumb.push(subnavItems[0]) // add topic as parent
-    return breadcrumb.reverse()
+    return breadcrumb.toReversed()
 }

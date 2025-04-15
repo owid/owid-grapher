@@ -1,7 +1,6 @@
 import { JsonError, FlatTagGraph } from "@ourworldindata/types"
-import { checkIsPlainObjectWithGuard } from "@ourworldindata/utils"
 import * as db from "../../db/db.js"
-import * as lodash from "lodash"
+import * as R from "remeda"
 import { Request } from "../authentication.js"
 import e from "express"
 
@@ -27,21 +26,21 @@ export async function handlePostTagGraph(
     function validateFlatTagGraph(
         tagGraph: Record<any, any>
     ): tagGraph is FlatTagGraph {
-        if (lodash.isObject(tagGraph)) {
+        if (R.isObjectType(tagGraph)) {
             for (const [key, value] of Object.entries(tagGraph)) {
-                if (!lodash.isString(key) && isNaN(Number(key))) {
+                if (!R.isString(key) && isNaN(Number(key))) {
                     return false
                 }
-                if (!lodash.isArray(value)) {
+                if (!R.isArray(value)) {
                     return false
                 }
                 for (const tag of value) {
                     if (
                         !(
-                            checkIsPlainObjectWithGuard(tag) &&
-                            lodash.isNumber(tag.weight) &&
-                            lodash.isNumber(tag.parentId) &&
-                            lodash.isNumber(tag.childId)
+                            R.isPlainObject(tag) &&
+                            R.isNumber(tag.weight) &&
+                            R.isNumber(tag.parentId) &&
+                            R.isNumber(tag.childId)
                         )
                     ) {
                         return false

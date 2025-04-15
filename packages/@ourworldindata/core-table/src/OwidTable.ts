@@ -776,7 +776,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const indices = this.rowIndicesByEntityName.get(entityName)
         if (!indices) return undefined
         const values = this.get(columnSlug).valuesIncludingErrorValues
-        const descending = indices.slice().reverse()
+        const descending = indices.toReversed()
         const index = descending.find(
             (index) => !(values[index] instanceof ErrorValue)
         )

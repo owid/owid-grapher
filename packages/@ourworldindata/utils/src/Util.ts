@@ -1,35 +1,23 @@
 import * as R from "remeda"
 import {
     capitalize,
-    chunk,
-    clamp,
     clone,
     cloneDeep,
     compact,
-    countBy,
     debounce,
     difference,
-    drop,
-    dropRightWhile,
-    dropWhile,
     escapeRegExp,
     extend,
     get,
     groupBy,
     identity,
-    invert,
     isArray,
-    isBoolean,
     isEmpty,
     isEqual,
     isInteger,
     isNil,
-    isNull,
     isNumber,
     isObject,
-    isPlainObject,
-    isString,
-    isUndefined,
     keyBy,
     mapValues,
     max,
@@ -45,61 +33,42 @@ import {
     partition,
     pick,
     range,
-    reverse,
     round,
-    sample,
-    sampleSize,
     set,
     sortBy,
-    sortedIndexBy,
     sortedUniqBy,
     startCase,
     sum,
     sumBy,
     tail,
-    takeWhile,
     throttle,
     toString,
     union,
     uniq,
     uniqBy,
     uniqWith,
-    unset,
     upperFirst,
     without,
-    zip,
 } from "lodash"
 
 export {
     capitalize,
-    chunk,
-    clamp,
     clone,
     cloneDeep,
     compact,
-    countBy,
     debounce,
     difference,
-    drop,
-    dropRightWhile,
-    dropWhile,
     escapeRegExp,
     extend,
     get,
     groupBy,
     identity,
-    invert,
     isArray,
-    isBoolean,
     isEmpty,
     isEqual,
     isInteger,
     isNil,
-    isNull,
     isNumber,
-    isPlainObject,
-    isString,
-    isUndefined,
     keyBy,
     mapValues,
     max,
@@ -115,29 +84,22 @@ export {
     partition,
     pick,
     range,
-    reverse,
     round,
-    sample,
-    sampleSize,
     set,
     sortBy,
-    sortedIndexBy,
     sortedUniqBy,
     startCase,
     sum,
     sumBy,
     tail,
-    takeWhile,
     throttle,
     toString,
     union,
     uniq,
     uniqBy,
     uniqWith,
-    unset,
     upperFirst,
     without,
-    zip,
 }
 import { extent, pairs } from "d3-array"
 export { pairs }
@@ -1143,7 +1105,7 @@ export function omitUndefinedValuesRecursive<T extends Record<string, any>>(
 ): NoUndefinedValues<T> {
     const result: any = {}
     for (const key in obj) {
-        if (isPlainObject(obj[key])) {
+        if (R.isPlainObject(obj[key])) {
             // re-apply the function if we encounter a non-empty object
             result[key] = omitUndefinedValuesRecursive(obj[key])
         } else if (obj[key] === undefined) {
@@ -1161,7 +1123,7 @@ export function omitEmptyObjectsRecursive<T extends Record<string, any>>(
 ): Partial<T> {
     const result: any = {}
     for (const key in obj) {
-        if (isPlainObject(obj[key])) {
+        if (R.isPlainObject(obj[key])) {
             const isObjectEmpty = isEmpty(omitEmptyObjectsRecursive(obj[key]))
             if (!isObjectEmpty) result[key] = obj[key]
         } else {
@@ -1281,16 +1243,10 @@ export function toRectangularMatrix<T, F>(arr: T[][], fill: F): (T | F)[][] {
     })
 }
 
-export function checkIsPlainObjectWithGuard(
-    x: unknown
-): x is Record<string, unknown> {
-    return isPlainObject(x)
-}
-
 export function checkIsStringIndexable(
     x: unknown
 ): x is Record<string, unknown> {
-    return isPlainObject(x) || isArray(x)
+    return R.isPlainObject(x) || R.isArray(x)
 }
 
 function checkIsTouchEvent(
@@ -2141,7 +2097,7 @@ export function traverseObjects<T extends Record<string, any>>(
 ): Partial<T> {
     const result: any = {}
     for (const key in obj) {
-        if (isPlainObject(obj[key]) && isPlainObject(ref[key])) {
+        if (R.isPlainObject(obj[key]) && R.isPlainObject(ref[key])) {
             result[key] = traverseObjects(obj[key], ref[key], cb)
         } else {
             result[key] = cb(obj[key], ref[key], key)

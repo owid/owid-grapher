@@ -1,5 +1,6 @@
-import { drop, escapeRegExp, sortBy } from "@ourworldindata/utils"
+import { escapeRegExp, sortBy } from "@ourworldindata/utils"
 import * as React from "react"
+import * as R from "remeda"
 
 export interface SearchWord {
     regex: RegExp
@@ -128,7 +129,7 @@ export function highlightFunctionForSearchWords(
                 // merge overlapping match ranges
                 const mergedMatches = [sortedFirstMatches[0]]
                 let lastMatch = mergedMatches[0]
-                for (const match of drop(sortedFirstMatches, 1)) {
+                for (const match of R.drop(sortedFirstMatches, 1)) {
                     if (
                         lastMatch.matchStart <=
                         match.matchStart + match.matchLength

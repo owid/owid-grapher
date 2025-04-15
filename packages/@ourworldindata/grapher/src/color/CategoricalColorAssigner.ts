@@ -64,8 +64,8 @@ export class CategoricalColorAssigner {
                 ? this.colorScheme.getColors(this.numColorsInUse)
                 : last(this.colorScheme.colorSets)
             )?.slice() ?? []
-        if (this.invertColorScheme) colors.reverse()
-        return colors
+        if (this.invertColorScheme) return colors.toReversed()
+        else return colors
     }
 
     private get leastUsedColor(): Color {

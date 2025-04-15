@@ -1,7 +1,7 @@
 import ReactDOMServer from "react-dom/server.js"
-import * as lodash from "lodash"
 import { JsonError } from "@ourworldindata/utils"
 import { Base64String, HexString } from "@ourworldindata/types"
+import * as R from "remeda"
 
 // Fail-fast integer conversion, for e.g. ids in url params
 export const expectInt = (value: any): number => {
@@ -17,7 +17,7 @@ export const renderToHtmlPage = (element: any) =>
 
 // Determine if input is suitable for use as a url slug
 export const isValidSlug = (slug: any): slug is string =>
-    lodash.isString(slug) && slug.length > 1 && slug.match(/^[\w-]+$/) !== null
+    R.isString(slug) && slug.length > 1 && slug.match(/^[\w-]+$/) !== null
 
 export function base64ToBytes(base64: Base64String): Uint8Array {
     return Buffer.from(base64, "base64")

@@ -4,9 +4,9 @@ import {
     isArray,
     isEqual,
     isNil,
-    checkIsPlainObjectWithGuard,
     checkIsStringIndexable,
 } from "@ourworldindata/utils"
+import * as R from "remeda"
 
 export function setValueRecursiveInplace(
     json: unknown,
@@ -69,7 +69,7 @@ export function setValueRecursive(
         if (Number.isNaN(currentPartAsNumber)) {
             // If we have a string then recurse into the object
             let newObject: any = {}
-            if (json !== undefined && checkIsPlainObjectWithGuard(json))
+            if (json !== undefined && R.isPlainObject(json))
                 newObject = { ...json }
             const currentValue = Object.prototype.hasOwnProperty.call(
                 newObject,
@@ -90,7 +90,7 @@ export function setValueRecursive(
         } else {
             // we have a number as a key. Either there is already an array at this place
             // and we should update or append it or we need to create a new array (else branch below)
-            if (isArray(json)) {
+            if (R.isArray(json)) {
                 const newArray = [...json]
                 const oldValue =
                     currentPartAsNumber < newArray.length
@@ -145,7 +145,7 @@ export function applyPatch(patchSet: GrapherConfigPatch, config: unknown): any {
     if (
         config !== undefined &&
         config !== null &&
-        !(isArray(config) || checkIsPlainObjectWithGuard(config))
+        !(R.isArray(config) || R.isPlainObject(config))
     ) {
         throw Error(
             "When given an non-empty pointer, config must be either an object or array but it is " +

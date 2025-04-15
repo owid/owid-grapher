@@ -3,7 +3,6 @@ import {
     csvEscape,
     formatYear,
     formatDay,
-    isString,
     last,
     uniq,
     sortNumeric,
@@ -45,6 +44,7 @@ import {
     getOriginalTimeColumnSlug,
     getOriginalValueColumnSlug,
 } from "./OwidTableUtil.js"
+import * as R from "remeda"
 
 interface ColumnSummary {
     numErrorValues: number
@@ -343,7 +343,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     // todo: is the isString necessary?
     @imemo get sortedUniqNonEmptyStringVals(): JS_TYPE[] {
         return Array.from(
-            new Set(this.values.filter(isString).filter((i) => i))
+            new Set(this.values.filter(R.isString).filter((i) => i))
         ).sort()
     }
 

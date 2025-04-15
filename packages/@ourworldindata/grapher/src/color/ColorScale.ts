@@ -3,7 +3,6 @@ import { mean, deviation } from "d3-array"
 import { ColorScaleConfig, ColorScaleConfigDefaults } from "./ColorScaleConfig"
 import {
     isEmpty,
-    reverse,
     first,
     last,
     roundSigFig,
@@ -205,9 +204,8 @@ export class ColorScale {
         const numColors = bucketMaximums.length + categoricalValues.length
         const colors = colorScheme.getColors(numColors)
 
-        if (isColorSchemeInverted) reverse(colors)
-
-        return colors
+        if (isColorSchemeInverted) return colors.toReversed()
+        else return colors
     }
 
     @computed get numAutoBins(): number {

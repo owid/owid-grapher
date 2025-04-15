@@ -5,7 +5,6 @@ import {
     domainExtent,
     exposeInstanceOnWindow,
     PointVector,
-    clamp,
     makeIdForHumanConsumption,
     guid,
     excludeUndefined,
@@ -93,6 +92,7 @@ import {
 } from "../color/ColorConstants"
 import { FocusArray } from "../focus/FocusArray"
 import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
+import * as R from "remeda"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -596,7 +596,7 @@ export class SlopeChart
 
     @computed private get sidebarWidth(): number {
         return this.showNoDataSection
-            ? clamp(this.bounds.width * 0.125, 60, 140)
+            ? R.clamp(this.bounds.width * 0.125, { min: 60, max: 140 })
             : 0
     }
 

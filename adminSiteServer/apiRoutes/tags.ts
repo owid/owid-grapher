@@ -4,7 +4,6 @@ import {
     DbRawPostGdoc,
     JsonError,
 } from "@ourworldindata/types"
-import { checkIsPlainObjectWithGuard } from "@ourworldindata/utils"
 import {
     OldChartFieldList,
     oldChartFieldList,
@@ -16,6 +15,7 @@ import * as db from "../../db/db.js"
 import * as lodash from "lodash"
 import e from "express"
 import { Request } from "../authentication.js"
+import * as R from "remeda"
 
 export async function getTagById(
     req: Request,
@@ -209,7 +209,7 @@ export async function createTag(
         tag: unknown
     ): tag is { name: string; slug: string | null } {
         return (
-            checkIsPlainObjectWithGuard(tag) &&
+            R.isPlainObject(tag) &&
             typeof tag.name === "string" &&
             (tag.slug === null ||
                 (typeof tag.slug === "string" && tag.slug !== ""))

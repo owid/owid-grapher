@@ -27,7 +27,6 @@ import {
     makeAnnotationsSlug,
     trimObject,
     uniqBy,
-    zip,
     OwidEntityKey,
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableWithSource,
@@ -40,6 +39,7 @@ import {
     isEmpty,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
+import * as R from "remeda"
 
 export const legacyToOwidTableAndDimensions = (
     json: MultipleOwidVariableDataDimensionsMap,
@@ -435,7 +435,7 @@ const fullJoinTables = (
         string[] | undefined,
     ] = [tables[0], sharedColumnNames]
     const defsToAddPerTable = [firstTableDuplicateForIndices]
-        .concat(zip(tables, columnsToAddPerTable))
+        .concat(R.zip(tables, columnsToAddPerTable))
         .map(
             (tableAndColumns) =>
                 tableAndColumns[0]!

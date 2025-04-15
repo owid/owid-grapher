@@ -60,8 +60,8 @@ export class ColorScheme implements ColorSchemeInterface {
 
         if (colorSets[numColors]) return clone(colorSets[numColors])
 
-        const prevColors = clone(colorSets)
-            .reverse()
+        const prevColors = colorSets
+            .toReversed()
             .find((set) => set && set.length < numColors)
         if (prevColors)
             return this.improviseGradientFromShorter(prevColors, numColors)

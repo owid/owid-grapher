@@ -6,7 +6,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle, faS } from "@fortawesome/free-solid-svg-icons"
 import {
     sum,
-    zip,
     uniq,
     isNumber,
     sortBy,
@@ -20,6 +19,7 @@ import {
     TooltipContext,
 } from "./TooltipProps"
 import { makeAxisLabel } from "../chart/ChartUtils.js"
+import * as R from "remeda"
 
 export const NO_DATA_COLOR = "#999"
 
@@ -182,7 +182,7 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                 rows.some(({ values }) =>
                     values.every((value) => value === undefined)
                 ),
-            tooTrivial = zip(columns, totals ?? []).every(
+            tooTrivial = R.zip(columns, totals ?? []).every(
                 ([column, total]) =>
                     !!column?.formatValueShort(total).match(/^100(\.0+)?%/)
             ),
@@ -193,13 +193,15 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
         const showTotalsAtTop =
             this.context?.anchor === GrapherTooltipAnchor.bottom
 
-        const totalsCells = zip(columns, totals!).map(([column, total]) => (
-            <td key={column?.slug} className="series-value">
-                {column && total !== undefined
-                    ? column.formatValueShort(total, format)
-                    : null}
-            </td>
-        ))
+        const totalsCells = R.zip(columns, totals ?? []).map(
+            ([column, total]) => (
+                <td key={column?.slug} className="series-value">
+                    {column && total !== undefined
+                        ? column.formatValueShort(total, format)
+                        : null}
+                </td>
+            )
+        )
 
         return (
             <table className={classnames("series-list", { focal, swatched })}>
@@ -277,24 +279,26 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                                         </span>
                                     )}
                                 </td>
-                                {zip(columns, values).map(([column, value]) => {
-                                    const missing = value === undefined
-                                    return column ? (
-                                        <td
-                                            key={column.slug}
-                                            className={classnames(
-                                                "series-value",
-                                                { missing }
-                                            )}
-                                        >
-                                            {!missing &&
-                                                column.formatValueShort(
-                                                    value,
-                                                    format
+                                {R.zip(columns, values).map(
+                                    ([column, value]) => {
+                                        const missing = value === undefined
+                                        return column ? (
+                                            <td
+                                                key={column.slug}
+                                                className={classnames(
+                                                    "series-value",
+                                                    { missing }
                                                 )}
-                                        </td>
-                                    ) : null
-                                })}
+                                            >
+                                                {!missing &&
+                                                    column.formatValueShort(
+                                                        value,
+                                                        format
+                                                    )}
+                                            </td>
+                                        ) : null
+                                    }
+                                )}
                                 {notice && (
                                     <td className="time-notice">
                                         <FontAwesomeIcon icon={faInfoCircle} />{" "}

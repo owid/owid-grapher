@@ -27,8 +27,6 @@ import {
     DimensionProperty,
     moveArrayItemToIndex,
     OwidVariableId,
-    sample,
-    sampleSize,
     startCase,
     OwidChartDimensionInterface,
     copyToClipboard,
@@ -59,6 +57,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "antd"
+import * as R from "remeda"
 
 @observer
 class DimensionSlotView<
@@ -140,10 +139,10 @@ class DimensionSlotView<
             // non-stacked charts with multiple y-dimensions should select a single entity by default.
             // if possible, the currently selected entity is persisted, otherwise "World" is preferred
             if (selection.numSelectedEntities !== 1) {
-                const entity = availableEntityNameSet.has(WORLD_ENTITY_NAME)
-                    ? WORLD_ENTITY_NAME
-                    : sample(availableEntityNames)
-                if (entity) selection.setSelectedEntities([entity])
+                const entities = availableEntityNameSet.has(WORLD_ENTITY_NAME)
+                    ? [WORLD_ENTITY_NAME]
+                    : R.sample(availableEntityNames, 1)
+                if (entities) selection.setSelectedEntities(entities)
             }
             grapher.addCountryMode = EntitySelectionMode.SingleEntity
         } else {
@@ -152,7 +151,7 @@ class DimensionSlotView<
             if (selection.numSelectedEntities === 0) {
                 selection.setSelectedEntities(
                     availableEntityNames.length > 10
-                        ? sampleSize(availableEntityNames, 4)
+                        ? R.sample(availableEntityNames, 4)
                         : availableEntityNames
                 )
             }
