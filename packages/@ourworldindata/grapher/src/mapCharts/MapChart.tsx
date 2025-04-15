@@ -169,14 +169,6 @@ export class MapChart
             (country) => !table.availableEntityNameSet.has(country.name)
         )
 
-        console.log(
-            "missing",
-            missingMappableCountries,
-            mappableCountries
-                .map((c) => c.name)
-                .includes("French Southern Territories")
-        )
-
         const rows = missingMappableCountries.map((country) => ({
             entityName: country.name,
             time: table.maxTime!, // arbitrary time

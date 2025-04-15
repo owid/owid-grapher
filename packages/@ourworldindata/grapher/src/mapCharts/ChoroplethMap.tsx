@@ -175,7 +175,10 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get shouldShowAnnotations(): boolean {
-        return this.manager.shouldShowEntitySelectorOnMapTab ?? false
+        return !!(
+            this.manager.mapColumn.hasNumberFormatting &&
+            this.manager.shouldShowEntitySelectorOnMapTab
+        )
     }
 
     private formatAnnotationLabel(value: string | number): string {
@@ -288,7 +291,7 @@ export class ChoroplethMap extends React.Component<{
         }
     }
 
-    private showAllAnnotations = true
+    private showAllAnnotations = false
 
     /* Naively placed annotations that might be overlapping */
     @computed
