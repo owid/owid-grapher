@@ -46,7 +46,11 @@ import {
     GrapherInterface,
     OwidVariableRoundingMode,
 } from "@ourworldindata/types"
-import { Grapher, GrapherState } from "@ourworldindata/grapher"
+import {
+    fetchInputTableForConfig,
+    Grapher,
+    GrapherState,
+} from "@ourworldindata/grapher"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { DATA_API_URL, ETL_API_URL } from "../settings/clientSettings.js"
@@ -714,6 +718,14 @@ class VariableEditor extends Component<{
     dispose!: IReactionDisposer
     componentDidMount() {
         this.grapherState = new GrapherState(this.grapherConfig)
+        void fetchInputTableForConfig(
+            this.grapherConfig.dimensions ?? [],
+            this.grapherConfig.selectedEntityColors,
+            DATA_API_URL,
+            undefined
+        ).then((inputTable) => {
+            if (inputTable) this.grapherState!.inputTable = inputTable
+        })
 
         this.dispose = autorun(() => {
             if (this.grapherState && this.grapherConfig) {
