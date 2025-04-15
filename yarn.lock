@@ -3394,7 +3394,7 @@ __metadata:
     "@tippyjs/react": "npm:^4.2.6"
     "@types/d3": "npm:^6"
     "@types/d3-format": "npm:^2"
-    "@types/lodash": "npm:^4.17.0"
+    "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^17.0.69"
     "@types/react-tag-autocomplete": "npm:^6.1.1"
     "@types/string-pixel-width": "npm:^1.7.2"
@@ -3404,7 +3404,7 @@ __metadata:
     eslint: "npm:^9.21.0"
     eslint-plugin-react-hooks: "npm:^5.2.0"
     fuzzysort: "npm:^3.1.0"
-    lodash: "npm:^4.17.21"
+    lodash-es: "npm:^4.17.21"
     mobx: "npm:^5.15.7"
     mobx-react: "npm:5"
     react: "npm:^17.0.2"
@@ -5461,7 +5461,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash-es@npm:^4":
+"@types/lodash-es@npm:^4, @types/lodash-es@npm:^4.17.12":
   version: 4.17.12
   resolution: "@types/lodash-es@npm:4.17.12"
   dependencies:
@@ -5474,13 +5474,6 @@ __metadata:
   version: 4.17.16
   resolution: "@types/lodash@npm:4.17.16"
   checksum: 10/9a8bb7471a7521bd65d528e1bd14f79819a3eeb6f8a35a8a44649a7d773775c0813e93fd93bd32ccf350bb076c0bf02c6d47877c4625f526f6dd4d283c746aec
-  languageName: node
-  linkType: hard
-
-"@types/lodash@npm:^4.17.0":
-  version: 4.17.0
-  resolution: "@types/lodash@npm:4.17.0"
-  checksum: 10/2053203292b5af99352d108656ceb15d39da5922fc3fb8186e1552d65c82d6e545372cc97f36c95873aa7186404d59d9305e9d49254d4ae55e77df1e27ab7b5d
   languageName: node
   linkType: hard
 
