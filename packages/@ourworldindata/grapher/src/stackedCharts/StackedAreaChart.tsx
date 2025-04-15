@@ -365,8 +365,8 @@ export class StackedAreaChart extends AbstractStackedChart {
     }
 
     @computed get seriesSortedByImportance(): string[] {
-        return [...this.series]
-            .sort(
+        return this.series
+            .toSorted(
                 (
                     s1: StackedSeries<number>,
                     s2: StackedSeries<number>

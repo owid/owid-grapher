@@ -212,8 +212,7 @@ export class EntityPicker extends React.Component<{
     private get entitiesWithMetricValue(): EntityOptionWithMetricValue[] {
         const { metricTable, localEntityNames } = this
         const col = this.activePickerMetricColumn
-        const entityNames =
-            this.manager.availableEntityNames?.slice().sort() ?? []
+        const entityNames = this.manager.availableEntityNames?.toSorted() ?? []
         return entityNames.map((entityName) => {
             const plotValue =
                 col && metricTable?.has(col.slug)
