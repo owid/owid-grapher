@@ -2,8 +2,7 @@ import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, action } from "mobx"
 import * as lodash from "lodash"
-import { Prompt, Redirect } from "react-router-dom"
-import filenamify from "filenamify"
+import { Prompt } from "react-router-dom"
 
 import { OwidSource, DbChartTagJoin, OwidOrigin } from "@ourworldindata/utils"
 
@@ -18,7 +17,6 @@ import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload, faHatWizard } from "@fortawesome/free-solid-svg-icons"
-import { faGithub } from "@fortawesome/free-brands-svg-icons"
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
 import { Button } from "antd"
 import urljoin from "url-join"
@@ -111,7 +109,6 @@ class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     @observable newDataset!: DatasetEditable
-    @observable isDeleted: boolean = false
 
     // HACK (Mispy): Force variable refresh when dataset metadata is updated
     @observable timesUpdated: number = 0
@@ -122,7 +119,6 @@ class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
     }
     UNSAFE_componentWillReceiveProps() {
         this.newDataset = new DatasetEditable(this.props.dataset)
-        this.isDeleted = false
     }
 
     @computed get isModified(): boolean {
@@ -145,26 +141,6 @@ class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
                 Object.assign(this.props.dataset, this.newDataset)
                 this.timesUpdated += 1
             })
-        }
-    }
-
-    async delete() {
-        const { dataset } = this.props
-        if (
-            !window.confirm(
-                `Really delete the dataset ${dataset.name}? This action cannot be undone!`
-            )
-        )
-            return
-
-        const json = await this.context.admin.requestJSON(
-            `/api/datasets/${dataset.id}`,
-            {},
-            "DELETE"
-        )
-
-        if (json.success) {
-            this.isDeleted = true
         }
     }
 
@@ -201,20 +177,10 @@ class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
         )
     }
 
-    @computed get gitHistoryUrl() {
-        return `https://github.com/${
-            this.context.admin.settings.GITHUB_USERNAME
-        }/owid-datasets/tree/master/datasets/${encodeURIComponent(
-            filenamify(this.props.dataset.name)
-        )}`
-    }
-
     render() {
-        if (this.isDeleted) return <Redirect to="/datasets" />
-
         const { dataset } = this.props
         const { newDataset } = this
-        const isBulkImport = dataset.namespace !== "owid"
+        const _isBulkImport = dataset.namespace !== "owid"
         return (
             <main className="DatasetEditPage">
                 <Prompt
@@ -270,17 +236,6 @@ class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
                             Explore in Wizard
                         </Button>
                     </a>
-                    {/* View on GitHub link (old) */}
-                    {!isBulkImport && !dataset.isPrivate && (
-                        <a
-                            href={this.gitHistoryUrl}
-                            target="_blank"
-                            className="btn btn-secondary"
-                            rel="noopener"
-                        >
-                            <FontAwesomeIcon icon={faGithub} /> View on GitHub
-                        </a>
-                    )}
                 </section>
 
                 {/* DATASET METADATA */}

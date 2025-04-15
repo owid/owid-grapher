@@ -33,13 +33,6 @@ export const ADMIN_BASE_URL: string = clientSettings.ADMIN_BASE_URL
 export const BAKED_GRAPHER_URL: string =
     serverSettings.BAKED_GRAPHER_URL ?? `${BAKED_BASE_URL}/grapher`
 
-export const GITHUB_USERNAME: string =
-    serverSettings.GITHUB_USERNAME ?? "owid-test"
-export const GIT_DEFAULT_USERNAME: string =
-    serverSettings.GIT_DEFAULT_USERNAME ?? "Our World in Data"
-export const GIT_DEFAULT_EMAIL: string =
-    serverSettings.GIT_DEFAULT_EMAIL ?? "info@ourworldindata.org"
-
 export const BLOG_POSTS_PER_PAGE: number =
     parseIntOrUndefined(serverSettings.BLOG_POSTS_PER_PAGE) ?? 21
 export const BLOG_SLUG: string = serverSettings.BLOG_SLUG ?? "latest"
@@ -77,9 +70,6 @@ export const ALGOLIA_SECRET_KEY: string =
 export const ALGOLIA_INDEXING: boolean =
     serverSettings.ALGOLIA_INDEXING === "true"
 
-export const GIT_DATASETS_DIR: string =
-    serverSettings.GIT_DATASETS_DIR ?? `${BASE_DIR}/datasetsExport` //  Where the git exports go
-export const TMP_DIR: string = serverSettings.TMP_DIR ?? "/tmp"
 export const UNCATEGORIZED_TAG_ID: number =
     parseIntOrUndefined(serverSettings.UNCATEGORIZED_TAG_ID) ?? 375
 

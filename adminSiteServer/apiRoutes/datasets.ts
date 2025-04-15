@@ -12,12 +12,7 @@ import {
     assignTagsForCharts,
 } from "../../db/model/Chart.js"
 import { getDatasetById, setTagsForDataset } from "../../db/model/Dataset.js"
-import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import {
-    syncDatasetToGitRepo,
-    removeDatasetFromGitRepo,
-} from "../gitDataExport.js"
 import { triggerStaticBuild } from "./routeUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
@@ -287,17 +282,6 @@ export async function updateDataset(
             )
         }
 
-    try {
-        await syncDatasetToGitRepo(trx, datasetId, {
-            oldDatasetName: dataset.name,
-            commitName: _res.locals.user.fullName,
-            commitEmail: _res.locals.user.email,
-        })
-    } catch (err) {
-        await logErrorAndMaybeCaptureInSentry(err)
-        // Continue
-    }
-
     return { success: true }
 }
 
@@ -324,40 +308,6 @@ export async function setTags(
     const datasetId = expectInt(req.params.datasetId)
 
     await setTagsForDataset(trx, datasetId, req.body.tagIds)
-
-    return { success: true }
-}
-
-export async function deleteDataset(
-    req: Request,
-    _res: e.Response<any, Record<string, any>>,
-    trx: db.KnexReadWriteTransaction
-) {
-    const datasetId = expectInt(req.params.datasetId)
-
-    const dataset = await getDatasetById(trx, datasetId)
-    if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
-
-    await db.knexRaw(
-        trx,
-        `DELETE d FROM country_latest_data AS d JOIN variables AS v ON d.variable_id=v.id WHERE v.datasetId=?`,
-        [datasetId]
-    )
-    await db.knexRaw(trx, `DELETE FROM variables WHERE datasetId=?`, [
-        datasetId,
-    ])
-    await db.knexRaw(trx, `DELETE FROM sources WHERE datasetId=?`, [datasetId])
-    await db.knexRaw(trx, `DELETE FROM datasets WHERE id=?`, [datasetId])
-
-    try {
-        await removeDatasetFromGitRepo(dataset.name, dataset.namespace, {
-            commitName: _res.locals.user.fullName,
-            commitEmail: _res.locals.user.email,
-        })
-    } catch (err: any) {
-        await logErrorAndMaybeCaptureInSentry(err)
-        // Continue
-    }
 
     return { success: true }
 }

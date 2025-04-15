@@ -1,8 +1,4 @@
-import {
-    ENV,
-    GITHUB_USERNAME,
-    DATA_API_FOR_ADMIN_UI,
-} from "../settings/serverSettings.js"
+import { ENV, DATA_API_FOR_ADMIN_UI } from "../settings/serverSettings.js"
 import { viteAssetsForAdmin } from "../site/viteUtils.js"
 
 export const IndexPage = (props: {
@@ -17,7 +13,7 @@ export const IndexPage = (props: {
           username: "${props.username}",
           email: "${props.email}",
           isSuperuser: ${props.isSuperuser.toString()},
-          settings: ${JSON.stringify({ ENV, GITHUB_USERNAME, DATA_API_FOR_ADMIN_UI })}
+          settings: ${JSON.stringify({ ENV, DATA_API_FOR_ADMIN_UI })}
         })
         admin.start(document.querySelector("#app"))
 `
