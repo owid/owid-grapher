@@ -172,7 +172,6 @@ export {
     countBy,
     debounce,
     difference,
-    drop,
     extend,
     get,
     groupBy,
