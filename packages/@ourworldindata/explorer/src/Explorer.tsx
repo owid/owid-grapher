@@ -550,7 +550,6 @@ export class Explorer
                 this.explorerProgram.grapherConfig
             ),
             bakedGrapherURL: this.bakedBaseUrl,
-            dataApiUrl: this.dataApiUrl,
             adminBaseUrl: this.adminBaseUrl,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: false,
@@ -563,16 +562,19 @@ export class Explorer
 
         grapher?.grapherState.setAuthoredVersion(config)
         grapher.grapherState.reset()
+        grapher.grapherState.inputTable = BlankOwidTable()
         grapher?.grapherState.updateFromObject(config)
-        const inputTable = await fetchInputTableForConfig(
-            config.dimensions ?? [],
-            config.selectedEntityColors,
-            this.props.dataApiUrl,
-            undefined
-        )
-        if (inputTable)
-            grapher.grapherState.inputTable =
-                this.inputTableTransformer(inputTable)
+        if (!config.table) {
+            const inputTable = await fetchInputTableForConfig(
+                config.dimensions ?? [],
+                config.selectedEntityColors,
+                this.props.dataApiUrl,
+                undefined
+            )
+            if (inputTable)
+                grapher.grapherState.inputTable =
+                    this.inputTableTransformer(inputTable)
+        }
     }
 
     @action.bound async updateGrapherFromExplorerUsingVariableIds() {
@@ -604,7 +606,6 @@ export class Explorer
                 this.explorerProgram.grapherConfig
             ),
             bakedGrapherURL: this.bakedBaseUrl,
-            dataApiUrl: this.dataApiUrl,
             adminBaseUrl: this.adminBaseUrl,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: false,
@@ -766,7 +767,6 @@ export class Explorer
         const config: GrapherProgrammaticInterface = {
             ...this.explorerProgram.grapherConfig,
             bakedGrapherURL: this.bakedBaseUrl,
-            dataApiUrl: this.dataApiUrl,
             adminBaseUrl: this.adminBaseUrl,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: true,

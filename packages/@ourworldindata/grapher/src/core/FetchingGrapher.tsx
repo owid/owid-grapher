@@ -1,5 +1,6 @@
 import {
     AssetMap,
+    ColumnSlug,
     GrapherInterface,
     MultipleOwidVariableDataDimensionsMap,
     OwidChartDimensionInterface,
@@ -12,15 +13,49 @@ import {
     GrapherState,
 } from "./Grapher.js"
 import { loadVariableDataAndMetadata } from "./loadVariable.js"
-import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
-import { OwidTable } from "@ourworldindata/core-table"
+import {
+    buildVariableTable,
+    legacyToOwidTableAndDimensionsWithMandatorySlug,
+} from "./LegacyToOwidTable.js"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { isEqual } from "@ourworldindata/utils"
+import {
+    CoreColumnBySlug,
+    EXTERNAL_SORT_INDICATOR_DEFINITIONS,
+} from "../entitySelector/EntitySelector.js"
 
 export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
     configUrl?: string
     dataApiUrl: string
     assetMap: AssetMap | undefined
+}
+
+async function loadSortColumn(
+    indicatorId: number,
+    slug: ColumnSlug,
+    dataApiUrl: string
+): Promise<CoreColumn> {
+    const variable = await loadVariableDataAndMetadata(indicatorId, dataApiUrl)
+    const variableTable = buildVariableTable(variable)
+    const column = variableTable
+        .interpolateColumnWithTolerance(slug, Infinity)
+        .get(slug)!
+    return column
+}
+
+async function loadSortColumns(dataApiUrl: string): Promise<CoreColumnBySlug> {
+    const promises = EXTERNAL_SORT_INDICATOR_DEFINITIONS.map(
+        async (sortIndicator) => {
+            const { indicatorId, slug } = sortIndicator
+            return loadSortColumn(indicatorId, slug, dataApiUrl)
+        }
+    )
+    const columns = await Promise.all(promises)
+    const columnMap = Object.fromEntries(
+        columns.map((column) => [column.slug, column])
+    )
+    return columnMap
 }
 export function FetchingGrapher(
     props: FetchingGrapherProps
@@ -34,7 +69,6 @@ export function FetchingGrapher(
     const grapherState = React.useRef<GrapherState>(
         new GrapherState({
             ...props.config,
-            dataApiUrl: props.dataApiUrl,
         })
     )
 
@@ -77,6 +111,14 @@ export function FetchingGrapher(
         props.config?.selectedEntityColors,
         props.assetMap,
     ])
+
+    React.useEffect(() => {
+        async function fetchSortColumns(): Promise<void> {
+            const sortColumns = await loadSortColumns(props.dataApiUrl)
+            grapherState.current.interpolatedSortColumnsBySlug = sortColumns
+        }
+        void fetchSortColumns()
+    })
 
     return <Grapher grapherState={grapherState.current} />
 }

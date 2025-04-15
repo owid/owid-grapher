@@ -59,7 +59,6 @@ export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 const baseGrapherConfig: GrapherProgrammaticInterface = {
     bakedGrapherURL: BAKED_GRAPHER_URL,
     adminBaseUrl: ADMIN_BASE_URL,
-    dataApiUrl: DATA_API_URL,
 }
 
 // From DataPageUtils
@@ -303,7 +302,6 @@ export const MultiDimDataPageContent = ({
         grapher.externalBounds = bounds
         grapher.bakedGrapherURL = BAKED_GRAPHER_URL
         grapher.adminBaseUrl = ADMIN_BASE_URL
-        grapher.dataApiUrl = DATA_API_URL
         updateGrapher(grapher, settings, queryParams)
         // NOTE (Martin): This is the only way I was able to set the initial
         // state on page load. Reconsider after the Grapher state refactor, i.e.

@@ -50,18 +50,15 @@ import { SortIcon } from "../controls/SortIcon"
 import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
 import { ColumnSlug, OwidColumnDef, Time } from "@ourworldindata/types"
-import { buildVariableTable } from "../core/LegacyToOwidTable"
-import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 import { FocusArray } from "../focus/FocusArray"
 
-type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
+export type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
 export interface EntitySelectorState {
     searchInput: string
     sortConfig: SortConfig
     localEntityNames?: string[]
-    interpolatedSortColumnsBySlug?: CoreColumnBySlug
     isLoadingExternalSortColumn?: boolean
 }
 
@@ -72,12 +69,12 @@ export interface EntitySelectorManager {
     entityType?: string
     entityTypePlural?: string
     activeColumnSlugs?: string[]
-    dataApiUrl: string
     isEntitySelectorModalOrDrawerOpen?: boolean
     canChangeEntity?: boolean
     canHighlightEntities?: boolean
     focusArray?: FocusArray
     endTime?: Time
+    interpolatedSortColumnsBySlug?: CoreColumnBySlug
 }
 
 interface SortConfig {
@@ -103,7 +100,7 @@ interface DropdownOption {
     formattedTime?: string
 }
 
-const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
+export const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
     {
         key: "population",
         label: "Population",
@@ -260,16 +257,6 @@ export class EntitySelector extends React.Component<{
         }
     }
 
-    private setInterpolatedSortColumn(column?: CoreColumn): void {
-        if (!column) return
-        this.set({
-            interpolatedSortColumnsBySlug: {
-                ...this.interpolatedSortColumnsBySlug,
-                [column.slug]: column,
-            },
-        })
-    }
-
     private clearSearchInput(): void {
         this.set({ searchInput: "" })
     }
@@ -367,9 +354,7 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get interpolatedSortColumnsBySlug(): CoreColumnBySlug {
-        return (
-            this.manager.entitySelectorState.interpolatedSortColumnsBySlug ?? {}
-        )
+        return this.manager.interpolatedSortColumnsBySlug ?? {}
     }
 
     @computed private get interpolatedSortColumns(): CoreColumn[] {
@@ -754,56 +739,9 @@ export class EntitySelector extends React.Component<{
             this.manager.focusArray?.clear()
         }
     }
-
-    @action.bound async loadAndSetExternalSortColumn(
-        external: ExternalSortIndicatorDefinition
-    ): Promise<void> {
-        const { slug, indicatorId } = external
-
-        // the indicator has already been loaded
-        if (this.interpolatedSortColumnsBySlug[slug]) return
-
-        // load the external indicator
-        try {
-            this.set({ isLoadingExternalSortColumn: true })
-            const variable = await loadVariableDataAndMetadata(
-                indicatorId,
-                this.manager.dataApiUrl
-            )
-            const variableTable = buildVariableTable(variable)
-            const column = variableTable
-                .filterByEntityNames(this.availableEntityNames)
-                .interpolateColumnWithTolerance(slug, Infinity)
-                .get(slug)
-            if (column) this.setInterpolatedSortColumn(column)
-        } catch {
-            console.error(`Failed to load variable with id ${indicatorId}`)
-        } finally {
-            this.set({ isLoadingExternalSortColumn: false })
-        }
-    }
-
     @action.bound async onChangeSortSlug(selected: unknown): Promise<void> {
         if (selected) {
             const { value: slug } = selected as DropdownOption
-
-            // if an external indicator has been selected, load it
-            const external = this.externalSortIndicatorDefinitions.find(
-                (external) => external.slug === slug
-            )
-            if (external) await this.loadAndSetExternalSortColumn(external)
-
-            // apply tolerance if an indicator is selected for the first time
-            if (
-                !external &&
-                !this.isEntityNameSlug(slug) &&
-                !this.interpolatedSortColumnsBySlug[slug]
-            ) {
-                const interpolatedColumn = this.table
-                    .interpolateColumnWithTolerance(slug)
-                    .get(slug)
-                this.setInterpolatedSortColumn(interpolatedColumn)
-            }
 
             this.updateSortSlug(slug)
         }
