@@ -224,6 +224,7 @@ export interface OwidGdocHomepageInterface extends OwidGdocBaseInterface {
     content: OwidGdocHomepageContent
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     homepageMetadata?: OwidGdocHomepageMetadata
+    latestDataInsights?: LatestDataInsight[]
 }
 
 export interface OwidGdocAuthorContent {

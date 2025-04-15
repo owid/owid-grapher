@@ -1406,7 +1406,10 @@ export function extractGdocPageData<T extends OwidGdoc>(gdoc: T) {
             const homepageGdoc = gdoc as OwidGdocHomepageInterface
             return {
                 ...commonProps,
-                ...R.pick(homepageGdoc, ["homepageMetadata"]),
+                ...R.pick(homepageGdoc, [
+                    "homepageMetadata",
+                    "latestDataInsights",
+                ]),
             }
         })
         .with({ type: OwidGdocType.DataInsight }, () => {
