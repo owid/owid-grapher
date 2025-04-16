@@ -18,8 +18,8 @@ export interface ArchiveSiteNavigationInfo {
 export interface ArchiveMetaInformation {
     archiveDate: Date | ArchiveDateString
     archiveNavigation: ArchiveSiteNavigationInfo
-    assets: {
-        runtime: AssetMap
-        static: AssetMap
+    assets?: {
+        runtime?: AssetMap
+        static?: AssetMap
     }
 }

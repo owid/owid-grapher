@@ -7,10 +7,10 @@ import {
     DATA_API_URL,
 } from "../settings/clientSettings.js"
 import { useElementBounds } from "./hooks.js"
-import { AssetMap } from "@ourworldindata/types"
+import { ArchiveMetaInformation } from "@ourworldindata/types"
 
 declare const window: Window & {
-    _OWID_RUNTIME_ASSET_MAP?: AssetMap
+    _OWID_ARCHIVE_INFO?: ArchiveMetaInformation
 }
 
 // Wrapper for Grapher that uses css on figure element to determine the bounds
@@ -24,8 +24,8 @@ export const GrapherFigureView = ({
     const base = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(base)
 
-    const runtimeAssetMap =
-        (typeof window !== "undefined" && window._OWID_RUNTIME_ASSET_MAP) ||
+    const archiveInfo =
+        (typeof window !== "undefined" && window._OWID_ARCHIVE_INFO) ||
         undefined
 
     const grapherProps: GrapherProgrammaticInterface = {
@@ -35,7 +35,7 @@ export const GrapherFigureView = ({
         queryStr: grapher.props.bindUrlToWindow
             ? window.location.search
             : undefined,
-        runtimeAssetMap,
+        archiveInfo,
         bounds,
         dataApiUrl: DATA_API_URL,
         enableKeyboardShortcuts: true,

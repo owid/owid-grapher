@@ -1,4 +1,5 @@
 import {
+    ArchiveMetaInformation,
     ArchiveSiteNavigationInfo,
     AssetMap,
     DbEnrichedImage,
@@ -396,17 +397,23 @@ async function bakeGrapherPageForArchival(
               ),
           }
         : undefined
-    const archiveInformation: ArchiveSiteNavigationInfo = {
+    const archiveNavigation: ArchiveSiteNavigationInfo = {
         archiveDate: date.date,
         liveUrl: `https://ourworldindata.org/grapher/${config.slug}`,
         previousVersion,
     }
+    const archiveInfo: ArchiveMetaInformation = {
+        archiveDate: date.date,
+        archiveNavigation,
+        assets: {
+            runtime: runtimeFiles,
+            static: staticAssetMap,
+        },
+    }
     await bakeSingleGrapherPageForArchival(dir, config, trx, {
         imageMetadataDictionary,
-        staticAssetMap,
-        runtimeAssetMap: runtimeFiles,
         manifest,
-        archiveInformation,
+        archiveInfo,
     })
     return manifest
 }

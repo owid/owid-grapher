@@ -11,13 +11,13 @@ interface SiteHeaderProps {
     isOnHomepage?: boolean
 
     // If this is an archived page, we need to render a different version of the site header
-    archiveInformation?: ArchiveSiteNavigationInfo
+    archiveNavInformation?: ArchiveSiteNavigationInfo
 }
 
 export const SiteHeader = (props: SiteHeaderProps) => (
     <header className="site-header">
-        {props.archiveInformation ? (
-            <ArchiveSiteNavigation {...props.archiveInformation} />
+        {props.archiveNavInformation ? (
+            <ArchiveSiteNavigation {...props.archiveNavInformation} />
         ) : (
             <div className="site-navigation-root">
                 <SiteNavigation

@@ -15,8 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import {
-    ArchiveSiteNavigationInfo,
-    AssetMap,
+    ArchiveMetaInformation,
     HIDE_IF_JS_DISABLED_CLASSNAME,
     HIDE_IF_JS_ENABLED_CLASSNAME,
 } from "@ourworldindata/types"
@@ -41,12 +40,16 @@ export const GrapherPage = (props: {
     relatedArticles?: PostReference[]
     baseUrl: string
     baseGrapherUrl: string
-    staticAssetMap?: AssetMap
-    runtimeAssetMap?: AssetMap
-    archiveInformation?: ArchiveSiteNavigationInfo
+    archiveInfo?: ArchiveMetaInformation
 }) => {
-    const { grapher, relatedCharts, relatedArticles, baseGrapherUrl, baseUrl } =
-        props
+    const {
+        grapher,
+        relatedCharts,
+        relatedArticles,
+        baseGrapherUrl,
+        baseUrl,
+        archiveInfo,
+    } = props
     const pageTitle = grapher.title
     const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
     const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
@@ -78,8 +81,8 @@ export const GrapherPage = (props: {
         bakedGrapherURL: BAKED_GRAPHER_URL,
         dataApiUrl: DATA_API_URL,
     })}
-const runtimeAssetMap = (typeof window !== "undefined" && window._OWID_RUNTIME_ASSET_MAP) || undefined;
-window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { runtimeAssetMap: runtimeAssetMap })`
+const archiveInfo = (typeof window !== "undefined" && window._OWID_ARCHIVE_INFO) || undefined;
+window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { archiveInfo })`
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
 
@@ -91,7 +94,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { runtimeAssetMap: r
                 pageDesc={pageDesc}
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
-                staticAssetMap={props.staticAssetMap}
+                staticAssetMap={archiveInfo?.assets?.static}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
@@ -102,12 +105,12 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { runtimeAssetMap: r
                         getVariableDataRoute(
                             DATA_API_URL,
                             variableId,
-                            props.runtimeAssetMap
+                            archiveInfo?.assets?.runtime
                         ),
                         getVariableMetadataRoute(
                             DATA_API_URL,
                             variableId,
-                            props.runtimeAssetMap
+                            archiveInfo?.assets?.runtime
                         ),
                     ].map((href) => (
                         <link
@@ -128,7 +131,9 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { runtimeAssetMap: r
                 />
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
-                <SiteHeader archiveInformation={props.archiveInformation} />
+                <SiteHeader
+                    archiveNavInformation={archiveInfo?.archiveNavigation}
+                />
                 <main>
                     <figure
                         className={HIDE_IF_JS_DISABLED_CLASSNAME}
@@ -181,8 +186,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { runtimeAssetMap: r
                 </main>
                 <SiteFooter
                     context={SiteFooterContext.grapherPage}
-                    staticAssetMap={props.staticAssetMap}
-                    runtimeAssetMap={props.runtimeAssetMap}
+                    archiveInfo={archiveInfo}
                 />
                 <script
                     type="module"

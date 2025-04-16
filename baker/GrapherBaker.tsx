@@ -33,8 +33,7 @@ import {
     DbPlainChart,
     DbRawChartConfig,
     DbEnrichedImage,
-    AssetMap,
-    ArchiveSiteNavigationInfo,
+    ArchiveMetaInformation,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -64,14 +63,10 @@ const renderDatapageIfApplicable = async (
     knex: db.KnexReadonlyTransaction,
     {
         imageMetadataDictionary,
-        staticAssetMap,
-        runtimeAssetMap,
-        archiveInformation,
+        archiveInfo,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        staticAssetMap?: AssetMap
-        runtimeAssetMap?: AssetMap
-        archiveInformation?: ArchiveSiteNavigationInfo
+        archiveInfo?: ArchiveMetaInformation
     } = {}
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
@@ -95,9 +90,7 @@ const renderDatapageIfApplicable = async (
             useIndicatorGrapherConfigs: false,
             pageGrapher: grapher,
             imageMetadataDictionary,
-            staticAssetMap,
-            runtimeAssetMap,
-            archiveInformation,
+            archiveInfo,
         },
         knex
     )
@@ -113,27 +106,19 @@ export const renderDataPageOrGrapherPage = async (
     knex: db.KnexReadonlyTransaction,
     {
         imageMetadataDictionary,
-        staticAssetMap,
-        runtimeAssetMap,
-        archiveInformation,
+        archiveInfo,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        staticAssetMap?: AssetMap
-        runtimeAssetMap?: AssetMap
-        archiveInformation?: ArchiveSiteNavigationInfo
+        archiveInfo?: ArchiveMetaInformation
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
         imageMetadataDictionary,
-        staticAssetMap,
-        runtimeAssetMap,
-        archiveInformation,
+        archiveInfo,
     })
     if (datapage) return datapage
     return renderGrapherPage(grapher, knex, {
-        staticAssetMap,
-        runtimeAssetMap,
-        archiveInformation,
+        archiveInfo,
     })
 }
 
@@ -145,9 +130,7 @@ export async function renderDataPageV2(
         useIndicatorGrapherConfigs,
         pageGrapher,
         imageMetadataDictionary = {},
-        staticAssetMap,
-        runtimeAssetMap,
-        archiveInformation,
+        archiveInfo,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -155,9 +138,7 @@ export async function renderDataPageV2(
         useIndicatorGrapherConfigs: boolean
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
-        staticAssetMap?: AssetMap
-        runtimeAssetMap?: AssetMap
-        archiveInformation?: ArchiveSiteNavigationInfo
+        archiveInfo?: ArchiveMetaInformation
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -231,7 +212,7 @@ export async function renderDataPageV2(
     // If we're baking to an archival page, then we want to skip a bunch of sections
     // where the links would break
 
-    if (!archiveInformation) {
+    if (!archiveInfo) {
         // Get the charts this variable is being used in (aka "related charts")
         // and exclude the current chart to avoid duplicates
         datapageData.allCharts = await getRelatedChartsForVariable(
@@ -265,9 +246,7 @@ export async function renderDataPageV2(
             imageMetadata={imageMetadata}
             faqEntries={faqEntries}
             tagToSlugMap={tagToSlugMap}
-            staticAssetMap={staticAssetMap}
-            runtimeAssetMap={runtimeAssetMap}
-            archiveInformation={archiveInformation}
+            archiveInfo={archiveInfo}
         />
     )
 }
@@ -290,27 +269,23 @@ const renderGrapherPage = async (
     grapher: GrapherInterface,
     knex: db.KnexReadonlyTransaction,
     {
-        staticAssetMap,
-        runtimeAssetMap,
-        archiveInformation,
+        archiveInfo,
     }: {
-        staticAssetMap?: AssetMap
-        runtimeAssetMap?: AssetMap
-        archiveInformation?: ArchiveSiteNavigationInfo
+        archiveInfo?: ArchiveMetaInformation
     } = {}
 ) => {
     const postSlug = urlToSlug(grapher.originUrl || "") as string | undefined
     // TODO: update this to use gdocs posts
     const postId =
-        postSlug && !archiveInformation
+        postSlug && !archiveInfo
             ? await getPostIdFromSlug(knex, postSlug)
             : undefined
     const relatedCharts =
-        postId && !archiveInformation
+        postId && !archiveInfo
             ? await getPostRelatedCharts(knex, postId)
             : undefined
     const relatedArticles =
-        grapher.id && !archiveInformation
+        grapher.id && !archiveInfo
             ? await getRelatedArticles(knex, grapher.id)
             : undefined
 
@@ -321,9 +296,7 @@ const renderGrapherPage = async (
             relatedArticles={relatedArticles}
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
-            staticAssetMap={staticAssetMap}
-            runtimeAssetMap={runtimeAssetMap}
-            archiveInformation={archiveInformation}
+            archiveInfo={archiveInfo}
         />
     )
 }
@@ -334,16 +307,12 @@ export const bakeSingleGrapherPageForArchival = async (
     knex: db.KnexReadonlyTransaction,
     {
         imageMetadataDictionary,
-        staticAssetMap,
-        runtimeAssetMap,
+        archiveInfo,
         manifest,
-        archiveInformation,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        staticAssetMap?: AssetMap
-        runtimeAssetMap?: AssetMap
+        archiveInfo?: ArchiveMetaInformation
         manifest: ArchivalManifest
-        archiveInformation?: ArchiveSiteNavigationInfo
     }
 ) => {
     const outPathHtml = `${bakedSiteDir}/grapher/${grapher.slug}.html`
@@ -351,9 +320,7 @@ export const bakeSingleGrapherPageForArchival = async (
         outPathHtml,
         await renderDataPageOrGrapherPage(grapher, knex, {
             imageMetadataDictionary,
-            staticAssetMap,
-            runtimeAssetMap,
-            archiveInformation,
+            archiveInfo,
         })
     )
     const outPathManifest = `${bakedSiteDir}/grapher/${grapher.slug}.manifest.json`
