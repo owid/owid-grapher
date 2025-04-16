@@ -146,10 +146,6 @@ function filterUrlQueryParams(url: string): string {
         url
     )
 
-    if (url.endsWith("?")) {
-        url = url.slice(0, -1)
-    }
-
     return url
 }
 
@@ -197,18 +193,6 @@ function FeaturedMetricSection({
             setIsValid({
                 isValid: false,
                 reason: "Explorer URLs must have the view's query string",
-            })
-        } else if (
-            GRAPHER_QUERY_PARAM_KEYS.some((param) => url.queryParams[param])
-        ) {
-            const invalidParams = GRAPHER_QUERY_PARAM_KEYS.filter(
-                (param) => url.queryParams[param]
-            )
-            setIsValid({
-                isValid: false,
-                reason: `URL must not contain grapher query parameters: ${invalidParams.join(
-                    ", "
-                )}`,
             })
         } else {
             setIsValid({ isValid: true, reason: "" })
@@ -273,6 +257,16 @@ function FeaturedMetricSection({
                             return
                         }
                         handleAddFeaturedMetric()
+                    }}
+                    onBlur={() => {
+                        if (
+                            newFeaturedMetricInputValue.endsWith("?") ||
+                            newFeaturedMetricInputValue.endsWith("/")
+                        ) {
+                            handleInputChange(
+                                newFeaturedMetricInputValue.slice(0, -1)
+                            )
+                        }
                     }}
                     onChange={(e) => handleInputChange(e.target.value)}
                 />
