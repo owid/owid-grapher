@@ -6,6 +6,7 @@ export enum RegionType {
     Other = "other",
     Aggregate = "aggregate",
     Continent = "continent",
+    IncomeGroup = "income_group",
 }
 
 export interface Country {
@@ -43,15 +44,23 @@ export interface Continent {
     members: string[]
 }
 
-export type Region = Country | Aggregate | Continent
-
-export const regions: Region[] = entities as Region[]
+export type IncomeGroup = {
+    code: OwidIncomeGroupName
+    name: string
+    slug: string
+    regionType: RegionType.IncomeGroup
+    members: string[]
+}
 
 export type OwidIncomeGroupName =
     | "OWID_LIC"
     | "OWID_LMC"
     | "OWID_UMC"
     | "OWID_HIC"
+
+export type Region = Country | Aggregate | Continent | IncomeGroup
+
+export const regions: Region[] = entities as Region[]
 
 export function checkIsOwidIncomeGroupName(
     name: string
@@ -100,7 +109,7 @@ export const incomeGroupsByName = lazy(
             regions
                 .filter((region) => checkIsOwidIncomeGroupName(region.code))
                 .map((region) => [region.code, region])
-        ) as Record<OwidIncomeGroupName, Aggregate>
+        ) as Record<OwidIncomeGroupName, IncomeGroup>
 )
 
 const countriesBySlug = lazy(() =>

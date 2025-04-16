@@ -4,6 +4,7 @@ import { gdocUrlRegex, QueryParams } from "@ourworldindata/types"
 import { excludeUndefined, omitUndefinedValues } from "../Util.js"
 
 import { queryParamsToStr, strToQueryParams } from "./UrlUtils.js"
+import { isDeepEqual, isShallowEqual } from "remeda"
 
 const parseUrl = (url: string): urlParseLib<string> => {
     const parsed = urlParseLib(url, {})
@@ -172,28 +173,7 @@ export class Url {
         const thisParams = this.queryParams
         const otherParams = otherUrl.queryParams
 
-        // First check if they have the same number of keys
-        const thisKeys = Object.keys(thisParams)
-        const otherKeys = Object.keys(otherParams)
-        if (thisKeys.length !== otherKeys.length) {
-            return false
-        }
-
-        // Check if all keys exist in both objects and have the same values
-        for (const key of thisKeys) {
-            if (!(key in otherParams)) {
-                return false
-            }
-
-            const thisValue = thisParams[key]
-            const otherValue = otherParams[key]
-
-            if (thisValue !== otherValue) {
-                return false
-            }
-        }
-
-        return true
+        return isShallowEqual(thisParams, otherParams)
     }
 }
 

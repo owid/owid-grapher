@@ -96,17 +96,19 @@ function createRecordUrl(record: ChartRecord) {
     )
 }
 
-function findMatchingRecordBySlugAndQueryParams(
+function findMatchingRecordByPathnameAndQueryParams(
     records: ChartRecord[],
     featuredMetric: DbPlainFeaturedMetricWithParentTagName
 ) {
     const fmUrl = Url.fromURL(featuredMetric.url)
     return records.find((record) => {
-        if (record.slug !== fmUrl.slug) return false
         const recordUrl = createRecordUrl(record)
+        if (fmUrl.pathname !== recordUrl.pathname) return false
         return fmUrl.areQueryParamsEqual(recordUrl)
     })
 }
+
+export const MAX_NON_FM_RECORD_SCORE = 10000
 
 /**
  * All featured metrics start at a score of 11000, which places them above all other records
@@ -119,7 +121,7 @@ function calculateFeaturedMetricScore(
     featuredMetric: DbPlainFeaturedMetricWithParentTagName,
     group: DbPlainFeaturedMetricWithParentTagName[]
 ): number {
-    let score = 11000
+    let score = MAX_NON_FM_RECORD_SCORE + 1000
     // If there are 3 FMs in the group, rank 1 gets 3 points, rank 2 gets 2 points, rank 3 gets 1 point.
     // This means we can sort by desc(score) in Algolia and they'll show up according to their rank.
     score += group.length - featuredMetric.ranking
@@ -204,7 +206,7 @@ export async function createFeaturedMetricRecords(
     const featuredMetricRecords: ChartRecord[] = []
 
     for (const featuredMetric of featuredMetricsWithParentTagName) {
-        const correspondingRecord = findMatchingRecordBySlugAndQueryParams(
+        const correspondingRecord = findMatchingRecordByPathnameAndQueryParams(
             records,
             featuredMetric
         )

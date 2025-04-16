@@ -162,5 +162,11 @@ describe(Url, () => {
             const url2 = Url.fromURL("https://example.com/?a=1&c=2")
             expect(url1.areQueryParamsEqual(url2)).toBe(false)
         })
+
+        it("returns true even when domain is different", () => {
+            const url1 = Url.fromURL("https://example.com/?a=1&b=2")
+            const url2 = Url.fromURL("https://other-thing.com/?a=1&b=2")
+            expect(url1.areQueryParamsEqual(url2)).toBe(true)
+        })
     })
 })
