@@ -45,6 +45,11 @@ deploy_archive() {
 
     build_vite
 
+    # Remove the old archive dir
+    # This speeds up the rclone sync below, because it only has to look at newly-created files
+    # It'll also get rid of any files that are part of a failed build...
+    rm -rf "$TARGET_DIR"
+
     # Create a new directory for the archive
     mkdir -p "$TARGET_DIR"
 
