@@ -11,7 +11,12 @@ import { manualAnnotationPlacementsById } from "./AnnotationPlacements"
 const GRAPHER_ROOT = __dirname.replace(/\/(itsJustJavascript\/)?devTools.*/, "")
 const GRAPHER_MAP_ANNOTATIONS_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/grapher/src/mapCharts/MapAnnotationPlacements.json`
 
-const COUNTRIES_WITH_EXTERNAL_LABEL_ONLY = ["Chile", "Indonesia", "East Timor"]
+const COUNTRIES_WITH_EXTERNAL_LABEL_ONLY = [
+    "Chile",
+    "Indonesia",
+    "East Timor",
+    "New Zealand",
+]
 
 interface PoleOfInaccessibility {
     x: number // center x

@@ -286,6 +286,7 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     private shouldShowAllAnnotations = false
+    private debugAnnotations = false
 
     /* Naively placed annotations that might be overlapping */
     @computed
@@ -771,7 +772,7 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     renderDebugAnnotations(): React.ReactElement | void {
-        if (!this.shouldShowAllAnnotations) return
+        if (!this.debugAnnotations) return
 
         return (
             <g>
