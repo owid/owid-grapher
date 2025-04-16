@@ -955,19 +955,6 @@ export const getFeaturedMetricsByParentTagName = async (
     }
 }
 
-export async function getFeaturedMetricsWithParentTagName(
-    trx: KnexReadonlyTransaction
-): Promise<DbPlainFeaturedMetricWithParentTagName[]> {
-    return getFeaturedMetricsByParentTagName(trx).then((dictionary) =>
-        Object.entries(dictionary).flatMap(([parentTagName, metrics]) =>
-            metrics.map((metric) => ({
-                ...metric,
-                parentTagName,
-            }))
-        )
-    )
-}
-
 /**
  * Takes a URL and checks if it points to a valid grapher, explorer, or MDIM view.
  * Doesn't validate query params as this would be quite complicated / overkill for our needs
