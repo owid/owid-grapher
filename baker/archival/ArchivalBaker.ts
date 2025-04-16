@@ -18,10 +18,8 @@ import { bakeSingleGrapherPageForArchival } from "../GrapherBaker.js"
 import { hashAndCopyFile, hashAndWriteFile } from "./archivalFileUtils.js"
 import {
     ArchivalManifest,
-    ArchivalTimestamp,
     assembleGrapherArchivalUrl,
     assembleManifest,
-    getDateForArchival,
 } from "./archivalUtils.js"
 import pMap from "p-map"
 import {
@@ -31,6 +29,7 @@ import {
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../settings/serverSettings.js"
 import { getEnrichedChartsByIds } from "../../db/model/Chart.js"
+import { ArchivalTimestamp, getDateForArchival } from "./archivalDate.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")

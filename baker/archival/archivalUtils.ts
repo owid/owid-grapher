@@ -1,15 +1,11 @@
-import { dayjs, lazy, omit } from "@ourworldindata/utils"
-import { ARCHIVE_DATE_TIME_FORMAT, AssetMap } from "@ourworldindata/types"
+import { lazy, omit } from "@ourworldindata/utils"
+import { AssetMap } from "@ourworldindata/types"
 import {
     GrapherChecksums,
     GrapherChecksumsObjectWithHash,
 } from "./archivalChecksum.js"
 import { simpleGit } from "simple-git"
-
-export interface ArchivalTimestamp {
-    date: Date
-    formattedDate: string
-}
+import { convertToArchivalDateStringIfNecessary } from "./archivalDate.js"
 
 export interface ArchivalManifest {
     assets: {
@@ -27,18 +23,6 @@ export interface ArchivalManifest {
     }
 }
 
-export const getDateForArchival = (dateInput?: Date): ArchivalTimestamp => {
-    const date = dayjs(dateInput)
-        .utc()
-        // it's important here that we explicitly set the milliseconds to 0 -
-        // otherwise we run the risk of MySQL rounding up to the next second,
-        // which would break the archival URL
-        .millisecond(0)
-    const formattedDate = date.format(ARCHIVE_DATE_TIME_FORMAT)
-
-    return { date: date.toDate(), formattedDate }
-}
-
 const getOwidGrapherCommitSha = lazy(async () => {
     try {
         return await simpleGit().revparse(["HEAD"])
@@ -48,15 +32,10 @@ const getOwidGrapherCommitSha = lazy(async () => {
 })
 
 export const assembleGrapherArchivalUrl = (
-    archivalDate: string | Date,
+    archivalDate: Parameters<typeof convertToArchivalDateStringIfNecessary>[0],
     chartSlug: string
 ) => {
-    let formattedDate: string
-    if (typeof archivalDate === "string") {
-        formattedDate = archivalDate
-    } else {
-        formattedDate = getDateForArchival(archivalDate).formattedDate
-    }
+    const formattedDate = convertToArchivalDateStringIfNecessary(archivalDate)
 
     return `/${formattedDate}/grapher/${chartSlug}.html`
 }
