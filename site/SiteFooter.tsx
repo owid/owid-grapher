@@ -167,7 +167,8 @@ export const SiteFooter = (props: SiteFooterProps) => {
                         </a>
                         . Third-party materials, including some charts and data,
                         are subject to third-party licenses. See our{" "}
-                        <a href="/faqs">FAQs</a> for more details.
+                        <a href={`${linkBaseUrl}/faqs`}>FAQs</a> for more
+                        details.
                     </p>
                     <div className="affiliates">
                         <div className="oxford-logos">
