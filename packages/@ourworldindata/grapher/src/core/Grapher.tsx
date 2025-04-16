@@ -3817,6 +3817,8 @@ export class Grapher
             // Africa is selected, drop Ireland
             const region = getRegionByName(entityName)
             if (region && !checkIsCountry(region)) {
+                this.globeController.hideGlobe()
+
                 const selected = excludeUndefined(
                     this.mapConfig.selection.selectedEntityNames.map(
                         (entityName) => getRegionByName(entityName)
@@ -3844,10 +3846,6 @@ export class Grapher
 
             if (region && checkIsCountry(region) && region.isMappable) {
                 this.globeController.focusOnCountry(region.name)
-            }
-
-            if (region && checkIsIncomeGroup(region)) {
-                this.globeController.hideGlobe()
             }
         }
     }
