@@ -511,9 +511,18 @@ class ComparisonLineSection<
             <Section name="Comparison line">
                 <p>
                     Overlay a line onto the chart for comparison. Supports basic{" "}
-                    <a href="https://github.com/silentmatt/expr-eval#expression-syntax">
+                    <a href="https://github.com/bylexus/fparse#features">
                         mathematical expressions
                     </a>
+                    , like:{" "}
+                    {["2*x^2", "sqrt(x)", "sin(x*PI)", "ln(x+1)*e"].map(
+                        (expr, i) => (
+                            <>
+                                {i > 0 && ", "}
+                                <code key={i}>{expr}</code>
+                            </>
+                        )
+                    )}
                     .
                 </p>
 
