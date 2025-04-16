@@ -131,4 +131,36 @@ describe(Url, () => {
         const url = Url.fromURL("/")
         expect(url.fullUrlNoTrailingSlash).toEqual("/")
     })
+
+    describe("areQueryParamsEqual", () => {
+        it("returns true for identical query params", () => {
+            const url1 = Url.fromURL("https://example.com/?a=1&b=2")
+            const url2 = Url.fromURL("https://example.com/?a=1&b=2")
+            expect(url1.areQueryParamsEqual(url2)).toBe(true)
+        })
+
+        it("returns true when order is different", () => {
+            const url1 = Url.fromURL("https://example.com/?a=1&b=2")
+            const url2 = Url.fromURL("https://example.com/?b=2&a=1")
+            expect(url1.areQueryParamsEqual(url2)).toBe(true)
+        })
+
+        it("returns false when there are different number of params", () => {
+            const url1 = Url.fromURL("https://example.com/?a=1&b=2")
+            const url2 = Url.fromURL("https://example.com/?a=1&b=2&c=3")
+            expect(url1.areQueryParamsEqual(url2)).toBe(false)
+        })
+
+        it("returns false when param values differ", () => {
+            const url1 = Url.fromURL("https://example.com/?a=1&b=2")
+            const url2 = Url.fromURL("https://example.com/?a=1&b=3")
+            expect(url1.areQueryParamsEqual(url2)).toBe(false)
+        })
+
+        it("returns false when param keys differ", () => {
+            const url1 = Url.fromURL("https://example.com/?a=1&b=2")
+            const url2 = Url.fromURL("https://example.com/?a=1&c=2")
+            expect(url1.areQueryParamsEqual(url2)).toBe(false)
+        })
+    })
 })
