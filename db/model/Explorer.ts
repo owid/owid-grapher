@@ -26,6 +26,7 @@ type ExplorerConfig = {
         block?: {
             grapherId?: string | number
             yVariableIds?: string
+            ySlugs?: string
             xVariableId?: string
             colorVariableId?: string
             sizeVariableId?: string
@@ -72,6 +73,13 @@ function detectVariableIdsAndCatalogPaths(config: ExplorerConfig): Set<string> {
                 for (const row of block.block) {
                     if (row.yVariableIds) {
                         row.yVariableIds
+                            .split(/\s+/)
+                            .forEach((id: string) =>
+                                variableIdsAndCatalogPaths.add(id)
+                            )
+                    }
+                    if (row.ySlugs) {
+                        row.ySlugs
                             .split(/\s+/)
                             .forEach((id: string) =>
                                 variableIdsAndCatalogPaths.add(id)
@@ -168,6 +176,10 @@ export async function upsertExplorerVariables(
             .filter((x) => !isNaN(Number(x)))
             .map((x) => Number(x))
     )
+
+    console.log(JSON.stringify(config, null, 2))
+    console.log("proposedVariableIds", proposedVariableIds)
+    console.log("proposedCatalogPaths", proposedCatalogPaths)
 
     // Verify that the total number of items in 'proposed' equals
     // the sum of items in 'proposedCatalogPaths' and 'proposedVariableIds'
