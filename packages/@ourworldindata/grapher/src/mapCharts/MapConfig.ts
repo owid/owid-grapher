@@ -13,13 +13,14 @@ import {
     NoUndefinedValues,
     ToleranceStrategy,
 } from "@ourworldindata/utils"
-import { DEFAULT_VIEWPORT } from "./MapChartConstants"
+import { SelectionArray } from "../selection/SelectionArray"
+import { DEFAULT_GLOBE_ROTATION } from "./MapChartConstants"
 
 export interface GlobeConfig {
     isActive: boolean
     rotation: [number, number]
     zoom: number
-    focusCountry?: EntityName
+    focusCountry?: EntityName // show tooltip for a focused country
 }
 
 // MapConfig holds the data and underlying logic needed by MapTab.
@@ -31,11 +32,13 @@ class MapConfigDefaults {
     @observable timeTolerance?: number
     @observable toleranceStrategy?: ToleranceStrategy
     @observable hideTimeline?: boolean
+
     @observable region = MapRegionName.World
+    @observable selectedCountries = new SelectionArray()
 
     @observable globe: GlobeConfig = {
         isActive: false,
-        rotation: DEFAULT_VIEWPORT.rotation,
+        rotation: DEFAULT_GLOBE_ROTATION,
         zoom: 1,
     }
 
