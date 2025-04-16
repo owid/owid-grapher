@@ -10,7 +10,7 @@ import {
 } from "@ourworldindata/utils"
 import * as Sentry from "@sentry/node"
 import {
-    getFeaturedMetricsWithParentTagName,
+    getFeaturedMetricsByParentTagName,
     KnexReadonlyTransaction,
 } from "../../../db/db.js"
 import {
@@ -192,7 +192,9 @@ export async function createFeaturedMetricRecords(
     records: ChartRecord[]
 ): Promise<ChartRecord[]> {
     const featuredMetricsWithParentTagName =
-        await getFeaturedMetricsWithParentTagName(trx)
+        await getFeaturedMetricsByParentTagName(trx).then((fms) =>
+            Object.values(fms).flat()
+        )
 
     const featuredMetricsGroupedByTagAndIncomeGroup = groupBy(
         featuredMetricsWithParentTagName,
