@@ -211,7 +211,6 @@ export async function renderDataPageV2(
 
     // If we're baking to an archival page, then we want to skip a bunch of sections
     // where the links would break
-
     if (!archiveInfo) {
         // Get the charts this variable is being used in (aka "related charts")
         // and exclude the current chart to avoid duplicates
@@ -236,12 +235,21 @@ export async function renderDataPageV2(
         tagToSlugMap = await getTagToSlugMap(knex)
     }
 
+    let canonicalUrl: string
+    if (archiveInfo) {
+        canonicalUrl = archiveInfo.archiveUrl
+    } else {
+        canonicalUrl = grapher?.slug
+            ? `${BAKED_GRAPHER_URL}/${grapher.slug}`
+            : ""
+    }
+
     return renderToHtmlPage(
         <DataPageV2
             grapher={grapher}
             datapageData={datapageData}
+            canonicalUrl={canonicalUrl}
             baseUrl={BAKED_BASE_URL}
-            baseGrapherUrl={BAKED_GRAPHER_URL}
             isPreviewing={isPreviewing}
             imageMetadata={imageMetadata}
             faqEntries={faqEntries}

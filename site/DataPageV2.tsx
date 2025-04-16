@@ -39,7 +39,7 @@ export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
     datapageData: DataPageDataV2
     baseUrl: string
-    baseGrapherUrl: string
+    canonicalUrl: string
     isPreviewing: boolean
     faqEntries?: FaqEntryData
     imageMetadata: Record<string, ImageMetadata>
@@ -50,8 +50,8 @@ export const DataPageV2 = (props: {
     const {
         grapher,
         datapageData,
-        baseGrapherUrl,
         baseUrl,
+        canonicalUrl,
         isPreviewing,
         faqEntries,
         tagToSlugMap,
@@ -59,9 +59,6 @@ export const DataPageV2 = (props: {
         archiveInfo,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title.title
-    const canonicalUrl = grapher?.slug
-        ? urljoin(baseGrapherUrl, grapher.slug as string)
-        : ""
     const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
     let pageDesc: string
     if (grapher?.subtitle?.length) {
