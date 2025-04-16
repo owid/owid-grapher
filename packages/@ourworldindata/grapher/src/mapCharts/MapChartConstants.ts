@@ -138,6 +138,14 @@ export interface Ellipse {
     ry: number // radius on the y-axis
 }
 
+// when expressed in lon/lat
+export interface EllipseCoords {
+    cx: number
+    cy: number
+    left: number // left x
+    top: number // top y
+}
+
 interface BaseAnnotation<Feature extends RenderFeature> {
     id: string
     feature: Feature

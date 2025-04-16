@@ -1,18 +1,12 @@
 import annotations from "./MapAnnotationPlacements.json"
-import { Direction } from "./MapChartConstants"
+import { Direction, EllipseCoords } from "./MapChartConstants"
 
 interface AnnotationPlacement {
     id: string
-    ellipse?: {
-        center: [number, number]
-        left: [number, number]
-        top: [number, number]
-    }
-    external?: {
-        direction: Direction
-        anchorPoint: [number, number]
-        bridgeCountries?: string[]
-    }
+    ellipse?: EllipseCoords
+    direction?: Direction
+    anchorPoint?: [number, number]
+    bridgeCountries?: string[]
 }
 
 export const annotationPlacementsById = new Map<string, AnnotationPlacement>(

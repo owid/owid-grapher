@@ -198,6 +198,7 @@ export class ChoroplethMap extends React.Component<{
         const ellipse = makeEllipseForProjection({
             ellipse: placement.ellipse,
             projection,
+            paddingFactor: { x: 0.1 },
         })
 
         if (!ellipse) return
@@ -234,12 +235,12 @@ export class ChoroplethMap extends React.Component<{
 
         const series = this.choroplethData.get(feature.id)
         const placement = annotationPlacementsById.get(feature.id)
-        const external = placement?.external
-        if (!series || !placement || !external) return
+        if (!series || !placement) return
 
-        const { direction } = external
+        if (!placement.anchorPoint || !placement.direction) return undefined
 
-        const anchorPoint = this.projection(external.anchorPoint)
+        const direction = placement.direction
+        const anchorPoint = this.projection(placement.anchorPoint)
 
         const fontSize = ANNOTATION_FONT_SIZE_MIN / this.viewportScaleSqrt
         const markerLength =
@@ -265,7 +266,7 @@ export class ChoroplethMap extends React.Component<{
         // make sure the external label doesn't overlap with bridge countries (including itself)
         const bridgeCountries = [
             feature.id,
-            ...(external.bridgeCountries ?? []),
+            ...(placement.bridgeCountries ?? []),
         ]
         const bridgeFeatures = excludeUndefined(
             bridgeCountries.map((country) => this.featuresById.get(country))
@@ -291,14 +292,14 @@ export class ChoroplethMap extends React.Component<{
         }
     }
 
-    private showAllAnnotations = false
+    private shouldShowAllAnnotations = false
 
     /* Naively placed annotations that might be overlapping */
     @computed
     private get initialAnnotations(): Annotation<MapRenderFeature>[] {
         if (!this.shouldShowAnnotations) return []
 
-        const features = this.showAllAnnotations
+        const features = this.shouldShowAllAnnotations
             ? this.featuresWithData
             : this.manager.mapConfig.selection.selectedEntityNames
                   .map((name) => this.featuresById.get(name))
@@ -489,7 +490,7 @@ export class ChoroplethMap extends React.Component<{
         return (
             <g id={makeIdForHumanConsumption("annotations")}>
                 {this.internalAnnotations.map((annotation) => {
-                    const { id, text, color, placedBounds, fontSize } =
+                    const { id, text, ellipse, color, placedBounds, fontSize } =
                         annotation
 
                     return (
@@ -507,7 +508,7 @@ export class ChoroplethMap extends React.Component<{
                                 fillOpacity={0.4}
                             />
                             <rect
-                                {...bounds.toProps()}
+                                {...placedBounds.toProps()}
                                 fill="none"
                                 stroke="black"
                             /> */}

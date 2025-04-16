@@ -67,6 +67,9 @@ export { MapConfig } from "./mapCharts/MapConfig"
 export {
     MAP_REGION_LABELS,
     type GeoFeature,
+    type Direction,
+    type Ellipse,
+    type EllipseCoords,
 } from "./mapCharts/MapChartConstants"
 export { SelectionArray } from "./selection/SelectionArray"
 export { FocusArray } from "./focus/FocusArray"

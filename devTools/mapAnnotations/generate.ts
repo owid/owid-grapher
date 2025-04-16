@@ -2,36 +2,22 @@ import { writeFile } from "fs/promises"
 import { Position } from "geojson"
 import prettier from "prettier"
 import _, { maxBy, round } from "lodash"
-import { GeoFeatures, GeoFeature } from "@ourworldindata/grapher"
+import { GeoFeatures, GeoFeature, EllipseCoords } from "@ourworldindata/grapher"
 import { excludeNull, omitUndefinedValues } from "@ourworldindata/utils"
 import polylabel from "polylabel"
 import { geoMercator, geoPath } from "d3-geo"
-import externalAnnotationPlacements from "./ExternalAnnotationPlacements.json"
+import { manualAnnotationPlacementsById } from "./AnnotationPlacements"
 
 const GRAPHER_ROOT = __dirname.replace(/\/(itsJustJavascript\/)?devTools.*/, "")
 const GRAPHER_MAP_ANNOTATIONS_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/grapher/src/mapCharts/MapAnnotationPlacements.json`
 
 const COUNTRIES_WITH_EXTERNAL_LABEL_ONLY = ["Chile", "Indonesia", "East Timor"]
 
-export interface Ellipse {
-    cx: number // center x
-    cy: number // center y
-    rx: number // radius on the x-axis
-    ry: number // radius on the y-axis
-}
-
 interface PoleOfInaccessibility {
     x: number // center x
     y: number // center y
     distance: number // distance of the pole to the closest polygon point
 }
-
-const externalAnnotationPlacementsById = new Map(
-    externalAnnotationPlacements.map((annotation) => [
-        annotation.id,
-        annotation,
-    ])
-)
 
 function prettifiedJson(obj: any): Promise<string> {
     return prettier.format(JSON.stringify(obj), { parser: "json", tabWidth: 4 })
@@ -123,67 +109,61 @@ function calculateLabelEllipseForGeoFeature(feature: GeoFeature): Ellipse {
     return calculateLabelEllipseForPolygon(geometry.coordinates as Position[][])
 }
 
-const roundCoords = (coords: [number, number]) => [
-    round(coords[0], 7),
-    round(coords[1], 7),
+function makeLabelEllipseCoords(feature: GeoFeature): EllipseCoords {
+    const ellipse = calculateLabelEllipseForGeoFeature(feature)
+
+    // Define ellipse by three lon/lat points:
+    // - the center of the ellipse
+    // - the leftmost point on the x-axis
+    // - the topmost point on the y-axis
+    const center = projection.invert!([ellipse.cx, ellipse.cy])
+    const left = projection.invert!([ellipse.cx - ellipse.rx, ellipse.cy])
+    const top = projection.invert!([ellipse.cx, ellipse.cy - ellipse.ry])
+
+    if (!center || !left || !top) {
+        throw new Error(`Failed to calculate label ellipse for ${feature.id}`)
+    }
+
+    return {
+        cx: roundCoord(center[0]),
+        cy: roundCoord(center[1]),
+        left: roundCoord(left[0]),
+        top: roundCoord(top[1]),
+    }
+}
+
+const roundCoord = (coord: number): number => round(coord, 5)
+
+const roundCoords = (coords: [number, number]): [number, number] => [
+    roundCoord(coords[0]),
+    roundCoord(coords[1]),
 ]
 
 async function main() {
-    const numFeatures = externalAnnotationPlacements.length
-    const missingFeatures = externalAnnotationPlacements.filter(
-        (e) => !e.anchorPoint && !e.comment
-    )
-    console.log(`${missingFeatures.length} / ${numFeatures}`)
-    for (const feature of missingFeatures) {
-        console.log(feature.id)
-    }
-
     const annotations = GeoFeatures.map((feature: GeoFeature) => {
-        const ellipse = calculateLabelEllipseForGeoFeature(feature)
+        const manual = manualAnnotationPlacementsById.get(feature.id as string)
 
-        // Define ellipse by three lon/lat points:
-        // - the center of the ellipse
-        // - the leftmost point on the x-axis
-        // - the topmost point on the y-axis
-        const center = projection.invert!([ellipse.cx, ellipse.cy])
-        const left = projection.invert!([ellipse.cx - ellipse.rx, ellipse.cy])
-        const top = projection.invert!([ellipse.cx, ellipse.cy - ellipse.ry])
+        const shouldHaveInternalAnnotation =
+            !COUNTRIES_WITH_EXTERNAL_LABEL_ONLY.includes(feature.id as any)
 
-        if (!center || !left || !top) {
-            throw new Error(
-                `Failed to calculate label ellipse for ${feature.id}`
-            )
+        let ellipse: EllipseCoords | undefined
+        if (shouldHaveInternalAnnotation) {
+            ellipse =
+                manual?.internal?.ellipse ?? makeLabelEllipseCoords(feature)
         }
 
-        const hasInternalAnnotation =
-            !COUNTRIES_WITH_EXTERNAL_LABEL_ONLY.includes(feature.id as any)
-        const ellipseCoords = hasInternalAnnotation
-            ? {
-                  center: roundCoords(center),
-                  left: roundCoords(left),
-                  top: roundCoords(top),
-              }
-            : undefined
+        const external = manual?.external
+        if (external?.anchorPoint)
+            external.anchorPoint = roundCoords(external.anchorPoint)
 
-        const externalPlacement = externalAnnotationPlacementsById.get(
-            feature.id as string
-        )
-        const external = externalPlacement?.anchorPoint
-            ? {
-                  direction: externalPlacement.direction,
-                  anchorPoint: externalPlacement.anchorPoint,
-                  bridgeCountries: externalPlacement.bridge,
-              }
-            : undefined
-
-        if (!ellipseCoords && !external) {
+        if (!ellipse && !external) {
             console.warn(`${feature.id} doesn't have a label placement`)
         }
 
         return omitUndefinedValues({
             id: feature.id,
-            ellipse: ellipseCoords,
-            external,
+            ellipse,
+            ...external,
         })
     })
 

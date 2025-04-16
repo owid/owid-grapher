@@ -37,6 +37,7 @@ import {
     MapRenderFeature,
     RenderFeatureType,
     Circle,
+    EllipseCoords,
 } from "./MapChartConstants"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { MapTopology } from "./MapTopology.js"
@@ -174,26 +175,32 @@ export function checkIsPointInEllipse(
 }
 
 export function makeEllipseForProjection({
-    ellipse: { center, left, top },
+    ellipse,
     projection,
+    paddingFactor,
 }: {
-    ellipse: {
-        center: [number, number]
-        left: [number, number]
-        top: [number, number]
-    }
+    ellipse: EllipseCoords
     projection: GeoProjection
+    paddingFactor?: { x?: number; y?: number }
 }): Ellipse | undefined {
-    const projCenter = projection(center)
-    const projLeft = projection(left)
-    const projTop = projection(top)
+    const projCenter = projection([ellipse.cx, ellipse.cy])
+    const projLeft = projection([ellipse.left, ellipse.cy])
+    const projTop = projection([ellipse.cx, ellipse.top])
 
     if (!projCenter || !projLeft || !projTop) return undefined
 
     const rx = Math.abs(projCenter[0] - projLeft[0])
     const ry = Math.abs(projCenter[1] - projTop[1])
 
-    return { cx: projCenter[0], cy: projCenter[1], rx, ry }
+    const padX = (paddingFactor?.x ?? 0) * rx
+    const padY = (paddingFactor?.y ?? 0) * ry
+
+    return {
+        cx: projCenter[0],
+        cy: projCenter[1],
+        rx: rx - padX,
+        ry: ry - padY,
+    }
 }
 
 /**
