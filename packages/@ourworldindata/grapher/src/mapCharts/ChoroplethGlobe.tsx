@@ -15,7 +15,6 @@ import { zoom } from "d3-zoom"
 import versor from "versor"
 import {
     makeIdForHumanConsumption,
-    clamp,
     difference,
     Bounds,
     sortBy,
@@ -43,6 +42,7 @@ import {
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
 import { calculateDistance, detectNearbyFeature, hasFocus } from "./MapHelpers"
+import * as R from "remeda"
 
 const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 const DEFAULT_SCALE = geoOrthographic().scale()
@@ -267,7 +267,7 @@ export class ChoroplethGlobe extends React.Component<{
                 // Clamping the latitude to [-90, 90] would allow rotation up to the poles.
                 // However, the panning strategy used doesn't work well around the poles.
                 // That's why we clamp the latitude to a narrower range.
-                clamp(targetCoords[1], -65, 65),
+                R.clamp(targetCoords[1], { min: -65, max: 65 }),
             ]
         })
     }
@@ -278,11 +278,10 @@ export class ChoroplethGlobe extends React.Component<{
         this.zoomFrameId = requestAnimationFrame(() => {
             const sensitivity = 0.01
             const newZoom = this.zoomScale * (1 + delta * sensitivity)
-            this.mapConfig.globe.zoom = clamp(
-                newZoom,
-                MIN_ZOOM_SCALE,
-                MAX_ZOOM_SCALE
-            )
+            this.mapConfig.globe.zoom = R.clamp(newZoom, {
+                min: MIN_ZOOM_SCALE,
+                max: MAX_ZOOM_SCALE,
+            })
         })
     }
 
