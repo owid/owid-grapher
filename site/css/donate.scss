@@ -125,7 +125,7 @@
         }
     }
 
-    .donation-public-checkbox {
+    .donation-checkbox {
         margin-bottom: 16px;
     }
 
@@ -144,7 +144,7 @@
         }
     }
 
-    .donation-public-checkbox__label {
+    .donation-checkbox__label {
         a {
             @include owid-link-90;
         }
