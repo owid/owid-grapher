@@ -41,8 +41,10 @@ export const GLOBE_COUNTRY_ZOOM = 2.5
 export const DEFAULT_GLOBE_ROTATION: [number, number] = [30, -20] // Atlantic ocean (i.e. Americas & Europe)
 export const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 
-export const ANNOTATION_FONT_SIZE_DEFAULT = 11
-export const ANNOTATION_FONT_SIZE_MIN = 7
+export const ANNOTATION_FONT_SIZE_INTERNAL_DEFAULT = 11
+export const ANNOTATION_FONT_SIZE_INTERNAL_MIN = 7
+export const ANNOTATION_FONT_SIZE_EXTERNAL_DEFAULT = 8
+export const ANNOTATION_FONT_SIZE_EXTERNAL_MAX = 11
 export const ANNOTATION_MARKER_LINE_LENGTH_DEFAULT = 4
 export const ANNOTATION_MARKER_LINE_LENGTH_MAX = 8
 

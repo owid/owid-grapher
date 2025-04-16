@@ -184,10 +184,9 @@ export function InternalValueAnnotation({
         <text
             id={makeIdForHumanConsumption(id)}
             x={placedBounds.topLeft.x}
-            y={placedBounds.topLeft.y}
-            // TODO: shouldn't use dominant-baseline
-            dominantBaseline="hanging"
+            y={placedBounds.topLeft.y + placedBounds.height - 1}
             fontSize={fontSize}
+            fontWeight={700}
             fill={color}
             strokeWidth={DEFAULT_STROKE_WIDTH / strokeScale}
             style={{ pointerEvents: "none" }}
@@ -220,7 +219,7 @@ export function ExternalValueAnnotation({
                 x2={markerEnd[0]}
                 y2={markerEnd[1]}
                 stroke={annotation.color}
-                strokeWidth={(DEFAULT_STROKE_WIDTH * 1.5) / strokeScale}
+                strokeWidth={(0.5 * HOVER_STROKE_WIDTH) / strokeScale}
             />
             <text
                 x={placedBounds.x}
@@ -228,6 +227,7 @@ export function ExternalValueAnnotation({
                 fontSize={fontSize}
                 strokeWidth={DEFAULT_STROKE_WIDTH / strokeScale}
                 fill={annotation.color}
+                fontWeight={700}
             >
                 {text}
             </text>

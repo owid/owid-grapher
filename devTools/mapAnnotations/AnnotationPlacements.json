@@ -742,7 +742,15 @@
         }
     },
     {
-        "id": "Mongolia"
+        "id": "Mongolia",
+        "internal": {
+            "ellipse": {
+                "cx": 103.00372,
+                "cy": 46.20794034091443,
+                "left": 92.96897,
+                "top": 49.55934
+            }
+        }
     },
     {
         "id": "Montenegro",

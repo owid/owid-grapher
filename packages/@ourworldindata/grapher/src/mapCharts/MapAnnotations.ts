@@ -6,8 +6,6 @@ import bboxCollide from "./d3-bboxCollide"
 import { booleanIntersects } from "@turf/boolean-intersects"
 import { Bounds, excludeUndefined } from "@ourworldindata/utils"
 import {
-    ANNOTATION_FONT_SIZE_DEFAULT,
-    ANNOTATION_FONT_SIZE_MIN,
     Direction,
     Ellipse,
     RenderFeature,
@@ -15,8 +13,12 @@ import {
     Circle,
     EllipseCoords,
     InternalAnnotation,
-    ANNOTATION_MARKER_LINE_LENGTH_DEFAULT,
     GeoFeature,
+    ANNOTATION_FONT_SIZE_INTERNAL_DEFAULT,
+    ANNOTATION_FONT_SIZE_INTERNAL_MIN,
+    ANNOTATION_FONT_SIZE_EXTERNAL_DEFAULT,
+    ANNOTATION_FONT_SIZE_EXTERNAL_MAX,
+    ANNOTATION_MARKER_LINE_LENGTH_DEFAULT,
     ANNOTATION_MARKER_LINE_LENGTH_MAX,
 } from "./MapChartConstants"
 import * as R from "remeda"
@@ -90,8 +92,8 @@ export function makeExternalAnnotationForFeature({
     if (!anchorPoint) return
 
     const fontSize = Math.min(
-        ANNOTATION_FONT_SIZE_MIN / fontSizeScale,
-        ANNOTATION_FONT_SIZE_DEFAULT
+        ANNOTATION_FONT_SIZE_EXTERNAL_DEFAULT / fontSizeScale,
+        ANNOTATION_FONT_SIZE_EXTERNAL_MAX
     )
     const markerLength = Math.min(
         ANNOTATION_MARKER_LINE_LENGTH_DEFAULT / fontSizeScale,
@@ -209,13 +211,15 @@ function placeLabelAtEllipseCenter({
     ellipse: Ellipse
     fontSizeScale?: number
 }): { placedBounds: Bounds; fontSize: number } | undefined {
-    const defaultFontSize = ANNOTATION_FONT_SIZE_DEFAULT / fontSizeScale
+    const defaultFontSize =
+        ANNOTATION_FONT_SIZE_INTERNAL_DEFAULT / fontSizeScale
 
     // place label at the center of the ellipse
     const ellipseCenter = { x: ellipse.cx, y: ellipse.cy }
     let placedBounds = makePlacedBoundsForText({
         text,
         fontSize: defaultFontSize,
+        fontWeight: 700,
         position: ellipseCenter,
         center: true,
     })
@@ -227,14 +231,15 @@ function placeLabelAtEllipseCenter({
     // decrease the font size to make the label fit into the ellipse
     const step = 1
     for (
-        let fontSize = ANNOTATION_FONT_SIZE_DEFAULT - step;
-        fontSize >= ANNOTATION_FONT_SIZE_MIN;
+        let fontSize = ANNOTATION_FONT_SIZE_INTERNAL_DEFAULT - step;
+        fontSize >= ANNOTATION_FONT_SIZE_INTERNAL_MIN;
         fontSize -= step
     ) {
         const scaledFontSize = fontSize / fontSizeScale
         placedBounds = makePlacedBoundsForText({
             text,
             fontSize: scaledFontSize,
+            fontWeight: 700,
             position: ellipseCenter,
             center: true,
         })
@@ -260,9 +265,7 @@ function placeExternalLabel({
     fontSize: number
     markerLength: number
 }): Bounds {
-    const textBounds = Bounds.forText(text, {
-        fontSize,
-    }).set({ height: fontSize - 1 }) // small correction
+    const textBounds = Bounds.forText(text, { fontSize, fontWeight: 700 })
 
     const labelPosition = calculateExternalLabelPosition({
         anchorPoint,
@@ -388,18 +391,18 @@ export function getExternalMarkerEndPosition({
 function makePlacedBoundsForText({
     text,
     fontSize,
+    fontWeight,
     position,
     center = false,
 }: {
     text: string
     fontSize: number
+    fontWeight: number
     position: { x: number; y: number }
     center?: boolean
 }): Bounds {
     // make bounds for text
-    const textBounds = Bounds.forText(text, { fontSize }).set({
-        height: fontSize - 1, // small correction
-    })
+    const textBounds = Bounds.forText(text, { fontSize, fontWeight })
 
     // place bounds at the given position
     const x = center ? position.x - textBounds.width / 2 : position.x

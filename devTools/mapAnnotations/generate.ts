@@ -129,11 +129,15 @@ function makeLabelEllipseCoords(feature: GeoFeature): EllipseCoords {
         throw new Error(`Failed to calculate label ellipse for ${feature.id}`)
     }
 
+    return { cx: center[0], cy: center[1], left: left[0], top: top[1] }
+}
+
+const roundEllipse = (ellipse: EllipseCoords): EllipseCoords => {
     return {
-        cx: roundCoord(center[0]),
-        cy: roundCoord(center[1]),
-        left: roundCoord(left[0]),
-        top: roundCoord(top[1]),
+        cx: roundCoord(ellipse.cx),
+        cy: roundCoord(ellipse.cy),
+        left: roundCoord(ellipse.left),
+        top: roundCoord(ellipse.top),
     }
 }
 
@@ -153,8 +157,9 @@ async function main() {
 
         let ellipse: EllipseCoords | undefined
         if (shouldHaveInternalAnnotation) {
-            ellipse =
+            ellipse = roundEllipse(
                 manual?.internal?.ellipse ?? makeLabelEllipseCoords(feature)
+            )
         }
 
         const external = manual?.external
