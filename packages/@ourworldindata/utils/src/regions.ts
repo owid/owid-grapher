@@ -1,5 +1,5 @@
 import entities from "./regions.json"
-import { lazy } from "./Util.js"
+import { excludeUndefined, lazy } from "./Util.js"
 
 export enum RegionType {
     Country = "country",
@@ -40,7 +40,7 @@ export interface Continent extends BaseRegion {
     members: string[]
 }
 
-interface IncomeGroup extends BaseRegion {
+export interface IncomeGroup extends BaseRegion {
     name: OwidIncomeGroupName
     regionType: RegionType.IncomeGroup
     members: string[]
@@ -78,6 +78,24 @@ export function checkIsOwidIncomeGroupName(
     )
 }
 
+export function checkIsCountry(region: Region): region is Country {
+    return region.regionType === RegionType.Country
+}
+
+export function checkIsContinent(region: Region): region is Continent {
+    return region.regionType === RegionType.Continent
+}
+
+export function checkIsIncomeGroup(region: Region): region is IncomeGroup {
+    return region.regionType === RegionType.IncomeGroup
+}
+
+export function checkHasMembers(
+    region?: Region
+): region is Aggregate | Continent | IncomeGroup {
+    return region !== undefined && "members" in region
+}
+
 export const countries: Country[] = regions.filter(
     (entity) =>
         entity.regionType === RegionType.Country &&
@@ -111,8 +129,19 @@ export const getContinents = lazy(
         ) as Continent[]
 )
 
+export const getIncomeGroups = lazy(
+    () =>
+        entities.filter(
+            (entity) => entity.regionType === RegionType.IncomeGroup
+        ) as IncomeGroup[]
+)
+
 export const regionsByName = lazy(() =>
     Object.fromEntries(regions.map((region) => [region.name, region]))
+)
+
+export const regionsByCode = lazy(() =>
+    Object.fromEntries(regions.map((region) => [region.code, region]))
 )
 
 export const countriesByName = lazy(() =>
@@ -122,6 +151,14 @@ export const countriesByName = lazy(() =>
 const countriesBySlug = lazy(() =>
     Object.fromEntries(countries.map((country) => [country.slug, country]))
 )
+
+export const getMemberNamesOfRegion = (
+    region: Aggregate | Continent | IncomeGroup
+): string[] => {
+    return excludeUndefined(
+        region.members.map((memberCode) => getRegionByCode(memberCode)?.name)
+    )
+}
 
 const regionsByNameOrVariantNameLowercase = lazy(
     () =>
@@ -154,6 +191,12 @@ export const getCountryByName = (name: string): Country | undefined =>
 
 export const getCountryBySlug = (slug: string): Country | undefined =>
     countriesBySlug()[slug]
+
+export const getRegionByName = (name: string): Region | undefined =>
+    regionsByName()[name]
+
+const getRegionByCode = (code: string): Region | undefined =>
+    regionsByCode()[code]
 
 export const getRegionByNameOrVariantName = (
     nameOrVariantName: string

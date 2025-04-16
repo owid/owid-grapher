@@ -34,7 +34,7 @@ class MapConfigDefaults {
     @observable hideTimeline?: boolean
 
     @observable region = MapRegionName.World
-    @observable selectedCountries = new SelectionArray()
+    @observable selection = new SelectionArray()
 
     @observable globe: GlobeConfig = {
         isActive: false,

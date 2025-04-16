@@ -67,6 +67,13 @@ import {
     isTouchDevice,
     isArrayDifferentFromReference,
     getCountryByName,
+    checkIsCountry,
+    getMemberNamesOfRegion,
+    getRegionByName,
+    difference,
+    checkHasMembers,
+    partition,
+    checkIsIncomeGroup,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -233,6 +240,7 @@ import {
 } from "../color/ColorConstants"
 import { FacetChart } from "../facetChart/FacetChart"
 import { GlobeController } from "../mapCharts/GlobeController"
+import { P } from "ts-pattern"
 
 declare global {
     interface Window {
@@ -724,7 +732,7 @@ export class Grapher
         // map selection
         const mapSelection = getEntityNamesParam(params.mapSelect)
         if (mapSelection) {
-            this.mapConfig.selectedCountries.setSelectedEntities(mapSelection)
+            this.mapConfig.selection.setSelectedEntities(mapSelection)
         }
 
         // selection
@@ -1275,14 +1283,6 @@ export class Grapher
             this.focusArray.clearAllAndAdd(...this.focusedSeriesNames)
     }
 
-    @action.bound private applyOriginalRegionAsAuthored(): void {
-        this.mapConfig.region = this.authorsVersion.mapConfig.region
-    }
-
-    @action.bound onCloseGlobeViewButtonClick(): void {
-        this.applyOriginalRegionAsAuthored()
-    }
-
     @computed get hasData(): boolean {
         return this.dimensions.length > 0 || this.newSlugs.length > 0
     }
@@ -1471,7 +1471,7 @@ export class Grapher
 
     @computed private get entitySelector(): EntitySelector {
         const entitySelectorArray = this.isOnMapTab
-            ? this.mapConfig.selectedCountries
+            ? this.mapConfig.selection
             : this.selection
         return new EntitySelector({
             manager: this,
@@ -1509,11 +1509,11 @@ export class Grapher
         const shouldSyncSelection =
             this.addCountryMode !== EntitySelectionMode.Disabled &&
             this.shouldEnableEntitySelectionOnMapTab &&
-            this.mapConfig.selectedCountries.numSelectedEntities > 0
+            this.mapConfig.selection.numSelectedEntities > 0
 
         // switching from the chart tab to the map tab
         if (isChartTab(oldTab) && isMapTab(newTab) && shouldSyncSelection) {
-            this.mapConfig.selectedCountries.setSelectedEntities(
+            this.mapConfig.selection.setSelectedEntities(
                 this.selection.selectedEntityNames
             )
         }
@@ -1521,7 +1521,7 @@ export class Grapher
         // switching from the map tab to the chart tab
         if (isMapTab(oldTab) && isChartTab(newTab) && shouldSyncSelection) {
             this.selection.setSelectedEntities(
-                this.mapConfig.selectedCountries.selectedEntityNames
+                this.mapConfig.selection.selectedEntityNames
             )
         }
     }
@@ -3175,7 +3175,7 @@ export class Grapher
         }
 
         const entitySelectorArray = this.isOnMapTab
-            ? this.mapConfig.selectedCountries
+            ? this.mapConfig.selection
             : this.selection
 
         return (
@@ -3430,6 +3430,7 @@ export class Grapher
 
     private showGlobeIfAuthorSpecifiedRegion(): void {
         if (this.mapConfig.region !== MapRegionName.World) {
+            this.globeController.jumpToOwidContinent(this.mapConfig.region)
             this.globeController.showGlobe()
         }
     }
@@ -3570,7 +3571,7 @@ export class Grapher
         this.mapConfig.globe.isActive = authorsVersion.mapConfig.globe.isActive
         this.clearSelection()
         this.clearFocus()
-        this.mapConfig.selectedCountries.clearSelection()
+        this.mapConfig.selection.clearSelection()
     }
 
     // Todo: come up with a more general pattern?
@@ -3811,9 +3812,42 @@ export class Grapher
     // called when an entity is selected in the entity selector
     @action.bound onSelectEntity(entityName: EntityName): void {
         if (this.isOnMapTab && this.mapConfig.globe.isActive) {
-            const country = getCountryByName(entityName)
-            if (country?.isMappable) {
-                this.globeController.focusOnCountry(country.name)
+            // If a region is selected, deselect all countries not in any of the
+            // selected regions. For example, if Ireland is selected, and then
+            // Africa is selected, drop Ireland
+            const region = getRegionByName(entityName)
+            if (region && !checkIsCountry(region)) {
+                const selected = excludeUndefined(
+                    this.mapConfig.selection.selectedEntityNames.map(
+                        (entityName) => getRegionByName(entityName)
+                    )
+                )
+                const [selectedCountries, selectedRegions] = partition(
+                    selected,
+                    (region) => checkIsCountry(region)
+                )
+
+                const selectedCountryNames = selectedCountries.map(
+                    (country) => country.name
+                )
+                const selectedRegionMembers = selectedRegions.flatMap(
+                    (region) => getMemberNamesOfRegion(region)
+                )
+
+                const dropEntityNames = difference(
+                    selectedCountryNames,
+                    selectedRegionMembers
+                )
+
+                this.mapConfig.selection.deselectEntities(dropEntityNames)
+            }
+
+            if (region && checkIsCountry(region) && region.isMappable) {
+                this.globeController.focusOnCountry(region.name)
+            }
+
+            if (region && checkIsIncomeGroup(region)) {
+                this.globeController.hideGlobe()
             }
         }
     }
@@ -3823,8 +3857,23 @@ export class Grapher
         // remove focus from an entity that has been removed from the selection
         this.focusArray.remove(entityName)
 
-        // remove country focus on the map
-        if (this.isOnMapTab) this.globeController.dismissCountryFocus()
+        if (this.isOnMapTab) {
+            // Remove focus from the deselected country
+            this.globeController.dismissCountryFocus()
+
+            // If a region is deselected, also deselect all countries in the region
+            // (but only if there are other selected regions)
+            const region = getRegionByName(entityName)
+            const numSelectedRegions =
+                this.mapConfig.selection.selectedEntityNames
+                    .map((entityName) => getRegionByName(entityName))
+                    .filter((region) => checkHasMembers(region)).length
+            if (checkHasMembers(region) && numSelectedRegions > 0) {
+                this.mapConfig.selection.deselectEntities(
+                    getMemberNamesOfRegion(region)
+                )
+            }
+        }
     }
 
     // called when all entities are cleared in the entity selector

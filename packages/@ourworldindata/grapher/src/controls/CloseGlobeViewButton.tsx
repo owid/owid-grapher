@@ -11,7 +11,6 @@ export interface CloseGlobeViewButtonManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
     globeController?: GlobeController
-    onCloseGlobeViewButtonClick?: () => void
 }
 
 @observer
@@ -33,17 +32,12 @@ export class CloseGlobeViewButton extends React.Component<{
         return this.props.manager
     }
 
-    @computed private get mapConfig(): MapConfig {
-        return this.manager.mapConfig ?? new MapConfig()
-    }
-
     @computed private get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
     @action.bound private onClick(): void {
         this.manager.globeController?.toggleGlobe()
-        this.manager.onCloseGlobeViewButtonClick?.()
     }
 
     render(): React.ReactElement | null {
