@@ -319,6 +319,7 @@ const SearchResults = (props: SearchResultsProps) => {
                         query
                     ) {
                         logSiteSearchClickToAlgoliaInsights({
+                            eventName: "click",
                             index,
                             queryID,
                             objectIDs: [objectId],
