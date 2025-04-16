@@ -123,7 +123,7 @@ export const DEFAULT_COMPONENTS: ComponentConfig[] = [
         id: CatalogComponentId.HIGHLIGHTS,
         name: "Highlights",
         visible: true,
-        maxItems: 2,
+        maxItems: 1,
         type: [CatalogContentType.DATA],
     },
     {

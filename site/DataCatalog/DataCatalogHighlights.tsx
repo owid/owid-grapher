@@ -17,7 +17,6 @@ export const DataCatalogHighlights = ({
 }) => {
     if (!results) return null
 
-    // Extract the first two results
     const highlights = Array.isArray(results)
         ? results
               .flatMap((ribbon) => ribbon.hits)
@@ -26,6 +25,7 @@ export const DataCatalogHighlights = ({
 
     if (highlights.length === 0) return null
 
+    // This design assumes that there is a single highlight to show
     return (
         <div
             className="search-results span-cols-12 col-start-2"
@@ -33,12 +33,12 @@ export const DataCatalogHighlights = ({
             data-active-filter="all"
         >
             <section className="search-results__pages">
-                <ul className="data-catalog-highlights-container grid grid-cols-2 gap-4">
+                <ul className="data-catalog-highlights-container grid grid-cols-12">
                     {highlights.map((hit) => (
                         <li
-                            className="data-catalog-highlight-hit"
+                            className="data-catalog-highlight-hit span-cols-6 col-start-4"
                             key={hit.objectID}
-                            style={{ listStyleType: "none" }}
+                            style={{ listStyleType: "none", display: "block" }}
                         >
                             <ChartHit
                                 hit={hit}
