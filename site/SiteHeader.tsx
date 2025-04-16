@@ -1,5 +1,5 @@
+import { ArchiveSiteNavigationInfo } from "@ourworldindata/types"
 import { ArchiveSiteNavigation } from "./archive/ArchiveSiteNavigation.js"
-import { ArchiveMetaInformation } from "./archive/archiveTypes.js"
 import { SiteNavigation } from "./SiteNavigation.js"
 
 interface SiteHeaderProps {
@@ -11,7 +11,7 @@ interface SiteHeaderProps {
     isOnHomepage?: boolean
 
     // If this is an archived page, we need to render a different version of the site header
-    archiveInformation?: ArchiveMetaInformation
+    archiveInformation?: ArchiveSiteNavigationInfo
 }
 
 export const SiteHeader = (props: SiteHeaderProps) => (

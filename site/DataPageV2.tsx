@@ -16,6 +16,7 @@ import {
     ImageMetadata,
     Url,
     AssetMap,
+    ArchiveSiteNavigationInfo,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import urljoin from "url-join"
@@ -34,7 +35,6 @@ import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
-import type { ArchiveMetaInformation } from "../site/archive/archiveTypes.js"
 
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
@@ -48,7 +48,7 @@ export const DataPageV2 = (props: {
     staticAssetMap?: AssetMap
     runtimeAssetMap?: AssetMap
     dataApiUrl?: string
-    archiveInformation?: ArchiveMetaInformation
+    archiveInformation?: ArchiveSiteNavigationInfo
 }) => {
     const {
         grapher,

@@ -22,11 +22,7 @@ export {
     type QueryParams,
     R2GrapherConfigDirectory,
 } from "./domainTypes/Various.js"
-export {
-    type BreadcrumbItem,
-    type KeyValueProps,
-    type AssetMap,
-} from "./domainTypes/Site.js"
+export { type BreadcrumbItem, type KeyValueProps } from "./domainTypes/Site.js"
 export {
     type FormattedPost,
     type IndexPost,
@@ -761,3 +757,11 @@ export {
     HIDE_IF_JS_DISABLED_CLASSNAME,
     HIDE_IF_JS_ENABLED_CLASSNAME,
 } from "./siteTypes/SiteConstants.js"
+export {
+    ARCHIVE_DATE_TIME_FORMAT,
+    type ArchiveDateString,
+    type AssetMap,
+    type UrlAndMaybeDate,
+    type ArchiveSiteNavigationInfo,
+    type ArchiveMetaInformation,
+} from "./domainTypes/Archive.js"

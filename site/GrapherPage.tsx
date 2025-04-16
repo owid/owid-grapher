@@ -15,6 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import {
+    ArchiveSiteNavigationInfo,
     AssetMap,
     HIDE_IF_JS_DISABLED_CLASSNAME,
     HIDE_IF_JS_ENABLED_CLASSNAME,
@@ -33,7 +34,6 @@ import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 import GrapherImage from "./GrapherImage.js"
 import { Html } from "./Html.js"
-import { ArchiveMetaInformation } from "./archive/archiveTypes.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
@@ -43,7 +43,7 @@ export const GrapherPage = (props: {
     baseGrapherUrl: string
     staticAssetMap?: AssetMap
     runtimeAssetMap?: AssetMap
-    archiveInformation?: ArchiveMetaInformation
+    archiveInformation?: ArchiveSiteNavigationInfo
 }) => {
     const { grapher, relatedCharts, relatedArticles, baseGrapherUrl, baseUrl } =
         props

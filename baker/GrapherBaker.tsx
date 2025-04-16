@@ -34,6 +34,7 @@ import {
     DbRawChartConfig,
     DbEnrichedImage,
     AssetMap,
+    ArchiveSiteNavigationInfo,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -56,7 +57,6 @@ import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { ArchivalManifest } from "./archival/archivalUtils.js"
-import type { ArchiveMetaInformation } from "../site/archive/archiveTypes.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -71,7 +71,7 @@ const renderDatapageIfApplicable = async (
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
-        archiveInformation?: ArchiveMetaInformation
+        archiveInformation?: ArchiveSiteNavigationInfo
     } = {}
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
@@ -120,7 +120,7 @@ export const renderDataPageOrGrapherPage = async (
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
-        archiveInformation?: ArchiveMetaInformation
+        archiveInformation?: ArchiveSiteNavigationInfo
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
@@ -157,7 +157,7 @@ export async function renderDataPageV2(
         imageMetadataDictionary?: Record<string, ImageMetadata>
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
-        archiveInformation?: ArchiveMetaInformation
+        archiveInformation?: ArchiveSiteNavigationInfo
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -296,7 +296,7 @@ const renderGrapherPage = async (
     }: {
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
-        archiveInformation?: ArchiveMetaInformation
+        archiveInformation?: ArchiveSiteNavigationInfo
     } = {}
 ) => {
     const postSlug = urlToSlug(grapher.originUrl || "") as string | undefined
@@ -343,7 +343,7 @@ export const bakeSingleGrapherPageForArchival = async (
         staticAssetMap?: AssetMap
         runtimeAssetMap?: AssetMap
         manifest: ArchivalManifest
-        archiveInformation?: ArchiveMetaInformation
+        archiveInformation?: ArchiveSiteNavigationInfo
     }
 ) => {
     const outPathHtml = `${bakedSiteDir}/grapher/${grapher.slug}.html`

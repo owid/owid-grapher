@@ -1,4 +1,5 @@
-import { AssetMap, dayjs, lazy, omit } from "@ourworldindata/utils"
+import { dayjs, lazy, omit } from "@ourworldindata/utils"
+import { ARCHIVE_DATE_TIME_FORMAT, AssetMap } from "@ourworldindata/types"
 import {
     GrapherChecksums,
     GrapherChecksumsObjectWithHash,
@@ -26,8 +27,6 @@ export interface ArchivalManifest {
     }
 }
 
-const DATE_TIME_FORMAT = "YYYYMMDD-HHmmss"
-
 export const getDateForArchival = (dateInput?: Date): ArchivalTimestamp => {
     const date = dayjs(dateInput)
         .utc()
@@ -35,7 +34,7 @@ export const getDateForArchival = (dateInput?: Date): ArchivalTimestamp => {
         // otherwise we run the risk of MySQL rounding up to the next second,
         // which would break the archival URL
         .millisecond(0)
-    const formattedDate = date.format(DATE_TIME_FORMAT)
+    const formattedDate = date.format(ARCHIVE_DATE_TIME_FORMAT)
 
     return { date: date.toDate(), formattedDate }
 }

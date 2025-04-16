@@ -1,8 +1,10 @@
 import {
+    ArchiveSiteNavigationInfo,
     AssetMap,
     DbEnrichedImage,
     DbPlainArchivedChartVersion,
     GrapherInterface,
+    UrlAndMaybeDate,
 } from "@ourworldindata/types"
 import fs from "fs-extra"
 import { keyBy } from "lodash-es"
@@ -25,10 +27,6 @@ import {
     getLatestArchivedVersionsFromDb,
     GrapherChecksumsObjectWithHash,
 } from "./archivalChecksum.js"
-import type {
-    ArchiveMetaInformation,
-    UrlAndMaybeDate,
-} from "../../site/archive/archiveTypes.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../settings/serverSettings.js"
 import { getEnrichedChartsByIds } from "../../db/model/Chart.js"
@@ -398,7 +396,7 @@ async function bakeGrapherPageForArchival(
               ),
           }
         : undefined
-    const archiveInformation: ArchiveMetaInformation = {
+    const archiveInformation: ArchiveSiteNavigationInfo = {
         archiveDate: date.date,
         liveUrl: `https://ourworldindata.org/grapher/${config.slug}`,
         previousVersion,
