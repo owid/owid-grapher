@@ -45,6 +45,7 @@ import {
 import { geoRobinson } from "./d3-geo-projection"
 import { isDarkColor } from "../color/ColorUtils"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
+import { MapConfig } from "./MapConfig"
 
 @observer
 export class ChoroplethMap extends React.Component<{
@@ -63,6 +64,10 @@ export class ChoroplethMap extends React.Component<{
 
     @computed private get manager(): ChoroplethMapManager {
         return this.props.manager
+    }
+
+    @computed get mapConfig(): MapConfig {
+        return this.manager.mapConfig
     }
 
     @computed.struct private get bounds(): Bounds {
@@ -181,19 +186,28 @@ export class ChoroplethMap extends React.Component<{
     private shouldShowAllAnnotations = false
     private debugAnnotations = false
 
-    /* Naively placed annotations that might be overlapping */
-    @computed
-    private get initialAnnotations(): Annotation[] {
+    @computed private get annotationCandidateFeatures(): MapRenderFeature[] {
         if (!this.shouldShowAnnotations) return []
 
-        const features = this.shouldShowAllAnnotations
-            ? this.featuresWithData
-            : this.manager.mapConfig.selection.selectedEntityNames
-                  .map((name) => this.featuresById.get(name))
-                  .filter((feature) => feature !== undefined)
+        if (this.shouldShowAllAnnotations) return this.featuresWithData
 
+        // show value annotations for the currently selected countries
+        if (this.manager.shouldShowEntitySelectorOnMapTab) {
+            return excludeUndefined(
+                this.mapConfig.selection.selectedEntityNames.map((name) =>
+                    this.featuresById.get(name)
+                )
+            )
+        }
+
+        return []
+    }
+
+    /* Naively placed annotations that might be overlapping */
+    @computed
+    private get annotationCandidates(): Annotation[] {
         return excludeUndefined(
-            features.map((feature) => {
+            this.annotationCandidateFeatures.map((feature) => {
                 const series = this.choroplethData.get(feature.id)
                 if (!series) return
 
@@ -226,7 +240,7 @@ export class ChoroplethMap extends React.Component<{
 
     @computed
     private get internalAnnotations(): InternalAnnotation[] {
-        return this.initialAnnotations.filter(
+        return this.annotationCandidates.filter(
             (annotation) => annotation.type === "internal"
         )
     }
@@ -234,7 +248,7 @@ export class ChoroplethMap extends React.Component<{
     @computed
     private get externalAnnotations(): ExternalAnnotation[] {
         const { projection } = this
-        const annotations = this.initialAnnotations.filter(
+        const annotations = this.annotationCandidates.filter(
             (annotation) => annotation.type === "external"
         )
         return repositionAndFilterExternalAnnotations({

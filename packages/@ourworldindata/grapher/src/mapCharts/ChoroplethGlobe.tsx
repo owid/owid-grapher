@@ -275,10 +275,7 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get shouldShowAnnotations(): boolean {
-        return !!(
-            this.manager.mapColumn.hasNumberFormatting &&
-            this.manager.shouldShowEntitySelectorOnMapTab
-        )
+        return !!this.manager.mapColumn.hasNumberFormatting
     }
 
     private formatAnnotationLabel(value: string | number): string {
@@ -288,19 +285,40 @@ export class ChoroplethGlobe extends React.Component<{
     private shouldShowAllAnnotations = false
     private debugAnnotations = false
 
-    /* Naively placed annotations that might be overlapping */
-    @computed
-    private get initialAnnotations(): Annotation[] {
+    @computed private get annotationCandidateFeatures(): GlobeRenderFeature[] {
         if (!this.shouldShowAnnotations) return []
 
-        const features = this.shouldShowAllAnnotations
-            ? this.featuresWithData
-            : this.mapConfig.selection.selectedEntityNames.map((name) =>
-                  this.featuresById.get(name)
-              )
+        if (this.shouldShowAllAnnotations) return this.featuresWithData
 
+        // show value annotations for the currently selected countries
+        if (this.manager.shouldShowEntitySelectorOnMapTab) {
+            return excludeUndefined(
+                this.mapConfig.selection.selectedEntityNames.map((name) =>
+                    this.featuresById.get(name)
+                )
+            )
+        }
+
+        // show the value annotation for the currently focused country
+        const { focusCountry } = this.mapConfig.globe
+        if (focusCountry && this.featuresById.has(focusCountry)) {
+            return [this.featuresById.get(focusCountry)!]
+        }
+
+        // show the value annotation for the currently hovered country
+        const { tooltipFeatureId } = this.manager
+        if (tooltipFeatureId && this.featuresById.has(tooltipFeatureId)) {
+            return [this.featuresById.get(tooltipFeatureId)!]
+        }
+
+        return []
+    }
+
+    /* Naively placed annotations that might be overlapping */
+    @computed
+    private get annotationCandidates(): Annotation[] {
         return excludeUndefined(
-            features
+            this.annotationCandidateFeatures
                 .filter(
                     (feature): feature is GlobeRenderFeature =>
                         feature !== undefined &&
@@ -344,7 +362,7 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed
     private get internalAnnotations(): InternalAnnotation[] {
-        return this.initialAnnotations.filter(
+        return this.annotationCandidates.filter(
             (annotation) => annotation.type === "internal"
         )
     }
@@ -352,7 +370,7 @@ export class ChoroplethGlobe extends React.Component<{
     @computed
     private get externalAnnotations(): ExternalAnnotation[] {
         const { projection } = this
-        const annotations = this.initialAnnotations.filter(
+        const annotations = this.annotationCandidates.filter(
             (annotation) => annotation.type === "external"
         )
         return repositionAndFilterExternalAnnotations({

@@ -383,6 +383,10 @@ export class MapChart
         return this.colorScale.config.equalSizeBins
     }
 
+    @computed get tooltipFeatureId(): string | undefined {
+        return this.tooltipState.target?.featureId
+    }
+
     /** The value of the currently hovered feature/country */
     @computed get hoverValue(): string | number | undefined {
         if (!this.hoverFeatureId) return undefined

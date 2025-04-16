@@ -72,6 +72,7 @@ export interface ChoroplethMapManager {
     mapColumn: CoreColumn
     globeController?: GlobeController
     selectionArray: SelectionArray
+    tooltipFeatureId?: string
     fontSize?: number
     getHoverState: (featureId: string) => InteractionState
     isSelected: (featureId: string) => boolean
