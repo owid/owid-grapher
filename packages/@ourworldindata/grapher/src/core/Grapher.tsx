@@ -3390,7 +3390,7 @@ export class Grapher
     @computed get shouldShowEntitySelectorOnMapTab(): boolean {
         // only show the entity selector on the map tab if it's
         // rendered into the side panel or the drawer
-        return this.shouldShowEntitySelectorAs !== GrapherWindowType.modal
+        return this.shouldShowEntitySelectorAs === GrapherWindowType.panel
     }
 
     // Binds chart properties to global window title and URL. This should only
