@@ -23,6 +23,8 @@ export const POLYFILL_URL: string = `https://cdnjs.cloudflare.com/polyfill/v3/po
     ","
 )}`
 
+export const PROD_URL = "https://ourworldindata.org"
+
 export const DEFAULT_LOCAL_BAKE_DIR = "localBake"
 
 export const SMALL_BREAKPOINT_MEDIA_QUERY = "(max-width: 768px)"

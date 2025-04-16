@@ -3,6 +3,7 @@ import { SiteLogos } from "../SiteLogos.js"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { dayjs } from "@ourworldindata/utils"
 import { ArchiveSiteNavigationInfo } from "@ourworldindata/types"
+import { PROD_URL } from "../SiteConstants.js"
 
 export const ArchiveSiteNavigation = (props: ArchiveSiteNavigationInfo) => {
     return (
@@ -16,7 +17,7 @@ export const ArchiveSiteNavigation = (props: ArchiveSiteNavigationInfo) => {
 const ArchiveHeaderLogoBar = () => (
     <div className="archive-header-logo-bar">
         <div className="wrapper">
-            <SiteLogos homeUrl="https://ourworldindata.org" />
+            <SiteLogos homeUrl={PROD_URL} />
         </div>
     </div>
 )
