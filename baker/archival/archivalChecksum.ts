@@ -17,18 +17,17 @@ export interface GrapherChecksums {
     }
 }
 
-export interface GrapherChecksumsObject {
+export interface GrapherChecksumsObjectWithHash {
     chartId: number
     chartSlug: string
     checksums: GrapherChecksums
-}
-
-export interface GrapherChecksumsObjectWithHash extends GrapherChecksumsObject {
     checksumsHashed: string
 }
 
 // Fetches checksum/hash information about all published charts from the database
-const getGrapherChecksumsFromDb = async (knex: db.KnexReadonlyTransaction) => {
+export const getGrapherChecksumsFromDb = async (
+    knex: db.KnexReadonlyTransaction
+): Promise<GrapherChecksumsObjectWithHash[]> => {
     type FlatGrapherChecksums = {
         chartId: number
         chartSlug: string
@@ -36,7 +35,7 @@ const getGrapherChecksumsFromDb = async (knex: db.KnexReadonlyTransaction) => {
         indicators: JsonString
     }
 
-    const rows: GrapherChecksumsObject[] = await db
+    const rows: GrapherChecksumsObjectWithHash[] = await db
         .knexRaw<FlatGrapherChecksums>(
             knex,
             // This query gets all published charts and their hashes, and all associated variables (keyed by variableId) and their checksums
@@ -63,6 +62,12 @@ const getGrapherChecksumsFromDb = async (knex: db.KnexReadonlyTransaction) => {
                     chartConfigMd5: r.chartConfigMd5,
                     indicators: JSON.parse(r.indicators),
                 },
+            }))
+        )
+        .then((row) =>
+            row.map((r) => ({
+                ...r,
+                checksumsHashed: hashChecksumsObj(r.checksums),
             }))
         )
 
@@ -114,23 +119,17 @@ export const findChangedGrapherPages = async (
 ) => {
     const allChartChecksums = await getGrapherChecksumsFromDb(knex)
 
-    const checksums: GrapherChecksumsObjectWithHash[] = allChartChecksums.map(
-        (chartObj) => {
-            const checksumsHashed = hashChecksumsObj(chartObj.checksums)
-            return { ...chartObj, checksumsHashed }
-        }
-    )
-
     // We're gonna find the hashes of all the graphers that are already archived and up-to-date
     const hashesFoundInDb = await findHashesInDb(
         knex,
-        checksums.map((c) => c.checksumsHashed)
+        allChartChecksums.map((c) => c.checksumsHashed)
     )
-    const [alreadyArchived, needToBeArchived] = partition(checksums, (c) =>
-        hashesFoundInDb.has(c.checksumsHashed)
+    const [alreadyArchived, needToBeArchived] = partition(
+        allChartChecksums,
+        (c) => hashesFoundInDb.has(c.checksumsHashed)
     )
 
-    console.log("total published graphers", checksums.length)
+    console.log("total published graphers", allChartChecksums.length)
     console.log("already archived", alreadyArchived.length)
     console.log("need archived", needToBeArchived.length)
 
