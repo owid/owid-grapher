@@ -1,11 +1,14 @@
-import { lazy, omit } from "@ourworldindata/utils"
+import {
+    lazy,
+    omit,
+    convertToArchivalDateStringIfNecessary,
+} from "@ourworldindata/utils"
 import { AssetMap } from "@ourworldindata/types"
 import {
     GrapherChecksums,
     GrapherChecksumsObjectWithHash,
 } from "./archivalChecksum.js"
 import { simpleGit } from "simple-git"
-import { convertToArchivalDateStringIfNecessary } from "./archivalDate.js"
 
 export interface ArchivalManifest {
     assets: {

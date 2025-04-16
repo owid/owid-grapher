@@ -32,7 +32,7 @@ import {
     GDOCS_DETAILS_ON_DEMAND_ID,
 } from "../../settings/serverSettings.js"
 import { getEnrichedChartsByIds } from "../../db/model/Chart.js"
-import { ArchivalTimestamp, getDateForArchival } from "./archivalDate.js"
+import { ArchivalTimestamp, getDateForArchival } from "@ourworldindata/utils"
 import { PROD_URL } from "../../site/SiteConstants.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
@@ -406,7 +406,6 @@ async function bakeGrapherPageForArchival(
           }
         : undefined
     const archiveNavigation: ArchiveSiteNavigationInfo = {
-        archiveDate: date.date,
         liveUrl: `${PROD_URL}/grapher/${config.slug}`,
         previousVersion,
     }

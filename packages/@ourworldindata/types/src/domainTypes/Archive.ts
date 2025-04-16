@@ -9,7 +9,6 @@ export interface UrlAndMaybeDate {
 }
 
 export interface ArchiveSiteNavigationInfo {
-    archiveDate: Date | ArchiveDateString
     liveUrl?: string
     previousVersion?: UrlAndMaybeDate
     nextVersion?: UrlAndMaybeDate

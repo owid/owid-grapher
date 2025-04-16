@@ -1,11 +1,15 @@
 import { Button } from "@ourworldindata/components"
 import { SiteLogos } from "../SiteLogos.js"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
-import { dayjs } from "@ourworldindata/utils"
 import { ArchiveSiteNavigationInfo } from "@ourworldindata/types"
 import { PROD_URL } from "../SiteConstants.js"
+import { parseArchivalDate } from "@ourworldindata/utils"
 
-export const ArchiveSiteNavigation = (props: ArchiveSiteNavigationInfo) => {
+export interface ArchiveSiteNavigationProps extends ArchiveSiteNavigationInfo {
+    archiveDate: Date | string
+}
+
+export const ArchiveSiteNavigation = (props: ArchiveSiteNavigationProps) => {
     return (
         <div className="archive-site-navigation">
             <ArchiveHeaderLogoBar />
@@ -24,13 +28,13 @@ const ArchiveHeaderLogoBar = () => (
 
 const DATE_FORMAT = "MMMM D, YYYY"
 const TIME_FORMAT = "HH:mm"
-const ArchiveNavigationBar = (props: ArchiveSiteNavigationInfo) => {
+const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
     const hasButtons = !!(
         props.liveUrl ||
         props.previousVersion ||
         props.nextVersion
     )
-    const dayjsDate = dayjs.utc(props.archiveDate)
+    const dayjsDate = parseArchivalDate(props.archiveDate)
 
     return (
         <nav className="archive-navigation-bar">

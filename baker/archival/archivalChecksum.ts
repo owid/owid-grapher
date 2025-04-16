@@ -9,7 +9,7 @@ import { partition, pick } from "lodash-es"
 import { stringify } from "safe-stable-stringify"
 import { hashHex } from "../../serverUtils/hash.js"
 import { ArchivalManifest } from "./archivalUtils.js"
-import { ArchivalTimestamp } from "./archivalDate.js"
+import { ArchivalTimestamp } from "@ourworldindata/utils"
 
 export interface GrapherChecksums {
     chartConfigMd5: string

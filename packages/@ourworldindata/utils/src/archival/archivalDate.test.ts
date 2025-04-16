@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import { formatAsArchivalDate, parseArchivalDate } from "./archivalDate.js"
-import dayjs from "dayjs"
+import dayjs from "../dayjs.js"
 import timezoneMock from "timezone-mock"
 
 describe(parseArchivalDate, () => {

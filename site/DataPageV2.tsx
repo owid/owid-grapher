@@ -141,9 +141,7 @@ export const DataPageV2 = (props: {
                 />
             </Head>
             <body className="DataPage">
-                <SiteHeader
-                    archiveNavInformation={archiveInfo?.archiveNavigation}
-                />
+                <SiteHeader archiveInfo={archiveInfo} />
                 <main>
                     <script
                         dangerouslySetInnerHTML={{

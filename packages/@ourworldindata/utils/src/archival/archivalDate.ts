@@ -1,8 +1,8 @@
 import {
     ARCHIVE_DATE_TIME_FORMAT,
     ArchiveDateString,
-    dayjs,
-} from "@ourworldindata/utils"
+} from "@ourworldindata/types"
+import dayjs from "../dayjs.js"
 
 export interface ArchivalTimestamp {
     date: Date

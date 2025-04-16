@@ -127,9 +127,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { archiveInfo })`
                 />
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
-                <SiteHeader
-                    archiveNavInformation={archiveInfo?.archiveNavigation}
-                />
+                <SiteHeader archiveInfo={archiveInfo} />
                 <main>
                     <figure
                         className={HIDE_IF_JS_DISABLED_CLASSNAME}
