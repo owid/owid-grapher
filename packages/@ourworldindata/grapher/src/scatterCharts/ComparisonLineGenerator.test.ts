@@ -1,7 +1,31 @@
 import { expect, it, describe } from "vitest"
 
-import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
+import {
+    evalFormula,
+    generateComparisonLinePoints,
+    parseEquation,
+} from "./ComparisonLineGenerator"
 import { ScaleType } from "@ourworldindata/types"
+
+describe("formula parsing & evaluation", () => {
+    it("should parse and evaluate a simple formula", () => {
+        const formula = "10 * (x - 1950)"
+        const parsed = parseEquation(formula)
+        expect(parsed).toBeDefined()
+
+        const result = evalFormula(parsed, { x: 2000 }, undefined)
+        expect(result).toEqual(500)
+    })
+
+    it("should handle advanced math symbols", () => {
+        const formula = "sin(PI/2) + ln(e) + log10(x)^2 / sqrt(4)"
+        const parsed = parseEquation(formula)
+        expect(parsed).toBeDefined()
+
+        const result = evalFormula(parsed, { x: 1000 }, undefined)
+        expect(result).toEqual(6.5)
+    })
+})
 
 describe("For y = x", () => {
     it("returns the correct number of points", () => {
