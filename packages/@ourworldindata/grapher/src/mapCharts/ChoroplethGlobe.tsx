@@ -372,7 +372,7 @@ export class ChoroplethGlobe extends React.Component<{
         const scaleFactor = (this.globeSize * bufferFactor) / maxDimension
         const zoom = this.zoomScale * scaleFactor
 
-        return clamp(zoom, MIN_ZOOM_SCALE, MAX_ZOOM_SCALE)
+        return R.clamp(zoom, { min: MIN_ZOOM_SCALE, max: MAX_ZOOM_SCALE })
     }
 
     @action.bound private onClick(
