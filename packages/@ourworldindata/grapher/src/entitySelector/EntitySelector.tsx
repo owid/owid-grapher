@@ -87,6 +87,9 @@ export interface EntitySelectorManager {
     isOnMapTab?: boolean
     mapConfig?: MapConfig
     mapColumnSlug?: ColumnSlug
+    onSelectEntity?: (entityName: EntityName) => void
+    onDeselectEntity?: (entityName: EntityName) => void
+    onClearEntities?: () => void
 }
 
 interface SortConfig {
@@ -175,9 +178,6 @@ export class EntitySelector extends React.Component<{
     manager: EntitySelectorManager
     selection?: SelectionArray
     autoFocus?: boolean
-    onSelectEntity?: (entityName: EntityName) => void
-    onDeselectEntity?: (entityName: EntityName) => void
-    onClearEntities?: () => void
     onDismiss?: () => void
 }> {
     static contextType = DrawerContext
@@ -783,7 +783,7 @@ export class EntitySelector extends React.Component<{
 
     @action.bound onDeselectEntities(entityNames: EntityName[]): void {
         for (const entityName of entityNames) {
-            this.props.onDeselectEntity?.(entityName)
+            this.manager.onDeselectEntity?.(entityName)
         }
     }
 
@@ -793,18 +793,18 @@ export class EntitySelector extends React.Component<{
             this.selectionArray.toggleSelection(entityName)
 
             if (this.selectionArray.selectedSet.has(entityName)) {
-                this.props.onSelectEntity?.(entityName)
+                this.manager.onSelectEntity?.(entityName)
             } else {
-                this.props.onDeselectEntity?.(entityName)
+                this.manager.onDeselectEntity?.(entityName)
             }
 
             if (this.selectionArray.numSelectedEntities === 0) {
-                this.props.onClearEntities?.()
+                this.manager.onClearEntities?.()
             }
         } else {
             const dropEntityNames = this.selectionArray.selectedEntityNames
             this.selectionArray.setSelectedEntities([entityName])
-            this.props.onSelectEntity?.(entityName)
+            this.manager.onSelectEntity?.(entityName)
             this.onDeselectEntities(dropEntityNames)
 
             // close the modal or drawer automatically after selection
@@ -827,7 +827,7 @@ export class EntitySelector extends React.Component<{
             const dropEntityNames = this.selectionArray.selectedEntityNames
             this.selectionArray.clearSelection()
             this.onDeselectEntities(dropEntityNames)
-            this.props.onClearEntities?.()
+            this.manager.onClearEntities?.()
         }
     }
 
