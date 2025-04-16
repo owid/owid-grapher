@@ -41,7 +41,7 @@ function evalFormula<D>(
 ): number | D {
     if (expr === undefined) return defaultOnError
     try {
-        return expr.evaluate(context) as number
+        return expr.evaluate({ pi: Math.PI, e: Math.E, ...context }) as number
     } catch {
         return defaultOnError
     }
