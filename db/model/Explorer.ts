@@ -177,10 +177,6 @@ export async function upsertExplorerVariables(
             .map((x) => Number(x))
     )
 
-    console.log(JSON.stringify(config, null, 2))
-    console.log("proposedVariableIds", proposedVariableIds)
-    console.log("proposedCatalogPaths", proposedCatalogPaths)
-
     // Verify that the total number of items in 'proposed' equals
     // the sum of items in 'proposedCatalogPaths' and 'proposedVariableIds'
     if (
