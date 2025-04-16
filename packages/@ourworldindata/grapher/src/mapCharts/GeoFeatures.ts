@@ -5,10 +5,10 @@ import {
     MapRenderFeature,
     RenderFeatureType,
 } from "./MapChartConstants"
-import { Bounds, PointVector, sortBy } from "@ourworldindata/utils"
+import { Bounds, lazy, PointVector } from "@ourworldindata/utils"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import { MapTopology } from "./MapTopology"
-import { geoArea, geoBounds, geoCentroid, geoPath } from "d3-geo"
+import { geoBounds, geoCentroid, geoPath } from "d3-geo"
 import { geoRobinson } from "./d3-geo-projection"
 
 // Get the underlying geographical topology elements we're going to display
@@ -18,6 +18,10 @@ export const GeoFeatures: GeoFeature[] = (
         MapTopology.objects.world as any
     ) as any
 ).features
+
+export const GeoFeaturesById = new Map(
+    GeoFeatures.map((feature) => [feature.id, feature])
+)
 
 const projection = geoPath().projection(geoRobinson())
 
@@ -72,7 +76,7 @@ const geoBoundsForFeatures = GeoFeatures.map((feature) => {
 })
 
 // Bundle GeoFeatures with the calculated info needed to render them
-export const getGeoFeaturesForMap = (): MapRenderFeature[] => {
+export const getGeoFeaturesForMap = lazy((): MapRenderFeature[] => {
     const projBounds = geoBoundsForWorldProjection()
     const projPaths = geoPathsForWorldProjection()
     const feats: MapRenderFeature[] = GeoFeatures.map((geo, index) => ({
@@ -85,9 +89,9 @@ export const getGeoFeaturesForMap = (): MapRenderFeature[] => {
         path: projPaths[index],
     }))
     return feats
-}
+})
 
-export const getGeoFeaturesForGlobe = (): GlobeRenderFeature[] => {
+export const getGeoFeaturesForGlobe = lazy((): GlobeRenderFeature[] => {
     return GeoFeatures.map((geo, index) => {
         const corners = geoBounds(geo)
         const bounds = Bounds.fromCorners(
@@ -102,4 +106,4 @@ export const getGeoFeaturesForGlobe = (): GlobeRenderFeature[] => {
             geoBounds: bounds,
         }
     })
-}
+})

@@ -2,8 +2,6 @@ import React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
-    geoContains,
-    GeoGeometryObjects,
     geoGraticule,
     geoOrthographic,
     GeoPath,
@@ -29,14 +27,9 @@ import {
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
     Annotation,
-    ANNOTATION_FONT_SIZE_DEFAULT,
-    ANNOTATION_FONT_SIZE_MIN,
-    ANNOTATION_MARKER_LINE_LENGTH_DEFAULT,
-    ANNOTATION_MARKER_LINE_LENGTH_MAX,
     ChoroplethMapManager,
     ChoroplethSeriesByName,
     DEFAULT_GLOBE_SIZE,
-    DEFAULT_STROKE_WIDTH,
     ExternalAnnotation,
     GEO_FEATURES_CLASSNAME,
     GLOBE_MAX_ZOOM,
@@ -44,7 +37,6 @@ import {
     GlobeRenderFeature,
     InternalAnnotation,
     MAP_HOVER_TARGET_RANGE,
-    MapChartManager,
     SVGMouseEvent,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
@@ -67,22 +59,12 @@ import {
     getForegroundFeatures,
 } from "./MapHelpers"
 import {
-    makeEllipseForProjection,
-    placeLabelExternally,
-    placeLabelAtEllipseCenter,
-    extendMarkerLineToBridgeGivenFeatures,
-    getNearbyFeatures,
-    minimiseLabelCollisions,
-    checkAnnotationCollidesWithLandmass,
-    checkAnnotationMarkerCollidesWithLabel,
+    makeInternalAnnotationForFeature,
+    makeExternalAnnotationForFeature,
+    repositionAndFilterExternalAnnotations,
 } from "./MapAnnotations"
 import * as R from "remeda"
 import { GlobeController } from "./GlobeController"
-import { annotationPlacementsById } from "./MapAnnotationPlacements"
-import { forceCollide, forceSimulation, forceX, forceY } from "d3"
-// @ts-expect-error no types available
-import { bboxCollide } from "d3-bboxCollide"
-// todo: only install/import what's needed (look into helpers)
 import { isDarkColor } from "../color/ColorUtils"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 
@@ -303,117 +285,7 @@ export class ChoroplethGlobe extends React.Component<{
         return this.manager.mapColumn.formatValueShortWithAbbreviations(value)
     }
 
-    private makeInternalAnnotationForFeature(
-        feature: GlobeRenderFeature
-    ): InternalAnnotation | undefined {
-        const { projection } = this
-
-        const series = this.choroplethData.get(feature.id)
-        const placement = annotationPlacementsById.get(feature.id)
-        if (!series || !placement || !placement.ellipse) return
-
-        // project ellipse onto the globe
-        const ellipse = makeEllipseForProjection({
-            ellipse: placement.ellipse,
-            projection,
-            paddingFactor: { x: 0.1 },
-        })
-
-        if (!ellipse) return
-
-        const formattedValue = this.formatAnnotationLabel(series.value)
-        let { placedBounds, fontSize } =
-            placeLabelAtEllipseCenter({ text: formattedValue, ellipse }) ?? {}
-
-        const color = isDarkColor(series.color) ? "#fff" : GRAPHER_DARK_TEXT
-
-        if (placedBounds && fontSize)
-            return {
-                type: "internal",
-                id: feature.id,
-                feature,
-                placedBounds,
-                text: formattedValue,
-                ellipse: ellipse,
-                fontSize: fontSize,
-                color,
-            }
-
-        return
-    }
-
-    private makeExternalAnnotationForFeature(
-        feature: GlobeRenderFeature
-    ): ExternalAnnotation | undefined {
-        const { projection } = this
-
-        const series = this.choroplethData.get(feature.id)
-        const placement = annotationPlacementsById.get(feature.id)
-        if (!series || !placement) return
-
-        if (!placement.anchorPoint || !placement.direction) return undefined
-
-        const direction = placement.direction
-        const anchorPoint = this.projection(placement.anchorPoint)
-
-        const scaleFactor = 1 / this.zoomScale
-        const fontSize = Math.min(
-            ANNOTATION_FONT_SIZE_MIN / scaleFactor,
-            ANNOTATION_FONT_SIZE_DEFAULT
-        )
-        const markerLength = Math.min(
-            ANNOTATION_MARKER_LINE_LENGTH_DEFAULT / scaleFactor,
-            ANNOTATION_MARKER_LINE_LENGTH_MAX
-        )
-
-        const formattedValue = this.formatAnnotationLabel(series.value)
-        const textBounds = Bounds.forText(formattedValue, {
-            fontSize,
-        }).set({ height: fontSize - 1 }) // todo: small correction
-        const labelPosition = placeLabelExternally({
-            anchorPoint,
-            textBounds,
-            direction,
-            markerLength,
-        })
-
-        // place label at the given center position
-        let placedBounds = textBounds.set({
-            x: labelPosition[0],
-            y: labelPosition[1],
-        })
-
-        // make sure the external label doesn't overlap with bridge countries (including itself)
-        const bridgeCountries = [
-            feature.id,
-            ...(placement.bridgeCountries ?? []),
-        ]
-        const bridgeFeatures = excludeUndefined(
-            bridgeCountries.map((country) => this.featuresById.get(country))
-        )
-
-        placedBounds = extendMarkerLineToBridgeGivenFeatures({
-            bridgeFeatures,
-            placedBounds,
-            direction,
-            projection,
-            step: 1.5 * markerLength,
-        })
-
-        return {
-            type: "external",
-            id: feature.id,
-            feature,
-            text: formattedValue,
-            placedBounds,
-            anchor: anchorPoint,
-            direction,
-            fontSize,
-            color: GRAPHER_DARK_TEXT,
-        }
-    }
-
-    private shouldShowAllAnnotations = true
+    private shouldShowAllAnnotations = false
 
     /* Naively placed annotations that might be overlapping */
     @computed
@@ -436,14 +308,32 @@ export class ChoroplethGlobe extends React.Component<{
                         this.isFeatureCentroidVisibleOnGlobe(feature, 0.3)
                 )
                 .map((feature) => {
+                    const series = this.choroplethData.get(feature.id)
+                    if (!series) return
+
+                    const labelColor = isDarkColor(series.color)
+                        ? "#fff"
+                        : GRAPHER_DARK_TEXT
+                    const fontSizeScale = 1 / this.zoomScale
+
+                    const args = {
+                        feature,
+                        projection: this.projection,
+                        formattedValue: this.formatAnnotationLabel(
+                            series.value
+                        ),
+                        color: labelColor,
+                    }
+
                     // try to fit the annotation inside the feature
                     const internalAnnotation =
-                        this.makeInternalAnnotationForFeature(feature)
+                        makeInternalAnnotationForFeature(args)
                     if (internalAnnotation) return internalAnnotation
 
                     // place the annotation outside of the feature
-                    const externalAnnotation =
-                        this.makeExternalAnnotationForFeature(feature)
+                    const externalAnnotation = makeExternalAnnotationForFeature(
+                        { ...args, fontSizeScale }
+                    )
                     if (externalAnnotation) return externalAnnotation
 
                     return undefined
@@ -461,56 +351,13 @@ export class ChoroplethGlobe extends React.Component<{
     @computed
     private get externalAnnotations(): ExternalAnnotation[] {
         const { projection } = this
-
-        const initialAnnotations = this.initialAnnotations.filter(
+        const annotations = this.initialAnnotations.filter(
             (annotation) => annotation.type === "external"
         )
-        const initialAnnotationsById = new Map(
-            initialAnnotations.map((a) => [a.id, a])
-        )
-
-        const nonOverlappingAnnotations =
-            minimiseLabelCollisions(initialAnnotations)
-
-        const filteredAnnotations = nonOverlappingAnnotations.filter(
-            (annotation) => {
-                const nearbyFeatures = getNearbyFeatures({
-                    feature: annotation.feature,
-                    allFeatures: this.visibleFeatures,
-                })
-                const nearbyAnnotations = excludeUndefined(
-                    nearbyFeatures.map((feature) =>
-                        initialAnnotationsById.get(feature.id)
-                    )
-                )
-                return (
-                    !checkAnnotationMarkerCollidesWithLabel({
-                        annotation,
-                        nearbyAnnotations,
-                    }) &&
-                    !checkAnnotationCollidesWithLandmass({
-                        annotation,
-                        nearbyFeatures,
-                        projection,
-                    })
-                )
-            }
-        )
-
-        const filteredAnnotationsAtOriginalPositions = filteredAnnotations.map(
-            (annotation) => {
-                const origBounds = initialAnnotationsById.get(
-                    annotation.id
-                )!.placedBounds
-                return { ...annotation, placedBounds: origBounds }
-            }
-        )
-
-        const placedAnnotations = minimiseLabelCollisions(
-            filteredAnnotationsAtOriginalPositions
-        )
-
-        return placedAnnotations
+        return repositionAndFilterExternalAnnotations({
+            annotations,
+            projection,
+        })
     }
 
     private rotateFrameId: number | undefined

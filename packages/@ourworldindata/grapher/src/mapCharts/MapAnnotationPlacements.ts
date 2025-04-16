@@ -1,7 +1,8 @@
+import { GeoFeaturesById } from "./GeoFeatures"
 import annotations from "./MapAnnotationPlacements.json"
-import { Direction, EllipseCoords } from "./MapChartConstants"
+import { Direction, EllipseCoords, GeoFeature } from "./MapChartConstants"
 
-interface AnnotationPlacement {
+interface RawAnnotationPlacement {
     id: string
     ellipse?: EllipseCoords
     direction?: Direction
@@ -9,9 +10,22 @@ interface AnnotationPlacement {
     bridgeCountries?: string[]
 }
 
-export const annotationPlacementsById = new Map<string, AnnotationPlacement>(
-    annotations.map((annotation) => [
-        annotation.id,
-        annotation as AnnotationPlacement,
-    ])
+interface EnrichedAnnotationPlacement
+    extends Omit<RawAnnotationPlacement, "bridgeCountries"> {
+    bridgeFeatures: GeoFeature[]
+}
+
+export const annotationPlacementsById = new Map<
+    string,
+    EnrichedAnnotationPlacement
+>(
+    annotations.map((annotation) => {
+        const enrichedAnnotation = {
+            ...annotation,
+            bridgeFeatures: annotation.bridgeCountries?.map((name) =>
+                GeoFeaturesById.get(name)
+            ),
+        } as EnrichedAnnotationPlacement
+        return [annotation.id, enrichedAnnotation]
+    })
 )

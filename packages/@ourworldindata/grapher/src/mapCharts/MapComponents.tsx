@@ -12,11 +12,9 @@ import {
     HOVER_STROKE_COLOR,
     HOVER_STROKE_WIDTH,
     PATTERN_STROKE_WIDTH,
-    MapRenderFeature,
     SELECTED_STROKE_WIDTH,
     SVGMouseEvent,
     RenderFeature,
-    RenderFeatureType,
     InternalAnnotation,
     ExternalAnnotation,
 } from "./MapChartConstants"
@@ -254,7 +252,7 @@ export function DebugInternalValueAnnotation({
 }: {
     annotation: InternalAnnotation
 }): React.ReactElement {
-    const { id, ellipse, placedBounds } = annotation
+    const { ellipse, placedBounds } = annotation
 
     return (
         <g style={{ pointerEvents: "none" }}>

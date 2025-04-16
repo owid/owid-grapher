@@ -1,14 +1,7 @@
 import { Quadtree } from "d3-quadtree"
-import {
-    geoContains,
-    GeoGeometryObjects,
-    geoOrthographic,
-    geoPath,
-    GeoPermissibleObjects,
-} from "d3-geo"
+import { geoOrthographic, geoPath, GeoPermissibleObjects } from "d3-geo"
 import {
     EntityName,
-    Bounds,
     getAggregates,
     getContinents,
     getIncomeGroups,
@@ -17,46 +10,18 @@ import {
     lazy,
     MapRegionName,
     sortBy,
-    PointVector,
-    clone,
-    excludeUndefined,
-    VerticalAlign,
-    HorizontalAlign,
 } from "@ourworldindata/utils"
 import {
     DEFAULT_GLOBE_SIZE,
-    ANNOTATION_FONT_SIZE_DEFAULT,
-    ANNOTATION_FONT_SIZE_MIN,
-    Direction,
-    Ellipse,
     GEO_FEATURES_CLASSNAME,
     MAP_HOVER_TARGET_RANGE,
     RenderFeature,
     GlobeRenderFeature,
-    ExternalAnnotation,
     MapRenderFeature,
     RenderFeatureType,
-    Circle,
-    EllipseCoords,
 } from "./MapChartConstants"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { MapTopology } from "./MapTopology.js"
-import {
-    forceSimulation,
-    forceX,
-    forceY,
-    GeoProjection,
-    SimulationNodeDatum,
-} from "d3"
-import bboxCollide from "./d3-bboxCollide"
-import {
-    polygon as turfPolygon,
-    multiPolygon as turfMultiPolygon,
-    lineString as turfLineString,
-} from "@turf/helpers"
-import { booleanIntersects } from "@turf/boolean-intersects"
-import { Feature } from "geojson"
-import * as R from "remeda"
 
 export function detectNearbyFeature<Feature extends RenderFeature>({
     quadtree,

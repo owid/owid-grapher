@@ -1,4 +1,6 @@
-// @ts-nocheck
+// From https://github.com/emeeks/d3-bboxCollide
+// Copy-pasted instead of relying on the distribution since the code hasn't
+// been touched in years and relies on an old version of d3-quadtree
 
 import { quadtree } from "d3-quadtree"
 

@@ -66,14 +66,12 @@ import {
     omit,
     isTouchDevice,
     isArrayDifferentFromReference,
-    getCountryByName,
     checkIsCountry,
     getMemberNamesOfRegion,
     getRegionByName,
     difference,
     checkHasMembers,
     partition,
-    checkIsIncomeGroup,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -240,7 +238,6 @@ import {
 } from "../color/ColorConstants"
 import { FacetChart } from "../facetChart/FacetChart"
 import { GlobeController } from "../mapCharts/GlobeController"
-import { P } from "ts-pattern"
 
 declare global {
     interface Window {

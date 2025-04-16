@@ -1,5 +1,5 @@
 import { ColorScaleBin } from "../color/ColorScaleBin"
-import { Bounds, PointVector, ColumnSlug } from "@ourworldindata/utils"
+import { Bounds, ColumnSlug } from "@ourworldindata/utils"
 import {
     MapRegionName,
     SeriesName,
