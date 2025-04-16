@@ -10,7 +10,7 @@ export const hashMd5 = (
     return _hashHex(hash, hashLength)
 }
 
-const DEFAULT_HASH_LENGTH = 8
+const DEFAULT_HASH_LENGTH = 10
 
 const _hashHex = (hash: Hash, hashLength: number | null | undefined) => {
     const hashHex = hash.digest("hex")

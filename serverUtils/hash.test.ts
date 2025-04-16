@@ -17,7 +17,7 @@ describe(hashMd5, () => {
 describe(hashBase36, () => {
     it("hashes a string", () => {
         const hash = hashBase36("hello")
-        expect(hash).toBe("14bu24ea")
+        expect(hash).toBe("14bu24ea7c")
     })
 
     it("hashes a string with a non-default hash length", () => {
@@ -27,7 +27,7 @@ describe(hashBase36, () => {
 
     it("hashes a buffer", () => {
         const hash = hashBase36(Buffer.from("hello"))
-        expect(hash).toBe("14bu24ea")
+        expect(hash).toBe("14bu24ea7c")
     })
 
     it("hashes a stream", async () => {
@@ -38,14 +38,14 @@ describe(hashBase36, () => {
         stream.end()
 
         const hash = await hashPromise
-        expect(hash).toBe("14bu24ea")
+        expect(hash).toBe("14bu24ea7c")
     })
 })
 
 describe(hashHex, () => {
     it("hashes a string", () => {
         const hash = hashHex("hello")
-        expect(hash).toBe("2cf24dba")
+        expect(hash).toBe("2cf24dba5f")
     })
 
     it("hashes a string with a non-default hash length", () => {
@@ -55,6 +55,6 @@ describe(hashHex, () => {
 
     it("hashes a buffer", () => {
         const hash = hashHex(Buffer.from("hello"))
-        expect(hash).toBe("2cf24dba")
+        expect(hash).toBe("2cf24dba5f")
     })
 })
