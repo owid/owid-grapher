@@ -3258,9 +3258,6 @@ export class Grapher
                             <EntitySelector
                                 manager={this}
                                 selection={entitySelectorArray}
-                                onSelectEntity={this.onSelectEntity}
-                                onDeselectEntity={this.onDeselectEntity}
-                                onClearEntities={this.onClearEntities}
                             />
                         </SidePanel>
                     )}
@@ -3283,14 +3280,7 @@ export class Grapher
                             !this.isEntitySelectorModalOrDrawerOpen
                     }}
                 >
-                    <EntitySelector
-                        manager={this}
-                        selection={entitySelectorArray}
-                        autoFocus={true}
-                        onSelectEntity={this.onSelectEntity}
-                        onDeselectEntity={this.onDeselectEntity}
-                        onClearEntities={this.onClearEntities}
-                    />
+                    <EntitySelector manager={this} autoFocus={true} />
                 </SlideInDrawer>
 
                 {/* tooltip: either pin to the bottom or render into the chart area */}
@@ -3460,7 +3450,7 @@ export class Grapher
     @computed get shouldShowEntitySelectorOnMapTab(): boolean {
         // only show the entity selector on the map tab if it's
         // rendered into the side panel or the drawer
-        return this.shouldShowEntitySelectorAs !== GrapherWindowType.modal
+        return this.shouldShowEntitySelectorAs === GrapherWindowType.panel
     }
 
     // Binds chart properties to global window title and URL. This should only
