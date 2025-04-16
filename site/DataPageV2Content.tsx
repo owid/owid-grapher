@@ -11,6 +11,7 @@ import {
     GrapherInterface,
     joinTitleFragments,
     ImageMetadata,
+    ArchiveMetaInformation,
 } from "@ourworldindata/utils"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
@@ -25,6 +26,7 @@ declare global {
     interface Window {
         _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields
         _OWID_GRAPHER_CONFIG: GrapherInterface
+        _OWID_ARCHIVE_INFO?: ArchiveMetaInformation
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
@@ -48,14 +50,22 @@ export const DataPageV2Content = ({
         datapageData.titleVariant
     )
 
+    const archiveInfo = useMemo(
+        () =>
+            (typeof window !== "undefined" && window._OWID_ARCHIVE_INFO) ||
+            undefined,
+        []
+    )
+
     // Initialize the grapher for client-side rendering
     const mergedGrapherConfig: GrapherProgrammaticInterface = useMemo(
         () => ({
             ...grapherConfig,
             isEmbeddedInADataPage: true,
             bindUrlToWindow: true,
+            archiveInfo,
         }),
-        [grapherConfig]
+        [grapherConfig, archiveInfo]
     )
 
     useEffect(() => {
