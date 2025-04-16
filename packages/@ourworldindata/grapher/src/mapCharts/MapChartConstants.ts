@@ -110,6 +110,6 @@ export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
     Africa: { rotation: [-20, 0], zoom: 1.65 },
     NorthAmerica: { rotation: [95, -48], zoom: 1.5 },
     SouthAmerica: { rotation: [62, 22], zoom: 1.75 },
-    Asia: { rotation: [-92, -25], zoom: 1.55 },
+    Asia: { rotation: [-81, -26], zoom: 1.85 },
     Oceania: { rotation: [-153, 25], zoom: 2 },
 }
