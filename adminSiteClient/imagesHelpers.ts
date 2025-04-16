@@ -79,7 +79,6 @@ export async function uploadImageFromSourceUrl({
             errorMessage: "Failed to convert image to base64",
         }
     }
-    payload.filename = image.filename
 
     if (image.id) {
         return admin.requestJSON(`/api/images/${image.id}`, payload, "PUT")
