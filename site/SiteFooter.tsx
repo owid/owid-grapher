@@ -1,6 +1,9 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faRss } from "@fortawesome/free-solid-svg-icons"
-import { AssetMap, SiteFooterContext } from "@ourworldindata/utils"
+import {
+    ArchiveMetaInformation,
+    SiteFooterContext,
+} from "@ourworldindata/utils"
 import { viteAssetsForSite } from "./viteUtils.js"
 import { ScriptLoadErrorDetector } from "./NoJSDetector.js"
 import { ABOUT_LINKS, RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
@@ -14,8 +17,7 @@ interface SiteFooterProps {
     context?: SiteFooterContext
     debug?: boolean
     isPreviewing?: boolean
-    staticAssetMap?: AssetMap
-    runtimeAssetMap?: AssetMap
+    archiveInfo?: ArchiveMetaInformation
 }
 
 type LinkData = { title: string; url: string }
@@ -63,11 +65,9 @@ const FooterLinkList = (props: { links: LinkData[] }) => (
 
 export const SiteFooter = (props: SiteFooterProps) => {
     const scripts: string[] = []
-    if (props.runtimeAssetMap)
+    if (props.archiveInfo)
         scripts.push(
-            `window._OWID_RUNTIME_ASSET_MAP = ${JSON.stringify(
-                props.runtimeAssetMap
-            )};`
+            `window._OWID_ARCHIVE_INFO = ${JSON.stringify(props.archiveInfo)};`
         )
 
     scripts.push(
@@ -179,8 +179,9 @@ export const SiteFooter = (props: SiteFooterProps) => {
 
                 <div className={SITE_TOOLS_CLASS} />
                 {
-                    viteAssetsForSite({ staticAssetMap: props.staticAssetMap })
-                        .forFooter
+                    viteAssetsForSite({
+                        staticAssetMap: props.archiveInfo?.assets?.static,
+                    }).forFooter
                 }
                 <ScriptLoadErrorDetector />
                 <script

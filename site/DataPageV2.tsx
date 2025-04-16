@@ -15,7 +15,7 @@ import {
     GrapherInterface,
     ImageMetadata,
     Url,
-    AssetMap,
+    ArchiveMetaInformation,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import urljoin from "url-join"
@@ -34,7 +34,6 @@ import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
-import type { ArchiveMetaInformation } from "../site/archive/archiveTypes.js"
 
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
@@ -45,10 +44,8 @@ export const DataPageV2 = (props: {
     faqEntries?: FaqEntryData
     imageMetadata: Record<string, ImageMetadata>
     tagToSlugMap: Record<string | number, string>
-    staticAssetMap?: AssetMap
-    runtimeAssetMap?: AssetMap
+    archiveInfo?: ArchiveMetaInformation
     dataApiUrl?: string
-    archiveInformation?: ArchiveMetaInformation
 }) => {
     const {
         grapher,
@@ -59,8 +56,7 @@ export const DataPageV2 = (props: {
         faqEntries,
         tagToSlugMap,
         imageMetadata,
-        staticAssetMap,
-        runtimeAssetMap,
+        archiveInfo,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title.title
     const canonicalUrl = grapher?.slug
@@ -115,7 +111,7 @@ export const DataPageV2 = (props: {
                 pageDesc={pageDesc}
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
-                staticAssetMap={staticAssetMap}
+                staticAssetMap={archiveInfo?.assets?.static}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
@@ -126,12 +122,12 @@ export const DataPageV2 = (props: {
                         getVariableDataRoute(
                             DATA_API_URL,
                             variableId,
-                            runtimeAssetMap
+                            archiveInfo?.assets?.runtime
                         ),
                         getVariableMetadataRoute(
                             DATA_API_URL,
                             variableId,
-                            runtimeAssetMap
+                            archiveInfo?.assets?.runtime
                         ),
                     ].map((href) => (
                         <link
@@ -152,7 +148,9 @@ export const DataPageV2 = (props: {
                 />
             </Head>
             <body className="DataPage">
-                <SiteHeader archiveInformation={props.archiveInformation} />
+                <SiteHeader
+                    archiveNavInformation={archiveInfo?.archiveNavigation}
+                />
                 <main>
                     <script
                         dangerouslySetInnerHTML={{
@@ -184,8 +182,7 @@ export const DataPageV2 = (props: {
                 <SiteFooter
                     context={SiteFooterContext.dataPageV2}
                     isPreviewing={isPreviewing}
-                    staticAssetMap={staticAssetMap}
-                    runtimeAssetMap={runtimeAssetMap}
+                    archiveInfo={archiveInfo}
                 />
                 <script
                     dangerouslySetInnerHTML={{

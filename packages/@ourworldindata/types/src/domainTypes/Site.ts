@@ -6,5 +6,3 @@ export interface BreadcrumbItem {
 export interface KeyValueProps {
     [key: string]: string | boolean | undefined
 }
-
-export type AssetMap = Record<string, string>

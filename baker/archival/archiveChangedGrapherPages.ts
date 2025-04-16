@@ -8,6 +8,8 @@ import { hideBin } from "yargs/helpers"
 import * as db from "../../db/db.js"
 import {
     findChangedGrapherPages,
+    getGrapherChecksumsFromDb,
+    GrapherChecksumsObjectWithHash,
     insertChartVersions,
 } from "./archivalChecksum.js"
 import { bakeArchivalGrapherPagesToFolder } from "./ArchivalBaker.js"
@@ -16,11 +18,30 @@ interface Options {
     dir: string
     latestDir?: boolean
     dryRun?: boolean
+    chartIds?: number[]
 }
 
 const findChangedPagesAndArchive = async (opts: Options) => {
     await db.knexReadWriteTransaction(async (trx) => {
-        const needToBeArchived = await findChangedGrapherPages(trx)
+        let needToBeArchived: GrapherChecksumsObjectWithHash[]
+        if (opts.chartIds?.length) {
+            console.log(
+                "Archiving only the following chart IDs:",
+                opts.chartIds.join(", ")
+            )
+            const allChecksums = await getGrapherChecksumsFromDb(trx)
+            needToBeArchived = allChecksums.filter((c) =>
+                opts.chartIds?.includes(c.chartId)
+            )
+
+            if (opts.chartIds.length !== needToBeArchived.length) {
+                throw new Error(
+                    `Not all chart IDs were found in the database. Found ${needToBeArchived.length} out of ${opts.chartIds.length}.`
+                )
+            }
+        } else {
+            needToBeArchived = await findChangedGrapherPages(trx)
+        }
 
         if (opts.dryRun) {
             console.log(
@@ -68,6 +89,21 @@ void yargs(hideBin(process.argv))
                 .option("dryRun", {
                     type: "boolean",
                     description: "Don't actually bake the site",
+                })
+                .option("chartIds", {
+                    type: "array",
+                    description:
+                        "Only archive these chart IDs, and no matter whether they've changed or not",
+                    coerce: (arg) => {
+                        const splitAndParse = (s: string | number) =>
+                            typeof s === "string"
+                                ? s.split(/\s+|,/).map((x) => parseInt(x, 10))
+                                : [s]
+
+                        return Array.isArray(arg)
+                            ? arg.flatMap(splitAndParse)
+                            : splitAndParse(arg)
+                    },
                 })
         },
         async (opts) => {

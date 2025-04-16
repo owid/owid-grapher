@@ -4,7 +4,7 @@ import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { renderToStaticMarkup } from "react-dom/server.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import {
-    AssetMap,
+    ArchiveMetaInformation,
     DetailDictionary,
     fetchWithRetry,
     readFromAssetMap,
@@ -18,7 +18,7 @@ type Tippyfied<E> = E & {
 declare global {
     interface Window {
         details?: DetailDictionary
-        _OWID_RUNTIME_ASSET_MAP?: AssetMap
+        _OWID_ARCHIVE_INFO?: ArchiveMetaInformation
     }
 }
 
@@ -26,7 +26,8 @@ const siteAnalytics = new SiteAnalytics()
 
 export async function runDetailsOnDemand() {
     const runtimeAssetMap =
-        (typeof window !== "undefined" && window._OWID_RUNTIME_ASSET_MAP) ||
+        (typeof window !== "undefined" &&
+            window._OWID_ARCHIVE_INFO?.assets?.runtime) ||
         undefined
 
     const dodFetchUrl = readFromAssetMap(runtimeAssetMap, {

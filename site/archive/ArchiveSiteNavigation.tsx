@@ -2,9 +2,9 @@ import { Button } from "@ourworldindata/components"
 import { SiteLogos } from "../SiteLogos.js"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { dayjs } from "@ourworldindata/utils"
-import { ArchiveSiteNavigationProps } from "./archiveTypes.js"
+import { ArchiveSiteNavigationInfo } from "@ourworldindata/types"
 
-export const ArchiveSiteNavigation = (props: ArchiveSiteNavigationProps) => {
+export const ArchiveSiteNavigation = (props: ArchiveSiteNavigationInfo) => {
     return (
         <div className="archive-site-navigation">
             <ArchiveHeaderLogoBar />
@@ -23,7 +23,7 @@ const ArchiveHeaderLogoBar = () => (
 
 const DATE_FORMAT = "MMMM D, YYYY"
 const TIME_FORMAT = "HH:mm"
-const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
+const ArchiveNavigationBar = (props: ArchiveSiteNavigationInfo) => {
     const hasButtons = !!(
         props.liveUrl ||
         props.previousVersion ||

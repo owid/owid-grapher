@@ -1,8 +1,11 @@
 import {
+    ArchiveMetaInformation,
+    ArchiveSiteNavigationInfo,
     AssetMap,
     DbEnrichedImage,
     DbPlainArchivedChartVersion,
     GrapherInterface,
+    UrlAndMaybeDate,
 } from "@ourworldindata/types"
 import fs from "fs-extra"
 import { keyBy } from "lodash-es"
@@ -15,23 +18,18 @@ import { bakeSingleGrapherPageForArchival } from "../GrapherBaker.js"
 import { hashAndCopyFile, hashAndWriteFile } from "./archivalFileUtils.js"
 import {
     ArchivalManifest,
-    ArchivalTimestamp,
     assembleGrapherArchivalUrl,
     assembleManifest,
-    getDateForArchival,
 } from "./archivalUtils.js"
 import pMap from "p-map"
 import {
     getLatestArchivedVersionsFromDb,
     GrapherChecksumsObjectWithHash,
 } from "./archivalChecksum.js"
-import type {
-    ArchiveMetaInformation,
-    UrlAndMaybeDate,
-} from "../../site/archive/archiveTypes.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../settings/serverSettings.js"
 import { getEnrichedChartsByIds } from "../../db/model/Chart.js"
+import { ArchivalTimestamp, getDateForArchival } from "./archivalDate.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
@@ -398,17 +396,23 @@ async function bakeGrapherPageForArchival(
               ),
           }
         : undefined
-    const archiveInformation: ArchiveMetaInformation = {
+    const archiveNavigation: ArchiveSiteNavigationInfo = {
         archiveDate: date.date,
         liveUrl: `https://ourworldindata.org/grapher/${config.slug}`,
         previousVersion,
     }
+    const archiveInfo: ArchiveMetaInformation = {
+        archiveDate: date.date,
+        archiveNavigation,
+        assets: {
+            runtime: runtimeFiles,
+            static: staticAssetMap,
+        },
+    }
     await bakeSingleGrapherPageForArchival(dir, config, trx, {
         imageMetadataDictionary,
-        staticAssetMap,
-        runtimeAssetMap: runtimeFiles,
         manifest,
-        archiveInformation,
+        archiveInfo,
     })
     return manifest
 }

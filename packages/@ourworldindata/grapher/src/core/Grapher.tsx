@@ -116,6 +116,7 @@ import {
     OwidChartDimensionInterfaceWithMandatorySlug,
     AssetMap,
     Entity,
+    ArchiveMetaInformation,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -339,7 +340,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
         ChartViewInfo,
         "parentChartSlug" | "queryParamsForParentChart"
     >
-    runtimeAssetMap?: AssetMap
+    archiveInfo?: ArchiveMetaInformation
 
     manager?: GrapherManager
     instanceRef?: React.RefObject<Grapher>
@@ -516,7 +517,7 @@ export class Grapher
         "name" | "parentChartSlug" | "queryParamsForParentChart"
     > = undefined
 
-    runtimeAssetMap?: AssetMap = this.props.runtimeAssetMap
+    archiveInfo?: ArchiveMetaInformation = this.props.archiveInfo
 
     selection =
         this.manager?.selection ??
@@ -808,6 +809,10 @@ export class Grapher
 
     @computed private get showsAllEntitiesInChart(): boolean {
         return this.isScatter || this.isMarimekko
+    }
+
+    @computed private get runtimeAssetMap(): AssetMap | undefined {
+        return this.archiveInfo?.assets?.runtime
     }
 
     @computed private get settingsMenu(): SettingsMenu {
@@ -2404,7 +2409,7 @@ export class Grapher
 
     static renderSingleGrapherOnGrapherPage(
         jsonConfig: GrapherInterface,
-        { runtimeAssetMap }: { runtimeAssetMap?: AssetMap } = {}
+        { archiveInfo }: { archiveInfo?: ArchiveMetaInformation } = {}
     ): void {
         const container = document.getElementsByTagName("figure")[0]
         try {
@@ -2414,7 +2419,7 @@ export class Grapher
                     bindUrlToWindow: true,
                     enableKeyboardShortcuts: true,
                     queryStr: window.location.search,
-                    runtimeAssetMap,
+                    archiveInfo,
                 },
                 container
             )
@@ -2951,7 +2956,7 @@ export class Grapher
             // Chart is published (this is false for charts inside explorers, for example)
             !!this.isPublished &&
             // We're not on an archival grapher page
-            !this.runtimeAssetMap &&
+            !this.archiveInfo &&
             // We're not inside the admin
             window.admin === undefined &&
             // We're not on a Mdim
