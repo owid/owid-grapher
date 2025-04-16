@@ -30,23 +30,28 @@ import {
     BackgroundCountry,
     CountryWithData,
     CountryWithNoData,
+    DebugExternalValueAnnotation,
+    DebugInternalValueAnnotation,
+    ExternalValueAnnotation,
+    InternalValueAnnotation,
     NoDataPattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
 import {
+    detectNearbyFeature,
+    getForegroundFeatures,
+    sortFeaturesByInteractionState,
+} from "./MapHelpers"
+import {
     checkAnnotationCollidesWithLandmass,
     checkAnnotationMarkerCollidesWithLabel,
-    detectNearbyFeature,
-    getExternalMarkerEndPosition,
-    getForegroundFeatures,
     getNearbyFeatures,
     makeEllipseForProjection,
     minimiseLabelCollisions,
     placeLabelAtEllipseCenter,
     extendMarkerLineToBridgeGivenFeatures,
     placeLabelExternally,
-    sortFeaturesByInteractionState,
-} from "./MapHelpers"
+} from "./MapAnnotations"
 import { annotationPlacementsById } from "./MapAnnotationPlacements"
 import { geoRobinson } from "./d3-geo-projection"
 import { geoContains } from "d3"
@@ -187,7 +192,7 @@ export class ChoroplethMap extends React.Component<{
 
     private makeInternalAnnotationForFeature(
         feature: MapRenderFeature
-    ): InternalAnnotation<MapRenderFeature> | undefined {
+    ): InternalAnnotation | undefined {
         const { projection } = this
 
         const series = this.choroplethData.get(feature.id)
@@ -230,7 +235,7 @@ export class ChoroplethMap extends React.Component<{
 
     private makeExternalAnnotationForFeature(
         feature: MapRenderFeature
-    ): ExternalAnnotation<MapRenderFeature> | undefined {
+    ): ExternalAnnotation | undefined {
         const { projection } = this
 
         const series = this.choroplethData.get(feature.id)
@@ -296,7 +301,7 @@ export class ChoroplethMap extends React.Component<{
 
     /* Naively placed annotations that might be overlapping */
     @computed
-    private get initialAnnotations(): Annotation<MapRenderFeature>[] {
+    private get initialAnnotations(): Annotation[] {
         if (!this.shouldShowAnnotations) return []
 
         const features = this.shouldShowAllAnnotations
@@ -323,14 +328,14 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed
-    private get internalAnnotations(): InternalAnnotation<MapRenderFeature>[] {
+    private get internalAnnotations(): InternalAnnotation[] {
         return this.initialAnnotations.filter(
             (annotation) => annotation.type === "internal"
         )
     }
 
     @computed
-    private get externalAnnotations(): ExternalAnnotation<MapRenderFeature>[] {
+    private get externalAnnotations(): ExternalAnnotation[] {
         const { projection } = this
 
         const initialAnnotations = this.initialAnnotations.filter(
@@ -484,105 +489,55 @@ export class ChoroplethMap extends React.Component<{
         }
     }
 
-    renderAnnotations(): React.ReactElement | void {
-        if (this.initialAnnotations.length === 0) return
+    private renderInternalAnnotations(): React.ReactElement | void {
+        if (this.internalAnnotations.length === 0) return
 
         return (
-            <g id={makeIdForHumanConsumption("annotations")}>
-                {this.internalAnnotations.map((annotation) => {
-                    const { id, text, ellipse, color, placedBounds, fontSize } =
-                        annotation
+            <g id={makeIdForHumanConsumption("annotations-internal")}>
+                {this.internalAnnotations.map((annotation) => (
+                    <InternalValueAnnotation
+                        key={annotation.id}
+                        annotation={annotation}
+                        strokeScale={this.viewportScaleSqrt}
+                    />
+                ))}
+            </g>
+        )
+    }
 
-                    return (
-                        <g
-                            key={id}
-                            id={makeIdForHumanConsumption(id)}
-                            style={{ pointerEvents: "none" }}
-                        >
-                            {/* <ellipse
-                                cx={ellipse.cx}
-                                cy={ellipse.cy}
-                                rx={ellipse.rx}
-                                ry={ellipse.ry}
-                                fill="gold"
-                                fillOpacity={0.4}
-                            />
-                            <rect
-                                {...placedBounds.toProps()}
-                                fill="none"
-                                stroke="black"
-                            /> */}
-                            <text
-                                x={placedBounds.topLeft.x}
-                                y={placedBounds.topLeft.y}
-                                // TODO: shouldn't use dominant-baseline
-                                dominantBaseline="hanging"
-                                // dy={dyFromAlign(VerticalAlign.bottom)}
-                                fontSize={fontSize}
-                                strokeWidth={
-                                    DEFAULT_STROKE_WIDTH /
-                                    this.viewportScaleSqrt
-                                }
-                                fill={color}
-                            >
-                                {text}
-                            </text>
-                        </g>
-                    )
-                })}
-                {this.externalAnnotations.map((annotation) => {
-                    const {
-                        id,
-                        text,
-                        direction,
-                        anchor,
-                        placedBounds,
-                        fontSize,
-                    } = annotation
+    private renderExternalAnnotations(): React.ReactElement | void {
+        if (this.externalAnnotations.length === 0) return
 
-                    const markerStart = anchor
-                    const markerEnd = getExternalMarkerEndPosition({
-                        textBounds: placedBounds,
-                        direction,
-                    })
+        return (
+            <g id={makeIdForHumanConsumption("annotations-external")}>
+                {this.externalAnnotations.map((annotation) => (
+                    <ExternalValueAnnotation
+                        key={annotation.id}
+                        annotation={annotation}
+                        strokeScale={this.viewportScaleSqrt}
+                    />
+                ))}
+            </g>
+        )
+    }
 
-                    return (
-                        <g
-                            key={id}
-                            id={makeIdForHumanConsumption(id)}
-                            style={{ pointerEvents: "none" }}
-                        >
-                            <line
-                                x1={markerStart[0]}
-                                y1={markerStart[1]}
-                                x2={markerEnd[0]}
-                                y2={markerEnd[1]}
-                                stroke={annotation.color}
-                                strokeWidth={
-                                    (DEFAULT_STROKE_WIDTH * 1.5) /
-                                    this.viewportScaleSqrt
-                                }
-                            />
-                            {/* <rect
-                                {...placedBounds.toProps()}
-                                fill="none"
-                                stroke="black"
-                            /> */}
-                            <text
-                                x={placedBounds.x}
-                                y={placedBounds.y + placedBounds.height - 1}
-                                fontSize={fontSize}
-                                strokeWidth={
-                                    DEFAULT_STROKE_WIDTH /
-                                    this.viewportScaleSqrt
-                                }
-                                fill={annotation.color}
-                            >
-                                {text}
-                            </text>
-                        </g>
-                    )
-                })}
+    private renderDebugAnnotations(): React.ReactElement | void {
+        if (!this.shouldShowAllAnnotations) return
+
+        return (
+            <g>
+                {this.internalAnnotations.map((annotation) => (
+                    <DebugInternalValueAnnotation
+                        key={annotation.id}
+                        annotation={annotation}
+                    />
+                ))}
+                {this.externalAnnotations.map((annotation) => (
+                    <DebugExternalValueAnnotation
+                        key={annotation.id}
+                        annotation={annotation}
+                    />
+                ))}
             </g>
         )
     }
@@ -669,7 +624,9 @@ export class ChoroplethMap extends React.Component<{
                 {this.renderFeaturesInBackground()}
                 {this.renderFeaturesWithoutData()}
                 {this.renderFeaturesWithData()}
-                {this.renderAnnotations()}
+                {this.renderDebugAnnotations()}
+                {this.renderInternalAnnotations()}
+                {this.renderExternalAnnotations()}
             </g>
         )
     }
@@ -724,7 +681,9 @@ export class ChoroplethMap extends React.Component<{
                     {this.renderFeaturesInBackground()}
                     {this.renderFeaturesWithoutData()}
                     {this.renderFeaturesWithData()}
-                    {this.renderAnnotations()}
+                    {this.renderDebugAnnotations()}
+                    {this.renderInternalAnnotations()}
+                    {this.renderExternalAnnotations()}
                 </g>
             </g>
         )

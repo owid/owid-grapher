@@ -11038,7 +11038,6 @@ __metadata:
     "@tippyjs/react": "npm:^4.2.6"
     "@tsconfig/node22": "npm:^22.0.0"
     "@turf/boolean-intersects": "npm:^7.2.0"
-    "@turf/helpers": "npm:^7.2.0"
     "@types/chunk-text": "npm:^1.0.0"
     "@types/codemirror": "npm:^5.60.5"
     "@types/colorbrewer": "npm:^1.0.29"

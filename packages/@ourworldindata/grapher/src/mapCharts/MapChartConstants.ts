@@ -146,31 +146,27 @@ export interface EllipseCoords {
     top: number // top y
 }
 
-interface BaseAnnotation<Feature extends RenderFeature> {
+interface BaseAnnotation {
     id: string
-    feature: Feature
+    feature: RenderFeature
     placedBounds: Bounds
     text: string
     fontSize: number
     color: string
 }
 
-export interface InternalAnnotation<Feature extends RenderFeature>
-    extends BaseAnnotation<Feature> {
+export interface InternalAnnotation extends BaseAnnotation {
     type: "internal"
     ellipse: Ellipse
 }
 
-export interface ExternalAnnotation<Feature extends RenderFeature>
-    extends BaseAnnotation<Feature> {
+export interface ExternalAnnotation extends BaseAnnotation {
     type: "external"
     direction: Direction
     anchor: [number, number]
 }
 
-export type Annotation<Feature extends RenderFeature> =
-    | InternalAnnotation<Feature>
-    | ExternalAnnotation<Feature>
+export type Annotation = InternalAnnotation | ExternalAnnotation
 
 export type Direction =
     | "left"
