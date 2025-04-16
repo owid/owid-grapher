@@ -86,14 +86,6 @@ const getItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({ item }) =>
 const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
     const indexName = parseIndexName(item.__autocomplete_indexName as string)
     return match(indexName)
-        .with(SearchIndexName.ExplorerViews, () => {
-            return urljoin(
-                BAKED_BASE_URL,
-                EXPLORERS_ROUTE_FOLDER,
-                item.explorerSlug as string,
-                item.viewQueryParams as string
-            )
-        })
         .with(SearchIndexName.Charts, () => {
             return urljoin(BAKED_GRAPHER_URL, item.slug as string)
         })
@@ -117,8 +109,8 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                     return urljoin(
                         BAKED_BASE_URL,
                         EXPLORERS_ROUTE_FOLDER,
-                        item.explorerSlug as string,
-                        item.viewQueryParams as string
+                        item.slug as string,
+                        item.queryParams as string
                     )
                 })
                 .with(ChartRecordType.Chart, () => {
@@ -191,18 +183,12 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     },
                 },
                 {
-                    indexName: getIndexName(SearchIndexName.Charts),
+                    indexName: getIndexName(
+                        SearchIndexName.ExplorerViewsMdimViewsAndCharts
+                    ),
                     query,
                     params: {
-                        hitsPerPage: 2,
-                        distinct: true,
-                    },
-                },
-                {
-                    indexName: getIndexName(SearchIndexName.ExplorerViews),
-                    query,
-                    params: {
-                        hitsPerPage: 1,
+                        hitsPerPage: 3,
                         distinct: true,
                     },
                 },
@@ -217,14 +203,11 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                 item.__autocomplete_indexName as string
             )
             const indexLabel =
-                index === SearchIndexName.Charts
-                    ? "Chart"
-                    : index === SearchIndexName.ExplorerViews
-                      ? "Explorer"
-                      : pageTypeDisplayNames[item.type as PageType]
-
-            const mainAttribute =
-                index === SearchIndexName.ExplorerViews ? "viewTitle" : "title"
+                index === SearchIndexName.ExplorerViewsMdimViewsAndCharts
+                    ? item.type === ChartRecordType.ExplorerView
+                        ? "Explorer"
+                        : "Chart"
+                    : pageTypeDisplayNames[item.type as PageType]
 
             return (
                 <div
@@ -235,7 +218,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     <span>
                         <components.Highlight
                             hit={item}
-                            attribute={mainAttribute}
+                            attribute={"title"}
                             tagName="strong"
                         />
                     </span>
