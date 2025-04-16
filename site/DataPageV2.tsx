@@ -69,7 +69,10 @@ export const DataPageV2 = (props: {
         }).plaintext
     } else pageDesc = "An interactive visualization from Our World in Data."
 
-    const imageUrl: string = urljoin(baseUrl, "default-grapher-thumbnail.png")
+    const imageUrl: string = urljoin(
+        baseUrl || "/",
+        "default-grapher-thumbnail.png"
+    )
     const imageWidth = "1200"
     const imageHeight = "628"
 

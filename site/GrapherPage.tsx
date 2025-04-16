@@ -71,7 +71,10 @@ export const GrapherPage = (props: {
     //     "exports",
     //     `${grapher.slug}.png?v=${grapher.version}`
     // )
-    const imageUrl: string = urljoin(baseUrl, "default-grapher-thumbnail.png")
+    const imageUrl: string = urljoin(
+        baseUrl || "/",
+        "default-grapher-thumbnail.png"
+    )
     const imageWidth = "1200"
     const imageHeight = "628"
 
