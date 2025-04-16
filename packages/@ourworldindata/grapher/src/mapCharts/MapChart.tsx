@@ -204,7 +204,7 @@ export class MapChart
         )
     }
 
-    @computed private get mapColumn(): CoreColumn {
+    @computed get mapColumn(): CoreColumn {
         return this.transformedTable.get(this.mapColumnSlug)
     }
 
@@ -381,6 +381,10 @@ export class MapChart
 
     @computed get equalSizeBins(): boolean | undefined {
         return this.colorScale.config.equalSizeBins
+    }
+
+    @computed get tooltipFeatureId(): string | undefined {
+        return this.tooltipState.target?.featureId
     }
 
     /** The value of the currently hovered feature/country */

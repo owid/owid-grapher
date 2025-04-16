@@ -123,8 +123,8 @@ export class GlobeController {
         const geoFeature = geoFeaturesById.get(country)
         if (!geoFeature) return undefined
 
-        const { centroid } = geoFeature
-        return [-centroid[0], -centroid[1]]
+        const { geoCentroid } = geoFeature
+        return [-geoCentroid[0], -geoCentroid[1]]
     }
 
     private getCoordsForOwidContinent(

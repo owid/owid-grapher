@@ -12,12 +12,14 @@ import {
     HOVER_STROKE_COLOR,
     HOVER_STROKE_WIDTH,
     PATTERN_STROKE_WIDTH,
-    MapRenderFeature,
     SELECTED_STROKE_WIDTH,
     SVGMouseEvent,
     RenderFeature,
-    RenderFeatureType,
+    InternalAnnotation,
+    ExternalAnnotation,
 } from "./MapChartConstants"
+import { isMapRenderFeature } from "./MapHelpers"
+import { getExternalMarkerEndPosition } from "./MapAnnotations"
 
 export function BackgroundCountry<Feature extends RenderFeature>({
     feature,
@@ -169,10 +171,68 @@ export function NoDataPattern({
     )
 }
 
-function isMapRenderFeature(
-    feature: RenderFeature
-): feature is MapRenderFeature {
-    return feature.type === RenderFeatureType.Map
+export function InternalValueAnnotation({
+    annotation,
+    strokeScale = 1,
+}: {
+    annotation: InternalAnnotation
+    strokeScale?: number
+}): React.ReactElement {
+    const { id, text, color, placedBounds, fontSize } = annotation
+
+    return (
+        <text
+            id={makeIdForHumanConsumption(id)}
+            x={placedBounds.topLeft.x}
+            y={placedBounds.topLeft.y + placedBounds.height - 1}
+            fontSize={fontSize}
+            fontWeight={700}
+            fill={color}
+            strokeWidth={DEFAULT_STROKE_WIDTH / strokeScale}
+            style={{ pointerEvents: "none" }}
+        >
+            {text}
+        </text>
+    )
+}
+
+export function ExternalValueAnnotation({
+    annotation,
+    strokeScale = 1,
+}: {
+    annotation: ExternalAnnotation
+    strokeScale?: number
+}): React.ReactElement {
+    const { id, text, direction, anchor, placedBounds, fontSize } = annotation
+
+    const markerStart = anchor
+    const markerEnd = getExternalMarkerEndPosition({
+        textBounds: placedBounds,
+        direction,
+    })
+
+    return (
+        <g id={makeIdForHumanConsumption(id)} style={{ pointerEvents: "none" }}>
+            <line
+                x1={markerStart[0]}
+                y1={markerStart[1]}
+                x2={markerEnd[0]}
+                y2={markerEnd[1]}
+                stroke={annotation.color}
+                strokeWidth={(0.5 * HOVER_STROKE_WIDTH) / strokeScale}
+            />
+            <text
+                x={placedBounds.x}
+                y={placedBounds.y + placedBounds.height - 1}
+                fontSize={fontSize}
+                strokeWidth={DEFAULT_STROKE_WIDTH / strokeScale}
+                fill={annotation.color}
+                fontWeight={700}
+            >
+                {text}
+            </text>
+        </g>
+    )
 }
 
 function getStrokeWidth({
@@ -185,4 +245,40 @@ function getStrokeWidth({
     if (isHovered) return HOVER_STROKE_WIDTH
     if (isSelected) return SELECTED_STROKE_WIDTH
     return DEFAULT_STROKE_WIDTH
+}
+
+export function DebugInternalValueAnnotation({
+    annotation,
+}: {
+    annotation: InternalAnnotation
+}): React.ReactElement {
+    const { ellipse, placedBounds } = annotation
+
+    return (
+        <g style={{ pointerEvents: "none" }}>
+            <ellipse
+                cx={ellipse.cx}
+                cy={ellipse.cy}
+                rx={ellipse.rx}
+                ry={ellipse.ry}
+                fill="gold"
+                fillOpacity={0.6}
+            />
+            <rect {...placedBounds.toProps()} fill="none" stroke="black" />
+        </g>
+    )
+}
+
+export function DebugExternalValueAnnotation({
+    annotation,
+}: {
+    annotation: ExternalAnnotation
+}): React.ReactElement {
+    const { placedBounds } = annotation
+
+    return (
+        <g style={{ pointerEvents: "none" }}>
+            <rect {...placedBounds.toProps()} fill="none" stroke="black" />
+        </g>
+    )
 }

@@ -66,14 +66,12 @@ import {
     omit,
     isTouchDevice,
     isArrayDifferentFromReference,
-    getCountryByName,
     checkIsCountry,
     getMemberNamesOfRegion,
     getRegionByName,
     difference,
     checkHasMembers,
     partition,
-    checkIsIncomeGroup,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -240,7 +238,6 @@ import {
 } from "../color/ColorConstants"
 import { FacetChart } from "../facetChart/FacetChart"
 import { GlobeController } from "../mapCharts/GlobeController"
-import { P } from "ts-pattern"
 
 declare global {
     interface Window {
@@ -3390,7 +3387,7 @@ export class Grapher
     @computed get shouldShowEntitySelectorOnMapTab(): boolean {
         // only show the entity selector on the map tab if it's
         // rendered into the side panel or the drawer
-        return this.shouldShowEntitySelectorAs !== GrapherWindowType.modal
+        return this.shouldShowEntitySelectorAs === GrapherWindowType.panel
     }
 
     // Binds chart properties to global window title and URL. This should only
@@ -3817,6 +3814,8 @@ export class Grapher
             // Africa is selected, drop Ireland
             const region = getRegionByName(entityName)
             if (region && !checkIsCountry(region)) {
+                this.globeController.hideGlobe()
+
                 const selected = excludeUndefined(
                     this.mapConfig.selection.selectedEntityNames.map(
                         (entityName) => getRegionByName(entityName)
@@ -3844,10 +3843,6 @@ export class Grapher
 
             if (region && checkIsCountry(region) && region.isMappable) {
                 this.globeController.focusOnCountry(region.name)
-            }
-
-            if (region && checkIsIncomeGroup(region)) {
-                this.globeController.hideGlobe()
             }
         }
     }

@@ -1,5 +1,5 @@
 import { ColorScaleBin } from "../color/ColorScaleBin"
-import { Bounds, PointVector, ColumnSlug } from "@ourworldindata/utils"
+import { Bounds, ColumnSlug } from "@ourworldindata/utils"
 import {
     MapRegionName,
     SeriesName,
@@ -11,6 +11,7 @@ import { MapConfig } from "./MapConfig"
 import { ChartSeries } from "../chart/ChartInterface"
 import { GlobeController } from "./GlobeController"
 import { SelectionArray } from "../selection/SelectionArray"
+import { CoreColumn } from "@ourworldindata/core-table"
 
 export declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
@@ -40,6 +41,13 @@ export const GLOBE_COUNTRY_ZOOM = 2.5
 export const DEFAULT_GLOBE_ROTATION: [number, number] = [30, -20] // Atlantic ocean (i.e. Americas & Europe)
 export const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 
+export const ANNOTATION_FONT_SIZE_INTERNAL_DEFAULT = 11
+export const ANNOTATION_FONT_SIZE_INTERNAL_MIN = 7
+export const ANNOTATION_FONT_SIZE_EXTERNAL_DEFAULT = 8
+export const ANNOTATION_FONT_SIZE_EXTERNAL_MAX = 11
+export const ANNOTATION_MARKER_LINE_LENGTH_DEFAULT = 4
+export const ANNOTATION_MARKER_LINE_LENGTH_MAX = 8
+
 export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
     World: "World",
     Africa: "Africa",
@@ -61,8 +69,11 @@ export interface ChoroplethMapManager {
     choroplethData: ChoroplethSeriesByName
     choroplethMapBounds: Bounds
     mapConfig: MapConfig
+    mapColumn: CoreColumn
     globeController?: GlobeController
     selectionArray: SelectionArray
+    tooltipFeatureId?: string
+    fontSize?: number
     getHoverState: (featureId: string) => InteractionState
     isSelected: (featureId: string) => boolean
     onMapMouseOver: (d: GeoFeature) => void
@@ -81,18 +92,18 @@ export interface RenderFeature {
     type: RenderFeatureType
     id: string
     geo: GeoFeature
+    geoCentroid: [number, number] // unprojected
+    geoBounds: Bounds // unprojected
 }
 
 export interface MapRenderFeature extends RenderFeature {
     type: RenderFeatureType.Map
     path: string
-    bounds: Bounds
-    center: PointVector
+    projBounds: Bounds
 }
 
 export interface GlobeRenderFeature extends RenderFeature {
     type: RenderFeatureType.Globe
-    centroid: [number, number]
 }
 
 export interface MapChartManager extends ChartManager {
@@ -113,6 +124,59 @@ export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
     Africa: { rotation: [-20, 0], zoom: 1.65 },
     NorthAmerica: { rotation: [95, -48], zoom: 1.5 },
     SouthAmerica: { rotation: [62, 22], zoom: 1.75 },
-    Asia: { rotation: [-92, -25], zoom: 1.55 },
+    Asia: { rotation: [-81, -26], zoom: 1.85 },
     Oceania: { rotation: [-153, 25], zoom: 2 },
 }
+
+export interface Circle {
+    cx: number // center x
+    cy: number // center y
+    r: number // radius
+}
+
+export interface Ellipse {
+    cx: number // center x
+    cy: number // center y
+    rx: number // radius on the x-axis
+    ry: number // radius on the y-axis
+}
+
+// when expressed in lon/lat
+export interface EllipseCoords {
+    cx: number
+    cy: number
+    left: number // left x
+    top: number // top y
+}
+
+interface BaseAnnotation {
+    id: string
+    feature: RenderFeature
+    placedBounds: Bounds
+    text: string
+    fontSize: number
+    color: string
+}
+
+export interface InternalAnnotation extends BaseAnnotation {
+    type: "internal"
+    ellipse: Ellipse
+}
+
+export interface ExternalAnnotation extends BaseAnnotation {
+    type: "external"
+    direction: Direction
+    anchor: [number, number]
+}
+
+export type Annotation = InternalAnnotation | ExternalAnnotation
+
+export type Direction =
+    | "left"
+    | "right"
+    | "top"
+    | "bottom"
+    | "leftTop"
+    | "leftBottom"
+    | "rightTop"
+    | "rightBottom"

@@ -1,0 +1,7 @@
+{
+    "extends": "../tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../../itsJustJavascript/devTools/mapAnnotations",
+        "rootDir": "."
+    }
+}

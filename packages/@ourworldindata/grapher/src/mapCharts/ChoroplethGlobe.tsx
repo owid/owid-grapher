@@ -22,16 +22,20 @@ import {
     checkIsTouchEvent,
     PointVector,
     MapRegionName,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
+    Annotation,
     ChoroplethMapManager,
     ChoroplethSeriesByName,
     DEFAULT_GLOBE_SIZE,
+    ExternalAnnotation,
     GEO_FEATURES_CLASSNAME,
     GLOBE_MAX_ZOOM,
     GLOBE_MIN_ZOOM,
     GlobeRenderFeature,
+    InternalAnnotation,
     MAP_HOVER_TARGET_RANGE,
     SVGMouseEvent,
 } from "./MapChartConstants"
@@ -41,6 +45,10 @@ import {
     BackgroundCountry,
     CountryWithData,
     CountryWithNoData,
+    DebugExternalValueAnnotation,
+    DebugInternalValueAnnotation,
+    ExternalValueAnnotation,
+    InternalValueAnnotation,
     NoDataPattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
@@ -50,8 +58,15 @@ import {
     sortFeaturesByInteractionState,
     getForegroundFeatures,
 } from "./MapHelpers"
+import {
+    makeInternalAnnotationForFeature,
+    makeExternalAnnotationForFeature,
+    repositionAndFilterExternalAnnotations,
+} from "./MapAnnotations"
 import * as R from "remeda"
 import { GlobeController } from "./GlobeController"
+import { isDarkColor } from "../color/ColorUtils"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 
 const DEFAULT_SCALE = geoOrthographic().scale()
 
@@ -94,6 +109,10 @@ export class ChoroplethGlobe extends React.Component<{
         return getGeoFeaturesForGlobe()
     }
 
+    @computed private get featuresById(): Map<string, GlobeRenderFeature> {
+        return new Map(this.features.map((feature) => [feature.id, feature]))
+    }
+
     @computed private get foregroundFeatures(): GlobeRenderFeature[] {
         return getForegroundFeatures(this.features, this.manager.selectionArray)
     }
@@ -104,12 +123,14 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get featuresWithData(): GlobeRenderFeature[] {
-        const features = this.foregroundFeatures.filter((feature) =>
+        return this.foregroundFeatures.filter((feature) =>
             this.choroplethData.has(feature.id)
         )
+    }
 
+    @computed private get sortedFeaturesWithData(): GlobeRenderFeature[] {
         // sort features so that hovered or selected features are rendered last
-        return sortFeaturesByInteractionState(features, {
+        return sortFeaturesByInteractionState(this.featuresWithData, {
             isHovered: (featureId: string) =>
                 this.manager.getHoverState(featureId).active,
             isSelected: (featureId) => this.manager.isSelected(featureId),
@@ -206,16 +227,17 @@ export class ChoroplethGlobe extends React.Component<{
      * even if the centroid is not.
      */
     private isFeatureCentroidVisibleOnGlobe(
-        feature: GlobeRenderFeature
+        feature: GlobeRenderFeature,
+        threshold = 0 // 1 = at the exact center, 0 = anywhere on the visible hemisphere
     ): boolean {
         const { globeRotation } = this
-        const { centroid } = feature
+        const { geoCentroid } = feature
 
         const toRadians = (degree: number): number => (degree * Math.PI) / 180
 
         // convert centroid degrees to radians
-        const lambda = toRadians(centroid[0])
-        const phi = toRadians(centroid[1])
+        const lambda = toRadians(geoCentroid[0])
+        const phi = toRadians(geoCentroid[1])
 
         // get current rotation in radians
         const rotationLambda = toRadians(-globeRotation[0])
@@ -229,7 +251,7 @@ export class ChoroplethGlobe extends React.Component<{
                 Math.cos(rotationPhi) *
                 Math.cos(lambda - rotationLambda)
 
-        return cosDelta > 0
+        return cosDelta > threshold
     }
 
     @computed private get graticule(): string {
@@ -247,9 +269,114 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed private get quadtree(): Quadtree<GlobeRenderFeature> {
         return quadtree<GlobeRenderFeature>()
-            .x((feature) => this.projection(feature.centroid)[0])
-            .y((feature) => this.projection(feature.centroid)[1])
+            .x((feature) => this.projection(feature.geoCentroid)[0])
+            .y((feature) => this.projection(feature.geoCentroid)[1])
             .addAll(this.visibleFeatures)
+    }
+
+    @computed private get shouldShowAnnotations(): boolean {
+        return !!this.manager.mapColumn.hasNumberFormatting
+    }
+
+    private formatAnnotationLabel(value: string | number): string {
+        return this.manager.mapColumn.formatValueShortWithAbbreviations(value)
+    }
+
+    private shouldShowAllAnnotations = false
+    private debugAnnotations = false
+
+    @computed private get annotationCandidateFeatures(): GlobeRenderFeature[] {
+        if (!this.shouldShowAnnotations) return []
+
+        if (this.shouldShowAllAnnotations) return this.featuresWithData
+
+        // show value annotations for the currently selected countries
+        if (this.manager.shouldShowEntitySelectorOnMapTab) {
+            return excludeUndefined(
+                this.mapConfig.selection.selectedEntityNames.map((name) =>
+                    this.featuresById.get(name)
+                )
+            )
+        }
+
+        // show the value annotation for the currently focused country
+        const { focusCountry } = this.mapConfig.globe
+        if (focusCountry && this.featuresById.has(focusCountry)) {
+            return [this.featuresById.get(focusCountry)!]
+        }
+
+        // show the value annotation for the currently hovered country
+        const { tooltipFeatureId } = this.manager
+        if (tooltipFeatureId && this.featuresById.has(tooltipFeatureId)) {
+            return [this.featuresById.get(tooltipFeatureId)!]
+        }
+
+        return []
+    }
+
+    /* Naively placed annotations that might be overlapping */
+    @computed
+    private get annotationCandidates(): Annotation[] {
+        return excludeUndefined(
+            this.annotationCandidateFeatures
+                .filter(
+                    (feature): feature is GlobeRenderFeature =>
+                        feature !== undefined &&
+                        // don't show annotations for countries that are currently
+                        // on the back side of the globe or at the edge
+                        this.isFeatureCentroidVisibleOnGlobe(feature, 0.3)
+                )
+                .map((feature) => {
+                    const series = this.choroplethData.get(feature.id)
+                    if (!series) return
+
+                    const labelColor = isDarkColor(series.color)
+                        ? "#fff"
+                        : GRAPHER_DARK_TEXT
+                    const fontSizeScale = 1 / this.zoomScale
+
+                    const args = {
+                        feature,
+                        projection: this.projection,
+                        formattedValue: this.formatAnnotationLabel(
+                            series.value
+                        ),
+                        color: labelColor,
+                    }
+
+                    // try to fit the annotation inside the feature
+                    const internalAnnotation =
+                        makeInternalAnnotationForFeature(args)
+                    if (internalAnnotation) return internalAnnotation
+
+                    // place the annotation outside of the feature
+                    const externalAnnotation = makeExternalAnnotationForFeature(
+                        { ...args, fontSizeScale }
+                    )
+                    if (externalAnnotation) return externalAnnotation
+
+                    return undefined
+                })
+        )
+    }
+
+    @computed
+    private get internalAnnotations(): InternalAnnotation[] {
+        return this.annotationCandidates.filter(
+            (annotation) => annotation.type === "internal"
+        )
+    }
+
+    @computed
+    private get externalAnnotations(): ExternalAnnotation[] {
+        const { projection } = this
+        const annotations = this.annotationCandidates.filter(
+            (annotation) => annotation.type === "external"
+        )
+        return repositionAndFilterExternalAnnotations({
+            annotations,
+            projection,
+        })
     }
 
     private rotateFrameId: number | undefined
@@ -606,11 +733,11 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     renderFeaturesWithData(): React.ReactElement | void {
-        if (this.featuresWithData.length === 0) return
+        if (this.sortedFeaturesWithData.length === 0) return
 
         return (
             <g id={makeIdForHumanConsumption("countries-with-data")}>
-                {this.featuresWithData.map((feature) => {
+                {this.sortedFeaturesWithData.map((feature) => {
                     const series = this.choroplethData.get(feature.id)
                     if (!series) return null
                     return (
@@ -632,6 +759,57 @@ export class ChoroplethGlobe extends React.Component<{
         )
     }
 
+    renderInternalAnnotations(): React.ReactElement | void {
+        if (this.internalAnnotations.length === 0) return
+
+        return (
+            <g id={makeIdForHumanConsumption("annotations-internal")}>
+                {this.internalAnnotations.map((annotation) => (
+                    <InternalValueAnnotation
+                        key={annotation.id}
+                        annotation={annotation}
+                    />
+                ))}
+            </g>
+        )
+    }
+
+    renderExternalAnnotations(): React.ReactElement | void {
+        if (this.externalAnnotations.length === 0) return
+
+        return (
+            <g id={makeIdForHumanConsumption("annotations-external")}>
+                {this.externalAnnotations.map((annotation) => (
+                    <ExternalValueAnnotation
+                        key={annotation.id}
+                        annotation={annotation}
+                    />
+                ))}
+            </g>
+        )
+    }
+
+    renderDebugAnnotations(): React.ReactElement | void {
+        if (!this.debugAnnotations) return
+
+        return (
+            <g>
+                {this.internalAnnotations.map((annotation) => (
+                    <DebugInternalValueAnnotation
+                        key={annotation.id}
+                        annotation={annotation}
+                    />
+                ))}
+                {this.externalAnnotations.map((annotation) => (
+                    <DebugExternalValueAnnotation
+                        key={annotation.id}
+                        annotation={annotation}
+                    />
+                ))}
+            </g>
+        )
+    }
+
     renderStatic(): React.ReactElement {
         return (
             <>
@@ -640,6 +818,9 @@ export class ChoroplethGlobe extends React.Component<{
                     {this.renderFeaturesInBackground()}
                     {this.renderFeaturesWithNoData()}
                     {this.renderFeaturesWithData()}
+                    {this.renderDebugAnnotations()}
+                    {this.renderInternalAnnotations()}
+                    {this.renderExternalAnnotations()}
                 </g>
             </>
         )
@@ -666,6 +847,9 @@ export class ChoroplethGlobe extends React.Component<{
                     {this.renderFeaturesInBackground()}
                     {this.renderFeaturesWithNoData()}
                     {this.renderFeaturesWithData()}
+                    {this.renderDebugAnnotations()}
+                    {this.renderInternalAnnotations()}
+                    {this.renderExternalAnnotations()}
                 </g>
             </g>
         )

@@ -16,6 +16,9 @@ import {
     GEO_FEATURES_CLASSNAME,
     MAP_HOVER_TARGET_RANGE,
     RenderFeature,
+    GlobeRenderFeature,
+    MapRenderFeature,
+    RenderFeatureType,
 } from "./MapChartConstants"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { MapTopology } from "./MapTopology.js"
@@ -124,4 +127,16 @@ export const isOnTheMap = (entityName: EntityName): boolean => {
             MapTopology.objects.world.geometries.map((region: any) => region.id)
         )
     return _isOnTheMapCache.has(entityName)
+}
+
+export function isMapRenderFeature(
+    feature: RenderFeature
+): feature is MapRenderFeature {
+    return feature.type === RenderFeatureType.Map
+}
+
+export function isGlobeRenderFeature(
+    feature: RenderFeature
+): feature is GlobeRenderFeature {
+    return feature.type === RenderFeatureType.Globe
 }
