@@ -73,7 +73,6 @@ import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
 import { SelectionArray } from "../selection/SelectionArray"
 import { isOnTheMap } from "./MapHelpers.js"
-import { lineOffset } from "@turf/turf"
 
 interface MapChartProps {
     bounds?: Bounds

@@ -78,7 +78,6 @@ import { forceCollide, forceSimulation, forceX, forceY } from "d3"
 // @ts-expect-error no types available
 import { bboxCollide } from "d3-bboxCollide"
 // todo: only install/import what's needed (look into helpers)
-import * as turf from "@turf/turf"
 import { isDarkColor } from "../color/ColorUtils"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 
@@ -409,7 +408,7 @@ export class ChoroplethGlobe extends React.Component<{
         }
     }
 
-    private shouldShowAllAnnotations = false
+    private shouldShowAllAnnotations = true
 
     /* Naively placed annotations that might be overlapping */
     @computed

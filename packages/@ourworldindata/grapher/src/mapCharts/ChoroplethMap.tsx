@@ -292,7 +292,7 @@ export class ChoroplethMap extends React.Component<{
         }
     }
 
-    private shouldShowAllAnnotations = false
+    private shouldShowAllAnnotations = true
 
     /* Naively placed annotations that might be overlapping */
     @computed

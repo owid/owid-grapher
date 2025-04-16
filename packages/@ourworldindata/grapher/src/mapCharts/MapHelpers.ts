@@ -48,10 +48,13 @@ import {
     GeoProjection,
     SimulationNodeDatum,
 } from "d3"
-// @ts-expect-error no types available
-import { bboxCollide } from "d3-bboxCollide"
-// todo: only install/import what's needed (look into helpers)
-import * as turf from "@turf/turf"
+import bboxCollide from "./d3-bboxCollide"
+import {
+    polygon as turfPolygon,
+    multiPolygon as turfMultiPolygon,
+    lineString as turfLineString,
+} from "@turf/helpers"
+import { booleanIntersects } from "@turf/boolean-intersects"
 import { Feature } from "geojson"
 import * as R from "remeda"
 
@@ -394,7 +397,7 @@ export function extendMarkerLineToBridgeGivenFeatures<
         const polygon = makeTurfPolygonForFeature(otherFeature)
 
         for (let tick = 0; tick < 10; tick++) {
-            if (!turf.booleanIntersects(annotationLabel, polygon)) break
+            if (!booleanIntersects(annotationLabel, polygon)) break
 
             newBounds = newBounds.set(
                 extendPositionIntoDirectionByStep({
@@ -517,7 +520,7 @@ export function minimiseLabelCollisions<Feature extends RenderFeature>(
                     d.annotation.placedBounds.width / 2 + padding,
                     d.annotation.placedBounds.height / 2 + padding,
                 ],
-            ]).strength(0.1)
+            ]).strength(0.1) as any
         )
         .tick(10) // todo: default is 300
 
@@ -554,7 +557,7 @@ export function checkAnnotationCollidesWithLandmass<
     return nearbyFeatures.some((feature) => {
         const countryPolygon = makeTurfPolygonForFeature(feature) // todo: buffer?
         if (!countryPolygon) return false
-        return turf.booleanIntersects(annotationLabel, countryPolygon)
+        return booleanIntersects(annotationLabel, countryPolygon)
     })
 }
 
@@ -573,14 +576,14 @@ export function checkAnnotationMarkerCollidesWithLabel<
         textBounds: annotation.placedBounds,
         direction: annotation.direction,
     })
-    const currLine = turf.lineString([markerStart, markerEnd])
+    const currLine = turfLineString([markerStart, markerEnd])
 
     // check if the annotation's label crosses through any of the labels
     return nearbyAnnotations.some((nearbyAnnotation) => {
         const nearbyLabel = makeTurfPolygonFromBounds(
             nearbyAnnotation.placedBounds
         )
-        return turf.booleanIntersects(currLine, nearbyLabel)
+        return booleanIntersects(currLine, nearbyLabel)
     })
 }
 
@@ -598,7 +601,7 @@ function makeTurfPolygonFromBounds(
     if (transform) {
         corners = corners.map((position) => transform(position))
     }
-    return turf.polygon([corners])
+    return turfPolygon([corners])
 }
 
 // Function to create a Turf.js polygon from a geo feature
@@ -615,13 +618,13 @@ const makeTurfPolygonForFeature = <Feature extends RenderFeature>(
             //     feature.id,
             //     turf.polygon(feature.geo.geometry.coordinates)
             // )
-            return turf.polygon(feature.geo.geometry.coordinates)
+            return turfPolygon(feature.geo.geometry.coordinates)
         case "MultiPolygon":
             // _turfPolygonCache.set(
             //     feature.id,
             //     turf.multiPolygon(feature.geo.geometry.coordinates)
             // )
-            return turf.multiPolygon(feature.geo.geometry.coordinates)
+            return turfMultiPolygon(feature.geo.geometry.coordinates)
         default:
             console.warn(
                 "Unsupported geometry type:",
