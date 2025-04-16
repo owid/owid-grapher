@@ -26,9 +26,11 @@ type ExplorerConfig = {
         block?: {
             grapherId?: string | number
             yVariableIds?: string
+            ySlugs?: string
             xVariableId?: string
             colorVariableId?: string
             sizeVariableId?: string
+            transform?: string
         }[]
     }[]
     isPublished?: string
@@ -85,6 +87,16 @@ function detectVariableIdsAndCatalogPaths(config: ExplorerConfig): Set<string> {
                     }
                     if (row.sizeVariableId) {
                         variableIdsAndCatalogPaths.add(row.sizeVariableId)
+                    }
+                }
+            } else if (block.type === "columns" && Array.isArray(block.block)) {
+                for (const row of block.block) {
+                    // Extract variable ids from transforms like "duplicate 950983"
+                    if (row.transform) {
+                        const match = row.transform.match(/^duplicate\s+(\d+)$/)
+                        if (match) {
+                            variableIdsAndCatalogPaths.add(match[1])
+                        }
                     }
                 }
             }
