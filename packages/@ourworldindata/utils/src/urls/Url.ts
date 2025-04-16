@@ -4,7 +4,7 @@ import { gdocUrlRegex, QueryParams } from "@ourworldindata/types"
 import { excludeUndefined, omitUndefinedValues } from "../Util.js"
 
 import { queryParamsToStr, strToQueryParams } from "./UrlUtils.js"
-import { isDeepEqual, isShallowEqual } from "remeda"
+import { isShallowEqual } from "remeda"
 
 const parseUrl = (url: string): urlParseLib<string> => {
     const parsed = urlParseLib(url, {})

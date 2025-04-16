@@ -40,7 +40,6 @@ import {
     TagsTableName,
     TagGraphTableName,
     ExplorersTableName,
-    DbPlainFeaturedMetricWithParentTagName,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash-es"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
