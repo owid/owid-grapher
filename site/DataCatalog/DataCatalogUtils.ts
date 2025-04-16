@@ -86,6 +86,7 @@ export type DataCatalogCache = {
     ribbons: Map<string, DataCatalogRibbonResult[]>
     search: Map<string, DataCatalogSearchResult>
     pages: Map<string, DataCatalogPageSearchResult>
+    research: Map<string, DataCatalogPageSearchResult>
 }
 
 export enum AutocompleteSources {
@@ -322,12 +323,40 @@ export const queryDataInsights = async (
     const { query, page } = state
     const topicFilters = getFiltersOfType(state, CatalogFilterType.TOPIC)
 
-    const facetFilters = [`type:data-insight`]
+    const facetFilters = [`type:${OwidGdocType.DataInsight}`]
     facetFilters.push(...setToFacetFilters(topicFilters, "tags"))
 
     const results = await index.search<IPageHit>(query, {
         page,
         hitsPerPage: state.componentCount[CatalogComponentId.DATA_INSIGHTS],
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        facetFilters,
+    })
+    return results
+}
+
+// Function to query the pages index for research and writing content
+export const queryResearch = async (
+    searchClient: SearchClient,
+    state: DataCatalogState
+): Promise<DataCatalogPageSearchResult> => {
+    const index = searchClient.initIndex(getIndexName(SearchIndexName.Pages))
+    const { query, page } = state
+    const topicFilters = getFiltersOfType(state, CatalogFilterType.TOPIC)
+
+    const facetFilters = [
+        [
+            `type:${OwidGdocType.TopicPage}`,
+            `type:${OwidGdocType.LinearTopicPage}`,
+            `type:${OwidGdocType.Article}`,
+        ],
+    ]
+    facetFilters.push(setToFacetFilters(topicFilters, "tags"))
+
+    const results = await index.search<IPageHit>(query, {
+        page,
+        hitsPerPage: state.componentCount[CatalogComponentId.RESEARCH] || 4,
         highlightPreTag: "<mark>",
         highlightPostTag: "</mark>",
         facetFilters,

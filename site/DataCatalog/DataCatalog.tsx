@@ -18,6 +18,7 @@ import {
     querySearch,
     syncDataCatalogURL,
     getFiltersOfType,
+    queryResearch,
 } from "./DataCatalogUtils.js"
 import {
     dataCatalogStateToUrl,
@@ -42,6 +43,7 @@ import { DataCatalogHighlights } from "./DataCatalogHighlights.js"
 import { ScrollDirection, useScrollDirection } from "../hooks.js"
 import { ContentTypeToggle } from "./ContentTypeToggle.js"
 import { DataCatalogFuzzyMatcher } from "./DataCatalogFuzzyMatcher.js"
+import { DataCatalogResearch } from "./DataCatalogResearch.js"
 
 export const DataCatalog = ({
     initialState,
@@ -59,6 +61,7 @@ export const DataCatalog = ({
         ribbons: new Map(),
         search: new Map(),
         pages: new Map(),
+        research: new Map(),
     })
     const scrollDirection = useScrollDirection()
     const AREA_NAMES = useMemo(
@@ -106,11 +109,15 @@ export const DataCatalog = ({
                 : await querySearch(searchClient, state)
 
             const pages = await queryDataInsights(searchClient, state)
+            const researchContent = await queryResearch(searchClient, state)
 
             setCache((prevCache) => ({
                 ...prevCache,
                 [cacheKey]: prevCache[cacheKey].set(stateAsUrl, results as any),
                 pages: prevCache.pages.set(stateAsUrl, pages),
+                research:
+                    prevCache.research?.set(stateAsUrl, researchContent) ||
+                    new Map().set(stateAsUrl, researchContent),
             }))
         }
 
@@ -172,6 +179,13 @@ export const DataCatalog = ({
         [CatalogComponentId.DATA_INSIGHTS]: (
             <DataCatalogDataInsights
                 results={cache["pages"].get(stateAsUrl)}
+                componentCount={state.componentCount}
+                setComponentCount={actions.setComponentCount}
+            />
+        ),
+        [CatalogComponentId.RESEARCH]: (
+            <DataCatalogResearch
+                results={cache["research"].get(stateAsUrl)}
                 componentCount={state.componentCount}
                 setComponentCount={actions.setComponentCount}
             />

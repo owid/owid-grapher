@@ -15,6 +15,7 @@ export enum CatalogComponentId {
     RESULTS = "results",
     CONTENT_TYPE_TOGGLE = "contentTypeToggle",
     FUZZY_MATCHER = "fuzzyMatcher",
+    RESEARCH = "research",
 }
 
 // Define component style options
@@ -110,6 +111,13 @@ export const DEFAULT_COMPONENTS: ComponentConfig[] = [
         visible: true,
         maxItems: 2,
         type: [CatalogContentType.DATA, CatalogContentType.WRITING],
+    },
+    {
+        id: CatalogComponentId.RESEARCH,
+        name: "Research & Writing",
+        visible: true,
+        maxItems: 4,
+        type: [CatalogContentType.WRITING],
     },
     {
         id: CatalogComponentId.HIGHLIGHTS,
@@ -500,6 +508,14 @@ export function urlToDataCatalogState(url: Url): DataCatalogState {
         }
     }
 
+    // Check for research count in URL
+    if (url.queryParams.research) {
+        state.componentCount = {
+            ...state.componentCount,
+            [CatalogComponentId.RESEARCH]: parseInt(url.queryParams.research),
+        }
+    }
+
     // Check for specific component styles in URL
     if (
         url.queryParams.resultsStyle &&
@@ -525,6 +541,8 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
 
     const defaultInsightsCount =
         defaultCatalogState.componentCount[CatalogComponentId.DATA_INSIGHTS]
+    const defaultResearchCount =
+        defaultCatalogState.componentCount[CatalogComponentId.RESEARCH]
     const defaultResultsStyle =
         defaultCatalogState.componentStyles[CatalogComponentId.RESULTS]
 
@@ -542,6 +560,12 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
                 ? state.componentCount[
                       CatalogComponentId.DATA_INSIGHTS
                   ].toString()
+                : undefined,
+        research:
+            state.componentVisibility[CatalogComponentId.RESEARCH] &&
+            state.componentCount[CatalogComponentId.RESEARCH] !==
+                defaultResearchCount
+                ? state.componentCount[CatalogComponentId.RESEARCH].toString()
                 : undefined,
         resultsStyle:
             state.componentStyles[CatalogComponentId.RESULTS] !==

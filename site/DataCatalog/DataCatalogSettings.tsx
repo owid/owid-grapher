@@ -111,6 +111,8 @@ export const DataCatalogSettings = ({
     const insightsToShow =
         componentCount?.[CatalogComponentId.DATA_INSIGHTS] || 2
 
+    const researchToShow = componentCount?.[CatalogComponentId.RESEARCH] || 4
+
     const resultsViewStyle =
         componentStyles[CatalogComponentId.RESULTS] ||
         CatalogComponentStyle.GRID
@@ -412,6 +414,32 @@ export const DataCatalogSettings = ({
                                             onChange={(e) =>
                                                 setComponentCount(
                                                     CatalogComponentId.DATA_INSIGHTS,
+                                                    Number(e.target.value)
+                                                )
+                                            }
+                                        >
+                                            <MenuItem value={2}>2</MenuItem>
+                                            <MenuItem value={4}>4</MenuItem>
+                                            <MenuItem value={6}>6</MenuItem>
+                                            <MenuItem value={8}>8</MenuItem>
+                                            <MenuItem value={10}>10</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </ListItem>
+
+                                <ListItem>
+                                    <FormControl fullWidth size="small">
+                                        <InputLabel id="research-count-label">
+                                            Research Items to Show
+                                        </InputLabel>
+                                        <Select
+                                            labelId="research-count-label"
+                                            id="research-count-select"
+                                            value={researchToShow}
+                                            label="Research Items to Show"
+                                            onChange={(e) =>
+                                                setComponentCount(
+                                                    CatalogComponentId.RESEARCH,
                                                     Number(e.target.value)
                                                 )
                                             }
