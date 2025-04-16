@@ -10,15 +10,16 @@ import {
     getExplorerViewRecords,
     scaleExplorerRecordScores,
 } from "./utils/explorerViews.js"
-import { scaleRecordScores } from "./utils/shared.js"
+import {
+    createFeaturedMetricRecords,
+    MAX_NON_FM_RECORD_SCORE,
+    scaleRecordScores,
+} from "./utils/shared.js"
 import { getChartsRecords } from "./utils/charts.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
 import { getMdimViewRecords } from "./utils/mdimViews.js"
 
-// We get 200k operations with Algolia's Open Source plan. We've hit 140k in the past so this might push us over.
-// If we standardize the record shape, we could have this be the only index and have a `type` field
-// to use in /search.
 const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) return
     const indexName = getIndexName(
@@ -42,20 +43,27 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
         // Scale the remaining explorer views between 0 and 1000.
         // This is because Graphers are generally higher quality than Explorers and we don't want
         // the data catalog to smother Grapher results with hundreds of low-quality Explorer results.
-        const scaledGrapherViews = scaleRecordScores(
-            grapherViews,
-            [1000, 10000]
-        )
+        const scaledGrapherViews = scaleRecordScores(grapherViews, [
+            1000,
+            MAX_NON_FM_RECORD_SCORE,
+        ])
         const scaledExplorerViews = scaleExplorerRecordScores(explorerViews)
-        const scaledMdimViews = scaleRecordScores(mdimViews, [1000, 10000])
+        const scaledMdimViews = scaleRecordScores(mdimViews, [
+            1000,
+            MAX_NON_FM_RECORD_SCORE,
+        ])
 
         const records = [
             ...scaledGrapherViews,
             ...scaledExplorerViews,
             ...scaledMdimViews,
         ]
+        const featuredMetricRecords = await createFeaturedMetricRecords(
+            trx,
+            records
+        )
 
-        return records
+        return [...records, ...featuredMetricRecords]
     }, db.TransactionCloseMode.Close)
 
     const index = client.initIndex(indexName)

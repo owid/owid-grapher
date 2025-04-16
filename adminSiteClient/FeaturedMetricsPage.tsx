@@ -24,6 +24,7 @@ import {
     FeaturedMetricByParentTagNameDictionary,
     FeaturedMetricIncomeGroup,
     Url,
+    GRAPHER_QUERY_PARAM_KEYS,
 } from "@ourworldindata/utils"
 import {
     faAngleDown,
@@ -125,6 +126,29 @@ function FeaturedMetricList({
     )
 }
 
+function filterUrlQueryParams(url: string): string {
+    if (!url) return ""
+    if (!url.includes("?")) return url
+
+    function removeQueryParam(url: string, paramName: string): string {
+        return url.replace(
+            new RegExp(`([?&])${paramName}=[^&]*(&|$)`, "g"),
+            (_, prefix, suffix) => {
+                // If the suffix is & (meaning there are more params), keep the prefix
+                // If the suffix is empty (end of string), keep nothing unless prefix is ? and it's the only param
+                return suffix === "&" ? prefix : prefix === "?" ? "?" : ""
+            }
+        )
+    }
+
+    url = GRAPHER_QUERY_PARAM_KEYS.reduce(
+        (currentUrl, param) => removeQueryParam(currentUrl, param),
+        url
+    )
+
+    return url
+}
+
 function FeaturedMetricSection({
     parentTagName,
     featuredMetrics,
@@ -149,14 +173,30 @@ function FeaturedMetricSection({
 
     const [newFeaturedMetricInputValue, setNewFeaturedMetricInputValue] =
         useState("")
-    const [isValid, setIsValid] = useState(false)
+    const handleInputChange = (inputValue: string) => {
+        setNewFeaturedMetricInputValue(filterUrlQueryParams(inputValue))
+    }
+
+    const [{ isValid, reason }, setIsValid] = useState({
+        isValid: false,
+        reason: "",
+    })
 
     useEffect(() => {
         const url = Url.fromURL(newFeaturedMetricInputValue)
-        const isValid =
-            (url.isExplorer || url.isGrapher) &&
-            url.queryParams.country === undefined
-        setIsValid(!!isValid)
+        if (!url.isExplorer && !url.isGrapher) {
+            setIsValid({
+                isValid: false,
+                reason: "URL must be an OWID grapher/explorer URL",
+            })
+        } else if (url.isExplorer && !url.queryStr) {
+            setIsValid({
+                isValid: false,
+                reason: "Explorer URLs must have the view's query string",
+            })
+        } else {
+            setIsValid({ isValid: true, reason: "" })
+        }
     }, [newFeaturedMetricInputValue])
 
     const [newFeaturedMetricIncomeGroup, setNewFeaturedMetricIncomeGroup] =
@@ -172,7 +212,7 @@ function FeaturedMetricSection({
             ranking,
             parentTagName,
         })
-        setNewFeaturedMetricInputValue("")
+        handleInputChange("")
     }
 
     return (
@@ -218,9 +258,17 @@ function FeaturedMetricSection({
                         }
                         handleAddFeaturedMetric()
                     }}
-                    onChange={(e) =>
-                        setNewFeaturedMetricInputValue(e.target.value)
-                    }
+                    onBlur={() => {
+                        if (
+                            newFeaturedMetricInputValue.endsWith("?") ||
+                            newFeaturedMetricInputValue.endsWith("/")
+                        ) {
+                            handleInputChange(
+                                newFeaturedMetricInputValue.slice(0, -1)
+                            )
+                        }
+                    }}
+                    onChange={(e) => handleInputChange(e.target.value)}
                 />
                 <Dropdown
                     menu={{
@@ -247,8 +295,7 @@ function FeaturedMetricSection({
                 </Button>
                 {newFeaturedMetricInputValue && !isValid && (
                     <p className="featured-metrics-page-section__error-notice">
-                        URL must be an OWID grapher/explorer URL and not have a{" "}
-                        <span>country</span> query parameter.
+                        {reason}
                     </p>
                 )}
             </Flex>
@@ -301,10 +348,34 @@ function FeaturedMetricsExplainer() {
                         </>
                     ),
                 },
+                {
+                    key: "explorers",
+                    label: "How do I set an Explorer Featured Metric?",
+                    children: (
+                        <>
+                            <p>
+                                Explorer Featured Metrics require the whole
+                                explorer's query string, minus any query
+                                parameters that customize the grapher chart
+                                (country, tab, etc...)
+                            </p>
+                            <p>e.g.</p>
+                            <p>
+                                <span>
+                                    https://ourworldindata.org/explorers/monkeypox?Metric=Confirmed+cases&Frequency=7-day+average&Relative+to+population=false
+                                </span>
+                            </p>
+                            <p>
+                                If the default view of the explorer is the one
+                                you want, you can get its full query string
+                                representation by clicking another view, and
+                                then navigating back to the default.
+                            </p>
+                        </>
+                    ),
+                },
             ]}
-        >
-            What are Featured Metrics?
-        </Collapse>
+        />
     )
 }
 

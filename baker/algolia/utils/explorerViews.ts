@@ -49,6 +49,7 @@ import {
     FinalizedExplorerRecord,
 } from "./types.js"
 import {
+    MAX_NON_FM_RECORD_SCORE,
     processAvailableEntities as processRecordAvailableEntities,
     scaleRecordScores,
 } from "./shared.js"
@@ -123,7 +124,7 @@ export function scaleExplorerRecordScores(
         (view) => view.isFirstExplorerView
     )
     return [
-        ...scaleRecordScores(firstViews, [1000, 10000]),
+        ...scaleRecordScores(firstViews, [1000, MAX_NON_FM_RECORD_SCORE]),
         ...scaleRecordScores(rest, [0, 1000]),
     ]
 }
@@ -631,6 +632,7 @@ async function finalizeRecords(
                 queryParams: record.viewQueryParams,
                 tags: explorerInfo.tags,
                 objectID: `${explorerInfo.slug}-${i}`,
+                id: `explorer/${explorerInfo.slug}${record.viewQueryParams}`,
                 score: computeExplorerViewScore(record),
                 views_7d: record.views_7d,
                 availableEntities: record.availableEntities,
