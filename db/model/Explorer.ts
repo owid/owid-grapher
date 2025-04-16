@@ -30,6 +30,7 @@ type ExplorerConfig = {
             xVariableId?: string
             colorVariableId?: string
             sizeVariableId?: string
+            transform?: string
         }[]
     }[]
     isPublished?: string
@@ -78,13 +79,6 @@ function detectVariableIdsAndCatalogPaths(config: ExplorerConfig): Set<string> {
                                 variableIdsAndCatalogPaths.add(id)
                             )
                     }
-                    if (row.ySlugs) {
-                        row.ySlugs
-                            .split(/\s+/)
-                            .forEach((id: string) =>
-                                variableIdsAndCatalogPaths.add(id)
-                            )
-                    }
                     if (row.xVariableId) {
                         variableIdsAndCatalogPaths.add(row.xVariableId)
                     }
@@ -93,6 +87,16 @@ function detectVariableIdsAndCatalogPaths(config: ExplorerConfig): Set<string> {
                     }
                     if (row.sizeVariableId) {
                         variableIdsAndCatalogPaths.add(row.sizeVariableId)
+                    }
+                }
+            } else if (block.type === "columns" && Array.isArray(block.block)) {
+                for (const row of block.block) {
+                    // Extract variable ids from transforms like "duplicate 950983"
+                    if (row.transform) {
+                        const match = row.transform.match(/^duplicate\s+(\d+)$/)
+                        if (match) {
+                            variableIdsAndCatalogPaths.add(match[1])
+                        }
                     }
                 }
             }
