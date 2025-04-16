@@ -34,22 +34,25 @@ export function generateComparisonLinePoints(
     return controlData
 }
 
-function evalFormula<D>(
+export function evalFormula<D>(
     expr: Formula | undefined,
     context: Record<string, number>,
     defaultOnError: D
 ): number | D {
     if (expr === undefined) return defaultOnError
     try {
-        return expr.evaluate({ pi: Math.PI, e: Math.E, ...context }) as number
+        return expr.evaluate(context) as number
     } catch {
         return defaultOnError
     }
 }
 
-function parseEquation(equation: string): Formula | undefined {
+export function parseEquation(equation: string): Formula | undefined {
     try {
-        return new Formula(equation)
+        const formula = new Formula(equation)
+        formula.ln = Math.log
+        formula.e = Math.E
+        return formula
     } catch (e) {
         console.error(e)
         return undefined
