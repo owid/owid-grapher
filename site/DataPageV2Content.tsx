@@ -39,6 +39,7 @@ export const DataPageV2Content = ({
     canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
     tagToSlugMap,
     imageMetadata,
+    archivedVersion,
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
@@ -194,6 +195,7 @@ export const DataPageV2Content = ({
                         source={datapageData.source}
                         title={datapageData.title}
                         titleVariant={datapageData.titleVariant}
+                        archivedVersion={archivedVersion}
                     />
                 </div>
             </DocumentContext.Provider>

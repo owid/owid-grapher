@@ -16,6 +16,7 @@ import {
     ImageMetadata,
     Url,
     ArchiveMetaInformation,
+    ChartArchivedVersion,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import urljoin from "url-join"
@@ -45,6 +46,7 @@ export const DataPageV2 = (props: {
     imageMetadata: Record<string, ImageMetadata>
     tagToSlugMap: Record<string | number, string>
     archiveInfo?: ArchiveMetaInformation
+    archivedVersion?: ChartArchivedVersion
     dataApiUrl?: string
 }) => {
     const {
@@ -57,6 +59,7 @@ export const DataPageV2 = (props: {
         tagToSlugMap,
         imageMetadata,
         archiveInfo,
+        archivedVersion,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title.title
     const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
@@ -153,6 +156,7 @@ export const DataPageV2 = (props: {
                                     datapageData,
                                     faqEntries,
                                     canonicalUrl,
+                                    archivedVersion,
                                     tagToSlugMap: minimalTagToSlugMap,
                                     imageMetadata,
                                 }
@@ -169,6 +173,7 @@ export const DataPageV2 = (props: {
                                 faqEntries={faqEntries}
                                 canonicalUrl={canonicalUrl}
                                 tagToSlugMap={tagToSlugMap}
+                                archivedVersion={archivedVersion}
                             />
                         </DebugProvider>
                     </div>

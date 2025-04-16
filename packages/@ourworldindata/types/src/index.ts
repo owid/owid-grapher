@@ -764,4 +764,5 @@ export {
     type UrlAndMaybeDate,
     type ArchiveSiteNavigationInfo,
     type ArchiveMetaInformation,
+    type ChartArchivedVersion,
 } from "./domainTypes/Archive.js"

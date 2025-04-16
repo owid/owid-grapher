@@ -333,7 +333,11 @@ getPlainRouteWithROTransaction(
         const chart = await getChartConfigById(trx, chartId)
         if (chart) {
             const previewDataPageOrGrapherPage =
-                await renderPreviewDataPageOrGrapherPage(chart.config, trx)
+                await renderPreviewDataPageOrGrapherPage(
+                    chart.config,
+                    chart.id,
+                    trx
+                )
             res.send(previewDataPageOrGrapherPage)
             return
         }
@@ -355,7 +359,11 @@ getPlainRouteWithROTransaction(
         )
         if (chart) {
             const previewDataPageOrGrapherPage =
-                await renderPreviewDataPageOrGrapherPage(chart.config, trx)
+                await renderPreviewDataPageOrGrapherPage(
+                    chart.config,
+                    chart.id,
+                    trx
+                )
             res.send(previewDataPageOrGrapherPage)
             return
         }

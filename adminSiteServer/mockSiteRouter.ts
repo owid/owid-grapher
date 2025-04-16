@@ -261,7 +261,11 @@ getPlainRouteWithROTransaction(
             res.set("Access-Control-Allow-Origin", "*")
 
             const previewDataPageOrGrapherPage =
-                await renderPreviewDataPageOrGrapherPage(chartRow.config, trx)
+                await renderPreviewDataPageOrGrapherPage(
+                    chartRow.config,
+                    chartRow.id,
+                    trx
+                )
             res.send(previewDataPageOrGrapherPage)
             return
         } else {

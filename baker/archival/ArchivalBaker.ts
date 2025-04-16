@@ -401,7 +401,8 @@ async function bakeGrapherPageForArchival(
               date: previousVersionInfo.archivalTimestamp,
               url: assembleGrapherArchivalUrl(
                   previousVersionInfo.archivalTimestamp,
-                  previousVersionInfo.grapherSlug
+                  previousVersionInfo.grapherSlug,
+                  { relative: true }
               ),
           }
         : undefined
@@ -409,7 +410,11 @@ async function bakeGrapherPageForArchival(
         liveUrl: `${PROD_URL}/grapher/${config.slug}`,
         previousVersion,
     }
-    const fullUrl = `${ARCHIVE_BASE_URL}${assembleGrapherArchivalUrl(date.formattedDate, config.slug)}`
+    const fullUrl = assembleGrapherArchivalUrl(
+        date.formattedDate,
+        config.slug,
+        { relative: false }
+    )
     const archiveInfo: ArchiveMetaInformation = {
         archiveDate: date.date,
         archiveNavigation,

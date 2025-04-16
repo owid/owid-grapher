@@ -23,3 +23,8 @@ export interface ArchiveMetaInformation {
         static?: AssetMap
     }
 }
+
+export interface ChartArchivedVersion {
+    archiveDate: ArchiveDateString
+    archiveUrl: string
+}

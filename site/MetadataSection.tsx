@@ -14,6 +14,7 @@ import {
     OwidSource,
     IndicatorTitleWithFragments,
     OwidProcessingLevel,
+    ChartArchivedVersion,
 } from "@ourworldindata/types"
 import {
     prepareSourcesForDisplay,
@@ -36,6 +37,7 @@ export default function MetadataSection({
     source,
     title,
     titleVariant,
+    archivedVersion,
 }: {
     attributionShort?: string
     attributions: string[]
@@ -48,8 +50,10 @@ export default function MetadataSection({
     source?: OwidSource
     title: IndicatorTitleWithFragments
     titleVariant?: string
+    archivedVersion?: ChartArchivedVersion
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
+    const citationUrl = archivedVersion?.archiveUrl ?? canonicalUrl
     const citationShort = getCitationShort(
         origins,
         attributions,
@@ -63,7 +67,7 @@ export default function MetadataSection({
         attributionShort,
         titleVariant,
         owidProcessingLevel,
-        canonicalUrl
+        citationUrl
     )
     const currentYear = dayjs().year()
     const producers = uniq(origins.map((o) => `${o.producer}`))
@@ -80,7 +84,7 @@ export default function MetadataSection({
             ? `“Data Page: ${title.title}”, part of the following publication: ${primaryTopicCitation}`
             : `“Data Page: ${title.title}”. Our World in Data (${currentYear}).`,
         adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
-        `Retrieved from ${canonicalUrl} [online resource]`,
+        `Retrieved from ${citationUrl} [online resource]`,
     ]).join(" ")
     return (
         <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">

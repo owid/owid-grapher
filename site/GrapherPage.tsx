@@ -16,6 +16,7 @@ import {
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import {
     ArchiveMetaInformation,
+    ChartArchivedVersion,
     HIDE_IF_JS_DISABLED_CLASSNAME,
     HIDE_IF_JS_ENABLED_CLASSNAME,
 } from "@ourworldindata/types"
@@ -41,6 +42,7 @@ export const GrapherPage = (props: {
     baseUrl: string
     baseGrapherUrl: string
     archiveInfo?: ArchiveMetaInformation
+    archivedVersion?: ChartArchivedVersion
 }) => {
     const {
         grapher,
@@ -49,7 +51,10 @@ export const GrapherPage = (props: {
         baseGrapherUrl,
         baseUrl,
         archiveInfo,
+        archivedVersion,
     } = props
+    const _unused = archivedVersion?.archiveUrl // TODO actually use archivedVersion, probably pass it to Grapher
+
     const pageTitle = grapher.title
     const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
     const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
