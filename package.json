@@ -242,7 +242,7 @@
         "wrangler": "^4.14.4"
     },
     "resolutions": {
-        "whatwg-url": "14.1.0"
+        "whatwg-url": "14.2.0"
     },
     "prettier": {
         "trailingComma": "es5",
