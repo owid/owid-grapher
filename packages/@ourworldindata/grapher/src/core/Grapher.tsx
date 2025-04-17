@@ -231,6 +231,7 @@ import {
     GRAPHER_LIGHT_TEXT,
 } from "../color/ColorConstants"
 import { FacetChart } from "../facetChart/FacetChart"
+import { getErrorMessageRelatedQuestionUrl } from "./relatedQuestion.js"
 
 declare global {
     interface Window {
@@ -335,6 +336,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bindUrlToWindow?: boolean
     isEmbeddedInAnOwidPage?: boolean
     isEmbeddedInADataPage?: boolean
+    canHideExternalControlsInEmbed?: boolean
 
     chartViewInfo?: Pick<
         ChartViewInfo,
@@ -348,8 +350,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
 
 export interface GrapherManager {
     canonicalUrl?: string
-    embedDialogUrl?: string
-    embedDialogAdditionalElements?: React.ReactElement
     selection?: SelectionArray
     focusArray?: FocusArray
     editUrl?: string
@@ -511,6 +511,17 @@ export class Grapher
 
     isEmbeddedInAnOwidPage?: boolean = this.props.isEmbeddedInAnOwidPage
     isEmbeddedInADataPage?: boolean = this.props.isEmbeddedInADataPage
+
+    /** Whether external grapher controls can be hidden in embeds. */
+    @observable.ref canHideExternalControlsInEmbed: boolean =
+        this.props.canHideExternalControlsInEmbed ?? false
+
+    /**
+     * Value of the query parameter in the embed URL that hides external grapher
+     * controls.
+     */
+    @observable.ref hideExternalControlsInEmbedUrl: boolean =
+        this.canHideExternalControlsInEmbed
 
     chartViewInfo?: Pick<
         ChartViewInfo,
@@ -2941,6 +2952,10 @@ export class Grapher
         }
     }
 
+    @action.bound setHideExternalControlsInEmbedUrl(value: boolean): void {
+        this.hideExternalControlsInEmbedUrl = value
+    }
+
     @computed get isModalOpen(): boolean {
         return (
             this.isEntitySelectorModalOpen ||
@@ -3602,7 +3617,7 @@ export class Grapher
     }
 
     @computed get embedUrl(): string | undefined {
-        const url = this.manager?.embedDialogUrl ?? this.canonicalUrl
+        const url = this.canonicalUrl
         if (!url) return
 
         // We want to preserve the tab in the embed URL so that if we change the
@@ -3612,13 +3627,12 @@ export class Grapher
         if (!urlObj.queryParams.tab) {
             urlObj = urlObj.updateQueryParams({ tab: this.allParams.tab })
         }
+        if (this.canHideExternalControlsInEmbed) {
+            urlObj = urlObj.updateQueryParams({
+                hideControls: this.hideExternalControlsInEmbedUrl.toString(),
+            })
+        }
         return urlObj.fullUrl
-    }
-
-    @computed get embedDialogAdditionalElements():
-        | React.ReactElement
-        | undefined {
-        return this.manager?.embedDialogAdditionalElements
     }
 
     @computed private get hasUserChangedTimeHandles(): boolean {
@@ -3849,14 +3863,3 @@ const defaultObject = objectWithPersistablesToObject(
     new Grapher(),
     grapherKeysToSerialize
 )
-
-export const getErrorMessageRelatedQuestionUrl = (
-    question: RelatedQuestionsConfig
-): string | undefined => {
-    return question.text
-        ? (!question.url && "Missing URL") ||
-              (!question.url.match(/^https?:\/\//) &&
-                  "URL should start with http(s)://") ||
-              undefined
-        : undefined
-}

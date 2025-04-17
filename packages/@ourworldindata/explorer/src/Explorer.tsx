@@ -53,7 +53,7 @@ import {
     uniqBy,
     Url,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap, Checkbox } from "@ourworldindata/components"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 import classNames from "classnames"
 import { action, computed, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
@@ -264,9 +264,6 @@ export class Explorer
     explorerProgram = ExplorerProgram.fromJson(this.props).initDecisionMatrix(
         this.initialQueryParams
     )
-
-    // only used for the checkbox at the bottom of the embed dialog
-    @observable embedDialogHideControls = true
 
     bakedBaseUrl = this.props.bakedBaseUrl
     dataApiUrl = this.props.dataApiUrl
@@ -998,6 +995,7 @@ export class Explorer
                     <Grapher
                         adminBaseUrl={this.adminBaseUrl}
                         bounds={this.grapherBounds}
+                        canHideExternalControlsInEmbed={true}
                         enableKeyboardShortcuts={true}
                         manager={this}
                         ref={this.grapherRef}
@@ -1020,28 +1018,6 @@ export class Explorer
 
     @computed get canonicalUrl() {
         return this.props.canonicalUrl ?? this.currentUrl.fullUrl
-    }
-
-    @computed get embedDialogUrl() {
-        return this.currentUrl.updateQueryParams({
-            hideControls: this.embedDialogHideControls.toString(),
-        }).fullUrl
-    }
-
-    @action.bound embedDialogToggleHideControls() {
-        this.embedDialogHideControls = !this.embedDialogHideControls
-    }
-
-    @computed get embedDialogAdditionalElements() {
-        return (
-            <div className="embed-additional-elements">
-                <Checkbox
-                    label="Hide controls"
-                    checked={this.embedDialogHideControls}
-                    onChange={this.embedDialogToggleHideControls}
-                />
-            </div>
-        )
     }
 
     @computed get grapherTable() {

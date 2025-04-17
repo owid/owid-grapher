@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { unstable_batchedUpdates } from "react-dom"
 import { useSearchParams } from "react-router-dom-v5-compat"
+import * as Sentry from "@sentry/react"
 import {
     Grapher,
     GrapherAnalytics,
@@ -19,6 +20,7 @@ import {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
     merge,
+    isInIFrame,
 } from "@ourworldindata/utils"
 import {
     ADMIN_BASE_URL,
@@ -46,18 +48,16 @@ import {
     cachedGetGrapherConfigByUuid,
     cachedGetVariableMetadata,
 } from "./api.js"
+import MultiDim from "./MultiDim.js"
 
-declare global {
-    interface Window {
-        _OWID_MULTI_DIM_PROPS?: MultiDimDataPageContentProps
-    }
-}
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
+const isIframe = isInIFrame()
 
 const baseGrapherConfig: GrapherProgrammaticInterface = {
     bakedGrapherURL: BAKED_GRAPHER_URL,
     adminBaseUrl: ADMIN_BASE_URL,
     dataApiUrl: DATA_API_URL,
+    canHideExternalControlsInEmbed: true,
 }
 
 // From DataPageUtils
@@ -123,7 +123,7 @@ const analytics = new GrapherAnalytics()
 export type MultiDimDataPageContentProps = {
     canonicalUrl: string
     slug: string | null
-    configObj: MultiDimDataPageConfigEnriched
+    config: MultiDimDataPageConfig
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
@@ -132,28 +132,36 @@ export type MultiDimDataPageContentProps = {
     isPreviewing?: boolean
 }
 
-export const MultiDimDataPageContent = ({
+export type MultiDimDataPageData = Omit<
+    MultiDimDataPageContentProps,
+    "config"
+> & {
+    configObj: MultiDimDataPageConfigEnriched
+}
+
+declare global {
+    interface Window {
+        _OWID_MULTI_DIM_PROPS?: MultiDimDataPageData
+    }
+}
+
+export function DataPageContent({
     slug,
     canonicalUrl,
-    configObj,
+    config,
     isPreviewing,
     faqEntries,
     primaryTopic,
     relatedResearchCandidates,
     tagToSlugMap,
     imageMetadata,
-}: MultiDimDataPageContentProps) => {
+}: MultiDimDataPageContentProps) {
     const grapherRef = useRef<Grapher | null>(null)
     const grapherFigureRef = useRef<HTMLDivElement>(null)
     const [searchParams, setSearchParams] = useSearchParams()
-    const [manager, setManager] = useState({ canonicalUrl })
+    const [manager, setManager] = useState({})
     const [varDatapageData, setVarDatapageData] =
         useState<DataPageDataV2 | null>(null)
-
-    const config = useMemo(
-        () => MultiDimDataPageConfig.fromObject(configObj),
-        [configObj]
-    )
     const titleFragments = useTitleFragments(config)
 
     const settings = useMemo(() => {
@@ -226,7 +234,7 @@ export const MultiDimDataPageContent = ({
                         })
                     }
                 })
-                .catch(console.error)
+                .catch(Sentry.captureException)
         },
         [config, isPreviewing]
     )
@@ -236,22 +244,21 @@ export const MultiDimDataPageContent = ({
             const grapher = grapherRef.current
             if (!grapher) return
 
-            const oldGrapherParams = grapher.changedParams
+            const { selectedChoices } =
+                config.filterToAvailableChoices(settings)
+            const newSearchParams = {
+                ...grapher.changedParams,
+                ...selectedChoices,
+            }
             const newGrapherParams: GrapherQueryParams = {
-                ...oldGrapherParams,
+                ...newSearchParams,
                 // Pass the previous tab to grapher, but don't set it in URL. We
                 // want it set only when it's not the default, which is handled
                 // by effect that depends on `grapherChangedParams`.
                 tab: grapher.mapGrapherTabToQueryParam(grapher.activeTab),
             }
 
-            const { selectedChoices } =
-                config.filterToAvailableChoices(settings)
-
-            setSearchParams(
-                { ...oldGrapherParams, ...selectedChoices },
-                { replace: true }
-            )
+            setSearchParams(newSearchParams, { replace: true })
             updateGrapher(grapher, selectedChoices, newGrapherParams)
         },
         [config, setSearchParams, updateGrapher]
@@ -408,5 +415,33 @@ export const MultiDimDataPageContent = ({
                 )}
             </div>
         </AttachmentsContext.Provider>
+    )
+}
+
+export function MultiDimDataPageContent({
+    slug,
+    canonicalUrl,
+    config,
+    isPreviewing,
+    faqEntries,
+    primaryTopic,
+    relatedResearchCandidates,
+    tagToSlugMap,
+    imageMetadata,
+}: MultiDimDataPageContentProps) {
+    return isIframe ? (
+        <MultiDim config={config} slug={slug} queryStr={location.search} />
+    ) : (
+        <DataPageContent
+            slug={slug}
+            canonicalUrl={canonicalUrl}
+            config={config}
+            isPreviewing={isPreviewing}
+            faqEntries={faqEntries}
+            primaryTopic={primaryTopic}
+            relatedResearchCandidates={relatedResearchCandidates}
+            tagToSlugMap={tagToSlugMap}
+            imageMetadata={imageMetadata}
+        />
     )
 }
