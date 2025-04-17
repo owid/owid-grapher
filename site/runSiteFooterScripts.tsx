@@ -1,6 +1,7 @@
 import { StrictMode } from "react"
 import { hydrate, render } from "react-dom"
 import {
+    ArchiveMetaInformation,
     DataPageV2ContentFields,
     deserializeOwidGdocPageData,
     isNil,
@@ -18,7 +19,6 @@ import { Footnote } from "./Footnote.js"
 import { OwidGdoc } from "./gdocs/OwidGdoc.js"
 import { runLightbox } from "./lightboxUtils.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
-import { SiteNavigation } from "./SiteNavigation.js"
 import SiteTools, { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { runDetailsOnDemand } from "./detailsOnDemand.js"
 import { hydrateCodeSnippets } from "@ourworldindata/components"
@@ -44,6 +44,7 @@ import {
 } from "./multiDim/MultiDimDataPageContent.js"
 import { BrowserRouter } from "react-router-dom-v5-compat"
 import { REDUCED_TRACKING } from "../settings/clientSettings.js"
+import { SiteHeaderNavigation } from "./SiteHeader.js"
 
 function hydrateDataCatalogPage() {
     const root = document.getElementById("data-catalog-page-root")
@@ -154,10 +155,20 @@ function runSiteNavigation(hideDonationFlag?: boolean) {
             isOnHomepage = props?.content?.type === OwidGdocType.Homepage
         }
 
+        let archiveInfo: ArchiveMetaInformation | undefined
+        if (window._OWID_ARCHIVE_INFO) {
+            archiveInfo = window._OWID_ARCHIVE_INFO
+        }
+
         render(
-            <SiteNavigation
+            <SiteHeaderNavigation
                 hideDonationFlag={hideDonationFlag}
                 isOnHomepage={isOnHomepage}
+                archiveInfo={
+                    archiveInfo?.type === "archive-page"
+                        ? archiveInfo
+                        : undefined
+                }
             />,
             siteNavigationElem
         )
@@ -226,13 +237,13 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
             hydrateDataPageV2Content({ isPreviewing })
             // runAllGraphersLoadedListener()
             runLightbox()
-            // runSiteNavigation(hideDonationFlag)
+            runSiteNavigation()
             // runSiteTools()
             // runCookiePreferencesManager()
             void runDetailsOnDemand()
             break
         case SiteFooterContext.grapherPage:
-            // runSiteNavigation(hideDonationFlag)
+            runSiteNavigation()
             // runAllGraphersLoadedListener()
             // runSiteTools()
             // runCookiePreferencesManager()

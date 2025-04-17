@@ -6,6 +6,7 @@ import {
     DbPlainArchivedChartVersion,
     GrapherInterface,
     UrlAndMaybeDate,
+    ArchiveVersions,
 } from "@ourworldindata/types"
 import fs from "fs-extra"
 import { keyBy } from "lodash-es"
@@ -414,6 +415,7 @@ async function bakeGrapherPageForArchival(
     const archiveNavigation: ArchiveSiteNavigationInfo = {
         liveUrl: `${PROD_URL}/grapher/${config.slug}`,
         previousVersion,
+        versionsFileUrl: `/versions/charts/${chartInfo.chartId}.json`,
     }
     const fullUrl = assembleGrapherArchivalUrl(
         date.formattedDate,
@@ -498,7 +500,10 @@ export async function generateChartVersionsFiles(
                 }))
             )
 
-            const fileContent = { chartId: chartId, versions: chartVersions }
+            const fileContent = {
+                chartId: chartId,
+                versions: chartVersions,
+            } satisfies ArchiveVersions
             await fs.writeFile(
                 path.join(targetPath, `${chartId}.json`),
                 JSON.stringify(fileContent, undefined, 2),

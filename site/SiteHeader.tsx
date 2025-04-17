@@ -14,20 +14,23 @@ interface SiteHeaderProps {
     archiveInfo?: ArchiveMetaInformation
 }
 
+export const SiteHeaderNavigation = (props: SiteHeaderProps) =>
+    props.archiveInfo?.archiveNavigation ? (
+        <ArchiveSiteNavigation
+            archivalDate={props.archiveInfo.archivalDate}
+            {...props.archiveInfo.archiveNavigation}
+        />
+    ) : (
+        <SiteNavigation
+            hideDonationFlag={props.hideDonationFlag}
+            isOnHomepage={props.isOnHomepage}
+        />
+    )
+
 export const SiteHeader = (props: SiteHeaderProps) => (
     <header className="site-header">
-        {props.archiveInfo ? (
-            <ArchiveSiteNavigation
-                archivalDate={props.archiveInfo.archivalDate}
-                {...props.archiveInfo.archiveNavigation}
-            />
-        ) : (
-            <div className="site-navigation-root">
-                <SiteNavigation
-                    hideDonationFlag={props.hideDonationFlag}
-                    isOnHomepage={props.isOnHomepage}
-                />
-            </div>
-        )}
+        <div className="site-navigation-root">
+            <SiteHeaderNavigation {...props} />
+        </div>
     </header>
 )
