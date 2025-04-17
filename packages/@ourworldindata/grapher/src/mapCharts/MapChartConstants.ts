@@ -36,7 +36,16 @@ export const GEO_FEATURES_CLASSNAME = "GeoFeatures"
 export const GLOBE_MIN_ZOOM = 1
 export const GLOBE_MAX_ZOOM = 5
 export const GLOBE_COUNTRY_ZOOM = 2.5
+
 export const DEFAULT_GLOBE_ROTATION: [number, number] = [30, -20] // Atlantic ocean (i.e. Americas & Europe)
+export const DEFAULT_GLOBE_ROTATIONS_FOR_TIME: Record<
+    "UTC_MORNING" | "UTC_MIDDAY" | "UTC_EVENING",
+    [number, number]
+> = {
+    UTC_MORNING: [-110, -15], // Asia & Oceania
+    UTC_MIDDAY: [-20, -20], // Europe & Africa
+    UTC_EVENING: [90, -15], // North & South America
+}
 
 export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
     World: "World",

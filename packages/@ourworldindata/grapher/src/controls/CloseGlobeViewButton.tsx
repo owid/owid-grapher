@@ -10,6 +10,7 @@ import { faArrowLeft } from "@fortawesome/free-solid-svg-icons"
 export interface CloseGlobeViewButtonManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
+    shouldShowEntitySelectorOnMapTab?: boolean
     globeController?: GlobeController
     onCloseGlobeViewButtonClick?: () => void
 }
@@ -25,16 +26,17 @@ export class CloseGlobeViewButton extends React.Component<{
     }
 
     @computed private get showMenu(): boolean {
-        const { isOnMapTab, mapConfig } = this.props.manager
-        return !!(isOnMapTab && mapConfig?.globe.isActive)
+        const { isOnMapTab, mapConfig, shouldShowEntitySelectorOnMapTab } =
+            this.props.manager
+        return !!(
+            isOnMapTab &&
+            mapConfig?.globe.isActive &&
+            !shouldShowEntitySelectorOnMapTab
+        )
     }
 
     @computed private get manager(): CloseGlobeViewButtonManager {
         return this.props.manager
-    }
-
-    @computed private get mapConfig(): MapConfig {
-        return this.manager.mapConfig ?? new MapConfig()
     }
 
     @computed private get maxWidth(): number {

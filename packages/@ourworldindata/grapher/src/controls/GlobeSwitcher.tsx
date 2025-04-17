@@ -1,0 +1,101 @@
+import React from "react"
+import { observer } from "mobx-react"
+import { action, computed, observable } from "mobx"
+import { TabLabel, Tabs } from "../tabs/Tabs"
+import { MapConfig } from "../mapCharts/MapConfig"
+import { GlobeController } from "../mapCharts/GlobeController"
+import { EntityName, getUserCountryInformation } from "@ourworldindata/utils"
+
+export interface GlobeSwitcherManager {
+    mapConfig?: MapConfig
+    isOnMapTab?: boolean
+    globeController?: GlobeController
+    shouldShowEntitySelectorOnMapTab?: boolean
+}
+
+@observer
+export class GlobeSwitcher extends React.Component<{
+    manager: GlobeSwitcherManager
+}> {
+    @observable private localCountryName?: EntityName
+    private availableTabs = ["2D", "3D"] as const
+
+    static shouldShow(manager: GlobeSwitcherManager): boolean {
+        const test = new GlobeSwitcher({ manager })
+        return test.shouldShow
+    }
+
+    static width(manager: GlobeSwitcherManager): number {
+        const test = new GlobeSwitcher({ manager })
+        return test.width
+    }
+
+    @computed private get manager(): GlobeSwitcherManager {
+        return this.props.manager
+    }
+
+    @computed private get shouldShow(): boolean {
+        const { shouldShowEntitySelectorOnMapTab, isOnMapTab } =
+            this.props.manager
+
+        return !!(isOnMapTab && shouldShowEntitySelectorOnMapTab)
+    }
+
+    @computed get width(): number {
+        return 104 // hard-coded
+    }
+
+    @computed private get tabLabels(): TabLabel[] {
+        return this.availableTabs.map((tabName) => ({
+            element: <>{tabName}</>,
+        }))
+    }
+
+    @computed private get activeTabIndex(): number {
+        return this.manager.mapConfig?.globe.isActive ? 1 : 0
+    }
+
+    @action.bound setTab(tabIndex: number): void {
+        const newTab = this.availableTabs[tabIndex]
+
+        if (newTab === "3D") {
+            if (this.localCountryName) {
+                // rotate to the user's current location if possible
+                this.manager.globeController?.rotateToCountry(
+                    this.localCountryName
+                )
+            } else {
+                // choose a default rotation based on the time of day
+                this.manager.globeController?.rotateToDefaultBasedOnTime()
+            }
+        } else {
+            this.manager.globeController?.hideGlobe()
+        }
+    }
+
+    @action.bound async populateLocalCountryName(): Promise<void> {
+        try {
+            const localCountryInfo = await getUserCountryInformation()
+            if (!localCountryInfo) return
+            this.localCountryName = localCountryInfo.name
+        } catch {
+            // ignore
+        }
+    }
+
+    componentDidMount(): void {
+        void this.populateLocalCountryName()
+    }
+
+    render(): React.ReactElement | null {
+        if (!this.shouldShow) return null
+        return (
+            <Tabs
+                variant="slim"
+                labels={this.tabLabels}
+                activeIndex={this.activeTabIndex}
+                setActiveIndex={this.setTab}
+            />
+        )
+    }
+}

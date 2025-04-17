@@ -23,12 +23,14 @@ import {
     MapCountryDropdownManager,
 } from "../MapCountryDropdown"
 import { CloseGlobeViewButton } from "../CloseGlobeViewButton"
+import { GlobeSwitcher, GlobeSwitcherManager } from "../GlobeSwitcher"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
         EntitySelectionManager,
         MapRegionDropdownManager,
         MapCountryDropdownManager,
+        GlobeSwitcherManager,
         SettingsMenuManager {
     sidePanelBounds?: Bounds
     showEntitySelectionToggle?: boolean
@@ -64,8 +66,16 @@ export class ControlsRow extends Component<{
         return ContentSwitchers.width(this.manager)
     }
 
-    @computed private get availableWidth(): number {
+    @computed private get globeSwitcherWidth(): number {
+        return GlobeSwitcher.width(this.manager)
+    }
+
+    @computed private get maxWidthSettingsMenu(): number {
         return this.maxWidth - this.contentSwitchersWidth - 16
+    }
+
+    @computed private get maxWidthMapRegionDropdown(): number {
+        return this.maxWidthSettingsMenu - this.globeSwitcherWidth - 8
     }
 
     @computed private get showContentSwitchers(): boolean {
@@ -79,6 +89,7 @@ export class ControlsRow extends Component<{
             MapRegionDropdown.shouldShow(this.manager) ||
             MapCountryDropdown.shouldShow(this.manager) ||
             CloseGlobeViewButton.shouldShow(this.manager) ||
+            GlobeSwitcher.shouldShow(this.manager) ||
             this.showContentSwitchers
         )
     }
@@ -102,7 +113,7 @@ export class ControlsRow extends Component<{
 
                     <SettingsMenu
                         manager={this.manager}
-                        maxWidth={this.availableWidth}
+                        maxWidth={this.maxWidthSettingsMenu}
                         top={this.props.settingsMenuTop ?? 0}
                         bottom={this.framePaddingVertical}
                         right={
@@ -110,19 +121,21 @@ export class ControlsRow extends Component<{
                         }
                     />
 
-                    {/* only one of the following will be rendered */}
+                    {/* rendered if the entity selector is shown on the map tab */}
+                    <GlobeSwitcher manager={this.manager} />
+                    <MapRegionDropdown
+                        manager={this.manager}
+                        maxWidth={this.maxWidthMapRegionDropdown}
+                    />
+
+                    {/* rendered on mobile; only one of the following is shown at any given time */}
                     <MapCountryDropdown
                         manager={this.manager}
-                        maxWidth={this.availableWidth}
+                        maxWidth={this.maxWidthSettingsMenu}
                     />
                     <CloseGlobeViewButton
                         manager={this.manager}
-                        maxWidth={this.availableWidth}
-                    />
-
-                    <MapRegionDropdown
-                        manager={this.manager}
-                        maxWidth={this.availableWidth}
+                        maxWidth={this.maxWidthSettingsMenu}
                     />
                 </div>
             </nav>

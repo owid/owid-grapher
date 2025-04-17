@@ -131,7 +131,7 @@ export class MapCountryDropdown extends React.Component<{
         return this.options.find((opt) => focusCountry === opt.value) ?? null
     }
 
-    @action.bound async populateLocalEntities(): Promise<void> {
+    @action.bound async populateLocalCountryName(): Promise<void> {
         try {
             const localCountryInfo = await getUserCountryInformation()
             if (!localCountryInfo) return
@@ -142,7 +142,7 @@ export class MapCountryDropdown extends React.Component<{
     }
 
     componentDidMount(): void {
-        void this.populateLocalEntities()
+        void this.populateLocalCountryName()
     }
 
     render(): React.ReactElement | null {
