@@ -4,17 +4,24 @@ import { computed, action } from "mobx"
 import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { Modal } from "./Modal"
 import { CodeSnippet, OverlayHeader } from "@ourworldindata/components"
+import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
 
 export interface EmbedModalManager {
-    canonicalUrl?: string
     embedUrl?: string
     embedDialogAdditionalElements?: React.ReactElement
     isEmbedModalOpen?: boolean
     frameBounds?: Bounds
+    archivedChartInfo?: ArchivedChartOrArchivePageMeta
 }
 
 interface EmbedModalProps {
     manager: EmbedModalManager
+}
+
+interface EmbedOptions {
+    title: string
+    description: JSX.Element
+    url: string
 }
 
 @observer
@@ -33,8 +40,41 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
         return this.frameBounds.padHeight(16).padWidth(padWidth)
     }
 
-    @computed private get codeSnippet(): string {
-        const url = this.manager.embedUrl
+    @computed private get embedOptions(): EmbedOptions[] {
+        const { embedUrl, archivedChartInfo } = this.manager
+
+        const opts: EmbedOptions[] = []
+
+        if (embedUrl) {
+            opts.push({
+                title: "Chart with data updates",
+                description: (
+                    <span>
+                        To embed a version of this chart that will{" "}
+                        <strong>update</strong> when we update the data on our
+                        site, paste this code into a HTML page:
+                    </span>
+                ),
+                url: embedUrl,
+            })
+        }
+        if (archivedChartInfo) {
+            opts.push({
+                title: "Archived chart without data updates",
+                description: (
+                    <span>
+                        To embed this specific version of the chart that will{" "}
+                        <strong>not update</strong> when we update the data on
+                        our site, paste this code into a HTML page:
+                    </span>
+                ),
+                url: archivedChartInfo.archiveUrl,
+            })
+        }
+        return opts
+    }
+
+    private codeSnippetForUrl(url: string): string {
         return `<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;" allow="web-share; clipboard-write"></iframe>`
     }
 
@@ -42,7 +82,10 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
         this.manager.isEmbedModalOpen = false
     }
 
-    render(): React.ReactElement {
+    render() {
+        const { embedOptions } = this
+
+        if (!embedOptions.length) return null
         return (
             <Modal
                 bounds={this.modalBounds}
@@ -55,10 +98,22 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
                 >
                     <OverlayHeader title="Embed" onDismiss={this.onDismiss} />
                     <div className="scrollable">
-                        <p className="grapher_label-1-medium">
-                            Paste this into any HTML page:
-                        </p>
-                        <CodeSnippet code={this.codeSnippet} />
+                        {embedOptions.map((option) => (
+                            <div
+                                key={option.title}
+                                className="embed-modal--option"
+                            >
+                                <h3 className="grapher_body-2-semibold embed-modal--option-title">
+                                    {option.title}
+                                </h3>
+                                <p className="grapher_label-1-medium embed-modal--option-description">
+                                    {option.description}
+                                </p>
+                                <CodeSnippet
+                                    code={this.codeSnippetForUrl(option.url)}
+                                />
+                            </div>
+                        ))}
                         {this.manager.embedDialogAdditionalElements}
                     </div>
                 </div>
