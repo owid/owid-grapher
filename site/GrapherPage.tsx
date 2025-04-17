@@ -102,16 +102,12 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { archiveInfo })`
                 <link rel="preconnect" href={dataApiOrigin} />
                 {variableIds.flatMap((variableId) =>
                     [
-                        getVariableDataRoute(
-                            DATA_API_URL,
-                            variableId,
-                            archiveInfo?.assets?.runtime
-                        ),
-                        getVariableMetadataRoute(
-                            DATA_API_URL,
-                            variableId,
-                            archiveInfo?.assets?.runtime
-                        ),
+                        getVariableDataRoute(DATA_API_URL, variableId, {
+                            assetMap: archiveInfo?.assets?.runtime,
+                        }),
+                        getVariableMetadataRoute(DATA_API_URL, variableId, {
+                            assetMap: archiveInfo?.assets?.runtime,
+                        }),
                     ].map((href) => (
                         <link
                             key={href}
