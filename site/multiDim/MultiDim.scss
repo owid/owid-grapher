@@ -1,7 +1,24 @@
+.multi-dim-container {
+    display: flex;
+    flex-direction: column;
+}
+
 .multi-dim-settings {
     margin-bottom: 16px;
 }
 
 .multi-dim-grapher-container {
-    height: $grapher-height;
+    flex-grow: 1;
+    min-height: $grapher-height;
+}
+
+html.IsInIframe {
+    .multi-dim-container {
+        height: 100vh;
+    }
+
+    .multi-dim-grapher-container {
+        min-height: auto !important;
+        max-height: none;
+    }
 }

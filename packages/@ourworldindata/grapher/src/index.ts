@@ -55,12 +55,12 @@ export {
     Grapher,
     type GrapherProgrammaticInterface,
     type GrapherManager,
-    getErrorMessageRelatedQuestionUrl,
 } from "./core/Grapher"
 export { GrapherAnalytics, EventCategory } from "./core/GrapherAnalytics"
 export { hydrateGlobalEntitySelectorIfAny } from "./controls/globalEntitySelector/GlobalEntitySelector"
 export { legacyToCurrentGrapherUrl } from "./core/GrapherUrlMigrations"
 export { legacyToOwidTableAndDimensions } from "./core/LegacyToOwidTable"
+export { getErrorMessageRelatedQuestionUrl } from "./core/relatedQuestion"
 export { LoadingIndicator } from "./loadingIndicator/LoadingIndicator"
 export { MapChart } from "./mapCharts/MapChart"
 export { MapConfig } from "./mapCharts/MapConfig"

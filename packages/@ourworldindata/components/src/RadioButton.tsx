@@ -1,6 +1,8 @@
 import * as React from "react"
+import cx from "classnames"
 
 export class RadioButton extends React.Component<{
+    className?: string
     checked: boolean
     onChange: React.ChangeEventHandler<HTMLInputElement>
     label: React.ReactNode
@@ -10,11 +12,12 @@ export class RadioButton extends React.Component<{
     "data-test"?: string
 }> {
     render(): React.ReactElement {
-        const { checked, onChange, label, group, disabled, id } = this.props
+        const { className, checked, onChange, label, group, disabled, id } =
+            this.props
         const testHook = this.props["data-test"]
 
         return (
-            <div className="radio">
+            <div className={cx("radio", className)}>
                 <label>
                     <input
                         type="radio"
