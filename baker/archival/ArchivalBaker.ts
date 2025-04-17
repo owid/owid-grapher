@@ -97,7 +97,9 @@ const bakeVariableDataFiles = async (
     variableId: number,
     archiveDir: string
 ) => {
-    const { data, metadata } = await getVariableData(variableId)
+    const { data, metadata } = await getVariableData(variableId, {
+        noCache: true,
+    })
     const dataStringified = JSON.stringify(data)
     const metadataStringified = JSON.stringify(metadata)
 

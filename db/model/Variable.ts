@@ -580,10 +580,13 @@ export async function getVariableMetadata(
 }
 
 export async function getVariableData(
-    variableId: number
+    variableId: number,
+    { noCache }: { noCache?: boolean } = {}
 ): Promise<OwidVariableDataMetadataDimensions> {
-    const dataPath = getVariableDataRoute(DATA_API_URL, variableId)
-    const metadataPath = getVariableMetadataRoute(DATA_API_URL, variableId)
+    const dataPath = getVariableDataRoute(DATA_API_URL, variableId, { noCache })
+    const metadataPath = getVariableMetadataRoute(DATA_API_URL, variableId, {
+        noCache,
+    })
 
     const [data, metadata] = await Promise.all([
         fetchS3DataValuesByPath(dataPath),

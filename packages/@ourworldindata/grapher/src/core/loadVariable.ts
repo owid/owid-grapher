@@ -8,15 +8,16 @@ import urljoin from "url-join"
 export const getVariableDataRoute = (
     dataApiUrl: string,
     variableId: number,
-    assetMap?: AssetMap
+    { assetMap, noCache }: { assetMap?: AssetMap; noCache?: boolean } = {}
 ): string => {
     if (dataApiUrl.includes("v1/indicators")) {
         const filename = `${variableId}.data.json`
-        return readFromAssetMap(assetMap, {
+        const url = readFromAssetMap(assetMap, {
             path: filename,
             // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.data.json
             fallback: urljoin(dataApiUrl, filename),
         })
+        return noCache ? `${url}?nocache` : url
     } else {
         throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
     }
@@ -25,15 +26,16 @@ export const getVariableDataRoute = (
 export const getVariableMetadataRoute = (
     dataApiUrl: string,
     variableId: number,
-    assetMap?: AssetMap
+    { assetMap, noCache }: { assetMap?: AssetMap; noCache?: boolean } = {}
 ): string => {
     if (dataApiUrl.includes("v1/indicators")) {
         const filename = `${variableId}.metadata.json`
-        return readFromAssetMap(assetMap, {
+        const url = readFromAssetMap(assetMap, {
             path: filename,
             // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.metadata.json
             fallback: urljoin(dataApiUrl, filename),
         })
+        return noCache ? `${url}?nocache` : url
     } else {
         throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
     }
@@ -45,10 +47,10 @@ export async function loadVariableDataAndMetadata(
     assetMap?: AssetMap
 ): Promise<OwidVariableDataMetadataDimensions> {
     const dataPromise = fetchWithRetry(
-        getVariableDataRoute(dataApiUrl, variableId, assetMap)
+        getVariableDataRoute(dataApiUrl, variableId, { assetMap })
     )
     const metadataPromise = fetchWithRetry(
-        getVariableMetadataRoute(dataApiUrl, variableId, assetMap)
+        getVariableMetadataRoute(dataApiUrl, variableId, { assetMap })
     )
     const [dataResponse, metadataResponse] = await Promise.all([
         dataPromise,
