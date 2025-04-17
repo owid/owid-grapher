@@ -152,6 +152,7 @@ export {
     getCitationLong,
     getCitationShort,
     grabMetadataForGdocLinkedIndicator,
+    getPhraseForArchivalDate,
 } from "./metadataHelpers.js"
 
 export { multiDimDimensionsToViewId } from "./multiDim.js"

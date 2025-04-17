@@ -138,6 +138,7 @@ export function assembleMetadata(
             def.presentation?.attributionShort,
             def.presentation?.titleVariant,
             def.owidProcessingLevel,
+            undefined,
             undefined
         )
 
