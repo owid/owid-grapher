@@ -84,7 +84,7 @@ export const GrapherPage = (props: {
         bakedGrapherURL: BAKED_GRAPHER_URL,
         dataApiUrl: DATA_API_URL,
     })}
-const archivedChartInfo = ${JSON.stringify(archivedChartInfo || undefined)};
+const archivedChartInfo = ${JSON.stringify(archivedChartInfo || undefined)}
 window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { archivedChartInfo })`
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
