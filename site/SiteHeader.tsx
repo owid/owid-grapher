@@ -18,7 +18,7 @@ export const SiteHeader = (props: SiteHeaderProps) => (
     <header className="site-header">
         {props.archiveInfo ? (
             <ArchiveSiteNavigation
-                archiveDate={props.archiveInfo.archiveDate}
+                archivalDate={props.archiveInfo.archivalDate}
                 {...props.archiveInfo.archiveNavigation}
             />
         ) : (

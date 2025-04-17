@@ -114,7 +114,7 @@ export const getLatestChartArchivedVersions = async (
         rows.map((r) => [
             r.grapherId,
             {
-                archiveDate: convertToArchivalDateStringIfNecessary(
+                archivalDate: convertToArchivalDateStringIfNecessary(
                     r.archivalTimestamp
                 ),
                 archiveUrl: assembleGrapherArchivalUrl(
@@ -124,6 +124,7 @@ export const getLatestChartArchivedVersions = async (
                         relative: false,
                     }
                 ),
+                type: "archived-chart-version",
             },
         ])
     )

@@ -416,13 +416,14 @@ async function bakeGrapherPageForArchival(
         { relative: false }
     )
     const archiveInfo: ArchiveMetaInformation = {
-        archiveDate: date.date,
+        archivalDate: date.formattedDate,
         archiveNavigation,
         archiveUrl: fullUrl,
         assets: {
             runtime: runtimeFiles,
             static: staticAssetMap,
         },
+        type: "archive-chart",
     }
     await bakeSingleGrapherPageForArchival(dir, config, trx, {
         imageMetadataDictionary,

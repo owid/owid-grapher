@@ -6,7 +6,7 @@ import { PROD_URL } from "../SiteConstants.js"
 import { parseArchivalDate } from "@ourworldindata/utils"
 
 export interface ArchiveSiteNavigationProps extends ArchiveSiteNavigationInfo {
-    archiveDate: Date | string
+    archivalDate: Date | string
 }
 
 export const ArchiveSiteNavigation = (props: ArchiveSiteNavigationProps) => {
@@ -34,7 +34,7 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
         props.previousVersion ||
         props.nextVersion
     )
-    const dayjsDate = parseArchivalDate(props.archiveDate)
+    const dayjsDate = parseArchivalDate(props.archivalDate)
 
     return (
         <nav className="archive-navigation-bar">
