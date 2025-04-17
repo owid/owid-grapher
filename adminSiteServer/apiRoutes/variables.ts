@@ -128,7 +128,7 @@ export async function getVariableDataJson(
     const variableId = parseInt(variableStr)
     if (isNaN(variableId)) throw new JsonError("Invalid variable id")
     return await fetchS3DataValuesByPath(
-        getVariableDataRoute(DATA_API_URL, variableId) + "?nocache"
+        getVariableDataRoute(DATA_API_URL, variableId, { noCache: true })
     )
 }
 
@@ -146,7 +146,7 @@ export async function getVariableMetadataJson(
     const variableId = parseInt(variableStr)
     if (isNaN(variableId)) throw new JsonError("Invalid variable id")
     return await fetchS3MetadataByPath(
-        getVariableMetadataRoute(DATA_API_URL, variableId) + "?nocache"
+        getVariableMetadataRoute(DATA_API_URL, variableId, { noCache: true })
     )
 }
 
@@ -225,7 +225,7 @@ export async function getVariablesVariableIdJson(
     const variableId = expectInt(req.params.variableId)
 
     const variable = await fetchS3MetadataByPath(
-        getVariableMetadataRoute(DATA_API_URL, variableId) + "?nocache"
+        getVariableMetadataRoute(DATA_API_URL, variableId, { noCache: true })
     )
 
     // XXX: Patch shortName onto the end of catalogPath when it's missing,
