@@ -228,7 +228,7 @@
         "flag-icons": "^7.3.1",
         "http-server": "^14.1.1",
         "husky": "^9.0.11",
-        "jsdom": "^26.0.0",
+        "jsdom": "^26.1.0",
         "lerna": "^8.2.1",
         "lint-staged": "^16.0.0",
         "prettier": "^3.5.0",
