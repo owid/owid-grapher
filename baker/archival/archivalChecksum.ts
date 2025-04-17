@@ -187,3 +187,16 @@ export const insertChartVersions = async (
     if (rows.length)
         await knex.batchInsert(ArchivedChartVersionsTableName, rows)
 }
+
+export const getAllChartVersionsForChartId = async (
+    knex: db.KnexReadonlyTransaction,
+    chartId: number
+) => {
+    const rows = await knex<DbPlainArchivedChartVersion>(
+        ArchivedChartVersionsTableName
+    )
+        .select("archivalTimestamp", "grapherSlug")
+        .where("grapherId", chartId)
+        .orderBy("archivalTimestamp", "asc")
+    return rows
+}
