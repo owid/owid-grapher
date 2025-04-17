@@ -117,7 +117,7 @@
         "mobx": "^5.15.7",
         "mobx-react": "5",
         "mousetrap": "^1.6.5",
-        "mysql2": "^3.10.1",
+        "mysql2": "^3.14.1",
         "nodejs-polars": "^0.7.2",
         "normalize.css": "^8.0.1",
         "openai": "^4.85.4",
