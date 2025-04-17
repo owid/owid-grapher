@@ -6,11 +6,14 @@ import { MapConfig } from "./MapConfig"
 import { getGeoFeaturesForGlobe } from "./GeoFeatures"
 import {
     DEFAULT_GLOBE_ROTATION,
+    DEFAULT_GLOBE_ROTATIONS_FOR_TIME,
     GLOBE_COUNTRY_ZOOM,
     GLOBE_VIEWPORTS,
 } from "./MapChartConstants"
 
 const geoFeaturesById = new Map(getGeoFeaturesForGlobe().map((f) => [f.id, f]))
+
+const LONGITUDE_OFFSET = 40
 
 interface GlobeControllerManager {
     mapConfig: MapConfig
@@ -81,7 +84,7 @@ export class GlobeController {
         // jump to the country's offset position before switching to
         // the globe so that rotating to it is predictable
         if (!this.globeConfig.isActive) {
-            this.jumpToCountry(country, 40)
+            this.jumpToCountry(country, LONGITUDE_OFFSET)
             this.showGlobe()
         }
 
@@ -92,11 +95,26 @@ export class GlobeController {
         // jump to the continents's offset position before switching to
         // the globe so that rotating to it is predictable
         if (!this.globeConfig.isActive) {
-            this.jumpToOwidContinent(continent, 40)
+            this.jumpToOwidContinent(continent, LONGITUDE_OFFSET)
             this.showGlobe()
         }
 
         this._rotateToOwidContinent(continent)
+    }
+
+    private getCoordsBasedOnTime(): [number, number] {
+        const date = new Date()
+
+        const hours = date.getUTCHours()
+        const minutes = date.getUTCMinutes()
+
+        if (hours <= 7 && minutes <= 59) {
+            return DEFAULT_GLOBE_ROTATIONS_FOR_TIME.UTC_MORNING
+        } else if (hours <= 15 && minutes <= 59) {
+            return DEFAULT_GLOBE_ROTATIONS_FOR_TIME.UTC_MIDDAY
+        } else {
+            return DEFAULT_GLOBE_ROTATIONS_FOR_TIME.UTC_EVENING
+        }
     }
 
     private getCoordsForCountry(
@@ -135,10 +153,31 @@ export class GlobeController {
         this.jumpTo({ coords, zoom, xOffset })
     }
 
+    private jumpToDefaultBasedOnTime(xOffset = 0): void {
+        const coords = this.getCoordsBasedOnTime()
+        this.jumpTo({ coords, xOffset })
+    }
+
     private _rotateToOwidContinent(continent: GlobeRegionName): void {
         const coords = this.getCoordsForOwidContinent(continent)
         const zoom = this.getZoomForOwidContinent(continent)
         void this.rotateTo(coords, zoom)
+    }
+
+    private _rotateToDefaultBasedOnTime(): void {
+        const coords = this.getCoordsBasedOnTime()
+        void this.rotateTo(coords)
+    }
+
+    rotateToDefaultBasedOnTime(): void {
+        // jump to the default offset position before switching to
+        // the globe so that rotating is predictable
+        if (!this.globeConfig.isActive) {
+            this.jumpToDefaultBasedOnTime(LONGITUDE_OFFSET)
+            this.showGlobe()
+        }
+
+        this._rotateToDefaultBasedOnTime()
     }
 
     private currentAnimation?: AbortController
