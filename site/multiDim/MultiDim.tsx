@@ -1,6 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import * as Sentry from "@sentry/react"
-import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
+import {
+    Grapher,
+    GrapherAnalytics,
+    GrapherProgrammaticInterface,
+} from "@ourworldindata/grapher"
 import {
     extractMultiDimChoicesFromSearchParams,
     GrapherQueryParams,
@@ -20,27 +24,38 @@ const baseGrapherConfig: GrapherProgrammaticInterface = {
     bakedGrapherURL: BAKED_GRAPHER_URL,
     adminBaseUrl: ADMIN_BASE_URL,
     dataApiUrl: DATA_API_URL,
+    canHideExternalControlsInEmbed: true,
     isEmbeddedInAnOwidPage: true,
 }
+
+const analytics = new GrapherAnalytics()
 
 export default function MultiDim({
     config,
     localGrapherConfig,
+    slug,
     queryStr,
 }: {
     config: MultiDimDataPageConfig
-    localGrapherConfig: GrapherProgrammaticInterface
+    localGrapherConfig?: GrapherProgrammaticInterface
+    slug: string | null
     queryStr: string
 }) {
     const grapherRef = useRef<Grapher>(null)
     const grapherContainerRef = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(grapherContainerRef)
     const [manager, setManager] = useState({
-        ...localGrapherConfig.manager,
+        ...localGrapherConfig?.manager,
     })
+    const searchParams = useMemo(
+        () => new URLSearchParams(queryStr),
+        [queryStr]
+    )
+    const hasControls = searchParams.get("hideControls") !== "true"
+
     const [settings, setSettings] = useState(() => {
         const choices = extractMultiDimChoicesFromSearchParams(
-            new URLSearchParams(queryStr),
+            searchParams,
             config
         )
         return config.filterToAvailableChoices(choices).selectedChoices
@@ -54,6 +69,10 @@ export default function MultiDim({
         },
         [config]
     )
+
+    useEffect(() => {
+        if (slug) analytics.logGrapherView(slug, { view: settings })
+    }, [slug, settings])
 
     useEffect(() => {
         // Prevent a race condition from setting incorrect data.
@@ -79,7 +98,11 @@ export default function MultiDim({
 
         const newGrapherParams: GrapherQueryParams = {
             ...grapher.changedParams,
-            tab: grapher.mapGrapherTabToQueryParam(grapher.activeTab),
+            // If the grapher has data preserve the active tab in the new view,
+            // otherwise use the tab from the URL.
+            tab: grapher.hasData
+                ? grapher.mapGrapherTabToQueryParam(grapher.activeTab)
+                : (searchParams.get("tab") ?? undefined),
             ...settings,
         }
 
@@ -101,16 +124,18 @@ export default function MultiDim({
         return () => {
             ignoreFetchedData = true
         }
-    }, [config, localGrapherConfig, settings])
+    }, [config, localGrapherConfig, searchParams, settings])
 
     return (
-        <>
-            <MultiDimSettingsPanel
-                className="multi-dim-settings"
-                config={config}
-                settings={settings}
-                onChange={handleSettingsChange}
-            />
+        <div className="multi-dim-container">
+            {hasControls && (
+                <MultiDimSettingsPanel
+                    className="multi-dim-settings"
+                    config={config}
+                    settings={settings}
+                    onChange={handleSettingsChange}
+                />
+            )}
             <div
                 className="multi-dim-grapher-container"
                 ref={grapherContainerRef}
@@ -123,6 +148,6 @@ export default function MultiDim({
                     queryStr={queryStr}
                 />
             </div>
-        </>
+        </div>
     )
 }

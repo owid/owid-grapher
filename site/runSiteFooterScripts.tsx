@@ -5,6 +5,7 @@ import {
     DataPageV2ContentFields,
     deserializeOwidGdocPageData,
     isNil,
+    MultiDimDataPageConfig,
     OwidGdocType,
     parseIntOrUndefined,
     SiteFooterContext,
@@ -40,7 +41,7 @@ import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import {
     MultiDimDataPageContent,
-    MultiDimDataPageContentProps,
+    MultiDimDataPageData,
 } from "./multiDim/MultiDimDataPageContent.js"
 import { BrowserRouter } from "react-router-dom-v5-compat"
 import { REDUCED_TRACKING } from "../settings/clientSettings.js"
@@ -206,12 +207,14 @@ const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
 
 const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
-    const props: MultiDimDataPageContentProps = window._OWID_MULTI_DIM_PROPS!
+    const { configObj, ...props }: MultiDimDataPageData =
+        window._OWID_MULTI_DIM_PROPS!
 
     hydrate(
         <DebugProvider debug={isPreviewing}>
             <BrowserRouter>
                 <MultiDimDataPageContent
+                    config={MultiDimDataPageConfig.fromObject(configObj)}
                     {...props}
                     isPreviewing={isPreviewing}
                 />
