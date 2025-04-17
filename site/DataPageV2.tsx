@@ -15,8 +15,6 @@ import {
     GrapherInterface,
     ImageMetadata,
     Url,
-    ArchiveMetaInformation,
-    ChartArchivedVersion,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import urljoin from "url-join"
@@ -35,6 +33,7 @@ import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
+import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
 
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
@@ -45,8 +44,7 @@ export const DataPageV2 = (props: {
     faqEntries?: FaqEntryData
     imageMetadata: Record<string, ImageMetadata>
     tagToSlugMap: Record<string | number, string>
-    archiveInfo?: ArchiveMetaInformation
-    archivedVersion?: ChartArchivedVersion
+    archivedChartInfo?: ArchivedChartOrArchivePageMeta
     dataApiUrl?: string
 }) => {
     const {
@@ -58,8 +56,7 @@ export const DataPageV2 = (props: {
         faqEntries,
         tagToSlugMap,
         imageMetadata,
-        archiveInfo,
-        archivedVersion,
+        archivedChartInfo,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title.title
     const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
@@ -106,6 +103,9 @@ export const DataPageV2 = (props: {
         datapageData.topicTagsLinks || []
     )
 
+    const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
+    const assetMaps = isOnArchivalPage ? archivedChartInfo.assets : undefined
+
     return (
         <Html>
             <Head
@@ -114,7 +114,7 @@ export const DataPageV2 = (props: {
                 pageDesc={pageDesc}
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
-                staticAssetMap={archiveInfo?.assets?.static}
+                staticAssetMap={assetMaps?.static}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
@@ -123,10 +123,10 @@ export const DataPageV2 = (props: {
                 {variableIds.flatMap((variableId) =>
                     [
                         getVariableDataRoute(DATA_API_URL, variableId, {
-                            assetMap: archiveInfo?.assets?.runtime,
+                            assetMap: assetMaps?.runtime,
                         }),
                         getVariableMetadataRoute(DATA_API_URL, variableId, {
-                            assetMap: archiveInfo?.assets?.runtime,
+                            assetMap: assetMaps?.runtime,
                         }),
                     ].map((href) => (
                         <link
@@ -147,7 +147,11 @@ export const DataPageV2 = (props: {
                 />
             </Head>
             <body className="DataPage">
-                <SiteHeader archiveInfo={archiveInfo} />
+                <SiteHeader
+                    archiveInfo={
+                        isOnArchivalPage ? archivedChartInfo : undefined
+                    }
+                />
                 <main>
                     <script
                         dangerouslySetInnerHTML={{
@@ -156,7 +160,7 @@ export const DataPageV2 = (props: {
                                     datapageData,
                                     faqEntries,
                                     canonicalUrl,
-                                    archivedVersion,
+                                    archivedChartInfo,
                                     tagToSlugMap: minimalTagToSlugMap,
                                     imageMetadata,
                                 }
@@ -173,7 +177,7 @@ export const DataPageV2 = (props: {
                                 faqEntries={faqEntries}
                                 canonicalUrl={canonicalUrl}
                                 tagToSlugMap={tagToSlugMap}
-                                archivedVersion={archivedVersion}
+                                archivedChartInfo={archivedChartInfo}
                             />
                         </DebugProvider>
                     </div>
@@ -181,7 +185,9 @@ export const DataPageV2 = (props: {
                 <SiteFooter
                     context={SiteFooterContext.dataPageV2}
                     isPreviewing={isPreviewing}
-                    archiveInfo={archiveInfo}
+                    archiveInfo={
+                        isOnArchivalPage ? archivedChartInfo : undefined
+                    }
                 />
                 <script
                     dangerouslySetInnerHTML={{

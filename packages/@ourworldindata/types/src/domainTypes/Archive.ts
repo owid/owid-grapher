@@ -29,9 +29,9 @@ export interface ArchiveMetaInformation
         runtime: AssetMap
         static?: AssetMap
     }
-    type: "archive-chart"
+    type: "archive-page"
 }
 
-export type ArchivedChartOrArchiveChartMeta =
+export type ArchivedChartOrArchivePageMeta =
     | ChartArchivedVersion
     | ArchiveMetaInformation

@@ -9,7 +9,7 @@ import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { Static, Type } from "@sinclair/typebox"
 import { OwidEnrichedGdocBlock } from "./ArchieMlComponents.js"
 import { ImageMetadata } from "./Image.js"
-import { ChartArchivedVersion } from "../domainTypes/Archive.js"
+import { ArchivedChartOrArchivePageMeta } from "../domainTypes/Archive.js"
 
 export interface FaqLink {
     gdocId: string
@@ -136,7 +136,7 @@ export interface DataPageV2ContentFields {
     canonicalUrl: string
     tagToSlugMap: Record<string, string>
     imageMetadata: Record<string, ImageMetadata>
-    archivedVersion: ChartArchivedVersion | undefined
+    archivedChartInfo?: ArchivedChartOrArchivePageMeta
 }
 
 export interface DisplaySource {

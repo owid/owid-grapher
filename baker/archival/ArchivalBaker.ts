@@ -423,7 +423,7 @@ async function bakeGrapherPageForArchival(
             runtime: runtimeFiles,
             static: staticAssetMap,
         },
-        type: "archive-chart",
+        type: "archive-page",
     }
     await bakeSingleGrapherPageForArchival(dir, config, trx, {
         imageMetadataDictionary,

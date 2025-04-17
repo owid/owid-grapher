@@ -14,7 +14,6 @@ import {
     OwidSource,
     IndicatorTitleWithFragments,
     OwidProcessingLevel,
-    ChartArchivedVersion,
 } from "@ourworldindata/types"
 import {
     prepareSourcesForDisplay,
@@ -24,6 +23,7 @@ import {
     uniq,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
+import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
 
 export default function MetadataSection({
     attributionShort,
@@ -37,7 +37,7 @@ export default function MetadataSection({
     source,
     title,
     titleVariant,
-    archivedVersion,
+    archivedChartInfo,
 }: {
     attributionShort?: string
     attributions: string[]
@@ -50,10 +50,10 @@ export default function MetadataSection({
     source?: OwidSource
     title: IndicatorTitleWithFragments
     titleVariant?: string
-    archivedVersion?: ChartArchivedVersion
+    archivedChartInfo?: ArchivedChartOrArchivePageMeta
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
-    const citationUrl = archivedVersion?.archiveUrl ?? canonicalUrl
+    const citationUrl = archivedChartInfo?.archiveUrl ?? canonicalUrl
     const citationShort = getCitationShort(
         origins,
         attributions,

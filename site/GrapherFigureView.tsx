@@ -24,7 +24,7 @@ export const GrapherFigureView = ({
     const base = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(base)
 
-    const archiveInfo =
+    const archivedChartInfo =
         (typeof window !== "undefined" && window._OWID_ARCHIVE_INFO) ||
         undefined
 
@@ -35,7 +35,7 @@ export const GrapherFigureView = ({
         queryStr: grapher.props.bindUrlToWindow
             ? window.location.search
             : undefined,
-        archiveInfo,
+        archivedChartInfo,
         bounds,
         dataApiUrl: DATA_API_URL,
         enableKeyboardShortcuts: true,

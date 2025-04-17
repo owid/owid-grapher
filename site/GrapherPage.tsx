@@ -15,8 +15,6 @@ import {
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import {
-    ArchiveMetaInformation,
-    ChartArchivedVersion,
     HIDE_IF_JS_DISABLED_CLASSNAME,
     HIDE_IF_JS_ENABLED_CLASSNAME,
 } from "@ourworldindata/types"
@@ -34,6 +32,7 @@ import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 import GrapherImage from "./GrapherImage.js"
 import { Html } from "./Html.js"
+import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
@@ -41,8 +40,7 @@ export const GrapherPage = (props: {
     relatedArticles?: PostReference[]
     baseUrl: string
     baseGrapherUrl: string
-    archiveInfo?: ArchiveMetaInformation
-    archivedVersion?: ChartArchivedVersion
+    archivedChartInfo?: ArchivedChartOrArchivePageMeta
 }) => {
     const {
         grapher,
@@ -50,11 +48,8 @@ export const GrapherPage = (props: {
         relatedArticles,
         baseGrapherUrl,
         baseUrl,
-        archiveInfo,
-        archivedVersion,
+        archivedChartInfo,
     } = props
-    const _unused = archivedVersion?.archiveUrl // TODO actually use archivedVersion, probably pass it to Grapher
-
     const pageTitle = grapher.title
     const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
     const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
@@ -89,10 +84,13 @@ export const GrapherPage = (props: {
         bakedGrapherURL: BAKED_GRAPHER_URL,
         dataApiUrl: DATA_API_URL,
     })}
-const archiveInfo = (typeof window !== "undefined" && window._OWID_ARCHIVE_INFO) || undefined;
-window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { archiveInfo })`
+const archivedChartInfo = ${JSON.stringify(archivedChartInfo || undefined)};
+window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { archivedChartInfo })`
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
+
+    const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
+    const assetMaps = isOnArchivalPage ? archivedChartInfo.assets : undefined
 
     return (
         <Html>
@@ -102,7 +100,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { archiveInfo })`
                 pageDesc={pageDesc}
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
-                staticAssetMap={archiveInfo?.assets?.static}
+                staticAssetMap={assetMaps?.static}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
@@ -111,10 +109,10 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { archiveInfo })`
                 {variableIds.flatMap((variableId) =>
                     [
                         getVariableDataRoute(DATA_API_URL, variableId, {
-                            assetMap: archiveInfo?.assets?.runtime,
+                            assetMap: assetMaps?.runtime,
                         }),
                         getVariableMetadataRoute(DATA_API_URL, variableId, {
-                            assetMap: archiveInfo?.assets?.runtime,
+                            assetMap: assetMaps?.runtime,
                         }),
                     ].map((href) => (
                         <link
@@ -135,7 +133,11 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { archiveInfo })`
                 />
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
-                <SiteHeader archiveInfo={archiveInfo} />
+                <SiteHeader
+                    archiveInfo={
+                        isOnArchivalPage ? archivedChartInfo : undefined
+                    }
+                />
                 <main>
                     <figure
                         className={HIDE_IF_JS_DISABLED_CLASSNAME}
@@ -188,7 +190,9 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig, { archiveInfo })`
                 </main>
                 <SiteFooter
                     context={SiteFooterContext.grapherPage}
-                    archiveInfo={archiveInfo}
+                    archiveInfo={
+                        isOnArchivalPage ? archivedChartInfo : undefined
+                    }
                 />
                 <script
                     type="module"
