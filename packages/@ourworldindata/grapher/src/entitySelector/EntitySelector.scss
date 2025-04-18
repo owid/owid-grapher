@@ -65,18 +65,8 @@
                 padding-right: $svg-margin + $svg-size + 4px;
                 border-radius: 4px;
                 background: #fff;
-
-                // style placeholder text in search input
-                &::placeholder {
-                    color: $placeholder;
-                    opacity: 1; /* Firefox */
-                }
-                &:-ms-input-placeholder {
-                    color: $placeholder;
-                }
-                &::-ms-input-placeholder {
-                    color: $placeholder;
-                }
+                color: $dark-text;
+                font-size: 16px; // prevent auto-zoom on ios
 
                 // style focus state
                 &:focus {
@@ -89,6 +79,16 @@
                 &:focus-visible {
                     border: $focus;
                 }
+            }
+
+            .search-placeholder {
+                @include grapher_label-2-regular;
+                color: $placeholder;
+                pointer-events: none;
+                position: absolute;
+                top: 50%;
+                left: $svg-size + $svg-margin + 6px;
+                transform: translateY(-50%);
             }
 
             &.search-input--empty {
