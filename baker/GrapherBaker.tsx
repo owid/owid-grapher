@@ -388,7 +388,7 @@ export interface BakeSingleGrapherChartArguments {
     bakedSiteDir: string
     slug: string
     imageMetadataDictionary: Record<string, DbEnrichedImage>
-    archivedChartInfo?: ArchivedChartOrArchivePageMeta
+    archivedChartInfo: ArchivedChartOrArchivePageMeta | undefined
 }
 
 export const bakeSingleGrapherChart = async (
@@ -448,7 +448,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         bakedSiteDir: bakedSiteDir,
         slug: row.slug,
         imageMetadataDictionary,
-        archivedVersion: archivedVersions[row.id] || undefined,
+        archivedChartInfo: archivedVersions[row.id] || undefined,
     }))
 
     const progressBar = new ProgressBar(
