@@ -56,7 +56,6 @@ export enum TransformType {
     // Row ops
     FilterRows = "FilterRows",
     SortRows = "SortRows",
-    AppendRows = "AppendRows", // todo: should this will also rerun any column transforms on the new rows?
     UpdateRows = "UpdateRows", // replace values in a row. For example: to prep columns for log scale, or testing messy runtime data scenarios.
     InverseFilterRows = "InverseFilterRows",
 
