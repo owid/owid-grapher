@@ -3,7 +3,6 @@ import {
     min,
     max,
     range,
-    difference,
     intersection,
     sum,
     uniqBy,
@@ -1099,48 +1098,6 @@ export class CoreTable<
         return [this.columnSlugs, ...rows]
     }
 
-    private join(
-        destinationTable: CoreTable,
-        sourceTable: CoreTable,
-        by?: ColumnSlug[]
-    ): COL_DEF_TYPE[] {
-        by ??= intersection(
-            sourceTable.columnSlugs,
-            destinationTable.columnSlugs
-        )
-        const columnSlugsToAdd = difference(
-            sourceTable.columnSlugs,
-            destinationTable.columnSlugs
-        )
-        const defsToAdd = sourceTable
-            .getColumns(columnSlugsToAdd)
-            .map((col) => {
-                const def = { ...col.def }
-                def.values = []
-                return def
-            }) as COL_DEF_TYPE[]
-
-        const rightIndex = sourceTable.rowIndex(by)
-        const sourceColumns = sourceTable.columnStore
-        const keyFn = makeKeyFn(destinationTable.columnStore, by)
-
-        destinationTable.indices.forEach((rowIndex) => {
-            const matchingRightRowIndex = rightIndex.get(keyFn(rowIndex))
-            defsToAdd.forEach((def) => {
-                if (matchingRightRowIndex !== undefined)
-                    def.values?.push(
-                        sourceColumns[def.slug][matchingRightRowIndex[0]]
-                    )
-                // todo: use first or last match?
-                else
-                    def.values?.push(
-                        ErrorValueTypes.NoMatchingValueAfterJoin as any
-                    )
-            })
-        })
-        return defsToAdd
-    }
-
     concat(tables: CoreTable[], message: string = `Combined tables`): this {
         const all = [this, ...tables] as CoreTable[]
         const defs = all.flatMap((table) => table.defs) as COL_DEF_TYPE[]
@@ -1242,27 +1199,6 @@ export class CoreTable<
             [appendTable],
             `Append missing combos of ${columnSlugs}`
         )
-    }
-
-    leftJoin(rightTable: CoreTable, by?: ColumnSlug[]): this {
-        return this.appendColumns(this.join(this, rightTable, by))
-    }
-
-    rightJoin(rightTable: CoreTable, by?: ColumnSlug[]): this {
-        return rightTable.leftJoin(this, by) as any // todo: change parent?
-    }
-
-    innerJoin(rightTable: CoreTable, by?: ColumnSlug[]): this {
-        const defs = this.join(this, rightTable, by)
-        const newValues = defs.map((def) => def.values)
-        const rowsToDrop: number[] = []
-        newValues.forEach((col) => {
-            col?.forEach((value, index) => {
-                if ((value as any) === ErrorValueTypes.NoMatchingValueAfterJoin)
-                    rowsToDrop.push(index)
-            })
-        })
-        return this.appendColumns(defs).dropRowsAt(rowsToDrop)
     }
 
     indexBy(slug: ColumnSlug): Map<CoreValueType, number[]> {
