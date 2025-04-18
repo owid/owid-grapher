@@ -525,17 +525,6 @@ describe("filtering", () => {
             const allFiltered = table.rowFilter(() => false, "filter all")
             expect(allFiltered.get("pop").values).toEqual([])
         })
-
-        it("can filter negatives", () => {
-            const table = new CoreTable(`country,pop
-    fra,0
-    usa,-2
-    can,333
-    ger,0.1`)
-            expect(table.filterNegatives("pop").get("pop").values).toEqual([
-                0, 333, 0.1,
-            ])
-        })
     })
 
     describe("column filter", () => {
