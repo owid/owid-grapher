@@ -1201,28 +1201,6 @@ export class CoreTable<
         )
     }
 
-    indexBy(slug: ColumnSlug): Map<CoreValueType, number[]> {
-        const map = new Map<CoreValueType, number[]>()
-        this.get(slug).values.map((value, index) => {
-            if (!map.has(value)) map.set(value, [])
-            map.get(value)!.push(index)
-        })
-        return map
-    }
-
-    groupBy(by: ColumnSlug): this[] {
-        const index = this.indexBy(by)
-        return Array.from(index.keys()).map((groupName) =>
-            this.transform(
-                this.columnStore,
-                this.defs,
-                `Rows for group ${groupName}`,
-                TransformType.FilterRows,
-                new FilterMask(this.numRows, index.get(groupName)!)
-            )
-        )
-    }
-
     reduce(reductionMap: ReductionMap): this {
         const lastRow = { ...this.lastRow }
         Object.keys(reductionMap).forEach((slug: keyof ROW_TYPE) => {
