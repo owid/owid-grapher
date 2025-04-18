@@ -553,6 +553,10 @@ export interface MapConfigInterface {
     globe?: GlobeConfig
     colorScale?: Partial<ColorScaleConfigInterface>
     tooltipUseCustomLabels?: boolean
+
+    // should be `EntityName[] | SelectionArray` but SelectionArray isn't available here;
+    // only passed in for testing, so type safety isn't that much of a concern here
+    selectedCountries?: any
 }
 
 // This configuration represents the entire persistent state of a grapher

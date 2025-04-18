@@ -118,6 +118,7 @@ export {
     GrapherTooltipAnchor,
     type InteractionState,
     type GlobeConfig,
+    type MapConfigInterface,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {
