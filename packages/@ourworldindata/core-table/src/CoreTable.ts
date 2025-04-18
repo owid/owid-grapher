@@ -861,35 +861,12 @@ export class CoreTable<
         )
     }
 
-    limit(howMany: number, offset: number = 0): this {
-        const start = offset
-        const end = offset + howMany
-        return this.transform(
-            this.columnStore,
-            this.defs,
-            `Kept ${howMany} rows starting at ${offset}`,
-            TransformType.FilterRows,
-            new FilterMask(
-                this.numRows,
-                this.indices.map((index) => index >= start && index < end)
-            )
-        )
-    }
-
     updateDefs(fn: (def: COL_DEF_TYPE) => COL_DEF_TYPE): this {
         return this.transform(
             this.columnStore,
             this.defs.map(fn),
             `Updated column defs`,
             TransformType.UpdateColumnDefs
-        )
-    }
-
-    limitColumns(howMany: number, offset: number = 0): this {
-        const slugs = this.columnSlugs.slice(offset, howMany + offset)
-        return this.dropColumns(
-            slugs,
-            `Kept ${howMany} columns and dropped '${slugs}'`
         )
     }
 
