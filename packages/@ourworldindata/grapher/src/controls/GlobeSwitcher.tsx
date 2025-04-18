@@ -4,12 +4,19 @@ import { action, computed, observable } from "mobx"
 import { TabLabel, Tabs } from "../tabs/Tabs"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { GlobeController } from "../mapCharts/GlobeController"
-import { EntityName, getUserCountryInformation } from "@ourworldindata/utils"
+import {
+    checkIsCountry,
+    EntityName,
+    getRegionByName,
+    getUserCountryInformation,
+} from "@ourworldindata/utils"
+import { MapRegionDropdownValue } from "./MapRegionDropdown"
 
 export interface GlobeSwitcherManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
     globeController?: GlobeController
+    mapRegionDropdownValue?: MapRegionDropdownValue
     shouldShowEntitySelectorOnMapTab?: boolean
 }
 
@@ -59,7 +66,17 @@ export class GlobeSwitcher extends React.Component<{
         const newTab = this.availableTabs[tabIndex]
 
         if (newTab === "3D") {
-            if (this.localCountryName) {
+            const isSomeCountrySelected =
+                this.manager.mapConfig?.selectedCountries.selectedEntityNames.some(
+                    (name) => {
+                        const region = getRegionByName(name)
+                        return region && checkIsCountry(region)
+                    }
+                )
+            if (isSomeCountrySelected) {
+                // if the selection is not empty, rotate to it
+                this.manager.globeController?.rotateToSelection()
+            } else if (this.localCountryName) {
                 // rotate to the user's current location if possible
                 this.manager.globeController?.rotateToCountry(
                     this.localCountryName
@@ -71,6 +88,9 @@ export class GlobeSwitcher extends React.Component<{
         } else {
             this.manager.globeController?.hideGlobe()
         }
+
+        // reset the map region dropdown
+        this.manager.mapRegionDropdownValue = undefined
     }
 
     @action.bound async populateLocalCountryName(): Promise<void> {
