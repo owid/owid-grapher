@@ -294,17 +294,6 @@ describe("set methods", () => {
         ).toEqual(3)
     })
 
-    it("can perform a union", () => {
-        const table = new CoreTable(sampleCsv)
-        expect(table.union([new CoreTable(sampleCsv)]).numRows).toEqual(4)
-
-        expect(
-            table.union([
-                new CoreTable([{ country: "Mexico", population: 20 }]),
-            ]).numRows
-        ).toEqual(5)
-    })
-
     it("can perform a diff", () => {
         const table = new CoreTable(sampleCsv)
         expect(table.difference([new CoreTable(sampleCsv)]).numRows).toEqual(0)
@@ -313,10 +302,6 @@ describe("set methods", () => {
         expect(table.difference([tb]).numRows).toEqual(4)
 
         expect(tb.difference([table]).numRows).toEqual(1)
-    })
-
-    it("does not drop any rows if there are no duplicates", () => {
-        expect(new CoreTable(sampleCsv).dropDuplicateRows().numRows).toEqual(4)
     })
 })
 
@@ -748,18 +733,6 @@ describe("joins", () => {
                 ["country", "time", "color", "population"],
                 ["usa", 2000, "red", 55],
                 ["can", 2001, "green", 66],
-            ])
-        })
-    })
-
-    describe("full join", () => {
-        it("can do a full join", () => {
-            expect(leftTable.fullJoin(rightTable).toTypedMatrix()).toEqual([
-                ["country", "time", "color", "population"],
-                ["usa", 2000, "red", 55],
-                ["can", 2001, "green", 66],
-                ["fra", 2002, "red", ErrorValueTypes.NoMatchingValueAfterJoin],
-                ["turk", 2002, ErrorValueTypes.NoMatchingValueAfterJoin, 77],
             ])
         })
     })

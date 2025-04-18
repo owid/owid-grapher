@@ -910,22 +910,6 @@ export class CoreTable<
         )
     }
 
-    @imemo get duplicateRowIndices(): number[] {
-        const keyFn = makeKeyFn(this.columnStore, this.columnSlugs)
-        const dupeSet = new Set()
-        const dupeIndices: number[] = []
-        this.indices.forEach((rowIndex) => {
-            const key = keyFn(rowIndex)
-            if (dupeSet.has(key)) dupeIndices.push(rowIndex)
-            else dupeSet.add(key)
-        })
-        return dupeIndices
-    }
-
-    dropDuplicateRows(): this {
-        return this.dropRowsAt(this.duplicateRowIndices)
-    }
-
     isRowEmpty(index: number): boolean {
         const { columnStore } = this
         return (
@@ -1395,16 +1379,6 @@ export class CoreTable<
             })
         })
         return this.appendColumns(defs).dropRowsAt(rowsToDrop)
-    }
-
-    fullJoin(rightTable: CoreTable, by?: ColumnSlug[]): this {
-        return this.leftJoin(rightTable, by)
-            .concat([rightTable.leftJoin(this, by)])
-            .dropDuplicateRows()
-    }
-
-    union(tables: CoreTable[]): this {
-        return this.concat(tables).dropDuplicateRows()
     }
 
     indexBy(slug: ColumnSlug): Map<CoreValueType, number[]> {
