@@ -1079,29 +1079,6 @@ export class CoreTable<
         )
     }
 
-    transpose(
-        by: ColumnSlug,
-        columnTypeNameForNewColumns = ColumnTypeNames.Numeric
-    ): this {
-        const newColumnSlugs = [by, ...this.get(by).uniqValues]
-        const newColumnDefs = newColumnSlugs.map((slug) => {
-            if (slug === by) return { slug }
-            return {
-                type: columnTypeNameForNewColumns,
-                slug,
-            }
-        }) as COL_DEF_TYPE[]
-        const newRowValues = this.columnsAsArray
-            .filter((col) => col.slug !== by)
-            .map((col) => [col.slug, ...col.valuesIncludingErrorValues])
-        return this.transform(
-            [newColumnSlugs, ...newRowValues],
-            newColumnDefs,
-            `Transposed`,
-            TransformType.Transpose
-        )
-    }
-
     columnIntersection(tables: CoreTable[]): string[] {
         return intersection(
             this.columnSlugs,

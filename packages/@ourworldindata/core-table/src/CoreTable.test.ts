@@ -243,19 +243,6 @@ france,60`,
         expect(table.toMatrix()[1][1]).toEqual(undefined)
     })
 
-    it("can transpose a table", () => {
-        let table = new CoreTable([
-            { fruit: 123, veggies: 234, entity: "usa" },
-            { fruit: 456, veggies: 789, entity: "canada" },
-            { fruit: 333, veggies: 222, entity: "spain" },
-        ])
-        table = table.transpose("entity")
-        expect(table.columnSlugs).toEqual(["entity", "usa", "canada", "spain"])
-        expect(table.numRows).toEqual(2)
-        const firstRow = table.firstRow as any
-        expect(firstRow.canada).toEqual(456)
-    })
-
     it("can create a table with columns but no rows", () => {
         expect(
             new CoreTable({}, [{ slug: "entityId" }]).get("entityId").values
