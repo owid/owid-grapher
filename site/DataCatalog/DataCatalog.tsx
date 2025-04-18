@@ -41,7 +41,7 @@ import { DataCatalogDataInsights } from "./DataCatalogDataInsights.js"
 import { DataCatalogSettings } from "./DataCatalogSettings.js"
 import { DataCatalogHighlights } from "./DataCatalogHighlights.js"
 import { ScrollDirection, useScrollDirection } from "../hooks.js"
-import { ContentTypeToggle } from "./ContentTypeToggle.js"
+import { DataCatalogContentTypeToggle } from "./ContentTypeToggle.js"
 import { DataCatalogFuzzyMatcher } from "./DataCatalogFuzzyMatcher.js"
 import { DataCatalogResearch } from "./DataCatalogResearch.js"
 
@@ -151,7 +151,7 @@ export const DataCatalog = ({
     // Components that can be reordered and toggled
     const componentMap: Record<CatalogComponentId, JSX.Element> = {
         [CatalogComponentId.CONTENT_TYPE_TOGGLE]: (
-            <ContentTypeToggle
+            <DataCatalogContentTypeToggle
                 contentTypeFilter={state.contentTypeFilter}
                 setContentTypeFilter={actions.setContentTypeFilter}
             />

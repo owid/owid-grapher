@@ -7,7 +7,7 @@ interface ContentTypeToggleProps {
     setContentTypeFilter: (filter: CatalogContentType) => void
 }
 
-export const ContentTypeToggle = ({
+export const DataCatalogContentTypeToggle = ({
     contentTypeFilter,
     setContentTypeFilter,
 }: ContentTypeToggleProps) => {
