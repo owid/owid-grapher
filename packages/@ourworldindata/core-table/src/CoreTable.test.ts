@@ -465,19 +465,6 @@ describe("column operations", () => {
             }).columnNames
         ).toEqual(["COUNTRY", "YEAR"])
     })
-
-    it("can sort columns", () => {
-        const rows = [
-            { country: "USA", year: 1999 },
-            { country: "Germany", year: 2000 },
-        ]
-        const table = new CoreTable(rows)
-        expect(table.columnSlugs).toEqual(["country", "year"])
-        expect(table.sortColumns(["year", "country"]).columnSlugs).toEqual([
-            "year",
-            "country",
-        ])
-    })
 })
 
 describe("searching", () => {

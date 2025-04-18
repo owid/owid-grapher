@@ -605,17 +605,6 @@ export class CoreTable<
         )
     }
 
-    sortColumns(slugs: ColumnSlug[]): this {
-        const first = this.getColumns(slugs)
-        const rest = this.columnsAsArray.filter((col) => !first.includes(col))
-        return this.transform(
-            this.columnStore,
-            [...first, ...rest].map((col) => col.def as COL_DEF_TYPE),
-            `Sorted columns`,
-            TransformType.SortColumns
-        )
-    }
-
     // Assumes table is sorted by columnSlug. Returns an array representing the starting index of each new group.
     protected groupBoundaries(columnSlug: ColumnSlug): number[] {
         const values = this.get(columnSlug).valuesIncludingErrorValues
