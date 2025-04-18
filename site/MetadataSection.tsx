@@ -21,8 +21,10 @@ import {
     getCitationLong,
     excludeUndefined,
     uniq,
+    getPhraseForArchivalDate,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
+import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
 
 export default function MetadataSection({
     attributionShort,
@@ -36,6 +38,7 @@ export default function MetadataSection({
     source,
     title,
     titleVariant,
+    archivedChartInfo,
 }: {
     attributionShort?: string
     attributions: string[]
@@ -48,8 +51,10 @@ export default function MetadataSection({
     source?: OwidSource
     title: IndicatorTitleWithFragments
     titleVariant?: string
+    archivedChartInfo?: ArchivedChartOrArchivePageMeta
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
+    const citationUrl = archivedChartInfo?.archiveUrl ?? canonicalUrl
     const citationShort = getCitationShort(
         origins,
         attributions,
@@ -63,7 +68,8 @@ export default function MetadataSection({
         attributionShort,
         titleVariant,
         owidProcessingLevel,
-        canonicalUrl
+        citationUrl,
+        archivedChartInfo?.archivalDate
     )
     const currentYear = dayjs().year()
     const producers = uniq(origins.map((o) => `${o.producer}`))
@@ -75,12 +81,17 @@ export default function MetadataSection({
 
     // For the citation of the data page add a period it doesn't have that or a question mark
     const primaryTopicCitation = maybeAddPeriod(primaryTopic?.citation ?? "")
+    const archivalString = getPhraseForArchivalDate(
+        archivedChartInfo?.archivalDate
+    )
     const citationDatapage = excludeUndefined([
         primaryTopic
             ? `“Data Page: ${title.title}”, part of the following publication: ${primaryTopicCitation}`
             : `“Data Page: ${title.title}”. Our World in Data (${currentYear}).`,
         adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
-        `Retrieved from ${canonicalUrl} [online resource]`,
+        `Retrieved from ${citationUrl} [online resource]${
+            archivalString ? ` ${archivalString}` : ""
+        }`,
     ]).join(" ")
     return (
         <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">

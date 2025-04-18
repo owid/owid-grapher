@@ -54,6 +54,7 @@ export function* getCitationLines(
         def.presentation?.attributionShort,
         def.presentation?.titleVariant,
         def.owidProcessingLevel,
+        undefined,
         undefined
     )
     yield citationLong

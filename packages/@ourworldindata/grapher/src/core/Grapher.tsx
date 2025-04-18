@@ -116,7 +116,6 @@ import {
     OwidChartDimensionInterfaceWithMandatorySlug,
     AssetMap,
     Entity,
-    ArchiveMetaInformation,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -231,6 +230,7 @@ import {
     GRAPHER_LIGHT_TEXT,
 } from "../color/ColorConstants"
 import { FacetChart } from "../facetChart/FacetChart"
+import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
 
 declare global {
     interface Window {
@@ -340,7 +340,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
         ChartViewInfo,
         "parentChartSlug" | "queryParamsForParentChart"
     >
-    archiveInfo?: ArchiveMetaInformation
+    archivedChartInfo?: ArchivedChartOrArchivePageMeta
 
     manager?: GrapherManager
     instanceRef?: React.RefObject<Grapher>
@@ -517,7 +517,8 @@ export class Grapher
         "name" | "parentChartSlug" | "queryParamsForParentChart"
     > = undefined
 
-    archiveInfo?: ArchiveMetaInformation = this.props.archiveInfo
+    archivedChartInfo?: ArchivedChartOrArchivePageMeta =
+        this.props.archivedChartInfo
 
     selection =
         this.manager?.selection ??
@@ -811,8 +812,14 @@ export class Grapher
         return this.isScatter || this.isMarimekko
     }
 
+    @computed private get isOnArchivalPage(): boolean {
+        return this.archivedChartInfo?.type === "archive-page"
+    }
+
     @computed private get runtimeAssetMap(): AssetMap | undefined {
-        return this.archiveInfo?.assets?.runtime
+        return this.archivedChartInfo?.type === "archive-page"
+            ? this.archivedChartInfo.assets.runtime
+            : undefined
     }
 
     @computed private get settingsMenu(): SettingsMenu {
@@ -2409,7 +2416,9 @@ export class Grapher
 
     static renderSingleGrapherOnGrapherPage(
         jsonConfig: GrapherInterface,
-        { archiveInfo }: { archiveInfo?: ArchiveMetaInformation } = {}
+        {
+            archivedChartInfo,
+        }: { archivedChartInfo?: ArchivedChartOrArchivePageMeta } = {}
     ): void {
         const container = document.getElementsByTagName("figure")[0]
         try {
@@ -2419,7 +2428,7 @@ export class Grapher
                     bindUrlToWindow: true,
                     enableKeyboardShortcuts: true,
                     queryStr: window.location.search,
-                    archiveInfo,
+                    archivedChartInfo,
                 },
                 container
             )
@@ -2956,7 +2965,7 @@ export class Grapher
             // Chart is published (this is false for charts inside explorers, for example)
             !!this.isPublished &&
             // We're not on an archival grapher page
-            !this.archiveInfo &&
+            !this.isOnArchivalPage &&
             // We're not inside the admin
             window.admin === undefined &&
             // We're not on a Mdim
@@ -3560,6 +3569,8 @@ export class Grapher
     }
 
     @computed get baseUrl(): string | undefined {
+        if (this.isOnArchivalPage) return this.archivedChartInfo?.archiveUrl
+
         return this.isPublished
             ? `${this.bakedGrapherURL ?? "/grapher"}/${this.displaySlug}`
             : undefined
@@ -3619,6 +3630,11 @@ export class Grapher
         | React.ReactElement
         | undefined {
         return this.manager?.embedDialogAdditionalElements
+    }
+
+    @computed get embedArchivedUrl(): string | undefined {
+        if (!this.archivedChartInfo) return undefined
+        return this.archivedChartInfo.archiveUrl + this.queryStr
     }
 
     @computed private get hasUserChangedTimeHandles(): boolean {

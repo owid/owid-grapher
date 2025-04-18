@@ -27,9 +27,13 @@ import {
     GrapherChecksumsObjectWithHash,
 } from "./archivalChecksum.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
-import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../settings/serverSettings.js"
+import {
+    ARCHIVE_BASE_URL,
+    GDOCS_DETAILS_ON_DEMAND_ID,
+} from "../../settings/serverSettings.js"
 import { getEnrichedChartsByIds } from "../../db/model/Chart.js"
-import { ArchivalTimestamp, getDateForArchival } from "./archivalDate.js"
+import { ArchivalTimestamp, getDateForArchival } from "@ourworldindata/utils"
+import { PROD_URL } from "../../site/SiteConstants.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
@@ -367,6 +371,9 @@ async function bakeGrapherPageForArchival(
         latestArchivalVersions,
     } = ctx
 
+    if (!config.slug) throw new Error("Grapher slug is missing")
+    if (!ARCHIVE_BASE_URL) throw new Error("ARCHIVE_BASE_URL is missing")
+
     const runtimeFiles = { ...commonRuntimeFiles }
 
     for (const dim of config.dimensions ?? []) {
@@ -394,22 +401,29 @@ async function bakeGrapherPageForArchival(
               date: previousVersionInfo.archivalTimestamp,
               url: assembleGrapherArchivalUrl(
                   previousVersionInfo.archivalTimestamp,
-                  previousVersionInfo.grapherSlug
+                  previousVersionInfo.grapherSlug,
+                  { relative: true }
               ),
           }
         : undefined
     const archiveNavigation: ArchiveSiteNavigationInfo = {
-        archiveDate: date.date,
-        liveUrl: `https://ourworldindata.org/grapher/${config.slug}`,
+        liveUrl: `${PROD_URL}/grapher/${config.slug}`,
         previousVersion,
     }
+    const fullUrl = assembleGrapherArchivalUrl(
+        date.formattedDate,
+        config.slug,
+        { relative: false }
+    )
     const archiveInfo: ArchiveMetaInformation = {
-        archiveDate: date.date,
+        archivalDate: date.formattedDate,
         archiveNavigation,
+        archiveUrl: fullUrl,
         assets: {
             runtime: runtimeFiles,
             static: staticAssetMap,
         },
+        type: "archive-page",
     }
     await bakeSingleGrapherPageForArchival(dir, config, trx, {
         imageMetadataDictionary,

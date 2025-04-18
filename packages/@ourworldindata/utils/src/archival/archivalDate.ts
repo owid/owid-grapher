@@ -1,15 +1,15 @@
 import {
     ARCHIVE_DATE_TIME_FORMAT,
-    ArchiveDateString,
-    dayjs,
-} from "@ourworldindata/utils"
+    ArchivalDateString,
+} from "@ourworldindata/types"
+import dayjs from "../dayjs.js"
 
 export interface ArchivalTimestamp {
     date: Date
-    formattedDate: ArchiveDateString
+    formattedDate: ArchivalDateString
 }
 
-type DateInput = Date | ArchiveDateString | string | dayjs.Dayjs
+type DateInput = Date | ArchivalDateString | string | dayjs.Dayjs
 
 export const parseArchivalDate = (dateInput: DateInput): dayjs.Dayjs => {
     if (typeof dateInput === "string") {
@@ -20,17 +20,17 @@ export const parseArchivalDate = (dateInput: DateInput): dayjs.Dayjs => {
     return dayjs.utc(dateInput)
 }
 
-export const formatAsArchivalDate = (date: dayjs.Dayjs): ArchiveDateString =>
-    date.format(ARCHIVE_DATE_TIME_FORMAT) as ArchiveDateString
+export const formatAsArchivalDate = (date: dayjs.Dayjs): ArchivalDateString =>
+    date.format(ARCHIVE_DATE_TIME_FORMAT) as ArchivalDateString
 
 export const convertToArchivalDateStringIfNecessary = (
     dateInput: DateInput
-): ArchiveDateString => {
+): ArchivalDateString => {
     if (
         typeof dateInput === "string" &&
         dateInput.length === ARCHIVE_DATE_TIME_FORMAT.length
     )
-        return dateInput as ArchiveDateString
+        return dateInput as ArchivalDateString
 
     return formatAsArchivalDate(parseArchivalDate(dateInput))
 }

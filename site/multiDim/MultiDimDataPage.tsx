@@ -35,7 +35,10 @@ export function MultiDimDataPage({
         imageMetadata,
         tagToSlugMap,
     }
-    const imageUrl: string = urljoin(baseUrl, "default-grapher-thumbnail.png")
+    const imageUrl: string = urljoin(
+        baseUrl || "/",
+        "default-grapher-thumbnail.png"
+    )
     const imageWidth = "1200"
     const imageHeight = "628"
     return (

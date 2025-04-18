@@ -34,6 +34,8 @@ export default function GrapherImage(props: {
     noFormatting?: boolean
     enablePopulatingUrlParams?: boolean
 }) {
+    if (!GRAPHER_DYNAMIC_THUMBNAIL_URL) return null
+
     let slug: string = ""
     let queryString: string = ""
     if (props.url) {

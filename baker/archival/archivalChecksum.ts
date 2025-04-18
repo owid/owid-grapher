@@ -1,5 +1,6 @@
 import {
     ArchivedChartVersionsTableName,
+    ChartArchivedVersion,
     DbInsertArchivedChartVersion,
     DbPlainArchivedChartVersion,
     JsonString,
@@ -8,8 +9,14 @@ import * as db from "../../db/db.js"
 import { partition, pick } from "lodash-es"
 import { stringify } from "safe-stable-stringify"
 import { hashHex } from "../../serverUtils/hash.js"
-import { ArchivalManifest } from "./archivalUtils.js"
-import { ArchivalTimestamp } from "./archivalDate.js"
+import {
+    ArchivalManifest,
+    assembleGrapherArchivalUrl,
+} from "./archivalUtils.js"
+import {
+    ArchivalTimestamp,
+    convertToArchivalDateStringIfNecessary,
+} from "@ourworldindata/utils"
 
 export interface GrapherChecksums {
     chartConfigMd5: string
@@ -95,6 +102,32 @@ export const getLatestArchivedVersionsFromDb = async (
     }
 
     return await queryBuilder
+}
+
+export const getLatestChartArchivedVersions = async (
+    knex: db.KnexReadonlyTransaction,
+    chartIds?: number[]
+): Promise<Record<number, ChartArchivedVersion>> => {
+    const rows = await getLatestArchivedVersionsFromDb(knex, chartIds)
+
+    return Object.fromEntries(
+        rows.map((r) => [
+            r.grapherId,
+            {
+                archivalDate: convertToArchivalDateStringIfNecessary(
+                    r.archivalTimestamp
+                ),
+                archiveUrl: assembleGrapherArchivalUrl(
+                    r.archivalTimestamp,
+                    r.grapherSlug,
+                    {
+                        relative: false,
+                    }
+                ),
+                type: "archived-chart-version",
+            },
+        ])
+    )
 }
 
 const hashChecksumsObj = (checksums: GrapherChecksums) => {

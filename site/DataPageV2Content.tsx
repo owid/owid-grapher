@@ -11,7 +11,6 @@ import {
     GrapherInterface,
     joinTitleFragments,
     ImageMetadata,
-    ArchiveMetaInformation,
 } from "@ourworldindata/utils"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
@@ -26,7 +25,6 @@ declare global {
     interface Window {
         _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields
         _OWID_GRAPHER_CONFIG: GrapherInterface
-        _OWID_ARCHIVE_INFO?: ArchiveMetaInformation
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
@@ -39,6 +37,7 @@ export const DataPageV2Content = ({
     canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
     tagToSlugMap,
     imageMetadata,
+    archivedChartInfo,
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
@@ -50,22 +49,15 @@ export const DataPageV2Content = ({
         datapageData.titleVariant
     )
 
-    const archiveInfo = useMemo(
-        () =>
-            (typeof window !== "undefined" && window._OWID_ARCHIVE_INFO) ||
-            undefined,
-        []
-    )
-
     // Initialize the grapher for client-side rendering
     const mergedGrapherConfig: GrapherProgrammaticInterface = useMemo(
         () => ({
             ...grapherConfig,
             isEmbeddedInADataPage: true,
             bindUrlToWindow: true,
-            archiveInfo,
+            archivedChartInfo,
         }),
-        [grapherConfig, archiveInfo]
+        [grapherConfig, archivedChartInfo]
     )
 
     useEffect(() => {
@@ -194,6 +186,7 @@ export const DataPageV2Content = ({
                         source={datapageData.source}
                         title={datapageData.title}
                         titleVariant={datapageData.titleVariant}
+                        archivedChartInfo={archivedChartInfo}
                     />
                 </div>
             </DocumentContext.Provider>

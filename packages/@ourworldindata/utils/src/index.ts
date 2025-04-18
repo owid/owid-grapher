@@ -152,6 +152,7 @@ export {
     getCitationLong,
     getCitationShort,
     grabMetadataForGdocLinkedIndicator,
+    getPhraseForArchivalDate,
 } from "./metadataHelpers.js"
 
 export { multiDimDimensionsToViewId } from "./multiDim.js"
@@ -347,3 +348,11 @@ export {
 } from "./MultiDimDataPageConfig.js"
 
 export { FuzzySearch, type FuzzySearchResult } from "./FuzzySearch.js"
+
+export {
+    type ArchivalTimestamp,
+    convertToArchivalDateStringIfNecessary,
+    formatAsArchivalDate,
+    getDateForArchival,
+    parseArchivalDate,
+} from "./archival/archivalDate.js"

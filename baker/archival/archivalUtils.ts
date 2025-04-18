@@ -1,11 +1,15 @@
-import { lazy, omit } from "@ourworldindata/utils"
+import {
+    lazy,
+    omit,
+    convertToArchivalDateStringIfNecessary,
+} from "@ourworldindata/utils"
 import { AssetMap } from "@ourworldindata/types"
 import {
     GrapherChecksums,
     GrapherChecksumsObjectWithHash,
 } from "./archivalChecksum.js"
 import { simpleGit } from "simple-git"
-import { convertToArchivalDateStringIfNecessary } from "./archivalDate.js"
+import { ARCHIVE_BASE_URL } from "../../settings/serverSettings.js"
 
 export interface ArchivalManifest {
     assets: {
@@ -33,11 +37,19 @@ const getOwidGrapherCommitSha = lazy(async () => {
 
 export const assembleGrapherArchivalUrl = (
     archivalDate: Parameters<typeof convertToArchivalDateStringIfNecessary>[0],
-    chartSlug: string
+    chartSlug: string,
+    { relative }: { relative: boolean }
 ) => {
     const formattedDate = convertToArchivalDateStringIfNecessary(archivalDate)
 
-    return `/${formattedDate}/grapher/${chartSlug}.html`
+    const path = `/${formattedDate}/grapher/${chartSlug}.html`
+    if (relative) return path
+    else {
+        if (!ARCHIVE_BASE_URL) {
+            throw new Error("ARCHIVE_BASE_URL is not defined")
+        }
+        return `${ARCHIVE_BASE_URL}${path}`
+    }
 }
 
 export const assembleManifest = async (manifestInfo: {

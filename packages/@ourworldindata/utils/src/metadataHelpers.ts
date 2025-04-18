@@ -11,6 +11,7 @@ import {
 } from "@ourworldindata/types"
 import { compact, uniq, last, excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
+import { parseArchivalDate } from "./archival/archivalDate.js"
 
 export function getOriginAttributionFragments(
     origins: OwidOrigin[] | undefined
@@ -210,6 +211,19 @@ export const getCitationShort = (
     return `${attributionPotentiallyShortened} – ${processingLevelPhrase} by Our World in Data`
 }
 
+const getDateForCitation = (date: dayjs.Dayjs): string =>
+    date.format("MMMM D, YYYY")
+
+export const getPhraseForArchivalDate = (
+    archivalDate: string | undefined
+): string | undefined => {
+    if (!archivalDate) return undefined
+
+    const parsedDate = parseArchivalDate(archivalDate)
+    const formatted = getDateForCitation(parsedDate)
+    return `(archived on ${formatted}).`
+}
+
 export const getCitationLong = (
     indicatorTitle: IndicatorTitleWithFragments,
     origins: OwidOrigin[],
@@ -218,7 +232,8 @@ export const getCitationLong = (
     attributionShort: string | undefined,
     titleVariant: string | undefined,
     owidProcessingLevel: OwidProcessingLevel | undefined,
-    canonicalUrl: string | undefined
+    citationUrl: string | undefined,
+    archivalDate: string | undefined
 ): string => {
     const sourceShortName =
         attributionShort && titleVariant
@@ -245,7 +260,8 @@ export const getCitationLong = (
                 }”`
         )
     ).join("; ")
-    const today = dayjs().format("MMMM D, YYYY")
+    const today = getDateForCitation(dayjs())
+    const archivalString = getPhraseForArchivalDate(archivalDate)
     return excludeUndefined([
         `${citationLonger}.`,
         `“${titleWithOptionalFragments}” [dataset].`,
@@ -254,7 +270,9 @@ export const getCitationLong = (
             : source?.name
               ? `${source?.name} [original data].`
               : undefined,
-        canonicalUrl ? `Retrieved ${today} from ${canonicalUrl}` : undefined,
+        citationUrl
+            ? `Retrieved ${today} from ${citationUrl}${archivalString ? ` ${archivalString}` : ""}`
+            : undefined,
     ]).join(" ")
 }
 

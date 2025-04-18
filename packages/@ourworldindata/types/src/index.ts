@@ -759,9 +759,10 @@ export {
 } from "./siteTypes/SiteConstants.js"
 export {
     ARCHIVE_DATE_TIME_FORMAT,
-    type ArchiveDateString,
+    type ArchivalDateString,
     type AssetMap,
     type UrlAndMaybeDate,
     type ArchiveSiteNavigationInfo,
     type ArchiveMetaInformation,
+    type ChartArchivedVersion,
 } from "./domainTypes/Archive.js"

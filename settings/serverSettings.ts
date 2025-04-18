@@ -26,6 +26,9 @@ export const DATA_API_FOR_ADMIN_UI: string | undefined =
     serverSettings.DATA_API_FOR_ADMIN_UI
 export const BAKED_BASE_URL: string = clientSettings.BAKED_BASE_URL
 
+export const ARCHIVE_BASE_URL: string | null =
+    serverSettings.ARCHIVE_BASE_URL || null
+
 export const VITE_PREVIEW: boolean = serverSettings.VITE_PREVIEW === "true"
 
 export const ADMIN_BASE_URL: string = clientSettings.ADMIN_BASE_URL
