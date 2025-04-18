@@ -861,17 +861,6 @@ export class CoreTable<
         )
     }
 
-    appendRows(rows: ROW_TYPE[], opDescription: string): this {
-        return this.concat(
-            [
-                new (this.constructor as typeof CoreTable)(rows, this.defs, {
-                    parent: this,
-                }),
-            ],
-            opDescription
-        )
-    }
-
     limit(howMany: number, offset: number = 0): this {
         const start = offset
         const end = offset + howMany
