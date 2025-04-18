@@ -6,8 +6,8 @@ import Markdown, {
 } from "react-markdown"
 import { remarkPlainLinks } from "./markdown/remarkPlainLinks.js"
 import { visit } from "unist-util-visit"
-import { type Plugin } from "unified"
-import { type Root } from "hast"
+import type { Plugin } from "unified"
+import type { Root } from "hast"
 
 type SimpleMarkdownTextProps = {
     text: string
@@ -64,7 +64,7 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
     }
 
     render(): React.ReactElement | null {
-        const options: MarkdownOptions = {
+        const options: Omit<MarkdownOptions, "children"> = {
             rehypePlugins: [transformDodLinks],
             remarkPlugins: [remarkPlainLinks],
             components: this.markdownCustomComponents,
