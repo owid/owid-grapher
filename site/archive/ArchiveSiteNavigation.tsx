@@ -5,7 +5,6 @@ import { formatAsArchivalDate, parseArchivalDate } from "@ourworldindata/utils"
 import {
     ArchiveSiteNavigationInfo,
     ArchiveVersions,
-    UrlAndMaybeDate,
 } from "@ourworldindata/types"
 import { PROD_URL } from "../SiteConstants.js"
 import { useEffect, useMemo, useState } from "react"
@@ -69,18 +68,15 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
         }
     }, [props.versionsFileUrl])
 
-    const [nextVersion, setNextVersion] = useState<UrlAndMaybeDate | undefined>(
-        props.nextVersion
-    )
-    useEffect(() => {
-        if (!versions) return
+    const nextVersion = useMemo(() => {
+        if (!versions) return props.nextVersion
 
         const currentVersionIdx = R.sortedIndexWith(
             versions.versions,
             (item) => item.archivalDate < pageArchivalDate
         )
-        setNextVersion(versions.versions.at(currentVersionIdx + 1))
-    }, [pageArchivalDate, versions])
+        return versions.versions.at(currentVersionIdx + 1)
+    }, [versions, props.nextVersion, pageArchivalDate])
 
     return (
         <nav className="archive-navigation-bar">
