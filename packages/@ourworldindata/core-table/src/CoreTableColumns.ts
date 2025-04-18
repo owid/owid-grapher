@@ -3,7 +3,6 @@ import {
     csvEscape,
     formatYear,
     formatDay,
-    last,
     uniq,
     sortNumeric,
     range,
@@ -46,21 +45,6 @@ import {
 } from "./OwidTableUtil.js"
 import * as R from "remeda"
 
-interface ColumnSummary {
-    numErrorValues: number
-    numUniqs: number
-    numValues: number
-    median: PrimitiveType
-    sum: number
-    mean: number
-    min: PrimitiveType
-    max: PrimitiveType
-    range: number
-    mode: PrimitiveType
-    modeSize: number
-    deciles: { [decile: number]: PrimitiveType }
-}
-
 export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     def: CoreColumnDef
     table: CoreTable
@@ -84,83 +68,6 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this instanceof AbstractColumnWithNumberFormatting
     }
 
-    get sum(): number | undefined {
-        return this.summary.sum
-    }
-
-    get median(): PrimitiveType | undefined {
-        return this.summary.median
-    }
-
-    get max(): PrimitiveType | undefined {
-        return this.summary.max
-    }
-
-    get min(): PrimitiveType | undefined {
-        return this.summary.min
-    }
-
-    // todo: switch to a lib and/or add tests for this. handle non numerics better.
-    @imemo get summary(): Partial<ColumnSummary> {
-        const { numErrorValues, numValues, numUniqs } = this
-        const basicSummary: Partial<ColumnSummary> = {
-            numErrorValues,
-            numUniqs,
-            numValues,
-        }
-        if (!numValues) return basicSummary
-        const summary: Partial<ColumnSummary> = { ...basicSummary }
-        const arr = this.valuesAscending
-        const isNumeric = this.jsType === "number"
-
-        let min = arr[0]
-        let max = arr[0]
-        let sum = 0
-        let mode = undefined
-        let modeSize = 0
-        let currentBucketValue = undefined
-        let currentBucketSize = 0
-        for (let index = 0; index < numValues; index++) {
-            const value = arr[index] as any
-            sum += value
-            if (value > max) max = value
-            if (value < min) min = value
-            if (value === currentBucketValue) currentBucketSize++
-            else {
-                currentBucketValue = value
-                currentBucketSize = 1
-            }
-            if (currentBucketSize > modeSize) {
-                modeSize = currentBucketSize
-                mode = currentBucketValue
-            }
-        }
-
-        const medianIndex = Math.floor(numValues / 2)
-        summary.sum = sum
-        summary.median = arr[medianIndex]
-        summary.mean = sum / numValues
-        summary.min = min
-        summary.max = max
-        summary.range = (max as any) - (min as any)
-        summary.mode = mode
-        summary.modeSize = modeSize
-        if (!isNumeric) {
-            summary.sum = undefined
-            summary.mean = undefined
-        }
-
-        summary.deciles = {}
-        const deciles = [10, 20, 30, 40, 50, 60, 70, 80, 90, 99, 100]
-        deciles.forEach((decile) => {
-            let index = Math.floor(numValues * (decile / 100))
-            index = index === numValues ? index - 1 : index
-            summary.deciles![decile] = arr[index]
-        })
-
-        return summary
-    }
-
     // todo: migrate from unitConversionFactor to computed columns instead. then delete this.
     // note: unitConversionFactor is used >400 times in charts and >800 times in variables!!!
     @imemo get unitConversionFactor(): number {
@@ -177,10 +84,6 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     @imemo get toleranceStrategy(): ToleranceStrategy | undefined {
         return this.def.toleranceStrategy
-    }
-
-    @imemo get domain(): [JS_TYPE, JS_TYPE] {
-        return [this.minValue, this.maxValue]
     }
 
     @imemo get display(): OwidVariableDisplayConfigInterface | undefined {
@@ -454,20 +357,12 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         ) as JS_TYPE[]
     }
 
-    /**
-     * True if the column has only 1 unique value. ErrorValues are counted as values, so
-     * something like [DivideByZeroError, 2, 2] would not be constant.
-     */
-    @imemo get isConstant(): boolean {
-        return new Set(this.valuesIncludingErrorValues).size === 1
+    @imemo get minValue(): JS_TYPE | undefined {
+        return min(this.values)
     }
 
-    @imemo get minValue(): JS_TYPE {
-        return this.valuesAscending[0]
-    }
-
-    @imemo get maxValue(): JS_TYPE {
-        return last(this.valuesAscending)!
+    @imemo get maxValue(): JS_TYPE | undefined {
+        return max(this.values)
     }
 
     @imemo get numErrorValues(): number {

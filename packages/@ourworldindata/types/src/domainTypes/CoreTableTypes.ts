@@ -49,25 +49,19 @@ export enum TransformType {
     LoadFromRowStore = "LoadFromRowStore",
     LoadFromColumnStore = "LoadFromColumnStore",
     LoadFromMatrix = "LoadFromMatrix",
-    Transpose = "Transpose",
     Concat = "Concat",
-    Reduce = "Reduce",
 
     // Row ops
     FilterRows = "FilterRows",
     SortRows = "SortRows",
-    AppendRows = "AppendRows", // todo: should this will also rerun any column transforms on the new rows?
     UpdateRows = "UpdateRows", // replace values in a row. For example: to prep columns for log scale, or testing messy runtime data scenarios.
-    InverseFilterRows = "InverseFilterRows",
 
     // Column ops
     FilterColumns = "FilterColumns",
-    SortColumns = "SortColumns",
     AppendColumns = "AppendColumns", // This will run column transform fns.
     UpdateColumnDefs = "UpdateColumnDefs", // do not use for updates that add a column transform fn.
     UpdateColumnDefsAndApply = "UpdateColumnDefsAndApply", // use this for updates that add a column transform fn.
     RenameColumns = "RenameColumns",
-    InverseFilterColumns = "InverseFilterColumns",
     CombineColumns = "CombineColumns",
 }
 

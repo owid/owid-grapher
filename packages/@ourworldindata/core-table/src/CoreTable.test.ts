@@ -243,19 +243,6 @@ france,60`,
         expect(table.toMatrix()[1][1]).toEqual(undefined)
     })
 
-    it("can transpose a table", () => {
-        let table = new CoreTable([
-            { fruit: 123, veggies: 234, entity: "usa" },
-            { fruit: 456, veggies: 789, entity: "canada" },
-            { fruit: 333, veggies: 222, entity: "spain" },
-        ])
-        table = table.transpose("entity")
-        expect(table.columnSlugs).toEqual(["entity", "usa", "canada", "spain"])
-        expect(table.numRows).toEqual(2)
-        const firstRow = table.firstRow as any
-        expect(firstRow.canada).toEqual(456)
-    })
-
     it("can create a table with columns but no rows", () => {
         expect(
             new CoreTable({}, [{ slug: "entityId" }]).get("entityId").values
@@ -269,54 +256,6 @@ france,60`,
         )
         expect(table.columnSlugs).toEqual(["name", "color"])
         expect(table.numRows).toEqual(1)
-    })
-})
-
-describe("set methods", () => {
-    it("can find the intersection between 2 tables", () => {
-        const table = new CoreTable(sampleCsv)
-        expect(table.intersection([new CoreTable(sampleCsv)]).numRows).toEqual(
-            4
-        )
-        expect(table.intersection([new CoreTable()]).numRows).toEqual(0)
-        expect(
-            table.intersection([new CoreTable(sampleCsv), new CoreTable()])
-                .numRows
-        ).toEqual(0)
-        expect(
-            table.intersection([new CoreTable(sampleCsv + "\n" + sampleCsv)])
-                .numRows
-        ).toEqual(4)
-        expect(
-            table.intersection([
-                new CoreTable(sampleCsv.replace("\ncanada,20", "")),
-            ]).numRows
-        ).toEqual(3)
-    })
-
-    it("can perform a union", () => {
-        const table = new CoreTable(sampleCsv)
-        expect(table.union([new CoreTable(sampleCsv)]).numRows).toEqual(4)
-
-        expect(
-            table.union([
-                new CoreTable([{ country: "Mexico", population: 20 }]),
-            ]).numRows
-        ).toEqual(5)
-    })
-
-    it("can perform a diff", () => {
-        const table = new CoreTable(sampleCsv)
-        expect(table.difference([new CoreTable(sampleCsv)]).numRows).toEqual(0)
-
-        const tb = new CoreTable([{ country: "Mexico", population: 20 }])
-        expect(table.difference([tb]).numRows).toEqual(4)
-
-        expect(tb.difference([table]).numRows).toEqual(1)
-    })
-
-    it("does not drop any rows if there are no duplicates", () => {
-        expect(new CoreTable(sampleCsv).dropDuplicateRows().numRows).toEqual(4)
     })
 })
 
@@ -362,29 +301,6 @@ germany,1400,500`)
 })
 
 describe("adding rows", () => {
-    describe("adding rows is immutable", () => {
-        const table = new CoreTable(sampleCsv)
-        expect(table.numRows).toEqual(4)
-
-        let expandedTable = table.appendRows(
-            [{ country: "Japan", population: 123 }],
-            `Added 1 row`
-        )
-        expect(expandedTable.numRows).toBe(5)
-        expect(table.numRows).toEqual(4)
-
-        it("can append rows", () => {
-            expandedTable = expandedTable
-                .renameColumns({ population: "pop" })
-                .appendRows(
-                    [{ country: "USA", pop: 321 }],
-                    "Added a row after column renaming"
-                )
-            expect(expandedTable.numRows).toEqual(6)
-            expect(expandedTable.rows[5].pop).toEqual(321)
-        })
-    })
-
     it("can drop rows", () => {
         const table = new CoreTable(sampleCsv)
         expect(table.dropRowsAt([0, 1, 3]).numRows).toEqual(1)
@@ -465,19 +381,6 @@ describe("column operations", () => {
             }).columnNames
         ).toEqual(["COUNTRY", "YEAR"])
     })
-
-    it("can sort columns", () => {
-        const rows = [
-            { country: "USA", year: 1999 },
-            { country: "Germany", year: 2000 },
-        ]
-        const table = new CoreTable(rows)
-        expect(table.columnSlugs).toEqual(["country", "year"])
-        expect(table.sortColumns(["year", "country"]).columnSlugs).toEqual([
-            "year",
-            "country",
-        ])
-    })
 })
 
 describe("searching", () => {
@@ -510,23 +413,7 @@ describe("searching", () => {
         expect(table.grep("200").numRows).toEqual(2)
         expect(table.grep(/20\d+/).numRows).toEqual(2)
 
-        expect(
-            table.grep("Germany").grep("2001").opposite.rows[0].year
-        ).toEqual(2000)
-        expect(table.grep("Germany").opposite.numRows).toEqual(1)
         expect(table.grep(/(1999|2000)/).numRows).toEqual(2)
-    })
-
-    it("can filter columns as well", () => {
-        expect(table.grepColumns("country").numColumns).toEqual(1)
-        expect(table.grepColumns("r").numColumns).toEqual(2)
-        expect(table.grepColumns("zz").numColumns).toEqual(0)
-        expect(table.grepColumns("year").oppositeColumns.columnSlugs).toEqual([
-            "country",
-        ])
-        expect(table.grepColumns(/co.+/).oppositeColumns.columnSlugs).toEqual([
-            "year",
-        ])
     })
 
     it("can get the domain across all columns", () => {
@@ -591,17 +478,6 @@ describe("filtering", () => {
     can,333`)
             const allFiltered = table.rowFilter(() => false, "filter all")
             expect(allFiltered.get("pop").values).toEqual([])
-        })
-
-        it("can filter negatives", () => {
-            const table = new CoreTable(`country,pop
-    fra,0
-    usa,-2
-    can,333
-    ger,0.1`)
-            expect(table.filterNegatives("pop").get("pop").values).toEqual([
-                0, 333, 0.1,
-            ])
         })
     })
 
@@ -675,15 +551,6 @@ describe("debug tools", () => {
 })
 
 describe("printing", () => {
-    it("uses slugs for headers in toDelimited", () => {
-        const table = new CoreTable(`country,Population in 2020
-iceland,1`)
-        const csv = table.toDelimited()
-        expect(csv).toEqual(`country,Population-in-2020
-iceland,1`)
-        expect(table.get("country").isEmpty).toBe(false)
-    })
-
     it("can export a clean csv with dates", () => {
         const table = new CoreTable(
             [
@@ -697,7 +564,6 @@ iceland,1`)
             ]
         )
 
-        expect(table.constantColumns.length).toEqual(0)
         expect(table.toCsvWithColumnNames()).toEqual(`entityName,day,annotation
 Aruba,2020-01-22,"Something, foo"
 Canada,2020-01-23,`)
@@ -754,16 +620,11 @@ describe("value operations", () => {
     })
 })
 
-describe("joins", () => {
+describe("index", () => {
     const leftTable = new CoreTable({
         country: ["usa", "can", "fra"],
         time: [2000, 2001, 2002],
         color: ["red", "green", "red"],
-    })
-    const rightTable = new CoreTable({
-        country: ["usa", "can", "turk"],
-        time: [2000, 2001, 2002],
-        population: [55, 66, 77],
     })
 
     it("can create indices", () => {
@@ -771,75 +632,5 @@ describe("joins", () => {
         expect(index.size).toEqual(2)
         const index2 = leftTable.rowIndex(["color", "country"])
         expect(index2.get("red usa")?.length).toEqual(1)
-    })
-
-    describe("outer joins", () => {
-        it("can left join on all intersecting columns", () => {
-            expect(leftTable.leftJoin(rightTable).toTypedMatrix()).toEqual([
-                ["country", "time", "color", "population"],
-                ["usa", 2000, "red", 55],
-                ["can", 2001, "green", 66],
-                ["fra", 2002, "red", ErrorValueTypes.NoMatchingValueAfterJoin],
-            ])
-        })
-
-        it("can left join on one column", () => {
-            expect(
-                leftTable.leftJoin(rightTable, ["time"]).toTypedMatrix()
-            ).toEqual([
-                ["country", "time", "color", "population"],
-                ["usa", 2000, "red", 55],
-                ["can", 2001, "green", 66],
-                ["fra", 2002, "red", 77],
-            ])
-        })
-
-        it("can do a right join", () => {
-            expect(leftTable.rightJoin(rightTable).toTypedMatrix()).toEqual([
-                ["country", "time", "population", "color"],
-                ["usa", 2000, 55, "red"],
-                ["can", 2001, 66, "green"],
-                ["turk", 2002, 77, ErrorValueTypes.NoMatchingValueAfterJoin],
-            ])
-        })
-    })
-
-    describe("inner joins", () => {
-        it("can do a left inner join", () => {
-            expect(leftTable.innerJoin(rightTable).toTypedMatrix()).toEqual([
-                ["country", "time", "color", "population"],
-                ["usa", 2000, "red", 55],
-                ["can", 2001, "green", 66],
-            ])
-        })
-    })
-
-    describe("full join", () => {
-        it("can do a full join", () => {
-            expect(leftTable.fullJoin(rightTable).toTypedMatrix()).toEqual([
-                ["country", "time", "color", "population"],
-                ["usa", 2000, "red", 55],
-                ["can", 2001, "green", 66],
-                ["fra", 2002, "red", ErrorValueTypes.NoMatchingValueAfterJoin],
-                ["turk", 2002, ErrorValueTypes.NoMatchingValueAfterJoin, 77],
-            ])
-        })
-    })
-})
-
-describe("groups", () => {
-    const csv = `continent,year,country,gdp
-asia,2000,china,900
-europe,2001,france,200
-asia,2000,japan,300
-europe,2000,france,600`
-
-    describe("creating groups", () => {
-        const table = new CoreTable(csv)
-        const groups = table.groupBy("continent")
-        expect(groups.length).toBe(2)
-        it("can reduce groups", () => {
-            expect(groups[0].reduce({ gdp: "sum" }).firstRow.gdp).toBe(1200)
-        })
     })
 })

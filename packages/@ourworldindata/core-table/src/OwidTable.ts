@@ -24,7 +24,6 @@ import {
     differenceOfSets,
 } from "@ourworldindata/utils"
 import {
-    Integer,
     Time,
     TransformType,
     CoreColumnStore,
@@ -258,7 +257,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     dropAllRows(): this {
-        return this.rowFilter(() => false, "Drop all rows")
+        return this.dropRowsAt(this.indices, "Drop all rows")
     }
 
     dropRowsWithErrorValuesForColumn(slug: ColumnSlug): this {
@@ -698,17 +697,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    // Return slugs that would be good to chart
-    @imemo get suggestedYColumnSlugs(): string[] {
-        const skips = new Set<ColumnSlug>([
-            OwidTableSlugs.entityId,
-            OwidTableSlugs.time,
-            OwidTableSlugs.year,
-            OwidTableSlugs.day,
-        ])
-        return this.numericColumnSlugs.filter((slug) => !skips.has(slug))
-    }
-
     // Give our users a clean CSV of each Grapher. Assumes an Owid Table with entityName.
     toPrettyCsv(
         useShortNames: boolean = false,
@@ -761,10 +749,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 .filter((col) => col.def.color)
                 .map((col) => [col.displayName, col.def.color!])
         )
-    }
-
-    getColorForColumnByDisplayName(displayName: string): string | undefined {
-        return this.columnDisplayNameToColorMap.get(displayName)
     }
 
     // This assumes the table is sorted where the times for entity names go in asc order.
@@ -1120,34 +1104,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             `Interpolated values`,
             TransformType.UpdateColumnDefs
         )
-    }
-
-    // one datum per entityName. use the closest value to target year within tolerance.
-    // selected rows only. value from any primary column.
-    // getClosestRowForEachSelectedEntity(targetYear, tolerance)
-    // Make sure we use the closest value to the target year within tolerance (preferring later)
-    getClosestIndexForEachEntity(
-        entityNames: EntityName[],
-        targetTime: Time,
-        tolerance: Integer
-    ): number[] {
-        const indexMap = this.rowIndicesByEntityName
-        const timeColumn = this.timeColumn
-        if (this.timeColumn.isMissing) return []
-        const timeValues = timeColumn.valuesIncludingErrorValues
-        return entityNames
-            .map((name) => {
-                const rowIndices = indexMap.get(name)
-                if (!rowIndices) return null
-
-                const rowIndex = findClosestTimeIndex(
-                    rowIndices.map((index) => timeValues[index]) as number[],
-                    targetTime,
-                    tolerance
-                )
-                return rowIndex ? rowIndices[rowIndex] : null
-            })
-            .filter(isPresent)
     }
 
     @imemo get availableEntities(): {
