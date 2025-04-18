@@ -27,7 +27,10 @@ import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
     ChoroplethMapManager,
     ChoroplethSeriesByName,
+    DEFAULT_GLOBE_SIZE,
     GEO_FEATURES_CLASSNAME,
+    GLOBE_LATITUDE_MAX,
+    GLOBE_LATITUDE_MIN,
     GLOBE_MAX_ZOOM,
     GLOBE_MIN_ZOOM,
     GlobeRenderFeature,
@@ -45,12 +48,12 @@ import { Patterns } from "../core/GrapherConstants"
 import {
     calculateDistance,
     detectNearbyFeature,
+    isPointPlacedOnVisibleHemisphere,
     sortFeaturesByInteractionState,
 } from "./MapHelpers"
 import * as R from "remeda"
 import { GlobeController } from "./GlobeController"
 
-const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 const DEFAULT_SCALE = geoOrthographic().scale()
 
 @observer
@@ -186,39 +189,13 @@ export class ChoroplethGlobe extends React.Component<{
         return this.pathContext.result()
     }
 
-    /**
-     * Check if a country is visible on the rendered 3d globe from the current
-     * viewing angle, without taking into account the zoom level.
-     *
-     * More specifically, this function checks if the feature's _centroid_ is
-     * visible on the globe, i.e. parts of a country could still be visible
-     * even if the centroid is not.
-     */
     private isFeatureCentroidVisibleOnGlobe(
         feature: GlobeRenderFeature
     ): boolean {
-        const { globeRotation } = this
-        const { centroid } = feature
-
-        const toRadians = (degree: number): number => (degree * Math.PI) / 180
-
-        // convert centroid degrees to radians
-        const lambda = toRadians(centroid[0])
-        const phi = toRadians(centroid[1])
-
-        // get current rotation in radians
-        const rotationLambda = toRadians(-globeRotation[0])
-        const rotationPhi = toRadians(-globeRotation[1])
-
-        // calculate the cosine of the angular distance between the feature's
-        // center point and the center points of the current view
-        const cosDelta =
-            Math.sin(phi) * Math.sin(rotationPhi) +
-            Math.cos(phi) *
-                Math.cos(rotationPhi) *
-                Math.cos(lambda - rotationLambda)
-
-        return cosDelta > 0
+        return isPointPlacedOnVisibleHemisphere(
+            feature.centroid,
+            this.globeRotation
+        )
     }
 
     @computed private get graticule(): string {
@@ -250,7 +227,10 @@ export class ChoroplethGlobe extends React.Component<{
                 // Clamping the latitude to [-90, 90] would allow rotation up to the poles.
                 // However, the panning strategy used doesn't work well around the poles.
                 // That's why we clamp the latitude to a narrower range.
-                R.clamp(targetCoords[1], { min: -65, max: 65 }),
+                R.clamp(targetCoords[1], {
+                    min: GLOBE_LATITUDE_MIN,
+                    max: GLOBE_LATITUDE_MAX,
+                }),
             ]
         })
     }
@@ -317,8 +297,13 @@ export class ChoroplethGlobe extends React.Component<{
 
         // select/deselect the country if allowed
         const country = feature.id
-        if (this.manager.shouldEnableEntitySelectionOnMapTab)
+        if (this.manager.shouldEnableEntitySelectionOnMapTab) {
             this.mapConfig.selectedCountries.toggleSelection(country)
+
+            // if the selection changed, reset the map region dropdown
+            if (this.manager.mapRegionDropdownValue === "Selection")
+                this.manager.resetMapRegionDropdownValue?.()
+        }
 
         // make sure country focus is dismissed for unselected countries
         if (!this.mapConfig.selectedCountries.selectedSet.has(country))
@@ -401,6 +386,7 @@ export class ChoroplethGlobe extends React.Component<{
 
                 this.clearHover() // dismiss the tooltip
                 this.mapConfig.region = MapRegionName.World // reset region
+                this.manager.resetMapRegionDropdownValue?.() // reset map region dropdown on panning or zooming
 
                 const wheeling = (): void => {
                     this.zoomGlobe(-event.sourceEvent.deltaY)

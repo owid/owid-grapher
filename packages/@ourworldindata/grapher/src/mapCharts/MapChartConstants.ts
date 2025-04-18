@@ -10,6 +10,7 @@ import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
 import { ChartSeries } from "../chart/ChartInterface"
 import { GlobeController } from "./GlobeController"
+import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 
 export declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
@@ -37,6 +38,10 @@ export const GLOBE_MIN_ZOOM = 1
 export const GLOBE_MAX_ZOOM = 5
 export const GLOBE_COUNTRY_ZOOM = 2.5
 
+export const GLOBE_LATITUDE_MIN = -65
+export const GLOBE_LATITUDE_MAX = 65
+
+export const DEFAULT_GLOBE_SIZE = 500 // defined by d3
 export const DEFAULT_GLOBE_ROTATION: [number, number] = [30, -20] // Atlantic ocean (i.e. Americas & Europe)
 export const DEFAULT_GLOBE_ROTATIONS_FOR_TIME: Record<
     "UTC_MORNING" | "UTC_MIDDAY" | "UTC_EVENING",
@@ -69,6 +74,8 @@ export interface ChoroplethMapManager {
     choroplethMapBounds: Bounds
     mapConfig: MapConfig
     globeController?: GlobeController
+    mapRegionDropdownValue?: MapRegionDropdownValue
+    resetMapRegionDropdownValue?: () => void
     getHoverState: (featureId: string) => InteractionState
     isSelected: (featureId: string) => boolean
     onMapMouseOver: (d: GeoFeature) => void
@@ -105,6 +112,7 @@ export interface MapChartManager extends ChartManager {
     mapColumnSlug?: ColumnSlug
     mapConfig?: MapConfig
     globeController?: GlobeController
+    mapRegionDropdownValue?: MapRegionDropdownValue
     shouldShowEntitySelectorOnMapTab?: boolean
     shouldEnableEntitySelectionOnMapTab?: boolean
 }

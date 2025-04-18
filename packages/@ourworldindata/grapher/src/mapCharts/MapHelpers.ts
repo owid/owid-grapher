@@ -50,3 +50,37 @@ export const calculateDistance = (
 ): number => {
     return Math.hypot(p2[0] - p1[0], p2[1] - p1[1])
 }
+
+/**
+ * Check if a country is visible on the rendered 3d globe from the current
+ * viewing angle, without taking into account the zoom level.
+ *
+ * More specifically, this function checks if the feature's _centroid_ is
+ * visible on the globe, i.e. parts of a country could still be visible
+ * even if the centroid is not.
+ */
+export function isPointPlacedOnVisibleHemisphere(
+    point: [number, number],
+    rotation: [number, number],
+    threshold = 0 // 1 = at the exact center, 0 = anywhere on the visible hemisphere
+): boolean {
+    const toRadians = (degree: number): number => (degree * Math.PI) / 180
+
+    // convert centroid degrees to radians
+    const lambda = toRadians(point[0])
+    const phi = toRadians(point[1])
+
+    // get current rotation in radians
+    const rotationLambda = toRadians(-rotation[0])
+    const rotationPhi = toRadians(-rotation[1])
+
+    // calculate the cosine of the angular distance between the feature's
+    // center point and the center points of the current view
+    const cosDelta =
+        Math.sin(phi) * Math.sin(rotationPhi) +
+        Math.cos(phi) *
+            Math.cos(rotationPhi) *
+            Math.cos(lambda - rotationLambda)
+
+    return cosDelta > threshold
+}
