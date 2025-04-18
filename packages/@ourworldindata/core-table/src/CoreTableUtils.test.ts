@@ -397,6 +397,27 @@ describe(sortColumnStore, () => {
         expect(result).not.toBe(columnStore)
     })
 
+    it("can sort", () => {
+        const columnStore = {
+            pops: [1, 2, 3, 1.5],
+        }
+        const result = sortColumnStore(columnStore, ["pops"])
+        expect(result["pops"]).toEqual([1, 1.5, 2, 3])
+        expect(result).not.toBe(columnStore)
+    })
+
+    it("can sort by multiple columns", () => {
+        const columnStore = {
+            countries: ["usa", "usa", "can", "mex"],
+            pops: [123, 11, 21, 99],
+            gdp: [1, 2, 3, 4],
+        }
+        const result = sortColumnStore(columnStore, ["countries", "pops"])
+        expect(result["countries"]).toEqual(["can", "mex", "usa", "usa"])
+        expect(result["pops"]).toEqual([21, 99, 11, 123])
+        expect(result["gdp"]).toEqual([3, 4, 2, 1])
+    })
+
     it("can detect a sorted array and leave it untouched", () => {
         const columnStore = {
             countries: ["usa", "can", "mex"],
