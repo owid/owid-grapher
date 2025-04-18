@@ -1051,26 +1051,6 @@ export class CoreTable<
         )
     }
 
-    isGreaterThan(
-        columnSlug: ColumnSlug,
-        value: PrimitiveType,
-        opName?: string
-    ): this {
-        return this.columnFilter(
-            columnSlug,
-            (colValue) => colValue > value,
-            opName ?? `Filter where ${columnSlug} > ${value}`
-        )
-    }
-
-    filterNegativesForLogScale(columnSlug: ColumnSlug): this {
-        return this.isGreaterThan(
-            columnSlug,
-            0,
-            `Remove rows if ${columnSlug} is <= 0 for log scale`
-        )
-    }
-
     filterNegatives(slug: ColumnSlug): this {
         return this.columnFilter(
             slug,
