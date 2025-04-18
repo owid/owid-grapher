@@ -1099,21 +1099,6 @@ export class CoreTable<
         return [this.columnSlugs, ...rows]
     }
 
-    defToObject(): any {
-        const output: any = {}
-        this.columnsAsArray.forEach((col) => {
-            output[col.slug] = col.def
-        })
-        return output
-    }
-
-    toJs(): { columns: any; rows: ROW_TYPE[] } {
-        return {
-            columns: this.defToObject(),
-            rows: this.rows,
-        }
-    }
-
     private join(
         destinationTable: CoreTable,
         sourceTable: CoreTable,
