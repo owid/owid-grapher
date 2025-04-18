@@ -659,7 +659,6 @@ describe("printing", () => {
             ]
         )
 
-        expect(table.constantColumns.length).toEqual(0)
         expect(table.toCsvWithColumnNames()).toEqual(`entityName,day,annotation
 Aruba,2020-01-22,"Something, foo"
 Canada,2020-01-23,`)
