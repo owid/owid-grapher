@@ -12,7 +12,10 @@ import {
     GrapherChecksumsObjectWithHash,
     insertChartVersions,
 } from "./archivalChecksum.js"
-import { bakeArchivalGrapherPagesToFolder } from "./ArchivalBaker.js"
+import {
+    bakeArchivalGrapherPagesToFolder,
+    generateChartVersionsFiles,
+} from "./ArchivalBaker.js"
 
 interface Options {
     dir: string
@@ -65,6 +68,12 @@ const findChangedPagesAndArchive = async (opts: Options) => {
         )
 
         await insertChartVersions(trx, needToBeArchived, date, manifests)
+
+        await generateChartVersionsFiles(
+            trx,
+            opts.dir,
+            needToBeArchived.map((c) => c.chartId)
+        )
     })
 
     process.exit(0)

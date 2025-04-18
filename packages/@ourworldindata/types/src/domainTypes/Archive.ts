@@ -12,6 +12,7 @@ export interface ArchiveSiteNavigationInfo {
     liveUrl?: string
     previousVersion?: UrlAndMaybeDate
     nextVersion?: UrlAndMaybeDate
+    versionsFileUrl?: string
 }
 
 // Information about an archived chart version that is available, i.e. we can point to from the live site
@@ -35,3 +36,12 @@ export interface ArchiveMetaInformation
 export type ArchivedChartOrArchivePageMeta =
     | ChartArchivedVersion
     | ArchiveMetaInformation
+
+export interface ArchiveVersions {
+    chartId: number
+    versions: Array<{
+        archivalDate: ArchivalDateString
+        slug: string
+        url: string
+    }>
+}

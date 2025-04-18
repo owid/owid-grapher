@@ -1,9 +1,14 @@
 import { Button } from "@ourworldindata/components"
 import { SiteLogos } from "../SiteLogos.js"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
-import { ArchiveSiteNavigationInfo } from "@ourworldindata/types"
+import { formatAsArchivalDate, parseArchivalDate } from "@ourworldindata/utils"
+import {
+    ArchiveSiteNavigationInfo,
+    ArchiveVersions,
+} from "@ourworldindata/types"
 import { PROD_URL } from "../SiteConstants.js"
-import { parseArchivalDate } from "@ourworldindata/utils"
+import { useEffect, useMemo, useState } from "react"
+import * as R from "remeda"
 
 export interface ArchiveSiteNavigationProps extends ArchiveSiteNavigationInfo {
     archivalDate: Date | string
@@ -34,7 +39,56 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
         props.previousVersion ||
         props.nextVersion
     )
-    const dayjsDate = parseArchivalDate(props.archivalDate)
+    const dayjsDate = useMemo(
+        () => parseArchivalDate(props.archivalDate),
+        [props.archivalDate]
+    )
+    const pageArchivalDate = useMemo(
+        () => formatAsArchivalDate(dayjsDate),
+        [dayjsDate]
+    )
+
+    const [versions, setVersions] = useState<ArchiveVersions | undefined>()
+    useEffect(() => {
+        if (props.versionsFileUrl) {
+            fetch(props.versionsFileUrl)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(
+                            `Failed to fetch versions file: ${response.statusText}`
+                        )
+                    }
+                    return response.json()
+                })
+                .then(setVersions)
+                .catch((error) => {
+                    // Handle the error
+                    console.error("Error fetching versions file:", error)
+                })
+        }
+    }, [props.versionsFileUrl])
+
+    const nextVersion = useMemo(() => {
+        if (!versions) return props.nextVersion
+
+        // Find the index of the current version in the sorted list
+        const currentVersionIdx = R.sortedIndexWith(
+            versions.versions,
+            (item) => item.archivalDate < pageArchivalDate
+        )
+        if (
+            versions.versions[currentVersionIdx]?.archivalDate !==
+            pageArchivalDate
+        ) {
+            console.error(
+                `Current version not found in the list of versions. Current version: ${pageArchivalDate}, Versions: `,
+                versions.versions
+            )
+            return undefined
+        }
+
+        return versions.versions.at(currentVersionIdx + 1)
+    }, [versions, props.nextVersion, pageArchivalDate])
 
     return (
         <nav className="archive-navigation-bar">
@@ -74,10 +128,10 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                                 dataTrackNote="archive-header-go-to-live"
                             />
                         )}
-                        {props.nextVersion && (
+                        {nextVersion && (
                             <Button
                                 className="archive-navigation-bar__button archive-navigation-bar__button-right"
-                                href={props.nextVersion.url}
+                                href={nextVersion.url}
                                 theme="outline-white"
                                 icon={faArrowRight}
                                 iconPosition="right"

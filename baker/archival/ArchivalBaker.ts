@@ -6,6 +6,7 @@ import {
     DbPlainArchivedChartVersion,
     GrapherInterface,
     UrlAndMaybeDate,
+    ArchiveVersions,
 } from "@ourworldindata/types"
 import fs from "fs-extra"
 import { keyBy } from "lodash-es"
@@ -23,6 +24,7 @@ import {
 } from "./archivalUtils.js"
 import pMap from "p-map"
 import {
+    getAllChartVersionsForChartId,
     getLatestArchivedVersionsFromDb,
     GrapherChecksumsObjectWithHash,
 } from "./archivalChecksum.js"
@@ -32,7 +34,11 @@ import {
     GDOCS_DETAILS_ON_DEMAND_ID,
 } from "../../settings/serverSettings.js"
 import { getEnrichedChartsByIds } from "../../db/model/Chart.js"
-import { ArchivalTimestamp, getDateForArchival } from "@ourworldindata/utils"
+import {
+    ArchivalTimestamp,
+    getDateForArchival,
+    convertToArchivalDateStringIfNecessary,
+} from "@ourworldindata/utils"
 import { PROD_URL } from "../../site/SiteConstants.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
@@ -409,6 +415,7 @@ async function bakeGrapherPageForArchival(
     const archiveNavigation: ArchiveSiteNavigationInfo = {
         liveUrl: `${PROD_URL}/grapher/${config.slug}`,
         previousVersion,
+        versionsFileUrl: `/versions/charts/${chartInfo.chartId}.json`,
     }
     const fullUrl = assembleGrapherArchivalUrl(
         date.formattedDate,
@@ -461,5 +468,53 @@ async function copyToLatestDir(archiveDir: string, dir: string) {
 
     console.log(
         `Copied ${dir} to ${latestDir} (${filesCopied} files, ${dirsCopied} dirs)`
+    )
+}
+
+export async function generateChartVersionsFiles(
+    knex: db.KnexReadWriteTransaction,
+    dir: string,
+    chartIds: number[]
+) {
+    console.log(`Generating chart versions files for ${chartIds.length} charts`)
+    const targetPath = path.join(dir, "versions", "charts")
+    await fs.mkdirp(targetPath)
+
+    await pMap(
+        chartIds,
+        async (chartId) => {
+            const chartVersions = await getAllChartVersionsForChartId(
+                knex,
+                chartId
+            ).then((rows) =>
+                rows.map((r) => ({
+                    archivalDate: convertToArchivalDateStringIfNecessary(
+                        r.archivalTimestamp
+                    ),
+                    url: assembleGrapherArchivalUrl(
+                        r.archivalTimestamp,
+                        r.grapherSlug,
+                        { relative: true }
+                    ),
+                    slug: r.grapherSlug,
+                }))
+            )
+
+            const fileContent = {
+                chartId: chartId,
+                versions: chartVersions,
+            } satisfies ArchiveVersions
+            await fs.writeFile(
+                path.join(targetPath, `${chartId}.json`),
+                JSON.stringify(fileContent, undefined, 2),
+                {
+                    encoding: "utf8",
+                }
+            )
+        },
+        { concurrency: 10 }
+    )
+    console.log(
+        `Finished generating chart versions files for ${chartIds.length} charts`
     )
 }
