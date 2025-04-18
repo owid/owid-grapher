@@ -9,6 +9,7 @@ import {
     TagGraphRoot,
     Url,
     getPaginationPageNumbers,
+    TagGraphNode,
 } from "@ourworldindata/utils"
 import algoliasearch, { SearchClient } from "algoliasearch"
 import {
@@ -43,6 +44,7 @@ import {
     queryRibbons,
     querySearch,
     syncDataCatalogURL,
+    useAutocomplete,
 } from "./DataCatalogUtils.js"
 import {
     dataCatalogStateToUrl,
@@ -58,10 +60,7 @@ import {
     LandingPageRefinementsHeading,
 } from "./DataCatalogSkeletons.js"
 import { useMediaQuery } from "usehooks-ts"
-import {
-    SMALL_BREAKPOINT_MEDIA_QUERY,
-    TOUCH_DEVICE_MEDIA_QUERY,
-} from "../SiteConstants.js"
+import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
@@ -75,7 +74,6 @@ const DataCatalogSearchInput = ({
     setLocalQuery: (query: string) => void
     setGlobalQuery: (query: string) => void
 }) => {
-    const isTouchDevice = useMediaQuery(TOUCH_DEVICE_MEDIA_QUERY)
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const inputRef = useRef<HTMLInputElement | null>(null)
     let placeholder = ""
@@ -92,8 +90,8 @@ const DataCatalogSearchInput = ({
                 className="data-catalog-search-form"
                 onSubmit={(e) => {
                     e.preventDefault()
-                    // unfocus input to hide mobile keyboard
-                    if (isTouchDevice && inputRef.current) {
+                    // unfocus input to hide autocomplete/hide mobile keyboard
+                    if (inputRef.current) {
                         inputRef.current.blur()
                     }
                     setGlobalQuery(value)
@@ -113,8 +111,11 @@ const DataCatalogSearchInput = ({
                             setGlobalQuery("")
                         }
                     }}
-                    onBlur={() => {
-                        setGlobalQuery(value)
+                    onBlur={(e) => {
+                        const recipient = e.relatedTarget
+                        if (!recipient?.hasAttribute("data-prevent-onblur")) {
+                            setGlobalQuery(value)
+                        }
                     }}
                 />
                 <button
@@ -655,7 +656,7 @@ const TopicsRefinementList = ({
                 className="data-catalog-refinements-expand-button"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
-                <h5 className="h5-black-caps">Topics</h5>
+                <h5 className="h5-black-caps">Filter by topic</h5>
                 <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
             </button>
             <ul
@@ -765,22 +766,199 @@ const DataCatalogPagination = ({
     )
 }
 
+function AutocompleteItemContents({
+    type,
+    name,
+}: {
+    type: string
+    name: string
+}) {
+    if (type === "country") {
+        return (
+            <span className="country">
+                <img
+                    className="flag"
+                    aria-hidden={true}
+                    height={12}
+                    width={16}
+                    src={`/images/flags/${countriesByName()[name].code}.svg`}
+                />
+                {name}
+            </span>
+        )
+    }
+    if (type === "topic") {
+        return <span className="topic">{name}</span>
+    }
+    if (type === "query") {
+        return (
+            <span>
+                <FontAwesomeIcon icon={faSearch} />
+                {name}
+            </span>
+        )
+    }
+    return null
+}
+
+const DataCatalogAutocomplete = ({
+    localQuery,
+    allTopics,
+    selectedCountryNames,
+    selectedTopics,
+    query,
+    setLocalQuery,
+    setQuery,
+    addCountry,
+    addTopic,
+}: {
+    localQuery: string
+    allTopics: string[]
+    selectedCountryNames: Set<string>
+    selectedTopics: Set<string>
+    query: string
+    setLocalQuery: (query: string) => void
+    setQuery: (query: string) => void
+    addCountry: (country: string) => void
+    addTopic: (topic: string) => void
+}) => {
+    const items = useAutocomplete(localQuery, allTopics, {
+        selectedCountryNames,
+        selectedTopics,
+    })
+    const itemsToRender = useMemo(
+        () => [{ name: localQuery, type: "query" }, ...items],
+        [localQuery, items]
+    )
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const key = e.key
+            const input = document.querySelector(
+                ".data-catalog-search-input"
+            ) as HTMLInputElement
+            const pseudoinput = document.querySelector(
+                ".data-catalog-pseudo-input:focus-within"
+            ) as HTMLInputElement
+            if (!pseudoinput) {
+                return
+            }
+            const focusableItems = [
+                ...document.querySelectorAll(
+                    ".data-catalog-autocomplete-button"
+                ),
+            ] as HTMLElement[]
+            const currentIndex = document.activeElement
+                ? focusableItems.indexOf(document.activeElement as HTMLElement)
+                : null
+
+            switch (key) {
+                case "ArrowDown":
+                    e.preventDefault()
+                    if (currentIndex === null) {
+                        focusableItems[0].focus()
+                    } else if (currentIndex < itemsToRender.length - 1) {
+                        focusableItems[currentIndex + 1].focus()
+                    }
+                    break
+                case "ArrowUp":
+                    e.preventDefault()
+                    if (currentIndex === null) {
+                        focusableItems[0].focus()
+                    } else if (currentIndex > 0) {
+                        focusableItems[currentIndex - 1].focus()
+                    } else if (currentIndex === 0) {
+                        input.focus()
+                    }
+                    break
+                case "Escape":
+                    e.preventDefault()
+                    ;(document.activeElement as HTMLElement).blur()
+                    break
+            }
+        }
+
+        document.addEventListener("keydown", handleKeyDown)
+
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown)
+        }
+    }, [
+        items,
+        itemsToRender,
+        addCountry,
+        addTopic,
+        setLocalQuery,
+        setQuery,
+        query,
+    ])
+
+    if (!localQuery) return null
+    return (
+        <div className="data-catalog-autocomplete-container">
+            <ul>
+                {itemsToRender.map(({ name, type }) => (
+                    <li
+                        key={name}
+                        className={cx("data-catalog-autocomplete-item")}
+                    >
+                        <button
+                            data-prevent-onblur
+                            className="data-catalog-autocomplete-button"
+                            onClick={() => {
+                                const queryMinusLastWord = query
+                                    .split(" ")
+                                    .slice(0, -1)
+                                    .join(" ")
+                                if (type === "country") {
+                                    addCountry(name)
+                                }
+                                if (type === "topic") {
+                                    addTopic(name)
+                                }
+                                if (type === "query") {
+                                    setLocalQuery(name)
+                                    setQuery(name)
+                                    ;(
+                                        document.activeElement as HTMLElement
+                                    ).blur()
+                                    return
+                                }
+                                setLocalQuery(queryMinusLastWord)
+                                setQuery(queryMinusLastWord)
+                            }}
+                        >
+                            <AutocompleteItemContents type={type} name={name} />
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    )
+}
+
 const DataCatalogSearchbar = ({
+    allTopics,
+    selectedTopics,
     selectedCountries,
     query,
     setQuery,
     removeCountry,
     addCountry,
+    addTopic,
     requireAllCountries,
     selectedCountryNames,
     toggleRequireAllCountries,
 }: {
+    allTopics: string[]
+    selectedTopics: Set<string>
     selectedCountries: Region[]
     selectedCountryNames: Set<string>
     query: string
     setQuery: (query: string) => void
     removeCountry: (country: string) => void
     addCountry: (country: string) => void
+    addTopic: (topic: string) => void
     requireAllCountries: boolean
     toggleRequireAllCountries: () => void
 }) => {
@@ -811,6 +989,17 @@ const DataCatalogSearchbar = ({
                     value={localQuery}
                     setLocalQuery={setLocalQuery}
                     setGlobalQuery={setQuery}
+                />
+                <DataCatalogAutocomplete
+                    localQuery={localQuery}
+                    allTopics={allTopics}
+                    selectedCountryNames={selectedCountryNames}
+                    selectedTopics={selectedTopics}
+                    query={query}
+                    setLocalQuery={setLocalQuery}
+                    setQuery={setQuery}
+                    addCountry={addCountry}
+                    addTopic={addTopic}
                 />
             </div>
             <DataCatalogCountrySelector
@@ -844,6 +1033,22 @@ export const DataCatalog = ({
         () => tagGraph.children.map((child) => child.name),
         [tagGraph]
     )
+    const ALL_TOPICS = useMemo(() => {
+        function getAllTopics(node: TagGraphNode): Set<string> {
+            return node.children.reduce((acc, child) => {
+                if (child.children.length) {
+                    const topics = getAllTopics(child)
+                    return new Set([...acc, ...topics])
+                }
+                if (child.isTopic) {
+                    acc.add(child.name)
+                }
+                return acc
+            }, new Set<string>())
+        }
+        return Array.from(getAllTopics(tagGraph))
+    }, [tagGraph])
+
     const shouldShowRibbons = useMemo(
         () => checkShouldShowRibbonView(state.query, state.topics, AREA_NAMES),
         [state.query, state.topics, AREA_NAMES]
@@ -915,7 +1120,10 @@ export const DataCatalog = ({
                 </header>
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
                     <DataCatalogSearchbar
+                        allTopics={ALL_TOPICS}
+                        selectedTopics={state.topics}
                         addCountry={actions.addCountry}
+                        addTopic={actions.addTopic}
                         query={state.query}
                         removeCountry={actions.removeCountry}
                         requireAllCountries={state.requireAllCountries}
