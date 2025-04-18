@@ -50,7 +50,6 @@ export enum TransformType {
     LoadFromColumnStore = "LoadFromColumnStore",
     LoadFromMatrix = "LoadFromMatrix",
     Concat = "Concat",
-    Reduce = "Reduce",
 
     // Row ops
     FilterRows = "FilterRows",
