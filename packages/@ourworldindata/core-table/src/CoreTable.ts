@@ -76,6 +76,7 @@ interface AdvancedOptions {
     parent?: CoreTable
     filterMask?: FilterMask
     tableSlug?: TableSlug
+    forceReuseColumnStore?: boolean
 }
 
 // The complex generic with default here just enables you to optionally specify a more
@@ -191,13 +192,41 @@ export class CoreTable<
         return originalInput as CoreColumnStore
     }
 
+    @imemo get canReuseInputColumnStore(): boolean {
+        const { inputColumnDefs, valuesFromColumnDefs, columnSlugs } = this
+
+        const storeHasAllColumns = columnSlugs.every(
+            (slug) => slug in this.inputColumnStore
+        )
+
+        const columnsFromTransforms = inputColumnDefs.filter(
+            (def) => def.transform && !def.transformHasRun
+        )
+
+        return (
+            !this.colsToParse.length &&
+            storeHasAllColumns &&
+            !Object.keys(valuesFromColumnDefs).length &&
+            !columnsFromTransforms.length
+        )
+    }
+
     @imemo get columnStore(): CoreColumnStore {
+        const { inputColumnStore, advancedOptions } = this
+
+        if (
+            advancedOptions.forceReuseColumnStore ||
+            this.canReuseInputColumnStore
+        ) {
+            if (advancedOptions.filterMask)
+                return advancedOptions.filterMask.apply(inputColumnStore)
+            else return inputColumnStore
+        }
+
         const {
-            inputColumnStore,
             valuesFromColumnDefs,
             inputColumnsToParsedColumnStore,
             inputColumnDefs,
-            advancedOptions,
         } = this
 
         // Set blank columns
@@ -367,12 +396,12 @@ export class CoreTable<
     }
 
     protected noopTransform(tableDescription: string): this {
-        return this.transform(
-            this.columnStore,
-            this.defs,
+        return new (this.constructor as any)(this.columnStore, this.defs, {
+            parent: this,
             tableDescription,
-            TransformType.Noop
-        )
+            transformCategory: TransformType.Noop,
+            forceReuseColumnStore: true,
+        } as AdvancedOptions)
     }
 
     // Time between when the parent table finished loading and this table started constructing.
@@ -513,6 +542,12 @@ export class CoreTable<
 
     @imemo get numValidCells(): number {
         return sum(this.columnsAsArray.map((col) => col.numValues))
+    }
+
+    @imemo get colStoreIsEqualToParent(): boolean {
+        return this.parent
+            ? this.columnStore === this.parent.columnStore
+            : false
     }
 
     get rootTable(): this {
@@ -880,6 +915,7 @@ export class CoreTable<
             numValidCells,
             numErrorValues,
             numColumnsWithErrorValues,
+            colStoreIsEqualToParent,
         } = this
         return {
             tableDescription: truncate(tableDescription, 40),
@@ -893,6 +929,7 @@ export class CoreTable<
             numValidCells,
             numErrorValues,
             numColumnsWithErrorValues,
+            colStoreIsEqualToParent,
         }
     }
 
