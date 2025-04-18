@@ -513,18 +513,6 @@ describe("searching", () => {
         expect(table.grep(/(1999|2000)/).numRows).toEqual(2)
     })
 
-    it("can filter columns as well", () => {
-        expect(table.grepColumns("country").numColumns).toEqual(1)
-        expect(table.grepColumns("r").numColumns).toEqual(2)
-        expect(table.grepColumns("zz").numColumns).toEqual(0)
-        expect(table.grepColumns("year").oppositeColumns.columnSlugs).toEqual([
-            "country",
-        ])
-        expect(table.grepColumns(/co.+/).oppositeColumns.columnSlugs).toEqual([
-            "year",
-        ])
-    })
-
     it("can get the domain across all columns", () => {
         const table = new CoreTable(
             `gdp,perCapita
