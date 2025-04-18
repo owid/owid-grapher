@@ -620,8 +620,14 @@ export const trimArray = (arr: any[]): any[] => {
     return arr.slice(0, rightIndex + 1)
 }
 
-const applyNewSortOrder = (arr: any[], newOrder: number[]): any[] =>
-    newOrder.map((index) => arr[index])
+const applyNewSortOrder = (arr: any[], newOrder: number[]): any[] => {
+    const newArr = new Array(arr.length)
+    for (let i = 0; i < newOrder.length; i++) {
+        const index = newOrder[i]
+        newArr[i] = arr[index]
+    }
+    return newArr
+}
 
 export const sortColumnStore = (
     columnStore: CoreColumnStore,
@@ -630,13 +636,13 @@ export const sortColumnStore = (
     const firstCol = Object.values(columnStore)[0]
     if (!firstCol) return {}
     const len = firstCol.length
-    const newOrder = range(0, len).sort(makeSortByFn(columnStore, slugs))
+    const sortFn = makeSortByFn(columnStore, slugs)
 
-    // Check if column store is already sorted (which is the case if newOrder is equal to range(0, startLen)).
+    // Check if column store is already sorted.
     // If it's not sorted, we will detect that within the first few iterations usually.
     let isSorted = true
-    for (let i = 0; i < len; i++) {
-        if (newOrder[i] !== i) {
+    for (let i = 0; i < len - 1; i++) {
+        if (sortFn(i, i + 1) > 0) {
             isSorted = false
             break
         }
@@ -645,9 +651,12 @@ export const sortColumnStore = (
     if (isSorted) return columnStore
 
     const newStore: CoreColumnStore = {}
+    // Compute an array of the new sort order, i.e. [0, 1, 2, ...] -> [2, 0, 1]
+    const newOrder = range(0, len).sort(sortFn)
     Object.entries(columnStore).forEach(([slug, colValues]) => {
         newStore[slug] = applyNewSortOrder(colValues, newOrder)
     })
+
     return newStore
 }
 
