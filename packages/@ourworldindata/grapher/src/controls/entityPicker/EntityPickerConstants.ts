@@ -2,8 +2,7 @@ import { ColumnSlug } from "@ourworldindata/utils"
 import { GrapherAnalytics } from "../../core/GrapherAnalytics"
 import { OwidTable } from "@ourworldindata/core-table"
 import { CoreColumnDef, EntityName, SortOrder } from "@ourworldindata/types"
-import { SelectionArray } from "../../selection/SelectionArray"
-import { FocusArray } from "../../focus/FocusArray"
+import { MapConfig } from "../../mapCharts/MapConfig"
 
 export interface EntityPickerManager {
     entityPickerMetric?: ColumnSlug
@@ -17,9 +16,8 @@ export interface EntityPickerManager {
     entityPickerTable?: OwidTable
     entityPickerTableIsLoading?: boolean
     grapherTable?: OwidTable
-    selection: SelectionArray
     entityType?: string
     analytics?: GrapherAnalytics
-    focusArray?: FocusArray
     availableEntityNames?: EntityName[]
+    mapConfig?: MapConfig
 }
