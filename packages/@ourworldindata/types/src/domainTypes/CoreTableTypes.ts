@@ -52,6 +52,7 @@ export enum TransformType {
     Transpose = "Transpose",
     Concat = "Concat",
     Reduce = "Reduce",
+    Noop = "Noop", // for when we notice that we can skip a transform
 
     // Row ops
     FilterRows = "FilterRows",
