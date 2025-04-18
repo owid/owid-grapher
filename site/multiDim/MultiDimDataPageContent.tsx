@@ -25,6 +25,7 @@ import {
     DataPageRelatedResearch,
     FaqEntryKeyedByGdocIdAndFragmentId,
     FaqLink,
+    GRAPHER_TAB_QUERY_PARAMS,
     GrapherQueryParams,
     ImageMetadata,
     MultiDimDataPageConfigEnriched,
@@ -209,6 +210,12 @@ export function DataPageContent({
                 // want it set only when it's not the default, which is handled
                 // by effect that depends on `grapherChangedParams`.
                 tab: grapher.mapGrapherTabToQueryParam(grapher.activeTab),
+            }
+
+            // reset map state if switching to a chart
+            if (newGrapherParams.tab !== GRAPHER_TAB_QUERY_PARAMS.map) {
+                newGrapherParams.globe = "0"
+                newGrapherParams.mapSelect = ""
             }
 
             setSearchParams(newSearchParams, { replace: true })

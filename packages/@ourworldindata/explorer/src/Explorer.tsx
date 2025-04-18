@@ -9,6 +9,7 @@ import {
     GrapherInterface,
     GrapherQueryParams,
     EntityName,
+    GRAPHER_TAB_QUERY_PARAMS,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -27,7 +28,7 @@ import {
     SlideShowManager,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     GrapherAnalytics,
-    FocusArray,
+    MapConfig,
 } from "@ourworldindata/grapher"
 import {
     Bounds,
@@ -274,7 +275,7 @@ export class Explorer
         ? this.props.selection
         : new SelectionArray(this.explorerProgram.selection)
 
-    focusArray = new FocusArray()
+    mapConfig = new MapConfig()
 
     entityType = this.explorerProgram.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
 
@@ -452,6 +453,12 @@ export class Explorer
         newGrapherParams.tab =
             this.grapher.mapGrapherTabToQueryParam(previousTab)
 
+        // reset map state if switching to a chart
+        if (newGrapherParams.tab !== GRAPHER_TAB_QUERY_PARAMS.map) {
+            newGrapherParams.globe = "0"
+            newGrapherParams.mapSelect = ""
+        }
+
         this.grapher.populateFromQueryParams(newGrapherParams)
 
         this.analytics.logExplorerView(
@@ -469,6 +476,10 @@ export class Explorer
     @computed get availableEntityNames(): EntityName[] {
         const entityNameSet = this.appendOnlyAvailableEntityNames
         return Array.from(entityNameSet)
+    }
+
+    @computed private get enableMapSelection(): boolean {
+        return !this.isNarrow
     }
 
     private futureGrapherTable = new PromiseSwitcher<OwidTable>({
@@ -556,6 +567,7 @@ export class Explorer
             dataApiUrl: this.dataApiUrl,
             adminBaseUrl: this.adminBaseUrl,
             hideEntityControls: this.showExplorerControls,
+            enableMapSelection: this.enableMapSelection,
             manuallyProvideData: false,
         }
 
@@ -607,6 +619,7 @@ export class Explorer
             dataApiUrl: this.dataApiUrl,
             adminBaseUrl: this.adminBaseUrl,
             hideEntityControls: this.showExplorerControls,
+            enableMapSelection: this.enableMapSelection,
             manuallyProvideData: false,
         }
 
@@ -758,6 +771,7 @@ export class Explorer
             dataApiUrl: this.dataApiUrl,
             adminBaseUrl: this.adminBaseUrl,
             hideEntityControls: this.showExplorerControls,
+            enableMapSelection: this.enableMapSelection,
             manuallyProvideData: true,
         }
 
@@ -929,10 +943,19 @@ export class Explorer
     }
 
     private renderEntityPicker() {
+        const selection =
+            this.grapher?.isOnMapTab && this.enableMapSelection
+                ? this.mapConfig.selection
+                : this.selection
+
         return (
             <EntityPicker
                 key="entityPicker"
                 manager={this}
+                selection={selection}
+                onSelectEntity={this.grapher?.onSelectEntity}
+                onDeselectEntity={this.grapher?.onDeselectEntity}
+                onClearEntities={this.grapher?.onClearEntities}
                 isDropdownMenu={this.isNarrow}
             />
         )
