@@ -337,10 +337,6 @@ export class CoreTable<
         )
     }
 
-    toOneDimensionalArray(): any {
-        return this.toTypedMatrix().slice(1).flat()
-    }
-
     private setColumn(def: COL_DEF_TYPE): void {
         const { type, slug } = def
         const ColumnType = (type && ColumnTypeMap[type]) || ColumnTypeMap.String
