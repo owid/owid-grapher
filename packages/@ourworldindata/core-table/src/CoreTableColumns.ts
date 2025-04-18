@@ -3,7 +3,6 @@ import {
     csvEscape,
     formatYear,
     formatDay,
-    last,
     uniq,
     sortNumeric,
     range,
@@ -362,12 +361,12 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         ) as JS_TYPE[]
     }
 
-    @imemo get minValue(): JS_TYPE {
-        return this.valuesAscending[0]
+    @imemo get minValue(): JS_TYPE | undefined {
+        return min(this.values)
     }
 
-    @imemo get maxValue(): JS_TYPE {
-        return last(this.valuesAscending)!
+    @imemo get maxValue(): JS_TYPE | undefined {
+        return max(this.values)
     }
 
     @imemo get numErrorValues(): number {
