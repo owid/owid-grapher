@@ -566,35 +566,6 @@ export class CoreTable<
         }, `Kept rows that matched '${searchStringOrRegex.toString()}'`)
     }
 
-    @imemo get oppositeColumns(): this {
-        if (this.isRoot) return this
-        const columnsToDrop = new Set(this.columnSlugs)
-        const defs = this.parent!.columnsAsArray.filter(
-            (col) => !columnsToDrop.has(col.slug)
-        ).map((col) => col.def) as COL_DEF_TYPE[]
-        return this.transform(
-            this.columnStore,
-            defs,
-            `Inversing previous column filter`,
-            TransformType.InverseFilterColumns
-        )
-    }
-
-    grepColumns(searchStringOrRegex: string | RegExp): this {
-        const columnsToDrop = this.columnSlugs.filter((slug) => {
-            return typeof searchStringOrRegex === "string"
-                ? !slug.includes(searchStringOrRegex)
-                : !searchStringOrRegex.test(slug)
-        })
-
-        return this.dropColumns(
-            columnsToDrop,
-            `Kept ${
-                this.columnSlugs.length - columnsToDrop.length
-            } columns that matched '${searchStringOrRegex.toString()}'.`
-        )
-    }
-
     rowFilter(
         predicate: (row: ROW_TYPE, index: number) => boolean,
         opName: string
