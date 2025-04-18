@@ -7,7 +7,7 @@ describe("urlRegex", () => {
         "http://example.com/",
         "http://example.com/path/to/resource",
         "http://example.com/path/to/resource?query=string",
-        "http://example.com/path/to/resource#fragment",
+        "http://example.com/path/to/resource.svg#fragment",
         "http://example.com/path/to/resource?query=string#fragment",
         "http://example.com/path/to/resource#fragment?query=string",
         "http://example.com/path/to/resource?query=string&another=query#fragment",
@@ -46,6 +46,20 @@ describe("urlRegex", () => {
             "This is a test string without a URL, but it contains http:// and example.com"
         const match = input.match(urlRegex)
         expect(match).toBeFalsy()
+    })
+
+    it("should exclude trailing period", () => {
+        const input = `This is an http://example.com.`
+        const match = input.match(urlRegex)
+        expect(match).toBeTruthy()
+        expect(match![0]).toBe("http://example.com")
+    })
+
+    it("should exclude trailing question mark", () => {
+        const input = `Is this an http://example.com?`
+        const match = input.match(urlRegex)
+        expect(match).toBeTruthy()
+        expect(match![0]).toBe("http://example.com")
     })
 
     it("should match urls without TLD", () => {
