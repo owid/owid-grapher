@@ -724,10 +724,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    getColorForColumnByDisplayName(displayName: string): string | undefined {
-        return this.columnDisplayNameToColorMap.get(displayName)
-    }
-
     // This assumes the table is sorted where the times for entity names go in asc order.
     // The whole table does not have to be sorted by time.
     getLatestValueForEntity(
