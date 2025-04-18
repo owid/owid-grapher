@@ -3569,6 +3569,8 @@ export class Grapher
     }
 
     @computed get baseUrl(): string | undefined {
+        if (this.isOnArchivalPage) return this.archivedChartInfo?.archiveUrl
+
         return this.isPublished
             ? `${this.bakedGrapherURL ?? "/grapher"}/${this.displaySlug}`
             : undefined
@@ -3628,6 +3630,11 @@ export class Grapher
         | React.ReactElement
         | undefined {
         return this.manager?.embedDialogAdditionalElements
+    }
+
+    @computed get embedArchivedUrl(): string | undefined {
+        if (!this.archivedChartInfo) return undefined
+        return this.archivedChartInfo.archiveUrl + this.queryStr
     }
 
     @computed private get hasUserChangedTimeHandles(): boolean {

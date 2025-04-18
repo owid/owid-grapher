@@ -4,14 +4,13 @@ import { computed, action } from "mobx"
 import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { Modal } from "./Modal"
 import { CodeSnippet, OverlayHeader } from "@ourworldindata/components"
-import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
 
 export interface EmbedModalManager {
     embedUrl?: string
+    embedArchivedUrl?: string
     embedDialogAdditionalElements?: React.ReactElement
     isEmbedModalOpen?: boolean
     frameBounds?: Bounds
-    archivedChartInfo?: ArchivedChartOrArchivePageMeta
 }
 
 interface EmbedModalProps {
@@ -41,11 +40,11 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
     }
 
     @computed private get embedOptions(): EmbedOptions[] {
-        const { embedUrl, archivedChartInfo } = this.manager
+        const { embedUrl, embedArchivedUrl } = this.manager
 
         const opts: EmbedOptions[] = []
 
-        if (embedUrl) {
+        if (embedUrl && embedUrl !== embedArchivedUrl) {
             opts.push({
                 title: "Chart with data updates",
                 description: (
@@ -58,7 +57,7 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
                 url: embedUrl,
             })
         }
-        if (archivedChartInfo) {
+        if (embedArchivedUrl) {
             opts.push({
                 title: "Archived chart without data updates",
                 description: (
@@ -68,7 +67,7 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
                         our site, paste this code into a HTML page:
                     </span>
                 ),
-                url: archivedChartInfo.archiveUrl,
+                url: embedArchivedUrl,
             })
         }
         return opts
