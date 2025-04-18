@@ -17,7 +17,11 @@ import {
     DataCatalogState,
     CatalogFilterType,
 } from "./DataCatalogState.js"
-import { countriesByName, Region } from "@ourworldindata/utils"
+import {
+    countriesByName,
+    flattenNonTopicNodes,
+    Region,
+} from "@ourworldindata/utils"
 import algoliasearch, { SearchClient } from "algoliasearch"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { BaseItem } from "./DataCatalogAutocomplete.js"
@@ -177,10 +181,16 @@ export function getTopicsForRibbons(
     topics: Set<string>,
     tagGraph: TagGraphRoot
 ) {
-    if (topics.size === 0) return tagGraph.children.map((child) => child.name)
+    const topicTagGraph = flattenNonTopicNodes(tagGraph)
+    if (topics.size === 0)
+        return topicTagGraph.children.map((child) => child.name)
     if (topics.size === 1) {
-        const area = tagGraph.children.find((child) => topics.has(child.name))
-        if (area) return getAllTagsInArea(area)
+        const area = topicTagGraph.children.find((child) =>
+            topics.has(child.name)
+        )
+        if (area) {
+            return getAllTagsInArea(area)
+        }
     }
     return []
 }
