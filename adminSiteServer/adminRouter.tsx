@@ -1,8 +1,6 @@
 // Misc non-SPA views
-import express, { Request, Response, Router } from "express"
-import { rateLimit } from "express-rate-limit"
+import express, { Router } from "express"
 import filenamify from "filenamify"
-import * as React from "react"
 import { Writable } from "stream"
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { logInWithCredentials, logOut } from "./authentication.js"
@@ -49,17 +47,6 @@ import { renderMultiDimDataPageFromConfig } from "../baker/MultiDimBaker.js"
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require("express-async-errors")
 
-// Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
-const limiterMiddleware = (
-    onFailRender: (req: Request, res: Response) => React.ReactElement
-) =>
-    rateLimit({
-        windowMs: 60_000, // 1 minute
-        max: 10, // max. 10 requests per minute
-        handler: (req, res) =>
-            res.status(429).send(renderToHtmlPage(onFailRender(req, res))),
-    })
-
 const adminRouter = Router()
 
 // Parse incoming requests with JSON payloads http://expressjs.com/en/api.html
@@ -100,42 +87,33 @@ adminRouter.get("/", async (req, res) => {
 adminRouter.get("/login", async (req, res) => {
     res.send(renderToHtmlPage(<LoginPage next={req.query.next as string} />))
 })
-adminRouter.post(
-    "/login",
-    limiterMiddleware((req) => (
-        <LoginPage
-            errorMessage="Too many attempts, please try again in a minute."
-            next={req.query.next as string}
-        />
-    )),
-    async (req, res) => {
-        try {
-            const session = await logInWithCredentials(
-                req.body.username,
-                req.body.password
-            )
-            // secure cookie when using https
-            // (our staging servers use http and passing insecure cookie wouldn't work)
-            const secure = req.protocol === "https"
+adminRouter.post("/login", async (req, res) => {
+    try {
+        const session = await logInWithCredentials(
+            req.body.username,
+            req.body.password
+        )
+        // secure cookie when using https
+        // (our staging servers use http and passing insecure cookie wouldn't work)
+        const secure = req.protocol === "https"
 
-            res.cookie("sessionid", session.id, {
-                httpOnly: true,
-                sameSite: "lax",
-                secure: secure,
-            })
-            res.redirect((req.query.next as string) || "/admin")
-        } catch (err) {
-            res.status(400).send(
-                renderToHtmlPage(
-                    <LoginPage
-                        next={req.query.next as string}
-                        errorMessage={stringifyUnknownError(err)}
-                    />
-                )
+        res.cookie("sessionid", session.id, {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: secure,
+        })
+        res.redirect((req.query.next as string) || "/admin")
+    } catch (err) {
+        res.status(400).send(
+            renderToHtmlPage(
+                <LoginPage
+                    next={req.query.next as string}
+                    errorMessage={stringifyUnknownError(err)}
+                />
             )
-        }
+        )
     }
-)
+})
 
 adminRouter.get("/logout", logOut)
 
