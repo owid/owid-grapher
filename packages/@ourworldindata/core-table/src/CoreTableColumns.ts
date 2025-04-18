@@ -86,10 +86,6 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.def.toleranceStrategy
     }
 
-    @imemo get domain(): [JS_TYPE, JS_TYPE] {
-        return [this.minValue, this.maxValue]
-    }
-
     @imemo get display(): OwidVariableDisplayConfigInterface | undefined {
         return this.def.display
     }
