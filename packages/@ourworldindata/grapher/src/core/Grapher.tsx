@@ -344,6 +344,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideExploreTheDataButton?: boolean
     hideRelatedQuestion?: boolean
     isSocialMediaExport?: boolean
+    enableMapSelection?: boolean
 
     getGrapherInstance?: (instance: Grapher) => void
 
@@ -367,6 +368,7 @@ export interface GrapherManager {
     canonicalUrl?: string
     selection?: SelectionArray
     focusArray?: FocusArray
+    mapConfig?: MapConfig
     editUrl?: string
 }
 
@@ -2473,7 +2475,7 @@ export class Grapher
     }
 
     @computed get mapConfig(): MapConfig {
-        return this.map
+        return this.manager?.mapConfig ?? this.map
     }
 
     @computed get cacheTag(): string {
@@ -3881,10 +3883,19 @@ export class Grapher
 
     // called when an entity is selected in the entity selector
     @action.bound onSelectEntity(entityName: EntityName): void {
-        if (this.isOnMapTab && this.mapConfig.globe.isActive) {
+        const { selectedCountryNamesInForeground } = this.mapConfig.selection
+        if (
+            this.isOnMapTab &&
+            this.isMapSelectionEnabled &&
+            this.mapConfig.globe.isActive
+        ) {
             const region = getRegionByName(entityName)
             if (region) {
-                if (checkIsCountry(region) && region.isMappable) {
+                if (
+                    checkIsCountry(region) &&
+                    region.isMappable &&
+                    selectedCountryNamesInForeground.includes(region.name)
+                ) {
                     // rotate to the selected country
                     this.globeController.focusOnCountry(region.name)
                 } else if (checkIsOwidContinent(region)) {
@@ -3907,7 +3918,7 @@ export class Grapher
 
     // called when an entity is deselected in the entity selector
     @action.bound onDeselectEntity(entityName: EntityName): void {
-        // remove focus from an entity that has been removed from the selection
+        // Remove focus from an entity that has been removed from the selection
         this.focusArray.remove(entityName)
 
         // Remove focus from the deselected country
@@ -4088,6 +4099,8 @@ export class Grapher
     }
 
     @computed get isMapSelectionEnabled(): boolean {
+        if (this.enableMapSelection) return true
+
         return (
             // If the entity controls are hidden, then selecting entities from
             // the map should also be disabled
@@ -4120,6 +4133,8 @@ export class Grapher
     // allows you to still use add country "modes" without showing the buttons in order to prioritize
     // another entity selector over the built in ones.
     @observable hideEntityControls = false
+
+    @observable enableMapSelection = false
 
     // exposed programmatically for hiding interactive controls or tabs when desired
     // (e.g. used to hide Grapher chrome when a Grapher chart in a Gdoc article is in "read-only" mode)
