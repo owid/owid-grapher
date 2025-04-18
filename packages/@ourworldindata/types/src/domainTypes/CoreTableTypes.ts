@@ -49,7 +49,6 @@ export enum TransformType {
     LoadFromRowStore = "LoadFromRowStore",
     LoadFromColumnStore = "LoadFromColumnStore",
     LoadFromMatrix = "LoadFromMatrix",
-    Transpose = "Transpose",
     Concat = "Concat",
     Reduce = "Reduce",
 
