@@ -823,11 +823,6 @@ export class CoreTable<
         return header + body
     }
 
-    // Get all the columns that only have 1 value
-    get constantColumns(): CoreColumn[] {
-        return this.columnsAsArray.filter((col) => col.isConstant)
-    }
-
     rowsAt(indices: number[]): ROW_TYPE[] {
         const { columnStore } = this
         return indices.map(
