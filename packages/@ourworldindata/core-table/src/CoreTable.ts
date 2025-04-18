@@ -53,7 +53,6 @@ import {
     concatColumnStores,
     rowsToColumnStore,
     autodetectColumnDefs,
-    reverseColumnStore,
     renameColumnStore,
     replaceRandomCellsInColumnStore,
     getDropIndexes,
@@ -661,15 +660,6 @@ export class CoreTable<
             [...first, ...rest].map((col) => col.def as COL_DEF_TYPE),
             `Sorted columns`,
             TransformType.SortColumns
-        )
-    }
-
-    reverse(): this {
-        return this.transform(
-            reverseColumnStore(this.columnStore),
-            this.defs,
-            `Reversed row order`,
-            TransformType.SortRows
         )
     }
 

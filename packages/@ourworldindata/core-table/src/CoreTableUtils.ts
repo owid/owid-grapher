@@ -447,16 +447,6 @@ export const replaceDef = <ColumnDef extends CoreColumnDef>(
         return newDef ?? def
     })
 
-export const reverseColumnStore = (
-    columnStore: CoreColumnStore
-): CoreColumnStore => {
-    const newStore: CoreColumnStore = {}
-    Object.keys(columnStore).forEach((slug) => {
-        newStore[slug] = columnStore[slug].toReversed()
-    })
-    return newStore
-}
-
 export const renameColumnStore = (
     columnStore: CoreColumnStore,
     columnRenameMap: { [columnSlug: string]: ColumnSlug }
