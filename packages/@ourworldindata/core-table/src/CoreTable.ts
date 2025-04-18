@@ -55,7 +55,6 @@ import {
     autodetectColumnDefs,
     renameColumnStore,
     replaceRandomCellsInColumnStore,
-    getDropIndexes,
     parseDelimited,
     rowsFromMatrix,
     sortColumnStore,
@@ -1116,16 +1115,6 @@ export class CoreTable<
         )
     }
 
-    // for testing. Preserves ordering.
-    dropRandomRows(howMany: number = 1, seed: number = Date.now()): this {
-        if (!howMany) return this // todo: clone?
-        const indexesToDrop = getDropIndexes(this.numRows, howMany, seed)
-        return this.dropRowsAt(
-            Array.from(indexesToDrop.values()),
-            `Dropping a random ${howMany} rows`
-        )
-    }
-
     replaceCells(
         columnSlugs: ColumnSlug[],
         replaceFn: (val: CoreValueType) => CoreValueType
@@ -1206,16 +1195,6 @@ export class CoreTable<
                 " and "
             )}`,
             TransformType.UpdateRows
-        )
-    }
-
-    dropRandomPercent(
-        dropHowMuch: number = 1,
-        seed: number = Date.now()
-    ): this {
-        return this.dropRandomRows(
-            Math.floor((dropHowMuch / 100) * this.numRows),
-            seed
         )
     }
 

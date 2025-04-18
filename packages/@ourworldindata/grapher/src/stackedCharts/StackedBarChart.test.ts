@@ -61,10 +61,7 @@ describe("stackedbar chart with entities as series", () => {
     })
 
     it("can handle a missing row", () => {
-        const table = SynthesizeGDPTable({ entityCount: 5 }).dropRandomRows(
-            1,
-            1
-        )
+        const table = SynthesizeGDPTable({ entityCount: 5 }).dropRowsAt([2])
         const manager = {
             table,
             selection: table.availableEntityNames,
