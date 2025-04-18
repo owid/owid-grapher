@@ -40,21 +40,25 @@ export function ChartHit({
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
     const isMultiDimView = hit.type === ChartRecordType.MultiDimView
 
-    const entities = useMemo(
-        () =>
-            pickEntitiesForChartHit(
-                hit._highlightResult?.availableEntities as
-                    | HitAttributeHighlightResult[]
-                    | undefined,
-                hit.availableEntities,
-                searchQueryRegionsMatches
-            ),
-        [
-            hit._highlightResult?.availableEntities,
-            hit.availableEntities,
-            searchQueryRegionsMatches,
-        ]
-    )
+    const entities = useMemo(() => {
+        const highlighted = (hit._highlightResult?.originalAvailableEntities ||
+            hit._highlightResult?.availableEntities) as
+            | HitAttributeHighlightResult[]
+            | undefined
+        const available = hit.originalAvailableEntities ?? hit.availableEntities
+
+        return pickEntitiesForChartHit(
+            highlighted,
+            available,
+            searchQueryRegionsMatches
+        )
+    }, [
+        hit._highlightResult?.availableEntities,
+        hit._highlightResult?.originalAvailableEntities,
+        hit.availableEntities,
+        hit.originalAvailableEntities,
+        searchQueryRegionsMatches,
+    ])
     const entityQueryStr = useMemo(
         () => getEntityQueryStr(entities),
         [entities]
