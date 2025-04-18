@@ -818,10 +818,6 @@ export class EntitySelector extends React.Component<{
         return [...sortedEntitiesWithValues, ...sortedEntitiesWithoutValues]
     }
 
-    @computed private get sortedAvailableEntities(): SearchableEntity[] {
-        return this.sortEntities(this.availableEntities)
-    }
-
     @computed get isMultiMode(): boolean {
         return !this.manager.canChangeEntity
     }
@@ -978,10 +974,7 @@ export class EntitySelector extends React.Component<{
         }
     }
 
-    @computed private get entitiesByRegionType(): Map<
-        EntityRegionType,
-        EntityName[]
-    > {
+    @computed get entitiesByRegionType(): Map<EntityRegionType, EntityName[]> {
         // the 'World' entity shouldn't show up in any of the groups
         const availableEntityNames = this.availableEntityNames.filter(
             (entityName) => !isWorldEntityName(entityName)
@@ -1041,7 +1034,7 @@ export class EntitySelector extends React.Component<{
         return entitiesByType
     }
 
-    @computed private get filterOptions(): FilterDropdownOption[] {
+    @computed get filterOptions(): FilterDropdownOption[] {
         const options = Array.from(this.entitiesByRegionType.entries()).map(
             ([key, entities]) => ({
                 value: key,
@@ -1076,7 +1069,7 @@ export class EntitySelector extends React.Component<{
         )
     }
 
-    @computed private get shouldShowFilterBar(): boolean {
+    @computed get shouldShowFilterBar(): boolean {
         return (
             this.filterOptions.length > 1 &&
             this.filterOptions[0].count !== this.filterOptions[1].count
