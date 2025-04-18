@@ -1121,7 +1121,6 @@ export class EntitySelector extends React.Component<{
                     <input
                         ref={this.searchField}
                         type="search"
-                        placeholder={`Search for ${a(this.entityType)}`}
                         value={this.searchInput}
                         onChange={action((e): void => {
                             this.set({
@@ -1130,6 +1129,16 @@ export class EntitySelector extends React.Component<{
                         })}
                         onKeyDown={this.onSearchKeyDown}
                     />
+                    {/* We don't use the input's built-in placeholder because
+                        we want the input text and placeholder text to have different
+                        font sizes. This is not well-supported across browsers.
+                        The input text needs to be 16px to prevent auto-zoom on iOS,
+                        but the placeholder text should have a smaller font size. */}
+                    {!this.searchInput && (
+                        <span className="search-placeholder">
+                            Search for {a(this.entityType)}
+                        </span>
+                    )}
                     <FontAwesomeIcon
                         className="search-icon"
                         icon={faMagnifyingGlass}
