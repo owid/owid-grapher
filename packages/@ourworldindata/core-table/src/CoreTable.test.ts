@@ -646,15 +646,6 @@ describe("debug tools", () => {
 })
 
 describe("printing", () => {
-    it("uses slugs for headers in toDelimited", () => {
-        const table = new CoreTable(`country,Population in 2020
-iceland,1`)
-        const csv = table.toDelimited()
-        expect(csv).toEqual(`country,Population-in-2020
-iceland,1`)
-        expect(table.get("country").isEmpty).toBe(false)
-    })
-
     it("can export a clean csv with dates", () => {
         const table = new CoreTable(
             [

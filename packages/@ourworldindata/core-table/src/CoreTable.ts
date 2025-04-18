@@ -39,12 +39,6 @@ import {
     OwidColumnDef,
 } from "@ourworldindata/types"
 import {
-    AlignedTextTableOptions,
-    toAlignedTextTable,
-    toDelimited,
-    toMarkdownTable,
-} from "./CoreTablePrinters.js"
-import {
     makeAutoTypeFn,
     columnStoreToRows,
     makeKeyFn,
@@ -804,27 +798,6 @@ export class CoreTable<
             numErrorValues,
             numColumnsWithErrorValues,
         }
-    }
-
-    // Output a pretty table for consles
-    toAlignedTextTable(options?: AlignedTextTableOptions): string {
-        return toAlignedTextTable(this.columnSlugs, this.rows, options)
-    }
-
-    toMarkdownTable(): string {
-        return toMarkdownTable(this.columnSlugs, this.rows)
-    }
-
-    toDelimited(
-        delimiter: string = ",",
-        columnSlugs = this.columnSlugs,
-        rows = this.rows
-    ): string {
-        return toDelimited(delimiter, columnSlugs, rows)
-    }
-
-    toTsv(): string {
-        return this.toDelimited("\t")
     }
 
     toCsvWithColumnNames(useShortNames: boolean = false): string {
