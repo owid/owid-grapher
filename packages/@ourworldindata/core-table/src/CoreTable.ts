@@ -7,7 +7,6 @@ import {
     intersection,
     sum,
     uniqBy,
-    intersectionOfSets,
     isNumber,
     isPresent,
     ColumnSlug,
@@ -1076,55 +1075,6 @@ export class CoreTable<
             ]),
             `Duplicated column '${slug}' to column '${overrides.slug}'`,
             TransformType.AppendColumns
-        )
-    }
-
-    columnIntersection(tables: CoreTable[]): string[] {
-        return intersection(
-            this.columnSlugs,
-            ...tables.map((table) => table.columnSlugs)
-        )
-    }
-
-    private intersectingRowIndices(tables: CoreTable[]): number[] {
-        const columnSlugs = this.columnIntersection(tables)
-        if (!columnSlugs.length) return []
-        const thisIndex = this.rowIndex(columnSlugs)
-        const indices = [
-            thisIndex,
-            ...tables.map((table) => table.rowIndex(columnSlugs)),
-        ]
-        const keys = intersectionOfSets(
-            indices.map((index) => new Set(index.keys()))
-        )
-        return Array.from(keys).map((key) => thisIndex.get(key)![0]) // Only include first match if many b/c we are treating tables as sets here
-    }
-
-    intersection(tables: CoreTable[]): this {
-        return this.transform(
-            this.columnStore,
-            this.defs,
-            `Keeping only rows also in all tables`,
-            TransformType.FilterRows,
-            new FilterMask(
-                this.numRows,
-                this.intersectingRowIndices(tables),
-                true
-            )
-        )
-    }
-
-    difference(tables: CoreTable[]): this {
-        return this.transform(
-            this.columnStore,
-            this.defs,
-            `Keeping only rows not in all other tables`,
-            TransformType.FilterRows,
-            new FilterMask(
-                this.numRows,
-                this.intersectingRowIndices(tables),
-                false
-            )
         )
     }
 
