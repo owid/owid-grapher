@@ -24,7 +24,6 @@ import {
     differenceOfSets,
 } from "@ourworldindata/utils"
 import {
-    Integer,
     Time,
     TransformType,
     CoreColumnStore,
@@ -1077,34 +1076,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             `Interpolated values`,
             TransformType.UpdateColumnDefs
         )
-    }
-
-    // one datum per entityName. use the closest value to target year within tolerance.
-    // selected rows only. value from any primary column.
-    // getClosestRowForEachSelectedEntity(targetYear, tolerance)
-    // Make sure we use the closest value to the target year within tolerance (preferring later)
-    getClosestIndexForEachEntity(
-        entityNames: EntityName[],
-        targetTime: Time,
-        tolerance: Integer
-    ): number[] {
-        const indexMap = this.rowIndicesByEntityName
-        const timeColumn = this.timeColumn
-        if (this.timeColumn.isMissing) return []
-        const timeValues = timeColumn.valuesIncludingErrorValues
-        return entityNames
-            .map((name) => {
-                const rowIndices = indexMap.get(name)
-                if (!rowIndices) return null
-
-                const rowIndex = findClosestTimeIndex(
-                    rowIndices.map((index) => timeValues[index]) as number[],
-                    targetTime,
-                    tolerance
-                )
-                return rowIndex ? rowIndices[rowIndex] : null
-            })
-            .filter(isPresent)
     }
 
     sampleEntityName(howMany = 1): any[] {
