@@ -1,8 +1,8 @@
 import { observable } from "mobx"
 import {
     GlobeConfig,
-    MapConfigInterface,
     MapRegionName,
+    MapConfigInterface,
 } from "@ourworldindata/types"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
@@ -19,6 +19,7 @@ import {
 } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { DEFAULT_GLOBE_ROTATION } from "./MapChartConstants"
+import * as R from "remeda"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.
@@ -50,6 +51,13 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
 
         if (obj.time)
             this.time = maxTimeBoundFromJSONOrPositiveInfinity(obj.time)
+
+        // only relevant for testing
+        if (obj.selectedCountries && R.isArray<string>(obj.selectedCountries)) {
+            this.selectedCountries = new SelectionArray(
+                obj.selectedCountries as string[]
+            )
+        }
     }
 
     toObject(): NoUndefinedValues<MapConfigInterface> {
