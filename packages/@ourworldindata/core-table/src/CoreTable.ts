@@ -675,14 +675,6 @@ export class CoreTable<
         return [min(mins), max(maxes)]
     }
 
-    private extract(slugs = this.columnSlugs): any[][] {
-        return this.rows.map((row) =>
-            slugs.map((slug) =>
-                isNotErrorValue(row[slug]) ? row[slug] : undefined
-            )
-        )
-    }
-
     private get isRoot(): boolean {
         return !this.parent
     }
