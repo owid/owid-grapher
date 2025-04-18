@@ -566,19 +566,6 @@ export class CoreTable<
         }, `Kept rows that matched '${searchStringOrRegex.toString()}'`)
     }
 
-    get opposite(): this {
-        const { parent } = this
-        const { filterMask } = this.advancedOptions
-        if (!filterMask || !parent) return this
-        return this.transform(
-            parent.columnStore,
-            this.defs,
-            `Inversing previous filter`,
-            TransformType.InverseFilterRows,
-            filterMask.inverse()
-        )
-    }
-
     @imemo get oppositeColumns(): this {
         if (this.isRoot) return this
         const columnsToDrop = new Set(this.columnSlugs)
@@ -1602,13 +1589,6 @@ class FilterMask {
                 set.has(index) ? keepThese : !keepThese
             )
         }
-    }
-
-    inverse(): FilterMask {
-        return new FilterMask(
-            this.numRows,
-            this.mask.map((bit) => !bit)
-        )
     }
 
     apply(columnStore: CoreColumnStore): CoreColumnStore {
