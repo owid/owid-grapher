@@ -620,16 +620,11 @@ describe("value operations", () => {
     })
 })
 
-describe("joins", () => {
+describe("index", () => {
     const leftTable = new CoreTable({
         country: ["usa", "can", "fra"],
         time: [2000, 2001, 2002],
         color: ["red", "green", "red"],
-    })
-    const rightTable = new CoreTable({
-        country: ["usa", "can", "turk"],
-        time: [2000, 2001, 2002],
-        population: [55, 66, 77],
     })
 
     it("can create indices", () => {
@@ -637,47 +632,6 @@ describe("joins", () => {
         expect(index.size).toEqual(2)
         const index2 = leftTable.rowIndex(["color", "country"])
         expect(index2.get("red usa")?.length).toEqual(1)
-    })
-
-    describe("outer joins", () => {
-        it("can left join on all intersecting columns", () => {
-            expect(leftTable.leftJoin(rightTable).toTypedMatrix()).toEqual([
-                ["country", "time", "color", "population"],
-                ["usa", 2000, "red", 55],
-                ["can", 2001, "green", 66],
-                ["fra", 2002, "red", ErrorValueTypes.NoMatchingValueAfterJoin],
-            ])
-        })
-
-        it("can left join on one column", () => {
-            expect(
-                leftTable.leftJoin(rightTable, ["time"]).toTypedMatrix()
-            ).toEqual([
-                ["country", "time", "color", "population"],
-                ["usa", 2000, "red", 55],
-                ["can", 2001, "green", 66],
-                ["fra", 2002, "red", 77],
-            ])
-        })
-
-        it("can do a right join", () => {
-            expect(leftTable.rightJoin(rightTable).toTypedMatrix()).toEqual([
-                ["country", "time", "population", "color"],
-                ["usa", 2000, 55, "red"],
-                ["can", 2001, 66, "green"],
-                ["turk", 2002, 77, ErrorValueTypes.NoMatchingValueAfterJoin],
-            ])
-        })
-    })
-
-    describe("inner joins", () => {
-        it("can do a left inner join", () => {
-            expect(leftTable.innerJoin(rightTable).toTypedMatrix()).toEqual([
-                ["country", "time", "color", "population"],
-                ["usa", 2000, "red", 55],
-                ["can", 2001, "green", 66],
-            ])
-        })
     })
 })
 
