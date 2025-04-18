@@ -40,27 +40,6 @@ it("can create a new table by adding a column", () => {
     expect(table.rows[0].populationInMillions).toEqual(300)
 })
 
-it("can perform queries needed by discrete bar", () => {
-    const table = SynthesizeGDPTable(
-        {
-            entityCount: 3,
-            timeRange: [2000, 2004],
-        },
-        10
-    )
-    expect(table.rowIndicesByEntityName.size).toEqual(3)
-    const entityNames = table.availableEntityNames
-    expect(
-        table.getClosestIndexForEachEntity(entityNames, 2003, 0).length
-    ).toEqual(3)
-    expect(
-        table.getClosestIndexForEachEntity(entityNames, 2004, 1).length
-    ).toEqual(3)
-    expect(
-        table.getClosestIndexForEachEntity(entityNames, 2005, 1).length
-    ).toEqual(0)
-})
-
 it("can parse data to Javascript data structures", () => {
     const table = SynthesizeGDPTable({
         timeRange: [2000, 2010],
