@@ -93,7 +93,6 @@
         "entities": "^4.4.0",
         "express": "^4.21.2",
         "express-async-errors": "^3.1.1",
-        "express-rate-limit": "^7.5.0",
         "figma-api": "^2.0.1-beta",
         "filenamify": "^6.0.0",
         "fparser": "^3.1.0",

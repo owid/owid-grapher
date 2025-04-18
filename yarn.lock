@@ -9959,15 +9959,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"express-rate-limit@npm:^7.5.0":
-  version: 7.5.0
-  resolution: "express-rate-limit@npm:7.5.0"
-  peerDependencies:
-    express: ^4.11 || 5 || ^5.0.0-beta.1
-  checksum: 10/eff34c83bf586789933a332a339b66649e2cca95c8e977d193aa8bead577d3182ac9f0e9c26f39389287539b8038890ff023f910b54ebb506a26a2ce135b92ca
-  languageName: node
-  linkType: hard
-
 "express@npm:^4.21.2":
   version: 4.21.2
   resolution: "express@npm:4.21.2"
@@ -11018,7 +11009,6 @@ __metadata:
     eslint-plugin-react-refresh: "npm:^0.4.19"
     express: "npm:^4.21.2"
     express-async-errors: "npm:^3.1.1"
-    express-rate-limit: "npm:^7.5.0"
     figma-api: "npm:^2.0.1-beta"
     filenamify: "npm:^6.0.0"
     flag-icons: "npm:^7.3.1"
