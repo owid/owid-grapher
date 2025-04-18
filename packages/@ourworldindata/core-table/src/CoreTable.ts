@@ -1051,14 +1051,6 @@ export class CoreTable<
         )
     }
 
-    filterNegatives(slug: ColumnSlug): this {
-        return this.columnFilter(
-            slug,
-            (value) => typeof value === "number" && value >= 0,
-            `Filter negative values for ${slug}`
-        )
-    }
-
     appendColumns(defs: COL_DEF_TYPE[]): this {
         return this.transform(
             this.columnStore,
