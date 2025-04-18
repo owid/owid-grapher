@@ -1201,35 +1201,10 @@ export class CoreTable<
         )
     }
 
-    reduce(reductionMap: ReductionMap): this {
-        const lastRow = { ...this.lastRow }
-        Object.keys(reductionMap).forEach((slug: keyof ROW_TYPE) => {
-            const slugAsString = String(slug)
-            const prop = reductionMap[slugAsString]
-            const col = this.get(slugAsString)
-            if (typeof prop === "string") lastRow[slug] = col[prop]
-            else lastRow[slug] = prop(col) as any
-        })
-        return this.transform(
-            rowsToColumnStore([lastRow]),
-            this.defs,
-            `Reduced table`,
-            TransformType.Reduce
-        )
-    }
-
     static getPreposition(col: TimeColumn | CoreColumn): string {
         return col instanceof TimeColumn ? col.preposition : "in"
     }
 }
-
-interface ReductionMap {
-    [columnSlug: string]:
-        | ReductionTypes
-        | ((column: CoreColumn) => CoreValueType)
-}
-
-type ReductionTypes = keyof CoreColumn
 
 class FilterMask {
     private mask: boolean[]
