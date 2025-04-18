@@ -1582,7 +1582,7 @@ export class Grapher
         }
     }
 
-    @action.bound private syncEntitySelectionBetweenChartAndMap(
+    @action.bound syncEntitySelectionBetweenChartAndMap(
         oldTab: GrapherTabName,
         newTab: GrapherTabName
     ): void {
