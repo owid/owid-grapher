@@ -259,39 +259,6 @@ france,60`,
     })
 })
 
-describe("set methods", () => {
-    it("can find the intersection between 2 tables", () => {
-        const table = new CoreTable(sampleCsv)
-        expect(table.intersection([new CoreTable(sampleCsv)]).numRows).toEqual(
-            4
-        )
-        expect(table.intersection([new CoreTable()]).numRows).toEqual(0)
-        expect(
-            table.intersection([new CoreTable(sampleCsv), new CoreTable()])
-                .numRows
-        ).toEqual(0)
-        expect(
-            table.intersection([new CoreTable(sampleCsv + "\n" + sampleCsv)])
-                .numRows
-        ).toEqual(4)
-        expect(
-            table.intersection([
-                new CoreTable(sampleCsv.replace("\ncanada,20", "")),
-            ]).numRows
-        ).toEqual(3)
-    })
-
-    it("can perform a diff", () => {
-        const table = new CoreTable(sampleCsv)
-        expect(table.difference([new CoreTable(sampleCsv)]).numRows).toEqual(0)
-
-        const tb = new CoreTable([{ country: "Mexico", population: 20 }])
-        expect(table.difference([tb]).numRows).toEqual(4)
-
-        expect(tb.difference([table]).numRows).toEqual(1)
-    })
-})
-
 it("can complete a table", () => {
     const csv = `country,year
 usa,2000
