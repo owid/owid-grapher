@@ -190,17 +190,18 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         // perf: if the time range is greater than the table's time range, we can skip the filter
         if (adjustedStart <= this.minTime && adjustedEnd >= this.maxTime!)
-            return this.sortedByTime.noopTransform(description)
+            return this.noopTransform(description).sortedByTime
 
-        // Sorting by time, because incidentally some parts of the code depended on this method
-        // returning sorted rows.
-        return this.sortedByTime.columnFilter(
+        return this.columnFilter(
             timeColumnSlug,
             (time) =>
                 (time as number) >= adjustedStart &&
                 (time as number) <= adjustedEnd,
             description
-        )
+
+            // Sorting by time, because incidentally some parts of the code depended on this method
+            // returning sorted rows.
+        ).sortedByTime
     }
 
     filterByTargetTimes(targetTimes: Time[], tolerance = 0): this {
