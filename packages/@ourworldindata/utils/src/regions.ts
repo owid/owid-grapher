@@ -73,6 +73,10 @@ export function checkIsOwidIncomeGroupName(
     )
 }
 
+export function checkIsCountry(region: Region): region is Country {
+    return region.regionType === RegionType.Country
+}
+
 export const countries: Country[] = regions.filter(
     (entity) =>
         entity.regionType === "country" &&
@@ -121,6 +125,10 @@ const countriesBySlug = lazy(() =>
     Object.fromEntries(countries.map((country) => [country.slug, country]))
 )
 
+const regionsByName = lazy(() =>
+    Object.fromEntries(regions.map((region) => [region.name, region]))
+)
+
 const regionsByNameOrVariantNameLowercase = lazy(
     () =>
         new Map(
@@ -152,6 +160,9 @@ export const getCountryByName = (name: string): Country | undefined =>
 
 export const getCountryBySlug = (slug: string): Country | undefined =>
     countriesBySlug()[slug]
+
+export const getRegionByName = (name: string): Region | undefined =>
+    regionsByName()[name]
 
 export const getRegionByNameOrVariantName = (
     nameOrVariantName: string
