@@ -178,11 +178,20 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     filterByTimeRange(start: TimeBound, end: TimeBound): this {
+        if (this.isBlank) return this
+
         // We may want to do this time adjustment in Grapher instead of here.
         const adjustedStart = start === Infinity ? this.maxTime! : start
         const adjustedEnd = end === -Infinity ? this.minTime! : end
         // todo: we should set a time column onload so we don't have to worry about it again.
         const timeColumnSlug = this.timeColumn?.slug || OwidTableSlugs.time
+
+        const description = `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`
+
+        // perf: if the time range is greater than the table's time range, we can skip the filter
+        if (adjustedStart <= this.minTime && adjustedEnd >= this.maxTime!)
+            return this.sortedByTime.noopTransform(description)
+
         // Sorting by time, because incidentally some parts of the code depended on this method
         // returning sorted rows.
         return this.sortedByTime.columnFilter(
@@ -190,7 +199,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             (time) =>
                 (time as number) >= adjustedStart &&
                 (time as number) <= adjustedEnd,
-            `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`
+            description
         )
     }
 

@@ -352,6 +352,15 @@ export class CoreTable<
         } as AdvancedOptions)
     }
 
+    protected noopTransform(tableDescription: string): this {
+        return this.transform(
+            this.columnStore,
+            this.defs,
+            tableDescription,
+            TransformType.Noop
+        )
+    }
+
     // Time between when the parent table finished loading and this table started constructing.
     // A large time may just be due to a transform only happening after a user action, or it
     // could be do to other sync code executing between transforms.
@@ -589,12 +598,17 @@ export class CoreTable<
     }
 
     sortBy(slugs: ColumnSlug[]): this {
-        return this.transform(
-            sortColumnStore(this.columnStore, slugs),
-            this.defs,
-            `Sort by ${slugs.join(",")}`,
-            TransformType.SortRows
-        )
+        const description = `Sort by ${slugs.join(",")}`
+        const sorted = sortColumnStore(this.columnStore, slugs)
+
+        if (sorted === this.columnStore) return this.noopTransform(description)
+        else
+            return this.transform(
+                sorted,
+                this.defs,
+                description,
+                TransformType.SortRows
+            )
     }
 
     // Assumes table is sorted by columnSlug. Returns an array representing the starting index of each new group.
