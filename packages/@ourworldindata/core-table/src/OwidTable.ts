@@ -258,7 +258,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     dropAllRows(): this {
-        return this.rowFilter(() => false, "Drop all rows")
+        return this.dropRowsAt(this.indices, "Drop all rows")
     }
 
     dropRowsWithErrorValuesForColumn(slug: ColumnSlug): this {
