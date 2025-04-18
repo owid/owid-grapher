@@ -3,7 +3,11 @@ import express, { Router } from "express"
 import filenamify from "filenamify"
 import { Writable } from "stream"
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
-import { logInWithCredentials, logOut } from "./authentication.js"
+import {
+    getSafeRedirectUrl,
+    logInWithCredentials,
+    logOut,
+} from "./authentication.js"
 import { LoginPage } from "./LoginPage.js"
 import * as db from "../db/db.js"
 import { writeDatasetCSV } from "../db/model/Dataset.js"
@@ -102,7 +106,7 @@ adminRouter.post("/login", async (req, res) => {
             sameSite: "lax",
             secure: secure,
         })
-        res.redirect((req.query.next as string) || "/admin")
+        res.redirect(getSafeRedirectUrl(req.query.next as string | undefined))
     } catch (err) {
         res.status(400).send(
             renderToHtmlPage(
