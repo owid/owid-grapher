@@ -1529,7 +1529,7 @@ export class Grapher
         }
     }
 
-    @computed private get entitySelector(): EntitySelector {
+    @computed get entitySelector(): EntitySelector {
         const entitySelectorArray = this.isOnMapTab
             ? this.mapConfig.selection
             : this.selection
