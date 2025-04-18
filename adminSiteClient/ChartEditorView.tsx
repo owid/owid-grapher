@@ -329,6 +329,14 @@ export class ChartEditorView<
                 }
             )
         )
+        this.disposers.push(
+            reaction(
+                () => this.isMobilePreview,
+                () => {
+                    this.grapherState.externalBounds = this.bounds
+                }
+            )
+        )
     }
 
     disposers: IReactionDisposer[] = []
