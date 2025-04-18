@@ -55,7 +55,6 @@ export enum TransformType {
     FilterRows = "FilterRows",
     SortRows = "SortRows",
     UpdateRows = "UpdateRows", // replace values in a row. For example: to prep columns for log scale, or testing messy runtime data scenarios.
-    InverseFilterRows = "InverseFilterRows",
 
     // Column ops
     FilterColumns = "FilterColumns",
@@ -63,7 +62,6 @@ export enum TransformType {
     UpdateColumnDefs = "UpdateColumnDefs", // do not use for updates that add a column transform fn.
     UpdateColumnDefsAndApply = "UpdateColumnDefsAndApply", // use this for updates that add a column transform fn.
     RenameColumns = "RenameColumns",
-    InverseFilterColumns = "InverseFilterColumns",
     CombineColumns = "CombineColumns",
 }
 
