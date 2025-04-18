@@ -47,7 +47,6 @@ export {
     rowsToColumnStore,
     autodetectColumnDefs,
     replaceDef,
-    reverseColumnStore,
     renameColumnStore,
     getDropIndexes,
     replaceRandomCellsInColumnStore,
