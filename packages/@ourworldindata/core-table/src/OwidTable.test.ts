@@ -365,9 +365,7 @@ describe("relative mode", () => {
             SampleColumnSlugs.Fruit,
             SampleColumnSlugs.Vegetables,
         ])
-        expect(
-            table.get(SampleColumnSlugs.Fruit).summary.numErrorValues
-        ).toEqual(1)
+        expect(table.get(SampleColumnSlugs.Fruit).numErrorValues).toEqual(1)
     })
 })
 
