@@ -362,14 +362,6 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         ) as JS_TYPE[]
     }
 
-    /**
-     * True if the column has only 1 unique value. ErrorValues are counted as values, so
-     * something like [DivideByZeroError, 2, 2] would not be constant.
-     */
-    @imemo get isConstant(): boolean {
-        return new Set(this.valuesIncludingErrorValues).size === 1
-    }
-
     @imemo get minValue(): JS_TYPE {
         return this.valuesAscending[0]
     }
