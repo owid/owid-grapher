@@ -238,6 +238,7 @@ import {
 import { FacetChart } from "../facetChart/FacetChart"
 import { getErrorMessageRelatedQuestionUrl } from "./relatedQuestion.js"
 import { GlobeController } from "../mapCharts/GlobeController"
+import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 
 declare global {
     interface Window {
@@ -507,6 +508,8 @@ export class Grapher
     // stored on Grapher so state is preserved when switching to full-screen mode
     @observable entitySelectorState: Partial<EntitySelectorState> = {}
 
+    @observable mapRegionDropdownValue?: MapRegionDropdownValue
+
     @computed get dataApiUrlForAdmin(): string | undefined {
         return this.props.dataApiUrlForAdmin
     }
@@ -762,6 +765,7 @@ export class Grapher
 
             // show region on the globe
             if (this.map.region !== MapRegionName.World) {
+                this.mapRegionDropdownValue = this.map.region
                 this.globeController.jumpToOwidContinent(this.map.region)
                 this.globeController.showGlobe()
             }
@@ -3876,6 +3880,10 @@ export class Grapher
         this.dismissTooltip()
     }
 
+    @action.bound resetMapRegionDropdown(): void {
+        this.mapRegionDropdownValue = undefined
+    }
+
     // called when an entity is selected in the entity selector
     @action.bound onSelectEntity(entityName: EntityName): void {
         if (this.isOnMapTab && this.mapConfig.globe.isActive) {
@@ -3884,6 +3892,8 @@ export class Grapher
                 this.globeController.focusOnCountry(country.name)
             }
         }
+
+        this.resetMapRegionDropdown()
     }
 
     // called when an entity is deselected in the entity selector
@@ -3892,7 +3902,8 @@ export class Grapher
         this.focusArray.remove(entityName)
 
         // remove country focus on the map
-        if (this.isOnMapTab) this.globeController.dismissCountryFocus()
+        this.globeController.dismissCountryFocus()
+        this.resetMapRegionDropdown()
     }
 
     // called when all entities are cleared in the entity selector

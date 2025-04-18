@@ -5,12 +5,4 @@
         min-width: 150px;
         right: 0;
     }
-
-    .menu:before {
-        display: inline-block;
-        content: "Zoom to selection";
-        font: 700 12px/16px $lato;
-        color: $light-text;
-        padding: 8px 16px;
-    }
 }

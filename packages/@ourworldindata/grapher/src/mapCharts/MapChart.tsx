@@ -65,6 +65,7 @@ import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
 import { SelectionArray } from "../selection/SelectionArray"
+import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -212,12 +213,20 @@ export class MapChart
         return this.manager.globeController ?? new GlobeController(this)
     }
 
+    @computed get mapRegionDropdownValue(): MapRegionDropdownValue | undefined {
+        return this.manager.mapRegionDropdownValue
+    }
+
     @computed get shouldEnableEntitySelectionOnMapTab(): boolean {
         return !!this.manager.shouldEnableEntitySelectionOnMapTab
     }
 
     @computed get shouldShowEntitySelectorOnMapTab(): boolean {
         return !!this.manager.shouldShowEntitySelectorOnMapTab
+    }
+
+    @action.bound resetMapRegionDropdownValue(): void {
+        this.manager.mapRegionDropdownValue = undefined
     }
 
     componentWillUnmount(): void {
