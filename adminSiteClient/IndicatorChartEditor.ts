@@ -1,4 +1,4 @@
-import { computed, observable, runInAction, when } from "mobx"
+import { computed, observable, reaction, runInAction, when } from "mobx"
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,
@@ -33,6 +33,21 @@ export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEdit
             () => this.manager.isNewGrapher !== undefined,
             () => (this._isNewGrapher = this.manager.isNewGrapher)
         )
+
+        this.grapherState.updateFromObject(this.manager.patchConfig)
+
+        void this.cachingGrapherDataLoader(
+            this.grapherState.dimensions,
+            this.grapherState.selectedEntityColors
+        ).then((inputTable) => {
+            console.log("inputTable", inputTable ? "defined" : "undefined")
+            if (inputTable) {
+                // Set the inputTable to the grapherState
+                runInAction(() => {
+                    this.grapherState.inputTable = inputTable
+                })
+            }
+        })
     }
 
     @computed
