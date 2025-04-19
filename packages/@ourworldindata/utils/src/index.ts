@@ -134,6 +134,7 @@ export {
     getUserNavigatorLanguages,
     getUserNavigatorLanguagesNonEnglish,
     convertDaysSinceEpochToDate,
+    logPerf,
 } from "./Util.js"
 
 export {

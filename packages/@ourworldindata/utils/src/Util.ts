@@ -1451,6 +1451,40 @@ export const imemo = <Type>(
     }
 }
 
+// A decorator to log the evaluation time of a class method or class getter.
+export const logPerf = (
+    _target: unknown,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+): PropertyDescriptor => {
+    const logPerfWrapper = (fn: () => unknown, ...log: unknown[]): unknown => {
+        // eslint-disable-next-line no-console
+        console.log("⏱︎▶️ logging", propertyKey, ...log)
+        const start = performance.now()
+        const result = fn()
+        const end = performance.now()
+        // eslint-disable-next-line no-console
+        console.log(
+            `⏱︎🏁 Perf: ${propertyKey} took ${(end - start).toFixed(3)}ms`
+        )
+        return result
+    }
+
+    if (descriptor.get) {
+        const originalGet = descriptor.get
+        descriptor.get = function (): unknown {
+            return logPerfWrapper(() => originalGet.call(this))
+        }
+    } else if (descriptor.value) {
+        const originalFn = descriptor.value
+        descriptor.value = function (...args: unknown[]): unknown {
+            return logPerfWrapper(() => originalFn.apply(this, args), args)
+        }
+    }
+
+    return descriptor
+}
+
 // These are all the types that we need to be able to iterate through to extract their URLs/filenames.
 // It's more than just the EnrichedBlocks and Spans, because some EnrichedBlocks have nested children
 // that contain URLs/filenames
