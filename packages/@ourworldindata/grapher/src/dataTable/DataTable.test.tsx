@@ -164,7 +164,7 @@ describe("when the table has no filter toggle", () => {
         })
         const view = Enzyme.mount(<DataTable manager={grapher} />)
         const rows = view.find("tbody tr:not(.title)")
-        expect(rows).toHaveLength(grapher.availableEntities.length)
+        expect(rows).toHaveLength(grapher.availableEntityNames.length)
     })
 
     it("does not filter by default if the selection is empty", () => {
@@ -175,6 +175,6 @@ describe("when the table has no filter toggle", () => {
         })
         const view = Enzyme.mount(<DataTable manager={grapher} />)
         const rows = view.find("tbody tr:not(.title)")
-        expect(rows).toHaveLength(grapher.availableEntities.length)
+        expect(rows).toHaveLength(grapher.availableEntityNames.length)
     })
 })

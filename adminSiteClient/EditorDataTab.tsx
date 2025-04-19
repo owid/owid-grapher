@@ -447,7 +447,7 @@ class EntityFilterSection<
         const availableEntityNames =
             this.includedEntityNames.length > 0
                 ? this.includedEntityNames
-                : this.grapher.availableEntities.map((e) => e.entityName)
+                : this.grapher.availableEntityNames
         return availableEntityNames
             .filter((entityName) => !excludedEntityNames.includes(entityName))
             .sort()
