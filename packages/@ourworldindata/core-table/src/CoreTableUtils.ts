@@ -6,7 +6,6 @@ import {
     range,
     sampleFrom,
     slugifySameCase,
-    toString,
     ColumnSlug,
 } from "@ourworldindata/utils"
 import {
@@ -342,9 +341,41 @@ export const makeKeyFn = (
     columnSlugs: ColumnSlug[]
 ): ((rowIndex: number) => string) => {
     const cols = columnSlugs.map((slug) => columnStore[slug])
+
+    const toStr = (val: CoreValueType): string =>
+        val === null || val === undefined
+            ? ""
+            : typeof val === "string"
+              ? val
+              : // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+                val + ""
+
+    // perf: this function is performance-critical, and so for the common cases of 1, 2, or 3 columns, we can provide a
+    // faster implementation.
+    if (cols.length === 0) return () => ""
+    if (cols.length === 1) {
+        const col = cols[0]
+        return (rowIndex: number): string => toStr(col[rowIndex])
+    }
+    if (cols.length === 2) {
+        const col0 = cols[0],
+            col1 = cols[1]
+        return (rowIndex: number): string =>
+            `${toStr(col0[rowIndex])} ${toStr(col1[rowIndex])}`
+    }
+    if (cols.length === 3) {
+        const col0 = cols[0],
+            col1 = cols[1],
+            col2 = cols[2]
+        return (rowIndex: number): string =>
+            `${toStr(col0[rowIndex])} ${toStr(col1[rowIndex])} ${toStr(
+                col2[rowIndex]
+            )}`
+    }
+
     return (rowIndex: number): string =>
         // toString() handles `undefined` and `null` values, which can be in the table.
-        cols.map((col) => toString(col[rowIndex])).join(" ")
+        cols.map((col) => toStr(col[rowIndex])).join(" ")
 }
 
 const getColumnStoreLength = (store: CoreColumnStore): number => {
