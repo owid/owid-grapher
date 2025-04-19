@@ -115,7 +115,6 @@ import {
     ChartViewInfo,
     OwidChartDimensionInterfaceWithMandatorySlug,
     AssetMap,
-    Entity,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -2645,10 +2644,6 @@ export class Grapher
         void this.timelineController.togglePlay()
     }
 
-    @computed get availableEntities(): Entity[] {
-        return this.tableForSelection.availableEntities
-    }
-
     @computed get availableEntityNames(): EntityName[] {
         return this.tableForSelection.availableEntityNames
     }
@@ -3822,7 +3817,7 @@ export class Grapher
     // we may still want to show those entities as available in a picker. We also do not want to do things like
     // hide the Add Entity button as the user drags the timeline.
     @computed private get numSelectableEntityNames(): number {
-        return this.availableEntities.length
+        return this.availableEntityNames.length
     }
 
     @computed get entitiesAreCountryLike(): boolean {

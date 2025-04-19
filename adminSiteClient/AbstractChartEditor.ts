@@ -185,9 +185,7 @@ export abstract class AbstractChartEditor<
         const { grapher } = this
 
         // find invalid selected entities
-        const availableEntityNames = grapher.availableEntities.map(
-            (e) => e.entityName
-        )
+        const { availableEntityNames } = grapher
         const selectedEntityNames = grapher.selection.selectedEntityNames
         return difference(selectedEntityNames, availableEntityNames)
     }
