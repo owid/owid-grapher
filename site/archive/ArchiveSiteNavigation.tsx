@@ -69,25 +69,31 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
     }, [props.versionsFileUrl])
 
     const nextVersion = useMemo(() => {
-        if (!versions) return props.nextVersion
+        const versionsObj = versions as unknown
+        if (
+            !R.isPlainObject(versionsObj) ||
+            !("versions" in versionsObj) ||
+            !Array.isArray(versionsObj.versions)
+        )
+            return props.nextVersion
+
+        const versionsArr = versionsObj.versions as ArchiveVersions["versions"]
 
         // Find the index of the current version in the sorted list
         const currentVersionIdx = R.sortedIndexWith(
-            versions.versions,
+            versionsArr,
             (item) => item.archivalDate < pageArchivalDate
         )
-        if (
-            versions.versions[currentVersionIdx]?.archivalDate !==
-            pageArchivalDate
-        ) {
+        if (versionsArr[currentVersionIdx]?.archivalDate !== pageArchivalDate) {
             console.error(
                 `Current version not found in the list of versions. Current version: ${pageArchivalDate}, Versions: `,
-                versions.versions
+                versionsArr
             )
             return undefined
         }
 
-        return versions.versions.at(currentVersionIdx + 1)
+        const prevVersion = versionsArr.at(currentVersionIdx + 1)
+        return prevVersion
     }, [versions, props.nextVersion, pageArchivalDate])
 
     return (
