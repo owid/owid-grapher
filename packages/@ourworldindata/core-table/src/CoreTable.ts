@@ -1214,24 +1214,32 @@ export class CoreTable<
             const val1 = col1.values[index]
             const val2 = col2.values[index]
             if (!existingRowValues.has(val1))
-                existingRowValues.set(val1, new Set())
-            existingRowValues.get(val1)!.add(val2)
+                existingRowValues.set(val1, new Set([val2]))
+            else existingRowValues.get(val1)!.add(val2)
         }
 
         // The below code should be as performant as possible, since it's often iterating over hundreds of thousands of rows.
         // The below implementation has been benchmarked against a few alternatives (using flatMap, map, and Array.from), and
         // is the fastest.
         // See https://jsperf.app/zudoye.
-        const rowsToAddCol1 = []
-        const rowsToAddCol2 = []
+        const rowsToAddCol1: CoreValueType[] = []
+        const rowsToAddCol2: CoreValueType[] = []
+        const col2UniqValuesCount = col2.uniqValuesAsSet.size
         // Add rows for all combinations of values that are not contained in `existingRowValues`.
         for (const val1 of col1.uniqValuesAsSet) {
             const existingVals2 = existingRowValues.get(val1)
-            for (const val2 of col2.uniqValuesAsSet) {
-                if (!existingVals2?.has(val2)) {
-                    rowsToAddCol1.push(val1)
-                    rowsToAddCol2.push(val2)
-                }
+
+            // perf: if all values in col2 are already present for this value in col1, skip
+            // this iteration. This is a relatively common case, so we can save some time.
+            if (existingVals2?.size === col2UniqValuesCount) continue
+
+            // Find the values in col2 that need to be inserted for this value in col1: col2.uniqValuesAsSet - existingVals2
+            const diff = new Set(col2.uniqValuesAsSet)
+            for (const val2 of existingVals2 || []) diff.delete(val2)
+
+            for (const val2 of diff) {
+                rowsToAddCol1.push(val1)
+                rowsToAddCol2.push(val2)
             }
         }
         const appendColumnStore: CoreColumnStore = {
