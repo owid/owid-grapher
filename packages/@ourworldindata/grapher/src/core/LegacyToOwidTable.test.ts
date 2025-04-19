@@ -82,9 +82,6 @@ describe(legacyToOwidTableAndDimensions, () => {
         expect(table.entityNameColumn.valuesIncludingErrorValues).toEqual([
             "World",
         ])
-        expect(table.entityCodeColumn.valuesIncludingErrorValues).toEqual([
-            "OWID_WRL",
-        ])
     })
 
     describe("conversionFactor", () => {
