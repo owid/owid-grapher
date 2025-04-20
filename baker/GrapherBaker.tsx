@@ -36,6 +36,7 @@ import {
     DbEnrichedImage,
     ArchiveMetaInformation,
     ChartArchivedVersion,
+    ArchivedChartOrArchivePageMeta,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -59,7 +60,6 @@ import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { ArchivalManifest } from "./archival/archivalUtils.js"
 import { getLatestChartArchivedVersions } from "./archival/archivalChecksum.js"
-import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
 
 const getLatestChartArchivedVersionsIfEnabled = async (
     knex: db.KnexReadonlyTransaction,

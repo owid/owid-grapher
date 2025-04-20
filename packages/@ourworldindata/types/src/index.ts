@@ -766,4 +766,5 @@ export {
     type ArchiveMetaInformation,
     type ChartArchivedVersion,
     type ArchiveVersions,
+    type ArchivedChartOrArchivePageMeta,
 } from "./domainTypes/Archive.js"

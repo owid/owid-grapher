@@ -14,6 +14,7 @@ import {
     OwidSource,
     IndicatorTitleWithFragments,
     OwidProcessingLevel,
+    ArchivedChartOrArchivePageMeta,
 } from "@ourworldindata/types"
 import {
     prepareSourcesForDisplay,
@@ -24,7 +25,6 @@ import {
     getPhraseForArchivalDate,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
-import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
 
 export default function MetadataSection({
     attributionShort,

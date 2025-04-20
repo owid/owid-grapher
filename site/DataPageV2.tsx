@@ -33,7 +33,7 @@ import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
-import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
+import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types"
 
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined

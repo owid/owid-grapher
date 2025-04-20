@@ -17,6 +17,7 @@ import { MarkdownTextWrap } from "@ourworldindata/components"
 import {
     HIDE_IF_JS_DISABLED_CLASSNAME,
     HIDE_IF_JS_ENABLED_CLASSNAME,
+    ArchivedChartOrArchivePageMeta,
 } from "@ourworldindata/types"
 import urljoin from "url-join"
 import {
@@ -32,7 +33,6 @@ import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 import GrapherImage from "./GrapherImage.js"
 import { Html } from "./Html.js"
-import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
