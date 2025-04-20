@@ -11,7 +11,6 @@ import {
     isEmpty,
     getClosestTimePairs,
     sortedFindClosest,
-    pairs,
     maxBy,
     minBy,
     cagr,
@@ -22,6 +21,7 @@ import {
     imemo,
     ToleranceStrategy,
     differenceOfSets,
+    sortedFindClosestIndex,
 } from "@ourworldindata/utils"
 import {
     Time,
@@ -995,7 +995,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         const groupBoundaries = withAllRows.groupBoundaries(this.entityNameSlug)
 
-        pairs(groupBoundaries).forEach(([startIndex, endIndex]) => {
+        for (let i = 1; i < groupBoundaries.length; i++) {
+            const startIndex = groupBoundaries[i - 1]
+            const endIndex = groupBoundaries[i]
+            const numRows = endIndex - startIndex
+
             const availableTimesA = []
             const availableTimesB = []
 
@@ -1004,6 +1008,24 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                     availableTimesA.push(times[index])
                 if (isNotErrorValue(valuesB[index]))
                     availableTimesB.push(times[index])
+            }
+
+            if (availableTimesA.length === 0 || availableTimesB.length === 0) {
+                // If one of the columns has no values, we can't do any interpolation
+                continue
+            }
+            if (
+                availableTimesA.length === numRows &&
+                availableTimesB.length === numRows
+            ) {
+                // If all values are available, we can skip the interpolation and just copy all values
+                for (let index = startIndex; index < endIndex; index++) {
+                    newValuesA[index] = valuesA[index]
+                    newValuesB[index] = valuesB[index]
+                    newTimesA[index] = times[index]
+                    newTimesB[index] = times[index]
+                }
+                continue
             }
 
             const timePairs = getClosestTimePairs(
@@ -1023,13 +1045,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                     pairedTimesInA,
                     currentTime
                 )
-
                 if (candidateTimeA === undefined) continue
-
-                const candidateIndexA = times.indexOf(
-                    candidateTimeA,
-                    startIndex
-                )
 
                 if (Math.abs(currentTime - candidateTimeA) > toleranceA)
                     continue
@@ -1043,9 +1059,18 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                     continue
                 }
 
-                const candidateIndexB = times.indexOf(
+                const candidateIndexA = sortedFindClosestIndex(
+                    times,
+                    candidateTimeA,
+                    startIndex,
+                    endIndex
+                )
+
+                const candidateIndexB = sortedFindClosestIndex(
+                    times,
                     candidateTimeB,
-                    startIndex
+                    startIndex,
+                    endIndex
                 )
 
                 newValuesA[index] = valuesA[candidateIndexA]
@@ -1053,7 +1078,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 newTimesA[index] = times[candidateIndexA]
                 newTimesB[index] = times[candidateIndexB]
             }
-        })
+        }
 
         const originalTimeColumnASlug = makeOriginalTimeSlugFromColumnSlug(
             columnA.slug

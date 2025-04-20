@@ -1040,7 +1040,7 @@ export function getClosestTimePairs(
 
     const seenTimes = new Set(decidedPairs.flat())
 
-    sortBy(undecidedPairs, (pair) => Math.abs(pair[0] - pair[1])).forEach(
+    sortNumeric(undecidedPairs, (pair) => Math.abs(pair[0] - pair[1])).forEach(
         (pair) => {
             if (!seenTimes.has(pair[0]) && !seenTimes.has(pair[1])) {
                 decidedPairs.push(pair)
