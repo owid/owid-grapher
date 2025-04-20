@@ -314,10 +314,16 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 ? [...entityNamesToDrop].join(", ")
                 : "(None)"
 
+        if (entityNamesToDrop.size === 0) {
+            return this.noopTransform(
+                `Drop entities that have no data in some column`
+            )
+        }
+
         return this.columnFilter(
             this.entityNameSlug,
             (rowEntityName) => entityNamesToKeep.has(rowEntityName as string),
-            `Drop entities that have no data in some column: ${columnSlugs.join(", ")}.\nDropped entities: ${droppedEntitiesStr}`
+            `Drop ${entityNamesToDrop.size} entities that have no data in some column: ${columnSlugs.join(", ")}.\nDropped entities: ${droppedEntitiesStr}`
         )
     }
 
