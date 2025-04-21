@@ -651,9 +651,13 @@ export class ChoroplethGlobe extends React.Component<{
                         path={this.getPath(feature)}
                         patternId={patternId}
                         focus={this.getFocusState(feature.id)}
-                        onClick={(event) =>
+                        onClick={(event) => {
+                            // don't invoke a second click on parent that
+                            // catches clicks on 'nearby' features
+                            event.stopPropagation()
+
                             this.onClick(feature, event.nativeEvent)
-                        }
+                        }}
                         onTouchStart={() => this.onTouchStart(feature)}
                         onMouseEnter={this.onMouseEnterFeature}
                         onMouseLeave={this.onMouseLeaveFeature}
@@ -679,9 +683,13 @@ export class ChoroplethGlobe extends React.Component<{
                             path={this.getPath(feature)}
                             focus={this.getFocusState(feature.id)}
                             showSelectedStyle={this.showSelectedStyle}
-                            onClick={(event) =>
+                            onClick={(event) => {
+                                // don't invoke a second click on parent that
+                                // catches clicks on 'nearby' features
+                                event.stopPropagation()
+
                                 this.onClick(feature, event.nativeEvent)
-                            }
+                            }}
                             onTouchStart={() => this.onTouchStart(feature)}
                             onMouseEnter={this.onMouseEnterFeature}
                             onMouseLeave={this.onMouseLeaveFeature}
@@ -720,6 +728,11 @@ export class ChoroplethGlobe extends React.Component<{
                     this.onMouseMove(ev.nativeEvent)
                 }
                 onMouseLeave={this.onMouseLeaveFeature}
+                onClick={(ev: SVGMouseEvent) => {
+                    // invoke a click on a feature when clicking nearby one
+                    if (this.hoverEnterFeature)
+                        this.onClick(this.hoverEnterFeature, ev.nativeEvent)
+                }}
             >
                 {this.renderGlobeOutline()}
                 <g className={GEO_FEATURES_CLASSNAME}>
