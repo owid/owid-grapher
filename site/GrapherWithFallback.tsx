@@ -63,7 +63,7 @@ export function GrapherWithFallback(
                 imageFallback
             ) : inView ? (
                 <GrapherFigureView
-                    slug={fetchConfig ? slug : undefined}
+                    slug={slug}
                     config={config}
                     queryStr={queryStr}
                 />
