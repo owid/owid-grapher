@@ -605,12 +605,15 @@ export class CoreTable<
         predicate: (row: ROW_TYPE, index: number) => boolean,
         opName: string
     ): this {
+        const mask = new FilterMask(this.numRows, this.rows.map(predicate)) // Warning: this will be slow
+        if (mask.isNoop()) return this.noopTransform(opName)
+
         return this.transform(
             this.columnStore,
             this.defs,
             opName,
             TransformType.FilterRows,
-            new FilterMask(this.numRows, this.rows.map(predicate)) // Warning: this will be slow
+            mask
         )
     }
 
@@ -619,15 +622,18 @@ export class CoreTable<
         predicate: (value: CoreValueType, index: number) => boolean,
         opName: string
     ): this {
+        const mask = new FilterMask(
+            this.numRows,
+            this.get(columnSlug).valuesIncludingErrorValues.map(predicate)
+        )
+        if (mask.isNoop()) return this.noopTransform(opName)
+
         return this.transform(
             this.columnStore,
             this.defs,
             opName,
             TransformType.FilterRows,
-            new FilterMask(
-                this.numRows,
-                this.get(columnSlug).valuesIncludingErrorValues.map(predicate)
-            )
+            mask
         )
     }
 
@@ -1006,12 +1012,16 @@ export class CoreTable<
     }
 
     dropRowsAt(indices: number[], message?: string): this {
+        const mask = new FilterMask(this.numRows, indices, false)
+        if (mask.isNoop())
+            return this.noopTransform(message ?? `Dropping 0 rows`)
+
         return this.transform(
             this.columnStore,
             this.defs,
             message ?? `Dropping ${indices.length} rows`,
             TransformType.FilterRows,
-            new FilterMask(this.numRows, indices, false)
+            mask
         )
     }
 
@@ -1279,6 +1289,10 @@ class FilterMask {
                 set.has(index) ? keepThese : !keepThese
             )
         }
+    }
+
+    isNoop(): boolean {
+        return this.mask.every((value) => value)
     }
 
     apply(columnStore: CoreColumnStore): CoreColumnStore {
