@@ -104,16 +104,9 @@ export async function authCloudflareSSOMiddleware(
     })
 
     // Prevents redirect to external URLs
-    let redirectTo = "/admin"
-    if (req.query.next) {
-        try {
-            redirectTo = new URL(req.query.next as string, ADMIN_BASE_URL)
-                .pathname
-        } catch (err) {
-            console.error(err)
-        }
-    }
-    return res.redirect(redirectTo)
+    return res.redirect(
+        getSafeRedirectUrl(req.query.next as string | undefined)
+    )
 }
 
 export async function logOut(req: express.Request, res: express.Response) {
@@ -211,6 +204,23 @@ function saltedHmac(salt: string, value: string): string {
     const hmac = crypto.createHmac("sha1", salt + SECRET_KEY)
     hmac.update(value)
     return hmac.digest("hex")
+}
+
+// Prevents redirect to external URLs
+export function getSafeRedirectUrl(nextUrl: string | undefined) {
+    if (!nextUrl) return "/admin"
+    try {
+        const redirectUrl = new URL(nextUrl, ADMIN_BASE_URL)
+        if (!redirectUrl.pathname.startsWith("/")) {
+            throw new Error(
+                `Invalid redirect URL: ${nextUrl}. Redirecting to /admin.`
+            )
+        }
+        return redirectUrl.pathname
+    } catch (err) {
+        console.error(err)
+        return "/admin"
+    }
 }
 
 export async function logInAsUser(user: Pick<DbPlainUser, "email" | "id">) {
