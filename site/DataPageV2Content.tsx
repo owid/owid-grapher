@@ -57,9 +57,11 @@ export const DataPageV2Content = ({
         () => ({
             ...grapherConfig,
             isEmbeddedInADataPage: true,
-            bindUrlToWindow: true,
+            bindUrlToWindow: typeof window !== "undefined",
             adminBaseUrl: ADMIN_BASE_URL,
             bakedGrapherURL: BAKED_GRAPHER_URL,
+            enableKeyboardShortcuts: typeof window !== "undefined",
+
             archivedChartInfo,
         }),
         [grapherConfig, archivedChartInfo]
