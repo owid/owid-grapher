@@ -98,4 +98,7 @@ export {
     getChartTypeFromConfig,
     getChartTypeFromConfigAndQueryParams,
 } from "./chart/ChartUtils.js"
-export { renderGrapherIntoContainer } from "./core/GrapherUseHelpers.js"
+export {
+    renderGrapherIntoContainer,
+    renderSingleGrapherOnGrapherPage,
+} from "./core/GrapherUseHelpers.js"
