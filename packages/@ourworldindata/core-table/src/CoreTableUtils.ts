@@ -6,7 +6,6 @@ import {
     range,
     sampleFrom,
     slugifySameCase,
-    toString,
     ColumnSlug,
 } from "@ourworldindata/utils"
 import {
@@ -342,9 +341,40 @@ export const makeKeyFn = (
     columnSlugs: ColumnSlug[]
 ): ((rowIndex: number) => string) => {
     const cols = columnSlugs.map((slug) => columnStore[slug])
+
+    const toStr = (val: CoreValueType): string =>
+        val === null || val === undefined
+            ? ""
+            : typeof val === "string"
+              ? val
+              : (val as any) + ""
+
+    // perf: this function is performance-critical, and so for the common cases of 1, 2, or 3 columns, we can provide a
+    // faster implementation.
+    if (cols.length === 0) return () => ""
+    if (cols.length === 1) {
+        const col = cols[0]
+        return (rowIndex: number): string => toStr(col[rowIndex])
+    }
+    if (cols.length === 2) {
+        const col0 = cols[0],
+            col1 = cols[1]
+        return (rowIndex: number): string =>
+            `${toStr(col0[rowIndex])} ${toStr(col1[rowIndex])}`
+    }
+    if (cols.length === 3) {
+        const col0 = cols[0],
+            col1 = cols[1],
+            col2 = cols[2]
+        return (rowIndex: number): string =>
+            `${toStr(col0[rowIndex])} ${toStr(col1[rowIndex])} ${toStr(
+                col2[rowIndex]
+            )}`
+    }
+
     return (rowIndex: number): string =>
         // toString() handles `undefined` and `null` values, which can be in the table.
-        cols.map((col) => toString(col[rowIndex])).join(" ")
+        cols.map((col) => toStr(col[rowIndex])).join(" ")
 }
 
 const getColumnStoreLength = (store: CoreColumnStore): number => {
@@ -620,8 +650,14 @@ export const trimArray = (arr: any[]): any[] => {
     return arr.slice(0, rightIndex + 1)
 }
 
-const applyNewSortOrder = (arr: any[], newOrder: number[]): any[] =>
-    newOrder.map((index) => arr[index])
+const applyNewSortOrder = (arr: any[], newOrder: number[]): any[] => {
+    const newArr = new Array(arr.length)
+    for (let i = 0; i < newOrder.length; i++) {
+        const index = newOrder[i]
+        newArr[i] = arr[index]
+    }
+    return newArr
+}
 
 export const sortColumnStore = (
     columnStore: CoreColumnStore,
@@ -630,13 +666,13 @@ export const sortColumnStore = (
     const firstCol = Object.values(columnStore)[0]
     if (!firstCol) return {}
     const len = firstCol.length
-    const newOrder = range(0, len).sort(makeSortByFn(columnStore, slugs))
+    const sortFn = makeSortByFn(columnStore, slugs)
 
-    // Check if column store is already sorted (which is the case if newOrder is equal to range(0, startLen)).
+    // Check if column store is already sorted.
     // If it's not sorted, we will detect that within the first few iterations usually.
     let isSorted = true
-    for (let i = 0; i < len; i++) {
-        if (newOrder[i] !== i) {
+    for (let i = 0; i < len - 1; i++) {
+        if (sortFn(i, i + 1) > 0) {
             isSorted = false
             break
         }
@@ -645,9 +681,12 @@ export const sortColumnStore = (
     if (isSorted) return columnStore
 
     const newStore: CoreColumnStore = {}
+    // Compute an array of the new sort order, i.e. [0, 1, 2, ...] -> [2, 0, 1]
+    const newOrder = range(0, len).sort(sortFn)
     Object.entries(columnStore).forEach(([slug, colValues]) => {
         newStore[slug] = applyNewSortOrder(colValues, newOrder)
     })
+
     return newStore
 }
 

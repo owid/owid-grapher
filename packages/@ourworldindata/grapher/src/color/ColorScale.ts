@@ -7,6 +7,7 @@ import {
     last,
     roundSigFig,
     mapNullToUndefined,
+    sortNumeric,
 } from "@ourworldindata/utils"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ColorScheme } from "../color/ColorScheme"
@@ -22,6 +23,7 @@ import {
     OwidVariableRoundingMode,
 } from "@ourworldindata/types"
 import { CoreColumn } from "@ourworldindata/core-table"
+import * as R from "remeda"
 
 export const NO_DATA_LABEL = "No data"
 
@@ -117,23 +119,21 @@ export class ColorScale {
         return this.manager.hasNoDataBin || false
     }
 
-    @computed get sortedNumericValues(): any[] {
-        return (
-            this.colorScaleColumn?.valuesAscending?.filter(
-                (x) => typeof x === "number"
-            ) ?? []
+    @computed get sortedNumericValues(): number[] {
+        return sortNumeric(
+            this.colorScaleColumn?.values.filter(R.isNumber) ?? []
         )
     }
 
-    @computed private get minPossibleValue(): any {
+    @computed private get minPossibleValue(): number | undefined {
         return first(this.sortedNumericValues)
     }
 
-    @computed private get maxPossibleValue(): any {
+    @computed private get maxPossibleValue(): number | undefined {
         return last(this.sortedNumericValues)
     }
 
-    @computed private get categoricalValues(): any[] {
+    @computed private get categoricalValues(): string[] {
         return this.colorScaleColumn?.sortedUniqNonEmptyStringVals ?? []
     }
 

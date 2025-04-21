@@ -135,6 +135,14 @@ export class ScatterPlotChart
     }>()
 
     transformTable(table: OwidTable): OwidTable {
+        // Drop all entities that have no data in either the X or Y column.
+        // For some charts, this can drop more than 50% of rows, so we do it first.
+        // If there's no data at all for an entity, then tolerance can also not "recover" any data, so this is safe to do.
+        table = table.dropEntitiesThatHaveNoDataInSomeColumn([
+            this.xColumnSlug,
+            this.yColumnSlug,
+        ])
+
         if (this.xScaleType === ScaleType.log && this.xColumnSlug)
             table = table.replaceNonPositiveCellsForLogScale([this.xColumnSlug])
 

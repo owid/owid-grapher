@@ -66,6 +66,7 @@ interface AdvancedOptions {
     parent?: CoreTable
     filterMask?: FilterMask
     tableSlug?: TableSlug
+    forceReuseColumnStore?: boolean
 }
 
 // The complex generic with default here just enables you to optionally specify a more
@@ -181,13 +182,41 @@ export class CoreTable<
         return originalInput as CoreColumnStore
     }
 
+    // This can, in theory, be used to detect whether we can reuse the input column store, which can save us time parsing.
+    // However, I'm not entirely sure whether the conditions included here are complete, so we don't currently use it.
+    // We do use `advancedOptions.forceReuseColumnStore`, however.
+    @imemo get canReuseInputColumnStore(): boolean {
+        const { inputColumnDefs, valuesFromColumnDefs, columnSlugs } = this
+
+        const storeHasAllColumns = columnSlugs.every(
+            (slug) => slug in this.inputColumnStore
+        )
+
+        const columnsFromTransforms = inputColumnDefs.filter(
+            (def) => def.transform && !def.transformHasRun
+        )
+
+        return (
+            !this.colsToParse.length &&
+            storeHasAllColumns &&
+            !Object.keys(valuesFromColumnDefs).length &&
+            !columnsFromTransforms.length
+        )
+    }
+
     @imemo get columnStore(): CoreColumnStore {
+        const { inputColumnStore, advancedOptions } = this
+
+        if (advancedOptions.forceReuseColumnStore) {
+            if (advancedOptions.filterMask)
+                return advancedOptions.filterMask.apply(inputColumnStore)
+            else return inputColumnStore
+        }
+
         const {
-            inputColumnStore,
             valuesFromColumnDefs,
             inputColumnsToParsedColumnStore,
             inputColumnDefs,
-            advancedOptions,
         } = this
 
         // Set blank columns
@@ -352,6 +381,15 @@ export class CoreTable<
         } as AdvancedOptions)
     }
 
+    protected noopTransform(tableDescription: string): this {
+        return new (this.constructor as any)(this.columnStore, this.defs, {
+            parent: this,
+            tableDescription,
+            transformCategory: TransformType.Noop,
+            forceReuseColumnStore: true,
+        } as AdvancedOptions)
+    }
+
     // Time between when the parent table finished loading and this table started constructing.
     // A large time may just be due to a transform only happening after a user action, or it
     // could be do to other sync code executing between transforms.
@@ -492,6 +530,12 @@ export class CoreTable<
         return sum(this.columnsAsArray.map((col) => col.numValues))
     }
 
+    @imemo get colStoreIsEqualToParent(): boolean {
+        return this.parent
+            ? this.columnStore === this.parent.columnStore
+            : false
+    }
+
     get rootTable(): this {
         return this.parent ? this.parent.rootTable : this
     }
@@ -508,12 +552,11 @@ export class CoreTable<
     rowIndex(columnSlugs: ColumnSlug[]): Map<string, number[]> {
         const index = new Map<string, number[]>()
         const keyFn = makeKeyFn(this.columnStore, columnSlugs)
-        this.indices.forEach((rowIndex) => {
-            // todo: be smarter for string keys
-            const key = keyFn(rowIndex)
-            if (!index.has(key)) index.set(key, [])
-            index.get(key)!.push(rowIndex)
-        })
+        for (let i = 0; i < this.numRows; i++) {
+            const key = keyFn(i)
+            if (index.has(key)) index.get(key)!.push(i)
+            else index.set(key, [i])
+        }
         return index
     }
 
@@ -562,12 +605,15 @@ export class CoreTable<
         predicate: (row: ROW_TYPE, index: number) => boolean,
         opName: string
     ): this {
+        const mask = new FilterMask(this.numRows, this.rows.map(predicate)) // Warning: this will be slow
+        if (mask.isNoop()) return this.noopTransform(opName)
+
         return this.transform(
             this.columnStore,
             this.defs,
             opName,
             TransformType.FilterRows,
-            new FilterMask(this.numRows, this.rows.map(predicate)) // Warning: this will be slow
+            mask
         )
     }
 
@@ -576,25 +622,33 @@ export class CoreTable<
         predicate: (value: CoreValueType, index: number) => boolean,
         opName: string
     ): this {
+        const mask = new FilterMask(
+            this.numRows,
+            this.get(columnSlug).valuesIncludingErrorValues.map(predicate)
+        )
+        if (mask.isNoop()) return this.noopTransform(opName)
+
         return this.transform(
             this.columnStore,
             this.defs,
             opName,
             TransformType.FilterRows,
-            new FilterMask(
-                this.numRows,
-                this.get(columnSlug).valuesIncludingErrorValues.map(predicate)
-            )
+            mask
         )
     }
 
     sortBy(slugs: ColumnSlug[]): this {
-        return this.transform(
-            sortColumnStore(this.columnStore, slugs),
-            this.defs,
-            `Sort by ${slugs.join(",")}`,
-            TransformType.SortRows
-        )
+        const description = `Sort by ${slugs.join(",")}`
+        const sorted = sortColumnStore(this.columnStore, slugs)
+
+        if (sorted === this.columnStore) return this.noopTransform(description)
+        else
+            return this.transform(
+                sorted,
+                this.defs,
+                description,
+                TransformType.SortRows
+            )
     }
 
     // Assumes table is sorted by columnSlug. Returns an array representing the starting index of each new group.
@@ -781,6 +835,7 @@ export class CoreTable<
             numValidCells,
             numErrorValues,
             numColumnsWithErrorValues,
+            colStoreIsEqualToParent,
         } = this
         return {
             tableDescription: truncate(tableDescription, 40),
@@ -794,6 +849,7 @@ export class CoreTable<
             numValidCells,
             numErrorValues,
             numColumnsWithErrorValues,
+            colStoreIsEqualToParent,
         }
     }
 
@@ -956,12 +1012,16 @@ export class CoreTable<
     }
 
     dropRowsAt(indices: number[], message?: string): this {
+        const mask = new FilterMask(this.numRows, indices, false)
+        if (mask.isNoop())
+            return this.noopTransform(message ?? `Dropping 0 rows`)
+
         return this.transform(
             this.columnStore,
             this.defs,
             message ?? `Dropping ${indices.length} rows`,
             TransformType.FilterRows,
-            new FilterMask(this.numRows, indices, false)
+            mask
         )
     }
 
@@ -1164,24 +1224,32 @@ export class CoreTable<
             const val1 = col1.values[index]
             const val2 = col2.values[index]
             if (!existingRowValues.has(val1))
-                existingRowValues.set(val1, new Set())
-            existingRowValues.get(val1)!.add(val2)
+                existingRowValues.set(val1, new Set([val2]))
+            else existingRowValues.get(val1)!.add(val2)
         }
 
         // The below code should be as performant as possible, since it's often iterating over hundreds of thousands of rows.
         // The below implementation has been benchmarked against a few alternatives (using flatMap, map, and Array.from), and
         // is the fastest.
         // See https://jsperf.app/zudoye.
-        const rowsToAddCol1 = []
-        const rowsToAddCol2 = []
+        const rowsToAddCol1: CoreValueType[] = []
+        const rowsToAddCol2: CoreValueType[] = []
+        const col2UniqValuesCount = col2.uniqValuesAsSet.size
         // Add rows for all combinations of values that are not contained in `existingRowValues`.
         for (const val1 of col1.uniqValuesAsSet) {
             const existingVals2 = existingRowValues.get(val1)
-            for (const val2 of col2.uniqValuesAsSet) {
-                if (!existingVals2?.has(val2)) {
-                    rowsToAddCol1.push(val1)
-                    rowsToAddCol2.push(val2)
-                }
+
+            // perf: if all values in col2 are already present for this value in col1, skip
+            // this iteration. This is a relatively common case, so we can save some time.
+            if (existingVals2?.size === col2UniqValuesCount) continue
+
+            // Find the values in col2 that need to be inserted for this value in col1: col2.uniqValuesAsSet - existingVals2
+            const diff = new Set(col2.uniqValuesAsSet)
+            for (const val2 of existingVals2 || []) diff.delete(val2)
+
+            for (const val2 of diff) {
+                rowsToAddCol1.push(val1)
+                rowsToAddCol2.push(val2)
             }
         }
         const appendColumnStore: CoreColumnStore = {
@@ -1221,6 +1289,10 @@ class FilterMask {
                 set.has(index) ? keepThese : !keepThese
             )
         }
+    }
+
+    isNoop(): boolean {
+        return this.mask.every((value) => value)
     }
 
     apply(columnStore: CoreColumnStore): CoreColumnStore {
