@@ -17,7 +17,11 @@ import { runCountryProfilePage } from "./runCountryProfilePage.js"
 import { runTableOfContents } from "./runTableOfContents.js"
 import { Explorer } from "@ourworldindata/explorer"
 import { ENV, ADMIN_BASE_URL } from "../settings/clientSettings.js"
-import { Grapher, CookieKey } from "@ourworldindata/grapher"
+import {
+    Grapher,
+    CookieKey,
+    renderSingleGrapherOnGrapherPage,
+} from "@ourworldindata/grapher"
 import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder.js"
 import { CoreTable } from "@ourworldindata/core-table"
 import { SiteAnalytics } from "./SiteAnalytics.js"
@@ -34,6 +38,7 @@ window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm
 window.runCountryProfilePage = runCountryProfilePage
 window.runTableOfContents = runTableOfContents
+window.renderSingleGrapherOnGrapherPage = renderSingleGrapherOnGrapherPage
 window.MultiEmbedderSingleton = MultiEmbedderSingleton
 
 // Note: do a text search of the project for "runSiteFooterScripts" to find the usage. todo: clean that up.
