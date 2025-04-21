@@ -187,8 +187,8 @@ export class MapSparkline extends React.Component<{
 
         const { yAxisConfig } = this.sparklineManager,
             yColumn = this.sparklineTable.get(this.mapColumnSlug),
-            minVal = min([yColumn.min, yAxisConfig?.min]),
-            maxVal = max([yColumn.max, yAxisConfig?.max]),
+            minVal = min([yColumn.minValue, yAxisConfig?.min]),
+            maxVal = max([yColumn.maxValue, yAxisConfig?.max]),
             minCustom =
                 isNumber(minVal) &&
                 this.manager.lineColorScale?.getBinForValue(minVal)?.label,
