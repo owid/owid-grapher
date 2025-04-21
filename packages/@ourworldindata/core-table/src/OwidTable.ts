@@ -67,34 +67,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.entityNameColumn.uniqValuesAsSet
     }
 
-    @imemo get entityNameToIdMap(): Map<string, number> {
-        return this.valueIndex(
-            this.entityNameColumn.slug,
-            this.entityIdColumn.slug
-        ) as Map<string, number>
-    }
-
-    @imemo get entityNameToCodeMap(): Map<string, string> {
-        return this.valueIndex(
-            this.entityNameColumn.slug,
-            this.entityCodeColumn.slug
-        ) as Map<string, string>
-    }
-
-    @imemo get entityIdColumn(): CoreColumn {
-        return (
-            this.getFirstColumnWithType(ColumnTypeNames.EntityId) ??
-            this.get(OwidTableSlugs.entityId)
-        )
-    }
-
-    @imemo get entityCodeColumn(): CoreColumn {
-        return (
-            this.getFirstColumnWithType(ColumnTypeNames.EntityCode) ??
-            this.get(OwidTableSlugs.entityCode)
-        )
-    }
-
     @imemo get entityNameColumn(): CoreColumn {
         return (
             this.getFirstColumnWithType(ColumnTypeNames.EntityName) ??
@@ -1148,21 +1120,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 return rowIndex ? rowIndices[rowIndex] : null
             })
             .filter(isPresent)
-    }
-
-    @imemo get availableEntities(): {
-        entityName: string
-        entityId?: number
-        entityCode?: string
-    }[] {
-        const { entityNameToCodeMap, entityNameToIdMap } = this
-        return this.availableEntityNames.map((entityName) => {
-            return {
-                entityName,
-                entityId: entityNameToIdMap.get(entityName),
-                entityCode: entityNameToCodeMap.get(entityName),
-            }
-        })
     }
 
     sampleEntityName(howMany = 1): any[] {
