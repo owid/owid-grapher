@@ -84,12 +84,13 @@ export function FetchingGrapher(
                 const fetchedConfig = await fetch(props.configUrl).then((res) =>
                     res.json()
                 )
-                setdownloadedConfig(fetchedConfig)
-                grapherState.current.updateFromObject(fetchedConfig)
+                const mergedConfig = { ...fetchedConfig, ...props.config }
+                setdownloadedConfig(mergedConfig)
+                grapherState.current.updateFromObject(mergedConfig)
             }
         }
         void fetchConfigAndLoadData()
-    }, [props.configUrl])
+    }, [props.config, props.configUrl])
 
     React.useEffect(() => {
         async function fetchData(): Promise<void> {
