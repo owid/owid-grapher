@@ -1,7 +1,7 @@
 import { observer } from "mobx-react"
 import * as React from "react"
 import { computed, action } from "mobx"
-import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
+import { Bounds, DEFAULT_BOUNDS, Url } from "@ourworldindata/utils"
 import { Modal } from "./Modal"
 import { CodeSnippet, OverlayHeader } from "@ourworldindata/components"
 
@@ -44,7 +44,16 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
 
         const opts: EmbedOptions[] = []
 
-        if (embedUrl && embedUrl !== embedArchivedUrl) {
+        // Check that the embedUrl and embedArchivedUrl are the same, disregarding query params
+        const areEmbedUrlAndArchivedUrlSame =
+            Url.fromURL(this.manager.embedUrl ?? "")
+                .update({ queryStr: undefined })
+                .toString() ===
+            Url.fromURL(this.manager.embedArchivedUrl ?? "")
+                .update({ queryStr: undefined })
+                .toString()
+
+        if (embedUrl && !areEmbedUrlAndArchivedUrlSame) {
             opts.push({
                 title: "Chart with data updates",
                 description: (
