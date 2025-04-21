@@ -347,8 +347,7 @@ export const makeKeyFn = (
             ? ""
             : typeof val === "string"
               ? val
-              : // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-                val + ""
+              : (val as any) + ""
 
     // perf: this function is performance-critical, and so for the common cases of 1, 2, or 3 columns, we can provide a
     // faster implementation.
