@@ -182,6 +182,9 @@ export class CoreTable<
         return originalInput as CoreColumnStore
     }
 
+    // This can, in theory, be used to detect whether we can reuse the input column store, which can save us time parsing.
+    // However, I'm not entirely sure whether the conditions included here are complete, so we don't currently use it.
+    // We do use `advancedOptions.forceReuseColumnStore`, however.
     @imemo get canReuseInputColumnStore(): boolean {
         const { inputColumnDefs, valuesFromColumnDefs, columnSlugs } = this
 
@@ -204,10 +207,7 @@ export class CoreTable<
     @imemo get columnStore(): CoreColumnStore {
         const { inputColumnStore, advancedOptions } = this
 
-        if (
-            advancedOptions.forceReuseColumnStore ||
-            this.canReuseInputColumnStore
-        ) {
+        if (advancedOptions.forceReuseColumnStore) {
             if (advancedOptions.filterMask)
                 return advancedOptions.filterMask.apply(inputColumnStore)
             else return inputColumnStore
