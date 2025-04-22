@@ -61,7 +61,14 @@ export class MapRegionDropdown extends React.Component<{
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
-    @action.bound onChange(selected: unknown): void {
+    @action.bound onChange(selected: unknown, mode: { action: unknown }): void {
+        if (mode.action === "clear") {
+            this.manager.mapRegionDropdownValue = undefined
+            this.mapConfig.region = MapRegionName.World
+            this.manager.globeController?.hideGlobe()
+            return
+        }
+
         if (!selected) return
 
         // update active option
@@ -115,6 +122,7 @@ export class MapRegionDropdown extends React.Component<{
                     options={this.options}
                     onChange={this.onChange}
                     value={this.value}
+                    isClearable
                     placeholder="Zoom to..."
                 />
             </div>
