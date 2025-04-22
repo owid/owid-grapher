@@ -1,4 +1,4 @@
-import { computed, observable, reaction, runInAction, when } from "mobx"
+import { computed, observable, runInAction, when } from "mobx"
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,

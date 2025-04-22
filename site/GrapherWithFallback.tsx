@@ -21,7 +21,6 @@ export function GrapherWithFallback(
     props: GrapherWithFallbackProps
 ): JSX.Element {
     const { slug, className, id, config, queryStr, fetchConfigForSlug } = props
-    const fetchConfig = fetchConfigForSlug ?? true
 
     const [isClient, setIsClient] = useState(false)
     const { ref, inView } = useInView({
