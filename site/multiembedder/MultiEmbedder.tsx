@@ -239,6 +239,7 @@ class MultiEmbedder {
     async _renderMultiDimWithControlsIntoFigure(
         figure: Element,
         multiDimConfig: MultiDimDataPageConfigEnriched,
+        slug: string,
         queryStr: string
     ) {
         figure.classList.remove(GRAPHER_PREVIEW_CLASS)
@@ -258,6 +259,7 @@ class MultiEmbedder {
         }
         ReactDOM.render(
             <MultiDim
+                slug={slug}
                 config={MultiDimDataPageConfig.fromObject(multiDimConfig)}
                 localGrapherConfig={localGrapherConfig}
                 queryStr={queryStr}
@@ -272,6 +274,7 @@ class MultiEmbedder {
         const embedUrl = Url.fromURL(embedUrlRaw)
 
         const { queryStr, slug } = embedUrl
+        if (!slug) return
 
         const mdimConfigUrl = `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${slug}.json`
         const multiDimConfig = await fetchWithRetry(mdimConfigUrl).then((res) =>
@@ -292,6 +295,7 @@ class MultiEmbedder {
             await this._renderMultiDimWithControlsIntoFigure(
                 figure,
                 multiDimConfig,
+                slug,
                 queryStr
             )
         }

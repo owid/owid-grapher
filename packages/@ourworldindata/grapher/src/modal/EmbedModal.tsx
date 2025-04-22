@@ -3,13 +3,19 @@ import * as React from "react"
 import { computed, action } from "mobx"
 import { Bounds, DEFAULT_BOUNDS, Url } from "@ourworldindata/utils"
 import { Modal } from "./Modal"
-import { CodeSnippet, OverlayHeader } from "@ourworldindata/components"
+import {
+    Checkbox,
+    CodeSnippet,
+    OverlayHeader,
+} from "@ourworldindata/components"
 
 export interface EmbedModalManager {
     embedUrl?: string
     embedArchivedUrl?: string
-    embedDialogAdditionalElements?: React.ReactElement
     isEmbedModalOpen?: boolean
+    canHideExternalControlsInEmbed: boolean
+    hideExternalControlsInEmbedUrl: boolean
+    setHideExternalControlsInEmbedUrl: (value: boolean) => void
     frameBounds?: Bounds
 }
 
@@ -126,7 +132,20 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
                                 </div>
                             ))}
                         </div>
-                        {this.manager.embedDialogAdditionalElements}
+                        {this.manager.canHideExternalControlsInEmbed && (
+                            <Checkbox
+                                className="embed-modal-hide-controls"
+                                label="Hide controls"
+                                checked={
+                                    this.manager.hideExternalControlsInEmbedUrl
+                                }
+                                onChange={(event) =>
+                                    this.manager.setHideExternalControlsInEmbedUrl(
+                                        event.target.checked
+                                    )
+                                }
+                            />
+                        )}
                     </div>
                 </div>
             </Modal>

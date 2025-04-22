@@ -4,6 +4,7 @@ import { faCheck } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
 
 export class Checkbox extends React.Component<{
+    className?: string
     checked: boolean
     onChange: React.ChangeEventHandler<HTMLInputElement>
     label: React.ReactNode
@@ -12,11 +13,17 @@ export class Checkbox extends React.Component<{
     "data-test"?: string
 }> {
     render(): React.ReactElement {
-        const { checked, onChange, label, disabled, id } = this.props
+        const { className, checked, onChange, label, disabled, id } = this.props
         const testHook = this.props["data-test"]
 
         return (
-            <div className={cx("checkbox", { "checkbox--disabled": disabled })}>
+            <div
+                className={cx(
+                    "checkbox",
+                    { "checkbox--disabled": disabled },
+                    className
+                )}
+            >
                 <label>
                     <input
                         id={id}

@@ -7,7 +7,7 @@ import { SiteFooter } from "../SiteFooter.js"
 import { SiteFooterContext, serializeJSONForHTML } from "@ourworldindata/utils"
 import { MultiDimDataPageProps } from "@ourworldindata/types"
 import { Html } from "../Html.js"
-import { MultiDimDataPageContentProps } from "./MultiDimDataPageContent.js"
+import { MultiDimDataPageData } from "./MultiDimDataPageContent.js"
 
 export function MultiDimDataPage({
     baseUrl,
@@ -25,7 +25,7 @@ export function MultiDimDataPage({
         throw new Error("Missing slug for multidimensional data page")
     }
     const canonicalUrl = slug ? `${baseGrapherUrl}/${slug}` : ""
-    const contentProps: MultiDimDataPageContentProps = {
+    const contentProps: MultiDimDataPageData = {
         canonicalUrl,
         slug,
         configObj,

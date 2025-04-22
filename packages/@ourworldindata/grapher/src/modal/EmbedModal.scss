@@ -20,10 +20,6 @@
         margin-bottom: 16px;
     }
 
-    .embed-additional-elements {
-        margin-top: 16px;
-    }
-
     .embed-modal--options {
         display: flex;
         gap: 32px;
@@ -37,4 +33,8 @@
     .embed-modal--option-description {
         color: $gray-70;
     }
+}
+
+.embed-modal-hide-controls {
+    margin-top: 16px;
 }
