@@ -32,6 +32,7 @@ interface DropdownOption {
     value: string
     isLocal?: boolean
     alternativeNames?: string[]
+    trackNote: "map_zoom_to_country"
 }
 
 @observer
@@ -106,6 +107,7 @@ export class MapCountryDropdown extends React.Component<{
             value: country,
             label: country,
             alternativeNames: getRegionAlternativeNames(country, langs),
+            trackNote: "map_zoom_to_country",
         })
 
         if (this.localCountryName) {
