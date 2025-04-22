@@ -479,8 +479,6 @@ export class GrapherState {
         }
 
         if (options.staticFormat) this._staticFormat = options.staticFormat
-        this.staticBounds =
-            options.staticBounds ?? this.getStaticBounds(this._staticFormat)
 
         this._inputTable =
             options.table ?? BlankOwidTable(`initialGrapherTable`)
@@ -2009,7 +2007,11 @@ export class GrapherState {
                 return this.defaultBounds
         }
     }
-    @observable staticBounds: Bounds
+    @computed get staticBounds(): Bounds {
+        if (this.initialOptions.staticBounds)
+            return this.initialOptions.staticBounds
+        return this.getStaticBounds(this.staticFormat)
+    }
     generateStaticSvg(): string {
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
         this.isExportingToSvgOrPng = true
