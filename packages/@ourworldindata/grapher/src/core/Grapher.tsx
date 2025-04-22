@@ -115,6 +115,7 @@ import {
     ChartViewInfo,
     OwidChartDimensionInterfaceWithMandatorySlug,
     AssetMap,
+    ArchivedChartOrArchivePageMeta,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -229,7 +230,6 @@ import {
     GRAPHER_LIGHT_TEXT,
 } from "../color/ColorConstants"
 import { FacetChart } from "../facetChart/FacetChart"
-import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
 
 declare global {
     interface Window {
