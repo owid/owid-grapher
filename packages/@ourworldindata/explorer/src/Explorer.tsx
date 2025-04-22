@@ -301,6 +301,23 @@ export class Explorer
         return new Map(arr.map((config) => [config.id!, config]))
     }
 
+    @computed get partialGrapherConfigsBySlug() {
+        const configsBySlug = new Map<string, GrapherInterface>()
+        for (const columnDef of this.explorerProgram
+            .columnDefsWithoutTableSlug) {
+            if (columnDef.transform?.startsWith("duplicate")) {
+                const indicatorId = +columnDef.transform
+                    .replace("duplicate", "")
+                    .trim()
+                const partialGrapherConfig =
+                    this.partialGrapherConfigsByVariableId.get(indicatorId)
+                if (partialGrapherConfig)
+                    configsBySlug.set(columnDef.slug, partialGrapherConfig)
+            }
+        }
+        return configsBySlug
+    }
+
     private setUpIntersectionObserver(): void {
         if (typeof window !== "undefined" && "IntersectionObserver" in window) {
             const observer = new IntersectionObserver((entries) => {
@@ -574,9 +591,14 @@ export class Explorer
             .split(" ")
             .map(parseIntOrUndefined)
             .filter((item) => item !== undefined)
+        const ySlugList = ySlugs.split(" ")
 
         const partialGrapherConfig =
             this.partialGrapherConfigsByVariableId.get(yVariableIdsList[0]) ??
+            // if ySlug references a column that duplicates an indicator via the
+            // `duplicate` transform, make sure the partial grapher config for
+            // that indicator is pulled in
+            this.partialGrapherConfigsBySlug.get(ySlugList[0]) ??
             {}
 
         const config: GrapherProgrammaticInterface = {
