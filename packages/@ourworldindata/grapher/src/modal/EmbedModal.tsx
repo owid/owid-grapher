@@ -46,12 +46,12 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
 
         // Check that the embedUrl and embedArchivedUrl are the same, disregarding query params
         const areEmbedUrlAndArchivedUrlSame =
-            Url.fromURL(this.manager.embedUrl ?? "")
-                .update({ queryStr: undefined })
-                .toString() ===
-            Url.fromURL(this.manager.embedArchivedUrl ?? "")
-                .update({ queryStr: undefined })
-                .toString()
+            Url.fromURL(this.manager.embedUrl ?? "").update({
+                queryStr: undefined,
+            }).fullUrl ===
+            Url.fromURL(this.manager.embedArchivedUrl ?? "").update({
+                queryStr: undefined,
+            }).fullUrl
 
         if (embedUrl && !areEmbedUrlAndArchivedUrlSame) {
             opts.push({
