@@ -14,10 +14,6 @@
         overflow-y: auto;
         padding: 0 var(--modal-padding) var(--modal-padding);
         width: 100%;
-
-        display: flex;
-        gap: 32px;
-        flex-direction: column;
     }
 
     p {
@@ -26,6 +22,12 @@
 
     .embed-additional-elements {
         margin-top: 16px;
+    }
+
+    .embed-modal--options {
+        display: flex;
+        gap: 32px;
+        flex-direction: column;
     }
 
     .embed-modal--option-title {

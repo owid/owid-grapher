@@ -106,22 +106,26 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
                 >
                     <OverlayHeader title="Embed" onDismiss={this.onDismiss} />
                     <div className="scrollable">
-                        {embedOptions.map((option) => (
-                            <div
-                                key={option.title}
-                                className="embed-modal--option"
-                            >
-                                <h3 className="grapher_body-2-semibold embed-modal--option-title">
-                                    {option.title}
-                                </h3>
-                                <p className="grapher_label-1-medium embed-modal--option-description">
-                                    {option.description}
-                                </p>
-                                <CodeSnippet
-                                    code={this.codeSnippetForUrl(option.url)}
-                                />
-                            </div>
-                        ))}
+                        <div className="embed-modal--options">
+                            {embedOptions.map((option) => (
+                                <div
+                                    key={option.title}
+                                    className="embed-modal--option"
+                                >
+                                    <h3 className="grapher_body-2-semibold embed-modal--option-title">
+                                        {option.title}
+                                    </h3>
+                                    <p className="grapher_label-1-medium embed-modal--option-description">
+                                        {option.description}
+                                    </p>
+                                    <CodeSnippet
+                                        code={this.codeSnippetForUrl(
+                                            option.url
+                                        )}
+                                    />
+                                </div>
+                            ))}
+                        </div>
                         {this.manager.embedDialogAdditionalElements}
                     </div>
                 </div>
