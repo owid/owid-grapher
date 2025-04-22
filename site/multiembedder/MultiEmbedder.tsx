@@ -2,7 +2,6 @@ import {
     getSelectedEntityNamesParam,
     GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
     GLOBAL_ENTITY_SELECTOR_ELEMENT,
-    Grapher,
     GrapherProgrammaticInterface,
     GRAPHER_EMBEDDED_FIGURE_ATTR,
     GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR,
