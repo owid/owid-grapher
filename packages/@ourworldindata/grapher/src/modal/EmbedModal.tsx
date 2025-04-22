@@ -60,7 +60,7 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
                     <span>
                         To embed a version of this chart that will{" "}
                         <strong>update</strong> when we update the data on our
-                        site, paste this code into a HTML page:
+                        site, paste this code into an HTML page:
                     </span>
                 ),
                 url: embedUrl,
@@ -73,7 +73,7 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
                     <span>
                         To embed this specific version of the chart that will{" "}
                         <strong>not update</strong> when we update the data on
-                        our site, paste this code into a HTML page:
+                        our site, paste this code into an HTML page:
                     </span>
                 ),
                 url: embedArchivedUrl,
