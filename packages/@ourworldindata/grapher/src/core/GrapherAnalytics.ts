@@ -15,6 +15,7 @@ export enum EventCategory {
     GrapherView = "owid.grapher_view",
     GrapherClick = "owid.grapher_click",
     GrapherError = "owid.grapher_error",
+    GrapherEntitySelector = "owid.grapher_entity_selector",
     ExplorerView = "owid.explorer_view",
     ExplorerCountrySelector = "owid.explorer_country_selector",
     Hover = "owid.hover",
@@ -36,13 +37,15 @@ enum EventAction {
     timelinePlay = "timeline_play",
 }
 
-type entityControlEvent = "open" | "change" | "close"
-type countrySelectorEvent =
+type EntityControlEvent = "open" | "change" | "close"
+export type EntitySelectorEvent =
     | "enter"
     | "select"
     | "deselect"
     | "sortBy"
     | "sortOrder"
+    | "filterBy"
+    | "clear"
 
 interface GAEvent {
     event: EventCategory
@@ -113,7 +116,8 @@ export class GrapherAnalytics {
         })
     }
 
-    logGlobalEntitySelector(action: entityControlEvent, note?: string): void {
+    /** Logs events for the globel entity selector used on country pages */
+    logGlobalEntitySelector(action: EntityControlEvent, note?: string): void {
         this.logToGA({
             event: EventCategory.GlobalEntitySelectorUsage,
             eventAction: action,
@@ -121,11 +125,34 @@ export class GrapherAnalytics {
         })
     }
 
-    logEntityPickerEvent(action: countrySelectorEvent, note?: string): void {
+    /** Logs events for the explorer's entity selector */
+    logEntityPickerEvent(action: EntitySelectorEvent, note?: string): void {
         this.logToGA({
             event: EventCategory.ExplorerCountrySelector,
             eventAction: action,
             eventContext: note,
+        })
+    }
+
+    /** Logs events for Grapher's entity selector */
+    logEntitySelectorEvent(
+        action: EntitySelectorEvent,
+        ctx: {
+            target?: string
+            slug?: string
+            mdimView?: Record<string, string>
+            narrativeChartName?: string
+        }
+    ): void {
+        this.logToGA({
+            event: EventCategory.GrapherEntitySelector,
+            eventAction: action,
+            eventTarget: ctx.target,
+            grapherPath: ctx.slug ? `/grapher/${ctx.slug}` : undefined,
+            grapherView: ctx.mdimView
+                ? JSON.stringify(ctx.mdimView)
+                : undefined,
+            narrativeChartName: ctx.narrativeChartName,
         })
     }
 
@@ -137,16 +164,11 @@ export class GrapherAnalytics {
             narrativeChartName?: string
         }
     ): void {
-        // GA4 trims metadata fields down to 100 characters, so we want to be concise and only send
-        // the pathname, e.g. `/grapher/life-expectancy` or `/explorers/migration`
-        const grapherUrlObj =
-            ctx.grapherUrl !== undefined ? new URL(ctx.grapherUrl) : undefined
-
         this.logToGA({
             event: EventCategory.GrapherClick,
             eventAction: action,
             eventTarget: ctx.label,
-            grapherPath: grapherUrlObj?.pathname,
+            grapherPath: getPathname(ctx.grapherUrl),
             narrativeChartName: ctx.narrativeChartName,
         })
     }
@@ -236,7 +258,7 @@ export class GrapherAnalytics {
             return
         }
 
-        window.dataLayer?.push(event)
+        if (typeof window !== "undefined") window.dataLayer?.push(event)
     }
 
     updateGAConsentSettings(consent: GAConsentParams): void {
@@ -250,4 +272,11 @@ export class GrapherAnalytics {
         }
         pushToDataLayer("consent", "update", consent)
     }
+}
+
+function getPathname(url?: string): string | undefined {
+    // GA4 trims metadata fields down to 100 characters, so we want to be concise and only send
+    // the pathname, e.g. `/grapher/life-expectancy` or `/explorers/migration`
+    const urlObj = url !== undefined ? new URL(url) : undefined
+    return urlObj?.pathname
 }

@@ -1,16 +1,40 @@
 import * as React from "react"
-import Select, { Props } from "react-select"
+import Select, { OptionProps, Props } from "react-select"
 import cx from "classnames"
 
-export function Dropdown<DropdownOption>(
+export interface BasicDropdownOption {
+    trackNote?: string
+}
+
+export function Dropdown<DropdownOption extends BasicDropdownOption>(
     props: Props<DropdownOption, false>
 ): React.ReactElement {
+    // Bringing our own Option component is necessary to add the data-track-note
+    // attribute that is used for tracking clicks in Grapher
+    const TrackedOption = (
+        optionProps: OptionProps<DropdownOption, false>
+    ): React.ReactElement => {
+        return (
+            <div
+                ref={optionProps.innerRef}
+                {...optionProps.innerProps}
+                className={cx("option", {
+                    focus: optionProps.isFocused,
+                    active: optionProps.isSelected,
+                })}
+                data-track-note={optionProps.data.trackNote}
+            >
+                {optionProps.children}
+            </div>
+        )
+    }
     return (
         <Select<DropdownOption, false>
             menuPlacement="bottom"
             components={{
                 IndicatorSeparator: null,
                 DropdownIndicator: null,
+                Option: TrackedOption,
             }}
             isSearchable={false}
             unstyled={true}
@@ -21,12 +45,6 @@ export function Dropdown<DropdownOption>(
                         focus: state.isFocused,
                         active: state.menuIsOpen,
                         "has-value": state.hasValue,
-                    })
-                },
-                option: (state) => {
-                    return cx("option", {
-                        focus: state.isFocused,
-                        active: state.isSelected,
                     })
                 },
                 menu: () => "menu",

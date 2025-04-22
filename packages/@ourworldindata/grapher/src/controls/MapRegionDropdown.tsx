@@ -22,6 +22,7 @@ export interface MapRegionDropdownManager {
 interface MapRegionDropdownOption {
     value: MapRegionDropdownValue
     label: string
+    trackNote: "map_zoom_to_region"
 }
 
 @observer
@@ -85,18 +86,22 @@ export class MapRegionDropdown extends React.Component<{
     }
 
     @computed get options(): MapRegionDropdownOption[] {
-        const continentOptions = Object.values(MapRegionName)
+        const continentOptions: MapRegionDropdownOption[] = Object.values(
+            MapRegionName
+        )
             .filter((region) => region !== MapRegionName.World)
             .map((region) => {
                 return {
                     value: region,
                     label: MAP_REGION_LABELS[region as MapRegionName],
+                    trackNote: "map_zoom_to_region",
                 }
             })
 
         const selectionOption: MapRegionDropdownOption = {
             value: "Selection",
             label: "Selection",
+            trackNote: "map_zoom_to_region",
         }
 
         return this.mapConfig.selection.hasSelection
