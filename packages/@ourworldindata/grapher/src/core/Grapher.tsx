@@ -219,7 +219,7 @@ import {
     mapTabOptionToChartTypeName,
 } from "../chart/ChartUtils"
 import classnames from "classnames"
-import { GrapherAnalytics } from "./GrapherAnalytics"
+import { EntitySelectorEvent, GrapherAnalytics } from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { ChartInterface, ChartTableTransformer } from "../chart/ChartInterface"
 import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
@@ -364,12 +364,18 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     instanceRef?: React.RefObject<Grapher>
 }
 
+interface AnalyticsContext {
+    mdimSlug?: string
+    mdimView?: Record<string, string>
+}
+
 export interface GrapherManager {
     canonicalUrl?: string
     selection?: SelectionArray
     focusArray?: FocusArray
     mapConfig?: MapConfig
     editUrl?: string
+    analyticsContext?: AnalyticsContext
 }
 
 @observer
@@ -2792,6 +2798,19 @@ export class Grapher
     private hasLoggedGAViewEvent = false
     @observable private hasBeenVisible = false
     @observable private uncaughtError?: Error
+
+    @action.bound logEntitySelectorEvent(
+        action: EntitySelectorEvent,
+        target?: string
+    ): void {
+        const ctx = this.manager?.analyticsContext
+        this.analytics.logEntitySelectorEvent(action, {
+            target,
+            slug: ctx?.mdimSlug ?? this.slug,
+            mdimView: ctx?.mdimView,
+            chartViewName: this.chartViewInfo?.name,
+        })
+    }
 
     @action.bound setError(err: Error): void {
         this.uncaughtError = err
