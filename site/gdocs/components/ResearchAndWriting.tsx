@@ -9,14 +9,38 @@ import {
     slugify,
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
-import Image from "./Image.js"
+import Image, { ImageParentContainer } from "./Image.js"
 import { DocumentContext } from "../DocumentContext.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import {
+    ARCHVED_THUMBNAIL_FILENAME,
     DEFAULT_GDOC_FEATURED_IMAGE,
+    DEFAULT_THUMBNAIL_FILENAME,
     DbEnrichedLatestWork,
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
 } from "@ourworldindata/types"
+
+function Thumbnail({
+    filename,
+    containerType,
+}: {
+    filename: string
+    containerType: ImageParentContainer
+}) {
+    if (
+        filename === ARCHVED_THUMBNAIL_FILENAME ||
+        filename === DEFAULT_THUMBNAIL_FILENAME
+    ) {
+        return <img src={filename} />
+    }
+    return (
+        <Image
+            filename={filename}
+            shouldLightbox={false}
+            containerType={containerType}
+        />
+    )
+}
 
 type ResearchAndWritingProps = {
     className?: string
@@ -92,9 +116,8 @@ function ResearchAndWritingLink(
         >
             {filename && !shouldHideThumbnail ? (
                 <figure>
-                    <Image
+                    <Thumbnail
                         filename={filename}
-                        shouldLightbox={false}
                         containerType={isSmall ? "thumbnail" : "default"}
                     />
                 </figure>
