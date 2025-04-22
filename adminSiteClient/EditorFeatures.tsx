@@ -13,10 +13,6 @@ export class EditorFeatures {
         return this.editor.grapher
     }
 
-    @computed get canCustomizeYAxisScale() {
-        return !this.grapher.isStackedArea && !this.grapher.isStackedBar
-    }
-
     @computed get canCustomizeXAxisScale() {
         return this.grapher.isScatter || this.grapher.isMarimekko
     }
@@ -33,10 +29,6 @@ export class EditorFeatures {
             this.grapher.isStackedArea ||
             this.grapher.isStackedBar
         )
-    }
-
-    @computed get canCustomizeYAxis() {
-        return this.canCustomizeYAxisScale || this.canCustomizeYAxisLabel
     }
 
     @computed get canCustomizeXAxis() {

@@ -568,93 +568,81 @@ export class EditorCustomizeTab<
 
         return (
             <div>
-                {features.canCustomizeYAxis && (
-                    <Section name="Y Axis">
-                        {features.canCustomizeYAxisScale && (
-                            <React.Fragment>
-                                <FieldsRow>
-                                    <NumberField
-                                        label={`Min`}
-                                        value={yAxisConfig.min}
-                                        onValue={(value) =>
-                                            (yAxisConfig.min = value)
-                                        }
-                                        resetButton={{
-                                            onClick: () =>
-                                                (yAxisConfig.min = Infinity),
-                                            disabled:
-                                                yAxisConfig.min === Infinity,
-                                        }}
-                                        allowDecimal
-                                        allowNegative
-                                    />
-                                    <NumberField
-                                        label={`Max`}
-                                        value={yAxisConfig.max}
-                                        onValue={(value) =>
-                                            (yAxisConfig.max = value)
-                                        }
-                                        resetButton={{
-                                            onClick: () =>
-                                                (yAxisConfig.max = -Infinity),
-                                            disabled:
-                                                yAxisConfig.max === -Infinity,
-                                        }}
-                                        allowDecimal
-                                        allowNegative
-                                    />
-                                </FieldsRow>
-                                {features.canRemovePointsOutsideAxisDomain && (
-                                    <FieldsRow>
-                                        <Toggle
-                                            label={`Remove points outside domain`}
-                                            value={
-                                                yAxisConfig.removePointsOutsideDomain ||
-                                                false
-                                            }
-                                            onValue={(value) =>
-                                                (yAxisConfig.removePointsOutsideDomain =
-                                                    value || undefined)
-                                            }
-                                        />
-                                    </FieldsRow>
-                                )}
-                                {features.canEnableLogLinearToggle && (
-                                    <FieldsRow>
-                                        <Toggle
-                                            label={`Enable log/linear selector`}
-                                            value={
-                                                yAxisConfig.canChangeScaleType ||
-                                                false
-                                            }
-                                            onValue={(value) =>
-                                                (yAxisConfig.canChangeScaleType =
-                                                    value || undefined)
-                                            }
-                                        />
-                                    </FieldsRow>
-                                )}
-                            </React.Fragment>
-                        )}
-                        {features.canCustomizeYAxisLabel && (
-                            <BindString
-                                label="Label"
-                                field="label"
-                                store={yAxisConfig}
-                                errorMessage={this.errorMessages.axisLabelY}
-                                onBlur={() => {
-                                    if (
-                                        yAxisConfig.label === "" &&
-                                        activeParentConfig?.yAxis?.label
-                                    ) {
-                                        yAxisConfig.label =
-                                            activeParentConfig.yAxis.label
-                                    }
+                <Section name="Y Axis">
+                    <React.Fragment>
+                        <FieldsRow>
+                            <NumberField
+                                label={`Min`}
+                                value={yAxisConfig.min}
+                                onValue={(value) => (yAxisConfig.min = value)}
+                                resetButton={{
+                                    onClick: () => (yAxisConfig.min = Infinity),
+                                    disabled: yAxisConfig.min === Infinity,
                                 }}
+                                allowDecimal
+                                allowNegative
                             />
+                            <NumberField
+                                label={`Max`}
+                                value={yAxisConfig.max}
+                                onValue={(value) => (yAxisConfig.max = value)}
+                                resetButton={{
+                                    onClick: () =>
+                                        (yAxisConfig.max = -Infinity),
+                                    disabled: yAxisConfig.max === -Infinity,
+                                }}
+                                allowDecimal
+                                allowNegative
+                            />
+                        </FieldsRow>
+                        {features.canRemovePointsOutsideAxisDomain && (
+                            <FieldsRow>
+                                <Toggle
+                                    label={`Remove points outside domain`}
+                                    value={
+                                        yAxisConfig.removePointsOutsideDomain ||
+                                        false
+                                    }
+                                    onValue={(value) =>
+                                        (yAxisConfig.removePointsOutsideDomain =
+                                            value || undefined)
+                                    }
+                                />
+                            </FieldsRow>
                         )}
-                    </Section>
-                )}
+                        {features.canEnableLogLinearToggle && (
+                            <FieldsRow>
+                                <Toggle
+                                    label={`Enable log/linear selector`}
+                                    value={
+                                        yAxisConfig.canChangeScaleType || false
+                                    }
+                                    onValue={(value) =>
+                                        (yAxisConfig.canChangeScaleType =
+                                            value || undefined)
+                                    }
+                                />
+                            </FieldsRow>
+                        )}
+                    </React.Fragment>
+                    {features.canCustomizeYAxisLabel && (
+                        <BindString
+                            label="Label"
+                            field="label"
+                            store={yAxisConfig}
+                            errorMessage={this.errorMessages.axisLabelY}
+                            onBlur={() => {
+                                if (
+                                    yAxisConfig.label === "" &&
+                                    activeParentConfig?.yAxis?.label
+                                ) {
+                                    yAxisConfig.label =
+                                        activeParentConfig.yAxis.label
+                                }
+                            }}
+                        />
+                    )}
+                </Section>
                 {features.canCustomizeXAxis && (
                     <Section name="X Axis">
                         {features.canCustomizeXAxisScale && (
