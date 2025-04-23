@@ -8,11 +8,7 @@ import { glob } from "glob"
 import { keyBy, without, mapValues, pick } from "lodash-es"
 import ProgressBar from "progress"
 import * as db from "../db/db.js"
-import {
-    BLOG_POSTS_PER_PAGE,
-    BASE_DIR,
-    GDOCS_DETAILS_ON_DEMAND_ID,
-} from "../settings/serverSettings.js"
+import { BLOG_POSTS_PER_PAGE, BASE_DIR } from "../settings/serverSettings.js"
 
 import {
     renderFrontPage,
@@ -72,7 +68,6 @@ import {
     getPostsFromSnapshots,
     postsFlushCache,
 } from "../db/model/Post.js"
-import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getAllImages } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
@@ -725,21 +720,10 @@ export class SiteBaker {
     ) {
         if (!this.bakeSteps.has("dods") || !this.bakeSteps.has("charts")) return
         console.log("Validating grapher DoDs")
-        if (!GDOCS_DETAILS_ON_DEMAND_ID) {
-            console.error(
-                "GDOCS_DETAILS_ON_DEMAND_ID not set. Unable to validate dods."
-            )
-            return
-        }
 
-        const { details } = await GdocPost.getDetailsOnDemandGdoc(knex)
-
-        if (!details) {
-            console.log(
-                "No details on demand exist. Skipping grapher dod validation step."
-            )
-            return
-        }
+        const details = await db
+            .getDods(knex)
+            .then((dods) => R.indexBy(dods, (dod) => dod.name))
 
         const charts: { slug: string; subtitle: string; note: string }[] =
             await db.knexRaw<{ slug: string; subtitle: string; note: string }>(
@@ -790,33 +774,13 @@ export class SiteBaker {
     private async bakeDetailsOnDemand(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("dods")) return
         this.progressBar.tick({ name: "Baking dods.json" })
-        if (!GDOCS_DETAILS_ON_DEMAND_ID) {
-            console.error(
-                "GDOCS_DETAILS_ON_DEMAND_ID not set. Unable to bake dods."
-            )
-            return
-        }
 
-        const { details, parseErrors } =
-            await GdocPost.getDetailsOnDemandGdoc(knex)
-        if (parseErrors.length) {
-            await logErrorAndMaybeCaptureInSentry(
-                new Error(
-                    `Error(s) baking details: ${parseErrors
-                        .map((e) => e.message)
-                        .join(", ")}`
-                )
-            )
-        }
+        const parsedDods = await db.getParsedDodsDictionary(knex)
 
-        if (details) {
-            await this.stageWrite(
-                `${this.bakedSiteDir}/dods.json`,
-                JSON.stringify(details)
-            )
-        } else {
-            throw Error("Details on demand not found")
-        }
+        await this.stageWrite(
+            `${this.bakedSiteDir}/dods.json`,
+            JSON.stringify(parsedDods)
+        )
     }
 
     private async bakeDataInsights(knex: db.KnexReadonlyTransaction) {

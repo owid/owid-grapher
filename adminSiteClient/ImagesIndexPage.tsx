@@ -28,13 +28,11 @@ import {
     faClose,
     faDownload,
     faRobot,
-    faSave,
     faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import { type File, fileToBase64 } from "./imagesHelpers.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { keyBy } from "lodash-es"
-import cx from "classnames"
 import { NotificationInstance } from "antd/es/notification/interface.js"
 import { EditableTextarea } from "./EditableTextarea.js"
 

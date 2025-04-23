@@ -19,7 +19,7 @@ function extractLinksFromMarkdown(markdown: string): [string, string][] {
 async function migrateDodGdocToDb(
     trx: db.KnexReadWriteTransaction
 ): Promise<void> {
-    const { details } = await GdocPost.getDetailsOnDemandGdoc(trx)
+    const { details } = await GdocPost.DEPRECATED_getDetailsOnDemandGdoc(trx)
 
     for (const [name, detail] of Object.entries(details)) {
         const asMarkdown = enrichedBlocksToMarkdown(detail.text, false)
