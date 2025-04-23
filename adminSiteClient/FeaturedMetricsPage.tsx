@@ -327,6 +327,14 @@ function FeaturedMetricsExplainer() {
                                 the data catalog and search (in the order that
                                 they are ranked here.)
                             </p>
+                        </>
+                    ),
+                },
+                {
+                    key: "income-groups",
+                    label: "What are income groups?",
+                    children: (
+                        <>
                             <p>
                                 An FM can be designated for a particular income
                                 group (as specified by the{" "}
@@ -340,11 +348,38 @@ function FeaturedMetricsExplainer() {
                                 ) which means that it will only show up at the
                                 top of the data catalog if a country belonging
                                 to that income group has been selected as a
-                                filter. This is so we can highlight "Share
-                                living above the poverty line" charts when a
-                                low-income country is selected, but not when a
-                                high-income country is selected.
+                                filter. A useful example of this is showing
+                                "Share living above the poverty line" charts
+                                when a low-income country is selected, but not
+                                when a high-income country is selected.
                             </p>
+                            <p>
+                                You can also set "default" FMs. If an income
+                                group has no FMs set, it will use the defaults.
+                                Default FMs will also appear at the top of the
+                                data catalog when <em>no</em> countries are
+                                selected.
+                            </p>
+                            <p>
+                                So, for example, you might have Chart A for
+                                low-income countries, and Charts B and C as the
+                                defaults.
+                            </p>
+                            <ul>
+                                <li>
+                                    If a low-income country is selected, Chart A
+                                    will be displayed
+                                </li>
+                                <li>
+                                    If a lower-middle, upper-middle or
+                                    high-income country is selected, Charts B
+                                    and C will be displayed
+                                </li>
+                                <li>
+                                    If no countries are selected, Charts B and C
+                                    will be displayed
+                                </li>
+                            </ul>
                         </>
                     ),
                 },
