@@ -2,7 +2,6 @@ import { observer } from "mobx-react"
 import * as React from "react"
 import { computed, action } from "mobx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faXTwitter, faFacebook } from "@fortawesome/free-brands-svg-icons"
 import {
     faCode,
     faShareAlt,
@@ -158,31 +157,12 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         }
     }
 
-    @computed get twitterHref(): string | undefined {
-        if (!this.canonicalUrl) return undefined
-        const queryParams = new URLSearchParams({
-            text: this.title,
-            url: this.canonicalUrl,
-        })
-        return `https://twitter.com/intent/tweet/?${queryParams}`
-    }
-
-    @computed get facebookHref(): string | undefined {
-        if (!this.canonicalUrl) return undefined
-        const queryParams = new URLSearchParams({
-            app_id: "1149943818390250",
-            display: "page",
-            href: this.canonicalUrl,
-        })
-        return `https://www.facebook.com/dialog/share?${queryParams}`
-    }
-
     @computed get canUseShareApi(): boolean {
         return canUseShareApi(this.manager)
     }
 
     render(): React.ReactElement {
-        const { twitterHref, facebookHref, canUseShareApi, manager } = this
+        const { canUseShareApi, manager } = this
         const { editUrl } = manager
 
         const width = 200
@@ -199,34 +179,6 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                 style={style}
             >
                 <h2>Share</h2>
-                {twitterHref && (
-                    <a
-                        target="_blank"
-                        title="Tweet a link"
-                        data-track-note="chart_share_twitter"
-                        href={twitterHref}
-                        rel="noopener"
-                    >
-                        <span className="icon">
-                            <FontAwesomeIcon icon={faXTwitter} />
-                        </span>{" "}
-                        X/Twitter
-                    </a>
-                )}
-                {facebookHref && (
-                    <a
-                        target="_blank"
-                        title="Share on Facebook"
-                        data-track-note="chart_share_facebook"
-                        href={facebookHref}
-                        rel="noopener"
-                    >
-                        <span className="icon">
-                            <FontAwesomeIcon icon={faFacebook} />
-                        </span>{" "}
-                        Facebook
-                    </a>
-                )}
                 {this.canonicalUrl && (
                     <a
                         className="embed"
