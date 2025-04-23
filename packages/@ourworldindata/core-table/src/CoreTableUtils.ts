@@ -1,7 +1,7 @@
 import * as Papa from "papaparse"
+import * as R from "remeda"
 import {
     findIndexFast,
-    first,
     max,
     range,
     sampleFrom,
@@ -388,7 +388,7 @@ export const concatColumnStores = (
     if (!stores.length) return {}
 
     const lengths = stores.map(getColumnStoreLength)
-    const slugs = slugsToKeep ?? Object.keys(first(stores)!)
+    const slugs = slugsToKeep ?? Object.keys(R.first(stores)!)
 
     const newColumnStore: CoreColumnStore = {}
 

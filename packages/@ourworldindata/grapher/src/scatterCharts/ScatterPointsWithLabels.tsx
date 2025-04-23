@@ -10,7 +10,6 @@ import {
     makeSafeForCSS,
     getRelativeMouse,
     intersection,
-    first,
     isEmpty,
     guid,
     makeIdForHumanConsumption,
@@ -494,7 +493,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             />
                         )
 
-                    const firstValue = first(series.points)
+                    const firstValue = R.first(series.points)
                     const opacity = isSubtleForeground ? 0.9 : 1
                     const radius = hideConnectedScatterLines
                         ? strokeWidth

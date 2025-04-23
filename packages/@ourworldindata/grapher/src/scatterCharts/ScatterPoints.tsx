@@ -1,8 +1,5 @@
-import {
-    PointVector,
-    first,
-    makeIdForHumanConsumption,
-} from "@ourworldindata/utils"
+import * as R from "remeda"
+import { PointVector, makeIdForHumanConsumption } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import * as React from "react"
 import { MultiColorPolyline } from "./MultiColorPolyline"
@@ -23,7 +20,7 @@ export class ScatterPoint extends React.Component<{
 }> {
     render(): React.ReactElement | null {
         const { series, isLayerMode, onMouseEnter, onMouseLeave } = this.props
-        const value = first(series.points)
+        const value = R.first(series.points)
         if (value === undefined) return null
 
         const color = series.isFocus || !isLayerMode ? value.color : "#e2e2e2"
@@ -90,7 +87,7 @@ export class ScatterLine extends React.Component<{
                 />
             )
 
-        const firstValue = first(series.points)
+        const firstValue = R.first(series.points)
         const lastValue = R.last(series.points)
         if (firstValue === undefined || lastValue === undefined) return null
 

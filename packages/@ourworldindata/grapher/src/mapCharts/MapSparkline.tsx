@@ -15,7 +15,6 @@ import {
     Bounds,
     isNumber,
     checkIsVeryShortUnit,
-    first,
     min,
     max,
 } from "@ourworldindata/utils"
@@ -90,7 +89,7 @@ export class MapSparkline extends React.Component<{
                 this.manager.timeSeriesTable.getTimesUniqSortedAscForColumns([
                     this.mapColumnSlug,
                 ])
-            minTime = first(times) ?? minTime
+            minTime = R.first(times) ?? minTime
             maxTime = R.last(times) ?? maxTime
         }
 
