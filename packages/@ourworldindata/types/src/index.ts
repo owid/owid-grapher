@@ -10,8 +10,6 @@ export {
     DodsTableName,
     type DbInsertDod,
     type DbPlainDod,
-    type DodMarkdownSupportedBlock,
-    type ValidPhrasingContent,
 } from "./dbTypes/Dods.js"
 
 export {
@@ -336,6 +334,8 @@ export {
     type OwidGdocJSON,
     type FaqDictionary,
     type EnrichedDetail,
+    type DEPRECATED_DetailDictionary,
+    type DEPRECATED_EnrichedDetail,
     type EnrichedFaq,
     type DetailDictionary,
     GdocsContentSource,

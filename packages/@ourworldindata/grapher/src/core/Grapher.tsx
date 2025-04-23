@@ -1704,13 +1704,11 @@ export class Grapher
         return this.detailsOrderedByReference.map((term, i) => {
             let text = `**${i + 1}.** `
             const detail: EnrichedDetail | undefined = window.details?.[term]
-            if (detail) {
-                const plainText = detail.text.map(({ value }) =>
-                    spansToUnformattedPlainText(value)
-                )
-                plainText[0] = `**${plainText[0]}**:`
-
-                text += `${plainText.join(" ")}`
+            if (detail && detail.text) {
+                const lines = detail.text.split("\n")
+                const title = lines[0]
+                const description = lines.slice(1).join("\n")
+                text += `**${title}**\n\n${description}`
             }
 
             // can't use the computed property here because Grapher might not currently be in static mode

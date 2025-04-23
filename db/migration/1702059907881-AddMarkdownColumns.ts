@@ -51,13 +51,6 @@ export class AddMarkdownColumns1702059907881 implements MigrationInterface {
                 const content: OwidGdocPostContent = JSON.parse(row.content)
                 const blocks = excludeNullish([
                     content.body,
-                    // TODO: this just concats detail text with no separators for the DoD document, could be improved
-                    content.details
-                        ? Object.values(content.details).flatMap(
-                              (detail: unknown) =>
-                                  (detail as EnrichedDetail).text
-                          )
-                        : undefined,
                     content.parsedFaqs
                         ? Object.values(content.parsedFaqs).flatMap(
                               (faq: unknown) => (faq as EnrichedFaq).content

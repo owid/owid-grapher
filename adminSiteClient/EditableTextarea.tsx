@@ -14,6 +14,7 @@ interface EditableTextareaProps {
     extraActions?: React.ReactNode
     placeholder?: string
     disabled?: boolean
+    valid?: boolean
 }
 
 export function EditableTextarea({
@@ -25,6 +26,7 @@ export function EditableTextarea({
     extraActions,
     placeholder,
     disabled = false,
+    valid = true,
 }: EditableTextareaProps) {
     const [isDirty, setIsDirty] = useState(false)
 
@@ -57,19 +59,21 @@ export function EditableTextarea({
             <div className="EditableTextarea__actions">
                 {extraActions}
 
-                <Button
-                    type="text"
-                    onClick={handleSave}
-                    disabled={!isDirty || disabled}
-                >
-                    <FontAwesomeIcon icon={faSave} />
-                </Button>
+                <div>
+                    <Button
+                        type="text"
+                        onClick={handleSave}
+                        disabled={!isDirty || disabled || !valid}
+                    >
+                        <FontAwesomeIcon icon={faSave} />
+                    </Button>
 
-                {isDirty && (
-                    <span className="EditableTextarea__unsaved-chip">
-                        Unsaved
-                    </span>
-                )}
+                    {isDirty && (
+                        <span className="EditableTextarea__unsaved-chip">
+                            Unsaved
+                        </span>
+                    )}
+                </div>
             </div>
         </div>
     )

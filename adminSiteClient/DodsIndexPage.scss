@@ -7,5 +7,25 @@
     }
 }
 
-.DodEditor {
+.DodEditor--has-error {
+    textarea {
+        outline: 1px solid tomato !important;
+        border: 1px solid tomato !important;
+    }
+
+    .EditableTextarea__actions {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        align-items: center;
+    }
+}
+
+.DodEditor__error {
+    color: tomato;
+    font-size: 1em;
+    margin-left: 16px;
+    strong {
+        margin-right: 8px;
+    }
 }

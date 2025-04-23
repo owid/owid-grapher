@@ -71,8 +71,8 @@ import {
     RawBlockTopicPageIntro,
     EnrichedBlockTopicPageIntro,
     EnrichedTopicPageIntroRelatedTopic,
-    DetailDictionary,
-    EnrichedDetail,
+    DEPRECATED_DetailDictionary,
+    DEPRECATED_EnrichedDetail,
     EnrichedBlockKeyInsightsSlide,
     RawBlockResearchAndWriting,
     RawBlockResearchAndWritingLink,
@@ -1755,8 +1755,8 @@ export function parseFaqs(
     }
 }
 
-export function parseDetails(details: unknown): {
-    details: DetailDictionary
+export function DEPRECATED_parseDetails(details: unknown): {
+    details: DEPRECATED_DetailDictionary
     parseErrors: ParseError[]
 } {
     if (!Array.isArray(details))
@@ -1769,12 +1769,14 @@ export function parseDetails(details: unknown): {
             ],
         }
 
-    function parseDetail(detail: unknown): EnrichedDetail {
+    function DEPRECATED_parseDetail(
+        detail: unknown
+    ): DEPRECATED_EnrichedDetail {
         const createError = (
             error: ParseError,
             id: string = "",
             text: EnrichedBlockText[] = []
-        ): EnrichedDetail => ({
+        ): DEPRECATED_EnrichedDetail => ({
             id,
             text,
             parseErrors: [error],
@@ -1810,7 +1812,7 @@ export function parseDetails(details: unknown): {
     }
 
     const [enrichedDetails, detailsWithErrors] = partition(
-        details.map(parseDetail),
+        details.map(DEPRECATED_parseDetail),
         (detail) => !detail.parseErrors.length
     )
 
