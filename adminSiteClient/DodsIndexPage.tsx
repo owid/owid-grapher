@@ -5,22 +5,25 @@ import {
     useQueryClient,
 } from "@tanstack/react-query"
 import { useContext, useMemo, useState } from "react"
-import { Flex, Input, Table } from "antd"
+import cx from "classnames"
+import { Alert, Flex, Input, Table } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import {
-    DbPlainDod,
-    DbPlainUser,
-    ValidPhrasingContent,
-} from "@ourworldindata/types"
+import { DbPlainDod, DbPlainUser } from "@ourworldindata/types"
 import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { EditableTextarea } from "./EditableTextarea.js"
 import { indexBy } from "remeda"
 import { Admin } from "./Admin.js"
 import fromMarkdown from "mdast-util-from-markdown"
+import { Content, PhrasingContent } from "mdast"
+
+type ValidPhrasingContent = Extract<
+    PhrasingContent,
+    { type: "text" | "link" | "emphasis" | "strong" | "break" }
+>
 
 function validateParagraphChildren(
-    children: any[]
+    children: Content[]
 ): children is ValidPhrasingContent[] {
     return children.every((child) => {
         if (child.type === "text") {
@@ -35,6 +38,7 @@ function validateParagraphChildren(
         if (child.type === "break") {
             return true
         }
+
         return false
     })
 }
@@ -42,15 +46,26 @@ function validateParagraphChildren(
 function validateDodContent(content: string): boolean {
     const ast = fromMarkdown(content)
     const isValid = ast.children.every((node) => {
-        console.log("node", node)
-
-        if (node.type !== "paragraph") {
-            return false
+        if (node.type === "paragraph") {
+            const paragraphChildren = node.children
+            return validateParagraphChildren(paragraphChildren)
+        }
+        if (node.type === "list") {
+            return node.children.every((listItem) => {
+                if (listItem.type === "listItem") {
+                    return listItem.children.every((child) => {
+                        if (child.type !== "paragraph") {
+                            return false
+                        }
+                        const paragraphChildren = child.children
+                        return validateParagraphChildren(paragraphChildren)
+                    })
+                }
+                return false
+            })
         }
 
-        const paragraphChildren = node.children
-
-        return validateParagraphChildren(paragraphChildren)
+        return false
     })
     return isValid
 }
@@ -66,22 +81,31 @@ function DodEditor({
 }) {
     const [value, setValue] = useState(text)
     const isValid = validateDodContent(value)
-    console.log("isValid", isValid)
 
     return (
-        <div className="DodEditor">
+        <div className={cx("DodEditor", { "DodEditor--has-error": !isValid })}>
             <EditableTextarea
                 autoResize
                 onChange={setValue}
                 value={value}
+                valid={isValid}
                 onSave={(value) => {
                     dodMutation.mutate({
                         id,
                         content: value,
                     })
                 }}
+                extraActions={
+                    isValid ? null : (
+                        <div className="DodEditor__error">
+                            <strong>Invalid markdown</strong>
+                            Only basic text, **emphasis**, *strong*,
+                            [links](https://example.org), and lists are
+                            supported.
+                        </div>
+                    )
+                }
             />
-            {!isValid && <p>Oi! it's not valid!</p>}
         </div>
     )
 }

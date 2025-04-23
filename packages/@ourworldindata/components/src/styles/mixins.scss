@@ -54,15 +54,22 @@
     max-height: 300px;
     overflow-y: auto;
     scrollbar-width: thin;
+    @include body-3-regular;
 
-    > p.article-block__text:first-child {
-        font-weight: bold;
-        font-size: 1rem;
-    }
+    > span.markdown-text-wrap {
+        > .markdown-text-wrap__line:first-child {
+            font-weight: bold;
+            font-size: 1rem;
+        }
 
-    > p.article-block__text:not(:first-child) {
-        margin-top: 8px;
-        font-size: 0.875rem;
+        > .markdown-text-wrap__line:not(:first-child) {
+            margin-top: 8px;
+            font-size: 0.875rem;
+        }
+
+        a {
+            @include owid-link-90;
+        }
     }
 }
 
