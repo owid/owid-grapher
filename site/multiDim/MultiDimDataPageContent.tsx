@@ -221,6 +221,9 @@ export function DataPageContent({
                             ...grapherConfig.value,
                             ...baseGrapherConfig,
                         }
+                        if (slug) {
+                            config.slug = slug // Needed for the URL used for sharing.
+                        }
                         // Batch the grapher updates to avoid getting intermediate
                         // grapherChangedParams values, which make the URL update
                         // multiple times while flashing.
@@ -236,7 +239,7 @@ export function DataPageContent({
                 })
                 .catch(Sentry.captureException)
         },
-        [config, isPreviewing]
+        [config, isPreviewing, slug]
     )
 
     const handleSettingsChange = useCallback(

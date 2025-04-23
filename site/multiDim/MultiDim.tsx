@@ -114,6 +114,9 @@ export default function MultiDim({
                     ...localGrapherConfig,
                     ...baseGrapherConfig,
                 }
+                if (slug) {
+                    grapherConfig.slug = slug // Needed for the URL used for sharing.
+                }
                 grapher.setAuthoredVersion(grapherConfig)
                 grapher.reset()
                 grapher.updateFromObject(grapherConfig)
@@ -124,7 +127,7 @@ export default function MultiDim({
         return () => {
             ignoreFetchedData = true
         }
-    }, [config, localGrapherConfig, searchParams, settings])
+    }, [config, localGrapherConfig, searchParams, settings, slug])
 
     return (
         <div className="multi-dim-container">
