@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react"
+import React, { useState, useCallback } from "react"
 import { Button } from "antd"
 import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

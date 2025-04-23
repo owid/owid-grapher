@@ -10,6 +10,8 @@ export {
     DodsTableName,
     type DbInsertDod,
     type DbPlainDod,
+    type DodMarkdownSupportedBlock,
+    type ValidPhrasingContent,
 } from "./dbTypes/Dods.js"
 
 export {

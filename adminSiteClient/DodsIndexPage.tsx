@@ -8,11 +8,52 @@ import { useContext, useMemo, useState } from "react"
 import { Flex, Input, Table } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { DbPlainDod, DbPlainUser } from "@ourworldindata/types"
+import {
+    DbPlainDod,
+    DbPlainUser,
+    ValidPhrasingContent,
+} from "@ourworldindata/types"
 import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { EditableTextarea } from "./EditableTextarea.js"
 import { indexBy } from "remeda"
 import { Admin } from "./Admin.js"
+import fromMarkdown from "mdast-util-from-markdown"
+
+function validateParagraphChildren(
+    children: any[]
+): children is ValidPhrasingContent[] {
+    return children.every((child) => {
+        if (child.type === "text") {
+            return true
+        }
+        if (child.type === "link") {
+            return child && validateParagraphChildren(child.children)
+        }
+        if (child.type === "emphasis" || child.type === "strong") {
+            return validateParagraphChildren(child.children)
+        }
+        if (child.type === "break") {
+            return true
+        }
+        return false
+    })
+}
+
+function validateDodContent(content: string): boolean {
+    const ast = fromMarkdown(content)
+    const isValid = ast.children.every((node) => {
+        console.log("node", node)
+
+        if (node.type !== "paragraph") {
+            return false
+        }
+
+        const paragraphChildren = node.children
+
+        return validateParagraphChildren(paragraphChildren)
+    })
+    return isValid
+}
 
 function DodEditor({
     text,
@@ -24,6 +65,8 @@ function DodEditor({
     dodMutation: DodMutationType
 }) {
     const [value, setValue] = useState(text)
+    const isValid = validateDodContent(value)
+    console.log("isValid", isValid)
 
     return (
         <div className="DodEditor">
@@ -38,6 +81,7 @@ function DodEditor({
                     })
                 }}
             />
+            {!isValid && <p>Oi! it's not valid!</p>}
         </div>
     )
 }

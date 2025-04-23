@@ -23,7 +23,11 @@ import { ADMIN_BASE_URL } from "../../../settings/clientSettings.js"
 import { parseDetails, parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
-import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
+import {
+    KnexReadonlyTransaction,
+    getParsedDodsDictionary,
+    knexRaw,
+} from "../../db.js"
 import { getGdocBaseObjectById } from "./GdocFactory.js"
 
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
@@ -139,29 +143,14 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             }
         }
 
-        // Unless this is the DoD document, validate that all referenced dods exist
-        if (this.id !== GDOCS_DETAILS_ON_DEMAND_ID) {
-            const { details } = await GdocPost.getDetailsOnDemandGdoc(knex)
-            for (const detailId of this.details) {
-                if (details && !details[detailId]) {
-                    errors.push({
-                        type: OwidGdocErrorMessageType.Error,
-                        message: `Invalid DoD referenced: "${detailId}"`,
-                        property: "content",
-                    })
-                }
-            }
-        }
+        const parsedDods = await getParsedDodsDictionary(knex)
 
-        // This is to validate the DoD document itself
-        // TODO: this should be done on a GdocDods subclass
-        if (this.id === GDOCS_DETAILS_ON_DEMAND_ID) {
-            const results = parseDetails(this.content.details)
-            for (const parseError of results.parseErrors) {
+        for (const detailId of this.details) {
+            if (!parsedDods[detailId]) {
                 errors.push({
-                    ...parseError,
-                    property: "details",
                     type: OwidGdocErrorMessageType.Error,
+                    message: `Invalid DoD referenced: "${detailId}"`,
+                    property: "content",
                 })
             }
         }
@@ -202,7 +191,10 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         this.relatedCharts = relatedCharts
     }
 
-    static async getDetailsOnDemandGdoc(
+    /**
+     * Replaced by the dods admin, but needed for the migration
+     */
+    static async DEPRECATED_getDetailsOnDemandGdoc(
         knex: KnexReadonlyTransaction
     ): Promise<{
         details: DetailDictionary
