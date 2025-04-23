@@ -2,12 +2,7 @@ import * as R from "remeda"
 import { ckmeans } from "simple-statistics"
 import { range, quantile } from "d3-array"
 
-import {
-    excludeUndefined,
-    uniq,
-    roundSigFig,
-    first,
-} from "@ourworldindata/utils"
+import { excludeUndefined, uniq, roundSigFig } from "@ourworldindata/utils"
 import { BinningStrategy } from "@ourworldindata/types"
 
 /** Human-readable labels for the binning strategies */
@@ -70,7 +65,7 @@ export function getBinMaximums(args: GetBinMaximumsWithStrategyArgs): number[] {
         )
     } else {
         // Equal-interval strategy by default
-        const minValue = minBinValue ?? first(sortedValues) ?? 0
+        const minValue = minBinValue ?? R.first(sortedValues) ?? 0
         const binStepSize = calcEqualIntervalStepSize(
             sortedValues,
             binCount,

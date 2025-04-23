@@ -9,7 +9,6 @@ import {
     excludeUndefined,
     sortBy,
     numberMagnitude,
-    first,
     Color,
     SortOrder,
     Time,
@@ -548,7 +547,7 @@ export class StackedDiscreteBarChart
     }
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
-        this.focusSeriesName = first(
+        this.focusSeriesName = R.first(
             this.series
                 .map((s) => s.seriesName)
                 .filter((name) => bin.contains(name))

@@ -23,7 +23,6 @@ import {
     without,
     excludeNullish,
     uniq,
-    first,
     pairs,
     clone,
     excludeUndefined,
@@ -873,10 +872,10 @@ export class ScatterPlotChart
             tooltipState: { target, position, fading },
         } = this
         const points = target.series.points ?? []
-        const values = excludeNullish(uniq([first(points), R.last(points)]))
+        const values = excludeNullish(uniq([R.first(points), R.last(points)]))
 
         let { startTime, endTime } = this.manager
-        const { x: xStart, y: yStart } = first(values)?.time ?? {},
+        const { x: xStart, y: yStart } = R.first(values)?.time ?? {},
             { x: xEnd, y: yEnd } = R.last(values)?.time ?? {}
 
         let xValues = xStart === xEnd ? [values[0].x] : values.map((v) => v.x),

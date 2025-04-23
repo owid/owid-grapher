@@ -3,7 +3,6 @@ import { mean, deviation } from "d3-array"
 import { ColorScaleConfig, ColorScaleConfigDefaults } from "./ColorScaleConfig"
 import {
     isEmpty,
-    first,
     roundSigFig,
     mapNullToUndefined,
     sortNumeric,
@@ -125,7 +124,7 @@ export class ColorScale {
     }
 
     @computed private get minPossibleValue(): number | undefined {
-        return first(this.sortedNumericValues)
+        return R.first(this.sortedNumericValues)
     }
 
     @computed private get maxPossibleValue(): number | undefined {

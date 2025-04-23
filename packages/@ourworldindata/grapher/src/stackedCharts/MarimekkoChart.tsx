@@ -10,7 +10,6 @@ import {
     sumBy,
     partition,
     cloneDeep,
-    first,
     sortBy,
     HorizontalAlign,
     Position,
@@ -1353,12 +1352,12 @@ export class MarimekkoChart
         )
 
         if (sortedLabelsWithValues.length) {
-            first(sortedLabelsWithValues)!.isPicked = true
+            R.first(sortedLabelsWithValues)!.isPicked = true
             R.last(sortedLabelsWithValues)!.isPicked = true
         }
         if (sortedLabelsWithoutValues.length) {
             if (sortConfig.sortOrder === SortOrder.desc)
-                first(sortedLabelsWithoutValues)!.isPicked = true
+                R.first(sortedLabelsWithoutValues)!.isPicked = true
             else R.last(sortedLabelsWithoutValues)!.isPicked = true
         }
         const availablePixels = xRange[1] - xRange[0]

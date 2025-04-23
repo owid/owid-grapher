@@ -5,7 +5,6 @@ import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap, Halo } from "@ourworldindata/components"
 import {
     Color,
-    first,
     makeIdForHumanConsumption,
     OwidVariableRoundingMode,
 } from "@ourworldindata/utils"
@@ -160,10 +159,10 @@ export class ScatterSizeLegend {
         const { tooltipSeries } = this.manager
         if (
             tooltipSeries?.points.length === 1 &&
-            first(tooltipSeries.points)?.size !== undefined
+            R.first(tooltipSeries.points)?.size !== undefined
         ) {
             return {
-                value: first(tooltipSeries.points)!.size,
+                value: R.first(tooltipSeries.points)!.size,
                 color: tooltipSeries.color,
             }
         }

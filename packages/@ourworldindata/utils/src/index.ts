@@ -16,7 +16,6 @@ export {
     formatYear,
     numberMagnitude,
     roundSigFig,
-    first,
     excludeNull,
     excludeNullish,
     excludeUndefined,

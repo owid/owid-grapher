@@ -337,8 +337,6 @@ export const roundSigFig = (num: number, sigfigs: number = 1): number => {
     return round(num, -magnitude + sigfigs)
 }
 
-export const first = <T>(arr: readonly T[]): T | undefined => arr[0]
-
 export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
     arr.filter((x) => x !== undefined) as T[]
 
@@ -350,7 +348,7 @@ export const excludeNullish = <T>(arr: (T | null | undefined | void)[]): T[] =>
 
 export const firstOfNonEmptyArray = <T>(arr: T[]): T => {
     if (arr.length < 1) throw new Error("array is empty")
-    return first(arr) as T
+    return R.first(arr) as T
 }
 
 export const lastOfNonEmptyArray = <T>(arr: T[]): T => {
