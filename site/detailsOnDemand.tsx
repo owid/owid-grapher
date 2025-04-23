@@ -10,6 +10,7 @@ import {
     readFromAssetMap,
 } from "@ourworldindata/utils"
 import { SiteAnalytics } from "./SiteAnalytics.js"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 
 type Tippyfied<E> = E & {
     _tippy?: Instance
@@ -64,7 +65,11 @@ export async function runDetailsOnDemand() {
 
         const content = renderToStaticMarkup(
             <div className="dod-container">
-                <ArticleBlocks blocks={dod.text} />
+                <MarkdownTextWrap
+                    text={dod.text}
+                    fontSize={12}
+                    lineHeight={1.55}
+                />
             </div>
         )
         if (element._tippy) {

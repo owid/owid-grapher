@@ -24,7 +24,6 @@ import {
 } from "../domainTypes/ContentGraph.js"
 import { DbRawImage } from "../dbTypes/Images.js"
 import { DbPlainNarrativeChart } from "../dbTypes/NarrativeCharts.js"
-import { DodMarkdownSupportedBlock } from "../dbTypes/Dods.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -408,10 +407,20 @@ export type RawDetail = {
     text: RawBlockText[]
 }
 
+export type DEPRECATED_EnrichedDetail = {
+    id: string
+    text: EnrichedBlockText[]
+} & EnrichedBlockWithParseErrors
+
+export type DEPRECATED_DetailDictionary = Record<
+    string,
+    DEPRECATED_EnrichedDetail
+>
+
 export type EnrichedDetail = {
     id: string
-    text: DodMarkdownSupportedBlock[]
-} & EnrichedBlockWithParseErrors
+    text: string
+}
 
 export type DetailDictionary = Record<string, EnrichedDetail>
 

@@ -3,7 +3,6 @@ import {
     OwidGdocPostInterface,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
-    DetailDictionary,
     ParseError,
     OwidGdocType,
     OwidEnrichedGdocBlock,
@@ -12,6 +11,7 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocBaseInterface,
     excludeNullish,
+    DEPRECATED_DetailDictionary,
 } from "@ourworldindata/utils"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 import {
@@ -20,7 +20,7 @@ import {
     generateToc,
 } from "./archieToEnriched.js"
 import { ADMIN_BASE_URL } from "../../../settings/clientSettings.js"
-import { parseDetails, parseFaqs } from "./rawToEnriched.js"
+import { DEPRECATED_parseDetails, parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
 import {
@@ -197,7 +197,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     static async DEPRECATED_getDetailsOnDemandGdoc(
         knex: KnexReadonlyTransaction
     ): Promise<{
-        details: DetailDictionary
+        details: DEPRECATED_DetailDictionary
         parseErrors: ParseError[]
     }> {
         if (!GDOCS_DETAILS_ON_DEMAND_ID) {
@@ -224,6 +224,6 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             }
         }
 
-        return parseDetails(gdoc.content.details)
+        return DEPRECATED_parseDetails(gdoc.content.details)
     }
 }

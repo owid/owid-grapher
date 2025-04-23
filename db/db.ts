@@ -47,7 +47,6 @@ import {
 import { groupBy } from "lodash-es"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
-import { markdownToEnriched } from "./model/Gdoc/markdownToEnriched.js"
 
 // Return the first match from a mysql query
 export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
@@ -511,11 +510,9 @@ export async function getParsedDodsDictionary(
     const dods = await getDods(knex)
     const parsedDods: DetailDictionary = {}
     for (const dod of dods) {
-        const parsed = markdownToEnriched(dod.content)
         const parsedDod: EnrichedDetail = {
             id: dod.name,
-            text: parsed.text,
-            parseErrors: parsed.parseErrors,
+            text: dod.content,
         }
         parsedDods[dod.name] = parsedDod
     }
