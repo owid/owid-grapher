@@ -6,7 +6,8 @@ import {
 } from "@tanstack/react-query"
 import { useContext, useMemo, useState } from "react"
 import cx from "classnames"
-import { Alert, Flex, Input, Table } from "antd"
+import { tippy } from "@tippyjs/react"
+import { Flex, Input, Table } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { DbPlainDod, DbPlainUser } from "@ourworldindata/types"
@@ -16,6 +17,8 @@ import { indexBy } from "remeda"
 import { Admin } from "./Admin.js"
 import fromMarkdown from "mdast-util-from-markdown"
 import { Content, PhrasingContent } from "mdast"
+import { renderToStaticMarkup } from "react-dom/server.js"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 
 type ValidPhrasingContent = Extract<
     PhrasingContent,
@@ -151,7 +154,7 @@ function createColumns({
             key: "content",
             render: (content: string, dod: DbPlainDod) => {
                 return (
-                    <div className="dod-content">
+                    <div className="dod-content" data-dod-id={dod.id}>
                         <DodEditor
                             text={content}
                             id={dod.id}
@@ -161,7 +164,57 @@ function createColumns({
                 )
             },
         },
+        {
+            title: "Preview",
+            dataIndex: "content",
+            width: 200,
+            key: "preview",
+            render: (content: string, dod) => {
+                const lines = content.split("\n")
+                const title = lines[0]
+
+                return (
+                    <span
+                        className="dod-span"
+                        onMouseEnter={(event) => {
+                            const textarea = document.querySelector(
+                                `.dod-content[data-dod-id="${dod.id}"] textarea`
+                            )
+                            if (!textarea) return
+
+                            const text = textarea.textContent
+                            const target = event.currentTarget as any
+
+                            if (text && !target._tippy) {
+                                showDodPreviewTooltip(text, target)
+                            }
+                        }}
+                    >
+                        {title}
+                    </span>
+                )
+            },
+        },
     ]
+}
+
+function showDodPreviewTooltip(text: string, element: Element): void {
+    const content = renderToStaticMarkup(
+        <div className="dod-container">
+            <MarkdownTextWrap text={text} fontSize={12} lineHeight={1.55} />
+        </div>
+    )
+    tippy(element, {
+        content,
+        allowHTML: true,
+        delay: [null, 200],
+        interactive: true,
+        hideOnClick: false,
+        arrow: false,
+        theme: "light dod",
+        appendTo: document.body,
+        onHidden: (instance) => instance.destroy(),
+    })
 }
 
 async function fetchDods(admin: Admin) {
