@@ -1,6 +1,6 @@
 import fs from "fs-extra"
 import { glob } from "glob"
-import * as lodash from "lodash-es"
+import * as R from "remeda"
 
 import * as db from "../db/db.js"
 import { DbPlainTag, Url, without } from "@ourworldindata/utils"
@@ -11,7 +11,7 @@ import { hashMd5 } from "../serverUtils/hash.js"
 // into its slug (soil-lifespans) and queryStr (?tab=chart)
 export const grapherUrlToSlugAndQueryStr = (grapherUrl: string) => {
     const url = Url.fromURL(grapherUrl)
-    const slug = lodash.last(url.pathname?.split("/")) as string // todo / refactor: use Url.slug
+    const slug = R.last(url.pathname?.split("/") ?? []) as string // todo / refactor: use Url.slug
     const queryStr = url.queryStr
     return { slug, queryStr }
 }

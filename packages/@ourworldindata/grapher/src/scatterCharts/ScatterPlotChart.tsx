@@ -1,4 +1,5 @@
 import React from "react"
+import * as R from "remeda"
 import {
     ComparisonLineConfig,
     ScaleType,
@@ -23,7 +24,6 @@ import {
     excludeNullish,
     uniq,
     first,
-    last,
     pairs,
     clone,
     excludeUndefined,
@@ -873,11 +873,11 @@ export class ScatterPlotChart
             tooltipState: { target, position, fading },
         } = this
         const points = target.series.points ?? []
-        const values = excludeNullish(uniq([first(points), last(points)]))
+        const values = excludeNullish(uniq([first(points), R.last(points)]))
 
         let { startTime, endTime } = this.manager
         const { x: xStart, y: yStart } = first(values)?.time ?? {},
-            { x: xEnd, y: yEnd } = last(values)?.time ?? {}
+            { x: xEnd, y: yEnd } = R.last(values)?.time ?? {}
 
         let xValues = xStart === xEnd ? [values[0].x] : values.map((v) => v.x),
             xNoticeNeeded =
@@ -1444,7 +1444,7 @@ export class ScatterPlotChart
                 this.transformedTable.getColorForEntityName(entityName)
             if (keyColor !== undefined) series.color = keyColor
             else if (!this.colorColumn.isMissing) {
-                const colorValue = last(
+                const colorValue = R.last(
                     series.points.map((point) => point.color)
                 )
                 const color = this.colorScale.getColor(colorValue)

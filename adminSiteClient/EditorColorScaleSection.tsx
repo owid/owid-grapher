@@ -1,3 +1,4 @@
+import * as R from "remeda"
 import { Component, Fragment } from "react"
 import { action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
@@ -17,7 +18,7 @@ import {
     CategoricalBin,
     binningStrategyLabels,
 } from "@ourworldindata/grapher"
-import { clone, noop, last } from "@ourworldindata/utils"
+import { clone, noop } from "@ourworldindata/utils"
 import {
     Section,
     Toggle,
@@ -441,7 +442,7 @@ class NumericBinView extends Component<{
 
         if (index === customNumericValues.length - 1)
             customNumericValues.push(
-                last(scale.sortedNumericValues) ?? currentValue
+                R.last(scale.sortedNumericValues) ?? currentValue
             )
         else {
             const newValue = (currentValue + customNumericValues[index + 1]) / 2

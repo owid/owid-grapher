@@ -1,4 +1,5 @@
 import * as React from "react"
+import * as R from "remeda"
 import { action, computed, observable, runInAction, reaction } from "mobx"
 import { observer } from "mobx-react"
 import { Flipper, Flipped } from "react-flip-toolkit"
@@ -12,7 +13,6 @@ import {
     FuzzySearch,
     partition,
     scrollIntoViewIfNeeded,
-    last,
     max,
     isNumber,
     sortByUndefinedLast,
@@ -408,7 +408,7 @@ export class EntityPicker extends React.Component<{
 
         const tokens: { match: boolean; text: string }[] = []
         for (let i = 0; i < result.target.length; i++) {
-            const currentToken = last(tokens)
+            const currentToken = R.last(tokens)
             const match = result.indexes.includes(i)
             const char = result.target[i]
             if (!currentToken || currentToken.match !== match) {

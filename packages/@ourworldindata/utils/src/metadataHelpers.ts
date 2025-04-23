@@ -1,3 +1,4 @@
+import * as R from "remeda"
 import {
     OwidOrigin,
     OwidVariableWithSource,
@@ -9,7 +10,7 @@ import {
     LinkedIndicator,
     joinTitleFragments,
 } from "@ourworldindata/types"
-import { compact, uniq, last, excludeUndefined } from "./Util"
+import { compact, uniq, excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
 import { parseArchivalDate } from "./archival/archivalDate.js"
 
@@ -76,7 +77,7 @@ export function formatAuthors(authors: string[]): string {
     if (authors.length === 0) return ""
     if (authors.length === 1) return authors[0]
     if (authors.length === 2) return authors.join(" and ")
-    return authors.slice(0, -1).join(", ") + `, and ${last(authors)}`
+    return authors.slice(0, -1).join(", ") + `, and ${R.last(authors)}`
 }
 
 export function formatAuthorsForBibtex(authors: string[]): string {

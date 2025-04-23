@@ -1,4 +1,4 @@
-import { last, maxBy, SeriesName } from "@ourworldindata/utils"
+import { maxBy, SeriesName } from "@ourworldindata/utils"
 import { PlacedSeries } from "./LineLegendTypes"
 import { LEGEND_ITEM_MIN_SPACING } from "./LineLegendConstants"
 import * as R from "remeda"
@@ -39,7 +39,7 @@ function findBracket(
     if (sortedBrackets.length === 0) return [undefined, undefined]
 
     const firstBracketValue = sortedBrackets[0][0]
-    const lastBracketValue = last(sortedBrackets)![1]
+    const lastBracketValue = R.last(sortedBrackets)![1]
 
     if (n < firstBracketValue) return [undefined, firstBracketValue]
     if (n >= lastBracketValue) return [lastBracketValue, undefined]

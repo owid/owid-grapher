@@ -1,4 +1,5 @@
-import { Bounds, PointVector, last, maxBy } from "@ourworldindata/utils"
+import * as R from "remeda"
+import { Bounds, PointVector, maxBy } from "@ourworldindata/utils"
 import {
     SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES,
     ScatterLabel,
@@ -164,7 +165,7 @@ export const makeEndLabel = (
     hideConnectedScatterLines: boolean,
     baseFontSize: number
 ): ScatterLabel => {
-    const lastValue = last(series.points) as ScatterRenderPoint
+    const lastValue = R.last(series.points) as ScatterRenderPoint
     const lastPos = lastValue.position
     const fontSize = hideConnectedScatterLines
         ? SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES * baseFontSize

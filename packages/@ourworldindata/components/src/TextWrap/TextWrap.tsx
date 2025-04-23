@@ -1,4 +1,5 @@
-import { max, stripHTML, Bounds, FontFamily, last } from "@ourworldindata/utils"
+import * as R from "remeda"
+import { max, stripHTML, Bounds, FontFamily } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import * as React from "react"
 import { Fragment, joinFragments, splitIntoFragments } from "./TextWrapUtils"
@@ -217,7 +218,7 @@ export class TextWrap {
     }
 
     @computed get lastLineWidth(): number {
-        return last(this.lines)?.width ?? 0
+        return R.last(this.lines)?.width ?? 0
     }
 
     @computed get htmlStyle(): any {

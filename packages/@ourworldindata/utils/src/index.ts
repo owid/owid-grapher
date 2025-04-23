@@ -17,7 +17,6 @@ export {
     numberMagnitude,
     roundSigFig,
     first,
-    last,
     excludeNull,
     excludeNullish,
     excludeUndefined,

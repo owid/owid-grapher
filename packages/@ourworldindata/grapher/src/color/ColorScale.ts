@@ -4,7 +4,6 @@ import { ColorScaleConfig, ColorScaleConfigDefaults } from "./ColorScaleConfig"
 import {
     isEmpty,
     first,
-    last,
     roundSigFig,
     mapNullToUndefined,
     sortNumeric,
@@ -130,7 +129,7 @@ export class ColorScale {
     }
 
     @computed private get maxPossibleValue(): number | undefined {
-        return last(this.sortedNumericValues)
+        return R.last(this.sortedNumericValues)
     }
 
     @computed private get categoricalValues(): string[] {

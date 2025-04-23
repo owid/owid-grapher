@@ -3,7 +3,6 @@ import * as React from "react"
 import { computed } from "mobx"
 import {
     excludeUndefined,
-    last,
     sum,
     sumBy,
     imemo,
@@ -342,7 +341,7 @@ function splitAllOnNewline(tokens: IRToken[]): IRToken[][] {
             if (firstLine) currentLine.push(...firstLine)
             if (otherLines.length) {
                 lines.push(...otherLines)
-                currentLine = last(lines)!
+                currentLine = R.last(lines)!
             }
         } else if (token instanceof IRLineBreak) {
             currentLine = []
@@ -445,7 +444,7 @@ export const recursiveMergeTextTokens = (
     // merge adjacent text tokens into one
     const mergedTextTokens: IRToken[] = tokens.reduce((acc, token) => {
         if (isTextToken(token)) {
-            const l = last(acc)
+            const l = R.last(acc)
             if (l && isTextToken(l)) {
                 // replace last value in acc with merged text token
                 acc.pop()
@@ -675,7 +674,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     }
 
     @computed get lastLineWidth(): number {
-        return sumBy(last(this.htmlLines), (token) => token.width) ?? 0
+        return sumBy(R.last(this.htmlLines), (token) => token.width) ?? 0
     }
 
     @computed get height(): number {

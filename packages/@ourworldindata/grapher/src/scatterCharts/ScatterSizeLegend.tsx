@@ -1,11 +1,11 @@
 import * as React from "react"
+import * as R from "remeda"
 import { computed } from "mobx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap, Halo } from "@ourworldindata/components"
 import {
     Color,
     first,
-    last,
     makeIdForHumanConsumption,
     OwidVariableRoundingMode,
 } from "@ourworldindata/utils"
@@ -72,7 +72,7 @@ export class ScatterSizeLegend {
         restTicks.forEach((value) => {
             if (
                 // make sure there is enough distance to prevent overlap with previous tick
-                sizeScale(value) <= sizeScale(last(ticks)!) - 6 &&
+                sizeScale(value) <= sizeScale(R.last(ticks)!) - 6 &&
                 // don't go below the minimum tick radius
                 sizeScale(value) >= 6
             ) {
@@ -102,7 +102,7 @@ export class ScatterSizeLegend {
     // Since it's circular, this is both the width and the height of the legend.
     @computed private get legendSize(): number {
         if (this.ticks.length === 0) return 0
-        const maxRadius = last(this.manager.sizeScale.range()) ?? 0
+        const maxRadius = R.last(this.manager.sizeScale.range()) ?? 0
         // adding some padding to account for label sticking out at the top
         return 2 * maxRadius + 2
     }

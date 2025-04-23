@@ -1,10 +1,10 @@
+import * as R from "remeda"
 import { ckmeans } from "simple-statistics"
 import { range, quantile } from "d3-array"
 
 import {
     excludeUndefined,
     uniq,
-    last,
     roundSigFig,
     first,
 } from "@ourworldindata/utils"
@@ -24,7 +24,7 @@ function calcEqualIntervalStepSize(
     minBinValue: number
 ): number {
     if (!sortedValues.length) return 10
-    const stepSizeInitial = (last(sortedValues)! - minBinValue) / binCount
+    const stepSizeInitial = (R.last(sortedValues)! - minBinValue) / binCount
     return roundSigFig(stepSizeInitial, 1)
 }
 
@@ -60,7 +60,7 @@ export function getBinMaximums(args: GetBinMaximumsWithStrategyArgs): number[] {
             sortedValues,
             binCount > valueCount ? valueCount : binCount
         )
-        return normalizeBinValues(clusters.map(last), minBinValue)
+        return normalizeBinValues(clusters.map(R.last()), minBinValue)
     } else if (binningStrategy === BinningStrategy.quantiles) {
         return normalizeBinValues(
             range(1, binCount + 1).map((v) =>
