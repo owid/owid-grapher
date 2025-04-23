@@ -75,32 +75,15 @@ export const bakeDods = async (
     knex: db.KnexReadonlyTransaction,
     archiveDir: string
 ) => {
-    if (!GDOCS_DETAILS_ON_DEMAND_ID) {
-        throw new Error(
-            "GDOCS_DETAILS_ON_DEMAND_ID not set. Unable to bake dods."
-        )
-    }
+    const parsedDods = await db.getParsedDodsDictionary(knex)
 
-    const { details, parseErrors } = await GdocPost.getDetailsOnDemandGdoc(knex)
-    if (parseErrors.length) {
-        throw new Error(
-            `Error(s) baking details: ${parseErrors
-                .map((e) => e.message)
-                .join(", ")}`
-        )
-    }
+    const targetPath = path.join(archiveDir, "assets", "dods.json")
+    const resultFilename = await hashAndWriteFile(
+        targetPath,
+        JSON.stringify(parsedDods)
+    ).then((fullPath) => path.basename(fullPath))
 
-    if (details) {
-        const targetPath = path.join(archiveDir, "assets", "dods.json")
-        const resultFilename = await hashAndWriteFile(
-            targetPath,
-            JSON.stringify(details)
-        ).then((fullPath) => path.basename(fullPath))
-
-        return { "dods.json": `/assets/${resultFilename}` }
-    } else {
-        throw Error("Details on demand not found")
-    }
+    return { "dods.json": `/assets/${resultFilename}` }
 }
 
 const bakeVariableDataFiles = async (

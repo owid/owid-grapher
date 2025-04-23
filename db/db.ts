@@ -41,10 +41,13 @@ import {
     TagGraphTableName,
     ExplorersTableName,
     DbPlainDod,
+    DetailDictionary,
+    EnrichedDetail,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash-es"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
+import { markdownToEnriched } from "./model/Gdoc/markdownToEnriched.js"
 
 // Return the first match from a mysql query
 export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
@@ -500,6 +503,23 @@ export async function getDods(
         `-- sql
         SELECT * FROM dods`
     )
+}
+
+export async function getParsedDodsDictionary(
+    knex: KnexReadonlyTransaction
+): Promise<DetailDictionary> {
+    const dods = await getDods(knex)
+    const parsedDods: DetailDictionary = {}
+    for (const dod of dods) {
+        const parsed = markdownToEnriched(dod.content)
+        const parsedDod: EnrichedDetail = {
+            id: dod.name,
+            text: parsed.text,
+            parseErrors: parsed.parseErrors,
+        }
+        parsedDods[dod.name] = parsedDod
+    }
+    return parsedDods
 }
 
 /**

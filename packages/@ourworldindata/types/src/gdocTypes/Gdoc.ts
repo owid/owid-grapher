@@ -24,6 +24,7 @@ import {
 } from "../domainTypes/ContentGraph.js"
 import { DbRawImage } from "../dbTypes/Images.js"
 import { DbPlainNarrativeChart } from "../dbTypes/NarrativeCharts.js"
+import { DodMarkdownSupportedBlock } from "../dbTypes/Dods.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -409,7 +410,7 @@ export type RawDetail = {
 
 export type EnrichedDetail = {
     id: string
-    text: EnrichedBlockText[]
+    text: DodMarkdownSupportedBlock[]
 } & EnrichedBlockWithParseErrors
 
 export type DetailDictionary = Record<string, EnrichedDetail>
