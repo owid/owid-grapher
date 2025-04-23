@@ -1,7 +1,7 @@
 import * as React from "react"
+import * as R from "remeda"
 import {
     extend,
-    last,
     pointsToPath,
     getRelativeMouse,
     makeSafeForCSS,
@@ -285,7 +285,7 @@ export class StackedAreaChart extends AbstractStackedChart {
     @computed get midpoints(): number[] {
         let prevY = 0
         return this.series.map((series) => {
-            const lastValue = last(series.points)
+            const lastValue = R.last(series.points)
             if (!lastValue) return 0
 
             const y = lastValue.value + lastValue.valueOffset
@@ -386,8 +386,8 @@ export class StackedAreaChart extends AbstractStackedChart {
                     if (yMax2 > yMax1) return PREFER_S2
 
                     // prefer series with a higher last value
-                    const yLast1 = last(s1.points)?.value ?? 0
-                    const yLast2 = last(s2.points)?.value ?? 0
+                    const yLast1 = R.last(s1.points)?.value ?? 0
+                    const yLast2 = R.last(s2.points)?.value ?? 0
                     if (yLast1 > yLast2) return PREFER_S1
                     if (yLast2 > yLast1) return PREFER_S2
 
@@ -571,7 +571,7 @@ export class StackedAreaChart extends AbstractStackedChart {
         const title = formattedTime
         const titleAnnotation = this.xAxis.label ? `(${this.xAxis.label})` : ""
 
-        const lastStackedPoint = last(series)!.points[hoveredPointIndex]
+        const lastStackedPoint = R.last(series)!.points[hoveredPointIndex]
         if (!lastStackedPoint) return undefined
         const totalValue = lastStackedPoint.value + lastStackedPoint.valueOffset
 

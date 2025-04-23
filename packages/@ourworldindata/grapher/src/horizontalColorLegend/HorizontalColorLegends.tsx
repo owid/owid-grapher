@@ -1,4 +1,5 @@
 import * as React from "react"
+import * as R from "remeda"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -6,7 +7,6 @@ import {
     sortBy,
     min,
     max,
-    last,
     sum,
     dyFromAlign,
     removeAllWhitespace,
@@ -437,7 +437,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             else if (bin.bin instanceof NumericBin) {
                 if (bin.bin.minText)
                     labels.push(makeBoundaryLabel(bin, "min", bin.bin.minText))
-                if (bin === last(positionedBins) && bin.bin.maxText)
+                if (bin === R.last(positionedBins) && bin.bin.maxText)
                     labels.push(makeBoundaryLabel(bin, "max", bin.bin.maxText))
             }
         }

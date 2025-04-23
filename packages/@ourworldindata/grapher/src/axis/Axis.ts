@@ -20,7 +20,6 @@ import {
     ValueRange,
     cloneDeep,
     OwidVariableRoundingMode,
-    last,
 } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "./AxisConfig"
 import { MarkdownTextWrap } from "@ourworldindata/components"
@@ -230,7 +229,7 @@ abstract class AbstractAxis {
 
         const tickStep = ticks[1] - ticks[0]
         const firstTick = ticks[0]
-        const lastTick = last(ticks)!
+        const lastTick = R.last(ticks)!
 
         // if the the max or min value exceeds the last grid line by more than 25%,
         // expand the domain to include an additional grid line

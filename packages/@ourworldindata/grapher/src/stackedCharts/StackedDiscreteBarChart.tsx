@@ -1,11 +1,11 @@
 import React from "react"
+import * as R from "remeda"
 import {
     Bounds,
     DEFAULT_BOUNDS,
     min,
     max,
     maxBy,
-    last,
     excludeUndefined,
     sortBy,
     numberMagnitude,
@@ -450,7 +450,7 @@ export class StackedDiscreteBarChart
             default:
             case SortBy.total:
                 sortByFunc = (item: Item): number => {
-                    const lastPoint = last(item.bars)?.point
+                    const lastPoint = R.last(item.bars)?.point
                     if (!lastPoint) return 0
                     return lastPoint.valueOffset + lastPoint.value
                 }

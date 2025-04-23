@@ -1,11 +1,11 @@
 import React from "react"
+import * as R from "remeda"
 import {
     Bounds,
     DEFAULT_BOUNDS,
     min,
     max,
     maxBy,
-    last,
     excludeUndefined,
     sumBy,
     partition,
@@ -405,7 +405,7 @@ export class MarimekkoChart
                 this.yColumnSlugs
             )
 
-        return times ? last(times) : undefined
+        return times ? R.last(times) : undefined
     }
     @computed private get tableAtLatestTimelineTimepoint():
         | OwidTable
@@ -759,7 +759,7 @@ export class MarimekkoChart
             case SortBy.total:
                 sortByFuncs = [
                     (item: Item): number => {
-                        const lastPoint = last(item.bars)?.yPoint
+                        const lastPoint = R.last(item.bars)?.yPoint
                         if (!lastPoint) return 0
                         return lastPoint.valueOffset + lastPoint.value
                     },
@@ -1083,7 +1083,7 @@ export class MarimekkoChart
 
         if (firstNanValue !== -1) {
             const firstNanValueItem = placedItems[firstNanValue]
-            const lastItem = last(placedItems)!
+            const lastItem = R.last(placedItems)!
             const noDataRangeStartX =
                 firstNanValueItem.xPosition + dualAxis.horizontalAxis.place(x0)
             const xValue = lastItem.xPoint?.value ?? 1
@@ -1354,12 +1354,12 @@ export class MarimekkoChart
 
         if (sortedLabelsWithValues.length) {
             first(sortedLabelsWithValues)!.isPicked = true
-            last(sortedLabelsWithValues)!.isPicked = true
+            R.last(sortedLabelsWithValues)!.isPicked = true
         }
         if (sortedLabelsWithoutValues.length) {
             if (sortConfig.sortOrder === SortOrder.desc)
                 first(sortedLabelsWithoutValues)!.isPicked = true
-            else last(sortedLabelsWithoutValues)!.isPicked = true
+            else R.last(sortedLabelsWithoutValues)!.isPicked = true
         }
         const availablePixels = xRange[1] - xRange[0]
 

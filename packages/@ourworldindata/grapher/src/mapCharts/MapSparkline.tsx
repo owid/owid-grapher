@@ -16,7 +16,6 @@ import {
     isNumber,
     checkIsVeryShortUnit,
     first,
-    last,
     min,
     max,
 } from "@ourworldindata/utils"
@@ -92,7 +91,7 @@ export class MapSparkline extends React.Component<{
                     this.mapColumnSlug,
                 ])
             minTime = first(times) ?? minTime
-            maxTime = last(times) ?? maxTime
+            maxTime = R.last(times) ?? maxTime
         }
 
         // Pass down short units, while omitting long or undefined ones.

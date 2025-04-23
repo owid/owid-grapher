@@ -1,9 +1,9 @@
+import * as R from "remeda"
 import { Time } from "@ourworldindata/types"
 import {
     TimeBound,
     TimeBoundValue,
     findClosestTime,
-    last,
 } from "@ourworldindata/utils"
 
 export interface TimelineManager {
@@ -52,7 +52,7 @@ export class TimelineController {
     }
 
     get maxTime(): number {
-        return last(this.timesAsc)!
+        return R.last(this.timesAsc)!
     }
 
     get startTimeProgress(): number {

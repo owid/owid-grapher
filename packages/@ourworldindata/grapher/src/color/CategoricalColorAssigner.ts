@@ -1,4 +1,5 @@
-import { Color, last } from "@ourworldindata/utils"
+import * as R from "remeda"
+import { Color } from "@ourworldindata/utils"
 import { ColorScheme } from "./ColorScheme"
 import { getLeastUsedColor } from "./ColorUtils"
 
@@ -62,7 +63,7 @@ export class CategoricalColorAssigner {
         const colors =
             (this.numColorsInUse !== undefined
                 ? this.colorScheme.getColors(this.numColorsInUse)
-                : last(this.colorScheme.colorSets)
+                : R.last(this.colorScheme.colorSets)
             )?.slice() ?? []
         if (this.invertColorScheme) return colors.toReversed()
         else return colors

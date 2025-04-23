@@ -1,3 +1,4 @@
+import * as R from "remeda"
 import { select } from "d3-selection"
 import { ScaleLinear } from "d3-scale"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -9,7 +10,6 @@ import {
     makeSafeForCSS,
     getRelativeMouse,
     intersection,
-    last,
     first,
     isEmpty,
     guid,
@@ -175,8 +175,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                     seriesName: series.seriesName,
                     displayKey: "key-" + makeSafeForCSS(series.seriesName),
                     color: series.color,
-                    size: last(points)!.size,
-                    fontSize: this.getLabelFontSize(last(series.points)!.size),
+                    size: R.last(points)!.size,
+                    fontSize: this.getLabelFontSize(
+                        R.last(series.points)!.size
+                    ),
                     points,
                     text: series.label,
                     midLabels: [],
@@ -471,7 +473,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return (
             <g id={makeIdForHumanConsumption("points")}>
                 {this.foregroundSeries.map((series) => {
-                    const lastPoint = last(series.points)!
+                    const lastPoint = R.last(series.points)!
                     const strokeWidth =
                         (hideConnectedScatterLines
                             ? 3

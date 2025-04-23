@@ -1,7 +1,6 @@
 import {
     PointVector,
     first,
-    last,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
@@ -92,7 +91,7 @@ export class ScatterLine extends React.Component<{
             )
 
         const firstValue = first(series.points)
-        const lastValue = last(series.points)
+        const lastValue = R.last(series.points)
         if (firstValue === undefined || lastValue === undefined) return null
 
         let rotation = PointVector.angle(series.offsetVector, PointVector.up)

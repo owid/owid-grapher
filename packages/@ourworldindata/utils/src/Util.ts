@@ -339,8 +339,6 @@ export const roundSigFig = (num: number, sigfigs: number = 1): number => {
 
 export const first = <T>(arr: readonly T[]): T | undefined => arr[0]
 
-export const last = <T>(arr: readonly T[]): T | undefined => arr[arr.length - 1]
-
 export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
     arr.filter((x) => x !== undefined) as T[]
 
@@ -357,7 +355,7 @@ export const firstOfNonEmptyArray = <T>(arr: T[]): T => {
 
 export const lastOfNonEmptyArray = <T>(arr: T[]): T => {
     if (arr.length < 1) throw new Error("array is empty")
-    return last(arr) as T
+    return R.last(arr) as T
 }
 
 export function next<T>(set: T[], current: T): T {
@@ -521,7 +519,7 @@ export const csvEscape = (value: unknown): string => {
 }
 
 export const urlToSlug = (url: string): string =>
-    last(
+    R.last(
         parseUrl(url)
             .pathname.split("/")
             .filter((x) => x)
@@ -2048,7 +2046,7 @@ export function formatInlineList(
 ): string {
     if (array.length === 0) return ""
     if (array.length === 1) return `${array[0]}`
-    return `${array.slice(0, -1).join(", ")} ${connector} ${last(array)}`
+    return `${array.slice(0, -1).join(", ")} ${connector} ${R.last(array)}`
 }
 
 // The below comment marks this function as side-effect free, meaning that the bundler

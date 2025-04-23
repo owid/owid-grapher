@@ -1,4 +1,5 @@
 import { expect, it, describe } from "vitest"
+import * as R from "remeda"
 
 import { HorizontalAxis } from "../axis/Axis"
 import { ScaleType, AxisConfigInterface } from "@ourworldindata/types"
@@ -7,7 +8,7 @@ import {
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
 import { AxisConfig } from "./AxisConfig"
-import { AxisAlign, last } from "@ourworldindata/utils"
+import { AxisAlign } from "@ourworldindata/utils"
 
 it("can create an axis", () => {
     const axisConfig = new AxisConfig({
@@ -88,7 +89,7 @@ it("respects nice parameter", () => {
     axis.range = [0, 300]
     const tickValues = axis.getTickValues()
     expect(tickValues[0].value).toEqual(0)
-    expect(last(tickValues)?.value).toEqual(100)
+    expect(R.last(tickValues)?.value).toEqual(100)
 })
 
 it("doesn't add 'nice' ticks to eagerly", () => {
@@ -102,7 +103,7 @@ it("doesn't add 'nice' ticks to eagerly", () => {
     axis.range = [0, 300]
     const tickValues = axis.getTickValues()
     expect(tickValues[0].value).toEqual(0)
-    expect(last(tickValues)?.value).toEqual(90)
+    expect(R.last(tickValues)?.value).toEqual(90)
 })
 
 it("creates compact labels", () => {

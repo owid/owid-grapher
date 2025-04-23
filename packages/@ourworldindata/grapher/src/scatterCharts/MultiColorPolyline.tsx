@@ -1,8 +1,7 @@
 import * as React from "react"
+import * as R from "remeda"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-
-import { last } from "@ourworldindata/utils"
 
 interface MultiColorPolylinePoint {
     x: number
@@ -39,7 +38,7 @@ export function getSegmentsFromPoints(
 ): Segment[] {
     const segments: Segment[] = []
     points.forEach((currentPoint) => {
-        const currentSegment = last(segments)
+        const currentSegment = R.last(segments)
         if (currentSegment === undefined) {
             segments.push({
                 points: [toPoint(currentPoint)],
@@ -49,7 +48,7 @@ export function getSegmentsFromPoints(
             currentSegment.points.push(toPoint(currentPoint))
         } else {
             const midPoint = getMidpoint(
-                last(currentSegment.points)!,
+                R.last(currentSegment.points)!,
                 currentPoint
             )
             currentSegment.points.push(midPoint)

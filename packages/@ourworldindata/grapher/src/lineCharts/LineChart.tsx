@@ -1,4 +1,5 @@
 import React from "react"
+import * as R from "remeda"
 import {
     sortBy,
     groupBy,
@@ -10,7 +11,6 @@ import {
     getRelativeMouse,
     pointsToPath,
     minBy,
-    last,
     exposeInstanceOnWindow,
     round,
     excludeUndefined,
@@ -1300,7 +1300,7 @@ export class LineChart
 
         let seriesColor: Color
         if (hasColorScale) {
-            const colorValue = last(points)?.colorValue
+            const colorValue = R.last(points)?.colorValue
             seriesColor = this.getColorScaleColor(colorValue)
         } else {
             seriesColor = this.categoricalColorAssigner.assign(
@@ -1411,12 +1411,12 @@ export class LineChart
         for (const duplicates of Object.values(seriesGroupedByName)) {
             // keep only the label for the series with the most recent data
             // (series are sorted by time, so we can just take the last one)
-            deduplicatedSeries.push(last(duplicates)!)
+            deduplicatedSeries.push(R.last(duplicates)!)
         }
 
         return deduplicatedSeries.map((series) => {
             const { seriesName, color } = series
-            const lastValue = last(series.points)!.y
+            const lastValue = R.last(series.points)!.y
             return {
                 color,
                 seriesName,
