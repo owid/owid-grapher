@@ -56,7 +56,9 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
         if (!this.useParagraphs) {
             // "unwrap" the text by rendering <p /> as a react fragment
             return {
-                p: (props) => <React.Fragment {...props} />,
+                p: ({ children }) => (
+                    <React.Fragment>{children}</React.Fragment>
+                ),
             }
         }
 
