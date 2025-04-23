@@ -41,7 +41,7 @@ import { DataCatalogDataInsights } from "./DataCatalogDataInsights.js"
 import { DataCatalogSettings } from "./DataCatalogSettings.js"
 import { DataCatalogHighlights } from "./DataCatalogHighlights.js"
 import { ScrollDirection, useScrollDirection } from "../hooks.js"
-import { DataCatalogContentTypeToggle } from "./ContentTypeToggle.js"
+import { DataCatalogContentTypeToggle } from "./DataCatalogContentTypeToggle.js"
 import { DataCatalogFuzzyMatcher } from "./DataCatalogFuzzyMatcher.js"
 import { DataCatalogResearch } from "./DataCatalogResearch.js"
 

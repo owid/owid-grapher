@@ -8,7 +8,7 @@ interface ContentTypeToggleProps {
 }
 
 export const DataCatalogContentTypeToggle = ({
-    contentTypeFilter,
+    contentTypeFilter = CatalogContentType.ALL,
     setContentTypeFilter,
 }: ContentTypeToggleProps) => {
     const handleChange = (
@@ -23,6 +23,8 @@ export const DataCatalogContentTypeToggle = ({
         }
     }
 
+    const contentTypeFilterValue = contentTypeFilter || CatalogContentType.ALL
+
     return (
         <Box
             className="span-cols-3 col-start-11"
@@ -30,12 +32,11 @@ export const DataCatalogContentTypeToggle = ({
             sx={{ mb: 2, mt: 2 }}
         >
             <ToggleButtonGroup
-                value={contentTypeFilter}
+                value={contentTypeFilterValue}
                 exclusive
                 onChange={handleChange}
                 aria-label="content type filter"
                 size="small"
-                sx={{ verticalAlign: "middle" }}
             >
                 <ToggleButton
                     value={CatalogContentType.ALL}

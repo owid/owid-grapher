@@ -2,7 +2,6 @@ import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { SiteFooterContext, TagGraphRoot } from "@ourworldindata/utils"
-import { DataCatalogInstantSearchWrapper } from "./DataCatalog.js"
 import { Html } from "../Html.js"
 
 declare global {
@@ -40,7 +39,9 @@ export const DataCatalogPage = (props: {
                     id="data-catalog-page-root"
                     className="grid grid-cols-12-full-width"
                 >
-                    <DataCatalogInstantSearchWrapper tagGraph={tagGraph} />
+                    {/* Not diving into hydration mismatch on the content type filter on page load
+                     Rendering only on the client instead */}
+                    {/* <DataCatalogInstantSearchWrapper tagGraph={tagGraph} /> */}
                 </main>
                 <SiteFooter context={SiteFooterContext.dataCatalogPage} />
             </body>
