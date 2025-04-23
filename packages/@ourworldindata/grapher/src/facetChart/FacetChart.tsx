@@ -1,4 +1,5 @@
 import React from "react"
+import * as R from "remeda"
 import { observer } from "mobx-react"
 import {
     Bounds,
@@ -10,7 +11,6 @@ import {
     min,
     sortBy,
     uniqWith,
-    values,
     IDEAL_PLOT_ASPECT_RATIO,
     GridParameters,
     Position,
@@ -412,7 +412,7 @@ export class FacetChart
                 shared: this.isSharedYAxis,
             },
         }
-        values(axes).forEach(({ config, axisAccessor, uniform, shared }) => {
+        R.values(axes).forEach(({ config, axisAccessor, uniform, shared }) => {
             // max size is the width (if vertical axis) or height (if horizontal axis)
             const axisWithMaxSize = maxBy(
                 intermediateChartInstances.map(axisAccessor),

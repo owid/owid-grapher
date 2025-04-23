@@ -77,7 +77,6 @@ export {
     wrapInDiv,
     textAnchorFromAlign,
     dyFromAlign,
-    values,
     stringifyUnknownError,
     toRectangularMatrix,
     checkIsStringIndexable,

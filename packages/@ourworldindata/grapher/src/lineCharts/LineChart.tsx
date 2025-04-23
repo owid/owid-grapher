@@ -7,7 +7,6 @@ import {
     sum,
     guid,
     excludeNullish,
-    values,
     getRelativeMouse,
     pointsToPath,
     minBy,
@@ -658,7 +657,7 @@ export class LineChart
         )
 
         const sortedData = sortBy(
-            excludeNullish(values(seriesSegments)),
+            excludeNullish(R.values(seriesSegments)),
             (series) => {
                 const value = series.points.find(
                     (point) => point.x === target.x

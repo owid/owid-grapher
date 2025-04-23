@@ -1146,12 +1146,6 @@ export const dyFromAlign = (align: VerticalAlign): string => {
     return "0"
 }
 
-export const values = <Obj extends Record<string, any>>(
-    obj: Obj
-): Obj[keyof Obj][] => {
-    return Object.values(obj)
-}
-
 export function stringifyUnknownError(error: unknown): string | undefined {
     if (error === undefined || error === null) return undefined
     if (error instanceof Error) {
