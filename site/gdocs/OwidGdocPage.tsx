@@ -19,6 +19,7 @@ import { match, P } from "ts-pattern"
 import {
     ARCHVED_THUMBNAIL_FILENAME,
     EnrichedBlockText,
+    OwidGdocPostInterface,
 } from "@ourworldindata/types"
 import { DATA_INSIGHT_ATOM_FEED_PROPS } from "../SiteConstants.js"
 import { Html } from "../Html.js"
@@ -76,6 +77,81 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
         .exhaustive()
 }
 
+interface JsonLdAuthor {
+    "@type": "Person" | "Organization"
+    name: string
+    url?: string
+}
+
+function makeJsonLdAuthors(
+    baseUrl: string,
+    gdoc: OwidGdocPostInterface
+): JsonLdAuthor[] {
+    return gdoc.content.authors.map((gdocAuthor) => {
+        if (gdocAuthor.toLowerCase().includes("our world in data")) {
+            return {
+                "@type": "Organization",
+                name: "Our World in Data",
+                url: baseUrl,
+            }
+        }
+        const author: JsonLdAuthor = {
+            "@type": "Person",
+            name: gdocAuthor,
+        }
+        const linkedAuthor = gdoc.linkedAuthors?.find(
+            (linkedAuthor) => linkedAuthor.name === gdocAuthor
+        )
+        // URLs serve as unique IDs for authors, so we don't use the team page
+        // URL for authors, who don't have their own page.
+        if (linkedAuthor?.slug) {
+            author.url = getCanonicalUrl(baseUrl, {
+                slug: linkedAuthor.slug,
+                content: { type: OwidGdocType.Author },
+            })
+        }
+        return author
+    })
+}
+
+function JsonLdArticle({
+    gdoc,
+    baseUrl,
+    imageUrl,
+}: {
+    gdoc: OwidGdocPostInterface
+    baseUrl: string
+    imageUrl?: string
+}) {
+    const data = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: gdoc.content.title,
+        image: imageUrl ? [imageUrl] : [],
+        datePublished: gdoc.publishedAt,
+        dateModified: gdoc.updatedAt,
+        author: makeJsonLdAuthors(baseUrl, gdoc),
+    }
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+                __html: JSON.stringify(data),
+            }}
+        />
+    )
+}
+
+function isPostPredicate(
+    gdoc: OwidGdocUnionType
+): gdoc is OwidGdocPostInterface {
+    return (
+        gdoc.content.type === OwidGdocType.Article ||
+        gdoc.content.type === OwidGdocType.TopicPage ||
+        gdoc.content.type === OwidGdocType.LinearTopicPage
+    )
+}
+
 export default function OwidGdocPage({
     baseUrl,
     gdoc,
@@ -95,6 +171,7 @@ export default function OwidGdocPage({
     const pageTitle = getPageTitle(gdoc)
     const isDataInsight = gdoc.content.type === OwidGdocType.DataInsight
     const isAuthor = gdoc.content.type === OwidGdocType.Author
+    const isPost = isPostPredicate(gdoc)
 
     let imageUrl
     if (
@@ -136,7 +213,13 @@ export default function OwidGdocPage({
                         canonicalUrl={canonicalUrl}
                     />
                 )}
-
+                {isPost && (
+                    <JsonLdArticle
+                        gdoc={gdoc}
+                        baseUrl={baseUrl}
+                        imageUrl={imageUrl}
+                    />
+                )}
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `window._OWID_GDOC_PROPS = ${JSON.stringify(
