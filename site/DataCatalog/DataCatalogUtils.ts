@@ -148,6 +148,10 @@ export function formatCountryFacetFilters(
         // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
         facetFilters.push(setToFacetFilters(countries, "availableEntities"))
     }
+    // Don't show income group-specific FMs if no countries are selected
+    if (!countries.size) {
+        facetFilters.push("isIncomeGroupSpecificFM:false")
+    }
     return facetFilters
 }
 

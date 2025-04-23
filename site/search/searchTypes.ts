@@ -77,6 +77,10 @@ export interface ChartRecord {
      * wouldn't plot the data for the US, even though the chart has data for the US.
      */
     originalAvailableEntities?: string[]
+    /**
+     * Also only set for FMs: used so that we can filter out income group-specific FMs on a plain data catalog view.
+     */
+    isIncomeGroupSpecificFM?: boolean
     publishedAt: string
     updatedAt: string
     numDimensions: number

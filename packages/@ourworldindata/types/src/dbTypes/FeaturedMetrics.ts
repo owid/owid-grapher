@@ -1,7 +1,7 @@
 export const FeaturedMetricsTableName = "featured_metrics"
 
 export enum FeaturedMetricIncomeGroup {
-    All = "all",
+    Default = "default",
     High = "high",
     UpperMiddle = "upper-middle",
     LowerMiddle = "lower-middle",
@@ -20,6 +20,10 @@ export type DbPlainFeaturedMetric = Required<DbInsertFeaturedMetric>
 
 export type DbPlainFeaturedMetricWithParentTagName = DbPlainFeaturedMetric & {
     parentTagName: string
+}
+
+export type ExpandedFeaturedMetric = DbPlainFeaturedMetricWithParentTagName & {
+    isIncomeGroupSpecificFM: boolean
 }
 
 export type FeaturedMetricByParentTagNameDictionary = Record<

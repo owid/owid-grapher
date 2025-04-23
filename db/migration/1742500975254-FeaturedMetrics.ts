@@ -9,7 +9,7 @@ export class FeaturedMetrics1742500975254 implements MigrationInterface {
                 parentTagId INT NOT NULL,
                 -- rank is a keyword in MySQL, hence "ranking" 
                 ranking INT NOT NULL,
-                incomeGroup ENUM('low', 'lower-middle', 'upper-middle', 'high', 'all') DEFAULT 'all',
+                incomeGroup ENUM('low', 'lower-middle', 'upper-middle', 'high', 'default') DEFAULT 'default',
                 FOREIGN KEY (parentTagId) REFERENCES tags(id) ON DELETE CASCADE,
                 CONSTRAINT unique_featured_metrics UNIQUE (url, parentTagId, incomeGroup)
             )

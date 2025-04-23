@@ -114,6 +114,7 @@ async function getRecords(
             numRelatedArticles: 0,
             views_7d,
             score,
+            isIncomeGroupSpecificFM: false,
         } as ChartRecord
     })
 }

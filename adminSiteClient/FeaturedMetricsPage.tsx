@@ -200,7 +200,7 @@ function FeaturedMetricSection({
     }, [newFeaturedMetricInputValue])
 
     const [newFeaturedMetricIncomeGroup, setNewFeaturedMetricIncomeGroup] =
-        useState(FeaturedMetricIncomeGroup.All)
+        useState(FeaturedMetricIncomeGroup.Default)
 
     const handleAddFeaturedMetric = () => {
         const ranking = byIncomeGroup[newFeaturedMetricIncomeGroup]

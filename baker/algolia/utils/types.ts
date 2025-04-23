@@ -132,11 +132,21 @@ export type FinalizedExplorerRecord = ChartRecord & {
     isFirstExplorerView: boolean
 }
 
+export const REAL_FM_INCOME_GROUPS: Exclude<
+    FeaturedMetricIncomeGroup,
+    FeaturedMetricIncomeGroup.Default
+>[] = [
+    FeaturedMetricIncomeGroup.Low,
+    FeaturedMetricIncomeGroup.LowerMiddle,
+    FeaturedMetricIncomeGroup.UpperMiddle,
+    FeaturedMetricIncomeGroup.High,
+]
+
 /**
  * Maps OWID income groups to Featured Metric income groups.
  */
 export const incomeGroupMap: Record<
-    Exclude<FeaturedMetricIncomeGroup, FeaturedMetricIncomeGroup.All>,
+    Exclude<FeaturedMetricIncomeGroup, FeaturedMetricIncomeGroup.Default>,
     OwidIncomeGroupName
 > = {
     [FeaturedMetricIncomeGroup.Low]: "OWID_LIC",
