@@ -4,7 +4,7 @@ export const DodLinksTableName = "dod_links"
 
 export interface DbInsertDodLink {
     id?: number
-    dodId: number
+    sourceId: number
     target: string
     linkType: ContentGraphLinkType
     text: string

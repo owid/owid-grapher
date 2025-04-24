@@ -28,11 +28,7 @@ import {
     getLatestArchivedVersionsFromDb,
     GrapherChecksumsObjectWithHash,
 } from "./archivalChecksum.js"
-import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
-import {
-    ARCHIVE_BASE_URL,
-    GDOCS_DETAILS_ON_DEMAND_ID,
-} from "../../settings/serverSettings.js"
+import { ARCHIVE_BASE_URL } from "../../settings/serverSettings.js"
 import { getEnrichedChartsByIds } from "../../db/model/Chart.js"
 import {
     ArchivalTimestamp,

@@ -59,7 +59,7 @@ export function EditableTextarea({
             <div className="EditableTextarea__actions">
                 {extraActions}
 
-                <div>
+                <div className="EditableTextarea__save-action">
                     <Button
                         type="text"
                         onClick={handleSave}

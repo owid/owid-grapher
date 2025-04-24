@@ -7,6 +7,12 @@ export {
 } from "./DonationTypes.js"
 
 export {
+    DodLinksTableName,
+    type DbInsertDodLink,
+    type DbPlainDodLink,
+} from "./dbTypes/DodLinks.js"
+
+export {
     DodsTableName,
     type DbInsertDod,
     type DbPlainDod,
