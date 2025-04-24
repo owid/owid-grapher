@@ -68,6 +68,7 @@ export enum ContentGraphLinkType {
     Grapher = "grapher",
     Explorer = "explorer",
     ChartView = "chart-view",
+    Dod = "dod",
 }
 
 export interface DbInsertContentGraphLink {

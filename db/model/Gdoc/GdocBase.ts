@@ -68,6 +68,7 @@ import {
     OwidGdocType,
 } from "@ourworldindata/types"
 import { getAllChartViewNames, getChartViewsInfo } from "../ChartView.js"
+import { indexBy } from "remeda"
 
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
@@ -644,6 +645,17 @@ export class GdocBase implements OwidGdocBaseInterface {
                 })
             }
         }
+        if (span.spanType === "span-dod") {
+            return {
+                target: span.id,
+                sourceId: this.id,
+                componentType: span.spanType,
+                hash: "",
+                queryString: "",
+                text: spansToSimpleString(span.children),
+                linkType: ContentGraphLinkType.Dod,
+            } satisfies DbInsertPostGdocLink
+        }
     }
 
     async loadLinkedCharts(knex: db.KnexReadonlyTransaction): Promise<void> {
@@ -801,17 +813,20 @@ export class GdocBase implements OwidGdocBaseInterface {
             []
         )
 
-        const [chartIdsBySlug, publishedExplorersBySlug, chartViewNames] =
+        const [chartIdsBySlug, publishedExplorersBySlug, chartViewNames, dods] =
             await Promise.all([
                 mapSlugsToIds(knex),
                 db.getPublishedExplorersBySlug(knex),
                 getAllChartViewNames(knex),
+                db
+                    .getDods(knex)
+                    .then((dods) => indexBy(dods, (dod) => dod.name)),
             ])
 
         const linkErrors: OwidGdocErrorMessage[] = []
         for (const link of this.links) {
-            switch (link.linkType) {
-                case ContentGraphLinkType.Gdoc: {
+            await match(link)
+                .with({ linkType: ContentGraphLinkType.Gdoc }, () => {
                     const id = getUrlTarget(link.target)
                     const doesGdocExist = Boolean(this.linkedDocuments[id])
                     const isGdocPublished = this.linkedDocuments[id]?.published
@@ -826,9 +841,8 @@ export class GdocBase implements OwidGdocBaseInterface {
                             type: OwidGdocErrorMessageType.Warning,
                         })
                     }
-                    break
-                }
-                case ContentGraphLinkType.Grapher: {
+                })
+                .with({ linkType: ContentGraphLinkType.Grapher }, async () => {
                     if (
                         !chartIdsBySlug[link.target] &&
                         !(await multiDimDataPageExists(knex, {
@@ -842,9 +856,8 @@ export class GdocBase implements OwidGdocBaseInterface {
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
-                    break
-                }
-                case ContentGraphLinkType.Explorer: {
+                })
+                .with({ linkType: ContentGraphLinkType.Explorer }, () => {
                     if (!publishedExplorersBySlug[link.target]) {
                         linkErrors.push({
                             property: "content",
@@ -852,9 +865,8 @@ export class GdocBase implements OwidGdocBaseInterface {
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
-                    break
-                }
-                case ContentGraphLinkType.ChartView: {
+                })
+                .with({ linkType: ContentGraphLinkType.ChartView }, () => {
                     if (!chartViewNames.has(link.target)) {
                         linkErrors.push({
                             property: "content",
@@ -862,9 +874,31 @@ export class GdocBase implements OwidGdocBaseInterface {
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
-                    break
-                }
-            }
+                })
+                .with({ linkType: ContentGraphLinkType.Dod }, () => {
+                    const id = getUrlTarget(link.target)
+                    const doesDodExist = Boolean(dods[id])
+                    if (!doesDodExist) {
+                        linkErrors.push({
+                            property: "linkedDocuments",
+                            message: `Link with text "${link.text}" is referencing an unknown dod with name "${link.target}"`,
+                            type: OwidGdocErrorMessageType.Error,
+                        })
+                    }
+                })
+                .with(
+                    {
+                        linkType: P.union(
+                            ContentGraphLinkType.Url,
+                            undefined,
+                            null
+                        ),
+                    },
+                    () => {
+                        return
+                    }
+                )
+                .exhaustive()
         }
 
         // Validate that charts referenced in key-indicator blocks render a datapage
