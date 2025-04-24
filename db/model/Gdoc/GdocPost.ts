@@ -23,11 +23,7 @@ import { ADMIN_BASE_URL } from "../../../settings/clientSettings.js"
 import { DEPRECATED_parseDetails, parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
-import {
-    KnexReadonlyTransaction,
-    getParsedDodsDictionary,
-    knexRaw,
-} from "../../db.js"
+import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
 import { getGdocBaseObjectById } from "./GdocFactory.js"
 
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
@@ -100,9 +96,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         }
     }
 
-    _validateSubclass = async (
-        knex: KnexReadonlyTransaction
-    ): Promise<OwidGdocErrorMessage[]> => {
+    _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
 
         if (!this.tags?.length) {
@@ -139,18 +133,6 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
                     ...parseError,
                     property: "faqs",
                     type: OwidGdocErrorMessageType.Error,
-                })
-            }
-        }
-
-        const parsedDods = await getParsedDodsDictionary(knex)
-
-        for (const detailId of this.details) {
-            if (!parsedDods[detailId]) {
-                errors.push({
-                    type: OwidGdocErrorMessageType.Error,
-                    message: `Invalid DoD referenced: "${detailId}"`,
-                    property: "content",
                 })
             }
         }

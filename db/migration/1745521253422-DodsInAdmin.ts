@@ -37,7 +37,7 @@ async function migrateDodGdocToDb(
     }
 }
 
-export class DodsInAdmin1740096274713 implements MigrationInterface {
+export class DodsInAdmin1745521253422 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE TABLE dods (
