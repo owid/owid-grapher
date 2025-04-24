@@ -3,7 +3,7 @@ import {
     MultiDimDataPagesTableName,
 } from "@ourworldindata/types"
 import { knexReadWriteTransaction, TransactionCloseMode } from "../../db/db.js"
-import { createMultiDimConfig } from "../../adminSiteServer/multiDim.js"
+import { upsertMultiDim } from "../../adminSiteServer/multiDim.js"
 
 /**
  * Migrates the old multi-dim config to a normalized format, creates related
@@ -16,9 +16,9 @@ async function main() {
     await knexReadWriteTransaction(async (knex) => {
         const results = await knex<DbPlainMultiDimDataPage>(
             MultiDimDataPagesTableName
-        ).select("slug", "config")
-        for (const { slug, config } of results) {
-            await createMultiDimConfig(knex, slug, JSON.parse(config))
+        ).select("catalogPath", "config")
+        for (const { catalogPath, config } of results) {
+            await upsertMultiDim(knex, catalogPath, JSON.parse(config))
         }
     }, TransactionCloseMode.Close)
 }
