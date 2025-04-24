@@ -9,13 +9,7 @@ import {
 } from "@ourworldindata/grapher"
 import {
     DataPageDataV2,
-    GrapherInterface,
     joinTitleFragments,
-    OwidVariableWithSource,
-    getLastUpdatedFromVariable,
-    getNextUpdateFromVariable,
-    omitUndefinedValues,
-    getAttributionFragmentsFromVariable,
     compact,
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
@@ -41,7 +35,7 @@ import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
 import { useElementBounds, useMobxStateToReactState } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
-import { processRelatedResearch } from "../dataPage.js"
+import { getDatapageDataV2, processRelatedResearch } from "../dataPage.js"
 import DataPageResearchAndWriting from "../DataPageResearchAndWriting.js"
 import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
 import {
@@ -58,56 +52,6 @@ const baseGrapherConfig: GrapherProgrammaticInterface = {
     adminBaseUrl: ADMIN_BASE_URL,
     dataApiUrl: DATA_API_URL,
     canHideExternalControlsInEmbed: true,
-}
-
-// From DataPageUtils
-const getDatapageDataV2 = async (
-    variableMetadata: OwidVariableWithSource,
-    partialGrapherConfig: GrapherInterface | undefined
-): Promise<DataPageDataV2> => {
-    {
-        const lastUpdated = getLastUpdatedFromVariable(variableMetadata) ?? ""
-        const nextUpdate = getNextUpdateFromVariable(variableMetadata)
-        const datapageJson: DataPageDataV2 = {
-            status: "draft",
-            title: variableMetadata.presentation?.titlePublic
-                ? omitUndefinedValues({
-                      title: variableMetadata.presentation?.titlePublic,
-                      attributionShort:
-                          variableMetadata.presentation?.attributionShort,
-                      titleVariant: variableMetadata.presentation?.titleVariant,
-                  })
-                : {
-                      title:
-                          partialGrapherConfig?.title ??
-                          variableMetadata.display?.name ??
-                          variableMetadata.name ??
-                          "",
-                  },
-            description: variableMetadata.description,
-            descriptionShort: variableMetadata.descriptionShort,
-            descriptionFromProducer: variableMetadata.descriptionFromProducer,
-            attributionShort: variableMetadata.presentation?.attributionShort,
-            titleVariant: variableMetadata.presentation?.titleVariant,
-            topicTagsLinks: variableMetadata.presentation?.topicTagsLinks ?? [],
-            attributions: getAttributionFragmentsFromVariable(variableMetadata),
-            faqs: variableMetadata.presentation?.faqs ?? [],
-            descriptionKey: variableMetadata.descriptionKey ?? [],
-            descriptionProcessing: variableMetadata.descriptionProcessing,
-            owidProcessingLevel: variableMetadata.processingLevel,
-            dateRange: variableMetadata.timespan ?? "",
-            lastUpdated: lastUpdated,
-            nextUpdate: nextUpdate,
-            allCharts: [],
-            relatedResearch: [],
-            source: variableMetadata.source,
-            origins: variableMetadata.origins ?? [],
-            chartConfig: partialGrapherConfig as Record<string, unknown>,
-            unit: variableMetadata.display?.unit ?? variableMetadata.unit,
-            unitConversionFactor: variableMetadata.display?.conversionFactor,
-        }
-        return datapageJson
-    }
 }
 
 const useTitleFragments = (config: MultiDimDataPageConfig) => {
@@ -189,7 +133,7 @@ export function DataPageContent({
             ).then((json) =>
                 getDatapageDataV2(
                     merge(json, config.config?.metadata, newView.metadata),
-                    newView.config
+                    newView.config ?? {}
                 )
             )
             const grapherConfigUuid = newView.fullConfigId

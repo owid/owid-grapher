@@ -45,10 +45,10 @@ import {
 } from "../db/model/Variable.js"
 import {
     fetchAndParseFaqs,
-    getDatapageDataV2,
     getPrimaryTopic,
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
+import { getDatapageDataV2 } from "../site/dataPage.js"
 import { getAllImages } from "../db/model/Image.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
@@ -208,10 +208,7 @@ export async function renderDataPageV2(
         ]
         grapher.dimensions = dimensions
     }
-    const datapageData = await getDatapageDataV2(
-        variableMetadata,
-        grapher ?? {}
-    )
+    const datapageData = getDatapageDataV2(variableMetadata, grapher ?? {})
 
     datapageData.primaryTopic = await getPrimaryTopic(
         knex,
