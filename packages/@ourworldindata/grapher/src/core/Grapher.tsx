@@ -57,7 +57,6 @@ import {
     SortOrder,
     OwidChartDimensionInterface,
     firstOfNonEmptyArray,
-    spansToUnformattedPlainText,
     EnrichedDetail,
     isEmpty,
     compact,

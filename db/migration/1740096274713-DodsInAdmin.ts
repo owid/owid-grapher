@@ -4,17 +4,7 @@ import { GdocPost } from "../model/Gdoc/GdocPost.js"
 import { enrichedBlocksToMarkdown } from "../model/Gdoc/enrichedToMarkdown.js"
 import { createLinkFromUrl } from "../model/Link.js"
 import { DodsTableName } from "@ourworldindata/types"
-
-function extractLinksFromMarkdown(markdown: string): [string, string][] {
-    const links: [string, string][] = []
-    // Captures the text inside [] and the url inside ()
-    const regex = /\[([^\]]+)\]\(([^)]+)\)/g
-    let match
-    while ((match = regex.exec(markdown))) {
-        links.push([match[1], match[2]])
-    }
-    return links
-}
+import { extractLinksFromMarkdown } from "@ourworldindata/utils"
 
 async function migrateDodGdocToDb(
     trx: db.KnexReadWriteTransaction
@@ -51,24 +41,26 @@ export class DodsInAdmin1740096274713 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE TABLE dods (
-                id SERIAL PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
                 name VARCHAR(512) NOT NULL UNIQUE,
                 content VARCHAR(4096) NOT NULL,
                 createdAt TIMESTAMP NOT NULL DEFAULT now(),
                 updatedAt TIMESTAMP NOT NULL DEFAULT now(),
-                lastUpdatedUserId INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT
+                lastUpdatedUserId INTEGER NOT NULL,
+                FOREIGN KEY (lastUpdatedUserId) REFERENCES users(id) ON DELETE CASCADE
             );
         `)
         await queryRunner.query(`-- sql
             CREATE TABLE dod_links (
-                id SERIAL PRIMARY KEY,
-                sourceId INTEGER NOT NULL REFERENCES dods(id) ON DELETE CASCADE,
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
+                sourceId INTEGER NOT NULL,
                 target VARCHAR(1024) NOT NULL,
                 componentType VARCHAR(128) NOT NULL DEFAULT 'dod',
                 linkType ENUM('gdoc','url','grapher','explorer','chart-view') NOT NULL,
                 text VARCHAR(1024) NOT NULL DEFAULT '',
                 queryString VARCHAR(2048) NOT NULL DEFAULT '',
-                hash VARCHAR(512) NOT NULL DEFAULT ''
+                hash VARCHAR(512) NOT NULL DEFAULT '',
+                FOREIGN KEY (sourceId) REFERENCES dods(id) ON DELETE CASCADE
             );
         `)
 

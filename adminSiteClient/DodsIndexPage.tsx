@@ -4,10 +4,10 @@ import {
     useQuery,
     useQueryClient,
 } from "@tanstack/react-query"
-import { useContext, useMemo, useState } from "react"
+import { useContext, useEffect, useMemo, useState } from "react"
 import cx from "classnames"
 import { tippy } from "@tippyjs/react"
-import { Flex, Input, Table } from "antd"
+import { Button, Flex, Form, Input, Modal, Popconfirm, Table } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { DbPlainDod, DbPlainUser } from "@ourworldindata/types"
@@ -19,6 +19,7 @@ import fromMarkdown from "mdast-util-from-markdown"
 import { Content, PhrasingContent } from "mdast"
 import { renderToStaticMarkup } from "react-dom/server.js"
 import { MarkdownTextWrap } from "@ourworldindata/components"
+import TextArea from "antd/es/input/TextArea.js"
 
 type ValidPhrasingContent = Extract<
     PhrasingContent,
@@ -46,7 +47,10 @@ function validateParagraphChildren(
     })
 }
 
-function validateDodContent(content: string): boolean {
+function validateDodContent(content: string | undefined | null): boolean {
+    if (!content) {
+        return true
+    }
     const ast = fromMarkdown(content)
     const isValid = ast.children.every((node) => {
         if (node.type === "paragraph") {
@@ -73,14 +77,24 @@ function validateDodContent(content: string): boolean {
     return isValid
 }
 
+function InvalidDodMessage() {
+    return (
+        <div className="DodEditor__error">
+            <strong>Invalid markdown</strong>
+            Only basic text, **emphasis**, *strong*,
+            [links](https://example.org), and lists are supported.
+        </div>
+    )
+}
+
 function DodEditor({
     text,
     id,
-    dodMutation,
+    patchDodMutation,
 }: {
     text: string
     id: number
-    dodMutation: DodMutationType
+    patchDodMutation: PatchDodMutationType
 }) {
     const [value, setValue] = useState(text)
     const isValid = validateDodContent(value)
@@ -93,31 +107,24 @@ function DodEditor({
                 value={value}
                 valid={isValid}
                 onSave={(value) => {
-                    dodMutation.mutate({
+                    patchDodMutation.mutate({
                         id,
                         content: value,
                     })
                 }}
-                extraActions={
-                    isValid ? null : (
-                        <div className="DodEditor__error">
-                            <strong>Invalid markdown</strong>
-                            Only basic text, **emphasis**, *strong*,
-                            [links](https://example.org), and lists are
-                            supported.
-                        </div>
-                    )
-                }
+                extraActions={isValid ? null : <InvalidDodMessage />}
             />
         </div>
     )
 }
 
 function createColumns({
-    dodMutation,
+    deleteDodMutation,
+    patchDodMutation,
     users,
 }: {
-    dodMutation: DodMutationType
+    deleteDodMutation: DeleteDodMutationType
+    patchDodMutation: PatchDodMutationType
     users: Record<string, DbPlainUser> | undefined
 }): ColumnsType<DbPlainDod> {
     return [
@@ -142,7 +149,10 @@ function createColumns({
             dataIndex: "updatedAt",
             key: "updatedAt",
             width: 200,
-            sorter: true,
+            defaultSortOrder: "descend",
+            sorter: (a, b) =>
+                new Date(a.updatedAt).getTime() -
+                new Date(b.updatedAt).getTime(),
             render: (updatedAt: string) => {
                 const date = new Date(updatedAt)
                 return `${date.toLocaleTimeString()} ${date.toLocaleDateString()}`
@@ -158,40 +168,55 @@ function createColumns({
                         <DodEditor
                             text={content}
                             id={dod.id}
-                            dodMutation={dodMutation}
+                            patchDodMutation={patchDodMutation}
                         />
                     </div>
                 )
             },
         },
         {
-            title: "Preview",
+            title: "Actions",
             dataIndex: "content",
-            width: 200,
-            key: "preview",
-            render: (content: string, dod) => {
-                const lines = content.split("\n")
-                const title = lines[0]
-
+            width: 100,
+            key: "actions",
+            render: (_, dod) => {
                 return (
-                    <span
-                        className="dod-span"
-                        onMouseEnter={(event) => {
-                            const textarea = document.querySelector(
-                                `.dod-content[data-dod-id="${dod.id}"] textarea`
-                            )
-                            if (!textarea) return
+                    <div className="DodEditor__actions">
+                        <Button
+                            variant="filled"
+                            color="blue"
+                            onMouseEnter={(event) => {
+                                const textarea = document.querySelector(
+                                    `.dod-content[data-dod-id="${dod.id}"] textarea`
+                                )
+                                if (!textarea) return
 
-                            const text = textarea.textContent
-                            const target = event.currentTarget as any
+                                const text = textarea.textContent
+                                const target = event.currentTarget as any
 
-                            if (text && !target._tippy) {
-                                showDodPreviewTooltip(text, target)
+                                if (text && !target._tippy) {
+                                    showDodPreviewTooltip(text, target)
+                                }
+                            }}
+                        >
+                            Preview
+                        </Button>
+                        <Popconfirm
+                            title="Are you sure?"
+                            description="This action cannot be undone."
+                            onConfirm={() =>
+                                deleteDodMutation.mutate({
+                                    id: dod.id,
+                                })
                             }
-                        }}
-                    >
-                        {title}
-                    </span>
+                            okText="Yes"
+                            cancelText="No"
+                        >
+                            <Button color="danger" variant="filled">
+                                Delete
+                            </Button>
+                        </Popconfirm>
+                    </div>
                 )
             },
         },
@@ -201,7 +226,7 @@ function createColumns({
 function showDodPreviewTooltip(text: string, element: Element): void {
     const content = renderToStaticMarkup(
         <div className="dod-container">
-            <MarkdownTextWrap text={text} fontSize={12} lineHeight={1.55} />
+            <MarkdownTextWrap text={text} fontSize={16} lineHeight={1.55} />
         </div>
     )
     tippy(element, {
@@ -231,12 +256,13 @@ async function fetchUsers(admin: Admin) {
     return indexBy(users, (u) => u.id)
 }
 
-type DodMutationType = UseMutationResult<
-    DbPlainDod,
-    unknown,
-    { id: number; content: string },
-    unknown
->
+type DodMutation<T> = UseMutationResult<DbPlainDod, unknown, T, unknown>
+
+type PatchDodMutationType = DodMutation<{ id: number; content: string }>
+
+type DeleteDodMutationType = DodMutation<{ id: number }>
+
+type CreateDodMutationType = DodMutation<{ content: string; name: string }>
 
 async function patchDod(admin: Admin, id: number, data: { content: string }) {
     const response = await admin.requestJSON<DbPlainDod>(
@@ -247,9 +273,101 @@ async function patchDod(admin: Admin, id: number, data: { content: string }) {
     return response
 }
 
+async function deleteDod(admin: Admin, id: number) {
+    const response = await admin.requestJSON<DbPlainDod>(
+        `/api/dods/${id}`,
+        {},
+        "DELETE"
+    )
+    return response
+}
+
+async function createDod(
+    admin: Admin,
+    data: { content: string; name: string }
+) {
+    const response = await admin.requestJSON<DbPlainDod>(
+        `/api/dods`,
+        data,
+        "POST"
+    )
+    return response
+}
+
+function CreateDodModal({
+    createDodMutation,
+    isOpen,
+    onClose,
+}: {
+    createDodMutation: CreateDodMutationType
+    isOpen: boolean
+    onClose: () => void
+}) {
+    const [form] = Form.useForm()
+    const [isFilled, setIsFilled] = useState(false)
+    const [isContentValid, setIsContentValid] = useState(true)
+
+    const values = Form.useWatch([], form)
+
+    useEffect(() => {
+        form.validateFields()
+            .then(() => setIsFilled(true))
+            .catch(() => setIsFilled(false))
+    }, [form, values])
+
+    useEffect(() => {
+        setIsContentValid(validateDodContent(values?.content))
+    }, [values])
+
+    return (
+        <Modal
+            title="Create Detail on Demand"
+            open={isOpen}
+            onCancel={onClose}
+            footer={null}
+        >
+            <Form
+                form={form}
+                layout="vertical"
+                onFinish={(values) => {
+                    createDodMutation.mutate(values)
+                    form.resetFields()
+                    onClose()
+                }}
+            >
+                <Form.Item
+                    label="Name"
+                    name="name"
+                    rules={[{ required: true }]}
+                >
+                    <Input autoComplete="off" />
+                </Form.Item>
+                <Form.Item
+                    label="Content"
+                    name="content"
+                    rules={[{ required: true }]}
+                >
+                    <TextArea rows={8} />
+                </Form.Item>
+                <Form.Item>
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        disabled={!isFilled || !isContentValid}
+                    >
+                        Submit
+                    </Button>
+                </Form.Item>
+            </Form>
+            {!isContentValid && <InvalidDodMessage />}
+        </Modal>
+    )
+}
+
 export function DodsIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [dodSearchValue, setDodSearchValue] = useState("")
+    const [isCreateDodModalOpen, setIsCreateDodModalOpen] = useState(false)
     const queryClient = useQueryClient()
 
     const { data: dods } = useQuery({
@@ -262,9 +380,24 @@ export function DodsIndexPage() {
         queryFn: () => fetchUsers(admin),
     })
 
-    const dodMutation = useMutation({
+    const patchDodMutation = useMutation({
         mutationFn: ({ id, content }: { id: number; content: string }) =>
             patchDod(admin, id, { content }),
+        onSuccess: async () => {
+            return queryClient.invalidateQueries({ queryKey: ["dods"] })
+        },
+    })
+
+    const deleteDodMutation = useMutation({
+        mutationFn: ({ id }: { id: number }) => deleteDod(admin, id),
+        onSuccess: async () => {
+            return queryClient.invalidateQueries({ queryKey: ["dods"] })
+        },
+    })
+
+    const createDodMutation = useMutation({
+        mutationFn: ({ content, name }: { content: string; name: string }) =>
+            createDod(admin, { content, name }),
         onSuccess: async () => {
             return queryClient.invalidateQueries({ queryKey: ["dods"] })
         },
@@ -290,8 +423,8 @@ export function DodsIndexPage() {
     )
 
     const columns = useMemo(
-        () => createColumns({ users, dodMutation }),
-        [users, dodMutation]
+        () => createColumns({ users, deleteDodMutation, patchDodMutation }),
+        [users, deleteDodMutation, patchDodMutation]
     )
 
     return (
@@ -304,13 +437,26 @@ export function DodsIndexPage() {
                         onChange={(e) => setDodSearchValue(e.target.value)}
                         style={{ width: 500, marginBottom: 20 }}
                     />
+                    <Button
+                        variant="solid"
+                        color="blue"
+                        style={{ padding: "0 35px" }}
+                        onClick={() => setIsCreateDodModalOpen(true)}
+                    >
+                        Create
+                    </Button>
                 </Flex>
                 <Table
-                    className="dods-table"
+                    className="DodEditor__table"
                     size="small"
                     columns={columns}
                     dataSource={filteredDods}
                     rowKey={(x) => x.id}
+                />
+                <CreateDodModal
+                    createDodMutation={createDodMutation}
+                    isOpen={isCreateDodModalOpen}
+                    onClose={() => setIsCreateDodModalOpen(false)}
                 />
             </main>
         </AdminLayout>

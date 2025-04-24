@@ -1,6 +1,5 @@
 import {
     excludeNullish,
-    EnrichedDetail,
     EnrichedFaq,
     Ref,
     OwidGdocPostContent,

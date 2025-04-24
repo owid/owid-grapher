@@ -500,7 +500,8 @@ export async function getDods(
     return knexRaw<DbPlainDod>(
         knex,
         `-- sql
-        SELECT * FROM dods`
+        SELECT * FROM dods
+        ORDER BY updatedAt DESC`
     )
 }
 
