@@ -2,13 +2,8 @@ import "dayjs"
 import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import {
     GdocsContentSource,
-    DataPageDataV2,
     OwidVariableWithSource,
     gdocIdRegex,
-    getAttributionFragmentsFromVariable,
-    getLastUpdatedFromVariable,
-    getNextUpdateFromVariable,
-    omitUndefinedValues,
     partition,
 } from "@ourworldindata/utils"
 import {
@@ -20,7 +15,6 @@ import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
 import {
     EnrichedFaq,
     FaqDictionary,
-    GrapherInterface,
     OwidGdocBaseInterface,
 } from "@ourworldindata/types"
 import { KnexReadonlyTransaction } from "../db/db.js"
@@ -28,55 +22,6 @@ import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { getSlugForTopicTag } from "./GrapherBakingUtils.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
-
-export const getDatapageDataV2 = async (
-    variableMetadata: OwidVariableWithSource,
-    partialGrapherConfig: GrapherInterface
-): Promise<DataPageDataV2> => {
-    {
-        const lastUpdated = getLastUpdatedFromVariable(variableMetadata) ?? ""
-        const nextUpdate = getNextUpdateFromVariable(variableMetadata)
-        const datapageJson: DataPageDataV2 = {
-            status: "draft",
-            title: variableMetadata.presentation?.titlePublic
-                ? omitUndefinedValues({
-                      title: variableMetadata.presentation?.titlePublic,
-                      attributionShort:
-                          variableMetadata.presentation?.attributionShort,
-                      titleVariant: variableMetadata.presentation?.titleVariant,
-                  })
-                : {
-                      title:
-                          partialGrapherConfig.title ??
-                          variableMetadata.display?.name ??
-                          variableMetadata.name ??
-                          "",
-                  },
-            description: variableMetadata.description,
-            descriptionShort: variableMetadata.descriptionShort,
-            descriptionFromProducer: variableMetadata.descriptionFromProducer,
-            attributionShort: variableMetadata.presentation?.attributionShort,
-            titleVariant: variableMetadata.presentation?.titleVariant,
-            topicTagsLinks: variableMetadata.presentation?.topicTagsLinks ?? [],
-            attributions: getAttributionFragmentsFromVariable(variableMetadata),
-            faqs: [],
-            descriptionKey: variableMetadata.descriptionKey ?? [],
-            descriptionProcessing: variableMetadata.descriptionProcessing,
-            owidProcessingLevel: variableMetadata.processingLevel,
-            dateRange: variableMetadata.timespan ?? "",
-            lastUpdated: lastUpdated,
-            nextUpdate: nextUpdate,
-            allCharts: [],
-            relatedResearch: [],
-            source: variableMetadata.source,
-            origins: variableMetadata.origins ?? [],
-            chartConfig: partialGrapherConfig as Record<string, unknown>,
-            unit: variableMetadata.display?.unit ?? variableMetadata.unit,
-            unitConversionFactor: variableMetadata.display?.conversionFactor,
-        }
-        return datapageJson
-    }
-}
 
 /**
  * Get the datapage companion gdoc, if any.
