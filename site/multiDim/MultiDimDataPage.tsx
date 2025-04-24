@@ -8,6 +8,7 @@ import { SiteFooterContext, serializeJSONForHTML } from "@ourworldindata/utils"
 import { MultiDimDataPageProps } from "@ourworldindata/types"
 import { Html } from "../Html.js"
 import { MultiDimDataPageData } from "./MultiDimDataPageContent.js"
+import { DEFAULT_PAGE_DESCRIPTION } from "../dataPage.js"
 
 export function MultiDimDataPage({
     baseUrl,
@@ -24,6 +25,11 @@ export function MultiDimDataPage({
     if (!slug && !isPreviewing) {
         throw new Error("Missing slug for multidimensional data page")
     }
+    let pageTitle = configObj.title.title
+    if (configObj.title.titleVariant) {
+        pageTitle += ` - ${configObj.title.titleVariant}`
+    }
+    const pageDesc = DEFAULT_PAGE_DESCRIPTION
     const canonicalUrl = slug ? `${baseGrapherUrl}/${slug}` : ""
     const contentProps: MultiDimDataPageData = {
         canonicalUrl,
@@ -45,8 +51,8 @@ export function MultiDimDataPage({
         <Html>
             <Head
                 canonicalUrl={canonicalUrl}
-                // pageTitle={pageTitle}
-                // pageDesc={pageDesc}
+                pageTitle={pageTitle}
+                pageDesc={pageDesc}
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
             >
