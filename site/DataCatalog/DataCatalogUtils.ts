@@ -16,6 +16,7 @@ import {
     CatalogComponentId,
     DataCatalogState,
     CatalogFilterType,
+    DEFAULT_COMPONENTS,
 } from "./DataCatalogState.js"
 import {
     countriesByName,
@@ -84,13 +85,18 @@ export type DataCatalogRibbonResult = SearchResponse<IDataCatalogHit> & {
     title: string
 }
 
-export type DataCatalogPageSearchResult = SearchResponse<IPageHit>
+export type DataCatalogResearchSearchResult = SearchResponse<IPageHit>
+
+export type DataCatalogResearchRibbonResult = SearchResponse<IPageHit> & {
+    title: string
+}
 
 export type DataCatalogCache = {
     ribbons: Map<string, DataCatalogRibbonResult[]>
     search: Map<string, DataCatalogSearchResult>
-    pages: Map<string, DataCatalogPageSearchResult>
-    research: Map<string, DataCatalogPageSearchResult>
+    pages: Map<string, DataCatalogResearchSearchResult>
+    research: Map<string, DataCatalogResearchSearchResult>
+    researchRibbons: Map<string, DataCatalogResearchRibbonResult[]>
 }
 
 export enum AutocompleteSources {
@@ -328,7 +334,7 @@ export async function querySearch(
 export const queryDataInsights = async (
     searchClient: SearchClient,
     state: DataCatalogState
-): Promise<DataCatalogPageSearchResult> => {
+): Promise<DataCatalogResearchSearchResult> => {
     const index = searchClient.initIndex(getIndexName(SearchIndexName.Pages))
     const { query, page } = state
     const topicFilters = getFiltersOfType(state, CatalogFilterType.TOPIC)
@@ -350,28 +356,75 @@ export const queryDataInsights = async (
 export const queryResearch = async (
     searchClient: SearchClient,
     state: DataCatalogState
-): Promise<DataCatalogPageSearchResult> => {
+): Promise<DataCatalogResearchSearchResult> => {
     const index = searchClient.initIndex(getIndexName(SearchIndexName.Pages))
     const { query, page } = state
     const topicFilters = getFiltersOfType(state, CatalogFilterType.TOPIC)
 
     const facetFilters = [
         [
-            `type:${OwidGdocType.TopicPage}`,
-            `type:${OwidGdocType.LinearTopicPage}`,
             `type:${OwidGdocType.Article}`,
+            `type:${OwidGdocType.LinearTopicPage}`,
+            `type:${OwidGdocType.TopicPage}`,
         ],
     ]
     facetFilters.push(setToFacetFilters(topicFilters, "tags"))
 
     const results = await index.search<IPageHit>(query, {
         page,
-        hitsPerPage: state.componentCount[CatalogComponentId.RESEARCH] || 4,
+        hitsPerPage:
+            state.componentCount[CatalogComponentId.RESEARCH] ||
+            DEFAULT_COMPONENTS.find((c) => c.id === CatalogComponentId.RESEARCH)
+                ?.maxItems ||
+            4,
         highlightPreTag: "<mark>",
         highlightPostTag: "</mark>",
         facetFilters,
     })
     return results
+}
+
+// Function to query research content for ribbon display
+export const queryResearchRibbons = async (
+    searchClient: SearchClient,
+    state: DataCatalogState,
+    tagGraph: TagGraphRoot
+): Promise<DataCatalogResearchRibbonResult[]> => {
+    const index = searchClient.initIndex(getIndexName(SearchIndexName.Pages))
+    const topicFilters = getFiltersOfType(state, CatalogFilterType.TOPIC)
+    const topicsForRibbons = getTopicsForRibbons(topicFilters, tagGraph)
+
+    // Create a query for each topic in the ribbons
+    const results = await Promise.all(
+        topicsForRibbons.map(async (topic) => {
+            const facetFilters = [
+                [`type:${OwidGdocType.Article}`],
+                [`tags:${topic}`],
+            ]
+
+            const result = await index.search<IPageHit>(state.query, {
+                page: state.page < 0 ? 0 : state.page,
+                hitsPerPage:
+                    state.componentCount[CatalogComponentId.RESEARCH] ||
+                    DEFAULT_COMPONENTS.find(
+                        (c) => c.id === CatalogComponentId.RESEARCH
+                    )?.maxItems ||
+                    4,
+                highlightPreTag: "<mark>",
+                highlightPostTag: "</mark>",
+                facetFilters,
+            })
+
+            // Add the topic name as title to the result
+            return {
+                ...result,
+                title: topic,
+            }
+        })
+    )
+
+    // Filter out topics with no results
+    return results.filter((result) => result.hits.length > 0)
 }
 
 export const analytics = new SiteAnalytics()

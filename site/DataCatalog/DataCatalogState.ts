@@ -100,11 +100,7 @@ export const DEFAULT_COMPONENTS: ComponentConfig[] = [
         name: "Fuzzy Matcher",
         visible: false,
     },
-    {
-        id: CatalogComponentId.TOPICS_REFINEMENT,
-        name: "Topics",
-        visible: true,
-    },
+
     {
         id: CatalogComponentId.DATA_INSIGHTS,
         name: "Data Insights",
@@ -118,6 +114,11 @@ export const DEFAULT_COMPONENTS: ComponentConfig[] = [
         visible: true,
         maxItems: 4,
         type: [CatalogContentType.WRITING],
+    },
+    {
+        id: CatalogComponentId.TOPICS_REFINEMENT,
+        name: "Topics",
+        visible: true,
     },
     {
         id: CatalogComponentId.HIGHLIGHTS,

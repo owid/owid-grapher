@@ -19,6 +19,7 @@ import {
     syncDataCatalogURL,
     getFiltersOfType,
     queryResearch,
+    queryResearchRibbons,
 } from "./DataCatalogUtils.js"
 import {
     dataCatalogStateToUrl,
@@ -44,6 +45,7 @@ import { ScrollDirection, useScrollDirection } from "../hooks.js"
 import { DataCatalogContentTypeToggle } from "./DataCatalogContentTypeToggle.js"
 import { DataCatalogFuzzyMatcher } from "./DataCatalogFuzzyMatcher.js"
 import { DataCatalogResearch } from "./DataCatalogResearch.js"
+import { DataCatalogResearchRibbons } from "./DataCatalogResearchRibbons.js"
 
 export const DataCatalog = ({
     initialState,
@@ -62,6 +64,7 @@ export const DataCatalog = ({
         search: new Map(),
         pages: new Map(),
         research: new Map(),
+        researchRibbons: new Map(),
     })
     const scrollDirection = useScrollDirection()
     const AREA_NAMES = useMemo(
@@ -109,14 +112,18 @@ export const DataCatalog = ({
                 : await querySearch(searchClient, state)
 
             const pages = await queryDataInsights(searchClient, state)
-            const researchContent = await queryResearch(searchClient, state)
+            const researchContent = shouldShowRibbons
+                ? await queryResearchRibbons(searchClient, state, tagGraph)
+                : await queryResearch(searchClient, state)
 
             setCache((prevCache) => ({
                 ...prevCache,
                 [cacheKey]: prevCache[cacheKey].set(stateAsUrl, results as any),
                 pages: prevCache.pages.set(stateAsUrl, pages),
-                research:
-                    prevCache.research?.set(stateAsUrl, researchContent) ||
+                [shouldShowRibbons ? "researchRibbons" : "research"]:
+                    prevCache[
+                        shouldShowRibbons ? "researchRibbons" : "research"
+                    ]?.set(stateAsUrl, researchContent as any) ||
                     new Map().set(stateAsUrl, researchContent),
             }))
         }
@@ -169,13 +176,7 @@ export const DataCatalog = ({
                 minQueryLength={state.minQueryLength}
             />
         ),
-        [CatalogComponentId.TOPICS_REFINEMENT]: (
-            <TopicsRefinementListWrapper
-                topics={topics}
-                results={currentResults}
-                addTopic={actions.addTopic}
-            />
-        ),
+
         [CatalogComponentId.DATA_INSIGHTS]: (
             <DataCatalogDataInsights
                 results={cache["pages"].get(stateAsUrl)}
@@ -183,11 +184,28 @@ export const DataCatalog = ({
                 setComponentCount={actions.setComponentCount}
             />
         ),
-        [CatalogComponentId.RESEARCH]: (
+        [CatalogComponentId.RESEARCH]: shouldShowRibbons ? (
+            <DataCatalogResearchRibbons
+                results={cache["researchRibbons"].get(stateAsUrl)}
+                componentCount={state.componentCount}
+                setComponentCount={actions.setComponentCount}
+                selectedCountries={selectedCountries}
+                topics={topics}
+                addTopic={actions.addTopic}
+                isLoading={isLoading}
+            />
+        ) : (
             <DataCatalogResearch
                 results={cache["research"].get(stateAsUrl)}
                 componentCount={state.componentCount}
                 setComponentCount={actions.setComponentCount}
+            />
+        ),
+        [CatalogComponentId.TOPICS_REFINEMENT]: (
+            <TopicsRefinementListWrapper
+                topics={topics}
+                results={currentResults}
+                addTopic={actions.addTopic}
             />
         ),
         [CatalogComponentId.HIGHLIGHTS]: (

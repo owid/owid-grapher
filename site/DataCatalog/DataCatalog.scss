@@ -894,3 +894,63 @@ section[data-autocomplete-source-id="countries"] {
         background: #d1ffe6;
     }
 }
+
+.data-catalog-research-ribbons-container {
+    border-bottom: 1px solid #dbe5f0;
+    padding-bottom: 24px;
+}
+
+.data-catalog-research-ribbon-section {
+    margin-bottom: 32px;
+}
+
+.data-catalog-research-ribbon-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    &:hover {
+        cursor: pointer;
+        .data-catalog-research-ribbon-title,
+        .data-catalog-research-ribbon-topic-filter {
+            cursor: pointer;
+            color: $blue-60;
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 3px;
+        }
+    }
+}
+
+.data-catalog-research-ribbon-title {
+    margin: 0;
+}
+
+.data-catalog-research-ribbon-topic-filter {
+    background-color: transparent;
+    color: $blue-60;
+    padding: 0;
+    font-size: 0.9rem;
+}
+
+.data-catalog-research-hit__title {
+    margin-bottom: 0;
+    margin-top: 8px;
+    color: $blue-90;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.data-catalog-research-ribbon-item {
+    border-bottom: 1px solid $blue-10;
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.data-catalog-research-hit {
+    display: block;
+    text-decoration: none;
+    padding: 12px 0;
+}

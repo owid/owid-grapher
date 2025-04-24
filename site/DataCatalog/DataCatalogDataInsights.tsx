@@ -1,6 +1,6 @@
 import { commafyNumber } from "@ourworldindata/utils"
 import { PagesHit } from "../search/SearchPanel.js"
-import { DataCatalogPageSearchResult } from "./DataCatalogUtils.js"
+import { DataCatalogResearchSearchResult } from "./DataCatalogUtils.js"
 import { CatalogComponentId } from "./DataCatalogState.js"
 
 export const DataCatalogDataInsights = ({
@@ -8,7 +8,7 @@ export const DataCatalogDataInsights = ({
     componentCount,
     setComponentCount,
 }: {
-    results?: DataCatalogPageSearchResult
+    results?: DataCatalogResearchSearchResult
     componentCount?: Record<CatalogComponentId, number>
     setComponentCount?: (componentId: CatalogComponentId, count: number) => void
 }) => {
