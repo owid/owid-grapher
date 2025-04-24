@@ -33,6 +33,7 @@ import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 import GrapherImage from "./GrapherImage.js"
 import { Html } from "./Html.js"
+import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
@@ -60,7 +61,7 @@ export const GrapherPage = (props: {
             text: grapher.subtitle,
             fontSize: 10,
         }).plaintext
-    } else pageDesc = "An interactive visualization from Our World in Data."
+    } else pageDesc = DEFAULT_PAGE_DESCRIPTION
 
     // Due to thumbnails not taking into account URL parameters, they are often inaccurate on
     // social media. We decided to remove them and use a single thumbnail for all charts.

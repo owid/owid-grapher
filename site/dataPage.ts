@@ -10,6 +10,9 @@ import {
     OwidVariableWithSource,
 } from "@ourworldindata/utils"
 
+export const DEFAULT_PAGE_DESCRIPTION =
+    "An interactive visualization from Our World in Data."
+
 export function processRelatedResearch(
     candidates: DataPageRelatedResearch[],
     topicTags: string[]

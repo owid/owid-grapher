@@ -34,6 +34,7 @@ import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
 import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types"
+import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
 
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
@@ -67,7 +68,7 @@ export const DataPageV2 = (props: {
             text: grapher.subtitle,
             fontSize: 10,
         }).plaintext
-    } else pageDesc = "An interactive visualization from Our World in Data."
+    } else pageDesc = DEFAULT_PAGE_DESCRIPTION
 
     const imageUrl: string = urljoin(
         baseUrl || "/",
