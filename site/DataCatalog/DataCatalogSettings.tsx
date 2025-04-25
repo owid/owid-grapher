@@ -241,6 +241,15 @@ export const DataCatalogSettings = ({
                                     />
                                 </ListItem>
 
+                                <Divider sx={{ my: 2 }} />
+                                <List
+                                    subheader={
+                                        <ListSubheader>
+                                            Autcomplete Settings
+                                        </ListSubheader>
+                                    }
+                                ></List>
+
                                 <ListItem>
                                     <FormControlLabel
                                         control={
