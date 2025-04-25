@@ -128,7 +128,7 @@ export class GlobeController {
 
     rotateToSelection(): void {
         const target = calculateTargetForSelection(
-            this.manager.mapConfig.selectedCountries
+            this.manager.mapConfig.selection
         )
         if (target) this.showGlobeAndRotateTo(target)
     }

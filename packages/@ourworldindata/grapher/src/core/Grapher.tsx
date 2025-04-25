@@ -773,7 +773,7 @@ export class Grapher
         // map selection
         const mapSelection = getEntityNamesParam(params.mapSelect)
         if (mapSelection) {
-            this.mapConfig.selectedCountries.setSelectedEntities(mapSelection)
+            this.mapConfig.selection.setSelectedEntities(mapSelection)
         }
 
         // selection
@@ -1531,7 +1531,7 @@ export class Grapher
 
     @computed private get entitySelector(): EntitySelector {
         const entitySelectorArray = this.isOnMapTab
-            ? this.mapConfig.selectedCountries
+            ? this.mapConfig.selection
             : this.selection
         return new EntitySelector({
             manager: this,
@@ -1591,12 +1591,12 @@ export class Grapher
         // with, i.e. at least one country has been selected on the map
         const shouldSyncSelection =
             this.addCountryMode !== EntitySelectionMode.Disabled &&
-            this.shouldEnableEntitySelectionOnMapTab &&
-            this.mapConfig.selectedCountries.numSelectedEntities > 0
+            this.isMapSelectionEnabled &&
+            this.mapConfig.selection.numSelectedEntities > 0
 
         // switching from the chart tab to the map tab
         if (isChartTab(oldTab) && isMapTab(newTab) && shouldSyncSelection) {
-            this.mapConfig.selectedCountries.setSelectedEntities(
+            this.mapConfig.selection.setSelectedEntities(
                 this.selection.selectedEntityNames
             )
         }
@@ -1604,7 +1604,7 @@ export class Grapher
         // switching from the map tab to the chart tab
         if (isMapTab(oldTab) && isChartTab(newTab) && shouldSyncSelection) {
             this.selection.setSelectedEntities(
-                this.mapConfig.selectedCountries.selectedEntityNames
+                this.mapConfig.selection.selectedEntityNames
             )
         }
     }
@@ -3249,7 +3249,7 @@ export class Grapher
         }
 
         const entitySelectorArray = this.isOnMapTab
-            ? this.mapConfig.selectedCountries
+            ? this.mapConfig.selection
             : this.selection
 
         return (
@@ -3451,12 +3451,6 @@ export class Grapher
         return this.isTouchDevice
     }
 
-    @computed get shouldShowEntitySelectorOnMapTab(): boolean {
-        // only show the entity selector on the map tab if it's
-        // rendered into the side panel or the drawer
-        return this.shouldShowEntitySelectorAs === GrapherWindowType.panel
-    }
-
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
     private bindToWindow(): void {
@@ -3492,12 +3486,6 @@ export class Grapher
         }
     }
 
-    private showGlobeIfAuthorSpecifiedRegion(): void {
-        if (this.mapConfig.region !== MapRegionName.World) {
-            this.globeController.showGlobe()
-        }
-    }
-
     componentDidMount(): void {
         this.setBaseFontSize()
         this.setUpIntersectionObserver()
@@ -3525,8 +3513,6 @@ export class Grapher
         )
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
-
-        this.showGlobeIfAuthorSpecifiedRegion()
     }
 
     private _shortcutsBound = false
@@ -3634,7 +3620,7 @@ export class Grapher
         this.mapConfig.globe.isActive = authorsVersion.mapConfig.globe.isActive
         this.clearSelection()
         this.clearFocus()
-        this.mapConfig.selectedCountries.clearSelection()
+        this.mapConfig.selection.clearSelection()
     }
 
     // Todo: come up with a more general pattern?
@@ -3901,6 +3887,7 @@ export class Grapher
 
         // remove country focus on the map
         this.globeController.dismissCountryFocus()
+
         this.resetMapRegionDropdown()
     }
 
@@ -3911,6 +3898,8 @@ export class Grapher
 
         // switch back to the 2d map if all entities were deselected
         if (this.isOnMapTab) this.globeController.hideGlobe()
+
+        this.resetMapRegionDropdown()
     }
 
     // todo: restore this behavior??
@@ -4024,11 +4013,7 @@ export class Grapher
         const shouldShowPanel =
             this.shouldShowEntitySelectorAs === GrapherWindowType.panel
 
-        if (
-            this.isOnMapTab &&
-            this.shouldShowEntitySelectorOnMapTab &&
-            shouldShowPanel
-        )
+        if (this.isOnMapTab && this.isMapSelectionEnabled && shouldShowPanel)
             return true
 
         return (
@@ -4045,13 +4030,6 @@ export class Grapher
             this.shouldShowEntitySelectorAs === GrapherWindowType.drawer
         const shouldShowModal =
             this.shouldShowEntitySelectorAs === GrapherWindowType.modal
-
-        if (
-            this.isOnMapTab &&
-            this.shouldShowEntitySelectorOnMapTab &&
-            shouldShowDrawer
-        )
-            return true
 
         return (
             this.isOnChartTab &&
@@ -4074,9 +4052,15 @@ export class Grapher
         )
     }
 
-    /** If the entity controls are hidden, then selecting entities from the map should also be disabled  */
-    @computed get shouldEnableEntitySelectionOnMapTab(): boolean {
-        return !this.hideEntityControls && this.shouldShowEntitySelectorOnMapTab
+    @computed get isMapSelectionEnabled(): boolean {
+        return (
+            // If the entity controls are hidden, then selecting entities from
+            // the map should also be disabled
+            !this.hideEntityControls &&
+            // only show the entity selector on the map tab if it's rendered
+            // into the side panel
+            this.shouldShowEntitySelectorAs === GrapherWindowType.panel
+        )
     }
 
     // This is just a helper method to return the correct table for providing entity choices. We want to

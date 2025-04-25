@@ -556,7 +556,7 @@ export interface MapConfigInterface {
 
     // should be `EntityName[] | SelectionArray` but SelectionArray isn't available here;
     // only passed in for testing, so type safety isn't that much of a concern here
-    selectedCountries?: any
+    selection?: any
 }
 
 // This configuration represents the entire persistent state of a grapher

@@ -1167,11 +1167,11 @@ describe("syncing entity selection between the chart and map tab", () => {
         const grapher = new Grapher({
             bounds: new Bounds(0, 0, 1200, 800), // map entity selection is only enabled for large graphers
             selectedEntityNames: chartSelection,
-            map: { selectedCountries: mapSelection },
+            map: { selection: mapSelection },
         })
 
         // sanity check that entity selection is enabled
-        expect(grapher.shouldEnableEntitySelectionOnMapTab).toBe(true)
+        expect(grapher.isMapSelectionEnabled).toBe(true)
 
         // syncing entities from the map to the chart updates the chart selection
         grapher.syncEntitySelectionBetweenChartAndMap(
@@ -1185,18 +1185,18 @@ describe("syncing entity selection between the chart and map tab", () => {
         const grapher = new Grapher({
             bounds: new Bounds(0, 0, 1200, 800), // map entity selection is only enabled for large graphers
             selectedEntityNames: chartSelection,
-            map: { selectedCountries: mapSelection },
+            map: { selection: mapSelection },
         })
 
         // sanity check that entity selection is enabled
-        expect(grapher.shouldEnableEntitySelectionOnMapTab).toBe(true)
+        expect(grapher.isMapSelectionEnabled).toBe(true)
 
         // syncing entities from the chart to the map updates the map selection
         grapher.syncEntitySelectionBetweenChartAndMap(
             GRAPHER_TAB_NAMES.LineChart,
             GRAPHER_TAB_NAMES.WorldMap
         )
-        expect(grapher.map.selectedCountries.selectedEntityNames).toEqual(
+        expect(grapher.map.selection.selectedEntityNames).toEqual(
             chartSelection
         )
     })
@@ -1208,7 +1208,7 @@ describe("syncing entity selection between the chart and map tab", () => {
         })
 
         // sanity check that entity selection is enabled
-        expect(grapher.shouldEnableEntitySelectionOnMapTab).toBe(true)
+        expect(grapher.isMapSelectionEnabled).toBe(true)
 
         // syncing entities from the map to the chart has no effect
         grapher.syncEntitySelectionBetweenChartAndMap(
@@ -1222,17 +1222,17 @@ describe("syncing entity selection between the chart and map tab", () => {
             GRAPHER_TAB_NAMES.LineChart,
             GRAPHER_TAB_NAMES.WorldMap
         )
-        expect(grapher.map.selectedCountries.hasSelection).toBe(false)
+        expect(grapher.map.selection.hasSelection).toBe(false)
     })
 
     it("doesn't sync entities if map entity selection is disabled", () => {
         const grapher = new Grapher({
             selectedEntityNames: chartSelection,
-            map: { selectedCountries: mapSelection },
+            map: { selection: mapSelection },
         })
 
         // sanity check that map entity selection is disabled
-        expect(grapher.shouldEnableEntitySelectionOnMapTab).toBe(false)
+        expect(grapher.isMapSelectionEnabled).toBe(false)
 
         // syncing entities from the map to the chart has no effect
         grapher.syncEntitySelectionBetweenChartAndMap(
@@ -1246,20 +1246,18 @@ describe("syncing entity selection between the chart and map tab", () => {
             GRAPHER_TAB_NAMES.LineChart,
             GRAPHER_TAB_NAMES.WorldMap
         )
-        expect(grapher.map.selectedCountries.selectedEntityNames).toEqual(
-            mapSelection
-        )
+        expect(grapher.map.selection.selectedEntityNames).toEqual(mapSelection)
     })
 
     it("doesn't sync entities if chart entity selection is disabled", () => {
         const grapher = new Grapher({
             selectedEntityNames: chartSelection,
-            map: { selectedCountries: mapSelection },
+            map: { selection: mapSelection },
             addCountryMode: EntitySelectionMode.Disabled,
         })
 
         // sanity check that map entity selection is disabled
-        expect(grapher.shouldEnableEntitySelectionOnMapTab).toBe(false)
+        expect(grapher.isMapSelectionEnabled).toBe(false)
 
         // syncing entities from the map to the chart has no effect
         grapher.syncEntitySelectionBetweenChartAndMap(
@@ -1273,8 +1271,6 @@ describe("syncing entity selection between the chart and map tab", () => {
             GRAPHER_TAB_NAMES.LineChart,
             GRAPHER_TAB_NAMES.WorldMap
         )
-        expect(grapher.map.selectedCountries.selectedEntityNames).toEqual(
-            mapSelection
-        )
+        expect(grapher.map.selection.selectedEntityNames).toEqual(mapSelection)
     })
 })

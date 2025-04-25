@@ -4,12 +4,7 @@ import { action, computed, observable } from "mobx"
 import { TabLabel, Tabs } from "../tabs/Tabs"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { GlobeController } from "../mapCharts/GlobeController"
-import {
-    checkIsCountry,
-    EntityName,
-    getRegionByName,
-    getUserCountryInformation,
-} from "@ourworldindata/utils"
+import { EntityName, getUserCountryInformation } from "@ourworldindata/utils"
 import { MapRegionDropdownValue } from "./MapRegionDropdown"
 
 export interface GlobeSwitcherManager {
@@ -17,7 +12,7 @@ export interface GlobeSwitcherManager {
     isOnMapTab?: boolean
     globeController?: GlobeController
     mapRegionDropdownValue?: MapRegionDropdownValue
-    shouldShowEntitySelectorOnMapTab?: boolean
+    isMapSelectionEnabled?: boolean
 }
 
 @observer
@@ -25,6 +20,7 @@ export class GlobeSwitcher extends React.Component<{
     manager: GlobeSwitcherManager
 }> {
     @observable private localCountryName?: EntityName
+
     private availableTabs = ["2D", "3D"] as const
 
     static shouldShow(manager: GlobeSwitcherManager): boolean {
@@ -32,9 +28,8 @@ export class GlobeSwitcher extends React.Component<{
         return test.shouldShow
     }
 
-    static width(manager: GlobeSwitcherManager): number {
-        const test = new GlobeSwitcher({ manager })
-        return test.width
+    static width(): number {
+        return 104
     }
 
     @computed private get manager(): GlobeSwitcherManager {
@@ -42,14 +37,9 @@ export class GlobeSwitcher extends React.Component<{
     }
 
     @computed private get shouldShow(): boolean {
-        const { shouldShowEntitySelectorOnMapTab, isOnMapTab } =
-            this.props.manager
+        const { isMapSelectionEnabled, isOnMapTab } = this.props.manager
 
-        return !!(isOnMapTab && shouldShowEntitySelectorOnMapTab)
-    }
-
-    @computed get width(): number {
-        return 104 // hard-coded
+        return !!(isOnMapTab && isMapSelectionEnabled)
     }
 
     @computed private get tabLabels(): TabLabel[] {
@@ -66,14 +56,7 @@ export class GlobeSwitcher extends React.Component<{
         const newTab = this.availableTabs[tabIndex]
 
         if (newTab === "3D") {
-            const isSomeCountrySelected =
-                this.manager.mapConfig?.selectedCountries.selectedEntityNames.some(
-                    (name) => {
-                        const region = getRegionByName(name)
-                        return region && checkIsCountry(region)
-                    }
-                )
-            if (isSomeCountrySelected) {
+            if (this.manager.mapConfig?.selection.hasSelection) {
                 // if the selection is not empty, rotate to it
                 this.manager.globeController?.rotateToSelection()
             } else if (this.localCountryName) {

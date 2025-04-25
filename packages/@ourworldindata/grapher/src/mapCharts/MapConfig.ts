@@ -32,7 +32,7 @@ class MapConfigDefaults {
     @observable hideTimeline?: boolean
 
     @observable region = MapRegionName.World
-    @observable selectedCountries = new SelectionArray()
+    @observable selection = new SelectionArray()
 
     @observable globe: GlobeConfig = {
         isActive: false,
@@ -52,11 +52,13 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         if (obj.time)
             this.time = maxTimeBoundFromJSONOrPositiveInfinity(obj.time)
 
-        // only relevant for testing
-        if (obj.selectedCountries && R.isArray<string>(obj.selectedCountries)) {
-            this.selectedCountries = new SelectionArray(
-                obj.selectedCountries as string[]
-            )
+        // If the region is set, automatically switch to the globe
+        if (obj.region && obj.region !== MapRegionName.World)
+            this.globe.isActive = true
+
+        // Only relevant for testing
+        if (obj.selection && R.isArray<string>(obj.selection)) {
+            this.selection = new SelectionArray(obj.selection as string[])
         }
     }
 

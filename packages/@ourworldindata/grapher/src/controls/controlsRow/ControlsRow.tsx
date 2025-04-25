@@ -67,7 +67,7 @@ export class ControlsRow extends Component<{
     }
 
     @computed private get globeSwitcherWidth(): number {
-        return GlobeSwitcher.width(this.manager)
+        return GlobeSwitcher.width()
     }
 
     @computed private get maxWidthSettingsMenu(): number {
