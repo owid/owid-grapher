@@ -113,7 +113,7 @@ export const DEFAULT_COMPONENTS: ComponentConfig[] = [
         id: CatalogComponentId.RESEARCH,
         name: "Research & Writing",
         visible: true,
-        maxItems: 4,
+        maxItems: 2,
         type: [CatalogContentType.WRITING],
     },
     {
