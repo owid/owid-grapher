@@ -638,6 +638,7 @@ async function finalizeRecords(
                 availableEntities: record.availableEntities,
                 titleLength: record.titleLength,
                 isFirstExplorerView: record.isFirstExplorerView,
+                isIncomeGroupSpecificFM: false,
             }) as Omit<FinalizedExplorerRecord, "viewTitleIndexWithinExplorer">
     )
 
