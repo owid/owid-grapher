@@ -150,7 +150,13 @@ import {
     fetchFeaturedMetrics,
     rerankFeaturedMetrics,
 } from "./apiRoutes/featuredMetrics.js"
-import { getDods, updateDod, createDod, deleteDod } from "./apiRoutes/dods.js"
+import {
+    getDods,
+    updateDod,
+    createDod,
+    deleteDod,
+    getDodsUsage,
+} from "./apiRoutes/dods.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -266,6 +272,7 @@ postRouteWithRWTransaction(
 
 deleteRouteWithRWTransaction(apiRouter, "/dods/:id", deleteDod)
 getRouteWithROTransaction(apiRouter, "/dods.json", getDods)
+getRouteWithROTransaction(apiRouter, "/dods-usage.json", getDodsUsage)
 patchRouteWithRWTransaction(apiRouter, "/dods/:id", updateDod)
 postRouteWithRWTransaction(apiRouter, "/dods", createDod)
 
