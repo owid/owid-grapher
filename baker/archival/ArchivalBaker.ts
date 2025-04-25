@@ -36,6 +36,7 @@ import {
     convertToArchivalDateStringIfNecessary,
 } from "@ourworldindata/utils"
 import { PROD_URL } from "../../site/SiteConstants.js"
+import { getParsedDodsDictionary } from "../../db/model/Dod.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
@@ -71,7 +72,7 @@ export const bakeDods = async (
     knex: db.KnexReadonlyTransaction,
     archiveDir: string
 ) => {
-    const parsedDods = await db.getParsedDodsDictionary(knex)
+    const parsedDods = await getParsedDodsDictionary(knex)
 
     const targetPath = path.join(archiveDir, "assets", "dods.json")
     const resultFilename = await hashAndWriteFile(

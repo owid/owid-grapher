@@ -97,6 +97,7 @@ import { getPublicDonorNames } from "../db/model/Donor.js"
 import { getChartViewsInfo } from "../db/model/ChartView.js"
 import { getGrapherRedirectsMap } from "./redirectsFromDb.js"
 import * as R from "remeda"
+import { getDods, getParsedDodsDictionary } from "../db/model/Dod.js"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -718,9 +719,9 @@ export class SiteBaker {
         if (!this.bakeSteps.has("dods") || !this.bakeSteps.has("charts")) return
         console.log("Validating grapher DoDs")
 
-        const details = await db
-            .getDods(knex)
-            .then((dods) => R.indexBy(dods, (dod) => dod.name))
+        const details = await getDods(knex).then((dods) =>
+            R.indexBy(dods, (dod) => dod.name)
+        )
 
         const charts: { slug: string; subtitle: string; note: string }[] =
             await db.knexRaw<{ slug: string; subtitle: string; note: string }>(
@@ -772,7 +773,7 @@ export class SiteBaker {
         if (!this.bakeSteps.has("dods")) return
         this.progressBar.tick({ name: "Baking dods.json" })
 
-        const parsedDods = await db.getParsedDodsDictionary(knex)
+        const parsedDods = await getParsedDodsDictionary(knex)
 
         await this.stageWrite(
             `${this.bakedSiteDir}/dods.json`,
