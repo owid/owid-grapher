@@ -17,6 +17,8 @@ export {
     type DbInsertDod,
     type DbPlainDod,
     type DodUsageRecord,
+    DodUsageTypes,
+    type DodUsageType,
 } from "./dbTypes/Dods.js"
 
 export {

@@ -11,8 +11,18 @@ export interface DbInsertDod {
 
 export type DbPlainDod = Required<DbInsertDod>
 
+export const DodUsageTypes = [
+    "explorer",
+    "gdoc",
+    "grapher",
+    "indicator",
+    "dod",
+] as const
+
+export type DodUsageType = (typeof DodUsageTypes)[number]
+
 export type DodUsageRecord = {
     id: string
     title: string
-    type: "explorer" | "gdoc" | "grapher" | "indicator" | "dod"
+    type: DodUsageType
 }
