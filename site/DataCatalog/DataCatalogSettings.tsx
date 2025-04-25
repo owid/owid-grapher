@@ -46,6 +46,7 @@ export const DataCatalogSettings = ({
     queryType,
     typoTolerance,
     minQueryLength,
+    requireAllCountries,
     updateComponentOrder,
     toggleComponentVisibility,
     setComponentCount,
@@ -57,6 +58,7 @@ export const DataCatalogSettings = ({
     setMinQueryLength,
     enableCombinedFilters,
     toggleCombinedFilters,
+    toggleRequireAllCountries,
 }: {
     componentOrder: CatalogComponentId[]
     componentVisibility: Record<CatalogComponentId, boolean>
@@ -67,6 +69,7 @@ export const DataCatalogSettings = ({
     queryType: QueryType
     typoTolerance: boolean
     minQueryLength: number
+    requireAllCountries: boolean
     updateComponentOrder: (order: CatalogComponentId[]) => void
     toggleComponentVisibility: (id: CatalogComponentId) => void
     setComponentCount: (id: CatalogComponentId, count: number) => void
@@ -81,6 +84,7 @@ export const DataCatalogSettings = ({
     setMinQueryLength: (length: number) => void
     enableCombinedFilters: boolean
     toggleCombinedFilters: () => void
+    toggleRequireAllCountries: () => void
 }) => {
     const [open, setOpen] = useState(false)
 
@@ -205,6 +209,19 @@ export const DataCatalogSettings = ({
                                     </ListSubheader>
                                 }
                             >
+                                <ListItem>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={requireAllCountries}
+                                                onChange={toggleRequireAllCountries}
+                                                color="primary"
+                                            />
+                                        }
+                                        label="Require all selected countries"
+                                    />
+                                </ListItem>
+
                                 <ListItem>
                                     <FormControlLabel
                                         control={
