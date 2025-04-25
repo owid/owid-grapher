@@ -134,6 +134,7 @@ export const getChartsRecords = async (
 
         const record = {
             objectID: c.id.toString(),
+            id: `grapher/${c.slug}`,
             type: ChartRecordType.Chart,
             chartId: c.id,
             slug: c.slug,
@@ -150,7 +151,8 @@ export const getChartsRecords = async (
             // Number of references to this chart in all our posts and pages
             numRelatedArticles: relatedArticles.length + linksFromGdocs.length,
             views_7d: pageviews[`/grapher/${c.slug}`]?.views_7d ?? 0,
-        }
+            isIncomeGroupSpecificFM: false,
+        } as ChartRecord
         const score = computeChartScore(record)
         records.push({ ...record, score })
     }

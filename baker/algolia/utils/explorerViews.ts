@@ -39,7 +39,6 @@ import {
     EntitiesByColumnDictionary,
     ExplorerIndicatorMetadataDictionary,
     ExplorerIndicatorMetadataFromDb,
-    ExplorerViewFinalRecord,
     ExplorerViewBaseRecord,
     ExplorerViewGrapherInfo,
     GrapherEnrichedExplorerViewRecord,
@@ -47,9 +46,10 @@ import {
     IndicatorEnrichedExplorerViewRecord,
     IndicatorUnenrichedExplorerViewRecord,
     CsvEnrichedExplorerViewRecord,
-    ConvertedExplorerChartHit,
+    FinalizedExplorerRecord,
 } from "./types.js"
 import {
+    MAX_NON_FM_RECORD_SCORE,
     processAvailableEntities as processRecordAvailableEntities,
     scaleRecordScores,
 } from "./shared.js"
@@ -111,49 +111,22 @@ function addDuplicateYVariableIds(
     })
 }
 
-export function explorerViewRecordToChartRecord(
-    e: ExplorerViewFinalRecord
-): ConvertedExplorerChartHit {
-    return {
-        type: ChartRecordType.ExplorerView,
-        objectID: e.objectID!,
-        chartId: -1,
-        slug: e.explorerSlug,
-        queryParams: e.viewQueryParams,
-        title: e.viewTitle,
-        subtitle: e.explorerSubtitle,
-        variantName: "",
-        keyChartForTags: [],
-        tags: e.tags,
-        availableEntities: e.availableEntities,
-        publishedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        numDimensions: e.numNonDefaultSettings,
-        titleLength: e.titleLength,
-        numRelatedArticles: 0,
-        views_7d: e.explorerViews_7d,
-        viewTitleIndexWithinExplorer: e.viewTitleIndexWithinExplorer,
-        score: e.score,
-    }
-}
-
 /**
- * Scale explorer record scores then convert them to ChartRecords.
  * Each explorer has a default view (whichever is defined first in the decision matrix)
  * We scale these default view scores between 0 and 10000, but the rest we scale between 0 and 1000
  * to bury them under the (higher quality) grapher views in the data catalog.
  */
-export function adaptExplorerViews(
-    explorerViews: ExplorerViewFinalRecord[]
+export function scaleExplorerRecordScores(
+    explorerViews: FinalizedExplorerRecord[]
 ): ChartRecord[] {
     const [firstViews, rest] = partition(
         explorerViews,
         (view) => view.isFirstExplorerView
     )
     return [
-        ...scaleRecordScores(firstViews, [1000, 10000]),
+        ...scaleRecordScores(firstViews, [1000, MAX_NON_FM_RECORD_SCORE]),
         ...scaleRecordScores(rest, [0, 1000]),
-    ].map(explorerViewRecordToChartRecord)
+    ]
 }
 
 // Creates a search-ready string from a choice.
@@ -341,11 +314,11 @@ async function getEntitiesPerColumnPerTable(
 }
 
 const computeExplorerViewScore = (record: {
-    explorerViews_7d: number
+    views_7d: number
     numNonDefaultSettings: number
     titleLength: number
 }) =>
-    (record.explorerViews_7d || 0) * 10 -
+    (record.views_7d || 0) * 10 -
     record.numNonDefaultSettings * 50 -
     record.titleLength
 
@@ -631,50 +604,57 @@ async function finalizeRecords(
     slug: string,
     pageviews: Record<string, { views_7d: number }>,
     explorerInfo: MinimalExplorerInfo
-): Promise<ExplorerViewFinalRecord[]> {
+): Promise<FinalizedExplorerRecord[]> {
     const withCleanSubtitles = processSubtitles(records)
 
     const withCleanEntities = await processAvailableEntities(withCleanSubtitles)
 
     const withPageviews = withCleanEntities.map((record) => ({
         ...record,
-        explorerViews_7d: get(pageviews, [`/explorers/${slug}`, "views_7d"], 0),
+        views_7d: get(pageviews, [`/explorers/${slug}`, "views_7d"], 0),
     }))
 
     const unsortedFinalRecords = withPageviews.map(
-        (
-            record,
-            i
-        ): Omit<ExplorerViewFinalRecord, "viewTitleIndexWithinExplorer"> => ({
-            ...record,
-            viewSettings: record.viewSettings.filter((x): x is string => !!x),
-            viewTitle: record.viewTitle!,
-            viewSubtitle: record.viewSubtitle!,
-            explorerSlug: explorerInfo.slug,
-            explorerTitle: explorerInfo.title,
-            explorerSubtitle: explorerInfo.subtitle,
-            viewTitleAndExplorerSlug: `${record.viewTitle} | ${explorerInfo.slug}`,
-            numViewsWithinExplorer: withPageviews.length,
-            tags: explorerInfo.tags,
-            objectID: `${explorerInfo.slug}-${i}`,
-            score: computeExplorerViewScore(record),
-        })
+        (record, i) =>
+            ({
+                type: ChartRecordType.ExplorerView,
+                chartId: record.viewGrapherId,
+                variantName: record.viewTitle,
+                // remap createdAt -> publishedAt
+                publishedAt: explorerInfo.createdAt.toISOString(),
+                updatedAt: explorerInfo.updatedAt.toISOString(),
+                keyChartForTags: [],
+                numDimensions: record.yVariableIds.length,
+                numRelatedArticles: 0,
+                title: record.viewTitle as string,
+                subtitle: record.viewSubtitle!,
+                slug: explorerInfo.slug,
+                queryParams: record.viewQueryParams,
+                tags: explorerInfo.tags,
+                objectID: `${explorerInfo.slug}-${i}`,
+                id: `explorer/${explorerInfo.slug}${record.viewQueryParams}`,
+                score: computeExplorerViewScore(record),
+                views_7d: record.views_7d,
+                availableEntities: record.availableEntities,
+                titleLength: record.titleLength,
+                isFirstExplorerView: record.isFirstExplorerView,
+            }) as Omit<FinalizedExplorerRecord, "viewTitleIndexWithinExplorer">
     )
 
     const sortedByScore = orderBy(
         unsortedFinalRecords,
         computeExplorerViewScore,
         "desc"
-    )
+    ) as Omit<FinalizedExplorerRecord, "viewTitleIndexWithinExplorer">[]
 
-    const groupedByTitle = groupBy(sortedByScore, "viewTitle")
+    const groupedByTitle = groupBy(sortedByScore, "title")
 
     const indexedExplorerViewData = Object.values(groupedByTitle).flatMap(
         (records) =>
             records.map((record, i) => ({
                 ...record,
                 viewTitleIndexWithinExplorer: i,
-            }))
+            })) as FinalizedExplorerRecord[]
     )
 
     return indexedExplorerViewData
@@ -686,7 +666,7 @@ export const getExplorerViewRecordsForExplorer = async (
     pageviews: Record<string, { views_7d: number }>,
     explorerAdminServer: ExplorerAdminServer,
     skipGrapherViews: boolean
-): Promise<ExplorerViewFinalRecord[]> => {
+): Promise<FinalizedExplorerRecord[]> => {
     const { slug } = explorerInfo
     const explorerProgram = await explorerAdminServer.getExplorerFromSlug(
         trx,
@@ -771,7 +751,7 @@ export const getExplorerViewRecordsForExplorer = async (
         ...enrichedCsvRecords,
     ]
 
-    // // Finalize records with titles, sorting, and grouping
+    // Finalize records with titles, sorting, and grouping
     return finalizeRecords(enrichedRecords, slug, pageviews, explorerInfo)
 }
 
@@ -814,7 +794,7 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
 export const getExplorerViewRecords = async (
     trx: db.KnexReadonlyTransaction,
     skipGrapherViews = false
-): Promise<ExplorerViewFinalRecord[]> => {
+): Promise<FinalizedExplorerRecord[]> => {
     console.log("Getting explorer view records")
     if (skipGrapherViews) {
         console.log("(Skipping grapher views)")

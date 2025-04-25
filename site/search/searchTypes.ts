@@ -52,22 +52,6 @@ export interface PageRecord {
 
 export type IPageHit = PageRecord & Hit<BaseHit>
 
-export type IExplorerViewHit = Hit<BaseHit> & {
-    objectID: string
-
-    // Explorer-wide fields
-    explorerSlug: string
-    explorerTitle: string
-    explorerSubtitle: string
-    numViewsWithinExplorer: number
-
-    // View-specific fields
-    viewTitle: string
-    viewSubtitle: string
-    viewQueryParams: string
-    viewTitleIndexWithinExplorer: number
-}
-
 export enum ChartRecordType {
     Chart = "chart",
     ExplorerView = "explorerView",
@@ -86,6 +70,17 @@ export interface ChartRecord {
     keyChartForTags: string[]
     tags: string[]
     availableEntities: string[]
+    /**
+     * Only present for income group-specific FMs: availableEntities before it gets filtered down.
+     * Without this, searching for charts with data for "Uganda" OR "United States" would return
+     * the FM version of the chart that only has Uganda in its available entities, and thus we
+     * wouldn't plot the data for the US, even though the chart has data for the US.
+     */
+    originalAvailableEntities?: string[]
+    /**
+     * Also only set for FMs: used so that we can filter out income group-specific FMs on a plain data catalog view.
+     */
+    isIncomeGroupSpecificFM?: boolean
     publishedAt: string
     updatedAt: string
     numDimensions: number
@@ -93,12 +88,14 @@ export interface ChartRecord {
     numRelatedArticles: number
     views_7d: number
     score: number
+    // we set attributeForDistinct on this, so we can use it to deduplicate
+    // when we have multiple records for the same chart (e.g. with featured metrics)
+    id: string
 }
 
 export type IChartHit = Hit<BaseHit> & ChartRecord
 
 export enum SearchIndexName {
-    ExplorerViews = "explorer-views",
     Charts = "charts",
     Pages = "pages",
     ExplorerViewsMdimViewsAndCharts = "explorer-views-and-charts",
@@ -109,6 +106,5 @@ export type SearchCategoryFilter = SearchIndexName | "all"
 export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
     ["All", "all"],
     ["Research & Writing", SearchIndexName.Pages],
-    ["Charts", SearchIndexName.Charts],
-    ["Data Explorers", SearchIndexName.ExplorerViews],
+    ["Charts", SearchIndexName.ExplorerViewsMdimViewsAndCharts],
 ]

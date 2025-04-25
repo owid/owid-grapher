@@ -21,6 +21,7 @@ const DATA_CATALOG_ATTRIBUTES = [
     "title",
     "slug",
     "availableEntities",
+    "originalAvailableEntities",
     "variantName",
     "type",
     "queryParams",
@@ -46,6 +47,7 @@ export type IDataCatalogHit = {
     title: string
     slug: string
     availableEntities: string[]
+    originalAvailableEntities?: string[]
     objectID: string
     variantName: string | null
     type: ChartRecordType
@@ -145,6 +147,10 @@ export function formatCountryFacetFilters(
     } else {
         // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
         facetFilters.push(setToFacetFilters(countries, "availableEntities"))
+    }
+    // Don't show income group-specific FMs if no countries are selected
+    if (!countries.size) {
+        facetFilters.push("isIncomeGroupSpecificFM:false")
     }
     return facetFilters
 }

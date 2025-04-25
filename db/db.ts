@@ -8,7 +8,7 @@ import {
     BAKED_BASE_URL,
 } from "../settings/serverSettings.js"
 import { registerExitHandler } from "./cleanup.js"
-import { createTagGraph, keyBy } from "@ourworldindata/utils"
+import { createTagGraph, keyBy, Url } from "@ourworldindata/utils"
 import {
     ImageMetadata,
     MinimalDataInsightInterface,
@@ -34,6 +34,12 @@ import {
     PostsGdocsTableName,
     OwidGdocBaseInterface,
     TagGraphRoot,
+    FeaturedMetricByParentTagNameDictionary,
+    ChartConfigsTableName,
+    FeaturedMetricsTableName,
+    TagsTableName,
+    TagGraphTableName,
+    ExplorersTableName,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash-es"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -237,13 +243,15 @@ export const getPublishedExplorersBySlug = async (
         knex,
         `-- sql
         SELECT
-            slug,
-            config->>"$.explorerTitle" as title,
-            config->>"$.explorerSubtitle" as subtitle
+            e.slug,
+            e.config->>"$.explorerTitle" as title,
+            e.config->>"$.explorerSubtitle" as subtitle,
+            e.createdAt,
+            e.updatedAt 
         FROM
-            explorers
+            explorers e
         WHERE
-            isPublished = TRUE`
+            e.isPublished = TRUE`
     ).then((rows) => {
         const processed = rows.map((row: any) => {
             const tagsForExplorer = tagsBySlug[row.slug]
@@ -254,6 +262,8 @@ export const getPublishedExplorersBySlug = async (
                 tags: tagsForExplorer
                     ? tagsForExplorer.tags.map((tag) => tag.name)
                     : [],
+                createdAt: row.createdAt,
+                updatedAt: row.updatedAt,
             }
         })
         return keyBy(processed, "slug")
@@ -885,6 +895,117 @@ export async function generateTopicTagGraph(
     )
 
     return createTagGraph(tagGraphTopicsOnly, __rootId)
+}
+
+/**
+ * Fetch all area and topic tag names from the database.
+ * Areas are the top-level children of the tag graph root, and don't have a slug.
+ * Topics are any tags that have a slug.
+ */
+const getAllAreaAndTopicTagNames = async (
+    trx: KnexReadonlyTransaction
+): Promise<string[]> => {
+    const results = await knexRaw<{ name: string }>(
+        trx,
+        `-- sql
+        WITH topic_tags AS (
+            SELECT name
+            FROM ${TagsTableName}
+            WHERE slug IS NOT NULL
+        ),
+        area_tags AS (
+            SELECT t.name
+            FROM ${TagsTableName} t
+            JOIN ${TagGraphTableName} tg ON tg.childId = t.id
+            JOIN ${TagsTableName} root ON tg.parentId = root.id
+            WHERE root.name = '${TagGraphRootName}'
+        )
+        SELECT name FROM topic_tags
+        UNION
+        SELECT name FROM area_tags`
+    )
+
+    return results.map((row) => row.name)
+}
+
+export const getFeaturedMetricsByParentTagName = async (
+    trx: KnexReadonlyTransaction
+): Promise<FeaturedMetricByParentTagNameDictionary> => {
+    const areaAndTopicTags = await getAllAreaAndTopicTagNames(trx)
+
+    // Prepopulate a dictionary with every topic tag and area
+    const blankFeaturedMetricsByParentTagName = Object.fromEntries(
+        areaAndTopicTags.map((tag) => [tag, []])
+    ) as FeaturedMetricByParentTagNameDictionary
+
+    const featuredMetricsByParentTagName = (await knexRaw(
+        trx,
+        `-- sql
+        SELECT m.*, t.name AS parentTagName, t.id AS parentTagId FROM ${FeaturedMetricsTableName} m
+        JOIN ${TagsTableName} t ON m.parentTagId = t.id
+        ORDER BY m.ranking ASC`
+    ).then((rows) =>
+        groupBy(rows, "parentTagName")
+    )) as FeaturedMetricByParentTagNameDictionary
+
+    return {
+        ...blankFeaturedMetricsByParentTagName,
+        ...featuredMetricsByParentTagName,
+    }
+}
+
+/**
+ * Takes a URL and checks if it points to a valid grapher, explorer, or MDIM view.
+ * Doesn't validate query params as this would be quite complicated / overkill for our needs
+ */
+export async function validateChartSlug(
+    trx: KnexReadonlyTransaction,
+    urlString: string
+): Promise<{ isValid: boolean; reason: string }> {
+    const url = Url.fromURL(urlString)
+    if (url.isExplorer) {
+        const urlSlug = url.slug
+        if (!urlSlug)
+            return { isValid: false, reason: "Missing slug in explorer URL" }
+
+        const explorer = await trx(ExplorersTableName)
+            .where({ slug: urlSlug, isPublished: true })
+            .first()
+
+        if (!explorer)
+            return {
+                isValid: false,
+                reason: "Explorer not found or not published",
+            }
+
+        return { isValid: true, reason: "" }
+    }
+
+    if (url.isGrapher) {
+        const slug = url.slug
+        if (!slug)
+            return { isValid: false, reason: "Missing slug in grapher URL" }
+
+        const grapher = await knexRaw(
+            trx,
+            `-- sql
+            SELECT id
+            FROM ${ChartConfigsTableName}
+            WHERE slug = ?
+            AND full->>"$.isPublished" = "true"`,
+            [slug]
+        ).then((rows) => rows[0])
+
+        if (!grapher)
+            return {
+                isValid: false,
+                reason: "Grapher not found or not published",
+            }
+
+        return { isValid: true, reason: "" }
+    }
+
+    return { isValid: false, reason: "URL is neither explorer nor grapher" }
 }
 
 export const getUniqueTopicCount = async (

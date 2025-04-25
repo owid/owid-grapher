@@ -1,5 +1,9 @@
-import { DbEnrichedVariable } from "@ourworldindata/types"
+import {
+    DbEnrichedVariable,
+    FeaturedMetricIncomeGroup,
+} from "@ourworldindata/types"
 import { ChartRecord } from "../../../site/search/searchTypes.js"
+import { OwidIncomeGroupName } from "@ourworldindata/utils"
 
 /** Charts */
 export interface RawChartRecordRow {
@@ -31,14 +35,6 @@ export interface ParsedChartRecordRow {
 }
 
 /** Explorers */
-export interface IndicatorMetadata {
-    entityNames: string[]
-    titlePublic?: string
-    display?: { name: string }
-    name: string
-    descriptionShort?: string
-}
-
 export interface ExplorerViewGrapherInfo {
     id: number
     title: string
@@ -128,40 +124,33 @@ export type EnrichedExplorerRecord =
     | IndicatorEnrichedExplorerViewRecord
     | CsvEnrichedExplorerViewRecord
 
-/** This is the final record we index to Algolia for the `explorer-views` index */
-export interface ExplorerViewFinalRecord {
-    objectID: string
-    explorerTitle: string
-    viewTitle: string
-    viewSettings: string[]
-    /**
-     * We often have several views with the same title within an explorer, e.g. "Population".
-     * In order to only display _one_ of these views in search results, we need a way to demote duplicates.
-     * This attribute is used for that: The highest-scored such view will be given a value of 0, the second-highest 1, etc.
-     */
+// This is the final record we index to Algolia for the `explorer-views-and-charts` index
+// These properties are only used in Algolia for ranking purposes.
+// This type shouldn't be necessary in any client-side code.
+export type FinalizedExplorerRecord = ChartRecord & {
     viewTitleIndexWithinExplorer: number
-    score: number
-    viewIndexWithinExplorer: number
-    viewSubtitle: string
-    viewQueryParams: string
-    titleLength: number
-    numNonDefaultSettings: number
-    explorerSlug: string
-    explorerSubtitle: string
-    explorerViews_7d: number
-    viewTitleAndExplorerSlug: string
-    numViewsWithinExplorer: number
-    // These 2 aren't currently used in the explorer-views index (used in /search), but we need them in the data catalog
-    tags: string[]
-    availableEntities: string[]
-    // Only used to filter out these views from the data catalog (because we already index graphers)
-    viewGrapherId?: number
-    // True when the record is the first view specified in the explorer's config
-    // Used in order to downrank all other views for the same explorer in the data catalog
     isFirstExplorerView: boolean
 }
 
-// This is the final record we index to Algolia for the `explorer-views-and-charts` index
-export type ConvertedExplorerChartHit = ChartRecord & {
-    viewTitleIndexWithinExplorer: number
+export const REAL_FM_INCOME_GROUPS: Exclude<
+    FeaturedMetricIncomeGroup,
+    FeaturedMetricIncomeGroup.Default
+>[] = [
+    FeaturedMetricIncomeGroup.Low,
+    FeaturedMetricIncomeGroup.LowerMiddle,
+    FeaturedMetricIncomeGroup.UpperMiddle,
+    FeaturedMetricIncomeGroup.High,
+]
+
+/**
+ * Maps OWID income groups to Featured Metric income groups.
+ */
+export const incomeGroupMap: Record<
+    Exclude<FeaturedMetricIncomeGroup, FeaturedMetricIncomeGroup.Default>,
+    OwidIncomeGroupName
+> = {
+    [FeaturedMetricIncomeGroup.Low]: "OWID_LIC",
+    [FeaturedMetricIncomeGroup.LowerMiddle]: "OWID_LMC",
+    [FeaturedMetricIncomeGroup.UpperMiddle]: "OWID_UMC",
+    [FeaturedMetricIncomeGroup.High]: "OWID_HIC",
 }

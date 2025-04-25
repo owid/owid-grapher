@@ -14,7 +14,10 @@ import * as db from "../../../db/db.js"
 import { getAllPublishedMultiDimDataPages } from "../../../db/model/MultiDimDataPage.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
-import { ChartRecordType } from "../../../site/search/searchTypes.js"
+import {
+    ChartRecord,
+    ChartRecordType,
+} from "../../../site/search/searchTypes.js"
 import {
     getRelevantVariableIds,
     getRelevantVariableMetadata,
@@ -94,6 +97,7 @@ async function getRecords(
         return {
             type: ChartRecordType.MultiDimView,
             objectID: `mdim-view-${id}`,
+            id: `mdim/${slug}${queryStr}`,
             chartId: -1,
             slug,
             queryParams: queryStr,
@@ -110,7 +114,8 @@ async function getRecords(
             numRelatedArticles: 0,
             views_7d,
             score,
-        }
+            isIncomeGroupSpecificFM: false,
+        } as ChartRecord
     })
 }
 

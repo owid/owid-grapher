@@ -9,7 +9,7 @@ import {
     ALGOLIA_INDEXING,
     ALGOLIA_SECRET_KEY,
 } from "../../settings/serverSettings.js"
-import { countries, regions, excludeUndefined } from "@ourworldindata/utils"
+import { countries, excludeUndefined } from "@ourworldindata/utils"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 
@@ -24,11 +24,6 @@ export const getAlgoliaClient = (): SearchClient | undefined => {
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
     return client
 }
-
-const allCountryNamesAndVariants = regions.flatMap((region) => [
-    region.name,
-    ...(("variantNames" in region && region.variantNames) || []),
-])
 
 // This function initializes and applies settings to the Algolia search indices
 // Algolia settings should be configured here rather than in the Algolia dashboard UI, as then
@@ -130,36 +125,6 @@ export const configureAlgolia = async () => {
         disablePrefixOnAttributes: ["content"],
     })
 
-    const explorerViewsIndex = client.initIndex(
-        getIndexName(SearchIndexName.ExplorerViews)
-    )
-
-    await explorerViewsIndex.setSettings({
-        ...baseSettings,
-        searchableAttributes: [
-            "unordered(explorerTitle)",
-            "unordered(viewTitle)",
-            "unordered(viewSettings)",
-        ],
-        customRanking: [
-            // For multiple explorer views with the same title, we want to avoid surfacing duplicates.
-            // So, rank a result with viewTitleIndexWithinExplorer=0 way more highly than one with 1, 2, etc.
-            "asc(viewTitleIndexWithinExplorer)",
-            "desc(score)",
-            "asc(viewIndexWithinExplorer)",
-        ],
-        attributeForDistinct: "explorerSlug",
-        distinct: 4,
-        minWordSizefor1Typo: 6,
-        optionalWords: [
-            "data",
-            "explorer",
-            "explore",
-            "explorers",
-            ...allCountryNamesAndVariants,
-        ],
-    })
-
     const explorerViewsAndChartsIndex = client.initIndex(
         getIndexName(SearchIndexName.ExplorerViewsMdimViewsAndCharts)
     )
@@ -173,6 +138,7 @@ export const configureAlgolia = async () => {
             "unordered(subtitle)",
             "unordered(tags)",
             "unordered(availableEntities)",
+            "unordered(originalAvailableEntities)",
         ],
         ranking: ["typo", "words", "exact", "attribute", "custom", "proximity"],
         customRanking: [
@@ -192,7 +158,12 @@ export const configureAlgolia = async () => {
         disableExactOnAttributes: ["tags", "subtitle", "availableEntities"],
         disableTypoToleranceOnAttributes: ["subtitle", "availableEntities"],
         disablePrefixOnAttributes: ["subtitle"],
-        attributesForFaceting: ["tags", "availableEntities"],
+        attributesForFaceting: [
+            "tags",
+            "availableEntities",
+            "type",
+            "isIncomeGroupSpecificFM",
+        ],
     })
 
     const synonyms = [
@@ -368,9 +339,6 @@ export const configureAlgolia = async () => {
         replaceExistingSynonyms: true,
     })
     await chartsIndex.saveSynonyms(algoliaSynonyms, {
-        replaceExistingSynonyms: true,
-    })
-    await explorerViewsIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true,
     })
 
