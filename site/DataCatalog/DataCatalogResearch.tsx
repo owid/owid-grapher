@@ -24,7 +24,7 @@ export const DataCatalogResearch: React.FC<DataCatalogResearchProps> = ({
 
     const handleShowMore = () => {
         if (setComponentCount) {
-            setComponentCount(CatalogComponentId.RESEARCH, researchToShow + 2)
+            setComponentCount(CatalogComponentId.RESEARCH, researchToShow + 4)
         }
     }
 

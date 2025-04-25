@@ -24,7 +24,7 @@ export const DataCatalogDataInsights = ({
         if (setComponentCount) {
             setComponentCount(
                 CatalogComponentId.DATA_INSIGHTS,
-                insightsToShow + 2
+                insightsToShow + 4
             )
         }
     }
