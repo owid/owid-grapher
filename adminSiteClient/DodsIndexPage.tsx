@@ -10,7 +10,7 @@ import { tippy } from "@tippyjs/react"
 import { Button, Flex, Form, Input, Modal, Popconfirm, Table } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { DbPlainDod, DbPlainUser } from "@ourworldindata/types"
+import { DbPlainDod, DbPlainUser, DodUsageRecord } from "@ourworldindata/types"
 import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { EditableTextarea } from "./EditableTextarea.js"
 import { indexBy } from "remeda"
@@ -20,6 +20,8 @@ import { Content, PhrasingContent } from "mdast"
 import { renderToStaticMarkup } from "react-dom/server.js"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import TextArea from "antd/es/input/TextArea.js"
+import { match } from "ts-pattern"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 type ValidPhrasingContent = Extract<
     PhrasingContent,
@@ -122,10 +124,14 @@ function createColumns({
     deleteDodMutation,
     patchDodMutation,
     users,
+    dodUsage,
+    setActiveDodForUsageModal,
 }: {
     deleteDodMutation: DeleteDodMutationType
     patchDodMutation: PatchDodMutationType
     users: Record<string, DbPlainUser> | undefined
+    dodUsage: Record<string, { usage: DodUsageRecord[] }> | undefined
+    setActiveDodForUsageModal: (name: string) => void
 }): ColumnsType<DbPlainDod> {
     return [
         {
@@ -178,6 +184,12 @@ function createColumns({
             title: "Actions",
             dataIndex: "content",
             width: 100,
+            sorter: (a, b) => {
+                if (!dodUsage) return 0
+                const aUsage = dodUsage?.[a.name]?.usage.length || 0
+                const bUsage = dodUsage?.[b.name]?.usage.length || 0
+                return aUsage - bUsage
+            },
             key: "actions",
             render: (_, dod) => {
                 return (
@@ -200,6 +212,14 @@ function createColumns({
                             }}
                         >
                             Preview
+                        </Button>
+                        <Button
+                            onClick={() => setActiveDodForUsageModal(dod.name)}
+                        >
+                            Usage
+                            <span>
+                                {dodUsage?.[dod.name]?.usage.length || 0}
+                            </span>
                         </Button>
                         <Popconfirm
                             title="Are you sure?"
@@ -247,6 +267,14 @@ async function fetchDods(admin: Admin) {
         dods: DbPlainDod[]
     }>("/api/dods.json")
     return indexBy(dods, (d) => d.id)
+}
+
+async function fetchDodUsage(admin: Admin) {
+    const usageDictionary = await admin.getJSON<
+        Record<string, { usage: DodUsageRecord[] }>
+    >("/api/dods-usage.json")
+
+    return usageDictionary
 }
 
 async function fetchUsers(admin: Admin) {
@@ -364,15 +392,111 @@ function CreateDodModal({
     )
 }
 
+function DodUsageModal({
+    dodUsage,
+    activeDodForUsageModal,
+    setActiveDodForUsageModal,
+}: {
+    dodUsage: Record<string, { usage: DodUsageRecord[] }> | undefined
+    activeDodForUsageModal: string | null
+    setActiveDodForUsageModal: (name: string | null) => void
+}) {
+    if (!dodUsage || !activeDodForUsageModal) return null
+    const activeDod = dodUsage[activeDodForUsageModal]
+    if (!activeDod) return null
+
+    return (
+        <Modal
+            width="80vw"
+            title={`Usage of ${activeDodForUsageModal}`}
+            open={!!activeDodForUsageModal}
+            onCancel={() => setActiveDodForUsageModal(null)}
+            footer={null}
+        >
+            <Table
+                dataSource={activeDod.usage}
+                rowKey={(x) => x.id}
+                columns={[
+                    {
+                        title: "Resource",
+                        dataIndex: "id",
+                        key: "id",
+                        render: (_, dodUsageRecord: DodUsageRecord) => {
+                            function makeUrlForUsageRecord(
+                                dodUsageRecord: DodUsageRecord
+                            ): string | undefined {
+                                return match(dodUsageRecord.type)
+                                    .with("explorer", () => {
+                                        return `/admin/explorers/${dodUsageRecord.id}`
+                                    })
+                                    .with("gdoc", () => {
+                                        return `/admin/gdocs/${dodUsageRecord.id}/preview`
+                                    })
+                                    .with("grapher", () => {
+                                        return `${BAKED_BASE_URL}/grapher/${dodUsageRecord.id}`
+                                    })
+                                    .with("indicator", () => {
+                                        return `/admin/variables/${dodUsageRecord.id}`
+                                    })
+                                    .with("dod", () => {
+                                        return undefined
+                                    })
+                                    .exhaustive()
+                            }
+                            const url = makeUrlForUsageRecord(dodUsageRecord)
+                            if (!url) {
+                                return <span>{dodUsageRecord.title}</span>
+                            }
+                            return (
+                                <a
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {dodUsageRecord.title}
+                                </a>
+                            )
+                        },
+                    },
+                    {
+                        title: "Type",
+                        dataIndex: "type",
+                        key: "type",
+                        filterOnClose: true,
+                        filters: [
+                            { text: "explorer", value: "explorer" },
+                            { text: "gdoc", value: "gdoc" },
+                            { text: "grapher", value: "grapher" },
+                            { text: "indicator", value: "indicator" },
+                            { text: "dod", value: "dod" },
+                        ],
+                        onFilter: (value, record) => {
+                            return record.type === value
+                        },
+                    },
+                ]}
+            />
+        </Modal>
+    )
+}
+
 export function DodsIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [dodSearchValue, setDodSearchValue] = useState("")
     const [isCreateDodModalOpen, setIsCreateDodModalOpen] = useState(false)
+    const [activeDodForUsageModal, setActiveDodForUsageModal] = useState<
+        string | null
+    >(null)
     const queryClient = useQueryClient()
 
     const { data: dods } = useQuery({
         queryKey: ["dods"],
         queryFn: () => fetchDods(admin),
+    })
+
+    const { data: dodUsage } = useQuery({
+        queryKey: ["dod-usage"],
+        queryFn: () => fetchDodUsage(admin),
     })
 
     const { data: users } = useQuery({
@@ -423,8 +547,21 @@ export function DodsIndexPage() {
     )
 
     const columns = useMemo(
-        () => createColumns({ users, deleteDodMutation, patchDodMutation }),
-        [users, deleteDodMutation, patchDodMutation]
+        () =>
+            createColumns({
+                users,
+                dodUsage,
+                deleteDodMutation,
+                patchDodMutation,
+                setActiveDodForUsageModal,
+            }),
+        [
+            users,
+            dodUsage,
+            setActiveDodForUsageModal,
+            deleteDodMutation,
+            patchDodMutation,
+        ]
     )
 
     return (
@@ -457,6 +594,11 @@ export function DodsIndexPage() {
                     createDodMutation={createDodMutation}
                     isOpen={isCreateDodModalOpen}
                     onClose={() => setIsCreateDodModalOpen(false)}
+                />
+                <DodUsageModal
+                    dodUsage={dodUsage}
+                    activeDodForUsageModal={activeDodForUsageModal}
+                    setActiveDodForUsageModal={setActiveDodForUsageModal}
                 />
             </main>
         </AdminLayout>
