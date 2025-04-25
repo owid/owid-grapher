@@ -89,7 +89,6 @@ export const Head = (props: {
                 type="font/woff2"
                 crossOrigin="anonymous"
             />
-            <meta property="fb:app_id" content="1149943818390250" />
             <meta property="og:url" content={canonicalUrl} />
             <meta property="og:title" content={pageTitle} />
             <meta property="og:description" content={pageDesc} />
