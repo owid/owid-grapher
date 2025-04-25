@@ -148,7 +148,7 @@ export class MapChart
     }
 
     @computed get selectionArray(): SelectionArray {
-        return this.mapConfig.selectedCountries
+        return this.mapConfig.selection
     }
 
     @computed get failMessage(): string {
@@ -217,12 +217,8 @@ export class MapChart
         return this.manager.mapRegionDropdownValue
     }
 
-    @computed get shouldEnableEntitySelectionOnMapTab(): boolean {
-        return !!this.manager.shouldEnableEntitySelectionOnMapTab
-    }
-
-    @computed get shouldShowEntitySelectorOnMapTab(): boolean {
-        return !!this.manager.shouldShowEntitySelectorOnMapTab
+    @computed get isMapSelectionEnabled(): boolean {
+        return !!this.manager.isMapSelectionEnabled
     }
 
     @action.bound resetMapRegionDropdownValue(): void {

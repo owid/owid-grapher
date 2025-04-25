@@ -16,7 +16,7 @@ export interface MapRegionDropdownManager {
     isOnMapTab?: boolean
     mapRegionDropdownValue?: MapRegionDropdownValue
     hideMapRegionDropdown?: boolean
-    shouldShowEntitySelectorOnMapTab?: boolean
+    isMapSelectionEnabled?: boolean
 }
 
 interface MapRegionDropdownOption {
@@ -47,13 +47,13 @@ export class MapRegionDropdown extends React.Component<{
                 hideMapRegionDropdown,
                 isOnMapTab,
                 mapConfig,
-                shouldShowEntitySelectorOnMapTab,
+                isMapSelectionEnabled,
             } = this.manager,
             { region } = mapConfig ?? {}
         return (
             !hideMapRegionDropdown &&
             !!(isOnMapTab && region) &&
-            !!shouldShowEntitySelectorOnMapTab
+            !!isMapSelectionEnabled
         )
     }
 
@@ -99,7 +99,7 @@ export class MapRegionDropdown extends React.Component<{
             label: "Selection",
         }
 
-        return this.mapConfig.selectedCountries.hasSelection
+        return this.mapConfig.selection.hasSelection
             ? [selectionOption, ...continentOptions]
             : continentOptions
     }

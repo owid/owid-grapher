@@ -114,7 +114,7 @@ export const grapherObjectToQueryParams = (
         globeRotation: stringifyGlobeRotation(grapher.mapConfig.globe.rotation),
         globeZoom: R.round(grapher.mapConfig.globe.zoom, 2).toString(),
         mapSelect: generateSelectedEntityNamesParam(
-            grapher.mapConfig.selectedCountries.selectedEntityNames
+            grapher.mapConfig.selection.selectedEntityNames
         ),
     }
     return params
