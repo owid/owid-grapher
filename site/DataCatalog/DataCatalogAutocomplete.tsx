@@ -731,6 +731,45 @@ export function DataCatalogAutocomplete({
         }
     }, [search, query])
 
+    // Add event listener to handle backspace key when input is empty
+    useEffect(() => {
+        const input =
+            containerRef.current?.querySelector<HTMLInputElement>("input")
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // If backspace is pressed and the input is empty, remove the last filter
+            if (
+                e.key === "Backspace" &&
+                input &&
+                input.value === "" &&
+                pendingFiltersRef.current.length > 0
+            ) {
+                e.preventDefault()
+                removeLastFilterRef.current()
+            }
+
+            // If Enter is pressed and the input is empty, reset the search
+            if (e.key === "Enter" && input && input.value === "") {
+                e.preventDefault()
+                // Clear all filters and query
+                pendingFiltersRef.current.forEach(() => {
+                    removeLastFilterRef.current()
+                })
+                setQueryRef.current("")
+            }
+        }
+
+        if (input) {
+            input.addEventListener("keydown", handleKeyDown)
+        }
+
+        return () => {
+            if (input) {
+                input.removeEventListener("keydown", handleKeyDown)
+            }
+        }
+    }, [search, containerRef])
+
     // Register a global shortcut to open the search box on typing "/"
     useEffect(() => {
         if (!search) return
