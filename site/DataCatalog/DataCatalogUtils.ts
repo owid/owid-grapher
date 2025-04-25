@@ -349,21 +349,29 @@ export const queryDataInsights = async (
     const index = searchClient.initIndex(getIndexName(SearchIndexName.Pages))
     const { query, page } = state
     const topicFilters = getFiltersOfType(state, CatalogFilterType.TOPIC)
+    const countryFilters = getFiltersOfType(state, CatalogFilterType.COUNTRY)
 
     // Base facet filters
-    const facetFilters: (string | string[])[] = [`type:${OwidGdocType.DataInsight}`]
-    
+    const facetFilters: (string | string[])[] = [
+        `type:${OwidGdocType.DataInsight}`,
+    ]
+
     // Format topic filters based on requireAllTags setting
     const topicFacetFilters = formatFacetFilters(
         topicFilters,
         "tags",
         state.requireAllTags
     )
-    
+
     // Combine all facet filters
     facetFilters.push(...topicFacetFilters)
 
-    const results = await index.search<IPageHit>(query, {
+    const queryWithCountryFilters =
+        countryFilters.size > 0
+            ? `${query} ${Array.from(countryFilters).join(" ")}`
+            : query
+
+    const results = await index.search<IPageHit>(queryWithCountryFilters, {
         page,
         hitsPerPage: state.componentCount[CatalogComponentId.DATA_INSIGHTS],
         highlightPreTag: "<mark>",
@@ -390,14 +398,14 @@ export const queryResearch = async (
             `type:${OwidGdocType.TopicPage}`,
         ],
     ]
-    
+
     // Format topic filters based on requireAllTags setting
     const topicFacetFilters = formatFacetFilters(
         topicFilters,
         "tags",
         state.requireAllTags
     )
-    
+
     // Combine all facet filters
     facetFilters.push(...topicFacetFilters)
 
