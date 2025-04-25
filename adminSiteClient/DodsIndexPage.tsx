@@ -10,7 +10,12 @@ import { tippy } from "@tippyjs/react"
 import { Button, Flex, Form, Input, Modal, Popconfirm, Table } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { DbPlainDod, DbPlainUser, DodUsageRecord } from "@ourworldindata/types"
+import {
+    DbPlainDod,
+    DbPlainUser,
+    DodUsageRecord,
+    DodUsageTypes,
+} from "@ourworldindata/types"
 import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { EditableTextarea } from "./EditableTextarea.js"
 import { indexBy } from "remeda"
@@ -192,6 +197,8 @@ function createColumns({
             },
             key: "actions",
             render: (_, dod) => {
+                const usage = dodUsage?.[dod.name]?.usage || []
+
                 return (
                     <div className="DodEditor__actions">
                         <Button
@@ -217,9 +224,7 @@ function createColumns({
                             onClick={() => setActiveDodForUsageModal(dod.name)}
                         >
                             Usage
-                            <span>
-                                {dodUsage?.[dod.name]?.usage.length || 0}
-                            </span>
+                            <span>{usage.length || 0}</span>
                         </Button>
                         <Popconfirm
                             title="Are you sure?"
@@ -232,8 +237,14 @@ function createColumns({
                             okText="Yes"
                             cancelText="No"
                         >
-                            <Button color="danger" variant="filled">
-                                Delete
+                            <Button
+                                color="danger"
+                                variant="filled"
+                                disabled={!!usage.length}
+                            >
+                                {usage.length
+                                    ? "Cannot delete while in use"
+                                    : "Delete"}
                             </Button>
                         </Popconfirm>
                     </div>
@@ -402,8 +413,19 @@ function DodUsageModal({
     setActiveDodForUsageModal: (name: string | null) => void
 }) {
     if (!dodUsage || !activeDodForUsageModal) return null
-    const activeDod = dodUsage[activeDodForUsageModal]
-    if (!activeDod) return null
+    const activeDodUsage = dodUsage[activeDodForUsageModal]
+    if (!activeDodUsage) return null
+
+    const presentUsageTypes = new Set(
+        activeDodUsage.usage.map((dodUsageRecord) => dodUsageRecord.type)
+    )
+
+    const filtersToDisplay = DodUsageTypes.filter((dodUsageType) =>
+        presentUsageTypes.has(dodUsageType)
+    ).map((dodUsageType) => ({
+        text: dodUsageType,
+        value: dodUsageType,
+    }))
 
     return (
         <Modal
@@ -414,7 +436,7 @@ function DodUsageModal({
             footer={null}
         >
             <Table
-                dataSource={activeDod.usage}
+                dataSource={activeDodUsage.usage}
                 rowKey={(x) => x.id}
                 columns={[
                     {
@@ -462,14 +484,9 @@ function DodUsageModal({
                         title: "Type",
                         dataIndex: "type",
                         key: "type",
+                        width: 200,
                         filterOnClose: true,
-                        filters: [
-                            { text: "explorer", value: "explorer" },
-                            { text: "gdoc", value: "gdoc" },
-                            { text: "grapher", value: "grapher" },
-                            { text: "indicator", value: "indicator" },
-                            { text: "dod", value: "dod" },
-                        ],
+                        filters: filtersToDisplay,
                         onFilter: (value, record) => {
                             return record.type === value
                         },
