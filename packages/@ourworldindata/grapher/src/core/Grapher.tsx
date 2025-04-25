@@ -480,15 +480,14 @@ export class GrapherState {
             this.ensureValidConfigWhenEditing()
         }
     }
-
     toObject(): GrapherInterface {
         const obj: GrapherInterface = objectWithPersistablesToObject(
             this,
             grapherKeysToSerialize
         )
 
-        obj.selectedEntityNames = this.selection.selectedEntityNames
-        obj.focusedSeriesNames = this.focusArray.seriesNames
+        obj.selectedEntityNames = [...this.selection.selectedEntityNames]
+        obj.focusedSeriesNames = [...this.focusArray.seriesNames]
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
