@@ -1306,7 +1306,7 @@ export class EntitySelector extends React.Component<{
         // when all entities are currently selected and there are only a few of them
         const hasFewEntities = filteredAvailableEntities.length < 10
         const shouldHideAvailableEntities =
-            hasFewEntities && this.allEntitiesSelected
+            !shouldShowFilterBar && hasFewEntities && this.allEntitiesSelected
 
         return (
             <Flipper
