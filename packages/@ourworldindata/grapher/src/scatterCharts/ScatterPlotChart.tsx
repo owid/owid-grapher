@@ -1443,9 +1443,7 @@ export class ScatterPlotChart
                 this.transformedTable.getColorForEntityName(entityName)
             if (keyColor !== undefined) series.color = keyColor
             else if (!this.colorColumn.isMissing) {
-                const colorValue = R.last(
-                    series.points.map((point) => point.color)
-                )
+                const colorValue = R.last(series.points)?.color
                 const color = this.colorScale.getColor(colorValue)
                 if (color !== undefined) {
                     series.color = color
