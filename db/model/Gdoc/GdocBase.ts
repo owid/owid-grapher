@@ -67,7 +67,7 @@ import {
     OwidGdocLinkType,
     OwidGdocType,
 } from "@ourworldindata/types"
-import { getChartViewsInfo } from "../ChartView.js"
+import { getAllChartViewNames, getChartViewsInfo } from "../ChartView.js"
 
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
@@ -801,12 +801,12 @@ export class GdocBase implements OwidGdocBaseInterface {
             []
         )
 
-        const chartIdsBySlug = await mapSlugsToIds(knex)
-        const publishedExplorersBySlug =
-            await db.getPublishedExplorersBySlug(knex)
-        const chartViewNames = await getChartViewsInfo(knex)
-            .then((cv) => cv.map((c) => c.name))
-            .then((chartViewNames) => new Set(chartViewNames))
+        const [chartIdsBySlug, publishedExplorersBySlug, chartViewNames] =
+            await Promise.all([
+                mapSlugsToIds(knex),
+                db.getPublishedExplorersBySlug(knex),
+                getAllChartViewNames(knex),
+            ])
 
         const linkErrors: OwidGdocErrorMessage[] = []
         for (const link of this.links) {

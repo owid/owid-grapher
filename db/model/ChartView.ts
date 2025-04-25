@@ -1,5 +1,6 @@
 import {
     ChartViewInfo,
+    ChartViewsTableName,
     DbPlainChartView,
     JsonString,
 } from "@ourworldindata/types"
@@ -46,4 +47,12 @@ export const getChartViewNameConfigMap = async (
         Pick<DbPlainChartView, "name" | "chartConfigId">
     >(knex, `SELECT name, chartConfigId FROM chart_views`)
     return Object.fromEntries(rows.map((row) => [row.name, row.chartConfigId]))
+}
+
+export const getAllChartViewNames = async (
+    knex: db.KnexReadonlyTransaction
+): Promise<Set<string>> => {
+    const rows =
+        await knex<DbPlainChartView>(ChartViewsTableName).select("name")
+    return new Set(rows.map((row) => row.name))
 }
