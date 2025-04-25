@@ -38,3 +38,15 @@
     flex-direction: column;
     gap: 12px;
 }
+
+.DodEditor__actions-spinner {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    button {
+        width: 100% !important;
+    }
+}
