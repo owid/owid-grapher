@@ -15,8 +15,8 @@ import {
 } from "@ourworldindata/utils"
 import { DetailsMarker } from "@ourworldindata/types"
 import { TextWrap } from "../TextWrap/TextWrap.js"
-import fromMarkdown from "mdast-util-from-markdown"
-import type { Root, Content } from "mdast"
+import { fromMarkdown } from "mdast-util-from-markdown"
+import type { Content, Root } from "mdast"
 import { match } from "ts-pattern"
 import { urlRegex } from "../markdown/remarkPlainLinks.js"
 import * as R from "remeda"
@@ -822,7 +822,7 @@ export function convertMarkdownToIRTokens(
     fontParams?: IRFontParams
 ): IRToken[] {
     const ast: Root = fromMarkdown(markdown)
-    const children = ast.children.flatMap((item: Content) =>
+    const children = ast.children.flatMap((item) =>
         convertMarkdownNodeToIRTokens(item, fontParams)
     )
     // ensure that there are no leading or trailing line breaks
