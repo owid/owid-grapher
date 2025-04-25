@@ -188,7 +188,7 @@ function createColumns({
         {
             title: "Actions",
             dataIndex: "content",
-            width: 100,
+            width: 220,
             sorter: (a, b) => {
                 if (!dodUsage) return 0
                 const aUsage = dodUsage?.[a.name]?.usage.length || 0
@@ -197,6 +197,15 @@ function createColumns({
             },
             key: "actions",
             render: (_, dod) => {
+                if (!dodUsage) {
+                    return (
+                        <div className="DodEditor__actions-spinner">
+                            <Button disabled loading />
+                            <Button disabled loading />
+                            <Button disabled loading />
+                        </div>
+                    )
+                }
                 const usage = dodUsage?.[dod.name]?.usage || []
 
                 return (
