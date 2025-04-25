@@ -902,6 +902,8 @@ section[data-autocomplete-source-id="countries"] {
 
 .data-catalog-research-ribbon-section {
     margin-bottom: 32px;
+    background-color: $blue-5;
+    padding: 16px;
 }
 
 .data-catalog-research-ribbon-header {
@@ -933,8 +935,8 @@ section[data-autocomplete-source-id="countries"] {
 }
 
 .data-catalog-research-hit__title {
+    display: block;
     margin-bottom: 0;
-    margin-top: 8px;
     color: $blue-90;
 
     &:hover {
@@ -943,9 +945,12 @@ section[data-autocomplete-source-id="countries"] {
 }
 
 .data-catalog-research-ribbon-item {
-    border-bottom: 1px solid $blue-10;
+    border-bottom: 1px solid $blue-20;
     &:last-child {
         border-bottom: none;
+        .data-catalog-research-hit {
+            padding-bottom: 0;
+        }
     }
 }
 
