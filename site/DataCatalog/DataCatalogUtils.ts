@@ -390,38 +390,32 @@ export const queryResearchRibbons = async (
     state: DataCatalogState,
     tagGraph: TagGraphRoot
 ): Promise<DataCatalogResearchRibbonResult[]> => {
-    const index = searchClient.initIndex(getIndexName(SearchIndexName.Pages))
     const topicFilters = getFiltersOfType(state, CatalogFilterType.TOPIC)
     const topicsForRibbons = getTopicsForRibbons(topicFilters, tagGraph)
 
-    // Create a query for each topic in the ribbons
-    const results = await Promise.all(
-        topicsForRibbons.map(async (topic) => {
-            const facetFilters = [
-                [`type:${OwidGdocType.Article}`],
-                [`tags:${topic}`],
-            ]
+    // Build an array of search params for each topic
+    const searchParams = topicsForRibbons.map((topic) => ({
+        indexName: getIndexName(SearchIndexName.Pages),
+        query: state.query,
+        facetFilters: [[`type:${OwidGdocType.Article}`], [`tags:${topic}`]],
+        page: state.page < 0 ? 0 : state.page,
+        hitsPerPage:
+            state.componentCount[CatalogComponentId.RESEARCH] ||
+            DEFAULT_COMPONENTS.find((c) => c.id === CatalogComponentId.RESEARCH)
+                ?.maxItems ||
+            4,
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+    }))
 
-            const result = await index.search<IPageHit>(state.query, {
-                page: state.page < 0 ? 0 : state.page,
-                hitsPerPage:
-                    state.componentCount[CatalogComponentId.RESEARCH] ||
-                    DEFAULT_COMPONENTS.find(
-                        (c) => c.id === CatalogComponentId.RESEARCH
-                    )?.maxItems ||
-                    4,
-                highlightPreTag: "<mark>",
-                highlightPostTag: "</mark>",
-                facetFilters,
-            })
+    // Send a single multiqueries request
+    const response = await searchClient.search<IPageHit>(searchParams)
 
-            // Add the topic name as title to the result
-            return {
-                ...result,
-                title: topic,
-            }
-        })
-    )
+    // Format the response
+    const results = response.results.map((result, i) => ({
+        ...(result as SearchResponse<IPageHit>),
+        title: topicsForRibbons[i],
+    }))
 
     // Filter out topics with no results
     return results.filter((result) => result.hits.length > 0)
