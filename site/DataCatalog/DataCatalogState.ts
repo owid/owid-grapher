@@ -60,6 +60,7 @@ export type DataCatalogState = Readonly<{
     query: string
     filters: CatalogFilter[] // Array of filter objects
     requireAllCountries: boolean
+    requireAllTags: boolean
     page: number
     componentOrder: CatalogComponentId[]
     componentVisibility: Record<CatalogComponentId, boolean>
@@ -155,6 +156,10 @@ type ToggleRequireAllCountriesAction = {
     type: "toggleRequireAllCountries"
 }
 
+type ToggleRequireAllTagsAction = {
+    type: "toggleRequireAllTags"
+}
+
 type SetStateAction = {
     type: "setState"
     state: DataCatalogState
@@ -231,6 +236,7 @@ export type DataCatalogAction =
     | SetQueryAction
     | SetStateAction
     | ToggleRequireAllCountriesAction
+    | ToggleRequireAllTagsAction
     | UpdateComponentOrderAction
     | ToggleComponentVisibilityAction
     | SetComponentCountAction
@@ -292,6 +298,10 @@ export function dataCatalogReducer(
         .with({ type: "toggleRequireAllCountries" }, () => ({
             ...state,
             requireAllCountries: !state.requireAllCountries,
+        }))
+        .with({ type: "toggleRequireAllTags" }, () => ({
+            ...state,
+            requireAllTags: !state.requireAllTags,
         }))
         .with({ type: "setPage" }, ({ page }) => ({
             ...state,
@@ -376,6 +386,7 @@ export function createActions(dispatch: (action: DataCatalogAction) => void) {
         setQuery: (query: string) => dispatch({ type: "setQuery", query }),
         setState: (state: DataCatalogState) => dispatch({ type: "setState", state }),
         toggleRequireAllCountries: () => dispatch({ type: "toggleRequireAllCountries" }),
+        toggleRequireAllTags: () => dispatch({ type: "toggleRequireAllTags" }),
         updateComponentOrder: (componentOrder: CatalogComponentId[]) => dispatch({ type: "updateComponentOrder", payload: componentOrder }),
         toggleComponentVisibility: (componentId: CatalogComponentId) => dispatch({ type: "toggleComponentVisibility", payload: componentId }),
         setComponentCount: (componentId: CatalogComponentId, count: number) =>
@@ -425,6 +436,7 @@ const getDefaultCatalogState = (): DataCatalogState => ({
     query: "",
     filters: [],
     requireAllCountries: false,
+    requireAllTags: true,
     page: 0,
     componentOrder: getDefaultComponentOrder(),
     componentVisibility: getDefaultComponentVisibility(),
@@ -554,6 +566,7 @@ export function dataCatalogStateToUrl(state: DataCatalogState) {
             getFiltersOfType(state, CatalogFilterType.COUNTRY)
         ),
         requireAllCountries: state.requireAllCountries ? "true" : undefined,
+        requireAllTags: state.requireAllTags ? undefined : "false",
         page: state.page > 0 ? (state.page + 1).toString() : undefined,
         insights:
             state.componentCount[CatalogComponentId.DATA_INSIGHTS] !==

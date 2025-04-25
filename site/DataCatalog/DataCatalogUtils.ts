@@ -201,17 +201,18 @@ export function getTopicsForRibbons(
     return []
 }
 
-export function formatCountryFacetFilters(
-    countries: Set<string>,
-    requireAllCountries: boolean
+export function formatFacetFilters(
+    values: Set<string>,
+    attribute: "tags" | "availableEntities",
+    requireAll: boolean
 ) {
     const facetFilters: (string | string[])[] = []
-    if (requireAllCountries) {
+    if (requireAll) {
         // conjunction mode (A AND B): [attribute:"A", attribute:"B"]
-        facetFilters.push(...setToFacetFilters(countries, "availableEntities"))
+        facetFilters.push(...setToFacetFilters(values, attribute))
     } else {
         // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
-        facetFilters.push(setToFacetFilters(countries, "availableEntities"))
+        facetFilters.push(setToFacetFilters(values, attribute))
     }
     return facetFilters
 }
@@ -238,8 +239,9 @@ export function dataCatalogStateToAlgoliaQueries(
     topicNames: string[]
 ) {
     const countryFilters = getFiltersOfType(state, CatalogFilterType.COUNTRY)
-    const countryFacetFilters = formatCountryFacetFilters(
+    const countryFacetFilters = formatFacetFilters(
         countryFilters,
+        "availableEntities",
         state.requireAllCountries
     )
     return topicNames.map((topic) => {
@@ -260,11 +262,20 @@ export function dataCatalogStateToAlgoliaQuery(state: DataCatalogState) {
     const countryFilters = getFiltersOfType(state, CatalogFilterType.COUNTRY)
     const topicFilters = getFiltersOfType(state, CatalogFilterType.TOPIC)
 
-    const facetFilters = formatCountryFacetFilters(
+    // Format country and topic filters based on their respective requireAll settings
+    const countryFacetFilters = formatFacetFilters(
         countryFilters,
+        "availableEntities",
         state.requireAllCountries
     )
-    facetFilters.push(...setToFacetFilters(topicFilters, "tags"))
+    const topicFacetFilters = formatFacetFilters(
+        topicFilters,
+        "tags",
+        state.requireAllTags
+    )
+
+    // Combine all facet filters
+    const facetFilters = [...countryFacetFilters, ...topicFacetFilters]
 
     return [
         {
@@ -339,8 +350,18 @@ export const queryDataInsights = async (
     const { query, page } = state
     const topicFilters = getFiltersOfType(state, CatalogFilterType.TOPIC)
 
-    const facetFilters = [`type:${OwidGdocType.DataInsight}`]
-    facetFilters.push(...setToFacetFilters(topicFilters, "tags"))
+    // Base facet filters
+    const facetFilters: (string | string[])[] = [`type:${OwidGdocType.DataInsight}`]
+    
+    // Format topic filters based on requireAllTags setting
+    const topicFacetFilters = formatFacetFilters(
+        topicFilters,
+        "tags",
+        state.requireAllTags
+    )
+    
+    // Combine all facet filters
+    facetFilters.push(...topicFacetFilters)
 
     const results = await index.search<IPageHit>(query, {
         page,
@@ -361,14 +382,24 @@ export const queryResearch = async (
     const { query, page } = state
     const topicFilters = getFiltersOfType(state, CatalogFilterType.TOPIC)
 
-    const facetFilters = [
+    // Base facet filters with content types
+    const facetFilters: (string | string[])[] = [
         [
             `type:${OwidGdocType.Article}`,
             `type:${OwidGdocType.LinearTopicPage}`,
             `type:${OwidGdocType.TopicPage}`,
         ],
     ]
-    facetFilters.push(setToFacetFilters(topicFilters, "tags"))
+    
+    // Format topic filters based on requireAllTags setting
+    const topicFacetFilters = formatFacetFilters(
+        topicFilters,
+        "tags",
+        state.requireAllTags
+    )
+    
+    // Combine all facet filters
+    facetFilters.push(...topicFacetFilters)
 
     const results = await index.search<IPageHit>(query, {
         page,

@@ -47,6 +47,7 @@ export const DataCatalogSettings = ({
     typoTolerance,
     minQueryLength,
     requireAllCountries,
+    requireAllTags,
     updateComponentOrder,
     toggleComponentVisibility,
     setComponentCount,
@@ -59,6 +60,7 @@ export const DataCatalogSettings = ({
     enableCombinedFilters,
     toggleCombinedFilters,
     toggleRequireAllCountries,
+    toggleRequireAllTags,
 }: {
     componentOrder: CatalogComponentId[]
     componentVisibility: Record<CatalogComponentId, boolean>
@@ -70,6 +72,7 @@ export const DataCatalogSettings = ({
     typoTolerance: boolean
     minQueryLength: number
     requireAllCountries: boolean
+    requireAllTags: boolean
     updateComponentOrder: (order: CatalogComponentId[]) => void
     toggleComponentVisibility: (id: CatalogComponentId) => void
     setComponentCount: (id: CatalogComponentId, count: number) => void
@@ -85,6 +88,7 @@ export const DataCatalogSettings = ({
     enableCombinedFilters: boolean
     toggleCombinedFilters: () => void
     toggleRequireAllCountries: () => void
+    toggleRequireAllTags: () => void
 }) => {
     const [open, setOpen] = useState(false)
 
@@ -213,8 +217,23 @@ export const DataCatalogSettings = ({
                                     <FormControlLabel
                                         control={
                                             <Switch
+                                                checked={requireAllTags}
+                                                onChange={toggleRequireAllTags}
+                                                color="primary"
+                                            />
+                                        }
+                                        label="Require all selected topics"
+                                    />
+                                </ListItem>
+
+                                <ListItem>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
                                                 checked={requireAllCountries}
-                                                onChange={toggleRequireAllCountries}
+                                                onChange={
+                                                    toggleRequireAllCountries
+                                                }
                                                 color="primary"
                                             />
                                         }
