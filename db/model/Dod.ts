@@ -9,6 +9,7 @@ import {
     ChartConfigsTableName,
     VariablesTableName,
     DodsTableName,
+    DodUsageRecord,
 } from "@ourworldindata/types"
 import { extractDetailsFromSyntax } from "@ourworldindata/utils"
 import { KnexReadonlyTransaction, knexRaw } from "../db.js"
@@ -37,12 +38,6 @@ export async function getParsedDodsDictionary(
         parsedDods[dod.name] = parsedDod
     }
     return parsedDods
-}
-
-type DodUsageRecord = {
-    id: string
-    title: string
-    type: "explorer" | "gdoc" | "grapher" | "indicator" | "dod"
 }
 
 function mergeDodUsage(

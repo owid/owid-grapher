@@ -59,9 +59,9 @@ export async function getDodsUsage(
     trx: db.KnexReadonlyTransaction
 ) {
     try {
-        const dods = await dodDb.getDodsUsage(trx)
+        const usage = await dodDb.getDodsUsage(trx)
         res.set("Cache-Control", "no-store")
-        res.json({ dods })
+        res.json(usage)
     } catch (error) {
         console.error("Error fetching dods usage", error)
         res.status(500).json({
