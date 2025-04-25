@@ -17,6 +17,7 @@ import {
     DEFAULT_THUMBNAIL_FILENAME,
     DbEnrichedImage,
     OwidGdocDataInsightInterface,
+    uniq,
 } from "@ourworldindata/utils"
 import { formatPost } from "../../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
@@ -49,6 +50,7 @@ import {
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import { getFirstBlockOfType } from "../../../site/gdocs/utils.js"
 import { getPrefixedGdocPath } from "@ourworldindata/components"
+import { getUniqueNamesFromParentTagArrays } from "@ourworldindata/utils"
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
@@ -215,7 +217,11 @@ function getExcerptFromGdoc(
 function generateGdocRecords(
     gdocs: (OwidGdocPostInterface | OwidGdocDataInsightInterface)[],
     pageviews: Record<string, RawPageview>,
-    cloudflareImagesByFilename: Record<string, DbEnrichedImage>
+    cloudflareImagesByFilename: Record<string, DbEnrichedImage>,
+    parentTagArraysByChildName?: Record<
+        string,
+        Pick<DbPlainTag, "id" | "name" | "slug">[][]
+    >
 ): PageRecord[] {
     const getPostImportance = (
         gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
@@ -257,6 +263,22 @@ function generateGdocRecords(
 
         const thumbnailUrl = getThumbnailUrl(gdoc, cloudflareImagesByFilename)
 
+        // Get all parent tags for this gdoc's tags
+        let allTags = gdoc.tags?.map((t) => t.name) || []
+
+        // If we have the parent tag arrays, add the parent tag names to the tags list
+        if (parentTagArraysByChildName && gdoc.tags) {
+            const parentTags = gdoc.tags.flatMap((tag) => {
+                const parentTagArrays = parentTagArraysByChildName[tag.name]
+                // a gdoc can be tagged with a tag that isn't in the tag graph
+                if (!parentTagArrays) return []
+                return getUniqueNamesFromParentTagArrays(parentTagArrays)
+            })
+
+            // Combine original tags with parent tags, removing duplicates
+            allTags = uniq([...allTags, ...parentTags])
+        }
+
         for (const chunk of chunks) {
             const record = {
                 objectID: `${gdoc.id}-c${i}`,
@@ -272,7 +294,7 @@ function generateGdocRecords(
                 modifiedDate: (
                     gdoc.updatedAt ?? gdoc.publishedAt!
                 ).toISOString(),
-                tags: gdoc.tags?.map((t) => t.name),
+                tags: allTags,
                 documentType: "gdoc" as const,
                 authors: gdoc.content.authors,
                 thumbnailUrl,
@@ -325,10 +347,15 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
         .getCloudflareImages(knex)
         .then((images) => keyBy(images, "filename"))
 
+    // Fetch parent tag arrays for all tags, similar to getChartsRecords
+    const parentTagArraysByChildName =
+        await db.getParentTagArraysByChildName(knex)
+
     const gdocsRecords = generateGdocRecords(
         gdocs,
         pageviews,
-        cloudflareImagesByFilename
+        cloudflareImagesByFilename,
+        parentTagArraysByChildName
     )
 
     return [...countryRecords, ...wordpressRecords, ...gdocsRecords]
