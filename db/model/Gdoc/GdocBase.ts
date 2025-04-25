@@ -72,6 +72,7 @@ import {
     getNarrativeChartsInfo,
 } from "../NarrativeChart.js"
 import { indexBy } from "remeda"
+import { getDods } from "../Dod.js"
 
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
@@ -832,7 +833,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             mapSlugsToIds(knex),
             db.getPublishedExplorersBySlug(knex),
             getAllNarrativeChartNames(knex),
-            db.getDods(knex).then((dods) => indexBy(dods, (dod) => dod.name)),
+            getDods(knex).then((dods) => indexBy(dods, (dod) => dod.name)),
         ])
 
         const linkErrors: OwidGdocErrorMessage[] = []

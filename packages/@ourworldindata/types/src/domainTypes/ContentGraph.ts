@@ -67,7 +67,6 @@ export enum ContentGraphLinkType {
     Url = "url",
     Grapher = "grapher",
     Explorer = "explorer",
-    ChartView = "chart-view",
     NarrativeChart = "narrative-chart",
     Dod = "dod",
 }

@@ -40,9 +40,6 @@ import {
     TagsTableName,
     TagGraphTableName,
     ExplorersTableName,
-    DbPlainDod,
-    DetailDictionary,
-    EnrichedDetail,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash-es"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -492,32 +489,6 @@ export const getNonGrapherExplorerViewCount = (
             AND type = "graphers"
             AND grapherId IS NULL`
     ).then((res) => res?.count ?? 0)
-}
-
-export async function getDods(
-    knex: KnexReadonlyTransaction
-): Promise<DbPlainDod[]> {
-    return knexRaw<DbPlainDod>(
-        knex,
-        `-- sql
-        SELECT * FROM dods
-        ORDER BY updatedAt DESC`
-    )
-}
-
-export async function getParsedDodsDictionary(
-    knex: KnexReadonlyTransaction
-): Promise<DetailDictionary> {
-    const dods = await getDods(knex)
-    const parsedDods: DetailDictionary = {}
-    for (const dod of dods) {
-        const parsedDod: EnrichedDetail = {
-            id: dod.name,
-            text: dod.content,
-        }
-        parsedDods[dod.name] = parsedDod
-    }
-    return parsedDods
 }
 
 /**

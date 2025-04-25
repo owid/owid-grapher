@@ -74,6 +74,7 @@ import {
 } from "../db/db.js"
 import { getMinimalGdocPostsByIds } from "../db/model/Gdoc/GdocBase.js"
 import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
+import { getParsedDodsDictionary } from "../db/model/Dod.js"
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require("express-async-errors")
@@ -477,7 +478,7 @@ getPlainRouteWithROTransaction(
     "/dods.json",
     async (_, res, trx) => {
         res.set("Access-Control-Allow-Origin", "*")
-        const dods = await db.getParsedDodsDictionary(trx)
+        const dods = await getParsedDodsDictionary(trx)
         res.send(dods)
     }
 )

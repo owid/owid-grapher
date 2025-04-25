@@ -1,5 +1,6 @@
 import { triggerStaticBuild } from "./routeUtils.js"
 import * as db from "../../db/db.js"
+import * as dodDb from "../../db/model/Dod.js"
 import { Request } from "../authentication.js"
 import e from "express"
 import {
@@ -41,11 +42,28 @@ export async function getDods(
     trx: db.KnexReadonlyTransaction
 ) {
     try {
-        const dods = await db.getDods(trx)
+        const dods = await dodDb.getDods(trx)
         res.set("Cache-Control", "no-store")
         res.json({ dods })
     } catch (error) {
         console.error("Error fetching dods", error)
+        res.status(500).json({
+            error: { message: String(error), status: 500 },
+        })
+    }
+}
+
+export async function getDodsUsage(
+    _: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    try {
+        const dods = await dodDb.getDodsUsage(trx)
+        res.set("Cache-Control", "no-store")
+        res.json({ dods })
+    } catch (error) {
+        console.error("Error fetching dods usage", error)
         res.status(500).json({
             error: { message: String(error), status: 500 },
         })
