@@ -10,3 +10,9 @@ export interface DbInsertDod {
 }
 
 export type DbPlainDod = Required<DbInsertDod>
+
+export type DodUsageRecord = {
+    id: string
+    title: string
+    type: "explorer" | "gdoc" | "grapher" | "indicator" | "dod"
+}
