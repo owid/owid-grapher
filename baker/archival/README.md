@@ -116,3 +116,7 @@ Aside from the behind-the-scenes changes, like how variables and other files are
     - No fallback image for the chart
     - No dynamic social media preview image
 - A changed footer, with fewer options than the live footer.
+
+## Append-only nature of the archive
+
+Overall, the archive is essentially append-only. We don't delete any archived pages, any archived versions of a page, or any assets or variables that were ever created as part of an archive. This is important for the integrity of the archive, for the integrity of past citations, and to ensure that the JS code of past archived pages keeps working.
