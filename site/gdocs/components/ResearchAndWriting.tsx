@@ -31,7 +31,7 @@ function Thumbnail({
         filename === ARCHVED_THUMBNAIL_FILENAME ||
         filename === DEFAULT_THUMBNAIL_FILENAME
     ) {
-        return <img src={filename} />
+        return <img src={`/${filename}`} />
     }
     return (
         <Image
