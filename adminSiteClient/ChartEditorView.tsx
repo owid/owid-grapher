@@ -8,7 +8,7 @@ import {
     reaction,
     IReactionDisposer,
 } from "mobx"
-import { Prompt, Redirect } from "react-router-dom"
+import { Redirect } from "react-router-dom"
 import {
     Bounds,
     capitalize,
@@ -56,6 +56,7 @@ import {
     ErrorMessagesForDimensions,
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
+import { Prompt } from "./Prompt"
 
 interface Variable {
     id: number
