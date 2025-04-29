@@ -31,7 +31,6 @@ export const grapherConfigToQueryParams = (
         keyof GrapherQueryParams,
         string | number | boolean | undefined
     > = {
-        // TODO this can currently only be "chart", "map", or "table", but we should also allow for "slope" or "line" some way
         tab: config.tab,
         xScale: config.xAxis?.scaleType,
         yScale: config.yAxis?.scaleType,

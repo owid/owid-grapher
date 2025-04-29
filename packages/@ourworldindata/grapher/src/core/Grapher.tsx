@@ -110,12 +110,13 @@ import {
     GRAPHER_TAB_OPTIONS,
     GRAPHER_TAB_NAMES,
     GRAPHER_TAB_QUERY_PARAMS,
-    GrapherTabOption,
     SeriesName,
     ChartViewInfo,
     OwidChartDimensionInterfaceWithMandatorySlug,
     AssetMap,
     ArchivedChartOrArchivePageMeta,
+    GrapherTabType,
+    GRAPHER_TAB_TYPES,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -202,7 +203,9 @@ import {
     autoDetectYColumnSlugs,
     findValidChartTypeCombination,
     mapChartTypeNameToQueryParam,
+    mapChartTypeNameToTabOption,
     mapQueryParamToChartTypeName,
+    mapTabOptionToChartTypeName,
 } from "../chart/ChartUtils"
 import classnames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
@@ -416,7 +419,7 @@ export class Grapher
     @observable.ref zoomToSelection?: boolean = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
     @observable.ref hasMapTab = false
-    @observable.ref tab: GrapherTabOption = GRAPHER_TAB_OPTIONS.chart
+    @observable.ref tab: GrapherTabType = GRAPHER_TAB_TYPES.chart
     @observable.ref chartTab?: GrapherChartType
     @observable.ref isPublished?: boolean = undefined
     @observable.ref baseColorScheme?: ColorSchemeName = undefined
@@ -614,6 +617,15 @@ export class Grapher
         if (obj.timelineMaxTime)
             obj.timelineMaxTime = maxTimeToJSON(this.timelineMaxTime) as any
 
+        // store the currently selected chart type if it's different from the primary chart type
+        if (
+            this.tab === GRAPHER_TAB_OPTIONS.chart &&
+            this.chartTab &&
+            this.chartTab !== this.chartType
+        ) {
+            obj.tab = mapChartTypeNameToTabOption(this.chartTab)
+        }
+
         // todo: remove dimensions concept
         // if (this.legacyConfigAsAuthored?.dimensions)
         //     obj.dimensions = this.legacyConfigAsAuthored.dimensions
@@ -655,6 +667,15 @@ export class Grapher
         this.timelineMaxTime = maxTimeBoundFromJSONOrPositiveInfinity(
             obj.timelineMaxTime
         )
+
+        // map the `tab` param to grapher state
+        if (obj.tab) {
+            const chartType = mapTabOptionToChartTypeName(obj.tab)
+            if (chartType) {
+                this.tab = GRAPHER_TAB_OPTIONS.chart
+                this.chartTab = chartType
+            }
+        }
 
         // Todo: remove once we are more RAII.
         if (obj?.dimensions?.length)
