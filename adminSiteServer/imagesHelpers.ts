@@ -119,6 +119,7 @@ export async function fetchGptGeneratedAltText(url: string) {
                 content: `Generate alt text for this image, describing it for a vision impaired person using a screen reader.
 Do not say "alt text:".
 Do not say "The image...".
+Do not use markdown in the text.
 If the image is a data visualization and there are data sources in the footer, describe them exhaustively.`,
             },
             {
@@ -136,5 +137,10 @@ If the image is a data visualization and there are data sources in the footer, d
         model: "gpt-4o-mini",
     })
 
-    return completion.choices[0].message.content
+    const content = completion.choices[0].message.content
+    if (content) {
+        // Sometimes the model still uses markdown bold even when told not to.
+        return content.replaceAll("**", "")
+    }
+    return null
 }
