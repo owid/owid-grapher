@@ -128,6 +128,8 @@ properties:
             - chart
             - map
             - table
+            - line
+            - slope
     matchingEntitiesOnly:
         type: boolean
         default: false
