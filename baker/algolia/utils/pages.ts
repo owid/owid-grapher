@@ -49,7 +49,10 @@ import {
 } from "../../../settings/clientSettings.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import { getFirstBlockOfType } from "../../../site/gdocs/utils.js"
-import { getPrefixedGdocPath } from "@ourworldindata/components"
+import {
+    getPrefixedGdocPath,
+    MarkdownTextWrap,
+} from "@ourworldindata/components"
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
@@ -251,8 +254,9 @@ function generateGdocRecords(
             createElement(
                 "div",
                 null,
-                createElement(ArticleBlocks, {
-                    blocks: gdoc.content.body,
+                createElement(MarkdownTextWrap, {
+                    text: gdoc.markdown || "",
+                    fontSize: 12,
                 })
             )
         )
