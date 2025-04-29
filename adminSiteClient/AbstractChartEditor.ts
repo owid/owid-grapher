@@ -1,5 +1,4 @@
 import {
-    isEqual,
     omit,
     GrapherInterface,
     diffGrapherConfigs,
@@ -15,6 +14,7 @@ import { defaultGrapherConfig, Grapher } from "@ourworldindata/grapher"
 import { ChartViewMinimalInformation } from "./ChartEditor.js"
 import { IndicatorChartInfo } from "./IndicatorChartEditor.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
+import * as R from "remeda"
 
 export type EditorTab =
     | "basic"
@@ -83,7 +83,7 @@ export abstract class AbstractChartEditor<
 
         when(
             () => this.grapher.hasData && this.grapher.isReady,
-            () => (this.savedPatchConfig = this.patchConfig)
+            () => (this.savedPatchConfig = R.clone(this.patchConfig))
         )
     }
 
@@ -135,8 +135,8 @@ export abstract class AbstractChartEditor<
     }
 
     @computed get isModified(): boolean {
-        return !isEqual(
-            omit(this.patchConfig, "version"),
+        return !R.isDeepEqual(
+            omit(R.clone(this.patchConfig), "version"),
             omit(this.savedPatchConfig, "version")
         )
     }
