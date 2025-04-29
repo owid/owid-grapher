@@ -92,17 +92,21 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
     useEffect(() => {
         if (!slides) return
 
-        const windowUrl = getWindowUrl()
-        if (!windowUrl.queryParams.insight) return
+        const insightParam =
+            getWindowUrl().queryParams[KEY_INSIGHTS_INSIGHT_PARAM]
+        if (!insightParam) return
 
-        // find the slide containing the h4 with the id matching the ?insight query param
         const selectedSlideIdx = Array.from(
             slides.querySelectorAll(`.${KEY_INSIGHTS_SLIDE_CLASS_NAME}`)
-        ).findIndex((slide) =>
-            slide.querySelector(
-                `#${windowUrl.queryParams[KEY_INSIGHTS_INSIGHT_PARAM]}`
-            )
-        )
+        ).findIndex((slide) => {
+            // Since query params are a form of user input, the selector might
+            // not be valid.
+            try {
+                return slide.querySelector(`#${insightParam}`)
+            } catch {
+                return false
+            }
+        })
 
         if (selectedSlideIdx === -1) return
         setSelectedId(selectedSlideIdx.toString())
