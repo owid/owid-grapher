@@ -53,8 +53,10 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
             this.time = maxTimeBoundFromJSONOrPositiveInfinity(obj.time)
 
         // If the region is set, automatically switch to the globe
-        if (obj.region && obj.region !== MapRegionName.World)
-            this.globe.isActive = true
+        if (obj.region && obj.region !== MapRegionName.World) {
+            // Setting this.globe.isActive directly sometimes gives a MobX error
+            this.globe = { ...this.globe, isActive: true }
+        }
 
         // Only relevant for testing
         if (obj.selection && R.isArray<string>(obj.selection)) {
