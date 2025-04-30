@@ -30,6 +30,7 @@ import {
     OwidColumnDef,
     GrapherStaticFormat,
     OwidOrigin,
+    QueryParams,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -54,6 +55,7 @@ export interface DownloadModalManager {
     staticFormat?: GrapherStaticFormat
     baseUrl?: string
     queryStr?: string
+    externalQueryParams?: QueryParams
     inputTable?: OwidTable
     transformedTable?: OwidTable
     tableForDisplay?: OwidTable
@@ -420,6 +422,7 @@ enum CsvDownloadType {
 interface DataDownloadContextBase {
     slug: string
     searchParams: URLSearchParams
+    externalSearchParams: URLSearchParams
     baseUrl: string
 }
 
@@ -464,14 +467,16 @@ const getDownloadSearchParams = (ctx: DataDownloadContextServerSide) => {
             .exhaustive()
     )
     searchParams.set("useColumnShortNames", ctx.shortColNames.toString())
-
-    if (ctx.csvDownloadType === CsvDownloadType.CurrentSelection) {
-        // Append all the current selection filters to the download URL, e.g.: ?time=2020&selection=~USA
-        for (const [key, value] of ctx.searchParams.entries()) {
-            searchParams.set(key, value)
-        }
+    const otherParams =
+        ctx.csvDownloadType === CsvDownloadType.CurrentSelection
+            ? // Append all the current grapher settings, e.g.
+              // ?time=2020&selection=~USA + mdim dimensions.
+              ctx.searchParams
+            : // Use the base grapher settings + mdim dimensions.
+              ctx.externalSearchParams
+    for (const [key, value] of otherParams.entries()) {
+        searchParams.set(key, value)
     }
-
     return searchParams
 }
 
@@ -761,10 +766,19 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     const downloadCtx: Omit<
         DataDownloadContextClientSide,
         "csvDownloadType" | "shortColNames"
-    > = useMemo(
-        () => ({
+    > = useMemo(() => {
+        const externalSearchParams = new URLSearchParams()
+        for (const [key, value] of Object.entries(
+            props.manager.externalQueryParams ?? {}
+        )) {
+            if (value) {
+                externalSearchParams.set(key, value)
+            }
+        }
+        return {
             slug: props.manager.displaySlug,
             searchParams: new URLSearchParams(props.manager.queryStr),
+            externalSearchParams,
             baseUrl:
                 props.manager.baseUrl ??
                 `/grapher/${props.manager.displaySlug}`,
@@ -775,18 +789,18 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     ? props.manager.tableForDisplay
                     : props.manager.transformedTable) ?? BlankOwidTable(),
             activeColumnSlugs: props.manager.activeColumnSlugs,
-        }),
-        [
-            props.manager.baseUrl,
-            props.manager.displaySlug,
-            props.manager.queryStr,
-            props.manager.isOnTableTab,
-            props.manager.inputTable,
-            props.manager.transformedTable,
-            props.manager.tableForDisplay,
-            props.manager.activeColumnSlugs,
-        ]
-    )
+        }
+    }, [
+        props.manager.baseUrl,
+        props.manager.displaySlug,
+        props.manager.queryStr,
+        props.manager.externalQueryParams,
+        props.manager.isOnTableTab,
+        props.manager.inputTable,
+        props.manager.transformedTable,
+        props.manager.tableForDisplay,
+        props.manager.activeColumnSlugs,
+    ])
 
     const onDownloadClick = useCallback(
         (csvDownloadType: CsvDownloadType) => {

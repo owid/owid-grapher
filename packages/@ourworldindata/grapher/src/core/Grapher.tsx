@@ -2978,7 +2978,7 @@ export class Grapher
             !this.isOnArchivalPage &&
             // We're not inside the admin
             window.admin === undefined &&
-            // We're not on a Mdim
+            // The slug is set
             !!this.slug &&
             // We're not in a chart view / narrative chart
             !this.chartViewInfo
