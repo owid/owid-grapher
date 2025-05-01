@@ -116,7 +116,11 @@ class DimensionSlotView<
     }
 
     @action.bound private onChangeDimension() {
-        void this.updateDimensionsAndRebuildTable()
+        // This used to work without passing in the dimensions but
+        // after the grapher state refactor this led to weird issues like
+        // the color change of a variable not being reflected visually,
+        // even though the value registered correctly in the grapher state instance.
+        void this.updateDimensionsAndRebuildTable(this.props.slot.dimensions)
         this.updateParentConfig()
     }
 
