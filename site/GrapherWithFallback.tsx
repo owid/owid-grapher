@@ -12,7 +12,6 @@ export interface GrapherWithFallbackProps {
     enablePopulatingUrlParams?: boolean
     config: Partial<GrapherInterface>
     queryStr?: string
-    fetchConfigForSlug?: boolean
 }
 
 // TODO: change this so it's possible to hand a full grapher config down (and maybe an extra config?)
@@ -20,7 +19,7 @@ export interface GrapherWithFallbackProps {
 export function GrapherWithFallback(
     props: GrapherWithFallbackProps
 ): JSX.Element {
-    const { slug, className, id, config, queryStr, fetchConfigForSlug } = props
+    const { slug, className, id, config, queryStr } = props
 
     const [isClient, setIsClient] = useState(false)
     const { ref, inView } = useInView({

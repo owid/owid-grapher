@@ -388,7 +388,7 @@ export class ChartEditorView<
                                             editor.tab = tab
                                             editor.showStaticPreview =
                                                 tab === "export"
-                                            this.updateGrapher()
+                                            // this.updateGrapher()
                                         }}
                                     >
                                         {capitalize(tab)}
