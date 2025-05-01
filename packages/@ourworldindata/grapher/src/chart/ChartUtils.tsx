@@ -18,6 +18,7 @@ import {
     GrapherInterface,
     GrapherChartOrMapType,
     GRAPHER_MAP_TYPE,
+    ColumnSlug,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -29,6 +30,7 @@ import {
     validChartTypeCombinations,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
+import { OwidTable } from "@ourworldindata/core-table"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
@@ -378,4 +380,68 @@ function maybeLineChartThatTurnedIntoDiscreteBar(
         return GRAPHER_CHART_TYPES.DiscreteBar
 
     return chartType
+}
+
+/** Find a start time for which a slope chart shows as many lines as possible */
+export function findStartTimeForSlopeChart(
+    table: OwidTable,
+    columnSlugs: ColumnSlug[],
+    originalStartTime: number,
+    endTime: number
+): number {
+    const timeCol = table.timeColumn
+    const times = timeCol.uniqTimesAsc
+    const startTimeIndex = times.findIndex((time) => time >= originalStartTime)
+
+    // Bail if we can't find the start time
+    if (startTimeIndex === -1) return originalStartTime
+
+    const entityNames = table.availableEntityNames
+    const maxNumSeries = entityNames.length * columnSlugs.length
+
+    let candidate = { time: originalStartTime, numSeries: 0 }
+
+    // Iterate over all times and keep track of how many lines can be displayed on the chart
+    for (let i = startTimeIndex; i < times.length; i++) {
+        const time = times[i]
+
+        // Don't pick a start time that is after the end time
+        if (time >= endTime) break
+
+        let numSeries = maxNumSeries
+        for (const entityName of entityNames) {
+            for (const slug of columnSlugs) {
+                const column = table.get(slug)
+                const owidRows =
+                    column.owidRowByEntityNameAndTime.get(entityName)
+
+                // If the entity doesn't have any data, we can't draw a line
+                if (!owidRows) {
+                    numSeries -= 1
+                    if (numSeries <= candidate.numSeries) break
+                    continue
+                }
+
+                const startValue = owidRows.get(time)
+                const endValue = owidRows.get(endTime)
+
+                // If one of the values is missing, we can't draw a line
+                if (startValue === undefined || endValue === undefined) {
+                    numSeries -= 1
+                    if (numSeries <= candidate.numSeries) break
+                }
+            }
+
+            // Stop early if the current time has less data than the current candidate
+            if (numSeries <= candidate.numSeries) break
+        }
+
+        // We found a time for which all lines can be drawn
+        if (numSeries === maxNumSeries) return time
+
+        // Update the candidate if we found a better time
+        if (numSeries > candidate.numSeries) candidate = { time, numSeries }
+    }
+
+    return candidate.time
 }

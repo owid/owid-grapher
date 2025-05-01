@@ -200,6 +200,7 @@ import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    findStartTimeForSlopeChart,
     findValidChartTypeCombination,
     mapChartTypeNameToQueryParam,
     mapQueryParamToChartTypeName,
@@ -1464,18 +1465,41 @@ export class Grapher
         oldTab: GrapherTabName,
         newTab: GrapherTabName
     ): void {
-        // if switching from a line to a slope chart and the handles are
-        // on the same time, then automatically adjust the handles so that
-        // the slope chart view is meaningful
+        // Switching from a line to a slope chart
         if (
             oldTab === GRAPHER_TAB_NAMES.LineChart &&
-            newTab === GRAPHER_TAB_NAMES.SlopeChart &&
-            this.areHandlesOnSameTime
+            newTab === GRAPHER_TAB_NAMES.SlopeChart
         ) {
-            if (this.startHandleTimeBound !== -Infinity) {
-                this.startHandleTimeBound = -Infinity
-            } else {
-                this.endHandleTimeBound = Infinity
+            // If the handles are on the same time, then set one of the handles
+            // to the start or end time so that the slope chart shows some data
+            if (this.areHandlesOnSameTime) {
+                if (this.startHandleTimeBound !== -Infinity) {
+                    this.startHandleTimeBound = -Infinity
+                } else {
+                    this.endHandleTimeBound = Infinity
+                }
+            }
+        }
+
+        // Switching to a slope chart
+        if (newTab === GRAPHER_TAB_NAMES.SlopeChart) {
+            if (
+                this.facetStrategy === FacetStrategy.none &&
+                !this.hasUserChangedTimeHandles &&
+                this.startTime !== undefined &&
+                this.endTime !== undefined
+            ) {
+                // Find a start time for which a slope chart shows as many lines
+                // as possible. This is useful for charts where only a few
+                // countries stretch the whole length of the time range
+                const idealStartTime = findStartTimeForSlopeChart(
+                    this.tableAfterAuthorTimelineAndActiveChartTransform,
+                    this.yColumnSlugs,
+                    this.startTime,
+                    this.endTime
+                )
+                if (idealStartTime !== this.startTime)
+                    this.startHandleTimeBound = idealStartTime
             }
         }
     }
