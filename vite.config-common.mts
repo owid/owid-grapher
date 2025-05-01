@@ -1,6 +1,5 @@
 import { defineConfig } from "vite"
 import pluginReact from "@vitejs/plugin-react"
-import { checker as pluginChecker } from "vite-plugin-checker"
 import { sentryVitePlugin } from "@sentry/vite-plugin"
 import * as clientSettings from "./settings/clientSettings.js"
 import {
@@ -8,8 +7,6 @@ import {
     VITE_ENTRYPOINT_INFO,
     ViteEntryPoint,
 } from "./site/viteConstants.js"
-
-const runTypeCheckerPlugin = !(process.env.VITEST || process.env.CI)
 
 // https://vitejs.dev/config/
 export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
@@ -73,13 +70,6 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                     },
                 },
             }),
-            runTypeCheckerPlugin &&
-                pluginChecker({
-                    typescript: {
-                        buildMode: true,
-                        tsconfigPath: "tsconfig.vite-checker.json",
-                    },
-                }),
             // Put the Sentry vite plugin after all other plugins.
             !process.env.VITEST &&
                 sentryVitePlugin({

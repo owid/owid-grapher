@@ -56,11 +56,6 @@ const devAssets = (entrypoint: ViteEntryPoint, baseUrl: string): Assets => {
                 }}
             />,
             <script
-                key="vite-plugin-checker"
-                type="module"
-                src={`${baseUrl}/@vite-plugin-checker-runtime-entry`}
-            />,
-            <script
                 key="vite-client"
                 type="module"
                 src={`${baseUrl}/@vite/client`}
