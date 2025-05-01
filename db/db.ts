@@ -545,11 +545,13 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
 // e.g. { "childTag": [ [parentTag1, parentTag2], [parentTag3] ] }
 // Use this with getUniqueNamesFromParentTagArrays to get Record<string, string[]> instead
 export async function getParentTagArraysByChildName(
-    trx: KnexReadonlyTransaction
+    trx: KnexReadonlyTransaction,
+    includeAreasAndTopicsOnly: boolean = false
 ): Promise<
     Record<DbPlainTag["name"], Pick<DbPlainTag, "id" | "name" | "slug">[][]>
 > {
     const { __rootId, ...flatTagGraph } = await getFlatTagGraph(trx)
+    const areaAndTopicTagNames = await getAllAreaAndTopicTagNames(trx)
     const tagGraph = createTagGraph(flatTagGraph, __rootId)
     const tagsById = await trx<DbPlainTag>("tags")
         .select("id", "name", "slug")
@@ -565,6 +567,7 @@ export async function getParentTagArraysByChildName(
         currentPath: Pick<DbPlainTag, "id" | "name" | "slug">[] = []
     ): void {
         const currentTag = tagsById[node.id]
+
         const newPath = [...currentPath, currentTag]
 
         // Don't add paths for root node
@@ -574,8 +577,18 @@ export async function getParentTagArraysByChildName(
                 pathsByChildName[nodeName] = []
             }
 
-            // Add the complete path (excluding root)
-            pathsByChildName[nodeName].push(newPath.slice(1))
+            let pathToAdd = newPath.slice(1) // Exclude root
+
+            if (includeAreasAndTopicsOnly) {
+                pathToAdd = pathToAdd.filter((tag) =>
+                    areaAndTopicTagNames.includes(tag.name)
+                )
+            }
+
+            // Only add non-empty paths
+            if (pathToAdd.length > 0) {
+                pathsByChildName[nodeName].push(pathToAdd)
+            }
         }
 
         for (const child of node.children) {

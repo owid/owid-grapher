@@ -959,6 +959,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
     const dummyTags: DbInsertTag[] = [
         { name: TagGraphRootName, id: 1  },
         { name: "Energy and Environment", id: 2  },
+        { name: "Climate & Air", id: 6 },
         { name: "Energy", slug: "energy", id: 3 },
         { name: "Nuclear Energy", slug: "nuclear-energy", id: 4 },
         { name: "CO2 & Greenhouse Gas Emissions", slug: "co2-and-greenhouse-gas-emissions", id: 5 },
@@ -966,8 +967,9 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
 
     const dummyTagGraph: DbInsertTagGraphNode[] = [
         { parentId: 1, childId: 2 },
+        { parentId: 2, childId: 6 },
         { parentId: 2, childId: 3, weight: 110 },
-        { parentId: 2, childId: 5 },
+        { parentId: 6, childId: 5 },
         { parentId: 3, childId: 4 },
         { parentId: 5, childId: 4 },
     ]
@@ -1008,6 +1010,12 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
         expect(tags).toEqual({
             tags: [
                 {
+                    id: 6,
+                    isTopic: 0,
+                    name: "Climate & Air",
+                    slug: null,
+                },
+                {
                     id: 5,
                     isTopic: 1,
                     name: "CO2 & Greenhouse Gas Emissions",
@@ -1040,6 +1048,58 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
             ],
         })
     })
+    it("should be able to generate parent tag arrays with sub-areas", async () => {
+        await knexReadonlyTransaction(async (trx) => {
+            const parentTagArraysByChildName =
+                await getParentTagArraysByChildName(trx)
+
+            expect(
+                parentTagArraysByChildName["CO2 & Greenhouse Gas Emissions"]
+            ).toEqual([
+                [
+                    {
+                        id: 2,
+                        name: "Energy and Environment",
+                        slug: null,
+                    },
+                    {
+                        id: 6,
+                        name: "Climate & Air",
+                        slug: null,
+                    },
+                    {
+                        id: 5,
+                        name: "CO2 & Greenhouse Gas Emissions",
+                        slug: "co2-and-greenhouse-gas-emissions",
+                    },
+                ],
+            ])
+        })
+    })
+
+    it("should be able to generate parent tag arrays without sub-areas", async () => {
+        await knexReadonlyTransaction(async (trx) => {
+            const parentTagArraysByChildName =
+                await getParentTagArraysByChildName(trx, true)
+
+            expect(
+                parentTagArraysByChildName["CO2 & Greenhouse Gas Emissions"]
+            ).toEqual([
+                [
+                    {
+                        id: 2,
+                        name: "Energy and Environment",
+                        slug: null,
+                    },
+                    {
+                        id: 5,
+                        name: "CO2 & Greenhouse Gas Emissions",
+                        slug: "co2-and-greenhouse-gas-emissions",
+                    },
+                ],
+            ])
+        })
+    })
 
     it("should be able to generate a tag graph", async () => {
         const json = await fetchJsonFromAdminApi("/flatTagGraph.json")
@@ -1064,10 +1124,10 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
                     weight: 110,
                 },
                 {
-                    childId: 5,
-                    isTopic: 1,
-                    name: "CO2 & Greenhouse Gas Emissions",
-                    slug: "co2-and-greenhouse-gas-emissions",
+                    childId: 6,
+                    isTopic: 0,
+                    name: "Climate & Air",
+                    slug: null,
                     parentId: 2,
                     weight: 100,
                 },
@@ -1089,6 +1149,16 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
                     name: "Nuclear Energy",
                     slug: "nuclear-energy",
                     parentId: 5,
+                    weight: 100,
+                },
+            ],
+            "6": [
+                {
+                    childId: 5,
+                    isTopic: 1,
+                    name: "CO2 & Greenhouse Gas Emissions",
+                    parentId: 6,
+                    slug: "co2-and-greenhouse-gas-emissions",
                     weight: 100,
                 },
             ],
@@ -1179,25 +1249,25 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
                 // 2. Human Rights > Women's Rights > Women's Employment
                 // prettier-ignore
                 await testKnexInstance!(TagsTableName).insert([
-                    { name: "Human Rights", id: 6 },
-                    { name: "Women's Rights", slug: "womens-rights", id: 7 },
-                    { name: "Women's Employment", slug: "womens-employment", id: 8 },
-                    { name: "Poverty and Economic Development", id: 9 },
+                    { name: "Human Rights", id: 7 },
+                    { name: "Women's Rights", slug: "womens-rights", id: 8 },
+                    { name: "Women's Employment", slug: "womens-employment", id: 9 },
+                    { name: "Poverty and Economic Development", id: 10 },
                 ])
                 await testKnexInstance!(TagGraphTableName).insert([
-                    { parentId: 1, childId: 6 },
-                    { parentId: 6, childId: 7 },
+                    { parentId: 1, childId: 7 },
                     { parentId: 7, childId: 8 },
-                    { parentId: 1, childId: 9 },
-                    { parentId: 9, childId: 8 },
+                    { parentId: 8, childId: 9 },
+                    { parentId: 1, childId: 10 },
+                    { parentId: 10, childId: 9 },
                 ])
                 await testKnexInstance!(PostsGdocsTableName).insert([
                     makeDummyTopicPage("womens-rights"),
                     makeDummyTopicPage("womens-employment"),
                 ])
                 await testKnexInstance!(PostsGdocsXTagsTableName).insert([
-                    { gdocId: "womens-rights", tagId: 7 },
-                    { gdocId: "womens-employment", tagId: 8 },
+                    { gdocId: "womens-rights", tagId: 8 },
+                    { gdocId: "womens-employment", tagId: 9 },
                 ])
 
                 const parentTagArraysByChildName =
@@ -1205,7 +1275,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
                 const breadcrumbs = getBestBreadcrumbs(
                     [
                         {
-                            id: 8,
+                            id: 9,
                             name: "Women's Employment",
                             slug: "womens-employment",
                         },
