@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest itsJustJavascript
+.PHONY: help lerna up up.full down refresh refresh.wp refresh.full migrate svgtest
 
 help:
 	@echo 'Available commands:'
@@ -44,7 +44,7 @@ help:
 
 up: export DEBUG = 'knex:query'
 
-up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_modules
+up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz lerna
 	@make validate.env
 	@make check-port-3306
 
@@ -52,9 +52,6 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_module
 		echo '==> Killing existing tmux session'; \
 		tmux kill-session -t grapher; \
 	fi
-
-	@echo '==> Building grapher'
-	yarn lerna run build
 
 	@echo '==> Starting dev environment'
 	@mkdir -p logs
@@ -76,11 +73,9 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_module
 		set -g mouse on \
 		|| make down
 
-up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.sql.gz node_modules
+up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.sql.gz lerna
 	@make validate.env
 	@make check-port-3306
-	@echo '==> Building grapher'
-	yarn lerna run build
 
 	@echo '==> Starting dev environment'
 	@mkdir -p logs
@@ -99,7 +94,7 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 
 up.full: export DEBUG = 'knex:query'
 
-up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz node_modules
+up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz lerna
 	@make validate.env.full
 	@make check-port-3306
 
@@ -107,9 +102,6 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz n
 		echo '==> Killing existing tmux session'; \
 		tmux kill-session -t grapher; \
 	fi
-
-	@echo '==> Building grapher'
-	yarn lerna run build
 
 	@echo '==> Starting dev environment'
 	tmux new-session -s grapher \
@@ -132,9 +124,9 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz n
 		set -g mouse on \
 		|| make down
 
-migrate: node_modules
+migrate: lerna
 	@echo '==> Running DB migrations'
-	yarn buildLerna && yarn runDbMigrations
+	yarn runDbMigrations
 
 refresh:
 	@if grep -q "ENV=production" .env; then \
@@ -260,59 +252,57 @@ unittest: node_modules
 ../owid-grapher-svgs:
 	cd .. && git clone git@github.com:owid/owid-grapher-svgs
 
-svgtest: ../owid-grapher-svgs
+svgtest: ../owid-grapher-svgs lerna
 	@echo '==> Comparing against reference SVGs'
 
 	@# get ../owid-grapher-svgs reliably to a base state at origin/master
 	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fd
 
 	@# generate a full new set of svgs and create an HTML report if there are differences
-	node --enable-source-maps itsJustJavascript/devTools/svgTester/verify-graphs.js \
-		|| node --enable-source-maps itsJustJavascript/devTools/svgTester/create-compare-view.js
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts \
+		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts
 
 node_modules: package.json yarn.lock yarn.config.cjs
 	@echo '==> Installing packages'
 	yarn install
 	touch -m $@
 
-itsJustJavascript: node_modules
-	@echo '==> Compiling TS'
+lerna: node_modules
+	@echo '==> Running Lerna'
 	yarn lerna run build
-	yarn run tsc -b
-	touch $@
 
-update.chart-entities: itsJustJavascript
+update.chart-entities: lerna
 	@echo '==> Updating chart entities table'
-	node --enable-source-maps itsJustJavascript/baker/updateChartEntities.js --all
+	yarn tsx --tsconfig tsconfig.tsx.json baker/updateChartEntities.js --all
 
-reindex: itsJustJavascript
+reindex: lerna
 	@echo '==> Reindexing search in Algolia'
 	@echo '--- Running configureAlgolia...'
-	node --enable-source-maps itsJustJavascript/baker/algolia/configureAlgolia.js
+	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/configureAlgolia.js
 	@echo '--- Running indexPagesToAlgolia...'
-	node --enable-source-maps itsJustJavascript/baker/algolia/indexPagesToAlgolia.js
+	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexPagesToAlgolia.js
 	@echo '--- Running indexChartsToAlgolia...'
-	node --enable-source-maps itsJustJavascript/baker/algolia/indexChartsToAlgolia.js
+	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexChartsToAlgolia.js
 	@echo '--- Running indexExplorerViewsMdimViewsAndChartsToAlgolia...'
-	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorerViewsMdimViewsAndChartsToAlgolia.js
+	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexExplorerViewsMdimViewsAndChartsToAlgolia.js
 
-delete-algolia-index: itsJustJavascript
+delete-algolia-index: lerna
 	@echo '==> Deleting Algolia index'
-	node --enable-source-maps itsJustJavascript/baker/algolia/deleteAlgoliaIndex.js
+	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/deleteAlgoliaIndex.js
 
-bench.search: itsJustJavascript
+bench.search: lerna
 	@echo '==> Running search benchmarks'
-	@node --enable-source-maps itsJustJavascript/site/search/evaluateSearch.js
+	@yarn tsx --tsconfig tsconfig.tsx.json site/search/evaluateSearch.js
 
-local-bake: itsJustJavascript
+local-bake: lerna
 	@echo '==> Baking site'
 	yarn buildVite
 	yarn buildLocalBake
 
-archive: itsJustJavascript
+archive: lerna
 	@echo '==> Creating an archived version of our charts'
 	PRIMARY_ENV_FILE=.env.archive yarn buildViteArchive
 	PRIMARY_ENV_FILE=.env.archive yarn tsx --tsconfig tsconfig.tsx.json ./baker/archival/archiveChangedGrapherPages.ts --latestDir
 
 clean:
-	rm -rf node_modules itsJustJavascript
+	rm -rf node_modules

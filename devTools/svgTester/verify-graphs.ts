@@ -95,9 +95,12 @@ async function main(args: parseArgs.ParsedArgs) {
             )
         }
 
-        const pool = workerpool.pool(__dirname + "/worker.js", {
+        const pool = workerpool.pool(__dirname + "/worker.ts", {
             minWorkers: 2,
             maxWorkers: 12,
+            workerThreadOpts: {
+                execArgv: ["--require", "tsx"],
+            },
         })
 
         // Parallelize the CPU heavy verification using the workerpool library
