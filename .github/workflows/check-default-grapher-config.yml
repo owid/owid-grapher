@@ -6,6 +6,7 @@ on:
             - "!master"
         paths:
             - "packages/@ourworldindata/grapher/src/schema/**"
+    workflow_dispatch:
 
 jobs:
     commit-default-config:
