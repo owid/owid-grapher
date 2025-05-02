@@ -78,12 +78,10 @@ build_grapher() {
         corepack install
         yarn install
         git rev-parse HEAD > /home/owid/live-data/bakedSite/head.txt
-        yarn cleanTsc
         yarn buildLerna --skip-nx-cache
-        yarn buildTsc
         yarn buildViteSite
         yarn runDbMigrations
-        node --enable-source-maps --unhandled-rejections=strict itsJustJavascript/baker/algolia/configureAlgolia.js
+        yarn tsx --tsconfig tsconfig.tsx.json --unhandled-rejections=strict baker/algolia/configureAlgolia.ts
     )
 }
 

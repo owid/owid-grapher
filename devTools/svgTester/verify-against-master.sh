@@ -6,13 +6,13 @@ usage() {
 Export Grapher charts from master and verify them against the current branch.
 
 Charts to process:
-    --ids, -c               Config IDs passed to export-graphs.js and verify-graphs.js
-    --chart-types, -t       Chart types passed to export-graphs.js and verify-graphs.js
-    --ids-from-file, -f     File with chart IDs passed to export-graphs.js and verify-graphs.js
+    --ids, -c               Config IDs passed to export-graphs.ts and verify-graphs.ts
+    --chart-types, -t       Chart types passed to export-graphs.ts and verify-graphs.ts
+    --ids-from-file, -f     File with chart IDs passed to export-graphs.ts and verify-graphs.ts
 
 Chart configurations to test:
-    --query-str, -q     Grapher query string passed to export-graphs.js and verify-graphs.js
-    --all-views         Generate all possible views for each grapher id (passed to export-graphs.js and verify-graphs.js)
+    --query-str, -q     Grapher query string passed to export-graphs.ts and verify-graphs.ts
+    --all-views         Generate all possible views for each grapher id (passed to export-graphs.ts and verify-graphs.ts)
 
 Other options:
     --skip-export       Skip the export step (useful when running this script multiple times)
@@ -115,7 +115,7 @@ runExportScript() {
     rm -rf $LOCAL_REFERENCE_DIR $LOCAL_DIFFERENCES_DIR 
 
     echo "=> Exporting graphs into $LOCAL_REFERENCE_DIR"
-    node itsJustJavascript/devTools/svgTester/export-graphs.js\
+    yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/export-graphs.ts\
         -i $CONFIGS_DIR\
         -o $LOCAL_REFERENCE_DIR\
         $CONFIG_IDS_ARG\
@@ -127,7 +127,7 @@ runExportScript() {
 
 runVerifyScript() {
     echo "=> Verifying graphs and storing differences in $LOCAL_DIFFERENCES_DIR"
-    node itsJustJavascript/devTools/svgTester/verify-graphs.js\
+    yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts\
         -i $CONFIGS_DIR\
         -r $LOCAL_REFERENCE_DIR\
         -o $LOCAL_DIFFERENCES_DIR\
@@ -141,7 +141,7 @@ runVerifyScript() {
 
 createHTMLReport() {
     echo "=> Creating HTML report at $REPORT_FILE"
-    node itsJustJavascript/devTools/svgTester/create-compare-view.js\
+    yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts\
         -r $LOCAL_REFERENCE_DIR\
         -d $LOCAL_DIFFERENCES_DIR\
         -o $REPORT_FILE

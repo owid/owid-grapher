@@ -29,8 +29,8 @@ main() {
 
     echo "=> Dumping new configs and data"
     rm -rf $CONFIGS_DIR
-    node itsJustJavascript/devTools/svgTester/dump-data.js -o $CONFIGS_DIR
-    node itsJustJavascript/devTools/svgTester/dump-chart-ids.js -o $CHART_IDS_FILE
+    yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/dump-data.ts -o $CONFIGS_DIR
+    yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/dump-chart-ids.ts -o $CHART_IDS_FILE
 
     echo "=> Committing new configs and chart ids"
     cd $SVGS_REPO \
@@ -40,7 +40,7 @@ main() {
 
     echo "=> Generating reference SVGs (default views)"
     rm -rf $REFERENCES_DIR
-    node itsJustJavascript/devTools/svgTester/export-graphs.js \
+    yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/export-graphs.ts \
         -i $CONFIGS_DIR \
         -o $REFERENCES_DIR
 
@@ -52,7 +52,7 @@ main() {
 
     echo "=> Generating reference SVGs (all views)"
     rm -rf $ALL_VIEWS_DIR
-    node itsJustJavascript/devTools/svgTester/export-graphs.js \
+    yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/export-graphs.ts \
         -i $CONFIGS_DIR \
         -o $ALL_VIEWS_SVG_DIR \
         -f $CHART_IDS_FILE \

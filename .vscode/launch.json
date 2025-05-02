@@ -6,56 +6,59 @@
     "configurations": [
         {
             "name": "Launch site dev",
-            "program": "${workspaceFolder}/itsJustJavascript/adminSiteServer/app.js",
+            "program": "${workspaceFolder}/adminSiteServer/app.ts",
             "request": "launch",
             "preLaunchTask": "start (full)",
-            "type": "node"
+            "type": "node",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "tsx",
+                "--tsconfig",
+                "tsconfig.tsx.json"
+            ]
         },
         {
             "name": "Remote dev",
-            "program": "${workspaceFolder}/itsJustJavascript/adminSiteServer/app.js",
+            "program": "${workspaceFolder}/adminSiteServer/app.ts",
             "request": "launch",
             "preLaunchTask": "start (remote)",
-            "type": "node"
-        },
-        {
-            "name": "Build content graph",
-            "program": "${workspaceFolder}/itsJustJavascript/db/contentGraph.js",
-            "request": "launch",
-            "type": "node"
-        },
-        {
-            "name": "Index content graph",
-            "program": "${workspaceFolder}/itsJustJavascript/baker/algolia/indexContentGraphToAlgolia.js",
-            "request": "launch",
-            "type": "node"
+            "type": "node",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "tsx",
+                "--tsconfig",
+                "tsconfig.tsx.json"
+            ]
         },
         {
             "name": "Run migrate WP to ArchieML",
-            "program": "${workspaceFolder}/itsJustJavascript/db/migrateWpPostsToArchieMl.js",
-            "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "type": "node"
-        },
-        {
-            "name": "Sync WP posts to grapher",
-            "program": "${workspaceFolder}/itsJustJavascript/db/syncPostsToGrapher.js",
+            "program": "${workspaceFolder}/db/migrateWpPostsToArchieMl.ts",
             "request": "launch",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "type": "node",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "tsx",
+                "--tsconfig",
+                "tsconfig.tsx.json"
+            ]
         },
         {
             "name": "Run SVGTester",
-            "program": "${workspaceFolder}/itsJustJavascript/devTools/svgTester/verify-graphs.js",
+            "program": "${workspaceFolder}/devTools/svgTester/verify-graphs.ts",
             "request": "launch",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "type": "node",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "tsx",
+                "--tsconfig",
+                "tsconfig.tsx.json"
+            ],
             "args": [
                 "-g",
                 "367"
