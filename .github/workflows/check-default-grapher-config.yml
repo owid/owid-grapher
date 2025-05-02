@@ -17,9 +17,9 @@ jobs:
               with:
                   ref: ${{ github.head_ref }}
 
-            - name: Enable corepack
-              run: corepack enable
-              shell: bash
+            - uses: ./.github/actions/setup-node-yarn-deps
+              with:
+                  runPostinstallScripts: false
 
             - uses: hustcer/setup-nu@v3
               with:
