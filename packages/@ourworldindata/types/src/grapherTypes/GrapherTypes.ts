@@ -11,7 +11,7 @@ import {
     ALL_GRAPHER_CHART_TYPES,
     GRAPHER_MAP_TYPE,
     GRAPHER_TAB_NAMES,
-    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_CONFIG_OPTIONS,
     GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING,
 } from "./GrapherConstants.js"
 
@@ -178,8 +178,17 @@ export type GrapherChartTypeSupportedForSwitching =
     (typeof GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING)[number]
 export type GrapherChartOrMapType = GrapherChartType | GrapherMapType
 
-export type GrapherTabType = "table" | "map" | "chart"
-export type GrapherTabOption = keyof typeof GRAPHER_TAB_OPTIONS
+/**
+ * Grapher tab specified in the config that specifies the default tab.
+ * If `chart` is selected and Grapher has more than one chart tab, then the
+ * first chart tab will be active.
+ */
+export type GrapherTabConfigOption = (typeof GRAPHER_TAB_CONFIG_OPTIONS)[number]
+
+export type GrapherTabType = Extract<
+    GrapherTabConfigOption,
+    "table" | "map" | "chart"
+>
 
 /** Valid values for the `tab` query parameter in Grapher */
 export type GrapherTabQueryParam =
@@ -590,7 +599,7 @@ export interface GrapherInterface extends SortConfig {
     zoomToSelection?: boolean
     showYearLabels?: boolean // Always show year in labels for bar charts
     hasMapTab?: boolean
-    tab?: GrapherTabOption
+    tab?: GrapherTabConfigOption
     relatedQuestions?: RelatedQuestionsConfig[]
     details?: DetailDictionary
     internalNotes?: string

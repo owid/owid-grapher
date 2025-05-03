@@ -1,6 +1,6 @@
 import { DimensionProperty } from "@ourworldindata/utils"
 import { Grapher } from "../core/Grapher"
-import { GRAPHER_TAB_OPTIONS, GrapherInterface } from "@ourworldindata/types"
+import { GrapherInterface } from "@ourworldindata/types"
 import {
     TestMetadata,
     createOwidTestDataset,
@@ -38,7 +38,7 @@ export const childMortalityGrapher = (
     ]
     return new Grapher({
         hasMapTab: true,
-        tab: GRAPHER_TAB_OPTIONS.map,
+        tab: "map",
         dimensions,
         ...props,
         owidDataset: createOwidTestDataset([
@@ -85,7 +85,7 @@ export const GrapherWithIncompleteData = (
         },
     ]
     return new Grapher({
-        tab: GRAPHER_TAB_OPTIONS.table,
+        tab: "table",
         selectedEntityNames: ["Iceland", "France", "Afghanistan"],
         dimensions,
         ...props,
@@ -126,7 +126,7 @@ export const GrapherWithAggregates = (
         },
     ]
     return new Grapher({
-        tab: GRAPHER_TAB_OPTIONS.table,
+        tab: "table",
         dimensions,
         selectedEntityNames: ["Afghanistan", "Iceland", "World"],
         ...props,
@@ -171,7 +171,7 @@ export const GrapherWithMultipleVariablesAndMultipleYears = (
     }
 
     return new Grapher({
-        tab: GRAPHER_TAB_OPTIONS.table,
+        tab: "table",
         dimensions,
         ...props,
         owidDataset: createOwidTestDataset([

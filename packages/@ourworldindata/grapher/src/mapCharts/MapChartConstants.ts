@@ -5,7 +5,7 @@ import {
     Color,
     Time,
     GrapherChartType,
-    GrapherTabOption,
+    GrapherTabConfigOption,
     SeriesName,
 } from "@ourworldindata/types"
 import { ChartManager } from "../chart/ChartManager"
@@ -59,7 +59,7 @@ export interface RenderFeature {
 export interface MapChartManager extends ChartManager {
     mapColumnSlug?: ColumnSlug
     mapIsClickable?: boolean
-    tab?: GrapherTabOption // Used to switch to chart tab on map click
+    tab?: GrapherTabConfigOption // Used to switch to chart tab on map click
     type?: GrapherChartType // Used to determine the "Click to select" text in MapTooltip
     isLineChartThatTurnedIntoDiscreteBar?: boolean // Used to determine whether to reset the timeline on map click
     hasTimeline?: boolean // Used to determine whether to reset the timeline on map click

@@ -106,7 +106,6 @@ import {
     GRAPHER_QUERY_PARAM_KEYS,
     GrapherTooltipAnchor,
     GrapherTabName,
-    GRAPHER_TAB_OPTIONS,
     GRAPHER_TAB_NAMES,
     SeriesName,
     ChartViewInfo,
@@ -616,7 +615,7 @@ export class Grapher
 
         // store the currently selected chart type if it's different from the primary chart type
         if (
-            this.tab === GRAPHER_TAB_OPTIONS.chart &&
+            this.tab === "chart" &&
             this.chartTab &&
             this.chartTab !== this.chartType
         ) {
@@ -669,7 +668,7 @@ export class Grapher
         if (obj.tab) {
             const chartType = mapTabOptionToChartTypeName(obj.tab)
             if (chartType) {
-                this.tab = GRAPHER_TAB_OPTIONS.chart
+                this.tab = "chart"
                 this.chartTab = chartType
             }
         }
@@ -774,10 +773,8 @@ export class Grapher
     }
 
     @computed get activeTab(): GrapherTabName {
-        if (this.tab === GRAPHER_TAB_OPTIONS.table)
-            return GRAPHER_TAB_NAMES.Table
-        if (this.tab === GRAPHER_TAB_OPTIONS.map)
-            return GRAPHER_TAB_NAMES.WorldMap
+        if (this.tab === "table") return GRAPHER_TAB_NAMES.Table
+        if (this.tab === "map") return GRAPHER_TAB_NAMES.WorldMap
         if (this.chartTab) return this.chartTab
         return this.chartType ?? GRAPHER_TAB_NAMES.LineChart
     }
@@ -796,15 +793,15 @@ export class Grapher
     }
 
     @computed get isOnChartTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.chart
+        return this.tab === "chart"
     }
 
     @computed get isOnMapTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.map
+        return this.tab === "map"
     }
 
     @computed get isOnTableTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.table
+        return this.tab === "table"
     }
 
     @computed get isOnChartOrMapTab(): boolean {
@@ -1467,13 +1464,13 @@ export class Grapher
 
     @action.bound setTab(newTab: GrapherTabName): void {
         if (newTab === GRAPHER_TAB_NAMES.Table) {
-            this.tab = GRAPHER_TAB_OPTIONS.table
+            this.tab = "table"
             this.chartTab = undefined
         } else if (newTab === GRAPHER_TAB_NAMES.WorldMap) {
-            this.tab = GRAPHER_TAB_OPTIONS.map
+            this.tab = "map"
             this.chartTab = undefined
         } else {
-            this.tab = GRAPHER_TAB_OPTIONS.chart
+            this.tab = "chart"
             this.chartTab = newTab
         }
     }
@@ -1787,7 +1784,7 @@ export class Grapher
 
         return !!(
             !this.forceHideAnnotationFieldsInTitle?.entity &&
-            this.tab === GRAPHER_TAB_OPTIONS.chart &&
+            this.tab === "chart" &&
             (seriesStrategy !== SeriesStrategy.entity || !this.showLegend) &&
             selectedEntityNames.length === 1 &&
             (showEntityAnnotation ||
@@ -1861,15 +1858,15 @@ export class Grapher
 
         switch (this.tab) {
             // the map tab has its own `hideTimeline` option
-            case GRAPHER_TAB_OPTIONS.map:
+            case "map":
                 return !this.map.hideTimeline
 
             // use the chart-level `hideTimeline` option
-            case GRAPHER_TAB_OPTIONS.chart:
+            case "chart":
                 return !this.hideTimeline
 
             // use the chart-level `hideTimeline` option for the table, with some exceptions
-            case GRAPHER_TAB_OPTIONS.table:
+            case "table":
                 // always show the timeline for charts that plot time on the x-axis
                 if (this.hasTimeDimension) return true
                 return !this.hideTimeline

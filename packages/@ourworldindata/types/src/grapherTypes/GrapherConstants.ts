@@ -25,19 +25,6 @@ export const GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING = [
 ] as const satisfies (typeof ALL_GRAPHER_CHART_TYPES)[number][]
 
 /**
- * Grapher tab specified in the config that determines the default tab to show.
- * If `chart` is selected and Grapher has more than one chart tab, then the
- * first chart tab will be active.
- */
-export const GRAPHER_TAB_OPTIONS = {
-    table: "table",
-    map: "map",
-    chart: "chart",
-    line: "line",
-    slope: "slope",
-} as const
-
-/**
  * Internal tab names used in Grapher.
  */
 export const GRAPHER_TAB_NAMES = {
@@ -54,3 +41,18 @@ export const GRAPHER_TAB_NAMES = {
     StackedBar: "StackedBar",
     Marimekko: "Marimekko",
 } as const
+
+/**
+ * Grapher tab specified in the config that specifies the default tab.
+ * If `chart` is selected and Grapher has more than one chart tab, then the
+ * first chart tab will be active.
+ */
+export const GRAPHER_TAB_CONFIG_OPTIONS = [
+    "table",
+    "map",
+    "chart",
+
+    // chart types
+    "line",
+    "slope",
+] as const
