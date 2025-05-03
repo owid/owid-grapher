@@ -12,6 +12,7 @@ import {
     GRAPHER_MAP_TYPE,
     GRAPHER_TAB_NAMES,
     GRAPHER_TAB_OPTIONS,
+    GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING,
 } from "./GrapherConstants.js"
 
 export interface Box {
@@ -173,6 +174,8 @@ export type SeriesColorMap = Map<SeriesName, Color>
 
 export type GrapherMapType = typeof GRAPHER_MAP_TYPE
 export type GrapherChartType = (typeof ALL_GRAPHER_CHART_TYPES)[number]
+export type GrapherChartTypeSupportedForSwitching =
+    (typeof GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING)[number]
 export type GrapherChartOrMapType = GrapherChartType | GrapherMapType
 
 export type GrapherTabType = "table" | "map" | "chart"
@@ -184,15 +187,10 @@ export type GrapherTabQueryParam =
     | "table"
     | "map"
     | "chart"
+
     // chart types
     | "line"
-    | "scatter"
-    | "stacked-area"
-    | "discrete-bar"
-    | "stacked-discrete-bar"
     | "slope"
-    | "stacked-bar"
-    | "marimekko"
 
 export type GrapherTabName = keyof typeof GRAPHER_TAB_NAMES
 

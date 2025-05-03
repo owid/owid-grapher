@@ -18,6 +18,8 @@ import {
     GrapherInterface,
     GrapherChartOrMapType,
     GRAPHER_MAP_TYPE,
+    GrapherChartTypeSupportedForSwitching,
+    GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -141,6 +143,14 @@ export function isTargetOutsideElement(
     )
 }
 
+export function isChartTypeSupportedForSwitching(
+    chartType: GrapherChartType
+): chartType is GrapherChartTypeSupportedForSwitching {
+    return GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING.includes(
+        chartType as any
+    )
+}
+
 export function mapQueryParamToChartTypeName(
     chartTab: string
 ): GrapherChartType | undefined {
@@ -167,25 +177,13 @@ export function mapQueryParamToChartTypeName(
 }
 
 export function mapChartTypeNameToQueryParam(
-    chartType: GrapherChartType
+    chartType: GrapherChartTypeSupportedForSwitching
 ): GrapherTabQueryParam {
     switch (chartType) {
         case "LineChart":
             return "line"
         case "SlopeChart":
             return "slope"
-        case "ScatterPlot":
-            return "scatter"
-        case "StackedArea":
-            return "stacked-area"
-        case "StackedBar":
-            return "stacked-bar"
-        case "DiscreteBar":
-            return "discrete-bar"
-        case "StackedDiscreteBar":
-            return "stacked-discrete-bar"
-        case "Marimekko":
-            return "marimekko"
     }
 }
 
