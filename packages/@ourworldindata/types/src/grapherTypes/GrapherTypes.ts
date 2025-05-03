@@ -12,7 +12,6 @@ import {
     GRAPHER_MAP_TYPE,
     GRAPHER_TAB_NAMES,
     GRAPHER_TAB_OPTIONS,
-    GRAPHER_TAB_TYPES,
 } from "./GrapherConstants.js"
 
 export interface Box {
@@ -176,7 +175,7 @@ export type GrapherMapType = typeof GRAPHER_MAP_TYPE
 export type GrapherChartType = (typeof ALL_GRAPHER_CHART_TYPES)[number]
 export type GrapherChartOrMapType = GrapherChartType | GrapherMapType
 
-export type GrapherTabType = keyof typeof GRAPHER_TAB_TYPES
+export type GrapherTabType = "table" | "map" | "chart"
 export type GrapherTabOption = keyof typeof GRAPHER_TAB_OPTIONS
 
 /** Valid values for the `tab` query parameter in Grapher */

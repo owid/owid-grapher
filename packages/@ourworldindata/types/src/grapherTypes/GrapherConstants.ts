@@ -19,15 +19,6 @@ export const ALL_GRAPHER_CHART_TYPES = [
 ] as const
 
 /**
- * The different types of Grapher tabs
- */
-export const GRAPHER_TAB_TYPES = {
-    table: "table",
-    map: "map",
-    chart: "chart",
-} as const
-
-/**
  * Grapher tab specified in the config that determines the default tab to show.
  * If `chart` is selected and Grapher has more than one chart tab, then the
  * first chart tab will be active.
