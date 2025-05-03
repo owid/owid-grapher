@@ -3,7 +3,6 @@ import { ColorScheme } from "./ColorScheme"
 import { match } from "ts-pattern"
 import { partition } from "@ourworldindata/utils"
 import {
-    GRAPHER_CHART_TYPES,
     ColorSchemeInterface,
     ColorSchemeName,
     GRAPHER_MAP_TYPE,
@@ -18,17 +17,15 @@ function getPreferredSchemesByType(
     // by doing it as a function usign ts-pattern.match we get compile
     // time safety that all enum cases in GrapherChartOrMapType are always handled here
     return match(type)
-        .with(GRAPHER_CHART_TYPES.DiscreteBar, () => [
+        .with("DiscreteBar", () => [
             ColorSchemeName.SingleColorDenim,
             ColorSchemeName.SingleColorDustyCoral,
             ColorSchemeName.SingleColorPurple,
             ColorSchemeName.SingleColorTeal,
             ColorSchemeName.SingleColorDarkCopper,
         ])
-        .with(GRAPHER_CHART_TYPES.LineChart, () => [
-            ColorSchemeName.OwidDistinctLines,
-        ])
-        .with(GRAPHER_CHART_TYPES.Marimekko, () => [
+        .with("LineChart", () => [ColorSchemeName.OwidDistinctLines])
+        .with("Marimekko", () => [
             ColorSchemeName.continents,
             ColorSchemeName.SingleColorDenim,
             ColorSchemeName.SingleColorDustyCoral,
@@ -41,15 +38,15 @@ function getPreferredSchemesByType(
             ColorSchemeName.OwidCategoricalD,
             ColorSchemeName.OwidCategoricalE,
         ])
-        .with(GRAPHER_CHART_TYPES.ScatterPlot, () => [
+        .with("ScatterPlot", () => [
             ColorSchemeName.continents,
             ColorSchemeName.OwidDistinctLines,
         ])
-        .with(GRAPHER_CHART_TYPES.SlopeChart, () => [
+        .with("SlopeChart", () => [
             ColorSchemeName.continents,
             ColorSchemeName.OwidDistinctLines,
         ])
-        .with(GRAPHER_CHART_TYPES.StackedArea, () => [
+        .with("StackedArea", () => [
             ColorSchemeName["owid-distinct"],
             ColorSchemeName.OwidCategoricalA,
             ColorSchemeName.OwidCategoricalB,
@@ -62,7 +59,7 @@ function getPreferredSchemesByType(
             ColorSchemeName.SingleColorGradientDustyCoral,
             ColorSchemeName.SingleColorGradientDarkCopper,
         ])
-        .with(GRAPHER_CHART_TYPES.StackedBar, () => [
+        .with("StackedBar", () => [
             ColorSchemeName["owid-distinct"],
             ColorSchemeName.OwidCategoricalA,
             ColorSchemeName.OwidCategoricalB,
@@ -75,7 +72,7 @@ function getPreferredSchemesByType(
             ColorSchemeName.SingleColorGradientDustyCoral,
             ColorSchemeName.SingleColorGradientDarkCopper,
         ])
-        .with(GRAPHER_CHART_TYPES.StackedDiscreteBar, () => [
+        .with("StackedDiscreteBar", () => [
             ColorSchemeName["owid-distinct"],
             ColorSchemeName.OwidCategoricalA,
             ColorSchemeName.OwidCategoricalB,

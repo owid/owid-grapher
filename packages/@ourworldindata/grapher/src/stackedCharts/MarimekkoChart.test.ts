@@ -8,7 +8,7 @@ import {
 } from "@ourworldindata/core-table"
 import { DefaultColorScheme } from "../color/CustomSchemes"
 import { Grapher } from "../core/Grapher"
-import { GRAPHER_CHART_TYPES, SortBy, SortOrder } from "@ourworldindata/types"
+import { SortBy, SortOrder } from "@ourworldindata/types"
 import { MarimekkoChart } from "./MarimekkoChart"
 import {
     BarShape,
@@ -469,7 +469,7 @@ it("can filter years correctly", () => {
 
     // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
     const manager = {
-        chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
+        chartTypes: ["Marimekko"],
         table,
         selection: table.availableEntityNames,
         ySlugs: "percentBelow2USD",
@@ -579,7 +579,7 @@ it("shows no data points at the end", () => {
 
     // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
     const manager = {
-        chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
+        chartTypes: ["Marimekko"],
         table,
         selection: table.availableEntityNames,
         ySlugs: "percentBelow2USD",
@@ -679,7 +679,7 @@ test("interpolation works as expected", () => {
 
     // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
     const manager = {
-        chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
+        chartTypes: ["Marimekko"],
         table,
         selection: table.availableEntityNames,
         ySlugs: "percentBelow2USD",
@@ -790,7 +790,7 @@ it("can deal with y columns with missing values", () => {
 
     // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
     const manager = {
-        chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
+        chartTypes: ["Marimekko"],
         table,
         selection: table.availableEntityNames,
         ySlugs: "percentBelow2USD percentBelow10USD",

@@ -34,7 +34,6 @@ import { HeaderManager } from "../header/HeaderManager"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     EntityName,
-    GRAPHER_CHART_TYPES,
     RelatedQuestionsConfig,
     Color,
     GrapherTabName,
@@ -192,7 +191,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         if (manager.isOnMapTab) return GRAPHER_MAP_TYPE
         if (manager.isOnChartTab) {
             return manager.isLineChartThatTurnedIntoDiscreteBarActive
-                ? GRAPHER_CHART_TYPES.DiscreteBar
+                ? "DiscreteBar"
                 : manager.activeChartType
         }
         return undefined

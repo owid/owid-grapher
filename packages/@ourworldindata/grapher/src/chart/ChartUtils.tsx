@@ -11,7 +11,6 @@ import {
     EntityName,
     GrapherTabQueryParam,
     GrapherChartType,
-    GRAPHER_CHART_TYPES,
     GRAPHER_TAB_QUERY_PARAMS,
     GrapherTabOption,
     GRAPHER_TAB_OPTIONS,
@@ -150,21 +149,21 @@ export function mapQueryParamToChartTypeName(
 ): GrapherChartType | undefined {
     switch (chartTab) {
         case GRAPHER_TAB_QUERY_PARAMS.line:
-            return GRAPHER_CHART_TYPES.LineChart
+            return "LineChart"
         case GRAPHER_TAB_QUERY_PARAMS.slope:
-            return GRAPHER_CHART_TYPES.SlopeChart
+            return "SlopeChart"
         case GRAPHER_TAB_QUERY_PARAMS.scatter:
-            return GRAPHER_CHART_TYPES.ScatterPlot
+            return "ScatterPlot"
         case GRAPHER_TAB_QUERY_PARAMS["stacked-area"]:
-            return GRAPHER_CHART_TYPES.StackedArea
+            return "StackedArea"
         case GRAPHER_TAB_QUERY_PARAMS["stacked-bar"]:
-            return GRAPHER_CHART_TYPES.StackedBar
+            return "StackedBar"
         case GRAPHER_TAB_QUERY_PARAMS["discrete-bar"]:
-            return GRAPHER_CHART_TYPES.DiscreteBar
+            return "DiscreteBar"
         case GRAPHER_TAB_QUERY_PARAMS["stacked-discrete-bar"]:
-            return GRAPHER_CHART_TYPES.StackedDiscreteBar
+            return "StackedDiscreteBar"
         case GRAPHER_TAB_QUERY_PARAMS.marimekko:
-            return GRAPHER_CHART_TYPES.Marimekko
+            return "Marimekko"
         default:
             return undefined
     }
@@ -174,21 +173,21 @@ export function mapChartTypeNameToQueryParam(
     chartType: GrapherChartType
 ): GrapherTabQueryParam {
     switch (chartType) {
-        case GRAPHER_CHART_TYPES.LineChart:
+        case "LineChart":
             return GRAPHER_TAB_QUERY_PARAMS.line
-        case GRAPHER_CHART_TYPES.SlopeChart:
+        case "SlopeChart":
             return GRAPHER_TAB_QUERY_PARAMS.slope
-        case GRAPHER_CHART_TYPES.ScatterPlot:
+        case "ScatterPlot":
             return GRAPHER_TAB_QUERY_PARAMS.scatter
-        case GRAPHER_CHART_TYPES.StackedArea:
+        case "StackedArea":
             return GRAPHER_TAB_QUERY_PARAMS["stacked-area"]
-        case GRAPHER_CHART_TYPES.StackedBar:
+        case "StackedBar":
             return GRAPHER_TAB_QUERY_PARAMS["stacked-bar"]
-        case GRAPHER_CHART_TYPES.DiscreteBar:
+        case "DiscreteBar":
             return GRAPHER_TAB_QUERY_PARAMS["discrete-bar"]
-        case GRAPHER_CHART_TYPES.StackedDiscreteBar:
+        case "StackedDiscreteBar":
             return GRAPHER_TAB_QUERY_PARAMS["stacked-discrete-bar"]
-        case GRAPHER_CHART_TYPES.Marimekko:
+        case "Marimekko":
             return GRAPHER_TAB_QUERY_PARAMS.marimekko
     }
 }
@@ -198,9 +197,9 @@ export function mapTabOptionToChartTypeName(
 ): GrapherChartType | undefined {
     switch (chartTab) {
         case GRAPHER_TAB_OPTIONS.line:
-            return GRAPHER_CHART_TYPES.LineChart
+            return "LineChart"
         case GRAPHER_TAB_OPTIONS.slope:
-            return GRAPHER_CHART_TYPES.SlopeChart
+            return "SlopeChart"
         default:
             return undefined
     }
@@ -210,9 +209,9 @@ export function mapChartTypeNameToTabOption(
     chartType: GrapherChartType
 ): GrapherTabOption {
     switch (chartType) {
-        case GRAPHER_CHART_TYPES.LineChart:
+        case "LineChart":
             return GRAPHER_TAB_OPTIONS.line
-        case GRAPHER_CHART_TYPES.SlopeChart:
+        case "SlopeChart":
             return GRAPHER_TAB_OPTIONS.slope
         default:
             return GRAPHER_TAB_OPTIONS.chart
@@ -383,7 +382,7 @@ export function getChartTypeFromConfigAndQueryParams(
 function getChartTypeFromConfigField(
     chartTypes?: GrapherChartType[]
 ): GrapherChartType | undefined {
-    if (!chartTypes) return GRAPHER_CHART_TYPES.LineChart
+    if (!chartTypes) return "LineChart"
     if (chartTypes.length === 0) return undefined
     return chartTypes[0]
 }
@@ -393,19 +392,19 @@ function maybeLineChartThatTurnedIntoDiscreteBar(
     chartConfig: GrapherInterface,
     queryParams?: URLSearchParams
 ): GrapherChartType {
-    if (chartType !== GRAPHER_CHART_TYPES.LineChart) return chartType
+    if (chartType !== "LineChart") return chartType
 
     const time = queryParams?.get("time")
     if (time) {
         const [minTime, maxTime] = getTimeDomainFromQueryString(time)
-        if (minTime === maxTime) return GRAPHER_CHART_TYPES.DiscreteBar
+        if (minTime === maxTime) return "DiscreteBar"
     }
 
     if (
         chartConfig.minTime !== undefined &&
         chartConfig.minTime === chartConfig.maxTime
     )
-        return GRAPHER_CHART_TYPES.DiscreteBar
+        return "DiscreteBar"
 
     return chartType
 }

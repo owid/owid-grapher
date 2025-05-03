@@ -1,5 +1,4 @@
 import {
-    GRAPHER_CHART_TYPES,
     GrapherChartType,
     GrapherTabName,
     ALL_GRAPHER_CHART_TYPES,
@@ -210,8 +209,7 @@ export async function findChartViewsToGenerate(
         const grapherConfig = await parseGrapherConfig(chartId, { inDir })
 
         const slug = grapherConfig.slug ?? chartId.toString()
-        const chartType =
-            grapherConfig.chartTypes?.[0] ?? GRAPHER_CHART_TYPES.LineChart
+        const chartType = grapherConfig.chartTypes?.[0] ?? "LineChart"
 
         const queryStrings = options.shouldTestAllViews
             ? queryStringsByChartType[chartType]
@@ -289,9 +287,7 @@ export async function findValidChartIds(
                 const grapherConfig = await parseGrapherConfig(grapherId, {
                     inDir,
                 })
-                const chartType =
-                    grapherConfig.chartTypes?.[0] ??
-                    GRAPHER_CHART_TYPES.LineChart
+                const chartType = grapherConfig.chartTypes?.[0] ?? "LineChart"
                 if (chartTypes.includes(chartType)) {
                     validChartIds.push(grapherId)
                 }
