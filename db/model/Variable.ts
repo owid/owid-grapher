@@ -22,7 +22,6 @@ import {
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
     OwidVariableId,
-    GRAPHER_CHART_TYPES,
     DimensionProperty,
     GrapherInterface,
     DbRawVariable,
@@ -881,8 +880,7 @@ export async function getVariableOfDatapageIfApplicable(
     // showing a data page.
     if (
         yVariableIds.length === 1 &&
-        (grapher.chartTypes?.[0] !== GRAPHER_CHART_TYPES.ScatterPlot ||
-            xVariableIds.length === 0)
+        (grapher.chartTypes?.[0] !== "ScatterPlot" || xVariableIds.length === 0)
     ) {
         const variableId = yVariableIds[0]
         const variableMetadata = await getVariableMetadata(variableId)

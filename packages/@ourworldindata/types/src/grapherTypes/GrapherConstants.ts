@@ -6,18 +6,17 @@ export const IDEAL_PLOT_ASPECT_RATIO = 1.8
 
 export const GRAPHER_MAP_TYPE = "WorldMap"
 
-export const GRAPHER_CHART_TYPES = {
-    LineChart: "LineChart",
-    ScatterPlot: "ScatterPlot",
-    StackedArea: "StackedArea",
-    DiscreteBar: "DiscreteBar",
-    StackedDiscreteBar: "StackedDiscreteBar",
-    SlopeChart: "SlopeChart",
-    StackedBar: "StackedBar",
-    Marimekko: "Marimekko",
-} as const
-
-export const ALL_GRAPHER_CHART_TYPES = Object.values(GRAPHER_CHART_TYPES)
+/** Chart types without WorldMap */
+export const ALL_GRAPHER_CHART_TYPES = [
+    "LineChart",
+    "ScatterPlot",
+    "StackedArea",
+    "DiscreteBar",
+    "StackedDiscreteBar",
+    "SlopeChart",
+    "StackedBar",
+    "Marimekko",
+] as const
 
 /**
  * The different types of Grapher tabs

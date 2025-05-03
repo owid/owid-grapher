@@ -6,7 +6,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons"
 import {
     EntityName,
-    GRAPHER_CHART_TYPES,
     FacetStrategy,
     GrapherChartType,
 } from "@ourworldindata/types"
@@ -43,16 +42,6 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     GRAPHER_SETTINGS_CLASS,
 } from "../core/GrapherConstants"
-
-const {
-    LineChart,
-    ScatterPlot,
-    StackedArea,
-    StackedDiscreteBar,
-    StackedBar,
-    Marimekko,
-    SlopeChart,
-} = GRAPHER_CHART_TYPES
 
 export interface SettingsMenuManager
     extends AbsRelToggleManager,
@@ -112,7 +101,7 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get chartType(): GrapherChartType {
-        return this.manager.activeChartType ?? GRAPHER_CHART_TYPES.LineChart
+        return this.manager.activeChartType ?? "LineChart"
     }
 
     @computed get maxWidth(): number {
@@ -124,10 +113,10 @@ export class SettingsMenu extends React.Component<{
         if (this.manager.isRelativeMode) return false
         if (
             [
-                GRAPHER_CHART_TYPES.StackedArea,
-                GRAPHER_CHART_TYPES.StackedBar,
-                GRAPHER_CHART_TYPES.DiscreteBar,
-                GRAPHER_CHART_TYPES.StackedDiscreteBar,
+                "StackedArea",
+                "StackedBar",
+                "DiscreteBar",
+                "StackedDiscreteBar",
             ].includes(this.chartType as any)
         )
             return false // We currently do not have these charts with log scale
@@ -146,7 +135,7 @@ export class SettingsMenu extends React.Component<{
         return (
             !this.manager.hideFacetYDomainToggle &&
             this.manager.facetStrategy !== FacetStrategy.none &&
-            this.chartType !== StackedDiscreteBar
+            this.chartType !== "StackedDiscreteBar"
         )
     }
 
@@ -154,7 +143,7 @@ export class SettingsMenu extends React.Component<{
         const { hideZoomToggle } = this.manager
         return (
             !hideZoomToggle &&
-            this.chartType === ScatterPlot &&
+            this.chartType === "ScatterPlot" &&
             this.selectionArray.hasSelection
         )
     }
@@ -162,7 +151,7 @@ export class SettingsMenu extends React.Component<{
     @computed get showNoDataAreaToggle(): boolean {
         return (
             !this.manager.hideNoDataAreaToggle &&
-            this.chartType === Marimekko &&
+            this.chartType === "Marimekko" &&
             this.manager.xColumnSlug !== undefined
         )
     }
@@ -171,16 +160,16 @@ export class SettingsMenu extends React.Component<{
         const { canToggleRelativeMode, hasTimeline, xOverrideTime } =
             this.manager
         if (!canToggleRelativeMode) return false
-        if (this.chartType === ScatterPlot)
+        if (this.chartType === "ScatterPlot")
             return xOverrideTime === undefined && !!hasTimeline
         return [
-            StackedArea,
-            StackedBar,
-            StackedDiscreteBar,
-            ScatterPlot,
-            LineChart,
-            Marimekko,
-            SlopeChart,
+            "StackedArea",
+            "StackedBar",
+            "StackedDiscreteBar",
+            "ScatterPlot",
+            "LineChart",
+            "Marimekko",
+            "SlopeChart",
         ].includes(this.chartType as any)
     }
 
@@ -200,11 +189,11 @@ export class SettingsMenu extends React.Component<{
         if (!availableFacetStrategies.includes(FacetStrategy.none)) return true
 
         const showFacetControlChartType = [
-            StackedArea,
-            StackedBar,
-            StackedDiscreteBar,
-            LineChart,
-            SlopeChart,
+            "StackedArea",
+            "StackedBar",
+            "StackedDiscreteBar",
+            "LineChart",
+            "SlopeChart",
         ].includes(this.chartType as any)
 
         const hasProjection = filledDimensions.some(

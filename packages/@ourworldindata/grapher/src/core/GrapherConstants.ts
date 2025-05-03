@@ -1,4 +1,4 @@
-import { EntityName, GRAPHER_CHART_TYPES } from "@ourworldindata/types"
+import { EntityName, GrapherChartType } from "@ourworldindata/types"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 import type { GrapherProgrammaticInterface } from "./Grapher"
 
@@ -118,6 +118,6 @@ export const grapherInterfaceWithHiddenTabs: GrapherProgrammaticInterface = {
  *
  * This also determines the order of chart types in the UI.
  */
-export const validChartTypeCombinations = [
-    [GRAPHER_CHART_TYPES.LineChart, GRAPHER_CHART_TYPES.SlopeChart],
+export const validChartTypeCombinations: GrapherChartType[][] = [
+    ["LineChart", "SlopeChart"],
 ]

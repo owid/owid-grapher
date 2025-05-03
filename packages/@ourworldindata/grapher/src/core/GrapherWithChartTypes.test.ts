@@ -8,7 +8,6 @@ import {
 import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
 import { MapChart } from "../mapCharts/MapChart"
 import { legacyMapGrapher } from "../mapCharts/MapChart.sample"
-import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
 describe("grapher and map charts", () => {
     describe("map time tolerance plus query string works with a map chart", () => {
@@ -50,7 +49,7 @@ const basicGrapherConfig: GrapherProgrammaticInterface = {
 
 test("grapher and discrete bar charts", () => {
     const grapher = new Grapher({
-        chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+        chartTypes: ["DiscreteBar"],
         ...basicGrapherConfig,
     })
     expect(grapher.chartInstance.series.length).toBeGreaterThan(0)

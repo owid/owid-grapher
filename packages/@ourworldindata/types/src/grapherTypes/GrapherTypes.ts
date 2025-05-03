@@ -8,7 +8,7 @@ import { Integer } from "../domainTypes/Various.js"
 import { DetailDictionary } from "../gdocTypes/Gdoc.js"
 import { observable } from "mobx"
 import {
-    GRAPHER_CHART_TYPES,
+    ALL_GRAPHER_CHART_TYPES,
     GRAPHER_MAP_TYPE,
     GRAPHER_TAB_NAMES,
     GRAPHER_TAB_OPTIONS,
@@ -174,7 +174,7 @@ export type SeriesName = string
 export type SeriesColorMap = Map<SeriesName, Color>
 
 export type GrapherMapType = typeof GRAPHER_MAP_TYPE
-export type GrapherChartType = keyof typeof GRAPHER_CHART_TYPES
+export type GrapherChartType = (typeof ALL_GRAPHER_CHART_TYPES)[number]
 export type GrapherChartOrMapType = GrapherChartType | GrapherMapType
 
 export type GrapherTabType = keyof typeof GRAPHER_TAB_TYPES

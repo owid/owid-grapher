@@ -106,7 +106,6 @@ import {
     GRAPHER_QUERY_PARAM_KEYS,
     GrapherTooltipAnchor,
     GrapherTabName,
-    GRAPHER_CHART_TYPES,
     GRAPHER_TAB_OPTIONS,
     GRAPHER_TAB_NAMES,
     GRAPHER_TAB_QUERY_PARAMS,
@@ -382,9 +381,7 @@ export class Grapher
         SlopeChartManager
 {
     @observable.ref $schema = latestGrapherConfigSchema
-    @observable.ref chartTypes: GrapherChartType[] = [
-        GRAPHER_CHART_TYPES.LineChart,
-    ]
+    @observable.ref chartTypes: GrapherChartType[] = ["LineChart"]
     @observable.ref id?: number = undefined
     @observable.ref version = 1
     @observable.ref slug?: string = undefined
@@ -1725,9 +1722,9 @@ export class Grapher
         if (!validChartTypes) return chartTypes.slice(0, 1)
 
         // projected data is only supported for line charts
-        const isLineChart = validChartTypes[0] === GRAPHER_CHART_TYPES.LineChart
+        const isLineChart = validChartTypes[0] === "LineChart"
         if (isLineChart && this.hasProjectedData) {
-            return [GRAPHER_CHART_TYPES.LineChart]
+            return ["LineChart"]
         }
 
         return validChartTypes
@@ -2114,35 +2111,33 @@ export class Grapher
     @computed
     get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): GrapherChartType {
         return this.isLineChartThatTurnedIntoDiscreteBarActive
-            ? GRAPHER_CHART_TYPES.DiscreteBar
-            : (this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart)
+            ? "DiscreteBar"
+            : (this.activeChartType ?? "LineChart")
     }
 
     @computed get isLineChart(): boolean {
-        return (
-            this.chartType === GRAPHER_CHART_TYPES.LineChart || !this.chartType
-        )
+        return this.chartType === "LineChart" || !this.chartType
     }
     @computed get isScatter(): boolean {
-        return this.chartType === GRAPHER_CHART_TYPES.ScatterPlot
+        return this.chartType === "ScatterPlot"
     }
     @computed get isStackedArea(): boolean {
-        return this.chartType === GRAPHER_CHART_TYPES.StackedArea
+        return this.chartType === "StackedArea"
     }
     @computed get isSlopeChart(): boolean {
-        return this.chartType === GRAPHER_CHART_TYPES.SlopeChart
+        return this.chartType === "SlopeChart"
     }
     @computed get isDiscreteBar(): boolean {
-        return this.chartType === GRAPHER_CHART_TYPES.DiscreteBar
+        return this.chartType === "DiscreteBar"
     }
     @computed get isStackedBar(): boolean {
-        return this.chartType === GRAPHER_CHART_TYPES.StackedBar
+        return this.chartType === "StackedBar"
     }
     @computed get isMarimekko(): boolean {
-        return this.chartType === GRAPHER_CHART_TYPES.Marimekko
+        return this.chartType === "Marimekko"
     }
     @computed get isStackedDiscreteBar(): boolean {
-        return this.chartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
+        return this.chartType === "StackedDiscreteBar"
     }
 
     @computed get isLineChartThatTurnedIntoDiscreteBar(): boolean {
@@ -2179,35 +2174,35 @@ export class Grapher
     }
 
     @computed get isOnLineChartTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.LineChart
+        return this.activeChartType === "LineChart"
     }
     @computed get isOnScatterTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.ScatterPlot
+        return this.activeChartType === "ScatterPlot"
     }
     @computed get isOnStackedAreaTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.StackedArea
+        return this.activeChartType === "StackedArea"
     }
     @computed get isOnSlopeChartTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.SlopeChart
+        return this.activeChartType === "SlopeChart"
     }
     @computed get isOnDiscreteBarTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.DiscreteBar
+        return this.activeChartType === "DiscreteBar"
     }
     @computed get isOnStackedBarTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.StackedBar
+        return this.activeChartType === "StackedBar"
     }
     @computed get isOnMarimekkoTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.Marimekko
+        return this.activeChartType === "Marimekko"
     }
     @computed get isOnStackedDiscreteBarTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
+        return this.activeChartType === "StackedDiscreteBar"
     }
 
     @computed get hasLineChart(): boolean {
-        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.LineChart)
+        return this.validChartTypeSet.has("LineChart")
     }
     @computed get hasSlopeChart(): boolean {
-        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.SlopeChart)
+        return this.validChartTypeSet.has("SlopeChart")
     }
 
     @computed get supportsMultipleYColumns(): boolean {
