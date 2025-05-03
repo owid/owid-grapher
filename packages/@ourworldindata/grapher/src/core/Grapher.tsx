@@ -114,7 +114,6 @@ import {
     AssetMap,
     ArchivedChartOrArchivePageMeta,
     GrapherTabType,
-    GRAPHER_TAB_TYPES,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -416,7 +415,7 @@ export class Grapher
     @observable.ref zoomToSelection?: boolean = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
     @observable.ref hasMapTab = false
-    @observable.ref tab: GrapherTabType = GRAPHER_TAB_TYPES.chart
+    @observable.ref tab: GrapherTabType = "chart"
     @observable.ref chartTab?: GrapherChartType
     @observable.ref isPublished?: boolean = undefined
     @observable.ref baseColorScheme?: ColorSchemeName = undefined
