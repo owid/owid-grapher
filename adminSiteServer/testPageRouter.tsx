@@ -28,7 +28,7 @@ import {
     EntitySelectionMode,
     StackMode,
     parseChartConfig,
-    GRAPHER_MAP_TYPE,
+    GRAPHER_WORLD_MAP,
     GrapherTabConfigOption,
     GrapherChartOrMapType,
 } from "@ourworldindata/types"
@@ -148,7 +148,7 @@ async function propsFromQueryParams(
     let tab = params.tab
 
     if (params.type) {
-        if (params.type === GRAPHER_MAP_TYPE) {
+        if (params.type === GRAPHER_WORLD_MAP) {
             query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
             tab ||= "map"
         } else {

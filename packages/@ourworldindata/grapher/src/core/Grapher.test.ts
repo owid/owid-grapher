@@ -7,7 +7,8 @@ import {
     GrapherQueryParams,
     LegacyGrapherInterface,
     LegacyGrapherQueryParams,
-    GRAPHER_TAB_NAMES,
+    GRAPHER_WORLD_MAP,
+    GRAPHER_TABLE,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -517,13 +518,13 @@ describe("urls", () => {
     it("parses tab=table correctly", () => {
         const grapher = new Grapher()
         grapher.populateFromQueryParams({ tab: "table" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.Table)
+        expect(grapher.activeTab).toEqual(GRAPHER_TABLE)
     })
 
     it("parses tab=map correctly", () => {
         const grapher = new Grapher({ hasMapTab: true })
         grapher.populateFromQueryParams({ tab: "map" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.WorldMap)
+        expect(grapher.activeTab).toEqual(GRAPHER_WORLD_MAP)
     })
 
     it("parses tab=chart correctly", () => {
@@ -531,7 +532,7 @@ describe("urls", () => {
             chartTypes: ["ScatterPlot"],
         })
         grapher.populateFromQueryParams({ tab: "chart" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.ScatterPlot)
+        expect(grapher.activeTab).toEqual("ScatterPlot")
     })
 
     it("parses tab=line and tab=slope correctly", () => {
@@ -539,9 +540,9 @@ describe("urls", () => {
             chartTypes: ["LineChart", "SlopeChart"],
         })
         grapher.populateFromQueryParams({ tab: "line" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.LineChart)
+        expect(grapher.activeTab).toEqual("LineChart")
         grapher.populateFromQueryParams({ tab: "slope" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.SlopeChart)
+        expect(grapher.activeTab).toEqual("SlopeChart")
     })
 
     it("switches to the first chart tab if the given chart isn't available", () => {
@@ -549,19 +550,19 @@ describe("urls", () => {
             chartTypes: ["LineChart", "SlopeChart"],
         })
         grapher.populateFromQueryParams({ tab: "bar" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.LineChart)
+        expect(grapher.activeTab).toEqual("LineChart")
     })
 
     it("switches to the map tab if no chart is available", () => {
         const grapher = new Grapher({ chartTypes: [], hasMapTab: true })
         grapher.populateFromQueryParams({ tab: "line" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.WorldMap)
+        expect(grapher.activeTab).toEqual(GRAPHER_WORLD_MAP)
     })
 
     it("switches to the table tab if it's the only tab available", () => {
         const grapher = new Grapher({ chartTypes: [] })
         grapher.populateFromQueryParams({ tab: "line" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.Table)
+        expect(grapher.activeTab).toEqual(GRAPHER_TABLE)
     })
 
     it("adds tab=chart to the URL if there is a single chart tab", () => {
@@ -569,7 +570,7 @@ describe("urls", () => {
             hasMapTab: true,
             tab: "map",
         })
-        grapher.setTab(GRAPHER_TAB_NAMES.LineChart)
+        grapher.setTab("LineChart")
         expect(grapher.changedParams.tab).toEqual("chart")
     })
 
@@ -579,7 +580,7 @@ describe("urls", () => {
             hasMapTab: true,
             tab: "map",
         })
-        grapher.setTab(GRAPHER_TAB_NAMES.LineChart)
+        grapher.setTab("LineChart")
         expect(grapher.changedParams.tab).toEqual("line")
     })
 })

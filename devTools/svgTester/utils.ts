@@ -1,6 +1,6 @@
 import {
     GrapherChartType,
-    GrapherTabName,
+    GrapherInternalTabName,
     ALL_GRAPHER_CHART_TYPES,
     GrapherInterface,
 } from "@ourworldindata/types"
@@ -90,7 +90,7 @@ export type SvgRenderPerformance = {
 export type SvgRecord = {
     chartId: number
     slug: string
-    chartType: GrapherTabName | undefined
+    chartType: GrapherInternalTabName | undefined
     queryStr?: string
     md5: string
     svgFilename: string

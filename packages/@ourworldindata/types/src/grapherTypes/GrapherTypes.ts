@@ -9,8 +9,8 @@ import { DetailDictionary } from "../gdocTypes/Gdoc.js"
 import { observable } from "mobx"
 import {
     ALL_GRAPHER_CHART_TYPES,
-    GRAPHER_MAP_TYPE,
-    GRAPHER_TAB_NAMES,
+    GRAPHER_WORLD_MAP,
+    GRAPHER_TABLE,
     GRAPHER_TAB_CONFIG_OPTIONS,
     GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING,
 } from "./GrapherConstants.js"
@@ -172,11 +172,16 @@ export type SeriesName = string
 
 export type SeriesColorMap = Map<SeriesName, Color>
 
-export type GrapherMapType = typeof GRAPHER_MAP_TYPE
+export type GrapherWorldMap = typeof GRAPHER_WORLD_MAP
+export type GrapherTable = typeof GRAPHER_TABLE
+
 export type GrapherChartType = (typeof ALL_GRAPHER_CHART_TYPES)[number]
 export type GrapherChartTypeSupportedForSwitching =
     (typeof GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING)[number]
-export type GrapherChartOrMapType = GrapherChartType | GrapherMapType
+
+export type GrapherChartOrMapType = GrapherChartType | GrapherWorldMap
+/** Internal tab names used in Grapher */
+export type GrapherInternalTabName = GrapherTable | GrapherChartOrMapType
 
 /**
  * Grapher tab specified in the config that specifies the default tab.
@@ -200,8 +205,6 @@ export type GrapherTabQueryParam =
     // chart types
     | "line"
     | "slope"
-
-export type GrapherTabName = keyof typeof GRAPHER_TAB_NAMES
 
 export interface RelatedQuestionsConfig {
     text: string
