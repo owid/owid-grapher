@@ -19,17 +19,13 @@ export const ALL_GRAPHER_CHART_TYPES = [
     "Marimekko",
 ] as const
 
-/** Subset of chart types that support chart type switching */
+/** Subset of chart types supported for chart type switching */
 export const GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING = [
     "LineChart",
     "SlopeChart",
 ] as const satisfies (typeof ALL_GRAPHER_CHART_TYPES)[number][]
 
-/**
- * Grapher tab specified in the config that specifies the default tab.
- * If `chart` is selected and Grapher has more than one chart tab, then the
- * first chart tab will be active.
- */
+/** Valid tab options that determine the default tab if specified in the config */
 export const GRAPHER_TAB_CONFIG_OPTIONS = [
     "table",
     "map",
