@@ -57,23 +57,3 @@ export const GRAPHER_TAB_NAMES = {
     StackedBar: "StackedBar",
     Marimekko: "Marimekko",
 } as const
-
-/**
- * Valid values for the `tab` query parameter in Grapher.
- */
-export const GRAPHER_TAB_QUERY_PARAMS = {
-    // generic params
-    table: "table",
-    map: "map",
-    chart: "chart",
-
-    // chart types
-    line: "line",
-    scatter: "scatter",
-    "stacked-area": "stacked-area",
-    "discrete-bar": "discrete-bar",
-    "stacked-discrete-bar": "stacked-discrete-bar",
-    slope: "slope",
-    "stacked-bar": "stacked-bar",
-    marimekko: "marimekko",
-} as const

@@ -11,7 +11,6 @@ import {
     EntityName,
     GrapherTabQueryParam,
     GrapherChartType,
-    GRAPHER_TAB_QUERY_PARAMS,
     GrapherTabOption,
     GRAPHER_TAB_OPTIONS,
     InteractionState,
@@ -146,21 +145,21 @@ export function mapQueryParamToChartTypeName(
     chartTab: string
 ): GrapherChartType | undefined {
     switch (chartTab) {
-        case GRAPHER_TAB_QUERY_PARAMS.line:
+        case "line":
             return "LineChart"
-        case GRAPHER_TAB_QUERY_PARAMS.slope:
+        case "slope":
             return "SlopeChart"
-        case GRAPHER_TAB_QUERY_PARAMS.scatter:
+        case "scatter":
             return "ScatterPlot"
-        case GRAPHER_TAB_QUERY_PARAMS["stacked-area"]:
+        case "stacked-area":
             return "StackedArea"
-        case GRAPHER_TAB_QUERY_PARAMS["stacked-bar"]:
+        case "stacked-bar":
             return "StackedBar"
-        case GRAPHER_TAB_QUERY_PARAMS["discrete-bar"]:
+        case "discrete-bar":
             return "DiscreteBar"
-        case GRAPHER_TAB_QUERY_PARAMS["stacked-discrete-bar"]:
+        case "stacked-discrete-bar":
             return "StackedDiscreteBar"
-        case GRAPHER_TAB_QUERY_PARAMS.marimekko:
+        case "marimekko":
             return "Marimekko"
         default:
             return undefined
@@ -172,21 +171,21 @@ export function mapChartTypeNameToQueryParam(
 ): GrapherTabQueryParam {
     switch (chartType) {
         case "LineChart":
-            return GRAPHER_TAB_QUERY_PARAMS.line
+            return "line"
         case "SlopeChart":
-            return GRAPHER_TAB_QUERY_PARAMS.slope
+            return "slope"
         case "ScatterPlot":
-            return GRAPHER_TAB_QUERY_PARAMS.scatter
+            return "scatter"
         case "StackedArea":
-            return GRAPHER_TAB_QUERY_PARAMS["stacked-area"]
+            return "stacked-area"
         case "StackedBar":
-            return GRAPHER_TAB_QUERY_PARAMS["stacked-bar"]
+            return "stacked-bar"
         case "DiscreteBar":
-            return GRAPHER_TAB_QUERY_PARAMS["discrete-bar"]
+            return "discrete-bar"
         case "StackedDiscreteBar":
-            return GRAPHER_TAB_QUERY_PARAMS["stacked-discrete-bar"]
+            return "stacked-discrete-bar"
         case "Marimekko":
-            return GRAPHER_TAB_QUERY_PARAMS.marimekko
+            return "marimekko"
     }
 }
 
@@ -342,9 +341,9 @@ export function getChartTypeFromConfigAndQueryParams(
             )
 
         // Handle cases where tab is set to 'chart', 'map' or 'table'
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.table) return undefined
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.map) return GRAPHER_MAP_TYPE
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.chart) {
+        if (tab === "table") return undefined
+        if (tab === "map") return GRAPHER_MAP_TYPE
+        if (tab === "chart") {
             const chartType = getChartTypeFromConfigField(
                 chartConfig.chartTypes
             )
@@ -358,10 +357,7 @@ export function getChartTypeFromConfigAndQueryParams(
     }
 
     // If the chart has a map tab and it's the default tab, use the map type
-    if (
-        chartConfig.hasMapTab &&
-        chartConfig.tab === GRAPHER_TAB_QUERY_PARAMS.map
-    )
+    if (chartConfig.hasMapTab && chartConfig.tab === "map")
         return GRAPHER_MAP_TYPE
 
     // Otherwise, rely on the config's chartTypes field
