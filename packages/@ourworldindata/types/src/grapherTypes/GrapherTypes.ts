@@ -12,7 +12,6 @@ import {
     GRAPHER_MAP_TYPE,
     GRAPHER_TAB_NAMES,
     GRAPHER_TAB_OPTIONS,
-    GRAPHER_TAB_QUERY_PARAMS,
     GRAPHER_TAB_TYPES,
 } from "./GrapherConstants.js"
 
@@ -179,7 +178,23 @@ export type GrapherChartOrMapType = GrapherChartType | GrapherMapType
 
 export type GrapherTabType = keyof typeof GRAPHER_TAB_TYPES
 export type GrapherTabOption = keyof typeof GRAPHER_TAB_OPTIONS
-export type GrapherTabQueryParam = keyof typeof GRAPHER_TAB_QUERY_PARAMS
+
+/** Valid values for the `tab` query parameter in Grapher */
+export type GrapherTabQueryParam =
+    // general
+    | "table"
+    | "map"
+    | "chart"
+    // chart types
+    | "line"
+    | "scatter"
+    | "stacked-area"
+    | "discrete-bar"
+    | "stacked-discrete-bar"
+    | "slope"
+    | "stacked-bar"
+    | "marimekko"
+
 export type GrapherTabName = keyof typeof GRAPHER_TAB_NAMES
 
 export interface RelatedQuestionsConfig {

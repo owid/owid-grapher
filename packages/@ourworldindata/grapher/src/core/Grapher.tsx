@@ -108,7 +108,6 @@ import {
     GrapherTabName,
     GRAPHER_TAB_OPTIONS,
     GRAPHER_TAB_NAMES,
-    GRAPHER_TAB_QUERY_PARAMS,
     SeriesName,
     ChartViewInfo,
     OwidChartDimensionInterfaceWithMandatorySlug,
@@ -3532,15 +3531,15 @@ export class Grapher
             defaultTab = GRAPHER_TAB_NAMES.WorldMap
         }
 
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.table) {
+        if (tab === "table") {
             return GRAPHER_TAB_NAMES.Table
         }
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.map) {
+        if (tab === "map") {
             if (hasMapTab) return GRAPHER_TAB_NAMES.WorldMap
             return defaultTab
         }
 
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.chart) {
+        if (tab === "chart") {
             return defaultTab
         }
 
@@ -3556,12 +3555,10 @@ export class Grapher
     }
 
     mapGrapherTabToQueryParam(tab: GrapherTabName): string {
-        if (tab === GRAPHER_TAB_NAMES.Table)
-            return GRAPHER_TAB_QUERY_PARAMS.table
-        if (tab === GRAPHER_TAB_NAMES.WorldMap)
-            return GRAPHER_TAB_QUERY_PARAMS.map
+        if (tab === GRAPHER_TAB_NAMES.Table) return "table"
+        if (tab === GRAPHER_TAB_NAMES.WorldMap) return "map"
 
-        if (!this.hasMultipleChartTypes) return GRAPHER_TAB_QUERY_PARAMS.chart
+        if (!this.hasMultipleChartTypes) return "chart"
 
         return mapChartTypeNameToQueryParam(tab)
     }
