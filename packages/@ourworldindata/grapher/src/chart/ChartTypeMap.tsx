@@ -4,7 +4,7 @@ import { LineChart } from "../lineCharts/LineChart"
 import { StackedAreaChart } from "../stackedCharts/StackedAreaChart"
 import { DiscreteBarChart } from "../barCharts/DiscreteBarChart"
 import { StackedBarChart } from "../stackedCharts/StackedBarChart"
-import { GrapherChartOrMapType, GRAPHER_MAP_TYPE } from "@ourworldindata/types"
+import { GrapherChartOrMapType, GRAPHER_WORLD_MAP } from "@ourworldindata/types"
 import { MapChart } from "../mapCharts/MapChart"
 import { ChartInterface } from "./ChartInterface"
 import { ChartManager } from "./ChartManager"
@@ -35,7 +35,7 @@ export const ChartComponentClassMap = new Map<
     ["StackedDiscreteBar", StackedDiscreteBarChart],
     ["ScatterPlot", ScatterPlotChart],
     ["Marimekko", MarimekkoChart],
-    [GRAPHER_MAP_TYPE, MapChart],
+    [GRAPHER_WORLD_MAP, MapChart],
 ])
 
 export const DefaultChartClass = LineChart as ChartComponentClass

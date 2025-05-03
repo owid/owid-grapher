@@ -44,8 +44,8 @@ export {
 export {
     IDEAL_PLOT_ASPECT_RATIO,
     EPOCH_DATE,
-    GRAPHER_MAP_TYPE,
-    GRAPHER_TAB_NAMES,
+    GRAPHER_WORLD_MAP,
+    GRAPHER_TABLE,
     GRAPHER_TAB_CONFIG_OPTIONS,
     ALL_GRAPHER_CHART_TYPES,
     GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING,
@@ -80,7 +80,6 @@ export {
     ColorSchemeName,
     type GrapherChartOrMapType,
     type GrapherTabConfigOption,
-    type GrapherTabName,
     type GrapherTabQueryParam,
     type GrapherTabType,
     type GrapherChartType,
@@ -115,6 +114,7 @@ export {
     AxisMinMaxValueStr,
     GrapherTooltipAnchor,
     type InteractionState,
+    type GrapherInternalTabName,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {

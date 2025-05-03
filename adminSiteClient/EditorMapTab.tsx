@@ -1,7 +1,7 @@
 import {
     GrapherInterface,
     MapRegionName,
-    GRAPHER_MAP_TYPE,
+    GRAPHER_WORLD_MAP,
 } from "@ourworldindata/types"
 import {
     ChartDimension,
@@ -199,7 +199,7 @@ export class EditorMapTab<
                         <TimelineSection mapConfig={mapConfig} />
                         <EditorColorScaleSection
                             scale={colorScale}
-                            chartType={GRAPHER_MAP_TYPE}
+                            chartType={GRAPHER_WORLD_MAP}
                             showLineChartColors={false}
                             features={{
                                 visualScaling: true,

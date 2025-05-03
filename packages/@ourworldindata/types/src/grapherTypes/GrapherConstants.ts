@@ -4,7 +4,8 @@ export const EPOCH_DATE = "2020-01-21"
 /** The "plot" is a chart without any header, footer or controls */
 export const IDEAL_PLOT_ASPECT_RATIO = 1.8
 
-export const GRAPHER_MAP_TYPE = "WorldMap"
+export const GRAPHER_WORLD_MAP = "WorldMap"
+export const GRAPHER_TABLE = "Table"
 
 /** Chart types without WorldMap */
 export const ALL_GRAPHER_CHART_TYPES = [
@@ -23,24 +24,6 @@ export const GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING = [
     "LineChart",
     "SlopeChart",
 ] as const satisfies (typeof ALL_GRAPHER_CHART_TYPES)[number][]
-
-/**
- * Internal tab names used in Grapher.
- */
-export const GRAPHER_TAB_NAMES = {
-    Table: "Table",
-    WorldMap: "WorldMap",
-
-    // chart types
-    LineChart: "LineChart",
-    ScatterPlot: "ScatterPlot",
-    StackedArea: "StackedArea",
-    DiscreteBar: "DiscreteBar",
-    StackedDiscreteBar: "StackedDiscreteBar",
-    SlopeChart: "SlopeChart",
-    StackedBar: "StackedBar",
-    Marimekko: "Marimekko",
-} as const
 
 /**
  * Grapher tab specified in the config that specifies the default tab.

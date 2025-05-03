@@ -105,14 +105,15 @@ import {
     Color,
     GRAPHER_QUERY_PARAM_KEYS,
     GrapherTooltipAnchor,
-    GrapherTabName,
-    GRAPHER_TAB_NAMES,
+    GrapherInternalTabName,
     SeriesName,
     ChartViewInfo,
     OwidChartDimensionInterfaceWithMandatorySlug,
     AssetMap,
     ArchivedChartOrArchivePageMeta,
     GrapherTabType,
+    GRAPHER_TABLE,
+    GRAPHER_WORLD_MAP,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -771,11 +772,11 @@ export class Grapher
         ) as TimeBounds
     }
 
-    @computed get activeTab(): GrapherTabName {
-        if (this.tab === "table") return GRAPHER_TAB_NAMES.Table
-        if (this.tab === "map") return GRAPHER_TAB_NAMES.WorldMap
+    @computed get activeTab(): GrapherInternalTabName {
+        if (this.tab === "table") return GRAPHER_TABLE
+        if (this.tab === "map") return GRAPHER_WORLD_MAP
         if (this.chartTab) return this.chartTab
-        return this.chartType ?? GRAPHER_TAB_NAMES.LineChart
+        return this.chartType ?? "LineChart"
     }
 
     @computed get activeChartType(): GrapherChartType | undefined {
@@ -1461,11 +1462,11 @@ export class Grapher
         this.disposers.forEach((dispose) => dispose())
     }
 
-    @action.bound setTab(newTab: GrapherTabName): void {
-        if (newTab === GRAPHER_TAB_NAMES.Table) {
+    @action.bound setTab(newTab: GrapherInternalTabName): void {
+        if (newTab === GRAPHER_TABLE) {
             this.tab = "table"
             this.chartTab = undefined
-        } else if (newTab === GRAPHER_TAB_NAMES.WorldMap) {
+        } else if (newTab === GRAPHER_WORLD_MAP) {
             this.tab = "map"
             this.chartTab = undefined
         } else {
@@ -1475,15 +1476,15 @@ export class Grapher
     }
 
     @action.bound onTabChange(
-        oldTab: GrapherTabName,
-        newTab: GrapherTabName
+        oldTab: GrapherInternalTabName,
+        newTab: GrapherInternalTabName
     ): void {
         // if switching from a line to a slope chart and the handles are
         // on the same time, then automatically adjust the handles so that
         // the slope chart view is meaningful
         if (
-            oldTab === GRAPHER_TAB_NAMES.LineChart &&
-            newTab === GRAPHER_TAB_NAMES.SlopeChart &&
+            oldTab === "LineChart" &&
+            newTab === "SlopeChart" &&
             this.areHandlesOnSameTime
         ) {
             if (this.startHandleTimeBound !== -Infinity) {
@@ -1730,10 +1731,10 @@ export class Grapher
         return new Set(this.validChartTypes)
     }
 
-    @computed get availableTabs(): GrapherTabName[] {
-        const availableTabs: GrapherTabName[] = []
-        if (this.hasTableTab) availableTabs.push(GRAPHER_TAB_NAMES.Table)
-        if (this.hasMapTab) availableTabs.push(GRAPHER_TAB_NAMES.WorldMap)
+    @computed get availableTabs(): GrapherInternalTabName[] {
+        const availableTabs: GrapherInternalTabName[] = []
+        if (this.hasTableTab) availableTabs.push(GRAPHER_TABLE)
+        if (this.hasMapTab) availableTabs.push(GRAPHER_WORLD_MAP)
         if (!this.hideChartTabs) availableTabs.push(...this.validChartTypes)
         return availableTabs
     }
@@ -3490,25 +3491,27 @@ export class Grapher
 
     debounceMode = false
 
-    private mapQueryParamToGrapherTab(tab: string): GrapherTabName | undefined {
+    private mapQueryParamToGrapherTab(
+        tab: string
+    ): GrapherInternalTabName | undefined {
         const {
             chartType: defaultChartType,
             validChartTypeSet,
             hasMapTab,
         } = this
 
-        let defaultTab: GrapherTabName = GRAPHER_TAB_NAMES.Table
+        let defaultTab: GrapherInternalTabName = GRAPHER_TABLE
         if (defaultChartType) {
             defaultTab = defaultChartType
         } else if (hasMapTab) {
-            defaultTab = GRAPHER_TAB_NAMES.WorldMap
+            defaultTab = GRAPHER_WORLD_MAP
         }
 
         if (tab === "table") {
-            return GRAPHER_TAB_NAMES.Table
+            return GRAPHER_TABLE
         }
         if (tab === "map") {
-            if (hasMapTab) return GRAPHER_TAB_NAMES.WorldMap
+            if (hasMapTab) return GRAPHER_WORLD_MAP
             return defaultTab
         }
 
@@ -3527,9 +3530,9 @@ export class Grapher
         return defaultTab
     }
 
-    mapGrapherTabToQueryParam(tab: GrapherTabName): string {
-        if (tab === GRAPHER_TAB_NAMES.Table) return "table"
-        if (tab === GRAPHER_TAB_NAMES.WorldMap) return "map"
+    mapGrapherTabToQueryParam(tab: GrapherInternalTabName): string {
+        if (tab === GRAPHER_TABLE) return "table"
+        if (tab === GRAPHER_WORLD_MAP) return "map"
 
         if (
             !this.hasMultipleChartTypes ||
