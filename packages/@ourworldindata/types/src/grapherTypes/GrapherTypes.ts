@@ -9,8 +9,6 @@ import { DetailDictionary } from "../gdocTypes/Gdoc.js"
 import { observable } from "mobx"
 import {
     ALL_GRAPHER_CHART_TYPES,
-    GRAPHER_WORLD_MAP,
-    GRAPHER_TABLE,
     GRAPHER_TAB_CONFIG_OPTIONS,
     GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING,
 } from "./GrapherConstants.js"
@@ -172,8 +170,8 @@ export type SeriesName = string
 
 export type SeriesColorMap = Map<SeriesName, Color>
 
-export type GrapherWorldMap = typeof GRAPHER_WORLD_MAP
-export type GrapherTable = typeof GRAPHER_TABLE
+export type GrapherWorldMap = "WorldMap"
+export type GrapherTable = "Table"
 export type GrapherChartType = (typeof ALL_GRAPHER_CHART_TYPES)[number]
 export type GrapherChartOrMapType = GrapherChartType | GrapherWorldMap
 

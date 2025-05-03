@@ -7,8 +7,6 @@ import {
     GrapherQueryParams,
     LegacyGrapherInterface,
     LegacyGrapherQueryParams,
-    GRAPHER_WORLD_MAP,
-    GRAPHER_TABLE,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -518,13 +516,13 @@ describe("urls", () => {
     it("parses tab=table correctly", () => {
         const grapher = new Grapher()
         grapher.populateFromQueryParams({ tab: "table" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TABLE)
+        expect(grapher.activeTab).toEqual("Table")
     })
 
     it("parses tab=map correctly", () => {
         const grapher = new Grapher({ hasMapTab: true })
         grapher.populateFromQueryParams({ tab: "map" })
-        expect(grapher.activeTab).toEqual(GRAPHER_WORLD_MAP)
+        expect(grapher.activeTab).toEqual("WorldMap")
     })
 
     it("parses tab=chart correctly", () => {
@@ -556,13 +554,13 @@ describe("urls", () => {
     it("switches to the map tab if no chart is available", () => {
         const grapher = new Grapher({ chartTypes: [], hasMapTab: true })
         grapher.populateFromQueryParams({ tab: "line" })
-        expect(grapher.activeTab).toEqual(GRAPHER_WORLD_MAP)
+        expect(grapher.activeTab).toEqual("WorldMap")
     })
 
     it("switches to the table tab if it's the only tab available", () => {
         const grapher = new Grapher({ chartTypes: [] })
         grapher.populateFromQueryParams({ tab: "line" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TABLE)
+        expect(grapher.activeTab).toEqual("Table")
     })
 
     it("adds tab=chart to the URL if there is a single chart tab", () => {

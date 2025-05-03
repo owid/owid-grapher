@@ -4,9 +4,6 @@ export const EPOCH_DATE = "2020-01-21"
 /** The "plot" is a chart without any header, footer or controls */
 export const IDEAL_PLOT_ASPECT_RATIO = 1.8
 
-export const GRAPHER_WORLD_MAP = "WorldMap"
-export const GRAPHER_TABLE = "Table"
-
 /** Chart types without WorldMap */
 export const ALL_GRAPHER_CHART_TYPES = [
     "LineChart",

@@ -16,7 +16,6 @@ import {
     SeriesName,
     GrapherInterface,
     GrapherChartOrMapType,
-    GRAPHER_WORLD_MAP,
     ColumnSlug,
     GrapherChartTypeSupportedForSwitching,
     GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING,
@@ -341,7 +340,7 @@ export function getChartTypeFromConfigAndQueryParams(
 
         // Handle cases where tab is set to 'chart', 'map' or 'table'
         if (tab === "table") return undefined
-        if (tab === "map") return GRAPHER_WORLD_MAP
+        if (tab === "map") return "WorldMap"
         if (tab === "chart") {
             const chartType = getChartTypeFromConfigField(
                 chartConfig.chartTypes
@@ -356,8 +355,7 @@ export function getChartTypeFromConfigAndQueryParams(
     }
 
     // If the chart has a map tab and it's the default tab, use the map type
-    if (chartConfig.hasMapTab && chartConfig.tab === "map")
-        return GRAPHER_WORLD_MAP
+    if (chartConfig.hasMapTab && chartConfig.tab === "map") return "WorldMap"
 
     // Otherwise, rely on the config's chartTypes field
     const chartType = getChartTypeFromConfigField(chartConfig.chartTypes)

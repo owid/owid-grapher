@@ -4,11 +4,7 @@ import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
-import {
-    GRAPHER_TABLE,
-    GRAPHER_WORLD_MAP,
-    GrapherInternalTabName,
-} from "@ourworldindata/types"
+import { GrapherInternalTabName } from "@ourworldindata/types"
 import { chartIcons } from "./ChartIcons"
 import { Bounds } from "@ourworldindata/utils"
 import { TabLabel, Tabs } from "../tabs/Tabs.js"
@@ -176,9 +172,9 @@ function TabIcon({
     isLineChartThatTurnedIntoDiscreteBar?: boolean
 }): React.ReactElement {
     switch (tab) {
-        case GRAPHER_TABLE:
+        case "Table":
             return <FontAwesomeIcon icon={faTable} />
-        case GRAPHER_WORLD_MAP:
+        case "WorldMap":
             return <FontAwesomeIcon icon={faEarthAmericas} />
         default: {
             const chartIcon =
@@ -197,8 +193,8 @@ function makeTabLabelText(
         hasMultipleChartTypes?: boolean
     }
 ): string {
-    if (tab === GRAPHER_TABLE) return "Table"
-    if (tab === GRAPHER_WORLD_MAP) return "Map"
+    if (tab === "Table") return "Table"
+    if (tab === "WorldMap") return "Map"
     if (!options.hasMultipleChartTypes) return "Chart"
 
     if (tab === "LineChart" && options.isLineChartThatTurnedIntoDiscreteBar)

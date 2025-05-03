@@ -5,7 +5,6 @@ import { partition } from "@ourworldindata/utils"
 import {
     ColorSchemeInterface,
     ColorSchemeName,
-    GRAPHER_WORLD_MAP,
     GrapherChartOrMapType,
 } from "@ourworldindata/types"
 import { getColorBrewerScheme } from "./ColorBrewerSchemes.js"
@@ -85,7 +84,7 @@ function getPreferredSchemesByType(
             ColorSchemeName.SingleColorGradientDustyCoral,
             ColorSchemeName.SingleColorGradientDarkCopper,
         ])
-        .with(GRAPHER_WORLD_MAP, () => [
+        .with("WorldMap", () => [
             ColorSchemeName.BinaryMapPaletteA,
             ColorSchemeName.BinaryMapPaletteB,
             ColorSchemeName.BinaryMapPaletteC,
