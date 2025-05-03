@@ -37,7 +37,6 @@ import {
     RelatedQuestionsConfig,
     Color,
     GrapherInternalTabName,
-    GRAPHER_WORLD_MAP,
     GrapherChartOrMapType,
     GrapherChartType,
 } from "@ourworldindata/types"
@@ -188,7 +187,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     @computed get activeChartOrMapType(): GrapherChartOrMapType | undefined {
         const { manager } = this
         if (manager.isOnTableTab) return undefined
-        if (manager.isOnMapTab) return GRAPHER_WORLD_MAP
+        if (manager.isOnMapTab) return "WorldMap"
         if (manager.isOnChartTab) {
             return manager.isLineChartThatTurnedIntoDiscreteBarActive
                 ? "DiscreteBar"
@@ -210,7 +209,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
         // Todo: make FacetChart a chart type name?
         const activeChartType =
-            activeChartOrMapType !== GRAPHER_WORLD_MAP
+            activeChartOrMapType !== "WorldMap"
                 ? activeChartOrMapType
                 : undefined
         if (isFaceted && activeChartType)

@@ -112,8 +112,6 @@ import {
     AssetMap,
     ArchivedChartOrArchivePageMeta,
     GrapherTabType,
-    GRAPHER_TABLE,
-    GRAPHER_WORLD_MAP,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -773,8 +771,8 @@ export class Grapher
     }
 
     @computed get activeTab(): GrapherInternalTabName {
-        if (this.tab === "table") return GRAPHER_TABLE
-        if (this.tab === "map") return GRAPHER_WORLD_MAP
+        if (this.tab === "table") return "Table"
+        if (this.tab === "map") return "WorldMap"
         if (this.chartTab) return this.chartTab
         return this.chartType ?? "LineChart"
     }
@@ -1463,10 +1461,10 @@ export class Grapher
     }
 
     @action.bound setTab(newTab: GrapherInternalTabName): void {
-        if (newTab === GRAPHER_TABLE) {
+        if (newTab === "Table") {
             this.tab = "table"
             this.chartTab = undefined
-        } else if (newTab === GRAPHER_WORLD_MAP) {
+        } else if (newTab === "WorldMap") {
             this.tab = "map"
             this.chartTab = undefined
         } else {
@@ -1733,8 +1731,8 @@ export class Grapher
 
     @computed get availableTabs(): GrapherInternalTabName[] {
         const availableTabs: GrapherInternalTabName[] = []
-        if (this.hasTableTab) availableTabs.push(GRAPHER_TABLE)
-        if (this.hasMapTab) availableTabs.push(GRAPHER_WORLD_MAP)
+        if (this.hasTableTab) availableTabs.push("Table")
+        if (this.hasMapTab) availableTabs.push("WorldMap")
         if (!this.hideChartTabs) availableTabs.push(...this.validChartTypes)
         return availableTabs
     }
@@ -3500,18 +3498,18 @@ export class Grapher
             hasMapTab,
         } = this
 
-        let defaultTab: GrapherInternalTabName = GRAPHER_TABLE
+        let defaultTab: GrapherInternalTabName = "Table"
         if (defaultChartType) {
             defaultTab = defaultChartType
         } else if (hasMapTab) {
-            defaultTab = GRAPHER_WORLD_MAP
+            defaultTab = "WorldMap"
         }
 
         if (tab === "table") {
-            return GRAPHER_TABLE
+            return "Table"
         }
         if (tab === "map") {
-            if (hasMapTab) return GRAPHER_WORLD_MAP
+            if (hasMapTab) return "WorldMap"
             return defaultTab
         }
 
@@ -3531,8 +3529,8 @@ export class Grapher
     }
 
     mapGrapherTabToQueryParam(tab: GrapherInternalTabName): string {
-        if (tab === GRAPHER_TABLE) return "table"
-        if (tab === GRAPHER_WORLD_MAP) return "map"
+        if (tab === "Table") return "table"
+        if (tab === "WorldMap") return "map"
 
         if (
             !this.hasMultipleChartTypes ||
