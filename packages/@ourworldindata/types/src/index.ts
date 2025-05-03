@@ -48,6 +48,7 @@ export {
     GRAPHER_TAB_NAMES,
     GRAPHER_TAB_OPTIONS,
     ALL_GRAPHER_CHART_TYPES,
+    GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING,
 } from "./grapherTypes/GrapherConstants.js"
 
 export {
@@ -83,6 +84,7 @@ export {
     type GrapherTabQueryParam,
     type GrapherTabType,
     type GrapherChartType,
+    type GrapherChartTypeSupportedForSwitching,
     StackMode,
     EntitySelectionMode,
     ScatterPointLabelStrategy,

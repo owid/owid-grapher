@@ -200,6 +200,7 @@ import {
     autoDetectYColumnSlugs,
     findStartTimeForSlopeChart,
     findValidChartTypeCombination,
+    isChartTypeSupportedForSwitching,
     mapChartTypeNameToQueryParam,
     mapChartTypeNameToTabOption,
     mapQueryParamToChartTypeName,
@@ -3557,7 +3558,11 @@ export class Grapher
         if (tab === GRAPHER_TAB_NAMES.Table) return "table"
         if (tab === GRAPHER_TAB_NAMES.WorldMap) return "map"
 
-        if (!this.hasMultipleChartTypes) return "chart"
+        if (
+            !this.hasMultipleChartTypes ||
+            !isChartTypeSupportedForSwitching(tab)
+        )
+            return "chart"
 
         return mapChartTypeNameToQueryParam(tab)
     }
