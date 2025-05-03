@@ -4,20 +4,17 @@ import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
-import { GrapherInternalTabName } from "@ourworldindata/types"
 import { chartIcons } from "./ChartIcons"
 import { Bounds } from "@ourworldindata/utils"
 import { TabLabel, Tabs } from "../tabs/Tabs.js"
+import { GrapherTabName } from "../core/GrapherConstants"
 
 export interface ContentSwitchersManager {
-    availableTabs?: GrapherInternalTabName[]
-    activeTab?: GrapherInternalTabName
+    availableTabs?: GrapherTabName[]
+    activeTab?: GrapherTabName
     hasMultipleChartTypes?: boolean
-    setTab: (tab: GrapherInternalTabName) => void
-    onTabChange: (
-        oldTab: GrapherInternalTabName,
-        newTab: GrapherInternalTabName
-    ) => void
+    setTab: (tab: GrapherTabName) => void
+    onTabChange: (oldTab: GrapherTabName, newTab: GrapherTabName) => void
     isNarrow?: boolean
     isMedium?: boolean
     isLineChartThatTurnedIntoDiscreteBar?: boolean
@@ -48,7 +45,7 @@ export class ContentSwitchers extends React.Component<{
         return this.props.manager
     }
 
-    @computed private get availableTabs(): GrapherInternalTabName[] {
+    @computed private get availableTabs(): GrapherTabName[] {
         return this.manager.availableTabs || []
     }
 
@@ -139,7 +136,7 @@ function ContentSwitcherTab({
     hasMultipleChartTypes,
     isLineChartThatTurnedIntoDiscreteBar,
 }: {
-    tab: GrapherInternalTabName
+    tab: GrapherTabName
     showLabel?: boolean
     hasMultipleChartTypes?: boolean
     isLineChartThatTurnedIntoDiscreteBar?: boolean
@@ -168,7 +165,7 @@ function TabIcon({
     tab,
     isLineChartThatTurnedIntoDiscreteBar,
 }: {
-    tab: GrapherInternalTabName
+    tab: GrapherTabName
     isLineChartThatTurnedIntoDiscreteBar?: boolean
 }): React.ReactElement {
     switch (tab) {
@@ -187,7 +184,7 @@ function TabIcon({
 }
 
 function makeTabLabelText(
-    tab: GrapherInternalTabName,
+    tab: GrapherTabName,
     options: {
         isLineChartThatTurnedIntoDiscreteBar?: boolean
         hasMultipleChartTypes?: boolean
