@@ -1,8 +1,8 @@
 import {
     GrapherChartType,
-    GrapherInternalTabName,
     ALL_GRAPHER_CHART_TYPES,
     GrapherInterface,
+    GrapherChartOrMapType,
 } from "@ourworldindata/types"
 import {
     MultipleOwidVariableDataDimensionsMap,
@@ -90,7 +90,7 @@ export type SvgRenderPerformance = {
 export type SvgRecord = {
     chartId: number
     slug: string
-    chartType: GrapherInternalTabName | undefined
+    chartType?: GrapherChartOrMapType
     queryStr?: string
     md5: string
     svgFilename: string
@@ -426,7 +426,8 @@ export async function renderSvg(
     const svgRecord = {
         chartId: configAndData.config.id!,
         slug: configAndData.config.slug!,
-        chartType: grapher.activeTab,
+        chartType:
+            grapher.activeTab === "Table" ? undefined : grapher.activeTab,
         queryStr,
         md5: await processSvgAndCalculateHash(svg),
         svgFilename: outFilename,

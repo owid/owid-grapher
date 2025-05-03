@@ -112,7 +112,7 @@ export {
     AxisMinMaxValueStr,
     GrapherTooltipAnchor,
     type InteractionState,
-    type GrapherInternalTabName,
+    type GrapherTable,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {

@@ -179,9 +179,6 @@ export type GrapherChartOrMapType = GrapherChartType | GrapherWorldMap
 export type GrapherChartTypeSupportedForSwitching =
     (typeof GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING)[number]
 
-/** Internal tab names used by Grapher */
-export type GrapherInternalTabName = GrapherTable | GrapherChartOrMapType
-
 /** Grapher tab specified in the config that determines the default tab to show */
 export type GrapherTabConfigOption = (typeof GRAPHER_TAB_CONFIG_OPTIONS)[number]
 

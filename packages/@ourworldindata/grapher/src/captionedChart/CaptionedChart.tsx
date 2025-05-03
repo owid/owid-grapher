@@ -22,6 +22,7 @@ import {
     GRAPHER_FRAME_PADDING_VERTICAL,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_CHART_AREA_CLASS,
+    GrapherTabName,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
@@ -36,7 +37,6 @@ import {
     EntityName,
     RelatedQuestionsConfig,
     Color,
-    GrapherInternalTabName,
     GrapherChartOrMapType,
     GrapherChartType,
 } from "@ourworldindata/types"
@@ -77,7 +77,7 @@ export interface CaptionedChartManager
     backgroundColor?: string
 
     // state
-    activeTab?: GrapherInternalTabName
+    activeTab?: GrapherTabName
     isOnMapTab?: boolean
     isOnTableTab?: boolean
     activeChartType?: GrapherChartType
