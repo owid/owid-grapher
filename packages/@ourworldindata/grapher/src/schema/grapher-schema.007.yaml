@@ -122,7 +122,9 @@ properties:
         $ref: "#/$defs/axis"
     tab:
         type: string
-        description: The tab that is shown initially
+        description: |
+            The tab that is shown initially. If `chart` is selected and Grapher
+            has more than one chart tab, then the first chart tab will be active.
         default: chart
         enum:
             - chart

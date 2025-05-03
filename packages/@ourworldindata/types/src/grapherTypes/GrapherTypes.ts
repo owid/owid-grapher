@@ -174,37 +174,26 @@ export type SeriesColorMap = Map<SeriesName, Color>
 
 export type GrapherWorldMap = typeof GRAPHER_WORLD_MAP
 export type GrapherTable = typeof GRAPHER_TABLE
-
 export type GrapherChartType = (typeof ALL_GRAPHER_CHART_TYPES)[number]
+export type GrapherChartOrMapType = GrapherChartType | GrapherWorldMap
+
+/** Chart type supported for chart type switching */
 export type GrapherChartTypeSupportedForSwitching =
     (typeof GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING)[number]
 
-export type GrapherChartOrMapType = GrapherChartType | GrapherWorldMap
-/** Internal tab names used in Grapher */
+/** Internal tab names used by Grapher */
 export type GrapherInternalTabName = GrapherTable | GrapherChartOrMapType
 
-/**
- * Grapher tab specified in the config that specifies the default tab.
- * If `chart` is selected and Grapher has more than one chart tab, then the
- * first chart tab will be active.
- */
+/** Grapher tab specified in the config that determines the default tab to show */
 export type GrapherTabConfigOption = (typeof GRAPHER_TAB_CONFIG_OPTIONS)[number]
+
+/** Valid values for the `tab` query parameter in Grapher */
+export type GrapherTabQueryParam = GrapherTabConfigOption
 
 export type GrapherTabType = Extract<
     GrapherTabConfigOption,
     "table" | "map" | "chart"
 >
-
-/** Valid values for the `tab` query parameter in Grapher */
-export type GrapherTabQueryParam =
-    // general
-    | "table"
-    | "map"
-    | "chart"
-
-    // chart types
-    | "line"
-    | "slope"
 
 export interface RelatedQuestionsConfig {
     text: string
