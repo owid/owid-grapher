@@ -16,6 +16,7 @@ import {
     EnrichedBlockKeyIndicator,
     GrapherTabConfigOption,
     GRAPHER_TAB_CONFIG_OPTIONS,
+    GrapherTabQueryParam,
 } from "@ourworldindata/types"
 import { Url, urlToSlug, commafyNumber } from "@ourworldindata/utils"
 
@@ -28,7 +29,7 @@ import { useResizeObserver } from "usehooks-ts"
 // keep in sync with $duration in KeyIndicatorCollection.scss
 const HEIGHT_ANIMATION_DURATION_IN_SECONDS = 0.4
 
-const tabIconMap: Record<GrapherTabConfigOption, IconDefinition> = {
+const tabIconMap: Record<GrapherTabQueryParam, IconDefinition> = {
     chart: faChartLine,
     line: faChartLine,
     slope: faChartLine,
@@ -251,7 +252,8 @@ function KeyIndicatorHeader({
         queryParams.tab && isValidGrapherTab(queryParams.tab)
             ? queryParams.tab
             : undefined
-    const activeTab = tabFromQueryParams || linkedChart.tab || "chart"
+    const activeTab: GrapherTabQueryParam =
+        tabFromQueryParams || linkedChart.tab || "chart"
 
     const source = block.source || linkedIndicator.attributionShort
 
