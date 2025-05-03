@@ -14,8 +14,8 @@ import {
 import {
     EnrichedBlockKeyIndicatorCollection,
     EnrichedBlockKeyIndicator,
-    GRAPHER_TAB_OPTIONS,
-    GrapherTabOption,
+    GrapherTabConfigOption,
+    GRAPHER_TAB_CONFIG_OPTIONS,
 } from "@ourworldindata/types"
 import { Url, urlToSlug, commafyNumber } from "@ourworldindata/utils"
 
@@ -28,12 +28,12 @@ import { useResizeObserver } from "usehooks-ts"
 // keep in sync with $duration in KeyIndicatorCollection.scss
 const HEIGHT_ANIMATION_DURATION_IN_SECONDS = 0.4
 
-const tabIconMap: Record<GrapherTabOption, IconDefinition> = {
-    [GRAPHER_TAB_OPTIONS.chart]: faChartLine,
-    [GRAPHER_TAB_OPTIONS.line]: faChartLine,
-    [GRAPHER_TAB_OPTIONS.slope]: faChartLine,
-    [GRAPHER_TAB_OPTIONS.map]: faEarthAmericas,
-    [GRAPHER_TAB_OPTIONS.table]: faTable,
+const tabIconMap: Record<GrapherTabConfigOption, IconDefinition> = {
+    chart: faChartLine,
+    line: faChartLine,
+    slope: faChartLine,
+    map: faEarthAmericas,
+    table: faTable,
 }
 
 export default function KeyIndicatorCollection({
@@ -251,8 +251,7 @@ function KeyIndicatorHeader({
         queryParams.tab && isValidGrapherTab(queryParams.tab)
             ? queryParams.tab
             : undefined
-    const activeTab =
-        tabFromQueryParams || linkedChart.tab || GRAPHER_TAB_OPTIONS.chart
+    const activeTab = tabFromQueryParams || linkedChart.tab || "chart"
 
     const source = block.source || linkedIndicator.attributionShort
 
@@ -342,6 +341,8 @@ function isElementAtTopOfViewport(element: HTMLElement): boolean {
     return bbox.top >= 0 && bbox.top < 0.33 * viewHeight
 }
 
-function isValidGrapherTab(tab: string): tab is GrapherTabOption {
-    return Object.values(GRAPHER_TAB_OPTIONS).includes(tab as GrapherTabOption)
+function isValidGrapherTab(tab: string): tab is GrapherTabConfigOption {
+    return Object.values(GRAPHER_TAB_CONFIG_OPTIONS).includes(
+        tab as GrapherTabConfigOption
+    )
 }

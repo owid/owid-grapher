@@ -6,7 +6,6 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     GrapherChartType,
     GrapherInterface,
-    GRAPHER_TAB_OPTIONS,
     SortOrder,
 } from "@ourworldindata/types"
 import {
@@ -311,7 +310,7 @@ export function showChartType(chart: ChartListItem): string {
 
     const displayType = chartType ? startCase(chartType) : "Unknown"
 
-    if (chart.tab === GRAPHER_TAB_OPTIONS.map) {
+    if (chart.tab === "map") {
         if (chart.hasChartTab) return `Map + ${displayType}`
         else return "Map"
     } else {

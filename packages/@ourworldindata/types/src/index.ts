@@ -46,7 +46,7 @@ export {
     EPOCH_DATE,
     GRAPHER_MAP_TYPE,
     GRAPHER_TAB_NAMES,
-    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_CONFIG_OPTIONS,
     ALL_GRAPHER_CHART_TYPES,
     GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING,
 } from "./grapherTypes/GrapherConstants.js"
@@ -79,7 +79,7 @@ export {
     type ColorScaleConfigInterface,
     ColorSchemeName,
     type GrapherChartOrMapType,
-    type GrapherTabOption,
+    type GrapherTabConfigOption,
     type GrapherTabName,
     type GrapherTabQueryParam,
     type GrapherTabType,

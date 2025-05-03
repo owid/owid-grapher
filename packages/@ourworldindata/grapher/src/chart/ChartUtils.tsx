@@ -11,8 +11,7 @@ import {
     EntityName,
     GrapherTabQueryParam,
     GrapherChartType,
-    GrapherTabOption,
-    GRAPHER_TAB_OPTIONS,
+    GrapherTabConfigOption,
     InteractionState,
     SeriesName,
     GrapherInterface,
@@ -188,12 +187,12 @@ export function mapChartTypeNameToQueryParam(
 }
 
 export function mapTabOptionToChartTypeName(
-    chartTab: GrapherTabOption
+    chartTab: GrapherTabConfigOption
 ): GrapherChartType | undefined {
     switch (chartTab) {
-        case GRAPHER_TAB_OPTIONS.line:
+        case "line":
             return "LineChart"
-        case GRAPHER_TAB_OPTIONS.slope:
+        case "slope":
             return "SlopeChart"
         default:
             return undefined
@@ -202,14 +201,14 @@ export function mapTabOptionToChartTypeName(
 
 export function mapChartTypeNameToTabOption(
     chartType: GrapherChartType
-): GrapherTabOption {
+): GrapherTabConfigOption {
     switch (chartType) {
         case "LineChart":
-            return GRAPHER_TAB_OPTIONS.line
+            return "line"
         case "SlopeChart":
-            return GRAPHER_TAB_OPTIONS.slope
+            return "slope"
         default:
-            return GRAPHER_TAB_OPTIONS.chart
+            return "chart"
     }
 }
 
