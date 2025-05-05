@@ -7,7 +7,7 @@ import {
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
 import { DefaultColorScheme } from "../color/CustomSchemes"
-import { Grapher } from "../core/Grapher"
+import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
 import { SortBy, SortOrder } from "@ourworldindata/types"
 import { MarimekkoChart } from "./MarimekkoChart"
 import {
@@ -468,13 +468,13 @@ it("can filter years correctly", () => {
     ])
 
     // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
-    const manager = {
+    const manager: GrapherProgrammaticInterface = {
         chartTypes: ["Marimekko"],
         table,
-        selection: table.availableEntityNames,
+        selectedEntityNames: table.availableEntityNames,
         ySlugs: "percentBelow2USD",
         xSlug: "population",
-        endTime: 2001,
+        maxTime: 2001,
     }
     const grapher = new Grapher(manager)
     const chart = new MarimekkoChart({
@@ -578,13 +578,13 @@ it("shows no data points at the end", () => {
     ])
 
     // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
-    const manager = {
+    const manager: GrapherProgrammaticInterface = {
         chartTypes: ["Marimekko"],
         table,
-        selection: table.availableEntityNames,
+        selectedEntityNames: table.availableEntityNames,
         ySlugs: "percentBelow2USD",
         xSlug: "population",
-        endTime: 2001,
+        maxTime: 2001,
     }
     const grapher = new Grapher(manager)
     const chart = new MarimekkoChart({
@@ -678,13 +678,13 @@ test("interpolation works as expected", () => {
     ])
 
     // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
-    const manager = {
+    const manager: GrapherProgrammaticInterface = {
         chartTypes: ["Marimekko"],
         table,
-        selection: table.availableEntityNames,
+        selectedEntityNames: table.availableEntityNames,
         ySlugs: "percentBelow2USD",
         xSlug: "population",
-        endTime: 2001,
+        maxTime: 2001,
     }
     const grapher = new Grapher(manager)
     const chart = new MarimekkoChart({
@@ -789,13 +789,13 @@ it("can deal with y columns with missing values", () => {
     ])
 
     // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
-    const manager = {
+    const manager: GrapherProgrammaticInterface = {
         chartTypes: ["Marimekko"],
         table,
-        selection: table.availableEntityNames,
+        selectedEntityNames: table.availableEntityNames,
         ySlugs: "percentBelow2USD percentBelow10USD",
         xSlug: "population",
-        endTime: 2001,
+        maxTime: 2001,
     }
     const grapher = new Grapher(manager)
     const chart = new MarimekkoChart({
