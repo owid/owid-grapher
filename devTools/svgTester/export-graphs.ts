@@ -90,8 +90,11 @@ async function main(args: parseArgs.ParsedArgs) {
 
         let svgRecords: utils.SvgRecord[] = []
         if (!isolate) {
-            const pool = workerpool.pool(__dirname + "/worker.js", {
+            const pool = workerpool.pool(__dirname + "/worker.ts", {
                 minWorkers: 2,
+                workerThreadOpts: {
+                    execArgv: ["--require", "tsx"],
+                },
             })
 
             // Parallelize the CPU heavy rendering jobs
@@ -103,8 +106,11 @@ async function main(args: parseArgs.ParsedArgs) {
         } else {
             let i = 1
             for (const job of jobDescriptions) {
-                const pool = workerpool.pool(__dirname + "/worker.js", {
+                const pool = workerpool.pool(__dirname + "/worker.ts", {
                     maxWorkers: 1,
+                    workerThreadOpts: {
+                        execArgv: ["--require", "tsx"],
+                    },
                 })
                 const svgRecord = await pool.exec("renderSvgAndSave", [job])
                 pool.terminate()
