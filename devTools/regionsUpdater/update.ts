@@ -15,7 +15,7 @@ const ETL_REGIONS_URL =
         "https://catalog.ourworldindata.org/external/owid_grapher/latest/regions/regions.csv",
     GEO_JSON_URL =
         "https://raw.githubusercontent.com/alexabruck/worldmap-sensitive/master/dist/world.geo.json",
-    GRAPHER_ROOT = __dirname.replace(/\/(itsJustJavascript\/)?devTools.*/, ""),
+    GRAPHER_ROOT = __dirname.replace(/\/devTools.*/, ""),
     GRAPHER_REGIONS_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/utils/src/regions.json`,
     GRAPHER_TOPOLOGY_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/grapher/src/mapCharts/MapTopology.ts`,
     ADDITIONAL_CONTINENT_MEMBERS = {

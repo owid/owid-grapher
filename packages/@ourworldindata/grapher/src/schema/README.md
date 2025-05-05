@@ -29,5 +29,5 @@ To regenerate `defaultGrapherConfig.ts` from the schema, replace `XXX` with the 
 nu -c 'open packages/@ourworldindata/grapher/src/schema/grapher-schema.XXX.yaml | to json' > packages/@ourworldindata/grapher/src/schema/grapher-schema.XXX.json
 
 # generate the default object from the schema
-node itsJustJavascript/devTools/schema/generate-default-object-from-schema.js packages/@ourworldindata/grapher/src/schema/grapher-schema.XXX.json --save-ts packages/@ourworldindata/grapher/src/schema/defaultGrapherConfig.ts
+yarn tsx --tsconfig tsconfig.tsx.json devTools/schema/generate-default-object-from-schema.ts packages/@ourworldindata/grapher/src/schema/grapher-schema.XXX.json --save-ts packages/@ourworldindata/grapher/src/schema/defaultGrapherConfig.ts
 ```
