@@ -73,7 +73,7 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
                 </ol>
                 <div className="form-group">
                     <input
-                        type="string"
+                        type="text"
                         className="form-control"
                         onChange={(e) => setDocumentUrl(e.target.value)}
                         value={documentUrl}
