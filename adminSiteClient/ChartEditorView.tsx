@@ -127,7 +127,6 @@ export class ChartEditorView<
 
     @action.bound private updateGrapher(): void {
         const config = this.manager.editor.originalGrapherConfig
-        // 2025-01-04 Daniel Not sure this is the best way to do things
         this.grapherState.updateFromObject({
             ...config,
             staticFormat: this.staticFormat,

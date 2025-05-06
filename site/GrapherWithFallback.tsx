@@ -14,8 +14,6 @@ export interface GrapherWithFallbackProps {
     queryStr?: string
 }
 
-// TODO: change this so it's possible to hand a full grapher config down (and maybe an extra config?)
-
 export function GrapherWithFallback(
     props: GrapherWithFallbackProps
 ): JSX.Element {

@@ -358,7 +358,7 @@ export class Explorer
             )
         }
 
-        this.grapher?.grapherState.populateFromQueryParams(url.queryParams)
+        this.grapherState.populateFromQueryParams(url.queryParams)
 
         exposeInstanceOnWindow(this, "explorer")
         this.setUpIntersectionObserver()
@@ -403,7 +403,7 @@ export class Explorer
 
         this.disposers.push(
             reaction(
-                () => this.grapher?.grapherState.availableEntityNames,
+                () => this.grapherState.availableEntityNames,
                 (availableEntityNames) => {
                     availableEntityNames?.forEach((entity) =>
                         this.appendOnlyAvailableEntityNames.add(entity)
@@ -441,7 +441,7 @@ export class Explorer
             return // todo: can we remove this?
         this.initSlideshow()
 
-        const oldGrapherParams = this.grapher?.grapherState.changedParams
+        const oldGrapherParams = this.grapherState.changedParams
         this.persistedGrapherQueryParamsBySelectedRow.set(
             oldSelectedRow,
             oldGrapherParams
@@ -453,17 +453,17 @@ export class Explorer
             ),
             country: oldGrapherParams.country,
             region: oldGrapherParams.region,
-            time: this.grapher?.grapherState.timeParam,
+            time: this.grapherState.timeParam,
         }
 
-        const previousTab = this.grapher?.grapherState.activeTab
+        const previousTab = this.grapherState.activeTab
 
         this.updateGrapherFromExplorer()
 
         newGrapherParams.tab =
-            this.grapher?.grapherState.mapGrapherTabToQueryParam(previousTab)
+            this.grapherState.mapGrapherTabToQueryParam(previousTab)
 
-        this.grapher?.grapherState.populateFromQueryParams(newGrapherParams)
+        this.grapherState.populateFromQueryParams(newGrapherParams)
 
         this.analytics.logExplorerView(
             this.explorerProgram.slug,
@@ -472,9 +472,8 @@ export class Explorer
     }
 
     @action.bound private setGrapherTable(table: OwidTable) {
-        if (this.grapher) {
-            this.grapher.grapherState.inputTable =
-                this.inputTableTransformer(table)
+        if (this.grapherState) {
+            this.grapherState.inputTable = this.inputTableTransformer(table)
         }
     }
 
@@ -553,8 +552,7 @@ export class Explorer
     }
 
     @action.bound async updateGrapherFromExplorerUsingGrapherId() {
-        const grapher = this.grapher
-        if (!grapher) return
+        const grapherState = this.grapherState
 
         const { grapherId } = this.explorerProgram.explorerGrapherConfig
         const grapherConfig = this.grapherConfigs.get(grapherId!) ?? {}
@@ -575,10 +573,10 @@ export class Explorer
             config.selectedEntityNames = this.selection.selectedEntityNames
         }
 
-        grapher?.grapherState.setAuthoredVersion(config)
-        grapher.grapherState.reset()
-        grapher.grapherState.inputTable = BlankOwidTable()
-        grapher?.grapherState.updateFromObject(config)
+        grapherState.setAuthoredVersion(config)
+        grapherState.reset()
+        grapherState.inputTable = BlankOwidTable()
+        grapherState.updateFromObject(config)
         if (!config.table) {
             const inputTable = await fetchInputTableForConfig(
                 config.dimensions ?? [],
@@ -587,14 +585,12 @@ export class Explorer
                 undefined
             )
             if (inputTable)
-                grapher.grapherState.inputTable =
-                    this.inputTableTransformer(inputTable)
+                grapherState.inputTable = this.inputTableTransformer(inputTable)
         }
     }
 
     @action.bound async updateGrapherFromExplorerUsingVariableIds() {
-        const grapher = this.grapher
-        if (!grapher) return
+        const grapherState = this.grapherState
         const {
             yVariableIds = "",
             xVariableId,
@@ -755,18 +751,14 @@ export class Explorer
             return table
         }
 
-        grapher?.grapherState.setAuthoredVersion(config)
-        grapher.grapherState.reset()
-        grapher?.grapherState.updateFromObject(config)
+        grapherState.setAuthoredVersion(config)
+        grapherState.reset()
+        grapherState.updateFromObject(config)
         if (dimensions.length === 0) {
             // If dimensions are empty, explicitly set the table to an empty table
             // so we don't end up confusingly showing stale data from a previous chart
-            // grapher.receiveOwidData(new Map())
-            grapher.grapherState.inputTable = BlankOwidTable()
+            grapherState.inputTable = BlankOwidTable()
         } else {
-            // await grapher.downloadLegacyDataFromOwidVariableIds(
-            //     inputTableTransformer
-            // )
             const inputTable = await fetchInputTableForConfig(
                 config.dimensions,
                 config.selectedEntityColors,
@@ -774,14 +766,12 @@ export class Explorer
                 undefined
             )
             if (inputTable)
-                grapher.grapherState.inputTable =
-                    this.inputTableTransformer(inputTable)
+                grapherState.inputTable = this.inputTableTransformer(inputTable)
         }
     }
 
     @action.bound updateGrapherFromExplorerUsingColumnSlugs() {
-        const grapher = this.grapher
-        if (!grapher) return
+        const grapherState = this.grapherState
         const { tableSlug } = this.explorerProgram.explorerGrapherConfig
 
         const config: GrapherProgrammaticInterface = {
@@ -797,9 +787,9 @@ export class Explorer
             config.selectedEntityNames = this.selection.selectedEntityNames
         }
 
-        grapher?.grapherState.setAuthoredVersion(config)
-        grapher.grapherState.reset()
-        grapher?.grapherState.updateFromObject(config)
+        grapherState.setAuthoredVersion(config)
+        grapherState.reset()
+        grapherState.updateFromObject(config)
 
         // Clear any error messages, they are likely to be related to dataset loading.
         this.grapher?.clearErrors()
@@ -833,7 +823,7 @@ export class Explorer
 
         let url = Url.fromQueryParams(
             omitUndefinedValues({
-                ...this.grapher?.grapherState.changedParams,
+                ...this.grapherState.changedParams,
                 pickerSort: this.entityPickerSort,
                 pickerMetric: this.entityPickerMetric,
                 hideControls: this.initialQueryParams.hideControls || undefined,
@@ -1067,8 +1057,7 @@ export class Explorer
     }
 
     @computed get grapherTable() {
-        return this.grapher?.grapherState
-            ?.tableAfterAuthorTimelineAndEntityFilter
+        return this.grapherState?.tableAfterAuthorTimelineAndEntityFilter
     }
 
     @observable entityPickerMetric? = this.initialQueryParams.pickerMetric
@@ -1183,6 +1172,6 @@ export class Explorer
     }
 
     @computed get requiredColumnSlugs() {
-        return this.grapher?.grapherState?.newSlugs ?? []
+        return this.grapherState?.newSlugs ?? []
     }
 }

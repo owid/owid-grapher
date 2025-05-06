@@ -116,7 +116,10 @@ export function FetchingGrapher(
     React.useEffect(() => {
         async function fetchSortColumns(): Promise<void> {
             const sortColumns = await loadSortColumns(props.dataApiUrl)
-            grapherState.current.interpolatedSortColumnsBySlug = sortColumns
+            grapherState.current.interpolatedSortColumnsBySlug = {
+                ...grapherState.current.interpolatedSortColumnsBySlug,
+                ...sortColumns,
+            }
         }
         void fetchSortColumns()
     })
