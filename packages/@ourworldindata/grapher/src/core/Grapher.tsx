@@ -757,12 +757,58 @@ export class Grapher
         ) as TimeBounds
     }
 
-    @computed get activeTab(): GrapherTabName {
-        if (this.tab === "Chart") {
+    @computed private get isSingleTimeSelected(): boolean {
+        let { minTime, maxTime } = this
+
+        // If we have a time dimension but the timeline is hidden,
+        // we always want to use the authored `minTime` and `maxTime`,
+        // irrespective of the time range the user might have selected
+        // on the table tab
+        if (this.hasTimeDimensionButTimelineIsHidden) {
+            minTime = this.authorsVersion.minTime
+            maxTime = this.authorsVersion.maxTime
+        }
+
+        // This is the easy case: minTime and maxTime are the same, no need to do
+        // more fancy checks
+        if (minTime === maxTime) return true
+
+        // We can have cases where minTime = Infinity and/or maxTime = -Infinity,
+        // but still only a single year is selected.
+        // To check for that we need to look at the times array.
+        const times = this.table.timeColumn.uniqValues
+        const closestMinTime = findClosestTime(times, minTime ?? -Infinity)
+        const closestMaxTime = findClosestTime(times, maxTime ?? Infinity)
+        return closestMinTime !== undefined && closestMinTime === closestMaxTime
+    }
+
+    private mapTabConfigOptionToTabName(
+        tab: GrapherTabConfigOption
+    ): GrapherTabName {
+        // Pick the first chart type if there are any;
+        // otherwise, fallback to the map or table
+        if (tab === "Chart") {
             if (this.chartType) return this.chartType
             return this.hasMapTab ? "WorldMap" : "Table"
         }
-        return this.tab
+
+        return tab
+    }
+
+    @computed get activeTab(): GrapherTabName {
+        const activeTab = this.mapTabConfigOptionToTabName(this.tab)
+
+        // Switch to the discrete bar chart tab if we're on the line or slope
+        // chart tab and only a single time is selected
+        if (
+            (activeTab === "LineChart" || activeTab === "SlopeChart") &&
+            this.isSingleTimeSelected &&
+            this.validChartTypeSet.has("DiscreteBar")
+        ) {
+            return "DiscreteBar"
+        }
+
+        return activeTab
     }
 
     @computed get activeChartType(): GrapherChartType | undefined {
