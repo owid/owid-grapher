@@ -213,14 +213,22 @@ export class EditorExportTab<
                 this.grapherState.staticFormat !== format ||
                 this.grapherState.isSocialMediaExport !== isSocialMediaExport
             ) {
+                // Without this explicit conversion to object there was a mobx error deep
+                // down in the call stack of rasterize below, when the authorsVersion
+                // was computed
+                const grapherStateAsObject = this.grapherState.toObject()
                 grapherState = new GrapherState({
-                    ...this.grapherState,
+                    ...grapherStateAsObject,
                     staticFormat: format,
-                    selectedEntityNames:
-                        this.grapherState.selection.selectedEntityNames,
-                    focusedSeriesNames: this.grapherState.focusedSeriesNames,
+                    selectedEntityNames: [
+                        ...this.grapherState.selection.selectedEntityNames,
+                    ],
+                    focusedSeriesNames: [
+                        ...this.grapherState.focusedSeriesNames,
+                    ],
                     isSocialMediaExport,
                 })
+                grapherState.inputTable = this.grapherState.inputTable
             }
             const { blob: pngBlob, svgBlob } = await grapherState.rasterize()
             if (filename.endsWith("svg") && svgBlob) {
