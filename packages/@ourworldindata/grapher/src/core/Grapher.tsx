@@ -984,9 +984,7 @@ export class Grapher
 
     // When Map becomes a first-class chart instance, we should drop this
     @computed get chartInstanceExceptMap(): ChartInterface | undefined {
-        const chartTypeName =
-            this
-                .activeChartTypeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+        const chartTypeName = this.activeChartType
         if (!chartTypeName) return undefined
 
         const ChartClass = getChartComponentClass(chartTypeName)
@@ -1031,11 +1029,7 @@ export class Grapher
                     table.get(this.mapColumnSlug).tolerance
             )
 
-        if (
-            this.isDiscreteBar ||
-            this.isLineChartThatTurnedIntoDiscreteBar ||
-            this.isMarimekko
-        )
+        if (this.isDiscreteBar || this.isMarimekko)
             return table.filterByTargetTimes(
                 [endTime],
                 table.get(this.yColumnSlugs[0]).tolerance
@@ -1764,8 +1758,7 @@ export class Grapher
             (showTimeAnnotation ||
                 (this.hasTimeline &&
                     // chart types that refer to the current time only in the timeline
-                    (this.isLineChartThatTurnedIntoDiscreteBar ||
-                        this.isOnDiscreteBarTab ||
+                    (this.isOnDiscreteBarTab ||
                         this.isOnStackedDiscreteBarTab ||
                         this.isOnMarimekkoTab ||
                         this.isOnMapTab)))
@@ -2088,15 +2081,6 @@ export class Grapher
         return this.toObject()
     }
 
-    @computed
-    get activeChartTypeExceptWhenLineChartAndSingleTimeThenWillBeBarChart():
-        | GrapherChartType
-        | undefined {
-        return this.isLineChartThatTurnedIntoDiscreteBarActive
-            ? "DiscreteBar"
-            : this.activeChartType
-    }
-
     @computed get isLineChart(): boolean {
         return this.chartType === "LineChart"
     }
@@ -2120,39 +2104,6 @@ export class Grapher
     }
     @computed get isStackedDiscreteBar(): boolean {
         return this.chartType === "StackedDiscreteBar"
-    }
-
-    @computed get isLineChartThatTurnedIntoDiscreteBar(): boolean {
-        if (!this.isLineChart) return false
-
-        let { minTime, maxTime } = this
-
-        // if we have a time dimension but the timeline is hidden,
-        // we always want to use the authored `minTime` and `maxTime`,
-        // irrespective of the time range the user might have selected
-        // on the table tab
-        if (this.hasTimeDimensionButTimelineIsHidden) {
-            minTime = this.authorsVersion.minTime
-            maxTime = this.authorsVersion.maxTime
-        }
-
-        // This is the easy case: minTime and maxTime are the same, no need to do
-        // more fancy checks
-        if (minTime === maxTime) return true
-
-        // We can have cases where minTime = Infinity and/or maxTime = -Infinity,
-        // but still only a single year is selected.
-        // To check for that we need to look at the times array.
-        const times = this.table.timeColumn.uniqValues
-        const closestMinTime = findClosestTime(times, minTime ?? -Infinity)
-        const closestMaxTime = findClosestTime(times, maxTime ?? Infinity)
-        return closestMinTime !== undefined && closestMinTime === closestMaxTime
-    }
-
-    @computed get isLineChartThatTurnedIntoDiscreteBarActive(): boolean {
-        return (
-            this.isOnLineChartTab && this.isLineChartThatTurnedIntoDiscreteBar
-        )
     }
 
     @computed get isOnLineChartTab(): boolean {
