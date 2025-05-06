@@ -90,7 +90,8 @@ export class ControlsRow extends Component<{
             MapCountryDropdown.shouldShow(this.manager) ||
             CloseGlobeViewButton.shouldShow(this.manager) ||
             GlobeSwitcher.shouldShow(this.manager) ||
-            ContentSwitchers.shouldShow(this.manager)
+            ContentSwitchers.shouldShow(this.manager) ||
+            DataTableFilterDropdown.shouldShow(this.manager)
         )
     }
 

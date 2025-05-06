@@ -1,9 +1,14 @@
 .data-table-filter-dropdown {
     width: 150px;
 
+    .menu {
+        min-width: 150px;
+        right: 0;
+    }
+
     .menu:before {
         display: inline-block;
-        content: "Filter by";
+        content: "Filter by type";
         font: 700 12px/16px $lato;
         color: $light-text;
         padding: 8px 16px;

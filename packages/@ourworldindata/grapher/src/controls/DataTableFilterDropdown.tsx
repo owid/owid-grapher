@@ -7,6 +7,10 @@ import { DataTableConfig } from "../dataTable/DataTable"
 import { OwidTable } from "@ourworldindata/core-table"
 import { SelectionArray } from "../selection/SelectionArray"
 import { makeSelectionArray } from "../chart/ChartUtils"
+import {
+    EntityRegionTypeGroup,
+    entityRegionTypeLabels,
+} from "../core/EntitiesByRegionType"
 
 export interface DataTableFilterDropdownManager {
     dataTableConfig: DataTableConfig
@@ -14,6 +18,7 @@ export interface DataTableFilterDropdownManager {
     isOnTableTab?: boolean
     selection?: SelectionArray | EntityName[]
     canChangeAddOrHighlightEntities?: boolean
+    entityRegionTypeGroups?: EntityRegionTypeGroup[]
 }
 
 interface DropdownOption {
@@ -53,6 +58,10 @@ export class DataTableFilterDropdown extends React.Component<{
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
+    @computed private get availableEntityNameSet(): Set<EntityName> {
+        return this.manager.tableForDisplay.availableEntityNameSet
+    }
+
     @action.bound private onChange(selected: unknown): void {
         if (!selected) return
         const { value } = selected as DropdownOption
@@ -70,14 +79,14 @@ export class DataTableFilterDropdown extends React.Component<{
     }
 
     @computed private get options(): DropdownOption[] {
-        const options: DropdownOption[] = []
-
-        options.push({
-            value: "all",
-            label: "All",
-            count: this.manager.tableForDisplay.availableEntityNameSet.size,
-            trackNote: "data_table_filter_by",
-        })
+        const options: DropdownOption[] = [
+            {
+                value: "all",
+                label: "All",
+                count: this.manager.tableForDisplay.availableEntityNameSet.size,
+                trackNote: "data_table_filter_by",
+            },
+        ]
 
         if (this.shouldShowSelectionOption) {
             options.push({
@@ -86,6 +95,22 @@ export class DataTableFilterDropdown extends React.Component<{
                 count: this.selectionArray.numSelectedEntities,
                 trackNote: "data_table_filter_by",
             })
+        }
+
+        if (this.manager.entityRegionTypeGroups) {
+            options.push(
+                ...this.manager.entityRegionTypeGroups.map(
+                    ({ regionType, entityNames }) =>
+                        ({
+                            value: regionType,
+                            label: entityRegionTypeLabels[regionType],
+                            count: entityNames.filter((entityName) =>
+                                this.availableEntityNameSet.has(entityName)
+                            ).length,
+                            trackNote: "data_table_filter_by",
+                        }) satisfies DropdownOption
+                )
+            )
         }
 
         return options

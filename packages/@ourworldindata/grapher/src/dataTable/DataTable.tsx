@@ -41,9 +41,13 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
 import * as R from "remeda"
 import { makeSelectionArray } from "../chart/ChartUtils"
+import {
+    EntityNamesByRegionType,
+    EntityRegionType,
+} from "../core/EntitiesByRegionType"
 
 export interface DataTableConfig {
-    filter: "all" | "selection"
+    filter: "all" | "selection" | EntityRegionType
 }
 
 interface DataTableState {
@@ -87,6 +91,7 @@ export interface DataTableManager {
     isNarrow?: boolean
     selection?: SelectionArray | EntityName[]
     dataTableConfig: DataTableConfig
+    entityNamesByRegionType?: EntityNamesByRegionType
 }
 
 @observer
@@ -113,6 +118,13 @@ export class DataTable extends React.Component<{
             table = table.filterByEntityNames(
                 this.selectionArray.selectedEntityNames
             )
+        } else if (this.tableConfig.filter !== "all") {
+            const entityNames =
+                this.manager.entityNamesByRegionType?.get(
+                    this.tableConfig.filter
+                ) ?? []
+            if (entityNames.length > 0)
+                table = table.filterByEntityNames(entityNames)
         }
 
         return table

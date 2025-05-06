@@ -651,7 +651,6 @@ export type GrapherQueryParams = {
     endpointsOnly?: string
     facet?: string
     uniformYAxis?: string
-    showSelectionOnlyInTable?: string
     showNoDataArea?: string
     globe?: string
     globeRotation?: string
@@ -679,7 +678,6 @@ const GRAPHER_ALL_QUERY_PARAMS: Required<LegacyGrapherQueryParams> = {
     endpointsOnly: "",
     facet: "",
     uniformYAxis: "",
-    showSelectionOnlyInTable: "",
     showNoDataArea: "",
     year: "",
     globe: "",
