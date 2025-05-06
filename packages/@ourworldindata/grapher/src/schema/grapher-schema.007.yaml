@@ -132,6 +132,7 @@ properties:
             - Chart
             - LineChart
             - SlopeChart
+            - DiscreteBar
     matchingEntitiesOnly:
         type: boolean
         default: false

@@ -4,6 +4,7 @@ import {
     Box,
     getCountryByName,
     getTimeDomainFromQueryString,
+    isSubsetOf,
     Url,
 } from "@ourworldindata/utils"
 import {
@@ -32,6 +33,7 @@ import {
     validChartTypeCombinations,
     GrapherLegacyTabName,
     GRAPHER_LEGACY_TAB_NAMES,
+    GrapherTabName,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -166,6 +168,7 @@ export function mapTabQueryParamToConfigOption(
         .with("chart", () => "Chart")
         .with("line", () => "LineChart")
         .with("slope", () => "SlopeChart")
+        .with("discrete-bar", () => "DiscreteBar")
         .exhaustive()
 }
 
@@ -180,6 +183,7 @@ export function mapChartTypeNameToTabQueryParam(
         .returnType<GrapherChartTabQueryParam>()
         .with("LineChart", () => "line")
         .with("SlopeChart", () => "slope")
+        .with("DiscreteBar", () => "discrete-bar")
         .exhaustive()
 }
 
@@ -203,11 +207,21 @@ export function findValidChartTypeCombination(
     chartTypes: GrapherChartType[]
 ): GrapherChartType[] | undefined {
     const chartTypeSet = new Set(chartTypes)
+
+    // search for an exact match
     for (const validCombination of validChartTypeCombinations) {
         const validCombinationSet = new Set(validCombination)
-        if (areSetsEqual(chartTypeSet, validCombinationSet))
+        if (areSetsEqual(validCombinationSet, chartTypeSet))
             return validCombination
     }
+
+    // if we can't find an exact match, search for a valid subset
+    for (const validCombination of validChartTypeCombinations) {
+        const validCombinationSet = new Set(validCombination)
+        if (isSubsetOf(validCombinationSet, chartTypeSet))
+            return validCombination
+    }
+
     return undefined
 }
 
@@ -448,3 +462,24 @@ export function findStartTimeForSlopeChart(
 
     return candidate.time
 }
+
+export function checkOnlySingleTimeSelectionPossible(
+    tabName: GrapherTabName
+): boolean {
+    return [
+        "WorldMap",
+        "DiscreteBar",
+        "StackedDiscreteBar",
+        "Marimekko",
+    ].includes(tabName)
+}
+
+export function checkStartAndEndTimeSelectionPreferred(
+    tabName: GrapherTabName
+): boolean {
+    return ["LineChart", "SlopeChart", "StackedArea", "StackedBar"].includes(
+        tabName
+    )
+}
+
+// todo: "ScatterPlot", "Table"

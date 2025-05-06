@@ -429,11 +429,17 @@ export class EditorBasicTab<
     @action.bound onChartTypeChange(value: string) {
         const { grapher } = this.props.editor
 
-        grapher.chartTypes =
-            value === this.chartTypeOptionNone
-                ? []
-                : [value as GrapherChartType]
+        // Set chart types
+        if (value === this.chartTypeOptionNone) {
+            grapher.chartTypes = []
+        } else if (value === "LineChart") {
+            // Enable discrete bar charts and slope charts by default for line charts
+            grapher.chartTypes = ["LineChart", "SlopeChart", "DiscreteBar"]
+        } else {
+            grapher.chartTypes = [value as GrapherChartType]
+        }
 
+        // Default settings for Marimekko charts
         if (grapher.isMarimekko) {
             grapher.hideRelativeToggle = false
             grapher.stackMode = StackMode.relative
@@ -481,26 +487,27 @@ export class EditorBasicTab<
         ]
     }
 
-    private addSlopeChart(): void {
+    private addToChartTypes(chartTypeName: GrapherChartType): void {
         const { grapher } = this.props.editor
-        if (grapher.hasSlopeChart) return
-        grapher.chartTypes = [...grapher.chartTypes, "SlopeChart"]
+        if (grapher.hasChartType(chartTypeName)) return
+        grapher.chartTypes = [...grapher.chartTypes, chartTypeName]
     }
 
-    private removeSlopeChart(): void {
+    private removeFromChartTypes(chartTypeName: GrapherChartType): void {
         const { grapher } = this.props.editor
         grapher.chartTypes = grapher.chartTypes.filter(
-            (type) => type !== "SlopeChart"
+            (type) => type !== chartTypeName
         )
     }
 
-    @action.bound toggleSecondarySlopeChart(
-        shouldHaveSlopeChart: boolean
+    @action.bound toggleChartType(
+        chartTypeName: GrapherChartType,
+        shouldAdd: boolean
     ): void {
-        if (shouldHaveSlopeChart) {
-            this.addSlopeChart()
+        if (shouldAdd) {
+            this.addToChartTypes(chartTypeName)
         } else {
-            this.removeSlopeChart()
+            this.removeFromChartTypes(chartTypeName)
         }
     }
 
@@ -546,9 +553,20 @@ export class EditorBasicTab<
                         />
                         {grapher.isLineChart && (
                             <Toggle
-                                label="Slope chart"
-                                value={grapher.hasSlopeChart}
-                                onValue={this.toggleSecondarySlopeChart}
+                                label="Discrete Bar Chart"
+                                value={grapher.hasChartType("DiscreteBar")}
+                                onValue={(value) =>
+                                    this.toggleChartType("DiscreteBar", value)
+                                }
+                            />
+                        )}
+                        {grapher.isLineChart && (
+                            <Toggle
+                                label="Slope Chart"
+                                value={grapher.hasChartType("SlopeChart")}
+                                onValue={(value) =>
+                                    this.toggleChartType("SlopeChart", value)
+                                }
                             />
                         )}
                     </FieldsRow>

@@ -136,4 +136,6 @@ export const grapherInterfaceWithHiddenTabs: GrapherProgrammaticInterface = {
  */
 export const validChartTypeCombinations: GrapherChartType[][] = [
     ["LineChart", "SlopeChart"],
+    ["LineChart", "DiscreteBar"],
+    ["LineChart", "SlopeChart", "DiscreteBar"],
 ]

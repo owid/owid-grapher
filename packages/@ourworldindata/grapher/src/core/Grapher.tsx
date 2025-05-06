@@ -201,6 +201,8 @@ import {
     mapChartTypeNameToTabQueryParam,
     mapTabQueryParamToConfigOption,
     isChartTypeName,
+    checkOnlySingleTimeSelectionPossible,
+    checkStartAndEndTimeSelectionPreferred,
 } from "../chart/ChartUtils"
 import classnames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
@@ -1394,12 +1396,10 @@ export class Grapher
     }
 
     @computed private get onlySingleTimeSelectionPossible(): boolean {
-        return (
-            this.isDiscreteBar ||
-            this.isStackedDiscreteBar ||
-            this.isOnMapTab ||
-            this.isMarimekko
-        )
+        if (this.isOnMapTab) return true
+        return this.activeChartType
+            ? checkOnlySingleTimeSelectionPossible(this.activeChartType)
+            : false
     }
 
     @computed private get isSingleTimeSelectionActive(): boolean {
@@ -1456,21 +1456,36 @@ export class Grapher
         }
     }
 
+    @action.bound private ensureHandlesAreOnSameTime(): void {
+        if (this.areHandlesOnSameTime) return
+
+        this.timelineHandleTimeBounds = [
+            this.endHandleTimeBound,
+            this.endHandleTimeBound,
+        ]
+    }
+
+    @action.bound private ensureHandlesAreOnDifferentTimes(): void {
+        if (!this.areHandlesOnSameTime) return
+
+        if (this.startHandleTimeBound !== -Infinity) {
+            this.timelineHandleTimeBounds = [-Infinity, this.endHandleTimeBound]
+        } else {
+            this.timelineHandleTimeBounds = [
+                this.startHandleTimeBound,
+                Infinity,
+            ]
+        }
+    }
+
     @action.bound onTabChange(
-        oldTab: GrapherTabName,
+        _oldTab: GrapherTabName,
         newTab: GrapherTabName
     ): void {
-        // Switching from a line to a slope chart
-        if (oldTab === "LineChart" && newTab === "SlopeChart") {
-            // If the handles are on the same time, then set one of the handles
-            // to the start or end time so that the slope chart shows some data
-            if (this.areHandlesOnSameTime) {
-                if (this.startHandleTimeBound !== -Infinity) {
-                    this.startHandleTimeBound = -Infinity
-                } else {
-                    this.endHandleTimeBound = Infinity
-                }
-            }
+        if (checkOnlySingleTimeSelectionPossible(newTab)) {
+            this.ensureHandlesAreOnSameTime()
+        } else if (checkStartAndEndTimeSelectionPreferred(newTab)) {
+            this.ensureHandlesAreOnDifferentTimes()
         }
 
         // Switching to a slope chart
@@ -2152,11 +2167,17 @@ export class Grapher
         return this.activeChartType === "StackedDiscreteBar"
     }
 
+    hasChartType(chartTypeName: GrapherChartType): boolean {
+        return this.validChartTypeSet.has(chartTypeName)
+    }
     @computed get hasLineChart(): boolean {
-        return this.validChartTypeSet.has("LineChart")
+        return this.hasChartType("LineChart")
     }
     @computed get hasSlopeChart(): boolean {
-        return this.validChartTypeSet.has("SlopeChart")
+        return this.hasChartType("SlopeChart")
+    }
+    @computed get hasDiscreteBarChart(): boolean {
+        return this.hasChartType("DiscreteBar")
     }
 
     @computed get supportsMultipleYColumns(): boolean {
