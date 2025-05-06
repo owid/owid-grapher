@@ -10,10 +10,12 @@ export interface EntitySelectionManager {
     canHighlightEntities?: boolean
     canChangeEntity?: boolean
     canAddEntities?: boolean
+    canChangeAddOrHighlightEntities?: boolean
     entityType?: string
     entityTypePlural?: string
     mapEntityTypePlural?: string
     isEntitySelectorModalOrDrawerOpen?: boolean
+    shouldShowEntitySelectorAs?: GrapherWindowType
     isOnChartTab?: boolean
     isOnMapTab?: boolean
     hideEntityControls?: boolean
@@ -41,11 +43,24 @@ export class EntitySelectionToggle extends React.Component<{
             isOnMapTab,
             hideEntityControls,
             shouldShowEntitySelectorAs,
+            canChangeAddOrHighlightEntities,
         } = this.props.manager
+
         if (hideEntityControls) return false
-        if (isOnMapTab)
-            return shouldShowEntitySelectorAs === GrapherWindowType.drawer
-        return !!(isOnChartTab && this.label)
+
+        const shouldShowDrawer =
+            shouldShowEntitySelectorAs === GrapherWindowType.drawer
+        const shouldShowModal =
+            shouldShowEntitySelectorAs === GrapherWindowType.modal
+
+        if (isOnMapTab) return shouldShowDrawer
+
+        return !!(
+            isOnChartTab &&
+            canChangeAddOrHighlightEntities &&
+            (shouldShowModal || shouldShowDrawer) &&
+            this.label
+        )
     }
 
     @computed get label(): EntitySelectionLabel | null {
