@@ -85,7 +85,6 @@ export interface CaptionedChartManager
     activeChartType?: GrapherChartType
     isFaceted?: boolean
     isLineChartThatTurnedIntoDiscreteBarActive?: boolean
-    showEntitySelectionToggle?: boolean
     isExportingForSocialMedia?: boolean
 
     // timeline

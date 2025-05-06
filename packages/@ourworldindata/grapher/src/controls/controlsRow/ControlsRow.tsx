@@ -38,7 +38,6 @@ export interface ControlsRowManager
         SettingsMenuManager,
         DataTableFilterDropdownManager {
     sidePanelBounds?: Bounds
-    showEntitySelectionToggle?: boolean
 }
 
 @observer
@@ -83,10 +82,6 @@ export class ControlsRow extends Component<{
         return this.maxWidthSettingsMenu - this.globeSwitcherWidth - 8
     }
 
-    @computed private get showContentSwitchers(): boolean {
-        return ContentSwitchers.shouldShow(this.manager)
-    }
-
     @computed private get showControlsRow(): boolean {
         return (
             SettingsMenu.shouldShow(this.manager) ||
@@ -95,26 +90,21 @@ export class ControlsRow extends Component<{
             MapCountryDropdown.shouldShow(this.manager) ||
             CloseGlobeViewButton.shouldShow(this.manager) ||
             GlobeSwitcher.shouldShow(this.manager) ||
-            this.showContentSwitchers
+            ContentSwitchers.shouldShow(this.manager)
         )
     }
 
     render(): JSX.Element {
-        const { showEntitySelectionToggle } = this.manager
         return (
             <nav
                 className="controlsRow"
                 style={{ padding: `0 ${this.framePaddingHorizontal}px` }}
             >
                 <div>
-                    {this.showContentSwitchers && (
-                        <ContentSwitchers manager={this.manager} />
-                    )}
+                    <ContentSwitchers manager={this.manager} />
                 </div>
                 <div className="chart-controls">
-                    {showEntitySelectionToggle && (
-                        <EntitySelectionToggle manager={this.manager} />
-                    )}
+                    <EntitySelectionToggle manager={this.manager} />
 
                     <SettingsMenu
                         manager={this.manager}
@@ -143,6 +133,7 @@ export class ControlsRow extends Component<{
                         maxWidth={this.maxWidthSettingsMenu}
                     />
 
+                    {/* rendered on the table tab */}
                     <DataTableFilterDropdown
                         manager={this.manager}
                         maxWidth={this.maxWidthSettingsMenu}

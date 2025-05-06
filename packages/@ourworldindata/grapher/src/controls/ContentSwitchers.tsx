@@ -37,7 +37,7 @@ export class ContentSwitchers extends React.Component<{
 }> {
     static shouldShow(manager: ContentSwitchersManager): boolean {
         const test = new ContentSwitchers({ manager })
-        return test.showTabs
+        return test.shouldShow
     }
 
     static width(manager: ContentSwitchersManager): number {
@@ -53,7 +53,7 @@ export class ContentSwitchers extends React.Component<{
         return this.manager.availableTabs || []
     }
 
-    @computed private get showTabs(): boolean {
+    @computed private get shouldShow(): boolean {
         return this.availableTabs.length > 1
     }
 
@@ -119,7 +119,9 @@ export class ContentSwitchers extends React.Component<{
         this.manager.onTabChange?.(oldTab!, newTab)
     }
 
-    render(): React.ReactElement {
+    render(): React.ReactElement | null {
+        if (!this.shouldShow) return null
+
         return (
             <Tabs
                 variant="slim"

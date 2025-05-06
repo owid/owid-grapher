@@ -4,14 +4,17 @@ import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faEye, faRightLeft, faPen } from "@fortawesome/free-solid-svg-icons"
 import classnames from "classnames"
+import { GrapherWindowType } from "@ourworldindata/types"
 
 export interface EntitySelectionManager {
     canHighlightEntities?: boolean
     canChangeEntity?: boolean
     canAddEntities?: boolean
+    canChangeAddOrHighlightEntities?: boolean
     entityType?: string
     entityTypePlural?: string
     isEntitySelectorModalOrDrawerOpen?: boolean
+    shouldShowEntitySelectorAs?: GrapherWindowType
     isOnChartTab?: boolean
     hideEntityControls?: boolean
 }
@@ -32,9 +35,26 @@ export class EntitySelectionToggle extends React.Component<{
     }
 
     @computed get showToggle(): boolean {
-        const { isOnChartTab, hideEntityControls } = this.props.manager
+        const {
+            isOnChartTab,
+            hideEntityControls,
+            shouldShowEntitySelectorAs,
+            canChangeAddOrHighlightEntities,
+        } = this.props.manager
+
         if (hideEntityControls) return false
-        return !!(isOnChartTab && this.label)
+
+        const shouldShowDrawer =
+            shouldShowEntitySelectorAs === GrapherWindowType.drawer
+        const shouldShowModal =
+            shouldShowEntitySelectorAs === GrapherWindowType.modal
+
+        return !!(
+            isOnChartTab &&
+            canChangeAddOrHighlightEntities &&
+            (shouldShowModal || shouldShowDrawer) &&
+            this.label
+        )
     }
 
     @computed get label(): EntitySelectionLabel | null {
