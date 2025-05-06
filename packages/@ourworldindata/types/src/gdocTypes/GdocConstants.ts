@@ -20,7 +20,12 @@ export const RESEARCH_AND_WRITING_DEFAULT_HEADING = "Research & Writing"
  * https://docs.google.com/spreadsheets/d/abcd1234
  */
 export const gdocUrlRegex =
-    /https:\/\/docs\.google\.com\/document(?:\/u\/\d)?\/d\/([-\w]+)\/?(edit)?(\?tab=[\w.]+)?#?/
+    // Disable the lint because the regex is compiled using the v flag in newer
+    // browsers when used in the pattern attribute, which requires escaping
+    // additional characters.
+    // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/pattern
+    // eslint-disable-next-line no-useless-escape
+    /https:\/\/docs\.google\.com\/document(?:\/u\/\d)?\/d\/([\-\w]+)\/?(edit)?(\?tab=[\w.]+)?#?/
 
 export const GDOCS_BASE_URL = "https://docs.google.com"
 export const GDOCS_URL_PLACEHOLDER = `${GDOCS_BASE_URL}/document/d/****/edit`
