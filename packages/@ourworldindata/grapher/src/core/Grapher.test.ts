@@ -49,7 +49,7 @@ const TestGrapherConfig = (): {
     return {
         table,
         selection: table.sampleEntityName(5),
-        chartTypes: ["LineChart"],
+        chartTypes: ["LineChart", "DiscreteBar"],
         dimensions: [
             {
                 slug: SampleColumnSlugs.GDP,
@@ -400,9 +400,7 @@ describe("line chart to bar chart and bar chart race", () => {
     const grapher = new Grapher(TestGrapherConfig())
 
     it("can create a new line chart with different start and end times", () => {
-        expect(
-            grapher.activeChartTypeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual("LineChart")
+        expect(grapher.activeChartType).toEqual("LineChart")
         expect(grapher.endHandleTimeBound).toBeGreaterThan(
             grapher.startHandleTimeBound
         )
@@ -412,15 +410,11 @@ describe("line chart to bar chart and bar chart race", () => {
         const grapher = new Grapher(TestGrapherConfig())
         const lineSeries = grapher.chartInstance?.series
 
-        expect(
-            grapher.activeChartTypeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual("LineChart")
+        expect(grapher.activeChartType).toEqual("LineChart")
 
         grapher.startHandleTimeBound = 2000
         grapher.endHandleTimeBound = 2000
-        expect(
-            grapher.activeChartTypeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual("DiscreteBar")
+        expect(grapher.activeChartType).toEqual("DiscreteBar")
 
         it("still has a timeline even though its now a bar chart", () => {
             expect(grapher.hasTimeline).toBe(true)
@@ -447,24 +441,10 @@ describe("line chart to bar chart and bar chart race", () => {
         })
     })
 
-    it("turns into a line chart race when playing a line chart that currently shows as a bar chart", () => {
-        grapher.startHandleTimeBound = -Infinity
-        grapher.endHandleTimeBound = -Infinity
-        void grapher.timelineController.play(1)
-        expect(grapher.startHandleTimeBound).not.toEqual(
-            grapher.endHandleTimeBound
-        )
-        expect(
-            grapher.activeChartTypeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual("LineChart")
-    })
-
     it("turns into a bar chart when constrained start & end handles are equal", () => {
         grapher.startHandleTimeBound = 5000
         grapher.endHandleTimeBound = Infinity
-        expect(
-            grapher.activeChartTypeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual("DiscreteBar")
+        expect(grapher.activeChartType).toEqual("DiscreteBar")
     })
 })
 
