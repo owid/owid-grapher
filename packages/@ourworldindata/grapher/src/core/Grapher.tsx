@@ -281,23 +281,6 @@ export interface GrapherManager {
     editUrl?: string
 }
 
-// export interface GrapherStateInitOptions {
-//     bakedGrapherURL?: string
-//     adminBaseUrl?: string
-//     dataApiUrl?: string
-//     dataApiUrlForAdmin?: string
-//     staticBounds?: Bounds // assing this or call getStaticBounds
-//     staticFormat?: GrapherStaticFormat
-//     env?: string
-//     isEmbeddedInAnOwidPage?: boolean
-//     isEmbeddedInADataPage?: boolean
-//     manager?: GrapherManager
-//     queryStr?: string
-//     inputTable?: OwidTable
-//     selectedEntityNames?: EntityName[]
-//     bounds?: Bounds
-// }
-
 export class GrapherState {
     @observable.ref $schema = latestGrapherConfigSchema
     @observable.ref chartTypes: GrapherChartType[] = [
@@ -393,6 +376,7 @@ export class GrapherState {
     @observable.ref windowInnerHeight?: number
     owidDataset?: MultipleOwidVariableDataDimensionsMap = undefined // This is used for passing data for testing
     manuallyProvideData? = false // This will be removed.
+
     @computed get isDev(): boolean {
         return this.initialOptions.env === "dev"
     }
@@ -407,7 +391,7 @@ export class GrapherState {
 
     @observable.ref interpolatedSortColumnsBySlug:
         | CoreColumnBySlug
-        | undefined = undefined
+        | undefined = {}
 
     get inputTable(): OwidTable {
         return this._inputTable
@@ -546,7 +530,7 @@ export class GrapherState {
 
         updatePersistables(this, obj)
 
-        this.bindUrlToWindow = obj.bindUrlToWindow
+        this.bindUrlToWindow = obj.bindUrlToWindow ?? false
 
         // Regression fix: some legacies have this set to Null. Todo: clean DB.
         if (obj.originUrl === null) this.originUrl = ""
@@ -764,6 +748,7 @@ export class GrapherState {
         )
     }
 
+    // table that is used for display in the table tab
     @computed get tableForDisplay(): OwidTable {
         let table = this.table
 
@@ -958,8 +943,8 @@ export class GrapherState {
     @observable.ref renderToStatic = false
     @observable.ref isExportingToSvgOrPng = false
     @observable.ref isSocialMediaExport = false
-    enableKeyboardShortcuts?: boolean
-    bindUrlToWindow?: boolean
+    enableKeyboardShortcuts: boolean = false
+    bindUrlToWindow: boolean = false
     tooltip?: TooltipManager["tooltip"] = observable.box(undefined, {
         deep: false,
     })
@@ -1026,6 +1011,7 @@ export class GrapherState {
             this.isStaging
         )
     }
+    // Exclusively used for the performance.measurement API, so that DevTools can show some context
     createPerformanceMeasurement(name: string, startMark: number): void {
         const endMark = performance.now()
         const detail = {
@@ -1157,6 +1143,8 @@ export class GrapherState {
         this.startHandleTimeBound = this.timelineMinTime ?? -Infinity
         this.endHandleTimeBound = this.timelineMaxTime ?? Infinity
     }
+
+    // Keeps a running cache of series colors at the Grapher level.
     seriesColorMap: SeriesColorMap = new Map()
     @computed get startTime(): Time | undefined {
         return findClosestTime(this.times, this.startHandleTimeBound)
@@ -1215,6 +1203,11 @@ export class GrapherState {
         )
     }
     disposers: (() => void)[] = []
+
+    @bind dispose(): void {
+        this.disposers.forEach((dispose) => dispose())
+    }
+
     @action.bound setTab(newTab: GrapherTabName): void {
         if (newTab === GRAPHER_TAB_NAMES.Table) {
             this.tab = GRAPHER_TAB_OPTIONS.table
@@ -1732,18 +1725,6 @@ export class GrapherState {
                 (column) => !!column.source.name || !isEmpty(column.def.origins)
             )
     }
-    @computed get columnsWithSourcesCondensed(): CoreColumn[] {
-        const { yColumnSlugs } = this
-
-        const columnSlugs = [...yColumnSlugs]
-        columnSlugs.push(...this.getColumnSlugsForCondensedSources())
-
-        return this.inputTable
-            .getColumns(uniq(columnSlugs))
-            .filter(
-                (column) => !!column.source.name || !isEmpty(column.def.origins)
-            )
-    }
 
     set facetStrategy(facet: FacetStrategy) {
         this.selectedFacetStrategy = facet
@@ -1783,6 +1764,18 @@ export class GrapherState {
                 columnSlugs.push(sizeColumnSlug)
         }
         return columnSlugs
+    }
+    @computed get columnsWithSourcesCondensed(): CoreColumn[] {
+        const { yColumnSlugs } = this
+
+        const columnSlugs = [...yColumnSlugs]
+        columnSlugs.push(...this.getColumnSlugsForCondensedSources())
+
+        return this.inputTable
+            .getColumns(uniq(columnSlugs))
+            .filter(
+                (column) => !!column.source.name || !isEmpty(column.def.origins)
+            )
     }
     @computed private get defaultSourcesLine(): string {
         const attributions = this.columnsWithSourcesCondensed.flatMap(
@@ -2716,8 +2709,6 @@ export class GrapherState {
         return new GrapherState({
             ...this.legacyConfigAsAuthored,
             manager: undefined,
-            // TODO 2025-01-01: unclear if we can skip this below
-            // manuallyProvideData: true,
             queryStr: "",
         })
     }
@@ -2915,14 +2906,6 @@ export class GrapherState {
         )
     }
     @computed get showEntitySelectorAs(): GrapherWindowType {
-        // console.log("showEntitySelectorAs", {
-        //     isEmbeddedInAnOwidPage: this.isEmbeddedInAnOwidPage,
-        //     isEmbeddedInADataPage: this.isEmbeddedInADataPage,
-        //     isSemiNarrow: this.isSemiNarrow,
-        //     isInFullScreenMode: this.isInFullScreenMode,
-        //     frameBounds: this.frameBounds,
-        //     isIFrame: this.isInIFrame,
-        // })
         if (
             (this.frameBounds.width > 940 &&
                 // don't use the panel if the grapher is embedded

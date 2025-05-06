@@ -185,7 +185,6 @@ export function DataPageContent({
                             grapherState.setAuthoredVersion(config)
                             grapherState.reset()
                             grapherState.updateFromObject(config)
-                            // TODO: the input table is not yet set - make sure to fetch the data and set it
 
                             grapherState.populateFromQueryParams(
                                 grapherQueryParams

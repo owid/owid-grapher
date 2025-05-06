@@ -73,11 +73,6 @@ class EntityListItem extends React.Component<EntityListItemProps> {
         }
 
         grapherState.seriesColorMap?.clear()
-        // TODO: 2025-01-05 Daniel we used to rebuild the table here but that
-        // was AFAIK only because scatter and marimekko charts need the color
-        // column to be updated. Move this merge logic into scatter and marimekko
-        // table transforms instead?
-        // grapherState.rebuildInputOwidTable()
     }
 
     @action.bound onRemove() {

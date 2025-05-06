@@ -743,6 +743,21 @@ export class EntitySelector extends React.Component<{
         if (selected) {
             const { value: slug } = selected as DropdownOption
 
+            // apply tolerance if an indicator is selected for the first time
+            if (
+                !this.isEntityNameSlug(slug) &&
+                !this.interpolatedSortColumnsBySlug[slug] &&
+                this.table.get(slug)
+            ) {
+                const interpolatedColumn = this.table
+                    .interpolateColumnWithTolerance(slug)
+                    .get(slug)
+                this.manager.interpolatedSortColumnsBySlug = {
+                    ...this.interpolatedSortColumnsBySlug,
+                    [interpolatedColumn.slug]: interpolatedColumn,
+                }
+            }
+
             this.updateSortSlug(slug)
         }
     }
