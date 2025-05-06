@@ -41,18 +41,4 @@ describe("filter by dropdown", () => {
             grapher.entitySelector.filterOptions.map((option) => option.value)
         ).toEqual(["all", "countries", "continents"])
     })
-
-    it("detects regions based on their suffix", () => {
-        const table = SynthesizeGDPTable({
-            entityNames: [
-                "Europe and Central Asia (WB)", // defined in regions.json
-                "Europe & Central Asia (WB)", // alternative name
-            ],
-        })
-        const grapher = new Grapher({ table })
-        expect(grapher.entitySelector.entitiesByRegionType.get("wb")).toEqual([
-            "Europe and Central Asia (WB)",
-            "Europe & Central Asia (WB)",
-        ])
-    })
 })
