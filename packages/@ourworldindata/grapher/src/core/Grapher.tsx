@@ -4129,23 +4129,6 @@ export class Grapher
         )
     }
 
-    @computed get showEntitySelectionToggle(): boolean {
-        if (this.hideEntityControls) return false
-
-        const shouldShowDrawer =
-            this.shouldShowEntitySelectorAs === GrapherWindowType.drawer
-        const shouldShowModal =
-            this.shouldShowEntitySelectorAs === GrapherWindowType.modal
-
-        if (this.isOnMapTab) return shouldShowDrawer
-
-        return (
-            this.isOnChartTab &&
-            this.canChangeAddOrHighlightEntities &&
-            (shouldShowModal || shouldShowDrawer)
-        )
-    }
-
     @computed get isEntitySelectorModalOpen(): boolean {
         return (
             this.isEntitySelectorModalOrDrawerOpen &&
