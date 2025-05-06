@@ -40,7 +40,7 @@ const hasChartTab = (grapher: GrapherInterface): boolean =>
 
 const checkShouldShowIndicator = (grapher: GrapherInterface) =>
     hasChartTab(grapher) &&
-    (grapher.chartTypes?.[0] ?? "LineChart") === "LineChart" &&
+    grapher.chartTypes?.[0] === "LineChart" &&
     grapher.dimensions?.length === 1
 
 // Find the charts that will be shown on the country profile page (if they have that country)

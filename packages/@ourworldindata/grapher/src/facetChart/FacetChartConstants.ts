@@ -9,7 +9,7 @@ export interface FacetChartManager extends ChartManager {
 
 export interface FacetChartProps {
     bounds?: Bounds
-    chartTypeName?: GrapherChartType
+    chartTypeName: GrapherChartType
     manager: FacetChartManager
 }
 

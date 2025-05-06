@@ -11,10 +11,7 @@ import {
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { Header, StaticHeader } from "../header/Header"
 import { Footer, StaticFooter } from "../footer/Footer"
-import {
-    ChartComponentClassMap,
-    DefaultChartClass,
-} from "../chart/ChartTypeMap"
+import { getChartComponentClass } from "../chart/ChartTypeMap"
 import {
     BASE_FONT_SIZE,
     Patterns,
@@ -221,9 +218,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 />
             )
 
-        const ChartClass =
-            ChartComponentClassMap.get(activeChartOrMapType) ??
-            DefaultChartClass
+        const ChartClass = getChartComponentClass(activeChartOrMapType)
 
         return (
             <ChartClass

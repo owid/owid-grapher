@@ -2080,7 +2080,7 @@ export function getParentVariableIdFromChartConfig(
 ): number | undefined {
     const { chartTypes, dimensions } = config
 
-    const chartType = chartTypes?.[0] ?? "LineChart"
+    const chartType = chartTypes?.[0]
     if (chartType === "ScatterPlot") return undefined
     if (!dimensions) return undefined
 

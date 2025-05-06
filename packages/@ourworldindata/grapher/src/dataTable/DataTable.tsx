@@ -580,7 +580,9 @@ export class DataTable extends React.Component<{
         ) : null
     }
 
-    render(): React.ReactElement {
+    render(): React.ReactElement | null {
+        if (this.displayRows.length === 0) return null
+
         return (
             <div className="DataTable">
                 {this.tableCaption}

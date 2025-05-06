@@ -493,7 +493,10 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         />
                     ) : undefined
                 } else {
-                    if (grapher.chartInstanceExceptMap.colorScale) {
+                    if (
+                        grapher.chartType &&
+                        grapher.chartInstanceExceptMap?.colorScale
+                    ) {
                         const colorScale =
                             grapher.chartInstanceExceptMap.colorScale
                         // TODO: instead of using onChange below that has to be maintained when
@@ -507,7 +510,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         return (
                             <EditorColorScaleSection
                                 scale={colorScale}
-                                chartType={grapher.chartType ?? "LineChart"}
+                                chartType={grapher.chartType}
                                 features={{
                                     visualScaling: true,
                                     legendDescription: false,

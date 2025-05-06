@@ -71,7 +71,12 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
             "None",
         ]),
         toGrapherObject: (parsedValue) => ({
-            chartTypes: parsedValue === "None" ? [] : parsedValue.split(" "),
+            chartTypes:
+                parsedValue === ""
+                    ? ["LineChart"]
+                    : parsedValue === "None"
+                      ? []
+                      : parsedValue.split(" "),
         }),
     },
     grapherId: {

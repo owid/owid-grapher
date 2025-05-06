@@ -149,6 +149,8 @@ export class ColorSchemeSelector extends React.Component<{
     render() {
         const { grapher } = this.props
 
+        if (!grapher.chartType) return null
+
         return (
             <React.Fragment>
                 <FieldsRow>
@@ -158,9 +160,7 @@ export class ColorSchemeSelector extends React.Component<{
                             value={grapher.baseColorScheme}
                             onChange={this.onChange}
                             onBlur={this.onBlur}
-                            chartType={
-                                this.props.grapher.chartType ?? "LineChart"
-                            }
+                            chartType={grapher.chartType}
                             invertedColorScheme={!!grapher.invertColorScheme}
                             additionalOptions={[
                                 {
@@ -573,6 +573,8 @@ export class EditorCustomizeTab<
         const { features, activeParentConfig } = this.props.editor
         const { grapher } = this.props.editor
 
+        if (!grapher.chartType) return null
+
         return (
             <div>
                 <Section name="Y Axis">
@@ -751,10 +753,10 @@ export class EditorCustomizeTab<
                 {features.canSpecifySortOrder && (
                     <SortOrderSection editor={this.props.editor} />
                 )}
-                {grapher.chartInstanceExceptMap.colorScale && (
+                {grapher.chartInstanceExceptMap?.colorScale && (
                     <EditorColorScaleSection
                         scale={grapher.chartInstanceExceptMap.colorScale}
-                        chartType={grapher.chartType ?? "LineChart"}
+                        chartType={grapher.chartType}
                         showLineChartColors={grapher.isLineChart}
                         features={{
                             visualScaling: true,

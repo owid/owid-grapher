@@ -7,6 +7,7 @@ import {
     GrapherQueryParams,
     LegacyGrapherInterface,
     LegacyGrapherQueryParams,
+    GrapherChartType,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -37,6 +38,7 @@ import { latestGrapherConfigSchema } from "./GrapherConstants.js"
 const TestGrapherConfig = (): {
     table: OwidTable
     selection: any[]
+    chartTypes: GrapherChartType[]
     dimensions: {
         slug: SampleColumnSlugs
         property: DimensionProperty
@@ -47,6 +49,7 @@ const TestGrapherConfig = (): {
     return {
         table,
         selection: table.sampleEntityName(5),
+        chartTypes: ["LineChart"],
         dimensions: [
             {
                 slug: SampleColumnSlugs.GDP,
@@ -66,7 +69,7 @@ it("regression fix: container options are not serialized", () => {
 })
 
 it("can get dimension slots", () => {
-    const grapher = new Grapher()
+    const grapher = new Grapher({ chartTypes: ["LineChart"] })
     expect(grapher.dimensionSlots.length).toBe(2)
 
     grapher.chartTypes = ["ScatterPlot"]
@@ -292,6 +295,7 @@ const getGrapher = (): Grapher =>
         ]),
         minTime: -5000,
         maxTime: 5000,
+        chartTypes: ["LineChart"],
     })
 
 function fromQueryParams(
@@ -388,7 +392,7 @@ describe("authors can use maxTime", () => {
             ySlugs: "GDP",
         })
         const chart = grapher.chartInstance
-        expect(chart.failMessage).toBeFalsy()
+        expect(chart?.failMessage).toBeFalsy()
     })
 })
 
@@ -397,7 +401,7 @@ describe("line chart to bar chart and bar chart race", () => {
 
     it("can create a new line chart with different start and end times", () => {
         expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+            grapher.activeChartTypeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
         ).toEqual("LineChart")
         expect(grapher.endHandleTimeBound).toBeGreaterThan(
             grapher.startHandleTimeBound
@@ -406,16 +410,16 @@ describe("line chart to bar chart and bar chart race", () => {
 
     describe("switches from a line chart to a bar chart when there is only 1 year selected", () => {
         const grapher = new Grapher(TestGrapherConfig())
-        const lineSeries = grapher.chartInstance.series
+        const lineSeries = grapher.chartInstance?.series
 
         expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+            grapher.activeChartTypeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
         ).toEqual("LineChart")
 
         grapher.startHandleTimeBound = 2000
         grapher.endHandleTimeBound = 2000
         expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+            grapher.activeChartTypeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
         ).toEqual("DiscreteBar")
 
         it("still has a timeline even though its now a bar chart", () => {
@@ -423,7 +427,7 @@ describe("line chart to bar chart and bar chart race", () => {
         })
 
         it("color goes to monochrome when the chart switches from line chart to bar chart", () => {
-            const barSeries = grapher.chartInstance.series
+            const barSeries = grapher.chartInstance?.series
             const barColors = orderBy(barSeries, "seriesName").map(
                 (series) => series.color
             )
@@ -451,7 +455,7 @@ describe("line chart to bar chart and bar chart race", () => {
             grapher.endHandleTimeBound
         )
         expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+            grapher.activeChartTypeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
         ).toEqual("LineChart")
     })
 
@@ -459,7 +463,7 @@ describe("line chart to bar chart and bar chart race", () => {
         grapher.startHandleTimeBound = 5000
         grapher.endHandleTimeBound = Infinity
         expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+            grapher.activeChartTypeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
         ).toEqual("DiscreteBar")
     })
 })
@@ -869,6 +873,7 @@ it("canChangeEntity reflects all available entities before transforms", () => {
         addCountryMode: EntitySelectionMode.SingleEntity,
         table,
         selectedEntityNames: table.sampleEntityName(1),
+        chartTypes: ["LineChart"],
     })
     expect(grapher.canChangeEntity).toBe(true)
 })

@@ -398,6 +398,11 @@ export class ExplorerProgram extends GridProgram {
         // assume config is valid against the latest schema
         mergedConfig.$schema = latestGrapherConfigSchema
 
+        // make sure a line chart is used as default for legacy reasons
+        if (mergedConfig.chartTypes === undefined) {
+            mergedConfig.chartTypes = ["LineChart"]
+        }
+
         // TODO: can be removed once relatedQuestions is refactored
         const { relatedQuestionUrl, relatedQuestionText } =
             this.explorerGrapherConfig
