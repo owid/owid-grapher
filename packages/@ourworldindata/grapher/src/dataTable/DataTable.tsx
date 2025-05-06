@@ -15,11 +15,7 @@ import {
     OwidTableSlugs,
     OwidVariableRoundingMode,
 } from "@ourworldindata/types"
-import {
-    BlankOwidTable,
-    OwidTable,
-    CoreColumn,
-} from "@ourworldindata/core-table"
+import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
     capitalize,
     orderBy,
@@ -44,6 +40,14 @@ import {
 import { SelectionArray } from "../selection/SelectionArray"
 import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
 import * as R from "remeda"
+import { makeSelectionArray } from "../chart/ChartUtils"
+
+const DATA_TABLE_FILTERS = ["all", "selection"] as const
+type DataTableFilter = (typeof DATA_TABLE_FILTERS)[number]
+
+export interface DataTableConfig {
+    filter: DataTableFilter
+}
 
 interface DataTableState {
     sort: DataTableSortState
@@ -83,20 +87,40 @@ export interface DataTableManager {
     endTime?: Time
     startTime?: Time
     dataTableSlugs?: ColumnSlug[]
-    isSmall?: boolean
-    isMedium?: boolean
     isNarrow?: boolean
-    selection?: SelectionArray | EntityName[]
-    canChangeAddOrHighlightEntities?: boolean
-    hasMapTab?: boolean
-    hasChartTab?: boolean
+    dataTableConfig: DataTableConfig
+    dataTableSelection?: SelectionArray | EntityName[]
 }
 
 @observer
 export class DataTable extends React.Component<{
-    manager?: DataTableManager
+    manager: DataTableManager
     bounds?: Bounds
 }> {
+    @computed get manager(): DataTableManager {
+        return this.props.manager
+    }
+
+    @computed private get selectionArray(): SelectionArray {
+        return makeSelectionArray(this.manager.dataTableSelection)
+    }
+
+    @computed private get tableConfig(): DataTableConfig {
+        return this.manager.dataTableConfig
+    }
+
+    @computed get table(): OwidTable {
+        let table = this.manager.tableForDisplay
+
+        if (this.tableConfig.filter === "selection") {
+            table = table.filterByEntityNames(
+                this.selectionArray.selectedEntityNames
+            )
+        }
+
+        return table
+    }
+
     @observable private storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
     }
@@ -131,19 +155,6 @@ export class DataTable extends React.Component<{
             columnKey,
             order,
         }
-    }
-
-    @computed get table(): OwidTable {
-        return this.manager.tableForDisplay
-    }
-
-    @computed get manager(): DataTableManager {
-        return (
-            this.props.manager ?? {
-                table: BlankOwidTable(),
-                tableForDisplay: BlankOwidTable(),
-            }
-        )
     }
 
     @computed private get entityType(): string {
@@ -1072,4 +1083,10 @@ interface DataTableRow {
 
 function isDeltaColumn(columnKey?: ColumnKey): boolean {
     return columnKey === "delta" || columnKey === "deltaRatio"
+}
+
+export function isValidDataTableFilter(
+    candidate: string
+): candidate is DataTableFilter {
+    return DATA_TABLE_FILTERS.includes(candidate as any)
 }
