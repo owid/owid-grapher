@@ -11110,7 +11110,6 @@ __metadata:
     usehooks-ts: "npm:^3.1.0"
     uuidv7: "npm:^1.0.1"
     vite: "npm:^6.3.1"
-    vite-plugin-checker: "npm:^0.9.1"
     vitest: "npm:^3.1.1"
     workerpool: "npm:^9.2.0"
     wrangler: "npm:^4.11.0"
@@ -14551,16 +14550,6 @@ __metadata:
   dependencies:
     path-key: "npm:^4.0.0"
   checksum: 10/ae8e7a89da9594fb9c308f6555c73f618152340dcaae423e5fb3620026fefbec463618a8b761920382d666fa7a2d8d240b6fe320e8a6cdd54dc3687e2b659d25
-  languageName: node
-  linkType: hard
-
-"npm-run-path@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "npm-run-path@npm:6.0.0"
-  dependencies:
-    path-key: "npm:^4.0.0"
-    unicorn-magic: "npm:^0.3.0"
-  checksum: 10/1a1b50aba6e6af7fd34a860ba2e252e245c4a59b316571a990356417c0cdf0414cabf735f7f52d9c330899cb56f0ab804a8e21fb12a66d53d7843e39ada4a3b6
   languageName: node
   linkType: hard
 
@@ -18617,7 +18606,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tiny-invariant@npm:^1.0.2, tiny-invariant@npm:^1.0.6, tiny-invariant@npm:^1.3.3":
+"tiny-invariant@npm:^1.0.2, tiny-invariant@npm:^1.0.6":
   version: 1.3.3
   resolution: "tiny-invariant@npm:1.3.3"
   checksum: 10/5e185c8cc2266967984ce3b352a4e57cb89dad5a8abb0dea21468a6ecaa67cd5bb47a3b7a85d08041008644af4f667fb8b6575ba38ba5fb00b3b5068306e59fe
@@ -19260,13 +19249,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unicorn-magic@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "unicorn-magic@npm:0.3.0"
-  checksum: 10/bdd7d7c522f9456f32a0b77af23f8854f9a7db846088c3868ec213f9550683ab6a2bdf3803577eacbafddb4e06900974385841ccb75338d17346ccef45f9cb01
-  languageName: node
-  linkType: hard
-
 "unified@npm:^10.0.0":
   version: 10.1.2
   resolution: "unified@npm:10.1.2"
@@ -19712,53 +19694,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite-plugin-checker@npm:^0.9.1":
-  version: 0.9.1
-  resolution: "vite-plugin-checker@npm:0.9.1"
-  dependencies:
-    "@babel/code-frame": "npm:^7.26.2"
-    chokidar: "npm:^4.0.3"
-    npm-run-path: "npm:^6.0.0"
-    picocolors: "npm:^1.1.1"
-    picomatch: "npm:^4.0.2"
-    strip-ansi: "npm:^7.1.0"
-    tiny-invariant: "npm:^1.3.3"
-    tinyglobby: "npm:^0.2.12"
-    vscode-uri: "npm:^3.1.0"
-  peerDependencies:
-    "@biomejs/biome": ">=1.7"
-    eslint: ">=7"
-    meow: ^13.2.0
-    optionator: ^0.9.4
-    stylelint: ">=16"
-    typescript: "*"
-    vite: ">=2.0.0"
-    vls: "*"
-    vti: "*"
-    vue-tsc: ~2.2.2
-  peerDependenciesMeta:
-    "@biomejs/biome":
-      optional: true
-    eslint:
-      optional: true
-    meow:
-      optional: true
-    optionator:
-      optional: true
-    stylelint:
-      optional: true
-    typescript:
-      optional: true
-    vls:
-      optional: true
-    vti:
-      optional: true
-    vue-tsc:
-      optional: true
-  checksum: 10/74e47ce58efecc31d0b1002a8824a32ad96951592f40875e4ca23faae5cb5de8b8258262085b7aef7b989b0620d586822058288f3dba9228dff3b3e40331e725
-  languageName: node
-  linkType: hard
-
 "vite@npm:^5.0.0 || ^6.0.0, vite@npm:^6.3.1":
   version: 6.3.4
   resolution: "vite@npm:6.3.4"
@@ -19864,13 +19799,6 @@ __metadata:
   bin:
     vitest: vitest.mjs
   checksum: 10/9dc54ef6854f877ad524667a0f3798b6c97c8138bee15a3dbad76557a45e3a3e42d438140df7a9eeaa10e5da7b5eb74ba854f06ffd233fa3c9e5936f6ae42e97
-  languageName: node
-  linkType: hard
-
-"vscode-uri@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "vscode-uri@npm:3.1.0"
-  checksum: 10/80c2a2421f44b64008ef1f91dfa52a2d68105cbb4dcea197dbf5b00c65ccaccf218b615e93ec587f26fc3ba04796898f3631a9406e3b04cda970c3ca8eadf646
   languageName: node
   linkType: hard
 
