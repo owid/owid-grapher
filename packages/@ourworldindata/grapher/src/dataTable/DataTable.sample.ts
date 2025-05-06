@@ -38,7 +38,7 @@ export const childMortalityGrapher = (
     ]
     return new Grapher({
         hasMapTab: true,
-        tab: "map",
+        tab: "WorldMap",
         dimensions,
         ...props,
         owidDataset: createOwidTestDataset([
@@ -85,7 +85,7 @@ export const GrapherWithIncompleteData = (
         },
     ]
     return new Grapher({
-        tab: "table",
+        tab: "Table",
         selectedEntityNames: ["Iceland", "France", "Afghanistan"],
         dimensions,
         ...props,
@@ -126,7 +126,7 @@ export const GrapherWithAggregates = (
         },
     ]
     return new Grapher({
-        tab: "table",
+        tab: "Table",
         dimensions,
         selectedEntityNames: ["Afghanistan", "Iceland", "World"],
         ...props,
@@ -171,7 +171,7 @@ export const GrapherWithMultipleVariablesAndMultipleYears = (
     }
 
     return new Grapher({
-        tab: "table",
+        tab: "Table",
         dimensions,
         ...props,
         owidDataset: createOwidTestDataset([

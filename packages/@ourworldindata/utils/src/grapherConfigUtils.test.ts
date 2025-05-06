@@ -240,11 +240,13 @@ describe(diffGrapherConfigs, () => {
     })
 
     it("drops redundant entries", () => {
-        expect(diffGrapherConfigs({ tab: "map" }, { tab: "map" })).toEqual({})
+        expect(
+            diffGrapherConfigs({ tab: "WorldMap" }, { tab: "WorldMap" })
+        ).toEqual({})
         expect(
             diffGrapherConfigs(
-                { tab: "chart", title: "Chart" },
-                { tab: "chart", title: "Reference chart" }
+                { tab: "Chart", title: "Chart" },
+                { tab: "Chart", title: "Reference chart" }
             )
         ).toEqual({ title: "Chart" })
     })
@@ -254,7 +256,7 @@ describe(diffGrapherConfigs, () => {
             diffGrapherConfigs(
                 {
                     title: "Chart",
-                    tab: "chart",
+                    tab: "Chart",
                     map: {
                         region: MapRegionName.World,
                         hideTimeline: true,
@@ -262,7 +264,7 @@ describe(diffGrapherConfigs, () => {
                 },
                 {
                     title: "Reference chart",
-                    tab: "chart",
+                    tab: "Chart",
                     map: {
                         region: MapRegionName.World,
                         hideTimeline: false,
@@ -273,14 +275,14 @@ describe(diffGrapherConfigs, () => {
         expect(
             diffGrapherConfigs(
                 {
-                    tab: "chart",
+                    tab: "Chart",
                     map: {
                         region: MapRegionName.World,
                         hideTimeline: true,
                     },
                 },
                 {
-                    tab: "chart",
+                    tab: "Chart",
                     map: {
                         region: MapRegionName.World,
                         hideTimeline: true,
@@ -294,11 +296,11 @@ describe(diffGrapherConfigs, () => {
         expect(
             diffGrapherConfigs(
                 {
-                    tab: "chart",
+                    tab: "Chart",
                     title: "Chart",
                     subtitle: undefined,
                 },
-                { tab: "chart", title: "Reference chart" }
+                { tab: "Chart", title: "Reference chart" }
             )
         ).toEqual({ title: "Chart" })
     })
@@ -355,12 +357,12 @@ describe(diffGrapherConfigs, () => {
 
     it("is idempotent", () => {
         const config: GrapherInterface = {
-            tab: "chart",
+            tab: "Chart",
             title: "Chart",
             subtitle: undefined,
         }
         const reference: GrapherInterface = {
-            tab: "chart",
+            tab: "Chart",
             title: "Reference chart",
         }
         const diffedOnce = diffGrapherConfigs(config, reference)
@@ -372,12 +374,12 @@ describe(diffGrapherConfigs, () => {
 describe("diff+merge", () => {
     it("are consistent", () => {
         const config: GrapherInterface = {
-            tab: "chart",
+            tab: "Chart",
             title: "Chart",
             subtitle: "Chart subtitle",
         }
         const reference: GrapherInterface = {
-            tab: "chart",
+            tab: "Chart",
             title: "Reference chart",
         }
         const diffedAndMerged = mergeGrapherConfigs(

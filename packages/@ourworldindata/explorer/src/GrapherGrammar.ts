@@ -1,12 +1,13 @@
 import {
-    ALL_GRAPHER_CHART_TYPES,
+    GRAPHER_CHART_TYPES,
     ColorSchemeName,
     FacetAxisDomain,
     FacetStrategy,
-    GRAPHER_TAB_CONFIG_OPTIONS,
+    GRAPHER_TAB_QUERY_PARAMS,
     MissingDataStrategy,
     StackMode,
 } from "@ourworldindata/types"
+import { mapTabQueryParamToConfigOption } from "@ourworldindata/grapher"
 import { SortBy, SortOrder } from "@ourworldindata/utils"
 import {
     GridBoolean,
@@ -25,7 +26,7 @@ import {
     GrapherCellDef,
 } from "./gridLang/GridLangConstants.js"
 
-const toTerminalOptions = (keywords: string[]): CellDef[] => {
+const toTerminalOptions = (keywords: readonly string[]): CellDef[] => {
     return keywords.map((keyword) => ({
         keyword,
         cssClass: "",
@@ -65,7 +66,7 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         keyword: "type",
         description: `The type of chart to show such as LineChart or ScatterPlot. If set to None, then the chart tab is hidden.`,
         terminalOptions: toTerminalOptions([
-            ...ALL_GRAPHER_CHART_TYPES,
+            ...GRAPHER_CHART_TYPES,
             "LineChart SlopeChart",
             "None",
         ]),
@@ -96,10 +97,10 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         ...EnumCellDef,
         keyword: "tab",
         description: "Which tab to show by default",
-        terminalOptions: toTerminalOptions(
-            Object.values(GRAPHER_TAB_CONFIG_OPTIONS)
-        ),
-        toGrapherObject: (value) => ({ tab: value }),
+        terminalOptions: toTerminalOptions(GRAPHER_TAB_QUERY_PARAMS),
+        toGrapherObject: (parsedValue) => ({
+            tab: mapTabQueryParamToConfigOption(parsedValue),
+        }),
     },
     xSlug: {
         ...SlugDeclarationCellDef,

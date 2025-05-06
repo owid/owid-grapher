@@ -87,4 +87,6 @@ export {
     generateGrapherImageSrcSet,
     getChartTypeFromConfig,
     getChartTypeFromConfigAndQueryParams,
+    mapTabQueryParamToConfigOption,
+    isGrapherTabQueryParam,
 } from "./chart/ChartUtils.js"

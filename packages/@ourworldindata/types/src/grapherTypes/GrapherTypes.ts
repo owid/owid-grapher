@@ -8,9 +8,10 @@ import { Integer } from "../domainTypes/Various.js"
 import { DetailDictionary } from "../gdocTypes/Gdoc.js"
 import { observable } from "mobx"
 import {
-    ALL_GRAPHER_CHART_TYPES,
-    GRAPHER_TAB_CONFIG_OPTIONS,
+    GRAPHER_CHART_TYPES,
     GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING,
+    GRAPHER_TAB_CONFIG_OPTIONS,
+    GRAPHER_TAB_QUERY_PARAMS,
 } from "./GrapherConstants.js"
 
 export interface Box {
@@ -172,7 +173,7 @@ export type SeriesColorMap = Map<SeriesName, Color>
 
 export type GrapherWorldMap = "WorldMap"
 export type GrapherTable = "Table"
-export type GrapherChartType = (typeof ALL_GRAPHER_CHART_TYPES)[number]
+export type GrapherChartType = (typeof GRAPHER_CHART_TYPES)[number]
 export type GrapherChartOrMapType = GrapherChartType | GrapherWorldMap
 
 /** Chart type supported for chart type switching */
@@ -183,12 +184,7 @@ export type GrapherChartTypeSupportedForSwitching =
 export type GrapherTabConfigOption = (typeof GRAPHER_TAB_CONFIG_OPTIONS)[number]
 
 /** Valid values for the `tab` query parameter in Grapher */
-export type GrapherTabQueryParam = GrapherTabConfigOption
-
-export type GrapherTabType = Extract<
-    GrapherTabConfigOption,
-    "table" | "map" | "chart"
->
+export type GrapherTabQueryParam = (typeof GRAPHER_TAB_QUERY_PARAMS)[number]
 
 export interface RelatedQuestionsConfig {
     text: string

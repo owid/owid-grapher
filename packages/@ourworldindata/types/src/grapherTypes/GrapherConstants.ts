@@ -5,7 +5,7 @@ export const EPOCH_DATE = "2020-01-21"
 export const IDEAL_PLOT_ASPECT_RATIO = 1.8
 
 /** Chart types without WorldMap */
-export const ALL_GRAPHER_CHART_TYPES = [
+export const GRAPHER_CHART_TYPES = [
     "LineChart",
     "ScatterPlot",
     "StackedArea",
@@ -20,10 +20,19 @@ export const ALL_GRAPHER_CHART_TYPES = [
 export const GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING = [
     "LineChart",
     "SlopeChart",
-] as const satisfies (typeof ALL_GRAPHER_CHART_TYPES)[number][]
+] as const satisfies (typeof GRAPHER_CHART_TYPES)[number][]
 
-/** Valid tab options that determine the default tab if specified in the config */
+/** Valid values for the `tab` field in Grapher configs */
 export const GRAPHER_TAB_CONFIG_OPTIONS = [
+    "Table",
+    "WorldMap",
+    "Chart",
+
+    ...GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING,
+] as const
+
+/** Valid values for the `tab` query parameter */
+export const GRAPHER_TAB_QUERY_PARAMS = [
     "table",
     "map",
     "chart",

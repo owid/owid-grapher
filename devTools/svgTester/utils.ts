@@ -1,6 +1,6 @@
 import {
     GrapherChartType,
-    ALL_GRAPHER_CHART_TYPES,
+    GRAPHER_CHART_TYPES,
     GrapherInterface,
     GrapherChartOrMapType,
 } from "@ourworldindata/types"
@@ -301,14 +301,14 @@ export async function findValidChartIds(
 export function validateChartTypes(chartTypes: string[]): GrapherChartType[] {
     const validChartTypes = chartTypes.filter(
         (chartType): chartType is GrapherChartType =>
-            ALL_GRAPHER_CHART_TYPES.includes(chartType as any)
+            GRAPHER_CHART_TYPES.includes(chartType as any)
     )
     const invalidChartTypes = chartTypes.filter(
-        (chartType) => !ALL_GRAPHER_CHART_TYPES.includes(chartType as any)
+        (chartType) => !GRAPHER_CHART_TYPES.includes(chartType as any)
     )
     if (invalidChartTypes.length) {
         console.warn(
-            `Invalid chart types given: ${invalidChartTypes}. Valid chart types are: ${ALL_GRAPHER_CHART_TYPES}`
+            `Invalid chart types given: ${invalidChartTypes}. Valid chart types are: ${GRAPHER_CHART_TYPES}`
         )
     }
     return _.uniq(validChartTypes)
