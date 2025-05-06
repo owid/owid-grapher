@@ -41,7 +41,7 @@ export const finished = util.promisify(stream.finished) // (A)
 export interface ChartWithQueryStr {
     id: number
     slug: string
-    type: GrapherChartType
+    type?: GrapherChartType
     queryStr?: string
 }
 
@@ -209,13 +209,14 @@ export async function findChartViewsToGenerate(
         const grapherConfig = await parseGrapherConfig(chartId, { inDir })
 
         const slug = grapherConfig.slug ?? chartId.toString()
-        const chartType = grapherConfig.chartTypes?.[0] ?? "LineChart"
+        const chartType = grapherConfig.chartTypes?.[0]
 
-        const queryStrings = options.shouldTestAllViews
-            ? queryStringsByChartType[chartType]
-            : options.queryStr
-              ? [options.queryStr]
-              : [undefined]
+        const queryStrings =
+            options.shouldTestAllViews && chartType
+                ? queryStringsByChartType[chartType]
+                : options.queryStr
+                  ? [options.queryStr]
+                  : [undefined]
 
         for (const queryStr of queryStrings) {
             chartsToProcess.push({
@@ -287,8 +288,8 @@ export async function findValidChartIds(
                 const grapherConfig = await parseGrapherConfig(grapherId, {
                     inDir,
                 })
-                const chartType = grapherConfig.chartTypes?.[0] ?? "LineChart"
-                if (chartTypes.includes(chartType)) {
+                const chartType = grapherConfig.chartTypes?.[0]
+                if (chartType && chartTypes.includes(chartType)) {
                     validChartIds.push(grapherId)
                 }
             }

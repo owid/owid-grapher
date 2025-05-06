@@ -46,6 +46,7 @@ import {
 import { SelectionArray } from "../selection/SelectionArray"
 import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
 import * as R from "remeda"
+import { NoDataModal } from "../noDataModal/NoDataModal"
 
 interface DataTableState {
     sort: DataTableSortState
@@ -580,7 +581,9 @@ export class DataTable extends React.Component<{
         ) : null
     }
 
-    render(): React.ReactElement {
+    render(): React.ReactElement | null {
+        if (this.displayRows.length === 0) return null
+
         return (
             <div className="DataTable">
                 {this.tableCaption}

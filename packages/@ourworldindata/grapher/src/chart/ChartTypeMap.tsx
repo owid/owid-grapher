@@ -12,6 +12,7 @@ import { ComponentClass, Component } from "react"
 import { Bounds } from "@ourworldindata/utils"
 import { StackedDiscreteBarChart } from "../stackedCharts/StackedDiscreteBarChart"
 import { MarimekkoChart } from "../stackedCharts/MarimekkoChart"
+import { match } from "ts-pattern"
 
 interface ChartComponentProps {
     manager: ChartManager
@@ -23,20 +24,19 @@ interface ChartComponentClass extends ComponentClass<ChartComponentProps> {
     new (props: ChartComponentProps): Component & ChartInterface
 }
 
-export const ChartComponentClassMap = new Map<
-    GrapherChartOrMapType,
-    ChartComponentClass
->([
-    ["DiscreteBar", DiscreteBarChart],
-    ["LineChart", LineChart],
-    ["SlopeChart", SlopeChart],
-    ["StackedArea", StackedAreaChart],
-    ["StackedBar", StackedBarChart],
-    ["StackedDiscreteBar", StackedDiscreteBarChart],
-    ["ScatterPlot", ScatterPlotChart],
-    ["Marimekko", MarimekkoChart],
-    ["WorldMap", MapChart],
-])
-
-export const DefaultChartClass = LineChart as ChartComponentClass
-export const defaultChartType = "LineChart"
+export const getChartComponentClass = (
+    chartOrMapType: GrapherChartOrMapType
+): ChartComponentClass => {
+    return match(chartOrMapType)
+        .returnType<ChartComponentClass>()
+        .with("DiscreteBar", () => DiscreteBarChart)
+        .with("LineChart", () => LineChart)
+        .with("Marimekko", () => MarimekkoChart)
+        .with("ScatterPlot", () => ScatterPlotChart)
+        .with("SlopeChart", () => SlopeChart)
+        .with("StackedArea", () => StackedAreaChart)
+        .with("StackedBar", () => StackedBarChart)
+        .with("StackedDiscreteBar", () => StackedDiscreteBarChart)
+        .with("WorldMap", () => MapChart)
+        .exhaustive()
+}

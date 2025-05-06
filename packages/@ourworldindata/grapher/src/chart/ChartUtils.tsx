@@ -191,7 +191,9 @@ export function isLegacyTabOption(tab: string): tab is GrapherLegacyTabName {
     return GRAPHER_LEGACY_TAB_NAMES.includes(tab as any)
 }
 
-function isChartTypeName(candidate: string): candidate is GrapherChartType {
+export function isChartTypeName(
+    candidate: string
+): candidate is GrapherChartType {
     return GRAPHER_CHART_TYPES.includes(candidate as any)
 }
 
@@ -356,9 +358,7 @@ export function getChartTypeFromConfigAndQueryParams(
 function getChartTypeFromConfigField(
     chartTypes?: GrapherChartType[]
 ): GrapherChartType | undefined {
-    if (!chartTypes) return "LineChart"
-    if (chartTypes.length === 0) return undefined
-    return chartTypes[0]
+    return chartTypes?.[0]
 }
 
 function maybeLineChartThatTurnedIntoDiscreteBar(

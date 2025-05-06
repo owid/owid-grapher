@@ -31,10 +31,7 @@ import {
     SeriesStrategy,
     AxisConfigInterface,
 } from "@ourworldindata/types"
-import {
-    ChartComponentClassMap,
-    DefaultChartClass,
-} from "../chart/ChartTypeMap"
+import { getChartComponentClass } from "../chart/ChartTypeMap"
 import { ChartManager } from "../chart/ChartManager"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
@@ -140,7 +137,7 @@ export class FacetChart
     }
 
     @computed private get chartTypeName(): GrapherChartType {
-        return this.props.chartTypeName ?? "LineChart"
+        return this.props.chartTypeName
     }
 
     @computed get isStatic(): boolean {
@@ -354,9 +351,7 @@ export class FacetChart
 
     @computed get intermediateChartInstances(): ChartInterface[] {
         return this.intermediatePlacedSeries.map(({ bounds, manager }) => {
-            const ChartClass =
-                ChartComponentClassMap.get(this.chartTypeName) ??
-                DefaultChartClass
+            const ChartClass = getChartComponentClass(this.chartTypeName)
             return new ChartClass({ bounds, manager })
         })
     }
@@ -875,9 +870,9 @@ export class FacetChart
             <React.Fragment>
                 {showLegend && <LegendClass manager={this} />}
                 {this.placedSeries.map((facetChart, index: number) => {
-                    const ChartClass =
-                        ChartComponentClassMap.get(this.chartTypeName) ??
-                        DefaultChartClass
+                    const ChartClass = getChartComponentClass(
+                        this.chartTypeName
+                    )
                     const { bounds, contentBounds, seriesName } = facetChart
                     const labelPadding = getLabelPadding(facetFontSize)
 
