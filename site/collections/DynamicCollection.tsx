@@ -61,9 +61,9 @@ export class DynamicCollection extends React.Component<DynamicCollectionProps> {
     @computed get allGrapherSlugsAndQueryStrings() {
         if (!this.graphers) return []
 
-        // // If the grapher hasn't mounted yet, we use the original slugAndQueryString
-        // // This allows us to update the URL if users interact with graphers that have mounted
-        // // while still keeping the unmounted graphers in the URL in the right place
+        // If the grapher hasn't mounted yet, we use the original slugAndQueryString
+        // This allows us to update the URL if users interact with graphers that have mounted
+        // while still keeping the unmounted graphers in the URL in the right place
         const slugsAndQueryStrings = new Array(this.graphers.size)
 
         for (const [originalSlugAndUrl, { index, grapher }] of this.graphers) {
@@ -79,7 +79,6 @@ export class DynamicCollection extends React.Component<DynamicCollectionProps> {
         }
 
         return slugsAndQueryStrings
-        return []
     }
 
     componentDidMount() {
