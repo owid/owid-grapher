@@ -332,9 +332,6 @@ export class AbstractStackedChart
     }
 
     @computed private get categoricalColorAssigner(): CategoricalColorAssigner {
-        const seriesCount = this.isEntitySeries
-            ? this.selectionArray.numSelectedEntities
-            : this.yColumns.length
         return new CategoricalColorAssigner({
             colorScheme:
                 (this.manager.baseColorScheme
@@ -344,7 +341,6 @@ export class AbstractStackedChart
             invertColorScheme: this.manager.invertColorScheme,
             colorMap: this.colorMap,
             autoColorMapCache: this.manager.seriesColorMap,
-            numColorsInUse: seriesCount,
         })
     }
 
