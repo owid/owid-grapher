@@ -1335,3 +1335,37 @@ describe("tableForSelection", () => {
         expect(availableEntityNames).not.toContain("Sudan") // excluded since it's outside of Europe and Asia
     })
 })
+
+describe("tableForDisplay", () => {
+    const table = SynthesizeGDPTable({
+        entityNames: ["Italy", "Asia", "Europe", "Sudan", "Africa"],
+    })
+
+    const manager: GrapherProgrammaticInterface = {
+        table,
+        tab: "table",
+        chartTypes: ["LineChart"],
+        selectedEntityNames: ["Europe", "Asia", "Africa"],
+        addCountryMode: EntitySelectionMode.Disabled,
+    }
+
+    it("contains the selected entities only if entity selection is disabled", () => {
+        const grapher = new Grapher(manager)
+        expect(grapher.tableForDisplay.availableEntityNames.length).toBe(3)
+    })
+
+    it("contains all available entities if there is a map tab, even if entity selection is disabled", () => {
+        const grapher = new Grapher({ ...manager, hasMapTab: true })
+        expect(grapher.tableForDisplay.availableEntityNames.length).toBe(5)
+    })
+
+    it("contains all available entities if there is a scatter plot, even if entity selection is disabled", () => {
+        const grapher = new Grapher({ ...manager, chartTypes: ["ScatterPlot"] })
+        expect(grapher.tableForDisplay.availableEntityNames.length).toBe(5)
+    })
+
+    it("contains all available entities if there is a Marimekko chart, even if entity selection is disabled", () => {
+        const grapher = new Grapher({ ...manager, chartTypes: ["Marimekko"] })
+        expect(grapher.tableForDisplay.availableEntityNames.length).toBe(5)
+    })
+})

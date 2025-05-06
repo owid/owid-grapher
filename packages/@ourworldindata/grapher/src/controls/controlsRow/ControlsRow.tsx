@@ -24,13 +24,18 @@ import {
 } from "../MapCountryDropdown"
 import { CloseGlobeViewButton } from "../CloseGlobeViewButton"
 import { GlobeSwitcher } from "../GlobeSwitcher"
+import {
+    DataTableFilterDropdown,
+    DataTableFilterDropdownManager,
+} from "../DataTableFilterDropdown"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
         EntitySelectionManager,
         MapRegionDropdownManager,
         MapCountryDropdownManager,
-        SettingsMenuManager {
+        SettingsMenuManager,
+        DataTableFilterDropdownManager {
     sidePanelBounds?: Bounds
     isSmall?: boolean
 }
@@ -76,7 +81,8 @@ export class ControlsRow extends Component<{
             MapRegionDropdown.shouldShow(this.manager) ||
             MapCountryDropdown.shouldShow(this.manager) ||
             CloseGlobeViewButton.shouldShow(this.manager) ||
-            ContentSwitchers.shouldShow(this.manager)
+            ContentSwitchers.shouldShow(this.manager) ||
+            DataTableFilterDropdown.shouldShow(this.manager)
         )
     }
 
@@ -91,6 +97,11 @@ export class ControlsRow extends Component<{
                     top={this.props.settingsMenuTop ?? 0}
                     bottom={this.framePaddingVertical}
                     right={this.sidePanelWidth + this.framePaddingHorizontal}
+                />
+
+                <DataTableFilterDropdown
+                    manager={this.manager}
+                    maxWidth={this.maxWidthSettingsMenu}
                 />
             </div>
         )
