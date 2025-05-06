@@ -22,12 +22,8 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 // this means we get instant dev updates when we change one of them,
                 // and the prod build builds them all as esm modules, which helps with tree shaking
                 // Idea from https://github.com/LinusBorg/vue-lib-template/blob/3775e49b20a7c3349dd49321cad2ed7f9d575057/packages/playground/vite.config.ts
-                "@ourworldindata/components": "@ourworldindata/components/src/index.ts",
-                "@ourworldindata/core-table": "@ourworldindata/core-table/src/index.ts",
                 "@ourworldindata/explorer": "@ourworldindata/explorer/src/index.ts",
                 "@ourworldindata/grapher": "@ourworldindata/grapher/src/index.ts",
-                "@ourworldindata/types": "@ourworldindata/types/src/index.ts",
-                "@ourworldindata/utils": "@ourworldindata/utils/src/index.ts",
             },
         },
         css: {
