@@ -41,9 +41,17 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
 import * as R from "remeda"
 import { makeSelectionArray } from "../chart/ChartUtils"
+import {
+    EntityNamesByRegionType,
+    EntityRegionType,
+    isEntityRegionType,
+} from "../core/EntitiesByRegionType"
+import { match } from "ts-pattern"
 
-const DATA_TABLE_FILTERS = ["all", "selection"] as const
-type DataTableFilter = (typeof DATA_TABLE_FILTERS)[number]
+const COMMON_DATA_TABLE_FILTERS = ["all", "selection"] as const
+type CommonDataTableFilter = (typeof COMMON_DATA_TABLE_FILTERS)[number]
+
+type DataTableFilter = CommonDataTableFilter | EntityRegionType
 
 export interface DataTableConfig {
     filter: DataTableFilter
@@ -90,6 +98,7 @@ export interface DataTableManager {
     isNarrow?: boolean
     dataTableConfig: DataTableConfig
     dataTableSelection?: SelectionArray | EntityName[]
+    entityNamesByRegionType?: EntityNamesByRegionType
 }
 
 @observer
@@ -112,16 +121,30 @@ export class DataTable extends React.Component<{
     @computed get table(): OwidTable {
         let table = this.manager.tableForDisplay
 
-        if (
-            this.tableConfig.filter === "selection" &&
-            this.selectionArray.hasSelection
-        ) {
-            table = table.filterByEntityNames(
-                this.selectionArray.selectedEntityNames
-            )
-        }
+        // filter table
+        const keepEntityNames = this.entityNamesForCurrentFilter
+        if (keepEntityNames && keepEntityNames.length > 0)
+            table = table.filterByEntityNames(keepEntityNames)
 
         return table
+    }
+
+    @computed private get entityNamesForCurrentFilter():
+        | EntityName[]
+        | undefined {
+        const { filter } = this.tableConfig
+
+        if (isEntityRegionType(filter))
+            return this.manager.entityNamesByRegionType?.get(filter)
+
+        return match(filter)
+            .with("all", () => undefined) // no filter
+            .with("selection", () =>
+                this.selectionArray.hasSelection
+                    ? this.selectionArray.selectedEntityNames
+                    : undefined
+            )
+            .exhaustive()
     }
 
     @observable private storedState: DataTableState = {
@@ -1088,8 +1111,14 @@ function isDeltaColumn(columnKey?: ColumnKey): boolean {
     return columnKey === "delta" || columnKey === "deltaRatio"
 }
 
+function isCommonDataTableFilter(
+    candidate: string
+): candidate is CommonDataTableFilter {
+    return COMMON_DATA_TABLE_FILTERS.includes(candidate as any)
+}
+
 export function isValidDataTableFilter(
     candidate: string
 ): candidate is DataTableFilter {
-    return DATA_TABLE_FILTERS.includes(candidate as any)
+    return isCommonDataTableFilter(candidate) || isEntityRegionType(candidate)
 }

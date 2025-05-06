@@ -21,13 +21,9 @@ import {
     convertDaysSinceEpochToDate,
     max,
     checkIsOwidIncomeGroupName,
-    groupBy,
-    aggregateSources,
-    AggregateSource,
-    getRegionByName,
     checkHasMembers,
     Region,
-    Country,
+    getRegionByName,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -70,43 +66,22 @@ import * as R from "remeda"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { EntitySelectorEvent } from "../core/GrapherAnalytics"
 import { match } from "ts-pattern"
+import {
+    entityRegionTypeLabels,
+    EntityNamesByRegionType,
+    EntityRegionType,
+    EntityRegionTypeGroup,
+    isAggregateSource,
+} from "../core/EntitiesByRegionType"
 
 type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
-const customAggregateSources = [
-    "un",
-    "fao",
-    "ei",
-    "pip",
-    "ember",
-    "gcp",
-    "niaid",
-    "unicef",
-    "unaids",
-    "undp",
-    "wid",
-    "oecd",
-] as const
-type CustomAggregateSource = (typeof customAggregateSources)[number]
-
-const aggregateSourceSet = new Set([
-    ...aggregateSources,
-    ...customAggregateSources,
-])
-
-type EntityRegionType =
-    | "all"
-    | "countries"
-    | "historicalCountries" // e.g. USSR, Austria-Hungary
-    | "continents" // owid continents
-    | "incomeGroups"
-    | AggregateSource // defined in the regions file, e.g. who or wb
-    | CustomAggregateSource // hard-coded for now, see above
+type EntityFilter = EntityRegionType | "all"
 
 export interface EntitySelectorState {
     searchInput: string
     sortConfig: SortConfig
-    entityFilter: EntityRegionType
+    entityFilter: EntityFilter
     localEntityNames?: string[]
     interpolatedSortColumnsBySlug?: CoreColumnBySlug
     isLoadingExternalSortColumn?: boolean
@@ -132,6 +107,8 @@ export interface EntitySelectorManager {
     onDeselectEntity?: (entityName: EntityName) => void
     onClearEntities?: () => void
     yColumnSlugs?: ColumnSlug[]
+    entityRegionTypeGroups?: EntityRegionTypeGroup[]
+    entityNamesByRegionType?: EntityNamesByRegionType
     logEntitySelectorEvent: (
         action: EntitySelectorEvent,
         target?: string
@@ -158,33 +135,8 @@ interface SortDropdownOption {
     trackNote?: string // unused
 }
 
-const entityFilterLabels: Record<EntityRegionType, string> = {
-    all: "All",
-    countries: "Countries",
-    continents: "Continents", // OWID-defined continents
-    incomeGroups: "Income groups",
-    historicalCountries: "Historical countries and regions", // e.g. USSR, Austria-Hungary
-
-    // Regions defined by an institution
-    who: "World Health Organization regions",
-    wb: "World Bank regions",
-    unsd: "UN Statistics Division regions",
-    un: "United Nations regions",
-    fao: "FAO regions", // UN's Food and Agriculture Organization
-    ei: "Education International regions",
-    pip: "PIP regions", // World Bank’s Poverty and Inequality Platform
-    ember: "Ember regions",
-    gcp: "Global Carbon Project regions",
-    niaid: "NIAID regions", // National Institute of Allergy and Infectious Diseases
-    unicef: "UNICEF regions",
-    unaids: "UNAIDS regions", // Joint United Nations Programme on HIV and AIDS
-    undp: "UN Development Programme regions",
-    wid: "World Inequality Database regions",
-    oecd: "OECD regions", // Organisation for Economic Co-operation and Development
-}
-
 interface FilterDropdownOption {
-    value: EntityRegionType
+    value: EntityFilter
     label: string
     count: number
     trackNote?: string // unused
@@ -544,13 +496,13 @@ export class EntitySelector extends React.Component<{
         return this.sortOptions.some((option) => option.value === slug)
     }
 
-    isEntityFilterValid(entityFilter: EntityRegionType): boolean {
+    isEntityFilterValid(entityFilter: EntityFilter): boolean {
         return this.filterOptions.some(
             (option) => option.value === entityFilter
         )
     }
 
-    @computed private get entityFilter(): EntityRegionType {
+    @computed private get entityFilter(): EntityFilter {
         return (
             this.manager.entitySelectorState.entityFilter ??
             this.filterOptions[0]?.value ??
@@ -775,6 +727,10 @@ export class EntitySelector extends React.Component<{
         return this.table.availableEntityNames
     }
 
+    @computed private get availableEntityNameSet(): Set<string> {
+        return this.table.availableEntityNameSet
+    }
+
     @computed private get availableEntities(): SearchableEntity[] {
         const langs = getUserNavigatorLanguagesNonEnglish()
 
@@ -809,7 +765,7 @@ export class EntitySelector extends React.Component<{
         if (entityFilter === "all") return this.sortEntities(availableEntities)
 
         const entityNameSet = new Set(
-            this.entitiesByRegionType.get(entityFilter)
+            this.manager.entityNamesByRegionType?.get(entityFilter) ?? []
         )
         const filteredAvailableEntities = availableEntities.filter((entity) =>
             entityNameSet.has(entity.name)
@@ -1051,103 +1007,23 @@ export class EntitySelector extends React.Component<{
         }
     }
 
-    @computed get entitiesByRegionType(): Map<EntityRegionType, EntityName[]> {
-        // the 'World' entity shouldn't show up in any of the groups
-        const availableEntities = this.availableEntities.filter(
-            (entity) => !isWorldEntityName(entity.name)
-        )
-
-        // map entities to their regions
-        const availableRegions = excludeUndefined(
-            availableEntities.map((entity) => entity.regionInfo)
-        )
-
-        // group regions by type
-        const regionsGroupedByType = groupBy(
-            availableRegions,
-            (r) => r.regionType
-        )
-
-        // split countries into historical and non-historical
-        const [historicalCountries, nonHistoricalCountries] = partition(
-            regionsGroupedByType.country ?? [],
-            (country) => (country as Country).isHistorical
-        )
-
-        const entitiesByType = new Map<EntityRegionType, EntityName[]>()
-
-        // add the 'countries' group
-        if (nonHistoricalCountries.length > 0) {
-            entitiesByType.set(
-                "countries",
-                nonHistoricalCountries.map((region) => region.name)
-            )
-        }
-
-        // add the 'continents' group
-        if (regionsGroupedByType.continent) {
-            entitiesByType.set(
-                "continents",
-                regionsGroupedByType.continent.map((region) => region.name)
-            )
-        }
-
-        // add the 'incomeGroups' group
-        if (regionsGroupedByType.income_group) {
-            // match by name instead of relying on the regions file because
-            // some charts have income groups that aren't listed in the regions
-            // file, e.g. 'Lower-middle-income countries'
-            const incomeGroups = availableEntities
-                .filter(
-                    (entity) =>
-                        entity.name.includes("income countries") ||
-                        // matches 'No income group available', for example
-                        entity.name.includes("income group")
-                )
-                .map((entity) => entity.name)
-
-            entitiesByType.set("incomeGroups", incomeGroups)
-        }
-
-        for (const entity of availableEntities) {
-            // The regions file includes a definedBy field for aggregates,
-            // which could be used here. However, non-OWID regions aren't
-            // standardized, meaning we might miss some entities.
-            // Instead, we rely on the convention that non-OWID regions
-            // are suffixed with (source) and check the entity name.
-            const match = entity.name.match(/\(([^)]+)\)$/)
-            const sourceCandidate = match?.[1].toLowerCase()
-            if (sourceCandidate && isAggregateSource(sourceCandidate)) {
-                if (!entitiesByType.get(sourceCandidate))
-                    entitiesByType.set(sourceCandidate, [])
-                entitiesByType.get(sourceCandidate)!.push(entity.name)
-            }
-        }
-
-        // add the a group for historical countries
-        if (historicalCountries.length > 0) {
-            entitiesByType.set(
-                "historicalCountries",
-                historicalCountries.map((region) => region.name)
-            )
-        }
-
-        return entitiesByType
-    }
-
     @computed get filterOptions(): FilterDropdownOption[] {
-        const options: FilterDropdownOption[] = Array.from(
-            this.entitiesByRegionType.entries()
-        ).map(([key, entities]) => ({
-            value: key,
-            label: entityFilterLabels[key],
-            count: entities.length,
-        }))
+        const { entityRegionTypeGroups = [] } = this.manager
+
+        const options: FilterDropdownOption[] = entityRegionTypeGroups
+            .map(({ regionType, entityNames }) => ({
+                value: regionType,
+                label: entityRegionTypeLabels[regionType],
+                count: entityNames.filter((entityName) =>
+                    this.availableEntityNameSet.has(entityName)
+                ).length,
+            }))
+            .filter(({ count }) => count > 0)
 
         return [
             {
                 value: "all",
-                label: entityFilterLabels.all,
+                label: "All",
                 count: this.availableEntities.length,
             },
             ...options,
@@ -1638,10 +1514,4 @@ function getTitleForSortColumnLabel(column: CoreColumn): string {
 
 function indicatorIdToSlug(indicatorId: number): ColumnSlug {
     return indicatorId.toString()
-}
-
-function isAggregateSource(
-    candidate: string
-): candidate is AggregateSource | CustomAggregateSource {
-    return aggregateSourceSet.has(candidate as any)
 }

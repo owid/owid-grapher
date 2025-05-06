@@ -258,6 +258,11 @@ import { FacetChart } from "../facetChart/FacetChart"
 import { getErrorMessageRelatedQuestionUrl } from "./relatedQuestion.js"
 import { GlobeController } from "../mapCharts/GlobeController"
 import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
+import {
+    EntityNamesByRegionType,
+    EntityRegionTypeGroup,
+    groupEntityNamesByRegionType,
+} from "./EntitiesByRegionType"
 
 declare global {
     interface Window {
@@ -2883,6 +2888,19 @@ export class Grapher
 
     @computed get availableEntityNames(): EntityName[] {
         return this.tableForSelection.availableEntityNames
+    }
+
+    @computed get entityRegionTypeGroups(): EntityRegionTypeGroup[] {
+        return groupEntityNamesByRegionType(this.table.availableEntityNames)
+    }
+
+    @computed get entityNamesByRegionType(): EntityNamesByRegionType {
+        return new Map(
+            this.entityRegionTypeGroups.map(({ regionType, entityNames }) => [
+                regionType,
+                entityNames,
+            ])
+        )
     }
 
     private get keyboardShortcuts(): Command[] {
