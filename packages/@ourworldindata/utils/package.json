@@ -1,46 +1,42 @@
 {
-  "name": "@ourworldindata/utils",
-  "version": "0.0.0",
-  "description": "",
-  "main": "dist/index.js",
-  "directories": {
-    "lib": "src"
-  },
-  "types": "dist",
-  "scripts": {
-    "build": "rm -rf ./dist && tsc --build",
-    "watch": "tsc --watch"
-  },
-  "keywords": [],
-  "author": "",
-  "dependencies": {
-    "@ourworldindata/types": "workspace:^",
-    "@tippyjs/react": "^4.2.6",
-    "d3": "^6.1.1",
-    "dayjs": "^1.11.11",
-    "fuzzysort": "^3.1.0",
-    "lodash-es": "^4.17.21",
-    "mobx": "^5.15.7",
-    "mobx-react": "5",
-    "react": "^17.0.2",
-    "react-select": "^5.8.0",
-    "string-pixel-width": "^1.10.0",
-    "striptags": "^3.2.0",
-    "timezone-mock": "^1.0.18",
-    "ts-pattern": "^5.0.5",
-    "url-parse": "^1.5.10",
-    "uuidv7": "^1.0.1"
-  },
-  "devDependencies": {
-    "@types/d3": "^6",
-    "@types/d3-format": "^2",
-    "@types/lodash-es": "^4.17.12",
-    "@types/react": "^17.0.69",
-    "@types/string-pixel-width": "^1.7.2",
-    "@types/url-parse": "^1.4.8",
-    "eslint": "^9.21.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "typescript": "~5.8.2"
-  },
-  "license": "MIT"
+    "name": "@ourworldindata/utils",
+    "version": "0.0.0",
+    "description": "",
+    "main": "src/index.ts",
+    "types": "src/index.ts",
+    "directories": {
+        "lib": "src"
+    },
+    "keywords": [],
+    "author": "",
+    "dependencies": {
+        "@ourworldindata/types": "workspace:^",
+        "@tippyjs/react": "^4.2.6",
+        "d3": "^6.1.1",
+        "dayjs": "^1.11.11",
+        "fuzzysort": "^3.1.0",
+        "lodash-es": "^4.17.21",
+        "mobx": "^5.15.7",
+        "mobx-react": "5",
+        "react": "^17.0.2",
+        "react-select": "^5.8.0",
+        "string-pixel-width": "^1.10.0",
+        "striptags": "^3.2.0",
+        "timezone-mock": "^1.0.18",
+        "ts-pattern": "^5.0.5",
+        "url-parse": "^1.5.10",
+        "uuidv7": "^1.0.1"
+    },
+    "devDependencies": {
+        "@types/d3": "^6",
+        "@types/d3-format": "^2",
+        "@types/lodash-es": "^4.17.12",
+        "@types/react": "^17.0.69",
+        "@types/string-pixel-width": "^1.7.2",
+        "@types/url-parse": "^1.4.8",
+        "eslint": "^9.21.0",
+        "eslint-plugin-react-hooks": "^5.2.0",
+        "typescript": "~5.8.2"
+    },
+    "license": "MIT"
 }

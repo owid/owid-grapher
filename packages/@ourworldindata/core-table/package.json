@@ -1,30 +1,26 @@
 {
-  "name": "@ourworldindata/core-table",
-  "version": "0.0.0",
-  "description": "This is our core tabular data structure class which parses JSON or delimited data and makes it available for charts. This class performs core transformations like filtering, grouping, etc. This is roughly our \"Pandas for TypeScript\".",
-  "main": "dist/index.js",
-  "directories": {
-    "lib": "src"
-  },
-  "types": "dist",
-  "scripts": {
-    "build": "rm -rf ./dist && tsc --build",
-    "watch": "tsc --watch"
-  },
-  "keywords": [],
-  "author": "",
-  "dependencies": {
-    "@ourworldindata/types": "workspace:^",
-    "@ourworldindata/utils": "workspace:^",
-    "d3": "^6.1.1",
-    "dayjs": "^1.11.11",
-    "papaparse": "^5.4.1"
-  },
-  "devDependencies": {
-    "@types/d3": "^6",
-    "@types/papaparse": "^5.3.15",
-    "eslint": "^9.21.0",
-    "typescript": "~5.8.2"
-  },
-  "license": "MIT"
+    "name": "@ourworldindata/core-table",
+    "version": "0.0.0",
+    "description": "This is our core tabular data structure class which parses JSON or delimited data and makes it available for charts. This class performs core transformations like filtering, grouping, etc. This is roughly our \"Pandas for TypeScript\".",
+    "main": "src/index.ts",
+    "types": "src/index.ts",
+    "directories": {
+        "lib": "src"
+    },
+    "keywords": [],
+    "author": "",
+    "dependencies": {
+        "@ourworldindata/types": "workspace:^",
+        "@ourworldindata/utils": "workspace:^",
+        "d3": "^6.1.1",
+        "dayjs": "^1.11.11",
+        "papaparse": "^5.4.1"
+    },
+    "devDependencies": {
+        "@types/d3": "^6",
+        "@types/papaparse": "^5.3.15",
+        "eslint": "^9.21.0",
+        "typescript": "~5.8.2"
+    },
+    "license": "MIT"
 }
