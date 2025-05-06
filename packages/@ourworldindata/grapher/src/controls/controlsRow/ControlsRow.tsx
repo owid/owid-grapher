@@ -31,7 +31,6 @@ export interface ControlsRowManager
         MapCountryDropdownManager,
         SettingsMenuManager {
     sidePanelBounds?: Bounds
-    showEntitySelectionToggle?: boolean
 }
 
 @observer
@@ -68,10 +67,6 @@ export class ControlsRow extends Component<{
         return this.maxWidth - this.contentSwitchersWidth - 16
     }
 
-    @computed private get showContentSwitchers(): boolean {
-        return ContentSwitchers.shouldShow(this.manager)
-    }
-
     @computed private get showControlsRow(): boolean {
         return (
             SettingsMenu.shouldShow(this.manager) ||
@@ -79,24 +74,21 @@ export class ControlsRow extends Component<{
             MapRegionDropdown.shouldShow(this.manager) ||
             MapCountryDropdown.shouldShow(this.manager) ||
             CloseGlobeViewButton.shouldShow(this.manager) ||
-            this.showContentSwitchers
+            ContentSwitchers.shouldShow(this.manager)
         )
     }
 
     render(): JSX.Element {
-        const { showEntitySelectionToggle } = this.manager
         return (
             <nav
                 className="controlsRow"
                 style={{ padding: `0 ${this.framePaddingHorizontal}px` }}
             >
                 <div>
-                    {this.showContentSwitchers && (
-                        <ContentSwitchers manager={this.manager} />
-                    )}
+                    <ContentSwitchers manager={this.manager} />
                 </div>
                 <div className="chart-controls">
-                    {showEntitySelectionToggle && this.manager.isOnChartTab && (
+                    {this.manager.isOnChartTab && (
                         <EntitySelectionToggle manager={this.manager} />
                     )}
 
@@ -115,7 +107,7 @@ export class ControlsRow extends Component<{
                         manager={this.manager}
                         maxWidth={this.maxWidthSettingsMenu}
                     />
-                    {showEntitySelectionToggle && this.manager.isOnMapTab && (
+                    {this.manager.isOnMapTab && (
                         <EntitySelectionToggle manager={this.manager} />
                     )}
 
