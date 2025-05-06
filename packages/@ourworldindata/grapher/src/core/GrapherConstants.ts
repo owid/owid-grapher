@@ -9,6 +9,15 @@ import type { GrapherProgrammaticInterface } from "./Grapher"
 
 export type GrapherTabName = GrapherTable | GrapherChartOrMapType
 
+export const GRAPHER_LEGACY_TAB_NAMES = [
+    "table",
+    "map",
+    "chart",
+    "line",
+    "slope",
+] as const
+export type GrapherLegacyTabName = (typeof GRAPHER_LEGACY_TAB_NAMES)[number]
+
 export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
 export const GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR = "data-grapher-config"
 

@@ -11,7 +11,7 @@ import { observer } from "mobx-react"
 import {
     EntitySelectionMode,
     StackMode,
-    ALL_GRAPHER_CHART_TYPES,
+    GRAPHER_CHART_TYPES,
     GrapherChartType,
     DbChartTagJoin,
     TaggableType,
@@ -470,7 +470,7 @@ export class EditorBasicTab<
         value: string
         label: string
     }[] {
-        const chartTypeOptions = ALL_GRAPHER_CHART_TYPES.map((key) => ({
+        const chartTypeOptions = GRAPHER_CHART_TYPES.map((key) => ({
             value: key,
             label: startCase(key),
         }))

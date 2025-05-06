@@ -691,13 +691,13 @@ class VariableEditor extends Component<{
             return {
                 ...grapherConfig,
                 hasMapTab: true,
-                tab: "map",
+                tab: "WorldMap",
             }
         else
             return {
                 yAxis: { min: 0 },
                 map: { columnSlug: this.props.variable.id.toString() },
-                tab: "map",
+                tab: "WorldMap",
                 hasMapTab: true,
                 dimensions: [
                     {

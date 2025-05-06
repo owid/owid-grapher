@@ -200,7 +200,7 @@ export class MapChart
 
         if (!ev.shiftKey) {
             this.selectionArray.setSelectedEntities([entityName])
-            this.manager.tab = "chart"
+            this.manager.tab = "Chart"
             if (
                 this.manager.isLineChartThatTurnedIntoDiscreteBar &&
                 this.manager.hasTimeline

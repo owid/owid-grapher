@@ -91,7 +91,7 @@ describe("toObject", () => {
     })
 
     it("does not preserve defaults in the object (except for the schema)", () => {
-        expect(new Grapher({ tab: "chart" }).toObject()).toEqual({
+        expect(new Grapher({ tab: "Chart" }).toObject()).toEqual({
             $schema: latestGrapherConfigSchema,
         })
     })
@@ -99,12 +99,12 @@ describe("toObject", () => {
     it("serialises the currently active chart tab", () => {
         const grapher = new Grapher({
             chartTypes: ["LineChart", "SlopeChart"],
-            tab: "slope",
+            tab: "SlopeChart",
         })
         expect(grapher.toObject()).toEqual({
             $schema: latestGrapherConfigSchema,
             chartTypes: ["LineChart", "SlopeChart"],
-            tab: "slope",
+            tab: "SlopeChart",
         })
     })
 })
@@ -231,7 +231,7 @@ describe("hasTimeline", () => {
         grapher.hideTimeline = true
         grapher.chartTypes = ["LineChart"]
         expect(grapher.hasTimeline).toBeFalsy()
-        grapher.tab = "map"
+        grapher.tab = "WorldMap"
         expect(grapher.hasTimeline).toBeTruthy()
         grapher.map.hideTimeline = true
         expect(grapher.hasTimeline).toBeFalsy()
@@ -485,7 +485,7 @@ describe("urls", () => {
             isPublished: true,
             slug: "foo",
             bakedGrapherURL: "/grapher",
-            tab: "map",
+            tab: "WorldMap",
         })
         expect(grapher.embedUrl).toEqual("/grapher/foo?tab=map")
     })
@@ -566,7 +566,7 @@ describe("urls", () => {
     it("adds tab=chart to the URL if there is a single chart tab", () => {
         const grapher = new Grapher({
             hasMapTab: true,
-            tab: "map",
+            tab: "WorldMap",
         })
         grapher.setTab("LineChart")
         expect(grapher.changedParams.tab).toEqual("chart")
@@ -576,7 +576,7 @@ describe("urls", () => {
         const grapher = new Grapher({
             chartTypes: ["LineChart", "SlopeChart"],
             hasMapTab: true,
-            tab: "map",
+            tab: "WorldMap",
         })
         grapher.setTab("LineChart")
         expect(grapher.changedParams.tab).toEqual("line")
@@ -906,7 +906,7 @@ describe("year parameter (applies to map only)", () => {
             })
             it(`encode ${test.name}`, () => {
                 const params = toQueryParams({
-                    tab: "map",
+                    tab: "WorldMap",
                     map: { time: test.param },
                 })
                 expect(params.time).toEqual(test.query)
@@ -972,7 +972,7 @@ describe("year parameter (applies to map only)", () => {
                 it(`encode ${test.name}`, () => {
                     const grapher = getGrapher()
                     grapher.updateFromObject({
-                        tab: "map",
+                        tab: "WorldMap",
                         map: { time: test.param },
                     })
                     const params = grapher.changedParams
@@ -1028,7 +1028,7 @@ it("considers map tolerance before using column tolerance", () => {
     const grapher = new Grapher({
         table,
         ySlugs: "gdp",
-        tab: "map",
+        tab: "WorldMap",
         hasMapTab: true,
         map: new MapConfig({ timeTolerance: 1, columnSlug: "gdp", time: 2002 }),
     })

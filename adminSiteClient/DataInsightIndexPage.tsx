@@ -40,7 +40,7 @@ import {
 } from "../adminShared/search.js"
 import { Admin } from "./Admin.js"
 import {
-    ALL_GRAPHER_CHART_TYPES,
+    GRAPHER_CHART_TYPES,
     DbEnrichedImageWithUserId,
     GrapherChartOrMapType,
     OwidGdocDataInsightIndexItem,
@@ -510,7 +510,7 @@ export function DataInsightIndexPage() {
                                 value={chartTypeFilter}
                                 placeholder="Select a chart type..."
                                 options={[
-                                    ...ALL_GRAPHER_CHART_TYPES.map((type) => ({
+                                    ...GRAPHER_CHART_TYPES.map((type) => ({
                                         value: type,
                                         label: startCase(type),
                                     })),

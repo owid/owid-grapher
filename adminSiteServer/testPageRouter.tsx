@@ -149,12 +149,12 @@ async function propsFromQueryParams(
     if (params.type) {
         if (params.type === "WorldMap") {
             query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
-            tab ||= "map"
+            tab ||= "WorldMap"
         } else {
             query = query.andWhereRaw(`cc.chartType = :type`, {
                 type: params.type,
             })
-            tab ||= "chart"
+            tab ||= "Chart"
         }
     }
 
@@ -162,26 +162,26 @@ async function propsFromQueryParams(
         query = query.andWhereRaw(
             `cc.full->>'$.yAxis.canChangeScaleType' = "true" OR cc.full->>'$.xAxis.canChangeScaleType'  = "true"`
         )
-        tab = "chart"
+        tab = "Chart"
     }
 
     if (params.comparisonLines) {
         query = query.andWhereRaw(
             `cc.full->'$.comparisonLines[0].yEquals' != ''`
         )
-        tab = "chart"
+        tab = "Chart"
     }
 
     if (params.stackMode) {
         query = query.andWhereRaw(`cc.full->'$.stackMode' = :stackMode`, {
             stackMode: params.stackMode,
         })
-        tab = "chart"
+        tab = "Chart"
     }
 
     if (params.relativeToggle) {
         query = query.andWhereRaw(`cc.full->>'$.hideRelativeToggle' = "false"`)
-        tab = "chart"
+        tab = "Chart"
     }
 
     if (params.categoricalLegend) {
@@ -191,7 +191,7 @@ async function propsFromQueryParams(
         query = query.andWhereRaw(
             `json_length(cc.full->'$.map.colorScale.customCategoryColors') > 1`
         )
-        tab = "map"
+        tab = "WorldMap"
     }
 
     if (params.mixedTimeTypes) {
@@ -231,9 +231,9 @@ async function propsFromQueryParams(
         query = query.andWhereRaw(`charts.id IN (${params.ids})`)
     }
 
-    if (tab === "map") {
+    if (tab === "WorldMap") {
         query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
-    } else if (tab === "chart") {
+    } else if (tab === "Chart") {
         query = query.andWhereRaw(`cc.chartType IS NOT NULL`)
     }
 

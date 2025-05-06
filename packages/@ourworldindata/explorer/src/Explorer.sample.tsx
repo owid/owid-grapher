@@ -52,7 +52,7 @@ export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
                 property: DimensionProperty.y,
             },
         ],
-        tab: "chart",
+        tab: "Chart",
         owidDataset: new Map([
             [
                 142609,

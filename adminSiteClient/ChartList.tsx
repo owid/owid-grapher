@@ -310,7 +310,7 @@ export function showChartType(chart: ChartListItem): string {
 
     const displayType = chartType ? startCase(chartType) : "Unknown"
 
-    if (chart.tab === "map") {
+    if (chart.tab === "WorldMap") {
         if (chart.hasChartTab) return `Map + ${displayType}`
         else return "Map"
     } else {

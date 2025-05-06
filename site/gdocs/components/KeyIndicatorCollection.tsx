@@ -15,10 +15,12 @@ import {
     EnrichedBlockKeyIndicatorCollection,
     EnrichedBlockKeyIndicator,
     GrapherTabConfigOption,
-    GRAPHER_TAB_CONFIG_OPTIONS,
-    GrapherTabQueryParam,
 } from "@ourworldindata/types"
 import { Url, urlToSlug, commafyNumber } from "@ourworldindata/utils"
+import {
+    isGrapherTabQueryParam,
+    mapTabQueryParamToConfigOption,
+} from "@ourworldindata/grapher"
 
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"
@@ -29,12 +31,10 @@ import { useResizeObserver } from "usehooks-ts"
 // keep in sync with $duration in KeyIndicatorCollection.scss
 const HEIGHT_ANIMATION_DURATION_IN_SECONDS = 0.4
 
-const tabIconMap: Record<GrapherTabQueryParam, IconDefinition> = {
-    chart: faChartLine,
-    line: faChartLine,
-    slope: faChartLine,
-    map: faEarthAmericas,
-    table: faTable,
+const tabIconMap: Record<"Chart" | "WorldMap" | "Table", IconDefinition> = {
+    Chart: faChartLine,
+    WorldMap: faEarthAmericas,
+    Table: faTable,
 }
 
 export default function KeyIndicatorCollection({
@@ -247,13 +247,16 @@ function KeyIndicatorHeader({
     if (!linkedChart) return null
     if (!linkedIndicator) return null
 
+    // determine the active tab based on the query params and config
     const { queryParams } = Url.fromURL(linkedChart.resolvedUrl)
     const tabFromQueryParams =
-        queryParams.tab && isValidGrapherTab(queryParams.tab)
-            ? queryParams.tab
+        queryParams.tab && isGrapherTabQueryParam(queryParams.tab)
+            ? mapTabQueryParamToConfigOption(queryParams.tab)
             : undefined
-    const activeTab: GrapherTabQueryParam =
-        tabFromQueryParams || linkedChart.tab || "chart"
+    const activeTab: GrapherTabConfigOption =
+        tabFromQueryParams || linkedChart.tab || "Chart"
+    const activeTabType =
+        activeTab === "Table" || activeTab === "WorldMap" ? activeTab : "Chart"
 
     const source = block.source || linkedIndicator.attributionShort
 
@@ -261,7 +264,7 @@ function KeyIndicatorHeader({
         <div className="key-indicator-header">
             <div className="key-indicator-header__left">
                 <FontAwesomeIcon
-                    icon={tabIconMap[activeTab]}
+                    icon={tabIconMap[activeTabType]}
                     className="key-indicator-header__tab-icon"
                 />
                 <div>
@@ -341,10 +344,4 @@ function isElementAtTopOfViewport(element: HTMLElement): boolean {
         window.innerHeight
     )
     return bbox.top >= 0 && bbox.top < 0.33 * viewHeight
-}
-
-function isValidGrapherTab(tab: string): tab is GrapherTabConfigOption {
-    return Object.values(GRAPHER_TAB_CONFIG_OPTIONS).includes(
-        tab as GrapherTabConfigOption
-    )
 }

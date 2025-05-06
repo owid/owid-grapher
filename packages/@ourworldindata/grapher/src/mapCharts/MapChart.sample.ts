@@ -3,7 +3,7 @@ import { GrapherProgrammaticInterface } from "../core/Grapher"
 
 export const legacyMapGrapher: GrapherProgrammaticInterface = {
     hasMapTab: true,
-    tab: "map",
+    tab: "WorldMap",
     map: {
         timeTolerance: 5,
     },

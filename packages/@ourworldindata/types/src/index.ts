@@ -45,8 +45,9 @@ export {
     IDEAL_PLOT_ASPECT_RATIO,
     EPOCH_DATE,
     GRAPHER_TAB_CONFIG_OPTIONS,
-    ALL_GRAPHER_CHART_TYPES,
+    GRAPHER_CHART_TYPES,
     GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING,
+    GRAPHER_TAB_QUERY_PARAMS,
 } from "./grapherTypes/GrapherConstants.js"
 
 export {
@@ -79,7 +80,6 @@ export {
     type GrapherChartOrMapType,
     type GrapherTabConfigOption,
     type GrapherTabQueryParam,
-    type GrapherTabType,
     type GrapherChartType,
     type GrapherChartTypeSupportedForSwitching,
     StackMode,

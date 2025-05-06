@@ -11,6 +11,8 @@ import {
     SelectionArray,
     migrateGrapherConfigToLatestVersion,
     GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR,
+    mapTabQueryParamToConfigOption,
+    isGrapherTabQueryParam,
 } from "@ourworldindata/grapher"
 import {
     fetchText,
@@ -34,6 +36,7 @@ import {
 } from "@ourworldindata/explorer"
 import {
     GRAPHER_PREVIEW_CLASS,
+    GrapherTabConfigOption,
     MultiDimDataPageConfigEnriched,
 } from "@ourworldindata/types"
 import {
@@ -188,10 +191,19 @@ class MultiEmbedder {
 
         // make sure the tab of the active pane is visible
         if (figureConfigAttr && !isEmpty(localConfig)) {
-            const activeTab = queryParams?.tab || grapherPageConfig.tab
-            if (activeTab === "chart") localConfig.hideChartTabs = false
-            if (activeTab === "map") localConfig.hasMapTab = true
-            if (activeTab === "table") localConfig.hasTableTab = true
+            const queryParamTab =
+                queryParams?.tab && isGrapherTabQueryParam(queryParams.tab)
+                    ? mapTabQueryParamToConfigOption(queryParams.tab)
+                    : undefined
+            const activeTab: GrapherTabConfigOption =
+                queryParamTab || grapherPageConfig.tab
+            const activeTabType =
+                activeTab === "Table" || activeTab === "WorldMap"
+                    ? activeTab
+                    : "Chart"
+            if (activeTabType === "Chart") localConfig.hideChartTabs = false
+            if (activeTabType === "WorldMap") localConfig.hasMapTab = true
+            if (activeTabType === "Table") localConfig.hasTableTab = true
         }
 
         const config = merge(

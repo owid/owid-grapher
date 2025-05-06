@@ -19,6 +19,8 @@ import {
     ColumnSlug,
     GrapherChartTypeSupportedForSwitching,
     GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING,
+    GRAPHER_TAB_QUERY_PARAMS,
+    GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -28,9 +30,12 @@ import {
     GRAPHER_TIMELINE_CLASS,
     GRAPHER_SETTINGS_CLASS,
     validChartTypeCombinations,
+    GrapherLegacyTabName,
+    GRAPHER_LEGACY_TAB_NAMES,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
 import { OwidTable } from "@ourworldindata/core-table"
+import { match } from "ts-pattern"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
@@ -151,66 +156,45 @@ export function isChartTypeSupportedForSwitching(
     )
 }
 
-export function mapQueryParamToChartTypeName(
-    chartTab: string
-): GrapherChartType | undefined {
-    switch (chartTab) {
-        case "line":
-            return "LineChart"
-        case "slope":
-            return "SlopeChart"
-        case "scatter":
-            return "ScatterPlot"
-        case "stacked-area":
-            return "StackedArea"
-        case "stacked-bar":
-            return "StackedBar"
-        case "discrete-bar":
-            return "DiscreteBar"
-        case "stacked-discrete-bar":
-            return "StackedDiscreteBar"
-        case "marimekko":
-            return "Marimekko"
-        default:
-            return undefined
-    }
-}
-
-export function mapChartTypeNameToQueryParam(
-    chartType: GrapherChartTypeSupportedForSwitching
-): GrapherTabQueryParam {
-    switch (chartType) {
-        case "LineChart":
-            return "line"
-        case "SlopeChart":
-            return "slope"
-    }
-}
-
-export function mapTabOptionToChartTypeName(
-    chartTab: GrapherTabConfigOption
-): GrapherChartType | undefined {
-    switch (chartTab) {
-        case "line":
-            return "LineChart"
-        case "slope":
-            return "SlopeChart"
-        default:
-            return undefined
-    }
-}
-
-export function mapChartTypeNameToTabOption(
-    chartType: GrapherChartType
+export function mapTabQueryParamToConfigOption(
+    tab: GrapherTabQueryParam
 ): GrapherTabConfigOption {
-    switch (chartType) {
-        case "LineChart":
-            return "line"
-        case "SlopeChart":
-            return "slope"
-        default:
-            return "chart"
-    }
+    return match(tab)
+        .returnType<GrapherTabConfigOption>()
+        .with("table", () => "Table")
+        .with("map", () => "WorldMap")
+        .with("chart", () => "Chart")
+        .with("line", () => "LineChart")
+        .with("slope", () => "SlopeChart")
+        .exhaustive()
+}
+
+type GrapherChartTabQueryParam = Exclude<
+    GrapherTabQueryParam,
+    "table" | "chart" | "map"
+>
+export function mapChartTypeNameToTabQueryParam(
+    chartType: GrapherChartTypeSupportedForSwitching
+): GrapherChartTabQueryParam {
+    return match(chartType)
+        .returnType<GrapherChartTabQueryParam>()
+        .with("LineChart", () => "line")
+        .with("SlopeChart", () => "slope")
+        .exhaustive()
+}
+
+export function isGrapherTabQueryParam(
+    candidate: string
+): candidate is GrapherTabQueryParam {
+    return GRAPHER_TAB_QUERY_PARAMS.includes(candidate as any)
+}
+
+export function isLegacyTabOption(tab: string): tab is GrapherLegacyTabName {
+    return GRAPHER_LEGACY_TAB_NAMES.includes(tab as any)
+}
+
+function isChartTypeName(candidate: string): candidate is GrapherChartType {
+    return GRAPHER_CHART_TYPES.includes(candidate as any)
 }
 
 export function findValidChartTypeCombination(
@@ -328,10 +312,10 @@ export function getChartTypeFromConfigAndQueryParams(
 ): GrapherChartOrMapType | undefined {
     // If the tab query parameter is set, use it to determine the chart type
     const tab = queryParams?.get("tab")
-    if (tab) {
+    if (tab && isGrapherTabQueryParam(tab)) {
         // Handle cases where tab is set to 'line' or 'slope'
-        const chartType = mapQueryParamToChartTypeName(tab)
-        if (chartType)
+        const chartType = mapTabQueryParamToConfigOption(tab)
+        if (chartType && isChartTypeName(chartType))
             return maybeLineChartThatTurnedIntoDiscreteBar(
                 chartType,
                 chartConfig,
@@ -355,7 +339,8 @@ export function getChartTypeFromConfigAndQueryParams(
     }
 
     // If the chart has a map tab and it's the default tab, use the map type
-    if (chartConfig.hasMapTab && chartConfig.tab === "map") return "WorldMap"
+    if (chartConfig.hasMapTab && chartConfig.tab === "WorldMap")
+        return "WorldMap"
 
     // Otherwise, rely on the config's chartTypes field
     const chartType = getChartTypeFromConfigField(chartConfig.chartTypes)

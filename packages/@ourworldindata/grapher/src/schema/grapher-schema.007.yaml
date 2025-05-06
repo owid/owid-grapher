@@ -125,13 +125,13 @@ properties:
         description: |
             The tab that is shown initially. If `chart` is selected and Grapher
             has more than one chart tab, then the first chart tab will be active.
-        default: chart
+        default: Chart
         enum:
-            - chart
-            - map
-            - table
-            - line
-            - slope
+            - Table
+            - WorldMap
+            - Chart
+            - LineChart
+            - SlopeChart
     matchingEntitiesOnly:
         type: boolean
         default: false

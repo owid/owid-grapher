@@ -40,7 +40,7 @@ export const defaultGrapherConfig = {
         canChangeScaleType: false,
         facetDomain: "shared",
     },
-    tab: "chart",
+    tab: "Chart",
     matchingEntitiesOnly: false,
     hideLegend: false,
     hideLogo: false,

@@ -72,7 +72,7 @@ describe("when you select a range of years", () => {
     beforeAll(() => {
         const grapher = childMortalityGrapher({
             chartTypes: ["LineChart"],
-            tab: "table",
+            tab: "Table",
         })
         grapher.timelineHandleTimeBounds = [1950, 2019]
 

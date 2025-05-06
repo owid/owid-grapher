@@ -110,7 +110,7 @@ import {
     OwidChartDimensionInterfaceWithMandatorySlug,
     AssetMap,
     ArchivedChartOrArchivePageMeta,
-    GrapherTabType,
+    GrapherTabConfigOption,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -199,10 +199,10 @@ import {
     findStartTimeForSlopeChart,
     findValidChartTypeCombination,
     isChartTypeSupportedForSwitching,
-    mapChartTypeNameToQueryParam,
-    mapChartTypeNameToTabOption,
-    mapQueryParamToChartTypeName,
-    mapTabOptionToChartTypeName,
+    isLegacyTabOption,
+    isGrapherTabQueryParam,
+    mapChartTypeNameToTabQueryParam,
+    mapTabQueryParamToConfigOption,
 } from "../chart/ChartUtils"
 import classnames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
@@ -414,8 +414,7 @@ export class Grapher
     @observable.ref zoomToSelection?: boolean = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
     @observable.ref hasMapTab = false
-    @observable.ref tab: GrapherTabType = "chart"
-    @observable.ref chartTab?: GrapherChartType
+    @observable.ref tab: GrapherTabConfigOption = "Chart"
     @observable.ref isPublished?: boolean = undefined
     @observable.ref baseColorScheme?: ColorSchemeName = undefined
     @observable.ref invertColorScheme?: boolean = undefined
@@ -612,15 +611,6 @@ export class Grapher
         if (obj.timelineMaxTime)
             obj.timelineMaxTime = maxTimeToJSON(this.timelineMaxTime) as any
 
-        // store the currently selected chart type if it's different from the primary chart type
-        if (
-            this.tab === "chart" &&
-            this.chartTab &&
-            this.chartTab !== this.chartType
-        ) {
-            obj.tab = mapChartTypeNameToTabOption(this.chartTab)
-        }
-
         // todo: remove dimensions concept
         // if (this.legacyConfigAsAuthored?.dimensions)
         //     obj.dimensions = this.legacyConfigAsAuthored.dimensions
@@ -663,13 +653,9 @@ export class Grapher
             obj.timelineMaxTime
         )
 
-        // map the `tab` param to grapher state
-        if (obj.tab) {
-            const chartType = mapTabOptionToChartTypeName(obj.tab)
-            if (chartType) {
-                this.tab = "chart"
-                this.chartTab = chartType
-            }
+        // TODO: remove after removing legacy config options
+        if (obj.tab && isLegacyTabOption(obj.tab)) {
+            this.tab = mapTabQueryParamToConfigOption(obj.tab)
         }
 
         // Todo: remove once we are more RAII.
@@ -772,10 +758,8 @@ export class Grapher
     }
 
     @computed get activeTab(): GrapherTabName {
-        if (this.tab === "table") return "Table"
-        if (this.tab === "map") return "WorldMap"
-        if (this.chartTab) return this.chartTab
-        return this.chartType ?? "LineChart"
+        const defaultChartType = this.chartType ?? "LineChart"
+        return this.tab === "Chart" ? defaultChartType : this.tab
     }
 
     @computed get activeChartType(): GrapherChartType | undefined {
@@ -792,15 +776,15 @@ export class Grapher
     }
 
     @computed get isOnChartTab(): boolean {
-        return this.tab === "chart"
+        return !this.isOnMapTab && !this.isOnTableTab
     }
 
     @computed get isOnMapTab(): boolean {
-        return this.tab === "map"
+        return this.tab === "WorldMap"
     }
 
     @computed get isOnTableTab(): boolean {
-        return this.tab === "table"
+        return this.tab === "Table"
     }
 
     @computed get isOnChartOrMapTab(): boolean {
@@ -1462,15 +1446,14 @@ export class Grapher
     }
 
     @action.bound setTab(newTab: GrapherTabName): void {
-        if (newTab === "Table") {
-            this.tab = "table"
-            this.chartTab = undefined
-        } else if (newTab === "WorldMap") {
-            this.tab = "map"
-            this.chartTab = undefined
+        if (
+            newTab === "Table" ||
+            newTab === "WorldMap" ||
+            isChartTypeSupportedForSwitching(newTab)
+        ) {
+            this.tab = newTab
         } else {
-            this.tab = "chart"
-            this.chartTab = newTab
+            this.tab = "Chart"
         }
     }
 
@@ -1780,7 +1763,7 @@ export class Grapher
 
         return !!(
             !this.forceHideAnnotationFieldsInTitle?.entity &&
-            this.tab === "chart" &&
+            this.isOnChartTab &&
             (seriesStrategy !== SeriesStrategy.entity || !this.showLegend) &&
             selectedEntityNames.length === 1 &&
             (showEntityAnnotation ||
@@ -1854,21 +1837,18 @@ export class Grapher
 
         switch (this.tab) {
             // the map tab has its own `hideTimeline` option
-            case "map":
+            case "WorldMap":
                 return !this.map.hideTimeline
 
-            // use the chart-level `hideTimeline` option
-            case "chart":
-                return !this.hideTimeline
-
             // use the chart-level `hideTimeline` option for the table, with some exceptions
-            case "table":
+            case "Table":
                 // always show the timeline for charts that plot time on the x-axis
                 if (this.hasTimeDimension) return true
                 return !this.hideTimeline
 
+            // use the chart-level `hideTimeline` option
             default:
-                return false
+                return !this.hideTimeline
         }
     }
 
@@ -3511,38 +3491,28 @@ export class Grapher
     debounceMode = false
 
     private mapQueryParamToGrapherTab(tab: string): GrapherTabName | undefined {
-        const {
-            chartType: defaultChartType,
-            validChartTypeSet,
-            hasMapTab,
-        } = this
+        const { chartType, validChartTypeSet, hasMapTab } = this
 
         let defaultTab: GrapherTabName = "Table"
-        if (defaultChartType) {
-            defaultTab = defaultChartType
+        if (chartType) {
+            defaultTab = chartType
         } else if (hasMapTab) {
             defaultTab = "WorldMap"
         }
 
-        if (tab === "table") {
-            return "Table"
-        }
-        if (tab === "map") {
-            if (hasMapTab) return "WorldMap"
-            return defaultTab
-        }
+        // return the default tab if the given tab isn't valid
+        if (!isGrapherTabQueryParam(tab)) return defaultTab
 
-        if (tab === "chart") {
-            return defaultTab
-        }
+        if (tab === "table") return "Table"
+        if (tab === "chart") return defaultTab
+        if (tab === "map") return hasMapTab ? "WorldMap" : defaultTab
 
-        const chartTypeName = mapQueryParamToChartTypeName(tab)
-
-        if (!chartTypeName) return undefined
-
-        if (validChartTypeSet.has(chartTypeName)) {
-            return chartTypeName
-        }
+        // check if the given tab maps to a supported chart type
+        const chartTypeName = mapTabQueryParamToConfigOption(tab) as Exclude<
+            GrapherTabConfigOption,
+            "Table" | "WorldMap" | "Chart"
+        >
+        if (validChartTypeSet.has(chartTypeName)) return chartTypeName
 
         return defaultTab
     }
@@ -3557,7 +3527,7 @@ export class Grapher
         )
             return "chart"
 
-        return mapChartTypeNameToQueryParam(tab)
+        return mapChartTypeNameToTabQueryParam(tab)
     }
 
     @computed.struct get allParams(): GrapherQueryParams {
