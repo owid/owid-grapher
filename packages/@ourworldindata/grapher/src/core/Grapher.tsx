@@ -4153,10 +4153,6 @@ export class Grapher
         return this.availableEntityNames.length
     }
 
-    @computed get entitiesAreCountryLike(): boolean {
-        return !!this.entityType.match(/\bcountry\b/i)
-    }
-
     @observable hideTitle = false
     @observable hideSubtitle = false
     @observable hideNote = false

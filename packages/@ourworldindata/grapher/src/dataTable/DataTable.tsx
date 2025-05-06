@@ -35,8 +35,6 @@ import {
     ColumnSlug,
     TickFormattingOptions,
     Tippy,
-    isCountryName,
-    range,
     maxBy,
     minBy,
     excludeUndefined,
@@ -85,7 +83,6 @@ export interface DataTableManager {
     endTime?: Time
     startTime?: Time
     dataTableSlugs?: ColumnSlug[]
-    entitiesAreCountryLike?: boolean
     isSmall?: boolean
     isMedium?: boolean
     isNarrow?: boolean
@@ -211,14 +208,6 @@ export class DataTable extends React.Component<{
     }
 
     private get entityHeaderText(): string {
-        // if the entities are country-like and we do have aggregate rows,
-        // then we prefer "Country/area" over "Country or region"
-        // (note that we honour the entity type provided by the author if it is given)
-        if (
-            this.entityType === DEFAULT_GRAPHER_ENTITY_TYPE &&
-            this.showTitleForAggregateRows
-        )
-            return "Country/area"
         return capitalize(this.entityType)
     }
 
@@ -510,39 +499,8 @@ export class DataTable extends React.Component<{
         )
     }
 
-    @computed private get valueEntityRows(): React.ReactElement[] {
-        return this.sortedEntityRows.map((row) =>
-            this.renderEntityRow(row, this.displayDimensions)
-        )
-    }
-
-    @computed private get valueAggregateRows(): React.ReactElement[] {
-        return this.sortedAggregateRows.map((row) =>
-            this.renderEntityRow(row, this.displayDimensions)
-        )
-    }
-
     @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
-    }
-
-    @computed private get titleForAggregateRows(): React.ReactElement | null {
-        if (!this.showTitleForAggregateRows) return null
-        return (
-            <tr className="title">
-                <td>Other</td>
-                {range(this.numberOfColumnsWithValues).map((i) => (
-                    <td key={i} />
-                ))}
-            </tr>
-        )
-    }
-
-    @computed private get numberOfColumnsWithValues(): number {
-        return this.columnsWithValues.reduce(
-            (columnCount, item) => columnCount + item.columns.length,
-            0
-        )
     }
 
     @computed private get tableCaption(): React.ReactElement | null {
@@ -588,9 +546,12 @@ export class DataTable extends React.Component<{
                     <table>
                         <thead>{this.headerRow}</thead>
                         <tbody>
-                            {this.valueEntityRows}
-                            {this.titleForAggregateRows}
-                            {this.valueAggregateRows}
+                            {this.sortedDisplayRows.map((row) =>
+                                this.renderEntityRow(
+                                    row,
+                                    this.displayDimensions
+                                )
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -911,16 +872,6 @@ export class DataTable extends React.Component<{
         })
     }
 
-    @computed private get sortedEntityRows(): DataTableRow[] {
-        const { order } = this.tableState.sort
-        return orderBy(this.displayEntityRows, this.sortValueMapper, order)
-    }
-
-    @computed private get sortedAggregateRows(): DataTableRow[] {
-        const { order } = this.tableState.sort
-        return orderBy(this.displayAggregateRows, this.sortValueMapper, order)
-    }
-
     @computed private get displayRows(): DataTableRow[] {
         return this.entityNames.map((entityName) => {
             return {
@@ -932,22 +883,9 @@ export class DataTable extends React.Component<{
         })
     }
 
-    @computed private get displayEntityRows(): DataTableRow[] {
-        if (!this.manager.entitiesAreCountryLike) return this.displayRows
-        return this.displayRows.filter((row) => isCountryName(row.entityName))
-    }
-
-    @computed private get displayAggregateRows(): DataTableRow[] {
-        if (!this.manager.entitiesAreCountryLike) return []
-        return this.displayRows.filter((row) => !isCountryName(row.entityName))
-    }
-
-    @computed private get showTitleForAggregateRows(): boolean {
-        return (
-            !!this.manager.entitiesAreCountryLike &&
-            this.displayEntityRows.length > 0 &&
-            this.displayAggregateRows.length > 0
-        )
+    @computed private get sortedDisplayRows(): DataTableRow[] {
+        const { order } = this.tableState.sort
+        return orderBy(this.displayRows, this.sortValueMapper, order)
     }
 }
 
