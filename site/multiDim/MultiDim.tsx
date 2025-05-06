@@ -63,16 +63,13 @@ export default function MultiDim({
 
     const handleSettingsChange = useCallback(
         (settings: MultiDimDimensionChoices) => {
-            setSettings(
-                config.filterToAvailableChoices(settings).selectedChoices
-            )
+            const { selectedChoices } =
+                config.filterToAvailableChoices(settings)
+            setSettings(selectedChoices)
+            if (slug) analytics.logGrapherView(slug, { view: selectedChoices })
         },
-        [config]
+        [config, slug]
     )
-
-    useEffect(() => {
-        if (slug) analytics.logGrapherView(slug, { view: settings })
-    }, [slug, settings])
 
     useEffect(() => {
         // Prevent a race condition from setting incorrect data.

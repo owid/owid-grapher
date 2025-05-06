@@ -172,10 +172,6 @@ export function DataPageContent({
         return config.filterToAvailableChoices(choices).selectedChoices
     }, [searchParams, config])
 
-    useEffect(() => {
-        if (slug) analytics.logGrapherView(slug, { view: settings })
-    }, [slug, settings])
-
     const updateGrapher = useCallback(
         (
             grapher: Grapher,
@@ -262,9 +258,10 @@ export function DataPageContent({
             }
 
             setSearchParams(newSearchParams, { replace: true })
+            if (slug) analytics.logGrapherView(slug, { view: selectedChoices })
             updateGrapher(grapher, selectedChoices, newGrapherParams)
         },
-        [config, setSearchParams, updateGrapher]
+        [config, setSearchParams, slug, updateGrapher]
     )
 
     // Set state from query params on page load.
