@@ -123,4 +123,13 @@
             }
         }
     }
+
+    .control .detail,
+    .option .detail {
+        color: $gray-60;
+    }
+
+    .option.active .detail {
+        color: $blue-50;
+    }
 }

@@ -61,7 +61,6 @@ export const grapherConfigToQueryParams = (
             : undefined,
 
         // These cannot be specified in config, so we always set them to undefined
-        showSelectionOnlyInTable: undefined,
         overlay: undefined,
         globe: undefined,
         globeRotation: undefined,
@@ -98,9 +97,6 @@ export const grapherObjectToQueryParams = (
             grapher.yAxis.facetDomain === FacetAxisDomain.independent
                 ? "0"
                 : "1",
-        showSelectionOnlyInTable: grapher.showSelectionOnlyInDataTable
-            ? "1"
-            : "0",
         showNoDataArea: grapher.showNoDataArea ? "1" : "0",
         country: grapher.areSelectedEntitiesDifferentThanAuthors
             ? generateSelectedEntityNamesParam(

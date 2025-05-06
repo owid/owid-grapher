@@ -1,0 +1,11 @@
+.data-table-filter-dropdown {
+    width: 150px;
+
+    .menu:before {
+        display: inline-block;
+        content: "Filter by";
+        font: 700 12px/16px $lato;
+        color: $light-text;
+        padding: 8px 16px;
+    }
+}

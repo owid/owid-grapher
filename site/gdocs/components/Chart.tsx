@@ -182,9 +182,6 @@ const mapControlKeywordToGrapherConfig = (
         case ChartControlKeyword.mapRegionDropdown:
             return { hideMapRegionDropdown: false }
 
-        case ChartControlKeyword.tableFilterToggle:
-            return { hideTableFilterToggle: false }
-
         default:
             return undefined
     }
