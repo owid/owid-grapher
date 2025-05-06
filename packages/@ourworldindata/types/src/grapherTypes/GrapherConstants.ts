@@ -20,6 +20,7 @@ export const GRAPHER_CHART_TYPES = [
 export const GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING = [
     "LineChart",
     "SlopeChart",
+    "DiscreteBar",
 ] as const satisfies (typeof GRAPHER_CHART_TYPES)[number][]
 
 /** Valid values for the `tab` field in Grapher configs */
@@ -40,4 +41,5 @@ export const GRAPHER_TAB_QUERY_PARAMS = [
     // chart types
     "line",
     "slope",
+    "discrete-bar",
 ] as const

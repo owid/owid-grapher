@@ -31,6 +31,7 @@ import {
     validChartTypeCombinations,
     GrapherLegacyTabName,
     GRAPHER_LEGACY_TAB_NAMES,
+    GrapherTabName,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
 import { match } from "ts-pattern"
@@ -164,6 +165,7 @@ export function mapTabQueryParamToConfigOption(
         .with("chart", () => "Chart")
         .with("line", () => "LineChart")
         .with("slope", () => "SlopeChart")
+        .with("discrete-bar", () => "DiscreteBar")
         .exhaustive()
 }
 
@@ -178,6 +180,7 @@ export function mapChartTypeNameToTabQueryParam(
         .returnType<GrapherChartTabQueryParam>()
         .with("LineChart", () => "line")
         .with("SlopeChart", () => "slope")
+        .with("DiscreteBar", () => "discrete-bar")
         .exhaustive()
 }
 
@@ -382,3 +385,24 @@ function maybeLineChartThatTurnedIntoDiscreteBar(
 
     return chartType
 }
+
+export function checkOnlySingleTimeSelectionPossible(
+    tabName: GrapherTabName
+): boolean {
+    return [
+        "WorldMap",
+        "DiscreteBar",
+        "StackedDiscreteBar",
+        "Marimekko",
+    ].includes(tabName)
+}
+
+export function checkStartAndEndTimeSelectionPreferred(
+    tabName: GrapherTabName
+): boolean {
+    return ["LineChart", "SlopeChart", "StackedArea", "StackedBar"].includes(
+        tabName
+    )
+}
+
+// todo: "ScatterPlot", "Table"
