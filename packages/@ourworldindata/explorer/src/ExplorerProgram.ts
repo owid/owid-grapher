@@ -54,7 +54,7 @@ export interface TableDef {
     slug?: TableSlug
 }
 
-interface ExplorerGrapherInterface extends GrapherInterface {
+export interface ExplorerGrapherInterface extends GrapherInterface {
     grapherId?: number
     tableSlug?: string
     yVariableIds?: string
@@ -240,8 +240,10 @@ export class ExplorerProgram extends GridProgram {
     // for backward compatibility, we currently support explorers
     // that use Grapher IDs as well as CSV data files to create charts,
     // but we plan to drop support for mixed-content explorers in the future
-    get chartCreationMode(): ExplorerChartCreationMode {
-        const { decisionMatrix, explorerGrapherConfig } = this
+    getChartCreationModeForExplorerGrapherConfig(
+        explorerGrapherConfig: ExplorerGrapherInterface
+    ): ExplorerChartCreationMode {
+        const { decisionMatrix } = this
         const { grapherId } = explorerGrapherConfig
         const yVariableIdsColumn = decisionMatrix.table.get(
             GrapherGrammar.yVariableIds.keyword
@@ -253,6 +255,12 @@ export class ExplorerProgram extends GridProgram {
         if (grapherId && isNotErrorValue(grapherId))
             return ExplorerChartCreationMode.FromGrapherId
         return ExplorerChartCreationMode.FromExplorerTableColumnSlugs
+    }
+
+    get chartCreationMode(): ExplorerChartCreationMode {
+        return this.getChartCreationModeForExplorerGrapherConfig(
+            this.explorerGrapherConfig
+        )
     }
 
     get whyIsExplorerProgramInvalid(): string {
@@ -358,17 +366,15 @@ export class ExplorerProgram extends GridProgram {
         return clone
     }
 
-    /**
-     * Grapher config for the currently selected row including global settings.
-     * Includes all columns that are part of the GrapherGrammar.
-     */
-    get explorerGrapherConfig(): ExplorerGrapherInterface {
+    constructExplorerGrapherConfig(grapherRow: any): ExplorerGrapherInterface {
         const rootObject = trimAndParseObject(this.tuplesObject, GrapherGrammar)
         let config = { ...rootObject }
 
-        const selectedGrapherRow = this.decisionMatrix.selectedRow
-        if (selectedGrapherRow && Object.keys(selectedGrapherRow).length) {
-            config = { ...config, ...selectedGrapherRow }
+        if (grapherRow && Object.keys(grapherRow).length) {
+            config = {
+                ...config,
+                ...trimAndParseObject(grapherRow, GrapherGrammar),
+            }
         }
 
         // remove all keys that are not part of the GrapherGrammar
@@ -379,15 +385,12 @@ export class ExplorerProgram extends GridProgram {
         return config
     }
 
-    /**
-     * Grapher config for the currently selected row, with explorer-specific
-     * fields translated to valid GrapherInterface fields.
-     *
-     * For example, `yAxisMin` is translated to `{yAxis: {min: ... }}`
-     */
-    get grapherConfig(): GrapherInterface {
+    constructGrapherConfig(
+        explorerGrapherConfig: ExplorerGrapherInterface
+    ): GrapherInterface {
         const partialConfigs: GrapherInterface[] = []
-        const fields = Object.entries(this.explorerGrapherConfig)
+        const fields = Object.entries(explorerGrapherConfig)
+
         for (const [field, value] of fields) {
             const cellDef = GrapherGrammar[field]
             partialConfigs.push(cellDef.toGrapherObject(value))
@@ -400,7 +403,7 @@ export class ExplorerProgram extends GridProgram {
 
         // TODO: can be removed once relatedQuestions is refactored
         const { relatedQuestionUrl, relatedQuestionText } =
-            this.explorerGrapherConfig
+            explorerGrapherConfig
         if (relatedQuestionUrl && relatedQuestionText) {
             mergedConfig.relatedQuestions = [
                 { url: relatedQuestionUrl, text: relatedQuestionText },
@@ -408,6 +411,25 @@ export class ExplorerProgram extends GridProgram {
         }
 
         return mergedConfig
+    }
+
+    /**
+     * Grapher config for the currently selected row including global settings.
+     * Includes all columns that are part of the GrapherGrammar.
+     */
+    get explorerGrapherConfig(): ExplorerGrapherInterface {
+        const selectedGrapherRow = this.decisionMatrix.selectedRow
+        return this.constructExplorerGrapherConfig(selectedGrapherRow)
+    }
+
+    /**
+     * Grapher config for the currently selected row, with explorer-specific
+     * fields translated to valid GrapherInterface fields.
+     *
+     * For example, `yAxisMin` is translated to `{yAxis: {min: ... }}`
+     */
+    get grapherConfig(): GrapherInterface {
+        return this.constructGrapherConfig(this.explorerGrapherConfig)
     }
 
     /**

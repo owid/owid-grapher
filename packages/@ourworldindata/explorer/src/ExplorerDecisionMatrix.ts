@@ -7,7 +7,7 @@ import {
     uniq,
     parseIntOrUndefined,
 } from "@ourworldindata/utils"
-import { ColumnTypeNames } from "@ourworldindata/types"
+import { ColumnTypeNames, CoreRow } from "@ourworldindata/types"
 import {
     CoreTable,
     detectDelimiter,
@@ -308,6 +308,14 @@ export class DecisionMatrix {
             result[choiceName] = this.allChoiceOptions[choiceName].filter(
                 (option) => this.isOptionAvailable(choiceName, option)
             )
+        })
+        return result
+    }
+
+    getChoiceParamsForRow(row: CoreRow): ExplorerChoiceParams {
+        const result: ExplorerChoiceParams = {}
+        this.choiceNames.forEach((choiceName) => {
+            result[choiceName] = row[choiceName]
         })
         return result
     }

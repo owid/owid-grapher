@@ -5,6 +5,7 @@ import {
     FacetStrategy,
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_OPTIONS,
+    GrapherChartType,
     MissingDataStrategy,
     StackMode,
 } from "@ourworldindata/types"
@@ -25,6 +26,7 @@ import {
     IndicatorIdOrEtlPathCellDef,
     GrapherCellDef,
 } from "./gridLang/GridLangConstants.js"
+import * as R from "remeda"
 
 const toTerminalOptions = (keywords: string[]): CellDef[] => {
     return keywords.map((keyword) => ({
@@ -40,20 +42,20 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         keyword: "title",
         description: "Chart title",
         valuePlaceholder: "Life Expectancy around the world.",
-        toGrapherObject: (value) => ({ title: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ title: value }),
     },
     subtitle: {
         ...StringCellDef,
         keyword: "subtitle",
         description: "Chart subtitle",
         valuePlaceholder: "Life Expectancy has risen over time.",
-        toGrapherObject: (value) => ({ subtitle: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ subtitle: value }),
     },
     ySlugs: {
         ...SlugsDeclarationCellDef,
         description: "ColumnSlug(s) for the yAxis",
         keyword: "ySlugs",
-        toGrapherObject: (value) => ({ ySlugs: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ ySlugs: value }),
     },
     yVariableIds: {
         ...IndicatorIdsOrEtlPathsCellDef,
@@ -70,15 +72,18 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
             `${GRAPHER_CHART_TYPES.LineChart} ${GRAPHER_CHART_TYPES.SlopeChart}`,
             "None",
         ]),
-        toGrapherObject: (value) => ({
-            chartTypes: value === "None" ? [] : value.split(" "),
-        }),
+        toGrapherObject: (value) => {
+            if (value === "None") return { chartTypes: [] }
+            if (value)
+                return { chartTypes: value.split(" ") as GrapherChartType[] }
+            return {}
+        },
     },
     grapherId: {
         ...IntegerCellDef,
         description: "ID of a legacy Grapher to load",
         keyword: "grapherId",
-        toGrapherObject: (value) => ({ id: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ id: value }),
     },
     tableSlug: {
         ...SlugDeclarationCellDef,
@@ -91,20 +96,20 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         ...BooleanCellDef,
         keyword: "hasMapTab",
         description: "Show the map tab?",
-        toGrapherObject: (value) => ({ hasMapTab: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ hasMapTab: value }),
     },
     tab: {
         ...EnumCellDef,
         keyword: "tab",
         description: "Which tab to show by default",
         terminalOptions: toTerminalOptions(Object.values(GRAPHER_TAB_OPTIONS)),
-        toGrapherObject: (value) => ({ tab: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ tab: value }),
     },
     xSlug: {
         ...SlugDeclarationCellDef,
         description: "ColumnSlug for the xAxis",
         keyword: "xSlug",
-        toGrapherObject: (value) => ({ xSlug: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ xSlug: value }),
     },
     xVariableId: {
         ...IndicatorIdOrEtlPathCellDef,
@@ -116,7 +121,7 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         ...SlugDeclarationCellDef,
         description: "ColumnSlug for the color",
         keyword: "colorSlug",
-        toGrapherObject: (value) => ({ colorSlug: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ colorSlug: value }),
     },
     colorVariableId: {
         ...IndicatorIdOrEtlPathCellDef,
@@ -128,7 +133,7 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         ...SlugDeclarationCellDef,
         description: "ColumnSlug for the size of points on scatters",
         keyword: "sizeSlug",
-        toGrapherObject: (value) => ({ sizeSlug: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ sizeSlug: value }),
     },
     sizeVariableId: {
         ...IndicatorIdOrEtlPathCellDef,
@@ -142,13 +147,15 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         description:
             "Columns to show in the Table tab of the chart. If not specified all active slugs will be used.",
         keyword: "tableSlugs",
-        toGrapherObject: (value) => ({ tableSlugs: value }),
+        toGrapherObject: (value) =>
+            omitEmptyStringValues({ tableSlugs: value }),
     },
     sourceDesc: {
         ...StringCellDef,
         keyword: "sourceDesc",
         description: "Short comma-separated list of source names",
-        toGrapherObject: (value) => ({ sourceDesc: value }),
+        toGrapherObject: (value) =>
+            omitEmptyStringValues({ sourceDesc: value }),
     },
     hideAnnotationFieldsInTitle: {
         ...BooleanCellDef,
@@ -162,25 +169,24 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
                 changeInPrefix: parsedValue,
             }
         },
-        toGrapherObject: (value) => ({
-            hideAnnotationFieldsInTitle: {
-                entity: value,
-                time: value,
-                changeInPrefix: value,
-            },
-        }),
+        toGrapherObject: (value) => ({ hideAnnotationFieldsInTitle: value }),
     },
     yScaleToggle: {
         ...BooleanCellDef,
         keyword: "yScaleToggle",
         description: "Set to 'true' if the user can change the yAxis",
-        toGrapherObject: (value) => ({ yAxis: { canChangeScaleType: value } }),
+        toGrapherObject: (value) => ({
+            yAxis: omitEmptyStringValues({ canChangeScaleType: value }),
+        }),
     },
     yAxisMin: {
         ...NumericOrAutoCellDef,
         keyword: "yAxisMin",
         description: "Set the minimum value for the yAxis",
-        toGrapherObject: (value) => ({ yAxis: { min: value } }),
+        toGrapherObject: (value) =>
+            omitEmptyObjectValues({
+                yAxis: omitEmptyStringValues({ min: value }),
+            }),
     },
     facetYDomain: {
         ...EnumCellDef,
@@ -188,21 +194,26 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         description:
             "Whether facets axes default to shared or independent domain",
         terminalOptions: toTerminalOptions(Object.values(FacetAxisDomain)),
-        toGrapherObject: (value) => ({ yAxis: { facetDomain: value } }),
+        toGrapherObject: (value) =>
+            omitEmptyObjectValues({
+                yAxis: omitEmptyStringValues({ facetDomain: value }),
+            }),
     },
     selectedFacetStrategy: {
         ...EnumCellDef,
         keyword: "selectedFacetStrategy",
         description: "Whether the chart should be faceted or not",
         terminalOptions: toTerminalOptions(Object.values(FacetStrategy)),
-        toGrapherObject: (value) => ({ selectedFacetStrategy: value }),
+        toGrapherObject: (value) =>
+            omitEmptyStringValues({ selectedFacetStrategy: value }),
     },
     entityType: {
         ...StringCellDef,
         keyword: "entityType",
         description:
             "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
-        toGrapherObject: (value) => ({ entityType: value }),
+        toGrapherObject: (value) =>
+            omitEmptyStringValues({ entityType: value }),
     },
     baseColorScheme: {
         ...EnumCellDef,
@@ -210,34 +221,36 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         description:
             "The default color scheme if no color overrides are specified",
         terminalOptions: toTerminalOptions(Object.keys(ColorSchemeName)),
-        toGrapherObject: (value) => ({ baseColorScheme: value }),
+        toGrapherObject: (value) =>
+            omitEmptyStringValues({ baseColorScheme: value }),
     },
     note: {
         ...StringCellDef,
         keyword: "note",
         description: "Chart footnote",
-        toGrapherObject: (value) => ({ note: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ note: value }),
     },
     sortBy: {
         ...EnumCellDef,
         keyword: "sortBy",
         description: "Specify what to sort the entities by",
         terminalOptions: toTerminalOptions(Object.values(SortBy)),
-        toGrapherObject: (value) => ({ sortBy: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ sortBy: value }),
     },
     sortOrder: {
         ...EnumCellDef,
         keyword: "sortOrder",
         description: "Whether to sort entities ascending or descending",
         terminalOptions: toTerminalOptions(Object.values(SortOrder)),
-        toGrapherObject: (value) => ({ sortOrder: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ sortOrder: value }),
     },
     sortColumnSlug: {
         ...SlugDeclarationCellDef,
         keyword: "sortColumnSlug",
         description:
             "This setting is only respected when `sortBy` is set to `column`",
-        toGrapherObject: (value) => ({ sortColumnSlug: value }),
+        toGrapherObject: (value) =>
+            omitEmptyStringValues({ sortColumnSlug: value }),
     },
     stackMode: {
         ...EnumCellDef,
@@ -245,34 +258,38 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         description:
             "Show chart in absolute (default) or relative mode. Only works for some chart types.",
         terminalOptions: toTerminalOptions(Object.values(StackMode)),
-        toGrapherObject: (value) => ({ stackMode: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ stackMode: value }),
     },
     hideTotalValueLabel: {
         ...BooleanCellDef,
         keyword: "hideTotalValueLabel",
         description:
             "Hide the total value that is normally displayed to the right of the bars in a stacked bar chart.",
-        toGrapherObject: (value) => ({ hideTotalValueLabel: value }),
+        toGrapherObject: (value) =>
+            omitEmptyStringValues({ hideTotalValueLabel: value }),
     },
     hideRelativeToggle: {
         ...BooleanCellDef,
         keyword: "hideRelativeToggle",
         description: "Whether to hide the relative mode UI toggle",
-        toGrapherObject: (value) => ({ hideRelativeToggle: value }),
+        toGrapherObject: (value) =>
+            omitEmptyStringValues({ hideRelativeToggle: value }),
     },
     timelineMinTime: {
         ...IntegerCellDef,
         keyword: "timelineMinTime",
         description:
             "Set the minimum time for the timeline. For days, use days since 21 Jan 2020, e.g. 24 Jan 2020 is '3'.",
-        toGrapherObject: (value) => ({ timelineMinTime: value }),
+        toGrapherObject: (value) =>
+            omitEmptyStringValues({ timelineMinTime: value }),
     },
     timelineMaxTime: {
         ...IntegerCellDef,
         keyword: "timelineMaxTime",
         description:
             "Set the maximum time for the timeline. For days, use days since 21 Jan 2020, e.g. 24 Jan 2020 is '3'.",
-        toGrapherObject: (value) => ({ timelineMaxTime: value }),
+        toGrapherObject: (value) =>
+            omitEmptyStringValues({ timelineMaxTime: value }),
     },
     defaultView: {
         ...BooleanCellDef,
@@ -298,7 +315,10 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         keyword: "mapTargetTime",
         description:
             "Set the 'target time' for the map chart. This is the year that will be shown by default in the map chart.",
-        toGrapherObject: (value) => ({ map: { time: value } }),
+        toGrapherObject: (value) =>
+            omitEmptyObjectValues({
+                map: omitEmptyStringValues({ time: value }),
+            }),
     },
     missingDataStrategy: {
         ...EnumCellDef,
@@ -306,18 +326,25 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         description:
             "Hide or show entities for which one or more variables are missing",
         terminalOptions: toTerminalOptions(Object.values(MissingDataStrategy)),
-        toGrapherObject: (value) => ({ missingDataStrategy: value }),
+        toGrapherObject: (value) =>
+            omitEmptyStringValues({ missingDataStrategy: value }),
     },
     minTime: {
         ...IntegerCellDef,
         keyword: "minTime",
         description: "Start point of the initially selected time span",
-        toGrapherObject: (value) => ({ minTime: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ minTime: value }),
     },
     maxTime: {
         ...IntegerCellDef,
         keyword: "maxTime",
         description: "End point of the initially selected time span",
-        toGrapherObject: (value) => ({ maxTime: value }),
+        toGrapherObject: (value) => omitEmptyStringValues({ maxTime: value }),
     },
 } as const
+
+const omitEmptyStringValues = <T extends Record<string, any>>(obj: T) =>
+    R.omitBy(obj, (value) => value === "")
+
+const omitEmptyObjectValues = <T extends Record<string, any>>(obj: T) =>
+    R.omitBy(obj, (value) => R.isPlainObject(value) && R.isEmpty(value))
