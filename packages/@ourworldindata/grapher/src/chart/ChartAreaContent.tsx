@@ -3,7 +3,6 @@ import { observer } from "mobx-react"
 import { computed, makeObservable } from "mobx"
 import {
     Bounds,
-    GRAPHER_CHART_TYPES,
     GRAPHER_MAP_TYPE,
     GrapherChartOrMapType,
     makeIdForHumanConsumption,
@@ -44,11 +43,7 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
         const { manager } = this
         if (manager.isOnTableTab) return undefined
         if (manager.isOnMapTab) return GRAPHER_MAP_TYPE
-        if (manager.isOnChartTab) {
-            return manager.isLineChartThatTurnedIntoDiscreteBarActive
-                ? GRAPHER_CHART_TYPES.DiscreteBar
-                : manager.activeChartType
-        }
+        if (manager.isOnChartTab) return manager.activeChartType
         return undefined
     }
 

@@ -75,7 +75,6 @@ export interface CaptionedChartManager
     isOnTableTab?: boolean
     activeChartType?: GrapherChartType
     isFaceted?: boolean
-    isLineChartThatTurnedIntoDiscreteBarActive?: boolean
     isExportingForSocialMedia?: boolean
     isExportingForWikimedia?: boolean
 
