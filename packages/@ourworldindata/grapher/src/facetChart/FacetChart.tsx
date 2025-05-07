@@ -24,7 +24,6 @@ import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import {
-    GRAPHER_CHART_TYPES,
     GrapherChartType,
     FacetAxisDomain,
     FacetStrategy,
@@ -141,7 +140,7 @@ export class FacetChart
     }
 
     @computed private get chartTypeName(): GrapherChartType {
-        return this.props.chartTypeName ?? GRAPHER_CHART_TYPES.LineChart
+        return this.props.chartTypeName ?? "LineChart"
     }
 
     @computed get isStatic(): boolean {
@@ -369,10 +368,9 @@ export class FacetChart
         // - for bar charts the Y axis is plotted horizontally, so we don't want to omit it
         return (
             this.uniformYAxis &&
-            ![
-                GRAPHER_CHART_TYPES.StackedDiscreteBar,
-                GRAPHER_CHART_TYPES.DiscreteBar,
-            ].includes(this.chartTypeName as any)
+            !["StackedDiscreteBar", "DiscreteBar"].includes(
+                this.chartTypeName as any
+            )
         )
     }
 
@@ -380,7 +378,7 @@ export class FacetChart
         return (
             this.uniformXAxis &&
             // TODO: do this for stacked area charts and line charts as well?
-            this.chartTypeName === GRAPHER_CHART_TYPES.StackedBar &&
+            this.chartTypeName === "StackedBar" &&
             this.facetCount >= SHARED_X_AXIS_MIN_FACET_COUNT
         )
     }
@@ -625,8 +623,7 @@ export class FacetChart
         if (!hasBins) return false
         if (isNumericLegend) return true
         if (
-            this.props.chartTypeName ===
-                GRAPHER_CHART_TYPES.StackedDiscreteBar &&
+            this.props.chartTypeName === "StackedDiscreteBar" &&
             this.facetStrategy === FacetStrategy.metric
         ) {
             return false
@@ -826,8 +823,8 @@ export class FacetChart
 
     @computed private get isFocusModeSupported(): boolean {
         return (
-            this.chartTypeName === GRAPHER_CHART_TYPES.LineChart ||
-            this.chartTypeName === GRAPHER_CHART_TYPES.SlopeChart
+            this.chartTypeName === "LineChart" ||
+            this.chartTypeName === "SlopeChart"
         )
     }
 

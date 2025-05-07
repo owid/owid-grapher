@@ -4,14 +4,10 @@ import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
-import {
-    GRAPHER_CHART_TYPES,
-    GrapherTabName,
-    GRAPHER_TAB_NAMES,
-} from "@ourworldindata/types"
 import { chartIcons } from "./ChartIcons"
 import { Bounds } from "@ourworldindata/utils"
 import { TabLabel, Tabs } from "../tabs/Tabs.js"
+import { GrapherTabName } from "../core/GrapherConstants"
 
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabName[]
@@ -173,15 +169,14 @@ function TabIcon({
     isLineChartThatTurnedIntoDiscreteBar?: boolean
 }): React.ReactElement {
     switch (tab) {
-        case GRAPHER_TAB_NAMES.Table:
+        case "Table":
             return <FontAwesomeIcon icon={faTable} />
-        case GRAPHER_TAB_NAMES.WorldMap:
+        case "WorldMap":
             return <FontAwesomeIcon icon={faEarthAmericas} />
         default: {
             const chartIcon =
-                tab === GRAPHER_TAB_NAMES.LineChart &&
-                isLineChartThatTurnedIntoDiscreteBar
-                    ? chartIcons[GRAPHER_CHART_TYPES.DiscreteBar]
+                tab === "LineChart" && isLineChartThatTurnedIntoDiscreteBar
+                    ? chartIcons.DiscreteBar
                     : chartIcons[tab]
             return chartIcon
         }
@@ -195,34 +190,31 @@ function makeTabLabelText(
         hasMultipleChartTypes?: boolean
     }
 ): string {
-    if (tab === GRAPHER_TAB_NAMES.Table) return "Table"
-    if (tab === GRAPHER_TAB_NAMES.WorldMap) return "Map"
+    if (tab === "Table") return "Table"
+    if (tab === "WorldMap") return "Map"
     if (!options.hasMultipleChartTypes) return "Chart"
 
-    if (
-        tab === GRAPHER_TAB_NAMES.LineChart &&
-        options.isLineChartThatTurnedIntoDiscreteBar
-    )
+    if (tab === "LineChart" && options.isLineChartThatTurnedIntoDiscreteBar)
         return "Bar"
 
     switch (tab) {
-        case GRAPHER_TAB_NAMES.LineChart:
+        case "LineChart":
             return "Line"
-        case GRAPHER_TAB_NAMES.SlopeChart:
+        case "SlopeChart":
             return "Slope"
 
         // chart type labels are preliminary
-        case GRAPHER_TAB_NAMES.ScatterPlot:
+        case "ScatterPlot":
             return "Scatter"
-        case GRAPHER_TAB_NAMES.StackedArea:
+        case "StackedArea":
             return "Stacked area"
-        case GRAPHER_TAB_NAMES.StackedBar:
+        case "StackedBar":
             return "Stacked bar"
-        case GRAPHER_TAB_NAMES.DiscreteBar:
+        case "DiscreteBar":
             return "Bar"
-        case GRAPHER_TAB_NAMES.StackedDiscreteBar:
+        case "StackedDiscreteBar":
             return "Stacked bar"
-        case GRAPHER_TAB_NAMES.Marimekko:
+        case "Marimekko":
             return "Marimekko"
         default:
             return "Chart"

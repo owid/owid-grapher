@@ -42,7 +42,6 @@ import { Admin } from "./Admin.js"
 import {
     ALL_GRAPHER_CHART_TYPES,
     DbEnrichedImageWithUserId,
-    GRAPHER_MAP_TYPE,
     GrapherChartOrMapType,
     OwidGdocDataInsightIndexItem,
     MinimalTag,
@@ -516,7 +515,7 @@ export function DataInsightIndexPage() {
                                         label: startCase(type),
                                     })),
                                     {
-                                        value: GRAPHER_MAP_TYPE,
+                                        value: "WorldMap",
                                         label: "World map",
                                     },
                                 ]}

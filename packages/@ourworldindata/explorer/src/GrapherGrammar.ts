@@ -3,8 +3,7 @@ import {
     ColorSchemeName,
     FacetAxisDomain,
     FacetStrategy,
-    GRAPHER_CHART_TYPES,
-    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_CONFIG_OPTIONS,
     MissingDataStrategy,
     StackMode,
 } from "@ourworldindata/types"
@@ -67,7 +66,7 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         description: `The type of chart to show such as LineChart or ScatterPlot. If set to None, then the chart tab is hidden.`,
         terminalOptions: toTerminalOptions([
             ...ALL_GRAPHER_CHART_TYPES,
-            `${GRAPHER_CHART_TYPES.LineChart} ${GRAPHER_CHART_TYPES.SlopeChart}`,
+            "LineChart SlopeChart",
             "None",
         ]),
         toGrapherObject: (value) => ({
@@ -97,7 +96,9 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         ...EnumCellDef,
         keyword: "tab",
         description: "Which tab to show by default",
-        terminalOptions: toTerminalOptions(Object.values(GRAPHER_TAB_OPTIONS)),
+        terminalOptions: toTerminalOptions(
+            Object.values(GRAPHER_TAB_CONFIG_OPTIONS)
+        ),
         toGrapherObject: (value) => ({ tab: value }),
     },
     xSlug: {

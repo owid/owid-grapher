@@ -8,12 +8,9 @@ import { Integer } from "../domainTypes/Various.js"
 import { DetailDictionary } from "../gdocTypes/Gdoc.js"
 import { observable } from "mobx"
 import {
-    GRAPHER_CHART_TYPES,
-    GRAPHER_MAP_TYPE,
-    GRAPHER_TAB_NAMES,
-    GRAPHER_TAB_OPTIONS,
-    GRAPHER_TAB_QUERY_PARAMS,
-    GRAPHER_TAB_TYPES,
+    ALL_GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_CONFIG_OPTIONS,
+    GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING,
 } from "./GrapherConstants.js"
 
 export interface Box {
@@ -173,14 +170,25 @@ export type SeriesName = string
 
 export type SeriesColorMap = Map<SeriesName, Color>
 
-export type GrapherMapType = typeof GRAPHER_MAP_TYPE
-export type GrapherChartType = keyof typeof GRAPHER_CHART_TYPES
-export type GrapherChartOrMapType = GrapherChartType | GrapherMapType
+export type GrapherWorldMap = "WorldMap"
+export type GrapherTable = "Table"
+export type GrapherChartType = (typeof ALL_GRAPHER_CHART_TYPES)[number]
+export type GrapherChartOrMapType = GrapherChartType | GrapherWorldMap
 
-export type GrapherTabType = keyof typeof GRAPHER_TAB_TYPES
-export type GrapherTabOption = keyof typeof GRAPHER_TAB_OPTIONS
-export type GrapherTabQueryParam = keyof typeof GRAPHER_TAB_QUERY_PARAMS
-export type GrapherTabName = keyof typeof GRAPHER_TAB_NAMES
+/** Chart type supported for chart type switching */
+export type GrapherChartTypeSupportedForSwitching =
+    (typeof GRAPHER_CHART_TYPES_SUPPORTED_FOR_SWITCHING)[number]
+
+/** Grapher tab specified in the config that determines the default tab to show */
+export type GrapherTabConfigOption = (typeof GRAPHER_TAB_CONFIG_OPTIONS)[number]
+
+/** Valid values for the `tab` query parameter in Grapher */
+export type GrapherTabQueryParam = GrapherTabConfigOption
+
+export type GrapherTabType = Extract<
+    GrapherTabConfigOption,
+    "table" | "map" | "chart"
+>
 
 export interface RelatedQuestionsConfig {
     text: string
@@ -578,7 +586,7 @@ export interface GrapherInterface extends SortConfig {
     zoomToSelection?: boolean
     showYearLabels?: boolean // Always show year in labels for bar charts
     hasMapTab?: boolean
-    tab?: GrapherTabOption
+    tab?: GrapherTabConfigOption
     relatedQuestions?: RelatedQuestionsConfig[]
     details?: DetailDictionary
     internalNotes?: string

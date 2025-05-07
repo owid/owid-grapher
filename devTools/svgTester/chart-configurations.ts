@@ -1,6 +1,5 @@
 import * as _ from "lodash-es"
 import {
-    GRAPHER_CHART_TYPES,
     StackMode,
     ScaleType,
     FacetStrategy,
@@ -34,7 +33,7 @@ const facetOptions = Object.values(FacetStrategy)
 const booleanOptions = Object.values(Boolean)
 
 const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
-    [GRAPHER_CHART_TYPES.LineChart]: {
+    LineChart: {
         tab: ["chart"],
         time: timeOptionsAll,
         stackMode: stackModeOptions,
@@ -42,7 +41,7 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
         facet: facetOptions,
         uniformYAxis: booleanOptions,
     },
-    [GRAPHER_CHART_TYPES.ScatterPlot]: {
+    ScatterPlot: {
         tab: ["chart"],
         time: timeOptionsAll,
         stackMode: stackModeOptions,
@@ -51,38 +50,38 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
         endpointsOnly: booleanOptions,
         // zoomToSelection ignored for now
     },
-    [GRAPHER_CHART_TYPES.DiscreteBar]: {
+    DiscreteBar: {
         tab: ["chart"],
         time: timePoints,
         facet: facetOptions,
         // uniformYAxis doesn't apply
     },
-    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: {
+    StackedDiscreteBar: {
         tab: ["chart"],
         time: timePoints,
         stackMode: stackModeOptions,
         facet: facetOptions,
         // uniformYAxis doesn't apply
     },
-    [GRAPHER_CHART_TYPES.Marimekko]: {
+    Marimekko: {
         tab: ["chart"],
         time: timePoints,
         stackMode: stackModeOptions,
         showNoDataArea: booleanOptions,
     },
-    [GRAPHER_CHART_TYPES.SlopeChart]: {
+    SlopeChart: {
         tab: ["chart"],
         time: timeSpan,
         yScale: scaleTypeOptions,
     },
-    [GRAPHER_CHART_TYPES.StackedArea]: {
+    StackedArea: {
         tab: ["chart"],
         time: timeSpan,
         stackMode: stackModeOptions,
         facet: facetOptions,
         uniformYAxis: booleanOptions,
     },
-    [GRAPHER_CHART_TYPES.StackedBar]: {
+    StackedBar: {
         tab: ["chart"],
         time: timeSpan,
         stackMode: stackModeOptions,
@@ -98,13 +97,13 @@ const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
     GrapherChartType,
     PartialRecord<keyof GrapherQueryParams, string>[]
 > = {
-    [GRAPHER_CHART_TYPES.LineChart]: [
+    LineChart: [
         // sharing an axis only makes sense if a chart is faceted
         { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
         // log scale for percentage values doesn't make sense
         { stackMode: StackMode.relative, yScale: ScaleType.log },
     ],
-    [GRAPHER_CHART_TYPES.ScatterPlot]: [
+    ScatterPlot: [
         // relative mode only makes sense if a time span is selected
         { time: TimePoint.earliest, stackMode: StackMode.relative },
         { time: TimePoint.latest, stackMode: StackMode.relative },
@@ -117,15 +116,15 @@ const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
         { stackMode: StackMode.relative, yScale: ScaleType.log },
         { stackMode: StackMode.relative, xScale: ScaleType.log },
     ],
-    [GRAPHER_CHART_TYPES.DiscreteBar]: [],
-    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: [],
-    [GRAPHER_CHART_TYPES.Marimekko]: [],
-    [GRAPHER_CHART_TYPES.SlopeChart]: [],
-    [GRAPHER_CHART_TYPES.StackedArea]: [
+    DiscreteBar: [],
+    StackedDiscreteBar: [],
+    Marimekko: [],
+    SlopeChart: [],
+    StackedArea: [
         // sharing an axis only makes sense if a chart is faceted
         { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
     ],
-    [GRAPHER_CHART_TYPES.StackedBar]: [
+    StackedBar: [
         // sharing an axis only makes sense if a chart is faceted
         { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
     ],

@@ -1,7 +1,6 @@
 import { expect, it, describe } from "vitest"
 
 import {
-    GRAPHER_CHART_TYPES,
     OwidColumnDef,
     OwidTableSlugs,
     StandardOwidColumnDefs,
@@ -493,7 +492,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             it("joins targetTime", () => {
                 const scatterLegacyGrapherConfig = {
                     ...legacyGrapherConfig,
-                    chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+                    chartTypes: ["ScatterPlot"],
                 }
 
                 const table = legacyToOwidTableAndDimensionsWithMandatorySlug(

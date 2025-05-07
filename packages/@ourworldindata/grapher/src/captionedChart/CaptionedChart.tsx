@@ -22,6 +22,7 @@ import {
     GRAPHER_FRAME_PADDING_VERTICAL,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_CHART_AREA_CLASS,
+    GrapherTabName,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
@@ -34,11 +35,8 @@ import { HeaderManager } from "../header/HeaderManager"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     EntityName,
-    GRAPHER_CHART_TYPES,
     RelatedQuestionsConfig,
     Color,
-    GrapherTabName,
-    GRAPHER_MAP_TYPE,
     GrapherChartOrMapType,
     GrapherChartType,
 } from "@ourworldindata/types"
@@ -189,10 +187,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     @computed get activeChartOrMapType(): GrapherChartOrMapType | undefined {
         const { manager } = this
         if (manager.isOnTableTab) return undefined
-        if (manager.isOnMapTab) return GRAPHER_MAP_TYPE
+        if (manager.isOnMapTab) return "WorldMap"
         if (manager.isOnChartTab) {
             return manager.isLineChartThatTurnedIntoDiscreteBarActive
-                ? GRAPHER_CHART_TYPES.DiscreteBar
+                ? "DiscreteBar"
                 : manager.activeChartType
         }
         return undefined
@@ -211,7 +209,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
         // Todo: make FacetChart a chart type name?
         const activeChartType =
-            activeChartOrMapType !== GRAPHER_MAP_TYPE
+            activeChartOrMapType !== "WorldMap"
                 ? activeChartOrMapType
                 : undefined
         if (isFaceted && activeChartType)

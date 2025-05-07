@@ -1,15 +1,12 @@
 import { expect, it, describe } from "vitest"
 import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
 import {
-    GRAPHER_CHART_TYPES,
     EntitySelectionMode,
-    GRAPHER_TAB_OPTIONS,
     ScaleType,
     GrapherInterface,
     GrapherQueryParams,
     LegacyGrapherInterface,
     LegacyGrapherQueryParams,
-    GRAPHER_TAB_NAMES,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -72,7 +69,7 @@ it("can get dimension slots", () => {
     const grapher = new Grapher()
     expect(grapher.dimensionSlots.length).toBe(2)
 
-    grapher.chartTypes = [GRAPHER_CHART_TYPES.ScatterPlot]
+    grapher.chartTypes = ["ScatterPlot"]
     expect(grapher.dimensionSlots.length).toBe(4)
 })
 
@@ -94,9 +91,9 @@ describe("toObject", () => {
     })
 
     it("does not preserve defaults in the object (except for the schema)", () => {
-        expect(
-            new Grapher({ tab: GRAPHER_TAB_OPTIONS.chart }).toObject()
-        ).toEqual({ $schema: latestGrapherConfigSchema })
+        expect(new Grapher({ tab: "chart" }).toObject()).toEqual({
+            $schema: latestGrapherConfigSchema,
+        })
     })
 
     it("serialises the currently active chart tab", () => {
@@ -217,24 +214,24 @@ it("can generate a url with country selection even if there is no entity code", 
 describe("hasTimeline", () => {
     it("charts with timeline", () => {
         const grapher = new Grapher(legacyConfig)
-        grapher.chartTypes = [GRAPHER_CHART_TYPES.LineChart]
+        grapher.chartTypes = ["LineChart"]
         expect(grapher.hasTimeline).toBeTruthy()
-        grapher.chartTypes = [GRAPHER_CHART_TYPES.SlopeChart]
+        grapher.chartTypes = ["SlopeChart"]
         expect(grapher.hasTimeline).toBeTruthy()
-        grapher.chartTypes = [GRAPHER_CHART_TYPES.StackedArea]
+        grapher.chartTypes = ["StackedArea"]
         expect(grapher.hasTimeline).toBeTruthy()
-        grapher.chartTypes = [GRAPHER_CHART_TYPES.StackedBar]
+        grapher.chartTypes = ["StackedBar"]
         expect(grapher.hasTimeline).toBeTruthy()
-        grapher.chartTypes = [GRAPHER_CHART_TYPES.DiscreteBar]
+        grapher.chartTypes = ["DiscreteBar"]
         expect(grapher.hasTimeline).toBeTruthy()
     })
 
     it("map tab has timeline even if chart doesn't", () => {
         const grapher = new Grapher(legacyConfig)
         grapher.hideTimeline = true
-        grapher.chartTypes = [GRAPHER_CHART_TYPES.LineChart]
+        grapher.chartTypes = ["LineChart"]
         expect(grapher.hasTimeline).toBeFalsy()
-        grapher.tab = GRAPHER_TAB_OPTIONS.map
+        grapher.tab = "map"
         expect(grapher.hasTimeline).toBeTruthy()
         grapher.map.hideTimeline = true
         expect(grapher.hasTimeline).toBeFalsy()
@@ -385,7 +382,7 @@ describe("authors can use maxTime", () => {
         const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
         const grapher = new Grapher({
             table,
-            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+            chartTypes: ["DiscreteBar"],
             selectedEntityNames: table.availableEntityNames,
             maxTime: 2005,
             ySlugs: "GDP",
@@ -401,7 +398,7 @@ describe("line chart to bar chart and bar chart race", () => {
     it("can create a new line chart with different start and end times", () => {
         expect(
             grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.LineChart)
+        ).toEqual("LineChart")
         expect(grapher.endHandleTimeBound).toBeGreaterThan(
             grapher.startHandleTimeBound
         )
@@ -413,13 +410,13 @@ describe("line chart to bar chart and bar chart race", () => {
 
         expect(
             grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.LineChart)
+        ).toEqual("LineChart")
 
         grapher.startHandleTimeBound = 2000
         grapher.endHandleTimeBound = 2000
         expect(
             grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.DiscreteBar)
+        ).toEqual("DiscreteBar")
 
         it("still has a timeline even though its now a bar chart", () => {
             expect(grapher.hasTimeline).toBe(true)
@@ -455,7 +452,7 @@ describe("line chart to bar chart and bar chart race", () => {
         )
         expect(
             grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.LineChart)
+        ).toEqual("LineChart")
     })
 
     it("turns into a bar chart when constrained start & end handles are equal", () => {
@@ -463,7 +460,7 @@ describe("line chart to bar chart and bar chart race", () => {
         grapher.endHandleTimeBound = Infinity
         expect(
             grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.DiscreteBar)
+        ).toEqual("DiscreteBar")
     })
 })
 
@@ -488,7 +485,7 @@ describe("urls", () => {
             isPublished: true,
             slug: "foo",
             bakedGrapherURL: "/grapher",
-            tab: GRAPHER_TAB_OPTIONS.map,
+            tab: "map",
         })
         expect(grapher.embedUrl).toEqual("/grapher/foo?tab=map")
     })
@@ -519,78 +516,69 @@ describe("urls", () => {
     it("parses tab=table correctly", () => {
         const grapher = new Grapher()
         grapher.populateFromQueryParams({ tab: "table" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.Table)
+        expect(grapher.activeTab).toEqual("Table")
     })
 
     it("parses tab=map correctly", () => {
         const grapher = new Grapher({ hasMapTab: true })
         grapher.populateFromQueryParams({ tab: "map" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.WorldMap)
+        expect(grapher.activeTab).toEqual("WorldMap")
     })
 
     it("parses tab=chart correctly", () => {
         const grapher = new Grapher({
-            chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+            chartTypes: ["ScatterPlot"],
         })
         grapher.populateFromQueryParams({ tab: "chart" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.ScatterPlot)
+        expect(grapher.activeTab).toEqual("ScatterPlot")
     })
 
     it("parses tab=line and tab=slope correctly", () => {
         const grapher = new Grapher({
-            chartTypes: [
-                GRAPHER_CHART_TYPES.LineChart,
-                GRAPHER_CHART_TYPES.SlopeChart,
-            ],
+            chartTypes: ["LineChart", "SlopeChart"],
         })
         grapher.populateFromQueryParams({ tab: "line" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.LineChart)
+        expect(grapher.activeTab).toEqual("LineChart")
         grapher.populateFromQueryParams({ tab: "slope" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.SlopeChart)
+        expect(grapher.activeTab).toEqual("SlopeChart")
     })
 
     it("switches to the first chart tab if the given chart isn't available", () => {
         const grapher = new Grapher({
-            chartTypes: [
-                GRAPHER_CHART_TYPES.LineChart,
-                GRAPHER_CHART_TYPES.SlopeChart,
-            ],
+            chartTypes: ["LineChart", "SlopeChart"],
         })
         grapher.populateFromQueryParams({ tab: "bar" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.LineChart)
+        expect(grapher.activeTab).toEqual("LineChart")
     })
 
     it("switches to the map tab if no chart is available", () => {
         const grapher = new Grapher({ chartTypes: [], hasMapTab: true })
         grapher.populateFromQueryParams({ tab: "line" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.WorldMap)
+        expect(grapher.activeTab).toEqual("WorldMap")
     })
 
     it("switches to the table tab if it's the only tab available", () => {
         const grapher = new Grapher({ chartTypes: [] })
         grapher.populateFromQueryParams({ tab: "line" })
-        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.Table)
+        expect(grapher.activeTab).toEqual("Table")
     })
 
     it("adds tab=chart to the URL if there is a single chart tab", () => {
         const grapher = new Grapher({
             hasMapTab: true,
-            tab: GRAPHER_TAB_OPTIONS.map,
+            tab: "map",
         })
-        grapher.setTab(GRAPHER_TAB_NAMES.LineChart)
+        grapher.setTab("LineChart")
         expect(grapher.changedParams.tab).toEqual("chart")
     })
 
     it("adds the chart type name as tab query param if there are multiple chart tabs", () => {
         const grapher = new Grapher({
-            chartTypes: [
-                GRAPHER_CHART_TYPES.LineChart,
-                GRAPHER_CHART_TYPES.SlopeChart,
-            ],
+            chartTypes: ["LineChart", "SlopeChart"],
             hasMapTab: true,
-            tab: GRAPHER_TAB_OPTIONS.map,
+            tab: "map",
         })
-        grapher.setTab(GRAPHER_TAB_NAMES.LineChart)
+        grapher.setTab("LineChart")
         expect(grapher.changedParams.tab).toEqual("line")
     })
 })
@@ -918,7 +906,7 @@ describe("year parameter (applies to map only)", () => {
             })
             it(`encode ${test.name}`, () => {
                 const params = toQueryParams({
-                    tab: GRAPHER_TAB_OPTIONS.map,
+                    tab: "map",
                     map: { time: test.param },
                 })
                 expect(params.time).toEqual(test.query)
@@ -984,7 +972,7 @@ describe("year parameter (applies to map only)", () => {
                 it(`encode ${test.name}`, () => {
                     const grapher = getGrapher()
                     grapher.updateFromObject({
-                        tab: GRAPHER_TAB_OPTIONS.map,
+                        tab: "map",
                         map: { time: test.param },
                     })
                     const params = grapher.changedParams
@@ -1002,7 +990,7 @@ it("correctly identifies activeColumnSlugs", () => {
     `)
     const grapher = new Grapher({
         table,
-        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+        chartTypes: ["ScatterPlot"],
         xSlug: "gdp",
         ySlugs: "child_mortality",
         colorSlug: "continent",
@@ -1040,7 +1028,7 @@ it("considers map tolerance before using column tolerance", () => {
     const grapher = new Grapher({
         table,
         ySlugs: "gdp",
-        tab: GRAPHER_TAB_OPTIONS.map,
+        tab: "map",
         hasMapTab: true,
         map: new MapConfig({ timeTolerance: 1, columnSlug: "gdp", time: 2002 }),
     })
@@ -1100,7 +1088,7 @@ describe("tableForSelection", () => {
 
         const grapher = new Grapher({
             table,
-            chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+            chartTypes: ["ScatterPlot"],
             excludedEntityNames: ["USA"],
             xSlug: "x",
             ySlugs: "y",
@@ -1136,7 +1124,7 @@ it("handles tolerance when there are gaps in ScatterPlot data", () => {
 
     const grapher = new Grapher({
         table,
-        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+        chartTypes: ["ScatterPlot"],
         xSlug: "x",
         ySlugs: "y",
         minTime: 1999,

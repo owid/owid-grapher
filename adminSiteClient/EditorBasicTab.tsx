@@ -13,7 +13,6 @@ import {
     StackMode,
     ALL_GRAPHER_CHART_TYPES,
     GrapherChartType,
-    GRAPHER_CHART_TYPES,
     DbChartTagJoin,
     TaggableType,
 } from "@ourworldindata/types"
@@ -485,16 +484,13 @@ export class EditorBasicTab<
     private addSlopeChart(): void {
         const { grapher } = this.props.editor
         if (grapher.hasSlopeChart) return
-        grapher.chartTypes = [
-            ...grapher.chartTypes,
-            GRAPHER_CHART_TYPES.SlopeChart,
-        ]
+        grapher.chartTypes = [...grapher.chartTypes, "SlopeChart"]
     }
 
     private removeSlopeChart(): void {
         const { grapher } = this.props.editor
         grapher.chartTypes = grapher.chartTypes.filter(
-            (type) => type !== GRAPHER_CHART_TYPES.SlopeChart
+            (type) => type !== "SlopeChart"
         )
     }
 

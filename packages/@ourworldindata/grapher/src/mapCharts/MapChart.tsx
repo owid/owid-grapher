@@ -48,7 +48,6 @@ import {
 import {
     ColorSchemeName,
     MapRegionName,
-    GRAPHER_TAB_OPTIONS,
     SeriesName,
     EntityName,
 } from "@ourworldindata/types"
@@ -201,7 +200,7 @@ export class MapChart
 
         if (!ev.shiftKey) {
             this.selectionArray.setSelectedEntities([entityName])
-            this.manager.tab = GRAPHER_TAB_OPTIONS.chart
+            this.manager.tab = "chart"
             if (
                 this.manager.isLineChartThatTurnedIntoDiscreteBar &&
                 this.manager.hasTimeline

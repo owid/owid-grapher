@@ -105,18 +105,12 @@ import {
     Color,
     GRAPHER_QUERY_PARAM_KEYS,
     GrapherTooltipAnchor,
-    GrapherTabName,
-    GRAPHER_CHART_TYPES,
-    GRAPHER_TAB_OPTIONS,
-    GRAPHER_TAB_NAMES,
-    GRAPHER_TAB_QUERY_PARAMS,
     SeriesName,
     ChartViewInfo,
     OwidChartDimensionInterfaceWithMandatorySlug,
     AssetMap,
     ArchivedChartOrArchivePageMeta,
     GrapherTabType,
-    GRAPHER_TAB_TYPES,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -139,6 +133,7 @@ import {
     GRAPHER_FRAME_PADDING_VERTICAL,
     latestGrapherConfigSchema,
     GRAPHER_SQUARE_SIZE,
+    GrapherTabName,
 } from "../core/GrapherConstants"
 import { loadVariableDataAndMetadata } from "./loadVariable"
 import Cookies from "js-cookie"
@@ -203,6 +198,7 @@ import {
     autoDetectYColumnSlugs,
     findStartTimeForSlopeChart,
     findValidChartTypeCombination,
+    isChartTypeSupportedForSwitching,
     mapChartTypeNameToQueryParam,
     mapChartTypeNameToTabOption,
     mapQueryParamToChartTypeName,
@@ -383,9 +379,7 @@ export class Grapher
         SlopeChartManager
 {
     @observable.ref $schema = latestGrapherConfigSchema
-    @observable.ref chartTypes: GrapherChartType[] = [
-        GRAPHER_CHART_TYPES.LineChart,
-    ]
+    @observable.ref chartTypes: GrapherChartType[] = ["LineChart"]
     @observable.ref id?: number = undefined
     @observable.ref version = 1
     @observable.ref slug?: string = undefined
@@ -420,7 +414,7 @@ export class Grapher
     @observable.ref zoomToSelection?: boolean = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
     @observable.ref hasMapTab = false
-    @observable.ref tab: GrapherTabType = GRAPHER_TAB_TYPES.chart
+    @observable.ref tab: GrapherTabType = "chart"
     @observable.ref chartTab?: GrapherChartType
     @observable.ref isPublished?: boolean = undefined
     @observable.ref baseColorScheme?: ColorSchemeName = undefined
@@ -620,7 +614,7 @@ export class Grapher
 
         // store the currently selected chart type if it's different from the primary chart type
         if (
-            this.tab === GRAPHER_TAB_OPTIONS.chart &&
+            this.tab === "chart" &&
             this.chartTab &&
             this.chartTab !== this.chartType
         ) {
@@ -673,7 +667,7 @@ export class Grapher
         if (obj.tab) {
             const chartType = mapTabOptionToChartTypeName(obj.tab)
             if (chartType) {
-                this.tab = GRAPHER_TAB_OPTIONS.chart
+                this.tab = "chart"
                 this.chartTab = chartType
             }
         }
@@ -778,12 +772,10 @@ export class Grapher
     }
 
     @computed get activeTab(): GrapherTabName {
-        if (this.tab === GRAPHER_TAB_OPTIONS.table)
-            return GRAPHER_TAB_NAMES.Table
-        if (this.tab === GRAPHER_TAB_OPTIONS.map)
-            return GRAPHER_TAB_NAMES.WorldMap
+        if (this.tab === "table") return "Table"
+        if (this.tab === "map") return "WorldMap"
         if (this.chartTab) return this.chartTab
-        return this.chartType ?? GRAPHER_TAB_NAMES.LineChart
+        return this.chartType ?? "LineChart"
     }
 
     @computed get activeChartType(): GrapherChartType | undefined {
@@ -800,15 +792,15 @@ export class Grapher
     }
 
     @computed get isOnChartTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.chart
+        return this.tab === "chart"
     }
 
     @computed get isOnMapTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.map
+        return this.tab === "map"
     }
 
     @computed get isOnTableTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.table
+        return this.tab === "table"
     }
 
     @computed get isOnChartOrMapTab(): boolean {
@@ -1470,14 +1462,14 @@ export class Grapher
     }
 
     @action.bound setTab(newTab: GrapherTabName): void {
-        if (newTab === GRAPHER_TAB_NAMES.Table) {
-            this.tab = GRAPHER_TAB_OPTIONS.table
+        if (newTab === "Table") {
+            this.tab = "table"
             this.chartTab = undefined
-        } else if (newTab === GRAPHER_TAB_NAMES.WorldMap) {
-            this.tab = GRAPHER_TAB_OPTIONS.map
+        } else if (newTab === "WorldMap") {
+            this.tab = "map"
             this.chartTab = undefined
         } else {
-            this.tab = GRAPHER_TAB_OPTIONS.chart
+            this.tab = "chart"
             this.chartTab = newTab
         }
     }
@@ -1487,10 +1479,7 @@ export class Grapher
         newTab: GrapherTabName
     ): void {
         // Switching from a line to a slope chart
-        if (
-            oldTab === GRAPHER_TAB_NAMES.LineChart &&
-            newTab === GRAPHER_TAB_NAMES.SlopeChart
-        ) {
+        if (oldTab === "LineChart" && newTab === "SlopeChart") {
             // If the handles are on the same time, then set one of the handles
             // to the start or end time so that the slope chart shows some data
             if (this.areHandlesOnSameTime) {
@@ -1503,7 +1492,7 @@ export class Grapher
         }
 
         // Switching to a slope chart
-        if (newTab === GRAPHER_TAB_NAMES.SlopeChart) {
+        if (newTab === "SlopeChart") {
             if (
                 this.facetStrategy === FacetStrategy.none &&
                 !this.hasUserChangedTimeHandles &&
@@ -1749,9 +1738,9 @@ export class Grapher
         if (!validChartTypes) return chartTypes.slice(0, 1)
 
         // projected data is only supported for line charts
-        const isLineChart = validChartTypes[0] === GRAPHER_CHART_TYPES.LineChart
+        const isLineChart = validChartTypes[0] === "LineChart"
         if (isLineChart && this.hasProjectedData) {
-            return [GRAPHER_CHART_TYPES.LineChart]
+            return ["LineChart"]
         }
 
         return validChartTypes
@@ -1763,8 +1752,8 @@ export class Grapher
 
     @computed get availableTabs(): GrapherTabName[] {
         const availableTabs: GrapherTabName[] = []
-        if (this.hasTableTab) availableTabs.push(GRAPHER_TAB_NAMES.Table)
-        if (this.hasMapTab) availableTabs.push(GRAPHER_TAB_NAMES.WorldMap)
+        if (this.hasTableTab) availableTabs.push("Table")
+        if (this.hasMapTab) availableTabs.push("WorldMap")
         if (!this.hideChartTabs) availableTabs.push(...this.validChartTypes)
         return availableTabs
     }
@@ -1791,7 +1780,7 @@ export class Grapher
 
         return !!(
             !this.forceHideAnnotationFieldsInTitle?.entity &&
-            this.tab === GRAPHER_TAB_OPTIONS.chart &&
+            this.tab === "chart" &&
             (seriesStrategy !== SeriesStrategy.entity || !this.showLegend) &&
             selectedEntityNames.length === 1 &&
             (showEntityAnnotation ||
@@ -1865,15 +1854,15 @@ export class Grapher
 
         switch (this.tab) {
             // the map tab has its own `hideTimeline` option
-            case GRAPHER_TAB_OPTIONS.map:
+            case "map":
                 return !this.map.hideTimeline
 
             // use the chart-level `hideTimeline` option
-            case GRAPHER_TAB_OPTIONS.chart:
+            case "chart":
                 return !this.hideTimeline
 
             // use the chart-level `hideTimeline` option for the table, with some exceptions
-            case GRAPHER_TAB_OPTIONS.table:
+            case "table":
                 // always show the timeline for charts that plot time on the x-axis
                 if (this.hasTimeDimension) return true
                 return !this.hideTimeline
@@ -2138,35 +2127,33 @@ export class Grapher
     @computed
     get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): GrapherChartType {
         return this.isLineChartThatTurnedIntoDiscreteBarActive
-            ? GRAPHER_CHART_TYPES.DiscreteBar
-            : (this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart)
+            ? "DiscreteBar"
+            : (this.activeChartType ?? "LineChart")
     }
 
     @computed get isLineChart(): boolean {
-        return (
-            this.chartType === GRAPHER_CHART_TYPES.LineChart || !this.chartType
-        )
+        return this.chartType === "LineChart" || !this.chartType
     }
     @computed get isScatter(): boolean {
-        return this.chartType === GRAPHER_CHART_TYPES.ScatterPlot
+        return this.chartType === "ScatterPlot"
     }
     @computed get isStackedArea(): boolean {
-        return this.chartType === GRAPHER_CHART_TYPES.StackedArea
+        return this.chartType === "StackedArea"
     }
     @computed get isSlopeChart(): boolean {
-        return this.chartType === GRAPHER_CHART_TYPES.SlopeChart
+        return this.chartType === "SlopeChart"
     }
     @computed get isDiscreteBar(): boolean {
-        return this.chartType === GRAPHER_CHART_TYPES.DiscreteBar
+        return this.chartType === "DiscreteBar"
     }
     @computed get isStackedBar(): boolean {
-        return this.chartType === GRAPHER_CHART_TYPES.StackedBar
+        return this.chartType === "StackedBar"
     }
     @computed get isMarimekko(): boolean {
-        return this.chartType === GRAPHER_CHART_TYPES.Marimekko
+        return this.chartType === "Marimekko"
     }
     @computed get isStackedDiscreteBar(): boolean {
-        return this.chartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
+        return this.chartType === "StackedDiscreteBar"
     }
 
     @computed get isLineChartThatTurnedIntoDiscreteBar(): boolean {
@@ -2203,35 +2190,35 @@ export class Grapher
     }
 
     @computed get isOnLineChartTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.LineChart
+        return this.activeChartType === "LineChart"
     }
     @computed get isOnScatterTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.ScatterPlot
+        return this.activeChartType === "ScatterPlot"
     }
     @computed get isOnStackedAreaTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.StackedArea
+        return this.activeChartType === "StackedArea"
     }
     @computed get isOnSlopeChartTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.SlopeChart
+        return this.activeChartType === "SlopeChart"
     }
     @computed get isOnDiscreteBarTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.DiscreteBar
+        return this.activeChartType === "DiscreteBar"
     }
     @computed get isOnStackedBarTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.StackedBar
+        return this.activeChartType === "StackedBar"
     }
     @computed get isOnMarimekkoTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.Marimekko
+        return this.activeChartType === "Marimekko"
     }
     @computed get isOnStackedDiscreteBarTab(): boolean {
-        return this.activeChartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
+        return this.activeChartType === "StackedDiscreteBar"
     }
 
     @computed get hasLineChart(): boolean {
-        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.LineChart)
+        return this.validChartTypeSet.has("LineChart")
     }
     @computed get hasSlopeChart(): boolean {
-        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.SlopeChart)
+        return this.validChartTypeSet.has("SlopeChart")
     }
 
     @computed get supportsMultipleYColumns(): boolean {
@@ -3530,22 +3517,22 @@ export class Grapher
             hasMapTab,
         } = this
 
-        let defaultTab: GrapherTabName = GRAPHER_TAB_NAMES.Table
+        let defaultTab: GrapherTabName = "Table"
         if (defaultChartType) {
             defaultTab = defaultChartType
         } else if (hasMapTab) {
-            defaultTab = GRAPHER_TAB_NAMES.WorldMap
+            defaultTab = "WorldMap"
         }
 
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.table) {
-            return GRAPHER_TAB_NAMES.Table
+        if (tab === "table") {
+            return "Table"
         }
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.map) {
-            if (hasMapTab) return GRAPHER_TAB_NAMES.WorldMap
+        if (tab === "map") {
+            if (hasMapTab) return "WorldMap"
             return defaultTab
         }
 
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.chart) {
+        if (tab === "chart") {
             return defaultTab
         }
 
@@ -3561,12 +3548,14 @@ export class Grapher
     }
 
     mapGrapherTabToQueryParam(tab: GrapherTabName): string {
-        if (tab === GRAPHER_TAB_NAMES.Table)
-            return GRAPHER_TAB_QUERY_PARAMS.table
-        if (tab === GRAPHER_TAB_NAMES.WorldMap)
-            return GRAPHER_TAB_QUERY_PARAMS.map
+        if (tab === "Table") return "table"
+        if (tab === "WorldMap") return "map"
 
-        if (!this.hasMultipleChartTypes) return GRAPHER_TAB_QUERY_PARAMS.chart
+        if (
+            !this.hasMultipleChartTypes ||
+            !isChartTypeSupportedForSwitching(tab)
+        )
+            return "chart"
 
         return mapChartTypeNameToQueryParam(tab)
     }

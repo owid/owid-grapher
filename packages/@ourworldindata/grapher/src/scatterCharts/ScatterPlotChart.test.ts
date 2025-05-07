@@ -22,7 +22,6 @@ import {
     ColumnTypeNames,
     OwidTableSlugs,
     Color,
-    GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
 import { ContinentColors } from "../color/CustomSchemes"
 import { sortBy, uniq, uniqBy } from "@ourworldindata/utils"
@@ -144,7 +143,7 @@ describe("interpolation defaults", () => {
 
     const grapher = new Grapher({
         table,
-        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+        chartTypes: ["ScatterPlot"],
         xSlug: "x",
         ySlugs: "y",
         colorSlug: "color",
@@ -200,7 +199,7 @@ describe("basic scatterplot", () => {
     )
 
     const grapher = new Grapher({
-        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+        chartTypes: ["ScatterPlot"],
         xSlug: "x",
         ySlugs: "y",
         colorSlug: "color",
@@ -430,7 +429,7 @@ describe("entity exclusion", () => {
     )
 
     const grapher = new Grapher({
-        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+        chartTypes: ["ScatterPlot"],
         xSlug: "x",
         ySlugs: "y",
         colorSlug: "color",
@@ -820,7 +819,7 @@ describe("x/y tolerance", () => {
     )
 
     const grapher = new Grapher({
-        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+        chartTypes: ["ScatterPlot"],
         xSlug: "x",
         ySlugs: "y",
         colorSlug: "color",
@@ -1066,7 +1065,7 @@ it("applies color tolerance before applying the author timeline filter", () => {
 
     const grapher = new Grapher({
         table,
-        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+        chartTypes: ["ScatterPlot"],
         xSlug: "x",
         ySlugs: "y",
         colorSlug: "color",

@@ -139,7 +139,6 @@ import {
     TagGraphNode,
     GrapherInterface,
     DimensionProperty,
-    GRAPHER_CHART_TYPES,
     DbPlainTag,
     AssetMap,
     OwidGdocAboutInterface,
@@ -2081,8 +2080,8 @@ export function getParentVariableIdFromChartConfig(
 ): number | undefined {
     const { chartTypes, dimensions } = config
 
-    const chartType = chartTypes?.[0] ?? GRAPHER_CHART_TYPES.LineChart
-    if (chartType === GRAPHER_CHART_TYPES.ScatterPlot) return undefined
+    const chartType = chartTypes?.[0] ?? "LineChart"
+    if (chartType === "ScatterPlot") return undefined
     if (!dimensions) return undefined
 
     const yVariableIds = dimensions

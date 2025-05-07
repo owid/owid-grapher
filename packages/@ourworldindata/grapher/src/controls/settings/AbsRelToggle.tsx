@@ -1,14 +1,8 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import {
-    GRAPHER_CHART_TYPES,
-    GrapherChartType,
-    StackMode,
-} from "@ourworldindata/types"
+import { GrapherChartType, StackMode } from "@ourworldindata/types"
 import { LabeledSwitch } from "@ourworldindata/components"
-
-const { LineChart, ScatterPlot, SlopeChart } = GRAPHER_CHART_TYPES
 
 export interface AbsRelToggleManager {
     stackMode?: StackMode
@@ -36,9 +30,10 @@ export class AbsRelToggle extends React.Component<{
 
     @computed get tooltip(): string {
         const { activeChartType } = this.manager
-        return activeChartType === ScatterPlot
+        return activeChartType === "ScatterPlot"
             ? "Show the percentage change per year over the the selected time range."
-            : activeChartType === LineChart || activeChartType === SlopeChart
+            : activeChartType === "LineChart" ||
+                activeChartType === "SlopeChart"
               ? "Show proportional changes over time or actual values in their original units."
               : "Show values as their share of the total or as actual values in their original units."
     }

@@ -5,21 +5,19 @@ import {
     faChartLine,
     faChartColumn,
 } from "@fortawesome/free-solid-svg-icons"
-import { GRAPHER_CHART_TYPES, GrapherChartType } from "@ourworldindata/types"
+import { GrapherChartType } from "@ourworldindata/types"
 
 export const chartIcons: Record<GrapherChartType, React.ReactElement> = {
     // line chart
-    [GRAPHER_CHART_TYPES.LineChart]: <FontAwesomeIcon icon={faChartLine} />,
+    LineChart: <FontAwesomeIcon icon={faChartLine} />,
 
     // bar charts
-    [GRAPHER_CHART_TYPES.DiscreteBar]: <FontAwesomeIcon icon={faChartColumn} />,
-    [GRAPHER_CHART_TYPES.StackedBar]: <FontAwesomeIcon icon={faChartColumn} />,
-    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: (
-        <FontAwesomeIcon icon={faChartBar} />
-    ),
+    DiscreteBar: <FontAwesomeIcon icon={faChartColumn} />,
+    StackedBar: <FontAwesomeIcon icon={faChartColumn} />,
+    StackedDiscreteBar: <FontAwesomeIcon icon={faChartBar} />,
 
     // scatter
-    [GRAPHER_CHART_TYPES.ScatterPlot]: (
+    ScatterPlot: (
         <svg
             className="custom-icon scatter"
             width="16"
@@ -44,7 +42,7 @@ export const chartIcons: Record<GrapherChartType, React.ReactElement> = {
     ),
 
     // marimekko
-    [GRAPHER_CHART_TYPES.Marimekko]: (
+    Marimekko: (
         <svg
             className="custom-icon marimekko"
             width="16"
@@ -69,7 +67,7 @@ export const chartIcons: Record<GrapherChartType, React.ReactElement> = {
     ),
 
     // stacked area
-    [GRAPHER_CHART_TYPES.StackedArea]: (
+    StackedArea: (
         <svg
             className="custom-icon stacked-area"
             width="14"
@@ -90,7 +88,7 @@ export const chartIcons: Record<GrapherChartType, React.ReactElement> = {
     ),
 
     // slope chart
-    [GRAPHER_CHART_TYPES.SlopeChart]: (
+    SlopeChart: (
         <svg
             className="custom-icon slope"
             width="16"
