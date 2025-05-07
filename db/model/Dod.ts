@@ -40,15 +40,22 @@ export async function getParsedDodsDictionary(
     return parsedDods
 }
 
+/**
+ * These 'usage' objects are maps of dod names to lists of places where the dod is referenced.
+ * e.g. { gdp: [{ id: 'real-gdp-growth', title: 'Annual GDP growth', type: "grapher" }] }
+ * where 'gdp' is the name of the dod and the property is an array of DodUsageRecord objects.
+ * We find all the graphers that reference the gdp dod, and all the explorers, and the indicators, etc
+ * then merge them all together
+ **/
 function mergeDodUsage(
-    acc: Record<string, { usage: DodUsageRecord[] }>,
-    cur: Record<string, { usage: DodUsageRecord[] }>
-): Record<string, { usage: DodUsageRecord[] }> {
-    for (const [dod, { usage }] of Object.entries(cur)) {
+    acc: Record<string, DodUsageRecord[]>,
+    cur: Record<string, DodUsageRecord[]>
+): Record<string, DodUsageRecord[]> {
+    for (const [dod, usage] of Object.entries(cur)) {
         if (!acc[dod]) {
-            acc[dod] = { usage: [] }
+            acc[dod] = []
         }
-        acc[dod].usage.push(...usage)
+        acc[dod].push(...usage)
     }
     return acc
 }
@@ -62,27 +69,26 @@ function extractDodUsageFromString(
     config: string,
     title: string,
     type: "explorer" | "grapher" | "indicator" | "dod"
-): Record<string, { usage: DodUsageRecord[] }> {
-    const usage = {} as Record<string, { usage: DodUsageRecord[] }>
+): Record<string, DodUsageRecord[]> {
+    const usage = {} as Record<string, DodUsageRecord[]>
     const dodReferences = extractDetailsFromSyntax(config)
     const uniqueDodReferences = new Set(dodReferences)
     for (const dodReference of uniqueDodReferences) {
-        const existingUsage = usage[dodReference]?.usage || []
+        const existingUsage = usage[dodReference] || []
         const newUsageRecord = {
             id,
             title,
             type,
         } as DodUsageRecord
-        usage[dodReference] = {
-            usage: [...existingUsage, newUsageRecord],
-        }
+        usage[dodReference] = [...existingUsage, newUsageRecord]
     }
+
     return usage
 }
 
 export async function getDodsUsage(
     knex: KnexReadonlyTransaction
-): Promise<Record<string, { usage: DodUsageRecord[] }>> {
+): Promise<Record<string, DodUsageRecord[]>> {
     const postsGdocsUsagePromise = knexRaw<{
         target: string
         usage: string
@@ -110,10 +116,10 @@ export async function getDodsUsage(
     ).then((rows) =>
         rows.reduce(
             (acc, { target, usage }) => {
-                acc[target] = { usage: JSON.parse(usage) }
+                acc[target] = JSON.parse(usage)
                 return acc
             },
-            {} as Record<string, { usage: DodUsageRecord[] }>
+            {} as Record<string, DodUsageRecord[]>
         )
     )
 
@@ -137,7 +143,7 @@ export async function getDodsUsage(
                 )
                 return mergeDodUsage(acc, usage)
             },
-            {} as Record<string, { usage: DodUsageRecord[] }>
+            {} as Record<string, DodUsageRecord[]>
         )
     )
 
@@ -161,7 +167,7 @@ export async function getDodsUsage(
                 )
                 return mergeDodUsage(acc, usage)
             },
-            {} as Record<string, { usage: DodUsageRecord[] }>
+            {} as Record<string, DodUsageRecord[]>
         )
     )
 
@@ -188,7 +194,7 @@ export async function getDodsUsage(
                 )
                 return mergeDodUsage(acc, usage)
             },
-            {} as Record<string, { usage: DodUsageRecord[] }>
+            {} as Record<string, DodUsageRecord[]>
         )
     })
 
@@ -209,7 +215,7 @@ export async function getDodsUsage(
                 )
                 return mergeDodUsage(acc, usage)
             },
-            {} as Record<string, { usage: DodUsageRecord[] }>
+            {} as Record<string, DodUsageRecord[]>
         )
     })
 
