@@ -2,7 +2,7 @@ import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Dropdown } from "./Dropdown"
-import { DEFAULT_BOUNDS, EntityName } from "@ourworldindata/utils"
+import { EntityName } from "@ourworldindata/utils"
 import { DataTableConfig } from "../dataTable/DataTable"
 import { OwidTable } from "@ourworldindata/core-table"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -19,6 +19,7 @@ export interface DataTableFilterDropdownManager {
     selection?: SelectionArray | EntityName[]
     canChangeAddOrHighlightEntities?: boolean
     entityRegionTypeGroups?: EntityRegionTypeGroup[]
+    isSemiNarrow?: boolean
 }
 
 interface DropdownOption {
@@ -31,7 +32,6 @@ interface DropdownOption {
 @observer
 export class DataTableFilterDropdown extends React.Component<{
     manager: DataTableFilterDropdownManager
-    maxWidth?: number
 }> {
     static shouldShow(manager: DataTableFilterDropdownManager): boolean {
         const menu = new DataTableFilterDropdown({ manager })
@@ -50,12 +50,9 @@ export class DataTableFilterDropdown extends React.Component<{
         return (
             !!this.manager.isOnTableTab &&
             this.options.length > 1 &&
-            this.options[0].count !== this.options[1].count
+            this.options[0].count !== this.options[1].count &&
+            !this.manager.isSemiNarrow
         )
-    }
-
-    @computed private get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
     @computed private get availableEntityNameSet(): Set<EntityName> {
@@ -67,6 +64,7 @@ export class DataTableFilterDropdown extends React.Component<{
         const { value } = selected as DropdownOption
         if (value) {
             this.manager.dataTableConfig.filter = value
+            this.manager.dataTableConfig.search = ""
         }
     }
 
@@ -125,10 +123,7 @@ export class DataTableFilterDropdown extends React.Component<{
         if (!this.shouldShow) return null
 
         return (
-            <div
-                className="data-table-filter-dropdown"
-                style={{ maxWidth: this.maxWidth }}
-            >
+            <div className="data-table-filter-dropdown">
                 <Dropdown<DropdownOption>
                     options={this.options}
                     onChange={this.onChange}

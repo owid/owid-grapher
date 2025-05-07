@@ -2,6 +2,7 @@ import * as React from "react"
 import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
+import a from "indefinite"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faArrowDownLong,
@@ -36,18 +37,24 @@ import {
     excludeUndefined,
     IndicatorTitleWithFragments,
     joinTitleFragments,
+    FuzzySearch,
 } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
-import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
+import {
+    DEFAULT_GRAPHER_ENTITY_TYPE,
+    SVG_STYLE_PROPS,
+} from "../core/GrapherConstants"
 import * as R from "remeda"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import {
     EntityNamesByRegionType,
     EntityRegionType,
 } from "../core/EntitiesByRegionType"
+import { NoDataModal } from "../noDataModal/NoDataModal"
 
 export interface DataTableConfig {
     filter: "all" | "selection" | EntityRegionType
+    search: string
 }
 
 interface DataTableState {
@@ -92,6 +99,7 @@ export interface DataTableManager {
     selection?: SelectionArray | EntityName[]
     dataTableConfig: DataTableConfig
     entityNamesByRegionType?: EntityNamesByRegionType
+    fontSize?: number
 }
 
 @observer
@@ -558,7 +566,24 @@ export class DataTable extends React.Component<{
         ) : null
     }
 
-    render(): React.ReactElement {
+    render(): React.ReactElement | null {
+        if (this.sortedDisplayRows.length === 0)
+            return (
+                <svg
+                    width={this.bounds.width}
+                    height={this.bounds.height}
+                    style={SVG_STYLE_PROPS}
+                >
+                    <NoDataModal
+                        manager={this.manager}
+                        bounds={this.bounds}
+                        message={`No ${a(this.entityType)} matches this query`}
+                        helpText="Try checking for typos or searching for something else"
+                        hideTextOutline
+                    />
+                </svg>
+            )
+
         return (
             <div className="DataTable">
                 {this.tableCaption}
@@ -644,13 +669,24 @@ export class DataTable extends React.Component<{
         )
     }
 
-    @computed private get entityNames(): string[] {
-        const tableForEntities = this.table
+    @computed private get availableEntityNames(): EntityName[] {
         return union(
             ...this.columnsToShow.map(
-                (col) => tableForEntities.get(col.slug).uniqEntityNames
+                (col) => this.table.get(col.slug).uniqEntityNames
             )
         )
+    }
+
+    @computed get fuzzy(): FuzzySearch<string> {
+        return FuzzySearch.withKey(
+            this.availableEntityNames,
+            (entityName) => entityName
+        )
+    }
+
+    @computed private get entityNames(): EntityName[] {
+        if (!this.tableConfig.search) return this.availableEntityNames
+        return this.fuzzy.search(this.tableConfig.search)
     }
 
     @computed private get entityCount(): number {

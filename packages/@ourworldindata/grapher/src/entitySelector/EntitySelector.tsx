@@ -28,8 +28,6 @@ import {
     OverlayHeader,
 } from "@ourworldindata/components"
 import {
-    faCircleXmark,
-    faMagnifyingGlass,
     faLocationArrow,
     faArrowRightArrowLeft,
     faFilter,
@@ -70,6 +68,7 @@ import {
     EntityRegionType,
     EntityRegionTypeGroup,
 } from "../core/EntitiesByRegionType"
+import { SearchField } from "../controls/SearchField"
 
 type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
@@ -1040,47 +1039,13 @@ export class EntitySelector extends React.Component<{
     private renderSearchBar(): React.ReactElement {
         return (
             <div className="entity-selector__search-bar">
-                <div
-                    className={cx("search-input", {
-                        "search-input--empty": !this.searchInput,
-                    })}
-                >
-                    <input
-                        ref={this.searchField}
-                        type="search"
-                        value={this.searchInput}
-                        onChange={action((e): void => {
-                            this.set({
-                                searchInput: e.currentTarget.value,
-                            })
-                        })}
-                        onKeyDown={this.onSearchKeyDown}
-                        data-track-note={"entity_selector_search"}
-                    />
-                    {/* We don't use the input's built-in placeholder because
-                        we want the input text and placeholder text to have different
-                        font sizes. This is not well-supported across browsers.
-                        The input text needs to be 16px to prevent auto-zoom on iOS,
-                        but the placeholder text should have a smaller font size. */}
-                    {!this.searchInput && (
-                        <span className="search-placeholder">
-                            Search for {a(this.entityType)}
-                        </span>
-                    )}
-                    <FontAwesomeIcon
-                        className="search-icon"
-                        icon={faMagnifyingGlass}
-                    />
-                    {this.searchInput && (
-                        <button
-                            type="button"
-                            className="clear"
-                            onClick={action(() => this.clearSearchInput())}
-                        >
-                            <FontAwesomeIcon icon={faCircleXmark} />
-                        </button>
-                    )}
-                </div>
+                <SearchField
+                    value={this.searchInput}
+                    onChange={(value) => this.set({ searchInput: value })}
+                    onClear={() => this.clearSearchInput()}
+                    placeholder={`Search for ${a(this.entityType)}`}
+                    trackNote="entity_selector_search"
+                />
             </div>
         )
     }

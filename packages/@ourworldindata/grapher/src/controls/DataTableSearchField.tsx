@@ -1,0 +1,52 @@
+import * as React from "react"
+import { computed } from "mobx"
+import { observer } from "mobx-react"
+import a from "indefinite"
+import { DataTableConfig } from "../dataTable/DataTable"
+import { SearchField } from "./SearchField"
+import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
+
+export interface DataTableSearchFieldManager {
+    dataTableConfig: DataTableConfig
+    isOnTableTab?: boolean
+    entityType?: string
+}
+
+@observer
+export class DataTableSearchField extends React.Component<{
+    manager: DataTableSearchFieldManager
+    maxWidth?: number
+}> {
+    static shouldShow(manager: DataTableSearchFieldManager): boolean {
+        const menu = new DataTableSearchField({ manager })
+        return menu.shouldShow
+    }
+
+    @computed private get manager(): DataTableSearchFieldManager {
+        return this.props.manager
+    }
+
+    @computed private get shouldShow(): boolean {
+        return !!this.manager.isOnTableTab
+    }
+
+    @computed private get entityType(): string {
+        return this.manager.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
+    }
+
+    render(): React.ReactElement | null {
+        if (!this.shouldShow) return null
+
+        return (
+            <SearchField
+                value={this.manager.dataTableConfig.search}
+                onChange={(value) =>
+                    (this.manager.dataTableConfig.search = value)
+                }
+                onClear={() => (this.manager.dataTableConfig.search = "")}
+                trackNote="data_table_search"
+                placeholder={`Search for ${a(this.entityType)}`}
+            />
+        )
+    }
+}

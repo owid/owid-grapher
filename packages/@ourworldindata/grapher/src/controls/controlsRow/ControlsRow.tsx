@@ -28,6 +28,10 @@ import {
     DataTableFilterDropdown,
     DataTableFilterDropdownManager,
 } from "../DataTableFilterDropdown"
+import {
+    DataTableSearchField,
+    DataTableSearchFieldManager,
+} from "../DataTableSearchField"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
@@ -36,9 +40,12 @@ export interface ControlsRowManager
         MapCountryDropdownManager,
         GlobeSwitcherManager,
         SettingsMenuManager,
-        DataTableFilterDropdownManager {
+        DataTableFilterDropdownManager,
+        DataTableSearchFieldManager {
     sidePanelBounds?: Bounds
 }
+
+const CONTENT_SWITCHERS_MARGIN = 16
 
 @observer
 export class ControlsRow extends Component<{
@@ -75,7 +82,11 @@ export class ControlsRow extends Component<{
     }
 
     @computed private get maxWidthSettingsMenu(): number {
-        return this.maxWidth - this.contentSwitchersWidth - 16
+        return (
+            this.maxWidth -
+            this.contentSwitchersWidth -
+            CONTENT_SWITCHERS_MARGIN
+        )
     }
 
     @computed private get maxWidthMapRegionDropdown(): number {
@@ -91,7 +102,8 @@ export class ControlsRow extends Component<{
             CloseGlobeViewButton.shouldShow(this.manager) ||
             GlobeSwitcher.shouldShow(this.manager) ||
             ContentSwitchers.shouldShow(this.manager) ||
-            DataTableFilterDropdown.shouldShow(this.manager)
+            DataTableFilterDropdown.shouldShow(this.manager) ||
+            DataTableSearchField.shouldShow(this.manager)
         )
     }
 
@@ -99,7 +111,10 @@ export class ControlsRow extends Component<{
         return (
             <nav
                 className="controlsRow"
-                style={{ padding: `0 ${this.framePaddingHorizontal}px` }}
+                style={{
+                    padding: `0 ${this.framePaddingHorizontal}px`,
+                    gap: CONTENT_SWITCHERS_MARGIN,
+                }}
             >
                 <div>
                     <ContentSwitchers manager={this.manager} />
@@ -135,10 +150,11 @@ export class ControlsRow extends Component<{
                     />
 
                     {/* rendered on the table tab */}
-                    <DataTableFilterDropdown
+                    <DataTableSearchField
                         manager={this.manager}
                         maxWidth={this.maxWidthSettingsMenu}
                     />
+                    <DataTableFilterDropdown manager={this.manager} />
                 </div>
             </nav>
         )

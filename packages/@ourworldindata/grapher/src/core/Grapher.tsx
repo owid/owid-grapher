@@ -483,6 +483,7 @@ export class Grapher
 
     @observable dataTableConfig: DataTableConfig = {
         filter: "all",
+        search: "",
     }
 
     /**
