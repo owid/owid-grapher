@@ -85,6 +85,8 @@ $zindex-controls-drawer: 150;
     @import "../controls/GlobeSwitcher.scss";
     @import "../mapCharts/MapChart.scss";
     @import "../controls/DataTableFilterDropdown.scss";
+    @import "../controls/SearchField.scss";
+    @import "../controls/DataTableSearchField.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers

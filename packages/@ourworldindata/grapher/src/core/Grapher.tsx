@@ -494,6 +494,7 @@ export class Grapher
 
     @observable dataTableConfig: DataTableConfig = {
         filter: "all",
+        search: "",
     }
 
     /**
@@ -3713,6 +3714,7 @@ export class Grapher
         this.map.region = authorsVersion.map.region
         this.showNoDataArea = authorsVersion.showNoDataArea
         this.dataTableConfig.filter = authorsVersion.dataTableConfig.filter
+        this.dataTableConfig.search = authorsVersion.dataTableConfig.search
         this.mapConfig.globe.isActive = authorsVersion.mapConfig.globe.isActive
         this.clearSelection()
         this.clearFocus()

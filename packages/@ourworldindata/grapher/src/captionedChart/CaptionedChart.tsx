@@ -22,6 +22,7 @@ import {
     GRAPHER_FRAME_PADDING_VERTICAL,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_CHART_AREA_CLASS,
+    SVG_STYLE_PROPS,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
@@ -454,13 +455,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             xmlns: "http://www.w3.org/2000/svg",
             version: "1.1",
             style: {
-                fontFamily:
-                    "Lato, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif",
+                ...SVG_STYLE_PROPS,
                 fontSize: this.manager.fontSize ?? BASE_FONT_SIZE,
                 // needs to be set here or else pngs will have a black background
                 backgroundColor: this.backgroundColor,
-                textRendering: "geometricPrecision",
-                WebkitFontSmoothing: "antialiased",
             },
         }
     }
