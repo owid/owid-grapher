@@ -655,6 +655,7 @@ export type GrapherQueryParams = {
     globeZoom?: string
     mapSelect?: string
     tableFilter?: string
+    tableSearch?: string
 }
 
 export type LegacyGrapherQueryParams = GrapherQueryParams & {
@@ -685,6 +686,7 @@ const GRAPHER_ALL_QUERY_PARAMS: Required<LegacyGrapherQueryParams> = {
     globeZoom: "",
     mapSelect: "",
     tableFilter: "",
+    tableSearch: "",
 }
 export const GRAPHER_QUERY_PARAM_KEYS = Object.keys(
     GRAPHER_ALL_QUERY_PARAMS

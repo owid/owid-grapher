@@ -28,6 +28,10 @@ import {
     DataTableFilterDropdown,
     DataTableFilterDropdownManager,
 } from "../DataTableFilterDropdown"
+import {
+    DataTableSearchField,
+    DataTableSearchFieldManager,
+} from "../DataTableSearchField"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
@@ -35,7 +39,8 @@ export interface ControlsRowManager
         MapRegionDropdownManager,
         MapCountryDropdownManager,
         SettingsMenuManager,
-        DataTableFilterDropdownManager {
+        DataTableFilterDropdownManager,
+        DataTableSearchFieldManager {
     sidePanelBounds?: Bounds
     isSmall?: boolean
 }
@@ -70,7 +75,8 @@ export class ControlsRow extends Component<{
             MapCountryDropdown.shouldShow(this.manager) ||
             CloseGlobeViewButton.shouldShow(this.manager) ||
             ContentSwitchers.shouldShow(this.manager) ||
-            DataTableFilterDropdown.shouldShow(this.manager)
+            DataTableFilterDropdown.shouldShow(this.manager) ||
+            DataTableSearchField.shouldShow(this.manager)
         )
     }
 
@@ -92,6 +98,7 @@ export class ControlsRow extends Component<{
         return (
             <div className="controls table-controls">
                 <DataTableFilterDropdown manager={this.manager} />
+                <DataTableSearchField manager={this.manager} />
             </div>
         )
     }
