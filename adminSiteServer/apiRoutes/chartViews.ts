@@ -13,7 +13,6 @@ import {
     DbInsertChartView,
     ChartViewsTableName,
     ChartConfigsTableName,
-    OwidGdocLinkType,
     DbPlainUser,
     DbRawPostGdoc,
     DbRawImage,
@@ -282,7 +281,7 @@ export async function updateChartView(
     const references = await getPublishedLinksTo(
         trx,
         [existingRow.name],
-        OwidGdocLinkType.ChartView
+        ContentGraphLinkType.ChartView
     )
     if (references.length > 0) {
         await triggerStaticBuild(
