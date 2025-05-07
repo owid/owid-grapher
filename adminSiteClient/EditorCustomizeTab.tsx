@@ -778,18 +778,6 @@ export class EditorCustomizeTab<
                             />
                         </FieldsRow>
                     )}
-                    <FieldsRow>
-                        <BindString
-                            label="Entity name (singular)"
-                            field="entityType"
-                            store={grapher}
-                        />
-                        <BindString
-                            label="Entity name (plural)"
-                            field="entityTypePlural"
-                            store={grapher}
-                        />
-                    </FieldsRow>
                     {features.canCustomizeVariableType && (
                         <FieldsRow>
                             <BindString

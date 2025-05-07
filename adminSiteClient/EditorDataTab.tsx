@@ -16,7 +16,13 @@ import {
     SeriesName,
 } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
-import { ColorBox, SelectField, Section, FieldsRow } from "./Forms.js"
+import {
+    ColorBox,
+    SelectField,
+    Section,
+    FieldsRow,
+    BindString,
+} from "./Forms.js"
 import {
     faArrowsAltV,
     faLink,
@@ -661,6 +667,20 @@ export class EditorDataTab<
                             User cannot change/add data
                         </label>
                     </div>
+                </Section>
+                <Section name="Entity type">
+                    <FieldsRow>
+                        <BindString
+                            label="Entity name (singular)"
+                            field="entityType"
+                            store={grapher}
+                        />
+                        <BindString
+                            label="Entity name (plural)"
+                            field="entityTypePlural"
+                            store={grapher}
+                        />
+                    </FieldsRow>
                 </Section>
                 <EntitySelectionSection editor={editor} />
                 {features.canHighlightSeries && (
