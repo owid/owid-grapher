@@ -435,6 +435,11 @@ export class ChoroplethGlobe extends React.Component<{
             if (!this.mapConfig.selection.selectedSet.has(country))
                 this.globeController.dismissCountryFocus()
         }
+
+        // rotate to the seleced country on mobile
+        if (!this.manager.isMapSelectionEnabled) {
+            this.globeController.rotateToCountry(country)
+        }
     }
 
     @action.bound private onTouchStart(feature: GlobeRenderFeature): void {
