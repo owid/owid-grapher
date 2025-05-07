@@ -109,10 +109,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     useEffect(() => {
         async function fetchGdocs() {
             try {
-                // Fetching in sequence instead of with Promise.all to prevent race conditions
-                // if images need to be uploaded from the original
-                const original = await fetchGdoc(GdocsContentSource.Internal)
-                const current = await fetchGdoc(GdocsContentSource.Gdocs)
+                const [original, current] = await Promise.all([
+                    fetchGdoc(GdocsContentSource.Internal),
+                    fetchGdoc(GdocsContentSource.Gdocs),
+                ])
                 if (!current.slug && current.content.title) {
                     current.slug = slugify(current.content.title)
                 }

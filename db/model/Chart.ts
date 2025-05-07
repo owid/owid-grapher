@@ -37,19 +37,21 @@ export const PUBLIC_TAG_PARENT_IDS = [
 export async function mapSlugsToIds(
     knex: db.KnexReadonlyTransaction
 ): Promise<{ [slug: string]: number }> {
-    const redirects = await db.knexRaw<{ chart_id: number; slug: string }>(
-        knex,
-        `SELECT chart_id, slug FROM chart_slug_redirects`
-    )
-    const rows = await db.knexRaw<{ id: number; slug: string }>(
-        knex,
-        `-- sql
-            SELECT c.id, cc.slug
-            FROM charts c
-            JOIN chart_configs cc ON cc.id = c.configId
-            WHERE cc.full ->> "$.isPublished" = "true"
-        `
-    )
+    const [redirects, rows] = await Promise.all([
+        db.knexRaw<{ chart_id: number; slug: string }>(
+            knex,
+            `SELECT chart_id, slug FROM chart_slug_redirects`
+        ),
+        db.knexRaw<{ id: number; slug: string }>(
+            knex,
+            `-- sql
+                SELECT c.id, cc.slug
+                FROM charts c
+                JOIN chart_configs cc ON cc.id = c.configId
+                WHERE cc.full ->> "$.isPublished" = "true"
+            `
+        ),
+    ])
 
     const slugToId: { [slug: string]: number } = {}
     for (const row of redirects) {
