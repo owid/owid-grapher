@@ -86,6 +86,9 @@ export async function runDetailsOnDemand() {
                 arrow: false,
                 theme: "light dod",
                 appendTo: document.body,
+                aria: {
+                    content: "labelledby",
+                },
             })
         }
     }
