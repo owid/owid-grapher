@@ -956,7 +956,11 @@ export class Grapher
     @computed get tableAfterColorAndSizeToleranceApplication(): OwidTable {
         let table = this.inputTable
 
-        if (this.isScatter && this.sizeColumnSlug) {
+        // don't rely on activeTab here to avoid circular dependencies downstream
+        const isScatter = this.chartTypes[0] === "ScatterPlot"
+        const isMarimekko = this.chartTypes[0] === "Marimekko"
+
+        if (isScatter && this.sizeColumnSlug) {
             const tolerance =
                 table.get(this.sizeColumnSlug)?.display?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
@@ -965,7 +969,7 @@ export class Grapher
             )
         }
 
-        if ((this.isScatter || this.isMarimekko) && this.colorColumnSlug) {
+        if ((isScatter || isMarimekko) && this.colorColumnSlug) {
             const tolerance =
                 table.get(this.colorColumnSlug)?.display?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
@@ -1775,7 +1779,7 @@ export class Grapher
         if (chartTypes.length <= 1) return chartTypes
 
         // find valid combination in a pre-defined list
-        const validChartTypes = findValidChartTypeCombination(chartTypes)
+        let validChartTypes = findValidChartTypeCombination(chartTypes)
 
         // if the given combination is not valid, then ignore all but the first chart type
         if (!validChartTypes) return chartTypes.slice(0, 1)
@@ -1784,6 +1788,16 @@ export class Grapher
         const isLineChart = validChartTypes[0] === "LineChart"
         if (isLineChart && this.hasProjectedData) {
             return ["LineChart"]
+        }
+
+        // line charts are not sensible for single-year data; to exclude the
+        // tab explicitly is necessary because for legacy reasons we have charts
+        // that are technically line charts but are displayed as discrete bar charts
+        const hasLineChart = validChartTypes.includes("LineChart")
+        if (hasLineChart && this.table.timeColumn.numUniqs < 2) {
+            validChartTypes = validChartTypes.filter(
+                (chartType) => chartType !== "LineChart"
+            )
         }
 
         return validChartTypes
@@ -1894,7 +1908,7 @@ export class Grapher
         // we don't have more than one distinct time point in our data, so it doesn't make sense to show a timeline
         if (this.times.length <= 1) return false
 
-        switch (this.tab) {
+        switch (this.activeTab) {
             // the map tab has its own `hideTimeline` option
             case "WorldMap":
                 return !this.map.hideTimeline
