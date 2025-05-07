@@ -400,9 +400,7 @@ describe("line chart to bar chart and bar chart race", () => {
     const grapher = new Grapher(TestGrapherConfig())
 
     it("can create a new line chart with different start and end times", () => {
-        expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.LineChart)
+        expect(grapher.activeChartType).toEqual(GRAPHER_CHART_TYPES.LineChart)
         expect(grapher.endHandleTimeBound).toBeGreaterThan(
             grapher.startHandleTimeBound
         )
@@ -412,15 +410,11 @@ describe("line chart to bar chart and bar chart race", () => {
         const grapher = new Grapher(TestGrapherConfig())
         const lineSeries = grapher.chartInstance.series
 
-        expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.LineChart)
+        expect(grapher.activeChartType).toEqual(GRAPHER_CHART_TYPES.LineChart)
 
         grapher.startHandleTimeBound = 2000
         grapher.endHandleTimeBound = 2000
-        expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.DiscreteBar)
+        expect(grapher.activeChartType).toEqual(GRAPHER_CHART_TYPES.DiscreteBar)
 
         it("still has a timeline even though its now a bar chart", () => {
             expect(grapher.hasTimeline).toBe(true)
@@ -454,17 +448,13 @@ describe("line chart to bar chart and bar chart race", () => {
         expect(grapher.startHandleTimeBound).not.toEqual(
             grapher.endHandleTimeBound
         )
-        expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.LineChart)
+        expect(grapher.activeChartType).toEqual(GRAPHER_CHART_TYPES.LineChart)
     })
 
     it("turns into a bar chart when constrained start & end handles are equal", () => {
         grapher.startHandleTimeBound = 5000
         grapher.endHandleTimeBound = Infinity
-        expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.DiscreteBar)
+        expect(grapher.activeChartType).toEqual(GRAPHER_CHART_TYPES.DiscreteBar)
     })
 })
 
