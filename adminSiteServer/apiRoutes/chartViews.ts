@@ -12,9 +12,9 @@ import {
     parseChartConfig,
     DbInsertChartView,
     ChartViewsTableName,
-    Base64String,
     ChartConfigsTableName,
     OwidGdocLinkType,
+    DbPlainUser,
     DbRawPostGdoc,
     DbRawImage,
     OwidGdocDataInsightContent,
@@ -42,6 +42,7 @@ import { Request } from "../authentication.js"
 import e from "express"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { Knex } from "knex"
+import { triggerStaticBuild } from "./routeUtils.js"
 
 const createPatchConfigAndQueryParamsForChartView = async (
     knex: db.KnexReadonlyTransaction,
@@ -239,16 +240,14 @@ export async function updateChartView(
     trx: db.KnexReadWriteTransaction
 ) {
     const id = expectInt(req.params.id)
+    const user: DbPlainUser = res.locals.user
     const rawConfig = req.body.config as GrapherInterface
     if (!rawConfig) {
         throw new JsonError("Invalid request", 400)
     }
 
-    const existingRow: Pick<
-        DbPlainChartView,
-        "chartConfigId" | "parentChartId"
-    > = await trx(ChartViewsTableName)
-        .select("parentChartId", "chartConfigId")
+    const existingRow = await trx<DbPlainChartView>(ChartViewsTableName)
+        .select("parentChartId", "chartConfigId", "name")
         .where({ id })
         .first()
 
@@ -265,7 +264,7 @@ export async function updateChartView(
 
     await updateChartConfigInDbAndR2(
         trx,
-        existingRow.chartConfigId as Base64String,
+        existingRow.chartConfigId,
         patchConfig,
         fullConfig
     )
@@ -275,9 +274,21 @@ export async function updateChartView(
         .where({ id })
         .update({
             updatedAt: new Date(),
-            lastEditedByUserId: res.locals.user.id,
+            lastEditedByUserId: user.id,
             queryParamsForParentChart: JSON.stringify(queryParams),
         })
+
+    const references = await getPublishedLinksTo(
+        trx,
+        [existingRow.name],
+        OwidGdocLinkType.ChartView
+    )
+    if (references.length > 0) {
+        await triggerStaticBuild(
+            user,
+            `Updating narrative chart ${existingRow.name}`
+        )
+    }
 
     return { success: true }
 }
