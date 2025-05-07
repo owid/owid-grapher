@@ -1706,8 +1706,8 @@ export class Grapher
             if (detail && detail.text) {
                 const lines = detail.text.split("\n")
                 const title = lines[0]
-                const description = lines.slice(1).join("\n")
-                text += `**${title}**\n\n${description}`
+                const description = lines.slice(2).join("\n")
+                text += `**${title}** ${description}`
             }
 
             // can't use the computed property here because Grapher might not currently be in static mode
