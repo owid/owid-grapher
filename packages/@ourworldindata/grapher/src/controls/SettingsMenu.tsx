@@ -85,7 +85,6 @@ export interface SettingsMenuManager
     isOnMapTab?: boolean
     isOnChartTab?: boolean
     isOnTableTab?: boolean
-    isLineChartThatTurnedIntoDiscreteBar?: boolean
 
     // linear/log scales
     yAxis: AxisConfig
@@ -131,7 +130,6 @@ export class SettingsMenu extends React.Component<{
             ].includes(this.chartType as any)
         )
             return false // We currently do not have these charts with log scale
-        if (this.manager.isLineChartThatTurnedIntoDiscreteBar) return false
         return this.manager.yAxis.canChangeScaleType
     }
 
