@@ -129,7 +129,11 @@ function JsonLdArticle({
         headline: gdoc.content.title,
         image: imageUrl ? [imageUrl] : [],
         datePublished: gdoc.publishedAt,
-        dateModified: gdoc.updatedAt,
+        // NOTE: We don't set dateModified to gdoc.updatedAt, because the
+        // semantics of these fields is different. gdoc.updatedAt is the time
+        // the gdoc row was updated in the database, even if the content hasn't
+        // changed and can be even earlier than gdoc.publishedAt for articles
+        // scheduled for publication into the future.
         author: makeJsonLdAuthors(baseUrl, gdoc),
     }
     return (
