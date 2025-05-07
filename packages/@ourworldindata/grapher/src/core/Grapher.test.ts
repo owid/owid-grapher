@@ -76,25 +76,39 @@ it("can get dimension slots", () => {
     expect(grapher.dimensionSlots.length).toBe(4)
 })
 
-it("an empty Grapher serializes to an object that includes only the schema", () => {
-    expect(new Grapher().toObject()).toEqual({
-        $schema: latestGrapherConfigSchema,
+describe("toObject", () => {
+    it("an empty Grapher serializes to an object that includes only the schema", () => {
+        expect(new Grapher().toObject()).toEqual({
+            $schema: latestGrapherConfigSchema,
+        })
     })
-})
 
-it("a bad chart type does not crash grapher", () => {
-    const input = {
-        chartTypes: ["fff" as any],
-    }
-    expect(new Grapher(input).toObject()).toEqual({
-        ...input,
-        $schema: latestGrapherConfigSchema,
+    it("a bad chart type does not crash grapher", () => {
+        const input = {
+            chartTypes: ["fff" as any],
+        }
+        expect(new Grapher(input).toObject()).toEqual({
+            ...input,
+            $schema: latestGrapherConfigSchema,
+        })
     })
-})
 
-it("does not preserve defaults in the object (except for the schema)", () => {
-    expect(new Grapher({ tab: GRAPHER_TAB_OPTIONS.chart }).toObject()).toEqual({
-        $schema: latestGrapherConfigSchema,
+    it("does not preserve defaults in the object (except for the schema)", () => {
+        expect(
+            new Grapher({ tab: GRAPHER_TAB_OPTIONS.chart }).toObject()
+        ).toEqual({ $schema: latestGrapherConfigSchema })
+    })
+
+    it("serialises the currently active chart tab", () => {
+        const grapher = new Grapher({
+            chartTypes: ["LineChart", "SlopeChart"],
+            tab: "slope",
+        })
+        expect(grapher.toObject()).toEqual({
+            $schema: latestGrapherConfigSchema,
+            chartTypes: ["LineChart", "SlopeChart"],
+            tab: "slope",
+        })
     })
 })
 

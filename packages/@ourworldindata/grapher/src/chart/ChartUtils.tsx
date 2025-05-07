@@ -13,6 +13,8 @@ import {
     GrapherChartType,
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_QUERY_PARAMS,
+    GrapherTabOption,
+    GRAPHER_TAB_OPTIONS,
     InteractionState,
     SeriesName,
     GrapherInterface,
@@ -188,6 +190,32 @@ export function mapChartTypeNameToQueryParam(
             return GRAPHER_TAB_QUERY_PARAMS["stacked-discrete-bar"]
         case GRAPHER_CHART_TYPES.Marimekko:
             return GRAPHER_TAB_QUERY_PARAMS.marimekko
+    }
+}
+
+export function mapTabOptionToChartTypeName(
+    chartTab: GrapherTabOption
+): GrapherChartType | undefined {
+    switch (chartTab) {
+        case GRAPHER_TAB_OPTIONS.line:
+            return GRAPHER_CHART_TYPES.LineChart
+        case GRAPHER_TAB_OPTIONS.slope:
+            return GRAPHER_CHART_TYPES.SlopeChart
+        default:
+            return undefined
+    }
+}
+
+export function mapChartTypeNameToTabOption(
+    chartType: GrapherChartType
+): GrapherTabOption {
+    switch (chartType) {
+        case GRAPHER_CHART_TYPES.LineChart:
+            return GRAPHER_TAB_OPTIONS.line
+        case GRAPHER_CHART_TYPES.SlopeChart:
+            return GRAPHER_TAB_OPTIONS.slope
+        default:
+            return GRAPHER_TAB_OPTIONS.chart
     }
 }
 

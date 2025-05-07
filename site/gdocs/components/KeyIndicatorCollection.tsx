@@ -30,6 +30,8 @@ const HEIGHT_ANIMATION_DURATION_IN_SECONDS = 0.4
 
 const tabIconMap: Record<GrapherTabOption, IconDefinition> = {
     [GRAPHER_TAB_OPTIONS.chart]: faChartLine,
+    [GRAPHER_TAB_OPTIONS.line]: faChartLine,
+    [GRAPHER_TAB_OPTIONS.slope]: faChartLine,
     [GRAPHER_TAB_OPTIONS.map]: faEarthAmericas,
     [GRAPHER_TAB_OPTIONS.table]: faTable,
 }

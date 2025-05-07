@@ -20,6 +20,15 @@ export const GRAPHER_CHART_TYPES = {
 export const ALL_GRAPHER_CHART_TYPES = Object.values(GRAPHER_CHART_TYPES)
 
 /**
+ * The different types of Grapher tabs
+ */
+export const GRAPHER_TAB_TYPES = {
+    table: "table",
+    map: "map",
+    chart: "chart",
+} as const
+
+/**
  * Grapher tab specified in the config that determines the default tab to show.
  * If `chart` is selected and Grapher has more than one chart tab, then the
  * first chart tab will be active.
@@ -28,6 +37,8 @@ export const GRAPHER_TAB_OPTIONS = {
     table: "table",
     map: "map",
     chart: "chart",
+    line: "line",
+    slope: "slope",
 } as const
 
 /**
