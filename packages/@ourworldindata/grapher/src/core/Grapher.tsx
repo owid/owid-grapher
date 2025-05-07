@@ -196,7 +196,6 @@ import {
     findStartTimeForSlopeChart,
     findValidChartTypeCombination,
     isChartTypeSupportedForSwitching,
-    isLegacyTabOption,
     isGrapherTabQueryParam,
     mapChartTypeNameToTabQueryParam,
     mapTabQueryParamToConfigOption,
@@ -652,11 +651,6 @@ export class Grapher
         this.timelineMaxTime = maxTimeBoundFromJSONOrPositiveInfinity(
             obj.timelineMaxTime
         )
-
-        // TODO: remove after removing legacy config options
-        if (obj.tab && isLegacyTabOption(obj.tab)) {
-            this.tab = mapTabQueryParamToConfigOption(obj.tab)
-        }
 
         // Todo: remove once we are more RAII.
         if (obj?.dimensions?.length)

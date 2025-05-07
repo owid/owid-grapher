@@ -31,8 +31,6 @@ import {
     GRAPHER_TIMELINE_CLASS,
     GRAPHER_SETTINGS_CLASS,
     validChartTypeCombinations,
-    GrapherLegacyTabName,
-    GRAPHER_LEGACY_TAB_NAMES,
     GrapherTabName,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
@@ -191,10 +189,6 @@ export function isGrapherTabQueryParam(
     candidate: string
 ): candidate is GrapherTabQueryParam {
     return GRAPHER_TAB_QUERY_PARAMS.includes(candidate as any)
-}
-
-export function isLegacyTabOption(tab: string): tab is GrapherLegacyTabName {
-    return GRAPHER_LEGACY_TAB_NAMES.includes(tab as any)
 }
 
 export function isChartTypeName(
