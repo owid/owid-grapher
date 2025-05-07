@@ -27,6 +27,7 @@ import { MarkdownTextWrap } from "@ourworldindata/components"
 import TextArea from "antd/es/input/TextArea.js"
 import { match } from "ts-pattern"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { extractDetailsFromSyntax } from "@ourworldindata/utils"
 
 type ValidPhrasingContent = Extract<
     PhrasingContent,
@@ -34,17 +35,29 @@ type ValidPhrasingContent = Extract<
 >
 
 function validateParagraphChildren(
-    children: Content[]
+    children: Content[],
+    dods: Record<string, DbPlainDod> | undefined
 ): children is ValidPhrasingContent[] {
     return children.every((child) => {
         if (child.type === "text") {
             return true
         }
         if (child.type === "link") {
-            return child && validateParagraphChildren(child.children)
+            const referencedDods = extractDetailsFromSyntax(child.url)
+            console.log("referencedDods", referencedDods)
+            console.log("dods", dods)
+            console.log("dods['la-nina']", dods?.["la-nina"])
+            const areAllReferencedDodsValid = referencedDods.every(
+                (dod) => dods && dods[dod]
+            )
+            return (
+                child &&
+                areAllReferencedDodsValid &&
+                validateParagraphChildren(child.children, dods)
+            )
         }
         if (child.type === "emphasis" || child.type === "strong") {
-            return validateParagraphChildren(child.children)
+            return validateParagraphChildren(child.children, dods)
         }
         if (child.type === "break") {
             return true
@@ -54,7 +67,10 @@ function validateParagraphChildren(
     })
 }
 
-function validateDodContent(content: string | undefined | null): boolean {
+function validateDodContent(
+    content: string | undefined | null,
+    dods: Record<string, DbPlainDod> | undefined
+): boolean {
     if (!content) {
         return true
     }
@@ -62,7 +78,7 @@ function validateDodContent(content: string | undefined | null): boolean {
     const isValid = ast.children.every((node) => {
         if (node.type === "paragraph") {
             const paragraphChildren = node.children
-            return validateParagraphChildren(paragraphChildren)
+            return validateParagraphChildren(paragraphChildren, dods)
         }
         if (node.type === "list") {
             return node.children.every((listItem) => {
@@ -72,7 +88,10 @@ function validateDodContent(content: string | undefined | null): boolean {
                             return false
                         }
                         const paragraphChildren = child.children
-                        return validateParagraphChildren(paragraphChildren)
+                        return validateParagraphChildren(
+                            paragraphChildren,
+                            dods
+                        )
                     })
                 }
                 return false
@@ -89,22 +108,25 @@ function InvalidDodMessage() {
         <div className="DodEditor__error">
             <strong>Invalid markdown</strong>
             Only basic text, **emphasis**, *strong*,
-            [links](https://example.org), and lists are supported.
+            [links](https://example.org), and lists are supported. Ensure you
+            don't have typos in any [nested dods](#dod:nested).
         </div>
     )
 }
 
 function DodEditor({
-    text,
+    dods,
     id,
     patchDodMutation,
+    text,
 }: {
-    text: string
+    dods: Record<string, DbPlainDod> | undefined
     id: number
     patchDodMutation: PatchDodMutationType
+    text: string
 }) {
     const [value, setValue] = useState(text)
-    const isValid = validateDodContent(value)
+    const isValid = validateDodContent(value, dods)
 
     return (
         <div className={cx("DodEditor", { "DodEditor--has-error": !isValid })}>
@@ -127,16 +149,18 @@ function DodEditor({
 
 function createColumns({
     deleteDodMutation,
-    patchDodMutation,
-    users,
+    dods,
     dodUsage,
+    patchDodMutation,
     setActiveDodForUsageModal,
+    users,
 }: {
     deleteDodMutation: DeleteDodMutationType
-    patchDodMutation: PatchDodMutationType
-    users: Record<string, DbPlainUser> | undefined
+    dods: Record<string, DbPlainDod> | undefined
     dodUsage: Record<string, DodUsageRecord[]> | undefined
+    patchDodMutation: PatchDodMutationType
     setActiveDodForUsageModal: (name: string) => void
+    users: Record<string, DbPlainUser> | undefined
 }): ColumnsType<DbPlainDod> {
     return [
         {
@@ -180,6 +204,7 @@ function createColumns({
                             text={content}
                             id={dod.id}
                             patchDodMutation={patchDodMutation}
+                            dods={dods}
                         />
                     </div>
                 )
@@ -286,7 +311,7 @@ async function fetchDods(admin: Admin) {
     const { dods } = await admin.getJSON<{
         dods: DbPlainDod[]
     }>("/api/dods.json")
-    return indexBy(dods, (d) => d.id)
+    return indexBy(dods, (d) => d.name)
 }
 
 async function fetchDodUsage(admin: Admin) {
@@ -346,10 +371,12 @@ function CreateDodModal({
     createDodMutation,
     isOpen,
     onClose,
+    dods,
 }: {
     createDodMutation: CreateDodMutationType
     isOpen: boolean
     onClose: () => void
+    dods: Record<string, DbPlainDod> | undefined
 }) {
     const [form] = Form.useForm()
     const [isFilled, setIsFilled] = useState(false)
@@ -364,7 +391,7 @@ function CreateDodModal({
     }, [form, values])
 
     useEffect(() => {
-        setIsContentValid(validateDodContent(values?.content))
+        setIsContentValid(validateDodContent(values?.content, dods))
     }, [values])
 
     return (
@@ -574,18 +601,20 @@ export function DodsIndexPage() {
     const columns = useMemo(
         () =>
             createColumns({
-                users,
-                dodUsage,
                 deleteDodMutation,
+                dods,
+                dodUsage,
                 patchDodMutation,
                 setActiveDodForUsageModal,
+                users,
             }),
         [
-            users,
-            dodUsage,
-            setActiveDodForUsageModal,
             deleteDodMutation,
+            dods,
+            dodUsage,
             patchDodMutation,
+            setActiveDodForUsageModal,
+            users,
         ]
     )
 
@@ -619,6 +648,7 @@ export function DodsIndexPage() {
                     createDodMutation={createDodMutation}
                     isOpen={isCreateDodModalOpen}
                     onClose={() => setIsCreateDodModalOpen(false)}
+                    dods={dods}
                 />
                 <DodUsageModal
                     dodUsage={dodUsage}
