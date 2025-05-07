@@ -95,6 +95,8 @@ type EntityRegionType =
     | AggregateSource // defined in the regions file, e.g. who or wb
     | CustomAggregateSource // hard-coded for now, see above
 
+// todo: touchups
+
 export interface EntitySelectorState {
     searchInput: string
     sortConfig: SortConfig
