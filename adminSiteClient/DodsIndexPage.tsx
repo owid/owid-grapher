@@ -135,7 +135,7 @@ function createColumns({
     deleteDodMutation: DeleteDodMutationType
     patchDodMutation: PatchDodMutationType
     users: Record<string, DbPlainUser> | undefined
-    dodUsage: Record<string, { usage: DodUsageRecord[] }> | undefined
+    dodUsage: Record<string, DodUsageRecord[]> | undefined
     setActiveDodForUsageModal: (name: string) => void
 }): ColumnsType<DbPlainDod> {
     return [
@@ -191,8 +191,8 @@ function createColumns({
             width: 220,
             sorter: (a, b) => {
                 if (!dodUsage) return 0
-                const aUsage = dodUsage?.[a.name]?.usage.length || 0
-                const bUsage = dodUsage?.[b.name]?.usage.length || 0
+                const aUsage = dodUsage?.[a.name]?.length || 0
+                const bUsage = dodUsage?.[b.name]?.length || 0
                 return aUsage - bUsage
             },
             key: "actions",
@@ -206,7 +206,7 @@ function createColumns({
                         </div>
                     )
                 }
-                const usage = dodUsage?.[dod.name]?.usage || []
+                const usage = dodUsage?.[dod.name] || []
 
                 return (
                     <div className="DodEditor__actions">
@@ -291,7 +291,7 @@ async function fetchDods(admin: Admin) {
 
 async function fetchDodUsage(admin: Admin) {
     const usageDictionary = await admin.getJSON<
-        Record<string, { usage: DodUsageRecord[] }>
+        Record<string, DodUsageRecord[]>
     >("/api/dods-usage.json")
 
     return usageDictionary
@@ -417,7 +417,7 @@ function DodUsageModal({
     activeDodForUsageModal,
     setActiveDodForUsageModal,
 }: {
-    dodUsage: Record<string, { usage: DodUsageRecord[] }> | undefined
+    dodUsage: Record<string, DodUsageRecord[]> | undefined
     activeDodForUsageModal: string | null
     setActiveDodForUsageModal: (name: string | null) => void
 }) {
@@ -426,7 +426,7 @@ function DodUsageModal({
     if (!activeDodUsage) return null
 
     const presentUsageTypes = new Set(
-        activeDodUsage.usage.map((dodUsageRecord) => dodUsageRecord.type)
+        activeDodUsage.map((dodUsageRecord) => dodUsageRecord.type)
     )
 
     const filtersToDisplay = DodUsageTypes.filter((dodUsageType) =>
@@ -445,13 +445,12 @@ function DodUsageModal({
             footer={null}
         >
             <Table
-                dataSource={activeDodUsage.usage}
-                rowKey={(x) => x.id}
+                dataSource={activeDodUsage}
                 columns={[
                     {
                         title: "Resource",
-                        dataIndex: "id",
-                        key: "id",
+                        dataIndex: "title",
+                        key: "title",
                         render: (_, dodUsageRecord: DodUsageRecord) => {
                             function makeUrlForUsageRecord(
                                 dodUsageRecord: DodUsageRecord
