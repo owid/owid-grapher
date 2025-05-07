@@ -68,11 +68,13 @@ export class DodsInAdmin1745521253422 implements MigrationInterface {
             CREATE INDEX idx_dod_links_dod_id ON dod_links(sourceId);
         `)
 
-        await db.knexReadWriteTransaction(
-            async (trx: db.KnexReadWriteTransaction) => {
-                await migrateDodGdocToDb(trx)
-            }
-        )
+        if (queryRunner.connection.options.database !== "graphertest") {
+            await db.knexReadWriteTransaction(
+                async (trx: db.KnexReadWriteTransaction) => {
+                    await migrateDodGdocToDb(trx)
+                }
+            )
+        }
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
