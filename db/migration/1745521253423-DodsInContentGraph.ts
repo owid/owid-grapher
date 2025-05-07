@@ -47,9 +47,11 @@ export class DodsInContentGraph1745521253423 implements MigrationInterface {
             MODIFY COLUMN linkType ENUM('gdoc','url','grapher','explorer','chart-view', 'dod') NOT NULL;
         `)
 
-        await db.knexReadWriteTransaction(async (trx) => {
-            await insertExistingGdocDodLinks(trx)
-        })
+        if (queryRunner.connection.options.database !== "graphertest") {
+            await db.knexReadWriteTransaction(async (trx) => {
+                await insertExistingGdocDodLinks(trx)
+            })
+        }
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
