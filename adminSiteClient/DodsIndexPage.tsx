@@ -392,7 +392,7 @@ function CreateDodModal({
 
     useEffect(() => {
         setIsContentValid(validateDodContent(values?.content, dods))
-    }, [values])
+    }, [dods, values])
 
     return (
         <Modal
