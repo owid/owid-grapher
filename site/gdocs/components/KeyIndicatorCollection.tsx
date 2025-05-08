@@ -17,7 +17,7 @@ import {
     GRAPHER_TAB_OPTIONS,
 } from "@ourworldindata/types"
 import { Url, urlToSlug, commafyNumber } from "@ourworldindata/utils"
-import { isGrapherTabOption } from "@ourworldindata/grapher"
+import { isValidTabQueryParam } from "@ourworldindata/grapher"
 
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"
@@ -246,7 +246,7 @@ function KeyIndicatorHeader({
 
     const { queryParams } = Url.fromURL(linkedChart.resolvedUrl)
     const tabFromQueryParams =
-        queryParams.tab && isGrapherTabOption(queryParams.tab)
+        queryParams.tab && isValidTabQueryParam(queryParams.tab)
             ? queryParams.tab
             : undefined
     const activeTab =

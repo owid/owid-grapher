@@ -110,6 +110,17 @@ describe("toObject", () => {
             tab: "slope",
         })
     })
+
+    it("doesn't serialise the default chart tab", () => {
+        const grapher = new Grapher({
+            chartTypes: ["LineChart", "SlopeChart"],
+            tab: "line",
+        })
+        expect(grapher.toObject()).toEqual({
+            $schema: latestGrapherConfigSchema,
+            chartTypes: ["LineChart", "SlopeChart"],
+        })
+    })
 })
 
 const unit = "% of children under 5"
@@ -156,6 +167,7 @@ const legacyConfig: Omit<LegacyGrapherInterface, "data"> &
             },
         ],
     ]),
+    hasMapTab: true,
     selectedEntityNames: ["Iceland", "Afghanistan"],
 }
 
@@ -295,6 +307,7 @@ const getGrapher = (): Grapher =>
         ]),
         minTime: -5000,
         maxTime: 5000,
+        hasMapTab: true,
     })
 
 function fromQueryParams(
@@ -314,6 +327,7 @@ function toQueryParams(
     const grapher = new Grapher({
         minTime: -5000,
         maxTime: 5000,
+        hasMapTab: true,
         map: { time: 5000 },
     })
     if (props) grapher.updateFromObject(props)
@@ -469,6 +483,7 @@ describe("urls", () => {
             slug: "foo",
             bakedGrapherURL: "/grapher",
             tab: GRAPHER_TAB_OPTIONS.map,
+            hasMapTab: true,
         })
         expect(grapher.embedUrl).toEqual("/grapher/foo?tab=map")
     })
