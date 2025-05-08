@@ -7,10 +7,10 @@ import { AppliedTopicFiltersList } from "./AppliedTopicFiltersList.js"
 import { DataCatalogResults } from "./DataCatalogResults.js"
 import { Searchbar } from "./Searchbar.js"
 import {
-    dataCatalogReducer,
+    searchReducer,
     createActions,
-    dataCatalogStateToUrl,
-    urlToDataCatalogState,
+    searchStateToUrl,
+    urlToSearchState,
 } from "./searchState.js"
 import {
     DataCatalogCache,
@@ -36,7 +36,7 @@ export const Search = ({
     tagGraph: TagGraphRoot
     searchClient: SearchClient
 }) => {
-    const [state, dispatch] = useReducer(dataCatalogReducer, initialState)
+    const [state, dispatch] = useReducer(searchReducer, initialState)
     const actions = createActions(dispatch)
     const [isLoading, setIsLoading] = useState(false)
     const [cache, setCache] = useState<DataCatalogCache>({
@@ -72,7 +72,7 @@ export const Search = ({
         [state.selectedCountryNames]
     )
 
-    const stateAsUrl = dataCatalogStateToUrl(state)
+    const stateAsUrl = searchStateToUrl(state)
     const cacheKey = shouldShowRibbons ? "ribbons" : "search"
     const currentResults = cache[cacheKey].get(stateAsUrl)
 
@@ -80,7 +80,7 @@ export const Search = ({
         // Reconstructing state from the `stateAsUrl` serialization to avoid a `state` dependency in this effect,
         // which would cause it to run on every state change (even no-ops)
         const url = Url.fromURL(stateAsUrl)
-        const state = urlToDataCatalogState(url)
+        const state = urlToSearchState(url)
         analytics.logDataCatalogSearch(state)
     }, [stateAsUrl])
 
@@ -114,7 +114,7 @@ export const Search = ({
     useEffect(() => {
         const handlePopState = () => {
             const url = Url.fromURL(window.location.href)
-            actions.setState(urlToDataCatalogState(url))
+            actions.setState(urlToSearchState(url))
         }
         window.addEventListener("popstate", handlePopState)
         return () => {
