@@ -1,6 +1,6 @@
 import { LongFormPage, PageOverrides } from "../site/LongFormPage.js"
 import { BlogIndexPage } from "../site/BlogIndexPage.js"
-import { DataCatalogPage } from "../site/DataCatalog/DataCatalogPage.js"
+import { DataCatalogPage } from "../site/search/SearchPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
 import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.js"
 import { DEPRECATEDSearchPage } from "../site/search/DEPRECATEDSearchPage.js"

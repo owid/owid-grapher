@@ -2,7 +2,7 @@ import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { SiteFooterContext, TagGraphRoot } from "@ourworldindata/utils"
-import { DataCatalogInstantSearchWrapper } from "./DataCatalog.js"
+import { DataCatalogInstantSearchWrapper } from "./Search.js"
 import { Html } from "../Html.js"
 
 declare global {
