@@ -1,7 +1,11 @@
 import urlParseLib from "url-parse"
 import { gdocUrlRegex, QueryParams } from "@ourworldindata/types"
 
-import { excludeUndefined, omitUndefinedValues } from "../Util.js"
+import {
+    detailOnDemandRegex,
+    excludeUndefined,
+    omitUndefinedValues,
+} from "../Util.js"
 
 import { queryParamsToStr, strToQueryParams } from "./UrlUtils.js"
 import { isShallowEqual } from "remeda"
@@ -132,6 +136,10 @@ export class Url {
 
     get isGrapher(): boolean {
         return !!(this.pathname && /^\/grapher\/[\w]+/.test(this.pathname))
+    }
+
+    get isDod(): boolean {
+        return !!(this.fullUrl && detailOnDemandRegex.test(this.fullUrl))
     }
 
     get isUpload(): boolean {
