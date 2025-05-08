@@ -1,9 +1,9 @@
 import { LongFormPage, PageOverrides } from "../site/LongFormPage.js"
 import { BlogIndexPage } from "../site/BlogIndexPage.js"
-import { DataCatalogPage } from "../site/DataCatalog/DataCatalogPage.js"
+import { DataCatalogPage } from "../site/search/SearchPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
 import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.js"
-import { SearchPage } from "../site/search/SearchPage.js"
+import { DEPRECATEDSearchPage } from "../site/search/_DEPRECATEDSearchPage.js"
 import NotFoundPage from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
 import { ExplorerIndexPage } from "../site/ExplorerIndexPage.js"
@@ -293,7 +293,7 @@ export const renderBlogByPageNum = async (
 }
 
 export const renderSearchPage = () =>
-    renderToHtmlPage(<SearchPage baseUrl={BAKED_BASE_URL} />)
+    renderToHtmlPage(<DEPRECATEDSearchPage baseUrl={BAKED_BASE_URL} />)
 
 export const renderNotFoundPage = () =>
     renderToHtmlPage(<NotFoundPage baseUrl={BAKED_BASE_URL} />)
