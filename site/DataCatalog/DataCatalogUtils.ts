@@ -6,7 +6,7 @@ import {
 import { getIndexName } from "../search/searchClient.js"
 import { ChartRecordType, SearchIndexName } from "../search/searchTypes.js"
 import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
-import { DataCatalogState } from "./DataCatalogState.js"
+import { DataCatalogState } from "../search/searchState.js"
 import { countriesByName, FuzzySearch, Region } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 

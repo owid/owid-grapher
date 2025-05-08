@@ -16,7 +16,7 @@ import {
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.js"
-import { ChartHit } from "../search/ChartHit.js"
+import { ChartHit } from "./ChartHit.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faArrowLeft,
@@ -45,7 +45,7 @@ import {
     querySearch,
     syncDataCatalogURL,
     useAutocomplete,
-} from "./DataCatalogUtils.js"
+} from "../DataCatalog/DataCatalogUtils.js"
 import {
     dataCatalogStateToUrl,
     getInitialDatacatalogState,
@@ -53,12 +53,12 @@ import {
     dataCatalogReducer,
     DataCatalogState,
     createActions,
-} from "./DataCatalogState.js"
+} from "./searchState.js"
 import {
     DataCatalogResultsSkeleton,
     DataCatalogRibbonViewSkeleton,
     LandingPageRefinementsHeading,
-} from "./DataCatalogSkeletons.js"
+} from "./SearchSkeletons.js"
 import { useMediaQuery } from "usehooks-ts"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"

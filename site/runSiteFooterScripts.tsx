@@ -35,7 +35,7 @@ import {
 } from "./ExplorerIndex.js"
 import { getInitialState } from "./cookiePreferences.js"
 import { CookiePreferencesManager } from "./CookiePreferencesManager.js"
-import { DataCatalogInstantSearchWrapper } from "./DataCatalog/DataCatalog.js"
+import { DataCatalogInstantSearchWrapper } from "./search/Search.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"

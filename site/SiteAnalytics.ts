@@ -1,6 +1,6 @@
 import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
 import type { SearchCategoryFilter } from "./search/searchTypes.js"
-import type { DataCatalogState } from "./DataCatalog/DataCatalogState.js"
+import type { DataCatalogState } from "./search/searchState.js"
 import type { IDataCatalogHit } from "./DataCatalog/DataCatalogUtils.js"
 import { set } from "@ourworldindata/utils"
 

@@ -1,6 +1,9 @@
 import { Url } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import { deserializeSet, serializeSet } from "./DataCatalogUtils.js"
+import {
+    deserializeSet,
+    serializeSet,
+} from "../DataCatalog/DataCatalogUtils.js"
 
 export type DataCatalogState = Readonly<{
     query: string
