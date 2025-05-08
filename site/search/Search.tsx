@@ -22,8 +22,8 @@ import {
     analytics,
     checkShouldShowRibbonView,
     getCountryData,
-    queryRibbons,
-    querySearch,
+    queryDataCatalogRibbons,
+    queryDataCatalogSearch,
     syncDataCatalogURL,
 } from "./searchUtils.js"
 
@@ -93,8 +93,8 @@ export const Search = ({
     useEffect(() => {
         async function fetchData() {
             const results = shouldShowRibbons
-                ? await queryRibbons(searchClient, state, tagGraph)
-                : await querySearch(searchClient, state)
+                ? await queryDataCatalogRibbons(searchClient, state, tagGraph)
+                : await queryDataCatalogSearch(searchClient, state)
             setCache((prevCache) => ({
                 ...prevCache,
                 [cacheKey]: prevCache[cacheKey].set(stateAsUrl, results as any),
