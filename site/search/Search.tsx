@@ -7,7 +7,6 @@ import { AppliedTopicFiltersList } from "./AppliedTopicFiltersList.js"
 import { DataCatalogResults } from "./DataCatalogResults.js"
 import { Searchbar } from "./Searchbar.js"
 import {
-    DataCatalogState,
     dataCatalogReducer,
     createActions,
     dataCatalogStateToUrl,
@@ -17,6 +16,7 @@ import {
     DataCatalogCache,
     DataCatalogRibbonResult,
     DataCatalogSearchResult,
+    SearchState,
 } from "./searchTypes.js"
 import {
     analytics,
@@ -32,7 +32,7 @@ export const Search = ({
     tagGraph,
     searchClient,
 }: {
-    initialState: DataCatalogState
+    initialState: SearchState
     tagGraph: TagGraphRoot
     searchClient: SearchClient
 }) => {

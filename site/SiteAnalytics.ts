@@ -2,8 +2,8 @@ import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
 import type {
     SearchCategoryFilter,
     IDataCatalogHit,
+    SearchState,
 } from "./search/searchTypes.js"
-import type { DataCatalogState } from "./search/searchState.js"
 import { set } from "@ourworldindata/utils"
 
 export class SiteAnalytics extends GrapherAnalytics {
@@ -88,7 +88,7 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logDataCatalogSearch(state: DataCatalogState) {
+    logDataCatalogSearch(state: SearchState) {
         this.logToGA({
             event: EventCategory.DataCatalogSearch,
             eventAction: "search",

@@ -153,3 +153,52 @@ export type DataCatalogCache = {
     ribbons: Map<string, DataCatalogRibbonResult[]>
     search: Map<string, DataCatalogSearchResult>
 }
+
+export type SearchState = Readonly<{
+    query: string
+    topics: Set<string>
+    selectedCountryNames: Set<string>
+    requireAllCountries: boolean
+    page: number
+}>
+type AddTopicAction = {
+    type: "addTopic"
+    topic: string
+}
+type RemoveTopicAction = {
+    type: "removeTopic"
+    topic: string
+}
+type SetQueryAction = {
+    type: "setQuery"
+    query: string
+}
+type AddCountryAction = {
+    type: "addCountry"
+    country: string
+}
+type RemoveCountryAction = {
+    type: "removeCountry"
+    country: string
+}
+type ToggleRequireAllCountriesAction = {
+    type: "toggleRequireAllCountries"
+}
+type SetStateAction = {
+    type: "setState"
+    state: SearchState
+}
+type SetPageAction = {
+    type: "setPage"
+    page: number
+}
+
+export type SearchAction =
+    | AddCountryAction
+    | AddTopicAction
+    | RemoveCountryAction
+    | RemoveTopicAction
+    | SetPageAction
+    | SetQueryAction
+    | SetStateAction
+    | ToggleRequireAllCountriesAction

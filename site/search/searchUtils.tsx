@@ -25,8 +25,8 @@ import {
     DataCatalogRibbonResult,
     DataCatalogSearchResult,
     SearchIndexName,
+    SearchState,
 } from "./searchTypes.js"
-import { DataCatalogState } from "./searchState.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
 /**
@@ -259,7 +259,7 @@ export function deserializeSet(str?: string): Set<string> {
 }
 
 export function dataCatalogStateToAlgoliaQueries(
-    state: DataCatalogState,
+    state: SearchState,
     topicNames: string[]
 ) {
     const countryFacetFilters = formatCountryFacetFilters(
@@ -280,7 +280,7 @@ export function dataCatalogStateToAlgoliaQueries(
     })
 }
 
-export function dataCatalogStateToAlgoliaQuery(state: DataCatalogState) {
+export function dataCatalogStateToAlgoliaQuery(state: SearchState) {
     const facetFilters = formatCountryFacetFilters(
         state.selectedCountryNames,
         state.requireAllCountries
@@ -325,7 +325,7 @@ export function formatAlgoliaSearchResponse(
 
 export async function queryRibbons(
     searchClient: SearchClient,
-    state: DataCatalogState,
+    state: SearchState,
     tagGraph: TagGraphRoot
 ): Promise<DataCatalogRibbonResult[]> {
     const topicsForRibbons = getTopicsForRibbons(state.topics, tagGraph)
@@ -342,7 +342,7 @@ export async function queryRibbons(
 
 export async function querySearch(
     searchClient: SearchClient,
-    state: DataCatalogState
+    state: SearchState
 ): Promise<DataCatalogSearchResult> {
     const searchParams = dataCatalogStateToAlgoliaQuery(state)
     return searchClient
