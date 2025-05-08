@@ -106,9 +106,11 @@ export {
     generateGrapherImageSrcSet,
     getChartTypeFromConfig,
     getChartTypeFromConfigAndQueryParams,
-    isGrapherTabOption,
+} from "./chart/ChartUtils"
+export {
+    isValidTabQueryParam,
     findPotentialChartTypeSiblings,
-} from "./chart/ChartUtils.js"
+} from "./chart/ChartTabs"
 export {
     renderGrapherIntoContainer,
     renderSingleGrapherOnGrapherPage,

@@ -6,7 +6,7 @@ import {
     SampleInlineDataExplorer,
 } from "./Explorer.sample.js"
 
-import { GRAPHER_TAB_OPTIONS } from "@ourworldindata/types"
+import { GRAPHER_TAB_CONFIG_OPTIONS } from "@ourworldindata/types"
 
 describe(Explorer, () => {
     it("preserves the current tab between explorer views", () => {
@@ -17,14 +17,14 @@ describe(Explorer, () => {
         explorer.onChangeChoice("Gas")("All GHGs (CO₂eq)")
 
         if (explorer.grapher?.grapherState)
-            explorer.grapher.grapherState.tab = GRAPHER_TAB_OPTIONS.table
+            explorer.grapher.grapherState.tab = GRAPHER_TAB_CONFIG_OPTIONS.table
         else throw Error("where's the grapher?")
         expect(explorer.queryParams.tab).toEqual("table")
 
         explorer.onChangeChoice("Gas")("CO₂")
         expect(explorer.queryParams.tab).toEqual("table")
 
-        explorer.grapher.grapherState.tab = GRAPHER_TAB_OPTIONS.chart
+        explorer.grapher.grapherState.tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
     })
 
     it("switches to first tab if current tab does not exist in new view", () => {
@@ -32,13 +32,13 @@ describe(Explorer, () => {
 
         expect(explorer.queryParams.tab).toBeUndefined()
         if (explorer.grapher?.grapherState)
-            explorer.grapher.grapherState.tab = GRAPHER_TAB_OPTIONS.map
+            explorer.grapher.grapherState.tab = GRAPHER_TAB_CONFIG_OPTIONS.map
         else throw Error("where's the grapher?")
         expect(explorer.queryParams.tab).toEqual("map")
 
         explorer.onChangeChoice("Gas")("All GHGs (CO₂eq)")
 
-        expect(explorer.grapher?.grapherState.tab).toEqual("chart")
+        expect(explorer.grapher?.grapherState.tab).toEqual("line")
         expect(explorer.queryParams.tab).toEqual(undefined)
     })
 

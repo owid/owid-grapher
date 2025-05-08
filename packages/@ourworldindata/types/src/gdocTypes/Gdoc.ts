@@ -1,6 +1,6 @@
 import {
     GrapherChartOrMapType,
-    GrapherTabOption,
+    GrapherTabConfigOption,
     RelatedChart,
 } from "../grapherTypes/GrapherTypes.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
@@ -57,7 +57,7 @@ export interface LinkedChart {
     subtitle?: string
     thumbnail?: string
     tags: string[]
-    tab?: GrapherTabOption
+    tab?: GrapherTabConfigOption
     indicatorId?: number // in case of a datapage
     archivedChartInfo?: ArchivedPageVersion | undefined
 }
