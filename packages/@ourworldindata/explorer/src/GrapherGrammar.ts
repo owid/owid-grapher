@@ -4,7 +4,7 @@ import {
     FacetAxisDomain,
     FacetStrategy,
     GRAPHER_CHART_TYPES,
-    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_CONFIG_OPTIONS,
     MissingDataStrategy,
     StackMode,
 } from "@ourworldindata/types"
@@ -97,7 +97,9 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         ...EnumCellDef,
         keyword: "tab",
         description: "Which tab to show by default",
-        terminalOptions: toTerminalOptions(Object.values(GRAPHER_TAB_OPTIONS)),
+        terminalOptions: toTerminalOptions(
+            Object.values(GRAPHER_TAB_CONFIG_OPTIONS)
+        ),
         toGrapherObject: (parsedValue) => ({ tab: parsedValue }),
     },
     xSlug: {
