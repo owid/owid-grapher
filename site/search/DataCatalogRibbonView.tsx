@@ -14,7 +14,6 @@ export const DataCatalogRibbonView = ({
     isLoading,
 }: {
     addTopic: (x: string) => void
-    removeTopic: (topic: string) => void
     results?: DataCatalogRibbonResult[]
     selectedCountries: Region[]
     topics: Set<string>

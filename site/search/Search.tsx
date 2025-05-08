@@ -158,7 +158,6 @@ export const Search = ({
                 <DataCatalogRibbonView
                     addTopic={actions.addTopic}
                     isLoading={isLoading}
-                    removeTopic={actions.removeTopic}
                     results={currentResults as DataCatalogRibbonResult[]}
                     selectedCountries={selectedCountries}
                     tagGraph={tagGraph}
