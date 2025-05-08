@@ -15,6 +15,10 @@ import { P, match } from "ts-pattern"
 
 export function getLinkType(urlString: string): ContentGraphLinkType {
     const url = Url.fromURL(urlString)
+    if (urlString.includes("#dod")) {
+        console.log("url.fullUrl", url.fullUrl)
+        console.log("url.isDod", url.isDod)
+    }
     if (url.isGoogleDoc) {
         return ContentGraphLinkType.Gdoc
     }
