@@ -8,6 +8,7 @@ import {
     gdocUrlRegex,
     Span,
     Url,
+    detailOnDemandRegex,
 } from "@ourworldindata/utils"
 import urlSlug from "url-slug"
 import { P, match } from "ts-pattern"
@@ -23,6 +24,9 @@ export function getLinkType(urlString: string): ContentGraphLinkType {
     if (url.isExplorer) {
         return ContentGraphLinkType.Explorer
     }
+    if (url.isDod) {
+        return ContentGraphLinkType.Dod
+    }
     return ContentGraphLinkType.Url
 }
 
@@ -37,6 +41,13 @@ export function getUrlTarget(urlString: string): string {
         if (gdocsMatch) {
             const [_, gdocId] = gdocsMatch
             return gdocId
+        }
+    }
+    if (url.isDod) {
+        const dodMatch = urlString.match(detailOnDemandRegex)
+        if (dodMatch) {
+            const [_, dodId] = dodMatch
+            return dodId
         }
     }
     if ((url.isGrapher || url.isExplorer) && url.slug) {
