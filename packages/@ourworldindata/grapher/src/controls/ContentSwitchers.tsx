@@ -7,6 +7,7 @@ import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
 import { GrapherTabName, GRAPHER_TAB_NAMES } from "@ourworldindata/types"
 import { chartIcons } from "./ChartIcons"
 import { TabLabel, Tabs } from "../tabs/Tabs.js"
+import { CHART_TYPE_LABEL } from "../chart/ChartTabs"
 
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabName[]
@@ -125,27 +126,5 @@ function makeTabLabelText(
     if (tab === GRAPHER_TAB_NAMES.Table) return "Table"
     if (tab === GRAPHER_TAB_NAMES.WorldMap) return "Map"
     if (!options.hasMultipleChartTypes) return "Chart"
-
-    switch (tab) {
-        case GRAPHER_TAB_NAMES.LineChart:
-            return "Line"
-        case GRAPHER_TAB_NAMES.SlopeChart:
-            return "Slope"
-
-        // chart type labels are preliminary
-        case GRAPHER_TAB_NAMES.ScatterPlot:
-            return "Scatter"
-        case GRAPHER_TAB_NAMES.StackedArea:
-            return "Stacked area"
-        case GRAPHER_TAB_NAMES.StackedBar:
-            return "Stacked bar"
-        case GRAPHER_TAB_NAMES.DiscreteBar:
-            return "Bar"
-        case GRAPHER_TAB_NAMES.StackedDiscreteBar:
-            return "Stacked bar"
-        case GRAPHER_TAB_NAMES.Marimekko:
-            return "Marimekko"
-        default:
-            return "Chart"
-    }
+    return CHART_TYPE_LABEL[tab]
 }
