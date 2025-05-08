@@ -199,6 +199,7 @@ import {
     findStartTimeForSlopeChart,
     findValidChartTypeCombination,
     isChartTab,
+    isChartTypeName,
     isMapTab,
     mapChartTypeNameToQueryParam,
     mapChartTypeNameToTabOption,
@@ -773,31 +774,71 @@ export class GrapherState {
             (time) => findClosestTime(this.times, time) ?? time
         ) as TimeBounds
     }
+    @computed private get shouldShowDiscreteBarWhenSingleTime(): boolean {
+        let { minTime, maxTime } = this
+
+        if (!this.validChartTypeSet.has(GRAPHER_CHART_TYPES.DiscreteBar))
+            return false
+
+        // If we have a time dimension but the timeline is hidden,
+        // we always want to use the authored `minTime` and `maxTime`,
+        // irrespective of the time range the user might have selected
+        // on the table tab
+        if (this.hasTimeDimensionButTimelineIsHidden) {
+            minTime = this.authorsVersion.minTime
+            maxTime = this.authorsVersion.maxTime
+        }
+
+        // This is the easy case: minTime and maxTime are the same, no need to do
+        // more fancy checks
+        if (minTime === maxTime) return true
+
+        // We can have cases where minTime = Infinity and/or maxTime = -Infinity,
+        // but still only a single year is selected.
+        // To check for that we need to look at the times array.
+        const times = this.table.timeColumn.uniqValues
+        const closestMinTime = findClosestTime(times, minTime ?? -Infinity)
+        const closestMaxTime = findClosestTime(times, maxTime ?? Infinity)
+        return closestMinTime !== undefined && closestMinTime === closestMaxTime
+    }
+
     @computed get activeTab(): GrapherTabName {
         if (this.tab === GRAPHER_TAB_OPTIONS.table)
             return GRAPHER_TAB_NAMES.Table
+
         if (this.tab === GRAPHER_TAB_OPTIONS.map)
             return GRAPHER_TAB_NAMES.WorldMap
-        if (this.chartTab) return this.chartTab
-        return this.chartType ?? GRAPHER_TAB_NAMES.LineChart
+
+        const activeTab =
+            this.chartTab ?? this.chartType ?? GRAPHER_TAB_NAMES.LineChart
+
+        // Switch to the discrete bar chart tab if we're on the line chart tab
+        // and only a single time is selected
+        if (
+            activeTab === GRAPHER_TAB_NAMES.LineChart &&
+            this.shouldShowDiscreteBarWhenSingleTime
+        ) {
+            return GRAPHER_TAB_NAMES.DiscreteBar
+        }
+
+        return activeTab
     }
     @computed get activeChartType(): GrapherChartType | undefined {
-        if (!this.isOnChartTab) return undefined
-        return this.activeTab as GrapherChartType
+        return isChartTypeName(this.activeTab) ? this.activeTab : undefined
     }
     @computed get hasChartTab(): boolean {
         return this.validChartTypes.length > 0
     }
     @computed get isOnChartTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.chart
+        return !this.isOnMapTab && !this.isOnTableTab
     }
 
     @computed get isOnMapTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.map
+        return this.activeTab === GRAPHER_TAB_NAMES.WorldMap
     }
 
     @computed get isOnTableTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.table
+        return this.activeTab === GRAPHER_TAB_NAMES.Table
     }
 
     @computed get isOnChartOrMapTab(): boolean {
@@ -1036,7 +1077,7 @@ export class GrapherState {
                     table.get(this.mapColumnSlug).tolerance
             )
 
-        if (this.isDiscreteBar || this.isMarimekko)
+        if (this.isOnDiscreteBarTab || this.isOnMarimekkoTab)
             return table.filterByTargetTimes(
                 [endTime],
                 table.get(this.yColumnSlugs[0]).tolerance
@@ -1320,12 +1361,7 @@ export class GrapherState {
     }
 
     @computed private get onlySingleTimeSelectionPossible(): boolean {
-        return (
-            this.isDiscreteBar ||
-            this.isStackedDiscreteBar ||
-            this.isOnMapTab ||
-            this.isMarimekko
-        )
+        return this.checkOnlySingleTimeSelectionPossible(this.activeTab)
     }
 
     @computed private get isSingleTimeSelectionActive(): boolean {
@@ -1378,6 +1414,28 @@ export class GrapherState {
         }
     }
 
+    @action.bound private ensureHandlesAreOnSameTime(): void {
+        if (this.areHandlesOnSameTime) return
+
+        this.timelineHandleTimeBounds = [
+            this.endHandleTimeBound,
+            this.endHandleTimeBound,
+        ]
+    }
+
+    @action.bound private ensureHandlesAreOnDifferentTimes(): void {
+        if (!this.areHandlesOnSameTime) return
+
+        if (this.startHandleTimeBound !== -Infinity) {
+            this.timelineHandleTimeBounds = [-Infinity, this.endHandleTimeBound]
+        } else {
+            this.timelineHandleTimeBounds = [
+                this.startHandleTimeBound,
+                Infinity,
+            ]
+        }
+    }
+
     @computed get entitySelector(): EntitySelector {
         const entitySelectorArray = this.isOnMapTab
             ? this.mapConfig.selection
@@ -1388,24 +1446,38 @@ export class GrapherState {
         })
     }
 
+    private checkOnlySingleTimeSelectionPossible = (
+        tabName: GrapherTabName
+    ): boolean => {
+        // Scatters aren't included here because although single-time selection
+        // is preferred, start and end time selection is still possible
+        return [
+            "WorldMap",
+            "DiscreteBar",
+            "StackedDiscreteBar",
+            "Marimekko",
+        ].includes(tabName)
+    }
+
+    private checkStartAndEndTimeSelectionPreferred = (
+        tabName: GrapherTabName
+    ): boolean => {
+        return [
+            "LineChart",
+            "SlopeChart",
+            "StackedArea",
+            "StackedBar",
+        ].includes(tabName)
+    }
+
     @action.bound private onChartSwitching(
-        oldTab: GrapherTabName,
+        _oldTab: GrapherTabName,
         newTab: GrapherTabName
     ): void {
-        // Switching from a line to a slope chart
-        if (
-            oldTab === GRAPHER_TAB_NAMES.LineChart &&
-            newTab === GRAPHER_TAB_NAMES.SlopeChart
-        ) {
-            // If the handles are on the same time, then set one of the handles
-            // to the start or end time so that the slope chart shows some data
-            if (this.areHandlesOnSameTime) {
-                if (this.startHandleTimeBound !== -Infinity) {
-                    this.startHandleTimeBound = -Infinity
-                } else {
-                    this.endHandleTimeBound = Infinity
-                }
-            }
+        if (this.checkOnlySingleTimeSelectionPossible(newTab)) {
+            this.ensureHandlesAreOnSameTime()
+        } else if (this.checkStartAndEndTimeSelectionPreferred(newTab)) {
+            this.ensureHandlesAreOnDifferentTimes()
         }
 
         // Switching to a slope chart
@@ -1752,21 +1824,28 @@ export class GrapherState {
     }
 
     @computed get validChartTypes(): GrapherChartType[] {
-        const { chartTypes } = this
+        // add a discrete bar chart tab if the grapher has a line chart
+        const chartTypeSet = new Set(this.chartTypes)
+        if (chartTypeSet.has(GRAPHER_CHART_TYPES.LineChart)) {
+            chartTypeSet.add(GRAPHER_CHART_TYPES.DiscreteBar)
+        }
 
         // all single-chart Graphers are valid
-        if (chartTypes.length <= 1) return chartTypes
+        if (chartTypeSet.size <= 1) return Array.from(chartTypeSet)
 
         // find valid combination in a pre-defined list
-        const validChartTypes = findValidChartTypeCombination(chartTypes)
+        const validChartTypes = findValidChartTypeCombination(chartTypeSet)
 
         // if the given combination is not valid, then ignore all but the first chart type
-        if (!validChartTypes) return chartTypes.slice(0, 1)
+        if (!validChartTypes) return this.chartTypes.slice(0, 1)
 
         // projected data is only supported for line charts
         const isLineChart = validChartTypes[0] === GRAPHER_CHART_TYPES.LineChart
         if (isLineChart && this.hasProjectedData) {
-            return [GRAPHER_CHART_TYPES.LineChart]
+            return [
+                GRAPHER_CHART_TYPES.LineChart,
+                GRAPHER_CHART_TYPES.DiscreteBar,
+            ]
         }
 
         return validChartTypes
@@ -1805,7 +1884,7 @@ export class GrapherState {
 
         return !!(
             !this.forceHideAnnotationFieldsInTitle?.entity &&
-            this.tab === GRAPHER_TAB_OPTIONS.chart &&
+            this.isOnChartTab &&
             (seriesStrategy !== SeriesStrategy.entity || !this.showLegend) &&
             selectedEntityNames.length === 1 &&
             (showEntityAnnotation ||
@@ -1876,23 +1955,20 @@ export class GrapherState {
         // we don't have more than one distinct time point in our data, so it doesn't make sense to show a timeline
         if (this.times.length <= 1) return false
 
-        switch (this.tab) {
+        switch (this.activeTab) {
             // the map tab has its own `hideTimeline` option
-            case GRAPHER_TAB_OPTIONS.map:
+            case GRAPHER_TAB_NAMES.WorldMap:
                 return !this.map.hideTimeline
 
-            // use the chart-level `hideTimeline` option
-            case GRAPHER_TAB_OPTIONS.chart:
-                return !this.hideTimeline
-
             // use the chart-level `hideTimeline` option for the table, with some exceptions
-            case GRAPHER_TAB_OPTIONS.table:
+            case GRAPHER_TAB_NAMES.Table:
                 // always show the timeline for charts that plot time on the x-axis
                 if (this.hasTimeDimension) return true
                 return !this.hideTimeline
 
+            // use the chart-level `hideTimeline` option
             default:
-                return false
+                return !this.hideTimeline
         }
     }
 
@@ -2198,6 +2274,9 @@ export class GrapherState {
     }
     @computed get hasSlopeChart(): boolean {
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.SlopeChart)
+    }
+    @computed get hasDiscreteBar(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.DiscreteBar)
     }
     @computed get supportsMultipleYColumns(): boolean {
         return !this.isScatter
