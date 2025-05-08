@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import cx from "classnames"
 import { Region } from "@ourworldindata/utils"
 import { ChartRecordType, IChartHit, SearchIndexName } from "./searchTypes.js"
-import { getEntityQueryStr, pickEntitiesForChartHit } from "./SearchUtils.js"
+import { getEntityQueryStr, pickEntitiesForChartHit } from "./searchUtils.js"
 import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     BAKED_BASE_URL,

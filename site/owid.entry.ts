@@ -9,7 +9,7 @@ import "./owid.scss"
 // from a very large icon down to a properly sized one a moment later."
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
-import { runSearchPage } from "./search/runSearchPage.js"
+import { DEPRECATEDrunSearchPage } from "./search/DEPRECATEDrunSearchPage.js"
 import { runNotFoundPage } from "./NotFoundPageMain.js"
 import { runFeedbackPage } from "./Feedback.js"
 import { runDonateForm } from "./runDonateForm.js"
@@ -28,7 +28,7 @@ declare let window: any
 window.Grapher = Grapher
 window.Explorer = Explorer
 window.CoreTable = CoreTable
-window.runSearchPage = runSearchPage
+window.runSearchPage = DEPRECATEDrunSearchPage
 window.runNotFoundPage = runNotFoundPage
 window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm

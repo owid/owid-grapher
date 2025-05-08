@@ -47,7 +47,7 @@ import {
 import { PreferenceType, getPreferenceValue } from "../cookiePreferences.js"
 import type { SearchResults as AlgoliaSearchResultsType } from "algoliasearch-helper"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import { extractRegionNamesFromSearchQuery } from "./SearchUtils.js"
+import { extractRegionNamesFromSearchQuery } from "./searchUtils.js"
 import { ChartHit } from "./ChartHit.js"
 import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
@@ -465,7 +465,7 @@ const SearchResults = (props: SearchResultsProps) => {
 }
 
 @observer
-export class InstantSearchContainer extends React.Component {
+export class DEPRECATEDInstantSearchContainer extends React.Component {
     searchClient: SearchClient
     categoryFilterContainerRef: React.RefObject<HTMLUListElement>
 
