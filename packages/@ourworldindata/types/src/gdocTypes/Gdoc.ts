@@ -12,7 +12,6 @@ import {
     EnrichedBlockWithParseErrors,
     OwidEnrichedGdocBlock,
     OwidRawGdocBlock,
-    RawBlockText,
     RefDictionary,
 } from "./ArchieMlComponents.js"
 import { MinimalTag } from "../dbTypes/Tags.js"
@@ -401,21 +400,6 @@ export enum GdocsContentSource {
 }
 
 export const DYNAMIC_COLLECTION_PAGE_CONTAINER_ID = "dynamic-collection-page"
-
-export type RawDetail = {
-    id: string
-    text: RawBlockText[]
-}
-
-export type DEPRECATED_EnrichedDetail = {
-    id: string
-    text: EnrichedBlockText[]
-} & EnrichedBlockWithParseErrors
-
-export type DEPRECATED_DetailDictionary = Record<
-    string,
-    DEPRECATED_EnrichedDetail
->
 
 export type EnrichedDetail = {
     id: string

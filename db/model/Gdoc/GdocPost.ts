@@ -3,7 +3,6 @@ import {
     OwidGdocPostInterface,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
-    ParseError,
     OwidGdocType,
     OwidEnrichedGdocBlock,
     RawBlockText,
@@ -11,20 +10,16 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocBaseInterface,
     excludeNullish,
-    DEPRECATED_DetailDictionary,
 } from "@ourworldindata/utils"
-import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 import {
     formatCitation,
     generateStickyNav,
     generateToc,
 } from "./archieToEnriched.js"
-import { ADMIN_BASE_URL } from "../../../settings/clientSettings.js"
-import { DEPRECATED_parseDetails, parseFaqs } from "./rawToEnriched.js"
+import { parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
 import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
-import { getGdocBaseObjectById } from "./GdocFactory.js"
 
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     content!: OwidGdocPostContent
@@ -171,41 +166,5 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         )
 
         this.relatedCharts = relatedCharts
-    }
-
-    /**
-     * Replaced by the dods admin, but needed for the migration
-     */
-    static async DEPRECATED_getDetailsOnDemandGdoc(
-        knex: KnexReadonlyTransaction
-    ): Promise<{
-        details: DEPRECATED_DetailDictionary
-        parseErrors: ParseError[]
-    }> {
-        if (!GDOCS_DETAILS_ON_DEMAND_ID) {
-            console.error(
-                "GDOCS_DETAILS_ON_DEMAND_ID unset. No details can be loaded"
-            )
-            return { details: {}, parseErrors: [] }
-        }
-        const gdoc = await getGdocBaseObjectById(
-            knex,
-            GDOCS_DETAILS_ON_DEMAND_ID,
-            false,
-            true
-        )
-
-        if (!gdoc || !("details" in gdoc.content)) {
-            return {
-                details: {},
-                parseErrors: [
-                    {
-                        message: `Details on demand document with id "${GDOCS_DETAILS_ON_DEMAND_ID}" isn't registered and/or published; or it does not contain a [.details] block. Please add it via ${ADMIN_BASE_URL}/admin/gdocs`,
-                    },
-                ],
-            }
-        }
-
-        return DEPRECATED_parseDetails(gdoc.content.details)
     }
 }

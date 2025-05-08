@@ -1,9 +1,89 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 import { enrichedBlocksToMarkdown } from "../model/Gdoc/enrichedToMarkdown.js"
 import { createLinkFromUrl } from "../model/Link.js"
-import { extractLinksFromMarkdown } from "@ourworldindata/utils"
+import {
+    EnrichedBlockText,
+    extractLinksFromMarkdown,
+    ParseError,
+} from "@ourworldindata/utils"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../settings/clientSettings.js"
-import { DEPRECATED_parseDetails } from "../model/Gdoc/rawToEnriched.js"
+import * as R from "remeda"
+import { EnrichedBlockWithParseErrors } from "@ourworldindata/types/dist/gdocTypes/ArchieMlComponents.js"
+import { parseText } from "../model/Gdoc/rawToEnriched.js"
+
+type DEPRECATED_EnrichedDetail = {
+    id: string
+    text: EnrichedBlockText[]
+} & EnrichedBlockWithParseErrors
+
+type DEPRECATED_DetailDictionary = Record<string, DEPRECATED_EnrichedDetail>
+
+function DEPRECATED_parseDetails(details: unknown): {
+    details: DEPRECATED_DetailDictionary
+    parseErrors: ParseError[]
+} {
+    if (!Array.isArray(details))
+        return {
+            details: {},
+            parseErrors: [
+                {
+                    message: `No details defined in document with id "${GDOCS_DETAILS_ON_DEMAND_ID}"`,
+                },
+            ],
+        }
+
+    function DEPRECATED_parseDetail(
+        detail: unknown
+    ): DEPRECATED_EnrichedDetail {
+        const createError = (
+            error: ParseError,
+            id: string = "",
+            text: EnrichedBlockText[] = []
+        ): DEPRECATED_EnrichedDetail => ({
+            id,
+            text,
+            parseErrors: [error],
+        })
+
+        if (!R.isPlainObject(detail))
+            return createError({
+                message: "Detail is not a plain-object and cannot be parsed",
+            })
+        if (typeof detail.id !== "string")
+            return createError({
+                message: "Detail does not have an id",
+            })
+        if (!Array.isArray(detail.text) || !detail.text.length)
+            return createError({
+                message: `Detail with id "${detail.id}" does not have any text`,
+            })
+
+        const enrichedText = detail.text.map(parseText)
+
+        return {
+            id: detail.id,
+            text: enrichedText,
+            parseErrors: [
+                ...enrichedText.flatMap((text) =>
+                    text.parseErrors.map((parseError) => ({
+                        ...parseError,
+                        message: `Text parse error in detail with id "${detail.id}": ${parseError.message}`,
+                    }))
+                ),
+            ],
+        }
+    }
+
+    const [enrichedDetails, detailsWithErrors] = R.partition(
+        details.map(DEPRECATED_parseDetail),
+        (detail) => !detail.parseErrors.length
+    )
+
+    return {
+        details: R.indexBy(enrichedDetails, (d) => d.id),
+        parseErrors: detailsWithErrors.flatMap((detail) => detail.parseErrors),
+    }
+}
 
 async function migrateDodGdocToDb(queryRunner: QueryRunner): Promise<void> {
     console.log("Migrating dods from gdoc to db...")
