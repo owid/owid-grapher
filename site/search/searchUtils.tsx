@@ -22,7 +22,6 @@ import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
 import { getIndexName } from "./searchClient.js"
 import { SearchClient } from "algoliasearch"
 import {
-    MultipleQueriesResponse,
     IDataCatalogHit,
     DataCatalogRibbonResult,
     DataCatalogSearchResult,
@@ -296,15 +295,21 @@ export const getFilterIcon = (filter: Filter) => {
         .otherwise(() => null)
 }
 
-export function dataCatalogStateToAlgoliaQueries(
+export async function queryDataCatalogRibbons(
+    searchClient: SearchClient,
     state: SearchState,
-    topicNames: string[]
-) {
+    tagGraph: TagGraphRoot
+): Promise<DataCatalogRibbonResult[]> {
+    const topicsForRibbons = getTopicsForRibbons(
+        getFilterNamesOfType(state.filters, FilterType.TOPIC),
+        tagGraph
+    )
+
     const countryFacetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         state.requireAllCountries
     )
-    return topicNames.map((topic) => {
+    const searchParams = topicsForRibbons.map((topic) => {
         const facetFilters = [[`tags:${topic}`], ...countryFacetFilters]
         return {
             indexName: CHARTS_INDEX,
@@ -316,9 +321,19 @@ export function dataCatalogStateToAlgoliaQueries(
             page: state.page < 0 ? 0 : state.page,
         }
     })
+
+    return searchClient.search<IDataCatalogHit>(searchParams).then((response) =>
+        response.results.map((res, i: number) => ({
+            ...(res as SearchResponse<IDataCatalogHit>),
+            title: topicsForRibbons[i],
+        }))
+    )
 }
 
-export function dataCatalogStateToAlgoliaQuery(state: SearchState) {
+export async function queryDataCatalogSearch(
+    searchClient: SearchClient,
+    state: SearchState
+): Promise<DataCatalogSearchResult> {
     const facetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         state.requireAllCountries
@@ -330,7 +345,7 @@ export function dataCatalogStateToAlgoliaQuery(state: SearchState) {
         )
     )
 
-    return [
+    const searchParams = [
         {
             indexName: CHARTS_INDEX,
             attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
@@ -344,56 +359,12 @@ export function dataCatalogStateToAlgoliaQuery(state: SearchState) {
             page: state.page < 0 ? 0 : state.page,
         },
     ]
-}
 
-export function formatAlgoliaRibbonsResponse(
-    response: MultipleQueriesResponse<IDataCatalogHit>,
-    ribbonTopics: string[]
-): DataCatalogRibbonResult[] {
-    return response.results.map((res, i: number) => ({
-        ...(res as SearchResponse<IDataCatalogHit>),
-        title: ribbonTopics[i],
-    }))
-}
-
-export function formatAlgoliaSearchResponse(
-    response: MultipleQueriesResponse<IDataCatalogHit>
-): DataCatalogSearchResult {
-    const result = response.results[0] as SearchResponse<IDataCatalogHit>
-    return result
-}
-
-/**
- * Async
- */
-export async function queryRibbons(
-    searchClient: SearchClient,
-    state: SearchState,
-    tagGraph: TagGraphRoot
-): Promise<DataCatalogRibbonResult[]> {
-    const topicsForRibbons = getTopicsForRibbons(
-        getFilterNamesOfType(state.filters, FilterType.TOPIC),
-        tagGraph
-    )
-    const searchParams = dataCatalogStateToAlgoliaQueries(
-        state,
-        topicsForRibbons
-    )
     return searchClient
         .search<IDataCatalogHit>(searchParams)
-        .then((response) =>
-            formatAlgoliaRibbonsResponse(response, topicsForRibbons)
+        .then(
+            (response) => response.results[0] as SearchResponse<IDataCatalogHit>
         )
-}
-
-export async function querySearch(
-    searchClient: SearchClient,
-    state: SearchState
-): Promise<DataCatalogSearchResult> {
-    const searchParams = dataCatalogStateToAlgoliaQuery(state)
-    return searchClient
-        .search<IDataCatalogHit>(searchParams)
-        .then(formatAlgoliaSearchResponse)
 }
 
 export function searchWithWords(
