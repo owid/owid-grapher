@@ -56,11 +56,9 @@ import {
     DataCatalogState,
     createActions,
 } from "./searchState.js"
-import {
-    DataCatalogResultsSkeleton,
-    DataCatalogRibbonViewSkeleton,
-    LandingPageRefinementsHeading,
-} from "./SearchSkeletons.js"
+import { SearchResultsSkeleton } from "./SearchResultsSkeleton.js"
+import { SearchRibbonViewSkeleton } from "./SearchRibbonViewSkeleton.js"
+import { SearchTopicRefinementsHeading } from "./SearchTopicRefinementsHeading.js"
 import { useMediaQuery } from "usehooks-ts"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -481,7 +479,7 @@ const DataCatalogRibbonView = ({
     isLoading: boolean
 }) => {
     if (isLoading) {
-        return <DataCatalogRibbonViewSkeleton topics={topics} />
+        return <SearchRibbonViewSkeleton topics={topics} />
     }
 
     const resultsSortedByHitCount = results?.sort((a, b) => b.nbHits - a.nbHits)
@@ -497,7 +495,7 @@ const DataCatalogRibbonView = ({
 
     return (
         <>
-            <LandingPageRefinementsHeading topics={topics} />
+            <SearchTopicRefinementsHeading topics={topics} />
             <TopicsRefinementList
                 topics={topics}
                 facets={ribbonFacets}
@@ -549,7 +547,7 @@ const DataCatalogResults = ({
     topics: Set<string>
     isLoading: boolean
 }) => {
-    if (isLoading) return <DataCatalogResultsSkeleton />
+    if (isLoading) return <SearchResultsSkeleton />
 
     const hits = results?.hits
     if (!hits || !hits.length) return <DataCatalogNoResults />
