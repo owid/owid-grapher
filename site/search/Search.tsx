@@ -36,16 +36,18 @@ import {
     useTriggerWhenClickOutside,
 } from "../hooks.js"
 import {
-    checkShouldShowRibbonView,
     DataCatalogCache,
     DataCatalogRibbonResult,
     DataCatalogSearchResult,
+} from "./searchTypes.js"
+import {
+    checkShouldShowRibbonView,
     getCountryData,
     queryRibbons,
     querySearch,
     syncDataCatalogURL,
     useAutocomplete,
-} from "../DataCatalog/DataCatalogUtils.js"
+} from "./searchUtils.js"
 import {
     dataCatalogStateToUrl,
     getInitialDatacatalogState,
