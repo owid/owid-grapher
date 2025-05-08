@@ -8,7 +8,7 @@ import {
     GrapherChartType,
     GrapherInterface,
     GRAPHER_CHART_TYPES,
-    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_CONFIG_OPTIONS,
     SortOrder,
 } from "@ourworldindata/types"
 import {
@@ -314,7 +314,7 @@ export function showChartType(chart: ChartListItem): string {
         ? _.startCase(GRAPHER_CHART_TYPES[chartType])
         : "Unknown"
 
-    if (chart.tab === GRAPHER_TAB_OPTIONS.map) {
+    if (chart.tab === GRAPHER_TAB_CONFIG_OPTIONS.map) {
         if (chart.hasChartTab) return `Map + ${displayType}`
         else return "Map"
     } else {
