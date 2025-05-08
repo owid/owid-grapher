@@ -1,9 +1,9 @@
 import * as React from "react"
 import {
-    areSetsEqual,
     Box,
     getCountryByName,
     getTimeDomainFromQueryString,
+    isSubsetOf,
     Url,
 } from "@ourworldindata/utils"
 import {
@@ -22,6 +22,7 @@ import {
     GRAPHER_MAP_TYPE,
     ColumnSlug,
     GrapherTabName,
+    ALL_GRAPHER_CHART_TYPES,
     GRAPHER_TAB_NAMES,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
@@ -203,6 +204,8 @@ export function mapTabOptionToChartTypeName(
             return GRAPHER_CHART_TYPES.LineChart
         case GRAPHER_TAB_OPTIONS.slope:
             return GRAPHER_CHART_TYPES.SlopeChart
+        case GRAPHER_TAB_OPTIONS["discrete-bar"]:
+            return GRAPHER_CHART_TYPES.DiscreteBar
         default:
             return undefined
     }
@@ -216,19 +219,32 @@ export function mapChartTypeNameToTabOption(
             return GRAPHER_TAB_OPTIONS.line
         case GRAPHER_CHART_TYPES.SlopeChart:
             return GRAPHER_TAB_OPTIONS.slope
+        case GRAPHER_CHART_TYPES.DiscreteBar:
+            return GRAPHER_TAB_OPTIONS["discrete-bar"]
         default:
             return GRAPHER_TAB_OPTIONS.chart
     }
 }
 
+export function isChartTypeName(
+    candidate: string
+): candidate is GrapherChartType {
+    return ALL_GRAPHER_CHART_TYPES.includes(candidate as any)
+}
+
+export function isGrapherTabOption(tab: string): tab is GrapherTabOption {
+    return Object.values(GRAPHER_TAB_OPTIONS).includes(tab as GrapherTabOption)
+}
+
 export function findValidChartTypeCombination(
-    chartTypes: GrapherChartType[]
+    chartTypeSet: Set<GrapherChartType>
 ): GrapherChartType[] | undefined {
-    const chartTypeSet = new Set(chartTypes)
     for (const validCombination of validChartTypeCombinations) {
         const validCombinationSet = new Set(validCombination)
-        if (areSetsEqual(chartTypeSet, validCombinationSet))
-            return validCombination
+        if (isSubsetOf(chartTypeSet, validCombinationSet))
+            return validCombination.filter((chartType) =>
+                chartTypeSet.has(chartType)
+            )
     }
     return undefined
 }
