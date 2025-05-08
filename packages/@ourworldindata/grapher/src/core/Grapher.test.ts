@@ -2,7 +2,7 @@ import { expect, it, describe } from "vitest"
 import {
     GRAPHER_CHART_TYPES,
     EntitySelectionMode,
-    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_CONFIG_OPTIONS,
     ScaleType,
     GrapherInterface,
     GrapherQueryParams,
@@ -98,7 +98,9 @@ describe("toObject", () => {
 
     it("does not preserve defaults in the object (except for the schema)", () => {
         expect(
-            new GrapherState({ tab: GRAPHER_TAB_OPTIONS.chart }).toObject()
+            new GrapherState({
+                tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
+            }).toObject()
         ).toEqual({ $schema: latestGrapherConfigSchema })
     })
 
@@ -111,6 +113,17 @@ describe("toObject", () => {
             $schema: latestGrapherConfigSchema,
             chartTypes: ["LineChart", "SlopeChart"],
             tab: "slope",
+        })
+    })
+
+    it("doesn't serialise the default chart tab", () => {
+        const grapher = new GrapherState({
+            chartTypes: ["LineChart", "SlopeChart"],
+            tab: "line",
+        })
+        expect(grapher.toObject()).toEqual({
+            $schema: latestGrapherConfigSchema,
+            chartTypes: ["LineChart", "SlopeChart"],
         })
     })
 })
@@ -149,7 +162,7 @@ const legacyConfig: Omit<LegacyGrapherInterface, "data"> = {
             },
         },
     ],
-
+    hasMapTab: true,
     selectedEntityNames: ["Iceland", "Afghanistan"],
 }
 
@@ -268,7 +281,7 @@ describe("hasTimeline", () => {
         grapher.hideTimeline = true
         grapher.chartTypes = [GRAPHER_CHART_TYPES.LineChart]
         expect(grapher.hasTimeline).toBeFalsy()
-        grapher.tab = GRAPHER_TAB_OPTIONS.map
+        grapher.tab = GRAPHER_TAB_CONFIG_OPTIONS.map
         expect(grapher.hasTimeline).toBeTruthy()
         grapher.map.hideTimeline = true
         expect(grapher.hasTimeline).toBeFalsy()
@@ -329,6 +342,7 @@ const getGrapher = (): GrapherState => {
         ],
         minTime: -5000,
         maxTime: 5000,
+        hasMapTab: true,
     })
     state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
         dataset,
@@ -355,6 +369,7 @@ function toQueryParams(
     const grapher = new GrapherState({
         minTime: -5000,
         maxTime: 5000,
+        hasMapTab: true,
         map: { time: 5000 },
     })
     if (props) grapher.updateFromObject(props)
@@ -509,7 +524,8 @@ describe("urls", () => {
             isPublished: true,
             slug: "foo",
             bakedGrapherURL: "/grapher",
-            tab: GRAPHER_TAB_OPTIONS.map,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            hasMapTab: true,
         })
         expect(grapher.embedUrl).toEqual("/grapher/foo?tab=map")
     })
@@ -596,7 +612,7 @@ describe("urls", () => {
     it("adds tab=chart to the URL if there is a single chart tab", () => {
         const grapher = new GrapherState({
             hasMapTab: true,
-            tab: GRAPHER_TAB_OPTIONS.map,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
             chartTypes: ["Marimekko"],
         })
         grapher.setTab(GRAPHER_TAB_NAMES.Marimekko)
@@ -610,7 +626,7 @@ describe("urls", () => {
                 GRAPHER_CHART_TYPES.SlopeChart,
             ],
             hasMapTab: true,
-            tab: GRAPHER_TAB_OPTIONS.map,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
         })
         grapher.setTab(GRAPHER_TAB_NAMES.LineChart)
         expect(grapher.changedParams.tab).toEqual("line")
@@ -942,7 +958,7 @@ describe("year parameter (applies to map only)", () => {
             })
             it(`encode ${test.name}`, () => {
                 const params = toQueryParams({
-                    tab: GRAPHER_TAB_OPTIONS.map,
+                    tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
                     map: { time: test.param },
                 })
                 expect(params.time).toEqual(test.query)
@@ -1008,7 +1024,7 @@ describe("year parameter (applies to map only)", () => {
                 it(`encode ${test.name}`, () => {
                     const grapher = getGrapher()
                     grapher.updateFromObject({
-                        tab: GRAPHER_TAB_OPTIONS.map,
+                        tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
                         map: { time: test.param },
                     })
                     const params = grapher.changedParams
@@ -1064,7 +1080,7 @@ it("considers map tolerance before using column tolerance", () => {
     const grapher = new GrapherState({
         table,
         ySlugs: "gdp",
-        tab: GRAPHER_TAB_OPTIONS.map,
+        tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
         hasMapTab: true,
         map: new MapConfig({ timeTolerance: 1, columnSlug: "gdp", time: 2002 }),
     })

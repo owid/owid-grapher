@@ -4,7 +4,7 @@ import {
     DimensionProperty,
     GrapherInterface,
     MapRegionName,
-    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_CONFIG_OPTIONS,
 } from "@ourworldindata/types"
 import {
     mergeGrapherConfigs,
@@ -243,14 +243,17 @@ describe(diffGrapherConfigs, () => {
     it("drops redundant entries", () => {
         expect(
             diffGrapherConfigs(
-                { tab: GRAPHER_TAB_OPTIONS.map },
-                { tab: GRAPHER_TAB_OPTIONS.map }
+                { tab: GRAPHER_TAB_CONFIG_OPTIONS.map },
+                { tab: GRAPHER_TAB_CONFIG_OPTIONS.map }
             )
         ).toEqual({})
         expect(
             diffGrapherConfigs(
-                { tab: GRAPHER_TAB_OPTIONS.chart, title: "Chart" },
-                { tab: GRAPHER_TAB_OPTIONS.chart, title: "Reference chart" }
+                { tab: GRAPHER_TAB_CONFIG_OPTIONS.chart, title: "Chart" },
+                {
+                    tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
+                    title: "Reference chart",
+                }
             )
         ).toEqual({ title: "Chart" })
     })
@@ -260,7 +263,7 @@ describe(diffGrapherConfigs, () => {
             diffGrapherConfigs(
                 {
                     title: "Chart",
-                    tab: GRAPHER_TAB_OPTIONS.chart,
+                    tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
                     map: {
                         region: MapRegionName.World,
                         hideTimeline: true,
@@ -268,7 +271,7 @@ describe(diffGrapherConfigs, () => {
                 },
                 {
                     title: "Reference chart",
-                    tab: GRAPHER_TAB_OPTIONS.chart,
+                    tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
                     map: {
                         region: MapRegionName.World,
                         hideTimeline: false,
@@ -279,14 +282,14 @@ describe(diffGrapherConfigs, () => {
         expect(
             diffGrapherConfigs(
                 {
-                    tab: GRAPHER_TAB_OPTIONS.chart,
+                    tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
                     map: {
                         region: MapRegionName.World,
                         hideTimeline: true,
                     },
                 },
                 {
-                    tab: GRAPHER_TAB_OPTIONS.chart,
+                    tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
                     map: {
                         region: MapRegionName.World,
                         hideTimeline: true,
@@ -300,11 +303,14 @@ describe(diffGrapherConfigs, () => {
         expect(
             diffGrapherConfigs(
                 {
-                    tab: GRAPHER_TAB_OPTIONS.chart,
+                    tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
                     title: "Chart",
                     subtitle: undefined,
                 },
-                { tab: GRAPHER_TAB_OPTIONS.chart, title: "Reference chart" }
+                {
+                    tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
+                    title: "Reference chart",
+                }
             )
         ).toEqual({ title: "Chart" })
     })
@@ -361,12 +367,12 @@ describe(diffGrapherConfigs, () => {
 
     it("is idempotent", () => {
         const config: GrapherInterface = {
-            tab: GRAPHER_TAB_OPTIONS.chart,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
             title: "Chart",
             subtitle: undefined,
         }
         const reference: GrapherInterface = {
-            tab: GRAPHER_TAB_OPTIONS.chart,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
             title: "Reference chart",
         }
         const diffedOnce = diffGrapherConfigs(config, reference)
@@ -378,12 +384,12 @@ describe(diffGrapherConfigs, () => {
 describe("diff+merge", () => {
     it("are consistent", () => {
         const config: GrapherInterface = {
-            tab: GRAPHER_TAB_OPTIONS.chart,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
             title: "Chart",
             subtitle: "Chart subtitle",
         }
         const reference: GrapherInterface = {
-            tab: GRAPHER_TAB_OPTIONS.chart,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
             title: "Reference chart",
         }
         const diffedAndMerged = mergeGrapherConfigs(
