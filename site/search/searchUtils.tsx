@@ -27,6 +27,7 @@ import {
     SearchIndexName,
 } from "./searchTypes.js"
 import { DataCatalogState } from "./searchState.js"
+import { SiteAnalytics } from "../SiteAnalytics.js"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -382,3 +383,4 @@ export function useAutocomplete(
 
     return [...countries, ...tags]
 }
+export const analytics = new SiteAnalytics()

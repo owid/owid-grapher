@@ -35,7 +35,7 @@ import {
 } from "./ExplorerIndex.js"
 import { getInitialState } from "./cookiePreferences.js"
 import { CookiePreferencesManager } from "./CookiePreferencesManager.js"
-import { DataCatalogInstantSearchWrapper } from "./search/Search.js"
+import { SearchInstantSearchWrapper } from "./search/SearchInstantSearchWrapper.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
@@ -51,7 +51,7 @@ function hydrateDataCatalogPage() {
     const root = document.getElementById("data-catalog-page-root")
     const tagGraph = window._OWID_TAG_GRAPH as TagGraphRoot
     if (root) {
-        hydrate(<DataCatalogInstantSearchWrapper tagGraph={tagGraph} />, root)
+        hydrate(<SearchInstantSearchWrapper tagGraph={tagGraph} />, root)
     }
 }
 

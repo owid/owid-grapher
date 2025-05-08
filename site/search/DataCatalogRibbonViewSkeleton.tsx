@@ -2,7 +2,7 @@ import cx from "classnames"
 import { SearchTopicRefinementsHeading } from "./SearchTopicRefinementsHeading.js"
 import { ChartSkeleton } from "./ChartSkeleton.js"
 
-export const SearchRibbonViewSkeleton = ({
+export const DataCatalogRibbonViewSkeleton = ({
     topics,
 }: {
     topics: Set<string>
