@@ -150,6 +150,7 @@ properties:
             - table
             - line
             - slope
+            - discrete-bar
     matchingEntitiesOnly:
         type: boolean
         default: false
