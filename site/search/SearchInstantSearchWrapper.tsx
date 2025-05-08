@@ -4,7 +4,7 @@ import {
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.js"
 import { Search } from "./Search.js"
-import { getInitialDatacatalogState } from "./searchState.js"
+import { getInitialSearchState } from "./searchState.js"
 import algoliasearch from "algoliasearch"
 
 export const SearchInstantSearchWrapper = ({
@@ -13,7 +13,7 @@ export const SearchInstantSearchWrapper = ({
     tagGraph: TagGraphRoot
 }) => {
     const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
-    const initialState = getInitialDatacatalogState()
+    const initialState = getInitialSearchState()
 
     return (
         <Search
