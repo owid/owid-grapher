@@ -6,7 +6,7 @@ import {
 } from "@ourworldindata/core-table"
 
 it("updates the selection based on the active tab", () => {
-    const grapher = new Grapher()
+    const grapher = new Grapher({ hasMapTab: true })
 
     // updates the chart selection when shown next to the chart
     grapher.entitySelector.onChange("Italy")
