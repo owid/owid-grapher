@@ -3,18 +3,14 @@ import {
     Box,
     getCountryByName,
     getTimeDomainFromQueryString,
-    isSubsetOf,
     Url,
 } from "@ourworldindata/utils"
 import {
     SeriesStrategy,
     EntityName,
-    GrapherTabQueryParam,
     GrapherChartType,
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_QUERY_PARAMS,
-    GrapherTabOption,
-    GRAPHER_TAB_OPTIONS,
     InteractionState,
     SeriesName,
     GrapherInterface,
@@ -22,7 +18,6 @@ import {
     GRAPHER_MAP_TYPE,
     ColumnSlug,
     GrapherTabName,
-    ALL_GRAPHER_CHART_TYPES,
     GRAPHER_TAB_NAMES,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
@@ -32,10 +27,13 @@ import {
     GRAPHER_SIDE_PANEL_CLASS,
     GRAPHER_TIMELINE_CLASS,
     GRAPHER_SETTINGS_CLASS,
-    validChartTypeCombinations,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import {
+    isValidTabQueryParam,
+    mapTabQueryParamToChartTypeName,
+} from "./ChartTabs"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
@@ -148,112 +146,6 @@ export function isTargetOutsideElement(
     )
 }
 
-export function mapQueryParamToChartTypeName(
-    chartTab: string
-): GrapherChartType | undefined {
-    switch (chartTab) {
-        case GRAPHER_TAB_QUERY_PARAMS.line:
-            return GRAPHER_CHART_TYPES.LineChart
-        case GRAPHER_TAB_QUERY_PARAMS.slope:
-            return GRAPHER_CHART_TYPES.SlopeChart
-        case GRAPHER_TAB_QUERY_PARAMS.scatter:
-            return GRAPHER_CHART_TYPES.ScatterPlot
-        case GRAPHER_TAB_QUERY_PARAMS["stacked-area"]:
-            return GRAPHER_CHART_TYPES.StackedArea
-        case GRAPHER_TAB_QUERY_PARAMS["stacked-bar"]:
-            return GRAPHER_CHART_TYPES.StackedBar
-        case GRAPHER_TAB_QUERY_PARAMS["discrete-bar"]:
-            return GRAPHER_CHART_TYPES.DiscreteBar
-        case GRAPHER_TAB_QUERY_PARAMS["stacked-discrete-bar"]:
-            return GRAPHER_CHART_TYPES.StackedDiscreteBar
-        case GRAPHER_TAB_QUERY_PARAMS.marimekko:
-            return GRAPHER_CHART_TYPES.Marimekko
-        default:
-            return undefined
-    }
-}
-
-export function mapChartTypeNameToQueryParam(
-    chartType: GrapherChartType
-): GrapherTabQueryParam {
-    switch (chartType) {
-        case GRAPHER_CHART_TYPES.LineChart:
-            return GRAPHER_TAB_QUERY_PARAMS.line
-        case GRAPHER_CHART_TYPES.SlopeChart:
-            return GRAPHER_TAB_QUERY_PARAMS.slope
-        case GRAPHER_CHART_TYPES.ScatterPlot:
-            return GRAPHER_TAB_QUERY_PARAMS.scatter
-        case GRAPHER_CHART_TYPES.StackedArea:
-            return GRAPHER_TAB_QUERY_PARAMS["stacked-area"]
-        case GRAPHER_CHART_TYPES.StackedBar:
-            return GRAPHER_TAB_QUERY_PARAMS["stacked-bar"]
-        case GRAPHER_CHART_TYPES.DiscreteBar:
-            return GRAPHER_TAB_QUERY_PARAMS["discrete-bar"]
-        case GRAPHER_CHART_TYPES.StackedDiscreteBar:
-            return GRAPHER_TAB_QUERY_PARAMS["stacked-discrete-bar"]
-        case GRAPHER_CHART_TYPES.Marimekko:
-            return GRAPHER_TAB_QUERY_PARAMS.marimekko
-    }
-}
-
-export function mapTabOptionToChartTypeName(
-    chartTab: GrapherTabOption
-): GrapherChartType | undefined {
-    switch (chartTab) {
-        case GRAPHER_TAB_OPTIONS.line:
-            return GRAPHER_CHART_TYPES.LineChart
-        case GRAPHER_TAB_OPTIONS.slope:
-            return GRAPHER_CHART_TYPES.SlopeChart
-        case GRAPHER_TAB_OPTIONS["discrete-bar"]:
-            return GRAPHER_CHART_TYPES.DiscreteBar
-        default:
-            return undefined
-    }
-}
-
-export function mapChartTypeNameToTabOption(
-    chartType: GrapherChartType
-): GrapherTabOption {
-    switch (chartType) {
-        case GRAPHER_CHART_TYPES.LineChart:
-            return GRAPHER_TAB_OPTIONS.line
-        case GRAPHER_CHART_TYPES.SlopeChart:
-            return GRAPHER_TAB_OPTIONS.slope
-        case GRAPHER_CHART_TYPES.DiscreteBar:
-            return GRAPHER_TAB_OPTIONS["discrete-bar"]
-        default:
-            return GRAPHER_TAB_OPTIONS.chart
-    }
-}
-
-export function isChartTypeName(
-    candidate: string
-): candidate is GrapherChartType {
-    return ALL_GRAPHER_CHART_TYPES.includes(candidate as any)
-}
-
-export function isGrapherTabOption(tab: string): tab is GrapherTabOption {
-    return Object.values(GRAPHER_TAB_OPTIONS).includes(tab as GrapherTabOption)
-}
-
-export function findPotentialChartTypeSiblings(
-    chartTypeSet: Set<GrapherChartType>
-): GrapherChartType[] | undefined {
-    for (const validCombination of validChartTypeCombinations) {
-        const validCombinationSet = new Set(validCombination)
-        if (isSubsetOf(chartTypeSet, validCombinationSet))
-            return validCombination
-    }
-    return undefined
-}
-
-export function findValidChartTypeCombination(
-    chartTypeSet: Set<GrapherChartType>
-): GrapherChartType[] | undefined {
-    const validCombination = findPotentialChartTypeSiblings(chartTypeSet)
-    return validCombination?.filter((chartType) => chartTypeSet.has(chartType))
-}
-
 export function getHoverStateForSeries(
     series: ChartSeries,
     props: {
@@ -357,30 +249,29 @@ export function getChartTypeFromConfigAndQueryParams(
 ): GrapherChartOrMapType | undefined {
     // If the tab query parameter is set, use it to determine the chart type
     const tab = queryParams?.get("tab")
-    if (tab) {
+    if (tab && isValidTabQueryParam(tab)) {
+        // Handle cases where tab is set to 'chart', 'map' or 'table'
+        if (tab === GRAPHER_TAB_QUERY_PARAMS.table) return undefined
+        if (tab === GRAPHER_TAB_QUERY_PARAMS.map) return GRAPHER_MAP_TYPE
+        if (tab === GRAPHER_TAB_QUERY_PARAMS.chart) {
+            const chartType =
+                getChartTypeFromConfigField(chartConfig.chartTypes) ??
+                GRAPHER_CHART_TYPES.LineChart
+            return maybeLineChartThatTurnedIntoDiscreteBar(
+                chartType,
+                chartConfig,
+                queryParams
+            )
+        }
+
         // Handle cases where tab is set to 'line' or 'slope'
-        const chartType = mapQueryParamToChartTypeName(tab)
+        const chartType = mapTabQueryParamToChartTypeName(tab)
         if (chartType)
             return maybeLineChartThatTurnedIntoDiscreteBar(
                 chartType,
                 chartConfig,
                 queryParams
             )
-
-        // Handle cases where tab is set to 'chart', 'map' or 'table'
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.table) return undefined
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.map) return GRAPHER_MAP_TYPE
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.chart) {
-            const chartType = getChartTypeFromConfigField(
-                chartConfig.chartTypes
-            )
-            if (chartType)
-                return maybeLineChartThatTurnedIntoDiscreteBar(
-                    chartType,
-                    chartConfig,
-                    queryParams
-                )
-        }
     }
 
     // If the chart has a map tab and it's the default tab, use the map type

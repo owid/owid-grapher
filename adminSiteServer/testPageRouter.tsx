@@ -26,11 +26,11 @@ import {
     DbRawChartConfig,
     DbPlainChart,
     EntitySelectionMode,
-    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_CONFIG_OPTIONS,
     StackMode,
     parseChartConfig,
     GRAPHER_MAP_TYPE,
-    GrapherTabOption,
+    GrapherTabConfigOption,
     GrapherChartOrMapType,
 } from "@ourworldindata/types"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
@@ -101,7 +101,7 @@ interface EmbedTestPageQueryParams {
     readonly perPage?: string
     readonly page?: string
     readonly random?: string
-    readonly tab?: GrapherTabOption
+    readonly tab?: GrapherTabConfigOption
     readonly type?: GrapherChartOrMapType
     readonly logLinear?: string
     readonly comparisonLines?: string
@@ -151,12 +151,12 @@ async function propsFromQueryParams(
     if (params.type) {
         if (params.type === GRAPHER_MAP_TYPE) {
             query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
-            tab ||= GRAPHER_TAB_OPTIONS.map
+            tab ||= GRAPHER_TAB_CONFIG_OPTIONS.map
         } else {
             query = query.andWhereRaw(`cc.chartType = :type`, {
                 type: params.type,
             })
-            tab ||= GRAPHER_TAB_OPTIONS.chart
+            tab ||= GRAPHER_TAB_CONFIG_OPTIONS.chart
         }
     }
 
@@ -164,26 +164,26 @@ async function propsFromQueryParams(
         query = query.andWhereRaw(
             `cc.full->>'$.yAxis.canChangeScaleType' = "true" OR cc.full->>'$.xAxis.canChangeScaleType'  = "true"`
         )
-        tab = GRAPHER_TAB_OPTIONS.chart
+        tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
     }
 
     if (params.comparisonLines) {
         query = query.andWhereRaw(
             `cc.full->'$.comparisonLines[0].yEquals' != ''`
         )
-        tab = GRAPHER_TAB_OPTIONS.chart
+        tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
     }
 
     if (params.stackMode) {
         query = query.andWhereRaw(`cc.full->'$.stackMode' = :stackMode`, {
             stackMode: params.stackMode,
         })
-        tab = GRAPHER_TAB_OPTIONS.chart
+        tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
     }
 
     if (params.relativeToggle) {
         query = query.andWhereRaw(`cc.full->>'$.hideRelativeToggle' = "false"`)
-        tab = GRAPHER_TAB_OPTIONS.chart
+        tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
     }
 
     if (params.categoricalLegend) {
@@ -193,7 +193,7 @@ async function propsFromQueryParams(
         query = query.andWhereRaw(
             `json_length(cc.full->'$.map.colorScale.customCategoryColors') > 1`
         )
-        tab = GRAPHER_TAB_OPTIONS.map
+        tab = GRAPHER_TAB_CONFIG_OPTIONS.map
     }
 
     if (params.mixedTimeTypes) {
@@ -233,9 +233,9 @@ async function propsFromQueryParams(
         query = query.andWhereRaw(`charts.id IN (${params.ids})`)
     }
 
-    if (tab === GRAPHER_TAB_OPTIONS.map) {
+    if (tab === GRAPHER_TAB_CONFIG_OPTIONS.map) {
         query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
-    } else if (tab === GRAPHER_TAB_OPTIONS.chart) {
+    } else if (tab === GRAPHER_TAB_CONFIG_OPTIONS.chart) {
         query = query.andWhereRaw(`cc.chartType IS NOT NULL`)
     }
 
@@ -650,7 +650,7 @@ function EmbedVariantsTestPage(
 
 function ColorSchemesTestPage(props: {
     slug: string
-    tab: GrapherTabOption | undefined
+    tab: GrapherTabConfigOption | undefined
 }) {
     const style = `
         html, body {
@@ -783,7 +783,7 @@ getPlainRouteWithROTransaction(
     "/colorSchemes",
     async (req, res, _trx) => {
         const slug = req.query.slug as string | undefined
-        const tab = req.query.tab as GrapherTabOption | undefined
+        const tab = req.query.tab as GrapherTabConfigOption | undefined
 
         if (!slug) {
             res.send("No slug provided")
