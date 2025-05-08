@@ -3,7 +3,7 @@ import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { Html } from "../Html.js"
 
-export const SearchPage = (props: { baseUrl: string }) => {
+export const DEPRECATEDSearchPage = (props: { baseUrl: string }) => {
     const { baseUrl } = props
     return (
         <Html>
