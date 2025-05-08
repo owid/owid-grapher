@@ -3,7 +3,7 @@ import { match } from "ts-pattern"
 import { deserializeSet, serializeSet } from "./searchUtils.js"
 import { SearchState, SearchAction } from "./searchTypes.js"
 
-export function dataCatalogReducer(
+export function searchReducer(
     state: SearchState,
     action: SearchAction
 ): SearchState {
@@ -71,7 +71,7 @@ export function createActions(dispatch: (action: SearchAction) => void) {
     }
 }
 
-export function getInitialDatacatalogState(): SearchState {
+export function getInitialSearchState(): SearchState {
     if (typeof window === "undefined")
         return {
             query: "",
@@ -82,10 +82,10 @@ export function getInitialDatacatalogState(): SearchState {
         }
 
     const url = Url.fromURL(window.location.href)
-    return urlToDataCatalogState(url)
+    return urlToSearchState(url)
 }
 
-export function urlToDataCatalogState(url: Url): SearchState {
+export function urlToSearchState(url: Url): SearchState {
     return {
         query: url.queryParams.q || "",
         topics: deserializeSet(url.queryParams.topics),
@@ -95,7 +95,7 @@ export function urlToDataCatalogState(url: Url): SearchState {
     }
 }
 
-export function dataCatalogStateToUrl(state: SearchState) {
+export function searchStateToUrl(state: SearchState) {
     let url = Url.fromURL(
         typeof window === "undefined" ? "" : window.location.href
     )
