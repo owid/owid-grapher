@@ -1,5 +1,4 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import * as db from "../db.js"
 import { gdocFromJSON } from "../model/Gdoc/GdocFactory.js"
 import {
     ContentGraphLinkType,
@@ -7,13 +6,21 @@ import {
 } from "@ourworldindata/types"
 
 async function insertExistingGdocDodLinks(
-    trx: db.KnexReadWriteTransaction
+    queryRunner: QueryRunner
 ): Promise<void> {
     console.log("Inserting preexisting dod links")
     console.log("Getting published gdocs...")
-    const gdocs = await db
-        .getPublishedGdocsWithTags(trx)
-        .then((gdocs) => gdocs.map(gdocFromJSON))
+    const gdocs = await queryRunner
+        .query(
+            `-- sql
+            SELECT id, content FROM posts_gdocs
+            WHERE published = 1`
+        )
+        .then((rows) =>
+            rows.map((row: { id: string; content: string }) =>
+                gdocFromJSON(row)
+            )
+        )
     console.log("Getting published gdocs... done")
     console.log(`Extracting dod links from ${gdocs.length} gdocs...`)
     const dodLinks: DbInsertPostGdocLink[] = []
@@ -21,7 +28,7 @@ async function insertExistingGdocDodLinks(
         for (const link of gdoc.links) {
             if (link.linkType === "dod") {
                 dodLinks.push({
-                    componentType: "dod",
+                    componentType: "span-dod",
                     hash: "",
                     linkType: ContentGraphLinkType.Dod,
                     queryString: "",
@@ -35,7 +42,24 @@ async function insertExistingGdocDodLinks(
     console.log(`Extracting dod links from ${gdocs.length} gdocs... done`)
 
     console.log(`Inserting ${dodLinks.length} dod links...`)
-    await trx("posts_gdocs_links").insert(dodLinks)
+
+    for (const link of dodLinks) {
+        await queryRunner.query(
+            `-- sql
+        INSERT INTO posts_gdocs_links (sourceId, target, componentType, linkType, text, queryString, hash)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                link.sourceId,
+                link.target,
+                link.componentType,
+                link.linkType,
+                link.text,
+                link.queryString,
+                link.hash,
+            ]
+        )
+    }
+
     console.log(`Inserting ${dodLinks.length} dod links... done`)
 }
 
@@ -47,11 +71,7 @@ export class DodsInContentGraph1745521253423 implements MigrationInterface {
             MODIFY COLUMN linkType ENUM('gdoc','url','grapher','explorer','chart-view', 'dod') NOT NULL;
         `)
 
-        if (queryRunner.connection.options.database !== "graphertest") {
-            await db.knexReadWriteTransaction(async (trx) => {
-                await insertExistingGdocDodLinks(trx)
-            })
-        }
+        await insertExistingGdocDodLinks(queryRunner)
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
