@@ -44,9 +44,6 @@ function validateParagraphChildren(
         }
         if (child.type === "link") {
             const referencedDods = extractDetailsFromSyntax(child.url)
-            console.log("referencedDods", referencedDods)
-            console.log("dods", dods)
-            console.log("dods['la-nina']", dods?.["la-nina"])
             const areAllReferencedDodsValid = referencedDods.every(
                 (dod) => dods && dods[dod]
             )
@@ -413,7 +410,20 @@ function CreateDodModal({
                 <Form.Item
                     label="Name"
                     name="name"
-                    rules={[{ required: true }]}
+                    rules={[
+                        { required: true },
+                        { pattern: /^[^\s]+$/, message: "No spaces allowed" },
+                        {
+                            validator: (_, value) => {
+                                if (dods && dods[value]) {
+                                    return Promise.reject(
+                                        new Error("Dod already exists")
+                                    )
+                                }
+                                return Promise.resolve()
+                            },
+                        },
+                    ]}
                 >
                     <Input autoComplete="off" />
                 </Form.Item>
