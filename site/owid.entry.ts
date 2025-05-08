@@ -9,7 +9,7 @@ import "./owid.scss"
 // from a very large icon down to a properly sized one a moment later."
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
-import { DEPRECATEDrunSearchPage } from "./search/DEPRECATEDrunSearchPage.js"
+import { DEPRECATEDrunSearchPage } from "./search/_DEPRECATEDrunSearchPage.js"
 import { runNotFoundPage } from "./NotFoundPageMain.js"
 import { runFeedbackPage } from "./Feedback.js"
 import { runDonateForm } from "./runDonateForm.js"
