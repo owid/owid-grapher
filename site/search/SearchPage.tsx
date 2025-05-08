@@ -2,7 +2,7 @@ import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { SiteFooterContext, TagGraphRoot } from "@ourworldindata/utils"
-import { DataCatalogInstantSearchWrapper } from "./Search.js"
+import { SearchInstantSearchWrapper } from "./SearchInstantSearchWrapper.js"
 import { Html } from "../Html.js"
 
 declare global {
@@ -40,7 +40,7 @@ export const DataCatalogPage = (props: {
                     id="data-catalog-page-root"
                     className="grid grid-cols-12-full-width"
                 >
-                    <DataCatalogInstantSearchWrapper tagGraph={tagGraph} />
+                    <SearchInstantSearchWrapper tagGraph={tagGraph} />
                 </main>
                 <SiteFooter context={SiteFooterContext.dataCatalogPage} />
             </body>
