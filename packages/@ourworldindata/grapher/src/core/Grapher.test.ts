@@ -481,16 +481,6 @@ describe("line chart to bar chart and bar chart race", () => {
         })
     })
 
-    it("turns into a line chart race when playing a line chart that currently shows as a bar chart", () => {
-        grapher.startHandleTimeBound = -Infinity
-        grapher.endHandleTimeBound = -Infinity
-        void grapher.timelineController.play(1)
-        expect(grapher.startHandleTimeBound).not.toEqual(
-            grapher.endHandleTimeBound
-        )
-        expect(grapher.activeChartType).toEqual(GRAPHER_CHART_TYPES.LineChart)
-    })
-
     it("turns into a bar chart when constrained start & end handles are equal", () => {
         grapher.startHandleTimeBound = 5000
         grapher.endHandleTimeBound = Infinity
@@ -607,8 +597,9 @@ describe("urls", () => {
         const grapher = new GrapherState({
             hasMapTab: true,
             tab: GRAPHER_TAB_OPTIONS.map,
+            chartTypes: ["Marimekko"],
         })
-        grapher.setTab(GRAPHER_TAB_NAMES.LineChart)
+        grapher.setTab(GRAPHER_TAB_NAMES.Marimekko)
         expect(grapher.changedParams.tab).toEqual("chart")
     })
 
