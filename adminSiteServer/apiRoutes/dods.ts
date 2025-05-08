@@ -11,7 +11,7 @@ import {
 import { extractLinksFromMarkdown, Url } from "@ourworldindata/utils"
 import { getLinkType } from "@ourworldindata/components"
 
-async function addLinksFromInsertedDod(
+async function updateLinksFromInsertedDod(
     trx: db.KnexReadWriteTransaction,
     id: number
 ): Promise<void> {
@@ -19,6 +19,10 @@ async function addLinksFromInsertedDod(
     if (!dod) {
         throw new Error(`Can't track dod links - dod with id ${id} not found`)
     }
+    // Remove existing links
+    await trx(DodLinksTableName).delete().where({ sourceId: id })
+
+    // Insert new links
     const links = extractLinksFromMarkdown(dod.content)
     for (const link of links) {
         const [text] = link
@@ -93,7 +97,7 @@ export async function updateDod(
             })
             .where({ id })
 
-        await addLinksFromInsertedDod(trx, id)
+        await updateLinksFromInsertedDod(trx, id)
         await triggerStaticBuild(res.locals.user, `Dod ${id} updated`)
 
         return res.json({ dod })
@@ -119,6 +123,7 @@ export async function deleteDod(
             })
         }
 
+        // dod links are deleted automatically by ON DELETE CASCADE
         await trx(DodsTableName).delete().where({ id })
         await triggerStaticBuild(res.locals.user, `Dod ${id} deleted`)
 
@@ -159,7 +164,7 @@ export async function createDod(
         })
 
         const id = result[0]
-        await addLinksFromInsertedDod(trx, id)
+        await updateLinksFromInsertedDod(trx, id)
         await triggerStaticBuild(res.locals.user, `Dod ${name} created`)
 
         return res.json({ success: true, id })
