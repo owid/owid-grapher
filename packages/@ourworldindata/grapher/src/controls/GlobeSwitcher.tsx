@@ -9,10 +9,8 @@ import { MapRegionDropdownValue } from "./MapRegionDropdown"
 
 export interface GlobeSwitcherManager {
     mapConfig?: MapConfig
-    isOnMapTab?: boolean
     globeController?: GlobeController
     mapRegionDropdownValue?: MapRegionDropdownValue
-    isMapSelectionEnabled?: boolean
 }
 
 @observer
@@ -23,23 +21,8 @@ export class GlobeSwitcher extends React.Component<{
 
     private availableTabs = ["2D", "3D"] as const
 
-    static shouldShow(manager: GlobeSwitcherManager): boolean {
-        const test = new GlobeSwitcher({ manager })
-        return test.shouldShow
-    }
-
-    static width(): number {
-        return 104
-    }
-
     @computed private get manager(): GlobeSwitcherManager {
         return this.props.manager
-    }
-
-    @computed private get shouldShow(): boolean {
-        const { isMapSelectionEnabled, isOnMapTab } = this.props.manager
-
-        return !!(isOnMapTab && isMapSelectionEnabled)
     }
 
     @computed private get tabLabels(): TabLabel[] {
@@ -92,9 +75,9 @@ export class GlobeSwitcher extends React.Component<{
     }
 
     render(): React.ReactElement | null {
-        if (!this.shouldShow) return null
         return (
             <Tabs
+                extraClassNames="GlobeSwitcher"
                 variant="slim"
                 labels={this.tabLabels}
                 activeIndex={this.activeTabIndex}
