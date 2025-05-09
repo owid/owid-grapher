@@ -65,6 +65,68 @@ try {
                     gdoc.setAttribute("href", gdocLink)
                     gdoc.setAttribute("target", "_blank")
                 }
+
+                // New code for pageviews:
+                // gdocAdminBar is available from the outer scope, and id is available from the current scope.
+                const pageviewSpan = document.createElement("span")
+                pageviewSpan.id = "gdoc-pageviews"
+                // Add some spacing, and the " | " separator manually for now.
+                // Styles can be adjusted later via CSS if needed.
+                pageviewSpan.style.marginLeft = "5px"
+                pageviewSpan.textContent = "| Loading pageviews..." // Initial text
+                gdocAdminBar.appendChild(pageviewSpan)
+
+                const currentPath = window.location.pathname
+                const currentPageUrl = `https://ourworldindata.org${currentPath}`
+                const analyticsUrl = `http://analytics/analytics/pages.json?_sort=rowid&url__exact=${encodeURIComponent(currentPageUrl)}`
+
+                fetch(analyticsUrl)
+                    .then((res) => {
+                        if (!res.ok) {
+                            // This can happen if analytics server is down or user not on Tailscale.
+                            throw new Error(`HTTP error ${res.status}`)
+                        }
+                        return res.json()
+                    })
+                    .then((data) => {
+                        if (data.rows && data.rows.length > 0 && data.columns) {
+                            const row = data.rows[0]
+                            const views7dIndex =
+                                data.columns.indexOf("views_7d")
+                            const views365dIndex =
+                                data.columns.indexOf("views_365d")
+
+                            if (views7dIndex !== -1 && views365dIndex !== -1) {
+                                const sevenDayTotal = row[views7dIndex]
+                                const yearTotal = row[views365dIndex]
+                                if (
+                                    typeof sevenDayTotal === "number" &&
+                                    typeof yearTotal === "number"
+                                ) {
+                                    const avg7Day = Math.round(
+                                        sevenDayTotal / 7
+                                    )
+                                    const avg365Day = Math.round(
+                                        yearTotal / 365
+                                    )
+                                    pageviewSpan.textContent = `| PVs (7d): ${avg7Day}, (365d): ${avg365Day}`
+                                } else {
+                                    pageviewSpan.textContent =
+                                        "| Pageview data format error"
+                                }
+                            } else {
+                                pageviewSpan.textContent =
+                                    "| Pageview fields not found"
+                            }
+                        } else {
+                            pageviewSpan.textContent =
+                                "| Pageview data not available"
+                        }
+                    })
+                    .catch((err) => {
+                        console.error("Error fetching pageviews:", err)
+                        pageviewSpan.textContent = "| Error loading pageviews"
+                    })
             }
         }
     }
