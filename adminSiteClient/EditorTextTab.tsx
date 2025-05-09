@@ -19,7 +19,7 @@ import {
 } from "./Forms.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
-import { isChartViewEditorInstance } from "./ChartViewEditor.js"
+import { isNarrativeChartEditorInstance } from "./NarrativeChartEditor.js"
 import { Button as AntdButton, Space } from "antd"
 import {
     BAKED_GRAPHER_URL,
@@ -81,7 +81,7 @@ export class EditorTextTab<
     }
 
     @computed get showChartSlug() {
-        return !isChartViewEditorInstance(this.props.editor)
+        return !isNarrativeChartEditorInstance(this.props.editor)
     }
 
     @computed get showAnyAnnotationFieldInTitleToggle() {

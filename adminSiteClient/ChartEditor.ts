@@ -14,7 +14,7 @@ import {
     mergeGrapherConfigs,
     isEmpty,
     omit,
-    CHART_VIEW_PROPS_TO_OMIT,
+    NARRATIVE_CHART_PROPS_TO_OMIT,
 } from "@ourworldindata/utils"
 import { DbChartTagJoin } from "@ourworldindata/types"
 import { action, computed, observable, runInAction } from "mobx"
@@ -34,7 +34,7 @@ export interface Log {
     createdAt: string
 }
 
-export interface ChartViewMinimalInformation {
+export interface NarrativeChartMinimalInformation {
     id: number
     name: string
     title: string
@@ -210,12 +210,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
             )
     }
 
-    async saveAsChartView(
+    async saveAsNarrativeChart(
         name: string
     ): Promise<{ success: boolean; errorMsg?: string }> {
         const { patchConfig, grapher } = this
 
-        const chartJson = omit(patchConfig, CHART_VIEW_PROPS_TO_OMIT)
+        const chartJson = omit(patchConfig, NARRATIVE_CHART_PROPS_TO_OMIT)
 
         const body = {
             name,
@@ -224,13 +224,15 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         }
 
         const json = await this.manager.admin.requestJSON(
-            "/api/chartViews",
+            "/api/narrative-charts",
             body,
             "POST"
         )
         if (json.success) {
             window.open(
-                this.manager.admin.url(`chartViews/${json.chartViewId}/edit`)
+                this.manager.admin.url(
+                    `narrativeCharts${json.narrativeChartId}/edit`
+                )
             )
             return { success: true }
         } else {

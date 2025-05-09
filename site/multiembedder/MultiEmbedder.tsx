@@ -10,7 +10,7 @@ import {
     migrateSelectedEntityNamesParam,
     SelectionArray,
     migrateGrapherConfigToLatestVersion,
-    GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR,
+    GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR,
 } from "@ourworldindata/grapher"
 import {
     fetchText,
@@ -20,7 +20,7 @@ import {
     GRAPHER_TAB_OPTIONS,
     merge,
     fetchWithRetry,
-    ChartViewInfo,
+    NarrativeChartInfo,
     searchParamsToMultiDimView,
     MultiDimDataPageConfig,
 } from "@ourworldindata/utils"
@@ -48,7 +48,7 @@ import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.
 import { match } from "ts-pattern"
 import MultiDim from "../multiDim/MultiDim.js"
 
-type EmbedType = "grapher" | "explorer" | "multiDim" | "chartView"
+type EmbedType = "grapher" | "explorer" | "multiDim" | "narrativeChart"
 
 const figuresFromDOM = (
     container: HTMLElement | Document = document,
@@ -115,7 +115,7 @@ class MultiEmbedder {
             .concat(
                 figuresFromDOM(
                     container,
-                    GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR
+                    GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR
                 )
             )
 
@@ -301,15 +301,17 @@ class MultiEmbedder {
         }
     }
 
-    async renderChartViewIntoFigure(figure: Element) {
-        const viewConfigRaw = figure.getAttribute(
-            GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR
+    async renderNarrativeChartIntoFigure(figure: Element) {
+        const narrativeChartInfoRaw = figure.getAttribute(
+            GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR
         )
-        if (!viewConfigRaw) return
-        const viewConfig: ChartViewInfo = JSON.parse(viewConfigRaw)
-        if (!viewConfig) return
+        if (!narrativeChartInfoRaw) return
+        const narrativeChartInfo: NarrativeChartInfo = JSON.parse(
+            narrativeChartInfoRaw
+        )
+        if (!narrativeChartInfo) return
 
-        const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${viewConfig.chartConfigId}.config.json`
+        const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${narrativeChartInfo.chartConfigId}.config.json`
 
         await this._renderGrapherComponentIntoFigure(figure, {
             configUrl,
@@ -317,7 +319,7 @@ class MultiEmbedder {
                 hideRelatedQuestion: true,
                 hideShareButton: true,
                 hideExploreTheDataButton: false,
-                chartViewInfo: viewConfig,
+                narrativeChartInfo,
             },
         })
     }
@@ -328,16 +330,16 @@ class MultiEmbedder {
             EXPLORER_EMBEDDED_FIGURE_SELECTOR
         )
         const isMultiDim = figure.hasAttribute("data-is-multi-dim")
-        const isChartView = figure.hasAttribute(
-            GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR
+        const isNarrativeChart = figure.hasAttribute(
+            GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR
         )
 
         const embedType: EmbedType = isExplorer
             ? "explorer"
             : isMultiDim
               ? "multiDim"
-              : isChartView
-                ? "chartView"
+              : isNarrativeChart
+                ? "narrativeChart"
                 : "grapher"
 
         // Stop observing visibility as soon as possible
@@ -346,7 +348,9 @@ class MultiEmbedder {
         await match(embedType)
             .with("explorer", () => this.renderExplorerIntoFigure(figure))
             .with("multiDim", () => this.renderMultiDimIntoFigure(figure))
-            .with("chartView", () => this.renderChartViewIntoFigure(figure))
+            .with("narrativeChart", () =>
+                this.renderNarrativeChartIntoFigure(figure)
+            )
             .with("grapher", () => this.renderGrapherIntoFigure(figure))
             .exhaustive()
     }

@@ -1,7 +1,7 @@
 import e from "express"
 import { Request } from "../authentication.js"
 import {
-    DbPlainChartView,
+    DbPlainNarrativeChart,
     DbRawChartConfig,
     DbRawImage,
     DbRawPostGdoc,
@@ -37,8 +37,8 @@ type DataInsightRow = Pick<
 > &
     Pick<DbRawImage, "cloudflareId" | "filename" | "originalWidth"> & {
         gdocId: DbRawPostGdoc["id"]
-        narrativeChartId?: DbPlainChartView["id"]
-        narrativeChartConfigId?: DbPlainChartView["chartConfigId"]
+        narrativeChartId?: DbPlainNarrativeChart["id"]
+        narrativeChartConfigId?: DbPlainNarrativeChart["chartConfigId"]
         chartConfig?: DbRawChartConfig["full"]
         imageId?: DbRawImage["id"]
         tags?: MinimalTag[]
@@ -117,11 +117,11 @@ async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
             pg.markdown,
 
             -- narrative chart fields
-            cw.id AS narrativeChartId,
-            cw.chartConfigId AS narrativeChartConfigId,
+            nc.id AS narrativeChartId,
+            nc.chartConfigId AS narrativeChartConfigId,
 
             -- chart config (prefer narrative charts over grapher URLs)
-            COALESCE(cc_chartView.full, cc_grapherUrl.full) AS chartConfig,
+            COALESCE(cc_narrativeChart.full, cc_grapherUrl.full) AS chartConfig,
 
             -- image fields
             i.id AS imageId,
@@ -134,11 +134,11 @@ async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
         LEFT JOIN published_charts cc_grapherUrl
             ON cc_grapherUrl.slug = SUBSTRING_INDEX(SUBSTRING_INDEX(content ->> '$."grapher-url"', '/grapher/', -1), '\\?', 1)
 
-        -- join the chart_views table to get the config of the narrative chart
-        LEFT JOIN chart_views cw
-            ON cw.name = content ->> '$."narrative-chart"'
-        LEFT JOIN chart_configs cc_chartView
-            ON cc_chartView.id = cw.chartConfigId
+        -- join the narrative_charts table to get the config of the narrative chart
+        LEFT JOIN narrative_charts nc
+            ON nc.name = content ->> '$."narrative-chart"'
+        LEFT JOIN chart_configs cc_narrativeChart
+            ON cc_narrativeChart.id = nc.chartConfigId
 
         -- join the images table by filename (only works for data insights where the image block comes first)
         LEFT JOIN images i

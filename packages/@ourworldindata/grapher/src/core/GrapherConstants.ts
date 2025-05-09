@@ -5,8 +5,8 @@ import type { GrapherProgrammaticInterface } from "./Grapher"
 export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
 export const GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR = "data-grapher-config"
 
-export const GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR =
-    "data-grapher-chart-view-config"
+export const GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR =
+    "data-grapher-narrative-chart-config"
 
 export const GRAPHER_ROUTE_FOLDER = "grapher"
 

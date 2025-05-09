@@ -21,7 +21,7 @@ import {
 import Papa from "papaparse"
 import { uuidv7 } from "uuidv7"
 import { References } from "../../adminSiteClient/AbstractChartEditor.js"
-import { ChartViewMinimalInformation } from "../../adminSiteClient/ChartEditor.js"
+import { NarrativeChartMinimalInformation } from "../../adminSiteClient/ChartEditor.js"
 import { denormalizeLatestCountryData } from "../../baker/countryProfiles.js"
 import {
     getChartConfigById,
@@ -83,13 +83,13 @@ export const getReferencesByChartId = async (
             chartId = ?`,
         [chartId]
     )
-    const chartViewsPromise = db.knexRaw<ChartViewMinimalInformation>(
+    const narrativeChartsPromise = db.knexRaw<NarrativeChartMinimalInformation>(
         knex,
         `-- sql
-        SELECT cv.id, cv.name, cc.full ->> "$.title" AS title
-        FROM chart_views cv
-        JOIN chart_configs cc ON cc.id = cv.chartConfigId
-        WHERE cv.parentChartId = ?`,
+        SELECT nc.id, nc.name, cc.full ->> "$.title" AS title
+        FROM narrative_charts nc
+        JOIN chart_configs cc ON cc.id = nc.chartConfigId
+        WHERE nc.parentChartId = ?`,
         [chartId]
     )
     const dataInsightsPromise = db.knexRaw<DataInsightMinimalInformation>(
@@ -119,13 +119,13 @@ export const getReferencesByChartId = async (
         postsWordpress,
         postsGdocs,
         explorerSlugs,
-        chartViews,
+        narrativeCharts,
         dataInsights,
     ] = await Promise.all([
         postsWordpressPromise,
         postGdocsPromise,
         explorerSlugsPromise,
-        chartViewsPromise,
+        narrativeChartsPromise,
         dataInsightsPromise,
     ])
 
@@ -135,7 +135,7 @@ export const getReferencesByChartId = async (
         explorers: explorerSlugs.map(
             (row: { explorerSlug: string }) => row.explorerSlug
         ),
-        chartViews,
+        narrativeCharts,
         dataInsights,
     }
 }

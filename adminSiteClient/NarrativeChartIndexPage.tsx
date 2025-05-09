@@ -5,7 +5,7 @@ import { Button, Flex, Input, Space, Table, TableColumnsType } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
-import { ApiChartViewOverview } from "../adminShared/AdminTypes.js"
+import { ApiNarrativeChartOverview } from "../adminShared/AdminTypes.js"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
 import { Link } from "./Link.js"
 import {
@@ -18,8 +18,8 @@ function createColumns(ctx: {
     highlightFn: (
         text: string | null | undefined
     ) => React.ReactElement | string
-    deleteFn: (chartViewId: number) => void
-}): TableColumnsType<ApiChartViewOverview> {
+    deleteFn: (narrativeChartId: number) => void
+}): TableColumnsType<ApiNarrativeChartOverview> {
     return [
         {
             title: "Preview",
@@ -74,26 +74,26 @@ function createColumns(ctx: {
                     ? new Date(a.updatedAt).getTime() -
                       new Date(b.updatedAt).getTime()
                     : 0,
-            render: (time, chartView) => (
-                <Timeago time={time} by={chartView.lastEditedByUser} />
+            render: (time, narrativeChart) => (
+                <Timeago time={time} by={narrativeChart.lastEditedByUser} />
             ),
         },
         {
             title: "Action",
             key: "action",
             width: 100,
-            render: (_, chartView) => (
+            render: (_, narrativeChart) => (
                 <Space size="middle">
                     <Button
                         type="primary"
-                        href={`/admin/chartViews/${chartView.id}/edit`}
+                        href={`/admin/narrative-charts/${narrativeChart.id}/edit`}
                     >
                         Edit
                     </Button>
                     <Button
                         type="dashed"
                         danger
-                        onClick={() => ctx.deleteFn(chartView.id)}
+                        onClick={() => ctx.deleteFn(narrativeChart.id)}
                     >
                         Delete
                     </Button>
@@ -103,9 +103,11 @@ function createColumns(ctx: {
     ]
 }
 
-export function ChartViewIndexPage() {
+export function NarrativeChartIndexPage() {
     const { admin } = useContext(AdminAppContext)
-    const [chartViews, setChartViews] = useState<ApiChartViewOverview[]>([])
+    const [narrativeCharts, setNarrativeCharts] = useState<
+        ApiNarrativeChartOverview[]
+    >([])
     const [searchValue, setSearchValue] = useState("")
 
     const searchWords = useMemo(
@@ -113,29 +115,35 @@ export function ChartViewIndexPage() {
         [searchValue]
     )
 
-    const filteredChartViews = useMemo(() => {
+    const filteredNarrativeCharts = useMemo(() => {
         const filterFn = filterFunctionForSearchWords(
             searchWords,
-            (chartView: ApiChartViewOverview) => [
-                `${chartView.id}`,
-                chartView.title,
-                chartView.name,
-                chartView.parent.title,
+            (narrativeChart: ApiNarrativeChartOverview) => [
+                `${narrativeChart.id}`,
+                narrativeChart.title,
+                narrativeChart.name,
+                narrativeChart.parent.title,
             ]
         )
 
-        return chartViews.filter(filterFn)
-    }, [chartViews, searchWords])
+        return narrativeCharts.filter(filterFn)
+    }, [narrativeCharts, searchWords])
     const highlightFn = useMemo(
         () => highlightFunctionForSearchWords(searchWords),
         [searchWords]
     )
     const deleteFn = useCallback(
-        async (chartViewId: number) => {
-            if (confirm("Are you sure you want to delete this chart view?")) {
+        async (narrativeChartId: number) => {
+            if (
+                confirm("Are you sure you want to delete this narrative chart?")
+            ) {
                 await admin
-                    .requestJSON(`/api/chartViews/${chartViewId}`, {}, "DELETE")
-                    .then(() => alert("Chart view deleted"))
+                    .requestJSON(
+                        `/api/narrative-charts/${narrativeChartId}`,
+                        {},
+                        "DELETE"
+                    )
+                    .then(() => alert("Narrative chart deleted"))
                     .then(() => window.location.reload())
             }
         },
@@ -147,17 +155,19 @@ export function ChartViewIndexPage() {
     )
 
     useEffect(() => {
-        const getChartViews = async () =>
+        const getNarrativeCharts = async () =>
             await admin.getJSON<{
-                chartViews: ApiChartViewOverview[]
-            }>("/api/chartViews")
+                narrativeCharts: ApiNarrativeChartOverview[]
+            }>("/api/narrative-charts")
 
-        void getChartViews().then((res) => setChartViews(res.chartViews))
+        void getNarrativeCharts().then((res) =>
+            setNarrativeCharts(res.narrativeCharts)
+        )
     }, [admin])
 
     return (
         <AdminLayout title="Narrative charts">
-            <main className="ChartViewIndexPage">
+            <main>
                 <Flex justify="space-between">
                     <Input
                         placeholder="Search"
@@ -166,7 +176,7 @@ export function ChartViewIndexPage() {
                         style={{ width: 500, marginBottom: 20 }}
                     />
                 </Flex>
-                <Table columns={columns} dataSource={filteredChartViews} />
+                <Table columns={columns} dataSource={filteredNarrativeCharts} />
             </main>
         </AdminLayout>
     )

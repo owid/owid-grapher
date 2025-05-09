@@ -4,7 +4,7 @@ import {
     EnrichedBlockNarrativeChart,
     GRAPHER_PREVIEW_CLASS,
 } from "@ourworldindata/types"
-import { useLinkedChartView } from "../utils.js"
+import { useLinkedNarrativeChart } from "../utils.js"
 import cx from "classnames"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import SpanElements from "./SpanElements.js"
@@ -12,7 +12,7 @@ import { DocumentContext } from "../DocumentContext.js"
 import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
-    GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR,
+    GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR,
 } from "@ourworldindata/grapher"
 import {
     BAKED_GRAPHER_URL,
@@ -32,7 +32,7 @@ export default function NarrativeChart({
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(0, refChartContainer)
 
-    const viewMetadata = useLinkedChartView(d.name)
+    const viewMetadata = useLinkedNarrativeChart(d.name)
 
     const { isPreviewing } = useContext(DocumentContext)
 
@@ -73,7 +73,7 @@ export default function NarrativeChart({
                     height: d.height,
                 }}
                 {...{
-                    [GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR]:
+                    [GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR]:
                         metadataStringified,
                 }}
             >
