@@ -4,7 +4,9 @@ import cx from "classnames"
 
 export interface TabLabel {
     element: React.ReactElement
-    buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>
+    buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+        "data-track-note"?: string
+    }
 }
 
 export const Tabs = ({
