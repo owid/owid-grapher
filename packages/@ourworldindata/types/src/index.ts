@@ -101,6 +101,7 @@ export {
     type GrapherQueryParams,
     type LegacyGrapherInterface,
     MapRegionName,
+    type GlobeRegionName,
     LogoOption,
     type ComparisonLineConfig,
     type AxisConfigInterface,
@@ -116,6 +117,8 @@ export {
     AxisMinMaxValueStr,
     GrapherTooltipAnchor,
     type InteractionState,
+    type GlobeConfig,
+    type MapConfigInterface,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {

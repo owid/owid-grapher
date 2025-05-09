@@ -1,5 +1,9 @@
 import { observable } from "mobx"
-import { EntityName, MapRegionName } from "@ourworldindata/types"
+import {
+    GlobeConfig,
+    MapRegionName,
+    MapConfigInterface,
+} from "@ourworldindata/types"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
     ColumnSlug,
@@ -13,14 +17,9 @@ import {
     NoUndefinedValues,
     ToleranceStrategy,
 } from "@ourworldindata/utils"
-import { DEFAULT_VIEWPORT } from "./MapChartConstants"
-
-export interface GlobeConfig {
-    isActive: boolean
-    rotation: [number, number]
-    zoom: number
-    focusCountry?: EntityName
-}
+import { SelectionArray } from "../selection/SelectionArray"
+import { DEFAULT_GLOBE_ROTATION } from "./MapChartConstants"
+import * as R from "remeda"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.
@@ -31,11 +30,13 @@ class MapConfigDefaults {
     @observable timeTolerance?: number
     @observable toleranceStrategy?: ToleranceStrategy
     @observable hideTimeline?: boolean
+
     @observable region = MapRegionName.World
+    @observable selection = new SelectionArray()
 
     @observable globe: GlobeConfig = {
         isActive: false,
-        rotation: DEFAULT_VIEWPORT.rotation,
+        rotation: DEFAULT_GLOBE_ROTATION,
         zoom: 1,
     }
 
@@ -44,14 +45,23 @@ class MapConfigDefaults {
     @observable tooltipUseCustomLabels?: boolean = undefined
 }
 
-export type MapConfigInterface = MapConfigDefaults
-
 export class MapConfig extends MapConfigDefaults implements Persistable {
     updateFromObject(obj: Partial<MapConfigInterface>): void {
         updatePersistables(this, obj)
 
         if (obj.time)
             this.time = maxTimeBoundFromJSONOrPositiveInfinity(obj.time)
+
+        // If the region is set, automatically switch to the globe
+        if (obj.region && obj.region !== MapRegionName.World) {
+            // Setting this.globe.isActive directly sometimes gives a MobX error
+            this.globe = { ...this.globe, isActive: true }
+        }
+
+        // Only relevant for testing
+        if (obj.selection && R.isArray<string>(obj.selection)) {
+            this.selection = new SelectionArray(obj.selection as string[])
+        }
     }
 
     toObject(): NoUndefinedValues<MapConfigInterface> {
