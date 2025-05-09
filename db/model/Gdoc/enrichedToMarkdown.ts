@@ -52,8 +52,19 @@ export function spansToMarkdown(spans: Span[] | undefined): string {
     return spans?.map((span) => spanToMarkdown(span)).join("") ?? ""
 }
 
+const CUSTOM_MARKDOWN_COMPONENTS = {
+    AllCharts: "AllCharts",
+    Callout: "Callout",
+    Chart: "Chart",
+    DonorList: "DonorList",
+    Image: "Image",
+    KeyIndicator: "KeyIndicator",
+    NarrativeChart: "NarrativeChart",
+    Video: "Video",
+}
+
 function markdownComponent(
-    componentName: string,
+    componentName: keyof typeof CUSTOM_MARKDOWN_COMPONENTS,
     attributes: Record<string, string | undefined>,
     exportComponents: boolean
 ): string | undefined {
@@ -63,6 +74,20 @@ function markdownComponent(
         .join(" ")
     if (exportComponents) return `<${componentName} ${attributesString}/>`
     else return undefined
+}
+
+/**
+ * Strips out <Image />, <Video />, etc. components.
+ * Helpful if trying to get a plaintext version of the content because mdast-util-from-markdown
+ * doesn't support these components.
+ */
+export function stripCustomMarkdownComponents(content: string): string {
+    let strippedContent = content
+    for (const componentName of Object.values(CUSTOM_MARKDOWN_COMPONENTS)) {
+        const regex = new RegExp(`<${componentName}.*?/>`, "g")
+        strippedContent = strippedContent.replace(regex, "")
+    }
+    return strippedContent
 }
 
 export function enrichedBlocksToMarkdown(
@@ -92,7 +117,13 @@ export function enrichedBlockToMarkdown(
             return spansToMarkdown(b.value)
         })
         .with({ type: "simple-text" }, (b): string | undefined => b.value.text)
-        .with({ type: "all-charts" }, (b): string | undefined => "")
+        .with({ type: "all-charts" }, (b): string | undefined =>
+            markdownComponent(
+                "AllCharts",
+                { heading: b.heading }, // Note: truncated
+                exportComponents
+            )
+        )
         .with({ type: "additional-charts" }, (b): string | undefined => {
             if (!exportComponents) return undefined
             else {
