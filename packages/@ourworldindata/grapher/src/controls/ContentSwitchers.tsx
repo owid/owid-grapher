@@ -54,7 +54,6 @@ export class ContentSwitchers extends React.Component<{
                 <ContentSwitcherTab
                     key={tab}
                     tab={tab}
-                    showLabel={this.showTabLabels}
                     hasMultipleChartTypes={this.manager.hasMultipleChartTypes}
                 />
             ),
@@ -98,21 +97,17 @@ export class ContentSwitchers extends React.Component<{
 
 function ContentSwitcherTab({
     tab,
-    showLabel,
     hasMultipleChartTypes,
 }: {
     tab: GrapherTabName
-    showLabel?: boolean
     hasMultipleChartTypes?: boolean
 }): React.ReactElement {
     return (
         <span>
             <TabIcon tab={tab} />
-            {showLabel && (
-                <span className="label">
-                    {makeTabLabelText(tab, { hasMultipleChartTypes })}
-                </span>
-            )}
+            <span className="label">
+                {makeTabLabelText(tab, { hasMultipleChartTypes })}
+            </span>
         </span>
     )
 }
