@@ -106,7 +106,7 @@ nav.controlsRow .controls {
     }
 }
 
-@container grapher (max-width:525px) {
+@container grapher (max-width:675px) {
     // hide the entity name in the Edit/Select/Switch button
     nav.controlsRow .chart-controls .entity-selection-menu button.menu-toggle {
         label span {
@@ -121,6 +121,25 @@ nav.controlsRow .controls {
         label span {
             display: none;
         }
+    }
+}
+
+@container grapher (max-width:500px) {
+    // hide labels on smaller screens
+    .ContentSwitchers .label {
+        display: none;
+    }
+}
+
+// reduce the horizontal padding of a content switcher tab based on grapher's size
+@container grapher (max-width:725px) {
+    .ContentSwitchers .Tabs__tab {
+        --tab-padding: 12px;
+    }
+}
+@container grapher (max-width:335px) {
+    .ContentSwitchers .Tabs__tab {
+        --tab-padding: 8px;
     }
 }
 
