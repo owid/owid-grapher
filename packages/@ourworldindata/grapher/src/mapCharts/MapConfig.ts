@@ -1,5 +1,5 @@
 import { observable } from "mobx"
-import { MapRegionName } from "@ourworldindata/types"
+import { EntityName, MapRegionName } from "@ourworldindata/types"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
     ColumnSlug,
@@ -15,10 +15,11 @@ import {
 } from "@ourworldindata/utils"
 import { DEFAULT_VIEWPORT } from "./MapChartConstants"
 
-interface GlobeConfig {
+export interface GlobeConfig {
     isActive: boolean
     rotation: [number, number]
     zoom: number
+    focusCountry?: EntityName
 }
 
 // MapConfig holds the data and underlying logic needed by MapTab.
