@@ -48,7 +48,7 @@ import {
     getVariableMetadata,
     getVariableOfDatapageIfApplicable,
 } from "../Variable.js"
-import { createLinkForChartView, createLinkFromUrl } from "../Link.js"
+import { createLinkForNarrativeChart, createLinkFromUrl } from "../Link.js"
 import {
     getMultiDimDataPageBySlug,
     multiDimDataPageExists,
@@ -56,7 +56,7 @@ import {
 import {
     ARCHVED_THUMBNAIL_FILENAME,
     ChartConfigType,
-    ChartViewInfo,
+    NarrativeChartInfo,
     DEFAULT_THUMBNAIL_FILENAME,
     GrapherInterface,
     LatestDataInsight,
@@ -67,7 +67,10 @@ import {
     OwidGdocLinkType,
     OwidGdocType,
 } from "@ourworldindata/types"
-import { getAllChartViewNames, getChartViewsInfo } from "../ChartView.js"
+import {
+    getAllNarrativeChartNames,
+    getNarrativeChartsInfo,
+} from "../NarrativeChart.js"
 
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
@@ -92,7 +95,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     linkedIndicators: Record<number, LinkedIndicator> = {}
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     latestDataInsights: LatestDataInsight[] = []
-    linkedChartViews?: Record<string, ChartViewInfo> = {}
+    linkedNarrativeCharts?: Record<string, NarrativeChartInfo> = {}
     _omittableFields: string[] = []
 
     constructor(id?: string) {
@@ -296,9 +299,9 @@ export class GdocBase implements OwidGdocBaseInterface {
         return { grapher: [...grapher], explorer: [...explorer] }
     }
 
-    get linkedChartViewNames(): string[] {
+    get linkedNarrativeChartNames(): string[] {
         const filteredLinks = this.links
-            .filter((link) => link.linkType === OwidGdocLinkType.ChartView)
+            .filter((link) => link.linkType === OwidGdocLinkType.NarrativeChart)
             .map((link) => link.target)
 
         return filteredLinks
@@ -362,7 +365,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 }),
             ])
             .with({ type: "narrative-chart" }, (block) => [
-                createLinkForChartView({
+                createLinkForNarrativeChart({
                     name: block.name,
                     source: this,
                     componentType: block.type,
@@ -492,7 +495,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         })
                         links.push(insightLink)
                     } else if (insight.narrativeChartName) {
-                        const insightLink = createLinkForChartView({
+                        const insightLink = createLinkForNarrativeChart({
                             name: insight.narrativeChartName,
                             source: this,
                             componentType: block.type,
@@ -737,9 +740,14 @@ export class GdocBase implements OwidGdocBaseInterface {
         }
     }
 
-    async loadChartViewsInfo(knex: db.KnexReadonlyTransaction): Promise<void> {
-        const result = await getChartViewsInfo(knex, this.linkedChartViewNames)
-        this.linkedChartViews = keyBy(result, "name")
+    async loadNarrativeChartsInfo(
+        knex: db.KnexReadonlyTransaction
+    ): Promise<void> {
+        const result = await getNarrativeChartsInfo(
+            knex,
+            this.linkedNarrativeChartNames
+        )
+        this.linkedNarrativeCharts = keyBy(result, "name")
     }
 
     async fetchAndEnrichGdoc(): Promise<void> {
@@ -801,11 +809,11 @@ export class GdocBase implements OwidGdocBaseInterface {
             []
         )
 
-        const [chartIdsBySlug, publishedExplorersBySlug, chartViewNames] =
+        const [chartIdsBySlug, publishedExplorersBySlug, narrativeChartNames] =
             await Promise.all([
                 mapSlugsToIds(knex),
                 db.getPublishedExplorersBySlug(knex),
-                getAllChartViewNames(knex),
+                getAllNarrativeChartNames(knex),
             ])
 
         const linkErrors: OwidGdocErrorMessage[] = []
@@ -854,8 +862,8 @@ export class GdocBase implements OwidGdocBaseInterface {
                     }
                     break
                 }
-                case OwidGdocLinkType.ChartView: {
-                    if (!chartViewNames.has(link.target)) {
+                case OwidGdocLinkType.NarrativeChart: {
+                    if (!narrativeChartNames.has(link.target)) {
                         linkErrors.push({
                             property: "content",
                             message: `Narrative chart with name ${link.target} does not exist`,
@@ -903,7 +911,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadImageMetadataFromDB(knex)
         await this.loadLinkedCharts(knex)
         await this.loadLinkedIndicators() // depends on linked charts
-        await this.loadChartViewsInfo(knex)
+        await this.loadNarrativeChartsInfo(knex)
         await this._loadSubclassAttachments(knex)
         await this.validate(knex)
     }

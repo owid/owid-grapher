@@ -44,8 +44,8 @@ import { GdocsIndexPage } from "./GdocsIndexPage.js"
 import { GdocsMatchProps, GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsStoreProvider } from "./GdocsStoreProvider.js"
 import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
-import { ChartViewEditorPage } from "./ChartViewEditorPage.js"
-import { ChartViewIndexPage } from "./ChartViewIndexPage.js"
+import { NarrativeChartEditorPage } from "./NarrativeChartEditorPage.js"
+import { NarrativeChartIndexPage } from "./NarrativeChartIndexPage.js"
 import { ImageIndexPage } from "./ImagesIndexPage.js"
 import { DataInsightIndexPage } from "./DataInsightIndexPage.js"
 import { MultiDimIndexPage } from "./MultiDimIndexPage.js"
@@ -181,16 +181,16 @@ export class AdminApp extends React.Component<{
                                 />
                                 <Route
                                     exact
-                                    path="/chartViews"
-                                    component={ChartViewIndexPage}
+                                    path="/narrative-charts"
+                                    component={NarrativeChartIndexPage}
                                 />
                                 <Route
                                     exact
-                                    path="/chartViews/:chartViewId/edit"
+                                    path="/narrative-charts/:narrativeChartId/edit"
                                     render={({ match }) => (
-                                        <ChartViewEditorPage
-                                            chartViewId={parseInt(
-                                                match.params.chartViewId
+                                        <NarrativeChartEditorPage
+                                            narrativeChartId={parseInt(
+                                                match.params.narrativeChartId
                                             )}
                                         />
                                     )}

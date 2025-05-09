@@ -35,7 +35,7 @@ import {
 import { AdminAppContext } from "./AdminAppContext"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings"
 import { LoadingImage } from "./ReuploadImageForDataInsightModal"
-import { ApiChartViewOverview } from "../adminShared/AdminTypes"
+import { ApiNarrativeChartOverview } from "../adminShared/AdminTypes"
 import {
     downloadImage,
     isEmpty,
@@ -419,17 +419,17 @@ export function CreateDataInsightModal(props: {
         // since they're used for autocompletion
         if (!hasNarrativeChartField) return
 
-        const getChartViews = async () =>
+        const getNarrativeCharts = async () =>
             await admin.getJSON<{
-                chartViews: ApiChartViewOverview[]
-            }>("/api/chartViews")
+                narrativeCharts: ApiNarrativeChartOverview[]
+            }>("/api/narrative-charts")
 
-        void getChartViews().then((result) => {
+        void getNarrativeCharts().then((result) => {
             setAllNarrativeCharts(
-                result.chartViews.map((chartView) => ({
-                    name: chartView.name,
-                    configId: chartView.chartConfigId,
-                    title: chartView.title,
+                result.narrativeCharts.map((narrativeChart) => ({
+                    name: narrativeChart.name,
+                    configId: narrativeChart.chartConfigId,
+                    title: narrativeChart.title,
                 }))
             )
         })
@@ -437,7 +437,7 @@ export function CreateDataInsightModal(props: {
 
     const hasTopicTagsField = shouldShowField("topicTagIds")
     useEffect(() => {
-        // no need to load topic tags if the the field is hidden
+        // no need to load topic tags if the field is hidden
         // since they're used for autocompletion
         if (!hasTopicTagsField) return
 

@@ -412,7 +412,11 @@ ${dataInsights
                     latestDataInsights: get(post, "latestDataInsights", []),
                     homepageMetadata: get(post, "homepageMetadata", {}),
                     latestWorkLinks: get(post, "latestWorkLinks", []),
-                    linkedChartViews: get(post, "linkedChartViews", {}),
+                    linkedNarrativeCharts: get(
+                        post,
+                        "linkedNarrativeCharts",
+                        {}
+                    ),
                     // lodash doesn't use fallback when value is null
                     tags: post.tags ?? [],
                 }}

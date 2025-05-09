@@ -1,6 +1,6 @@
 import { DbRawImage } from "@ourworldindata/types"
 
-export interface ApiChartViewOverview {
+export interface ApiNarrativeChartOverview {
     id: number
     name: string
     parent: {

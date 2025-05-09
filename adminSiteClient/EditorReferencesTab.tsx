@@ -28,9 +28,9 @@ import {
 } from "./IndicatorChartEditor.js"
 import { Section } from "./Forms.js"
 import {
-    ChartViewEditor,
-    isChartViewEditorInstance,
-} from "./ChartViewEditor.js"
+    NarrativeChartEditor,
+    isNarrativeChartEditorInstance,
+} from "./NarrativeChartEditor.js"
 import { ReuploadImageForDataInsightModal } from "./ReuploadImageForDataInsightModal.js"
 import { ImageUploadResponse } from "./imagesHelpers.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
@@ -50,8 +50,8 @@ export class EditorReferencesTab<
             return <EditorReferencesTabForChart editor={editor} />
         else if (isIndicatorChartEditorInstance(editor))
             return <EditorReferencesTabForIndicator editor={editor} />
-        else if (isChartViewEditorInstance(editor))
-            return <EditorReferencesTabForChartView editor={editor} />
+        else if (isNarrativeChartEditorInstance(editor))
+            return <EditorReferencesTabForNarrativeChart editor={editor} />
         else return null
     }
 }
@@ -130,7 +130,7 @@ export class EditorReferencesTabForChart extends Component<{
                             />
                             <ReferencesGdocPosts references={this.references} />
                             <ReferencesExplorers references={this.references} />
-                            <ReferencesChartViews
+                            <ReferencesNarrativeCharts
                                 references={this.references}
                             />
                             <ReferencesDataInsights
@@ -180,14 +180,14 @@ export class EditorReferencesTabForChart extends Component<{
     }
 }
 
-export class EditorReferencesTabForChartView extends Component<{
-    editor: ChartViewEditor
+export class EditorReferencesTabForNarrativeChart extends Component<{
+    editor: NarrativeChartEditor
 }> {
     @computed get references() {
         return this.props.editor.references
     }
 
-    @computed get chartViewConfigId() {
+    @computed get narrativeChartConfigId() {
         return this.props.editor.manager.idsAndName?.configId ?? ""
     }
 
@@ -209,7 +209,7 @@ export class EditorReferencesTabForChartView extends Component<{
                                     !!dataInsight.image && !dataInsight.figmaUrl
                                 }
                                 makeImageUrl={() =>
-                                    `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${this.chartViewConfigId}.png?imType=square&nocache`
+                                    `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${this.narrativeChartConfigId}.png?imType=square&nocache`
                                 }
                             />
                         </>
@@ -455,22 +455,22 @@ const ReferencesExplorers = (props: {
     )
 }
 
-const ReferencesChartViews = (props: {
-    references: Pick<References, "chartViews">
+const ReferencesNarrativeCharts = (props: {
+    references: Pick<References, "narrativeCharts">
 }) => {
-    if (!props.references.chartViews?.length) return null
+    if (!props.references.narrativeCharts?.length) return null
     return (
         <>
             <p>Narrative charts based on this chart</p>
             <ul className="list-group">
-                {props.references.chartViews.map((chartView) => (
-                    <li key={chartView.id} className="list-group-item">
+                {props.references.narrativeCharts.map((narrativeChart) => (
+                    <li key={narrativeChart.id} className="list-group-item">
                         <a
-                            href={`/admin/chartViews/${chartView.id}/edit`}
+                            href={`/admin/narrative-charts/${narrativeChart.id}/edit`}
                             target="_blank"
                             rel="noopener"
                         >
-                            <strong>{chartView.title}</strong>
+                            <strong>{narrativeChart.title}</strong>
                         </a>
                     </li>
                 ))}

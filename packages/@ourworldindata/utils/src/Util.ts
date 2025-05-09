@@ -1295,7 +1295,7 @@ export function extractGdocPageData<T extends OwidGdoc>(gdoc: T) {
         "linkedAuthors",
         "linkedDocuments",
         "linkedCharts",
-        "linkedChartViews",
+        "linkedNarrativeCharts",
         "linkedIndicators",
         "imageMetadata",
         "relatedCharts",

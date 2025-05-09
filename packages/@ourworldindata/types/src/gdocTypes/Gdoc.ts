@@ -20,7 +20,7 @@ import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 import { QueryParams } from "../domainTypes/Various.js"
 import { TagGraphRoot } from "../domainTypes/ContentGraph.js"
 import { DbRawImage } from "../dbTypes/Images.js"
-import { DbPlainChartView } from "../dbTypes/ChartViews.js"
+import { DbPlainNarrativeChart } from "../dbTypes/NarrativeCharts.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -62,7 +62,7 @@ export interface LinkedChart {
 }
 
 // An object containing metadata needed for embedded narrative charts
-export interface ChartViewInfo {
+export interface NarrativeChartInfo {
     name: string
     title: string
     chartConfigId: string
@@ -108,7 +108,7 @@ export interface OwidGdocBaseInterface {
     linkedAuthors?: LinkedAuthor[]
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     linkedCharts?: Record<string, LinkedChart>
-    linkedChartViews?: Record<string, ChartViewInfo>
+    linkedNarrativeCharts?: Record<string, NarrativeChartInfo>
     linkedIndicators?: Record<number, LinkedIndicator>
     imageMetadata?: Record<string, ImageMetadata>
     relatedCharts?: RelatedChart[]
@@ -176,7 +176,10 @@ export type OwidGdocDataInsightIndexItem = Pick<
         approvedBy?: OwidGdocDataInsightContent["approved-by"]
         grapherUrl?: OwidGdocDataInsightContent["grapher-url"]
         explorerUrl?: OwidGdocDataInsightContent["grapher-url"]
-        narrativeChart?: Pick<DbPlainChartView, "id" | "name" | "chartConfigId">
+        narrativeChart?: Pick<
+            DbPlainNarrativeChart,
+            "id" | "name" | "chartConfigId"
+        >
         chartType?: GrapherChartOrMapType
         figmaUrl?: OwidGdocDataInsightContent["figma-url"]
         image?: {
@@ -318,7 +321,7 @@ export enum OwidGdocLinkType {
     Url = "url",
     Grapher = "grapher",
     Explorer = "explorer",
-    ChartView = "chart-view",
+    NarrativeChart = "narrative-chart",
 }
 
 export interface OwidGdocLinkJSON {

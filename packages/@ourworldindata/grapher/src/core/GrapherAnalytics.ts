@@ -51,7 +51,7 @@ interface GAEvent {
     eventTarget?: string
     grapherPath?: string
     grapherView?: string // specifies a view in a multi-dim data page
-    chartViewName?: string // specifies the name of a chart view / narrative chart
+    narrativeChartName?: string // specifies the name of a narrative chart
     explorerPath?: string
     explorerView?: string
 }
@@ -79,13 +79,13 @@ export class GrapherAnalytics {
 
     logGrapherView(
         slug: string,
-        ctx?: { view?: Record<string, string>; chartViewName?: string }
+        ctx?: { view?: Record<string, string>; narrativeChartName?: string }
     ): void {
         this.logToGA({
             event: EventCategory.GrapherView,
             grapherPath: `/grapher/${slug}`,
             grapherView: ctx?.view ? JSON.stringify(ctx.view) : undefined,
-            chartViewName: ctx?.chartViewName,
+            narrativeChartName: ctx?.narrativeChartName,
         })
     }
 
@@ -134,7 +134,7 @@ export class GrapherAnalytics {
         ctx: {
             label?: string
             grapherUrl?: string
-            chartViewName?: string
+            narrativeChartName?: string
         }
     ): void {
         // GA4 trims metadata fields down to 100 characters, so we want to be concise and only send
@@ -147,7 +147,7 @@ export class GrapherAnalytics {
             eventAction: action,
             eventTarget: ctx.label,
             grapherPath: grapherUrlObj?.pathname,
-            chartViewName: ctx.chartViewName,
+            narrativeChartName: ctx.narrativeChartName,
         })
     }
 
@@ -201,7 +201,7 @@ export class GrapherAnalytics {
                     let grapherUrlObj:
                         | {
                               grapherUrl: string
-                              chartViewName: string
+                              narrativeChartName: string
                           }
                         | undefined
                     try {
@@ -215,7 +215,8 @@ export class GrapherAnalytics {
                         {
                             label: trackedElement.innerText,
                             grapherUrl: grapherUrlObj?.grapherUrl,
-                            chartViewName: grapherUrlObj?.chartViewName,
+                            narrativeChartName:
+                                grapherUrlObj?.narrativeChartName,
                         }
                     )
                 } else

@@ -12,7 +12,7 @@ import { action, computed, observable, when } from "mobx"
 import { EditorFeatures } from "./EditorFeatures.js"
 import { Admin } from "./Admin.js"
 import { defaultGrapherConfig, Grapher } from "@ourworldindata/grapher"
-import { ChartViewMinimalInformation } from "./ChartEditor.js"
+import { NarrativeChartMinimalInformation } from "./ChartEditor.js"
 import { IndicatorChartInfo } from "./IndicatorChartEditor.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
 
@@ -40,7 +40,7 @@ export interface References {
     postsWordpress?: PostReference[]
     postsGdocs?: PostReference[]
     explorers?: string[]
-    chartViews?: ChartViewMinimalInformation[]
+    narrativeCharts?: NarrativeChartMinimalInformation[]
     childCharts?: IndicatorChartInfo[]
     dataInsights?: DataInsightMinimalInformation[]
 }
