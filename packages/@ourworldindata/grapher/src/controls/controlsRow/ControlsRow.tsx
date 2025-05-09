@@ -23,14 +23,12 @@ import {
     MapCountryDropdownManager,
 } from "../MapCountryDropdown"
 import { CloseGlobeViewButton } from "../CloseGlobeViewButton"
-import { GlobeSwitcher, GlobeSwitcherManager } from "../GlobeSwitcher"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
         EntitySelectionManager,
         MapRegionDropdownManager,
         MapCountryDropdownManager,
-        GlobeSwitcherManager,
         SettingsMenuManager {
     sidePanelBounds?: Bounds
     showEntitySelectionToggle?: boolean
@@ -66,16 +64,8 @@ export class ControlsRow extends Component<{
         return ContentSwitchers.width(this.manager)
     }
 
-    @computed private get globeSwitcherWidth(): number {
-        return GlobeSwitcher.width()
-    }
-
     @computed private get maxWidthSettingsMenu(): number {
         return this.maxWidth - this.contentSwitchersWidth - 16
-    }
-
-    @computed private get maxWidthMapRegionDropdown(): number {
-        return this.maxWidthSettingsMenu - this.globeSwitcherWidth - 8
     }
 
     @computed private get showContentSwitchers(): boolean {
@@ -89,7 +79,6 @@ export class ControlsRow extends Component<{
             MapRegionDropdown.shouldShow(this.manager) ||
             MapCountryDropdown.shouldShow(this.manager) ||
             CloseGlobeViewButton.shouldShow(this.manager) ||
-            GlobeSwitcher.shouldShow(this.manager) ||
             this.showContentSwitchers
         )
     }
@@ -122,10 +111,9 @@ export class ControlsRow extends Component<{
                     />
 
                     {/* rendered if the entity selector is shown on the map tab */}
-                    <GlobeSwitcher manager={this.manager} />
                     <MapRegionDropdown
                         manager={this.manager}
-                        maxWidth={this.maxWidthMapRegionDropdown}
+                        maxWidth={this.maxWidthSettingsMenu}
                     />
 
                     {/* rendered on mobile; only one of the following is shown at any given time */}
