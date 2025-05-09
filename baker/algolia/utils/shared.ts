@@ -25,6 +25,8 @@ import { groupBy } from "remeda"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { incomeGroupMap, REAL_FM_INCOME_GROUPS } from "./types.js"
 import { ExpandedFeaturedMetric } from "@ourworldindata/types/dist/dbTypes/FeaturedMetrics.js"
+import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
+import { GRAPHER_ROUTE_FOLDER } from "@ourworldindata/grapher"
 
 const countriesWithVariantNames = new Set(
     countries
@@ -89,8 +91,8 @@ function createRecordUrl(record: ChartRecord) {
         urljoin(
             BAKED_BASE_URL,
             record.type === ChartRecordType.ExplorerView
-                ? "explorer"
-                : "grapher",
+                ? EXPLORERS_ROUTE_FOLDER
+                : GRAPHER_ROUTE_FOLDER,
             record.slug,
             record.queryParams ?? ""
         )
