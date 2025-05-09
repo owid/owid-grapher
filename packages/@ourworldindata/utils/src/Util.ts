@@ -2094,6 +2094,17 @@ export function getParentVariableIdFromChartConfig(
     return yVariableIds[0]
 }
 
+export function extractLinksFromMarkdown(markdown: string): [string, string][] {
+    const links: [string, string][] = []
+    // Captures the text inside [] and the url inside ()
+    const regex = /\[([^\]]+)\]\(([^)]+)\)/g
+    let match
+    while ((match = regex.exec(markdown))) {
+        links.push([match[1], match[2]])
+    }
+    return links
+}
+
 // Page numbers are 0-indexed - you'll have to +1 to them when rendering
 export function getPaginationPageNumbers(
     currentPageNumber: number,

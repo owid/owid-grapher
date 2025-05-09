@@ -50,6 +50,7 @@ import { ImageIndexPage } from "./ImagesIndexPage.js"
 import { DataInsightIndexPage } from "./DataInsightIndexPage.js"
 import { MultiDimIndexPage } from "./MultiDimIndexPage.js"
 import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
+import { DodsIndexPage } from "./DodsIndexPage.js"
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -205,6 +206,8 @@ export class AdminApp extends React.Component<{
                                     path="/multi-dims"
                                     component={MultiDimIndexPage}
                                 />
+                                <Route path="/dods" component={DodsIndexPage} />
+
                                 <Route
                                     path="/images"
                                     component={ImageIndexPage}

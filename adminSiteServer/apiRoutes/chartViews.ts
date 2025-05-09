@@ -13,11 +13,11 @@ import {
     DbInsertChartView,
     ChartViewsTableName,
     ChartConfigsTableName,
-    OwidGdocLinkType,
     DbPlainUser,
     DbRawPostGdoc,
     DbRawImage,
     OwidGdocDataInsightContent,
+    ContentGraphLinkType,
 } from "@ourworldindata/types"
 import {
     diffGrapherConfigs,
@@ -281,7 +281,7 @@ export async function updateChartView(
     const references = await getPublishedLinksTo(
         trx,
         [existingRow.name],
-        OwidGdocLinkType.ChartView
+        ContentGraphLinkType.ChartView
     )
     if (references.length > 0) {
         await triggerStaticBuild(
@@ -317,7 +317,7 @@ export async function deleteChartView(
     const references = await getPublishedLinksTo(
         trx,
         [name],
-        OwidGdocLinkType.ChartView
+        ContentGraphLinkType.ChartView
     )
 
     if (references.length) {
@@ -357,7 +357,7 @@ export async function getChartViewReferences(
     const postsGdocs = await getPublishedLinksTo(
         trx,
         [name],
-        OwidGdocLinkType.ChartView
+        ContentGraphLinkType.ChartView
     ).then((refs) => uniqBy(refs, "slug"))
 
     const dataInsights = await getDataInsightsForChartView(trx, id)

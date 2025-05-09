@@ -58,7 +58,6 @@ import {
     renderPreviewDataPageOrGrapherPage,
     renderDataPageV2,
 } from "../baker/GrapherBaker.js"
-import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { getTombstoneBySlug } from "../db/model/GdocTombstone.js"
 import * as db from "../db/db.js"
@@ -75,6 +74,7 @@ import {
 } from "../db/db.js"
 import { getMinimalGdocPostsByIds } from "../db/model/Gdoc/GdocBase.js"
 import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
+import { getParsedDodsDictionary } from "../db/model/Dod.js"
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require("express-async-errors")
@@ -478,17 +478,8 @@ getPlainRouteWithROTransaction(
     "/dods.json",
     async (_, res, trx) => {
         res.set("Access-Control-Allow-Origin", "*")
-        const { details, parseErrors } =
-            await GdocPost.getDetailsOnDemandGdoc(trx)
-
-        if (parseErrors.length) {
-            console.error(
-                `Error(s) parsing details: ${parseErrors
-                    .map((e) => e.message)
-                    .join(", ")}`
-            )
-        }
-        res.send(details)
+        const dods = await getParsedDodsDictionary(trx)
+        res.send(dods)
     }
 )
 
