@@ -251,10 +251,13 @@ export {
     type Continent,
     getAggregates,
     type Aggregate,
+    type AggregateSource,
+    aggregateSources,
     getOthers,
     countriesByName,
     getRegionAlternativeNames,
     mappableCountries,
+    getRegionByName,
 } from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"
