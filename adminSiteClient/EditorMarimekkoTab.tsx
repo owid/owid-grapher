@@ -1,4 +1,4 @@
-import { Grapher } from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import * as lodash from "lodash-es"
 import { action, IReactionDisposer, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
@@ -6,11 +6,13 @@ import { Component } from "react"
 import { NumberField, Section, Toggle } from "./Forms.js"
 
 @observer
-export class EditorMarimekkoTab extends Component<{ grapher: Grapher }> {
+export class EditorMarimekkoTab extends Component<{
+    grapherState: GrapherState
+}> {
     @observable xOverrideTimeInputField: number | undefined
-    constructor(props: { grapher: Grapher }) {
+    constructor(props: { grapherState: GrapherState }) {
         super(props)
-        this.xOverrideTimeInputField = props.grapher.xOverrideTime
+        this.xOverrideTimeInputField = props.grapherState.xOverrideTime
     }
 
     @action.bound onXOverrideYear(value: number | undefined) {
@@ -18,7 +20,7 @@ export class EditorMarimekkoTab extends Component<{ grapher: Grapher }> {
     }
 
     render() {
-        const { grapher } = this.props
+        const { grapherState } = this.props
 
         return (
             <div className="EditorMarimekkoTab">
@@ -32,10 +34,10 @@ export class EditorMarimekkoTab extends Component<{ grapher: Grapher }> {
 
                     <Toggle
                         label="Exclude entities that do not belong in any color group"
-                        value={!!grapher.matchingEntitiesOnly}
+                        value={!!grapherState.matchingEntitiesOnly}
                         onValue={action(
                             (value: boolean) =>
-                                (grapher.matchingEntitiesOnly =
+                                (grapherState.matchingEntitiesOnly =
                                     value || undefined)
                         )}
                     />
@@ -49,7 +51,7 @@ export class EditorMarimekkoTab extends Component<{ grapher: Grapher }> {
             () => this.xOverrideTimeInputField,
             lodash.debounce(
                 () =>
-                    (this.props.grapher.xOverrideTime =
+                    (this.props.grapherState.xOverrideTime =
                         this.xOverrideTimeInputField),
                 800
             )
