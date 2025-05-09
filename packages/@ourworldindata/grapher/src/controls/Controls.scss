@@ -105,12 +105,31 @@ nav.controlsRow .chart-controls {
     }
 }
 
-@container grapher (max-width:525px) {
+@container grapher (max-width:675px) {
     // hide the entity name in the Edit/Select/Switch button
     nav.controlsRow .entity-selection-menu button.menu-toggle {
         label span {
             display: none;
         }
+    }
+}
+
+@container grapher (max-width:500px) {
+    // show icons only on smaller screens
+    .ContentSwitchers .label {
+        display: none;
+    }
+}
+
+// reduce the horizontal padding of a content switcher tab based on grapher's size
+@container grapher (max-width:725px) {
+    .ContentSwitchers .Tabs__tab {
+        --outer-padding: 12px;
+    }
+}
+@container grapher (max-width:335px) {
+    .ContentSwitchers .Tabs__tab {
+        --outer-padding: 8px;
     }
 }
 

@@ -6,7 +6,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
 import { GrapherTabName, GRAPHER_TAB_NAMES } from "@ourworldindata/types"
 import { chartIcons } from "./ChartIcons"
-import { Bounds } from "@ourworldindata/utils"
 import { TabLabel, Tabs } from "../tabs/Tabs.js"
 
 export interface ContentSwitchersManager {
@@ -19,13 +18,6 @@ export interface ContentSwitchersManager {
     isMedium?: boolean
 }
 
-// keep in sync with Tabs.scss
-const TAB_FONT_SIZE = 13
-
-// keep in sync with ContentSwitcher.scss
-const ICON_WIDTH = 13
-const ICON_PADDING = 6
-
 @observer
 export class ContentSwitchers extends React.Component<{
     manager: ContentSwitchersManager
@@ -33,11 +25,6 @@ export class ContentSwitchers extends React.Component<{
     static shouldShow(manager: ContentSwitchersManager): boolean {
         const test = new ContentSwitchers({ manager })
         return test.showTabs
-    }
-
-    static width(manager: ContentSwitchersManager): number {
-        const test = new ContentSwitchers({ manager })
-        return test.width
     }
 
     @computed private get manager(): ContentSwitchersManager {
@@ -56,35 +43,12 @@ export class ContentSwitchers extends React.Component<{
         return !this.manager.isNarrow
     }
 
-    @computed get width(): number {
-        return this.availableTabs.reduce((totalWidth, tab) => {
-            // keep in sync with ContentSwitcher.scss
-            const outerPadding =
-                this.showTabLabels && this.manager.isMedium ? 8 : 16
-
-            let tabWidth = 2 * outerPadding + ICON_WIDTH
-
-            if (this.showTabLabels) {
-                const tabLabel = makeTabLabelText(tab, {
-                    hasMultipleChartTypes: this.manager.hasMultipleChartTypes,
-                })
-                const labelWidth = Bounds.forText(tabLabel, {
-                    fontSize: TAB_FONT_SIZE,
-                }).width
-                tabWidth += labelWidth + ICON_PADDING
-            }
-
-            return totalWidth + tabWidth
-        }, 0)
-    }
-
     @computed private get tabLabels(): TabLabel[] {
         return this.availableTabs.map((tab) => ({
             element: (
                 <ContentSwitcherTab
                     key={tab}
                     tab={tab}
-                    showLabel={this.showTabLabels}
                     hasMultipleChartTypes={this.manager.hasMultipleChartTypes}
                 />
             ),
@@ -126,21 +90,17 @@ export class ContentSwitchers extends React.Component<{
 
 function ContentSwitcherTab({
     tab,
-    showLabel,
     hasMultipleChartTypes,
 }: {
     tab: GrapherTabName
-    showLabel?: boolean
     hasMultipleChartTypes?: boolean
 }): React.ReactElement {
     return (
         <span>
             <TabIcon tab={tab} />
-            {showLabel && (
-                <span className="label">
-                    {makeTabLabelText(tab, { hasMultipleChartTypes })}
-                </span>
-            )}
+            <span className="label">
+                {makeTabLabelText(tab, { hasMultipleChartTypes })}
+            </span>
         </span>
     )
 }
