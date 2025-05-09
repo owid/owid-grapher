@@ -118,6 +118,7 @@ export interface EntitySelectorManager {
     isOnMapTab?: boolean
     mapConfig?: MapConfig
     mapColumnSlug?: ColumnSlug
+    isEntityMutedInSelector?: (entityName: EntityName) => boolean
     onSelectEntity?: (entityName: EntityName) => void
     onDeselectEntity?: (entityName: EntityName) => void
     onClearEntities?: () => void
@@ -459,6 +460,10 @@ export class EntitySelector extends React.Component<{
 
     @computed private get yColumnSlugs(): ColumnSlug[] {
         return this.manager.yColumnSlugs ?? []
+    }
+
+    private isEntityMuted(entityName: EntityName): boolean {
+        return this.manager.isEntityMutedInSelector?.(entityName) ?? false
     }
 
     @computed private get title(): string {
@@ -1216,6 +1221,7 @@ export class EntitySelector extends React.Component<{
                             bar={this.getBarConfigForEntity(entity)}
                             onChange={this.onChange}
                             isLocal={entity.isLocal}
+                            isMuted={this.isEntityMuted(entity.name)}
                         />
                     </li>
                 ))}
@@ -1239,6 +1245,7 @@ export class EntitySelector extends React.Component<{
                                 bar={this.getBarConfigForEntity(entity)}
                                 onChange={this.onChange}
                                 isLocal={entity.isLocal}
+                                isMuted={this.isEntityMuted(entity.name)}
                             />
                         </li>
                     ))}
@@ -1342,6 +1349,7 @@ export class EntitySelector extends React.Component<{
                                     bar={this.getBarConfigForEntity(entity)}
                                     onChange={this.onChange}
                                     isLocal={entity.isLocal}
+                                    isMuted={this.isEntityMuted(entity.name)}
                                 />
                             </FlippedListItem>
                         ))}
@@ -1387,6 +1395,9 @@ export class EntitySelector extends React.Component<{
                                             )}
                                             onChange={this.onChange}
                                             isLocal={entity.isLocal}
+                                            isMuted={this.isEntityMuted(
+                                                entity.name
+                                            )}
                                         />
                                     </FlippedListItem>
                                 )
@@ -1439,6 +1450,7 @@ function SelectableEntity({
     bar,
     onChange,
     isLocal,
+    isMuted,
 }: {
     name: string
     checked: boolean
@@ -1446,6 +1458,7 @@ function SelectableEntity({
     bar?: BarConfig
     onChange: (entityName: EntityName) => void
     isLocal?: boolean
+    isMuted?: boolean
 }) {
     const Input = {
         checkbox: Checkbox,
@@ -1475,6 +1488,7 @@ function SelectableEntity({
         <div
             className={cx("selectable-entity", {
                 "selectable-entity--with-bar": bar && bar.width !== undefined,
+                "selectable-entity--muted": isMuted,
             })}
         >
             {bar && bar.width !== undefined && (

@@ -66,7 +66,11 @@ import {
     omit,
     isTouchDevice,
     isArrayDifferentFromReference,
-    getCountryByName,
+    getRegionByName,
+    checkIsCountry,
+    checkIsOwidContinent,
+    checkIsIncomeGroup,
+    checkHasMembers,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -117,6 +121,7 @@ import {
     ArchivedChartOrArchivePageMeta,
     GrapherTabType,
     GRAPHER_TAB_TYPES,
+    GlobeRegionName,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -174,7 +179,10 @@ import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesModal, SourcesModalManager } from "../modal/SourcesModal"
 import { DataTableManager } from "../dataTable/DataTable"
-import { MapChartManager } from "../mapCharts/MapChartConstants"
+import {
+    MAP_REGION_NAMES,
+    MapChartManager,
+} from "../mapCharts/MapChartConstants"
 import { MapChart } from "../mapCharts/MapChart"
 import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "../controls/CommandPalette"
@@ -1335,14 +1343,6 @@ export class Grapher
             this.focusArray.clearAllAndAdd(...this.focusedSeriesNames)
     }
 
-    @action.bound private applyOriginalRegionAsAuthored(): void {
-        this.mapConfig.region = this.authorsVersion.mapConfig.region
-    }
-
-    @action.bound onCloseGlobeViewButtonClick(): void {
-        this.applyOriginalRegionAsAuthored()
-    }
-
     @computed get hasData(): boolean {
         return this.dimensions.length > 0 || this.newSlugs.length > 0
     }
@@ -1592,7 +1592,7 @@ export class Grapher
         const shouldSyncSelection =
             this.addCountryMode !== EntitySelectionMode.Disabled &&
             this.isMapSelectionEnabled &&
-            this.mapConfig.selection.numSelectedEntities > 0
+            this.mapConfig.selection.hasSelection
 
         // switching from the chart tab to the map tab
         if (isChartTab(oldTab) && isMapTab(newTab) && shouldSyncSelection) {
@@ -3882,9 +3882,23 @@ export class Grapher
     // called when an entity is selected in the entity selector
     @action.bound onSelectEntity(entityName: EntityName): void {
         if (this.isOnMapTab && this.mapConfig.globe.isActive) {
-            const country = getCountryByName(entityName)
-            if (country?.isMappable) {
-                this.globeController.focusOnCountry(country.name)
+            const region = getRegionByName(entityName)
+            if (region) {
+                if (checkIsCountry(region) && region.isMappable) {
+                    // rotate to the selected country
+                    this.globeController.focusOnCountry(region.name)
+                } else if (checkIsOwidContinent(region)) {
+                    // rotate to the selected owid continent
+                    this.globeController.rotateToOwidContinent(
+                        MAP_REGION_NAMES[region.name] as GlobeRegionName
+                    )
+                } else if (checkIsIncomeGroup(region)) {
+                    // switch back to the map
+                    this.globeController.hideGlobe()
+                } else if (checkHasMembers(region)) {
+                    // rotate to the selected region
+                    this.globeController.rotateToRegion(region.name)
+                }
             }
         }
 
@@ -3896,7 +3910,7 @@ export class Grapher
         // remove focus from an entity that has been removed from the selection
         this.focusArray.remove(entityName)
 
-        // remove country focus on the map
+        // Remove focus from the deselected country
         this.globeController.dismissCountryFocus()
 
         this.resetMapRegionDropdown()
@@ -3911,6 +3925,16 @@ export class Grapher
         if (this.isOnMapTab) this.globeController.hideGlobe()
 
         this.resetMapRegionDropdown()
+    }
+
+    isEntityMutedInSelector(entityName: EntityName): boolean {
+        // for now, muted entities are only relevant on the map tab
+        if (!this.isOnMapTab) return false
+
+        // entities disabled on the map are muted
+        return this.mapConfig.selection.selectedCountryNamesInBackground.includes(
+            entityName
+        )
     }
 
     // todo: restore this behavior??
