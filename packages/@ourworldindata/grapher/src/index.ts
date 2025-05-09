@@ -8,6 +8,7 @@ export {
 } from "./color/ColorScaleBin"
 export { ChartDimension } from "./chart/ChartDimension"
 export {
+    GRAPHER_ROUTE_FOLDER,
     GRAPHER_EMBEDDED_FIGURE_ATTR,
     GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR,
     GRAPHER_CHART_VIEW_EMBEDDED_FIGURE_CONFIG_ATTR,
