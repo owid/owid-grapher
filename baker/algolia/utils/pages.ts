@@ -18,9 +18,9 @@ import {
     DbEnrichedImage,
     OwidGdocDataInsightInterface,
     OwidGdocAboutInterface,
+    gdocUrlRegex,
 } from "@ourworldindata/utils"
 import { formatPost } from "../../formatWordpressPost.js"
-import ReactDOMServer from "react-dom/server.js"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import { htmlToText } from "html-to-text"
 import {
@@ -30,8 +30,6 @@ import {
     WordpressPageType,
 } from "../../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
-import { ArticleBlocks } from "../../../site/gdocs/components/ArticleBlocks.js"
-import { createElement } from "react"
 import {
     getFullPost,
     getPostTags,
@@ -49,7 +47,11 @@ import {
 } from "../../../settings/clientSettings.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import { getFirstBlockOfType } from "../../../site/gdocs/utils.js"
-import { getPrefixedGdocPath } from "@ourworldindata/components"
+import {
+    getPrefixedGdocPath,
+    MarkdownTextWrap,
+} from "@ourworldindata/components"
+import { stripCustomMarkdownComponents } from "../../../db/model/Gdoc/enrichedToMarkdown.js"
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
@@ -213,6 +215,26 @@ function getExcerptFromGdoc(
     }
 }
 
+function formatGdocMarkdown(content: string): string {
+    const simplifiedMarkdown = stripCustomMarkdownComponents(content)
+
+    const withoutGdocLinks = simplifiedMarkdown.replaceAll(
+        new RegExp(gdocUrlRegex, "g"),
+        ""
+    )
+
+    // There's a bug somewhere in enrichedToMarkdown that leaves "undefined" in the text
+    const withoutUndefinedString = withoutGdocLinks.replaceAll(
+        new RegExp("undefined", "g"),
+        ""
+    )
+
+    // This is used in many data insights but shouldn't be shown in search results
+    const withoutArrow = withoutUndefinedString.replaceAll("→", "")
+
+    return withoutArrow
+}
+
 function generateGdocRecords(
     gdocs: (OwidGdocPostInterface | OwidGdocDataInsightInterface)[],
     pageviews: Record<string, RawPageview>,
@@ -246,17 +268,14 @@ function generateGdocRecords(
             )
             continue
         }
+
         // Only rendering the blocks - not the page nav, title, byline, etc
-        const renderedPostContent = ReactDOMServer.renderToStaticMarkup(
-            createElement(
-                "div",
-                null,
-                createElement(ArticleBlocks, {
-                    blocks: gdoc.content.body,
-                })
-            )
-        )
-        const chunks = generateChunksFromHtmlText(renderedPostContent)
+        const plaintextContent = new MarkdownTextWrap({
+            text: formatGdocMarkdown(gdoc.markdown || ""),
+            fontSize: 12,
+        }).plaintext
+
+        const chunks = generateChunksFromHtmlText(plaintextContent)
         let i = 0
 
         const thumbnailUrl = getThumbnailUrl(gdoc, cloudflareImagesByFilename)
