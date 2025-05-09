@@ -53,7 +53,7 @@ describe(Explorer, () => {
 
         explorer.onChangeChoice("Gas")("All GHGs (CO₂eq)")
 
-        expect(explorer.grapher.tab).toEqual("chart")
+        expect(explorer.grapher.tab).toEqual("line")
         expect(explorer.queryParams.tab).toEqual(undefined)
     })
 

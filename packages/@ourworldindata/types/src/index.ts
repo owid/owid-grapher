@@ -49,7 +49,6 @@ export {
     GRAPHER_TAB_NAMES,
     GRAPHER_TAB_OPTIONS,
     GRAPHER_TAB_QUERY_PARAMS,
-    GRAPHER_TAB_TYPES,
     ALL_GRAPHER_CHART_TYPES,
 } from "./grapherTypes/GrapherConstants.js"
 
@@ -84,7 +83,6 @@ export {
     type GrapherTabOption,
     type GrapherTabName,
     type GrapherTabQueryParam,
-    type GrapherTabType,
     type GrapherChartType,
     StackMode,
     EntitySelectionMode,
