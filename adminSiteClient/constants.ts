@@ -9,5 +9,5 @@ export const GDOC_DIFF_OMITTABLE_PROPERTIES = [
     "linkedCharts",
     "linkedDocuments",
     "relatedCharts",
-    "linkedChartViews",
+    "linkedNarrativeCharts",
 ]

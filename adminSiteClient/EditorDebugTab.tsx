@@ -4,7 +4,7 @@ import { Section, Toggle } from "./Forms.js"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action, computed, observable } from "mobx"
 import {
-    CHART_VIEW_PROPS_TO_OMIT,
+    NARRATIVE_CHART_PROPS_TO_OMIT,
     copyToClipboard,
     mergeGrapherConfigs,
     omit,
@@ -17,9 +17,9 @@ import {
 } from "./IndicatorChartEditor.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import {
-    ChartViewEditor,
-    isChartViewEditorInstance,
-} from "./ChartViewEditor.js"
+    NarrativeChartEditor,
+    isNarrativeChartEditorInstance,
+} from "./NarrativeChartEditor.js"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 import { stringify } from "safe-stable-stringify"
 
@@ -33,8 +33,8 @@ export class EditorDebugTab<
         const { editor } = this.props
         if (isChartEditorInstance(editor))
             return <EditorDebugTabForChart editor={editor} />
-        else if (isChartViewEditorInstance(editor))
-            return <EditorDebugTabForChartView editor={editor} />
+        else if (isNarrativeChartEditorInstance(editor))
+            return <EditorDebugTabForNarrativeChart editor={editor} />
         else if (isIndicatorChartEditorInstance(editor))
             return <EditorDebugTabForIndicatorChart editor={editor} />
         else return null
@@ -200,8 +200,8 @@ class EditorDebugTabForChart extends Component<{
 }
 
 @observer
-class EditorDebugTabForChartView extends Component<{
-    editor: ChartViewEditor
+class EditorDebugTabForNarrativeChart extends Component<{
+    editor: NarrativeChartEditor
 }> {
     @action.bound copyYamlToClipboard() {
         // Avoid modifying the original JSON object
@@ -250,7 +250,7 @@ class EditorDebugTabForChartView extends Component<{
                         oldValue={stringify(
                             omit(
                                 this.props.editor.parentConfig,
-                                CHART_VIEW_PROPS_TO_OMIT
+                                NARRATIVE_CHART_PROPS_TO_OMIT
                             ),
                             null,
                             2

@@ -81,7 +81,7 @@ export function createLinkFromUrl({
     } satisfies DbInsertPostGdocLink
 }
 
-export function createLinkForChartView({
+export function createLinkForNarrativeChart({
     name,
     source,
     componentType,
@@ -92,7 +92,7 @@ export function createLinkForChartView({
 }): DbInsertPostGdocLink {
     return {
         target: name,
-        linkType: OwidGdocLinkType.ChartView,
+        linkType: OwidGdocLinkType.NarrativeChart,
         queryString: "",
         hash: "",
         text: "",

@@ -9,13 +9,13 @@ import {
     getVariableAnnotations,
 } from "./apiRoutes/bulkUpdates.js"
 import {
-    getChartViews,
-    getChartViewById,
-    createChartView,
-    updateChartView,
-    deleteChartView,
-    getChartViewReferences,
-} from "./apiRoutes/chartViews.js"
+    getNarrativeCharts,
+    getNarrativeChartById,
+    createNarrativeChart,
+    updateNarrativeChart,
+    deleteNarrativeChart,
+    getNarrativeChartReferences,
+} from "./apiRoutes/narrativeCharts.js"
 import {
     getDatasets,
     getDataset,
@@ -223,20 +223,28 @@ postRouteWithRWTransaction(
 putRouteWithRWTransaction(apiRouter, "/charts/:chartId", updateChart)
 deleteRouteWithRWTransaction(apiRouter, "/charts/:chartId", deleteChart)
 
-// Chart view routes
-getRouteWithROTransaction(apiRouter, "/chartViews", getChartViews)
+// Narrative chart routes
+getRouteWithROTransaction(apiRouter, "/narrative-charts", getNarrativeCharts)
 getRouteWithROTransaction(
     apiRouter,
-    "/chartViews/:id.config.json",
-    getChartViewById
+    "/narrative-charts/:id.config.json",
+    getNarrativeChartById
 )
-postRouteWithRWTransaction(apiRouter, "/chartViews", createChartView)
-putRouteWithRWTransaction(apiRouter, "/chartViews/:id", updateChartView)
-deleteRouteWithRWTransaction(apiRouter, "/chartViews/:id", deleteChartView)
+postRouteWithRWTransaction(apiRouter, "/narrative-charts", createNarrativeChart)
+putRouteWithRWTransaction(
+    apiRouter,
+    "/narrative-charts/:id",
+    updateNarrativeChart
+)
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/narrative-charts/:id",
+    deleteNarrativeChart
+)
 getRouteWithROTransaction(
     apiRouter,
-    "/chartViews/:id.references.json",
-    getChartViewReferences
+    "/narrative-charts/:id.references.json",
+    getNarrativeChartReferences
 )
 
 // Dataset routes

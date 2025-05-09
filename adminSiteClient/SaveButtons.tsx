@@ -13,9 +13,9 @@ import {
 } from "./ChartEditorTypes.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import {
-    ChartViewEditor,
-    isChartViewEditorInstance,
-} from "./ChartViewEditor.js"
+    NarrativeChartEditor,
+    isNarrativeChartEditorInstance,
+} from "./NarrativeChartEditor.js"
 import { NarrativeChartNameModal } from "./NarrativeChartNameModal.js"
 import { CreateDataInsightModal } from "./CreateDataInsightModal.js"
 
@@ -37,9 +37,9 @@ export class SaveButtons<Editor extends AbstractChartEditor> extends Component<{
                     {...passthroughProps}
                 />
             )
-        else if (isChartViewEditorInstance(editor))
+        else if (isNarrativeChartEditorInstance(editor))
             return (
-                <SaveButtonsForChartView
+                <SaveButtonsForNarrativeChart
                     editor={editor}
                     {...passthroughProps}
                 />
@@ -90,7 +90,7 @@ class SaveButtonsForChart extends Component<{
         const { editor } = this.props
 
         this.narrativeChartNameModalOpen = "open-loading"
-        const res = await editor.saveAsChartView(name)
+        const res = await editor.saveAsNarrativeChart(name)
         if (res.success) {
             this.narrativeChartNameModalOpen = "closed"
         } else {
@@ -219,8 +219,8 @@ class SaveButtonsForIndicatorChart extends Component<{
 }
 
 @observer
-class SaveButtonsForChartView extends Component<{
-    editor: ChartViewEditor
+class SaveButtonsForNarrativeChart extends Component<{
+    editor: NarrativeChartEditor
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }> {
