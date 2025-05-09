@@ -96,7 +96,7 @@ export class ControlsRow extends Component<{
                     )}
                 </div>
                 <div className="chart-controls">
-                    {showEntitySelectionToggle && (
+                    {showEntitySelectionToggle && this.manager.isOnChartTab && (
                         <EntitySelectionToggle manager={this.manager} />
                     )}
 
@@ -115,6 +115,9 @@ export class ControlsRow extends Component<{
                         manager={this.manager}
                         maxWidth={this.maxWidthSettingsMenu}
                     />
+                    {showEntitySelectionToggle && this.manager.isOnMapTab && (
+                        <EntitySelectionToggle manager={this.manager} />
+                    )}
 
                     {/* rendered on mobile; only one of the following is shown at any given time */}
                     <MapCountryDropdown

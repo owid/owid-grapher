@@ -1229,6 +1229,7 @@ describe("syncing entity selection between the chart and map tab", () => {
         const grapher = new Grapher({
             selectedEntityNames: chartSelection,
             map: { selection: mapSelection },
+            bounds: new Bounds(0, 0, 400, 400), // necessary to disable map entity selection
         })
 
         // sanity check that map entity selection is disabled
@@ -1254,6 +1255,7 @@ describe("syncing entity selection between the chart and map tab", () => {
             selectedEntityNames: chartSelection,
             map: { selection: mapSelection },
             addCountryMode: EntitySelectionMode.Disabled,
+            bounds: new Bounds(0, 0, 400, 400), // necessary to disable map entity selection
         })
 
         // sanity check that map entity selection is disabled

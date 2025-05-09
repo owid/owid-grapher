@@ -144,6 +144,8 @@ import {
     GRAPHER_FRAME_PADDING_VERTICAL,
     latestGrapherConfigSchema,
     GRAPHER_SQUARE_SIZE,
+    MAP_GRAPHER_ENTITY_TYPE,
+    MAP_GRAPHER_ENTITY_TYPE_PLURAL,
 } from "../core/GrapherConstants"
 import { loadVariableDataAndMetadata } from "./loadVariable"
 import Cookies from "js-cookie"
@@ -3343,7 +3345,11 @@ export class Grapher
                             !this.isEntitySelectorModalOrDrawerOpen
                     }}
                 >
-                    <EntitySelector manager={this} autoFocus={true} />
+                    <EntitySelector
+                        manager={this}
+                        selection={entitySelectorArray}
+                        autoFocus={true}
+                    />
                 </SlideInDrawer>
 
                 {/* tooltip: either pin to the bottom or render into the chart area */}
@@ -3994,6 +4000,14 @@ export class Grapher
         )
     }
 
+    @computed get mapEntityType(): string {
+        return MAP_GRAPHER_ENTITY_TYPE
+    }
+
+    @computed get mapEntityTypePlural(): string {
+        return MAP_GRAPHER_ENTITY_TYPE_PLURAL
+    }
+
     // todo: restore this behavior??
     onStartPlayOrDrag(): void {
         this.debounceMode = true
@@ -4123,6 +4137,8 @@ export class Grapher
         const shouldShowModal =
             this.shouldShowEntitySelectorAs === GrapherWindowType.modal
 
+        if (this.isOnMapTab) return shouldShowDrawer
+
         return (
             this.isOnChartTab &&
             this.canChangeAddOrHighlightEntities &&
@@ -4152,8 +4168,8 @@ export class Grapher
             // the map should also be disabled
             !this.hideEntityControls &&
             // only show the entity selector on the map tab if it's rendered
-            // into the side panel
-            this.shouldShowEntitySelectorAs === GrapherWindowType.panel
+            // into the side panel or into the slide-in drawer
+            this.shouldShowEntitySelectorAs !== GrapherWindowType.modal
         )
     }
 
