@@ -110,6 +110,8 @@ export interface EntitySelectorManager {
     selection: SelectionArray
     entityType?: string
     entityTypePlural?: string
+    mapEntityType?: string
+    mapEntityTypePlural?: string
     activeColumnSlugs?: string[]
     dataApiUrl: string
     isEntitySelectorModalOrDrawerOpen?: boolean
@@ -684,14 +686,19 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get entityType(): string {
-        if (this.manager.isOnMapTab) return MAP_GRAPHER_ENTITY_TYPE
-        return this.manager.entityType || DEFAULT_GRAPHER_ENTITY_TYPE
+        if (this.manager.isOnMapTab)
+            return this.manager.mapEntityType ?? MAP_GRAPHER_ENTITY_TYPE
+        return this.manager.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
     }
 
     @computed private get entityTypePlural(): string {
-        if (this.manager.isOnMapTab) return MAP_GRAPHER_ENTITY_TYPE_PLURAL
+        if (this.manager.isOnMapTab)
+            return (
+                this.manager.mapEntityTypePlural ??
+                MAP_GRAPHER_ENTITY_TYPE_PLURAL
+            )
         return (
-            this.manager.entityTypePlural || DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
+            this.manager.entityTypePlural ?? DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
         )
     }
 
