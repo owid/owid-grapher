@@ -202,12 +202,6 @@ export class MapChart
         if (!ev.shiftKey) {
             this.selectionArray.setSelectedEntities([entityName])
             this.manager.tab = GRAPHER_TAB_OPTIONS.chart
-            if (
-                this.manager.isLineChartThatTurnedIntoDiscreteBar &&
-                this.manager.hasTimeline
-            ) {
-                this.manager.resetHandleTimeBounds?.()
-            }
         } else this.selectionArray.toggleSelection(entityName)
     }
 
