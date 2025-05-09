@@ -2352,7 +2352,7 @@ export class Grapher
         return (
             this.hasChartTab &&
             (this.hasLineChart || this.isScatter) &&
-            !isMobile()
+            !this.isTouchDevice
         )
     }
 
@@ -2799,6 +2799,15 @@ export class Grapher
                 fn: (): void => this.clearQueryParams(),
                 title: "Reset to original",
                 category: "Navigation",
+            },
+            {
+                combo: "g",
+                fn: (): void => {
+                    this.mapConfig.globe.isActive =
+                        !this.mapConfig.globe.isActive
+                },
+                title: "Toggle globe view",
+                category: "Map",
             },
         ]
 
@@ -3329,7 +3338,7 @@ export class Grapher
     }
 
     @computed get shouldPinTooltipToBottom(): boolean {
-        return this.isNarrow && this.isTouchDevice
+        return this.isTouchDevice
     }
 
     // Binds chart properties to global window title and URL. This should only
