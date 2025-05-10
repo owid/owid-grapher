@@ -35,7 +35,7 @@ import { Patterns } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,
     getForegroundFeatures,
-    sortFeaturesByInteractionState,
+    sortFeaturesByInteractionStateAndSize,
 } from "./MapHelpers"
 import {
     makeInternalAnnotationForFeature,
@@ -150,7 +150,8 @@ export class ChoroplethMap extends React.Component<{
 
     @computed private get sortedFeaturesWithData(): MapRenderFeature[] {
         // sort features so that hovered or selected features are rendered last
-        return sortFeaturesByInteractionState(this.featuresWithData, {
+        // and smaller countries are rendered on top of bigger ones
+        return sortFeaturesByInteractionStateAndSize(this.featuresWithData, {
             isHovered: (featureId: string) =>
                 this.manager.getHoverState(featureId).active,
             isSelected: (featureId) => this.manager.isSelected(featureId),

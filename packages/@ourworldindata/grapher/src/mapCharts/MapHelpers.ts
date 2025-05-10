@@ -7,7 +7,6 @@ import {
     getCountryNamesForRegion,
     getRelativeMouse,
     lazy,
-    sortBy,
 } from "@ourworldindata/utils"
 import {
     GEO_FEATURES_CLASSNAME,
@@ -18,6 +17,7 @@ import {
 } from "./MapChartConstants"
 import { MapTopology } from "./MapTopology.js"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
+import * as R from "remeda"
 
 export function detectNearbyFeature<Feature extends RenderFeature>({
     quadtree,
@@ -40,7 +40,9 @@ export function detectNearbyFeature<Feature extends RenderFeature>({
     return quadtree.find(x, y, distance)
 }
 
-export const sortFeaturesByInteractionState = <Feature extends RenderFeature>(
+export const sortFeaturesByInteractionStateAndSize = <
+    Feature extends RenderFeature,
+>(
     features: Feature[],
     {
         isHovered,
@@ -50,10 +52,17 @@ export const sortFeaturesByInteractionState = <Feature extends RenderFeature>(
         isSelected: (featureId: string) => boolean
     }
 ): Feature[] => {
-    return sortBy(features, (feature) => {
-        if (isHovered(feature.id)) return 2
-        if (isSelected(feature.id)) return 1
-        return 0
+    const preferA = 1 as const
+    const preferB = -1 as const
+
+    return R.sort(features, (a, b) => {
+        if (isHovered(a.id) && !isHovered(b.id)) return preferA
+        if (!isHovered(a.id) && isHovered(b.id)) return preferB
+
+        if (isSelected(a.id) && !isSelected(b.id)) return preferA
+        if (!isSelected(a.id) && isSelected(b.id)) return preferB
+
+        return a.geoBounds.area < b.geoBounds.area ? preferA : preferB
     })
 }
 
