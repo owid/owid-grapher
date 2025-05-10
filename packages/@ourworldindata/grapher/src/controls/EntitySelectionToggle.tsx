@@ -13,9 +13,7 @@ export interface EntitySelectionManager {
     canChangeAddOrHighlightEntities?: boolean
     entityType?: string
     entityTypePlural?: string
-    mapEntityTypePlural?: string
     isEntitySelectorModalOrDrawerOpen?: boolean
-    shouldShowEntitySelectorAs?: GrapherWindowType
     isOnChartTab?: boolean
     isOnMapTab?: boolean
     hideEntityControls?: boolean
@@ -67,7 +65,6 @@ export class EntitySelectionToggle extends React.Component<{
         const {
             entityType = "",
             entityTypePlural = "",
-            mapEntityTypePlural = "",
             canHighlightEntities,
             canChangeEntity,
             canAddEntities,
@@ -77,7 +74,7 @@ export class EntitySelectionToggle extends React.Component<{
         if (isOnMapTab)
             return {
                 action: "Select",
-                entity: mapEntityTypePlural,
+                entity: "countries",
                 icon: <FontAwesomeIcon icon={faPen} />,
             }
 

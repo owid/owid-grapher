@@ -57,7 +57,8 @@ export class GlobeSwitcher extends React.Component<{
         }
 
         // reset the map region dropdown
-        this.manager.mapRegionDropdownValue = undefined
+        if (this.manager.mapRegionDropdownValue)
+            this.manager.mapRegionDropdownValue = undefined
     }
 
     @action.bound async populateLocalCountryName(): Promise<void> {
