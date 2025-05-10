@@ -146,8 +146,6 @@ import {
     GRAPHER_FRAME_PADDING_VERTICAL,
     latestGrapherConfigSchema,
     GRAPHER_SQUARE_SIZE,
-    MAP_GRAPHER_ENTITY_TYPE,
-    MAP_GRAPHER_ENTITY_TYPE_PLURAL,
 } from "../core/GrapherConstants"
 import { loadVariableDataAndMetadata } from "./loadVariable"
 import Cookies from "js-cookie"
@@ -4002,14 +4000,6 @@ export class Grapher
         return this.mapConfig.selection.selectedCountryNamesInBackground.includes(
             entityName
         )
-    }
-
-    @computed get mapEntityType(): string {
-        return MAP_GRAPHER_ENTITY_TYPE
-    }
-
-    @computed get mapEntityTypePlural(): string {
-        return MAP_GRAPHER_ENTITY_TYPE_PLURAL
     }
 
     // todo: restore this behavior??

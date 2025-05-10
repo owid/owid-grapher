@@ -25,6 +25,8 @@ import {
     aggregateSources,
     AggregateSource,
     getRegionByName,
+    checkHasMembers,
+    Region,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -49,8 +51,6 @@ import {
     GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
     isPopulationVariableETLPath,
     isWorldEntityName,
-    MAP_GRAPHER_ENTITY_TYPE,
-    MAP_GRAPHER_ENTITY_TYPE_PLURAL,
 } from "../core/GrapherConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { SortIcon } from "../controls/SortIcon"
@@ -110,8 +110,6 @@ export interface EntitySelectorManager {
     selection: SelectionArray
     entityType?: string
     entityTypePlural?: string
-    mapEntityType?: string
-    mapEntityTypePlural?: string
     activeColumnSlugs?: string[]
     dataApiUrl: string
     isEntitySelectorModalOrDrawerOpen?: boolean
@@ -142,6 +140,7 @@ type SearchableEntity = {
     sortColumnValues: Record<ColumnSlug, CoreValueType | undefined>
     isLocal?: boolean
     alternativeNames?: string[]
+    regionInfo?: Region
 }
 
 interface SortDropdownOption {
@@ -477,12 +476,19 @@ export class EntitySelector extends React.Component<{
 
     @computed private get title(): string {
         return this.manager.isOnMapTab
-            ? `Select ${this.entityTypePlural}`
+            ? `Select ${this.entityType.plural}`
             : this.manager.canHighlightEntities
-              ? `Select ${this.entityTypePlural}`
+              ? `Select ${this.entityType.plural}`
               : this.manager.canChangeEntity
-                ? `Choose ${a(this.entityType)}`
-                : `Add/remove ${this.entityTypePlural}`
+                ? `Choose ${a(this.entityType.singular)}`
+                : `Add/remove ${this.entityType.plural}`
+    }
+
+    @computed private get searchPlaceholderEntityType(): string {
+        if (this.entityFilter === "all") return this.entityType.singular
+        if (this.entityFilter === "countries") return "country"
+        if (this.entityFilter === "incomeGroups") return "income group"
+        return "continent"
     }
 
     @computed private get searchInput(): string {
@@ -536,6 +542,13 @@ export class EntitySelector extends React.Component<{
 
     @computed private get table(): OwidTable {
         return this.manager.tableForSelection
+    }
+
+    @computed private get someEntitiesAreRegions(): boolean {
+        if (!this.entitiesAreCountriesOrRegions) return false
+        return this.availableEntities.some((entity) =>
+            checkHasMembers(entity.regionInfo)
+        )
     }
 
     @computed private get entitiesAreCountriesOrRegions(): boolean {
@@ -685,21 +698,25 @@ export class EntitySelector extends React.Component<{
         return this.isEntityNameSlug(this.sortConfig.slug)
     }
 
-    @computed private get entityType(): string {
-        if (this.manager.isOnMapTab)
-            return this.manager.mapEntityType ?? MAP_GRAPHER_ENTITY_TYPE
-        return this.manager.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
-    }
+    @computed private get entityType(): { singular: string; plural: string } {
+        const entitiesAreCountriesOrRegions =
+            this.manager.isOnMapTab ||
+            (!this.manager.entityType && this.entitiesAreCountriesOrRegions)
 
-    @computed private get entityTypePlural(): string {
-        if (this.manager.isOnMapTab)
-            return (
-                this.manager.mapEntityTypePlural ??
-                MAP_GRAPHER_ENTITY_TYPE_PLURAL
-            )
-        return (
-            this.manager.entityTypePlural ?? DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
-        )
+        if (entitiesAreCountriesOrRegions)
+            return this.someEntitiesAreRegions
+                ? {
+                      singular: "country or region",
+                      plural: "countries and regions",
+                  }
+                : { singular: "country", plural: "countries" }
+
+        return {
+            singular: this.manager.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE,
+            plural:
+                this.manager.entityTypePlural ??
+                DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
+        }
     }
 
     @computed private get selectionArray(): SelectionArray {
@@ -727,6 +744,7 @@ export class EntitySelector extends React.Component<{
                 name: entityName,
                 sortColumnValues: {},
                 alternativeNames: getRegionAlternativeNames(entityName, langs),
+                regionInfo: getRegionByName(entityName),
             }
 
             if (this.localEntityNames) {
@@ -1149,9 +1167,7 @@ export class EntitySelector extends React.Component<{
                         type="search"
                         value={this.searchInput}
                         onChange={action((e): void => {
-                            this.set({
-                                searchInput: e.currentTarget.value,
-                            })
+                            this.set({ searchInput: e.currentTarget.value })
                         })}
                         onKeyDown={this.onSearchKeyDown}
                         data-track-note={"entity_selector_search"}
@@ -1163,7 +1179,7 @@ export class EntitySelector extends React.Component<{
                         but the placeholder text should have a smaller font size. */}
                     {!this.searchInput && (
                         <span className="search-placeholder">
-                            Search for {a(this.entityType)}
+                            Search for {a(this.searchPlaceholderEntityType)}
                         </span>
                     )}
                     <FontAwesomeIcon
@@ -1232,8 +1248,8 @@ export class EntitySelector extends React.Component<{
         if (!this.searchResults || this.searchResults.length === 0) {
             return (
                 <div className="entity-search-results grapher_body-3-regular grapher_light">
-                    There is no data for the {this.entityType} you are looking
-                    for. You may want to try using different keywords or
+                    There is no data for the {this.entityType.singular} you are
+                    looking for. You may want to try using different keywords or
                     checking for typos.
                 </div>
             )
@@ -1400,7 +1416,7 @@ export class EntitySelector extends React.Component<{
                         {!shouldShowFilterBar && (
                             <Flipped flipId="__available" translate opacity>
                                 <div className="entity-section__title grapher_body-3-regular-italic grapher_light">
-                                    All {this.entityTypePlural}
+                                    All {this.entityType.plural}
                                 </div>
                             </Flipped>
                         )}
