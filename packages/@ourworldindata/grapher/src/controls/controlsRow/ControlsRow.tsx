@@ -78,7 +78,46 @@ export class ControlsRow extends Component<{
         )
     }
 
-    render(): JSX.Element {
+    private renderChartAndTableControls(): React.ReactElement {
+        return (
+            <>
+                <EntitySelectionToggle manager={this.manager} />
+
+                <SettingsMenu
+                    manager={this.manager}
+                    maxWidth={this.maxWidthSettingsMenu}
+                    top={this.props.settingsMenuTop ?? 0}
+                    bottom={this.framePaddingVertical}
+                    right={this.sidePanelWidth + this.framePaddingHorizontal}
+                />
+            </>
+        )
+    }
+
+    private renderMapControls(): React.ReactElement {
+        return this.manager.isMapSelectionEnabled ? (
+            <>
+                <MapRegionDropdown
+                    manager={this.manager}
+                    maxWidth={this.maxWidthSettingsMenu}
+                />
+                <EntitySelectionToggle manager={this.manager} />
+            </>
+        ) : (
+            <>
+                <MapCountryDropdown
+                    manager={this.manager}
+                    maxWidth={this.maxWidthSettingsMenu}
+                />
+                <CloseGlobeViewButton
+                    manager={this.manager}
+                    maxWidth={this.maxWidthSettingsMenu}
+                />
+            </>
+        )
+    }
+
+    render(): React.ReactElement {
         return (
             <nav
                 className="controlsRow"
@@ -88,38 +127,9 @@ export class ControlsRow extends Component<{
                     <ContentSwitchers manager={this.manager} />
                 </div>
                 <div className="chart-controls">
-                    {this.manager.isOnChartTab && (
-                        <EntitySelectionToggle manager={this.manager} />
-                    )}
-
-                    <SettingsMenu
-                        manager={this.manager}
-                        maxWidth={this.maxWidthSettingsMenu}
-                        top={this.props.settingsMenuTop ?? 0}
-                        bottom={this.framePaddingVertical}
-                        right={
-                            this.sidePanelWidth + this.framePaddingHorizontal
-                        }
-                    />
-
-                    {/* rendered if the entity selector is shown on the map tab */}
-                    <MapRegionDropdown
-                        manager={this.manager}
-                        maxWidth={this.maxWidthSettingsMenu}
-                    />
-                    {this.manager.isOnMapTab && (
-                        <EntitySelectionToggle manager={this.manager} />
-                    )}
-
-                    {/* rendered on mobile; only one of the following is shown at any given time */}
-                    <MapCountryDropdown
-                        manager={this.manager}
-                        maxWidth={this.maxWidthSettingsMenu}
-                    />
-                    <CloseGlobeViewButton
-                        manager={this.manager}
-                        maxWidth={this.maxWidthSettingsMenu}
-                    />
+                    {this.manager.isOnMapTab
+                        ? this.renderMapControls()
+                        : this.renderChartAndTableControls()}
                 </div>
             </nav>
         )
