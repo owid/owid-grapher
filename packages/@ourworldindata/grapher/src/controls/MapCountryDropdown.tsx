@@ -165,7 +165,7 @@ export class MapCountryDropdown extends React.Component<{
                     onInputChange={(inputValue) =>
                         (this.searchInput = inputValue)
                     }
-                    placeholder="Search to zoom..."
+                    placeholder="Zoom to..."
                     formatOptionLabel={(option) => (
                         <>
                             {option.label}
