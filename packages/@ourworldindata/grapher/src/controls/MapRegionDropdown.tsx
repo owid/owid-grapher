@@ -17,6 +17,7 @@ export interface MapRegionDropdownManager {
     mapRegionDropdownValue?: MapRegionDropdownValue
     hideMapRegionDropdown?: boolean
     isMapSelectionEnabled?: boolean
+    isSmall?: boolean
 }
 
 interface MapRegionDropdownOption {
@@ -45,16 +46,19 @@ export class MapRegionDropdown extends React.Component<{
 
     @computed private get showMenu(): boolean {
         const {
-                hideMapRegionDropdown,
-                isOnMapTab,
-                mapConfig,
-                isMapSelectionEnabled,
-            } = this.manager,
-            { region } = mapConfig ?? {}
-        return (
+            hideMapRegionDropdown,
+            isOnMapTab,
+            mapConfig,
+            isMapSelectionEnabled,
+            isSmall,
+        } = this.manager
+
+        return !!(
             !hideMapRegionDropdown &&
-            !!(isOnMapTab && region) &&
-            !!isMapSelectionEnabled
+            // only show if the 2d map is active on smaller screens due to space constraints
+            (!isSmall || !mapConfig?.globe.isActive) &&
+            isOnMapTab &&
+            isMapSelectionEnabled
         )
     }
 

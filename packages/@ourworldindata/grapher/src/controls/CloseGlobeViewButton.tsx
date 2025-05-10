@@ -2,16 +2,17 @@ import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
-import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
+import { DEFAULT_BOUNDS, MapRegionName } from "@ourworldindata/utils"
 import { GlobeController } from "../mapCharts/GlobeController"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons"
+import { MapRegionDropdownValue } from "./MapRegionDropdown"
 
 export interface CloseGlobeViewButtonManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
-    isMapSelectionEnabled?: boolean
     globeController?: GlobeController
+    mapRegionDropdownValue?: MapRegionDropdownValue
 }
 
 @observer
@@ -25,17 +26,16 @@ export class CloseGlobeViewButton extends React.Component<{
     }
 
     @computed private get showMenu(): boolean {
-        const { isOnMapTab, mapConfig, isMapSelectionEnabled } =
-            this.props.manager
-        return !!(
-            isOnMapTab &&
-            mapConfig?.globe.isActive &&
-            !isMapSelectionEnabled
-        )
+        const { isOnMapTab, mapConfig } = this.props.manager
+        return !!(isOnMapTab && mapConfig?.globe.isActive)
     }
 
     @computed private get manager(): CloseGlobeViewButtonManager {
         return this.props.manager
+    }
+
+    @computed private get mapConfig(): MapConfig {
+        return this.manager.mapConfig ?? new MapConfig()
     }
 
     @computed private get maxWidth(): number {
@@ -43,7 +43,9 @@ export class CloseGlobeViewButton extends React.Component<{
     }
 
     @action.bound private onClick(): void {
-        this.manager.globeController?.toggleGlobe()
+        this.manager.mapRegionDropdownValue = undefined
+        this.mapConfig.region = MapRegionName.World
+        this.manager.globeController?.hideGlobe()
     }
 
     render(): React.ReactElement | null {
