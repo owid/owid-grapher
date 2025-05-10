@@ -173,7 +173,10 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get shouldShowAnnotations(): boolean {
-        return !!this.manager.mapColumn.hasNumberFormatting
+        return !!(
+            this.manager.mapColumn.hasNumberFormatting &&
+            !this.mapConfig.tooltipUseCustomLabels
+        )
     }
 
     private formatAnnotationLabel(value: string | number): string {
