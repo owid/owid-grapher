@@ -84,6 +84,29 @@ properties:
                     Column to show in the map tab. Can be a column slug (e.g. in explorers) or a variable ID (as string).
                     If not provided, the first y dimension is used.
                 type: string
+            selectedEntityNames:
+                type: array
+                description: The initial selection of entities to show on the map
+                default: []
+                items:
+                    type:
+                        - string
+            globe:
+                type: object
+                description: Configuration of the globe
+                isActive:
+                    type: boolean
+                    description: Whether the globe is initially shown
+                rotation:
+                    type: array
+                    description: Longitude and latitude of the globe rotation
+                    items:
+                        type:
+                            - number
+                zoom:
+                    type: number
+                    description: Zoom level of the globe
+                additionalProperties: false
         additionalProperties: false
     maxTime:
         description: End point of the initially selected time span.
