@@ -29,6 +29,7 @@ export const defaultGrapherConfig = {
         toleranceStrategy: "closest",
         tooltipUseCustomLabels: false,
         time: "latest",
+        selectedEntityNames: [],
     },
     maxTime: "latest",
     selectedEntityNames: [],
