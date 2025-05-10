@@ -37,6 +37,7 @@ export const MAP_CHART_CLASSNAME = "MapChart"
 export const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
 export const GEO_FEATURES_CLASSNAME = "GeoFeatures"
 
+export const DEFAULT_GLOBE_ZOOM = 1
 export const GLOBE_MIN_ZOOM = 1
 export const GLOBE_MAX_ZOOM = 5
 export const GLOBE_COUNTRY_ZOOM = 2.5

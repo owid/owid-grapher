@@ -1167,7 +1167,7 @@ describe("syncing entity selection between the chart and map tab", () => {
         const grapher = new Grapher({
             bounds: new Bounds(0, 0, 1200, 800), // map entity selection is only enabled for large graphers
             selectedEntityNames: chartSelection,
-            map: { selection: mapSelection },
+            map: { selectedEntityNames: mapSelection },
         })
 
         // sanity check that entity selection is enabled
@@ -1185,7 +1185,7 @@ describe("syncing entity selection between the chart and map tab", () => {
         const grapher = new Grapher({
             bounds: new Bounds(0, 0, 1200, 800), // map entity selection is only enabled for large graphers
             selectedEntityNames: chartSelection,
-            map: { selection: mapSelection },
+            map: { selectedEntityNames: mapSelection },
         })
 
         // sanity check that entity selection is enabled
@@ -1228,7 +1228,7 @@ describe("syncing entity selection between the chart and map tab", () => {
     it("doesn't sync entities if map entity selection is disabled", () => {
         const grapher = new Grapher({
             selectedEntityNames: chartSelection,
-            map: { selection: mapSelection },
+            map: { selectedEntityNames: mapSelection },
             bounds: new Bounds(0, 0, 400, 400), // necessary to disable map entity selection
         })
 
@@ -1253,7 +1253,7 @@ describe("syncing entity selection between the chart and map tab", () => {
     it("doesn't sync entities if chart entity selection is disabled", () => {
         const grapher = new Grapher({
             selectedEntityNames: chartSelection,
-            map: { selection: mapSelection },
+            map: { selectedEntityNames: mapSelection },
             addCountryMode: EntitySelectionMode.Disabled,
             bounds: new Bounds(0, 0, 400, 400), // necessary to disable map entity selection
         })
@@ -1326,7 +1326,7 @@ describe("tableForSelection", () => {
             table,
             hasMapTab: true,
             tab: "map",
-            map: { selection: ["Europe"] },
+            map: { selectedEntityNames: ["Europe"] },
         })
 
         const { availableEntityNames } = grapher.tableForSelection
