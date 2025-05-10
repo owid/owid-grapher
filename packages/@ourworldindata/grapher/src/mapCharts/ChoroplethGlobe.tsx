@@ -58,7 +58,7 @@ import {
     calculateDistance,
     detectNearbyFeature,
     isPointPlacedOnVisibleHemisphere,
-    sortFeaturesByInteractionState,
+    sortFeaturesByInteractionStateAndSize,
     getForegroundFeatures,
 } from "./MapHelpers"
 import {
@@ -132,7 +132,8 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed private get sortedFeaturesWithData(): GlobeRenderFeature[] {
         // sort features so that hovered or selected features are rendered last
-        return sortFeaturesByInteractionState(this.featuresWithData, {
+        // and smaller countries are rendered on top of bigger ones
+        return sortFeaturesByInteractionStateAndSize(this.featuresWithData, {
             isHovered: (featureId: string) =>
                 this.manager.getHoverState(featureId).active,
             isSelected: (featureId) => this.manager.isSelected(featureId),
