@@ -3,7 +3,6 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
 import {
-    DEFAULT_BOUNDS,
     EntityName,
     FuzzySearch,
     getRegionAlternativeNames,
@@ -38,7 +37,6 @@ interface DropdownOption {
 @observer
 export class MapCountryDropdown extends React.Component<{
     manager: MapCountryDropdownManager
-    maxWidth?: number
 }> {
     @observable private searchInput = ""
     @observable private localCountryName?: EntityName
@@ -66,10 +64,6 @@ export class MapCountryDropdown extends React.Component<{
         return this.manager.mapConfig ?? new MapConfig()
     }
 
-    @computed private get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
-    }
-
     @computed get fuzzy(): FuzzySearch<DropdownOption> {
         return FuzzySearch.withKeyArray(
             this.options,
@@ -83,9 +77,9 @@ export class MapCountryDropdown extends React.Component<{
         this.manager.onMapCountryDropdownFocus?.()
     }
 
-    @action.bound private onChange(selected: unknown): void {
-        const option = selected as DropdownOption
-        const country = option.value
+    @action.bound private onChange(selected: DropdownOption | null): void {
+        const country = selected?.value
+        if (!country) return
 
         // reset the region if a non-world region is currently selected
         if (this.mapConfig.region !== MapRegionName.World) {
@@ -149,10 +143,7 @@ export class MapCountryDropdown extends React.Component<{
 
     render(): React.ReactElement | null {
         return this.showMenu ? (
-            <div
-                className="map-country-dropdown"
-                style={{ width: this.maxWidth }}
-            >
+            <div className="map-country-dropdown">
                 <SearchDropdown
                     options={
                         this.searchInput ? this.filteredOptions : this.options
