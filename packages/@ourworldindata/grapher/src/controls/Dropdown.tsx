@@ -44,7 +44,6 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>(
                     return cx("control", {
                         focus: state.isFocused,
                         active: state.menuIsOpen,
-                        "has-value": state.hasValue,
                     })
                 },
                 menu: () => "menu",
