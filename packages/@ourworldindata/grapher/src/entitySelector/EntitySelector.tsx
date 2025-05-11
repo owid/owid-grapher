@@ -252,7 +252,7 @@ export class EntitySelector extends React.Component<{
     searchField: React.RefObject<HTMLInputElement> = React.createRef()
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
 
-    private sortConfigName: SortConfig = {
+    private sortConfigByName: SortConfig = {
         slug: this.table.entityNameSlug,
         order: SortOrder.asc,
     }
@@ -320,10 +320,10 @@ export class EntitySelector extends React.Component<{
             return { slug, order: SortOrder.desc }
         }
 
-        return this.sortConfigName
+        return this.sortConfigByName
     }
 
-    @action.bound initSortConfig(): void {
+    initSortConfig(): void {
         this.set({ sortConfig: this.getDefaultSortConfig() })
     }
 
@@ -522,7 +522,7 @@ export class EntitySelector extends React.Component<{
 
     @computed get sortConfig(): SortConfig {
         return (
-            this.manager.entitySelectorState.sortConfig ?? this.sortConfigName
+            this.manager.entitySelectorState.sortConfig ?? this.sortConfigByName
         )
     }
 
@@ -897,13 +897,6 @@ export class EntitySelector extends React.Component<{
         return this.fuzzy.search(this.searchInput)
     }
 
-    @computed get selectedSearchResults(): SearchableEntity[] | undefined {
-        if (!this.searchResults) return undefined
-        return this.searchResults.filter((entity: SearchableEntity) =>
-            this.isEntitySelected(entity)
-        )
-    }
-
     @computed get selectedEntities(): SearchableEntity[] {
         const selected = this.availableEntities.filter((entity) =>
             this.isEntitySelected(entity)
@@ -963,17 +956,10 @@ export class EntitySelector extends React.Component<{
     }
 
     @action.bound onClear(): void {
-        if (this.searchInput) {
-            const selected = this.selectedSearchResults ?? []
-            const dropEntityNames = selected.map((entity) => entity.name)
-            this.selectionArray.deselectEntities(dropEntityNames)
-            this.onDeselectEntities(dropEntityNames)
-        } else {
-            const dropEntityNames = this.selectionArray.selectedEntityNames
-            this.selectionArray.clearSelection()
-            this.onDeselectEntities(dropEntityNames)
-            this.manager.onClearEntities?.()
-        }
+        const dropEntityNames = this.selectionArray.selectedEntityNames
+        this.selectionArray.clearSelection()
+        this.onDeselectEntities(dropEntityNames)
+        this.manager.onClearEntities?.()
 
         this.resetEntityFilter()
 
@@ -1008,9 +994,11 @@ export class EntitySelector extends React.Component<{
         }
     }
 
-    @action.bound async onChangeSortSlug(selected: unknown): Promise<void> {
+    @action.bound async onChangeSortSlug(
+        selected: SortDropdownOption | null
+    ): Promise<void> {
         if (selected) {
-            const { value: slug } = selected as SortDropdownOption
+            const { value: slug } = selected
 
             // if an external indicator has been selected, load it
             const external = this.externalSortIndicatorDefinitions.find(
@@ -1128,9 +1116,11 @@ export class EntitySelector extends React.Component<{
         ]
     }
 
-    @action.bound private onChangeEntityFilter(selected: unknown): void {
+    @action.bound private onChangeEntityFilter(
+        selected: FilterDropdownOption | null
+    ): void {
         if (selected) {
-            const option = selected as FilterDropdownOption
+            const option = selected
             this.set({ entityFilter: option.value })
 
             this.manager.logEntitySelectorEvent("filterBy", option.value)

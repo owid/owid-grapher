@@ -115,7 +115,7 @@ export function getForegroundFeatures<Feature extends RenderFeature>(
     if (!selectionArray.hasRegions) return features
 
     // all countries within the selected regions are in the foreground
-    const countrySet = new Set(selectionArray.countryNamesForSelectedRegions)
+    const countrySet = selectionArray.countryNamesForSelectedRegionsSet
     return features.filter((feature) => countrySet.has(feature.id))
 }
 

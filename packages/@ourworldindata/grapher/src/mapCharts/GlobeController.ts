@@ -312,13 +312,11 @@ function calculateTargetForCountryCollection(
 
 function getCoordsBasedOnTime(): [number, number] {
     const date = new Date()
-
     const hours = date.getUTCHours()
-    const minutes = date.getUTCMinutes()
 
-    if (hours <= 7 && minutes <= 59) {
+    if (hours <= 7) {
         return DEFAULT_GLOBE_ROTATIONS_FOR_TIME.UTC_MORNING
-    } else if (hours <= 15 && minutes <= 59) {
+    } else if (hours <= 15) {
         return DEFAULT_GLOBE_ROTATIONS_FOR_TIME.UTC_MIDDAY
     } else {
         return DEFAULT_GLOBE_ROTATIONS_FOR_TIME.UTC_EVENING
@@ -378,7 +376,7 @@ function getCoordsAndZoomForCountryCollection(countryNames: string[]): {
 
 function findVisibleCountrySubset(countryNames: string[]): string[] {
     // rotate the globe to the center point of all given countries,
-    // and find all countries that are currently visible on the globe
+    // and find all countries that are then visible on the globe
     const centerPoint = getCentroidForCountryCollection(countryNames)
     const projection = geoOrthographic().rotate(centerPoint)
     const visibleCountries = countryNames.filter((countryName) => {
