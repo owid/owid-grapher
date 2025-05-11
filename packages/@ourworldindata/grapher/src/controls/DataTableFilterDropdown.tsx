@@ -2,7 +2,7 @@ import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Dropdown } from "./Dropdown"
-import { DEFAULT_BOUNDS, EntityName } from "@ourworldindata/utils"
+import { EntityName } from "@ourworldindata/utils"
 import { DataTableConfig } from "../dataTable/DataTable"
 import { OwidTable } from "@ourworldindata/core-table"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -27,7 +27,6 @@ interface DropdownOption {
 @observer
 export class DataTableFilterDropdown extends React.Component<{
     manager: DataTableFilterDropdownManager
-    maxWidth?: number
 }> {
     static shouldShow(manager: DataTableFilterDropdownManager): boolean {
         const menu = new DataTableFilterDropdown({ manager })
@@ -48,10 +47,6 @@ export class DataTableFilterDropdown extends React.Component<{
             this.options.length > 1 &&
             this.options[0].count !== this.options[1].count
         )
-    }
-
-    @computed private get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
     @action.bound private onChange(selected: DropdownOption | null): void {
@@ -103,18 +98,14 @@ export class DataTableFilterDropdown extends React.Component<{
         if (!this.shouldShow) return null
 
         return (
-            <div
+            <Dropdown<DropdownOption>
                 className="data-table-filter-dropdown"
-                style={{ maxWidth: this.maxWidth }}
-            >
-                <Dropdown<DropdownOption>
-                    options={this.options}
-                    onChange={this.onChange}
-                    value={this.value}
-                    formatOptionLabel={formatOptionLabel}
-                    aria-label="Filter by"
-                />
-            </div>
+                options={this.options}
+                onChange={this.onChange}
+                value={this.value}
+                formatOptionLabel={formatOptionLabel}
+                aria-label="Filter by"
+            />
         )
     }
 }

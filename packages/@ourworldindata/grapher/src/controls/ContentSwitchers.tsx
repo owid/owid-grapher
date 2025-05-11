@@ -10,7 +10,6 @@ import {
     GRAPHER_TAB_NAMES,
 } from "@ourworldindata/types"
 import { chartIcons } from "./ChartIcons"
-import { Bounds } from "@ourworldindata/utils"
 import { TabLabel, Tabs } from "../tabs/Tabs.js"
 
 export interface ContentSwitchersManager {
@@ -24,13 +23,6 @@ export interface ContentSwitchersManager {
     isLineChartThatTurnedIntoDiscreteBar?: boolean
 }
 
-// keep in sync with Tabs.scss
-const TAB_FONT_SIZE = 13
-
-// keep in sync with ContentSwitcher.scss
-const ICON_WIDTH = 13
-const ICON_PADDING = 6
-
 @observer
 export class ContentSwitchers extends React.Component<{
     manager: ContentSwitchersManager
@@ -38,11 +30,6 @@ export class ContentSwitchers extends React.Component<{
     static shouldShow(manager: ContentSwitchersManager): boolean {
         const test = new ContentSwitchers({ manager })
         return test.shouldShow
-    }
-
-    static width(manager: ContentSwitchersManager): number {
-        const test = new ContentSwitchers({ manager })
-        return test.width
     }
 
     @computed private get manager(): ContentSwitchersManager {
@@ -59,30 +46,6 @@ export class ContentSwitchers extends React.Component<{
 
     @computed private get showTabLabels(): boolean {
         return !this.manager.isNarrow
-    }
-
-    @computed get width(): number {
-        return this.availableTabs.reduce((totalWidth, tab) => {
-            // keep in sync with ContentSwitcher.scss
-            const outerPadding =
-                this.showTabLabels && this.manager.isMedium ? 8 : 16
-
-            let tabWidth = 2 * outerPadding + ICON_WIDTH
-
-            if (this.showTabLabels) {
-                const tabLabel = makeTabLabelText(tab, {
-                    hasMultipleChartTypes: this.manager.hasMultipleChartTypes,
-                    isLineChartThatTurnedIntoDiscreteBar:
-                        this.manager.isLineChartThatTurnedIntoDiscreteBar,
-                })
-                const labelWidth = Bounds.forText(tabLabel, {
-                    fontSize: TAB_FONT_SIZE,
-                }).width
-                tabWidth += labelWidth + ICON_PADDING
-            }
-
-            return totalWidth + tabWidth
-        }, 0)
     }
 
     @computed private get tabLabels(): TabLabel[] {
