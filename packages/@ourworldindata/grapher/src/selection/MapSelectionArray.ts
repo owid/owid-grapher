@@ -42,7 +42,7 @@ export class MapSelectionArray extends SelectionArray {
      */
     @computed get selectedCountryNamesInForeground(): EntityName[] {
         if (!this.hasRegions) return this.selectedCountryNames
-        const memberCountries = new Set(this.countryNamesForSelectedRegions)
+        const memberCountries = this.countryNamesForSelectedRegionsSet
         return this.selectedCountries
             .filter((country) => memberCountries.has(country.name))
             .map((country) => country.name)
@@ -79,9 +79,15 @@ export class MapSelectionArray extends SelectionArray {
         return this.selectedRegions.length > 0
     }
 
-    @computed get countryNamesForSelectedRegions(): EntityName[] {
-        return this.selectedRegions.flatMap((region) =>
-            getCountryNamesForRegion(region)
+    @computed get countryNamesForSelectedRegionsSet(): Set<EntityName> {
+        return new Set(
+            this.selectedRegions.flatMap((region) =>
+                getCountryNamesForRegion(region)
+            )
         )
+    }
+
+    @computed get countryNamesForSelectedRegions(): EntityName[] {
+        return Array.from(this.countryNamesForSelectedRegionsSet)
     }
 }

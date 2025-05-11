@@ -14,6 +14,7 @@ import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { GrapherHoverEvent } from "../core/GrapherAnalytics"
+import * as R from "remeda"
 
 export declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
@@ -77,13 +78,7 @@ export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
     Oceania: "Oceania",
 }
 
-export const MAP_REGION_NAMES: Record<string, MapRegionName> =
-    Object.fromEntries(
-        Object.entries(MAP_REGION_LABELS).map(([key, value]) => [
-            value,
-            key as MapRegionName,
-        ])
-    )
+export const MAP_REGION_NAMES = R.invert(MAP_REGION_LABELS)
 
 export interface ChoroplethSeries extends ChartSeries {
     value: number | string
