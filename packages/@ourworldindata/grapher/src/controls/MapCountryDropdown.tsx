@@ -160,7 +160,6 @@ export class MapCountryDropdown extends React.Component<{
                     onFocus={this.onFocus}
                     onChange={this.onChange}
                     value={this.value}
-                    isSearchable={true}
                     filterOption={() => true} // disable the default filtering
                     onInputChange={(inputValue) =>
                         (this.searchInput = inputValue)
