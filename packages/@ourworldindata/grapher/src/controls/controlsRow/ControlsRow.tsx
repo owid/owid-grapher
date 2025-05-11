@@ -74,18 +74,23 @@ export class ControlsRow extends Component<{
         )
     }
 
-    private renderChartAndTableControls(): React.ReactElement {
+    private renderChartControls(): React.ReactElement {
         return (
             <div className="controls chart-controls">
                 <EntitySelectionToggle manager={this.manager} />
-
                 <SettingsMenu
                     manager={this.manager}
                     top={this.props.settingsMenuTop ?? 0}
                     bottom={this.framePaddingVertical}
                     right={this.sidePanelWidth + this.framePaddingHorizontal}
                 />
+            </div>
+        )
+    }
 
+    private renderTableControls(): React.ReactElement {
+        return (
+            <div className="controls table-controls">
                 <DataTableFilterDropdown manager={this.manager} />
             </div>
         )
@@ -122,7 +127,9 @@ export class ControlsRow extends Component<{
                 <div className="controls">
                     {this.manager.isOnMapTab
                         ? this.renderMapControls()
-                        : this.renderChartAndTableControls()}
+                        : this.manager.isOnTableTab
+                          ? this.renderTableControls()
+                          : this.renderChartControls()}
                 </div>
             </nav>
         )
