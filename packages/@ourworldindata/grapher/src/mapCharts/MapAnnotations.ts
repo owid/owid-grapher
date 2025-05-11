@@ -112,6 +112,7 @@ export function makeExternalAnnotationForFeature({
         markerLength,
     })
 
+    // todo: why do this for the country itself?
     // make sure the labels of countries like Lesotho and Eswatini that are
     // separated from the ocean by another country are placed in the ocean
     const bridgeFeatures = [feature.geo, ...(placement.bridgeFeatures ?? [])]
@@ -144,9 +145,11 @@ export function makeExternalAnnotationForFeature({
 export function repositionAndFilterExternalAnnotations({
     annotations,
     projection,
+    backgroundFeatureIdSet, // countries ignored for collision detection
 }: {
     annotations: ExternalAnnotation[]
     projection: GeoProjection
+    backgroundFeatureIdSet: Set<string>
 }): ExternalAnnotation[] {
     const originalAnnotationsById = new Map(
         annotations.map((annotation) => [annotation.id, annotation])
@@ -158,11 +161,19 @@ export function repositionAndFilterExternalAnnotations({
     // the re-positioned label annotations might overlap with other countries
     const filteredAnnotations = nonOverlappingAnnotations.filter(
         (annotation) => {
-            // we do these checks only for countries that are proximally close
-            // for performance reasons
-            const nearbyGeoFeatures = getGeoFeaturesWithinRadius(
+            // we do these checks only for countries that are proximally close for performance reasons
+            let nearbyGeoFeatures = getGeoFeaturesWithinRadius(
                 annotation.feature
             )
+
+            // exclude background countries from collision detection,
+            // i.e. showing a label on top of a background country is allowed
+            if (backgroundFeatureIdSet.size > 0)
+                nearbyGeoFeatures = nearbyGeoFeatures.filter(
+                    (feature) =>
+                        !backgroundFeatureIdSet.has(feature.id as string)
+                )
+
             const nearbyAnnotations = excludeUndefined(
                 nearbyGeoFeatures.map((feature) =>
                     originalAnnotationsById.get(feature.id as string)
@@ -437,7 +448,7 @@ function moveExternalLabelIntoOcean({
 
     let newBounds = placedBounds
     for (const geoFeature of bridgeFeatures) {
-        for (let tick = 0; tick < 5; tick++) {
+        for (let tick = 0; tick < 2; tick++) {
             // stop if the label and geo feature don't intersect
             if (!booleanIntersects(annotationLabel, geoFeature)) break
 
