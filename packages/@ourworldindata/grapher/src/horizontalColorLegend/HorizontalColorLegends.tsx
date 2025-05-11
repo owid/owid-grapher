@@ -1,9 +1,8 @@
 import * as React from "react"
 import * as R from "remeda"
-import { action, computed } from "mobx"
+import { computed } from "mobx"
 import { observer } from "mobx-react"
 import {
-    getRelativeMouse,
     sortBy,
     min,
     max,
@@ -493,58 +492,6 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         )
     }
 
-    @computed private get bounds(): Bounds {
-        return new Bounds(this.x, this.numericLegendY, this.width, this.height)
-    }
-
-    @action.bound private onMouseMove(ev: MouseEvent | TouchEvent): void {
-        const { manager, base, positionedBins } = this
-        const { numericFocusBracket } = manager
-        if (base.current) {
-            const mouse = getRelativeMouse(base.current, ev)
-
-            // We implement onMouseMove and onMouseLeave in a custom way, without attaching them to
-            // specific SVG elements, in order to allow continuous transition between bins as the user
-            // moves their cursor across (even if their cursor is in the empty area above the
-            // legend, where the labels are).
-            // We could achieve the same by rendering invisible rectangles over the areas and attaching
-            // event handlers to those.
-
-            // If outside legend bounds, trigger onMouseLeave if there is an existing bin in focus.
-            if (!this.bounds.contains(mouse)) {
-                if (numericFocusBracket && manager.onLegendMouseLeave)
-                    return manager.onLegendMouseLeave()
-                return
-            }
-
-            // If inside legend bounds, trigger onMouseOver with the bin closest to the cursor.
-            let newFocusBracket: ColorScaleBin | undefined
-            positionedBins.forEach((bin) => {
-                if (mouse.x >= bin.x && mouse.x <= bin.x + bin.width)
-                    newFocusBracket = bin.bin
-            })
-
-            if (newFocusBracket && manager.onLegendMouseOver)
-                manager.onLegendMouseOver(newFocusBracket)
-        }
-    }
-
-    componentDidMount(): void {
-        document.documentElement.addEventListener("mousemove", this.onMouseMove)
-        document.documentElement.addEventListener("touchmove", this.onMouseMove)
-    }
-
-    componentWillUnmount(): void {
-        document.documentElement.removeEventListener(
-            "mousemove",
-            this.onMouseMove
-        )
-        document.documentElement.removeEventListener(
-            "touchmove",
-            this.onMouseMove
-        )
-    }
-
     render(): React.ReactElement {
         const {
             manager,
@@ -618,6 +565,12 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                                         bin instanceof NumericBin
                                             ? bin.props.isOpenRight
                                             : false
+                                    }
+                                    onMouseEnter={() =>
+                                        this.manager.onLegendMouseOver?.(bin)
+                                    }
+                                    onMouseLeave={() =>
+                                        this.manager.onLegendMouseLeave?.()
                                     }
                                 />
                             )
