@@ -2,7 +2,7 @@ import { Component } from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 
-import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
+import { Bounds } from "@ourworldindata/utils"
 
 import { ContentSwitchers, ContentSwitchersManager } from "../ContentSwitchers"
 import {
@@ -58,20 +58,8 @@ export class ControlsRow extends Component<{
         return this.props.manager
     }
 
-    @computed private get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
-    }
-
     @computed private get sidePanelWidth(): number {
         return this.manager.sidePanelBounds?.width ?? 0
-    }
-
-    @computed private get contentSwitchersWidth(): number {
-        return ContentSwitchers.width(this.manager)
-    }
-
-    @computed private get maxWidthSettingsMenu(): number {
-        return this.maxWidth - this.contentSwitchersWidth - 16
     }
 
     @computed private get showControlsRow(): boolean {
@@ -93,16 +81,12 @@ export class ControlsRow extends Component<{
 
                 <SettingsMenu
                     manager={this.manager}
-                    maxWidth={this.maxWidthSettingsMenu}
                     top={this.props.settingsMenuTop ?? 0}
                     bottom={this.framePaddingVertical}
                     right={this.sidePanelWidth + this.framePaddingHorizontal}
                 />
 
-                <DataTableFilterDropdown
-                    manager={this.manager}
-                    maxWidth={this.maxWidthSettingsMenu}
-                />
+                <DataTableFilterDropdown manager={this.manager} />
             </div>
         )
     }
@@ -112,23 +96,14 @@ export class ControlsRow extends Component<{
             <div className="controls map-controls">
                 {this.manager.isMapSelectionEnabled ? (
                     <>
-                        <MapRegionDropdown
-                            manager={this.manager}
-                            maxWidth={this.maxWidthSettingsMenu}
-                        />
+                        <MapRegionDropdown manager={this.manager} />
                         <GlobeSwitcher manager={this.manager} />
                         <EntitySelectionToggle manager={this.manager} />
                     </>
                 ) : (
                     <>
-                        <MapCountryDropdown
-                            manager={this.manager}
-                            maxWidth={this.maxWidthSettingsMenu}
-                        />
-                        <CloseGlobeViewButton
-                            manager={this.manager}
-                            maxWidth={this.maxWidthSettingsMenu}
-                        />
+                        <MapCountryDropdown manager={this.manager} />
+                        <CloseGlobeViewButton manager={this.manager} />
                     </>
                 )}
             </div>

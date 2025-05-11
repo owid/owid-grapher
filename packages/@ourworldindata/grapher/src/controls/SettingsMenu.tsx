@@ -10,7 +10,6 @@ import {
     FacetStrategy,
     GrapherChartType,
 } from "@ourworldindata/types"
-import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartDimension } from "../chart/ChartDimension"
 import {
@@ -87,7 +86,6 @@ export interface SettingsMenuManager
 @observer
 export class SettingsMenu extends React.Component<{
     manager: SettingsMenuManager
-    maxWidth?: number
     top: number
     bottom: number
     right: number
@@ -102,10 +100,6 @@ export class SettingsMenu extends React.Component<{
 
     @computed get chartType(): GrapherChartType {
         return this.manager.activeChartType ?? GRAPHER_CHART_TYPES.LineChart
-    }
-
-    @computed get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
     @computed get showYScaleToggle(): boolean | undefined {
