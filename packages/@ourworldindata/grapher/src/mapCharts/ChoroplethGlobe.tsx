@@ -23,6 +23,7 @@ import {
     PointVector,
     MapRegionName,
     excludeUndefined,
+    EntityName,
 } from "@ourworldindata/utils"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
@@ -122,6 +123,10 @@ export class ChoroplethGlobe extends React.Component<{
     @computed
     private get backgroundFeatures(): GlobeRenderFeature[] {
         return difference(this.features, this.foregroundFeatures)
+    }
+
+    @computed private get backgroundFeatureIdSet(): Set<EntityName> {
+        return new Set(this.backgroundFeatures.map((feature) => feature.id))
     }
 
     @computed private get featuresWithData(): GlobeRenderFeature[] {
@@ -339,13 +344,14 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed
     private get externalAnnotations(): ExternalAnnotation[] {
-        const { projection } = this
+        const { projection, backgroundFeatureIdSet } = this
         const annotations = this.annotationCandidates.filter(
             (annotation) => annotation.type === "external"
         )
         return repositionAndFilterExternalAnnotations({
             annotations,
             projection,
+            backgroundFeatureIdSet,
         })
     }
 

@@ -5,6 +5,7 @@ import {
     isTouchDevice,
     makeIdForHumanConsumption,
     excludeUndefined,
+    EntityName,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -142,6 +143,10 @@ export class ChoroplethMap extends React.Component<{
         return difference(this.features, this.foregroundFeatures)
     }
 
+    @computed private get backgroundFeatureIdSet(): Set<EntityName> {
+        return new Set(this.backgroundFeatures.map((feature) => feature.id))
+    }
+
     @computed private get featuresWithData(): MapRenderFeature[] {
         return this.foregroundFeatures.filter((feature) =>
             this.choroplethData.has(feature.id)
@@ -249,13 +254,14 @@ export class ChoroplethMap extends React.Component<{
 
     @computed
     private get externalAnnotations(): ExternalAnnotation[] {
-        const { projection } = this
+        const { projection, backgroundFeatureIdSet } = this
         const annotations = this.annotationCandidates.filter(
             (annotation) => annotation.type === "external"
         )
         return repositionAndFilterExternalAnnotations({
             annotations,
             projection,
+            backgroundFeatureIdSet,
         })
     }
 
