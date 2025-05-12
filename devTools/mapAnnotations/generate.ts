@@ -78,7 +78,7 @@ function calculateAspectRatio(polygon: Position[][]): number {
     const dx = bounds[1][0] - bounds[0][0]
     const dy = bounds[1][1] - bounds[0][1]
     const ratio = dx / (dy || 1)
-    return ratio
+    return R.clamp(ratio, { min: 1 / 12, max: 12 })
 }
 
 /**
@@ -152,7 +152,7 @@ const roundEllipse = (ellipse: EllipseCoords): EllipseCoords => {
     }
 }
 
-const roundCoord = (coord: number): number => R.round(coord, 5)
+const roundCoord = (coord: number): number => R.round(coord, 2)
 
 const roundCoords = (coords: [number, number]): [number, number] => [
     roundCoord(coords[0]),
