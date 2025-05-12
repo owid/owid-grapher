@@ -628,7 +628,10 @@
     },
     {
         "id": "Moldova",
-        "ellipse": { "cx": 28.26, "cy": 47.67, "left": 27.43, "top": 48.15 }
+        "ellipse": { "cx": 28.26, "cy": 47.67, "left": 27.43, "top": 48.15 },
+        "direction": "rightBottom",
+        "anchorPoint": [28.89, 46.15],
+        "bridgeCountries": ["Ukraine"]
     },
     {
         "id": "Monaco",
@@ -858,7 +861,8 @@
         "id": "San Marino",
         "ellipse": { "cx": 12.44, "cy": 43.93, "left": 12.38, "top": 43.95 },
         "direction": "rightTop",
-        "anchorPoint": [12.44, 43.93]
+        "anchorPoint": [12.44, 43.93],
+        "bridgeCountries": ["Italy"]
     },
     {
         "id": "Sao Tome and Principe",

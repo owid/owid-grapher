@@ -112,17 +112,17 @@ export function makeExternalAnnotationForFeature({
         markerLength,
     })
 
-    // todo: why do this for the country itself?
     // make sure the labels of countries like Lesotho and Eswatini that are
     // separated from the ocean by another country are placed in the ocean
-    const bridgeFeatures = [feature.geo, ...(placement.bridgeFeatures ?? [])]
-    placedBounds = moveExternalLabelIntoOcean({
-        bridgeFeatures,
-        placedBounds,
-        direction,
-        projection,
-        step: 1.5 * markerLength,
-    })
+    if (placement.bridgeFeatures?.length)
+        placedBounds = moveExternalLabelIntoOcean({
+            bridgeFeatures: placement.bridgeFeatures,
+            placedBounds,
+            direction,
+            projection,
+            step: markerLength / 2,
+            maxSteps: 3,
+        })
 
     return {
         type: "external",
@@ -434,12 +434,14 @@ function moveExternalLabelIntoOcean({
     placedBounds,
     projection,
     step,
+    maxSteps,
 }: {
     bridgeFeatures: GeoFeature[]
     direction: Direction
     placedBounds: Bounds
     projection: any
     step: number
+    maxSteps: number
 }): Bounds {
     // polygon in lon/lat coordinates that represents the annotation label
     let annotationLabel = makePolygonFromBounds(placedBounds, (position) =>
@@ -447,25 +449,25 @@ function moveExternalLabelIntoOcean({
     )
 
     let newBounds = placedBounds
-    for (const geoFeature of bridgeFeatures) {
-        for (let tick = 0; tick < 2; tick++) {
-            // stop if the label and geo feature don't intersect
-            if (!booleanIntersects(annotationLabel, geoFeature)) break
+    for (let tick = 0; tick < maxSteps; tick++) {
+        const intersectsWithSomeFeature = bridgeFeatures.some((bridgeFeature) =>
+            booleanIntersects(annotationLabel, bridgeFeature)
+        )
+        if (!intersectsWithSomeFeature) break
 
-            // update bounds
-            newBounds = newBounds.set(
-                moveIntoDirectionByStep({
-                    position: newBounds.topLeft,
-                    direction,
-                    step,
-                })
-            )
+        // update bounds
+        newBounds = newBounds.set(
+            moveIntoDirectionByStep({
+                position: newBounds.topLeft,
+                direction,
+                step,
+            })
+        )
 
-            // update label
-            annotationLabel = makePolygonFromBounds(newBounds, (position) =>
-                projection.invert(position)
-            )
-        }
+        // update label
+        annotationLabel = makePolygonFromBounds(newBounds, (position) =>
+            projection.invert(position)
+        )
     }
 
     return newBounds

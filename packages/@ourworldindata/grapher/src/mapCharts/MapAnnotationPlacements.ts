@@ -12,7 +12,7 @@ interface RawAnnotationPlacement {
 
 interface EnrichedAnnotationPlacement
     extends Omit<RawAnnotationPlacement, "bridgeCountries"> {
-    bridgeFeatures: GeoFeature[]
+    bridgeFeatures?: GeoFeature[]
 }
 
 export const annotationPlacementsById = new Map<
