@@ -32,7 +32,6 @@ export interface DataPageDataV2 {
     description?: string
     descriptionShort?: string
     descriptionFromProducer?: string
-    faqs: FaqLink[] // Todo: resolve these at this level to the point where we can preview them
     descriptionKey: string[]
     descriptionProcessing?: string
     owidProcessingLevel?: OwidProcessingLevel
