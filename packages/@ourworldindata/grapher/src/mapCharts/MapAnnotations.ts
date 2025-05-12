@@ -53,7 +53,7 @@ export function makeInternalAnnotationForFeature({
 
     if (!ellipse) return
 
-    // place label at the center of the ellpise (decreases the font size if necessary)
+    // place label at the center of the ellipse (decreases the font size if necessary)
     const placedLabel = placeLabelAtEllipseCenter({
         text: formattedValue,
         ellipse,
