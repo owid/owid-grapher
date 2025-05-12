@@ -218,7 +218,6 @@
         .selectable-entity {
             display: flex;
             justify-content: space-between;
-            position: relative;
 
             .checkbox,
             .radio {
@@ -280,7 +279,7 @@
             }
         }
 
-        .flipped {
+        li {
             position: relative;
             z-index: 0;
             background: #fff;

@@ -1211,7 +1211,7 @@ function FlippedListItem({
                 damping: 33,
             }}
         >
-            <li className="flipped">{children}</li>
+            <li>{children}</li>
         </Flipped>
     )
 }
