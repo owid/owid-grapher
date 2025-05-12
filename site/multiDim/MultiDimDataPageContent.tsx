@@ -24,6 +24,7 @@ import {
 import {
     DataPageRelatedResearch,
     FaqEntryKeyedByGdocIdAndFragmentId,
+    FaqLink,
     GrapherQueryParams,
     ImageMetadata,
     MultiDimDataPageConfigEnriched,
@@ -89,6 +90,10 @@ declare global {
     }
 }
 
+interface VariableDataPageData extends DataPageDataV2 {
+    faqs: FaqLink[]
+}
+
 export function DataPageContent({
     slug,
     canonicalUrl,
@@ -105,7 +110,7 @@ export function DataPageContent({
     const [searchParams, setSearchParams] = useSearchParams()
     const [manager, setManager] = useState({})
     const [varDatapageData, setVarDatapageData] =
-        useState<DataPageDataV2 | null>(null)
+        useState<VariableDataPageData | null>(null)
     const titleFragments = useTitleFragments(config)
 
     const settings = useMemo(() => {
@@ -130,12 +135,17 @@ export function DataPageContent({
 
             const datapageDataPromise = cachedGetVariableMetadata(
                 variableId
-            ).then((json) =>
-                getDatapageDataV2(
-                    merge(json, config.config?.metadata, newView.metadata),
-                    newView.config ?? {}
+            ).then((json) => {
+                const mergedMetadata = merge(
+                    json,
+                    config.config?.metadata,
+                    newView.metadata
                 )
-            )
+                return {
+                    ...getDatapageDataV2(mergedMetadata, newView.config ?? {}),
+                    faqs: mergedMetadata.presentation?.faqs ?? [],
+                }
+            })
             const grapherConfigUuid = newView.fullConfigId
             const grapherConfigPromise = cachedGetGrapherConfigByUuid(
                 grapherConfigUuid,
