@@ -22,6 +22,7 @@ import {
     Annotation,
     ANNOTATION_COLOR_LIGHT,
     ANNOTATION_COLOR_DARK,
+    RenderFeature,
 } from "./MapChartConstants"
 import { getGeoFeaturesForMap } from "./GeoFeatures"
 import {
@@ -374,12 +375,23 @@ export class ChoroplethMap extends React.Component<{
         if (this.externalAnnotations.length === 0) return
 
         return (
-            <g id={makeIdForHumanConsumption("annotations-external")}>
+            <g
+                id={makeIdForHumanConsumption("annotations-external")}
+                className="ExternalAnnotations"
+            >
                 {this.externalAnnotations.map((annotation) => (
                     <ExternalValueAnnotation
                         key={annotation.id}
                         annotation={annotation}
                         strokeScale={this.viewportScaleSqrt}
+                        onMouseEnter={action((feature: RenderFeature) =>
+                            this.setHoverEnterFeature(
+                                feature as MapRenderFeature
+                            )
+                        )}
+                        onMouseLeave={action(() =>
+                            this.clearHoverEnterFeature()
+                        )}
                     />
                 ))}
             </g>

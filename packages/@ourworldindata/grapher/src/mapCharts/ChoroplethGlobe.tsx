@@ -42,6 +42,7 @@ import {
     GlobeRenderFeature,
     InternalAnnotation,
     MAP_HOVER_TARGET_RANGE,
+    RenderFeature,
     SVGMouseEvent,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
@@ -783,11 +784,22 @@ export class ChoroplethGlobe extends React.Component<{
         if (this.externalAnnotations.length === 0) return
 
         return (
-            <g id={makeIdForHumanConsumption("annotations-external")}>
+            <g
+                id={makeIdForHumanConsumption("annotations-external")}
+                className="ExternalAnnotations"
+            >
                 {this.externalAnnotations.map((annotation) => (
                     <ExternalValueAnnotation
                         key={annotation.id}
                         annotation={annotation}
+                        onMouseEnter={action((feature: RenderFeature) =>
+                            this.setHoverEnterFeature(
+                                feature as GlobeRenderFeature
+                            )
+                        )}
+                        onMouseLeave={action(() =>
+                            this.clearHoverEnterFeature()
+                        )}
                     />
                 ))}
             </g>
