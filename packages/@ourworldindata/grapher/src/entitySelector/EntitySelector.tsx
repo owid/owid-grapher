@@ -87,6 +87,11 @@ const customAggregateSources = [
 ] as const
 type CustomAggregateSource = (typeof customAggregateSources)[number]
 
+const aggregateSourceSet = new Set([
+    ...aggregateSources,
+    ...customAggregateSources,
+])
+
 type EntityRegionType =
     | "all"
     | "countries"
@@ -1082,16 +1087,19 @@ export class EntitySelector extends React.Component<{
             )
         }
 
-        for (const source of [...aggregateSources, ...customAggregateSources]) {
+        for (const entityName of availableEntityNames) {
             // The regions file includes a definedBy field for aggregates,
             // which could be used here. However, non-OWID regions aren't
             // standardized, meaning we might miss some entities.
             // Instead, we rely on the convention that non-OWID regions
             // are suffixed with (source) and check the entity name.
-            const entityNames = availableEntityNames.filter((entityName) =>
-                entityName.toLowerCase().trim().endsWith(`(${source})`)
-            )
-            if (entityNames.length > 0) entitiesByType.set(source, entityNames)
+            const match = entityName.match(/\(([^)]+)\)$/)
+            const sourceCandidate = match?.[1].toLowerCase()
+            if (sourceCandidate && isAggregateSource(sourceCandidate)) {
+                if (!entitiesByType.get(sourceCandidate))
+                    entitiesByType.set(sourceCandidate, [])
+                entitiesByType.get(sourceCandidate)!.push(entityName)
+            }
         }
 
         return entitiesByType
@@ -1598,4 +1606,10 @@ function getTitleForSortColumnLabel(column: CoreColumn): string {
 
 function indicatorIdToSlug(indicatorId: number): ColumnSlug {
     return indicatorId.toString()
+}
+
+function isAggregateSource(
+    candidate: string
+): candidate is AggregateSource | CustomAggregateSource {
+    return aggregateSourceSet.has(candidate as any)
 }
