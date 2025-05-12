@@ -11004,7 +11004,7 @@ __metadata:
     indefinite: "npm:^2.4.3"
     ini: "npm:^4.1.2"
     instantsearch.js: "npm:^4.72.1"
-    js-base64: "npm:^3.7.2"
+    js-base64: "npm:^3.7.7"
     js-cookie: "npm:^3.0.1"
     jsdom: "npm:^26.0.0"
     json8-pointer: "npm:^1.0.6"
@@ -12373,10 +12373,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-base64@npm:^3.7.2":
-  version: 3.7.2
-  resolution: "js-base64@npm:3.7.2"
-  checksum: 10/1a8a0ead5039217fc50f7271ca86ade0ea364110dcbcb9789d6fa09cea1cf604a0a6f4f92f7fcf2fb749f5ee28a2b4d2ed835c409660c2fed8ad308ecc39e30c
+"js-base64@npm:^3.7.7":
+  version: 3.7.7
+  resolution: "js-base64@npm:3.7.7"
+  checksum: 10/185e34c536a6b1c4e1ad8bd96d25b49a9ea4e6803e259eaaaca95f1b392a0d590b2933c5ca8580c776f7279507944b81ff1faf889d84baa5e31f026e96d676a5
   languageName: node
   linkType: hard
 
