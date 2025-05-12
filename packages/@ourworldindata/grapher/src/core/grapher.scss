@@ -83,6 +83,7 @@ $zindex-controls-drawer: 150;
     @import "../scatterCharts/NoDataSection.scss";
     @import "../controls/CloseGlobeViewButton.scss";
     @import "../controls/GlobeSwitcher.scss";
+    @import "../mapCharts/MapChart.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
