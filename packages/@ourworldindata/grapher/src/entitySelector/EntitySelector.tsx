@@ -1153,25 +1153,13 @@ export class EntitySelector extends React.Component<{
     private renderFilterBar(): React.ReactElement {
         return (
             <div className="entity-selector__filter-bar">
-                <span
-                    id="entity-selector__filter-dropdown-label"
-                    className="label grapher_label-2-regular grapher_light"
-                >
-                    <FontAwesomeIcon icon={faFilter} size="sm" />
-                    Filter by type
-                </span>
                 <Dropdown<FilterDropdownOption>
-                    className="entity-selector__filter-dropdown"
+                    className="entity-selector__dropdown"
                     options={this.filterOptions}
                     onChange={this.onChangeEntityFilter}
                     value={this.filterValue}
-                    formatOptionLabel={(option) => (
-                        <>
-                            {option.label}{" "}
-                            <span className="detail">({option.count})</span>
-                        </>
-                    )}
-                    aria-labelledby="entity-selector__filter-dropdown-label"
+                    formatOptionLabel={formatFilterOptionLabel}
+                    aria-label="Filter by type"
                 />
             </div>
         )
@@ -1226,31 +1214,15 @@ export class EntitySelector extends React.Component<{
     private renderSortBar(): React.ReactElement {
         return (
             <div className="entity-selector__sort-bar">
-                <div
-                    id="entity-selector__sort-dropdown-label"
-                    className="label grapher_label-2-regular grapher_light"
-                >
-                    <FontAwesomeIcon icon={faArrowRightArrowLeft} size="sm" />
-                    Sort by
-                </div>
                 <div className="entity-selector__sort-dropdown-and-button">
                     <Dropdown<SortDropdownOption>
-                        className="entity-selector__dropdown"
+                        className="entity-selector__dropdown entity-selector__sort-dropdown"
                         options={this.sortOptions}
                         onChange={this.onChangeSortSlug}
                         value={this.sortValue}
                         isLoading={this.isLoadingExternalSortColumn}
-                        formatOptionLabel={(option) => (
-                            <>
-                                {option.label}
-                                {option.formattedTime && (
-                                    <span className="detail">
-                                        , {option.formattedTime}
-                                    </span>
-                                )}
-                            </>
-                        )}
-                        aria-labelledby="entity-selector__sort-dropdown-label"
+                        formatOptionLabel={formatSortOptionLabel}
+                        aria-label="Sort by"
                     />
                     <button
                         type="button"
@@ -1597,6 +1569,35 @@ function FlippedListItem({
         >
             <li>{children}</li>
         </Flipped>
+    )
+}
+
+function formatSortOptionLabel(option: SortDropdownOption): React.ReactElement {
+    return (
+        <>
+            <span className="label">
+                <FontAwesomeIcon icon={faArrowRightArrowLeft} size="sm" />
+                {"Sort by: "}
+            </span>
+            {option.label}
+            {option.formattedTime && (
+                <span className="detail">, {option.formattedTime}</span>
+            )}
+        </>
+    )
+}
+
+function formatFilterOptionLabel(
+    option: FilterDropdownOption
+): React.ReactElement {
+    return (
+        <>
+            <span className="label">
+                <FontAwesomeIcon icon={faFilter} size="sm" />
+                {"Filter by type: "}
+            </span>
+            {option.label} <span className="detail">({option.count})</span>
+        </>
     )
 }
 
