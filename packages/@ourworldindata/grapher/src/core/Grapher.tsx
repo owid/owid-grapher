@@ -1630,13 +1630,11 @@ export class Grapher
         newTab: GrapherTabName
     ): void {
         if (isMapTab(newTab) || isChartTab(newTab)) {
-            const { mapColumnSlug, entitySelector } = this
-            const { interpolatedSortColumnsBySlug, entityFilter } =
-                this.entitySelectorState
-            const sortSlug = entitySelector.sortConfig.slug
+            const { entitySelector } = this
 
             // the map and chart tab might have a different set of sort columns;
             // if the currently selected sort column is invalid, reset it to the default
+            const sortSlug = entitySelector.sortConfig.slug
             if (!entitySelector.isSortSlugValid(sortSlug)) {
                 this.entitySelectorState.sortConfig =
                     entitySelector.getDefaultSortConfig()
@@ -1644,6 +1642,7 @@ export class Grapher
 
             // the map and chart tab might have a different set of entity filters;
             // if the currently selected entity filter is invalid, reset it
+            const { entityFilter } = this.entitySelectorState
             if (entityFilter) {
                 if (!this.entitySelector.isEntityFilterValid(entityFilter)) {
                     this.entitySelectorState.entityFilter = undefined
@@ -1652,16 +1651,7 @@ export class Grapher
 
             // the map column slug might be interpolated with different
             // tolerance values on the chart and the map tab
-            if (interpolatedSortColumnsBySlug?.[mapColumnSlug]) {
-                // if the map column slug is currently selected, re-calculate tolerance;
-                // otherwise, delete it and it will be re-calculated when necessary
-                if (sortSlug === mapColumnSlug) {
-                    interpolatedSortColumnsBySlug[mapColumnSlug] =
-                        entitySelector.interpolateSortColumn(mapColumnSlug)
-                } else {
-                    delete interpolatedSortColumnsBySlug[mapColumnSlug]
-                }
-            }
+            entitySelector.resetInterpolatedMapColumn()
         }
     }
 

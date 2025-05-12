@@ -327,6 +327,31 @@ export class EntitySelector extends React.Component<{
         this.set({ sortConfig: this.getDefaultSortConfig() })
     }
 
+    resetInterpolatedMapColumn(): void {
+        const { mapColumnSlug } = this.manager
+        const sortSlug = this.sortConfig.slug
+
+        // no need to reset the map colum slug if it doesn't exist or isn't set
+        if (
+            !mapColumnSlug ||
+            !this.interpolatedSortColumnsBySlug[mapColumnSlug]
+        )
+            return
+
+        if (sortSlug === mapColumnSlug) {
+            // if the map column slug is currently selected, re-calculate its
+            // tolerance because the map and chart tab might have different
+            // tolerance settings
+            this.setInterpolatedSortColumn(
+                this.interpolateSortColumn(mapColumnSlug)
+            )
+        } else {
+            // otherwise, delete it and it will be re-calculated when necessary
+            delete this.manager.entitySelectorState
+                .interpolatedSortColumnsBySlug?.[mapColumnSlug]
+        }
+    }
+
     @action.bound async populateLocalEntities(): Promise<void> {
         try {
             const localCountryInfo = await getUserCountryInformation()
