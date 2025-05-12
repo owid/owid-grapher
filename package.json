@@ -94,7 +94,7 @@
         "entities": "^4.4.0",
         "express": "^4.21.2",
         "express-async-errors": "^3.1.1",
-        "figma-api": "^2.0.1-beta",
+        "figma-api": "^2.0.2-beta",
         "filenamify": "^6.0.0",
         "fparser": "^3.1.0",
         "fs-extra": "^11.1.1",

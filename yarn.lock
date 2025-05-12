@@ -5555,12 +5555,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:>=18.0.0, @types/node@npm:>=8.1.0, @types/node@npm:^22.8.7":
-  version: 22.14.1
-  resolution: "@types/node@npm:22.14.1"
+"@types/node@npm:*, @types/node@npm:>=18.0.0, @types/node@npm:>=8.1.0, @types/node@npm:^22.14.1":
+  version: 22.15.17
+  resolution: "@types/node@npm:22.15.17"
   dependencies:
     undici-types: "npm:~6.21.0"
-  checksum: 10/561b1ad98ef5176d6da856ffbbe494f16655149f6a7d561de0423c8784910c81267d7d6459f59d68a97b3cbae9b5996b3b5dfe64f4de3de2239d295dcf4a4dcc
+  checksum: 10/3f5870ec1ac16b1dd8e5817de81164df9b69e4cf19cce692cb7c9b1af1deaecfd98b591b56155fcc4aa582f7189a4fc0c8d7d3226fa0387403db615a12dd8cb6
   languageName: node
   linkType: hard
 
@@ -6950,16 +6950,6 @@ __metadata:
   version: 1.13.2
   resolution: "aws4@npm:1.13.2"
   checksum: 10/290b9f84facbad013747725bfd8b4c42d0b3b04b5620d8418f0219832ef95a7dc597a4af7b1589ae7fce18bacde96f40911c3cda36199dd04d9f8e01f72fa50a
-  languageName: node
-  linkType: hard
-
-"axios@npm:^0.27.2":
-  version: 0.27.2
-  resolution: "axios@npm:0.27.2"
-  dependencies:
-    follow-redirects: "npm:^1.14.9"
-    form-data: "npm:^4.0.0"
-  checksum: 10/2efaf18dd0805f7bc772882bc86f004abd92d51007b54c5081f74db0d08ce3593e2c010261896d25a14318eeaa2e966fd825e34f810e8a3339dc64b9d177cf70
   languageName: node
   linkType: hard
 
@@ -10127,13 +10117,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"figma-api@npm:^2.0.1-beta":
-  version: 2.0.1-beta
-  resolution: "figma-api@npm:2.0.1-beta"
+"figma-api@npm:^2.0.2-beta":
+  version: 2.0.2-beta
+  resolution: "figma-api@npm:2.0.2-beta"
   dependencies:
-    "@types/node": "npm:^22.8.7"
-    axios: "npm:^0.27.2"
-  checksum: 10/332a792a53b6efa5dc4b8d7a0b5130711a467a75be63a0fdb6d183f751548943c9f46c49c4189f1b1a2be5469936f0603af417598861da497b161ca1eb1dc270
+    "@types/node": "npm:^22.14.1"
+    axios: "npm:^0.30.0"
+  checksum: 10/682d7672db88751206416cb8d2a2c8822bf6074b0177a5386727e644ef701ac499a4a1a0162771672099f07c6a484462a74a124c20b9fd31ec2990cef023e949
   languageName: node
   linkType: hard
 
@@ -10273,7 +10263,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.14.9, follow-redirects@npm:^1.15.4, follow-redirects@npm:^1.15.6":
+"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.15.4, follow-redirects@npm:^1.15.6":
   version: 1.15.9
   resolution: "follow-redirects@npm:1.15.9"
   peerDependenciesMeta:
@@ -11000,7 +10990,7 @@ __metadata:
     eslint-plugin-react-refresh: "npm:^0.4.19"
     express: "npm:^4.21.2"
     express-async-errors: "npm:^3.1.1"
-    figma-api: "npm:^2.0.1-beta"
+    figma-api: "npm:^2.0.2-beta"
     filenamify: "npm:^6.0.0"
     flag-icons: "npm:^7.3.1"
     fparser: "npm:^3.1.0"
