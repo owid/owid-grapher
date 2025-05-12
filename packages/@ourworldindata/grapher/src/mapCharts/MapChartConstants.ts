@@ -144,12 +144,12 @@ export interface GlobeViewport {
 }
 
 export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
-    Europe: { rotation: [-10, -55], zoom: 3 },
-    Africa: { rotation: [-20, 0], zoom: 1.65 },
-    NorthAmerica: { rotation: [95, -48], zoom: 1.5 },
+    Europe: { rotation: [-10, -55], zoom: 2.95 },
+    Africa: { rotation: [-20, 0], zoom: 1.55 },
+    NorthAmerica: { rotation: [94.5, -43], zoom: 1.5 },
     SouthAmerica: { rotation: [62, 22], zoom: 1.75 },
     Asia: { rotation: [-81, -26], zoom: 1.85 },
-    Oceania: { rotation: [-153, 25], zoom: 2 },
+    Oceania: { rotation: [-152.65, 18.8], zoom: 2 },
 }
 
 export interface Circle {
