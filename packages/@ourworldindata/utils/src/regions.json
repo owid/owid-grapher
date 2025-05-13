@@ -1425,6 +1425,8 @@
             "NGA",
             "OWID_ERE",
             "OWID_OFS",
+            "OWID_SML",
+            "OWID_ZAN",
             "REU",
             "RWA",
             "SDN",
@@ -1443,9 +1445,7 @@
             "UGA",
             "ZAF",
             "ZMB",
-            "ZWE",
-            "OWID_SML",
-            "OWID_ZAN"
+            "ZWE"
         ]
     },
     {
@@ -1497,11 +1497,15 @@
             "MYS",
             "NPL",
             "OMN",
+            "OWID_ABK",
+            "OWID_AKD",
             "OWID_CYN",
             "OWID_DRV",
             "OWID_FPK",
             "OWID_KRU",
+            "OWID_NAG",
             "OWID_RVN",
+            "OWID_SOS",
             "OWID_YAR",
             "OWID_YPR",
             "PAK",
@@ -1520,12 +1524,7 @@
             "TWN",
             "UZB",
             "VNM",
-            "YEM",
-            "OWID_ABK",
-            "OWID_AKD",
-            "OWID_NAG",
-            "OWID_CYN",
-            "OWID_SOS"
+            "YEM"
         ]
     },
     {
@@ -1675,6 +1674,7 @@
             "OWID_AUH",
             "OWID_BAD",
             "OWID_BAV",
+            "OWID_CIS",
             "OWID_CZS",
             "OWID_DSI",
             "OWID_GDR",
@@ -1686,6 +1686,7 @@
             "OWID_SAX",
             "OWID_SEK",
             "OWID_SRM",
+            "OWID_TRS",
             "OWID_TSC",
             "OWID_USS",
             "OWID_WTB",
@@ -1694,16 +1695,14 @@
             "PRT",
             "ROU",
             "RUS",
+            "SJM",
             "SMR",
             "SRB",
             "SVK",
             "SVN",
             "SWE",
             "UKR",
-            "VAT",
-            "OWID_CIS",
-            "SJM",
-            "OWID_TRS"
+            "VAT"
         ]
     },
     {
@@ -1744,6 +1743,7 @@
             "AND",
             "ARE",
             "ASM",
+            "ATF",
             "ATG",
             "AUS",
             "AUT",
@@ -1772,6 +1772,7 @@
             "GIB",
             "GRC",
             "GRL",
+            "GUF",
             "GUM",
             "GUY",
             "HKG",

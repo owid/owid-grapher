@@ -20,7 +20,7 @@ const ETL_REGIONS_URL =
     GRAPHER_TOPOLOGY_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/grapher/src/mapCharts/MapTopology.ts`,
     ADDITIONAL_CONTINENT_MEMBERS = {
         Africa: ["OWID_SML", "OWID_ZAN"],
-        Asia: ["OWID_ABK", "OWID_AKD", "OWID_NAG", "OWID_CYN", "OWID_SOS"],
+        Asia: ["OWID_ABK", "OWID_AKD", "OWID_NAG", "OWID_SOS"],
         Europe: ["OWID_CIS", "SJM", "OWID_TRS"],
     },
     SEARCH_ALIASES = {
@@ -121,7 +121,7 @@ function csvToJson(val: string, col: string) {
             return val === "True"
 
         case "members":
-            return (val && val.split(";").toSorted()) || undefined
+            return (val && val.split(";")) || undefined
 
         default:
             return val
@@ -283,11 +283,13 @@ async function main() {
 
         // add back countries removed from the ETL's continents list
         if (entity.region_type === "continent") {
-            entity.members = [
+            entity.members = _.uniq([
                 ...(entity.members ?? []),
                 ..._.get(ADDITIONAL_CONTINENT_MEMBERS, entity.name, []),
-            ]
+            ])
         }
+
+        if (entity.members) entity.members = entity.members.toSorted()
 
         // merge in alternate search names and translation codes
         entity.variant_names = _.get(SEARCH_ALIASES, entity.code)
