@@ -238,10 +238,17 @@ export class ChoroplethGlobe extends React.Component<{
         )
     }
 
-    @computed private get graticule(): string {
+    @computed private get graticulePath(): string {
         const graticule = geoGraticule().step([10, 10])()
         this.pathContext.beginPath()
         this.globePath(graticule)
+        return this.pathContext.result()
+    }
+
+    @computed private get equatorPath(): string {
+        const equator = geoGraticule().step([0, 360])()
+        this.pathContext.beginPath()
+        this.globePath(equator)
         return this.pathContext.result()
     }
 
@@ -668,8 +675,16 @@ export class ChoroplethGlobe extends React.Component<{
                 />
                 <path
                     id={makeIdForHumanConsumption("globe-graticule")}
-                    d={this.graticule}
+                    d={this.graticulePath}
                     stroke="#e7e7e7"
+                    strokeWidth={1}
+                    fill="none"
+                    style={{ pointerEvents: "none" }}
+                />
+                <path
+                    id={makeIdForHumanConsumption("globe-equator")}
+                    d={this.equatorPath}
+                    stroke="#dadada"
                     strokeWidth={1}
                     fill="none"
                     style={{ pointerEvents: "none" }}
