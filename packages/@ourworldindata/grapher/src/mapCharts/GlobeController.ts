@@ -1,5 +1,5 @@
 import { FeatureCollection } from "geojson"
-import { geoCentroid, geoInterpolate, geoOrthographic, geoPath } from "d3-geo"
+import { geoInterpolate, geoOrthographic, geoPath } from "d3-geo"
 import { interpolateNumber } from "d3-interpolate"
 import { easeCubicOut } from "d3-ease"
 import * as R from "remeda"
@@ -37,6 +37,7 @@ import {
 import { isPointPlacedOnVisibleHemisphere } from "./MapHelpers"
 import { ckmeans } from "simple-statistics"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
+import { center } from "@turf/center"
 
 const geoFeaturesById = new Map<string, GlobeRenderFeature>(
     getGeoFeaturesForGlobe().map((f: GlobeRenderFeature) => [f.id, f])
@@ -323,16 +324,16 @@ function getCoordsBasedOnTime(): [number, number] {
     }
 }
 
-function getCentroidForCountryCollection(
+function getCenterForCountryCollection(
     countryNames: string[]
 ): [number, number] {
     const featureCollection = makeFeatureCollectionForCountries(countryNames)
 
-    const centerPoint = geoCentroid(featureCollection)
+    const centerPoint = center(featureCollection)
 
     return [
-        -centerPoint[0],
-        -R.clamp(centerPoint[1], {
+        -centerPoint.geometry.coordinates[0],
+        -R.clamp(centerPoint.geometry.coordinates[1], {
             min: GLOBE_LATITUDE_MIN,
             max: GLOBE_LATITUDE_MAX,
         }),
@@ -343,7 +344,7 @@ function getCoordsAndZoomForCountryCollection(countryNames: string[]): {
     coords: [number, number]
     zoom: number
 } {
-    const centerPoint = getCentroidForCountryCollection(countryNames)
+    const centerPoint = getCenterForCountryCollection(countryNames)
     const projection = geoOrthographic().rotate(centerPoint)
 
     const bounds = excludeUndefined(
@@ -377,7 +378,7 @@ function getCoordsAndZoomForCountryCollection(countryNames: string[]): {
 function findVisibleCountrySubset(countryNames: string[]): string[] {
     // rotate the globe to the center point of all given countries,
     // and find all countries that are then visible on the globe
-    const centerPoint = getCentroidForCountryCollection(countryNames)
+    const centerPoint = getCenterForCountryCollection(countryNames)
     const projection = geoOrthographic().rotate(centerPoint)
     const visibleCountries = countryNames.filter((countryName) => {
         const feature = geoFeaturesById.get(countryName)

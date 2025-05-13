@@ -75,6 +75,7 @@
         "@tanstack/react-query": "4",
         "@tippyjs/react": "^4.2.6",
         "@turf/boolean-intersects": "^7.2.0",
+        "@turf/center": "^7.2.0",
         "algoliasearch": "^4.23.2",
         "antd": "^5.24.0",
         "archieml": "^0.5.0",
