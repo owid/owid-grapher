@@ -120,21 +120,23 @@ export class ChartEditorView<
     }
 
     @observable private _isDbSet = false
-    @observable private _isGrapherSet = false
     @computed get isReady(): boolean {
-        return this._isDbSet && this._isGrapherSet
+        return this._isDbSet
     }
-
-    @action.bound private updateGrapher(): void {
+    // TODO: this is a bit annoying - what needs to happen here is
+    // that we initialize grapher correctly when we have to. The export
+    // tab probably needs it's own logic here because it cares about overrideing
+    // some properties (set in ChartEditorView.onClick where showStaticPreview
+    // is set to true when on the export tab)
+    @action.bound async updateGrapher(): Promise<void> {
         const config = this.manager.editor.originalGrapherConfig
-        this.grapherState.updateFromObject({
-            ...config,
-            staticFormat: this.staticFormat,
-        })
+        this.manager.editor.grapherState.updateFromObject(config)
+        const table = await this.manager.editor.cachingGrapherDataLoader(
+            config.dimensions || [],
+            config.selectedEntityColors
+        )
+        if (table) this.manager.editor.grapherState.inputTable = table
         this.grapherState.externalBounds = this.bounds
-        this.manager.editor.grapherState.renderToStatic =
-            !!this.editor?.showStaticPreview
-        this._isGrapherSet = true
     }
 
     @action.bound private setDb(json: any): void {
@@ -312,27 +314,19 @@ export class ChartEditorView<
 
     componentDidMount(): void {
         this.refresh()
-        this.updateGrapher()
-
         this.disposers.push(
             reaction(
-                () => this.editor && this.editor.previewMode,
+                () => this.editor,
                 () => {
-                    if (this.editor) {
-                        localStorage.setItem(
-                            "editorPreviewMode",
-                            this.editor.previewMode
-                        )
-                    }
-                    this.updateGrapher()
+                    void this.updateGrapher()
                 }
             )
         )
         this.disposers.push(
             reaction(
-                () => this.isMobilePreview,
+                () => this.editor?.previewMode,
                 () => {
-                    this.grapherState.externalBounds = this.bounds
+                    this.grapherState.staticFormat = this.staticFormat
                 }
             )
         )
@@ -387,7 +381,6 @@ export class ChartEditorView<
                                             editor.tab = tab
                                             editor.showStaticPreview =
                                                 tab === "export"
-                                            // this.updateGrapher()
                                         }}
                                     >
                                         {capitalize(tab)}

@@ -146,11 +146,11 @@ export class EditorExportTab<
     }
 
     private resetGrapher() {
-        Object.assign(this.grapherState, this.originalSettings)
+        this.grapherState.updateFromObject(this.originalSettings)
     }
 
     private updateGrapher() {
-        Object.assign(this.grapherState, this.settings)
+        this.grapherState.updateFromObject(this.settings)
     }
 
     @computed private get grapherState(): GrapherState {
