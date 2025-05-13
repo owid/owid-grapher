@@ -558,6 +558,8 @@ function minimiseLabelCollisions(
     annotations: ExternalAnnotation[],
     padding = 1
 ): ExternalAnnotation[] {
+    if (annotations.length < 2) return annotations
+
     const simulationNodes: SimulationNode[] = annotations.map((annotation) => {
         const { centerX, centerY } = annotation.placedBounds
         const isTopOrBottom =
