@@ -1081,10 +1081,17 @@ export class EntitySelector extends React.Component<{
 
         // add the 'incomeGroups' group
         if (regionsGroupedByType.income_group) {
-            entitiesByType.set(
-                "incomeGroups",
-                regionsGroupedByType.income_group.map((region) => region.name)
+            // match by name instead of relying on the regions file because
+            // some charts have income groups that aren't listed in the regions
+            // file, e.g. 'Lower-middle-income countries'
+            const incomeGroups = availableEntityNames.filter(
+                (entityName) =>
+                    entityName.includes("income countries") ||
+                    // matches 'No income group available', for example
+                    entityName.includes("income group")
             )
+
+            entitiesByType.set("incomeGroups", incomeGroups)
         }
 
         for (const entityName of availableEntityNames) {
