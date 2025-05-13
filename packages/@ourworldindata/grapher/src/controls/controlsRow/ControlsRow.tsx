@@ -23,6 +23,7 @@ import {
     MapCountryDropdownManager,
 } from "../MapCountryDropdown"
 import { CloseGlobeViewButton } from "../CloseGlobeViewButton"
+import { GlobeSwitcher } from "../GlobeSwitcher"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
@@ -100,14 +101,11 @@ export class ControlsRow extends Component<{
             <div className="controls map-controls">
                 {this.manager.isMapSelectionEnabled ? (
                     <>
-                        <CloseGlobeViewButton
-                            manager={this.manager}
-                            maxWidth={this.maxWidthSettingsMenu}
-                        />
                         <MapRegionDropdown
                             manager={this.manager}
                             maxWidth={this.maxWidthSettingsMenu}
                         />
+                        <GlobeSwitcher manager={this.manager} />
                         <EntitySelectionToggle manager={this.manager} />
                     </>
                 ) : (
