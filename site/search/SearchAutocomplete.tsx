@@ -96,6 +96,9 @@ export const SearchAutocomplete = ({
     ])
 
     if (!localQuery) return null
+
+    const queryMinusLastWord = localQuery.split(" ").slice(0, -1).join(" ")
+
     return (
         <div className="data-catalog-autocomplete-container">
             <ul>
@@ -108,10 +111,6 @@ export const SearchAutocomplete = ({
                             data-prevent-onblur
                             className="data-catalog-autocomplete-button"
                             onClick={() => {
-                                const queryMinusLastWord = query
-                                    .split(" ")
-                                    .slice(0, -1)
-                                    .join(" ")
                                 if (type === "country") {
                                     addCountry(name)
                                 }
@@ -130,7 +129,11 @@ export const SearchAutocomplete = ({
                                 setQuery(queryMinusLastWord)
                             }}
                         >
-                            <AutocompleteItemContents type={type} name={name} />
+                            <AutocompleteItemContents
+                                type={type}
+                                name={name}
+                                baseQuery={queryMinusLastWord}
+                            />
                         </button>
                     </li>
                 ))}

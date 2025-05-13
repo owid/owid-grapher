@@ -5,26 +5,36 @@ import { countriesByName } from "@ourworldindata/utils"
 export function AutocompleteItemContents({
     type,
     name,
+    baseQuery,
 }: {
     type: string
     name: string
+    baseQuery?: string
 }) {
     if (type === "country") {
         return (
-            <span className="country">
-                <img
-                    className="flag"
-                    aria-hidden={true}
-                    height={12}
-                    width={16}
-                    src={`/images/flags/${countriesByName()[name].code}.svg`}
-                />
-                {name}
-            </span>
+            <>
+                {baseQuery && <span> {baseQuery}</span>}
+                <span className="country">
+                    <img
+                        className="flag"
+                        aria-hidden={true}
+                        height={12}
+                        width={16}
+                        src={`/images/flags/${countriesByName()[name].code}.svg`}
+                    />
+                    {name}
+                </span>
+            </>
         )
     }
     if (type === "topic") {
-        return <span className="topic">{name}</span>
+        return (
+            <>
+                {baseQuery && <span> {baseQuery}</span>}
+                <span className="topic">{name}</span>
+            </>
+        )
     }
     if (type === "query") {
         return (
