@@ -69,7 +69,6 @@ import { GlobeController } from "./GlobeController"
 import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { isOnTheMap } from "./MapHelpers.js"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
-import { GlobeSwitcher, GlobeSwitcherManager } from "../controls/GlobeSwitcher"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -84,8 +83,7 @@ export class MapChart
         ChartInterface,
         HorizontalColorLegendManager,
         ColorScaleManager,
-        ChoroplethMapManager,
-        GlobeSwitcherManager
+        ChoroplethMapManager
 {
     /** The id of the currently hovered feature/country */
     @observable hoverFeatureId?: string
@@ -630,29 +628,6 @@ export class MapChart
         )
     }
 
-    renderGlobeSwitcher(): React.ReactElement | null {
-        const width = 34
-        const height = 62
-        const margin = 4
-
-        const x = this.choroplethMapBounds.right - width - margin
-        const y = this.choroplethMapBounds.centerY - height / 2
-
-        if (!this.isMapSelectionEnabled) return null
-
-        return (
-            <foreignObject
-                width={width}
-                height={height}
-                x={x}
-                y={y}
-                style={{ background: "#fff", borderRadius: 4 }}
-            >
-                <GlobeSwitcher manager={this} />
-            </foreignObject>
-        )
-    }
-
     renderStatic(): React.ReactElement {
         // Clipping the chart area is only necessary when the map is
         // zoomed in or we're showing the globe. If that isn't the case,
@@ -695,7 +670,6 @@ export class MapChart
             >
                 {this.renderMapOrGlobe()}
                 {this.renderMapLegend()}
-                {this.renderGlobeSwitcher()}
                 {tooltipCountry && (
                     <MapTooltip
                         entityName={tooltipCountry}
