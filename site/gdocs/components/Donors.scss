@@ -34,3 +34,30 @@
     padding: 2px 0;
     line-height: 20px;
 }
+
+.donor-testimonials {
+    display: flex;
+    gap: 16px;
+
+    @include sm-only {
+        flex-direction: column;
+    }
+}
+
+.donor-testimonial {
+    @include h4-semibold;
+    color: $blue-60;
+    background-color: $white;
+    width: 50%;
+    margin: 0;
+    padding: 24px;
+    text-wrap: balance;
+
+    p {
+        margin: 0;
+    }
+
+    @include sm-only {
+        width: 100%;
+    }
+}
