@@ -42,7 +42,7 @@
     &.Tabs--variant-slim {
         // keep in sync with variables in ContentSwitchers.tsx
         $font-size: var(--tabs-font-size, 13px);
-        --outer-padding: 16px;
+        --tab-padding: 16px;
 
         $light-stroke: $gray-20;
 
@@ -74,7 +74,7 @@
             height: $height;
             line-height: $height;
             border-radius: $border-radius - $visual-gap;
-            padding: 0 var(--outer-padding);
+            padding: 0 var(--tab-padding);
             cursor: default;
             letter-spacing: 0.01em;
             white-space: nowrap;
