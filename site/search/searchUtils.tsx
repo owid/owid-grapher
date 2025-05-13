@@ -366,6 +366,7 @@ export function useAutocomplete(
         (country) => country.name
     )
     const lastWord = query.split(" ").at(-1) ?? ""
+
     const countries = FuzzySearch.withKey(
         allCountryNames,
         (country) => country,
@@ -374,11 +375,15 @@ export function useAutocomplete(
         .search(lastWord)
         .filter((country) => !appliedFilters.selectedCountryNames.has(country))
         .map((name) => ({ name, type: "country" as const }))
-    const tags = FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
-        .search(lastWord)
-        .slice(0, 3)
-        .filter((topic) => !appliedFilters.selectedTopics.has(topic))
-        .map((name) => ({ name, type: "topic" as const }))
+
+    const tags =
+        // Suggest topics only if none are currently active
+        appliedFilters.selectedTopics.size === 0
+            ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
+                  .search(lastWord)
+                  .slice(0, 3)
+                  .map((name) => ({ name, type: "topic" as const }))
+            : []
 
     return [...countries, ...tags]
 }
