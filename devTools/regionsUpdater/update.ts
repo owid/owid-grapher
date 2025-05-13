@@ -12,7 +12,7 @@ import * as _ from "lodash-es"
 
 const ETL_REGIONS_URL =
         process.env.ETL_REGIONS_URL ||
-        "https://catalog.ourworldindata.org/external/owid_grapher/latest/regions/regions.csv",
+        "https://catalog.ourworldindata.org/external/owid_grapher/latest/regions/regions.csv?nocache",
     GEO_JSON_URL =
         "https://raw.githubusercontent.com/alexabruck/worldmap-sensitive/master/dist/world.geo.json",
     GRAPHER_ROOT = __dirname.replace(/\/devTools.*/, ""),
@@ -121,7 +121,7 @@ function csvToJson(val: string, col: string) {
             return val === "True"
 
         case "members":
-            return (val && val.split(";")) || undefined
+            return (val && val.split(";").toSorted()) || undefined
 
         default:
             return val
