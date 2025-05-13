@@ -12,7 +12,7 @@ import * as _ from "lodash-es"
 
 const ETL_REGIONS_URL =
         process.env.ETL_REGIONS_URL ||
-        "https://catalog.ourworldindata.org/external/owid_grapher/latest/regions/regions.csv",
+        "https://catalog.ourworldindata.org/external/owid_grapher/latest/regions/regions.csv?nocache",
     GEO_JSON_URL =
         "https://raw.githubusercontent.com/alexabruck/worldmap-sensitive/master/dist/world.geo.json",
     GRAPHER_ROOT = __dirname.replace(/\/devTools.*/, ""),
@@ -20,7 +20,7 @@ const ETL_REGIONS_URL =
     GRAPHER_TOPOLOGY_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/grapher/src/mapCharts/MapTopology.ts`,
     ADDITIONAL_CONTINENT_MEMBERS = {
         Africa: ["OWID_SML", "OWID_ZAN"],
-        Asia: ["OWID_ABK", "OWID_AKD", "OWID_NAG", "OWID_CYN", "OWID_SOS"],
+        Asia: ["OWID_ABK", "OWID_AKD", "OWID_NAG", "OWID_SOS"],
         Europe: ["OWID_CIS", "SJM", "OWID_TRS"],
     },
     SEARCH_ALIASES = {
@@ -283,11 +283,13 @@ async function main() {
 
         // add back countries removed from the ETL's continents list
         if (entity.region_type === "continent") {
-            entity.members = [
+            entity.members = _.uniq([
                 ...(entity.members ?? []),
                 ..._.get(ADDITIONAL_CONTINENT_MEMBERS, entity.name, []),
-            ]
+            ])
         }
+
+        if (entity.members) entity.members = entity.members.toSorted()
 
         // merge in alternate search names and translation codes
         entity.variant_names = _.get(SEARCH_ALIASES, entity.code)
