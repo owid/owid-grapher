@@ -605,7 +605,7 @@ function minimiseLabelCollisions(
         )
         // simulating very few ticks is good enough since dramatic position
         // changes are not needed in a typical setup
-        .tick(10)
+        .tick(5)
 
     // update the bounds of the original annotations
     const updatedAnnotations = annotations.map((annotation, index) => {
