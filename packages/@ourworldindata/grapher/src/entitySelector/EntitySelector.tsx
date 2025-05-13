@@ -27,6 +27,7 @@ import {
     getRegionByName,
     checkHasMembers,
     Region,
+    Country,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -95,6 +96,7 @@ const aggregateSourceSet = new Set([
 type EntityRegionType =
     | "all"
     | "countries"
+    | "historicalCountries" // e.g. USSR, Austria-Hungary
     | "continents" // owid continents
     | "incomeGroups"
     | AggregateSource // defined in the regions file, e.g. who or wb
@@ -160,6 +162,7 @@ const entityFilterLabels: Record<EntityRegionType, string> = {
     countries: "Countries",
     continents: "Continents", // OWID-defined continents
     incomeGroups: "Income groups",
+    historicalCountries: "Historical countries and regions", // e.g. USSR, Austria-Hungary
 
     // Regions defined by an institution
     who: "World Health Organization regions",
@@ -1061,13 +1064,19 @@ export class EntitySelector extends React.Component<{
             (r) => r.regionType
         )
 
+        // split countries into historical and non-historical
+        const [historicalCountries, nonHistoricalCountries] = partition(
+            regionsGroupedByType.country ?? [],
+            (country) => (country as Country).isHistorical
+        )
+
         const entitiesByType = new Map<EntityRegionType, EntityName[]>()
 
         // add the 'countries' group
-        if (regionsGroupedByType.country) {
+        if (nonHistoricalCountries.length > 0) {
             entitiesByType.set(
                 "countries",
-                regionsGroupedByType.country.map((region) => region.name)
+                nonHistoricalCountries.map((region) => region.name)
             )
         }
 
@@ -1107,6 +1116,14 @@ export class EntitySelector extends React.Component<{
                     entitiesByType.set(sourceCandidate, [])
                 entitiesByType.get(sourceCandidate)!.push(entityName)
             }
+        }
+
+        // add the a group for historical countries
+        if (historicalCountries.length > 0) {
+            entitiesByType.set(
+                "historicalCountries",
+                historicalCountries.map((region) => region.name)
+            )
         }
 
         return entitiesByType
