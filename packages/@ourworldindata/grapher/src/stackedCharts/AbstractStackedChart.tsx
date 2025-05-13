@@ -373,17 +373,27 @@ export class AbstractStackedChart
             (shortUnit) => shortUnit === "%"
         )
 
-        // Normally StackedArea/StackedBar charts are always single-entity or single-column, but if we are ever in a mode where we
-        // have multiple entities selected (e.g. through GlobalEntitySelector) and multiple columns, it only makes sense when faceted.
-        if (!this.isEntitySeries && !areMultipleEntitiesSelected)
-            strategies.push(FacetStrategy.none)
-        else if (this.isEntitySeries && !hasMultipleYColumns)
+        // Normally StackedArea/StackedBar charts are always single-entity or single-column,
+        // but if we are ever in a mode where we have multiple entities selected (e.g. through
+        // GlobalEntitySelector) and multiple columns, it only makes sense when faceted.
+        if (
+            // No facet strategy makes sense if columns are stacked and a single entity is selected
+            (!this.isEntitySeries && !areMultipleEntitiesSelected) ||
+            // No facet strategy makes sense if entities are stacked and we have a single column
+            (this.isEntitySeries && !hasMultipleYColumns)
+        )
             strategies.push(FacetStrategy.none)
 
-        if (areMultipleEntitiesSelected && !hasMultipleUnits)
+        if (
+            // Facetting by entity makes sense if multiple entities are selected
+            areMultipleEntitiesSelected &&
+            // Stacking columns with different units isn't allowed
+            !hasMultipleUnits
+        )
             strategies.push(FacetStrategy.entity)
 
         if (
+            // Facetting by column makes sense if we have multiple columns
             hasMultipleYColumns &&
             // Stacking percentages doesn't make sense unless we're in relative mode
             (!hasPercentageUnit || this.manager.isRelativeMode)
