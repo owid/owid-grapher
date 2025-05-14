@@ -1,5 +1,5 @@
 import entities from "./regions.json"
-import { excludeUndefined, lazy } from "./Util.js"
+import { lazy } from "./Util.js"
 
 export enum RegionType {
     Country = "country",
@@ -164,12 +164,22 @@ const countriesBySlug = lazy(() =>
     Object.fromEntries(countries.map((country) => [country.slug, country]))
 )
 
+const getCountryNamesForRegionRecursive = (region: Region): string[] => {
+    if (!checkHasMembers(region)) return [region.name]
+    return region.members.reduce<string[]>((countryNames, memberCode) => {
+        const subRegion = getRegionByCode(memberCode)
+        if (!subRegion) return countryNames
+        return [
+            ...countryNames,
+            ...getCountryNamesForRegionRecursive(subRegion),
+        ]
+    }, [])
+}
+
 export const getCountryNamesForRegion = (
-    region: Aggregate | Continent | IncomeGroup
+    region: Exclude<Region, Country>
 ): string[] => {
-    return excludeUndefined(
-        region.members.map((memberCode) => getRegionByCode(memberCode)?.name)
-    )
+    return getCountryNamesForRegionRecursive(region)
 }
 
 const regionsByNameOrVariantNameLowercase = lazy(
