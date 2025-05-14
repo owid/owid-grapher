@@ -279,21 +279,10 @@ export class ChoroplethGlobe extends React.Component<{
     @computed private get annotationCandidateFeatures(): GlobeRenderFeature[] {
         if (!this.shouldShowAnnotations) return []
 
-        const selectedCountryNames =
-            this.mapConfig.selection.selectedCountryNamesInForeground
-        const countries = R.unique(
-            excludeUndefined([
-                ...selectedCountryNames,
-                this.manager.hoverFeatureId,
-                // clear the focus country value on hover
-                this.manager.hoverFeatureId
-                    ? undefined
-                    : this.mapConfig.globe.focusCountry,
-            ])
-        )
-
         return excludeUndefined(
-            countries.map((name) => this.featuresById.get(name))
+            this.mapConfig.selection.selectedCountryNamesInForeground.map(
+                (name) => this.featuresById.get(name)
+            )
         )
     }
 
