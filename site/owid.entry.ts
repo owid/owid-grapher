@@ -28,7 +28,7 @@ declare let window: any
 window.Grapher = Grapher
 window.Explorer = Explorer
 window.CoreTable = CoreTable
-window.runSearchPage = DEPRECATEDrunSearchPage
+window.DEPRECATEDrunSearchPage = DEPRECATEDrunSearchPage
 window.runNotFoundPage = runNotFoundPage
 window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm
