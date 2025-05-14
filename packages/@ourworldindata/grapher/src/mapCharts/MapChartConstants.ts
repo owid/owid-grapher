@@ -47,14 +47,14 @@ export const GLOBE_LATITUDE_MIN = -65
 export const GLOBE_LATITUDE_MAX = 65
 
 export const DEFAULT_GLOBE_SIZE = 500 // defined by d3
-export const DEFAULT_GLOBE_ROTATION: [number, number] = [30, -20] // Atlantic ocean (i.e. Americas & Europe)
+export const DEFAULT_GLOBE_ROTATION: [number, number] = [-30, 20] // Atlantic ocean (i.e. Americas & Europe)
 export const DEFAULT_GLOBE_ROTATIONS_FOR_TIME: Record<
     "UTC_MORNING" | "UTC_MIDDAY" | "UTC_EVENING",
     [number, number]
 > = {
-    UTC_MORNING: [-110, -15], // Asia & Oceania
-    UTC_MIDDAY: [-20, -20], // Europe & Africa
-    UTC_EVENING: [90, -15], // North & South America
+    UTC_MORNING: [110, 15], // Asia & Oceania
+    UTC_MIDDAY: [20, 20], // Europe & Africa
+    UTC_EVENING: [-90, 15], // North & South America
 }
 
 export const ANNOTATION_COLOR_DARK = HOVER_STROKE_COLOR
@@ -143,12 +143,12 @@ export interface GlobeViewport {
 }
 
 export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
-    Europe: { rotation: [-10, -55], zoom: 2.95 },
-    Africa: { rotation: [-20, 0], zoom: 1.55 },
-    NorthAmerica: { rotation: [94.5, -43], zoom: 1.5 },
-    SouthAmerica: { rotation: [62, 22], zoom: 1.75 },
-    Asia: { rotation: [-81, -26], zoom: 1.85 },
-    Oceania: { rotation: [-152.65, 18.8], zoom: 2 },
+    Europe: { rotation: [10, 55], zoom: 2.95 },
+    Africa: { rotation: [20, 0], zoom: 1.55 },
+    NorthAmerica: { rotation: [-94.5, 43], zoom: 1.5 },
+    SouthAmerica: { rotation: [-62, -22], zoom: 1.75 },
+    Asia: { rotation: [81, 26], zoom: 1.85 },
+    Oceania: { rotation: [152.65, -18.8], zoom: 2 },
 }
 
 export interface Circle {

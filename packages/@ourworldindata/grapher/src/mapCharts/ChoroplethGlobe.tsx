@@ -202,7 +202,11 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get globeRotation(): [number, number] {
-        return this.mapConfig.globe.rotation
+        // d3 projections expect [-lon, -lat] to rotate to [lon, lat]
+        return [
+            -this.mapConfig.globe.rotation[0],
+            -this.mapConfig.globe.rotation[1],
+        ]
     }
 
     @computed private get zoomScale(): number {
@@ -233,7 +237,7 @@ export class ChoroplethGlobe extends React.Component<{
     ): boolean {
         return isPointPlacedOnVisibleHemisphere(
             feature.geoCentroid,
-            this.globeRotation,
+            this.mapConfig.globe.rotation,
             threshold
         )
     }
@@ -357,11 +361,11 @@ export class ChoroplethGlobe extends React.Component<{
         if (this.rotateFrameId) cancelAnimationFrame(this.rotateFrameId)
         this.rotateFrameId = requestAnimationFrame(() => {
             this.mapConfig.globe.rotation = [
-                targetCoords[0],
+                -targetCoords[0],
                 // Clamping the latitude to [-90, 90] would allow rotation up to the poles.
                 // However, the panning strategy used doesn't work well around the poles.
                 // That's why we clamp the latitude to a narrower range.
-                R.clamp(targetCoords[1], {
+                -R.clamp(targetCoords[1], {
                     min: GLOBE_LATITUDE_MIN,
                     max: GLOBE_LATITUDE_MAX,
                 }),
