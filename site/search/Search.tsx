@@ -37,7 +37,7 @@ export const Search = ({
     searchClient: SearchClient
 }) => {
     const [state, dispatch] = useReducer(searchReducer, initialState)
-    const actions = createActions(dispatch)
+    const actions = useMemo(() => createActions(dispatch), [dispatch])
     const [isLoading, setIsLoading] = useState(false)
     const [cache, setCache] = useState<DataCatalogCache>({
         ribbons: new Map(),
@@ -75,6 +75,12 @@ export const Search = ({
     const stateAsUrl = searchStateToUrl(state)
     const cacheKey = shouldShowRibbons ? "ribbons" : "search"
     const currentResults = cache[cacheKey].get(stateAsUrl)
+
+    useEffect(() => {
+        const url = Url.fromURL(window.location.href)
+        const urlState = urlToSearchState(url)
+        actions.setState(urlState)
+    }, [actions])
 
     useEffect(() => {
         // Reconstructing state from the `stateAsUrl` serialization to avoid a `state` dependency in this effect,
