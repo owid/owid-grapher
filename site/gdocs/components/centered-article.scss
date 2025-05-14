@@ -328,6 +328,10 @@
     }
 }
 
+.article-block__heading {
+    text-wrap: balance;
+}
+
 h1.article-block__heading {
     a.deep-link {
         height: 16px;
@@ -487,6 +491,7 @@ h3.article-block__heading {
     @include body-3-medium-italic;
     color: $blue-60;
     text-align: center;
+    text-wrap: balance;
     margin-top: 16px;
 }
 
@@ -587,6 +592,7 @@ h3.article-block__heading.has-supertitle {
         margin-top: 0;
         margin-bottom: 24px;
         color: $blue-90;
+        text-wrap: balance;
 
         @include md-down {
             @include h2-bold;
@@ -600,6 +606,7 @@ h3.article-block__heading.has-supertitle {
     @include subtitle-1;
     margin-top: 0;
     color: $blue-50;
+    text-wrap: balance;
 
     @include md-down {
         @include body-2-regular;
@@ -881,6 +888,7 @@ div.raw-html-table__container {
     margin: 32px 0;
     padding: 32px 0;
     text-align: center;
+    text-wrap: balance;
 }
 
 .article-block__horizontal-rule {
