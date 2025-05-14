@@ -2095,14 +2095,10 @@ export function getParentVariableIdFromChartConfig(
 }
 
 export function extractLinksFromMarkdown(markdown: string): [string, string][] {
-    const links: [string, string][] = []
-    // Captures the text inside [] and the url inside ()
-    const regex = /\[([^\]]+)\]\(([^)]+)\)/g
-    let match
-    while ((match = regex.exec(markdown))) {
-        links.push([match[1], match[2]])
-    }
-    return links
+    return [...markdown.matchAll(/\[(.*?)\]\((.*?)\)/g)].map((match) => [
+        match[1],
+        match[2],
+    ])
 }
 
 // Page numbers are 0-indexed - you'll have to +1 to them when rendering

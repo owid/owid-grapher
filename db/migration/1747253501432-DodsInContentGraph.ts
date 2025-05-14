@@ -63,12 +63,12 @@ async function insertExistingGdocDodLinks(
     console.log(`Inserting ${dodLinks.length} dod links... done`)
 }
 
-export class DodsInContentGraph1745521253423 implements MigrationInterface {
+export class DodsInContentGraph1747253501432 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Update posts_gdocs_links table to add 'dod' linkType to the enum
         await queryRunner.query(`-- sql
             ALTER TABLE posts_gdocs_links
-            MODIFY COLUMN linkType ENUM('gdoc','url','grapher','explorer','chart-view', 'dod') NOT NULL;
+            MODIFY COLUMN linkType ENUM('gdoc', 'url', 'grapher', 'explorer', 'narrative-chart', 'dod') NOT NULL;
         `)
 
         await insertExistingGdocDodLinks(queryRunner)
@@ -83,7 +83,7 @@ export class DodsInContentGraph1745521253423 implements MigrationInterface {
         // Remove 'dod' from the enum
         await queryRunner.query(`-- sql
             ALTER TABLE posts_gdocs_links
-            MODIFY COLUMN linkType ENUM('gdoc','url','grapher','explorer','chart-view') NOT NULL;
+            MODIFY COLUMN linkType ENUM('gdoc', 'url', 'grapher', 'explorer', 'narrative-chart') NOT NULL;
         `)
     }
 }

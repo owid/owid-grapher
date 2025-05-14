@@ -881,6 +881,18 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     }
 }
 
+.EditableTextarea__actions {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.EditableTextarea__save-action {
+    margin-right: 8px;
+}
+
 .topbar {
     display: flex;
     justify-content: space-between;
