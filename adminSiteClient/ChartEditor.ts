@@ -231,7 +231,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         if (json.success) {
             window.open(
                 this.manager.admin.url(
-                    `narrativeCharts${json.narrativeChartId}/edit`
+                    `narrative-charts/${json.narrativeChartId}/edit`
                 )
             )
             return { success: true }
