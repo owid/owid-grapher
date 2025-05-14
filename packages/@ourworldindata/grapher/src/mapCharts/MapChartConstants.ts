@@ -96,7 +96,6 @@ export interface ChoroplethMapManager {
     mapRegionDropdownValue?: MapRegionDropdownValue
     resetMapRegionDropdownValue?: () => void
     selectionArray: MapSelectionArray
-    hoverFeatureId?: string
     fontSize?: number
     getHoverState: (featureId: string) => InteractionState
     isSelected: (featureId: string) => boolean

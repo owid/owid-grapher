@@ -47,7 +47,6 @@ import {
 import { geoRobinson } from "./d3-geo-projection"
 import { isDarkColor } from "../color/ColorUtils"
 import { MapConfig } from "./MapConfig"
-import * as R from "remeda"
 
 @observer
 export class ChoroplethMap extends React.Component<{
@@ -193,21 +192,10 @@ export class ChoroplethMap extends React.Component<{
     @computed private get annotationCandidateFeatures(): MapRenderFeature[] {
         if (!this.shouldShowAnnotations) return []
 
-        const selectedCountryNames =
-            this.mapConfig.selection.selectedCountryNamesInForeground
-        const countries = R.unique(
-            excludeUndefined([
-                ...selectedCountryNames,
-                this.manager.hoverFeatureId,
-                // clear the focus country value on hover
-                this.manager.hoverFeatureId
-                    ? undefined
-                    : this.mapConfig.globe.focusCountry,
-            ])
-        )
-
         return excludeUndefined(
-            countries.map((name) => this.featuresById.get(name))
+            this.mapConfig.selection.selectedCountryNamesInForeground.map(
+                (name) => this.featuresById.get(name)
+            )
         )
     }
 
