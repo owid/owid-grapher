@@ -143,9 +143,7 @@
     padding: 8px;
     white-space: nowrap;
     display: flex;
-    &:not(:last-child) {
-        margin-right: 8px;
-    }
+    margin-right: 8px;
     span {
         margin-left: 8px;
         color: $blue-90;
@@ -163,26 +161,6 @@
             margin-bottom: -3px;
             display: block;
         }
-    }
-    &.data-catalog-selected-country-pill--hide-on-desktop {
-        display: none;
-    }
-    @include sm-only {
-        display: none;
-    }
-}
-
-.data-catalog-selected-country-pill__mini {
-    margin-right: 8px;
-    &:not(.data-catalog-selected-country-pill__mini--show-on-desktop) {
-        @include sm-up {
-            display: none;
-        }
-    }
-    @include sm-only {
-        display: flex;
-        align-items: center;
-        padding: 8px;
     }
 }
 
