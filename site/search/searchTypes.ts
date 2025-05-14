@@ -153,13 +153,31 @@ export type DataCatalogCache = {
     search: Map<string, DataCatalogSearchResult>
 }
 
+export enum FilterType {
+    COUNTRY = "country",
+    TOPIC = "topic",
+}
+
+export type Filter = {
+    type: FilterType
+    name: string
+}
+
 export type SearchState = Readonly<{
     query: string
-    topics: Set<string>
-    selectedCountryNames: Set<string>
+    filters: Filter[]
     requireAllCountries: boolean
     page: number
 }>
+
+type AddFilterAction = {
+    type: "addFilter"
+    filter: Filter
+}
+type RemoveFilterAction = {
+    type: "removeFilter"
+    filter: Filter
+}
 type AddTopicAction = {
     type: "addTopic"
     topic: string
@@ -193,6 +211,8 @@ type SetPageAction = {
 }
 
 export type SearchAction =
+    | AddFilterAction
+    | RemoveFilterAction
     | AddCountryAction
     | AddTopicAction
     | RemoveCountryAction
