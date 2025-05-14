@@ -4,8 +4,8 @@ import {
     renderFrontPage,
     renderGdocsPageBySlug,
     renderPageBySlug,
-    renderDataCatalogPage,
     renderSearchPage,
+    DEPRECATEDrenderSearchPage,
     renderDonatePage,
     makeAtomFeed,
     feedbackPage,
@@ -348,7 +348,7 @@ getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/data*",
     async (req, res, trx) => {
-        res.send(await renderDataCatalogPage(trx))
+        res.send(await renderSearchPage(trx))
     }
 )
 
@@ -389,7 +389,7 @@ countryProfileSpecs.forEach((spec) =>
 )
 
 mockSiteRouter.get("/search", async (req, res) =>
-    res.send(await renderSearchPage())
+    res.send(await DEPRECATEDrenderSearchPage())
 )
 
 getPlainRouteWithROTransaction(
