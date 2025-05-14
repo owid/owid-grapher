@@ -4,16 +4,22 @@ import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import {
     ColorSchemeName,
+    EntityName,
     FacetStrategy,
     MissingDataStrategy,
     SeriesStrategy,
 } from "@ourworldindata/types"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { BASE_FONT_SIZE, WORLD_ENTITY_NAME } from "../core/GrapherConstants"
 import {
     Bounds,
+    checkHasMembers,
     DEFAULT_BOUNDS,
+    excludeUndefined,
     exposeInstanceOnWindow,
+    getCountryNamesForRegion,
+    getRegionByName,
     guid,
+    Region,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -380,7 +386,10 @@ export class AbstractStackedChart
             // No facet strategy makes sense if columns are stacked and a single entity is selected
             (!this.isEntitySeries && !areMultipleEntitiesSelected) ||
             // No facet strategy makes sense if entities are stacked and we have a single column
-            (this.isEntitySeries && !hasMultipleYColumns)
+            (this.isEntitySeries &&
+                !hasMultipleYColumns &&
+                // The stacking must be sensible
+                checkIsStackingEntitiesSensible(selectedEntityNames))
         )
             strategies.push(FacetStrategy.none)
 
@@ -396,7 +405,11 @@ export class AbstractStackedChart
             // Facetting by column makes sense if we have multiple columns
             hasMultipleYColumns &&
             // Stacking percentages doesn't make sense unless we're in relative mode
-            (!hasPercentageUnit || this.manager.isRelativeMode)
+            (!hasPercentageUnit || this.manager.isRelativeMode) &&
+            // Some stacked entity combinations are not allowed, e.g. stacking
+            // countries on top their continent or stacking countries or continents
+            // on top of World
+            checkIsStackingEntitiesSensible(selectedEntityNames)
         )
             strategies.push(FacetStrategy.metric)
 
@@ -468,4 +481,55 @@ export class AbstractStackedChart
         }
         return undefined
     }
+}
+
+/**
+ * Checks if the given entities can be sensibly stacked on top of each other.
+ *
+ * For example, stacking countries on top of their continent or stacking
+ * countries on top of the world doesn't make sense.
+ */
+function checkIsStackingEntitiesSensible(entityNames: EntityName[]): boolean {
+    if (entityNames.length < 2) return true
+
+    // Stacking entities on top of World typically doesn't make sense
+    if (entityNames.includes(WORLD_ENTITY_NAME)) return false
+
+    // Grab region info where available
+    const regions = excludeUndefined(
+        entityNames.map((name) => getRegionByName(name))
+    )
+    if (regions.length < 2) return true
+
+    // If none of the regions have members, we don't need to check further
+    const someRegionHasMembers = regions.some((region) =>
+        checkHasMembers(region)
+    )
+    if (!someRegionHasMembers) return true
+
+    // Keep track of the stacked countries and check if the same country is
+    // stacked twice, e.g. by stacking Spain on top of Europe (Europe contains
+    // Spain) or by stacking Europe on top of World (both contain Spain)
+    const stackedCountryNames = new Set(getCountryNames(regions[0]))
+    for (const region of regions.slice(1)) {
+        const newCountryNames = getCountryNames(region)
+
+        // check if any new country is already part of the current stack
+        const someCountryIsAlreadyStacked = newCountryNames.some(
+            (countryName) => stackedCountryNames.has(countryName)
+        )
+        if (someCountryIsAlreadyStacked) return false
+
+        // add all new countries to the stack
+        newCountryNames.forEach((countryName) =>
+            stackedCountryNames.add(countryName)
+        )
+    }
+    return true
+}
+
+function getCountryNames(region: Region): string[] {
+    return checkHasMembers(region)
+        ? getCountryNamesForRegion(region)
+        : [region.name]
 }
