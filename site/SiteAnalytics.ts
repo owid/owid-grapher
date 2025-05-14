@@ -1,10 +1,12 @@
 import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
-import type {
-    SearchCategoryFilter,
-    IDataCatalogHit,
-    SearchState,
+import {
+    type SearchCategoryFilter,
+    type IDataCatalogHit,
+    type SearchState,
+    FilterType,
 } from "./search/searchTypes.js"
 import { set } from "@ourworldindata/utils"
+import { getFilterNamesOfType } from "./search/searchUtils.js"
 
 export class SiteAnalytics extends GrapherAnalytics {
     logPageNotFoundError(url: string) {
@@ -94,8 +96,12 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventAction: "search",
             eventContext: JSON.stringify({
                 ...state,
-                topics: Array.from(state.topics),
-                selectedCountryNames: Array.from(state.selectedCountryNames),
+                topics: Array.from(
+                    getFilterNamesOfType(state.filters, FilterType.TOPIC)
+                ),
+                selectedCountryNames: Array.from(
+                    getFilterNamesOfType(state.filters, FilterType.COUNTRY)
+                ),
             }),
         })
     }

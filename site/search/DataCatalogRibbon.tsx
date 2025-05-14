@@ -3,8 +3,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Region, commafyNumber } from "@ourworldindata/utils"
 import * as React from "react"
 import { ChartHit } from "./ChartHit.js"
-import { analytics } from "./searchUtils.js"
 import { DataCatalogRibbonResult } from "./searchTypes.js"
+import { SiteAnalytics } from "../SiteAnalytics.js"
+
+const analytics = new SiteAnalytics()
 
 export const DataCatalogRibbon = ({
     result,
