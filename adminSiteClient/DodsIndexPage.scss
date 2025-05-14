@@ -9,18 +9,6 @@
         outline: 1px solid tomato !important;
         border: 1px solid tomato !important;
     }
-
-    .EditableTextarea__actions {
-        display: flex;
-        flex-direction: row-reverse;
-        justify-content: flex-end;
-        align-items: center;
-        margin-top: 8px;
-    }
-
-    .EditableTextarea__save-action {
-        margin-right: 8px;
-    }
 }
 
 .DodEditor__error {

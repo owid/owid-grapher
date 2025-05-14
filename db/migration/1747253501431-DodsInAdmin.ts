@@ -178,7 +178,7 @@ async function migrateDodGdocToDb(queryRunner: QueryRunner): Promise<void> {
     )
 }
 
-export class DodsInAdmin1745521253422 implements MigrationInterface {
+export class DodsInAdmin1747253501431 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE TABLE dods (
@@ -187,8 +187,8 @@ export class DodsInAdmin1745521253422 implements MigrationInterface {
                 content VARCHAR(4096) NOT NULL,
                 createdAt TIMESTAMP NOT NULL DEFAULT now(),
                 updatedAt TIMESTAMP NOT NULL DEFAULT now(),
-                lastUpdatedUserId INTEGER NOT NULL,
-                FOREIGN KEY (lastUpdatedUserId) REFERENCES users(id) ON DELETE CASCADE
+                lastUpdatedUserId INTEGER NOT NULL DEFAULT 1,
+                FOREIGN KEY (lastUpdatedUserId) REFERENCES users(id) ON DELETE SET DEFAULT
             );
         `)
         await queryRunner.query(`-- sql
