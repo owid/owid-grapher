@@ -93,8 +93,8 @@ export function isPointPlacedOnVisibleHemisphere(
     const phi = toRadians(point[1])
 
     // get current rotation in radians
-    const rotationLambda = toRadians(-rotation[0])
-    const rotationPhi = toRadians(-rotation[1])
+    const rotationLambda = toRadians(rotation[0])
+    const rotationPhi = toRadians(rotation[1])
 
     // calculate the cosine of the angular distance between the feature's
     // center point and the center points of the current view

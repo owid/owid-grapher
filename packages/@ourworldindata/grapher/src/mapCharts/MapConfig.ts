@@ -36,7 +36,7 @@ class MapConfigDefaults {
 
     @observable globe: GlobeConfig = {
         isActive: false,
-        rotation: DEFAULT_GLOBE_ROTATION,
+        rotation: DEFAULT_GLOBE_ROTATION, // specified as [lot, lan]
         zoom: DEFAULT_GLOBE_ZOOM,
     }
 
