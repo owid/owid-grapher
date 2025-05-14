@@ -102,7 +102,7 @@ class SaveButtonsForChart extends Component<{
     render() {
         const { editingErrors } = this
         const { editor } = this.props
-        const { grapher } = editor
+        const { grapher, isNewGrapher } = editor
 
         const hasEditingErrors = editingErrors.length > 0
         const isSavingDisabled = grapher.hasFatalErrors || hasEditingErrors
@@ -117,37 +117,43 @@ class SaveButtonsForChart extends Component<{
                     >
                         {grapher.isPublished
                             ? "Update chart"
-                            : grapher.id
-                              ? "Save draft"
-                              : "Create draft"}
+                            : isNewGrapher
+                              ? "Create draft"
+                              : "Save draft"}
                     </button>{" "}
-                    <button
-                        className="btn btn-secondary"
-                        onClick={this.onSaveAsNew}
-                        disabled={isSavingDisabled}
-                    >
-                        Save as new
-                    </button>{" "}
-                    <button
-                        className="btn btn-danger"
-                        onClick={this.onPublishToggle}
-                        disabled={isSavingDisabled}
-                    >
-                        {grapher.isPublished ? "Unpublish" : "Publish"}
-                    </button>
+                    {!isNewGrapher && (
+                        <>
+                            <button
+                                className="btn btn-secondary"
+                                onClick={this.onSaveAsNew}
+                                disabled={isSavingDisabled}
+                            >
+                                Save as new
+                            </button>{" "}
+                            <button
+                                className="btn btn-danger"
+                                onClick={this.onPublishToggle}
+                                disabled={isSavingDisabled}
+                            >
+                                {grapher.isPublished ? "Unpublish" : "Publish"}
+                            </button>
+                        </>
+                    )}
                 </div>
-                <div className="mt-2">
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => {
-                            this.narrativeChartNameModalOpen = "open"
-                            this.narrativeChartNameModalError = undefined
-                        }}
-                        disabled={isSavingDisabled}
-                    >
-                        Save as narrative chart
-                    </button>
-                </div>
+                {!isNewGrapher && (
+                    <div className="mt-2">
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => {
+                                this.narrativeChartNameModalOpen = "open"
+                                this.narrativeChartNameModalError = undefined
+                            }}
+                            disabled={isSavingDisabled}
+                        >
+                            Save as narrative chart
+                        </button>
+                    </div>
+                )}
                 <NarrativeChartNameModal
                     open={this.narrativeChartNameModalOpen}
                     initialName={this.initialNarrativeChartName}
