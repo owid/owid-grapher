@@ -362,17 +362,22 @@ function getCoordsAndZoomForCountryCollection(countryNames: string[]): {
 
     // merge bounds and calculate the zoom needed for the countries to be visible
     const mergedBounds = Bounds.merge(bounds)
-    let zoom = R.clamp(
-        Math.min(
-            DEFAULT_GLOBE_SIZE / mergedBounds.width,
-            DEFAULT_GLOBE_SIZE / mergedBounds.height
-        ),
-        { min: GLOBE_MIN_ZOOM, max: GLOBE_MAX_ZOOM }
+    let zoom = Math.min(
+        DEFAULT_GLOBE_SIZE / mergedBounds.width,
+        DEFAULT_GLOBE_SIZE / mergedBounds.height
     )
-
     if (Number.isNaN(zoom)) zoom = 1
 
-    return { coords: centerPoint, zoom }
+    // it's nicer to have a bit of padding around the zoomed-to countries
+    const paddedZoom = zoom - 0.05
+
+    // clamp the zoom to the allowed range
+    const clampedZoom = R.clamp(paddedZoom, {
+        min: GLOBE_MIN_ZOOM,
+        max: GLOBE_MAX_ZOOM,
+    })
+
+    return { coords: centerPoint, zoom: clampedZoom }
 }
 
 function findVisibleCountrySubset(countryNames: string[]): string[] {
