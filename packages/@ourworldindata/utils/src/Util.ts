@@ -789,6 +789,14 @@ export function parseIntOrUndefined(s: string | undefined): number | undefined {
     return isNaN(value) ? undefined : value
 }
 
+export function parseFloatOrUndefined(
+    s: string | undefined
+): number | undefined {
+    if (s === undefined) return undefined
+    const value = parseFloat(s)
+    return isNaN(value) ? undefined : value
+}
+
 export const anyToString = (value: unknown): string => {
     if (typeof value === "undefined" || value === null) return ""
     return String(value)

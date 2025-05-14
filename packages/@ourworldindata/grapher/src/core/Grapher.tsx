@@ -72,7 +72,7 @@ import {
     checkIsIncomeGroup,
     checkHasMembers,
     omitUndefinedValues,
-    parseIntOrUndefined,
+    parseFloatOrUndefined,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -779,7 +779,7 @@ export class Grapher
         // globe zoom
         const globeZoom = params.globeZoom
         if (globeZoom !== undefined) {
-            const parsedZoom = parseIntOrUndefined(globeZoom)
+            const parsedZoom = parseFloatOrUndefined(globeZoom)
             if (parsedZoom !== undefined) this.mapConfig.globe.zoom = parsedZoom
         }
 
