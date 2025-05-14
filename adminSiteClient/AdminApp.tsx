@@ -156,6 +156,7 @@ export class AdminApp extends React.Component<{
                                     path="/charts/:chartId/edit"
                                     render={({ match }) => (
                                         <ChartEditorPage
+                                            key={match.params.chartId}
                                             grapherId={parseInt(
                                                 match.params.chartId
                                             )}
