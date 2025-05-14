@@ -51,9 +51,9 @@ import {
 import { EditableTags } from "./EditableTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
-    ChartViewEditor,
-    isChartViewEditorInstance,
-} from "./ChartViewEditor.js"
+    NarrativeChartEditor,
+    isNarrativeChartEditorInstance,
+} from "./NarrativeChartEditor.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "antd"
@@ -526,12 +526,12 @@ export class EditorBasicTab<
         const { editor } = this.props
         const { grapher } = editor
         const isIndicatorChart = isIndicatorChartEditorInstance(editor)
-        const isChartView = isChartViewEditorInstance(editor)
+        const isNarrativeChart = isNarrativeChartEditorInstance(editor)
 
         return (
             <div className="EditorBasicTab">
                 {isIndicatorChart && <IndicatorChartInfo editor={editor} />}
-                {isChartView && <ChartViewInfo editor={editor} />}
+                {isNarrativeChart && <NarrativeChartInfo editor={editor} />}
 
                 <Section name="Tabs">
                     <SelectField
@@ -605,7 +605,7 @@ function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
 
 // The rule doesn't support class components in the same file.
 // eslint-disable-next-line react-refresh/only-export-components
-function ChartViewInfo(props: { editor: ChartViewEditor }) {
+function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {
     const { name = "" } = props.editor.manager.idsAndName ?? {}
 
     return (

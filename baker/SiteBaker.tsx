@@ -54,7 +54,7 @@ import {
     grabMetadataForGdocLinkedIndicator,
     TombstonePageData,
     gdocUrlRegex,
-    ChartViewInfo,
+    NarrativeChartInfo,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -99,7 +99,7 @@ import { getTombstones } from "../db/model/GdocTombstone.js"
 import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
 import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
-import { getChartViewsInfo } from "../db/model/ChartView.js"
+import { getNarrativeChartsInfo } from "../db/model/NarrativeChart.js"
 import { getGrapherRedirectsMap } from "./redirectsFromDb.js"
 import * as R from "remeda"
 
@@ -113,7 +113,7 @@ type PrefetchedAttachments = {
         explorers: Record<string, LinkedChart>
     }
     linkedIndicators: Record<number, LinkedIndicator>
-    linkedChartViews: Record<string, ChartViewInfo>
+    linkedNarrativeCharts: Record<string, NarrativeChartInfo>
 }
 
 // These aren't all "wordpress" steps
@@ -404,10 +404,12 @@ export class SiteBaker {
             const publishedAuthors = await getMinimalAuthors(knex)
             console.log(`✅ Prefetched ${publishedAuthors.length} authors`)
 
-            console.log("Prefetching chart views")
-            const chartViewsInfo = await getChartViewsInfo(knex)
-            const chartViewsInfoByName = keyBy(chartViewsInfo, "name")
-            console.log(`✅ Prefetched ${chartViewsInfo.length} chart views`)
+            console.log("Prefetching narrative charts")
+            const narrativeChartsInfo = await getNarrativeChartsInfo(knex)
+            const narrativeChartsInfoByName = keyBy(narrativeChartsInfo, "name")
+            console.log(
+                `✅ Prefetched ${narrativeChartsInfo.length} narrative charts`
+            )
 
             const prefetchedAttachments = {
                 donors,
@@ -419,7 +421,7 @@ export class SiteBaker {
                     graphers: publishedChartsBySlug,
                 },
                 linkedIndicators: datapageIndicatorsById,
-                linkedChartViews: chartViewsInfoByName,
+                linkedNarrativeCharts: narrativeChartsInfoByName,
             }
             this._prefetchedAttachmentsCache = prefetchedAttachments
         }
@@ -430,7 +432,7 @@ export class SiteBaker {
                 imageFilenames,
                 linkedGrapherSlugs,
                 linkedExplorerSlugs,
-                linkedChartViewNames,
+                linkedNarrativeChartNames,
             ] = picks
             const linkedDocuments = pick(
                 this._prefetchedAttachmentsCache.linkedDocuments,
@@ -479,9 +481,9 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedAuthors.filter(
                         (author) => authorNames.includes(author.name)
                     ),
-                linkedChartViews: pick(
-                    this._prefetchedAttachmentsCache.linkedChartViews,
-                    linkedChartViewNames
+                linkedNarrativeCharts: pick(
+                    this._prefetchedAttachmentsCache.linkedNarrativeCharts,
+                    linkedNarrativeChartNames
                 ),
             }
         }
@@ -576,7 +578,7 @@ export class SiteBaker {
                 publishedGdoc.linkedImageFilenames,
                 publishedGdoc.linkedChartSlugs.grapher,
                 publishedGdoc.linkedChartSlugs.explorer,
-                publishedGdoc.linkedChartViewNames,
+                publishedGdoc.linkedNarrativeChartNames,
             ])
             publishedGdoc.donors = attachments.donors
             publishedGdoc.linkedAuthors = attachments.linkedAuthors
@@ -587,7 +589,8 @@ export class SiteBaker {
                 ...attachments.linkedCharts.explorers,
             }
             publishedGdoc.linkedIndicators = attachments.linkedIndicators
-            publishedGdoc.linkedChartViews = attachments.linkedChartViews
+            publishedGdoc.linkedNarrativeCharts =
+                attachments.linkedNarrativeCharts
 
             if (
                 !publishedGdoc.manualBreadcrumbs?.length &&
@@ -833,7 +836,7 @@ export class SiteBaker {
                 dataInsight.linkedImageFilenames,
                 dataInsight.linkedChartSlugs.grapher,
                 dataInsight.linkedChartSlugs.explorer,
-                dataInsight.linkedChartViewNames,
+                dataInsight.linkedNarrativeChartNames,
             ])
             dataInsight.linkedDocuments = attachments.linkedDocuments
             dataInsight.imageMetadata = {
@@ -899,7 +902,7 @@ export class SiteBaker {
                 publishedAuthor.linkedImageFilenames,
                 publishedAuthor.linkedChartSlugs.grapher,
                 publishedAuthor.linkedChartSlugs.explorer,
-                publishedAuthor.linkedChartViewNames,
+                publishedAuthor.linkedNarrativeChartNames,
             ])
 
             // We don't need these to be attached to the gdoc in the current

@@ -5,15 +5,20 @@ import { GrapherInterface } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
-import { ChartViewEditor, ChartViewEditorManager } from "./ChartViewEditor.js"
+import {
+    NarrativeChartEditor,
+    NarrativeChartEditorManager,
+} from "./NarrativeChartEditor.js"
 import { References } from "./AbstractChartEditor.js"
 
 @observer
-export class ChartViewEditorPage
+export class NarrativeChartEditorPage
     extends React.Component<{
-        chartViewId: number
+        narrativeChartId: number
     }>
-    implements ChartViewEditorManager, ChartEditorViewManager<ChartViewEditor>
+    implements
+        NarrativeChartEditorManager,
+        ChartEditorViewManager<NarrativeChartEditor>
 {
     static contextType = AdminAppContext
     context!: AdminAppContextType
@@ -30,9 +35,9 @@ export class ChartViewEditorPage
 
     @observable references: References | undefined = undefined
 
-    async fetchChartViewData(): Promise<void> {
+    async fetchNarrativeChartData(): Promise<void> {
         const data = await this.context.admin.getJSON(
-            `/api/chartViews/${this.chartViewId}.config.json`
+            `/api/narrative-charts/${this.narrativeChartId}.config.json`
         )
 
         this.idsAndName = {
@@ -50,27 +55,27 @@ export class ChartViewEditorPage
         return this.context.admin
     }
 
-    @computed get chartViewId(): number {
-        return this.props.chartViewId
+    @computed get narrativeChartId(): number {
+        return this.props.narrativeChartId
     }
 
-    @computed get editor(): ChartViewEditor {
-        return new ChartViewEditor({ manager: this })
+    @computed get editor(): NarrativeChartEditor {
+        return new NarrativeChartEditor({ manager: this })
     }
 
     async fetchRefs(): Promise<void> {
         const { admin } = this.context
         const json =
-            this.chartViewId === undefined
+            this.narrativeChartId === undefined
                 ? {}
                 : await admin.getJSON(
-                      `/api/chartViews/${this.chartViewId}.references.json`
+                      `/api/narrative-charts/${this.narrativeChartId}.references.json`
                   )
         runInAction(() => (this.references = json.references))
     }
 
     @action.bound refresh(): void {
-        void this.fetchChartViewData()
+        void this.fetchNarrativeChartData()
         void this.fetchRefs()
     }
 

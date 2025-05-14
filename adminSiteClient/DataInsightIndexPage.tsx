@@ -877,7 +877,7 @@ function makeDataInsightLink(dataInsight: OwidGdocDataInsightIndexItem) {
 function makeNarrativeChartEditLink(
     dataInsight: RequiredBy<OwidGdocDataInsightIndexItem, "narrativeChart">
 ) {
-    return `/admin/chartViews/${dataInsight.narrativeChart.id}/edit`
+    return `/admin/narrative-charts/${dataInsight.narrativeChart.id}/edit`
 }
 
 function makePngUrlForNarrativeChart(

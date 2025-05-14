@@ -6,8 +6,8 @@ import {
     type EditorTab,
 } from "./AbstractChartEditor.js"
 import {
-    CHART_VIEW_PROPS_TO_OMIT,
-    CHART_VIEW_PROPS_TO_PERSIST,
+    NARRATIVE_CHART_PROPS_TO_OMIT,
+    NARRATIVE_CHART_PROPS_TO_PERSIST,
     GrapherInterface,
 } from "@ourworldindata/types"
 import { diffGrapherConfigs, omit, pick } from "@ourworldindata/utils"
@@ -19,15 +19,16 @@ export interface Chart {
     isChild: boolean
 }
 
-export interface ChartViewEditorManager extends AbstractChartEditorManager {
-    chartViewId: number
+export interface NarrativeChartEditorManager
+    extends AbstractChartEditorManager {
+    narrativeChartId: number
     idsAndName: { id: number; name: string; configId: string } | undefined
     parentChartId: number
     references: References | undefined
 }
 
-export class ChartViewEditor extends AbstractChartEditor<ChartViewEditorManager> {
-    constructor(props: { manager: ChartViewEditorManager }) {
+export class NarrativeChartEditor extends AbstractChartEditor<NarrativeChartEditorManager> {
+    constructor(props: { manager: NarrativeChartEditorManager }) {
         super(props)
     }
 
@@ -50,7 +51,7 @@ export class ChartViewEditor extends AbstractChartEditor<ChartViewEditorManager>
     @computed override get patchConfig(): GrapherInterface {
         const config = omit(
             this.liveConfigWithDefaults,
-            CHART_VIEW_PROPS_TO_OMIT
+            NARRATIVE_CHART_PROPS_TO_OMIT
         )
 
         const patchToParentChart = diffGrapherConfigs(
@@ -65,12 +66,15 @@ export class ChartViewEditor extends AbstractChartEditor<ChartViewEditorManager>
             // always, so they never change when the parent chart changes.
             // For this, we need to ensure we include the default layer, so that we even
             // persist these props when they are the same as the default.
-            ...pick(this.liveConfigWithDefaults, CHART_VIEW_PROPS_TO_PERSIST),
+            ...pick(
+                this.liveConfigWithDefaults,
+                NARRATIVE_CHART_PROPS_TO_PERSIST
+            ),
         }
     }
 
-    @computed get chartViewId(): number {
-        return this.manager.chartViewId
+    @computed get narrativeChartId(): number {
+        return this.manager.narrativeChartId
     }
 
     @computed get isNewGrapher(): boolean {
@@ -84,10 +88,10 @@ export class ChartViewEditor extends AbstractChartEditor<ChartViewEditorManager>
     async saveGrapher({
         onError,
     }: { onError?: () => void } = {}): Promise<void> {
-        const { patchConfig, chartViewId } = this
+        const { patchConfig, narrativeChartId } = this
 
         const json = await this.manager.admin.requestJSON(
-            `/api/chartViews/${chartViewId}`,
+            `/api/narrative-charts/${narrativeChartId}`,
             { config: patchConfig },
             "PUT"
         )
@@ -102,8 +106,8 @@ export class ChartViewEditor extends AbstractChartEditor<ChartViewEditorManager>
     }
 }
 
-export function isChartViewEditorInstance(
+export function isNarrativeChartEditorInstance(
     editor: AbstractChartEditor
-): editor is ChartViewEditor {
-    return editor instanceof ChartViewEditor
+): editor is NarrativeChartEditor {
+    return editor instanceof NarrativeChartEditor
 }

@@ -4,14 +4,14 @@ import {
 } from "@ourworldindata/grapher"
 import {
     GrapherInterface,
-    CHART_VIEW_PROPS_TO_OMIT,
-    CHART_VIEW_PROPS_TO_PERSIST,
-    DbPlainChartView,
+    NARRATIVE_CHART_PROPS_TO_OMIT,
+    NARRATIVE_CHART_PROPS_TO_PERSIST,
+    DbPlainNarrativeChart,
     JsonString,
     JsonError,
     parseChartConfig,
-    DbInsertChartView,
-    ChartViewsTableName,
+    DbInsertNarrativeChart,
+    NarrativeChartsTableName,
     ChartConfigsTableName,
     OwidGdocLinkType,
     DbPlainUser,
@@ -26,7 +26,7 @@ import {
 } from "@ourworldindata/utils"
 import { omit, pick } from "lodash-es"
 import {
-    ApiChartViewOverview,
+    ApiNarrativeChartOverview,
     DataInsightMinimalInformation,
 } from "../../adminShared/AdminTypes.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
@@ -44,14 +44,14 @@ import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { Knex } from "knex"
 import { triggerStaticBuild } from "./routeUtils.js"
 
-const createPatchConfigAndQueryParamsForChartView = async (
+const createPatchConfigAndQueryParamsForNarrativeChart = async (
     knex: db.KnexReadonlyTransaction,
     parentChartId: number,
     config: GrapherInterface
 ) => {
     const parentChartConfig = await expectChartById(knex, parentChartId)
 
-    config = omit(config, CHART_VIEW_PROPS_TO_OMIT)
+    config = omit(config, NARRATIVE_CHART_PROPS_TO_OMIT)
 
     const patchToParentChart = diffGrapherConfigs(config, parentChartConfig)
 
@@ -66,7 +66,7 @@ const createPatchConfigAndQueryParamsForChartView = async (
         // always, so they never change when the parent chart changes.
         // For this, we need to ensure we include the default layer, so that we even
         // persist these props when they are the same as the default.
-        ...pick(fullConfigIncludingDefaults, CHART_VIEW_PROPS_TO_PERSIST),
+        ...pick(fullConfigIncludingDefaults, NARRATIVE_CHART_PROPS_TO_PERSIST),
     }
 
     const queryParams = grapherConfigToQueryParams(patchConfigToSave)
@@ -75,12 +75,15 @@ const createPatchConfigAndQueryParamsForChartView = async (
     return { patchConfig: patchConfigToSave, fullConfig, queryParams }
 }
 
-export async function getChartViews(
+export async function getNarrativeCharts(
     req: Request,
     _res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
 ) {
-    type ChartViewRow = Pick<DbPlainChartView, "id" | "name" | "updatedAt"> & {
+    type NarrativeChartRow = Pick<
+        DbPlainNarrativeChart,
+        "id" | "name" | "updatedAt"
+    > & {
         lastEditedByUser: string
         chartConfigId: string
         title: string
@@ -88,28 +91,28 @@ export async function getChartViews(
         parentTitle: string
     }
 
-    const rows: ChartViewRow[] = await db.knexRaw(
+    const rows: NarrativeChartRow[] = await db.knexRaw(
         trx,
         `-- sql
         SELECT
-            cv.id,
-            cv.name,
-            cv.updatedAt,
+            nc.id,
+            nc.name,
+            nc.updatedAt,
             u.fullName as lastEditedByUser,
-            cv.chartConfigId,
+            nc.chartConfigId,
             cc.full ->> "$.title" as title,
-            cv.parentChartId,
+            nc.parentChartId,
             pcc.full ->> "$.title" as parentTitle
-        FROM chart_views cv
-        JOIN chart_configs cc ON cv.chartConfigId = cc.id
-        JOIN charts pc ON cv.parentChartId = pc.id
+        FROM narrative_charts nc
+        JOIN chart_configs cc ON nc.chartConfigId = cc.id
+        JOIN charts pc ON nc.parentChartId = pc.id
         JOIN chart_configs pcc ON pc.configId = pcc.id
-        JOIN users u ON cv.lastEditedByUserId = u.id
-        ORDER BY cv.updatedAt DESC
+        JOIN users u ON nc.lastEditedByUserId = u.id
+        ORDER BY nc.updatedAt DESC
         `
     )
 
-    const chartViews: ApiChartViewOverview[] = rows.map((row) => ({
+    const narrativeCharts: ApiNarrativeChartOverview[] = rows.map((row) => ({
         id: row.id,
         name: row.name,
         updatedAt: row.updatedAt?.toISOString() ?? null,
@@ -122,17 +125,20 @@ export async function getChartViews(
         },
     }))
 
-    return { chartViews }
+    return { narrativeCharts }
 }
 
-export async function getChartViewById(
+export async function getNarrativeChartById(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
 ) {
     const id = expectInt(req.params.id)
 
-    type ChartViewRow = Pick<DbPlainChartView, "id" | "name" | "updatedAt"> & {
+    type NarrativeChartRow = Pick<
+        DbPlainNarrativeChart,
+        "id" | "name" | "updatedAt"
+    > & {
         lastEditedByUser: string
         chartConfigId: string
         configFull: JsonString
@@ -142,35 +148,35 @@ export async function getChartViewById(
         queryParamsForParentChart: JsonString
     }
 
-    const row = await db.knexRawFirst<ChartViewRow>(
+    const row = await db.knexRawFirst<NarrativeChartRow>(
         trx,
         `-- sql
         SELECT
-            cv.id,
-            cv.name,
-            cv.updatedAt,
+            nc.id,
+            nc.name,
+            nc.updatedAt,
             u.fullName as lastEditedByUser,
-            cv.chartConfigId,
+            nc.chartConfigId,
             cc.full as configFull,
             cc.patch as configPatch,
-            cv.parentChartId,
+            nc.parentChartId,
             pcc.full as parentConfigFull,
-            cv.queryParamsForParentChart
-        FROM chart_views cv
-        JOIN chart_configs cc ON cv.chartConfigId = cc.id
-        JOIN charts pc ON cv.parentChartId = pc.id
+            nc.queryParamsForParentChart
+        FROM narrative_charts nc
+        JOIN chart_configs cc ON nc.chartConfigId = cc.id
+        JOIN charts pc ON nc.parentChartId = pc.id
         JOIN chart_configs pcc ON pc.configId = pcc.id
-        JOIN users u ON cv.lastEditedByUserId = u.id
-        WHERE cv.id = ?
+        JOIN users u ON nc.lastEditedByUserId = u.id
+        WHERE nc.id = ?
         `,
         [id]
     )
 
     if (!row) {
-        throw new JsonError(`No chart view found for id ${id}`, 404)
+        throw new JsonError(`No narrative chart found for id ${id}`, 404)
     }
 
-    const chartView = {
+    const narrativeChart = {
         ...row,
         configFull: parseChartConfig(row.configFull),
         configPatch: parseChartConfig(row.configPatch),
@@ -178,16 +184,16 @@ export async function getChartViewById(
         queryParamsForParentChart: JSON.parse(row.queryParamsForParentChart),
     }
 
-    return chartView
+    return narrativeChart
 }
 
-export async function createChartView(
+export async function createNarrativeChart(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadWriteTransaction
 ) {
     const { name, parentChartId } = req.body as Pick<
-        DbPlainChartView,
+        DbPlainNarrativeChart,
         "name" | "parentChartId"
     >
     const rawConfig = req.body.config as GrapherInterface
@@ -195,12 +201,12 @@ export async function createChartView(
         throw new JsonError("Invalid request", 400)
     }
 
-    const chartViewWithName = await trx
-        .table(ChartViewsTableName)
+    const narrativeChartWithName = await trx
+        .table(NarrativeChartsTableName)
         .where({ name })
         .first()
 
-    if (chartViewWithName) {
+    if (narrativeChartWithName) {
         return {
             success: false,
             errorMsg: `Narrative chart with name "${name}" already exists`,
@@ -208,7 +214,7 @@ export async function createChartView(
     }
 
     const { patchConfig, fullConfig, queryParams } =
-        await createPatchConfigAndQueryParamsForChartView(
+        await createPatchConfigAndQueryParamsForNarrativeChart(
             trx,
             parentChartId,
             rawConfig
@@ -220,21 +226,20 @@ export async function createChartView(
         patchConfig,
         fullConfig
     )
-    // insert into chart_views
-    const insertRow: DbInsertChartView = {
+    const insertRow: DbInsertNarrativeChart = {
         name,
         parentChartId,
         lastEditedByUserId: res.locals.user.id,
         chartConfigId: chartConfigId,
         queryParamsForParentChart: JSON.stringify(queryParams),
     }
-    const result = await trx.table(ChartViewsTableName).insert(insertRow)
+    const result = await trx.table(NarrativeChartsTableName).insert(insertRow)
     const [resultId] = result
 
-    return { chartViewId: resultId, success: true }
+    return { narrativeChartId: resultId, success: true }
 }
 
-export async function updateChartView(
+export async function updateNarrativeChart(
     req: Request,
     res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadWriteTransaction
@@ -246,17 +251,19 @@ export async function updateChartView(
         throw new JsonError("Invalid request", 400)
     }
 
-    const existingRow = await trx<DbPlainChartView>(ChartViewsTableName)
+    const existingRow = await trx<DbPlainNarrativeChart>(
+        NarrativeChartsTableName
+    )
         .select("parentChartId", "chartConfigId", "name")
         .where({ id })
         .first()
 
     if (!existingRow) {
-        throw new JsonError(`No chart view found for id ${id}`, 404)
+        throw new JsonError(`No narrative chart found for id ${id}`, 404)
     }
 
     const { patchConfig, fullConfig, queryParams } =
-        await createPatchConfigAndQueryParamsForChartView(
+        await createPatchConfigAndQueryParamsForNarrativeChart(
             trx,
             existingRow.parentChartId,
             rawConfig
@@ -270,7 +277,7 @@ export async function updateChartView(
     )
 
     await trx
-        .table(ChartViewsTableName)
+        .table(NarrativeChartsTableName)
         .where({ id })
         .update({
             updatedAt: new Date(),
@@ -281,7 +288,7 @@ export async function updateChartView(
     const references = await getPublishedLinksTo(
         trx,
         [existingRow.name],
-        OwidGdocLinkType.ChartView
+        OwidGdocLinkType.NarrativeChart
     )
     if (references.length > 0) {
         await triggerStaticBuild(
@@ -293,7 +300,7 @@ export async function updateChartView(
     return { success: true }
 }
 
-export async function deleteChartView(
+export async function deleteNarrativeChart(
     req: Request,
     _res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadWriteTransaction
@@ -304,32 +311,32 @@ export async function deleteChartView(
         name,
         chartConfigId,
     }: { name: string | undefined; chartConfigId: string | undefined } =
-        await trx(ChartViewsTableName)
+        await trx(NarrativeChartsTableName)
             .select("name", "chartConfigId")
             .where({ id })
             .first()
             .then((row) => row ?? {})
 
     if (!chartConfigId || !name) {
-        throw new JsonError(`No chart view found for id ${id}`, 404)
+        throw new JsonError(`No narrative chart found for id ${id}`, 404)
     }
 
     const references = await getPublishedLinksTo(
         trx,
         [name],
-        OwidGdocLinkType.ChartView
+        OwidGdocLinkType.NarrativeChart
     )
 
     if (references.length) {
         throw new JsonError(
-            `Cannot delete chart view "${name}" because it is referenced by the following posts: ${references
+            `Cannot delete narrative chart "${name}" because it is referenced by the following posts: ${references
                 .map((r) => r.slug)
                 .join(", ")}`,
             400
         )
     }
 
-    await trx.table(ChartViewsTableName).where({ id }).delete()
+    await trx.table(NarrativeChartsTableName).where({ id }).delete()
 
     await deleteGrapherConfigFromR2ByUUID(chartConfigId)
 
@@ -338,36 +345,36 @@ export async function deleteChartView(
     return { success: true }
 }
 
-export async function getChartViewReferences(
+export async function getNarrativeChartReferences(
     req: Request,
     _res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
 ) {
     const id = expectInt(req.params.id)
-    const name: string | undefined = await trx(ChartViewsTableName)
+    const name: string | undefined = await trx(NarrativeChartsTableName)
         .select("name")
         .where({ id })
         .first()
         .then((row) => row?.name)
 
     if (!name) {
-        throw new JsonError(`No chart view found for id ${id}`, 404)
+        throw new JsonError(`No narrative chart found for id ${id}`, 404)
     }
 
     const postsGdocs = await getPublishedLinksTo(
         trx,
         [name],
-        OwidGdocLinkType.ChartView
+        OwidGdocLinkType.NarrativeChart
     ).then((refs) => uniqBy(refs, "slug"))
 
-    const dataInsights = await getDataInsightsForChartView(trx, id)
+    const dataInsights = await getDataInsightsForNarrativeChart(trx, id)
 
     return { references: { postsGdocs, dataInsights } }
 }
 
-async function getDataInsightsForChartView(
+async function getDataInsightsForNarrativeChart(
     knex: Knex<any, any[]>,
-    chartViewId: number
+    narrativeChartId: number
 ): Promise<DataInsightMinimalInformation[]> {
     const rows = await db.knexRaw<
         Pick<DbRawPostGdoc, "id" | "published"> &
@@ -391,19 +398,19 @@ async function getDataInsightsForChartView(
             i.cloudflareId AS imageCloudflareId,
             i.originalWidth AS imageOriginalWidth
         FROM posts_gdocs pg
-        LEFT JOIN chart_views cw
-            ON cw.name = content ->> '$."narrative-chart"'
+        LEFT JOIN narrative_charts nc
+            ON nc.name = content ->> '$."narrative-chart"'
         LEFT JOIN chart_configs cc
-            ON cc.id = cw.chartConfigId
+            ON cc.id = nc.chartConfigId
         -- only works if the image block comes first
         LEFT JOIN images i
             ON i.filename = COALESCE(pg.content ->> '$.body[0].smallFilename', pg.content ->> '$.body[0].filename')
         WHERE
             pg.type = 'data-insight'
             AND i.replacedBy IS NULL
-            AND cw.id = ?
+            AND nc.id = ?
         `,
-        [chartViewId]
+        [narrativeChartId]
     )
 
     return rows.map((row) => ({

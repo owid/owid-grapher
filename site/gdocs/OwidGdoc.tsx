@@ -89,7 +89,7 @@ export function OwidGdoc({
                 latestDataInsights: get(props, "latestDataInsights", []),
                 homepageMetadata: get(props, "homepageMetadata", {}),
                 latestWorkLinks: get(props, "latestWorkLinks", []),
-                linkedChartViews: get(props, "linkedChartViews", {}),
+                linkedNarrativeCharts: get(props, "linkedNarrativeCharts", {}),
                 // lodash doesn't use fallback when value is null
                 tags: props.tags ?? [],
             }}

@@ -111,7 +111,7 @@ import {
     GRAPHER_TAB_NAMES,
     GRAPHER_TAB_QUERY_PARAMS,
     SeriesName,
-    ChartViewInfo,
+    NarrativeChartInfo,
     OwidChartDimensionInterfaceWithMandatorySlug,
     AssetMap,
     ArchivedChartOrArchivePageMeta,
@@ -341,8 +341,8 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     isEmbeddedInADataPage?: boolean
     canHideExternalControlsInEmbed?: boolean
 
-    chartViewInfo?: Pick<
-        ChartViewInfo,
+    narrativeChartInfo?: Pick<
+        NarrativeChartInfo,
         "parentChartSlug" | "queryParamsForParentChart"
     >
     archivedChartInfo?: ArchivedChartOrArchivePageMeta
@@ -526,8 +526,8 @@ export class Grapher
     @observable.ref hideExternalControlsInEmbedUrl: boolean =
         this.canHideExternalControlsInEmbed
 
-    chartViewInfo?: Pick<
-        ChartViewInfo,
+    narrativeChartInfo?: Pick<
+        NarrativeChartInfo,
         "name" | "parentChartSlug" | "queryParamsForParentChart"
     > = undefined
 
@@ -3025,8 +3025,8 @@ export class Grapher
             window.admin === undefined &&
             // The slug is set
             !!this.slug &&
-            // We're not in a chart view / narrative chart
-            !this.chartViewInfo
+            // We're not in a narrative chart
+            !this.narrativeChartInfo
         )
     }
 
@@ -3101,7 +3101,7 @@ export class Grapher
                 style={containerStyle}
                 data-grapher-url={JSON.stringify({
                     grapherUrl: this.canonicalUrl,
-                    chartViewName: this.chartViewInfo?.name,
+                    narrativeChartName: this.narrativeChartInfo?.name,
                 })}
             >
                 {this.commandPalette}
@@ -3199,12 +3199,12 @@ export class Grapher
                             if (!this.hasLoggedGAViewEvent) {
                                 this.hasLoggedGAViewEvent = true
 
-                                if (this.chartViewInfo) {
+                                if (this.narrativeChartInfo) {
                                     this.analytics.logGrapherView(
-                                        this.chartViewInfo.parentChartSlug,
+                                        this.narrativeChartInfo.parentChartSlug,
                                         {
-                                            chartViewName:
-                                                this.chartViewInfo.name,
+                                            narrativeChartName:
+                                                this.narrativeChartInfo.name,
                                         }
                                     )
                                     this.hasLoggedGAViewEvent = true
@@ -3635,11 +3635,11 @@ export class Grapher
         return this.props.manager
     }
 
-    @computed get canonicalUrlIfIsChartView(): string | undefined {
-        if (!this.chartViewInfo) return undefined
+    @computed get canonicalUrlIfIsNarrativeChart(): string | undefined {
+        if (!this.narrativeChartInfo) return undefined
 
         const { parentChartSlug, queryParamsForParentChart } =
-            this.chartViewInfo
+            this.narrativeChartInfo
 
         const combinedQueryParams = {
             ...queryParamsForParentChart,
@@ -3655,7 +3655,7 @@ export class Grapher
     @computed get canonicalUrl(): string | undefined {
         return (
             this.manager?.canonicalUrl ??
-            this.canonicalUrlIfIsChartView ??
+            this.canonicalUrlIfIsNarrativeChart ??
             (this.baseUrl ? this.baseUrl + this.queryStr : undefined)
         )
     }
