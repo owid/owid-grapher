@@ -11,7 +11,7 @@ declare global {
     }
 }
 
-export const DataCatalogPage = (props: {
+export const SearchPage = (props: {
     baseUrl: string
     tagGraph: TagGraphRoot
 }) => {
@@ -34,15 +34,15 @@ export const DataCatalogPage = (props: {
                     }}
                 ></script>
             </Head>
-            <body className="DataCatalogPage">
+            <body>
                 <SiteHeader />
                 <main
-                    id="data-catalog-page-root"
+                    id="search-page-root"
                     className="grid grid-cols-12-full-width"
                 >
                     <SearchInstantSearchWrapper tagGraph={tagGraph} />
                 </main>
-                <SiteFooter context={SiteFooterContext.dataCatalogPage} />
+                <SiteFooter context={SiteFooterContext.searchPage} />
             </body>
         </Html>
     )
