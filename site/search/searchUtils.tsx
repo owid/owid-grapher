@@ -25,8 +25,9 @@ import {
     DataCatalogSearchResult,
     SearchIndexName,
     SearchState,
+    Filter,
+    FilterType,
 } from "./searchTypes.js"
-import { SiteAnalytics } from "../SiteAnalytics.js"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -257,15 +258,29 @@ export function deserializeSet(str?: string): Set<string> {
     return str ? new Set(str.split("~")) : new Set()
 }
 
+export function getFilterNamesOfType(
+    filters: Filter[],
+    type: FilterType
+): Set<string> {
+    return new Set(
+        filters
+            .filter((filter) => filter.type === type)
+            .map((filter) => filter.name)
+    )
+}
+
 export async function queryDataCatalogRibbons(
     searchClient: SearchClient,
     state: SearchState,
     tagGraph: TagGraphRoot
 ): Promise<DataCatalogRibbonResult[]> {
-    const topicsForRibbons = getTopicsForRibbons(state.topics, tagGraph)
+    const topicsForRibbons = getTopicsForRibbons(
+        getFilterNamesOfType(state.filters, FilterType.TOPIC),
+        tagGraph
+    )
 
     const countryFacetFilters = formatCountryFacetFilters(
-        state.selectedCountryNames,
+        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         state.requireAllCountries
     )
     const searchParams = topicsForRibbons.map((topic) => {
@@ -294,10 +309,15 @@ export async function queryDataCatalogSearch(
     state: SearchState
 ): Promise<DataCatalogSearchResult> {
     const facetFilters = formatCountryFacetFilters(
-        state.selectedCountryNames,
+        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         state.requireAllCountries
     )
-    facetFilters.push(...setToFacetFilters(state.topics, "tags"))
+    facetFilters.push(
+        ...setToFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.TOPIC),
+            "tags"
+        )
+    )
 
     const searchParams = [
         {
@@ -359,4 +379,3 @@ export function useAutocomplete(
 
     return [...countries, ...tags]
 }
-export const analytics = new SiteAnalytics()
