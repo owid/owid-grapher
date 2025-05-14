@@ -1,6 +1,6 @@
 import { LongFormPage, PageOverrides } from "../site/LongFormPage.js"
 import { BlogIndexPage } from "../site/BlogIndexPage.js"
-import { DataCatalogPage } from "../site/search/SearchPage.js"
+import { SearchPage } from "../site/search/SearchPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
 import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.js"
 import { DEPRECATEDSearchPage } from "../site/search/_DEPRECATEDSearchPage.js"
@@ -102,11 +102,11 @@ import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
-export const renderDataCatalogPage = async (knex: KnexReadonlyTransaction) => {
+export const renderSearchPage = async (knex: KnexReadonlyTransaction) => {
     const { __rootId, ...flatTagGraph } = await getFlatTagGraph(knex)
     const rootTagGraph = createTagGraph(flatTagGraph, __rootId)
     return renderToHtmlPage(
-        <DataCatalogPage baseUrl={BAKED_BASE_URL} tagGraph={rootTagGraph} />
+        <SearchPage baseUrl={BAKED_BASE_URL} tagGraph={rootTagGraph} />
     )
 }
 
@@ -283,7 +283,7 @@ export const renderBlogByPageNum = async (
     )
 }
 
-export const renderSearchPage = () =>
+export const DEPRECATEDrenderSearchPage = () =>
     renderToHtmlPage(<DEPRECATEDSearchPage baseUrl={BAKED_BASE_URL} />)
 
 export const renderNotFoundPage = () =>

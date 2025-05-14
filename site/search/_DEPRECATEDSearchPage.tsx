@@ -33,7 +33,7 @@ export const DEPRECATEDSearchPage = (props: { baseUrl: string }) => {
                 <SiteHeader />
                 <main className="search-page-container" />
                 <SiteFooter hideDonate />
-                <script type="module">{`window.runSearchPage()`}</script>
+                <script type="module">{`window.DEPRECATEDrunSearchPage()`}</script>
             </body>
         </Html>
     )
