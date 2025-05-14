@@ -72,17 +72,15 @@ export function createActions(dispatch: (action: SearchAction) => void) {
 }
 
 export function getInitialSearchState(): SearchState {
-    if (typeof window === "undefined")
-        return {
-            query: "",
-            topics: new Set(),
-            selectedCountryNames: new Set(),
-            requireAllCountries: false,
-            page: 0,
-        }
-
-    const url = Url.fromURL(window.location.href)
-    return urlToSearchState(url)
+    // Always return the default state to prevent hydration mismatches
+    // The actual URL state will be applied client-side after hydration
+    return {
+        query: "",
+        topics: new Set(),
+        selectedCountryNames: new Set(),
+        requireAllCountries: false,
+        page: 0,
+    }
 }
 
 export function urlToSearchState(url: Url): SearchState {
