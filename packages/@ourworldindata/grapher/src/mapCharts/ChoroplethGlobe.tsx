@@ -393,6 +393,10 @@ export class ChoroplethGlobe extends React.Component<{
         })
     }
 
+    @computed private get hoverFeature(): GlobeRenderFeature | undefined {
+        return this.hoverEnterFeature || this.hoverNearbyFeature
+    }
+
     @action.bound private clearHover(): void {
         this.hoverEnterFeature = undefined
         this.hoverNearbyFeature = undefined
@@ -853,9 +857,10 @@ export class ChoroplethGlobe extends React.Component<{
                 onMouseLeave={this.onMouseLeaveFeature}
                 onClick={() => {
                     // invoke a click on a feature when clicking nearby one
-                    if (this.hoverEnterFeature)
-                        this.onClick(this.hoverEnterFeature)
+                    if (this.hoverNearbyFeature)
+                        this.onClick(this.hoverNearbyFeature)
                 }}
+                style={{ cursor: this.hoverFeature ? "pointer" : undefined }}
             >
                 {this.renderGlobeOutline()}
                 <g className={GEO_FEATURES_CLASSNAME}>

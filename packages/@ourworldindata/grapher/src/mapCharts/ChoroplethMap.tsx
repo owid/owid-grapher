@@ -533,8 +533,8 @@ export class ChoroplethMap extends React.Component<{
                 onMouseLeave={this.onMouseLeave}
                 onClick={() => {
                     // invoke a click on a feature when clicking nearby one
-                    if (this.hoverEnterFeature)
-                        this.onClick(this.hoverEnterFeature)
+                    if (this.hoverNearbyFeature)
+                        this.onClick(this.hoverNearbyFeature)
                 }}
                 style={{ cursor: this.hoverFeature ? "pointer" : undefined }}
             >
