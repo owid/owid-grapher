@@ -1047,15 +1047,13 @@ export class EntitySelector extends React.Component<{
 
     @computed get entitiesByRegionType(): Map<EntityRegionType, EntityName[]> {
         // the 'World' entity shouldn't show up in any of the groups
-        const availableEntityNames = this.availableEntityNames.filter(
-            (entityName) => !isWorldEntityName(entityName)
+        const availableEntities = this.availableEntities.filter(
+            (entity) => !isWorldEntityName(entity.name)
         )
 
         // map entities to their regions
         const availableRegions = excludeUndefined(
-            availableEntityNames.map((entityName) =>
-                getRegionByName(entityName)
-            )
+            availableEntities.map((entity) => entity.regionInfo)
         )
 
         // group regions by type
@@ -1093,28 +1091,30 @@ export class EntitySelector extends React.Component<{
             // match by name instead of relying on the regions file because
             // some charts have income groups that aren't listed in the regions
             // file, e.g. 'Lower-middle-income countries'
-            const incomeGroups = availableEntityNames.filter(
-                (entityName) =>
-                    entityName.includes("income countries") ||
-                    // matches 'No income group available', for example
-                    entityName.includes("income group")
-            )
+            const incomeGroups = availableEntities
+                .filter(
+                    (entity) =>
+                        entity.name.includes("income countries") ||
+                        // matches 'No income group available', for example
+                        entity.name.includes("income group")
+                )
+                .map((entity) => entity.name)
 
             entitiesByType.set("incomeGroups", incomeGroups)
         }
 
-        for (const entityName of availableEntityNames) {
+        for (const entity of availableEntities) {
             // The regions file includes a definedBy field for aggregates,
             // which could be used here. However, non-OWID regions aren't
             // standardized, meaning we might miss some entities.
             // Instead, we rely on the convention that non-OWID regions
             // are suffixed with (source) and check the entity name.
-            const match = entityName.match(/\(([^)]+)\)$/)
+            const match = entity.name.match(/\(([^)]+)\)$/)
             const sourceCandidate = match?.[1].toLowerCase()
             if (sourceCandidate && isAggregateSource(sourceCandidate)) {
                 if (!entitiesByType.get(sourceCandidate))
                     entitiesByType.set(sourceCandidate, [])
-                entitiesByType.get(sourceCandidate)!.push(entityName)
+                entitiesByType.get(sourceCandidate)!.push(entity.name)
             }
         }
 
