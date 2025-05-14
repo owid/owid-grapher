@@ -232,11 +232,7 @@ export class GlobeController {
 function calculateTargetForCountry(country: EntityName): Target | undefined {
     const geoFeature = geoFeaturesById.get(country)
     if (!geoFeature) return
-
-    const { geoCentroid } = geoFeature
-    const coords: [number, number] = [-geoCentroid[0], -geoCentroid[1]]
-
-    return { coords, zoom: GLOBE_COUNTRY_ZOOM }
+    return { coords: geoFeature.geoCentroid, zoom: GLOBE_COUNTRY_ZOOM }
 }
 
 function calculateTargetForOwidContinent(continent: GlobeRegionName): Target {
@@ -332,8 +328,8 @@ function getCenterForCountryCollection(
     const centerPoint = center(featureCollection)
 
     return [
-        -centerPoint.geometry.coordinates[0],
-        -R.clamp(centerPoint.geometry.coordinates[1], {
+        centerPoint.geometry.coordinates[0],
+        R.clamp(centerPoint.geometry.coordinates[1], {
             min: GLOBE_LATITUDE_MIN,
             max: GLOBE_LATITUDE_MAX,
         }),
@@ -345,7 +341,7 @@ function getCoordsAndZoomForCountryCollection(countryNames: string[]): {
     zoom: number
 } {
     const centerPoint = getCenterForCountryCollection(countryNames)
-    const projection = geoOrthographic().rotate(centerPoint)
+    const projection = geoOrthographic().rotate(negateCoords(centerPoint))
 
     const bounds = excludeUndefined(
         countryNames.map((countryName) => {
@@ -384,7 +380,7 @@ function findVisibleCountrySubset(countryNames: string[]): string[] {
     // rotate the globe to the center point of all given countries,
     // and find all countries that are then visible on the globe
     const centerPoint = getCenterForCountryCollection(countryNames)
-    const projection = geoOrthographic().rotate(centerPoint)
+    const projection = geoOrthographic().rotate(negateCoords(centerPoint))
     const visibleCountries = countryNames.filter((countryName) => {
         const feature = geoFeaturesById.get(countryName)
         if (!feature) return false
@@ -467,4 +463,8 @@ function addLongitudeOffset(
     offset = LONGITUDE_OFFSET
 ): [number, number] {
     return [coords[0] + offset, coords[1]]
+}
+
+function negateCoords(coords: [number, number]): [number, number] {
+    return [-coords[0], -coords[1]]
 }
