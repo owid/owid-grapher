@@ -1,7 +1,7 @@
 import { TagGraphRoot, TagGraphNode } from "@ourworldindata/types"
 import { Url } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
-import { useReducer, useState, useMemo, useEffect } from "react"
+import { useReducer, useState, useMemo, useEffect, useCallback } from "react"
 import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
 import { AppliedTopicFiltersList } from "./AppliedTopicFiltersList.js"
 import { DataCatalogResults } from "./DataCatalogResults.js"
@@ -37,7 +37,7 @@ export const Search = ({
     searchClient: SearchClient
 }) => {
     const [state, dispatch] = useReducer(searchReducer, initialState)
-    const actions = createActions(dispatch)
+    const actions = useMemo(() => createActions(dispatch), [dispatch])
     const [isLoading, setIsLoading] = useState(false)
     const [cache, setCache] = useState<DataCatalogCache>({
         ribbons: new Map(),
@@ -75,6 +75,12 @@ export const Search = ({
     const stateAsUrl = searchStateToUrl(state)
     const cacheKey = shouldShowRibbons ? "ribbons" : "search"
     const currentResults = cache[cacheKey].get(stateAsUrl)
+
+    useEffect(() => {
+        const url = Url.fromURL(window.location.href)
+        const urlState = urlToSearchState(url)
+        actions.setState(urlState)
+    }, [actions])
 
     useEffect(() => {
         // Reconstructing state from the `stateAsUrl` serialization to avoid a `state` dependency in this effect,
