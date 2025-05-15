@@ -35,6 +35,7 @@ async function updateLinksFromInsertedDod(
             hash: url.hash,
             text,
             linkType,
+            componentType: "dod",
         }
         await trx(DodLinksTableName).insert(dodLink)
     }
@@ -51,6 +52,27 @@ export async function getDods(
         res.json({ dods })
     } catch (error) {
         console.error("Error fetching dods", error)
+        res.status(500).json({
+            error: { message: String(error), status: 500 },
+        })
+    }
+}
+
+/**
+ * The same as the mockSiteRouter "dods.json" endpoint, but accessible from prod/staging admin clients
+ * grep "shouldFetchFromAdminApi" for more information
+ */
+export async function getParsedDods(
+    _: Request,
+    res: e.Response<any, Record<string, any>>,
+    trx: db.KnexReadonlyTransaction
+) {
+    try {
+        const dods = await dodDb.getParsedDodsDictionary(trx)
+        res.set("Cache-Control", "no-store")
+        res.json(dods)
+    } catch (error) {
+        console.error("Error fetching parsed dods", error)
         res.status(500).json({
             error: { message: String(error), status: 500 },
         })
