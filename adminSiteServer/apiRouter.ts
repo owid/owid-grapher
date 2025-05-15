@@ -156,6 +156,7 @@ import {
     createDod,
     deleteDod,
     getDodsUsage,
+    getParsedDods,
 } from "./apiRoutes/dods.js"
 
 const apiRouter = new FunctionalRouter()
@@ -272,6 +273,7 @@ postRouteWithRWTransaction(
 
 deleteRouteWithRWTransaction(apiRouter, "/dods/:id", deleteDod)
 getRouteWithROTransaction(apiRouter, "/dods.json", getDods)
+getRouteWithROTransaction(apiRouter, "/parsed-dods.json", getParsedDods)
 getRouteWithROTransaction(apiRouter, "/dods-usage.json", getDodsUsage)
 patchRouteWithRWTransaction(apiRouter, "/dods/:id", updateDod)
 postRouteWithRWTransaction(apiRouter, "/dods", createDod)
