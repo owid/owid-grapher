@@ -5,12 +5,12 @@ import { SearchInput } from "./SearchInput.js"
 import { SearchActiveFilters } from "./SearchActiveFilters.js"
 import { SearchAutocomplete } from "./SearchAutocomplete.js"
 import { SearchCountrySelector } from "./SearchCountrySelector.js"
-import { Filter } from "./searchTypes.js"
+import { Filter, FilterType } from "./searchTypes.js"
+import { getFilterNamesOfType } from "./searchUtils.js"
 
 export const Searchbar = ({
     allTopics,
     filters,
-    selectedTopics,
     query,
     setQuery,
     addCountry,
@@ -18,13 +18,10 @@ export const Searchbar = ({
     addTopic,
     removeTopic,
     requireAllCountries,
-    selectedCountryNames,
     toggleRequireAllCountries,
 }: {
     allTopics: string[]
     filters: Filter[]
-    selectedTopics: Set<string>
-    selectedCountryNames: Set<string>
     query: string
     setQuery: (query: string) => void
     addCountry: (country: string) => void
@@ -34,6 +31,10 @@ export const Searchbar = ({
     requireAllCountries: boolean
     toggleRequireAllCountries: () => void
 }) => {
+    const selectedCountryNames = getFilterNamesOfType(
+        filters,
+        FilterType.COUNTRY
+    )
     // Storing this in local state so that query params don't update during typing
     const [localQuery, setLocalQuery] = useState(query)
     // sync local query with global query when browser navigation occurs
@@ -66,8 +67,7 @@ export const Searchbar = ({
                 <SearchAutocomplete
                     localQuery={localQuery}
                     allTopics={allTopics}
-                    selectedCountryNames={selectedCountryNames}
-                    selectedTopics={selectedTopics}
+                    filters={filters}
                     query={query}
                     setLocalQuery={setLocalQuery}
                     setQuery={setQuery}
