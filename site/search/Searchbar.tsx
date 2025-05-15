@@ -1,34 +1,36 @@
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { Region } from "@ourworldindata/utils"
 import { useState, useEffect } from "react"
 import { SearchInput } from "./SearchInput.js"
-import { SelectedCountriesPills } from "./SelectedCountriesPills.js"
+import { SearchActiveFilters } from "./SearchActiveFilters.js"
 import { SearchAutocomplete } from "./SearchAutocomplete.js"
 import { SearchCountrySelector } from "./SearchCountrySelector.js"
+import { Filter } from "./searchTypes.js"
 
 export const Searchbar = ({
     allTopics,
+    filters,
     selectedTopics,
-    selectedCountries,
     query,
     setQuery,
-    removeCountry,
     addCountry,
+    removeCountry,
     addTopic,
+    removeTopic,
     requireAllCountries,
     selectedCountryNames,
     toggleRequireAllCountries,
 }: {
     allTopics: string[]
+    filters: Filter[]
     selectedTopics: Set<string>
-    selectedCountries: Region[]
     selectedCountryNames: Set<string>
     query: string
     setQuery: (query: string) => void
-    removeCountry: (country: string) => void
     addCountry: (country: string) => void
+    removeCountry: (country: string) => void
     addTopic: (topic: string) => void
+    removeTopic: (topic: string) => void
     requireAllCountries: boolean
     toggleRequireAllCountries: () => void
 }) => {
@@ -51,9 +53,10 @@ export const Searchbar = ({
                 >
                     <FontAwesomeIcon icon={faSearch} />
                 </button>
-                <SelectedCountriesPills
-                    selectedCountries={selectedCountries}
+                <SearchActiveFilters
+                    filters={filters}
                     removeCountry={removeCountry}
+                    removeTopic={removeTopic}
                 />
                 <SearchInput
                     value={localQuery}

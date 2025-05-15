@@ -1,7 +1,7 @@
 import { TagGraphRoot, TagGraphNode } from "@ourworldindata/types"
 import { Url } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
-import { useReducer, useState, useMemo, useEffect, useCallback } from "react"
+import { useReducer, useState, useMemo, useEffect } from "react"
 import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
 import { DataCatalogResults } from "./DataCatalogResults.js"
 import { Searchbar } from "./Searchbar.js"
@@ -156,12 +156,13 @@ export const Search = ({
                     <Searchbar
                         allTopics={ALL_TOPICS}
                         selectedTopics={selectedTopics}
+                        filters={state.filters}
                         addCountry={actions.addCountry}
-                        addTopic={actions.addTopic}
-                        query={state.query}
                         removeCountry={actions.removeCountry}
+                        addTopic={actions.addTopic}
+                        removeTopic={actions.removeTopic}
+                        query={state.query}
                         requireAllCountries={state.requireAllCountries}
-                        selectedCountries={selectedCountries}
                         selectedCountryNames={selectedCountryNames}
                         setQuery={actions.setQuery}
                         toggleRequireAllCountries={
