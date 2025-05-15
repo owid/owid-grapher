@@ -84,19 +84,20 @@ describe(grapherConfigToQueryParams, () => {
         })
     })
 
-    it("globe settings", () => {
-        expect(grapherConfigToQueryParams({ map: new MapConfig() })).toEqual({
-            region: "World",
-        })
-
+    it("doesn't persist default globe settings", () => {
+        const mapConfig = new MapConfig()
         expect(
-            grapherConfigToQueryParams({
-                map: new MapConfig({
-                    globe: { isActive: true, rotation: [-30, 40], zoom: 2 },
-                }),
-            })
+            grapherConfigToQueryParams({ map: mapConfig.toObject() })
+        ).toEqual({})
+    })
+
+    it("persists globe settings", () => {
+        const mapConfig = new MapConfig({
+            globe: { isActive: true, rotation: [-30, 40], zoom: 2 },
+        })
+        expect(
+            grapherConfigToQueryParams({ map: mapConfig.toObject() })
         ).toEqual({
-            region: "World",
             globe: "1",
             globeRotation: "-30,40",
             globeZoom: "2",
