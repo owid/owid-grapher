@@ -2,14 +2,13 @@ import cx from "classnames"
 import { useMemo, useEffect } from "react"
 import { match } from "ts-pattern"
 import { useAutocomplete } from "./searchUtils.js"
-import { FilterType } from "./searchTypes.js"
 import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
+import { Filter, FilterType } from "./searchTypes.js"
 
 export const SearchAutocomplete = ({
     localQuery,
     allTopics,
-    selectedCountryNames,
-    selectedTopics,
+    filters,
     query,
     setLocalQuery,
     setQuery,
@@ -18,18 +17,14 @@ export const SearchAutocomplete = ({
 }: {
     localQuery: string
     allTopics: string[]
-    selectedCountryNames: Set<string>
-    selectedTopics: Set<string>
+    filters: Filter[]
     query: string
     setLocalQuery: (query: string) => void
     setQuery: (query: string) => void
     addCountry: (country: string) => void
     addTopic: (topic: string) => void
 }) => {
-    const items = useAutocomplete(localQuery, allTopics, {
-        selectedCountryNames,
-        selectedTopics,
-    })
+    const items = useAutocomplete(localQuery, allTopics, filters)
     const itemsToRender = useMemo(
         () => [{ name: localQuery, type: FilterType.QUERY }, ...items],
         [localQuery, items]
@@ -107,24 +102,27 @@ export const SearchAutocomplete = ({
     return (
         <div className="search-autocomplete-container">
             <ul>
-                {itemsToRender.map(({ name, type }) => (
-                    <li key={name} className={cx("search-autocomplete-item")}>
+                {itemsToRender.map((filter) => (
+                    <li
+                        key={filter.name}
+                        className={cx("search-autocomplete-item")}
+                    >
                         <button
                             data-prevent-onblur
                             className="search-autocomplete-button"
                             onClick={() => {
-                                match(type)
+                                match(filter.type)
                                     .with(FilterType.COUNTRY, () => {
-                                        addCountry(name)
+                                        addCountry(filter.name)
                                         setQueries(queryMinusLastWord)
                                     })
                                     .with(FilterType.TOPIC, () => {
-                                        addTopic(name)
+                                        addTopic(filter.name)
                                         setQueries(queryMinusLastWord)
                                     })
 
                                     .with(FilterType.QUERY, () => {
-                                        setQueries(name)
+                                        setQueries(filter.name)
                                         ;(
                                             document.activeElement as HTMLElement
                                         ).blur()
@@ -134,9 +132,9 @@ export const SearchAutocomplete = ({
                             }}
                         >
                             <SearchAutocompleteItemContents
-                                type={type}
-                                name={name}
+                                filter={filter}
                                 baseQuery={queryMinusLastWord}
+                                activeFilters={filters}
                             />
                         </button>
                     </li>
