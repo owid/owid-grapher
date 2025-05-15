@@ -348,7 +348,7 @@ export function useAutocomplete(
         selectedCountryNames: Set<string>
         selectedTopics: Set<string>
     }
-): { name: string; type: "country" | "topic" }[] {
+): Filter[] {
     const sortOptions = {
         threshold: 0.5,
         limit: 3,
@@ -366,7 +366,7 @@ export function useAutocomplete(
     )
         .search(lastWord)
         .filter((country) => !appliedFilters.selectedCountryNames.has(country))
-        .map((name) => ({ name, type: "country" as const }))
+        .map((name) => ({ name, type: FilterType.COUNTRY }))
 
     const tags =
         // Suggest topics only if none are currently active
@@ -374,7 +374,7 @@ export function useAutocomplete(
             ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
                   .search(lastWord)
                   .slice(0, 3)
-                  .map((name) => ({ name, type: "topic" as const }))
+                  .map((name) => ({ name, type: FilterType.TOPIC }))
             : []
 
     return [...countries, ...tags]
