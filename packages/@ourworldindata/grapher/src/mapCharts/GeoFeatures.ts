@@ -79,15 +79,17 @@ const geoBoundsForFeatures = GeoFeatures.map((feature) => {
 export const getGeoFeaturesForMap = lazy((): MapRenderFeature[] => {
     const projBounds = geoBoundsForWorldProjection()
     const projPaths = geoPathsForWorldProjection()
-    return GeoFeatures.map((geo, index) => ({
-        type: RenderFeatureType.Map,
-        id: geo.id as string,
-        geo: geo,
-        projBounds: projBounds[index], // projected
-        geoBounds: geoBoundsForFeatures[index], // unprojected
-        geoCentroid: geoCentroidsForFeatures[index], // unprojected
-        path: projPaths[index],
-    })) satisfies MapRenderFeature[]
+    return (
+        GeoFeatures.map((geo, index) => ({
+            type: RenderFeatureType.Map,
+            id: geo.id as string,
+            geo: geo,
+            projBounds: projBounds[index], // projected
+            geoBounds: geoBoundsForFeatures[index], // unprojected
+            geoCentroid: geoCentroidsForFeatures[index], // unprojected
+            path: projPaths[index],
+        })) satisfies MapRenderFeature[]
+    ).filter((feature) => feature.id !== "Antarctica") // exclude Antarctica since it's distorted and uses up too much space
 })
 
 export const getGeoFeaturesForGlobe = lazy((): GlobeRenderFeature[] => {
