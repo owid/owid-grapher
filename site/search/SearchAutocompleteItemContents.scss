@@ -1,0 +1,13 @@
+.search-autocomplete-item-contents__type-query {
+    @include body-3-medium;
+    width: 16px;
+    height: 16px;
+    svg {
+        color: $blue-50;
+        margin-right: 8px;
+    }
+}
+.search-autocomplete-item-contents__base-query {
+    @include body-3-medium;
+    margin-right: 8px;
+}
