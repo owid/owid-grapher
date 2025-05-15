@@ -1,13 +1,17 @@
-.search-autocomplete-item-contents__type-query {
+.search-autocomplete-item-contents {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.search-autocomplete-item-contents__search-icon {
     @include body-3-medium;
     width: 16px;
     height: 16px;
-    svg {
-        color: $blue-50;
-        margin-right: 8px;
-    }
+    color: $blue-50;
 }
-.search-autocomplete-item-contents__base-query {
+
+.search-autocomplete-item-contents__query {
     @include body-3-medium;
-    margin-right: 8px;
+    color: $blue-90;
 }

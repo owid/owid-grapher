@@ -1,10 +1,7 @@
 import { match } from "ts-pattern"
 import { Filter, FilterType } from "./searchTypes"
-import {
-    SearchCountryPillIcon,
-    SearchFilterPill,
-    SearchTopicPillIcon,
-} from "./SearchFilterPill.js"
+import { SearchFilterPill } from "./SearchFilterPill.js"
+import { getFilterIcon } from "./searchUtils.js"
 
 export const SearchActiveFilters = ({
     filters,
@@ -19,30 +16,30 @@ export const SearchActiveFilters = ({
         <div className="search-active-filters-container">
             {filters.map((filter) =>
                 match(filter)
-                    .with({ type: FilterType.COUNTRY }, ({ name }) => (
+                    .with({ type: FilterType.COUNTRY }, (filter) => (
                         <button
-                            key={name}
-                            aria-label={`Remove ${name}`}
-                            onClick={() => removeCountry(name)}
+                            key={filter.name}
+                            aria-label={`Remove ${filter.name}`}
+                            onClick={() => removeCountry(filter.name)}
                             className="search-active-filter-button"
                         >
                             <SearchFilterPill
-                                name={name}
-                                icon={SearchCountryPillIcon(name)}
+                                name={filter.name}
+                                icon={getFilterIcon(filter)}
                                 selected
                             />
                         </button>
                     ))
-                    .with({ type: FilterType.TOPIC }, ({ name }) => (
+                    .with({ type: FilterType.TOPIC }, (filter) => (
                         <button
-                            key={`topic-${name}`}
-                            aria-label={`Remove ${name}`}
-                            onClick={() => removeTopic(name)}
+                            key={`topic-${filter.name}`}
+                            aria-label={`Remove ${filter.name}`}
+                            onClick={() => removeTopic(filter.name)}
                             className="search-active-filter-button"
                         >
                             <SearchFilterPill
-                                name={name}
-                                icon={SearchTopicPillIcon}
+                                name={filter.name}
+                                icon={getFilterIcon(filter)}
                                 selected
                             />
                         </button>

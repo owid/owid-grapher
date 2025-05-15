@@ -358,46 +358,6 @@
     // display: none;
 }
 
-.search-autocomplete-container {
-    position: absolute;
-    background-color: white;
-    padding: 0 8px;
-    border-top: 2px solid $blue-5;
-    width: 100%;
-    top: 48px;
-    box-shadow: $box-shadow-xl;
-
-    li {
-        list-style: none;
-    }
-}
-
-.search-autocomplete-item {
-    &:first-child {
-        margin-top: 8px;
-    }
-    &:last-child {
-        margin-bottom: 8px;
-    }
-    &:hover {
-        background-color: $blue-5;
-        color: $blue-90;
-    }
-}
-
-.search-autocomplete-button {
-    width: 100%;
-    padding: 8px;
-    text-align: left;
-    background-color: transparent;
-
-    &:focus {
-        background-color: $blue-5;
-        color: $blue-90;
-        outline: none;
-    }
-}
-
 .data-catalog-refinement-list {
     margin-bottom: 16px;
     @include sm-only {
