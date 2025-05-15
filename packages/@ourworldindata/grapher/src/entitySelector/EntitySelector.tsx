@@ -69,6 +69,7 @@ import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 import * as R from "remeda"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { EntitySelectorEvent } from "../core/GrapherAnalytics"
+import { match } from "ts-pattern"
 
 type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
@@ -518,10 +519,15 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get searchPlaceholderEntityType(): string {
-        if (this.entityFilter === "all") return this.entityType.singular
-        if (this.entityFilter === "countries") return "country"
-        if (this.entityFilter === "incomeGroups") return "income group"
-        return "continent"
+        if (isAggregateSource(this.entityFilter)) return "region"
+
+        return match(this.entityFilter)
+            .with("all", () => this.entityType.singular)
+            .with("countries", () => "country")
+            .with("continents", () => "continent")
+            .with("incomeGroups", () => "income group")
+            .with("historicalCountries", () => "country or region")
+            .exhaustive()
     }
 
     @computed private get searchInput(): string {
