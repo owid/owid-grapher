@@ -67,16 +67,10 @@ export const grapherConfigToQueryParams = (
             ? generateSelectedEntityNamesParam(config.map.selectedEntityNames)
             : undefined,
         globe: config.map?.globe?.isActive ? 1 : undefined,
-        globeRotation:
-            config.map?.globe?.rotation &&
-            !R.isDeepEqual(config.map.globe.rotation, DEFAULT_GLOBE_ROTATION)
-                ? stringifyGlobeRotation(config.map.globe.rotation)
-                : undefined,
-        globeZoom:
-            config.map?.globe?.zoom &&
-            config.map.globe.zoom !== DEFAULT_GLOBE_ZOOM
-                ? config.map.globe.zoom
-                : undefined,
+        globeRotation: configGlobeRotationToQueryParam(
+            config.map?.globe?.rotation
+        ),
+        globeZoom: configGlobeZoomToQueryParam(config.map?.globe?.zoom),
 
         // These cannot be specified in config, so we always set them to undefined
         showSelectionOnlyInTable: undefined,
@@ -142,13 +136,47 @@ export const grapherObjectToQueryParams = (
     return params
 }
 
-function stringifyGlobeRotation(globeRotation: number[]): string {
-    return globeRotation.map((r) => R.round(r, 2)).join(",")
+/**
+ * Maps the globe rotation given in a config, which is [lat, lon], to a query param
+ * which is [lat, lon] as well. The default globe rotation is not persisted.
+ */
+function configGlobeRotationToQueryParam(
+    configGlobeRotationLatLon?: [number, number]
+): string | undefined {
+    if (!configGlobeRotationLatLon) return undefined
+
+    // don't persist the default globe rotation
+    const isDefaultRotation = R.isDeepEqual(
+        configGlobeRotationLatLon,
+        // we use [lon, lat] internally, but here we are given [lat, lon]
+        R.reverse(DEFAULT_GLOBE_ROTATION)
+    )
+    if (isDefaultRotation) return undefined
+
+    return configGlobeRotationLatLon.map((r) => R.round(r, 2)).join(",")
 }
 
-export function parseGlobeRotation(globeRotation: string): [number, number] {
-    return globeRotation
+function configGlobeZoomToQueryParam(zoom?: number): string | undefined {
+    if (!zoom) return undefined
+
+    // don't persist the default zoom level
+    if (zoom === DEFAULT_GLOBE_ZOOM) return undefined
+
+    return zoom.toString()
+}
+
+export function parseGlobeRotation(latLon: string): [number, number] {
+    // we use [lon, lat] internally and [lat, lon] in the URL
+    const [lat, lon] = latLon
         .split(",")
         .map((s) => +s)
         .slice(0, 2) as [number, number]
+    return [lon, lat]
+}
+
+function stringifyGlobeRotation(lonLat: number[]): string {
+    // we use [lon, lat] internally and [lat, lon] in the URL
+    const lon = R.round(lonLat[0], 2)
+    const lat = R.round(lonLat[1], 2)
+    return [lat, lon].join(",")
 }

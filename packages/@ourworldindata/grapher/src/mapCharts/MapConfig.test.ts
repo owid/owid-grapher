@@ -36,6 +36,18 @@ describe("globe settings", () => {
         expect(map.toObject()).toEqual({ region: "SouthAmerica" })
     })
 
+    it("persists rotation as [lat, lon] (instead of the internally used [lon, lat])", () => {
+        const map = new MapConfig()
+        map.globe = {
+            isActive: true,
+            rotation: [-10, 50], // [lon, lat]
+            zoom: 1,
+        }
+        expect(map.toObject()).toEqual({
+            globe: { isActive: true, rotation: [50, -10], zoom: 1 },
+        })
+    })
+
     it("rounds coordinates and zoom to two decimal points", () => {
         const map = new MapConfig()
         map.globe = {
@@ -44,7 +56,7 @@ describe("globe settings", () => {
             zoom: 2.72544,
         }
         expect(map.toObject()).toEqual({
-            globe: { isActive: true, rotation: [-9.36, 30.63], zoom: 2.73 },
+            globe: { isActive: true, rotation: [30.63, -9.36], zoom: 2.73 },
         })
     })
 })
