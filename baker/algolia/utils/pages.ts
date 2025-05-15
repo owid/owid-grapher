@@ -18,7 +18,6 @@ import {
     DbEnrichedImage,
     OwidGdocDataInsightInterface,
     OwidGdocAboutInterface,
-    gdocUrlRegex,
 } from "@ourworldindata/utils"
 import { formatPost } from "../../formatWordpressPost.js"
 import { getAlgoliaClient } from "../configureAlgolia.js"
@@ -217,21 +216,8 @@ function getExcerptFromGdoc(
 
 function formatGdocMarkdown(content: string): string {
     const simplifiedMarkdown = stripCustomMarkdownComponents(content)
-
-    const withoutGdocLinks = simplifiedMarkdown.replaceAll(
-        new RegExp(gdocUrlRegex, "g"),
-        ""
-    )
-
-    // There's a bug somewhere in enrichedToMarkdown that leaves "undefined" in the text
-    const withoutUndefinedString = withoutGdocLinks.replaceAll(
-        new RegExp("undefined", "g"),
-        ""
-    )
-
     // This is used in many data insights but shouldn't be shown in search results
-    const withoutArrow = withoutUndefinedString.replaceAll("→", "")
-
+    const withoutArrow = simplifiedMarkdown.replaceAll("→", "")
     return withoutArrow
 }
 
@@ -275,7 +261,7 @@ function generateGdocRecords(
             fontSize: 12,
         }).plaintext
 
-        const chunks = generateChunksFromHtmlText(plaintextContent)
+        const chunks = chunkParagraphs(plaintextContent, 1000)
         let i = 0
 
         const thumbnailUrl = getThumbnailUrl(gdoc, cloudflareImagesByFilename)

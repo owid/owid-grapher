@@ -1,5 +1,6 @@
 import {
     EnrichedBlockKeyIndicator,
+    gdocUrlRegex,
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
 } from "@ourworldindata/types"
 import { getLinkType } from "@ourworldindata/components"
@@ -16,10 +17,12 @@ export function spanToMarkdown(s: Span): string {
     return match(s)
         .with({ spanType: "span-simple-text" }, (span) => span.text)
         .with({ spanType: "span-newline" }, () => "\n  ")
-        .with(
-            { spanType: "span-link" },
-            (link) => `[${spansToMarkdown(link.children)}](${link.url})`
-        )
+        .with({ spanType: "span-link" }, (link) => {
+            if (link.url.match(gdocUrlRegex)) {
+                return spansToMarkdown(link.children)
+            }
+            return `[${spansToMarkdown(link.children)}](${link.url})`
+        })
         .with(
             { spanType: "span-italic" },
             (span) => `_${spansToMarkdown(span.children)}_`
@@ -260,22 +263,40 @@ ${items}`
         )
         .with(
             { type: P.union("side-by-side", "sticky-left", "sticky-right") },
-            (b): string | undefined => `${enrichedBlocksToMarkdown(
-                b.left,
-                exportComponents
-            )}
+            (b): string | undefined => {
+                const nonNullishLeft = excludeNullish(
+                    b.left.map((item) =>
+                        enrichedBlockToMarkdown(item, exportComponents)
+                    )
+                )
+                const nonNullishRight = excludeNullish(
+                    b.right.map((item) =>
+                        enrichedBlockToMarkdown(item, exportComponents)
+                    )
+                )
 
-${enrichedBlocksToMarkdown(b.right, exportComponents)}`
+                return `${nonNullishLeft.join("\n")}\n${nonNullishRight.join("\n")}`
+            }
         )
         .with({ type: "gray-section" }, (b): string | undefined =>
             enrichedBlocksToMarkdown(b.items, exportComponents)
         )
-        .with(
-            { type: "prominent-link" },
-            (b): string | undefined => `### ${b.title}
-${b.description}
-${b.url}`
-        )
+        .with({ type: "prominent-link" }, (b): string | undefined => {
+            if (b.url.match(gdocUrlRegex)) {
+                return undefined
+            }
+            let text = ""
+            if (b.title) {
+                text += `### ${b.title}\n`
+            }
+            if (b.description) {
+                text += `${b.description}}\n`
+            }
+            if (b.url) {
+                text += `${b.url}\n`
+            }
+            return text
+        })
         .with({ type: "sdg-toc" }, () => undefined)
         .with({ type: "missing-data" }, () => undefined)
         .with({ type: "numbered-list" }, (b): string | undefined =>
@@ -334,7 +355,9 @@ ${allInsights}`
                     item.articles.map((i) => i.value.url)
                 ),
                 ...(b.more?.articles ?? []).map((item) => item.value.url),
-            ].map((link) => `* ${link}\n`)
+            ]
+                .filter((link) => !link.match(gdocUrlRegex))
+                .map((link) => `* ${link}\n`)
             return `## ${b.heading || RESEARCH_AND_WRITING_DEFAULT_HEADING}
 ${links}`
         })
@@ -383,6 +406,7 @@ ${links}`
         .with({ type: "pill-row" }, (b): string | undefined => {
             const title = b.title ? `### ${b.title}` : ""
             const pills = b.pills
+                .filter((pill) => !pill.url.match(gdocUrlRegex))
                 .map((pill) => `* [${pill.text}](${pill.url})`)
                 .join("\n")
             return [title, pills].join("\n")
