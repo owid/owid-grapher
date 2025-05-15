@@ -112,7 +112,16 @@ export class MapChart
     transformTableForSelection(table: OwidTable): OwidTable {
         table = this.addMissingMapEntities(table)
         table = this.dropNonMapEntitiesForSelection(table)
+        table = this.dropAntarctica(table)
         return table
+    }
+
+    private dropAntarctica(table: OwidTable): OwidTable {
+        // We prefer to not offer Antarctica in the entity selector on the map
+        // tab to avoid confusion since it's shown on the globe, but not on the map.
+        return table.filterByEntityNamesUsingIncludeExcludePattern({
+            excluded: ["Antarctica"],
+        })
     }
 
     private dropNonMapEntities(table: OwidTable): OwidTable {
