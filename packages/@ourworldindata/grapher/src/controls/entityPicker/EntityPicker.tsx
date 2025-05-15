@@ -61,7 +61,11 @@ const mod = (n: number, m: number): number => ((n % m) + m) % m
 @observer
 export class EntityPicker extends React.Component<{
     manager: EntityPickerManager
+    selection: SelectionArray
     isDropdownMenu?: boolean
+    onSelectEntity?: (entityName: EntityName) => void
+    onDeselectEntity?: (entityName: EntityName) => void
+    onClearEntities?: () => void
 }> {
     @observable private searchInput?: string
     @observable
@@ -93,11 +97,12 @@ export class EntityPicker extends React.Component<{
         name: EntityName,
         checked?: boolean
     ): void {
-        this.manager.selection.toggleSelection(name)
+        this.props.selection.toggleSelection(name)
 
-        // Remove focus from an entity that has been removed from the selection
-        if (!this.manager.selection.selectedSet.has(name)) {
-            this.manager.focusArray?.remove(name)
+        if (this.props.selection.selectedSet.has(name)) {
+            this.props.onSelectEntity?.(name)
+        } else {
+            this.props.onDeselectEntity?.(name)
         }
 
         // Clear search input
@@ -249,7 +254,7 @@ export class EntityPicker extends React.Component<{
     }
 
     @computed get selection(): SelectionArray {
-        return this.manager.selection
+        return this.props.selection
     }
 
     @computed get selectionSet(): Set<string> {
@@ -655,7 +660,7 @@ export class EntityPicker extends React.Component<{
                                     data-track-note="entity_picker_clear_selection"
                                     onClick={(): void => {
                                         selection.clearSelection()
-                                        this.manager.focusArray?.clear()
+                                        this.props.onClearEntities?.()
                                     }}
                                 >
                                     <FontAwesomeIcon icon={faTimes} /> Clear
