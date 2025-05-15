@@ -16,7 +16,7 @@ export const SearchActiveFilters = ({
     removeTopic: (topic: string) => void
 }) => {
     return (
-        <div className="search-selected-filters-container">
+        <div className="search-active-filters-container">
             {filters.map((filter) =>
                 match(filter)
                     .with({ type: FilterType.COUNTRY }, ({ name }) => (
@@ -24,12 +24,12 @@ export const SearchActiveFilters = ({
                             key={name}
                             aria-label={`Remove ${name}`}
                             onClick={() => removeCountry(name)}
-                            className="search-selected-filter-button"
+                            className="search-active-filter-button"
                         >
                             <SearchFilterPill
                                 name={name}
                                 icon={SearchCountryPillIcon(name)}
-                                hasCloseIcon
+                                selected
                             />
                         </button>
                     ))
@@ -38,12 +38,12 @@ export const SearchActiveFilters = ({
                             key={`topic-${name}`}
                             aria-label={`Remove ${name}`}
                             onClick={() => removeTopic(name)}
-                            className="search-selected-filter-button"
+                            className="search-active-filter-button"
                         >
                             <SearchFilterPill
                                 name={name}
                                 icon={SearchTopicPillIcon}
-                                hasCloseIcon
+                                selected
                             />
                         </button>
                     ))

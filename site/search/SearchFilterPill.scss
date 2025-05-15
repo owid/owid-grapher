@@ -1,0 +1,19 @@
+.search-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px;
+    color: $blue-90;
+    gap: 8px;
+    outline: 1px solid $blue-20;
+    @include note-13-medium;
+    .flag {
+        border: 1px solid $blue-20;
+    }
+}
+
+.search-filter-pill--selected {
+    background-color: $blue-20;
+    &:hover {
+        background-color: $blue-10;
+    }
+}
