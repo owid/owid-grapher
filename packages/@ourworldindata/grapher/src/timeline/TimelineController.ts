@@ -3,6 +3,7 @@ import { Time } from "@ourworldindata/types"
 import {
     TimeBound,
     TimeBoundValue,
+    sleep,
     findClosestTime,
 } from "@ourworldindata/utils"
 
@@ -20,9 +21,6 @@ export interface TimelineManager {
     onPlay?: () => void
     onTimelineClick?: () => void
 }
-
-const delay = (ms: number): Promise<void> =>
-    new Promise((resolve) => setTimeout(resolve, ms))
 
 export class TimelineController {
     manager: TimelineManager
@@ -117,7 +115,7 @@ export class TimelineController {
                 this.stop()
                 break
             }
-            await delay(manager.msPerTick ?? 0)
+            await sleep(manager.msPerTick ?? 0)
         }
 
         return tickCount
