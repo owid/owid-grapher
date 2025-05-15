@@ -25,6 +25,7 @@ import {
     DEFAULT_GLOBE_ROTATION,
     DEFAULT_GLOBE_ROTATIONS_FOR_TIME,
     DEFAULT_GLOBE_SIZE,
+    GeoFeature,
     GLOBE_COUNTRY_ZOOM,
     GLOBE_LATITUDE_MAX,
     GLOBE_LATITUDE_MIN,
@@ -125,8 +126,8 @@ export class GlobeController {
         this.jumpTo(target)
     }
 
-    rotateToCountry(country: EntityName): void {
-        const target = calculateTargetForCountry(country)
+    rotateToCountry(country: EntityName, zoom?: number): void {
+        const target = calculateTargetForCountry(country, zoom)
         if (target) this.showGlobeAndRotateTo(target)
     }
 
@@ -229,9 +230,13 @@ export class GlobeController {
     }
 }
 
-function calculateTargetForCountry(country: EntityName): Target | undefined {
+function calculateTargetForCountry(
+    country: EntityName,
+    zoom?: number
+): Target | undefined {
     const geoFeature = geoFeaturesById.get(country)
     if (!geoFeature) return
+
     const coords: [number, number] = [
         geoFeature.geoCentroid[0],
         R.clamp(geoFeature.geoCentroid[1], {
@@ -239,7 +244,42 @@ function calculateTargetForCountry(country: EntityName): Target | undefined {
             max: GLOBE_LATITUDE_MAX,
         }),
     ]
-    return { coords, zoom: GLOBE_COUNTRY_ZOOM }
+
+    // make sure the whole country is visible after zooming
+    const zoomToFit = calculateZoomToFitForGeoFeature(geoFeature.geo)
+    const targetZoom = Math.min(zoom ?? GLOBE_COUNTRY_ZOOM, zoomToFit)
+
+    return { coords, zoom: targetZoom }
+}
+
+function calculateZoomToFitForGeoFeature(geoFeature: GeoFeature): number {
+    const centerPoint = getCenterPoint(geoFeature)
+    const projection = geoOrthographic().rotate(negateCoords(centerPoint))
+
+    const corners = geoPath().projection(projection).bounds(geoFeature)
+    const bounds = Bounds.fromCorners(
+        new PointVector(...corners[0]),
+        new PointVector(...corners[1])
+    )
+
+    return calculateZoomToFitForBounds(bounds)
+}
+
+function calculateZoomToFitForBounds(bounds: Bounds): number {
+    // calculate the zoom needed for the bounds to be visible
+    let zoom = Math.min(
+        DEFAULT_GLOBE_SIZE / bounds.width,
+        DEFAULT_GLOBE_SIZE / bounds.height
+    )
+    if (Number.isNaN(zoom)) zoom = 1
+
+    // it's nicer to have a bit of padding around the zoomed-to area
+    zoom = zoom - 0.05
+
+    // clamp the zoom to the allowed range
+    zoom = R.clamp(zoom, { min: GLOBE_MIN_ZOOM, max: GLOBE_MAX_ZOOM })
+
+    return zoom
 }
 
 function calculateTargetForOwidContinent(continent: GlobeRegionName): Target {
@@ -331,8 +371,13 @@ function getCenterForCountryCollection(
     countryNames: string[]
 ): [number, number] {
     const featureCollection = makeFeatureCollectionForCountries(countryNames)
+    return getCenterPoint(featureCollection)
+}
 
-    const centerPoint = center(featureCollection)
+function getCenterPoint(
+    geojson: GeoFeature | FeatureCollection
+): [number, number] {
+    const centerPoint = center(geojson)
 
     return [
         centerPoint.geometry.coordinates[0],
@@ -365,22 +410,9 @@ function getCoordsAndZoomForCountryCollection(countryNames: string[]): {
 
     // merge bounds and calculate the zoom needed for the countries to be visible
     const mergedBounds = Bounds.merge(bounds)
-    let zoom = Math.min(
-        DEFAULT_GLOBE_SIZE / mergedBounds.width,
-        DEFAULT_GLOBE_SIZE / mergedBounds.height
-    )
-    if (Number.isNaN(zoom)) zoom = 1
+    const zoom = calculateZoomToFitForBounds(mergedBounds)
 
-    // it's nicer to have a bit of padding around the zoomed-to countries
-    const paddedZoom = zoom - 0.05
-
-    // clamp the zoom to the allowed range
-    const clampedZoom = R.clamp(paddedZoom, {
-        min: GLOBE_MIN_ZOOM,
-        max: GLOBE_MAX_ZOOM,
-    })
-
-    return { coords: centerPoint, zoom: clampedZoom }
+    return { coords: centerPoint, zoom }
 }
 
 function findVisibleCountrySubset(countryNames: string[]): string[] {

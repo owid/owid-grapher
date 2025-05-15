@@ -35,6 +35,7 @@ import {
     DEFAULT_GLOBE_SIZE,
     ExternalAnnotation,
     GEO_FEATURES_CLASSNAME,
+    GLOBE_COUNTRY_ZOOM,
     GLOBE_LATITUDE_MAX,
     GLOBE_LATITUDE_MIN,
     GLOBE_MAX_ZOOM,
@@ -462,9 +463,11 @@ export class ChoroplethGlobe extends React.Component<{
                 this.globeController.dismissCountryFocus()
         }
 
-        // rotate to the seleced country on mobile
+        // rotate to the selected country on mobile
         if (!this.manager.isMapSelectionEnabled) {
-            this.globeController.rotateToCountry(country)
+            // only zoom in on click, never zoom out
+            const zoom = Math.max(GLOBE_COUNTRY_ZOOM, this.mapConfig.globe.zoom)
+            this.globeController.rotateToCountry(country, zoom)
         }
     }
 
