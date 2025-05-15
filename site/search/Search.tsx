@@ -156,12 +156,13 @@ export const Search = ({
                     <Searchbar
                         allTopics={ALL_TOPICS}
                         selectedTopics={selectedTopics}
+                        filters={state.filters}
                         addCountry={actions.addCountry}
-                        addTopic={actions.addTopic}
-                        query={state.query}
                         removeCountry={actions.removeCountry}
+                        addTopic={actions.addTopic}
+                        removeTopic={actions.removeTopic}
+                        query={state.query}
                         requireAllCountries={state.requireAllCountries}
-                        selectedCountries={selectedCountries}
                         selectedCountryNames={selectedCountryNames}
                         setQuery={actions.setQuery}
                         toggleRequireAllCountries={
