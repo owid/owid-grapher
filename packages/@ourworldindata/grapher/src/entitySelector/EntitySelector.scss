@@ -65,18 +65,8 @@
                 padding-right: $svg-margin + $svg-size + 4px;
                 border-radius: 4px;
                 background: #fff;
-
-                // style placeholder text in search input
-                &::placeholder {
-                    color: $placeholder;
-                    opacity: 1; /* Firefox */
-                }
-                &:-ms-input-placeholder {
-                    color: $placeholder;
-                }
-                &::-ms-input-placeholder {
-                    color: $placeholder;
-                }
+                color: $dark-text;
+                font-size: 16px; // prevent auto-zoom on ios
 
                 // style focus state
                 &:focus {
@@ -89,6 +79,16 @@
                 &:focus-visible {
                     border: $focus;
                 }
+            }
+
+            .search-placeholder {
+                @include grapher_label-2-regular;
+                color: $placeholder;
+                pointer-events: none;
+                position: absolute;
+                top: 50%;
+                left: $svg-size + $svg-margin + 6px;
+                transform: translateY(-50%);
             }
 
             &.search-input--empty {
@@ -112,14 +112,20 @@
         .entity-selector__dropdown {
             flex-grow: 1;
 
-            .time {
-                color: $gray-60;
+            // make the options menu wider to cover the sort button
+            .menu {
+                width: calc(100% + $sort-button-margin + $sort-button-size);
             }
         }
 
         .label {
             flex-shrink: 0;
             margin-bottom: 6px;
+
+            svg {
+                margin-right: 6px;
+                transform: rotate(-90deg);
+            }
         }
 
         button.sort {
@@ -159,6 +165,19 @@
             &:disabled {
                 background: $gray-10;
                 color: $gray-60;
+            }
+        }
+    }
+
+    .entity-selector__filter-bar {
+        margin-top: 16px;
+        margin-bottom: 8px;
+
+        .label {
+            margin-bottom: 6px;
+
+            svg {
+                margin-right: 6px;
             }
         }
     }
@@ -291,20 +310,35 @@
             list-style-type: none;
         }
 
+        // add borders in between elements
         li + li .selectable-entity {
             border-top: $row-border;
         }
 
+        // add a top border to the first element
         li:first-of-type .selectable-entity {
             border-top: $row-border;
         }
 
+        // add a bottom border to the last element
         li:last-of-type .selectable-entity {
             border-bottom: $row-border;
         }
+
+        // make an exception for the top border if requested
+        .hide-top-border li:first-of-type .selectable-entity {
+            border-top: none;
+        }
     }
 
-    .grapher-dropdown .menu {
-        width: calc(100% + $sort-button-margin + $sort-button-size);
+    .grapher-dropdown {
+        .control .detail,
+        .option .detail {
+            color: $gray-60;
+        }
+
+        .option.active .detail {
+            color: $blue-50;
+        }
     }
 }

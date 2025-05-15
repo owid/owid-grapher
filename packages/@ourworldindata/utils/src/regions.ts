@@ -9,48 +9,54 @@ export enum RegionType {
     IncomeGroup = "income_group",
 }
 
-export interface Country {
-    code: string
-    shortCode?: string
+export interface BaseRegion {
+    regionType: RegionType
     name: string
-    shortName?: string
+    code: string
     slug: string
-    regionType: "country" | "other"
+}
+
+export interface Country extends BaseRegion {
+    regionType: RegionType.Country | RegionType.Other
+    shortCode?: string
+    shortName?: string
     isMappable?: boolean
     isHistorical?: boolean
     isUnlisted?: boolean
     variantNames?: string[]
 }
 
-export interface Aggregate {
-    name: string
-    regionType: "aggregate"
-    code: string
+export interface Aggregate extends BaseRegion {
+    regionType: RegionType.Aggregate
+    definedBy?: AggregateSource
     translationCodes?: string[]
     members: string[]
 }
 
-export interface Continent {
-    name:
-        | "Africa"
-        | "Asia"
-        | "Europe"
-        | "North America"
-        | "Oceania"
-        | "South America"
-    regionType: "continent"
-    code: string
+export interface Continent extends BaseRegion {
+    name: OwidContinentName
+    regionType: RegionType.Continent
     translationCodes?: string[]
     members: string[]
 }
 
-export type IncomeGroup = {
-    code: OwidIncomeGroupName
-    name: string
-    slug: string
+interface IncomeGroup extends BaseRegion {
+    name: OwidIncomeGroupName
     regionType: RegionType.IncomeGroup
     members: string[]
 }
+
+export type Region = Country | Aggregate | Continent | IncomeGroup
+
+export const regions: Region[] = entities as Region[]
+
+type OwidContinentName =
+    | "Africa"
+    | "Asia"
+    | "Europe"
+    | "North America"
+    | "Oceania"
+    | "South America"
 
 export type OwidIncomeGroupName =
     | "OWID_LIC"
@@ -58,9 +64,8 @@ export type OwidIncomeGroupName =
     | "OWID_UMC"
     | "OWID_HIC"
 
-export type Region = Country | Aggregate | Continent | IncomeGroup
-
-export const regions: Region[] = entities as Region[]
+export const aggregateSources = ["who", "unsd", "wb"] as const
+export type AggregateSource = (typeof aggregateSources)[number]
 
 export function checkIsOwidIncomeGroupName(
     name: string
@@ -75,7 +80,7 @@ export function checkIsOwidIncomeGroupName(
 
 export const countries: Country[] = regions.filter(
     (entity) =>
-        entity.regionType === "country" &&
+        entity.regionType === RegionType.Country &&
         !entity.isUnlisted &&
         !entity.isHistorical
 ) as Country[]
@@ -87,21 +92,27 @@ export const mappableCountries: Country[] = regions.filter(
 
 export const getOthers = lazy(
     () =>
-        entities.filter((entity) => entity.regionType === "other") as Country[]
+        entities.filter(
+            (entity) => entity.regionType === RegionType.Other
+        ) as Country[]
 )
 
 export const getAggregates = lazy(
     () =>
         entities.filter(
-            (entity) => entity.regionType === "aggregate"
+            (entity) => entity.regionType === RegionType.Aggregate
         ) as Aggregate[]
 )
 
 export const getContinents = lazy(
     () =>
         entities.filter(
-            (entity) => entity.regionType === "continent"
+            (entity) => entity.regionType === RegionType.Continent
         ) as Continent[]
+)
+
+const regionsByName = lazy(() =>
+    Object.fromEntries(regions.map((region) => [region.name, region]))
 )
 
 export const countriesByName = lazy(() =>
@@ -140,7 +151,7 @@ const regionsByNameOrVariantNameLowercase = lazy(
 
 const currentAndHistoricalCountryNames = lazy(() =>
     regions
-        .filter(({ regionType }) => regionType === "country")
+        .filter(({ regionType }) => regionType === RegionType.Country)
         .map(({ name }) => name.toLowerCase())
 )
 
@@ -152,6 +163,9 @@ export const getCountryByName = (name: string): Country | undefined =>
 
 export const getCountryBySlug = (slug: string): Country | undefined =>
     countriesBySlug()[slug]
+
+export const getRegionByName = (name: string): Region | undefined =>
+    regionsByName()[name]
 
 export const getRegionByNameOrVariantName = (
     nameOrVariantName: string
