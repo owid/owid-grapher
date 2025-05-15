@@ -192,9 +192,20 @@ export class ChoroplethGlobe extends React.Component<{
         ]
     }
 
+    private computeProjectionScale(zoomScale: number): number {
+        return zoomScale * DEFAULT_SCALE * (this.globeSize / DEFAULT_GLOBE_SIZE)
+    }
+
+    @computed private get minScale(): number {
+        return this.computeProjectionScale(GLOBE_MIN_ZOOM)
+    }
+
+    @computed private get maxScale(): number {
+        return this.computeProjectionScale(GLOBE_MAX_ZOOM)
+    }
+
     @computed private get globeScale(): number {
-        const { globeSize, zoomScale } = this
-        return zoomScale * DEFAULT_SCALE * (globeSize / DEFAULT_GLOBE_SIZE)
+        return this.computeProjectionScale(this.zoomScale)
     }
 
     @computed private get globeRadius(): number {
@@ -627,7 +638,7 @@ export class ChoroplethGlobe extends React.Component<{
             }
 
             return zoom()
-                .scaleExtent([GLOBE_MIN_ZOOM, GLOBE_MAX_ZOOM])
+                .scaleExtent([this.minScale, this.maxScale])
                 .touchable(() => this.isTouchDevice)
                 .on("start", panningOrZoomingStart)
                 .on("zoom", panningOrZooming)
