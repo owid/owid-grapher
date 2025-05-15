@@ -1212,6 +1212,8 @@ export class EntitySelector extends React.Component<{
                         })}
                         onKeyDown={this.onSearchKeyDown}
                         data-track-note={"entity_selector_search"}
+                        // prevent auto-zoom on ios
+                        style={{ fontSize: isTouchDevice() ? 16 : undefined }}
                     />
                     {/* We don't use the input's built-in placeholder because
                         we want the input text and placeholder text to have different
