@@ -18,10 +18,20 @@ export function SearchAutocompleteItemContents({
     baseQuery?: string
 }) {
     return match(type)
+        .with(FilterType.QUERY, () => (
+            <span className="search-autocomplete-item-contents__type-query">
+                <FontAwesomeIcon icon={faSearch} />
+                {name}
+            </span>
+        ))
         .with(FilterType.COUNTRY, () => {
             return (
                 <>
-                    {baseQuery && <span> {baseQuery}</span>}
+                    {baseQuery && (
+                        <span className="search-autocomplete-item-contents__base-query">
+                            {baseQuery}
+                        </span>
+                    )}
                     <SearchFilterPill
                         name={name}
                         icon={SearchCountryPillIcon(name)}
@@ -31,15 +41,13 @@ export function SearchAutocompleteItemContents({
         })
         .with(FilterType.TOPIC, () => (
             <>
-                {baseQuery && <span> {baseQuery}</span>}
+                {baseQuery && (
+                    <span className="search-autocomplete-item-contents__base-query">
+                        {baseQuery}
+                    </span>
+                )}
                 <SearchFilterPill name={name} icon={SearchTopicPillIcon} />
             </>
-        ))
-        .with(FilterType.QUERY, () => (
-            <span>
-                <FontAwesomeIcon icon={faSearch} />
-                {name}
-            </span>
         ))
         .exhaustive()
 }
