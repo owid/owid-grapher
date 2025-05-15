@@ -130,34 +130,6 @@
     }
 }
 
-.search-selected-filters-container {
-    background: #fff;
-    height: 48px;
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-}
-
-.search-selected-filter-button {
-    background: transparent;
-    border: none;
-    padding: 0;
-    margin-right: 8px;
-    cursor: pointer;
-}
-
-.search-filter-pill {
-    display: inline-flex;
-    align-items: center;
-    padding: 6px;
-    color: $blue-90;
-    gap: 8px;
-    outline: 1px solid $blue-20;
-    @include note-13-medium;
-    .flag {
-        border: 1px solid $blue-20;
-    }
-}
 .data-catalog-country-selector {
     position: absolute;
     right: 0;
