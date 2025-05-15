@@ -58,6 +58,14 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
             this.globe = { ...this.globe, isActive: true }
         }
 
+        // Map [lat, lon] to the internally used [lon, lat]
+        if (obj.globe?.rotation) {
+            this.globe = {
+                ...this.globe,
+                rotation: R.reverse(obj.globe.rotation),
+            }
+        }
+
         // Update selection
         if (obj.selectedEntityNames)
             this.selection.setSelectedEntities(obj.selectedEntityNames)
@@ -86,8 +94,9 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
             obj.globe = {
                 ...obj.globe,
                 rotation: [
-                    R.round(obj.globe.rotation[0], 2),
+                    // we use [lon, lat] internally, but persist [lat, lon]
                     R.round(obj.globe.rotation[1], 2),
+                    R.round(obj.globe.rotation[0], 2),
                 ],
             }
 
