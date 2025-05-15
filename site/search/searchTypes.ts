@@ -156,6 +156,7 @@ export type DataCatalogCache = {
 export enum FilterType {
     COUNTRY = "country",
     TOPIC = "topic",
+    QUERY = "query",
 }
 
 export type Filter = {

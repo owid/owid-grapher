@@ -1,7 +1,9 @@
 import cx from "classnames"
 import { useMemo, useEffect } from "react"
-import { AutocompleteItemContents } from "./AutocompleteItemContents.js"
+import { match } from "ts-pattern"
 import { useAutocomplete } from "./searchUtils.js"
+import { FilterType } from "./searchTypes.js"
+import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
 
 export const SearchAutocomplete = ({
     localQuery,
@@ -29,7 +31,7 @@ export const SearchAutocomplete = ({
         selectedTopics,
     })
     const itemsToRender = useMemo(
-        () => [{ name: localQuery, type: "query" }, ...items],
+        () => [{ name: localQuery, type: FilterType.QUERY }, ...items],
         [localQuery, items]
     )
 
@@ -46,9 +48,7 @@ export const SearchAutocomplete = ({
                 return
             }
             const focusableItems = [
-                ...document.querySelectorAll(
-                    ".data-catalog-autocomplete-button"
-                ),
+                ...document.querySelectorAll(".search-autocomplete-button"),
             ] as HTMLElement[]
             const currentIndex = document.activeElement
                 ? focusableItems.indexOf(document.activeElement as HTMLElement)
@@ -99,37 +99,41 @@ export const SearchAutocomplete = ({
 
     const queryMinusLastWord = localQuery.split(" ").slice(0, -1).join(" ")
 
+    const setQueries = (query: string) => {
+        setLocalQuery(query)
+        setQuery(query)
+    }
+
     return (
-        <div className="data-catalog-autocomplete-container">
+        <div className="search-autocomplete-container">
             <ul>
                 {itemsToRender.map(({ name, type }) => (
-                    <li
-                        key={name}
-                        className={cx("data-catalog-autocomplete-item")}
-                    >
+                    <li key={name} className={cx("search-autocomplete-item")}>
                         <button
                             data-prevent-onblur
-                            className="data-catalog-autocomplete-button"
+                            className="search-autocomplete-button"
                             onClick={() => {
-                                if (type === "country") {
-                                    addCountry(name)
-                                }
-                                if (type === "topic") {
-                                    addTopic(name)
-                                }
-                                if (type === "query") {
-                                    setLocalQuery(name)
-                                    setQuery(name)
-                                    ;(
-                                        document.activeElement as HTMLElement
-                                    ).blur()
-                                    return
-                                }
-                                setLocalQuery(queryMinusLastWord)
-                                setQuery(queryMinusLastWord)
+                                match(type)
+                                    .with(FilterType.COUNTRY, () => {
+                                        addCountry(name)
+                                        setQueries(queryMinusLastWord)
+                                    })
+                                    .with(FilterType.TOPIC, () => {
+                                        addTopic(name)
+                                        setQueries(queryMinusLastWord)
+                                    })
+
+                                    .with(FilterType.QUERY, () => {
+                                        setQueries(name)
+                                        ;(
+                                            document.activeElement as HTMLElement
+                                        ).blur()
+                                        return
+                                    })
+                                    .exhaustive()
                             }}
                         >
-                            <AutocompleteItemContents
+                            <SearchAutocompleteItemContents
                                 type={type}
                                 name={name}
                                 baseQuery={queryMinusLastWord}
