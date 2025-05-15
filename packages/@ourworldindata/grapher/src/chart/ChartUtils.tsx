@@ -32,7 +32,7 @@ import {
     validChartTypeCombinations,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
-import { OwidTable } from "@ourworldindata/core-table"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
@@ -424,8 +424,26 @@ export function findStartTimeForSlopeChart(
     // Bail if we can't find the start time
     if (startTimeIndex === -1) return originalStartTime
 
-    const entityNames = table.availableEntityNames
-    const maxNumSeries = entityNames.length * columnSlugs.length
+    const pairsToCheck: [CoreColumn, string][] = []
+
+    // Find all (col, entityName) pairings that have an endpoint available at endTime.
+    // These are the series we need to consider, because we never change endTime,
+    // and if there's no data at the end time, we can't show a line.
+    for (const columnSlug of columnSlugs) {
+        const column = table.get(columnSlug)
+        for (const [
+            entityName,
+            timeMap,
+        ] of column.owidRowByEntityNameAndTime.entries()) {
+            const endValue = timeMap.get(endTime)
+
+            if (endValue !== undefined) {
+                pairsToCheck.push([column, entityName])
+            }
+        }
+    }
+
+    const maxNumSeries = pairsToCheck.length
 
     let candidate = { time: originalStartTime, numSeries: 0 }
 
@@ -437,31 +455,17 @@ export function findStartTimeForSlopeChart(
         if (time >= endTime) break
 
         let numSeries = maxNumSeries
-        for (const entityName of entityNames) {
-            for (const slug of columnSlugs) {
-                const column = table.get(slug)
-                const owidRows =
-                    column.owidRowByEntityNameAndTime.get(entityName)
+        for (const [col, entityName] of pairsToCheck) {
+            const owidRows = col.owidRowByEntityNameAndTime.get(entityName)
 
-                // If the entity doesn't have any data, we can't draw a line
-                if (!owidRows) {
-                    numSeries -= 1
-                    if (numSeries <= candidate.numSeries) break
-                    continue
-                }
+            const startValue = owidRows?.get(time)
 
-                const startValue = owidRows.get(time)
-                const endValue = owidRows.get(endTime)
+            if (startValue === undefined) {
+                numSeries -= 1
 
-                // If one of the values is missing, we can't draw a line
-                if (startValue === undefined || endValue === undefined) {
-                    numSeries -= 1
-                    if (numSeries <= candidate.numSeries) break
-                }
+                // Stop early if the current time has less data than the current candidate
+                if (numSeries <= candidate.numSeries) break
             }
-
-            // Stop early if the current time has less data than the current candidate
-            if (numSeries <= candidate.numSeries) break
         }
 
         // We found a time for which all lines can be drawn
