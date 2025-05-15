@@ -1,22 +1,27 @@
+import { ReactNode } from "react"
 import { faClose, faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { countriesByName } from "@ourworldindata/utils"
-import { ReactNode } from "react"
+import cx from "classnames"
 
 export function SearchFilterPill({
     name,
-    hasCloseIcon = false,
+    selected = false,
     icon,
 }: {
     name: string
-    hasCloseIcon?: boolean
+    selected?: boolean
     icon: ReactNode
 }) {
     return (
-        <span className="search-filter-pill">
+        <span
+            className={cx("search-filter-pill", {
+                "search-filter-pill--selected": selected,
+            })}
+        >
             {icon}
             {name}
-            {hasCloseIcon && (
+            {selected && (
                 <span className="close">
                     <FontAwesomeIcon icon={faClose} />
                 </span>
