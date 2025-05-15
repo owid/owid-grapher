@@ -47,6 +47,10 @@ export type EntitySelectorEvent =
     | "filterBy"
     | "clear"
 
+export type GrapherImageDownloadEvent =
+    | "chart_download_png"
+    | "chart_download_svg"
+
 interface GAEvent {
     event: EventCategory
     eventAction?: string
@@ -148,6 +152,27 @@ export class GrapherAnalytics {
             event: EventCategory.GrapherEntitySelector,
             eventAction: action,
             eventTarget: ctx.target,
+            grapherPath: ctx.slug ? `/grapher/${ctx.slug}` : undefined,
+            grapherView: ctx.mdimView
+                ? JSON.stringify(ctx.mdimView)
+                : undefined,
+            narrativeChartName: ctx.narrativeChartName,
+        })
+    }
+
+    logGrapherImageDownloadEvent(
+        action: GrapherImageDownloadEvent,
+        ctx: {
+            slug?: string
+            mdimView?: Record<string, string>
+            narrativeChartName?: string
+            context?: Record<string, any>
+        }
+    ): void {
+        this.logToGA({
+            event: EventCategory.GrapherClick,
+            eventAction: action,
+            eventContext: ctx.context ? JSON.stringify(ctx.context) : undefined,
             grapherPath: ctx.slug ? `/grapher/${ctx.slug}` : undefined,
             grapherView: ctx.mdimView
                 ? JSON.stringify(ctx.mdimView)

@@ -70,6 +70,7 @@ import {
     checkIsOwidContinent,
     checkIsIncomeGroup,
     checkHasMembers,
+    omitUndefinedValues,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -218,7 +219,11 @@ import {
     mapTabOptionToChartTypeName,
 } from "../chart/ChartUtils"
 import classnames from "classnames"
-import { EntitySelectorEvent, GrapherAnalytics } from "./GrapherAnalytics"
+import {
+    EntitySelectorEvent,
+    GrapherAnalytics,
+    GrapherImageDownloadEvent,
+} from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { ChartInterface, ChartTableTransformer } from "../chart/ChartInterface"
 import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
@@ -2797,14 +2802,26 @@ export class Grapher
     @observable private hasBeenVisible = false
     @observable private uncaughtError?: Error
 
-    @action.bound logEntitySelectorEvent(
-        action: EntitySelectorEvent,
-        target?: string
-    ): void {
+    logEntitySelectorEvent(action: EntitySelectorEvent, target?: string): void {
         const ctx = this.manager?.analyticsContext
         this.analytics.logEntitySelectorEvent(action, {
             target,
             slug: ctx?.mdimSlug ?? this.slug,
+            mdimView: ctx?.mdimView,
+            narrativeChartName: this.narrativeChartInfo?.name,
+        })
+    }
+
+    logImageDownloadEvent(action: GrapherImageDownloadEvent): void {
+        const ctx = this.manager?.analyticsContext
+        this.analytics.logGrapherImageDownloadEvent(action, {
+            slug: ctx?.mdimSlug ?? this.slug,
+            context: omitUndefinedValues({
+                tab: this.activeTab,
+                globe: this.isOnMapTab
+                    ? this.mapConfig.globe.isActive
+                    : undefined,
+            }),
             mdimView: ctx?.mdimView,
             narrativeChartName: this.narrativeChartInfo?.name,
         })
