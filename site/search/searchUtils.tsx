@@ -25,8 +25,12 @@ import {
     DataCatalogSearchResult,
     SearchIndexName,
     SearchState,
+    Filter,
+    FilterType,
 } from "./searchTypes.js"
-import { SiteAnalytics } from "../SiteAnalytics.js"
+import { faTag } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { match } from "ts-pattern"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -257,15 +261,44 @@ export function deserializeSet(str?: string): Set<string> {
     return str ? new Set(str.split("~")) : new Set()
 }
 
+export function getFilterNamesOfType(
+    filters: Filter[],
+    type: FilterType
+): Set<string> {
+    return new Set(
+        filters
+            .filter((filter) => filter.type === type)
+            .map((filter) => filter.name)
+    )
+}
+
+export const getFilterIcon = (filter: Filter) => {
+    return match(filter.type)
+        .with(FilterType.COUNTRY, () => (
+            <img
+                className="flag"
+                aria-hidden={true}
+                height={12}
+                width={16}
+                src={`/images/flags/${countriesByName()[filter.name].code}.svg`}
+            />
+        ))
+        .with(FilterType.TOPIC, () => <FontAwesomeIcon icon={faTag} />)
+        .otherwise(() => null)
+}
+
 export async function queryDataCatalogRibbons(
     searchClient: SearchClient,
     state: SearchState,
     tagGraph: TagGraphRoot
 ): Promise<DataCatalogRibbonResult[]> {
-    const topicsForRibbons = getTopicsForRibbons(state.topics, tagGraph)
+    const topicsForRibbons = getTopicsForRibbons(
+        getFilterNamesOfType(state.filters, FilterType.TOPIC),
+        tagGraph
+    )
 
     const countryFacetFilters = formatCountryFacetFilters(
-        state.selectedCountryNames,
+        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         state.requireAllCountries
     )
     const searchParams = topicsForRibbons.map((topic) => {
@@ -294,10 +327,15 @@ export async function queryDataCatalogSearch(
     state: SearchState
 ): Promise<DataCatalogSearchResult> {
     const facetFilters = formatCountryFacetFilters(
-        state.selectedCountryNames,
+        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         state.requireAllCountries
     )
-    facetFilters.push(...setToFacetFilters(state.topics, "tags"))
+    facetFilters.push(
+        ...setToFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.TOPIC),
+            "tags"
+        )
+    )
 
     const searchParams = [
         {
@@ -324,34 +362,40 @@ export async function queryDataCatalogSearch(
 export function useAutocomplete(
     query: string,
     allTopics: string[],
-    appliedFilters: {
-        selectedCountryNames: Set<string>
-        selectedTopics: Set<string>
-    }
-): { name: string; type: "country" | "topic" }[] {
+    filters: Filter[]
+): Filter[] {
     const sortOptions = {
         threshold: 0.5,
         limit: 3,
     }
+    const selectedCountryNames = getFilterNamesOfType(
+        filters,
+        FilterType.COUNTRY
+    )
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
     const allCountries = countriesByName()
     const allCountryNames = Object.values(allCountries).map(
         (country) => country.name
     )
     const lastWord = query.split(" ").at(-1) ?? ""
+
     const countries = FuzzySearch.withKey(
         allCountryNames,
         (country) => country,
         sortOptions
     )
         .search(lastWord)
-        .filter((country) => !appliedFilters.selectedCountryNames.has(country))
-        .map((name) => ({ name, type: "country" as const }))
-    const tags = FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
-        .search(lastWord)
-        .slice(0, 3)
-        .filter((topic) => !appliedFilters.selectedTopics.has(topic))
-        .map((name) => ({ name, type: "topic" as const }))
+        .filter((country) => !selectedCountryNames.has(country))
+        .map((name) => ({ name, type: FilterType.COUNTRY }))
+
+    const tags =
+        // Suggest topics only if none are currently active
+        selectedTopics.size === 0
+            ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
+                  .search(lastWord)
+                  .slice(0, 3)
+                  .map((name) => ({ name, type: FilterType.TOPIC }))
+            : []
 
     return [...countries, ...tags]
 }
-export const analytics = new SiteAnalytics()

@@ -1,13 +1,14 @@
 import cx from "classnames"
 import { useMemo, useEffect } from "react"
-import { AutocompleteItemContents } from "./AutocompleteItemContents.js"
-import { useAutocomplete } from "./searchUtils.js"
+import { match } from "ts-pattern"
+import { useAutocomplete } from "./searchUtils.js" // Need to update this file
+import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
+import { Filter, FilterType } from "./searchTypes.js"
 
 export const SearchAutocomplete = ({
     localQuery,
     allTopics,
-    selectedCountryNames,
-    selectedTopics,
+    filters,
     query,
     setLocalQuery,
     setQuery,
@@ -16,20 +17,16 @@ export const SearchAutocomplete = ({
 }: {
     localQuery: string
     allTopics: string[]
-    selectedCountryNames: Set<string>
-    selectedTopics: Set<string>
+    filters: Filter[]
     query: string
     setLocalQuery: (query: string) => void
     setQuery: (query: string) => void
     addCountry: (country: string) => void
     addTopic: (topic: string) => void
 }) => {
-    const items = useAutocomplete(localQuery, allTopics, {
-        selectedCountryNames,
-        selectedTopics,
-    })
+    const items = useAutocomplete(localQuery, allTopics, filters)
     const itemsToRender = useMemo(
-        () => [{ name: localQuery, type: "query" }, ...items],
+        () => [{ name: localQuery, type: FilterType.QUERY }, ...items],
         [localQuery, items]
     )
 
@@ -46,9 +43,7 @@ export const SearchAutocomplete = ({
                 return
             }
             const focusableItems = [
-                ...document.querySelectorAll(
-                    ".data-catalog-autocomplete-button"
-                ),
+                ...document.querySelectorAll(".search-autocomplete-button"),
             ] as HTMLElement[]
             const currentIndex = document.activeElement
                 ? focusableItems.indexOf(document.activeElement as HTMLElement)
@@ -96,41 +91,51 @@ export const SearchAutocomplete = ({
     ])
 
     if (!localQuery) return null
+
+    const queryMinusLastWord = localQuery.split(" ").slice(0, -1).join(" ")
+
+    const setQueries = (query: string) => {
+        setLocalQuery(query)
+        setQuery(query)
+    }
+
     return (
-        <div className="data-catalog-autocomplete-container">
+        <div className="search-autocomplete-container">
             <ul>
-                {itemsToRender.map(({ name, type }) => (
+                {itemsToRender.map((filter) => (
                     <li
-                        key={name}
-                        className={cx("data-catalog-autocomplete-item")}
+                        key={filter.name}
+                        className={cx("search-autocomplete-item")}
                     >
                         <button
                             data-prevent-onblur
-                            className="data-catalog-autocomplete-button"
+                            className="search-autocomplete-button"
                             onClick={() => {
-                                const queryMinusLastWord = query
-                                    .split(" ")
-                                    .slice(0, -1)
-                                    .join(" ")
-                                if (type === "country") {
-                                    addCountry(name)
-                                }
-                                if (type === "topic") {
-                                    addTopic(name)
-                                }
-                                if (type === "query") {
-                                    setLocalQuery(name)
-                                    setQuery(name)
-                                    ;(
-                                        document.activeElement as HTMLElement
-                                    ).blur()
-                                    return
-                                }
-                                setLocalQuery(queryMinusLastWord)
-                                setQuery(queryMinusLastWord)
+                                match(filter.type)
+                                    .with(FilterType.COUNTRY, () => {
+                                        addCountry(filter.name)
+                                        setQueries(queryMinusLastWord)
+                                    })
+                                    .with(FilterType.TOPIC, () => {
+                                        addTopic(filter.name)
+                                        setQueries(queryMinusLastWord)
+                                    })
+
+                                    .with(FilterType.QUERY, () => {
+                                        setQueries(filter.name)
+                                        ;(
+                                            document.activeElement as HTMLElement
+                                        ).blur()
+                                        return
+                                    })
+                                    .exhaustive()
                             }}
                         >
-                            <AutocompleteItemContents type={type} name={name} />
+                            <SearchAutocompleteItemContents
+                                filter={filter}
+                                baseQuery={queryMinusLastWord}
+                                activeFilters={filters}
+                            />
                         </button>
                     </li>
                 ))}

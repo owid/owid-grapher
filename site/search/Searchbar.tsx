@@ -1,37 +1,40 @@
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { Region } from "@ourworldindata/utils"
 import { useState, useEffect } from "react"
 import { SearchInput } from "./SearchInput.js"
-import { SelectedCountriesPills } from "./SelectedCountriesPills.js"
+import { SearchActiveFilters } from "./SearchActiveFilters.js"
 import { SearchAutocomplete } from "./SearchAutocomplete.js"
 import { SearchCountrySelector } from "./SearchCountrySelector.js"
+import { Filter, FilterType } from "./searchTypes.js"
+import { getFilterNamesOfType } from "./searchUtils.js"
 
 export const Searchbar = ({
     allTopics,
-    selectedTopics,
-    selectedCountries,
+    filters,
     query,
     setQuery,
-    removeCountry,
     addCountry,
+    removeCountry,
     addTopic,
+    removeTopic,
     requireAllCountries,
-    selectedCountryNames,
     toggleRequireAllCountries,
 }: {
     allTopics: string[]
-    selectedTopics: Set<string>
-    selectedCountries: Region[]
-    selectedCountryNames: Set<string>
+    filters: Filter[]
     query: string
     setQuery: (query: string) => void
-    removeCountry: (country: string) => void
     addCountry: (country: string) => void
+    removeCountry: (country: string) => void
     addTopic: (topic: string) => void
+    removeTopic: (topic: string) => void
     requireAllCountries: boolean
     toggleRequireAllCountries: () => void
 }) => {
+    const selectedCountryNames = getFilterNamesOfType(
+        filters,
+        FilterType.COUNTRY
+    )
     // Storing this in local state so that query params don't update during typing
     const [localQuery, setLocalQuery] = useState(query)
     // sync local query with global query when browser navigation occurs
@@ -51,9 +54,10 @@ export const Searchbar = ({
                 >
                     <FontAwesomeIcon icon={faSearch} />
                 </button>
-                <SelectedCountriesPills
-                    selectedCountries={selectedCountries}
+                <SearchActiveFilters
+                    filters={filters}
                     removeCountry={removeCountry}
+                    removeTopic={removeTopic}
                 />
                 <SearchInput
                     value={localQuery}
@@ -63,8 +67,7 @@ export const Searchbar = ({
                 <SearchAutocomplete
                     localQuery={localQuery}
                     allTopics={allTopics}
-                    selectedCountryNames={selectedCountryNames}
-                    selectedTopics={selectedTopics}
+                    filters={filters}
                     query={query}
                     setLocalQuery={setLocalQuery}
                     setQuery={setQuery}
