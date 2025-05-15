@@ -46,6 +46,7 @@ import {
 } from "./DownloadIcons.js"
 import { match } from "ts-pattern"
 import * as R from "remeda"
+import { GrapherImageDownloadEvent } from "../core/GrapherAnalytics"
 
 export interface DownloadModalManager {
     displaySlug: string
@@ -72,6 +73,7 @@ export interface DownloadModalManager {
     isPublished?: boolean
     activeColumnSlugs?: string[]
     isServerSideDownloadAvailable?: boolean
+    logImageDownloadEvent?: (action: GrapherImageDownloadEvent) => void
 }
 
 interface DownloadModalProps {
@@ -246,6 +248,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         } else {
             triggerDownloadFromUrl(filename, this.fallbackPngUrl)
         }
+        this.manager.logImageDownloadEvent?.("chart_download_png")
     }
 
     @action.bound private onSvgDownload(): void {
@@ -253,6 +256,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         if (this.svgBlob) {
             triggerDownloadFromBlob(filename, this.svgBlob)
         }
+        this.manager.logImageDownloadEvent?.("chart_download_svg")
     }
 
     @action.bound private toggleExportFormat(): void {
@@ -333,7 +337,6 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 previewImageUrl={pngPreviewUrl}
                                 onClick={this.onPngDownload}
                                 imageStyle={imageStyle}
-                                tracking="chart_download_png"
                             />
                             <DownloadButton
                                 title="Vector graphic (SVG)"
@@ -341,7 +344,6 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 previewImageUrl={svgPreviewUrl}
                                 onClick={this.onSvgDownload}
                                 imageStyle={imageStyle}
-                                tracking="chart_download_svg"
                             />
                         </div>
                         {this.showExportControls && (
