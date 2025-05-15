@@ -1,0 +1,1321 @@
+[
+    {
+        "id": "Afghanistan"
+    },
+    {
+        "id": "Albania",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [20.088492167156687, 39.832963869951215]
+        }
+    },
+    {
+        "id": "Algeria"
+    },
+    {
+        "id": "Andorra",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [1.540594233949264, 42.53556596072454],
+            "bridgeCountries": ["France", "Spain"]
+        }
+    },
+    {
+        "id": "Angola",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [14.079547895351993, -11.48487263353168]
+        }
+    },
+    {
+        "id": "Antigua and Barbuda",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [-61.792032978869415, 17.371980618251754]
+        }
+    },
+    {
+        "id": "Argentina",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [-65.92391919784036, -43.82214278017267]
+        }
+    },
+    {
+        "id": "Armenia"
+    },
+    {
+        "id": "Australia"
+    },
+    {
+        "id": "Austria"
+    },
+    {
+        "id": "Azerbaijan",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [49.113843382807886, 39.64980296482608]
+        }
+    },
+    {
+        "id": "Bahamas",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [-77.27005213085667, 25.510886226908596]
+        }
+    },
+    {
+        "id": "Bahrain",
+        "external": {
+            "direction": "rightTop",
+            "anchorPoint": [50.520116048010664, 26.102150944154687]
+        }
+    },
+    {
+        "id": "Bangladesh",
+        "external": {
+            "direction": "bottom",
+            "anchorPoint": [89.70348456053074, 22.25033322735935]
+        }
+    },
+    {
+        "id": "Barbados",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [-59.459946, 13.1462798]
+        }
+    },
+    {
+        "id": "Belarus"
+    },
+    {
+        "id": "Belgium",
+        "external": {
+            "direction": "top",
+            "anchorPoint": [3.032948050871994, 51.09571176501589]
+        }
+    },
+    {
+        "id": "Belize",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [-88.55202607710547, 17.183456743437304]
+        }
+    },
+    {
+        "id": "Benin",
+        "external": {
+            "direction": "bottom",
+            "anchorPoint": [2.2540971, 6.2042479]
+        }
+    },
+    {
+        "id": "Bhutan"
+    },
+    {
+        "id": "Bolivia"
+    },
+    {
+        "id": "Bosnia and Herzegovina",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [18.085254019383513, 42.99660515955915],
+            "bridgeCountries": ["Croatia"]
+        }
+    },
+    {
+        "id": "Botswana"
+    },
+    {
+        "id": "Brazil"
+    },
+    {
+        "id": "Brunei",
+        "external": {
+            "direction": "leftTop",
+            "anchorPoint": [114.82235504701521, 4.716180710452576]
+        }
+    },
+    {
+        "id": "Bulgaria",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [27.498353808725113, 42.88266711344954]
+        }
+    },
+    {
+        "id": "Burkina Faso"
+    },
+    {
+        "id": "Burundi"
+    },
+    {
+        "id": "Cambodia",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [103.4800334109903, 11.192631267265625]
+        }
+    },
+    {
+        "id": "Cameroon",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [9.522901963095677, 3.8842953352931744]
+        }
+    },
+    {
+        "id": "Canada",
+        "internal": {
+            "ellipse": {
+                "cx": -111.51147681135424,
+                "cy": 58.24880296550327,
+                "left": -132.64848445102106,
+                "top": 62.83293189204275
+            }
+        }
+    },
+    {
+        "id": "Cape Verde",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-24.816292404283473, 15.93703692965643]
+        }
+    },
+    {
+        "id": "Central African Republic"
+    },
+    {
+        "id": "Chad"
+    },
+    {
+        "id": "Chile",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-73.05291298232918, -38.30207970173542]
+        }
+    },
+    {
+        "id": "China",
+        "internal": {
+            "ellipse": {
+                "cx": 102.62142232186011,
+                "cy": 35.16367654528898,
+                "left": 86.35466473456171,
+                "top": 41.29557370172196
+            }
+        }
+    },
+    {
+        "id": "Colombia",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-77.07392170043136, 4.441155330307595]
+        },
+        "internal": {
+            "ellipse": {
+                "cx": -72.61111645581123,
+                "cy": 4.033837931305115,
+                "left": -76.98649972854312,
+                "top": 6.84021541911379
+            }
+        }
+    },
+    {
+        "id": "Comoros",
+        "external": {
+            "direction": "rightTop",
+            "anchorPoint": [43.92808704317099, -11.750538182507086]
+        }
+    },
+    {
+        "id": "Congo",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [11.689312899107449, -4.321448416310844]
+        }
+    },
+    {
+        "id": "Costa Rica",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [-84.09608016303092, 9.896131243556738]
+        }
+    },
+    {
+        "id": "Cote d'Ivoire",
+        "external": {
+            "direction": "bottom",
+            "anchorPoint": [-5.376907328830271, 5.577720839057633]
+        }
+    },
+    {
+        "id": "Croatia",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [15.888533776018079, 43.850092502338384]
+        }
+    },
+    {
+        "id": "Cuba",
+        "external": {
+            "direction": "rightTop",
+            "anchorPoint": [-75.94061980466151, 20.53578559110828]
+        }
+    },
+    {
+        "id": "Cyprus",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [32.777130558440945, 34.79466674377025]
+        }
+    },
+    {
+        "id": "Czechia"
+    },
+    {
+        "id": "Democratic Republic of Congo"
+    },
+    {
+        "id": "Denmark",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [8.379220101087014, 56.192140109309946]
+        }
+    },
+    {
+        "id": "Djibouti",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [43.08911197948001, 12.227439674400642]
+        }
+    },
+    {
+        "id": "Dominica",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-61.2940115, 15.4600251]
+        }
+    },
+    {
+        "id": "Dominican Republic",
+        "external": {
+            "direction": "rightTop",
+            "anchorPoint": [-70.42599608598952, 19.07293789874055]
+        }
+    },
+    {
+        "id": "East Timor",
+        "external": {
+            "direction": "bottom",
+            "anchorPoint": [126.0011455983468, -8.853973298738865]
+        }
+    },
+    {
+        "id": "Ecuador",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-80.22840223825473, -1.3086585317326893]
+        }
+    },
+    {
+        "id": "Egypt"
+    },
+    {
+        "id": "El Salvador",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [-88.86508294575358, 13.647922413903657]
+        }
+    },
+    {
+        "id": "Equatorial Guinea",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [9.72058557868715, 1.664052548679635]
+        }
+    },
+    {
+        "id": "Eritrea",
+        "external": {
+            "direction": "rightTop",
+            "anchorPoint": [38.626022209831746, 16.534932890830348]
+        }
+    },
+    {
+        "id": "Estonia",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [23.59816985630863, 58.734678983969246]
+        }
+    },
+    {
+        "id": "Eswatini",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [32.0199676, -26.4973295],
+            "bridgeCountries": ["South Africa", "Mozambique"]
+        }
+    },
+    {
+        "id": "Ethiopia"
+    },
+    {
+        "id": "Fiji",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [179.34876116370708, -17.335400376491393]
+        }
+    },
+    {
+        "id": "Finland",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [22.495686650254186, 60.53826217295486]
+        }
+    },
+    {
+        "id": "France",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-0.7386119024751281, 46.05094955020627]
+        },
+        "internal": {
+            "ellipse": {
+                "cx": 2.632138426877219,
+                "cy": 46.58272033984687,
+                "left": -1.1525385576343297,
+                "top": 49.844787924742604
+            }
+        }
+    },
+    {
+        "id": "French Guiana",
+        "external": {
+            "direction": "rightTop",
+            "anchorPoint": [-52.95367796475816, 4.815374721831233]
+        }
+    },
+    {
+        "id": "French Southern Territories",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [70.8116312537218, -49.201431838381275]
+        }
+    },
+    {
+        "id": "Gabon",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [9.130283505661566, -1.0628578066625067]
+        }
+    },
+    {
+        "id": "Gambia",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-16.521472314795517, 13.373347730784133]
+        }
+    },
+    {
+        "id": "Georgia",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [41.88633122082203, 42.01246327479339]
+        }
+    },
+    {
+        "id": "Germany",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [8.951431778892129, 54.395706460594795]
+        }
+    },
+    {
+        "id": "Ghana",
+        "external": {
+            "direction": "bottom",
+            "anchorPoint": [-0.9889954063143023, 5.519311396036528]
+        }
+    },
+    {
+        "id": "Greece",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [22.0679049599093, 37.05252326449265]
+        }
+    },
+    {
+        "id": "Greenland",
+        "internal": {
+            "ellipse": {
+                "cx": -39.752090829553936,
+                "cy": 73.51525170257503,
+                "left": -55.208692597012075,
+                "top": 77.1842343603289
+            }
+        }
+    },
+    {
+        "id": "Grenada",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [-61.6419433, 12.1136361]
+        }
+    },
+    {
+        "id": "Guatemala",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [-91.0071044589898, 14.590204101330869]
+        }
+    },
+    {
+        "id": "Guinea",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [-13.980031762785813, 10.072767193485959]
+        }
+    },
+    {
+        "id": "Guinea-Bissau",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [-15.879233396413355, 11.76570389497023]
+        }
+    },
+    {
+        "id": "Guyana",
+        "external": {
+            "direction": "rightTop",
+            "anchorPoint": [-58.78361966907052, 6.671153951791936]
+        }
+    },
+    {
+        "id": "Haiti",
+        "external": {
+            "direction": "rightTop",
+            "anchorPoint": [-72.26753075800025, 19.304516084201566]
+        }
+    },
+    {
+        "id": "Honduras",
+        "external": {
+            "direction": "rightTop",
+            "anchorPoint": [-84.47377479195141, 15.302644073107729]
+        }
+    },
+    {
+        "id": "Hungary"
+    },
+    {
+        "id": "Iceland",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [-14.651754993885106, 65.07394477576662]
+        }
+    },
+    {
+        "id": "India"
+    },
+    {
+        "id": "Indonesia",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [113.90148335081773, -9.097567078253476]
+        }
+    },
+    {
+        "id": "Iran"
+    },
+    {
+        "id": "Iraq"
+    },
+    {
+        "id": "Ireland",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-9.067429456676507, 53.81849278860142]
+        }
+    },
+    {
+        "id": "Israel",
+        "external": {
+            "direction": "leftTop",
+            "anchorPoint": [34.589318400840284, 31.359742451490604]
+        }
+    },
+    {
+        "id": "Italy"
+    },
+    {
+        "id": "Jamaica",
+        "external": {
+            "direction": "bottom",
+            "anchorPoint": [-77.315149579647, 18.108227888480656]
+        }
+    },
+    {
+        "id": "Japan",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [139.6666871590063, 35.74252748354117]
+        }
+    },
+    {
+        "id": "Jordan"
+    },
+    {
+        "id": "Kazakhstan"
+    },
+    {
+        "id": "Kenya",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [40.019190251411004, -2.7690825605126435]
+        }
+    },
+    {
+        "id": "Kiribati",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [-156.9823171487139, 1.9671677119485196]
+        }
+    },
+    {
+        "id": "Kosovo"
+    },
+    {
+        "id": "Kuwait",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [47.88010023754151, 29.38360108043345]
+        }
+    },
+    {
+        "id": "Kyrgyzstan"
+    },
+    {
+        "id": "Laos"
+    },
+    {
+        "id": "Latvia",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [21.520501438812403, 57.021303804015815]
+        }
+    },
+    {
+        "id": "Lebanon",
+        "external": {
+            "direction": "leftTop",
+            "anchorPoint": [35.37962062662598, 33.4104431795443]
+        }
+    },
+    {
+        "id": "Lesotho",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [29.018415, -29.743766],
+            "bridgeCountries": ["South Africa"]
+        }
+    },
+    {
+        "id": "Liberia",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [-9.75093249378321, 5.727231240456817]
+        }
+    },
+    {
+        "id": "Libya",
+        "internal": {
+            "ellipse": {
+                "cx": 17.77879071607117,
+                "cy": 27.138830942267035,
+                "left": 10.30753355336708,
+                "top": 30.079059973200714
+            }
+        }
+    },
+    {
+        "id": "Liechtenstein"
+    },
+    {
+        "id": "Lithuania",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [21.414390314919757, 55.64761116806244]
+        }
+    },
+    {
+        "id": "Luxembourg"
+    },
+    {
+        "id": "Madagascar",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [49.56931328496108, -14.553188891403224]
+        }
+    },
+    {
+        "id": "Malawi"
+    },
+    {
+        "id": "Malaysia",
+        "external": {
+            "direction": "leftTop",
+            "anchorPoint": [113.13483598454457, 2.9504633679833177]
+        }
+    },
+    {
+        "id": "Maldives",
+        "external": {
+            "direction": "bottom",
+            "anchorPoint": [73.37951472551458, 3.1144681840618205]
+        }
+    },
+    {
+        "id": "Mali"
+    },
+    {
+        "id": "Malta",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [14.66748904670689, 35.88129538593732]
+        }
+    },
+    {
+        "id": "Marshall Islands",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [170.6537582306375, 6.349618941474176]
+        }
+    },
+    {
+        "id": "Mauritania",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-15.781127133335247, 18.799538802421225]
+        }
+    },
+    {
+        "id": "Mauritius",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [57.76777677767777, -20.34422800678503]
+        }
+    },
+    {
+        "id": "Mexico",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [-102.06128778508278, 18.75947189964019]
+        },
+        "internal": {
+            "ellipse": {
+                "cx": -101.24841712893408,
+                "cy": 21.54752894714254,
+                "left": -104.98436155082084,
+                "top": 25.32886176407831
+            }
+        }
+    },
+    {
+        "id": "Micronesia (country)",
+        "external": {
+            "direction": "bottom",
+            "anchorPoint": [154.45269345147716, 5.675931601196936]
+        }
+    },
+    {
+        "id": "Moldova"
+    },
+    {
+        "id": "Monaco",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [7.384753299820574, 43.73804378744731]
+        }
+    },
+    {
+        "id": "Mongolia",
+        "internal": {
+            "ellipse": {
+                "cx": 103.00372,
+                "cy": 46.20794034091443,
+                "left": 92.96897,
+                "top": 49.55934
+            }
+        }
+    },
+    {
+        "id": "Montenegro",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [18.931901369779865, 42.35089908842272]
+        }
+    },
+    {
+        "id": "Morocco",
+        "external": {
+            "direction": "leftTop",
+            "anchorPoint": [-8.80485569194417, 32.32766928558978]
+        }
+    },
+    {
+        "id": "Mozambique",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [34.34694693787847, -20.064363128296705]
+        }
+    },
+    {
+        "id": "Myanmar",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [94.86575729955001, 16.422530908982452]
+        }
+    },
+    {
+        "id": "Namibia",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [14.71230843890072, -22.829922131076557]
+        }
+    },
+    {
+        "id": "Nauru",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [166.9666561, -0.5324023]
+        }
+    },
+    {
+        "id": "Nepal"
+    },
+    {
+        "id": "Netherlands",
+        "external": {
+            "direction": "leftTop",
+            "anchorPoint": [4.938697723124278, 52.95311417810328]
+        }
+    },
+    {
+        "id": "New Caledonia",
+        "external": {
+            "direction": "bottom",
+            "anchorPoint": [166.34311644951703, -21.951186328616046]
+        }
+    },
+    {
+        "id": "New Zealand",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [174.614958837323, -42.479159798240346]
+        }
+    },
+    {
+        "id": "Nicaragua",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [-86.15279230814998, 12.205655425337682]
+        }
+    },
+    {
+        "id": "Niger"
+    },
+    {
+        "id": "Nigeria",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [6.115855247816739, 4.704199619426802]
+        }
+    },
+    {
+        "id": "North Korea",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [129.16268964099055, 41.091486278863556]
+        }
+    },
+    {
+        "id": "North Macedonia"
+    },
+    {
+        "id": "Norway",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [6.084627325414516, 62.10277179225082]
+        },
+        "internal": {
+            "ellipse": {
+                "cx": 8.65023531994808,
+                "cy": 61.293572,
+                "left": 5.056634601538349,
+                "top": 62.40937614296939
+            }
+        }
+    },
+    {
+        "id": "Oman",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [56.818381228199144, 19.023848480169832]
+        },
+        "internal": {
+            "ellipse": {
+                "cx": 56.42341184194876,
+                "cy": 20.097904517621814,
+                "left": 55.11447818717909,
+                "top": 21.169116987969858
+            }
+        }
+    },
+    {
+        "id": "Pakistan",
+        "external": {
+            "direction": "bottom",
+            "anchorPoint": [65.22297091677976, 25.720235547184075]
+        }
+    },
+    {
+        "id": "Palau",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [134.67105541661448, 7.5141023939672635]
+        }
+    },
+    {
+        "id": "Palestine",
+        "external": {
+            "direction": "leftTop",
+            "anchorPoint": [35.240489643179984, 32.36819120258201],
+            "bridgeCountries": ["Israel"]
+        }
+    },
+    {
+        "id": "Panama",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [-81.04850569119887, 8.194594262531865]
+        }
+    },
+    {
+        "id": "Papua New Guinea",
+        "external": {
+            "direction": "top",
+            "anchorPoint": [147.46010402909434, -3.8511072275334897]
+        }
+    },
+    {
+        "id": "Paraguay",
+        "internal": {
+            "ellipse": {
+                "cx": -57.94338086071329,
+                "cy": -23.42848088186679,
+                "left": -60.08291885307001,
+                "top": -22.1980712504931
+            }
+        }
+    },
+    {
+        "id": "Peru",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-76.80299171949014, -11.348508998671846]
+        }
+    },
+    {
+        "id": "Philippines",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [125.84257098827663, 12.610883412019945]
+        }
+    },
+    {
+        "id": "Poland",
+        "external": {
+            "direction": "leftTop",
+            "anchorPoint": [16.763949088405724, 54.353934163783464]
+        }
+    },
+    {
+        "id": "Portugal",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-9.264577072654191, 38.92086085352918]
+        }
+    },
+    {
+        "id": "Puerto Rico",
+        "external": {
+            "direction": "rightTop",
+            "anchorPoint": [-66.50580163565134, 18.262844593451106]
+        }
+    },
+    {
+        "id": "Qatar",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [51.30493852756749, 25.356765310528885]
+        }
+    },
+    {
+        "id": "Romania",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [28.466328425973984, 44.54240822770805]
+        }
+    },
+    {
+        "id": "Russia"
+    },
+    {
+        "id": "Rwanda"
+    },
+    {
+        "id": "Saint Kitts and Nevis",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-62.8082808280828, 17.295698407731408]
+        }
+    },
+    {
+        "id": "Saint Lucia",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [-60.90715, 13.9069086]
+        }
+    },
+    {
+        "id": "Saint Vincent and the Grenadines",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-61.3016838, 13.2485126]
+        }
+    },
+    {
+        "id": "Samoa",
+        "external": {
+            "direction": "bottom",
+            "anchorPoint": [-172.2322436885443, -13.938903010163244]
+        }
+    },
+    {
+        "id": "San Marino",
+        "external": {
+            "direction": "rightTop",
+            "anchorPoint": [12.43953865132633, 43.93249259966322]
+        }
+    },
+    {
+        "id": "Sao Tome and Principe",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [6.461439457092617, 0.212133437981513]
+        }
+    },
+    {
+        "id": "Saudi Arabia"
+    },
+    {
+        "id": "Senegal",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-17.10630000283564, 14.700488292633352]
+        }
+    },
+    {
+        "id": "Serbia"
+    },
+    {
+        "id": "Seychelles",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [55.535553555355534, -4.701435709977233]
+        }
+    },
+    {
+        "id": "Sierra Leone",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [-12.52279956597829, 7.707713056396216]
+        }
+    },
+    {
+        "id": "Singapore",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [103.83874778573164, 1.2687831610229523]
+        }
+    },
+    {
+        "id": "Slovakia"
+    },
+    {
+        "id": "Slovenia"
+    },
+    {
+        "id": "Solomon Islands",
+        "external": {
+            "direction": "leftBottom",
+            "anchorPoint": [160.2173197286416, -10.368684072130492]
+        }
+    },
+    {
+        "id": "Somalia",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [47.28764709191273, 4.311996686966083]
+        },
+        "internal": {
+            "ellipse": {
+                "cx": 47.61673251558301,
+                "cy": 9.585262321430335,
+                "left": 44.58806441888777,
+                "top": 10.941872822484768
+            }
+        }
+    },
+    {
+        "id": "South Africa",
+        "external": {
+            "direction": "bottom",
+            "anchorPoint": [23.50629082826211, -33.34373291070549]
+        }
+    },
+    {
+        "id": "South Korea",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [129.07199472366335, 36.87116786598939]
+        }
+    },
+    {
+        "id": "South Sudan"
+    },
+    {
+        "id": "Spain",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [-8.640835530745647, 43.01169908500245]
+        },
+        "internal": {
+            "ellipse": {
+                "cx": -3.5581356949609244,
+                "cy": 40.05521053746651,
+                "left": -6.981467022628493,
+                "top": 42.196104600243075
+            }
+        }
+    },
+    {
+        "id": "Sri Lanka",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [81.20063213437442, 7.482317062797776]
+        }
+    },
+    {
+        "id": "Sudan"
+    },
+    {
+        "id": "Suriname",
+        "external": {
+            "direction": "rightTop",
+            "anchorPoint": [-55.78899093149995, 5.390720069235073]
+        }
+    },
+    {
+        "id": "Sweden",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [16.355299281830355, 58.03186212342018]
+        },
+        "internal": {
+            "ellipse": {
+                "cx": 15.249367445454794,
+                "cy": 60.04162752029569,
+                "left": 12.267132069934888,
+                "top": 61.14645130938035
+            }
+        }
+    },
+    {
+        "id": "Switzerland"
+    },
+    {
+        "id": "Syria",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [36.08851529334561, 35.22131260052561]
+        }
+    },
+    {
+        "id": "Taiwan",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [121.1703120355171, 23.619344527160806]
+        }
+    },
+    {
+        "id": "Tajikistan"
+    },
+    {
+        "id": "Tanzania",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [38.98485484231776, -7.040005538437825]
+        }
+    },
+    {
+        "id": "Thailand",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [98.56919445172969, 8.822128711257648]
+        }
+    },
+    {
+        "id": "Togo",
+        "external": {
+            "direction": "bottom",
+            "anchorPoint": [1.432672, 6.0485326]
+        }
+    },
+    {
+        "id": "Tonga",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [-173.8827612076248, -20.01841756797279]
+        }
+    },
+    {
+        "id": "Trinidad and Tobago",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [-61.31028115966858, 10.439159040313214]
+        }
+    },
+    {
+        "id": "Tunisia",
+        "external": {
+            "direction": "rightTop",
+            "anchorPoint": [10.870209599010906, 33.15917329635796]
+        }
+    },
+    {
+        "id": "Turkey",
+        "external": {
+            "direction": "bottom",
+            "anchorPoint": [29.317301755093723, 36.52150445288818]
+        }
+    },
+    {
+        "id": "Turkmenistan",
+        "external": {
+            "direction": "left",
+            "anchorPoint": [53.16838009563503, 40.44378450286237]
+        }
+    },
+    {
+        "id": "Tuvalu",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [-179.5935462836987, -8.545675196714015]
+        }
+    },
+    {
+        "id": "Uganda"
+    },
+    {
+        "id": "Ukraine",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [34.39197238961259, 44.85848934416825]
+        },
+        "internal": {
+            "ellipse": {
+                "cx": 30.144706591958425,
+                "cy": 49.72731435536366,
+                "left": 23.723927927843476,
+                "top": 51.31187948159888
+            }
+        }
+    },
+    {
+        "id": "United Arab Emirates",
+        "external": {
+            "direction": "leftTop",
+            "anchorPoint": [55.3356360303691, 25.08343362253663]
+        }
+    },
+    {
+        "id": "United Kingdom",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [-2.6340978258918994, 57.0153982337533]
+        }
+    },
+    {
+        "id": "United States"
+    },
+    {
+        "id": "Uruguay",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [-54.89021089852811, -34.327806660860865]
+        }
+    },
+    {
+        "id": "Uzbekistan"
+    },
+    {
+        "id": "Vanuatu",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [167.5337457648705, -15.660411136719674]
+        }
+    },
+    {
+        "id": "Venezuela",
+        "external": {
+            "direction": "top",
+            "anchorPoint": [-66.4298536762687, 10.15089914254699]
+        }
+    },
+    {
+        "id": "Vietnam",
+        "external": {
+            "direction": "right",
+            "anchorPoint": [108.92436080860881, 12.641667532163481]
+        }
+    },
+    {
+        "id": "Western Sahara",
+        "external": {
+            "direction": "leftTop",
+            "anchorPoint": [-14.657350415583295, 24.890381750114997]
+        }
+    },
+    {
+        "id": "Yemen",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [51.59089496661329, 15.90219973635837]
+        },
+        "internal": {
+            "ellipse": {
+                "cx": 47.9547061352456,
+                "cy": 15.952837168037078,
+                "left": 43.43714565402152,
+                "top": 17.032641363244693
+            }
+        }
+    },
+    {
+        "id": "Zambia"
+    },
+    {
+        "id": "Zimbabwe"
+    }
+]
