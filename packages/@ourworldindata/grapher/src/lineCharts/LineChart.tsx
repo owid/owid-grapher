@@ -1242,13 +1242,6 @@ export class LineChart
         })
     }
 
-    // cache value for performance
-    @computed private get rowIndicesByEntityName(): Map<string, number[]> {
-        return this.transformedTable.rowIndex([
-            this.transformedTable.entityNameSlug,
-        ])
-    }
-
     private constructSingleSeries(
         entityName: EntityName,
         column: CoreColumn
@@ -1268,7 +1261,7 @@ export class LineChart
         // If Y and Color are the same column, we need to get rid of any duplicate rows.
         // Duplicates occur because Y doesn't have tolerance applied, but Color does.
         const rowIndexes = sortedUniqBy(
-            this.rowIndicesByEntityName
+            this.transformedTable.rowIndicesByEntityName
                 .get(entityName)!
                 .filter((index) => isNumber(values[index])),
             (index) => timeValues[index]
