@@ -232,7 +232,14 @@ export class GlobeController {
 function calculateTargetForCountry(country: EntityName): Target | undefined {
     const geoFeature = geoFeaturesById.get(country)
     if (!geoFeature) return
-    return { coords: geoFeature.geoCentroid, zoom: GLOBE_COUNTRY_ZOOM }
+    const coords: [number, number] = [
+        geoFeature.geoCentroid[0],
+        R.clamp(geoFeature.geoCentroid[1], {
+            min: GLOBE_LATITUDE_MIN,
+            max: GLOBE_LATITUDE_MAX,
+        }),
+    ]
+    return { coords, zoom: GLOBE_COUNTRY_ZOOM }
 }
 
 function calculateTargetForOwidContinent(continent: GlobeRegionName): Target {
