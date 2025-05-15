@@ -37,6 +37,7 @@
     display: flex;
     flex-grow: 1;
     flex-basis: 100%;
+    align-items: center;
     outline: 1px solid $blue-20;
     background-color: #fff;
     &:focus-within {
@@ -46,9 +47,8 @@
 
 .data-catalog-pseudo-input__submit-button {
     background-color: transparent;
-    width: 32px;
-    height: 32px;
-    margin-top: 8px;
+    width: 24px;
+    height: 24px;
     margin-left: 8px;
     margin-right: 8px;
     padding: 0;
