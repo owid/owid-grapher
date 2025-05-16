@@ -324,9 +324,10 @@ export class ChartEditorView<
         )
         this.disposers.push(
             reaction(
-                () => this.editor?.previewMode,
+                () => this.editor && this.editor.previewMode,
                 () => {
                     this.grapherState.staticFormat = this.staticFormat
+                    this.grapherState.externalBounds = this.bounds
                 }
             )
         )

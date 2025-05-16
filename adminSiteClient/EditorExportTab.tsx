@@ -77,6 +77,7 @@ export class EditorExportTab<
 
     componentDidMount(): void {
         this.saveOriginalSettings()
+        this.grapherState.renderToStatic = true
 
         // needs to run before settings are loaded from session storage
         const dispose = autorun(() => this.updateGrapher())
@@ -90,6 +91,7 @@ export class EditorExportTab<
 
     componentWillUnmount(): void {
         this.resetGrapher()
+        this.grapherState.renderToStatic = false
 
         if (sessionStorage) {
             this.saveSettingsToSessionStorage()
