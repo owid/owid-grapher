@@ -1,5 +1,5 @@
 import cx from "classnames"
-import { useEffect, useMemo } from "react"
+import { useEffect, useMemo, useCallback } from "react"
 import { match } from "ts-pattern"
 import {
     getAutocompleteSuggestions,
@@ -25,17 +25,57 @@ export const SearchAutocomplete = ({
     addCountry: (country: string) => void
     addTopic: (topic: string) => void
 }) => {
+    const queryMinusLastWord = localQuery.split(" ").slice(0, -1).join(" ")
     const items = useMemo(
         () => getAutocompleteSuggestions(localQuery, allTopics, filters),
         [localQuery, allTopics, filters]
     )
 
-    const { activeIndex, setActiveIndex, setSuggestions, isOpen, setIsOpen } =
-        useSearchAutocomplete()
+    const {
+        activeIndex,
+        setActiveIndex,
+        setSuggestions,
+        isOpen,
+        setIsOpen,
+        registerSelectionHandler,
+    } = useSearchAutocomplete()
+
+    const setQueries = useCallback(
+        (query: string) => {
+            setLocalQuery(query)
+            setQuery(query)
+        },
+        [setLocalQuery, setQuery]
+    )
+
+    const handleSelection = useCallback(
+        (filter: Filter) => {
+            match(filter.type)
+                .with(FilterType.COUNTRY, () => {
+                    addCountry(filter.name)
+                    setQueries(queryMinusLastWord)
+                })
+                .with(FilterType.TOPIC, () => {
+                    addTopic(filter.name)
+                    setQueries(queryMinusLastWord)
+                })
+                .with(FilterType.QUERY, () => {
+                    setQueries(filter.name)
+                    setIsOpen(false)
+                })
+                .exhaustive()
+        },
+        [addCountry, addTopic, queryMinusLastWord, setIsOpen, setQueries]
+    )
 
     useEffect(() => {
         setSuggestions(items)
     }, [items, setSuggestions])
+
+    // Register the selection handler with the context
+    useEffect(() => {
+        registerSelectionHandler(handleSelection)
+    }, [handleSelection, registerSelectionHandler])
 
     useEffect(() => {
         setIsOpen(!!localQuery)
@@ -43,30 +83,6 @@ export const SearchAutocomplete = ({
 
     // This effectively closes the autocomplete when the query is empty
     if (!localQuery || !isOpen) return null
-
-    const queryMinusLastWord = localQuery.split(" ").slice(0, -1).join(" ")
-
-    const setQueries = (query: string) => {
-        setLocalQuery(query)
-        setQuery(query)
-    }
-
-    const handleSelection = (filter: Filter) => {
-        match(filter.type)
-            .with(FilterType.COUNTRY, () => {
-                addCountry(filter.name)
-                setQueries(queryMinusLastWord)
-            })
-            .with(FilterType.TOPIC, () => {
-                addTopic(filter.name)
-                setQueries(queryMinusLastWord)
-            })
-            .with(FilterType.QUERY, () => {
-                setQueries(filter.name)
-                setIsOpen(false)
-            })
-            .exhaustive()
-    }
 
     return (
         <div className="search-autocomplete-container">
