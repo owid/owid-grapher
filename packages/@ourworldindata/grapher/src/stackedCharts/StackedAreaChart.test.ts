@@ -12,7 +12,7 @@ import { ChartManager } from "../chart/ChartManager"
 import { observable } from "mobx"
 import { AxisConfig } from "../axis/AxisConfig"
 import { SelectionArray } from "../selection/SelectionArray"
-import { isNumber, ColumnTypeNames } from "@ourworldindata/utils"
+import { isNumber, ColumnTypeNames, FacetStrategy } from "@ourworldindata/utils"
 
 class MockManager implements ChartManager {
     table = SynthesizeGDPTable({
@@ -234,6 +234,162 @@ describe("externalLegendBins", () => {
         })
         expect(chart["externalLegend"]?.categoricalLegendData?.length).toEqual(
             2
+        )
+    })
+})
+
+describe("availableFacetStrategies (multi entity, single column)", () => {
+    const table = SynthesizeGDPTable({
+        timeRange: [1950, 2020],
+        entityNames: [
+            "France",
+            "Spain",
+            "Sudan",
+            "China",
+            "Europe",
+            "Africa",
+            "Asia",
+            "World",
+        ],
+    })
+
+    const manager: ChartManager = {
+        table,
+        yColumnSlugs: [SampleColumnSlugs.GDP],
+    }
+
+    it("allows stacking countries", () => {
+        const chart = new StackedAreaChart({
+            manager: {
+                ...manager,
+                selection: ["France", "Spain", "Sudan", "China"],
+            },
+        })
+        expect(chart.availableFacetStrategies).toContain(FacetStrategy.none)
+    })
+
+    it("allows stacking continents", () => {
+        const chart = new StackedAreaChart({
+            manager: {
+                ...manager,
+                selection: ["Europe", "Africa", "Asia"],
+            },
+        })
+        expect(chart.availableFacetStrategies).toContain(FacetStrategy.none)
+    })
+
+    it("allows stacking countries on top of unrelated continents", () => {
+        const chart = new StackedAreaChart({
+            manager: {
+                ...manager,
+                selection: ["France", "Spain", "China", "Africa"],
+            },
+        })
+        expect(chart.availableFacetStrategies).toContain(FacetStrategy.none)
+    })
+
+    it("doesn't allow stacking countries on top of their continent", () => {
+        const chart = new StackedAreaChart({
+            manager: {
+                ...manager,
+                selection: ["France", "Spain", "China", "Europe"],
+            },
+        })
+        expect(chart.availableFacetStrategies).not.toContain(FacetStrategy.none)
+    })
+
+    it("doesn't allow stacking World on top of countries", () => {
+        const chart = new StackedAreaChart({
+            manager: { ...manager, selection: ["Germany", "World"] },
+        })
+        expect(chart.availableFacetStrategies).not.toContain(FacetStrategy.none)
+    })
+
+    it("doesn't allow stacking World on top of continents", () => {
+        const chart = new StackedAreaChart({
+            manager: { ...manager, selection: ["World", "Europe"] },
+        })
+        expect(chart.availableFacetStrategies).not.toContain(FacetStrategy.none)
+    })
+})
+
+describe("availableFacetStrategies (multi entity, multi column)", () => {
+    const table = SynthesizeGDPTable({
+        timeRange: [1950, 2020],
+        entityNames: [
+            "France",
+            "Spain",
+            "Sudan",
+            "China",
+            "Europe",
+            "Africa",
+            "Asia",
+            "World",
+        ],
+    })
+
+    const manager: ChartManager = {
+        table,
+        yColumnSlugs: [SampleColumnSlugs.GDP, SampleColumnSlugs.LifeExpectancy],
+    }
+
+    it("allows stacking countries", () => {
+        const chart = new StackedAreaChart({
+            manager: {
+                ...manager,
+                selection: ["France", "Spain", "Sudan", "China"],
+            },
+        })
+        expect(chart.availableFacetStrategies).toContain(FacetStrategy.metric)
+    })
+
+    it("allows stacking continents", () => {
+        const chart = new StackedAreaChart({
+            manager: {
+                ...manager,
+                selection: ["Europe", "Africa", "Asia"],
+            },
+        })
+        expect(chart.availableFacetStrategies).toContain(FacetStrategy.metric)
+    })
+
+    it("allows stacking countries on top of unrelated continents", () => {
+        const chart = new StackedAreaChart({
+            manager: {
+                ...manager,
+                selection: ["France", "Spain", "China", "Africa"],
+            },
+        })
+        expect(chart.availableFacetStrategies).toContain(FacetStrategy.metric)
+    })
+
+    it("doesn't allow stacking countries on top of their continent", () => {
+        const chart = new StackedAreaChart({
+            manager: {
+                ...manager,
+                selection: ["France", "Spain", "China", "Europe"],
+            },
+        })
+        expect(chart.availableFacetStrategies).not.toContain(
+            FacetStrategy.metric
+        )
+    })
+
+    it("doesn't allow stacking World on top of countries", () => {
+        const chart = new StackedAreaChart({
+            manager: { ...manager, selection: ["Germany", "World"] },
+        })
+        expect(chart.availableFacetStrategies).not.toContain(
+            FacetStrategy.metric
+        )
+    })
+
+    it("doesn't allow stacking World on top of continents", () => {
+        const chart = new StackedAreaChart({
+            manager: { ...manager, selection: ["World", "Europe"] },
+        })
+        expect(chart.availableFacetStrategies).not.toContain(
+            FacetStrategy.metric
         )
     })
 })
