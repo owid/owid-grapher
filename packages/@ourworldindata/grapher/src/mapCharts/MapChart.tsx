@@ -226,6 +226,7 @@ export class MapChart
             const featureId = feature.id as string
             this.hoverFeatureId = featureId
             this.tooltipState.target = { featureId }
+            this.manager.logGrapherHoverEvent?.("map_country", featureId)
         }
     }
 

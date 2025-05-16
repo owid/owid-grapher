@@ -14,6 +14,7 @@ export enum EventCategory {
     GlobalEntitySelectorUsage = "owid.global_entity_selector_usage",
     GrapherView = "owid.grapher_view",
     GrapherClick = "owid.grapher_click",
+    GrapherHover = "owid.grapher_hover",
     GrapherError = "owid.grapher_error",
     GrapherEntitySelector = "owid.grapher_entity_selector",
     ExplorerView = "owid.explorer_view",
@@ -50,6 +51,14 @@ export type EntitySelectorEvent =
 export type GrapherImageDownloadEvent =
     | "chart_download_png"
     | "chart_download_svg"
+
+export type GrapherHoverEvent = "map_country"
+
+export interface GrapherAnalyticsContext {
+    slug?: string
+    mdimView?: Record<string, string>
+    narrativeChartName?: string
+}
 
 interface GAEvent {
     event: EventCategory
@@ -141,43 +150,37 @@ export class GrapherAnalytics {
     /** Logs events for Grapher's entity selector */
     logEntitySelectorEvent(
         action: EntitySelectorEvent,
-        ctx: {
-            target?: string
-            slug?: string
-            mdimView?: Record<string, string>
-            narrativeChartName?: string
-        }
+        ctx: GrapherAnalyticsContext & { target?: string }
     ): void {
         this.logToGA({
+            ...grapherAnalyticsContextToGAEventFields(ctx),
             event: EventCategory.GrapherEntitySelector,
             eventAction: action,
             eventTarget: ctx.target,
-            grapherPath: ctx.slug ? `/grapher/${ctx.slug}` : undefined,
-            grapherView: ctx.mdimView
-                ? JSON.stringify(ctx.mdimView)
-                : undefined,
-            narrativeChartName: ctx.narrativeChartName,
         })
     }
 
     logGrapherImageDownloadEvent(
         action: GrapherImageDownloadEvent,
-        ctx: {
-            slug?: string
-            mdimView?: Record<string, string>
-            narrativeChartName?: string
-            context?: Record<string, any>
-        }
+        ctx: GrapherAnalyticsContext & { context?: Record<string, any> }
     ): void {
         this.logToGA({
+            ...grapherAnalyticsContextToGAEventFields(ctx),
             event: EventCategory.GrapherClick,
             eventAction: action,
             eventContext: ctx.context ? JSON.stringify(ctx.context) : undefined,
-            grapherPath: ctx.slug ? `/grapher/${ctx.slug}` : undefined,
-            grapherView: ctx.mdimView
-                ? JSON.stringify(ctx.mdimView)
-                : undefined,
-            narrativeChartName: ctx.narrativeChartName,
+        })
+    }
+
+    logGrapherHoverEvent(
+        action: GrapherHoverEvent,
+        ctx: GrapherAnalyticsContext & { target?: string }
+    ): void {
+        this.logToGA({
+            ...grapherAnalyticsContextToGAEventFields(ctx),
+            event: EventCategory.GrapherHover,
+            eventAction: action,
+            eventTarget: ctx.target,
         })
     }
 
@@ -304,4 +307,14 @@ function getPathname(url?: string): string | undefined {
     // the pathname, e.g. `/grapher/life-expectancy` or `/explorers/migration`
     const urlObj = url !== undefined ? new URL(url) : undefined
     return urlObj?.pathname
+}
+
+function grapherAnalyticsContextToGAEventFields(
+    ctx: GrapherAnalyticsContext
+): Partial<GAEvent> {
+    return {
+        grapherPath: ctx.slug ? `/grapher/${ctx.slug}` : undefined,
+        grapherView: ctx.mdimView ? JSON.stringify(ctx.mdimView) : undefined,
+        narrativeChartName: ctx.narrativeChartName,
+    }
 }
