@@ -133,10 +133,10 @@ async function migrateDodGdocToDb(queryRunner: QueryRunner): Promise<void> {
 
         await queryRunner.query(
             `-- sql
-            INSERT INTO dods (name, content, lastUpdatedUserId)
-            VALUES (?, ?, ?)
+            INSERT INTO dods (name, content)
+            VALUES (?, ?)
         `,
-            [name, asMarkdown, 1]
+            [name, asMarkdown]
         )
 
         const id = await queryRunner
@@ -181,16 +181,24 @@ async function migrateDodGdocToDb(queryRunner: QueryRunner): Promise<void> {
 export class DodsInAdmin1747253501431 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
+            DROP TABLE IF EXISTS dod_links;
+        `)
+        await queryRunner.query(`-- sql
+            DROP TABLE IF EXISTS dods;
+        `)
+        await queryRunner.query(
+            `-- sql
             CREATE TABLE dods (
                 id INTEGER PRIMARY KEY AUTO_INCREMENT,
                 name VARCHAR(512) NOT NULL UNIQUE,
                 content VARCHAR(4096) NOT NULL,
                 createdAt TIMESTAMP NOT NULL DEFAULT now(),
                 updatedAt TIMESTAMP NOT NULL DEFAULT now(),
-                lastUpdatedUserId INTEGER NOT NULL DEFAULT 1,
-                FOREIGN KEY (lastUpdatedUserId) REFERENCES users(id) ON DELETE SET DEFAULT
-            );
-        `)
+                lastUpdatedUserId INTEGER NULL,
+                FOREIGN KEY (lastUpdatedUserId) REFERENCES users(id) ON DELETE SET NULL
+
+            );`
+        )
         await queryRunner.query(`-- sql
             CREATE TABLE dod_links (
                 id INTEGER PRIMARY KEY AUTO_INCREMENT,
