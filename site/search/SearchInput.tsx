@@ -16,8 +16,14 @@ export const SearchInput = ({
 }) => {
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const inputRef = useRef<HTMLInputElement | null>(null)
-    const { activeIndex, setActiveIndex, suggestions, isOpen, setIsOpen } =
-        useSearchAutocomplete()
+    const {
+        activeIndex,
+        setActiveIndex,
+        suggestions,
+        isOpen,
+        setIsOpen,
+        onSelectActiveItem,
+    } = useSearchAutocomplete()
 
     let placeholder = ""
     if (inputRef.current) {
@@ -54,10 +60,7 @@ export const SearchInput = ({
             case "Enter":
                 e.preventDefault()
                 if (activeIndex >= 0) {
-                    // Let the SearchAutocomplete component handle the selection
-                    document
-                        .getElementById(`autocomplete-item-${activeIndex}`)
-                        ?.click()
+                    onSelectActiveItem()
                 } else {
                     // Submit the form
                     setGlobalQuery(value)
