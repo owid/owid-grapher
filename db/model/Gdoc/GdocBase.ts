@@ -603,6 +603,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "cookie-notice",
                         "donors",
                         "expandable-paragraph",
+                        "expander",
                         "entry-summary",
                         "gray-section",
                         "heading",
