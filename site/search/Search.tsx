@@ -155,7 +155,6 @@ export const Search = ({
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
                     <Searchbar
                         allTopics={ALL_TOPICS}
-                        selectedTopics={selectedTopics}
                         filters={state.filters}
                         addCountry={actions.addCountry}
                         removeCountry={actions.removeCountry}
@@ -163,7 +162,6 @@ export const Search = ({
                         removeTopic={actions.removeTopic}
                         query={state.query}
                         requireAllCountries={state.requireAllCountries}
-                        selectedCountryNames={selectedCountryNames}
                         setQuery={actions.setQuery}
                         toggleRequireAllCountries={
                             actions.toggleRequireAllCountries

@@ -1,7 +1,10 @@
 import cx from "classnames"
-import { useMemo, useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { match } from "ts-pattern"
-import { useAutocomplete } from "./searchUtils.js"
+import {
+    getAutocompleteSuggestions,
+    useSearchAutocomplete,
+} from "./searchUtils.js"
 import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
 import { Filter, FilterType } from "./searchTypes.js"
 
@@ -9,7 +12,6 @@ export const SearchAutocomplete = ({
     localQuery,
     allTopics,
     filters,
-    query,
     setLocalQuery,
     setQuery,
     addCountry,
@@ -18,79 +20,29 @@ export const SearchAutocomplete = ({
     localQuery: string
     allTopics: string[]
     filters: Filter[]
-    query: string
     setLocalQuery: (query: string) => void
     setQuery: (query: string) => void
     addCountry: (country: string) => void
     addTopic: (topic: string) => void
 }) => {
-    const items = useAutocomplete(localQuery, allTopics, filters)
-    const itemsToRender = useMemo(
-        () => [{ name: localQuery, type: FilterType.QUERY }, ...items],
-        [localQuery, items]
+    const items = useMemo(
+        () => getAutocompleteSuggestions(localQuery, allTopics, filters),
+        [localQuery, allTopics, filters]
     )
 
+    const { activeIndex, setActiveIndex, setSuggestions, isOpen, setIsOpen } =
+        useSearchAutocomplete()
+
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            const key = e.key
-            const input = document.querySelector(
-                ".data-catalog-search-input"
-            ) as HTMLInputElement
-            const pseudoinput = document.querySelector(
-                ".data-catalog-pseudo-input:focus-within"
-            ) as HTMLInputElement
-            if (!pseudoinput) {
-                return
-            }
-            const focusableItems = [
-                ...document.querySelectorAll(".search-autocomplete-button"),
-            ] as HTMLElement[]
-            const currentIndex = document.activeElement
-                ? focusableItems.indexOf(document.activeElement as HTMLElement)
-                : null
+        setSuggestions(items)
+    }, [items, setSuggestions])
 
-            switch (key) {
-                case "ArrowDown":
-                    e.preventDefault()
-                    if (currentIndex === null) {
-                        focusableItems[0].focus()
-                    } else if (currentIndex < itemsToRender.length - 1) {
-                        focusableItems[currentIndex + 1].focus()
-                    }
-                    break
-                case "ArrowUp":
-                    e.preventDefault()
-                    if (currentIndex === null) {
-                        focusableItems[0].focus()
-                    } else if (currentIndex > 0) {
-                        focusableItems[currentIndex - 1].focus()
-                    } else if (currentIndex === 0) {
-                        input.focus()
-                    }
-                    break
-                case "Escape":
-                    e.preventDefault()
-                    ;(document.activeElement as HTMLElement).blur()
-                    break
-            }
-        }
+    useEffect(() => {
+        setIsOpen(!!localQuery)
+    }, [localQuery, setIsOpen])
 
-        document.addEventListener("keydown", handleKeyDown)
-
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown)
-        }
-    }, [
-        items,
-        itemsToRender,
-        addCountry,
-        addTopic,
-        setLocalQuery,
-        setQuery,
-        query,
-    ])
-
-    if (!localQuery) return null
+    // This effectively closes the autocomplete when the query is empty
+    if (!localQuery || !isOpen) return null
 
     const queryMinusLastWord = localQuery.split(" ").slice(0, -1).join(" ")
 
@@ -99,37 +51,46 @@ export const SearchAutocomplete = ({
         setQuery(query)
     }
 
+    const handleSelection = (filter: Filter) => {
+        match(filter.type)
+            .with(FilterType.COUNTRY, () => {
+                addCountry(filter.name)
+                setQueries(queryMinusLastWord)
+            })
+            .with(FilterType.TOPIC, () => {
+                addTopic(filter.name)
+                setQueries(queryMinusLastWord)
+            })
+            .with(FilterType.QUERY, () => {
+                setQueries(filter.name)
+                setIsOpen(false)
+            })
+            .exhaustive()
+    }
+
     return (
         <div className="search-autocomplete-container">
-            <ul>
-                {itemsToRender.map((filter) => (
+            <ul role="listbox">
+                {items.map((filter, index) => (
                     <li
                         key={filter.name}
-                        className={cx("search-autocomplete-item")}
+                        className={cx("search-autocomplete-item", {
+                            "search-autocomplete-item--active":
+                                index === activeIndex,
+                        })}
+                        role="option"
+                        aria-selected={index === activeIndex}
                     >
                         <button
+                            id={`autocomplete-item-${index}`}
                             data-prevent-onblur
-                            className="search-autocomplete-button"
-                            onClick={() => {
-                                match(filter.type)
-                                    .with(FilterType.COUNTRY, () => {
-                                        addCountry(filter.name)
-                                        setQueries(queryMinusLastWord)
-                                    })
-                                    .with(FilterType.TOPIC, () => {
-                                        addTopic(filter.name)
-                                        setQueries(queryMinusLastWord)
-                                    })
-
-                                    .with(FilterType.QUERY, () => {
-                                        setQueries(filter.name)
-                                        ;(
-                                            document.activeElement as HTMLElement
-                                        ).blur()
-                                        return
-                                    })
-                                    .exhaustive()
-                            }}
+                            type="button"
+                            className={cx("search-autocomplete-button", {
+                                "search-autocomplete-button--active":
+                                    index === activeIndex,
+                            })}
+                            onClick={() => handleSelection(filter)}
+                            onMouseEnter={() => setActiveIndex(index)}
                         >
                             <SearchAutocompleteItemContents
                                 filter={filter}

@@ -2,19 +2,12 @@ import { Url } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { SearchState, SearchAction, Filter, FilterType } from "./searchTypes.js"
 import {
+    createCountryFilter,
+    createTopicFilter,
     deserializeSet,
     getFilterNamesOfType,
     serializeSet,
 } from "./searchUtils.js"
-
-// Helper functions to create filter objects
-function createCountryFilter(country: string): Filter {
-    return { type: FilterType.COUNTRY, name: country }
-}
-
-function createTopicFilter(topic: string): Filter {
-    return { type: FilterType.TOPIC, name: topic }
-}
 
 // Helper functions to handle filter actions
 function handleAddFilter(state: SearchState, filter: Filter): SearchState {

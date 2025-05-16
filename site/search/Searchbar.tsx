@@ -7,6 +7,7 @@ import { SearchAutocomplete } from "./SearchAutocomplete.js"
 import { SearchCountrySelector } from "./SearchCountrySelector.js"
 import { Filter, FilterType } from "./searchTypes.js"
 import { getFilterNamesOfType } from "./searchUtils.js"
+import { SearchAutocompleteContextProvider } from "./SearchAutocompleteContextProvider.js"
 
 export const Searchbar = ({
     allTopics,
@@ -42,13 +43,11 @@ export const Searchbar = ({
         setLocalQuery(query)
     }, [query])
 
-    // Uses CSS to fake an input bar that will highlight correctly using :focus-within
-    // without highlighting when the country selector is focused
     return (
-        <>
-            <div className="data-catalog-pseudo-input">
+        <SearchAutocompleteContextProvider>
+            <div className="search-bar">
                 <button
-                    className="data-catalog-pseudo-input__submit-button"
+                    className="search-bar__submit-button"
                     aria-label="Submit search"
                     onClick={() => setQuery(localQuery)}
                 >
@@ -68,7 +67,6 @@ export const Searchbar = ({
                     localQuery={localQuery}
                     allTopics={allTopics}
                     filters={filters}
-                    query={query}
                     setLocalQuery={setLocalQuery}
                     setQuery={setQuery}
                     addCountry={addCountry}
@@ -82,6 +80,6 @@ export const Searchbar = ({
                 addCountry={addCountry}
                 removeCountry={removeCountry}
             />
-        </>
+        </SearchAutocompleteContextProvider>
     )
 }

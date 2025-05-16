@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons"
 import { useMediaQuery } from "usehooks-ts"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
+import { useSearchAutocomplete } from "./searchUtils.js"
 
 export const SearchInput = ({
     value,
@@ -15,6 +16,9 @@ export const SearchInput = ({
 }) => {
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const inputRef = useRef<HTMLInputElement | null>(null)
+    const { activeIndex, setActiveIndex, suggestions, isOpen, setIsOpen } =
+        useSearchAutocomplete()
+
     let placeholder = ""
     if (inputRef.current) {
         // Only set the placeholder once the component has rendered so that useMediaQuery has a chance to initialize
@@ -23,6 +27,45 @@ export const SearchInput = ({
             ? "Search data, topics, or keywords…"
             : "Search for an indicator, a topic, or a keyword…"
     }
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (!isOpen || suggestions.length === 0) return
+
+        switch (e.key) {
+            case "ArrowDown":
+                e.preventDefault()
+                setActiveIndex(
+                    activeIndex < suggestions.length - 1
+                        ? activeIndex + 1
+                        : activeIndex
+                )
+                break
+
+            case "ArrowUp":
+                e.preventDefault()
+                setActiveIndex(activeIndex > 0 ? activeIndex - 1 : -1)
+                break
+
+            case "Escape":
+                e.preventDefault()
+                setIsOpen(false)
+                break
+
+            case "Enter":
+                e.preventDefault()
+                if (activeIndex >= 0) {
+                    // Let the SearchAutocomplete component handle the selection
+                    document
+                        .getElementById(`autocomplete-item-${activeIndex}`)
+                        ?.click()
+                } else {
+                    // Submit the form
+                    setGlobalQuery(value)
+                }
+                break
+        }
+    }
+
     return (
         <div className="data-catalog-search-box-container">
             <form
@@ -48,13 +91,23 @@ export const SearchInput = ({
                         setLocalQuery(e.target.value)
                         if (e.target.value === "") {
                             setGlobalQuery("")
+                        } else {
+                            setIsOpen(true)
+                            setActiveIndex(0) // Reset selection on typing
+                        }
+                    }}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => {
+                        if (value) {
+                            setIsOpen(true)
+                            setActiveIndex(0)
                         }
                     }}
                     onBlur={(e) => {
                         const recipient = e.relatedTarget
-                        if (!recipient?.hasAttribute("data-prevent-onblur")) {
-                            setGlobalQuery(value)
-                        }
+                        if (recipient?.hasAttribute("data-prevent-onblur"))
+                            return
+                        setIsOpen(false)
                     }}
                 />
                 <button
