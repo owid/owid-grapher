@@ -89,6 +89,7 @@ export interface HorizontalColorLegendManager {
     numericBinStroke?: Color
     numericBinStrokeWidth?: number
     equalSizeBins?: boolean
+    onLegendMouseEnter?: (d: ColorScaleBin) => void
     onLegendMouseLeave?: () => void
     onLegendMouseOver?: (d: ColorScaleBin) => void
     onLegendClick?: (d: ColorScaleBin) => void
@@ -566,9 +567,10 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                                             ? bin.props.isOpenRight
                                             : false
                                     }
-                                    onMouseEnter={() =>
+                                    onMouseEnter={() => {
+                                        this.manager.onLegendMouseEnter?.(bin)
                                         this.manager.onLegendMouseOver?.(bin)
-                                    }
+                                    }}
                                     onMouseLeave={() =>
                                         this.manager.onLegendMouseLeave?.()
                                     }
@@ -846,6 +848,10 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return (
             <g>
                 {marks.map((mark, index) => {
+                    const mouseEnter = (): void =>
+                        manager.onLegendMouseEnter
+                            ? manager.onLegendMouseEnter(mark.bin)
+                            : undefined
                     const mouseOver = (): void =>
                         manager.onLegendMouseOver
                             ? manager.onLegendMouseOver(mark.bin)
@@ -863,6 +869,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                     return (
                         <g
                             key={`${mark.label}-${index}`}
+                            onMouseEnter={mouseEnter}
                             onMouseOver={mouseOver}
                             onMouseLeave={mouseLeave}
                             onClick={click}
