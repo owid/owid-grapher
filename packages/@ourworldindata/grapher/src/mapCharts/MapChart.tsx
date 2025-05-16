@@ -277,6 +277,10 @@ export class MapChart
         document.removeEventListener("keydown", this.onDocumentKeyDown)
     }
 
+    @action.bound onLegendMouseEnter(bracket: MapBracket): void {
+        this.manager.logGrapherHoverEvent?.("map_legend", bracket.label)
+    }
+
     @action.bound onLegendMouseOver(bracket: MapBracket): void {
         this.hoverBracket = bracket
     }
