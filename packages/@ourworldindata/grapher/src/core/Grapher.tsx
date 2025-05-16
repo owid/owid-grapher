@@ -169,7 +169,7 @@ import { FullScreen } from "../fullScreen/FullScreen"
 import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
-import { SettingsMenu, SettingsMenuManager } from "../controls/SettingsMenu"
+import { SettingsMenuManager } from "../controls/SettingsMenu"
 import { TooltipContainer } from "../tooltip/Tooltip"
 import {
     EntitySelectorModal,
@@ -180,7 +180,11 @@ import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesModal, SourcesModalManager } from "../modal/SourcesModal"
-import { DataTableManager } from "../dataTable/DataTable"
+import {
+    DataTableConfig,
+    DataTableManager,
+    isValidDataTableFilter,
+} from "../dataTable/DataTable"
 import {
     MAP_REGION_NAMES,
     MapChartManager,
@@ -344,7 +348,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideXScaleToggle?: boolean
     hideYScaleToggle?: boolean
     hideMapRegionDropdown?: boolean
-    hideTableFilterToggle?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     hasTableTab?: boolean
     hideChartTabs?: boolean
@@ -461,7 +464,6 @@ export class Grapher
     /** Hides the total value label that is normally displayed for stacked bar charts */
     @observable.ref hideTotalValueLabel?: boolean = undefined
     @observable.ref missingDataStrategy?: MissingDataStrategy = undefined
-    @observable.ref showSelectionOnlyInDataTable?: boolean = undefined
 
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
@@ -485,6 +487,10 @@ export class Grapher
     @observable includedEntityNames?: EntityName[] = undefined
     @observable comparisonLines?: ComparisonLineConfig[] = undefined // todo: Persistables?
     @observable relatedQuestions?: RelatedQuestionsConfig[] = undefined // todo: Persistables?
+
+    @observable dataTableConfig: DataTableConfig = {
+        filter: "all",
+    }
 
     /**
      * Used to highlight an entity at a particular time in a line chart.
@@ -824,14 +830,24 @@ export class Grapher
             this.yAxis.facetDomain = FacetAxisDomain.shared
         }
 
-        // only relevant for the table
-        if (params.showSelectionOnlyInTable) {
-            this.showSelectionOnlyInDataTable =
-                params.showSelectionOnlyInTable === "1" ? true : undefined
-        }
-
+        // no data area in marimekko charts
         if (params.showNoDataArea) {
             this.showNoDataArea = params.showNoDataArea === "1"
+        }
+
+        // deprecated; support for legacy URLs
+        if (params.showSelectionOnlyInTable) {
+            this.dataTableConfig.filter =
+                params.showSelectionOnlyInTable === "1" ? "selection" : "all"
+        }
+
+        // data table filter
+        if (params.tableFilter) {
+            this.dataTableConfig.filter = isValidDataTableFilter(
+                params.tableFilter
+            )
+                ? params.tableFilter
+                : "all"
         }
     }
 
@@ -918,18 +934,15 @@ export class Grapher
             : undefined
     }
 
-    @computed private get settingsMenu(): SettingsMenu {
-        return new SettingsMenu({ manager: this, top: 0, bottom: 0, right: 0 })
-    }
-
     /**
-     * If the table filter toggle isn't offered, then we default to
-     * to showing only the selected entities – unless there is a view
-     * that displays all data points, like a map or a scatter plot.
+     * We only show the selected entities in the data table if entity selection
+     * is disabled – unless there is a view that displays all data points, like
+     * a map or a scatter plot.
      */
-    @computed get forceShowSelectionOnlyInDataTable(): boolean {
+    @computed get shouldShowSelectionOnlyInDataTable(): boolean {
         return (
-            !this.settingsMenu.showTableFilterToggle &&
+            this.selection.hasSelection &&
+            !this.canChangeAddOrHighlightEntities &&
             this.hasChartTab &&
             !this.showsAllEntitiesInChart &&
             !this.hasMapTab
@@ -946,10 +959,7 @@ export class Grapher
             table = this.chartInstance.transformTableForDisplay(table)
         }
 
-        if (
-            this.forceShowSelectionOnlyInDataTable ||
-            this.showSelectionOnlyInDataTable
-        ) {
+        if (this.shouldShowSelectionOnlyInDataTable) {
             table = table.filterByEntityNames(
                 this.selection.selectedEntityNames
             )
@@ -3671,9 +3681,8 @@ export class Grapher
         this.maxTime = authorsVersion.maxTime
         this.map.time = authorsVersion.map.time
         this.map.region = authorsVersion.map.region
-        this.showSelectionOnlyInDataTable =
-            authorsVersion.showSelectionOnlyInDataTable
         this.showNoDataArea = authorsVersion.showNoDataArea
+        this.dataTableConfig.filter = authorsVersion.dataTableConfig.filter
         this.mapConfig.globe.isActive = authorsVersion.mapConfig.globe.isActive
         this.clearSelection()
         this.clearFocus()
@@ -4149,10 +4158,6 @@ export class Grapher
         return this.availableEntityNames.length
     }
 
-    @computed get entitiesAreCountryLike(): boolean {
-        return !!this.entityType.match(/\bcountry\b/i)
-    }
-
     @observable hideTitle = false
     @observable hideSubtitle = false
     @observable hideNote = false
@@ -4173,7 +4178,6 @@ export class Grapher
     @observable hideXScaleToggle = false
     @observable hideYScaleToggle = false
     @observable hideMapRegionDropdown = false
-    @observable hideTableFilterToggle = false
     // enforces hiding an annotation, even if that means that a crucial piece of information is missing from the chart title
     @observable forceHideAnnotationFieldsInTitle: AnnotationFieldsInTitle = {
         entity: false,
