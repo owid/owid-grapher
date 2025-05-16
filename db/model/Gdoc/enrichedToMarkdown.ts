@@ -87,7 +87,7 @@ function markdownComponent(
 export function stripCustomMarkdownComponents(content: string): string {
     let strippedContent = content
     for (const componentName of Object.values(CUSTOM_MARKDOWN_COMPONENTS)) {
-        const regex = new RegExp(`<${componentName}.*?/>`, "g")
+        const regex = new RegExp(`<${componentName}[^\n]*?/>`, "g")
         strippedContent = strippedContent.replace(regex, "")
     }
     return strippedContent

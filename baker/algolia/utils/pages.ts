@@ -216,8 +216,24 @@ function getExcerptFromGdoc(
 
 function formatGdocMarkdown(content: string): string {
     const simplifiedMarkdown = stripCustomMarkdownComponents(content)
+    // We still have some markdown gore that MarkdownTextWrap can't handle. Easier to just remove all asterisks.
+    const withoutAsterisks = simplifiedMarkdown.replaceAll("*", "")
+    const withoutMarkdown = new MarkdownTextWrap({
+        text: withoutAsterisks,
+        fontSize: 12,
+    }).plaintext
+    const withoutNewlines = withoutMarkdown.replaceAll("\n", " ")
+
+    // Doing this after removing markdown links because otherwise we need to handle
+    // - [word](link).1
+    // - [word.](link)1
+    // - word.1
+    const withoutFootnotes = withoutNewlines.replaceAll(
+        /([A-Za-z]\.)\d{1,2}/g,
+        "$1"
+    )
     // This is used in many data insights but shouldn't be shown in search results
-    const withoutArrow = simplifiedMarkdown.replaceAll("→", "")
+    const withoutArrow = withoutFootnotes.replaceAll("→", "")
     return withoutArrow
 }
 
@@ -256,10 +272,9 @@ function generateGdocRecords(
         }
 
         // Only rendering the blocks - not the page nav, title, byline, etc
-        const plaintextContent = new MarkdownTextWrap({
-            text: formatGdocMarkdown(gdoc.markdown || ""),
-            fontSize: 12,
-        }).plaintext
+        const plaintextContent = gdoc.markdown
+            ? formatGdocMarkdown(gdoc.markdown)
+            : ""
 
         const chunks = chunkParagraphs(plaintextContent, 1000)
         let i = 0
