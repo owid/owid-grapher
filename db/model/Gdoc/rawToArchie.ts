@@ -50,6 +50,7 @@ import {
     RawBlockNarrativeChart,
     RawBlockCode,
     RawBlockCookieNotice,
+    RawBlockExpander,
 } from "@ourworldindata/types"
 import { isArray } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
@@ -509,6 +510,23 @@ function* RawBlockExpandableParagraphToArchieMLString(
     yield "[]"
 }
 
+function* rawBlockExpanderToArchieMLString(
+    block: RawBlockExpander
+): Generator<string, void, undefined> {
+    yield "{.expander}"
+    yield* propertyToArchieMLString("title", block.value)
+    yield* propertyToArchieMLString("subtitle", block.value)
+    yield* propertyToArchieMLString("heading", block.value)
+    yield "[.+content]"
+    if (block.value.content) {
+        for (const b of block.value.content) {
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
+        }
+    }
+    yield "[]"
+    yield "{}"
+}
+
 function* rawBlockAllChartsToArchieMLString(
     block: RawBlockAllCharts
 ): Generator<string, void, undefined> {
@@ -866,6 +884,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "all-charts" }, rawBlockAllChartsToArchieMLString)
         .with({ type: "aside" }, rawBlockAsideToArchieMLString)
         .with({ type: "chart" }, rawBlockChartToArchieMLString)
+        .with({ type: "expander" }, rawBlockExpanderToArchieMLString)
         .with(
             { type: "narrative-chart" },
             rawBlockNarrativeChartToArchieMLString
