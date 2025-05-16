@@ -45,6 +45,7 @@ export default function Chart({
     const resolvedUrl = linkedChart.resolvedUrl
     const resolvedUrlParsed = Url.fromURL(resolvedUrl)
     const slug = resolvedUrlParsed.slug!
+    const queryStr = resolvedUrlParsed.queryStr
     const isExplorer = linkedChart.configType === ChartConfigType.Explorer
     const isMultiDim = linkedChart.configType === ChartConfigType.MultiDim
     const hasControls = url.queryParams.hideControls !== "true"
@@ -151,7 +152,11 @@ export default function Chart({
                     )}
                 </figure>
             ) : (
-                <GrapherWithFallback slug={slug} config={chartConfig} />
+                <GrapherWithFallback
+                    slug={slug}
+                    config={chartConfig}
+                    queryStr={queryStr}
+                />
             )}
             {d.caption ? (
                 <figcaption>
