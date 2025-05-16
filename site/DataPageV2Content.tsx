@@ -61,7 +61,6 @@ export const DataPageV2Content = ({
             adminBaseUrl: ADMIN_BASE_URL,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             enableKeyboardShortcuts: typeof window !== "undefined",
-
             archivedChartInfo,
         }),
         [grapherConfig, archivedChartInfo]
@@ -102,7 +101,14 @@ export const DataPageV2Content = ({
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
                 <div className="DataPageContent__grapher-for-embed">
-                    <GrapherFigureView config={mergedGrapherConfig} />
+                    <GrapherFigureView
+                        config={mergedGrapherConfig}
+                        queryStr={
+                            typeof window !== "undefined"
+                                ? window?.location?.search
+                                : undefined
+                        }
+                    />
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
                     <div className="bg-blue-10 span-cols-14">
@@ -136,6 +142,11 @@ export const DataPageV2Content = ({
                                     slug={grapherConfig.slug}
                                     config={mergedGrapherConfig}
                                     id="explore-the-data"
+                                    queryStr={
+                                        typeof window !== "undefined"
+                                            ? window?.location?.search
+                                            : undefined
+                                    }
                                 />
                             )}
                             <AboutThisData

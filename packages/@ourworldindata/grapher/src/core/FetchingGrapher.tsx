@@ -23,12 +23,14 @@ import {
     EXTERNAL_SORT_INDICATOR_DEFINITIONS,
 } from "../entitySelector/EntitySelector.js"
 import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
+import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 
 export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
     configUrl?: string
     dataApiUrl: string
     archivedChartInfo: ArchivedChartOrArchivePageMeta | undefined
+    queryStr?: string
 }
 
 async function loadSortColumn(
@@ -69,6 +71,7 @@ export function FetchingGrapher(
     const grapherState = React.useRef<GrapherState>(
         new GrapherState({
             ...props.config,
+            queryStr: props.queryStr,
         })
     )
 
@@ -84,9 +87,18 @@ export function FetchingGrapher(
                 const fetchedConfig = await fetch(props.configUrl).then((res) =>
                     res.json()
                 )
-                const mergedConfig = { ...fetchedConfig, ...props.config }
+                const mergedConfig = {
+                    ...fetchedConfig,
+                    ...props.config,
+                }
                 setdownloadedConfig(mergedConfig)
                 grapherState.current.updateFromObject(mergedConfig)
+                // We now need to make sure that the query params are re-applied again
+                grapherState.current.populateFromQueryParams(
+                    legacyToCurrentGrapherQueryParams(
+                        grapherState.current.initialOptions.queryStr ?? ""
+                    )
+                )
             }
         }
         void fetchConfigAndLoadData()

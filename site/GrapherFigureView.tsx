@@ -29,9 +29,6 @@ export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
         bakedGrapherURL: BAKED_GRAPHER_URL,
         adminBaseUrl: ADMIN_BASE_URL,
         bounds,
-        queryStr:
-            props.queryStr ??
-            (typeof window !== "undefined" ? window.location.search : ""),
         enableKeyboardShortcuts: true,
     }
 
@@ -47,6 +44,7 @@ export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
                     }
                     dataApiUrl={DATA_API_URL}
                     archivedChartInfo={config.archivedChartInfo}
+                    queryStr={props.queryStr}
                 />
             )}
         </figure>
