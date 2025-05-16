@@ -20,7 +20,6 @@ import {
     OwidGdocAboutInterface,
 } from "@ourworldindata/utils"
 import { formatPost } from "../../formatWordpressPost.js"
-import ReactDOMServer from "react-dom/server.js"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import { htmlToText } from "html-to-text"
 import {
@@ -30,8 +29,6 @@ import {
     WordpressPageType,
 } from "../../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
-import { ArticleBlocks } from "../../../site/gdocs/components/ArticleBlocks.js"
-import { createElement } from "react"
 import {
     getFullPost,
     getPostTags,
@@ -49,7 +46,11 @@ import {
 } from "../../../settings/clientSettings.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import { getFirstBlockOfType } from "../../../site/gdocs/utils.js"
-import { getPrefixedGdocPath } from "@ourworldindata/components"
+import {
+    getPrefixedGdocPath,
+    MarkdownTextWrap,
+} from "@ourworldindata/components"
+import { stripCustomMarkdownComponents } from "../../../db/model/Gdoc/enrichedToMarkdown.js"
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
@@ -213,6 +214,29 @@ function getExcerptFromGdoc(
     }
 }
 
+function formatGdocMarkdown(content: string): string {
+    const simplifiedMarkdown = stripCustomMarkdownComponents(content)
+    // We still have some markdown gore that MarkdownTextWrap can't handle. Easier to just remove all asterisks.
+    const withoutAsterisks = simplifiedMarkdown.replaceAll("*", "")
+    const withoutMarkdown = new MarkdownTextWrap({
+        text: withoutAsterisks,
+        fontSize: 12,
+    }).plaintext
+    const withoutNewlines = withoutMarkdown.replaceAll("\n", " ")
+
+    // Doing this after removing markdown links because otherwise we need to handle
+    // - [word](link).1
+    // - [word.](link)1
+    // - word.1
+    const withoutFootnotes = withoutNewlines.replaceAll(
+        /([A-Za-z]\.)\d{1,2}/g,
+        "$1"
+    )
+    // This is used in many data insights but shouldn't be shown in search results
+    const withoutArrow = withoutFootnotes.replaceAll("→", "")
+    return withoutArrow
+}
+
 function generateGdocRecords(
     gdocs: (OwidGdocPostInterface | OwidGdocDataInsightInterface)[],
     pageviews: Record<string, RawPageview>,
@@ -246,17 +270,13 @@ function generateGdocRecords(
             )
             continue
         }
+
         // Only rendering the blocks - not the page nav, title, byline, etc
-        const renderedPostContent = ReactDOMServer.renderToStaticMarkup(
-            createElement(
-                "div",
-                null,
-                createElement(ArticleBlocks, {
-                    blocks: gdoc.content.body,
-                })
-            )
-        )
-        const chunks = generateChunksFromHtmlText(renderedPostContent)
+        const plaintextContent = gdoc.markdown
+            ? formatGdocMarkdown(gdoc.markdown)
+            : ""
+
+        const chunks = chunkParagraphs(plaintextContent, 1000)
         let i = 0
 
         const thumbnailUrl = getThumbnailUrl(gdoc, cloudflareImagesByFilename)
