@@ -13,6 +13,7 @@ import { GlobeController } from "./GlobeController"
 import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { CoreColumn } from "@ourworldindata/core-table"
+import { GrapherHoverEvent } from "../core/GrapherAnalytics"
 
 export declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
@@ -138,6 +139,7 @@ export interface MapChartManager extends ChartManager {
     globeController?: GlobeController
     mapRegionDropdownValue?: MapRegionDropdownValue
     isMapSelectionEnabled?: boolean
+    logGrapherHoverEvent?: (action: GrapherHoverEvent, target?: string) => void
 }
 
 export interface GlobeViewport {

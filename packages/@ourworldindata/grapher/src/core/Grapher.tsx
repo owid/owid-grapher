@@ -222,6 +222,8 @@ import classnames from "classnames"
 import {
     EntitySelectorEvent,
     GrapherAnalytics,
+    GrapherAnalyticsContext,
+    GrapherHoverEvent,
     GrapherImageDownloadEvent,
 } from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
@@ -2802,28 +2804,38 @@ export class Grapher
     @observable private hasBeenVisible = false
     @observable private uncaughtError?: Error
 
-    logEntitySelectorEvent(action: EntitySelectorEvent, target?: string): void {
+    @computed private get analyticsContext(): GrapherAnalyticsContext {
         const ctx = this.manager?.analyticsContext
-        this.analytics.logEntitySelectorEvent(action, {
-            target,
+        return {
             slug: ctx?.mdimSlug ?? this.slug,
             mdimView: ctx?.mdimView,
             narrativeChartName: this.narrativeChartInfo?.name,
+        }
+    }
+
+    logEntitySelectorEvent(action: EntitySelectorEvent, target?: string): void {
+        this.analytics.logEntitySelectorEvent(action, {
+            ...this.analyticsContext,
+            target,
         })
     }
 
     logImageDownloadEvent(action: GrapherImageDownloadEvent): void {
-        const ctx = this.manager?.analyticsContext
         this.analytics.logGrapherImageDownloadEvent(action, {
-            slug: ctx?.mdimSlug ?? this.slug,
+            ...this.analyticsContext,
             context: omitUndefinedValues({
                 tab: this.activeTab,
                 globe: this.isOnMapTab
                     ? this.mapConfig.globe.isActive
                     : undefined,
             }),
-            mdimView: ctx?.mdimView,
-            narrativeChartName: this.narrativeChartInfo?.name,
+        })
+    }
+
+    logGrapherHoverEvent(action: GrapherHoverEvent, target?: string): void {
+        this.analytics.logGrapherHoverEvent(action, {
+            ...this.analyticsContext,
+            target,
         })
     }
 
