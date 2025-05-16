@@ -114,7 +114,7 @@ export class EditorTextTab<
                         readFn={(grapher) => grapher.displayTitle}
                         writeFn={(grapher, newVal) => (grapher.title = newVal)}
                         auto={
-                            editor.couldPropertyBeInherited("title")
+                            editor.canPropertyBeInherited("title")
                                 ? editor.activeParentConfig!.title
                                 : undefined
                         }
@@ -179,7 +179,7 @@ export class EditorTextTab<
                             (grapher.subtitle = newVal)
                         }
                         auto={
-                            editor.couldPropertyBeInherited("subtitle")
+                            editor.canPropertyBeInherited("subtitle")
                                 ? editor.activeParentConfig!.subtitle
                                 : undefined
                         }
@@ -215,7 +215,7 @@ export class EditorTextTab<
                             (grapher.sourceDesc = newVal)
                         }
                         auto={
-                            editor.couldPropertyBeInherited("sourceDesc")
+                            editor.canPropertyBeInherited("sourceDesc")
                                 ? editor.activeParentConfig!.sourceDesc
                                 : undefined
                         }
@@ -257,7 +257,7 @@ export class EditorTextTab<
                         readFn={(grapher) => grapher.note ?? ""}
                         writeFn={(grapher, newVal) => (grapher.note = newVal)}
                         auto={
-                            editor.couldPropertyBeInherited("note")
+                            editor.canPropertyBeInherited("note")
                                 ? editor.activeParentConfig?.note
                                 : undefined
                         }

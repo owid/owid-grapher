@@ -190,7 +190,7 @@ class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
 
     render() {
         const canMapSettingsBeInherited =
-            this.editor.couldPropertyBeInherited("map")
+            this.editor.canPropertyBeInherited("map")
         const areMapSettingsInherited = this.editor.isPropertyInherited("map")
 
         if (!canMapSettingsBeInherited) return null
