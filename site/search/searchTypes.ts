@@ -222,3 +222,12 @@ export type SearchAction =
     | SetQueryAction
     | SetStateAction
     | ToggleRequireAllCountriesAction
+
+export interface SearchAutocompleteContextType {
+    activeIndex: number
+    setActiveIndex: (index: number) => void
+    suggestions: Filter[]
+    setSuggestions: (suggestions: Filter[]) => void
+    isOpen: boolean
+    setIsOpen: (isOpen: boolean) => void
+}

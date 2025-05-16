@@ -24,10 +24,10 @@
     padding: 8px;
     text-align: left;
     background-color: transparent;
+}
 
-    &:focus {
-        background-color: $blue-5;
-        color: $blue-90;
-        outline: none;
-    }
+.search-autocomplete-button--active {
+    background-color: $blue-5;
+    color: $blue-90;
+    outline: none;
 }

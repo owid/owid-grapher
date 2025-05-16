@@ -28,10 +28,12 @@ import {
     SearchState,
     Filter,
     FilterType,
+    SearchAutocompleteContextType,
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { match } from "ts-pattern"
+import { createContext, useContext } from "react"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -387,7 +389,7 @@ export async function querySearch(
         .then(formatAlgoliaSearchResponse)
 }
 
-export function useAutocomplete(
+export function getAutocompleteSuggestions(
     query: string,
     allTopics: string[],
     filters: Filter[]
@@ -414,7 +416,7 @@ export function useAutocomplete(
     )
         .search(lastWord)
         .filter((country) => !selectedCountryNames.has(country))
-        .map((name) => ({ name, type: FilterType.COUNTRY }))
+        .map(createCountryFilter)
 
     const tags =
         // Suggest topics only if none are currently active
@@ -422,8 +424,30 @@ export function useAutocomplete(
             ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
                   .search(lastWord)
                   .slice(0, 3)
-                  .map((name) => ({ name, type: FilterType.TOPIC }))
+                  .map(createTopicFilter)
             : []
 
-    return [...countries, ...tags]
+    return [createQueryFilter(query), ...countries, ...tags]
+}
+
+export function createFilter(type: FilterType) {
+    return (name: string): Filter => ({ type, name })
+}
+
+export const createCountryFilter = createFilter(FilterType.COUNTRY)
+export const createTopicFilter = createFilter(FilterType.TOPIC)
+export const createQueryFilter = createFilter(FilterType.QUERY)
+
+export const SearchAutocompleteContext = createContext<
+    SearchAutocompleteContextType | undefined
+>(undefined)
+
+export function useSearchAutocomplete() {
+    const context = useContext(SearchAutocompleteContext)
+    if (context === undefined) {
+        throw new Error(
+            "useSearchAutocomplete must be used within a SearchAutocompleteContextProvider"
+        )
+    }
+    return context
 }
