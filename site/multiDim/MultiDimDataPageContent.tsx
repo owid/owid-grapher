@@ -157,7 +157,8 @@ export function DataPageContent({
                 variables?.length === 1
                     ? `variables/${variables[0].id}/config`
                     : undefined
-            setManager((prev) => ({ ...prev, editUrl }))
+            const analyticsContext = { mdimSlug: slug, mdimView: settings }
+            setManager((prev) => ({ ...prev, editUrl, analyticsContext }))
 
             void Promise.allSettled([datapageDataPromise, grapherConfigPromise])
                 .then(([datapageData, grapherConfig]) => {
