@@ -77,6 +77,10 @@ export class MapRegionDropdown extends React.Component<{
         }
     }
 
+    @computed private get hasSelectionOption(): boolean {
+        return this.mapConfig.selection.hasSelection
+    }
+
     @computed get options(): MapRegionDropdownOption[] {
         const continentOptions: MapRegionDropdownOption[] = Object.values(
             MapRegionName
@@ -96,7 +100,7 @@ export class MapRegionDropdown extends React.Component<{
             trackNote: "map_zoom_to_region",
         }
 
-        return this.mapConfig.selection.hasSelection
+        return this.hasSelectionOption
             ? [selectionOption, ...continentOptions]
             : continentOptions
     }
@@ -121,6 +125,11 @@ export class MapRegionDropdown extends React.Component<{
                     value={this.value}
                     isClearable
                     placeholder="Zoom to..."
+                    aria-label={
+                        this.hasSelectionOption
+                            ? "Zoom to selection or continent"
+                            : "Zoom to continent"
+                    }
                 />
             </div>
         ) : null
