@@ -216,13 +216,17 @@ export class EditorExportTab<
                 this.grapherState.isSocialMediaExport !== isSocialMediaExport
             ) {
                 grapherState = new GrapherState({
-                    ...this.grapherState,
+                    ...this.grapherState.toObject(),
                     staticFormat: format,
-                    selectedEntityNames:
-                        this.grapherState.selection.selectedEntityNames,
-                    focusedSeriesNames: this.grapherState.focusedSeriesNames,
+                    selectedEntityNames: [
+                        ...this.grapherState.selection.selectedEntityNames,
+                    ],
+                    focusedSeriesNames: [
+                        ...this.grapherState.focusedSeriesNames,
+                    ],
                     isSocialMediaExport,
                 })
+                grapherState.inputTable = this.grapherState.inputTable
             }
             const { blob: pngBlob, svgBlob } = await grapherState.rasterize()
             if (filename.endsWith("svg") && svgBlob) {
