@@ -316,6 +316,11 @@ ${items}`
         .with({ type: "expandable-paragraph" }, (b): string | undefined =>
             enrichedBlocksToMarkdown(b.items, exportComponents)
         )
+        .with(
+            { type: "expander" },
+            (b): string | undefined =>
+                `${b.title}\n${enrichedBlocksToMarkdown(b.content, exportComponents)}`
+        )
         .with({ type: "topic-page-intro" }, (b): string | undefined =>
             enrichedBlocksToMarkdown(b.content, exportComponents)
         )

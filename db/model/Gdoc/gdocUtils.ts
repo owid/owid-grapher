@@ -227,6 +227,7 @@ export function extractFilenamesFromBlock(
                     "donors",
                     "entry-summary",
                     "expandable-paragraph",
+                    "expander",
                     "explorer-tiles",
                     "gray-section",
                     "heading",
