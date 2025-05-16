@@ -33,7 +33,7 @@
     }
 }
 
-.data-catalog-pseudo-input {
+.search-bar {
     display: flex;
     flex-grow: 1;
     flex-basis: 100%;
@@ -45,7 +45,7 @@
     }
 }
 
-.data-catalog-pseudo-input__submit-button {
+.search-bar__submit-button {
     background-color: transparent;
     width: 24px;
     height: 24px;
@@ -352,10 +352,6 @@
     &:hover {
         background-color: $accent-pale-blue;
     }
-}
-
-.data-catalog-pseudo-input:not(:focus-within) .search-autocomplete-container {
-    // display: none;
 }
 
 .data-catalog-refinement-list {
