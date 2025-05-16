@@ -116,6 +116,7 @@ export {
     AxisMinMaxValueStr,
     GrapherTooltipAnchor,
     type InteractionState,
+    type MapConfigInterface,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {
