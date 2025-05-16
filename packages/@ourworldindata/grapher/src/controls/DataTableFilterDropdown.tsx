@@ -19,6 +19,7 @@ export interface DataTableFilterDropdownManager {
     selection?: SelectionArray | EntityName[]
     canChangeAddOrHighlightEntities?: boolean
     entityRegionTypeGroups?: EntityRegionTypeGroup[]
+    isSemiNarrow?: boolean
 }
 
 interface DropdownOption {
@@ -49,7 +50,8 @@ export class DataTableFilterDropdown extends React.Component<{
         return (
             !!this.manager.isOnTableTab &&
             this.options.length > 1 &&
-            this.options[0].count !== this.options[1].count
+            this.options[0].count !== this.options[1].count &&
+            !this.manager.isSemiNarrow
         )
     }
 
@@ -60,6 +62,7 @@ export class DataTableFilterDropdown extends React.Component<{
     @action.bound private onChange(selected: DropdownOption | null): void {
         if (selected?.value) {
             this.manager.dataTableConfig.filter = selected.value
+            this.manager.dataTableConfig.search = ""
         }
     }
 

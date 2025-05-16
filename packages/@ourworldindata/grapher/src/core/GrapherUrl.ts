@@ -76,6 +76,7 @@ export const grapherConfigToQueryParams = (
         showSelectionOnlyInTable: undefined,
         overlay: undefined,
         tableFilter: undefined,
+        tableSearch: undefined,
     }
 
     // Drop undefined values and convert all to string
@@ -131,6 +132,7 @@ export const grapherObjectToQueryParams = (
                 ? R.round(grapher.mapConfig.globe.zoom, 2).toString()
                 : undefined,
         tableFilter: grapher.dataTableConfig.filter,
+        tableSearch: grapher.dataTableConfig.search,
     }
     return params
 }
