@@ -629,7 +629,7 @@ export function DodsIndexPage() {
     )
 
     return (
-        <AdminLayout title="Dods">
+        <AdminLayout title="DoDs">
             <main className="DodsIndexPage">
                 <Flex justify="space-between">
                     <Input

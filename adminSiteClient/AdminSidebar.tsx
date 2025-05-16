@@ -68,7 +68,7 @@ export const AdminSidebar = (): React.ReactElement => (
             </li>
             <li>
                 <Link to="/dods">
-                    <FontAwesomeIcon icon={faCircleInfo} /> Dods
+                    <FontAwesomeIcon icon={faCircleInfo} /> DoDs
                 </Link>
             </li>
             <li>
