@@ -99,6 +99,7 @@ export {
     traverseEnrichedBlock,
     checkNodeIsSpan,
     checkNodeIsSpanLink,
+    extractLinksFromMarkdown,
     getPaginationPageNumbers,
     spansToUnformattedPlainText,
     checkIsOwidGdocType,

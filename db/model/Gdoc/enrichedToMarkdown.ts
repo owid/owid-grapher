@@ -29,10 +29,13 @@ export function spanToMarkdown(s: Span): string {
             (span) => `**${spansToMarkdown(span.children)}**`
         )
         .with(
+            { spanType: "span-dod" },
+            (span) => `[${spansToMarkdown(span.children)}](#dod:${span.id})`
+        )
+        .with(
             {
                 spanType: P.union(
                     "span-ref",
-                    "span-dod",
                     "span-underline",
                     "span-subscript",
                     "span-superscript",

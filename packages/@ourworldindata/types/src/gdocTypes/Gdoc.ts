@@ -12,13 +12,15 @@ import {
     EnrichedBlockWithParseErrors,
     OwidEnrichedGdocBlock,
     OwidRawGdocBlock,
-    RawBlockText,
     RefDictionary,
 } from "./ArchieMlComponents.js"
 import { MinimalTag } from "../dbTypes/Tags.js"
 import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 import { QueryParams } from "../domainTypes/Various.js"
-import { TagGraphRoot } from "../domainTypes/ContentGraph.js"
+import {
+    TagGraphRoot,
+    ContentGraphLinkType,
+} from "../domainTypes/ContentGraph.js"
 import { DbRawImage } from "../dbTypes/Images.js"
 import { DbPlainNarrativeChart } from "../dbTypes/NarrativeCharts.js"
 
@@ -316,17 +318,9 @@ export interface OwidGdocJSON
     updatedAt: string | null
 }
 
-export enum OwidGdocLinkType {
-    Gdoc = "gdoc",
-    Url = "url",
-    Grapher = "grapher",
-    Explorer = "explorer",
-    NarrativeChart = "narrative-chart",
-}
-
 export interface OwidGdocLinkJSON {
     // source: Record<string, any>
-    linkType: OwidGdocLinkType
+    linkType: ContentGraphLinkType
     target: string
     componentType: string
     text: string
@@ -407,15 +401,10 @@ export enum GdocsContentSource {
 
 export const DYNAMIC_COLLECTION_PAGE_CONTAINER_ID = "dynamic-collection-page"
 
-export type RawDetail = {
-    id: string
-    text: RawBlockText[]
-}
-
 export type EnrichedDetail = {
     id: string
-    text: EnrichedBlockText[]
-} & EnrichedBlockWithParseErrors
+    text: string
+}
 
 export type DetailDictionary = Record<string, EnrichedDetail>
 

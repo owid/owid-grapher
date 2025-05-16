@@ -28,11 +28,7 @@ import {
     getLatestArchivedVersionsFromDb,
     GrapherChecksumsObjectWithHash,
 } from "./archivalChecksum.js"
-import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
-import {
-    ARCHIVE_BASE_URL,
-    GDOCS_DETAILS_ON_DEMAND_ID,
-} from "../../settings/serverSettings.js"
+import { ARCHIVE_BASE_URL } from "../../settings/serverSettings.js"
 import { getEnrichedChartsByIds } from "../../db/model/Chart.js"
 import {
     ArchivalTimestamp,
@@ -40,6 +36,7 @@ import {
     convertToArchivalDateStringIfNecessary,
 } from "@ourworldindata/utils"
 import { PROD_URL } from "../../site/SiteConstants.js"
+import { getParsedDodsDictionary } from "../../db/model/Dod.js"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
@@ -75,32 +72,15 @@ export const bakeDods = async (
     knex: db.KnexReadonlyTransaction,
     archiveDir: string
 ) => {
-    if (!GDOCS_DETAILS_ON_DEMAND_ID) {
-        throw new Error(
-            "GDOCS_DETAILS_ON_DEMAND_ID not set. Unable to bake dods."
-        )
-    }
+    const parsedDods = await getParsedDodsDictionary(knex)
 
-    const { details, parseErrors } = await GdocPost.getDetailsOnDemandGdoc(knex)
-    if (parseErrors.length) {
-        throw new Error(
-            `Error(s) baking details: ${parseErrors
-                .map((e) => e.message)
-                .join(", ")}`
-        )
-    }
+    const targetPath = path.join(archiveDir, "assets", "dods.json")
+    const resultFilename = await hashAndWriteFile(
+        targetPath,
+        JSON.stringify(parsedDods)
+    ).then((fullPath) => path.basename(fullPath))
 
-    if (details) {
-        const targetPath = path.join(archiveDir, "assets", "dods.json")
-        const resultFilename = await hashAndWriteFile(
-            targetPath,
-            JSON.stringify(details)
-        ).then((fullPath) => path.basename(fullPath))
-
-        return { "dods.json": `/assets/${resultFilename}` }
-    } else {
-        throw Error("Details on demand not found")
-    }
+    return { "dods.json": `/assets/${resultFilename}` }
 }
 
 const bakeVariableDataFiles = async (

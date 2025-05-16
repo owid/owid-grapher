@@ -98,6 +98,7 @@ export const ETL_WIZARD_URL: string =
 export const ETL_API_URL: string =
     process.env.ETL_API_URL ?? `http://${ADMIN_SERVER_HOST}:8081/api/v1`
 
+// TODO: remove this once https://github.com/owid/owid-grapher/pull/4852 is merged
 export const GDOCS_DETAILS_ON_DEMAND_ID: string =
     process.env.GDOCS_DETAILS_ON_DEMAND_ID ?? ""
 

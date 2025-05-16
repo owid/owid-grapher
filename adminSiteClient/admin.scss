@@ -13,6 +13,7 @@
 @import "./GdocsIndexPage.scss";
 @import "./FeaturedMetricsPage.scss";
 @import "./TagGraphPage.scss";
+@import "./DodsIndexPage.scss";
 
 html {
     font-size: 14px;
@@ -878,6 +879,18 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     .partial-grapher-configs .FieldsRow {
         align-items: flex-start;
     }
+}
+
+.EditableTextarea__actions {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.EditableTextarea__save-action {
+    margin-right: 8px;
 }
 
 .topbar {

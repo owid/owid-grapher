@@ -13,11 +13,11 @@ import {
     DbInsertNarrativeChart,
     NarrativeChartsTableName,
     ChartConfigsTableName,
-    OwidGdocLinkType,
     DbPlainUser,
     DbRawPostGdoc,
     DbRawImage,
     OwidGdocDataInsightContent,
+    ContentGraphLinkType,
 } from "@ourworldindata/types"
 import {
     diffGrapherConfigs,
@@ -288,7 +288,7 @@ export async function updateNarrativeChart(
     const references = await getPublishedLinksTo(
         trx,
         [existingRow.name],
-        OwidGdocLinkType.NarrativeChart
+        ContentGraphLinkType.NarrativeChart
     )
     if (references.length > 0) {
         await triggerStaticBuild(
@@ -324,7 +324,7 @@ export async function deleteNarrativeChart(
     const references = await getPublishedLinksTo(
         trx,
         [name],
-        OwidGdocLinkType.NarrativeChart
+        ContentGraphLinkType.NarrativeChart
     )
 
     if (references.length) {
@@ -364,7 +364,7 @@ export async function getNarrativeChartReferences(
     const postsGdocs = await getPublishedLinksTo(
         trx,
         [name],
-        OwidGdocLinkType.NarrativeChart
+        ContentGraphLinkType.NarrativeChart
     ).then((refs) => uniqBy(refs, "slug"))
 
     const dataInsights = await getDataInsightsForNarrativeChart(trx, id)

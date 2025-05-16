@@ -182,7 +182,7 @@ export class ChartEditorView<
     }
 
     async fetchDetails(): Promise<void> {
-        await runDetailsOnDemand()
+        await runDetailsOnDemand({ shouldFetchFromAdminApi: true })
 
         runInAction(() => {
             if (window.details) this.details = window.details

@@ -3,8 +3,6 @@ import {
     OwidGdocPostInterface,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
-    DetailDictionary,
-    ParseError,
     OwidGdocType,
     OwidEnrichedGdocBlock,
     RawBlockText,
@@ -13,18 +11,15 @@ import {
     OwidGdocBaseInterface,
     excludeNullish,
 } from "@ourworldindata/utils"
-import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 import {
     formatCitation,
     generateStickyNav,
     generateToc,
 } from "./archieToEnriched.js"
-import { ADMIN_BASE_URL } from "../../../settings/clientSettings.js"
-import { parseDetails, parseFaqs } from "./rawToEnriched.js"
+import { parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
 import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
-import { getGdocBaseObjectById } from "./GdocFactory.js"
 
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     content!: OwidGdocPostContent
@@ -96,9 +91,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         }
     }
 
-    _validateSubclass = async (
-        knex: KnexReadonlyTransaction
-    ): Promise<OwidGdocErrorMessage[]> => {
+    _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
 
         if (!this.tags?.length) {
@@ -139,33 +132,6 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             }
         }
 
-        // Unless this is the DoD document, validate that all referenced dods exist
-        if (this.id !== GDOCS_DETAILS_ON_DEMAND_ID) {
-            const { details } = await GdocPost.getDetailsOnDemandGdoc(knex)
-            for (const detailId of this.details) {
-                if (details && !details[detailId]) {
-                    errors.push({
-                        type: OwidGdocErrorMessageType.Error,
-                        message: `Invalid DoD referenced: "${detailId}"`,
-                        property: "content",
-                    })
-                }
-            }
-        }
-
-        // This is to validate the DoD document itself
-        // TODO: this should be done on a GdocDods subclass
-        if (this.id === GDOCS_DETAILS_ON_DEMAND_ID) {
-            const results = parseDetails(this.content.details)
-            for (const parseError of results.parseErrors) {
-                errors.push({
-                    ...parseError,
-                    property: "details",
-                    type: OwidGdocErrorMessageType.Error,
-                })
-            }
-        }
-
         return errors
     }
 
@@ -200,38 +166,5 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         )
 
         this.relatedCharts = relatedCharts
-    }
-
-    static async getDetailsOnDemandGdoc(
-        knex: KnexReadonlyTransaction
-    ): Promise<{
-        details: DetailDictionary
-        parseErrors: ParseError[]
-    }> {
-        if (!GDOCS_DETAILS_ON_DEMAND_ID) {
-            console.error(
-                "GDOCS_DETAILS_ON_DEMAND_ID unset. No details can be loaded"
-            )
-            return { details: {}, parseErrors: [] }
-        }
-        const gdoc = await getGdocBaseObjectById(
-            knex,
-            GDOCS_DETAILS_ON_DEMAND_ID,
-            false,
-            true
-        )
-
-        if (!gdoc || !("details" in gdoc.content)) {
-            return {
-                details: {},
-                parseErrors: [
-                    {
-                        message: `Details on demand document with id "${GDOCS_DETAILS_ON_DEMAND_ID}" isn't registered and/or published; or it does not contain a [.details] block. Please add it via ${ADMIN_BASE_URL}/admin/gdocs`,
-                    },
-                ],
-            }
-        }
-
-        return parseDetails(gdoc.content.details)
     }
 }

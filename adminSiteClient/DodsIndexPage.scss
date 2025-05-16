@@ -1,0 +1,40 @@
+.DodEditor__table {
+    td {
+        vertical-align: top;
+    }
+}
+
+.DodEditor--has-error {
+    textarea {
+        outline: 1px solid tomato !important;
+        border: 1px solid tomato !important;
+    }
+}
+
+.DodEditor__error {
+    color: tomato;
+    line-height: 1;
+    font-size: 1em;
+    strong {
+        margin-right: 8px;
+        display: block;
+    }
+}
+
+.DodEditor__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.DodEditor__actions-spinner {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    button {
+        width: 100% !important;
+    }
+}

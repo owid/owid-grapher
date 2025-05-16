@@ -1,8 +1,7 @@
 import { tippy } from "@tippyjs/react"
 import { Instance } from "tippy.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { ADMIN_BASE_URL, BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { renderToStaticMarkup } from "react-dom/server.js"
-import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import {
     ArchiveMetaInformation,
     DetailDictionary,
@@ -10,6 +9,8 @@ import {
     readFromAssetMap,
 } from "@ourworldindata/utils"
 import { SiteAnalytics } from "./SiteAnalytics.js"
+import { MarkdownTextWrap } from "@ourworldindata/components"
+import urljoin from "url-join"
 
 type Tippyfied<E> = E & {
     _tippy?: Instance
@@ -24,16 +25,25 @@ declare global {
 
 const siteAnalytics = new SiteAnalytics()
 
-export async function runDetailsOnDemand() {
+type RunDetailsOnDemandOptions = {
+    shouldFetchFromAdminApi?: boolean
+}
+export async function runDetailsOnDemand(
+    options: RunDetailsOnDemandOptions = {}
+) {
+    const { shouldFetchFromAdminApi = false } = options
+
     const runtimeAssetMap =
         (typeof window !== "undefined" &&
             window._OWID_ARCHIVE_INFO?.assets?.runtime) ||
         undefined
 
-    const dodFetchUrl = readFromAssetMap(runtimeAssetMap, {
-        path: "dods.json",
-        fallback: `${BAKED_BASE_URL}/dods.json`,
-    })
+    const dodFetchUrl = shouldFetchFromAdminApi
+        ? urljoin(ADMIN_BASE_URL, "admin/api/parsed-dods.json")
+        : readFromAssetMap(runtimeAssetMap, {
+              path: "dods.json",
+              fallback: `${BAKED_BASE_URL}/dods.json`,
+          })
 
     window.details = await fetchWithRetry(dodFetchUrl, {
         method: "GET",
@@ -64,7 +74,11 @@ export async function runDetailsOnDemand() {
 
         const content = renderToStaticMarkup(
             <div className="dod-container">
-                <ArticleBlocks blocks={dod.text} />
+                <MarkdownTextWrap
+                    text={dod.text}
+                    fontSize={12}
+                    lineHeight={1.55}
+                />
             </div>
         )
         if (element._tippy) {
@@ -82,6 +96,9 @@ export async function runDetailsOnDemand() {
                 arrow: false,
                 theme: "light dod",
                 appendTo: document.body,
+                aria: {
+                    content: "labelledby",
+                },
             })
         }
     }

@@ -71,8 +71,6 @@ import {
     RawBlockTopicPageIntro,
     EnrichedBlockTopicPageIntro,
     EnrichedTopicPageIntroRelatedTopic,
-    DetailDictionary,
-    EnrichedDetail,
     EnrichedBlockKeyInsightsSlide,
     RawBlockResearchAndWriting,
     RawBlockResearchAndWritingLink,
@@ -163,7 +161,6 @@ import {
 } from "./htmlToEnriched.js"
 import { P, match } from "ts-pattern"
 import { isObject, parseInt } from "lodash-es"
-import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 import * as R from "remeda"
 
 export function parseRawBlocksToEnrichedBlocks(
@@ -1755,72 +1752,7 @@ export function parseFaqs(
     }
 }
 
-export function parseDetails(details: unknown): {
-    details: DetailDictionary
-    parseErrors: ParseError[]
-} {
-    if (!Array.isArray(details))
-        return {
-            details: {},
-            parseErrors: [
-                {
-                    message: `No details defined in document with id "${GDOCS_DETAILS_ON_DEMAND_ID}"`,
-                },
-            ],
-        }
-
-    function parseDetail(detail: unknown): EnrichedDetail {
-        const createError = (
-            error: ParseError,
-            id: string = "",
-            text: EnrichedBlockText[] = []
-        ): EnrichedDetail => ({
-            id,
-            text,
-            parseErrors: [error],
-        })
-
-        if (!R.isPlainObject(detail))
-            return createError({
-                message: "Detail is not a plain-object and cannot be parsed",
-            })
-        if (typeof detail.id !== "string")
-            return createError({
-                message: "Detail does not have an id",
-            })
-        if (!Array.isArray(detail.text) || !detail.text.length)
-            return createError({
-                message: `Detail with id "${detail.id}" does not have any text`,
-            })
-
-        const enrichedText = detail.text.map(parseText)
-
-        return {
-            id: detail.id,
-            text: enrichedText,
-            parseErrors: [
-                ...enrichedText.flatMap((text) =>
-                    text.parseErrors.map((parseError) => ({
-                        ...parseError,
-                        message: `Text parse error in detail with id "${detail.id}": ${parseError.message}`,
-                    }))
-                ),
-            ],
-        }
-    }
-
-    const [enrichedDetails, detailsWithErrors] = partition(
-        details.map(parseDetail),
-        (detail) => !detail.parseErrors.length
-    )
-
-    return {
-        details: keyBy(enrichedDetails, "id"),
-        parseErrors: detailsWithErrors.flatMap((detail) => detail.parseErrors),
-    }
-}
-
-function parseExpandableParagraph(
+export function parseExpandableParagraph(
     raw: RawBlockExpandableParagraph
 ): EnrichedBlockExpandableParagraph {
     const createError = (
