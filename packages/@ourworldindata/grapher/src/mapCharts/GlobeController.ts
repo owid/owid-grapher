@@ -1,5 +1,5 @@
 import { FeatureCollection } from "geojson"
-import { geoCentroid, geoInterpolate, geoOrthographic, geoPath } from "d3-geo"
+import { geoInterpolate, geoOrthographic, geoPath } from "d3-geo"
 import { interpolateNumber } from "d3-interpolate"
 import { easeCubicOut } from "d3-ease"
 import * as R from "remeda"
@@ -25,6 +25,7 @@ import {
     DEFAULT_GLOBE_ROTATION,
     DEFAULT_GLOBE_ROTATIONS_FOR_TIME,
     DEFAULT_GLOBE_SIZE,
+    GeoFeature,
     GLOBE_COUNTRY_ZOOM,
     GLOBE_LATITUDE_MAX,
     GLOBE_LATITUDE_MIN,
@@ -37,6 +38,7 @@ import {
 import { isPointPlacedOnVisibleHemisphere } from "./MapHelpers"
 import { ckmeans } from "simple-statistics"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
+import { center } from "@turf/center"
 
 const geoFeaturesById = new Map<string, GlobeRenderFeature>(
     getGeoFeaturesForGlobe().map((f: GlobeRenderFeature) => [f.id, f])
@@ -124,8 +126,8 @@ export class GlobeController {
         this.jumpTo(target)
     }
 
-    rotateToCountry(country: EntityName): void {
-        const target = calculateTargetForCountry(country)
+    rotateToCountry(country: EntityName, zoom?: number): void {
+        const target = calculateTargetForCountry(country, zoom)
         if (target) this.showGlobeAndRotateTo(target)
     }
 
@@ -228,14 +230,56 @@ export class GlobeController {
     }
 }
 
-function calculateTargetForCountry(country: EntityName): Target | undefined {
+function calculateTargetForCountry(
+    country: EntityName,
+    zoom?: number
+): Target | undefined {
     const geoFeature = geoFeaturesById.get(country)
     if (!geoFeature) return
 
-    const { geoCentroid } = geoFeature
-    const coords: [number, number] = [-geoCentroid[0], -geoCentroid[1]]
+    const coords: [number, number] = [
+        geoFeature.geoCentroid[0],
+        R.clamp(geoFeature.geoCentroid[1], {
+            min: GLOBE_LATITUDE_MIN,
+            max: GLOBE_LATITUDE_MAX,
+        }),
+    ]
 
-    return { coords, zoom: GLOBE_COUNTRY_ZOOM }
+    // make sure the whole country is visible after zooming
+    const zoomToFit = calculateZoomToFitForGeoFeature(geoFeature.geo)
+    const targetZoom = Math.min(zoom ?? GLOBE_COUNTRY_ZOOM, zoomToFit)
+
+    return { coords, zoom: targetZoom }
+}
+
+function calculateZoomToFitForGeoFeature(geoFeature: GeoFeature): number {
+    const centerPoint = getCenterPoint(geoFeature)
+    const projection = geoOrthographic().rotate(negateCoords(centerPoint))
+
+    const corners = geoPath().projection(projection).bounds(geoFeature)
+    const bounds = Bounds.fromCorners(
+        new PointVector(...corners[0]),
+        new PointVector(...corners[1])
+    )
+
+    return calculateZoomToFitForBounds(bounds)
+}
+
+function calculateZoomToFitForBounds(bounds: Bounds): number {
+    // calculate the zoom needed for the bounds to be visible
+    let zoom = Math.min(
+        DEFAULT_GLOBE_SIZE / bounds.width,
+        DEFAULT_GLOBE_SIZE / bounds.height
+    )
+    if (Number.isNaN(zoom)) zoom = 1
+
+    // it's nicer to have a bit of padding around the zoomed-to area
+    zoom = zoom - 0.05
+
+    // clamp the zoom to the allowed range
+    zoom = R.clamp(zoom, { min: GLOBE_MIN_ZOOM, max: GLOBE_MAX_ZOOM })
+
+    return zoom
 }
 
 function calculateTargetForOwidContinent(continent: GlobeRegionName): Target {
@@ -312,29 +356,32 @@ function calculateTargetForCountryCollection(
 
 function getCoordsBasedOnTime(): [number, number] {
     const date = new Date()
-
     const hours = date.getUTCHours()
-    const minutes = date.getUTCMinutes()
 
-    if (hours <= 7 && minutes <= 59) {
+    if (hours <= 7) {
         return DEFAULT_GLOBE_ROTATIONS_FOR_TIME.UTC_MORNING
-    } else if (hours <= 15 && minutes <= 59) {
+    } else if (hours <= 15) {
         return DEFAULT_GLOBE_ROTATIONS_FOR_TIME.UTC_MIDDAY
     } else {
         return DEFAULT_GLOBE_ROTATIONS_FOR_TIME.UTC_EVENING
     }
 }
 
-function getCentroidForCountryCollection(
+function getCenterForCountryCollection(
     countryNames: string[]
 ): [number, number] {
     const featureCollection = makeFeatureCollectionForCountries(countryNames)
+    return getCenterPoint(featureCollection)
+}
 
-    const centerPoint = geoCentroid(featureCollection)
+function getCenterPoint(
+    geojson: GeoFeature | FeatureCollection
+): [number, number] {
+    const centerPoint = center(geojson)
 
     return [
-        -centerPoint[0],
-        -R.clamp(centerPoint[1], {
+        centerPoint.geometry.coordinates[0],
+        R.clamp(centerPoint.geometry.coordinates[1], {
             min: GLOBE_LATITUDE_MIN,
             max: GLOBE_LATITUDE_MAX,
         }),
@@ -345,8 +392,8 @@ function getCoordsAndZoomForCountryCollection(countryNames: string[]): {
     coords: [number, number]
     zoom: number
 } {
-    const centerPoint = getCentroidForCountryCollection(countryNames)
-    const projection = geoOrthographic().rotate(centerPoint)
+    const centerPoint = getCenterForCountryCollection(countryNames)
+    const projection = geoOrthographic().rotate(negateCoords(centerPoint))
 
     const bounds = excludeUndefined(
         countryNames.map((countryName) => {
@@ -363,24 +410,16 @@ function getCoordsAndZoomForCountryCollection(countryNames: string[]): {
 
     // merge bounds and calculate the zoom needed for the countries to be visible
     const mergedBounds = Bounds.merge(bounds)
-    let zoom = R.clamp(
-        Math.min(
-            DEFAULT_GLOBE_SIZE / mergedBounds.width,
-            DEFAULT_GLOBE_SIZE / mergedBounds.height
-        ),
-        { min: GLOBE_MIN_ZOOM, max: GLOBE_MAX_ZOOM }
-    )
-
-    if (Number.isNaN(zoom)) zoom = 1
+    const zoom = calculateZoomToFitForBounds(mergedBounds)
 
     return { coords: centerPoint, zoom }
 }
 
 function findVisibleCountrySubset(countryNames: string[]): string[] {
     // rotate the globe to the center point of all given countries,
-    // and find all countries that are currently visible on the globe
-    const centerPoint = getCentroidForCountryCollection(countryNames)
-    const projection = geoOrthographic().rotate(centerPoint)
+    // and find all countries that are then visible on the globe
+    const centerPoint = getCenterForCountryCollection(countryNames)
+    const projection = geoOrthographic().rotate(negateCoords(centerPoint))
     const visibleCountries = countryNames.filter((countryName) => {
         const feature = geoFeaturesById.get(countryName)
         if (!feature) return false
@@ -463,4 +502,8 @@ function addLongitudeOffset(
     offset = LONGITUDE_OFFSET
 ): [number, number] {
     return [coords[0] + offset, coords[1]]
+}
+
+function negateCoords(coords: [number, number]): [number, number] {
+    return [-coords[0], -coords[1]]
 }

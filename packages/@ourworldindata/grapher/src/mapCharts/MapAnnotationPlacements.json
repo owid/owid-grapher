@@ -1,2091 +1,980 @@
 [
     {
         "id": "Afghanistan",
-        "ellipse": {
-            "cx": 65.32162,
-            "cy": 33.50235,
-            "left": 60.96483,
-            "top": 35.74871
-        }
+        "ellipse": { "cx": 65.32, "cy": 33.5, "left": 60.96, "top": 35.75 }
     },
     {
         "id": "Albania",
-        "ellipse": {
-            "cx": 19.983,
-            "cy": 40.85226,
-            "left": 19.34394,
-            "top": 41.70975
-        },
+        "ellipse": { "cx": 19.98, "cy": 40.85, "left": 19.34, "top": 41.71 },
         "direction": "leftBottom",
-        "anchorPoint": [20.08849, 39.83296]
+        "anchorPoint": [20.09, 39.83]
     },
     {
         "id": "Algeria",
-        "ellipse": {
-            "cx": 2.3822,
-            "cy": 27.58947,
-            "left": -4.81213,
-            "top": 33.00995
-        }
+        "ellipse": { "cx": 2.38, "cy": 27.59, "left": -4.81, "top": 33.01 }
     },
     {
         "id": "Andorra",
-        "ellipse": {
-            "cx": 1.55322,
-            "cy": 42.53757,
-            "left": 1.39875,
-            "top": 42.61071
-        },
         "direction": "rightBottom",
-        "anchorPoint": [1.54059, 42.53557],
+        "anchorPoint": [1.54, 42.54],
         "bridgeCountries": ["France", "Spain"]
     },
     {
         "id": "Angola",
-        "ellipse": {
-            "cx": 17.66867,
-            "cy": -13.33233,
-            "left": 13.41008,
-            "top": -9.28267
-        },
+        "ellipse": { "cx": 17.67, "cy": -13.33, "left": 13.41, "top": -9.28 },
         "direction": "left",
-        "anchorPoint": [14.07955, -11.48487]
+        "anchorPoint": [14.08, -11.48]
     },
     {
         "id": "Antigua and Barbuda",
-        "ellipse": {
-            "cx": -61.81368,
-            "cy": 17.06347,
-            "left": -61.90376,
-            "top": 17.13267
-        },
         "direction": "right",
-        "anchorPoint": [-61.79203, 17.37198]
+        "anchorPoint": [-61.79, 17.37]
     },
     {
         "id": "Argentina",
-        "ellipse": {
-            "cx": -63.98082,
-            "cy": -31.94608,
-            "left": -69.702,
-            "top": -24.16868
-        },
+        "ellipse": { "cx": -63.98, "cy": -31.95, "left": -69.7, "top": -24.17 },
         "direction": "rightBottom",
-        "anchorPoint": [-65.92392, -43.82214]
+        "anchorPoint": [-65.92, -43.82]
     },
     {
         "id": "Armenia",
-        "ellipse": {
-            "cx": 44.54185,
-            "cy": 40.56725,
-            "left": 43.72514,
-            "top": 41.09723
-        }
+        "ellipse": { "cx": 44.54, "cy": 40.57, "left": 43.73, "top": 41.1 }
     },
     {
         "id": "Australia",
-        "ellipse": {
-            "cx": 131.63225,
-            "cy": -23.78769,
-            "left": 119.27407,
-            "top": -15.59192
-        }
+        "ellipse": { "cx": 131.63, "cy": -23.79, "left": 119.27, "top": -15.59 }
     },
     {
         "id": "Austria",
-        "ellipse": {
-            "cx": 14.2516,
-            "cy": 47.09805,
-            "left": 12.21279,
-            "top": 47.5816
-        }
+        "ellipse": { "cx": 14.25, "cy": 47.1, "left": 12.21, "top": 47.58 }
     },
     {
         "id": "Azerbaijan",
-        "ellipse": {
-            "cx": 47.49474,
-            "cy": 40.35363,
-            "left": 45.8734,
-            "top": 41.16706
-        },
+        "ellipse": { "cx": 47.49, "cy": 40.35, "left": 45.87, "top": 41.17 },
         "direction": "rightBottom",
-        "anchorPoint": [49.11384, 39.6498]
+        "anchorPoint": [49.11, 39.65]
     },
-    {
-        "id": "Bahamas",
-        "ellipse": {
-            "cx": -78.42719,
-            "cy": 26.68482,
-            "left": -78.94206,
-            "top": 26.86314
-        },
-        "direction": "right",
-        "anchorPoint": [-77.27005, 25.51089]
-    },
-    {
-        "id": "Bahrain",
-        "ellipse": {
-            "cx": 50.53204,
-            "cy": 26.01924,
-            "left": 50.46281,
-            "top": 26.16915
-        },
-        "direction": "rightTop",
-        "anchorPoint": [50.52012, 26.10215]
-    },
+    { "id": "Bahamas", "direction": "right", "anchorPoint": [-77.27, 25.51] },
+    { "id": "Bahrain", "direction": "rightTop", "anchorPoint": [50.52, 26.1] },
     {
         "id": "Bangladesh",
-        "ellipse": {
-            "cx": 89.842,
-            "cy": 23.92928,
-            "left": 88.67015,
-            "top": 25.27045
-        },
+        "ellipse": { "cx": 89.84, "cy": 23.93, "left": 88.67, "top": 25.27 },
         "direction": "bottom",
-        "anchorPoint": [89.70348, 22.25033]
+        "anchorPoint": [89.7, 22.25]
     },
-    {
-        "id": "Barbados",
-        "ellipse": {
-            "cx": -59.5899,
-            "cy": 13.16759,
-            "left": -59.66753,
-            "top": 13.25263
-        },
-        "direction": "right",
-        "anchorPoint": [-59.45995, 13.14628]
-    },
+    { "id": "Barbados", "direction": "right", "anchorPoint": [-59.46, 13.15] },
     {
         "id": "Belarus",
-        "ellipse": {
-            "cx": 27.5618,
-            "cy": 53.24145,
-            "left": 23.77868,
-            "top": 54.38234
-        }
+        "ellipse": { "cx": 27.56, "cy": 53.24, "left": 23.78, "top": 54.38 }
     },
     {
         "id": "Belgium",
-        "ellipse": {
-            "cx": 4.75137,
-            "cy": 50.65237,
-            "left": 3.37438,
-            "top": 51.11629
-        },
+        "ellipse": { "cx": 4.75, "cy": 50.65, "left": 3.37, "top": 51.12 },
         "direction": "top",
-        "anchorPoint": [3.03295, 51.09571]
+        "anchorPoint": [3.03, 51.1]
     },
-    {
-        "id": "Belize",
-        "ellipse": {
-            "cx": -88.6877,
-            "cy": 17.10543,
-            "left": -89.07293,
-            "top": 17.96068
-        },
-        "direction": "right",
-        "anchorPoint": [-88.55203, 17.18346]
-    },
+    { "id": "Belize", "direction": "right", "anchorPoint": [-88.55, 17.18] },
     {
         "id": "Benin",
-        "ellipse": {
-            "cx": 2.28694,
-            "cy": 10.17961,
-            "left": 1.47062,
-            "top": 11.79391
-        },
+        "ellipse": { "cx": 2.29, "cy": 10.18, "left": 1.47, "top": 11.79 },
         "direction": "bottom",
-        "anchorPoint": [2.2541, 6.20425]
+        "anchorPoint": [2.25, 6.2]
     },
     {
         "id": "Bhutan",
-        "ellipse": {
-            "cx": 90.47183,
-            "cy": 27.47426,
-            "left": 89.06648,
-            "top": 28.07039
-        }
+        "ellipse": { "cx": 90.47, "cy": 27.47, "left": 89.07, "top": 28.07 }
     },
     {
         "id": "Bolivia",
-        "ellipse": {
-            "cx": -64.83744,
-            "cy": -16.76704,
-            "left": -68.96749,
-            "top": -12.43479
-        }
+        "ellipse": { "cx": -64.84, "cy": -16.77, "left": -68.97, "top": -12.43 }
     },
     {
         "id": "Bosnia and Herzegovina",
-        "ellipse": {
-            "cx": 17.70121,
-            "cy": 44.39791,
-            "left": 16.28716,
-            "top": 45.07208
-        },
+        "ellipse": { "cx": 17.7, "cy": 44.4, "left": 16.29, "top": 45.07 },
         "direction": "leftBottom",
-        "anchorPoint": [18.08525, 42.99661],
+        "anchorPoint": [18.09, 43],
         "bridgeCountries": ["Croatia"]
     },
     {
         "id": "Botswana",
-        "ellipse": {
-            "cx": 24.27034,
-            "cy": -21.94133,
-            "left": 20.87814,
-            "top": -18.88598
-        }
+        "ellipse": { "cx": 24.27, "cy": -21.94, "left": 20.88, "top": -18.89 }
     },
     {
         "id": "Brazil",
-        "ellipse": {
-            "cx": -49.04892,
-            "cy": -11.82666,
-            "left": -59.34551,
-            "top": -1.67882
-        }
+        "ellipse": { "cx": -49.05, "cy": -11.83, "left": -59.35, "top": -1.68 }
     },
-    {
-        "id": "Brunei",
-        "ellipse": {
-            "cx": 115.04042,
-            "cy": 4.73193,
-            "left": 114.69801,
-            "top": 5.12599
-        },
-        "direction": "leftTop",
-        "anchorPoint": [114.82236, 4.71618]
-    },
+    { "id": "Brunei", "direction": "leftTop", "anchorPoint": [114.82, 4.72] },
     {
         "id": "Bulgaria",
-        "ellipse": {
-            "cx": 25.17671,
-            "cy": 42.73733,
-            "left": 22.64007,
-            "top": 43.63563
-        },
+        "ellipse": { "cx": 25.18, "cy": 42.74, "left": 22.64, "top": 43.64 },
         "direction": "right",
-        "anchorPoint": [27.49835, 42.88267]
+        "anchorPoint": [27.5, 42.88]
     },
     {
         "id": "Burkina Faso",
-        "ellipse": {
-            "cx": -1.23783,
-            "cy": 12.6175,
-            "left": -3.51979,
-            "top": 14.21532
-        }
+        "ellipse": { "cx": -1.24, "cy": 12.62, "left": -3.52, "top": 14.22 }
     },
     {
         "id": "Burundi",
-        "ellipse": {
-            "cx": 29.81606,
-            "cy": -3.52981,
-            "left": 29.29073,
-            "top": -2.87652
-        }
+        "ellipse": { "cx": 29.82, "cy": -3.53, "left": 29.29, "top": -2.88 }
     },
     {
         "id": "Cambodia",
-        "ellipse": {
-            "cx": 104.53388,
-            "cy": 12.77641,
-            "left": 102.49174,
-            "top": 14.31595
-        },
+        "ellipse": { "cx": 104.53, "cy": 12.78, "left": 102.49, "top": 14.32 },
         "direction": "leftBottom",
-        "anchorPoint": [103.48003, 11.19263]
+        "anchorPoint": [103.48, 11.19]
     },
     {
         "id": "Cameroon",
-        "ellipse": {
-            "cx": 12.73394,
-            "cy": 4.87224,
-            "left": 10.99299,
-            "top": 7.43291
-        },
+        "ellipse": { "cx": 12.73, "cy": 4.87, "left": 10.99, "top": 7.43 },
         "direction": "leftBottom",
-        "anchorPoint": [9.5229, 3.8843]
+        "anchorPoint": [9.52, 3.88]
     },
     {
         "id": "Canada",
-        "ellipse": {
-            "cx": -111.51148,
-            "cy": 58.2488,
-            "left": -132.64848,
-            "top": 62.83293
-        }
+        "ellipse": { "cx": -111.51, "cy": 58.25, "left": -132.65, "top": 62.83 }
     },
-    {
-        "id": "Cape Verde",
-        "ellipse": {
-            "cx": -25.21265,
-            "cy": 17.04635,
-            "left": -25.34232,
-            "top": 17.14198
-        },
-        "direction": "left",
-        "anchorPoint": [-24.81629, 15.93704]
-    },
+    { "id": "Cape Verde", "direction": "left", "anchorPoint": [-24.82, 15.94] },
     {
         "id": "Central African Republic",
-        "ellipse": {
-            "cx": 21.55058,
-            "cy": 6.90862,
-            "left": 18.12292,
-            "top": 9.24051
-        }
+        "ellipse": { "cx": 21.55, "cy": 6.91, "left": 18.12, "top": 9.24 }
     },
     {
         "id": "Chad",
-        "ellipse": {
-            "cx": 18.8993,
-            "cy": 16.32122,
-            "left": 15.24191,
-            "top": 21.66272
-        }
+        "ellipse": { "cx": 18.9, "cy": 16.32, "left": 15.24, "top": 21.66 }
     },
-    {
-        "id": "Chile",
-        "direction": "left",
-        "anchorPoint": [-73.05291, -38.30208]
-    },
+    { "id": "Chile", "direction": "left", "anchorPoint": [-73.05, -38.3] },
     {
         "id": "China",
-        "ellipse": {
-            "cx": 102.62142,
-            "cy": 35.16368,
-            "left": 86.35466,
-            "top": 41.29557
-        }
+        "ellipse": { "cx": 102.62, "cy": 35.16, "left": 86.35, "top": 41.3 }
     },
     {
         "id": "Colombia",
-        "ellipse": {
-            "cx": -72.61112,
-            "cy": 4.03384,
-            "left": -76.9865,
-            "top": 6.84022
-        },
+        "ellipse": { "cx": -72.61, "cy": 4.03, "left": -76.99, "top": 6.84 },
         "direction": "left",
-        "anchorPoint": [-77.07392, 4.44116]
+        "anchorPoint": [-77.07, 4.44]
     },
     {
         "id": "Comoros",
-        "ellipse": {
-            "cx": 44.42479,
-            "cy": -12.21084,
-            "left": 44.35052,
-            "top": -12.1525
-        },
         "direction": "rightTop",
-        "anchorPoint": [43.92809, -11.75054]
+        "anchorPoint": [43.93, -11.75]
     },
     {
         "id": "Congo",
-        "ellipse": {
-            "cx": 15.74543,
-            "cy": -0.03803,
-            "left": 14.25254,
-            "top": 1.74
-        },
+        "ellipse": { "cx": 15.75, "cy": -0.04, "left": 14.25, "top": 1.74 },
         "direction": "leftBottom",
-        "anchorPoint": [11.68931, -4.32145]
+        "anchorPoint": [11.69, -4.32]
     },
     {
         "id": "Costa Rica",
-        "ellipse": {
-            "cx": -84.01516,
-            "cy": 10.06558,
-            "left": -84.73645,
-            "top": 10.69077
-        },
+        "ellipse": { "cx": -84.02, "cy": 10.07, "left": -84.74, "top": 10.69 },
         "direction": "leftBottom",
-        "anchorPoint": [-84.09608, 9.89613]
+        "anchorPoint": [-84.1, 9.9]
     },
     {
         "id": "Cote d'Ivoire",
-        "ellipse": {
-            "cx": -5.643,
-            "cy": 7.51602,
-            "left": -8.06827,
-            "top": 9.97049
-        },
+        "ellipse": { "cx": -5.64, "cy": 7.52, "left": -8.07, "top": 9.97 },
         "direction": "bottom",
-        "anchorPoint": [-5.37691, 5.57772]
+        "anchorPoint": [-5.38, 5.58]
     },
     {
         "id": "Croatia",
-        "ellipse": {
-            "cx": 16.6749,
-            "cy": 45.72745,
-            "left": 15.64955,
-            "top": 46.22752
-        },
+        "ellipse": { "cx": 16.67, "cy": 45.73, "left": 15.65, "top": 46.23 },
         "direction": "leftBottom",
-        "anchorPoint": [15.88853, 43.85009]
+        "anchorPoint": [15.89, 43.85]
     },
     {
         "id": "Cuba",
-        "ellipse": {
-            "cx": -75.77014,
-            "cy": 20.31389,
-            "left": -77.12691,
-            "top": 20.70619
-        },
+        "ellipse": { "cx": -75.77, "cy": 20.31, "left": -77.13, "top": 20.71 },
         "direction": "rightTop",
-        "anchorPoint": [-75.94062, 20.53579]
+        "anchorPoint": [-75.94, 20.54]
     },
     {
         "id": "Cyprus",
-        "ellipse": {
-            "cx": 32.9952,
-            "cy": 34.91953,
-            "left": 32.38199,
-            "top": 35.15755
-        },
         "direction": "leftBottom",
-        "anchorPoint": [32.77713, 34.79467]
+        "anchorPoint": [32.78, 34.79]
     },
     {
         "id": "Czechia",
-        "ellipse": {
-            "cx": 15.15915,
-            "cy": 49.69505,
-            "left": 12.55726,
-            "top": 50.34271
-        }
+        "ellipse": { "cx": 15.16, "cy": 49.7, "left": 12.56, "top": 50.34 }
     },
     {
         "id": "Democratic Republic of Congo",
-        "ellipse": {
-            "cx": 23.28717,
-            "cy": -1.82786,
-            "left": 17.45808,
-            "top": 3.85115
-        }
+        "ellipse": { "cx": 23.29, "cy": -1.83, "left": 17.46, "top": 3.85 }
     },
     {
         "id": "Denmark",
-        "ellipse": {
-            "cx": 9.25717,
-            "cy": 56.41983,
-            "left": 8.09487,
-            "top": 57.07451
-        },
+        "ellipse": { "cx": 9.26, "cy": 56.42, "left": 8.09, "top": 57.07 },
         "direction": "left",
-        "anchorPoint": [8.37922, 56.19214]
+        "anchorPoint": [8.38, 56.19]
     },
     {
         "id": "Djibouti",
-        "ellipse": {
-            "cx": 42.24236,
-            "cy": 11.56396,
-            "left": 41.74133,
-            "top": 12.0889
-        },
+        "ellipse": { "cx": 42.24, "cy": 11.56, "left": 41.74, "top": 12.09 },
         "direction": "rightBottom",
-        "anchorPoint": [43.08911, 12.22744]
+        "anchorPoint": [43.09, 12.23]
     },
-    {
-        "id": "Dominica",
-        "ellipse": {
-            "cx": -61.36645,
-            "cy": 15.44708,
-            "left": -61.44928,
-            "top": 15.57903
-        },
-        "direction": "left",
-        "anchorPoint": [-61.29401, 15.46003]
-    },
+    { "id": "Dominica", "direction": "left", "anchorPoint": [-61.29, 15.46] },
     {
         "id": "Dominican Republic",
-        "ellipse": {
-            "cx": -70.65222,
-            "cy": 19.01964,
-            "left": -71.64529,
-            "top": 19.61037
-        },
+        "ellipse": { "cx": -70.65, "cy": 19.02, "left": -71.65, "top": 19.61 },
         "direction": "rightTop",
-        "anchorPoint": [-70.426, 19.07294]
+        "anchorPoint": [-70.43, 19.07]
     },
     {
         "id": "East Timor",
+        "ellipse": { "cx": 125.62, "cy": -8.85, "left": 125.01, "top": -8.56 },
         "direction": "bottom",
-        "anchorPoint": [126.00115, -8.85397]
+        "anchorPoint": [126, -8.85]
     },
     {
         "id": "Ecuador",
-        "ellipse": {
-            "cx": -78.48292,
-            "cy": -1.17748,
-            "left": -80.256,
-            "top": 0.78288
-        },
+        "ellipse": { "cx": -78.48, "cy": -1.18, "left": -80.26, "top": 0.78 },
         "direction": "left",
-        "anchorPoint": [-80.2284, -1.30866]
+        "anchorPoint": [-80.23, -1.31]
     },
     {
         "id": "Egypt",
-        "ellipse": {
-            "cx": 29.61584,
-            "cy": 25.33394,
-            "left": 25,
-            "top": 28.57502
-        }
+        "ellipse": { "cx": 29.62, "cy": 25.33, "left": 25, "top": 28.58 }
     },
     {
         "id": "El Salvador",
-        "ellipse": {
-            "cx": -89.26163,
-            "cy": 13.83485,
-            "left": -89.96508,
-            "top": 14.20173
-        },
+        "ellipse": { "cx": -89.26, "cy": 13.83, "left": -89.97, "top": 14.2 },
         "direction": "leftBottom",
-        "anchorPoint": [-88.86508, 13.64792]
+        "anchorPoint": [-88.87, 13.65]
     },
     {
         "id": "Equatorial Guinea",
-        "ellipse": {
-            "cx": 10.37654,
-            "cy": 1.64986,
-            "left": 9.47251,
-            "top": 2.23125
-        },
+        "ellipse": { "cx": 10.38, "cy": 1.65, "left": 9.47, "top": 2.23 },
         "direction": "left",
-        "anchorPoint": [9.72059, 1.66405]
+        "anchorPoint": [9.72, 1.66]
     },
     {
         "id": "Eritrea",
-        "ellipse": {
-            "cx": 37.95495,
-            "cy": 15.95998,
-            "left": 36.68979,
-            "top": 16.95512
-        },
+        "ellipse": { "cx": 37.95, "cy": 15.96, "left": 36.69, "top": 16.96 },
         "direction": "rightTop",
-        "anchorPoint": [38.62602, 16.53493]
+        "anchorPoint": [38.63, 16.53]
     },
     {
         "id": "Estonia",
-        "ellipse": {
-            "cx": 25.51581,
-            "cy": 58.98579,
-            "left": 23.37474,
-            "top": 59.47416
-        },
+        "ellipse": { "cx": 25.52, "cy": 58.99, "left": 23.37, "top": 59.47 },
         "direction": "left",
-        "anchorPoint": [23.59817, 58.73468]
+        "anchorPoint": [23.6, 58.73]
     },
     {
         "id": "Eswatini",
-        "ellipse": {
-            "cx": 31.3864,
-            "cy": -26.51142,
-            "left": 30.75729,
-            "top": -25.85353
-        },
+        "ellipse": { "cx": 31.39, "cy": -26.51, "left": 30.76, "top": -25.85 },
         "direction": "right",
-        "anchorPoint": [32.01997, -26.49733],
+        "anchorPoint": [32.02, -26.5],
         "bridgeCountries": ["South Africa", "Mozambique"]
     },
     {
         "id": "Ethiopia",
-        "ellipse": {
-            "cx": 39.04981,
-            "cy": 7.9717,
-            "left": 34.35437,
-            "top": 11.56975
-        }
+        "ellipse": { "cx": 39.05, "cy": 7.97, "left": 34.35, "top": 11.57 }
     },
     {
         "id": "Fiji",
         "ellipse": {
-            "cx": 177.94277,
-            "cy": -17.8747,
-            "left": 177.32812,
-            "top": -17.48726
+            "cx": 177.94,
+            "cy": -17.87,
+            "left": 177.33,
+            "top": -17.49
         },
         "direction": "right",
-        "anchorPoint": [179.34876, -17.3354]
+        "anchorPoint": [179.35, -17.34]
     },
     {
         "id": "Finland",
-        "ellipse": {
-            "cx": 26.05165,
-            "cy": 62.65281,
-            "left": 21.55132,
-            "top": 64.55115
-        },
+        "ellipse": { "cx": 26.05, "cy": 62.65, "left": 21.55, "top": 64.55 },
         "direction": "leftBottom",
-        "anchorPoint": [22.49569, 60.53826]
+        "anchorPoint": [22.5, 60.54]
     },
     {
         "id": "France",
-        "ellipse": {
-            "cx": 2.63214,
-            "cy": 46.58272,
-            "left": -1.15254,
-            "top": 49.84479
-        },
+        "ellipse": { "cx": 2.63, "cy": 46.58, "left": -1.15, "top": 49.84 },
         "direction": "left",
-        "anchorPoint": [-0.73861, 46.05095]
+        "anchorPoint": [-0.74, 46.05]
     },
     {
         "id": "French Guiana",
-        "ellipse": {
-            "cx": -53.05348,
-            "cy": 4.02167,
-            "left": -54.06012,
-            "top": 5.31757
-        },
+        "ellipse": { "cx": -53.05, "cy": 4.02, "left": -54.06, "top": 5.32 },
         "direction": "rightTop",
-        "anchorPoint": [-52.95368, 4.81537]
+        "anchorPoint": [-52.95, 4.82]
     },
     {
         "id": "French Southern Territories",
-        "ellipse": {
-            "cx": 69.60766,
-            "cy": -49.32528,
-            "left": 68.72551,
-            "top": -48.96462
-        },
+        "ellipse": { "cx": 69.61, "cy": -49.33, "left": 68.73, "top": -48.96 },
         "direction": "right",
-        "anchorPoint": [70.81163, -49.20143]
+        "anchorPoint": [70.81, -49.2]
     },
     {
         "id": "Gabon",
-        "ellipse": {
-            "cx": 10.78876,
-            "cy": -0.9131,
-            "left": 9.02875,
-            "top": 1.0589
-        },
+        "ellipse": { "cx": 10.79, "cy": -0.91, "left": 9.03, "top": 1.06 },
         "direction": "leftBottom",
-        "anchorPoint": [9.13028, -1.06286]
+        "anchorPoint": [9.13, -1.06]
     },
-    {
-        "id": "Gambia",
-        "ellipse": {
-            "cx": -16.03386,
-            "cy": 13.43746,
-            "left": -16.75394,
-            "top": 13.61181
-        },
-        "direction": "left",
-        "anchorPoint": [-16.52147, 13.37335]
-    },
+    { "id": "Gambia", "direction": "left", "anchorPoint": [-16.52, 13.37] },
     {
         "id": "Georgia",
-        "ellipse": {
-            "cx": 43.82509,
-            "cy": 42.01391,
-            "left": 41.86022,
-            "top": 42.55523
-        },
+        "ellipse": { "cx": 43.83, "cy": 42.01, "left": 41.86, "top": 42.56 },
         "direction": "left",
-        "anchorPoint": [41.88633, 42.01246]
+        "anchorPoint": [41.89, 42.01]
     },
     {
         "id": "Germany",
-        "ellipse": {
-            "cx": 10.58438,
-            "cy": 52.07888,
-            "left": 6.84228,
-            "top": 53.99276
-        },
+        "ellipse": { "cx": 10.58, "cy": 52.08, "left": 6.84, "top": 53.99 },
         "direction": "left",
-        "anchorPoint": [8.95143, 54.39571]
+        "anchorPoint": [8.95, 54.4]
     },
     {
         "id": "Ghana",
-        "ellipse": {
-            "cx": -1.07426,
-            "cy": 7.49913,
-            "left": -2.6406,
-            "top": 9.797
-        },
+        "ellipse": { "cx": -1.07, "cy": 7.5, "left": -2.64, "top": 9.8 },
         "direction": "bottom",
-        "anchorPoint": [-0.989, 5.51931]
+        "anchorPoint": [-0.99, 5.52]
     },
     {
         "id": "Greece",
-        "ellipse": {
-            "cx": 21.56817,
-            "cy": 39.51218,
-            "left": 20.26995,
-            "top": 40.34769
-        },
+        "ellipse": { "cx": 21.57, "cy": 39.51, "left": 20.27, "top": 40.35 },
         "direction": "leftBottom",
-        "anchorPoint": [22.0679, 37.05252]
+        "anchorPoint": [22.07, 37.05]
     },
     {
         "id": "Greenland",
-        "ellipse": {
-            "cx": -39.75209,
-            "cy": 73.51525,
-            "left": -55.20869,
-            "top": 77.18423
-        }
+        "ellipse": { "cx": -39.75, "cy": 73.52, "left": -55.21, "top": 77.18 }
     },
-    {
-        "id": "Grenada",
-        "ellipse": {
-            "cx": -61.69554,
-            "cy": 12.10718,
-            "left": -61.74456,
-            "top": 12.18227
-        },
-        "direction": "right",
-        "anchorPoint": [-61.64194, 12.11364]
-    },
+    { "id": "Grenada", "direction": "right", "anchorPoint": [-61.64, 12.11] },
     {
         "id": "Guatemala",
-        "ellipse": {
-            "cx": -90.49304,
-            "cy": 14.98848,
-            "left": -91.59134,
-            "top": 16.06775
-        },
+        "ellipse": { "cx": -90.49, "cy": 14.99, "left": -91.59, "top": 16.07 },
         "direction": "leftBottom",
-        "anchorPoint": [-91.0071, 14.5902]
+        "anchorPoint": [-91.01, 14.59]
     },
     {
         "id": "Guinea",
-        "ellipse": {
-            "cx": -12.4113,
-            "cy": 11.14635,
-            "left": -14.03509,
-            "top": 12.29597
-        },
+        "ellipse": { "cx": -12.41, "cy": 11.15, "left": -14.04, "top": 12.3 },
         "direction": "leftBottom",
-        "anchorPoint": [-13.98003, 10.07277]
+        "anchorPoint": [-13.98, 10.07]
     },
     {
         "id": "Guinea-Bissau",
-        "ellipse": {
-            "cx": -15.18315,
-            "cy": 12.04348,
-            "left": -16.28833,
-            "top": 12.61932
-        },
+        "ellipse": { "cx": -15.18, "cy": 12.04, "left": -16.29, "top": 12.62 },
         "direction": "leftBottom",
-        "anchorPoint": [-15.87923, 11.7657]
+        "anchorPoint": [-15.88, 11.77]
     },
     {
         "id": "Guyana",
-        "ellipse": {
-            "cx": -58.92014,
-            "cy": 5.41133,
-            "left": -60.00583,
-            "top": 6.98434
-        },
+        "ellipse": { "cx": -58.92, "cy": 5.41, "left": -60.01, "top": 6.98 },
         "direction": "rightTop",
-        "anchorPoint": [-58.78362, 6.67115]
+        "anchorPoint": [-58.78, 6.67]
     },
     {
         "id": "Haiti",
-        "ellipse": {
-            "cx": -72.21143,
-            "cy": 19.21505,
-            "left": -72.78781,
-            "top": 19.57672
-        },
+        "ellipse": { "cx": -72.21, "cy": 19.22, "left": -72.79, "top": 19.58 },
         "direction": "rightTop",
-        "anchorPoint": [-72.26753, 19.30452]
+        "anchorPoint": [-72.27, 19.3]
     },
     {
         "id": "Honduras",
-        "ellipse": {
-            "cx": -87.04422,
-            "cy": 14.84236,
-            "left": -88.99599,
-            "top": 15.75867
-        },
+        "ellipse": { "cx": -87.04, "cy": 14.84, "left": -89, "top": 15.76 },
         "direction": "rightTop",
-        "anchorPoint": [-84.47377, 15.30264]
+        "anchorPoint": [-84.47, 15.3]
     },
     {
         "id": "Hungary",
-        "ellipse": {
-            "cx": 18.95431,
-            "cy": 47.04486,
-            "left": 16.33215,
-            "top": 47.82547
-        }
+        "ellipse": { "cx": 18.95, "cy": 47.04, "left": 16.33, "top": 47.83 }
     },
     {
         "id": "Iceland",
-        "ellipse": {
-            "cx": -18.60167,
-            "cy": 64.79433,
-            "left": -22.92877,
-            "top": 65.31042
-        },
+        "ellipse": { "cx": -18.6, "cy": 64.79, "left": -22.93, "top": 65.31 },
         "direction": "right",
-        "anchorPoint": [-14.65175, 65.07394]
+        "anchorPoint": [-14.65, 65.07]
     },
     {
         "id": "India",
-        "ellipse": {
-            "cx": 79.23804,
-            "cy": 22.64856,
-            "left": 72.46679,
-            "top": 28.40053
-        }
+        "ellipse": { "cx": 79.24, "cy": 22.65, "left": 72.47, "top": 28.4 }
     },
     {
         "id": "Indonesia",
+        "ellipse": { "cx": 113.98, "cy": -0.99, "left": 111.34, "top": 1.22 },
         "direction": "leftBottom",
-        "anchorPoint": [113.90148, -9.09757]
+        "anchorPoint": [113.9, -9.1]
     },
     {
         "id": "Iran",
-        "ellipse": {
-            "cx": 54.3624,
-            "cy": 33.06068,
-            "left": 48.18822,
-            "top": 36.91341
-        }
+        "ellipse": { "cx": 54.36, "cy": 33.06, "left": 48.19, "top": 36.91 }
     },
     {
         "id": "Iraq",
-        "ellipse": {
-            "cx": 42.9761,
-            "cy": 33.04888,
-            "left": 40.21313,
-            "top": 34.98988
-        }
+        "ellipse": { "cx": 42.98, "cy": 33.05, "left": 40.21, "top": 34.99 }
     },
     {
         "id": "Ireland",
-        "ellipse": {
-            "cx": -7.70653,
-            "cy": 53.23552,
-            "left": -9.29668,
-            "top": 54.06289
-        },
+        "ellipse": { "cx": -7.71, "cy": 53.24, "left": -9.3, "top": 54.06 },
         "direction": "left",
-        "anchorPoint": [-9.06743, 53.81849]
+        "anchorPoint": [-9.07, 53.82]
     },
-    {
-        "id": "Israel",
-        "ellipse": {
-            "cx": 34.8952,
-            "cy": 30.67686,
-            "left": 34.56538,
-            "top": 31.35628
-        },
-        "direction": "leftTop",
-        "anchorPoint": [34.58932, 31.35974]
-    },
+    { "id": "Israel", "direction": "leftTop", "anchorPoint": [34.59, 31.36] },
     {
         "id": "Italy",
-        "ellipse": {
-            "cx": 10.30971,
-            "cy": 45.19592,
-            "left": 8.27395,
-            "top": 46.31071
-        }
+        "ellipse": { "cx": 10.31, "cy": 45.2, "left": 8.27, "top": 46.31 }
     },
     {
         "id": "Jamaica",
-        "ellipse": {
-            "cx": -77.27286,
-            "cy": 18.1198,
-            "left": -78.04884,
-            "top": 18.40348
-        },
+        "ellipse": { "cx": -77.27, "cy": 18.12, "left": -78.05, "top": 18.4 },
         "direction": "bottom",
-        "anchorPoint": [-77.31515, 18.10823]
+        "anchorPoint": [-77.32, 18.11]
     },
     {
         "id": "Japan",
-        "ellipse": {
-            "cx": 138.80308,
-            "cy": 36.02568,
-            "left": 136.9523,
-            "top": 37.25457
-        },
+        "ellipse": { "cx": 138.8, "cy": 36.03, "left": 136.95, "top": 37.25 },
         "direction": "rightBottom",
-        "anchorPoint": [139.66669, 35.74253]
+        "anchorPoint": [139.67, 35.74]
     },
     {
         "id": "Jordan",
-        "ellipse": {
-            "cx": 36.40183,
-            "cy": 30.71942,
-            "left": 35.3378,
-            "top": 31.61034
-        }
+        "ellipse": { "cx": 36.4, "cy": 30.72, "left": 35.34, "top": 31.61 }
     },
     {
         "id": "Kazakhstan",
-        "ellipse": {
-            "cx": 69.08468,
-            "cy": 47.97292,
-            "left": 54.74791,
-            "top": 51.31355
-        }
+        "ellipse": { "cx": 69.08, "cy": 47.97, "left": 54.75, "top": 51.31 }
     },
     {
         "id": "Kenya",
-        "ellipse": {
-            "cx": 38.35831,
-            "cy": 0.20682,
-            "left": 35.72715,
-            "top": 3.56978
-        },
+        "ellipse": { "cx": 38.36, "cy": 0.21, "left": 35.73, "top": 3.57 },
         "direction": "rightBottom",
-        "anchorPoint": [40.01919, -2.76908]
+        "anchorPoint": [40.02, -2.77]
     },
-    {
-        "id": "Kiribati",
-        "ellipse": {
-            "cx": -157.38107,
-            "cy": 1.81864,
-            "left": -157.4344,
-            "top": 1.86126
-        },
-        "direction": "right",
-        "anchorPoint": [-156.98232, 1.96717]
-    },
+    { "id": "Kiribati", "direction": "right", "anchorPoint": [-156.98, 1.97] },
     {
         "id": "Kosovo",
-        "ellipse": {
-            "cx": 20.92454,
-            "cy": 42.55356,
-            "left": 20.24869,
-            "top": 42.96841
-        }
+        "ellipse": { "cx": 20.92, "cy": 42.55, "left": 20.25, "top": 42.97 }
     },
     {
         "id": "Kuwait",
-        "ellipse": {
-            "cx": 47.51766,
-            "cy": 29.43778,
-            "left": 46.91471,
-            "top": 29.87259
-        },
+        "ellipse": { "cx": 47.52, "cy": 29.44, "left": 46.91, "top": 29.87 },
         "direction": "right",
-        "anchorPoint": [47.8801, 29.3836]
+        "anchorPoint": [47.88, 29.38]
     },
     {
         "id": "Kyrgyzstan",
-        "ellipse": {
-            "cx": 75.56349,
-            "cy": 41.85487,
-            "left": 72.4356,
-            "top": 42.71632
-        }
+        "ellipse": { "cx": 75.56, "cy": 41.85, "left": 72.44, "top": 42.72 }
     },
     {
         "id": "Laos",
-        "ellipse": {
-            "cx": 102.57277,
-            "cy": 19.5443,
-            "left": 101.27982,
-            "top": 20.94221
-        }
+        "ellipse": { "cx": 102.57, "cy": 19.54, "left": 101.28, "top": 20.94 }
     },
     {
         "id": "Latvia",
-        "ellipse": {
-            "cx": 25.66631,
-            "cy": 56.74339,
-            "left": 23.47783,
-            "top": 57.13821
-        },
+        "ellipse": { "cx": 25.67, "cy": 56.74, "left": 23.48, "top": 57.14 },
         "direction": "left",
-        "anchorPoint": [21.5205, 57.0213]
+        "anchorPoint": [21.52, 57.02]
     },
-    {
-        "id": "Lebanon",
-        "ellipse": {
-            "cx": 36.18519,
-            "cy": 34.30673,
-            "left": 35.8266,
-            "top": 34.61636
-        },
-        "direction": "leftTop",
-        "anchorPoint": [35.37962, 33.41044]
-    },
+    { "id": "Lebanon", "direction": "leftTop", "anchorPoint": [35.38, 33.41] },
     {
         "id": "Lesotho",
-        "ellipse": {
-            "cx": 28.219,
-            "cy": -29.59671,
-            "left": 27.40243,
-            "top": -28.98507
-        },
+        "ellipse": { "cx": 28.22, "cy": -29.6, "left": 27.4, "top": -28.99 },
         "direction": "right",
-        "anchorPoint": [29.01842, -29.74377],
+        "anchorPoint": [29.02, -29.74],
         "bridgeCountries": ["South Africa"]
     },
     {
         "id": "Liberia",
-        "ellipse": {
-            "cx": -10.2108,
-            "cy": 6.97992,
-            "left": -11.16686,
-            "top": 7.99739
-        },
+        "ellipse": { "cx": -10.21, "cy": 6.98, "left": -11.17, "top": 8 },
         "direction": "leftBottom",
-        "anchorPoint": [-9.75093, 5.72723]
+        "anchorPoint": [-9.75, 5.73]
     },
     {
         "id": "Libya",
-        "ellipse": {
-            "cx": 17.77879,
-            "cy": 27.13883,
-            "left": 10.30753,
-            "top": 30.07906
-        }
+        "ellipse": { "cx": 17.78, "cy": 27.14, "left": 10.31, "top": 30.08 }
     },
-    {
-        "id": "Liechtenstein",
-        "ellipse": {
-            "cx": 9.57016,
-            "cy": 47.1093,
-            "left": 9.50954,
-            "top": 47.16258
-        }
-    },
+    { "id": "Liechtenstein" },
     {
         "id": "Lithuania",
-        "ellipse": {
-            "cx": 23.7464,
-            "cy": 55.55546,
-            "left": 21.18276,
-            "top": 56.19669
-        },
+        "ellipse": { "cx": 23.75, "cy": 55.56, "left": 21.18, "top": 56.2 },
         "direction": "left",
-        "anchorPoint": [21.41439, 55.64761]
+        "anchorPoint": [21.41, 55.65]
     },
-    {
-        "id": "Luxembourg",
-        "ellipse": {
-            "cx": 5.95396,
-            "cy": 49.64853,
-            "left": 5.6998,
-            "top": 49.84645
-        }
-    },
+    { "id": "Luxembourg" },
     {
         "id": "Madagascar",
-        "ellipse": {
-            "cx": 46.52152,
-            "cy": -19.44339,
-            "left": 44.46481,
-            "top": -15.76324
-        },
+        "ellipse": { "cx": 46.52, "cy": -19.44, "left": 44.46, "top": -15.76 },
         "direction": "right",
-        "anchorPoint": [49.56931, -14.55319]
+        "anchorPoint": [49.57, -14.55]
     },
     {
         "id": "Malawi",
-        "ellipse": {
-            "cx": 33.80994,
-            "cy": -13.04185,
-            "left": 33.24639,
-            "top": -11.69046
-        }
+        "ellipse": { "cx": 33.81, "cy": -13.04, "left": 33.25, "top": -11.69 }
     },
     {
         "id": "Malaysia",
-        "ellipse": {
-            "cx": 116.93238,
-            "cy": 5.21872,
-            "left": 115.51919,
-            "top": 6.12803
-        },
+        "ellipse": { "cx": 116.93, "cy": 5.22, "left": 115.52, "top": 6.13 },
         "direction": "leftTop",
-        "anchorPoint": [113.13484, 2.95046]
+        "anchorPoint": [113.13, 2.95]
     },
-    {
-        "id": "Maldives",
-        "ellipse": {
-            "cx": 73.39334,
-            "cy": 3.25017,
-            "left": 73.3611,
-            "top": 3.28122
-        },
-        "direction": "bottom",
-        "anchorPoint": [73.37951, 3.11447]
-    },
+    { "id": "Maldives", "direction": "bottom", "anchorPoint": [73.38, 3.11] },
     {
         "id": "Mali",
-        "ellipse": {
-            "cx": -1.64227,
-            "cy": 18.50434,
-            "left": -5.71201,
-            "top": 21.95934
-        }
+        "ellipse": { "cx": -1.64, "cy": 18.5, "left": -5.71, "top": 21.96 }
     },
-    {
-        "id": "Malta",
-        "ellipse": {
-            "cx": 14.43013,
-            "cy": 35.87022,
-            "left": 14.36274,
-            "top": 35.9141
-        },
-        "direction": "right",
-        "anchorPoint": [14.66749, 35.8813]
-    },
+    { "id": "Malta", "direction": "right", "anchorPoint": [14.67, 35.88] },
     {
         "id": "Marshall Islands",
-        "ellipse": {
-            "cx": 171.24212,
-            "cy": 7.06366,
-            "left": 171.20671,
-            "top": 7.07213
-        },
         "direction": "right",
-        "anchorPoint": [170.65376, 6.34962]
+        "anchorPoint": [170.65, 6.35]
     },
     {
         "id": "Mauritania",
-        "ellipse": {
-            "cx": -9.67593,
-            "cy": 19.32968,
-            "left": -13.50489,
-            "top": 23.08628
-        },
+        "ellipse": { "cx": -9.68, "cy": 19.33, "left": -13.5, "top": 23.09 },
         "direction": "left",
-        "anchorPoint": [-15.78113, 18.79954]
+        "anchorPoint": [-15.78, 18.8]
     },
-    {
-        "id": "Mauritius",
-        "ellipse": {
-            "cx": 57.52827,
-            "cy": -20.33122,
-            "left": 57.35463,
-            "top": -20.14993
-        },
-        "direction": "right",
-        "anchorPoint": [57.76778, -20.34423]
-    },
+    { "id": "Mauritius", "direction": "right", "anchorPoint": [57.77, -20.34] },
     {
         "id": "Mexico",
         "ellipse": {
-            "cx": -101.24842,
-            "cy": 21.54753,
-            "left": -104.98436,
-            "top": 25.32886
+            "cx": -101.25,
+            "cy": 21.55,
+            "left": -104.98,
+            "top": 25.33
         },
         "direction": "leftBottom",
-        "anchorPoint": [-102.06129, 18.75947]
+        "anchorPoint": [-102.06, 18.76]
     },
     {
         "id": "Micronesia (country)",
-        "ellipse": {
-            "cx": 158.22626,
-            "cy": 6.88705,
-            "left": 158.14743,
-            "top": 6.95624
-        },
         "direction": "bottom",
-        "anchorPoint": [154.45269, 5.67593]
+        "anchorPoint": [154.45, 5.68]
     },
     {
         "id": "Moldova",
-        "ellipse": {
-            "cx": 28.25549,
-            "cy": 47.66621,
-            "left": 27.43348,
-            "top": 48.14822
-        }
+        "ellipse": { "cx": 28.26, "cy": 47.67, "left": 27.43, "top": 48.15 },
+        "direction": "rightBottom",
+        "anchorPoint": [28.89, 46.15],
+        "bridgeCountries": ["Ukraine"]
     },
     {
         "id": "Monaco",
-        "ellipse": {
-            "cx": 7.38674,
-            "cy": 43.7374,
-            "left": 7.36274,
-            "top": 43.74576
-        },
         "direction": "rightBottom",
-        "anchorPoint": [7.38475, 43.73804]
+        "anchorPoint": [7.38, 43.74]
     },
     {
         "id": "Mongolia",
-        "ellipse": {
-            "cx": 103.00372,
-            "cy": 46.20794,
-            "left": 92.96897,
-            "top": 49.55934
-        }
+        "ellipse": { "cx": 103, "cy": 46.21, "left": 92.97, "top": 49.56 }
     },
     {
         "id": "Montenegro",
-        "ellipse": {
-            "cx": 19.24541,
-            "cy": 42.91344,
-            "left": 18.63976,
-            "top": 43.29864
-        },
+        "ellipse": { "cx": 19.25, "cy": 42.91, "left": 18.64, "top": 43.3 },
         "direction": "leftBottom",
-        "anchorPoint": [18.9319, 42.3509]
+        "anchorPoint": [18.93, 42.35]
     },
     {
         "id": "Morocco",
-        "ellipse": {
-            "cx": -6.48745,
-            "cy": 32.02559,
-            "left": -9.40541,
-            "top": 33.69626
-        },
+        "ellipse": { "cx": -6.49, "cy": 32.03, "left": -9.41, "top": 33.7 },
         "direction": "leftTop",
-        "anchorPoint": [-8.80486, 32.32767]
+        "anchorPoint": [-8.8, 32.33]
     },
     {
         "id": "Mozambique",
-        "ellipse": {
-            "cx": 37.6285,
-            "cy": -14.48517,
-            "left": 35.69077,
-            "top": -11.55905
-        },
+        "ellipse": { "cx": 37.63, "cy": -14.49, "left": 35.69, "top": -11.56 },
         "direction": "right",
-        "anchorPoint": [34.34695, -20.06436]
+        "anchorPoint": [34.35, -20.06]
     },
     {
         "id": "Myanmar",
-        "ellipse": {
-            "cx": 95.79348,
-            "cy": 21.26819,
-            "left": 93.64958,
-            "top": 25.34891
-        },
+        "ellipse": { "cx": 95.79, "cy": 21.27, "left": 93.65, "top": 25.35 },
         "direction": "leftBottom",
-        "anchorPoint": [94.86576, 16.42253]
+        "anchorPoint": [94.87, 16.42]
     },
     {
         "id": "Namibia",
-        "ellipse": {
-            "cx": 16.96543,
-            "cy": -20.29293,
-            "left": 13.5072,
-            "top": -17.32533
-        },
+        "ellipse": { "cx": 16.97, "cy": -20.29, "left": 13.51, "top": -17.33 },
         "direction": "leftBottom",
-        "anchorPoint": [14.71231, -22.82992]
+        "anchorPoint": [14.71, -22.83]
     },
-    {
-        "id": "Nauru",
-        "ellipse": {
-            "cx": 166.93519,
-            "cy": -0.52923,
-            "left": 166.90399,
-            "top": -0.50666
-        },
-        "direction": "right",
-        "anchorPoint": [166.96666, -0.5324]
-    },
+    { "id": "Nauru", "direction": "right", "anchorPoint": [166.97, -0.53] },
     {
         "id": "Nepal",
-        "ellipse": {
-            "cx": 82.46933,
-            "cy": 28.83237,
-            "left": 80.77741,
-            "top": 29.56747
-        }
+        "ellipse": { "cx": 82.47, "cy": 28.83, "left": 80.78, "top": 29.57 }
     },
     {
         "id": "Netherlands",
-        "ellipse": {
-            "cx": 5.60556,
-            "cy": 52.39736,
-            "left": 4.33155,
-            "top": 52.95093
-        },
+        "ellipse": { "cx": 5.61, "cy": 52.4, "left": 4.33, "top": 52.95 },
         "direction": "leftTop",
-        "anchorPoint": [4.9387, 52.95311]
+        "anchorPoint": [4.94, 52.95]
     },
     {
         "id": "New Caledonia",
-        "ellipse": {
-            "cx": 165.75287,
-            "cy": -21.47343,
-            "left": 165.34913,
-            "top": -21.19423
-        },
         "direction": "bottom",
-        "anchorPoint": [166.34312, -21.95119]
+        "anchorPoint": [166.34, -21.95]
     },
     {
         "id": "New Zealand",
         "direction": "right",
-        "anchorPoint": [174.61496, -42.47916]
+        "anchorPoint": [174.61, -42.48]
     },
     {
         "id": "Nicaragua",
-        "ellipse": {
-            "cx": -85.12748,
-            "cy": 12.5736,
-            "left": -86.6514,
-            "top": 13.98069
-        },
+        "ellipse": { "cx": -85.13, "cy": 12.57, "left": -86.65, "top": 13.98 },
         "direction": "leftBottom",
-        "anchorPoint": [-86.15279, 12.20566]
+        "anchorPoint": [-86.15, 12.21]
     },
     {
         "id": "Niger",
-        "ellipse": {
-            "cx": 9.31307,
-            "cy": 17.08823,
-            "left": 4.27165,
-            "top": 20.6972
-        }
+        "ellipse": { "cx": 9.31, "cy": 17.09, "left": 4.27, "top": 20.7 }
     },
     {
         "id": "Nigeria",
-        "ellipse": {
-            "cx": 7.77843,
-            "cy": 9.72867,
-            "left": 3.68589,
-            "top": 12.97764
-        },
+        "ellipse": { "cx": 7.78, "cy": 9.73, "left": 3.69, "top": 12.98 },
         "direction": "leftBottom",
-        "anchorPoint": [6.11586, 4.7042]
+        "anchorPoint": [6.12, 4.7]
     },
     {
         "id": "North Korea",
-        "ellipse": {
-            "cx": 126.32045,
-            "cy": 40.11488,
-            "left": 124.9793,
-            "top": 40.94675
-        },
+        "ellipse": { "cx": 126.32, "cy": 40.11, "left": 124.98, "top": 40.95 },
         "direction": "rightBottom",
-        "anchorPoint": [129.16269, 41.09149]
+        "anchorPoint": [129.16, 41.09]
     },
     {
         "id": "North Macedonia",
-        "ellipse": {
-            "cx": 21.77097,
-            "cy": 41.64454,
-            "left": 20.62415,
-            "top": 42.15122
-        }
+        "ellipse": { "cx": 21.77, "cy": 41.64, "left": 20.62, "top": 42.15 }
     },
     {
         "id": "Norway",
-        "ellipse": {
-            "cx": 8.65024,
-            "cy": 61.29357,
-            "left": 5.05663,
-            "top": 62.40938
-        },
+        "ellipse": { "cx": 8.65, "cy": 61.29, "left": 5.06, "top": 62.41 },
         "direction": "left",
-        "anchorPoint": [6.08463, 62.10277]
+        "anchorPoint": [6.08, 62.1]
     },
     {
         "id": "Oman",
-        "ellipse": {
-            "cx": 56.42341,
-            "cy": 20.0979,
-            "left": 55.11448,
-            "top": 21.16912
-        },
+        "ellipse": { "cx": 56.42, "cy": 20.1, "left": 55.11, "top": 21.17 },
         "direction": "rightBottom",
-        "anchorPoint": [56.81838, 19.02385]
+        "anchorPoint": [56.82, 19.02]
     },
     {
         "id": "Pakistan",
-        "ellipse": {
-            "cx": 66.57904,
-            "cy": 27.6032,
-            "left": 63.49995,
-            "top": 29.74358
-        },
+        "ellipse": { "cx": 66.58, "cy": 27.6, "left": 63.5, "top": 29.74 },
         "direction": "bottom",
-        "anchorPoint": [65.22297, 25.72024]
+        "anchorPoint": [65.22, 25.72]
     },
-    {
-        "id": "Palau",
-        "ellipse": {
-            "cx": 134.52942,
-            "cy": 7.47683,
-            "left": 134.49145,
-            "top": 7.5676
-        },
-        "direction": "right",
-        "anchorPoint": [134.67106, 7.5141]
-    },
+    { "id": "Palau", "direction": "right", "anchorPoint": [134.67, 7.51] },
     {
         "id": "Palestine",
-        "ellipse": {
-            "cx": 35.31503,
-            "cy": 32.09851,
-            "left": 35.08459,
-            "top": 32.47004
-        },
         "direction": "leftTop",
-        "anchorPoint": [35.24049, 32.36819],
+        "anchorPoint": [35.24, 32.37],
         "bridgeCountries": ["Israel"]
     },
     {
         "id": "Panama",
-        "ellipse": {
-            "cx": -81.23876,
-            "cy": 8.42396,
-            "left": -82.13841,
-            "top": 8.79558
-        },
+        "ellipse": { "cx": -81.24, "cy": 8.42, "left": -82.14, "top": 8.8 },
         "direction": "leftBottom",
-        "anchorPoint": [-81.04851, 8.19459]
+        "anchorPoint": [-81.05, 8.19]
     },
     {
         "id": "Papua New Guinea",
-        "ellipse": {
-            "cx": 143.51996,
-            "cy": -5.83662,
-            "left": 141.02062,
-            "top": -3.79065
-        },
+        "ellipse": { "cx": 143.52, "cy": -5.84, "left": 141.02, "top": -3.79 },
         "direction": "top",
-        "anchorPoint": [147.4601, -3.85111]
+        "anchorPoint": [147.46, -3.85]
     },
     {
         "id": "Paraguay",
-        "ellipse": {
-            "cx": -57.94338,
-            "cy": -23.42848,
-            "left": -60.08292,
-            "top": -22.19807
-        }
+        "ellipse": { "cx": -57.94, "cy": -23.43, "left": -60.08, "top": -22.2 }
     },
     {
         "id": "Peru",
-        "ellipse": {
-            "cx": -76.57679,
-            "cy": -6.87513,
-            "left": -79.20611,
-            "top": -3.11697
-        },
+        "ellipse": { "cx": -76.58, "cy": -6.88, "left": -79.21, "top": -3.12 },
         "direction": "left",
-        "anchorPoint": [-76.80299, -11.34851]
+        "anchorPoint": [-76.8, -11.35]
     },
     {
         "id": "Philippines",
-        "ellipse": {
-            "cx": 125.44843,
-            "cy": 8.09319,
-            "left": 124.47989,
-            "top": 8.96013
-        },
+        "ellipse": { "cx": 125.45, "cy": 8.09, "left": 124.48, "top": 8.96 },
         "direction": "right",
-        "anchorPoint": [125.84257, 12.61088]
+        "anchorPoint": [125.84, 12.61]
     },
     {
         "id": "Poland",
-        "ellipse": {
-            "cx": 18.85781,
-            "cy": 52.87991,
-            "left": 14.3793,
-            "top": 54.43239
-        },
+        "ellipse": { "cx": 18.86, "cy": 52.88, "left": 14.38, "top": 54.43 },
         "direction": "leftTop",
-        "anchorPoint": [16.76395, 54.35393]
+        "anchorPoint": [16.76, 54.35]
     },
     {
         "id": "Portugal",
-        "ellipse": {
-            "cx": -7.90038,
-            "cy": 40.65478,
-            "left": -8.77139,
-            "top": 41.79111
-        },
+        "ellipse": { "cx": -7.9, "cy": 40.65, "left": -8.77, "top": 41.79 },
         "direction": "left",
-        "anchorPoint": [-9.26458, 38.92086]
+        "anchorPoint": [-9.26, 38.92]
     },
     {
         "id": "Puerto Rico",
-        "ellipse": {
-            "cx": -66.42962,
-            "cy": 18.24397,
-            "left": -67.21913,
-            "top": 18.50442
-        },
+        "ellipse": { "cx": -66.43, "cy": 18.24, "left": -67.22, "top": 18.5 },
         "direction": "rightTop",
-        "anchorPoint": [-66.5058, 18.26284]
+        "anchorPoint": [-66.51, 18.26]
     },
-    {
-        "id": "Qatar",
-        "ellipse": {
-            "cx": 51.16604,
-            "cy": 25.28777,
-            "left": 50.76608,
-            "top": 25.93913
-        },
-        "direction": "right",
-        "anchorPoint": [51.30494, 25.35677]
-    },
+    { "id": "Qatar", "direction": "right", "anchorPoint": [51.3, 25.36] },
     {
         "id": "Romania",
-        "ellipse": {
-            "cx": 24.42733,
-            "cy": 45.89966,
-            "left": 20.80097,
-            "top": 47.10236
-        },
+        "ellipse": { "cx": 24.43, "cy": 45.9, "left": 20.8, "top": 47.1 },
         "direction": "right",
-        "anchorPoint": [28.46633, 44.54241]
+        "anchorPoint": [28.47, 44.54]
     },
     {
         "id": "Russia",
-        "ellipse": {
-            "cx": 93.3819,
-            "cy": 61.14375,
-            "left": 41.47746,
-            "top": 66.59517
-        }
+        "ellipse": { "cx": 93.38, "cy": 61.14, "left": 41.48, "top": 66.6 }
     },
     {
         "id": "Rwanda",
-        "ellipse": {
-            "cx": 30.24414,
-            "cy": -1.83621,
-            "left": 29.69904,
-            "top": -1.29375
-        }
+        "ellipse": { "cx": 30.24, "cy": -1.84, "left": 29.7, "top": -1.29 }
     },
     {
         "id": "Saint Kitts and Nevis",
-        "ellipse": {
-            "cx": -62.78944,
-            "cy": 17.33644,
-            "left": -62.83197,
-            "top": 17.37559
-        },
         "direction": "left",
-        "anchorPoint": [-62.80828, 17.2957]
+        "anchorPoint": [-62.81, 17.3]
     },
     {
         "id": "Saint Lucia",
-        "ellipse": {
-            "cx": -60.98236,
-            "cy": 13.86228,
-            "left": -61.05182,
-            "top": 14.00531
-        },
         "direction": "right",
-        "anchorPoint": [-60.90715, 13.90691]
+        "anchorPoint": [-60.91, 13.91]
     },
     {
         "id": "Saint Vincent and the Grenadines",
-        "ellipse": {
-            "cx": -61.21625,
-            "cy": 13.22935,
-            "left": -61.27511,
-            "top": 13.31913
-        },
         "direction": "left",
-        "anchorPoint": [-61.30168, 13.24851]
+        "anchorPoint": [-61.3, 13.25]
     },
-    {
-        "id": "Samoa",
-        "ellipse": {
-            "cx": -172.45739,
-            "cy": -13.62068,
-            "left": -172.6958,
-            "top": -13.4892
-        },
-        "direction": "bottom",
-        "anchorPoint": [-172.23224, -13.9389]
-    },
+    { "id": "Samoa", "direction": "bottom", "anchorPoint": [-172.23, -13.94] },
     {
         "id": "San Marino",
-        "ellipse": {
-            "cx": 12.43699,
-            "cy": 43.92871,
-            "left": 12.37757,
-            "top": 43.9545
-        },
         "direction": "rightTop",
-        "anchorPoint": [12.43954, 43.93249]
+        "anchorPoint": [12.44, 43.93],
+        "bridgeCountries": ["Italy"]
     },
     {
         "id": "Sao Tome and Principe",
-        "ellipse": {
-            "cx": 6.57826,
-            "cy": 0.21493,
-            "left": 6.47246,
-            "top": 0.35281
-        },
         "direction": "left",
-        "anchorPoint": [6.46144, 0.21213]
+        "anchorPoint": [6.46, 0.21]
     },
     {
         "id": "Saudi Arabia",
-        "ellipse": {
-            "cx": 45.30613,
-            "cy": 22.72995,
-            "left": 39.06686,
-            "top": 26.98455
-        }
+        "ellipse": { "cx": 45.31, "cy": 22.73, "left": 39.07, "top": 26.98 }
     },
     {
         "id": "Senegal",
-        "ellipse": {
-            "cx": -14.92528,
-            "cy": 15.15168,
-            "left": -16.83214,
-            "top": 16.42303
-        },
+        "ellipse": { "cx": -14.93, "cy": 15.15, "left": -16.83, "top": 16.42 },
         "direction": "left",
-        "anchorPoint": [-17.1063, 14.70049]
+        "anchorPoint": [-17.11, 14.7]
     },
     {
         "id": "Serbia",
-        "ellipse": {
-            "cx": 20.82066,
-            "cy": 44.10972,
-            "left": 19.59526,
-            "top": 44.93509
-        }
+        "ellipse": { "cx": 20.82, "cy": 44.11, "left": 19.6, "top": 44.94 }
     },
-    {
-        "id": "Seychelles",
-        "ellipse": {
-            "cx": 55.42164,
-            "cy": -4.62757,
-            "left": 55.38158,
-            "top": -4.57752
-        },
-        "direction": "right",
-        "anchorPoint": [55.53555, -4.70144]
-    },
+    { "id": "Seychelles", "direction": "right", "anchorPoint": [55.54, -4.7] },
     {
         "id": "Sierra Leone",
-        "ellipse": {
-            "cx": -11.78398,
-            "cy": 8.54634,
-            "left": -12.97402,
-            "top": 9.81637
-        },
+        "ellipse": { "cx": -11.78, "cy": 8.55, "left": -12.97, "top": 9.82 },
         "direction": "leftBottom",
-        "anchorPoint": [-12.5228, 7.70771]
+        "anchorPoint": [-12.52, 7.71]
     },
     {
         "id": "Singapore",
-        "ellipse": {
-            "cx": 103.84885,
-            "cy": 1.32169,
-            "left": 103.63374,
-            "top": 1.44908
-        },
         "direction": "rightBottom",
-        "anchorPoint": [103.83875, 1.26878]
+        "anchorPoint": [103.84, 1.27]
     },
     {
         "id": "Slovakia",
-        "ellipse": {
-            "cx": 19.55825,
-            "cy": 48.86494,
-            "left": 17.87741,
-            "top": 49.21677
-        }
+        "ellipse": { "cx": 19.56, "cy": 48.86, "left": 17.88, "top": 49.22 }
     },
     {
         "id": "Slovenia",
-        "ellipse": {
-            "cx": 14.72273,
-            "cy": 46.08587,
-            "left": 13.71679,
-            "top": 46.42557
-        }
+        "ellipse": { "cx": 14.72, "cy": 46.09, "left": 13.72, "top": 46.43 }
     },
     {
         "id": "Solomon Islands",
-        "ellipse": {
-            "cx": 160.09932,
-            "cy": -9.58731,
-            "left": 159.67183,
-            "top": -9.36042
-        },
         "direction": "leftBottom",
-        "anchorPoint": [160.21732, -10.36868]
+        "anchorPoint": [160.22, -10.37]
     },
     {
         "id": "Somalia",
-        "ellipse": {
-            "cx": 47.61673,
-            "cy": 9.58526,
-            "left": 44.58806,
-            "top": 10.94187
-        },
+        "ellipse": { "cx": 47.62, "cy": 9.59, "left": 44.59, "top": 10.94 },
         "direction": "rightBottom",
-        "anchorPoint": [47.28765, 4.312]
+        "anchorPoint": [47.29, 4.31]
     },
     {
         "id": "South Africa",
-        "ellipse": {
-            "cx": 22.69393,
-            "cy": -30.87967,
-            "left": 18.13512,
-            "top": -27.81217
-        },
+        "ellipse": { "cx": 22.69, "cy": -30.88, "left": 18.14, "top": -27.81 },
         "direction": "bottom",
-        "anchorPoint": [23.50629, -33.34373]
+        "anchorPoint": [23.51, -33.34]
     },
     {
         "id": "South Korea",
-        "ellipse": {
-            "cx": 128.09718,
-            "cy": 36.30512,
-            "left": 126.73067,
-            "top": 37.6803
-        },
+        "ellipse": { "cx": 128.1, "cy": 36.31, "left": 126.73, "top": 37.68 },
         "direction": "right",
-        "anchorPoint": [129.07199, 36.87117]
+        "anchorPoint": [129.07, 36.87]
     },
     {
         "id": "South Sudan",
-        "ellipse": {
-            "cx": 29.87665,
-            "cy": 7.05472,
-            "left": 26.65337,
-            "top": 9.49729
-        }
+        "ellipse": { "cx": 29.88, "cy": 7.05, "left": 26.65, "top": 9.5 }
     },
     {
         "id": "Spain",
-        "ellipse": {
-            "cx": -3.55814,
-            "cy": 40.05521,
-            "left": -6.98147,
-            "top": 42.1961
-        },
+        "ellipse": { "cx": -3.56, "cy": 40.06, "left": -6.98, "top": 42.2 },
         "direction": "left",
-        "anchorPoint": [-8.64084, 43.0117]
+        "anchorPoint": [-8.64, 43.01]
     },
     {
         "id": "Sri Lanka",
-        "ellipse": {
-            "cx": 80.63018,
-            "cy": 7.59293,
-            "left": 79.79126,
-            "top": 9.12208
-        },
+        "ellipse": { "cx": 80.63, "cy": 7.59, "left": 79.79, "top": 9.12 },
         "direction": "right",
-        "anchorPoint": [81.20063, 7.48232]
+        "anchorPoint": [81.2, 7.48]
     },
     {
         "id": "Sudan",
-        "ellipse": {
-            "cx": 30.34035,
-            "cy": 17.04964,
-            "left": 23.87141,
-            "top": 21.99991
-        }
+        "ellipse": { "cx": 30.34, "cy": 17.05, "left": 23.87, "top": 22 }
     },
     {
         "id": "Suriname",
-        "ellipse": {
-            "cx": -55.95947,
-            "cy": 4.17341,
-            "left": -57.51302,
-            "top": 5.76688
-        },
+        "ellipse": { "cx": -55.96, "cy": 4.17, "left": -57.51, "top": 5.77 },
         "direction": "rightTop",
-        "anchorPoint": [-55.78899, 5.39072]
+        "anchorPoint": [-55.79, 5.39]
     },
     {
         "id": "Sweden",
-        "ellipse": {
-            "cx": 15.24937,
-            "cy": 60.04163,
-            "left": 12.26713,
-            "top": 61.14645
-        },
+        "ellipse": { "cx": 15.25, "cy": 60.04, "left": 12.27, "top": 61.15 },
         "direction": "right",
-        "anchorPoint": [16.3553, 58.03186]
+        "anchorPoint": [16.36, 58.03]
     },
     {
         "id": "Switzerland",
-        "ellipse": {
-            "cx": 7.97367,
-            "cy": 46.81386,
-            "left": 6.29044,
-            "top": 47.34648
-        }
+        "ellipse": { "cx": 7.97, "cy": 46.81, "left": 6.29, "top": 47.35 }
     },
     {
         "id": "Syria",
-        "ellipse": {
-            "cx": 38.68431,
-            "cy": 35.23344,
-            "left": 36.2121,
-            "top": 36.71296
-        },
+        "ellipse": { "cx": 38.68, "cy": 35.23, "left": 36.21, "top": 36.71 },
         "direction": "left",
-        "anchorPoint": [36.08852, 35.22131]
+        "anchorPoint": [36.09, 35.22]
     },
     {
         "id": "Taiwan",
-        "ellipse": {
-            "cx": 120.7125,
-            "cy": 23.28759,
-            "left": 120.16668,
-            "top": 24.18795
-        },
+        "ellipse": { "cx": 120.71, "cy": 23.29, "left": 120.17, "top": 24.19 },
         "direction": "right",
-        "anchorPoint": [121.17031, 23.61934]
+        "anchorPoint": [121.17, 23.62]
     },
     {
         "id": "Tajikistan",
-        "ellipse": {
-            "cx": 69.66528,
-            "cy": 38.89262,
-            "left": 68.19322,
-            "top": 39.53146
-        }
+        "ellipse": { "cx": 69.67, "cy": 38.89, "left": 68.19, "top": 39.53 }
     },
     {
         "id": "Tanzania",
-        "ellipse": {
-            "cx": 34.05114,
-            "cy": -5.52228,
-            "left": 30.08705,
-            "top": -1.6408
-        },
+        "ellipse": { "cx": 34.05, "cy": -5.52, "left": 30.09, "top": -1.64 },
         "direction": "right",
-        "anchorPoint": [38.98485, -7.04001]
+        "anchorPoint": [38.98, -7.04]
     },
     {
         "id": "Thailand",
-        "ellipse": {
-            "cx": 101.66494,
-            "cy": 15.42181,
-            "left": 100.32056,
-            "top": 17.73197
-        },
+        "ellipse": { "cx": 101.66, "cy": 15.42, "left": 100.32, "top": 17.73 },
         "direction": "left",
-        "anchorPoint": [98.56919, 8.82213]
+        "anchorPoint": [98.57, 8.82]
     },
     {
         "id": "Togo",
-        "ellipse": {
-            "cx": 1.11531,
-            "cy": 7.45254,
-            "left": 0.6001,
-            "top": 8.8081
-        },
+        "ellipse": { "cx": 1.12, "cy": 7.45, "left": 0.6, "top": 8.81 },
         "direction": "bottom",
-        "anchorPoint": [1.43267, 6.04853]
+        "anchorPoint": [1.43, 6.05]
     },
-    {
-        "id": "Tonga",
-        "ellipse": {
-            "cx": -175.28072,
-            "cy": -21.15586,
-            "left": -175.3381,
-            "top": -21.12636
-        },
-        "direction": "right",
-        "anchorPoint": [-173.88276, -20.01842]
-    },
+    { "id": "Tonga", "direction": "right", "anchorPoint": [-173.88, -20.02] },
     {
         "id": "Trinidad and Tobago",
-        "ellipse": {
-            "cx": -61.28856,
-            "cy": 10.52278,
-            "left": -61.66391,
-            "top": 10.83393
-        },
         "direction": "right",
-        "anchorPoint": [-61.31028, 10.43916]
+        "anchorPoint": [-61.31, 10.44]
     },
     {
         "id": "Tunisia",
-        "ellipse": {
-            "cx": 9.46115,
-            "cy": 35.55647,
-            "left": 8.37508,
-            "top": 37.11063
-        },
+        "ellipse": { "cx": 9.46, "cy": 35.56, "left": 8.38, "top": 37.11 },
         "direction": "rightTop",
-        "anchorPoint": [10.87021, 33.15917]
+        "anchorPoint": [10.87, 33.16]
     },
     {
         "id": "Turkey",
-        "ellipse": {
-            "cx": 35.1232,
-            "cy": 38.98581,
-            "left": 26.8047,
-            "top": 41.11186
-        },
+        "ellipse": { "cx": 35.12, "cy": 38.99, "left": 26.8, "top": 41.11 },
         "direction": "bottom",
-        "anchorPoint": [29.3173, 36.5215]
+        "anchorPoint": [29.32, 36.52]
     },
     {
         "id": "Turkmenistan",
-        "ellipse": {
-            "cx": 58.30028,
-            "cy": 39.71003,
-            "left": 54.14161,
-            "top": 41.39309
-        },
+        "ellipse": { "cx": 58.3, "cy": 39.71, "left": 54.14, "top": 41.39 },
         "direction": "left",
-        "anchorPoint": [53.16838, 40.44378]
+        "anchorPoint": [53.17, 40.44]
     },
-    {
-        "id": "Tuvalu",
-        "ellipse": {
-            "cx": 177.06571,
-            "cy": -12.49597,
-            "left": 177.00326,
-            "top": -12.47245
-        },
-        "direction": "right",
-        "anchorPoint": [-179.59355, -8.54568]
-    },
+    { "id": "Tuvalu", "direction": "right", "anchorPoint": [-179.59, -8.55] },
     {
         "id": "Uganda",
-        "ellipse": {
-            "cx": 32.9485,
-            "cy": 1.91694,
-            "left": 31.15285,
-            "top": 3.78807
-        }
+        "ellipse": { "cx": 32.95, "cy": 1.92, "left": 31.15, "top": 3.79 }
     },
     {
         "id": "Ukraine",
-        "ellipse": {
-            "cx": 30.14471,
-            "cy": 49.72731,
-            "left": 23.72393,
-            "top": 51.31188
-        },
+        "ellipse": { "cx": 30.14, "cy": 49.73, "left": 23.72, "top": 51.31 },
         "direction": "rightBottom",
-        "anchorPoint": [34.39197, 44.85849]
+        "anchorPoint": [34.39, 44.86]
     },
     {
         "id": "United Arab Emirates",
-        "ellipse": {
-            "cx": 54.22105,
-            "cy": 23.39644,
-            "left": 53.12728,
-            "top": 24.13588
-        },
+        "ellipse": { "cx": 54.22, "cy": 23.4, "left": 53.13, "top": 24.14 },
         "direction": "leftTop",
-        "anchorPoint": [55.33564, 25.08343]
+        "anchorPoint": [55.34, 25.08]
     },
     {
         "id": "United Kingdom",
-        "ellipse": {
-            "cx": -1.56694,
-            "cy": 52.29698,
-            "left": -3.81056,
-            "top": 53.79094
-        },
+        "ellipse": { "cx": -1.57, "cy": 52.3, "left": -3.81, "top": 53.79 },
         "direction": "right",
-        "anchorPoint": [-2.6341, 57.0154]
+        "anchorPoint": [-2.63, 57.02]
     },
     {
         "id": "United States",
-        "ellipse": {
-            "cx": -101.7377,
-            "cy": 38.77722,
-            "left": -122.72712,
-            "top": 45.33116
-        }
+        "ellipse": { "cx": -101.74, "cy": 38.78, "left": -122.73, "top": 45.33 }
     },
     {
         "id": "Uruguay",
         "ellipse": {
-            "cx": -55.88202,
-            "cy": -32.94919,
-            "left": -58.13348,
-            "top": -31.17826
+            "cx": -55.88,
+            "cy": -32.95,
+            "left": -58.13,
+            "top": -31.18
         },
         "direction": "rightBottom",
-        "anchorPoint": [-54.89021, -34.32781]
+        "anchorPoint": [-54.89, -34.33]
     },
     {
         "id": "Uzbekistan",
-        "ellipse": {
-            "cx": 62.98273,
-            "cy": 42.45339,
-            "left": 59.91093,
-            "top": 43.56057
-        }
+        "ellipse": { "cx": 62.98, "cy": 42.45, "left": 59.91, "top": 43.56 }
     },
-    {
-        "id": "Vanuatu",
-        "ellipse": {
-            "cx": 166.88825,
-            "cy": -15.22961,
-            "left": 166.64569,
-            "top": -14.82259
-        },
-        "direction": "right",
-        "anchorPoint": [167.53375, -15.66041]
-    },
+    { "id": "Vanuatu", "direction": "right", "anchorPoint": [167.53, -15.66] },
     {
         "id": "Venezuela",
-        "ellipse": {
-            "cx": -64.38023,
-            "cy": 7.34353,
-            "left": -67.69249,
-            "top": 10.10752
-        },
+        "ellipse": { "cx": -64.38, "cy": 7.34, "left": -67.69, "top": 10.11 },
         "direction": "top",
-        "anchorPoint": [-66.42985, 10.1509]
+        "anchorPoint": [-66.43, 10.15]
     },
     {
         "id": "Vietnam",
-        "ellipse": {
-            "cx": 105.41963,
-            "cy": 21.3385,
-            "left": 104.47607,
-            "top": 23.13666
-        },
+        "ellipse": { "cx": 105.42, "cy": 21.34, "left": 104.48, "top": 23.14 },
         "direction": "right",
-        "anchorPoint": [108.92436, 12.64167]
+        "anchorPoint": [108.92, 12.64]
     },
     {
         "id": "Western Sahara",
-        "ellipse": {
-            "cx": -14.685,
-            "cy": 22.49887,
-            "left": -16.27988,
-            "top": 23.65198
-        },
+        "ellipse": { "cx": -14.68, "cy": 22.5, "left": -16.28, "top": 23.65 },
         "direction": "leftTop",
-        "anchorPoint": [-14.65735, 24.89038]
+        "anchorPoint": [-14.66, 24.89]
     },
     {
         "id": "Yemen",
-        "ellipse": {
-            "cx": 47.95471,
-            "cy": 15.95284,
-            "left": 43.43715,
-            "top": 17.03264
-        },
+        "ellipse": { "cx": 47.95, "cy": 15.95, "left": 43.44, "top": 17.03 },
         "direction": "rightBottom",
-        "anchorPoint": [51.59089, 15.9022]
+        "anchorPoint": [51.59, 15.9]
     },
     {
         "id": "Zambia",
-        "ellipse": {
-            "cx": 25.87177,
-            "cy": -14.99324,
-            "left": 22.71048,
-            "top": -12.41871
-        }
+        "ellipse": { "cx": 25.87, "cy": -14.99, "left": 22.71, "top": -12.42 }
     },
     {
         "id": "Zimbabwe",
-        "ellipse": {
-            "cx": 29.79042,
-            "cy": -18.84558,
-            "left": 26.93923,
-            "top": -16.42296
-        }
+        "ellipse": { "cx": 29.79, "cy": -18.85, "left": 26.94, "top": -16.42 }
     }
 ]

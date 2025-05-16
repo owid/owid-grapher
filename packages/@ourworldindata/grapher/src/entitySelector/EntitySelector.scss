@@ -66,7 +66,6 @@
                 border-radius: 4px;
                 background: #fff;
                 color: $dark-text;
-                font-size: 16px; // prevent auto-zoom on ios
 
                 // style focus state
                 &:focus {
@@ -89,6 +88,11 @@
                 top: 50%;
                 left: $svg-size + $svg-margin + 6px;
                 transform: translateY(-50%);
+
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                width: calc(100% - $svg-size - $svg-margin - 6px);
             }
 
             &.search-input--empty {
@@ -109,21 +113,15 @@
             align-items: center;
         }
 
-        .entity-selector__dropdown {
+        .entity-selector__sort-dropdown {
             flex-grow: 1;
 
             // make the options menu wider to cover the sort button
             .menu {
                 width: calc(100% + $sort-button-margin + $sort-button-size);
             }
-        }
 
-        .label {
-            flex-shrink: 0;
-            margin-bottom: 6px;
-
-            svg {
-                margin-right: 6px;
+            .control .label svg {
                 transform: rotate(-90deg);
             }
         }
@@ -172,14 +170,6 @@
     .entity-selector__filter-bar {
         margin-top: 16px;
         margin-bottom: 8px;
-
-        .label {
-            margin-bottom: 6px;
-
-            svg {
-                margin-right: 6px;
-            }
-        }
     }
 
     .entity-selector__content {
@@ -335,8 +325,21 @@
         }
     }
 
-    .grapher-dropdown {
-        .control .detail,
+    .entity-selector__dropdown {
+        // only show the label in the control; don't show it for each option
+        .option .label {
+            display: none;
+        }
+
+        .control .label {
+            color: $gray-60;
+
+            svg {
+                margin-left: 1px;
+                margin-right: 5px;
+            }
+        }
+
         .option .detail {
             color: $gray-60;
         }

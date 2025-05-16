@@ -52,7 +52,7 @@ export type GrapherImageDownloadEvent =
     | "chart_download_png"
     | "chart_download_svg"
 
-export type GrapherHoverEvent = "map_country"
+export type GrapherHoverEvent = "map_country" | "map_legend"
 
 export interface GrapherAnalyticsContext {
     slug?: string

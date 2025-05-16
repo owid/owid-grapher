@@ -5,6 +5,7 @@ import {
     isTouchDevice,
     makeIdForHumanConsumption,
     excludeUndefined,
+    EntityName,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -21,6 +22,7 @@ import {
     Annotation,
     ANNOTATION_COLOR_LIGHT,
     ANNOTATION_COLOR_DARK,
+    RenderFeature,
 } from "./MapChartConstants"
 import { getGeoFeaturesForMap } from "./GeoFeatures"
 import {
@@ -35,7 +37,7 @@ import { Patterns } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,
     getForegroundFeatures,
-    sortFeaturesByInteractionState,
+    sortFeaturesByInteractionStateAndSize,
 } from "./MapHelpers"
 import {
     makeInternalAnnotationForFeature,
@@ -45,7 +47,6 @@ import {
 import { geoRobinson } from "./d3-geo-projection"
 import { isDarkColor } from "../color/ColorUtils"
 import { MapConfig } from "./MapConfig"
-import * as R from "remeda"
 
 @observer
 export class ChoroplethMap extends React.Component<{
@@ -142,6 +143,10 @@ export class ChoroplethMap extends React.Component<{
         return difference(this.features, this.foregroundFeatures)
     }
 
+    @computed private get backgroundFeatureIdSet(): Set<EntityName> {
+        return new Set(this.backgroundFeatures.map((feature) => feature.id))
+    }
+
     @computed private get featuresWithData(): MapRenderFeature[] {
         return this.foregroundFeatures.filter((feature) =>
             this.choroplethData.has(feature.id)
@@ -150,7 +155,8 @@ export class ChoroplethMap extends React.Component<{
 
     @computed private get sortedFeaturesWithData(): MapRenderFeature[] {
         // sort features so that hovered or selected features are rendered last
-        return sortFeaturesByInteractionState(this.featuresWithData, {
+        // and smaller countries are rendered on top of bigger ones
+        return sortFeaturesByInteractionStateAndSize(this.featuresWithData, {
             isHovered: (featureId: string) =>
                 this.manager.getHoverState(featureId).active,
             isSelected: (featureId) => this.manager.isSelected(featureId),
@@ -173,7 +179,10 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get shouldShowAnnotations(): boolean {
-        return !!this.manager.mapColumn.hasNumberFormatting
+        return !!(
+            this.manager.mapColumn.hasNumberFormatting &&
+            !this.mapConfig.tooltipUseCustomLabels
+        )
     }
 
     private formatAnnotationLabel(value: string | number): string {
@@ -183,21 +192,10 @@ export class ChoroplethMap extends React.Component<{
     @computed private get annotationCandidateFeatures(): MapRenderFeature[] {
         if (!this.shouldShowAnnotations) return []
 
-        const selectedCountryNames =
-            this.mapConfig.selection.selectedCountryNamesInForeground
-        const countries = R.unique(
-            excludeUndefined([
-                ...selectedCountryNames,
-                this.manager.hoverFeatureId,
-                // clear the focus country value on hover
-                this.manager.hoverFeatureId
-                    ? undefined
-                    : this.mapConfig.globe.focusCountry,
-            ])
-        )
-
         return excludeUndefined(
-            countries.map((name) => this.featuresById.get(name))
+            this.mapConfig.selection.selectedCountryNamesInForeground.map(
+                (name) => this.featuresById.get(name)
+            )
         )
     }
 
@@ -245,13 +243,14 @@ export class ChoroplethMap extends React.Component<{
 
     @computed
     private get externalAnnotations(): ExternalAnnotation[] {
-        const { projection } = this
+        const { projection, backgroundFeatureIdSet } = this
         const annotations = this.annotationCandidates.filter(
             (annotation) => annotation.type === "external"
         )
         return repositionAndFilterExternalAnnotations({
             annotations,
             projection,
+            backgroundFeatureIdSet,
         })
     }
 
@@ -364,12 +363,23 @@ export class ChoroplethMap extends React.Component<{
         if (this.externalAnnotations.length === 0) return
 
         return (
-            <g id={makeIdForHumanConsumption("annotations-external")}>
+            <g
+                id={makeIdForHumanConsumption("annotations-external")}
+                className="ExternalAnnotations"
+            >
                 {this.externalAnnotations.map((annotation) => (
                     <ExternalValueAnnotation
                         key={annotation.id}
                         annotation={annotation}
                         strokeScale={this.viewportScaleSqrt}
+                        onMouseEnter={action((feature: RenderFeature) =>
+                            this.setHoverEnterFeature(
+                                feature as MapRenderFeature
+                            )
+                        )}
+                        onMouseLeave={action(() =>
+                            this.clearHoverEnterFeature()
+                        )}
                     />
                 ))}
             </g>
@@ -511,8 +521,8 @@ export class ChoroplethMap extends React.Component<{
                 onMouseLeave={this.onMouseLeave}
                 onClick={() => {
                     // invoke a click on a feature when clicking nearby one
-                    if (this.hoverEnterFeature)
-                        this.onClick(this.hoverEnterFeature)
+                    if (this.hoverNearbyFeature)
+                        this.onClick(this.hoverNearbyFeature)
                 }}
                 style={{ cursor: this.hoverFeature ? "pointer" : undefined }}
             >

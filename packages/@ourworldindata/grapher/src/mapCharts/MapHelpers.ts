@@ -7,7 +7,6 @@ import {
     getCountryNamesForRegion,
     getRelativeMouse,
     lazy,
-    sortBy,
 } from "@ourworldindata/utils"
 import {
     GEO_FEATURES_CLASSNAME,
@@ -18,6 +17,7 @@ import {
 } from "./MapChartConstants"
 import { MapTopology } from "./MapTopology.js"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
+import * as R from "remeda"
 
 export function detectNearbyFeature<Feature extends RenderFeature>({
     quadtree,
@@ -40,7 +40,9 @@ export function detectNearbyFeature<Feature extends RenderFeature>({
     return quadtree.find(x, y, distance)
 }
 
-export const sortFeaturesByInteractionState = <Feature extends RenderFeature>(
+export const sortFeaturesByInteractionStateAndSize = <
+    Feature extends RenderFeature,
+>(
     features: Feature[],
     {
         isHovered,
@@ -50,10 +52,17 @@ export const sortFeaturesByInteractionState = <Feature extends RenderFeature>(
         isSelected: (featureId: string) => boolean
     }
 ): Feature[] => {
-    return sortBy(features, (feature) => {
-        if (isHovered(feature.id)) return 2
-        if (isSelected(feature.id)) return 1
-        return 0
+    const preferA = 1 as const
+    const preferB = -1 as const
+
+    return R.sort(features, (a, b) => {
+        if (isHovered(a.id) && !isHovered(b.id)) return preferA
+        if (!isHovered(a.id) && isHovered(b.id)) return preferB
+
+        if (isSelected(a.id) && !isSelected(b.id)) return preferA
+        if (!isSelected(a.id) && isSelected(b.id)) return preferB
+
+        return a.geoBounds.area < b.geoBounds.area ? preferA : preferB
     })
 }
 
@@ -84,8 +93,8 @@ export function isPointPlacedOnVisibleHemisphere(
     const phi = toRadians(point[1])
 
     // get current rotation in radians
-    const rotationLambda = toRadians(-rotation[0])
-    const rotationPhi = toRadians(-rotation[1])
+    const rotationLambda = toRadians(rotation[0])
+    const rotationPhi = toRadians(rotation[1])
 
     // calculate the cosine of the angular distance between the feature's
     // center point and the center points of the current view
@@ -106,7 +115,7 @@ export function getForegroundFeatures<Feature extends RenderFeature>(
     if (!selectionArray.hasRegions) return features
 
     // all countries within the selected regions are in the foreground
-    const countrySet = new Set(selectionArray.countryNamesForSelectedRegions)
+    const countrySet = selectionArray.countryNamesForSelectedRegionsSet
     return features.filter((feature) => countrySet.has(feature.id))
 }
 

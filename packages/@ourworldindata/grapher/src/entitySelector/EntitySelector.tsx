@@ -25,6 +25,9 @@ import {
     aggregateSources,
     AggregateSource,
     getRegionByName,
+    checkHasMembers,
+    Region,
+    Country,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -49,8 +52,6 @@ import {
     GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
     isPopulationVariableETLPath,
     isWorldEntityName,
-    MAP_GRAPHER_ENTITY_TYPE,
-    MAP_GRAPHER_ENTITY_TYPE_PLURAL,
 } from "../core/GrapherConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { SortIcon } from "../controls/SortIcon"
@@ -68,6 +69,7 @@ import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 import * as R from "remeda"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { EntitySelectorEvent } from "../core/GrapherAnalytics"
+import { match } from "ts-pattern"
 
 type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
@@ -87,9 +89,15 @@ const customAggregateSources = [
 ] as const
 type CustomAggregateSource = (typeof customAggregateSources)[number]
 
+const aggregateSourceSet = new Set([
+    ...aggregateSources,
+    ...customAggregateSources,
+])
+
 type EntityRegionType =
     | "all"
     | "countries"
+    | "historicalCountries" // e.g. USSR, Austria-Hungary
     | "continents" // owid continents
     | "incomeGroups"
     | AggregateSource // defined in the regions file, e.g. who or wb
@@ -140,6 +148,7 @@ type SearchableEntity = {
     sortColumnValues: Record<ColumnSlug, CoreValueType | undefined>
     isLocal?: boolean
     alternativeNames?: string[]
+    regionInfo?: Region
 }
 
 interface SortDropdownOption {
@@ -154,6 +163,7 @@ const entityFilterLabels: Record<EntityRegionType, string> = {
     countries: "Countries",
     continents: "Continents", // OWID-defined continents
     incomeGroups: "Income groups",
+    historicalCountries: "Historical countries and regions", // e.g. USSR, Austria-Hungary
 
     // Regions defined by an institution
     who: "World Health Organization regions",
@@ -251,7 +261,7 @@ export class EntitySelector extends React.Component<{
     searchField: React.RefObject<HTMLInputElement> = React.createRef()
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
 
-    private sortConfigName: SortConfig = {
+    private sortConfigByName: SortConfig = {
         slug: this.table.entityNameSlug,
         order: SortOrder.asc,
     }
@@ -319,11 +329,36 @@ export class EntitySelector extends React.Component<{
             return { slug, order: SortOrder.desc }
         }
 
-        return this.sortConfigName
+        return this.sortConfigByName
     }
 
-    @action.bound initSortConfig(): void {
+    initSortConfig(): void {
         this.set({ sortConfig: this.getDefaultSortConfig() })
+    }
+
+    resetInterpolatedMapColumn(): void {
+        const { mapColumnSlug } = this.manager
+        const sortSlug = this.sortConfig.slug
+
+        // no need to reset the map colum slug if it doesn't exist or isn't set
+        if (
+            !mapColumnSlug ||
+            !this.interpolatedSortColumnsBySlug[mapColumnSlug]
+        )
+            return
+
+        if (sortSlug === mapColumnSlug) {
+            // if the map column slug is currently selected, re-calculate its
+            // tolerance because the map and chart tab might have different
+            // tolerance settings
+            this.setInterpolatedSortColumn(
+                this.interpolateSortColumn(mapColumnSlug)
+            )
+        } else {
+            // otherwise, delete it and it will be re-calculated when necessary
+            delete this.manager.entitySelectorState
+                .interpolatedSortColumnsBySlug?.[mapColumnSlug]
+        }
     }
 
     @action.bound async populateLocalEntities(): Promise<void> {
@@ -475,12 +510,24 @@ export class EntitySelector extends React.Component<{
 
     @computed private get title(): string {
         return this.manager.isOnMapTab
-            ? `Select ${this.entityTypePlural}`
+            ? `Select ${this.entityType.plural}`
             : this.manager.canHighlightEntities
-              ? `Select ${this.entityTypePlural}`
+              ? `Select ${this.entityType.plural}`
               : this.manager.canChangeEntity
-                ? `Choose ${a(this.entityType)}`
-                : `Add/remove ${this.entityTypePlural}`
+                ? `Choose ${a(this.entityType.singular)}`
+                : `Add/remove ${this.entityType.plural}`
+    }
+
+    @computed private get searchPlaceholderEntityType(): string {
+        if (isAggregateSource(this.entityFilter)) return "region"
+
+        return match(this.entityFilter)
+            .with("all", () => this.entityType.singular)
+            .with("countries", () => "country")
+            .with("continents", () => "continent")
+            .with("incomeGroups", () => "income group")
+            .with("historicalCountries", () => "country or region")
+            .exhaustive()
     }
 
     @computed private get searchInput(): string {
@@ -489,7 +536,7 @@ export class EntitySelector extends React.Component<{
 
     @computed get sortConfig(): SortConfig {
         return (
-            this.manager.entitySelectorState.sortConfig ?? this.sortConfigName
+            this.manager.entitySelectorState.sortConfig ?? this.sortConfigByName
         )
     }
 
@@ -534,6 +581,13 @@ export class EntitySelector extends React.Component<{
 
     @computed private get table(): OwidTable {
         return this.manager.tableForSelection
+    }
+
+    @computed private get someEntitiesAreRegions(): boolean {
+        if (!this.entitiesAreCountriesOrRegions) return false
+        return this.availableEntities.some((entity) =>
+            checkHasMembers(entity.regionInfo)
+        )
     }
 
     @computed private get entitiesAreCountriesOrRegions(): boolean {
@@ -683,16 +737,25 @@ export class EntitySelector extends React.Component<{
         return this.isEntityNameSlug(this.sortConfig.slug)
     }
 
-    @computed private get entityType(): string {
-        if (this.manager.isOnMapTab) return MAP_GRAPHER_ENTITY_TYPE
-        return this.manager.entityType || DEFAULT_GRAPHER_ENTITY_TYPE
-    }
+    @computed private get entityType(): { singular: string; plural: string } {
+        const entitiesAreCountriesOrRegions =
+            this.manager.isOnMapTab ||
+            (!this.manager.entityType && this.entitiesAreCountriesOrRegions)
 
-    @computed private get entityTypePlural(): string {
-        if (this.manager.isOnMapTab) return MAP_GRAPHER_ENTITY_TYPE_PLURAL
-        return (
-            this.manager.entityTypePlural || DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
-        )
+        if (entitiesAreCountriesOrRegions)
+            return this.someEntitiesAreRegions
+                ? {
+                      singular: "country or region",
+                      plural: "countries and regions",
+                  }
+                : { singular: "country", plural: "countries" }
+
+        return {
+            singular: this.manager.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE,
+            plural:
+                this.manager.entityTypePlural ??
+                DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
+        }
     }
 
     @computed private get selectionArray(): SelectionArray {
@@ -720,6 +783,7 @@ export class EntitySelector extends React.Component<{
                 name: entityName,
                 sortColumnValues: {},
                 alternativeNames: getRegionAlternativeNames(entityName, langs),
+                regionInfo: getRegionByName(entityName),
             }
 
             if (this.localEntityNames) {
@@ -847,13 +911,6 @@ export class EntitySelector extends React.Component<{
         return this.fuzzy.search(this.searchInput)
     }
 
-    @computed get selectedSearchResults(): SearchableEntity[] | undefined {
-        if (!this.searchResults) return undefined
-        return this.searchResults.filter((entity: SearchableEntity) =>
-            this.isEntitySelected(entity)
-        )
-    }
-
     @computed get selectedEntities(): SearchableEntity[] {
         const selected = this.availableEntities.filter((entity) =>
             this.isEntitySelected(entity)
@@ -913,17 +970,10 @@ export class EntitySelector extends React.Component<{
     }
 
     @action.bound onClear(): void {
-        if (this.searchInput) {
-            const selected = this.selectedSearchResults ?? []
-            const dropEntityNames = selected.map((entity) => entity.name)
-            this.selectionArray.deselectEntities(dropEntityNames)
-            this.onDeselectEntities(dropEntityNames)
-        } else {
-            const dropEntityNames = this.selectionArray.selectedEntityNames
-            this.selectionArray.clearSelection()
-            this.onDeselectEntities(dropEntityNames)
-            this.manager.onClearEntities?.()
-        }
+        const dropEntityNames = this.selectionArray.selectedEntityNames
+        this.selectionArray.clearSelection()
+        this.onDeselectEntities(dropEntityNames)
+        this.manager.onClearEntities?.()
 
         this.resetEntityFilter()
 
@@ -958,9 +1008,11 @@ export class EntitySelector extends React.Component<{
         }
     }
 
-    @action.bound async onChangeSortSlug(selected: unknown): Promise<void> {
+    @action.bound async onChangeSortSlug(
+        selected: SortDropdownOption | null
+    ): Promise<void> {
         if (selected) {
-            const { value: slug } = selected as SortDropdownOption
+            const { value: slug } = selected
 
             // if an external indicator has been selected, load it
             const external = this.externalSortIndicatorDefinitions.find(
@@ -1001,15 +1053,13 @@ export class EntitySelector extends React.Component<{
 
     @computed get entitiesByRegionType(): Map<EntityRegionType, EntityName[]> {
         // the 'World' entity shouldn't show up in any of the groups
-        const availableEntityNames = this.availableEntityNames.filter(
-            (entityName) => !isWorldEntityName(entityName)
+        const availableEntities = this.availableEntities.filter(
+            (entity) => !isWorldEntityName(entity.name)
         )
 
         // map entities to their regions
         const availableRegions = excludeUndefined(
-            availableEntityNames.map((entityName) =>
-                getRegionByName(entityName)
-            )
+            availableEntities.map((entity) => entity.regionInfo)
         )
 
         // group regions by type
@@ -1018,13 +1068,19 @@ export class EntitySelector extends React.Component<{
             (r) => r.regionType
         )
 
+        // split countries into historical and non-historical
+        const [historicalCountries, nonHistoricalCountries] = partition(
+            regionsGroupedByType.country ?? [],
+            (country) => (country as Country).isHistorical
+        )
+
         const entitiesByType = new Map<EntityRegionType, EntityName[]>()
 
         // add the 'countries' group
-        if (regionsGroupedByType.country) {
+        if (nonHistoricalCountries.length > 0) {
             entitiesByType.set(
                 "countries",
-                regionsGroupedByType.country.map((region) => region.name)
+                nonHistoricalCountries.map((region) => region.name)
             )
         }
 
@@ -1038,22 +1094,42 @@ export class EntitySelector extends React.Component<{
 
         // add the 'incomeGroups' group
         if (regionsGroupedByType.income_group) {
-            entitiesByType.set(
-                "incomeGroups",
-                regionsGroupedByType.income_group.map((region) => region.name)
-            )
+            // match by name instead of relying on the regions file because
+            // some charts have income groups that aren't listed in the regions
+            // file, e.g. 'Lower-middle-income countries'
+            const incomeGroups = availableEntities
+                .filter(
+                    (entity) =>
+                        entity.name.includes("income countries") ||
+                        // matches 'No income group available', for example
+                        entity.name.includes("income group")
+                )
+                .map((entity) => entity.name)
+
+            entitiesByType.set("incomeGroups", incomeGroups)
         }
 
-        for (const source of [...aggregateSources, ...customAggregateSources]) {
+        for (const entity of availableEntities) {
             // The regions file includes a definedBy field for aggregates,
             // which could be used here. However, non-OWID regions aren't
             // standardized, meaning we might miss some entities.
             // Instead, we rely on the convention that non-OWID regions
             // are suffixed with (source) and check the entity name.
-            const entityNames = availableEntityNames.filter((entityName) =>
-                entityName.toLowerCase().trim().endsWith(`(${source})`)
+            const match = entity.name.match(/\(([^)]+)\)$/)
+            const sourceCandidate = match?.[1].toLowerCase()
+            if (sourceCandidate && isAggregateSource(sourceCandidate)) {
+                if (!entitiesByType.get(sourceCandidate))
+                    entitiesByType.set(sourceCandidate, [])
+                entitiesByType.get(sourceCandidate)!.push(entity.name)
+            }
+        }
+
+        // add the a group for historical countries
+        if (historicalCountries.length > 0) {
+            entitiesByType.set(
+                "historicalCountries",
+                historicalCountries.map((region) => region.name)
             )
-            if (entityNames.length > 0) entitiesByType.set(source, entityNames)
         }
 
         return entitiesByType
@@ -1078,9 +1154,11 @@ export class EntitySelector extends React.Component<{
         ]
     }
 
-    @action.bound private onChangeEntityFilter(selected: unknown): void {
+    @action.bound private onChangeEntityFilter(
+        selected: FilterDropdownOption | null
+    ): void {
         if (selected) {
-            const option = selected as FilterDropdownOption
+            const option = selected
             this.set({ entityFilter: option.value })
 
             this.manager.logEntitySelectorEvent("filterBy", option.value)
@@ -1105,25 +1183,13 @@ export class EntitySelector extends React.Component<{
     private renderFilterBar(): React.ReactElement {
         return (
             <div className="entity-selector__filter-bar">
-                <span
-                    id="entity-selector__filter-dropdown-label"
-                    className="label grapher_label-2-regular grapher_light"
-                >
-                    <FontAwesomeIcon icon={faFilter} size="sm" />
-                    Filter by type
-                </span>
                 <Dropdown<FilterDropdownOption>
-                    className="entity-selector__filter-dropdown"
+                    className="entity-selector__dropdown"
                     options={this.filterOptions}
                     onChange={this.onChangeEntityFilter}
                     value={this.filterValue}
-                    formatOptionLabel={(option) => (
-                        <>
-                            {option.label}{" "}
-                            <span className="detail">({option.count})</span>
-                        </>
-                    )}
-                    aria-labelledby="entity-selector__filter-dropdown-label"
+                    formatOptionLabel={formatFilterOptionLabel}
+                    aria-label="Filter by type"
                 />
             </div>
         )
@@ -1142,12 +1208,12 @@ export class EntitySelector extends React.Component<{
                         type="search"
                         value={this.searchInput}
                         onChange={action((e): void => {
-                            this.set({
-                                searchInput: e.currentTarget.value,
-                            })
+                            this.set({ searchInput: e.currentTarget.value })
                         })}
                         onKeyDown={this.onSearchKeyDown}
                         data-track-note={"entity_selector_search"}
+                        // prevent auto-zoom on ios
+                        style={{ fontSize: isTouchDevice() ? 16 : undefined }}
                     />
                     {/* We don't use the input's built-in placeholder because
                         we want the input text and placeholder text to have different
@@ -1156,7 +1222,7 @@ export class EntitySelector extends React.Component<{
                         but the placeholder text should have a smaller font size. */}
                     {!this.searchInput && (
                         <span className="search-placeholder">
-                            Search for {a(this.entityType)}
+                            Search for {a(this.searchPlaceholderEntityType)}
                         </span>
                     )}
                     <FontAwesomeIcon
@@ -1180,31 +1246,15 @@ export class EntitySelector extends React.Component<{
     private renderSortBar(): React.ReactElement {
         return (
             <div className="entity-selector__sort-bar">
-                <div
-                    id="entity-selector__sort-dropdown-label"
-                    className="label grapher_label-2-regular grapher_light"
-                >
-                    <FontAwesomeIcon icon={faArrowRightArrowLeft} size="sm" />
-                    Sort by
-                </div>
                 <div className="entity-selector__sort-dropdown-and-button">
                     <Dropdown<SortDropdownOption>
-                        className="entity-selector__dropdown"
+                        className="entity-selector__dropdown entity-selector__sort-dropdown"
                         options={this.sortOptions}
                         onChange={this.onChangeSortSlug}
                         value={this.sortValue}
                         isLoading={this.isLoadingExternalSortColumn}
-                        formatOptionLabel={(option) => (
-                            <>
-                                {option.label}
-                                {option.formattedTime && (
-                                    <span className="detail">
-                                        , {option.formattedTime}
-                                    </span>
-                                )}
-                            </>
-                        )}
-                        aria-labelledby="entity-selector__sort-dropdown-label"
+                        formatOptionLabel={formatSortOptionLabel}
+                        aria-label="Sort by"
                     />
                     <button
                         type="button"
@@ -1225,8 +1275,8 @@ export class EntitySelector extends React.Component<{
         if (!this.searchResults || this.searchResults.length === 0) {
             return (
                 <div className="entity-search-results grapher_body-3-regular grapher_light">
-                    There is no data for the {this.entityType} you are looking
-                    for. You may want to try using different keywords or
+                    There is no data for the {this.entityType.singular} you are
+                    looking for. You may want to try using different keywords or
                     checking for typos.
                 </div>
             )
@@ -1393,7 +1443,7 @@ export class EntitySelector extends React.Component<{
                         {!shouldShowFilterBar && (
                             <Flipped flipId="__available" translate opacity>
                                 <div className="entity-section__title grapher_body-3-regular-italic grapher_light">
-                                    All {this.entityTypePlural}
+                                    All {this.entityType.plural}
                                 </div>
                             </Flipped>
                         )}
@@ -1554,10 +1604,45 @@ function FlippedListItem({
     )
 }
 
+function formatSortOptionLabel(option: SortDropdownOption): React.ReactElement {
+    return (
+        <>
+            <span className="label">
+                <FontAwesomeIcon icon={faArrowRightArrowLeft} size="sm" />
+                {"Sort by: "}
+            </span>
+            {option.label}
+            {option.formattedTime && (
+                <span className="detail">, {option.formattedTime}</span>
+            )}
+        </>
+    )
+}
+
+function formatFilterOptionLabel(
+    option: FilterDropdownOption
+): React.ReactElement {
+    return (
+        <>
+            <span className="label">
+                <FontAwesomeIcon icon={faFilter} size="sm" />
+                {"Filter by type: "}
+            </span>
+            {option.label} <span className="detail">({option.count})</span>
+        </>
+    )
+}
+
 function getTitleForSortColumnLabel(column: CoreColumn): string {
     return column.titlePublicOrDisplayName.title
 }
 
 function indicatorIdToSlug(indicatorId: number): ColumnSlug {
     return indicatorId.toString()
+}
+
+function isAggregateSource(
+    candidate: string
+): candidate is AggregateSource | CustomAggregateSource {
+    return aggregateSourceSet.has(candidate as any)
 }
