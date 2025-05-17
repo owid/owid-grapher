@@ -1,5 +1,5 @@
 import { observable } from "mobx"
-import { MapRegionName } from "@ourworldindata/types"
+import { MapConfigInterface, MapRegionName } from "@ourworldindata/types"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
     ColumnSlug,
@@ -29,8 +29,6 @@ class MapConfigDefaults {
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
     @observable tooltipUseCustomLabels?: boolean = undefined
 }
-
-export type MapConfigInterface = MapConfigDefaults
 
 export class MapConfig extends MapConfigDefaults implements Persistable {
     updateFromObject(obj: Partial<MapConfigInterface>): void {

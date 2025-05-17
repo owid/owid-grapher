@@ -207,7 +207,7 @@ export class EntitySelectionSection extends React.Component<{
                             .concat(unselectedEntityNames)
                             .map((key) => ({ value: key }))}
                     />
-                    {editor.couldPropertyBeInherited("selectedEntityNames") && (
+                    {editor.canPropertyBeInherited("selectedEntityNames") && (
                         <button
                             className="btn btn-outline-secondary"
                             type="button"
@@ -345,7 +345,7 @@ export class FocusSection extends React.Component<{
                             .concat(availableSeriesNames)
                             .map((key) => ({ value: key }))}
                     />
-                    {editor.couldPropertyBeInherited("focusedSeriesNames") && (
+                    {editor.canPropertyBeInherited("focusedSeriesNames") && (
                         <button
                             className="btn btn-outline-secondary"
                             type="button"

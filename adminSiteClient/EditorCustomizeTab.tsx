@@ -410,7 +410,7 @@ class TimelineSection<
                                 editor.activeParentConfig?.minTime
                             )}
                             isInherited={editor.isPropertyInherited("minTime")}
-                            allowLinking={editor.couldPropertyBeInherited(
+                            allowLinking={editor.canPropertyBeInherited(
                                 "minTime"
                             )}
                         />
@@ -428,9 +428,7 @@ class TimelineSection<
                             editor.activeParentConfig?.maxTime
                         )}
                         isInherited={editor.isPropertyInherited("maxTime")}
-                        allowLinking={editor.couldPropertyBeInherited(
-                            "maxTime"
-                        )}
+                        allowLinking={editor.canPropertyBeInherited("maxTime")}
                     />
                 </FieldsRow>
                 {features.timelineRange && (
@@ -446,7 +444,7 @@ class TimelineSection<
                             isInherited={editor.isPropertyInherited(
                                 "timelineMinTime"
                             )}
-                            allowLinking={editor.couldPropertyBeInherited(
+                            allowLinking={editor.canPropertyBeInherited(
                                 "timelineMinTime"
                             )}
                         />
@@ -461,7 +459,7 @@ class TimelineSection<
                             isInherited={editor.isPropertyInherited(
                                 "timelineMaxTime"
                             )}
-                            allowLinking={editor.couldPropertyBeInherited(
+                            allowLinking={editor.canPropertyBeInherited(
                                 "timelineMaxTime"
                             )}
                         />
