@@ -54,14 +54,6 @@ export class ControlsRow extends Component<{
         return this.manager.sidePanelBounds?.width ?? 0
     }
 
-    @computed private get contentSwitchersWidth(): number {
-        return ContentSwitchers.width(this.manager)
-    }
-
-    @computed private get availableWidth(): number {
-        return this.maxWidth - this.contentSwitchersWidth - 16
-    }
-
     @computed private get showContentSwitchers(): boolean {
         return ContentSwitchers.shouldShow(this.manager)
     }
@@ -80,9 +72,7 @@ export class ControlsRow extends Component<{
         return (
             <nav
                 className="controlsRow"
-                style={{
-                    padding: `0 ${this.framePaddingHorizontal}px`,
-                }}
+                style={{ padding: `0 ${this.framePaddingHorizontal}px` }}
             >
                 <div>
                     {this.showContentSwitchers && (
@@ -96,17 +86,13 @@ export class ControlsRow extends Component<{
 
                     <SettingsMenu
                         manager={this.manager}
-                        maxWidth={this.availableWidth}
                         top={this.props.settingsMenuTop ?? 0}
                         bottom={this.framePaddingVertical}
                         right={
                             this.sidePanelWidth + this.framePaddingHorizontal
                         }
                     />
-                    <MapRegionDropdown
-                        manager={this.manager}
-                        maxWidth={this.availableWidth}
-                    />
+                    <MapRegionDropdown manager={this.manager} />
                 </div>
             </nav>
         )

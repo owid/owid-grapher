@@ -5,7 +5,6 @@ import { MapConfig } from "../mapCharts/MapConfig"
 import { MapRegionName } from "@ourworldindata/types"
 import { MAP_REGION_LABELS } from "../mapCharts/MapProjections"
 import { Dropdown } from "./Dropdown"
-import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 
 export interface MapRegionDropdownManager {
     mapConfig?: MapConfig
@@ -21,7 +20,6 @@ interface DropdownOption {
 @observer
 export class MapRegionDropdown extends React.Component<{
     manager: MapRegionDropdownManager
-    maxWidth?: number
 }> {
     static shouldShow(manager: MapRegionDropdownManager): boolean {
         const menu = new MapRegionDropdown({ manager })
@@ -33,10 +31,6 @@ export class MapRegionDropdown extends React.Component<{
                 this.props.manager,
             { region } = mapConfig ?? {}
         return !hideMapRegionDropdown && !!(isOnMapTab && region)
-    }
-
-    @computed private get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
     @action.bound onChange(selected: unknown): void {
@@ -61,10 +55,7 @@ export class MapRegionDropdown extends React.Component<{
 
     render(): React.ReactElement | null {
         return this.showMenu ? (
-            <div
-                className="map-region-dropdown"
-                style={{ maxWidth: this.maxWidth }}
-            >
+            <div className="map-region-dropdown">
                 <Dropdown
                     options={this.options}
                     onChange={this.onChange}
