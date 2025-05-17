@@ -123,7 +123,7 @@ async function getMultiDimDataPagesWithInheritedTags(
     trx: db.KnexReadonlyTransaction
 ) {
     const multiDims = await getAllPublishedMultiDimDataPages(trx)
-    const parentTagArrays = await db.getParentTagArraysByChildName(trx)
+    const parentTagArrays = await db.getParentTagArraysByChildName(trx, true)
 
     const result = []
     for (const multiDim of multiDims) {
