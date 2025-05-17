@@ -33,7 +33,7 @@ import {
     CHOROPLETH_MAP_CLASSNAME,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+import { ColorScale } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
@@ -71,7 +71,7 @@ interface MapChartProps {
 @observer
 export class MapChart
     extends React.Component<MapChartProps>
-    implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
+    implements ChartInterface, HorizontalColorLegendManager
 {
     @observable focusEntity?: MapEntity
     @observable focusBracket?: MapBracket
@@ -316,7 +316,7 @@ export class MapChart
         exposeInstanceOnWindow(this)
     }
 
-    @computed get legendData(): ColorScaleBin[] {
+    @computed private get legendData(): ColorScaleBin[] {
         return this.colorScale.legendBins
     }
 
@@ -555,7 +555,7 @@ export class MapChart
                         timeSeriesTable={this.inputTable}
                         formatValueIfCustom={this.formatTooltipValueIfCustom}
                         manager={this.manager}
-                        colorScaleManager={this}
+                        lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
                         sparklineWidth={sparklineWidth}
                     />

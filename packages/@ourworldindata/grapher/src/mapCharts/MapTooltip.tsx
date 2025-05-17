@@ -10,7 +10,7 @@ import {
     makeTooltipRoundingNotice,
 } from "../tooltip/Tooltip"
 import { MapChartManager } from "./MapChartConstants"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+import { ColorScale } from "../color/ColorScale"
 import {
     Time,
     EntityName,
@@ -20,7 +20,6 @@ import {
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     isNumber,
-    AllKeysRequired,
     PrimitiveType,
     excludeUndefined,
     anyToString,
@@ -31,7 +30,7 @@ import { MapSparkline, MapSparklineManager } from "./MapSparkline.js"
 interface MapTooltipProps {
     tooltipState: TooltipState<{ featureId: string; clickable: boolean }>
     manager: MapChartManager
-    colorScaleManager: ColorScaleManager
+    lineColorScale: ColorScale
     formatValueIfCustom: (d: PrimitiveType) => string | undefined
     timeSeriesTable: OwidTable
     targetTime?: Time
@@ -83,18 +82,7 @@ export class MapTooltip
     }
 
     @computed get lineColorScale(): ColorScale {
-        const oldManager = this.props.colorScaleManager
-        // Make sure all ColorScaleManager props are included.
-        // We can't ...rest here because I think mobx computeds aren't
-        // enumerable or something.
-        const newManager: AllKeysRequired<ColorScaleManager> = {
-            colorScaleConfig: oldManager.colorScaleConfig,
-            hasNoDataBin: oldManager.hasNoDataBin,
-            defaultNoDataColor: oldManager.defaultNoDataColor,
-            defaultBaseColorScheme: oldManager.defaultBaseColorScheme,
-            colorScaleColumn: oldManager.colorScaleColumn,
-        }
-        return new ColorScale(newManager)
+        return this.props.lineColorScale
     }
 
     @computed private get showSparkline(): boolean {
