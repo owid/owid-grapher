@@ -2,8 +2,7 @@ import { GRAPHER_PREVIEW_CLASS, GrapherInterface } from "@ourworldindata/types"
 import { GrapherFigureView } from "./GrapherFigureView.js"
 import cx from "classnames"
 import GrapherImage from "./GrapherImage.js"
-import { useEffect, useState } from "react"
-import { useIntersectionObserver } from "usehooks-ts"
+import { useIntersectionObserver, useIsClient } from "usehooks-ts"
 
 export interface GrapherWithFallbackProps {
     slug: string
@@ -19,15 +18,12 @@ export function GrapherWithFallback(
 ): JSX.Element {
     const { slug, className, id, config, queryStr } = props
 
-    const [isClient, setIsClient] = useState(false)
+    const isClient = useIsClient()
     const { ref, isIntersecting: hasBeenVisible } = useIntersectionObserver({
         rootMargin: "400px",
         // Only trigger once
         freezeOnceVisible: true,
     })
-    useEffect(() => {
-        setIsClient(true)
-    }, [])
 
     // Render fallback svg when javascript disabled or while
     // grapher is loading
