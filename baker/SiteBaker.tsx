@@ -17,8 +17,8 @@ import {
 import {
     renderFrontPage,
     renderBlogByPageNum,
-    renderDataCatalogPage,
     renderSearchPage,
+    DEPRECATEDrenderSearchPage,
     renderDonatePage,
     makeAtomFeed,
     feedbackPage,
@@ -671,7 +671,7 @@ export class SiteBaker {
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/search.html`,
-            await renderSearchPage()
+            await DEPRECATEDrenderSearchPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/explorers.html`,
@@ -696,7 +696,7 @@ export class SiteBaker {
 
         await this.stageWrite(
             `${this.bakedSiteDir}/data.html`,
-            await renderDataCatalogPage(knex)
+            await renderSearchPage(knex)
         )
     }
 

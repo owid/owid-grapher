@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useState } from "react"
 import cx from "classnames"
 import { Region } from "@ourworldindata/utils"
-import { ChartRecordType, IChartHit, SearchIndexName } from "./searchTypes.js"
-import { getEntityQueryStr, pickEntitiesForChartHit } from "./SearchUtils.js"
+import {
+    ChartRecordType,
+    IChartHit,
+    IDataCatalogHit,
+    SearchIndexName,
+} from "./searchTypes.js"
+import { getEntityQueryStr, pickEntitiesForChartHit } from "./searchUtils.js"
 import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     BAKED_BASE_URL,
@@ -21,7 +26,6 @@ import {
     DEFAULT_GRAPHER_WIDTH,
 } from "@ourworldindata/grapher"
 import { Highlight } from "react-instantsearch"
-import { IDataCatalogHit } from "../DataCatalog/DataCatalogUtils.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 
 export function ChartHit({
