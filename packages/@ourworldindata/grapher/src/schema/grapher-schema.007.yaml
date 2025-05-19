@@ -114,10 +114,7 @@ properties:
             type:
                 - string
     baseColorScheme:
-        type: string
-        description: |
-            The default color scheme if no color overrides are specified.
-            If not provided, a default is chosen based on the chart type.
+        $ref: "#/$defs/colorScheme"
     yAxis:
         $ref: "#/$defs/axis"
     tab:
@@ -569,6 +566,77 @@ $defs:
                     - independent
                     - shared
         additionalProperties: false
+    colorScheme:
+        type: string
+        description: |
+            One of the predefined base color schemes.
+            If not provided, a default is automatically chosen based on the chart type.
+        enum:
+            - YlGn
+            - YlGnBu
+            - GnBu
+            - BuGn
+            - PuBuGn
+            - BuPu
+            - RdPu
+            - PuRd
+            - OrRd
+            - YlOrRd
+            - YlOrBr
+            - Purples
+            - Blues
+            - Greens
+            - Oranges
+            - Reds
+            - Greys
+            - PuOr
+            - BrBG
+            - PRGn
+            - PiYG
+            - RdBu
+            - RdGy
+            - RdYlBu
+            - Spectral
+            - RdYlGn
+            - Accent
+            - Dark2
+            - Paired
+            - Pastel1
+            - Pastel2
+            - Set1
+            - Set2
+            - Set3
+            - PuBu
+            - Magma
+            - Inferno
+            - Plasma
+            - Viridis
+            - continents
+            - stackedAreaDefault
+            - owid-distinct
+            - SingleColorDenim
+            - SingleColorTeal
+            - SingleColorPurple
+            - SingleColorDustyCoral
+            - SingleColorDarkCopper
+            - OwidCategoricalA
+            - OwidCategoricalB
+            - OwidCategoricalC
+            - OwidCategoricalD
+            - OwidCategoricalE
+            - OwidEnergy
+            - OwidEnergyLines
+            - OwidDistinctLines
+            - BinaryMapPaletteA
+            - BinaryMapPaletteB
+            - BinaryMapPaletteC
+            - BinaryMapPaletteD
+            - BinaryMapPaletteE
+            - SingleColorGradientDenim
+            - SingleColorGradientTeal
+            - SingleColorGradientPurple
+            - SingleColorGradientDustyCoral
+            - SingleColorGradientDarkCopper
     colorScale:
         type: object
         description: Color scale definition
@@ -589,76 +657,7 @@ $defs:
                     ".*":
                         type: string
             baseColorScheme:
-                type: string
-                description: |
-                    One of the predefined base color schemes.
-                    If not provided, a default is automatically chosen based on the chart type.
-                enum:
-                    - YlGn
-                    - YlGnBu
-                    - GnBu
-                    - BuGn
-                    - PuBuGn
-                    - BuPu
-                    - RdPu
-                    - PuRd
-                    - OrRd
-                    - YlOrRd
-                    - YlOrBr
-                    - Purples
-                    - Blues
-                    - Greens
-                    - Oranges
-                    - Reds
-                    - Greys
-                    - PuOr
-                    - BrBG
-                    - PRGn
-                    - PiYG
-                    - RdBu
-                    - RdGy
-                    - RdYlBu
-                    - Spectral
-                    - RdYlGn
-                    - Accent
-                    - Dark2
-                    - Paired
-                    - Pastel1
-                    - Pastel2
-                    - Set1
-                    - Set2
-                    - Set3
-                    - PuBu
-                    - Magma
-                    - Inferno
-                    - Plasma
-                    - Viridis
-                    - continents
-                    - stackedAreaDefault
-                    - owid-distinct
-                    - SingleColorDenim
-                    - SingleColorTeal
-                    - SingleColorPurple
-                    - SingleColorDustyCoral
-                    - SingleColorDarkCopper
-                    - OwidCategoricalA
-                    - OwidCategoricalB
-                    - OwidCategoricalC
-                    - OwidCategoricalD
-                    - OwidCategoricalE
-                    - OwidEnergy
-                    - OwidEnergyLines
-                    - OwidDistinctLines
-                    - BinaryMapPaletteA
-                    - BinaryMapPaletteB
-                    - BinaryMapPaletteC
-                    - BinaryMapPaletteD
-                    - BinaryMapPaletteE
-                    - SingleColorGradientDenim
-                    - SingleColorGradientTeal
-                    - SingleColorGradientPurple
-                    - SingleColorGradientDustyCoral
-                    - SingleColorGradientDarkCopper
+                $ref: "#/$defs/colorScheme"
             equalSizeBins:
                 type: boolean
                 default: true
