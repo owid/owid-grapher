@@ -6,6 +6,8 @@ import {
     removeTrailingParenthetical,
     slugify,
     Url,
+    countriesByName,
+    incomeGroupsByName,
 } from "@ourworldindata/utils"
 import * as Sentry from "@sentry/node"
 import {
@@ -16,15 +18,11 @@ import {
     ChartRecord,
     ChartRecordType,
 } from "../../../site/search/searchTypes.js"
-import {
-    countriesByName,
-    incomeGroupsByName,
-} from "@ourworldindata/utils/dist/regions.js"
 import urljoin from "url-join"
 import { groupBy } from "remeda"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { incomeGroupMap, REAL_FM_INCOME_GROUPS } from "./types.js"
-import { ExpandedFeaturedMetric } from "@ourworldindata/types/dist/dbTypes/FeaturedMetrics.js"
+import { ExpandedFeaturedMetric } from "@ourworldindata/types"
 
 const countriesWithVariantNames = new Set(
     countries
