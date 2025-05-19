@@ -4,6 +4,7 @@ import {
     MultipleOwidVariableDataDimensionsMap,
     OwidChartDimensionInterface,
     OwidVariableDataMetadataDimensions,
+    ArchivedChartOrArchivePageMeta,
 } from "@ourworldindata/types"
 import React from "react"
 import {
@@ -22,7 +23,6 @@ import {
     CoreColumnBySlug,
     EXTERNAL_SORT_INDICATOR_DEFINITIONS,
 } from "../entitySelector/EntitySelector.js"
-import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 
 export interface FetchingGrapherProps {

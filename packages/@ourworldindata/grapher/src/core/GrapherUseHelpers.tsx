@@ -4,7 +4,7 @@ import ReactDOM from "react-dom"
 import { GrapherProgrammaticInterface } from "../index.js"
 import * as Sentry from "@sentry/react"
 import { FetchingGrapher } from "./FetchingGrapher.js"
-import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types/dist/domainTypes/Archive.js"
+import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types"
 
 export function renderGrapherIntoContainer(
     config: GrapherProgrammaticInterface,
