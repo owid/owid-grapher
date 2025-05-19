@@ -11,6 +11,7 @@
         "buildLocalBake": "tsx --tsconfig tsconfig.tsx.json baker/buildLocalBake.ts",
         "extractSearchSuggestions": "tsx --tsconfig tsconfig.tsx.json baker/algolia/extractSearchSuggestions.ts",
         "indexSuggestionsToAlgolia": "tsx --tsconfig tsconfig.tsx.json baker/algolia/indexSuggestionsToAlgolia.ts",
+        "queryChartsAlgolia": "tsx --tsconfig tsconfig.tsx.json baker/algolia/queryChartsCountsFromAlgolia.ts",
         "buildTsc": "tsc -b -verbose",
         "buildLerna": "lerna run build",
         "buildViteAdmin": "vite build --config vite.config-admin.mts",
