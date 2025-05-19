@@ -3,7 +3,7 @@ import { GrapherFigureView } from "./GrapherFigureView.js"
 import cx from "classnames"
 import GrapherImage from "./GrapherImage.js"
 import { useEffect, useState } from "react"
-import { useInView } from "react-intersection-observer"
+import { useIntersectionObserver } from "usehooks-ts"
 
 export interface GrapherWithFallbackProps {
     slug: string
@@ -20,10 +20,10 @@ export function GrapherWithFallback(
     const { slug, className, id, config, queryStr } = props
 
     const [isClient, setIsClient] = useState(false)
-    const { ref, inView } = useInView({
+    const { ref, isIntersecting: hasBeenVisible } = useIntersectionObserver({
         rootMargin: "400px",
         // Only trigger once
-        triggerOnce: true,
+        freezeOnceVisible: true,
     })
     useEffect(() => {
         setIsClient(true)
@@ -57,7 +57,7 @@ export function GrapherWithFallback(
         >
             {!isClient ? (
                 imageFallback
-            ) : inView ? (
+            ) : hasBeenVisible ? (
                 <GrapherFigureView
                     slug={slug}
                     config={config}
