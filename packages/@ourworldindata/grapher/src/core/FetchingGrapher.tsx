@@ -64,7 +64,7 @@ export function FetchingGrapher(
 ): JSX.Element | null {
     // if config is not provided, fetch it from configUrl
 
-    const [downloadedConfig, setdownloadedConfig] = React.useState<
+    const [downloadedConfig, setDownloadedConfig] = React.useState<
         GrapherInterface | undefined
     >(undefined)
 
@@ -91,7 +91,7 @@ export function FetchingGrapher(
                     ...fetchedConfig,
                     ...props.config,
                 }
-                setdownloadedConfig(mergedConfig)
+                setDownloadedConfig(mergedConfig)
                 grapherState.current.updateFromObject(mergedConfig)
                 // We now need to make sure that the query params are re-applied again
                 grapherState.current.populateFromQueryParams(
