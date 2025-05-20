@@ -945,12 +945,15 @@ export class Grapher
             table = this.chartInstance.transformTableForDisplay(table)
         }
 
-        if (
-            this.forceShowSelectionOnlyInDataTable ||
-            this.showSelectionOnlyInDataTable
-        ) {
+        if (this.forceShowSelectionOnlyInDataTable) {
             table = table.filterByEntityNames(
                 this.selection.selectedEntityNames
+            )
+        } else if (this.showSelectionOnlyInDataTable) {
+            table = table.filterByEntityNames(
+                this.mapConfig.selection.hasSelection
+                    ? this.mapConfig.selection.selectedEntityNames
+                    : this.selection.selectedEntityNames
             )
         }
 
