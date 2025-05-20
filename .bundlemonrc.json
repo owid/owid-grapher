@@ -1,0 +1,39 @@
+{
+    "baseDir": "./dist/assets",
+    "defaultCompression": "brotli",
+    "files": [
+        {
+            "path": "owid.mjs",
+            "maxSize": "700kB",
+            "maxPercentIncrease": 5
+        },
+        {
+            "path": "owid.css",
+            "maxSize": "55kB"
+        }
+    ],
+    "groups": [
+        {
+            "compression": "none",
+            "friendlyName": "JS files (uncompressed)",
+            "path": "**/*.{js,mjs}"
+        },
+        {
+            "compression": "none",
+            "friendlyName": "CSS files (uncompressed)",
+            "path": "**/*.css"
+        }
+    ],
+
+    "includeCommitMessage": true,
+    "reportOutput": [
+        [
+            "github",
+            {
+                "checkRun": true,
+                "commitStatus": true,
+                "prComment": "on-failure"
+            }
+        ]
+    ]
+}
