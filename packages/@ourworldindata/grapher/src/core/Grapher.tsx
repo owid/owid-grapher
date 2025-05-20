@@ -3330,7 +3330,8 @@ export class Grapher extends React.Component<GrapherProps> {
                 style={containerStyle}
                 data-grapher-url={JSON.stringify({
                     grapherUrl: this.grapherState.canonicalUrl,
-                    narrativeChartName: this.grapherState.narrativeChartInfo?.name,
+                    narrativeChartName:
+                        this.grapherState.narrativeChartInfo?.name,
                 })}
             >
                 {this.commandPalette}
