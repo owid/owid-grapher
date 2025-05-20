@@ -2,21 +2,26 @@ import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
-import { MapRegionName } from "@ourworldindata/types"
-import { MAP_REGION_LABELS } from "../mapCharts/MapProjections"
+import { MapRegionName, GlobeRegionName } from "@ourworldindata/types"
 import { Dropdown } from "./Dropdown"
 import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
+import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
+import { GlobeController } from "../mapCharts/GlobeController"
+
+export type MapRegionDropdownValue = GlobeRegionName | "Selection"
 
 export interface MapRegionDropdownManager {
     mapConfig?: MapConfig
+    globeController?: GlobeController
     isOnMapTab?: boolean
+    mapRegionDropdownValue?: MapRegionDropdownValue
     hideMapRegionDropdown?: boolean
-    shouldShowEntitySelectorOnMapTab?: boolean
+    isMapSelectionEnabled?: boolean
 }
 
-interface DropdownOption {
+interface MapRegionDropdownOption {
+    value: MapRegionDropdownValue
     label: string
-    value: MapRegionName
 }
 
 @observer
@@ -29,19 +34,26 @@ export class MapRegionDropdown extends React.Component<{
         return menu.showMenu
     }
 
-    @computed get showMenu(): boolean {
+    @computed private get manager(): MapRegionDropdownManager {
+        return this.props.manager
+    }
+
+    @computed private get mapConfig(): MapConfig {
+        return this.manager.mapConfig ?? new MapConfig()
+    }
+
+    @computed private get showMenu(): boolean {
         const {
                 hideMapRegionDropdown,
                 isOnMapTab,
                 mapConfig,
-                shouldShowEntitySelectorOnMapTab,
-            } = this.props.manager,
-            { region, globe } = mapConfig ?? {}
+                isMapSelectionEnabled,
+            } = this.manager,
+            { region } = mapConfig ?? {}
         return (
             !hideMapRegionDropdown &&
             !!(isOnMapTab && region) &&
-            !globe?.isActive &&
-            !!shouldShowEntitySelectorOnMapTab
+            !!isMapSelectionEnabled
         )
     }
 
@@ -49,24 +61,55 @@ export class MapRegionDropdown extends React.Component<{
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
-    @action.bound onChange(selected: unknown): void {
-        const { mapConfig } = this.props.manager
-        if (selected && mapConfig)
-            mapConfig.region = (selected as DropdownOption).value
+    @action.bound onChange(selected: unknown, mode: { action: unknown }): void {
+        if (mode.action === "clear") {
+            this.manager.mapRegionDropdownValue = undefined
+            this.mapConfig.region = MapRegionName.World
+            this.manager.globeController?.hideGlobe()
+            return
+        }
+
+        if (!selected) return
+
+        // update active option
+        const { value } = selected as MapRegionDropdownOption
+        this.manager.mapRegionDropdownValue = value
+
+        // rotate to the selection or region
+        if (value === "Selection") {
+            this.manager.globeController?.rotateToSelection()
+        } else {
+            this.mapConfig.region = value
+            this.manager.globeController?.rotateToOwidContinent(value)
+        }
     }
 
-    @computed get options(): DropdownOption[] {
-        return Object.values(MapRegionName).map((region) => {
-            return {
-                value: region,
-                label: MAP_REGION_LABELS[region],
-            }
-        })
+    @computed get options(): MapRegionDropdownOption[] {
+        const continentOptions = Object.values(MapRegionName)
+            .filter((region) => region !== MapRegionName.World)
+            .map((region) => {
+                return {
+                    value: region,
+                    label: MAP_REGION_LABELS[region as MapRegionName],
+                }
+            })
+
+        const selectionOption: MapRegionDropdownOption = {
+            value: "Selection",
+            label: "Selection",
+        }
+
+        return this.mapConfig.selection.hasSelection
+            ? [selectionOption, ...continentOptions]
+            : continentOptions
     }
 
-    @computed get value(): DropdownOption | null {
-        const { region } = this.props.manager.mapConfig ?? {}
-        return this.options.find((opt) => region === opt.value) ?? null
+    @computed get value(): MapRegionDropdownOption | null {
+        const { mapRegionDropdownValue } = this.manager
+        return (
+            this.options.find((opt) => opt.value === mapRegionDropdownValue) ??
+            null
+        )
     }
 
     render(): React.ReactElement | null {
@@ -79,6 +122,8 @@ export class MapRegionDropdown extends React.Component<{
                     options={this.options}
                     onChange={this.onChange}
                     value={this.value}
+                    isClearable
+                    placeholder="Zoom to..."
                 />
             </div>
         ) : null
