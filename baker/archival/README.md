@@ -89,8 +89,19 @@ There are two env variables relevant to archiving:
 
 ## Staging servers
 
-> [!NOTE]  
-> At the time of writing this, staging servers are still a work-in-progress effort.
+A staging server automatically creates and serves an archive, on port 8789.
+This works as follows:
+
+1. As part of the staging server build, [the `create-archive.sh` script](https://github.com/owid/ops/blob/cc00c3a4d91a5895e4a48bde51153f65bd0b9049/templates/owid-site-staging/create-archive.sh) is run.
+2. It first truncates / empties the `archived_chart_versions` table.
+    - This is done so we only link to archived pages for the few chart for which we actually create an archived version, see below.
+3. It then runs Vite to build the JS assets needed for the archive.
+4. Next, it runs the `yarn buildArchive` command _for just [a few, specified chart IDs](https://github.com/owid/ops/blob/cc00c3a4d91a5895e4a48bde51153f65bd0b9049/templates/owid-site-staging/create-archive.sh#L9)_.
+    - This is done to keep the staging server build time down.
+    - These charts include one data page and one grapher page.
+5. We run step (4) again once more, so we have a second copy of the archived pages, and can test backwards and forwards navigation.
+6. Lastly, after the staging server build is completed, we [serve the archive on port 8789](https://github.com/owid/ops/blob/cc00c3a4d91a5895e4a48bde51153f65bd0b9049/templates/owid-site-staging/serve-archive.sh).
+    - We also link to archived pages from the auto-generated comment that `owidbot` puts on the PR.
 
 ## Providing citations
 
