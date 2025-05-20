@@ -45,6 +45,7 @@ export class GlobeSwitcher extends React.Component<{
     @computed private get tabLabels(): TabLabel[] {
         return this.availableTabs.map((tabName) => ({
             element: <>{tabName}</>,
+            buttonProps: { "data-track-note": "globe_switcher" },
         }))
     }
 

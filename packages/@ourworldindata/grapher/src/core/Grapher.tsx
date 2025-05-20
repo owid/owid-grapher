@@ -70,6 +70,7 @@ import {
     checkIsOwidContinent,
     checkIsIncomeGroup,
     checkHasMembers,
+    omitUndefinedValues,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -218,7 +219,13 @@ import {
     mapTabOptionToChartTypeName,
 } from "../chart/ChartUtils"
 import classnames from "classnames"
-import { GrapherAnalytics } from "./GrapherAnalytics"
+import {
+    EntitySelectorEvent,
+    GrapherAnalytics,
+    GrapherAnalyticsContext,
+    GrapherHoverEvent,
+    GrapherImageDownloadEvent,
+} from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { ChartInterface, ChartTableTransformer } from "../chart/ChartInterface"
 import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
@@ -363,12 +370,18 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     instanceRef?: React.RefObject<Grapher>
 }
 
+interface AnalyticsContext {
+    mdimSlug?: string
+    mdimView?: Record<string, string>
+}
+
 export interface GrapherManager {
     canonicalUrl?: string
     selection?: SelectionArray
     focusArray?: FocusArray
     mapConfig?: MapConfig
     editUrl?: string
+    analyticsContext?: AnalyticsContext
 }
 
 @observer
@@ -2790,6 +2803,41 @@ export class Grapher
     private hasLoggedGAViewEvent = false
     @observable private hasBeenVisible = false
     @observable private uncaughtError?: Error
+
+    @computed private get analyticsContext(): GrapherAnalyticsContext {
+        const ctx = this.manager?.analyticsContext
+        return {
+            slug: ctx?.mdimSlug ?? this.slug,
+            mdimView: ctx?.mdimView,
+            narrativeChartName: this.narrativeChartInfo?.name,
+        }
+    }
+
+    logEntitySelectorEvent(action: EntitySelectorEvent, target?: string): void {
+        this.analytics.logEntitySelectorEvent(action, {
+            ...this.analyticsContext,
+            target,
+        })
+    }
+
+    logImageDownloadEvent(action: GrapherImageDownloadEvent): void {
+        this.analytics.logGrapherImageDownloadEvent(action, {
+            ...this.analyticsContext,
+            context: omitUndefinedValues({
+                tab: this.activeTab,
+                globe: this.isOnMapTab
+                    ? this.mapConfig.globe.isActive
+                    : undefined,
+            }),
+        })
+    }
+
+    logGrapherHoverEvent(action: GrapherHoverEvent, target?: string): void {
+        this.analytics.logGrapherHoverEvent(action, {
+            ...this.analyticsContext,
+            target,
+        })
+    }
 
     @action.bound setError(err: Error): void {
         this.uncaughtError = err
