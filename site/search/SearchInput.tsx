@@ -96,17 +96,16 @@ export const SearchInput = ({
                         setLocalQuery(e.target.value)
                         if (e.target.value === "") {
                             setGlobalQuery("")
+                            setActiveIndex(-1) // not highlighting the first default search
                         } else {
                             setIsOpen(true)
-                            setActiveIndex(0) // Reset selection on typing
+                            setActiveIndex(0)
                         }
                     }}
                     onKeyDown={handleKeyDown}
                     onFocus={() => {
-                        if (value) {
-                            setIsOpen(true)
-                            setActiveIndex(0)
-                        }
+                        setIsOpen(true)
+                        setActiveIndex(value ? 0 : -1)
                     }}
                     onBlur={(e) => {
                         const recipient = e.relatedTarget

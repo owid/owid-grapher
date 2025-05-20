@@ -4,9 +4,19 @@ import { match } from "ts-pattern"
 import {
     getAutocompleteSuggestions,
     useSearchAutocomplete,
+    createQueryFilter,
 } from "./searchUtils.js"
 import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
 import { Filter, FilterType } from "./searchTypes.js"
+
+// Default search suggestions to show when there's no query or filters
+const DEFAULT_SEARCHES = [
+    "gdp per capita",
+    "co2 emissions",
+    "life expectancy",
+    "child mortality",
+    "energy consumption",
+]
 
 export const SearchAutocomplete = ({
     localQuery,
@@ -26,10 +36,12 @@ export const SearchAutocomplete = ({
     addTopic: (topic: string) => void
 }) => {
     const queryMinusLastWord = localQuery.split(" ").slice(0, -1).join(" ")
-    const items = useMemo(
-        () => getAutocompleteSuggestions(localQuery, allTopics, filters),
-        [localQuery, allTopics, filters]
-    )
+    const items = useMemo(() => {
+        if (!localQuery && !filters.length) {
+            return DEFAULT_SEARCHES.map(createQueryFilter)
+        }
+        return getAutocompleteSuggestions(localQuery, allTopics, filters)
+    }, [localQuery, allTopics, filters])
 
     const {
         activeIndex,
@@ -77,12 +89,7 @@ export const SearchAutocomplete = ({
         registerSelectionHandler(handleSelection)
     }, [handleSelection, registerSelectionHandler])
 
-    useEffect(() => {
-        setIsOpen(!!localQuery)
-    }, [localQuery, setIsOpen])
-
-    // This effectively closes the autocomplete when the query is empty
-    if (!localQuery || !isOpen) return null
+    if (!isOpen) return null
 
     return (
         <div className="search-autocomplete-container">
