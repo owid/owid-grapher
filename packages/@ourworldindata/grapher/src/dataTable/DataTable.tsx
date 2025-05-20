@@ -112,7 +112,10 @@ export class DataTable extends React.Component<{
     @computed get table(): OwidTable {
         let table = this.manager.tableForDisplay
 
-        if (this.tableConfig.filter === "selection") {
+        if (
+            this.tableConfig.filter === "selection" &&
+            this.selectionArray.hasSelection
+        ) {
             table = table.filterByEntityNames(
                 this.selectionArray.selectedEntityNames
             )
