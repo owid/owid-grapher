@@ -1,32 +1,33 @@
-import shell from "shelljs"
+import { exec } from "tinyexec"
 
 interface ExecReturn {
-    code: number
+    exitCode: number | undefined
     stdout: string
     stderr: string
 }
 
 export class ExecError extends Error implements ExecReturn {
-    code: number
+    exitCode: number | undefined
     stdout: string
     stderr: string
 
     constructor(props: ExecReturn) {
         super(props.stderr)
-        this.code = props.code
+        this.exitCode = props.exitCode
         this.stdout = props.stdout
         this.stderr = props.stderr
     }
 }
 
-export const execWrapper = (
+export const execWrapper = async (
     command: string,
-    options?: shell.ExecOptions
-): Promise<ExecReturn> =>
-    new Promise((resolve, reject) => {
-        shell.exec(command, options || {}, (code, stdout, stderr) =>
-            code === 0
-                ? resolve({ code, stdout, stderr })
-                : reject(new ExecError({ code, stdout, stderr }))
-        )
-    })
+    args?: string[]
+): Promise<ExecReturn> => {
+    const proc = exec(command, args, { nodeOptions: { shell: true } })
+    const result = await proc
+    if (result.exitCode === 0) {
+        return result
+    } else {
+        throw new ExecError(result)
+    }
+}

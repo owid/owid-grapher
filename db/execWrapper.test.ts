@@ -4,11 +4,9 @@ import { ExecError, execWrapper } from "./execWrapper.js"
 
 describe("execWrapper()", () => {
     it("should resolve when there is a zero exit code", async () => {
-        const result = await execWrapper(`echo "it works"; exit 0`, {
-            silent: true,
-        })
+        const result = await execWrapper(`echo "it works"; exit 0`)
         expect(result).toEqual({
-            code: 0,
+            exitCode: 0,
             stdout: "it works\n",
             stderr: "",
         })
@@ -16,13 +14,11 @@ describe("execWrapper()", () => {
 
     it("should reject when there is a non-zero exit code", async () => {
         try {
-            await execWrapper(`echo "begin"; echo "fail" 1>&2; exit 1`, {
-                silent: true,
-            })
+            await execWrapper(`echo "begin"; echo "fail" 1>&2; exit 1`)
         } catch (err) {
             expect(err).toBeInstanceOf(ExecError)
             if (err instanceof ExecError) {
-                expect(err.code).toEqual(1)
+                expect(err.exitCode).toEqual(1)
                 expect(err.stdout).toEqual("begin\n")
                 expect(err.stderr).toEqual("fail\n")
             }
