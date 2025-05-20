@@ -554,7 +554,7 @@ export interface MapConfigInterface {
     colorScale?: Partial<ColorScaleConfigInterface>
     tooltipUseCustomLabels?: boolean
 
-    // should be `EntityName[] | SelectionArray` but SelectionArray isn't available here;
+    // should be `EntityName[] | MapSelectionArray` but MapSelectionArray isn't available here;
     // only passed in for testing, so type safety isn't that much of a concern here
     selection?: any
 }

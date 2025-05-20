@@ -1274,3 +1274,62 @@ describe("syncing entity selection between the chart and map tab", () => {
         expect(grapher.map.selection.selectedEntityNames).toEqual(mapSelection)
     })
 })
+
+describe("tableForSelection", () => {
+    it("includes all countries on the map tab", () => {
+        const table = SynthesizeGDPTable({ entityNames: ["France", "Spain"] })
+        const grapher = new Grapher({ table, hasMapTab: true, tab: "map" })
+
+        // All countries on the map should be selectable, even if they're not
+        // included in the data. 'Germany' and 'French Southern Territories'
+        // are two examples
+        const { availableEntityNames } = grapher.tableForSelection
+        expect(availableEntityNames).toContain("Germany")
+        expect(availableEntityNames).toContain("French Southern Territories")
+    })
+
+    it("excludes non-mappable data", () => {
+        const table = SynthesizeGDPTable({
+            entityNames: [
+                "France",
+                "Europe", // OWID continent, with member countries defined in regions.json
+                "Africa (WHO)", // continent defined by the WHO, with member countries defined in regions.json
+                "Americas", // no information about member countries available
+                "Bananas",
+            ],
+        })
+        const grapher = new Grapher({ table, hasMapTab: true, tab: "map" })
+
+        const { availableEntityNames } = grapher.tableForSelection
+
+        // contained since it's a mappable country
+        expect(availableEntityNames).toContain("France")
+
+        // contained since they're included in regions.json and we know their member countries
+        expect(availableEntityNames).toContain("Europe")
+        expect(availableEntityNames).toContain("Africa (WHO)")
+
+        // not contained since we don't know its member countries
+        expect(availableEntityNames).not.toContain("Americas")
+
+        // not contained since it's not a geographic entity
+        expect(availableEntityNames).not.toContain("Bananas")
+    })
+
+    it("excludes countries that are outside all selected regions", () => {
+        const table = SynthesizeGDPTable({
+            entityNames: ["Europe", "Asia", "France", "Sudan", "China"],
+        })
+        const grapher = new Grapher({
+            table,
+            hasMapTab: true,
+            tab: "map",
+            map: { selection: ["Europe"] },
+        })
+
+        const { availableEntityNames } = grapher.tableForSelection
+        expect(availableEntityNames).toContain("France") // included since Europe is selected
+        expect(availableEntityNames).not.toContain("China") // excluded since Asia isn't selected
+        expect(availableEntityNames).not.toContain("Sudan") // excluded since it's outside of Europe and Asia
+    })
+})
