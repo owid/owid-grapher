@@ -55,7 +55,7 @@ export const Searchbar = ({
     }, [filters, removeCountry, removeTopic])
 
     return (
-        <SearchAutocompleteContextProvider>
+        <>
             <div className="search-bar">
                 <button
                     className="search-bar__submit-button"
@@ -69,22 +69,24 @@ export const Searchbar = ({
                     removeCountry={removeCountry}
                     removeTopic={removeTopic}
                 />
-                <SearchInput
-                    value={localQuery}
-                    setLocalQuery={setLocalQuery}
-                    setGlobalQuery={setQuery}
-                    showPlaceholder={!filters.length}
-                    onBackspaceEmpty={removeLastFilter}
-                />
-                <SearchAutocomplete
-                    localQuery={localQuery}
-                    allTopics={allTopics}
-                    filters={filters}
-                    setLocalQuery={setLocalQuery}
-                    setQuery={setQuery}
-                    addCountry={addCountry}
-                    addTopic={addTopic}
-                />
+                <SearchAutocompleteContextProvider>
+                    <SearchInput
+                        value={localQuery}
+                        setLocalQuery={setLocalQuery}
+                        setGlobalQuery={setQuery}
+                        showPlaceholder={!filters.length}
+                        onBackspaceEmpty={removeLastFilter}
+                    />
+                    <SearchAutocomplete
+                        localQuery={localQuery}
+                        allTopics={allTopics}
+                        filters={filters}
+                        setLocalQuery={setLocalQuery}
+                        setQuery={setQuery}
+                        addCountry={addCountry}
+                        addTopic={addTopic}
+                    />
+                </SearchAutocompleteContextProvider>
             </div>
             <SearchCountrySelector
                 requireAllCountries={requireAllCountries}
@@ -93,6 +95,6 @@ export const Searchbar = ({
                 addCountry={addCountry}
                 removeCountry={removeCountry}
             />
-        </SearchAutocompleteContextProvider>
+        </>
     )
 }
