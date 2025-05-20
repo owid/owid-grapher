@@ -81,8 +81,8 @@ jobs:
               # the --max-warnings makes eslint exit with non-zero exit code even for warnings
               run: yarn testLint --max-warnings=0
 
-    # Runs `bundlewatch` on the code to see if our Vite build assets exceed a given file size.
-    bundlewatch:
+    # Runs `bundlemon` on the code to see if our Vite build assets exceed a given file size.
+    bundlemon:
         runs-on: ubuntu-latest
 
         steps:
@@ -91,7 +91,8 @@ jobs:
 
             - uses: ./.github/actions/setup-node-yarn-deps
 
-            - name: Run bundlewatch
-              run: yarn testBundlewatch
-              env:
-                  BUNDLEWATCH_GITHUB_TOKEN: "${{ secrets.BUNDLEWATCH_GITHUB_TOKEN }}"
+            - name: Build
+              run: yarn buildViteSite
+
+            - name: BundleMon
+              uses: lironer/bundlemon-action@v1
