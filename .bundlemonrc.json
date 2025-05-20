@@ -12,7 +12,20 @@
             "maxSize": "55kB"
         }
     ],
+    "groups": [
+        {
+            "compression": "none",
+            "friendlyName": "JS files (uncompressed)",
+            "path": "**/*.{js,mjs}"
+        },
+        {
+            "compression": "none",
+            "friendlyName": "CSS files (uncompressed)",
+            "path": "**/*.css"
+        }
+    ],
 
+    "includeCommitMessage": true,
     "reportOutput": [
         [
             "github",
