@@ -117,7 +117,7 @@
         "mobx": "^5.15.7",
         "mobx-react": "5",
         "mousetrap": "^1.6.5",
-        "mysql2": "^3.10.1",
+        "mysql2": "^3.14.1",
         "nodejs-polars": "^0.7.2",
         "normalize.css": "^8.0.1",
         "openai": "^4.85.4",
@@ -228,7 +228,7 @@
         "flag-icons": "^7.3.1",
         "http-server": "^14.1.1",
         "husky": "^9.0.11",
-        "jsdom": "^26.0.0",
+        "jsdom": "^26.1.0",
         "lerna": "^8.2.1",
         "lint-staged": "^16.0.0",
         "prettier": "^3.5.0",
@@ -242,7 +242,7 @@
         "wrangler": "^4.14.4"
     },
     "resolutions": {
-        "whatwg-url": "14.1.0"
+        "whatwg-url": "14.2.0"
     },
     "prettier": {
         "trailingComma": "es5",
