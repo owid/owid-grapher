@@ -3,13 +3,13 @@
     "files": [
         {
             "path": "owid.mjs",
-            "maxSize": "2.8MB",
+            "maxSize": "700kB",
             "maxPercentIncrease": 5
         },
         {
             "path": "owid.css",
-            "maxSize": "470KB"
+            "maxSize": "55kB"
         }
     ],
-    "defaultCompression": "none"
+    "defaultCompression": "brotli"
 }
