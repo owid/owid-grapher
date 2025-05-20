@@ -137,18 +137,7 @@ export default function Chart({
                         height: d.height,
                     }}
                 >
-                    {isExplorer || isMultiDim ? (
-                        <div className="js--show-warning-block-if-js-disabled" />
-                    ) : (
-                        resolvedUrl && (
-                            <a
-                                href={resolvedUrl}
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                <GrapherImage url={resolvedUrl} alt={d.title} />
-                            </a>
-                        )
+                    <div className="js--show-warning-block-if-js-disabled" />
                     )}
                 </figure>
             ) : (
