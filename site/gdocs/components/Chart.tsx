@@ -138,7 +138,6 @@ export default function Chart({
                     }}
                 >
                     <div className="js--show-warning-block-if-js-disabled" />
-                    )}
                 </figure>
             ) : (
                 <GrapherWithFallback
