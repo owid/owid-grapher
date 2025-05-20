@@ -1,7 +1,6 @@
 # owid-grapher
 
 [![Actions Status](https://github.com/owid/owid-grapher/workflows/Continuous%20Integration/badge.svg)](https://github.com/owid/owid-grapher/actions)
-[![Test coverage](https://owid.github.io/badges/coverage.svg)](https://owid.github.io/coverage/)
 
 The monorepo we use at [Our World in Data](https://ourworldindata.org) to create and publish embeddable, interactive visualizations like this one:
 
