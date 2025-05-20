@@ -24,8 +24,8 @@ const layouts: { [key in Container]: Layouts} = {
     ["default"]: {
         ["align"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["all-charts"]: "col-start-2 span-cols-12",
-        ["aside-left"]: "col-start-2 span-cols-3 span-md-cols-10 col-md-start-3",
-        ["aside-right"]: "col-start-11 span-cols-3 span-md-cols-10 col-md-start-3",
+        ["aside--left"]: "col-start-2 span-cols-3 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2",
+        ["aside--right"]: "col-start-11 span-cols-3 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2",
         ["chart-story"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["chart"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
