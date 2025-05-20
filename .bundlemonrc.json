@@ -1,5 +1,6 @@
 {
     "baseDir": "./dist/assets",
+    "defaultCompression": "brotli",
     "files": [
         {
             "path": "owid.mjs",
@@ -11,5 +12,15 @@
             "maxSize": "55kB"
         }
     ],
-    "defaultCompression": "brotli"
+
+    "reportOutput": [
+        [
+            "github",
+            {
+                "checkRun": true,
+                "commitStatus": true,
+                "prComment": "on-failure"
+            }
+        ]
+    ]
 }
