@@ -14,6 +14,7 @@ export interface DataTableFilterDropdownManager {
     isOnTableTab?: boolean
     dataTableSelection?: SelectionArray | EntityName[]
     canChangeAddOrHighlightEntities?: boolean
+    shouldShowSelectionOnlyInDataTable?: boolean
 }
 
 interface DropdownOption {
@@ -62,6 +63,7 @@ export class DataTableFilterDropdown extends React.Component<{
     @computed
     private get shouldShowSelectionOption(): boolean {
         return (
+            !this.manager.shouldShowSelectionOnlyInDataTable &&
             this.selectionArray.hasSelection &&
             !!this.manager.canChangeAddOrHighlightEntities
         )
