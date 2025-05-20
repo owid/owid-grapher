@@ -10,11 +10,13 @@ export const SearchInput = ({
     setLocalQuery,
     setGlobalQuery,
     showPlaceholder,
+    onBackspaceEmpty,
 }: {
     value: string
     setLocalQuery: (query: string) => void
     setGlobalQuery: (query: string) => void
     showPlaceholder: boolean
+    onBackspaceEmpty: () => void
 }) => {
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const inputRef = useRef<HTMLInputElement | null>(null)
@@ -37,6 +39,14 @@ export const SearchInput = ({
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        // Handle backspace on empty input to remove last filter
+        if (e.key === "Backspace" && value === "") {
+            e.preventDefault()
+            onBackspaceEmpty()
+            setActiveIndex(-1)
+            return
+        }
+
         if (!isOpen || suggestions.length === 0) return
 
         switch (e.key) {
