@@ -47,7 +47,7 @@ async function dataExport(): Promise<void> {
 
     if (!withPasswords) {
         // Strip passwords
-        await execWrapper(`sed -i -e "s/bcrypt[^']*//g" ${filePath}`)
+        await execWrapper("sed", ["-i", "-e", `"s/bcrypt[^']*//g"`, filePath])
         // Add default admin user
         await fs.appendFile(
             filePath,
