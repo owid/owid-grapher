@@ -162,7 +162,7 @@ export abstract class AbstractChartEditor<
     }
 
     // only works for top-level properties
-    couldPropertyBeInherited(property: keyof GrapherInterface): boolean {
+    canPropertyBeInherited(property: keyof GrapherInterface): boolean {
         if (!this.isInheritanceEnabled || !this.activeParentConfig) return false
         return Object.hasOwn(this.activeParentConfig, property)
     }

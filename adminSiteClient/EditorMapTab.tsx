@@ -16,6 +16,8 @@ import { Component, Fragment } from "react"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faLink } from "@fortawesome/free-solid-svg-icons"
 
 @observer
 class VariableSection extends Component<{
@@ -171,6 +173,52 @@ class TooltipSection extends Component<{ mapConfig: MapConfig }> {
 }
 
 @observer
+class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
+    editor: Editor
+}> {
+    @computed private get editor() {
+        return this.props.editor
+    }
+
+    @action.bound resetToParent() {
+        const { grapher, activeParentConfig } = this.editor
+        if (!activeParentConfig || !activeParentConfig.map) return
+
+        grapher.map = new MapConfig()
+        grapher.map.updateFromObject(activeParentConfig.map)
+    }
+
+    render() {
+        const canMapSettingsBeInherited =
+            this.editor.canPropertyBeInherited("map")
+        const areMapSettingsInherited = this.editor.isPropertyInherited("map")
+
+        if (!canMapSettingsBeInherited) return null
+
+        return (
+            <Section name="Inheritance">
+                {areMapSettingsInherited
+                    ? "All map settings are currently inherited."
+                    : "Some map settings overwrite the automatic defaults."}
+
+                {!areMapSettingsInherited && (
+                    <div className="mt-2">
+                        <button
+                            className="btn btn-outline-secondary"
+                            type="button"
+                            onClick={this.resetToParent}
+                        >
+                            <FontAwesomeIcon icon={faLink} className="mr-2" />
+                            Reset all map settings
+                        </button>
+                    </div>
+                )}
+            </Section>
+        )
+    }
+}
+
+@observer
 export class EditorMapTab<
     Editor extends AbstractChartEditor,
 > extends Component<{ editor: Editor }> {
@@ -209,6 +257,7 @@ export class EditorMapTab<
                         <TooltipSection mapConfig={mapConfig} />
                     </Fragment>
                 )}
+                <InheritanceSection editor={this.props.editor} />
             </div>
         )
     }
