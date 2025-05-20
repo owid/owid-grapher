@@ -84,12 +84,9 @@ function createColumns(ctx: {
             width: 100,
             render: (_, narrativeChart) => (
                 <Space size="middle">
-                    <Button
-                        type="primary"
-                        href={`/admin/narrative-charts/${narrativeChart.id}/edit`}
-                    >
-                        Edit
-                    </Button>
+                    <Link to={`/narrative-charts/${narrativeChart.id}/edit`}>
+                        <Button type="primary">Edit</Button>
+                    </Link>
                     <Button
                         type="dashed"
                         danger
