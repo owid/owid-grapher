@@ -73,9 +73,9 @@ export const SearchAutocomplete = ({
                 })
                 .with(FilterType.QUERY, () => {
                     setQueries(filter.name)
-                    setIsOpen(false)
                 })
                 .exhaustive()
+            setIsOpen(false)
         },
         [addCountry, addTopic, queryMinusLastWord, setIsOpen, setQueries]
     )
