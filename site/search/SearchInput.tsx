@@ -24,8 +24,8 @@ export const SearchInput = ({
         activeIndex,
         setActiveIndex,
         suggestions,
-        isOpen,
-        setIsOpen,
+        showSuggestions,
+        setShowSuggestions,
         onSelectActiveItem,
     } = useSearchAutocomplete()
 
@@ -47,7 +47,7 @@ export const SearchInput = ({
             return
         }
 
-        if (!isOpen || suggestions.length === 0) return
+        if (!showSuggestions || !suggestions.length) return
 
         switch (e.key) {
             case "ArrowDown":
@@ -66,7 +66,7 @@ export const SearchInput = ({
 
             case "Escape":
                 e.preventDefault()
-                setIsOpen(false)
+                setShowSuggestions(false)
                 break
 
             case "Enter":
@@ -108,20 +108,20 @@ export const SearchInput = ({
                             setGlobalQuery("")
                             setActiveIndex(-1) // not highlighting the first default search
                         } else {
-                            setIsOpen(true)
+                            setShowSuggestions(true)
                             setActiveIndex(0)
                         }
                     }}
                     onKeyDown={handleKeyDown}
                     onFocus={() => {
-                        setIsOpen(true)
+                        setShowSuggestions(true)
                         setActiveIndex(value ? 0 : -1)
                     }}
                     onBlur={(e) => {
                         const recipient = e.relatedTarget
                         if (recipient?.hasAttribute("data-prevent-onblur"))
                             return
-                        setIsOpen(false)
+                        setShowSuggestions(false)
                     }}
                 />
                 <button
