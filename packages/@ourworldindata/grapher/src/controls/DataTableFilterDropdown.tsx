@@ -93,7 +93,10 @@ export class DataTableFilterDropdown extends React.Component<{
 
     @computed private get value(): DropdownOption | null {
         const { filter } = this.props.manager.dataTableConfig
-        return this.options.find((option) => filter === option.value) ?? null
+        return (
+            this.options.find((option) => filter === option.value) ??
+            this.options[0]
+        )
     }
 
     render(): React.ReactElement | null {
