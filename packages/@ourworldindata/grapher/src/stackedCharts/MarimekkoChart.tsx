@@ -288,14 +288,25 @@ export class MarimekkoChart
         if (xColumnSlug)
             table = table.interpolateColumnWithTolerance(xColumnSlug)
 
+        // Drop rows that don't have data for any y- or x-column
+        // (This can happen if an entity has data only for the color column)
+        if (colorColumnSlug) {
+            const slugs = excludeUndefined([...yColumnSlugs, xColumnSlug])
+            table = table.dropRowsWithErrorValuesForAllColumns(slugs)
+        }
+
+        // Exclude entities that do not belong in any color group
         if (colorColumnSlug && manager.matchingEntitiesOnly)
             table = table.dropRowsWithErrorValuesForColumn(colorColumnSlug)
 
+        // Exclude entities that don't have data for any y-column
         if (!manager.showNoDataArea)
             table = table.dropRowsWithErrorValuesForAllColumns(yColumnSlugs)
 
+        // Drop rows with error values for the x-column
         if (xColumnSlug)
             table = table.dropRowsWithErrorValuesForColumn(xColumnSlug)
+
         if (manager.isRelativeMode) {
             // TODO: this should not be necessary but we sometimes get NoMatchingValuesAfterJoin if both relative and showNoDataArea are set
             table = table.dropRowsWithErrorValuesForColumn(
