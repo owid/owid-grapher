@@ -36,9 +36,9 @@
 
 .expander__status-icon {
     position: absolute;
-    top: 16px;
-    right: 16px;
-    font-size: 18px;
+    top: 18px;
+    right: 18px;
+    font-size: 14px;
 }
 
 .expander__heading {
@@ -64,13 +64,13 @@
     padding: 16px;
     padding-top: 0;
 
-    .article-block__table--narrow th[scope="row"],
-    .article-block__table--wide th[scope="row"],
-    .article-block__table--narrow th[scope="col"],
-    .article-block__table--wide th[scope="col"] {
-        background-color: $blue-5;
-        .article-block__text {
-            color: $blue-90;
+    @include table-block-override {
+        th[scope="col"],
+        th[scope="row"] {
+            background-color: $blue-5;
+            .article-block__text {
+                color: $blue-90;
+            }
         }
     }
 
