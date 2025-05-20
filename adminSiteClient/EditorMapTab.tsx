@@ -131,7 +131,12 @@ class TimelineSection extends Component<{ mapConfig: MapConfig }> {
                     label="Tolerance of data"
                     value={mapConfig.timeTolerance}
                     onValue={this.onTolerance}
-                    helpText="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."
+                    helpText={`Specify a range of years from which to pull data.
+                        For example, if the map shows 1990 and tolerance is set
+                        to 1, then data from 1989 or 1991 will be shown if no
+                        data is available for 1990. This tolerance setting only
+                        affects the map and overrides the indicator's tolerance
+                        defined in the Basic tab.`}
                 />
                 {(mapConfig.timeTolerance || 0) > 0 && (
                     <SelectField

@@ -249,6 +249,9 @@ export class DimensionCard<
                             store={dimension.display}
                             auto={column.tolerance}
                             onBlur={this.onChange}
+                            helpText={`Tolerance for charts and maps. The tolerance
+                                set in the Map tab, if defined, overrides the map
+                                tolerance defined here.`}
                         />
                         {grapher.isLineChart && (
                             <Toggle
