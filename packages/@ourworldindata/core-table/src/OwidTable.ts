@@ -279,8 +279,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         // Iterate over all entities, and remove them as we go if they have no data in some column
         const entityNamesToKeep = new Set(indexesByEntityName.keys())
 
-        for (let i = 0; i <= columnSlugs.length; i++) {
-            const slug = columnSlugs[i]
+        for (const slug of columnSlugs) {
             const col = this.get(slug)
 
             // Optimization, if there are no error values in this column, we can skip this column
@@ -358,8 +357,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         // Optimization: if there is a column that has a valid data entry for
         // every entity and every time, we are done
-        for (let i = 0; i <= columnSlugs.length; i++) {
-            const slug = columnSlugs[i]
+        for (const slug of columnSlugs) {
             const col = this.get(slug)
 
             if (
@@ -377,8 +375,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             }
         }
 
-        for (let i = 0; i <= columnSlugs.length; i++) {
-            const slug = columnSlugs[i]
+        for (const slug of columnSlugs) {
             const col = this.get(slug)
 
             for (const entityName of entityNamesToIterateOver) {
