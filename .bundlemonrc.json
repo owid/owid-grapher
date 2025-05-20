@@ -1,0 +1,15 @@
+{
+    "baseDir": "./dist/assets",
+    "files": [
+        {
+            "path": "owid.mjs",
+            "maxSize": "2.8MB",
+            "maxPercentIncrease": 5
+        },
+        {
+            "path": "owid.css",
+            "maxSize": "470KB"
+        }
+    ],
+    "defaultCompression": "none"
+}
