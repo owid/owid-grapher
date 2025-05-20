@@ -1,6 +1,6 @@
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { SearchInput } from "./SearchInput.js"
 import { SearchActiveFilters } from "./SearchActiveFilters.js"
 import { SearchAutocomplete } from "./SearchAutocomplete.js"
@@ -43,6 +43,17 @@ export const Searchbar = ({
         setLocalQuery(query)
     }, [query])
 
+    const removeLastFilter = useCallback(() => {
+        if (filters.length === 0) return
+
+        const lastFilter = filters[filters.length - 1]
+        if (lastFilter.type === FilterType.COUNTRY) {
+            removeCountry(lastFilter.name)
+        } else if (lastFilter.type === FilterType.TOPIC) {
+            removeTopic(lastFilter.name)
+        }
+    }, [filters, removeCountry, removeTopic])
+
     return (
         <SearchAutocompleteContextProvider>
             <div className="search-bar">
@@ -63,6 +74,7 @@ export const Searchbar = ({
                     setLocalQuery={setLocalQuery}
                     setGlobalQuery={setQuery}
                     showPlaceholder={!filters.length}
+                    onBackspaceEmpty={removeLastFilter}
                 />
                 <SearchAutocomplete
                     localQuery={localQuery}
