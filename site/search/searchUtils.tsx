@@ -409,7 +409,7 @@ export function getAutocompleteSuggestions(
     )
     const lastWord = query.split(" ").at(-1) ?? ""
 
-    const countries = FuzzySearch.withKey(
+    const countryFilters = FuzzySearch.withKey(
         allCountryNames,
         (country) => country,
         sortOptions
@@ -418,7 +418,7 @@ export function getAutocompleteSuggestions(
         .filter((country) => !selectedCountryNames.has(country))
         .map(createCountryFilter)
 
-    const tags =
+    const topicFilters =
         // Suggest topics only if none are currently active
         selectedTopics.size === 0
             ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
@@ -427,7 +427,11 @@ export function getAutocompleteSuggestions(
                   .map(createTopicFilter)
             : []
 
-    return [createQueryFilter(query), ...countries, ...tags]
+    return [
+        ...(query ? [createQueryFilter(query)] : []),
+        ...countryFilters,
+        ...topicFilters,
+    ]
 }
 
 export function createFilter(type: FilterType) {

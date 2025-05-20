@@ -36,7 +36,7 @@ export const SearchAutocomplete = ({
     addTopic: (topic: string) => void
 }) => {
     const queryMinusLastWord = localQuery.split(" ").slice(0, -1).join(" ")
-    const items = useMemo(() => {
+    const suggestions = useMemo(() => {
         if (!localQuery && !filters.length) {
             return DEFAULT_SEARCHES.map(createQueryFilter)
         }
@@ -47,8 +47,8 @@ export const SearchAutocomplete = ({
         activeIndex,
         setActiveIndex,
         setSuggestions,
-        isOpen,
-        setIsOpen,
+        showSuggestions,
+        setShowSuggestions,
         registerSelectionHandler,
     } = useSearchAutocomplete()
 
@@ -75,26 +75,32 @@ export const SearchAutocomplete = ({
                     setQueries(filter.name)
                 })
                 .exhaustive()
-            setIsOpen(false)
+            setShowSuggestions(false)
         },
-        [addCountry, addTopic, queryMinusLastWord, setIsOpen, setQueries]
+        [
+            addCountry,
+            addTopic,
+            queryMinusLastWord,
+            setShowSuggestions,
+            setQueries,
+        ]
     )
 
     useEffect(() => {
-        setSuggestions(items)
-    }, [items, setSuggestions])
+        setSuggestions(suggestions)
+    }, [suggestions, setSuggestions])
 
     // Register the selection handler with the context
     useEffect(() => {
         registerSelectionHandler(handleSelection)
     }, [handleSelection, registerSelectionHandler])
 
-    if (!isOpen) return null
+    if (!showSuggestions || !suggestions.length) return null
 
     return (
         <div className="search-autocomplete-container">
             <ul role="listbox">
-                {items.map((filter, index) => (
+                {suggestions.map((filter, index) => (
                     <li
                         key={filter.name}
                         className={cx("search-autocomplete-item", {
