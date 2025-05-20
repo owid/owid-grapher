@@ -3150,6 +3150,9 @@ export class Grapher
             return FacetStrategy.entity
         }
 
+        if (this.availableFacetStrategies.length === 0)
+            throw new Error("No facet strategy available")
+
         return firstOfNonEmptyArray(this.availableFacetStrategies)
     }
 
