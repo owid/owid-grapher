@@ -12,7 +12,7 @@ import {
 import { BCryptHasher } from "../db/hashers.js"
 import { Secret, verify } from "jsonwebtoken"
 import { DbPlainSession, DbPlainUser, JsonError } from "@ourworldindata/utils"
-import { exec } from "child_process"
+import { execWrapper } from "../db/execWrapper.js"
 
 export type Request = express.Request
 
@@ -368,13 +368,9 @@ function getClientIp(req: express.Request): string {
 }
 
 async function getTailscaleIpToUserMap(): Promise<Record<string, string>> {
-    return new Promise((resolve, reject) => {
-        exec("tailscale status --json", (error, stdout) => {
-            if (error) {
-                console.error(`Error getting Tailscale status: ${error}`)
-                return reject(error)
-            }
-            const tailscaleStatus: TailscaleStatus = JSON.parse(stdout)
+    return execWrapper("tailscale status --json")
+        .then((res) => {
+            const tailscaleStatus: TailscaleStatus = JSON.parse(res.stdout)
             const ipToUser: Record<string, string> = {}
 
             // Map UserIDs to LoginNames
@@ -402,7 +398,10 @@ async function getTailscaleIpToUserMap(): Promise<Record<string, string>> {
                 }
             }
 
-            resolve(ipToUser)
+            return ipToUser
         })
-    })
+        .catch((error) => {
+            console.error(`Error getting Tailscale status: ${error}`)
+            throw error
+        })
 }
