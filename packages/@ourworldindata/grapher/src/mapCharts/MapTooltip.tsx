@@ -27,6 +27,7 @@ import {
 } from "@ourworldindata/utils"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
 import { MapSparkline, MapSparklineManager } from "./MapSparkline.js"
+import { match } from "ts-pattern"
 
 interface MapTooltipProps {
     entityName: EntityName
@@ -92,6 +93,19 @@ export class MapTooltip
         return this.mapColumn.owidRows[0]
     }
 
+    @computed private get isProjection(): boolean {
+        return match(this.mapColumnInfo)
+            .with({ type: "historical" }, () => false)
+            .with({ type: "projected" }, () => true)
+            .with(
+                { type: "historical+projected" },
+                (info) =>
+                    this.mapTable.get(info.slugForIsProjectionColumn)
+                        .owidRows[0]?.value
+            )
+            .exhaustive()
+    }
+
     @computed get lineColorScale(): ColorScale {
         return this.props.lineColorScale
     }
@@ -105,7 +119,14 @@ export class MapTooltip
     }
 
     render(): React.ReactElement {
-        const { mapTable, mapColumn, datum, lineColorScale, entityName } = this
+        const {
+            mapTable,
+            mapColumn,
+            datum,
+            lineColorScale,
+            entityName,
+            isProjection,
+        } = this
         const { targetTime, formatValueIfCustom, position, fading } = this.props
 
         const { timeColumn } = mapTable
@@ -181,6 +202,7 @@ export class MapTooltip
                     column={yColumn}
                     value={valueLabel}
                     color={valueColor}
+                    isProjection={isProjection}
                     showSignificanceSuperscript={
                         !!roundingNotice &&
                         roundingNotice.icon !== TooltipFooterIcon.none
