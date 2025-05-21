@@ -20,6 +20,8 @@ import {
 } from "./MapChartConstants"
 import { isMapRenderFeature } from "./MapHelpers"
 import { getExternalMarkerEndPosition } from "./MapAnnotations"
+import { Patterns } from "../core/GrapherConstants"
+import { ProjectedDataPattern } from "../chart/ChartComponents"
 
 export function BackgroundCountry<Feature extends RenderFeature>({
     feature,
@@ -64,6 +66,7 @@ export function CountryWithData<Feature extends RenderFeature>({
     onMouseEnter?: (feature: Feature, event: MouseEvent) => void
     onMouseLeave?: () => void
 }): React.ReactElement {
+    const isProjection = series.isProjection
     const isHovered = hover.active
 
     const stroke =
@@ -71,7 +74,9 @@ export function CountryWithData<Feature extends RenderFeature>({
     const strokeWidth = getStrokeWidth({ isHovered, isSelected }) / strokeScale
     const strokeOpacity = hover.background ? BLUR_STROKE_OPACITY : 1
 
-    const fill = series.color
+    const fill = isProjection
+        ? `url(#${makeProjectedDataPatternId(series.color)})`
+        : series.color
     const fillOpacity = hover.background ? BLUR_FILL_OPACITY : 1
 
     return (
@@ -171,6 +176,24 @@ export function NoDataPattern({
     )
 }
 
+export function MapProjectedDataPattern({
+    color,
+    scale = 1,
+}: {
+    color: string
+    scale?: number
+}): React.ReactElement {
+    return (
+        <ProjectedDataPattern
+            patternId={makeProjectedDataPatternId(color)}
+            color={color}
+            scale={scale}
+            opacity={0.4}
+            strokeWidth={12}
+        />
+    )
+}
+
 export function InternalValueAnnotation({
     annotation,
     strokeScale = 1,
@@ -252,4 +275,8 @@ function getStrokeWidth({
     if (isHovered) return HOVER_STROKE_WIDTH
     if (isSelected) return SELECTED_STROKE_WIDTH
     return DEFAULT_STROKE_WIDTH
+}
+
+function makeProjectedDataPatternId(color: string): string {
+    return `${Patterns.projectedDataPattern}_${color}`
 }
