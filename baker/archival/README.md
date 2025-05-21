@@ -131,6 +131,12 @@ Aside from the behind-the-scenes changes, like how variables and other files are
     - No dynamic social media preview image
 - A changed footer, with fewer options than the live footer.
 
-## Append-only nature of the archive
+## Deployment
+
+The archive is built as part of every `deploy-content` step in Buildkite. This is done by running [the `deploy-archive` script](https://github.com/owid/owid-grapher/blob/f939ba985e4159f1dcd98d33802aae78a0c7b8a3/ops/buildkite/deploy-archive).
+It runs Vite to build the JS assets, and then runs the `yarn buildArchive` command to create the archive.
+After that, it sends the changed archive files to R2 (bucket `owid-archive`) using `rclone`.
+
+### Append-only nature of the archive
 
 Overall, the archive is essentially append-only. We don't delete any archived pages, any archived versions of a page, or any assets or variables that were ever created as part of an archive. This is important for the integrity of the archive, for the integrity of past citations, and to ensure that the JS code of past archived pages keeps working.
