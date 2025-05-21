@@ -43,6 +43,7 @@ export interface TooltipValueProps {
     column: CoreColumn
     value?: number | string
     color?: string
+    isProjection?: boolean
     notice?: number | string // actual year data was drawn from (when ≠ target year)
     showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
 }
