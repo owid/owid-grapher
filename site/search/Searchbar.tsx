@@ -64,11 +64,6 @@ export const Searchbar = ({
                 >
                     <FontAwesomeIcon icon={faSearch} />
                 </button>
-                <SearchActiveFilters
-                    filters={filters}
-                    removeCountry={removeCountry}
-                    removeTopic={removeTopic}
-                />
                 <SearchAutocompleteContextProvider>
                     <SearchInput
                         value={localQuery}
@@ -76,7 +71,13 @@ export const Searchbar = ({
                         setGlobalQuery={setQuery}
                         showPlaceholder={!filters.length}
                         onBackspaceEmpty={removeLastFilter}
-                    />
+                    >
+                        <SearchActiveFilters
+                            filters={filters}
+                            removeCountry={removeCountry}
+                            removeTopic={removeTopic}
+                        />
+                    </SearchInput>
                     <SearchAutocomplete
                         localQuery={localQuery}
                         allTopics={allTopics}
@@ -87,14 +88,14 @@ export const Searchbar = ({
                         addTopic={addTopic}
                     />
                 </SearchAutocompleteContextProvider>
+                <SearchCountrySelector
+                    requireAllCountries={requireAllCountries}
+                    toggleRequireAllCountries={toggleRequireAllCountries}
+                    selectedCountryNames={selectedCountryNames}
+                    addCountry={addCountry}
+                    removeCountry={removeCountry}
+                />
             </div>
-            <SearchCountrySelector
-                requireAllCountries={requireAllCountries}
-                toggleRequireAllCountries={toggleRequireAllCountries}
-                selectedCountryNames={selectedCountryNames}
-                addCountry={addCountry}
-                removeCountry={removeCountry}
-            />
         </>
     )
 }
