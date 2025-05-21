@@ -134,6 +134,7 @@ export {
     type InteractionState,
     type MapConfigInterface,
     type GlobeConfig,
+    type ProjectionColumnInfo,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {

@@ -21,6 +21,7 @@ import {
 import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { ColorScale } from "../color/ColorScale.js"
 import * as R from "remeda"
+import { MapColumnInfo } from "./MapChartConstants"
 
 const DEFAULT_SPARKLINE_WIDTH = 250
 const DEFAULT_SPARKLINE_HEIGHT = 87
@@ -29,7 +30,8 @@ const SPARKLINE_PADDING = 15
 const SPARKLINE_NUDGE = 3 // step away from the axis
 
 export interface MapSparklineManager {
-    mapColumnSlug?: ColumnSlug
+    mapColumnSlug: ColumnSlug
+    mapColumnInfo: MapColumnInfo
     timeSeriesTable: OwidTable
     targetTime?: Time
     entityName: EntityName
@@ -54,13 +56,11 @@ export class MapSparkline extends React.Component<{
         return this.props.manager
     }
 
-    @computed private get mapColumnSlug(): ColumnSlug | undefined {
+    @computed private get mapColumnSlug(): ColumnSlug {
         return this.manager.mapColumnSlug
     }
 
     @computed private get sparklineTable(): OwidTable {
-        if (this.mapColumnSlug === undefined) return new OwidTable()
-
         return this.manager.timeSeriesTable
             .filterByEntityNames([this.manager.entityName])
             .columnFilter(
@@ -72,9 +72,7 @@ export class MapSparkline extends React.Component<{
     }
 
     @computed private get hasTimeSeriesData(): boolean {
-        return this.sparklineTable !== undefined
-            ? this.sparklineTable.numRows > 1
-            : false
+        return this.sparklineTable.numRows > 1
     }
 
     @computed private get showSparkline(): boolean {
@@ -82,7 +80,15 @@ export class MapSparkline extends React.Component<{
     }
 
     @computed private get sparklineManager(): LineChartManager {
-        // use the whole time range for the sparkline, not just the range where this series has data
+        const { mapColumnInfo } = this.manager
+
+        // Plot projected and historical data as separate lines
+        const yColumnSlugs =
+            mapColumnInfo.type === "historical+projected"
+                ? [mapColumnInfo.projectedSlug, mapColumnInfo.historicalSlug]
+                : [mapColumnInfo.slug]
+
+        // Use the whole time range for the sparkline, not just the range where this series has data
         let { minTime, maxTime } = this.manager.timeSeriesTable ?? {}
         if (this.mapColumnSlug) {
             const times =
@@ -105,7 +111,7 @@ export class MapSparkline extends React.Component<{
         return {
             table: this.sparklineTable,
             transformedTable: this.sparklineTable,
-            yColumnSlug: this.mapColumnSlug,
+            yColumnSlugs,
             colorColumnSlug: this.mapColumnSlug,
             selection: [this.manager.entityName],
             colorScaleOverride: this.manager.lineColorScale,
