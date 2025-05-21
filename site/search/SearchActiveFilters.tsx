@@ -13,7 +13,7 @@ export const SearchActiveFilters = ({
     removeTopic: (topic: string) => void
 }) => {
     return (
-        <div className="search-active-filters-container">
+        <>
             {filters.map((filter) =>
                 match(filter)
                     .with({ type: FilterType.COUNTRY }, (filter) => (
@@ -48,6 +48,6 @@ export const SearchActiveFilters = ({
                         return null
                     })
             )}
-        </div>
+        </>
     )
 }
