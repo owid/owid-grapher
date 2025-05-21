@@ -7,6 +7,7 @@ import {
     faShareAlt,
     faLink,
     faEdit,
+    faPanorama,
 } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard, isAndroid, isIOS } from "@ourworldindata/utils"
 
@@ -15,6 +16,7 @@ export interface ShareMenuManager {
     currentTitle?: string
     canonicalUrl?: string
     editUrl?: string
+    createNarrativeChartUrl?: string
     isEmbedModalOpen?: boolean
 }
 
@@ -163,7 +165,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
 
     render(): React.ReactElement {
         const { canUseShareApi, manager } = this
-        const { editUrl } = manager
+        const { editUrl, createNarrativeChartUrl } = manager
 
         const width = 200
         const right = this.props.right ?? 0
@@ -186,9 +188,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         data-track-note="chart_share_embed"
                         onClick={this.onEmbed}
                     >
-                        <span className="icon">
-                            <FontAwesomeIcon icon={faCode} />
-                        </span>{" "}
+                        <FontAwesomeIcon className="icon" icon={faCode} />
                         Embed
                     </a>
                 )}
@@ -198,9 +198,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         data-track-note="chart_share_navigator"
                         onClick={this.onNavigatorShare}
                     >
-                        <span className="icon">
-                            <FontAwesomeIcon icon={faShareAlt} />
-                        </span>{" "}
+                        <FontAwesomeIcon className="icon" icon={faShareAlt} />
                         Share via&hellip;
                     </a>
                 )}
@@ -210,9 +208,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         data-track-note="chart_share_copylink"
                         onClick={this.onCopyUrl}
                     >
-                        <span className="icon">
-                            <FontAwesomeIcon icon={faLink} />
-                        </span>{" "}
+                        <FontAwesomeIcon className="icon" icon={faLink} />
                         {this.state.copied ? "Copied!" : "Copy link"}
                     </a>
                 )}
@@ -223,10 +219,19 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         href={editUrl}
                         rel="noopener"
                     >
-                        <span className="icon">
-                            <FontAwesomeIcon icon={faEdit} />
-                        </span>{" "}
+                        <FontAwesomeIcon className="icon" icon={faEdit} />
                         Edit
+                    </a>
+                )}
+                {createNarrativeChartUrl && (
+                    <a
+                        target="_blank"
+                        title="Create a narrative chart"
+                        href={createNarrativeChartUrl}
+                        rel="noopener"
+                    >
+                        <FontAwesomeIcon className="icon" icon={faPanorama} />
+                        Create narrative chart
                     </a>
                 )}
             </div>

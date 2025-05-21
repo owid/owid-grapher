@@ -236,6 +236,10 @@ class SaveButtonsForNarrativeChart extends Component<{
         void this.props.editor.saveGrapher()
     }
 
+    @action.bound onCreateChart() {
+        void this.props.editor.createGrapher()
+    }
+
     @computed get editingErrors(): string[] {
         const { errorMessages, errorMessagesForDimensions } = this.props
         return excludeUndefined([
@@ -247,35 +251,51 @@ class SaveButtonsForNarrativeChart extends Component<{
     render() {
         const { editingErrors } = this
         const { editor } = this.props
-        const { grapher } = editor
+        const { grapher, isNewGrapher } = editor
 
         const hasEditingErrors = editingErrors.length > 0
         const isSavingDisabled = grapher.hasFatalErrors || hasEditingErrors
 
         return (
             <div className="SaveButtons">
-                <button
-                    className="btn btn-success"
-                    onClick={this.onSaveChart}
-                    disabled={isSavingDisabled}
-                >
-                    Save narrative chart
-                </button>{" "}
-                <a
-                    className="btn btn-secondary"
-                    href={`/admin/charts/${editor.parentChartId}/edit`}
-                    target="_blank"
-                    rel="noopener"
-                >
-                    Go to parent chart
-                </a>{" "}
-                <button
-                    className="btn btn-secondary"
-                    onClick={() => (this.isCreateDataInsightModalOpen = true)}
-                    disabled={isSavingDisabled}
-                >
-                    Create DI
-                </button>
+                {isNewGrapher ? (
+                    <button
+                        className="btn btn-success"
+                        onClick={this.onCreateChart}
+                        disabled={isSavingDisabled}
+                    >
+                        Create narrative chart
+                    </button>
+                ) : (
+                    <button
+                        className="btn btn-success"
+                        onClick={this.onSaveChart}
+                        disabled={isSavingDisabled}
+                    >
+                        Save narrative chart
+                    </button>
+                )}{" "}
+                {editor.parentChartId && (
+                    <>
+                        <a
+                            className="btn btn-secondary"
+                            href={`/admin/charts/${editor.parentChartId}/edit`}
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            Go to parent chart
+                        </a>{" "}
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() =>
+                                (this.isCreateDataInsightModalOpen = true)
+                            }
+                            disabled={isSavingDisabled}
+                        >
+                            Create DI
+                        </button>
+                    </>
+                )}
                 {grapher.isReady &&
                     editingErrors.map((error, i) => (
                         <div key={i} className="alert alert-danger mt-2">
@@ -286,13 +306,14 @@ class SaveButtonsForNarrativeChart extends Component<{
                     <CreateDataInsightModal
                         description="Create a new data insight based on this narrative chart."
                         narrativeChart={{
-                            ...editor.manager.idsAndName!,
+                            name: editor.manager.name!,
+                            configId: editor.manager.configId!,
                             title: grapher.currentTitle,
                         }}
                         initialValues={{
                             title: grapher.currentTitle,
-                            imageFilename: editor.manager.idsAndName?.name
-                                ? `${editor.manager.idsAndName?.name}.png`
+                            imageFilename: editor.manager.name
+                                ? `${editor.manager.name}.png`
                                 : undefined,
                         }}
                         hiddenFields={["grapherUrl", "narrativeChart"]}

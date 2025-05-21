@@ -1,6 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, runInAction, observable } from "mobx"
+import type { History } from "history"
 import { GrapherInterface } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -15,6 +16,7 @@ import { References } from "./AbstractChartEditor.js"
 export class NarrativeChartEditorPage
     extends React.Component<{
         narrativeChartId: number
+        history: History
     }>
     implements
         NarrativeChartEditorManager,
@@ -23,9 +25,9 @@ export class NarrativeChartEditorPage
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    idsAndName: { id: number; name: string; configId: string } | undefined =
-        undefined
-
+    id?: number
+    name?: string
+    configId?: string
     patchConfig: GrapherInterface = {}
     fullConfig: GrapherInterface = {}
     parentChartId: number = 0
@@ -39,12 +41,9 @@ export class NarrativeChartEditorPage
         const data = await this.context.admin.getJSON(
             `/api/narrative-charts/${this.narrativeChartId}.config.json`
         )
-
-        this.idsAndName = {
-            id: data.id,
-            name: data.name,
-            configId: data.chartConfigId,
-        }
+        this.id = data.id
+        this.name = data.name
+        this.configId = data.chartConfigId
         this.fullConfig = data.configFull
         this.patchConfig = data.configPatch
         this.parentChartId = data.parentChartId
@@ -53,6 +52,10 @@ export class NarrativeChartEditorPage
 
     @computed get admin(): Admin {
         return this.context.admin
+    }
+
+    @computed get history(): History {
+        return this.props.history
     }
 
     @computed get narrativeChartId(): number {
@@ -72,6 +75,11 @@ export class NarrativeChartEditorPage
                       `/api/narrative-charts/${this.narrativeChartId}.references.json`
                   )
         runInAction(() => (this.references = json.references))
+    }
+
+    @action.bound onNameChange(_: string) {
+        // Name is not editable once the narrative chart is created.
+        return undefined
     }
 
     @action.bound refresh(): void {

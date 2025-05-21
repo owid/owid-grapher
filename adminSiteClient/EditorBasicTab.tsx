@@ -31,7 +31,7 @@ import {
     OwidChartDimensionInterface,
     copyToClipboard,
 } from "@ourworldindata/utils"
-import { FieldsRow, Section, SelectField, Toggle } from "./Forms.js"
+import { FieldsRow, Section, SelectField, TextField, Toggle } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
 import {
@@ -531,7 +531,12 @@ export class EditorBasicTab<
         return (
             <div className="EditorBasicTab">
                 {isIndicatorChart && <IndicatorChartInfo editor={editor} />}
-                {isNarrativeChart && <NarrativeChartInfo editor={editor} />}
+                {isNarrativeChart &&
+                    (editor.isNewGrapher ? (
+                        <NarrativeChartForm editor={editor} />
+                    ) : (
+                        <NarrativeChartInfo editor={editor} />
+                    ))}
 
                 <Section name="Tabs">
                     <SelectField
@@ -606,7 +611,7 @@ function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
 // The rule doesn't support class components in the same file.
 // eslint-disable-next-line react-refresh/only-export-components
 function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {
-    const { name = "" } = props.editor.manager.idsAndName ?? {}
+    const { name = "" } = props.editor.manager
 
     return (
         <Section name="Narrative chart">
@@ -625,4 +630,24 @@ function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {
             </Button>
         </Section>
     )
+}
+
+@observer
+class NarrativeChartForm extends React.Component<{
+    editor: NarrativeChartEditor
+}> {
+    render() {
+        const { name, nameError, onNameChange } = this.props.editor.manager
+        return (
+            <Section name="Narrative chart">
+                <TextField
+                    label="Name"
+                    value={name}
+                    onValue={onNameChange}
+                    errorMessage={nameError}
+                    required
+                />
+            </Section>
+        )
+    }
 }
