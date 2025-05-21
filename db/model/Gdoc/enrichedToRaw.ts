@@ -268,10 +268,14 @@ export function enrichedBlockToRawBlock(
             { type: "pull-quote" },
             (b): RawBlockPullQuote => ({
                 type: b.type,
-                value: b.text.map((item) => ({
-                    type: "text",
-                    value: spansToHtmlText([item]),
-                })),
+                value: {
+                    quote: b.quote,
+                    align: b.align,
+                    content: b.content.map(
+                        (enriched) =>
+                            enrichedBlockToRawBlock(enriched) as RawBlockText
+                    ),
+                },
             })
         )
         .with(
