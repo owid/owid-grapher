@@ -552,8 +552,17 @@ export class MapChart
         }
     }
 
+    @computed private get disableIntroAnimation(): boolean {
+        // The intro animation transitions from a neutral color to the actual color.
+        // That doesn't work if a pattern is used to fill the country outlines,
+        // which is the case for projected data.
+        if (this.mapColumnInfo.type !== "historical") return true
+
+        return !!this.manager.disableIntroAnimation
+    }
+
     componentDidMount(): void {
-        if (!this.manager.disableIntroAnimation) {
+        if (!this.disableIntroAnimation) {
             select(this.base.current)
                 .selectAll(`.${MAP_CHART_CLASSNAME} path`)
                 .attr("data-fill", function () {

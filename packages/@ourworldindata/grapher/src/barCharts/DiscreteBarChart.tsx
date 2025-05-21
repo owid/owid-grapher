@@ -74,6 +74,7 @@ import {
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { BaseType, Selection } from "d3"
 import { TextWrap } from "@ourworldindata/components"
+import { ProjectedDataPattern } from "../chart/ChartComponents"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -487,11 +488,20 @@ export class DiscreteBarChart
         return (
             <defs>
                 {/* passed to the legend as pattern for the projected data legend item */}
-                {makeProjectedDataPattern(this.projectedDataColorInLegend)}
+                <ProjectedDataPattern
+                    patternId={makeProjectedDataPatternId(
+                        this.projectedDataColorInLegend
+                    )}
+                    color={this.projectedDataColorInLegend}
+                />
                 {/* make a pattern for every series with a unique color */}
-                {uniqProjections.map((series) =>
-                    makeProjectedDataPattern(series.color)
-                )}
+                {uniqProjections.map((series) => (
+                    <ProjectedDataPattern
+                        key={series.color}
+                        patternId={makeProjectedDataPatternId(series.color)}
+                        color={series.color}
+                    />
+                ))}
             </defs>
         )
     }
@@ -964,30 +974,4 @@ export class DiscreteBarChart
 // even if it gets resolved to a striped pattern of a different grapher instance.
 function makeProjectedDataPatternId(color: string): string {
     return `DiscreteBarChart_stripes_${color}`
-}
-
-function makeProjectedDataPattern(color: string): React.ReactElement {
-    const size = 7
-    return (
-        <pattern
-            key={color}
-            id={makeProjectedDataPatternId(color)}
-            patternUnits="userSpaceOnUse"
-            width={size}
-            height={size}
-            patternTransform="rotate(45)"
-        >
-            {/* transparent background */}
-            <rect width={size} height={size} fill={color} opacity={0.5} />
-            {/* stripes */}
-            <line
-                x1="0"
-                y="0"
-                x2="0"
-                y2={size}
-                stroke={color}
-                strokeWidth="10"
-            />
-        </pattern>
-    )
 }
