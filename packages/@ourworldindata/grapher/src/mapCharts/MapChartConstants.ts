@@ -105,6 +105,7 @@ export interface ChoroplethMapManager {
     onMapMouseLeave: () => void
     isMapSelectionEnabled?: boolean
     isStatic?: boolean
+    binColors?: string[]
 }
 
 export enum RenderFeatureType {

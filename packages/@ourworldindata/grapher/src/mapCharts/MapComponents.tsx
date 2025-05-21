@@ -277,6 +277,6 @@ function getStrokeWidth({
     return DEFAULT_STROKE_WIDTH
 }
 
-function makeProjectedDataPatternId(color: string): string {
+export function makeProjectedDataPatternId(color: string): string {
     return `${Patterns.projectedDataPattern}_${color}`
 }

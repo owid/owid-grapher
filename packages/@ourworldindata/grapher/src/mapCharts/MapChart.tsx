@@ -77,6 +77,7 @@ import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { isOnTheMap } from "./MapHelpers.js"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { match, P } from "ts-pattern"
+import { makeProjectedDataPatternId } from "./MapComponents"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -639,16 +640,50 @@ export class MapChart
         return this.mapConfig.region
     }
 
+    @computed private get shouldAddStripedPatternToLegendBins(): boolean {
+        return match(this.mapColumnInfo)
+            .with({ type: "historical" }, () => false)
+            .with({ type: "projected" }, () => true)
+            .with({ type: "historical+projected" }, (info) =>
+                // Only add stripes to the legend bins if _all_ values are projections.
+                // If there is even a single non-projected (historical) value, the legend
+                // should use solid colors rather than striped patterns.
+                this.transformedTable
+                    .get(info.slugForIsProjectionColumn)
+                    .values.every((value) => value === true)
+            )
+            .exhaustive()
+    }
+
+    private maybeAddPatternRefToBin<Bin extends ColorScaleBin>(bin: Bin): Bin {
+        if (isNoDataBin(bin))
+            return new CategoricalBin({
+                ...bin.props,
+                patternRef: Patterns.noDataPattern,
+            }) as Bin
+
+        if (this.shouldAddStripedPatternToLegendBins) {
+            const patternRef = makeProjectedDataPatternId(bin.color)
+            return (
+                bin instanceof CategoricalBin
+                    ? new CategoricalBin({ ...bin.props, patternRef })
+                    : new NumericBin({ ...bin.props, patternRef })
+            ) as Bin
+        }
+
+        return bin
+    }
+
     @computed get numericLegendData(): ColorScaleBin[] {
         const hasNoDataBin = this.legendData.some((bin) => isNoDataBin(bin))
         if (this.hasCategoricalLegendData || !hasNoDataBin)
             return this.legendData
                 .filter((bin) => isNumericBin(bin))
-                .map((bin) => maybeAddPatternRefToBin(bin))
+                .map((bin) => this.maybeAddPatternRefToBin(bin))
 
         const bins: ColorScaleBin[] = this.legendData
             .filter((bin) => isNumericBin(bin) || isNoDataBin(bin))
-            .map((bin) => maybeAddPatternRefToBin(bin))
+            .map((bin) => this.maybeAddPatternRefToBin(bin))
 
         // Move the no-data bin from the end to the start
         return [bins[bins.length - 1], ...bins.slice(0, -1)]
@@ -661,11 +696,15 @@ export class MapChart
     @computed get categoricalLegendData(): CategoricalBin[] {
         return this.legendData
             .filter((bin) => isCategoricalBin(bin))
-            .map((bin) => maybeAddPatternRefToBin(bin))
+            .map((bin) => this.maybeAddPatternRefToBin(bin))
     }
 
     @computed get hasCategoricalLegendData(): boolean {
         return this.categoricalLegendData.length > 1
+    }
+
+    @computed get binColors(): string[] {
+        return this.legendData.map((bin) => bin.color)
     }
 
     @computed get numericHoverBracket(): ColorScaleBin | undefined {
@@ -903,14 +942,4 @@ function isNumericBin(bin: ColorScaleBin): bin is NumericBin {
 
 function isNoDataBin(bin: ColorScaleBin): bin is CategoricalBin {
     return isCategoricalBin(bin) && bin.value === "No data"
-}
-
-function maybeAddPatternRefToBin<Bin extends ColorScaleBin>(bin: Bin): Bin {
-    if (isNoDataBin(bin))
-        return new CategoricalBin({
-            ...bin.props,
-            patternRef: Patterns.noDataPattern,
-        }) as Bin
-
-    return bin
 }

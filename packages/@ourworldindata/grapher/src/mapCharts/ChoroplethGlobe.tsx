@@ -153,14 +153,8 @@ export class ChoroplethGlobe extends React.Component<{
         return difference(this.foregroundFeatures, this.featuresWithData)
     }
 
-    @computed private get uniqueColors(): string[] {
-        return excludeUndefined(
-            R.unique(
-                this.sortedFeaturesWithData.map(
-                    (feature) => this.choroplethData.get(feature.id)?.color
-                )
-            )
-        )
+    @computed private get binColors(): string[] {
+        return this.manager.binColors ?? []
     }
 
     // Map uses a hybrid approach to mouseover
@@ -775,16 +769,11 @@ export class ChoroplethGlobe extends React.Component<{
 
         return (
             <g id={makeIdForHumanConsumption("countries-with-data")}>
-                {this.uniqueColors.length > 0 && (
-                    <defs>
-                        {this.uniqueColors.map((color) => (
-                            <MapProjectedDataPattern
-                                key={color}
-                                color={color}
-                            />
-                        ))}
-                    </defs>
-                )}
+                <defs>
+                    {this.binColors.map((color) => (
+                        <MapProjectedDataPattern key={color} color={color} />
+                    ))}
+                </defs>
 
                 {this.sortedFeaturesWithData.map((feature) => {
                     const series = this.choroplethData.get(feature.id)
