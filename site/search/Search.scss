@@ -23,23 +23,12 @@
     }
 }
 
-.data-catalog-search-form {
-    position: relative;
-    display: flex;
-    // The approximate width of the country-selector button
-    padding-right: 162px;
-    @include sm-only {
-        padding-right: 48px;
-    }
-}
-
 .search-bar {
     display: flex;
-    flex-grow: 1;
-    flex-basis: 100%;
-    align-items: center;
+    align-items: flex-start;
     outline: 1px solid $blue-20;
     background-color: #fff;
+    position: relative;
     &:focus-within {
         outline: 1px solid $blue-5;
     }
@@ -48,7 +37,8 @@
 .search-bar__submit-button {
     background-color: transparent;
     width: 24px;
-    height: 24px;
+    height: 48px;
+    flex: none;
     margin-left: 8px;
     margin-right: 8px;
     padding: 0;
@@ -59,15 +49,13 @@
     }
 }
 
-.data-catalog-clear-input-button {
+.search-clear-input-button {
     background-color: transparent;
     color: #fff;
     cursor: pointer;
     margin-right: 16px;
     width: 32px;
-    height: 32px;
     padding: 0;
-    margin-top: 8px;
     svg {
         color: $blue-50;
         border-radius: 16px;
@@ -95,21 +83,29 @@
 
 .data-catalog-search-controls-container {
     position: relative;
+}
+
+.search-form {
+    flex: 1;
     display: flex;
     flex-wrap: wrap;
+    margin: 12px 0;
+    gap: 8px;
 }
 
-.data-catalog-search-box-container {
-    flex-grow: 2;
+.search-input-row {
+    display: flex;
+    align-items: center;
+    flex: 1;
 }
 
-.data-catalog-search-input {
+.search-input {
     background-color: white;
-    height: 48px;
+    height: 24px;
     border: none;
     padding: 0;
-    flex-grow: 1;
-    width: 100%;
+    flex: 1 0 auto;
+    min-width: 100px;
     outline-offset: 0px;
     color: $blue-90;
 
@@ -124,16 +120,17 @@
     }
 
     @include sm-only {
-        height: 48px;
         // Prevents auto-zoom on Safari
         font-size: 16px;
     }
 }
 
 .data-catalog-country-selector {
-    position: absolute;
-    right: 0;
-    top: 0;
+    position: relative;
+    align-self: flex-end;
+    display: flex;
+    align-items: center;
+    height: 48px;
 }
 
 .data-catalog-country-selector-button {
@@ -143,7 +140,6 @@
     color: $blue-90;
     padding: 8px 16px;
     margin-right: 8px;
-    margin-top: 8px;
     line-height: 16px;
     display: flex;
     justify-content: center;
@@ -257,8 +253,9 @@
     padding: 16px;
     // wide enough for the toggle label text not to wrap
     width: 380px;
+    top: 48px;
     right: 0;
-    margin-top: 16px;
+    margin-top: 8px;
     box-shadow: 4px 0 30px 0 #00000020;
 
     @include sm-only {

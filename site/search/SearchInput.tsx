@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import { useRef, ReactNode } from "react" // Added ReactNode
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons"
 import { useMediaQuery } from "usehooks-ts"
@@ -11,12 +11,14 @@ export const SearchInput = ({
     setGlobalQuery,
     showPlaceholder,
     onBackspaceEmpty,
+    children,
 }: {
     value: string
     setLocalQuery: (query: string) => void
     setGlobalQuery: (query: string) => void
     showPlaceholder: boolean
     onBackspaceEmpty: () => void
+    children?: ReactNode
 }) => {
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const inputRef = useRef<HTMLInputElement | null>(null)
@@ -82,22 +84,23 @@ export const SearchInput = ({
     }
 
     return (
-        <div className="data-catalog-search-box-container">
-            <form
-                className="data-catalog-search-form"
-                onSubmit={(e) => {
-                    e.preventDefault()
-                    // unfocus input to hide autocomplete/hide mobile keyboard
-                    if (inputRef.current) {
-                        inputRef.current.blur()
-                    }
-                    setGlobalQuery(value)
-                }}
-            >
+        <form
+            className="search-form"
+            onSubmit={(e) => {
+                e.preventDefault()
+                // unfocus input to hide autocomplete/hide mobile keyboard
+                if (inputRef.current) {
+                    inputRef.current.blur()
+                }
+                setGlobalQuery(value)
+            }}
+        >
+            {children}
+            <div className="search-input-row">
                 <input
                     autoFocus
                     type="text"
-                    className="data-catalog-search-input body-3-regular"
+                    className="search-input body-3-regular"
                     ref={inputRef}
                     placeholder={placeholder}
                     enterKeyHint="search"
@@ -125,7 +128,7 @@ export const SearchInput = ({
                     }}
                 />
                 <button
-                    className="data-catalog-clear-input-button"
+                    className="search-clear-input-button"
                     disabled={!value}
                     aria-label="Clear search"
                     type="button"
@@ -137,7 +140,7 @@ export const SearchInput = ({
                 >
                     <FontAwesomeIcon icon={faTimesCircle} />
                 </button>
-            </form>
-        </div>
+            </div>
+        </form>
     )
 }
