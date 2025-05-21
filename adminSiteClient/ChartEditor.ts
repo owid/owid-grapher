@@ -218,6 +218,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         const chartJson = omit(patchConfig, NARRATIVE_CHART_PROPS_TO_OMIT)
 
         const body = {
+            type: "chart",
             name,
             parentChartId: grapher.id,
             config: chartJson,

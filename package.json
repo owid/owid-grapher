@@ -204,7 +204,7 @@
         "@types/react-dom": "^17.0.22",
         "@types/react-recaptcha": "^2.3.4",
         "@types/react-router": "^5.1.20",
-        "@types/react-router-dom": "^4.3.3",
+        "@types/react-router-dom": "5",
         "@types/string-pixel-width": "^1.7.2",
         "@types/topojson-client": "^3.1.1",
         "@types/topojson-server": "^3.0.1",

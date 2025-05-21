@@ -152,11 +152,15 @@ export function DataPageContent({
                 isPreviewing ?? false
             )
             const variables = newView.indicators?.["y"]
-            const editUrl =
+            const adminEditPath =
                 variables?.length === 1
                     ? `variables/${variables[0].id}/config`
                     : undefined
-            setManager((prev) => ({ ...prev, editUrl }))
+            setManager((prev) => ({
+                ...prev,
+                adminEditPath,
+                adminCreateNarrativeChartPath: `narrative-charts/create?type=multiDim&chartConfigId=${grapherConfigUuid}`,
+            }))
 
             void Promise.allSettled([datapageDataPromise, grapherConfigPromise])
                 .then(([datapageData, grapherConfig]) => {
