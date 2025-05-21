@@ -175,14 +175,8 @@ export class ChoroplethMap extends React.Component<{
         return difference(this.foregroundFeatures, this.featuresWithData)
     }
 
-    @computed private get uniqueColors(): string[] {
-        return excludeUndefined(
-            R.unique(
-                this.sortedFeaturesWithData.map(
-                    (feature) => this.choroplethData.get(feature.id)?.color
-                )
-            )
-        )
+    @computed private get binColors(): string[] {
+        return this.manager.binColors ?? []
     }
 
     @computed private get quadtree(): Quadtree<MapRenderFeature> {
@@ -461,17 +455,15 @@ export class ChoroplethMap extends React.Component<{
 
         return (
             <g id={makeIdForHumanConsumption("countries-with-data")}>
-                {this.uniqueColors.length > 0 && (
-                    <defs>
-                        {this.uniqueColors.map((color) => (
-                            <MapProjectedDataPattern
-                                key={color}
-                                color={color}
-                                scale={1 / this.viewportScale}
-                            />
-                        ))}
-                    </defs>
-                )}
+                <defs>
+                    {this.binColors.map((color) => (
+                        <MapProjectedDataPattern
+                            key={color}
+                            color={color}
+                            scale={1 / this.viewportScale}
+                        />
+                    ))}
+                </defs>
 
                 {this.sortedFeaturesWithData.map((feature) => {
                     const series = this.choroplethData.get(feature.id)

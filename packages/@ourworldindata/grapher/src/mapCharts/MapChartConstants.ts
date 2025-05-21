@@ -109,6 +109,7 @@ export interface ChoroplethMapManager {
         action: GrapherInteractionEvent,
         target?: string
     ) => void
+    binColors?: string[]
 }
 
 export enum RenderFeatureType {
