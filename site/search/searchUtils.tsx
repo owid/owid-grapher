@@ -285,7 +285,11 @@ export const getFilterIcon = (filter: Filter) => {
                 src={`/images/flags/${countriesByName()[filter.name].code}.svg`}
             />
         ))
-        .with(FilterType.TOPIC, () => <FontAwesomeIcon icon={faTag} />)
+        .with(FilterType.TOPIC, () => (
+            <span className="tag">
+                <FontAwesomeIcon icon={faTag} />
+            </span>
+        ))
         .otherwise(() => null)
 }
 
