@@ -19,7 +19,7 @@ export function SearchFilterPill({
             })}
         >
             {icon}
-            {name}
+            <span className="name">{name}</span>
             {selected && (
                 <span className="close">
                     <FontAwesomeIcon icon={faClose} />

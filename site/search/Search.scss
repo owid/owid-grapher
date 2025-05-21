@@ -89,7 +89,10 @@
     flex: 1;
     display: flex;
     flex-wrap: wrap;
-    margin: 12px 0;
+    margin: 8px 0;
+    @include sm-up {
+        margin: 10px 0;
+    }
     gap: 8px;
 }
 
@@ -101,7 +104,10 @@
 
 .search-input {
     background-color: white;
-    height: 24px;
+    height: 32px;
+    @include sm-up {
+        height: 28px;
+    }
     border: none;
     padding: 0;
     flex: 1 0 auto;
