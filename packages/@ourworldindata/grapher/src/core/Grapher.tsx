@@ -120,6 +120,7 @@ import {
     GlobeRegionName,
     OwidVariableRow,
     AdditionalGrapherDataFetchFn,
+    ProjectionColumnInfo,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -237,6 +238,7 @@ import {
     EntityRegionTypeGroup,
     groupEntityNamesByRegionType,
 } from "./EntitiesByRegionType"
+import * as R from "remeda"
 
 declare global {
     interface Window {
@@ -1216,9 +1218,16 @@ export class GrapherState {
         return isInIFrame()
     }
     @computed get times(): Time[] {
-        const columnSlugs = this.isOnMapTab
-            ? [this.mapColumnSlug]
-            : this.yColumnSlugs
+        const { mapColumnSlug, projectionColumnInfoBySlug, yColumnSlugs } = this
+
+        // If the map shows historical and projected data, then the time range
+        // has to extend to the full range of both indicators
+        const mapColumnInfo = projectionColumnInfoBySlug.get(mapColumnSlug)
+        const mapColumnSlugs = mapColumnInfo
+            ? [mapColumnInfo.projectedSlug, mapColumnInfo.historicalSlug]
+            : [mapColumnSlug]
+
+        const columnSlugs = this.isOnMapTab ? mapColumnSlugs : yColumnSlugs
 
         // Generate the times only after the chart transform has been applied, so that we don't show
         // times on the timeline for which data may not exist, e.g. when the selected entity
@@ -1666,6 +1675,57 @@ export class GrapherState {
             (slug) => this.inputTable.get(slug).isProjection
         )
     }
+
+    @computed get projectionColumnInfoBySlug(): Map<
+        ColumnSlug,
+        ProjectionColumnInfo
+    > {
+        const table = this.inputTable
+
+        const [projectionSlugs, nonProjectionSlugs] = R.partition(
+            this.yColumnSlugs,
+            (slug) => table.get(slug).isProjection
+        )
+
+        if (!projectionSlugs.length) return new Map()
+
+        const projectionColumnInfoBySlug = new Map<
+            ColumnSlug,
+            ProjectionColumnInfo
+        >()
+
+        const findHistoricalSlugForProjection = (
+            projectedSlug: ColumnSlug
+        ): ColumnSlug | undefined => {
+            // If there is only one non-projection column, we trivially match it to the projection
+            if (nonProjectionSlugs.length === 1) return nonProjectionSlugs[0]
+
+            // Try to find a historical column with the same display name
+            const displayName = table.get(projectedSlug).displayName
+            return nonProjectionSlugs.find(
+                (slug) => table.get(slug).displayName === displayName
+            )
+        }
+
+        for (const projectedSlug of projectionSlugs) {
+            const historicalSlug =
+                findHistoricalSlugForProjection(projectedSlug)
+            if (historicalSlug) {
+                const combinedSlug = `${projectedSlug}-${historicalSlug}`
+                const slugForIsProjectionColumn = `${combinedSlug}-isProjection`
+
+                projectionColumnInfoBySlug.set(projectedSlug, {
+                    projectedSlug,
+                    historicalSlug,
+                    combinedSlug,
+                    slugForIsProjectionColumn,
+                })
+            }
+        }
+
+        return projectionColumnInfoBySlug
+    }
+
     @computed get validChartTypes(): GrapherChartType[] {
         const { chartTypes } = this
 

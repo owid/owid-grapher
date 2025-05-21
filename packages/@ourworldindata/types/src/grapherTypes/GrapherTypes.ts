@@ -342,6 +342,13 @@ export enum BinningStrategy {
     manual = "manual",
 }
 
+export interface ProjectionColumnInfo {
+    projectedSlug: ColumnSlug
+    historicalSlug: ColumnSlug
+    combinedSlug: ColumnSlug
+    slugForIsProjectionColumn: ColumnSlug
+}
+
 export class ColorScaleConfigDefaults {
     // Color scheme
     // ============
