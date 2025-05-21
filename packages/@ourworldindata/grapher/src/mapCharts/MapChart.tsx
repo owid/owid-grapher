@@ -580,7 +580,7 @@ export class MapChart
     }
 
     @computed get legendData(): ColorScaleBin[] {
-        return this.colorScale.legendBins
+        return this.colorScale.legendBins.filter((bin) => !bin.isHidden)
     }
 
     @computed get equalSizeBins(): boolean | undefined {
@@ -639,29 +639,17 @@ export class MapChart
     }
 
     @computed get numericLegendData(): ColorScaleBin[] {
-        if (
-            this.hasCategorical ||
-            !this.legendData.some(
-                (bin) =>
-                    (bin as CategoricalBin).value === "No data" && !bin.isHidden
-            )
-        )
-            return this.legendData.filter(
-                (bin) => bin instanceof NumericBin && !bin.isHidden
-            )
+        const hasNoDataBin = this.legendData.some((bin) => isNoDataBin(bin))
+        if (this.hasCategoricalLegendData || !hasNoDataBin)
+            return this.legendData
+                .filter((bin) => isNumericBin(bin))
+                .map((bin) => maybeAddPatternRefToBin(bin))
 
-        const bins: ColorScaleBin[] = this.legendData.filter(
-            (bin) =>
-                (bin instanceof NumericBin || bin.value === "No data") &&
-                !bin.isHidden
-        )
-        for (const bin of bins)
-            if (bin instanceof CategoricalBin && bin.value === "No data")
-                bin.props = {
-                    ...bin.props,
-                    patternRef: Patterns.noDataPattern,
-                }
+        const bins: ColorScaleBin[] = this.legendData
+            .filter((bin) => isNumericBin(bin) || isNoDataBin(bin))
+            .map((bin) => maybeAddPatternRefToBin(bin))
 
+        // Move the no-data bin from the end to the start
         return [bins[bins.length - 1], ...bins.slice(0, -1)]
     }
 
@@ -670,20 +658,12 @@ export class MapChart
     }
 
     @computed get categoricalLegendData(): CategoricalBin[] {
-        const bins = this.legendData.filter(
-            (bin): bin is CategoricalBin =>
-                bin instanceof CategoricalBin && !bin.isHidden
-        )
-        for (const bin of bins)
-            if (bin.value === "No data")
-                bin.props = {
-                    ...bin.props,
-                    patternRef: Patterns.noDataPattern,
-                }
-        return bins
+        return this.legendData
+            .filter((bin) => isCategoricalBin(bin))
+            .map((bin) => maybeAddPatternRefToBin(bin))
     }
 
-    @computed get hasCategorical(): boolean {
+    @computed get hasCategoricalLegendData(): boolean {
         return this.categoricalLegendData.length > 1
     }
 
@@ -910,4 +890,26 @@ export class MapChart
 
         return this.isStatic ? this.renderStatic() : this.renderInteractive()
     }
+}
+
+function isCategoricalBin(bin: ColorScaleBin): bin is CategoricalBin {
+    return bin instanceof CategoricalBin
+}
+
+function isNumericBin(bin: ColorScaleBin): bin is NumericBin {
+    return bin instanceof NumericBin
+}
+
+function isNoDataBin(bin: ColorScaleBin): bin is CategoricalBin {
+    return isCategoricalBin(bin) && bin.value === "No data"
+}
+
+function maybeAddPatternRefToBin<Bin extends ColorScaleBin>(bin: Bin): Bin {
+    if (isNoDataBin(bin))
+        return new CategoricalBin({
+            ...bin.props,
+            patternRef: Patterns.noDataPattern,
+        }) as Bin
+
+    return bin
 }
