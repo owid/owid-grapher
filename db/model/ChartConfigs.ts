@@ -1,10 +1,24 @@
 import {
+    ChartConfigsTableName,
+    DbEnrichedChartConfig,
     DbInsertChartConfig,
+    DbRawChartConfig,
     GrapherInterface,
+    parseChartConfigsRow,
     serializeChartConfig,
 } from "@ourworldindata/types"
 
 import * as db from "../db.js"
+
+export async function getChartConfigById(
+    knex: db.KnexReadonlyTransaction,
+    id: string
+): Promise<DbEnrichedChartConfig | undefined> {
+    const chartConfig = await knex<DbRawChartConfig>(ChartConfigsTableName)
+        .where("id", id)
+        .first()
+    return chartConfig ? parseChartConfigsRow(chartConfig) : undefined
+}
 
 export async function updateExistingConfigPair(
     knex: db.KnexReadWriteTransaction,

@@ -131,6 +131,7 @@ import {
     deleteChart,
     getChartTagsJson,
 } from "./apiRoutes/charts.js"
+import { getChartConfig } from "./apiRoutes/chartConfigs.js"
 import {
     createDataInsightGDoc,
     getAllDataInsightIndexItems,
@@ -223,6 +224,13 @@ postRouteWithRWTransaction(
 )
 putRouteWithRWTransaction(apiRouter, "/charts/:chartId", updateChart)
 deleteRouteWithRWTransaction(apiRouter, "/charts/:chartId", deleteChart)
+
+// Chart config routes
+getRouteWithROTransaction(
+    apiRouter,
+    "/chart-configs/:chartConfigId.config.json",
+    getChartConfig
+)
 
 // Narrative chart routes
 getRouteWithROTransaction(apiRouter, "/narrative-charts", getNarrativeCharts)

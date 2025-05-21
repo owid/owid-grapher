@@ -42,6 +42,7 @@ import { GdocsIndexPage } from "./GdocsIndexPage.js"
 import { GdocsMatchProps, GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsStoreProvider } from "./GdocsStoreProvider.js"
 import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
+import { CreateNarrativeChartEditorPage } from "./CreateNarrativeChartEditorPage.js"
 import { NarrativeChartEditorPage } from "./NarrativeChartEditorPage.js"
 import { NarrativeChartIndexPage } from "./NarrativeChartIndexPage.js"
 import { ImageIndexPage } from "./ImagesIndexPage.js"
@@ -186,12 +187,18 @@ export class AdminApp extends React.Component<{
                                 />
                                 <Route
                                     exact
+                                    path="/narrative-charts/create"
+                                    component={CreateNarrativeChartEditorPage}
+                                />
+                                <Route
+                                    exact
                                     path="/narrative-charts/:narrativeChartId/edit"
-                                    render={({ match }) => (
+                                    render={({ match, history }) => (
                                         <NarrativeChartEditorPage
                                             narrativeChartId={parseInt(
                                                 match.params.narrativeChartId
                                             )}
+                                            history={history}
                                         />
                                     )}
                                 />

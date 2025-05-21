@@ -6,31 +6,49 @@ import {
 } from "@ourworldindata/types"
 import * as db from "../db.js"
 
+export async function narrativeChartExists(
+    knex: db.KnexReadonlyTransaction,
+    data: Partial<DbPlainNarrativeChart>
+): Promise<boolean> {
+    const result = await knex(NarrativeChartsTableName)
+        .select(knex.raw("1"))
+        .where(data)
+        .first()
+    return Boolean(result)
+}
+
 export const getNarrativeChartsInfo = async (
     knex: db.KnexReadonlyTransaction,
     names?: string[]
 ): Promise<NarrativeChartInfo[]> => {
+    if (names?.length === 0) return []
+
     type RawRow = Omit<NarrativeChartInfo, "queryParamsForParentChart"> & {
         queryParamsForParentChart: JsonString
     }
-    let rows: RawRow[]
 
-    const query = `-- sql
-SELECT nc.name,
-       cc.full ->> "$.title" as title,
-       nc.chartConfigId,
-       pcc.slug as parentChartSlug,
-       nc.queryParamsForParentChart
-FROM narrative_charts nc
-JOIN chart_configs cc on cc.id = nc.chartConfigId
-JOIN charts pc on nc.parentChartId = pc.id
-JOIN chart_configs pcc on pc.configId = pcc.id
-        `
-
-    if (names) {
-        if (names.length === 0) return []
-        rows = await db.knexRaw(knex, `${query} WHERE nc.name IN (?)`, [names])
-    } else rows = await db.knexRaw(knex, query)
+    const rows: RawRow[] = await knex("narrative_charts as nc")
+        .select(
+            "nc.name",
+            knex.raw('cc.full ->> "$.title" as title'),
+            "nc.chartConfigId",
+            knex.raw("COALESCE(pcc.slug, mddp.slug) as parentChartSlug"),
+            "nc.queryParamsForParentChart"
+        )
+        .join("chart_configs as cc", "cc.id", "nc.chartConfigId")
+        .leftJoin("charts as pc", "nc.parentChartId", "pc.id")
+        .leftJoin("chart_configs as pcc", "pc.configId", "pcc.id")
+        .leftJoin(
+            "multi_dim_x_chart_configs as mdxcc",
+            "nc.parentMultiDimXChartConfigId",
+            "mdxcc.id"
+        )
+        .leftJoin("multi_dim_data_pages as mddp", "mdxcc.multiDimId", "mddp.id")
+        .modify((queryBuilder) => {
+            if (names?.length) {
+                queryBuilder.whereIn("nc.name", names)
+            }
+        })
 
     return rows.map((row) => ({
         ...row,

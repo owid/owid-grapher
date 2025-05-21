@@ -558,7 +558,7 @@ describe(
             )
 
             // clean-up the mdim tables
-            await testKnexInstance!(MultiDimXChartConfigsTableName).truncate()
+            await testKnexInstance!(MultiDimXChartConfigsTableName).delete()
             await testKnexInstance!(MultiDimDataPagesTableName).delete()
             await testKnexInstance!(ChartConfigsTableName)
                 .whereIn("id", [mdxcc1.chartConfigId, mdxcc2.chartConfigId])

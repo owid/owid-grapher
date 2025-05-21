@@ -7274,7 +7274,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/history@npm:*, @types/history@npm:^4.7.11":
+"@types/history@npm:4, @types/history@npm:^4.7.11":
   version: 4.7.11
   resolution: "@types/history@npm:4.7.11"
   checksum: 10/1da529a3485f3015daf794effa3185493bf7dd2551c26932389c614f5a0aab76ab97645897d1eef9c74ead216a3848fcaa019f165bbd6e4b71da6eff164b4c68
@@ -7577,14 +7577,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-router-dom@npm:^4.3.3":
-  version: 4.3.3
-  resolution: "@types/react-router-dom@npm:4.3.3"
+"@types/react-router-dom@npm:5":
+  version: 5.3.3
+  resolution: "@types/react-router-dom@npm:5.3.3"
   dependencies:
-    "@types/history": "npm:*"
+    "@types/history": "npm:^4.7.11"
     "@types/react": "npm:*"
     "@types/react-router": "npm:*"
-  checksum: 10/acfd7eba0fef598b148de98234689bef70f8987d32cb326dc52bf348d3907c7ab0281d94a22da1fd07664b3867e02724ed02f34a92d803f7b0623b5306e79086
+  checksum: 10/28c4ea48909803c414bf5a08502acbb8ba414669b4b43bb51297c05fe5addc4df0b8fd00e0a9d1e3535ec4073ef38aaafac2c4a2b95b787167d113bc059beff3
   languageName: node
   linkType: hard
 
@@ -12819,6 +12819,7 @@ __metadata:
     "@types/express": "npm:^4.17.14"
     "@types/fs-extra": "npm:^11.0.1"
     "@types/geojson": "npm:^7946.0.10"
+    "@types/history": "npm:4"
     "@types/indefinite": "npm:^2.3.2"
     "@types/ini": "npm:^4"
     "@types/js-cookie": "npm:^3.0.2"
@@ -12836,7 +12837,7 @@ __metadata:
     "@types/react-dom": "npm:^17.0.22"
     "@types/react-recaptcha": "npm:^2.3.4"
     "@types/react-router": "npm:^5.1.20"
-    "@types/react-router-dom": "npm:^4.3.3"
+    "@types/react-router-dom": "npm:5"
     "@types/string-pixel-width": "npm:^1.7.2"
     "@types/topojson-client": "npm:^3.1.1"
     "@types/topojson-server": "npm:^3.0.1"
@@ -12884,6 +12885,7 @@ __metadata:
     glob: "npm:^10.3.3"
     google-auth-library: "npm:^9.15.1"
     handsontable: "npm:^15.1.0"
+    history: "npm:4"
     http-server: "npm:^14.1.1"
     husky: "npm:^9.0.11"
     indefinite: "npm:^2.4.3"
@@ -13121,7 +13123,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"history@npm:^4.9.0":
+"history@npm:4, history@npm:^4.9.0":
   version: 4.10.1
   resolution: "history@npm:4.10.1"
   dependencies:

@@ -1,3 +1,4 @@
+import type { History } from "history"
 import { computed, runInAction } from "mobx"
 import {
     AbstractChartEditor,
@@ -21,9 +22,14 @@ export interface Chart {
 
 export interface NarrativeChartEditorManager
     extends AbstractChartEditorManager {
-    narrativeChartId: number
-    idsAndName: { id: number; name: string; configId: string } | undefined
-    parentChartId: number
+    history: History
+    narrativeChartId?: number
+    name?: string
+    nameError?: string
+    onNameChange: (value: string) => void
+    configId?: string
+    parentChartId?: number
+    parentChartConfigId?: string
     references: References | undefined
 }
 
@@ -73,16 +79,39 @@ export class NarrativeChartEditor extends AbstractChartEditor<NarrativeChartEdit
         }
     }
 
-    @computed get narrativeChartId(): number {
+    @computed get narrativeChartId(): number | undefined {
         return this.manager.narrativeChartId
     }
 
     @computed get isNewGrapher(): boolean {
-        return false
+        return this.narrativeChartId === undefined
     }
 
-    @computed get parentChartId(): number {
+    @computed get parentChartId(): number | undefined {
         return this.manager.parentChartId
+    }
+
+    async createGrapher(): Promise<void> {
+        const { manager, patchConfig } = this
+        manager.nameError = ""
+        const body = {
+            type: "multiDim",
+            name: manager.name,
+            parentChartConfigId: manager.parentChartConfigId,
+            config: patchConfig,
+        }
+        const json = await manager.admin.requestJSON(
+            "/api/narrative-charts",
+            body,
+            "POST"
+        )
+        if (json.success) {
+            manager.history.push(
+                `/narrative-charts/${json.narrativeChartId}/edit`
+            )
+        } else {
+            manager.nameError = json.errorMsg
+        }
     }
 
     async saveGrapher({

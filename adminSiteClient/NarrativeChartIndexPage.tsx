@@ -56,11 +56,21 @@ function createColumns(ctx: {
             title: "Parent",
             dataIndex: "parent",
             key: "parent",
-            render: (parent) => (
-                <Link to={`/charts/${parent.id}/edit`}>
-                    {ctx.highlightFn(parent.title)}
-                </Link>
-            ),
+            render: (parent) => {
+                const title = ctx.highlightFn(parent.title)
+                if (!parent.url) return title
+                return parent.type === "chart" ? (
+                    <Link to={parent.url}>{title}</Link>
+                ) : (
+                    <a
+                        href={`/admin${parent.url}`}
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        {title}
+                    </a>
+                )
+            },
             width: 200,
         },
         {
