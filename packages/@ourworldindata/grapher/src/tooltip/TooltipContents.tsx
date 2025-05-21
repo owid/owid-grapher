@@ -25,7 +25,7 @@ export const NO_DATA_COLOR = "#999"
 
 export class TooltipValue extends React.Component<TooltipValueProps> {
     render(): React.ReactElement | null {
-        const { column, value, color, notice } = this.props,
+        const { column, value, color, notice, isProjection } = this.props,
             displayValue = isNumber(value)
                 ? column.formatValueShort(value)
                 : (value ?? NO_DATA_LABEL),
@@ -43,6 +43,7 @@ export class TooltipValue extends React.Component<TooltipValueProps> {
             <Variable
                 column={column}
                 color={displayColor}
+                isProjection={isProjection}
                 notice={notice ? [notice] : undefined}
             >
                 <span>
@@ -125,11 +126,12 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
 class Variable extends React.Component<{
     column: CoreColumn
     color?: string
+    isProjection?: boolean
     notice?: (number | string | undefined)[]
     children?: React.ReactNode
 }> {
     render(): React.ReactElement | null {
-        const { column, children, color, notice } = this.props
+        const { column, children, color, notice, isProjection } = this.props
 
         if (column.isMissing || column.name === "time") return null
 
@@ -152,6 +154,9 @@ class Variable extends React.Component<{
                     {label && <span className="name">{label}</span>}
                     {unit && unit.length > 1 && (
                         <span className="unit">{unit}</span>
+                    )}
+                    {isProjection && (
+                        <span className="projection">projected data</span>
                     )}
                 </div>
                 <div className="values" style={{ color }}>

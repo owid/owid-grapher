@@ -115,13 +115,24 @@
                         letter-spacing: 0.01em;
                         font-weight: $bold;
 
-                        .name {
+                        .name,
+                        .unit {
                             margin-right: 0.25em;
                         }
 
-                        .unit {
+                        .unit,
+                        .projection {
                             font-weight: $medium;
                             font-style: normal;
+                        }
+
+                        .projection {
+                            &::before {
+                                content: "(";
+                            }
+                            &::after {
+                                content: ")";
+                            }
                         }
                     }
 
@@ -454,6 +465,22 @@
                     .unit::after,
                     .unit::before {
                         content: none;
+                    }
+
+                    &:not(:has(.unit)) .projection {
+                        display: inline-block; // to make ::first-letter work
+
+                        // 'text:transform: capitalize' capitalizes the first
+                        // letter of each word. that's why we're only uppercasing
+                        // the first letter instead
+                        &::first-letter {
+                            text-transform: uppercase;
+                        }
+
+                        &::after,
+                        &::before {
+                            content: none;
+                        }
                     }
                 }
             }
