@@ -234,10 +234,16 @@ ${items}
             ]
             return compact(items).join("\n")
         })
-        .with(
-            { type: "pull-quote" },
-            (b): string | undefined => `> ${spansToMarkdown(b.text)}`
-        )
+        .with({ type: "pull-quote" }, (b): string | undefined => {
+            const quote = b.quote
+            const content = b.content
+                .map((block) =>
+                    enrichedBlockToMarkdown(block, exportComponents)
+                )
+                .join("\n")
+
+            return `> ${quote}\n\n${content}`
+        })
         .with({ type: "recirc" }, (b): string | undefined => {
             const items = b.links.map((i) => `* ${i.url}`).join("\n")
             return `### ${b.title}

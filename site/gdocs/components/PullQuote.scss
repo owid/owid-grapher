@@ -1,0 +1,107 @@
+[class^="article-block__pull-quote"] {
+    margin-bottom: 16px;
+
+    blockquote {
+        @include h2-bold;
+        color: $blue-65;
+        margin: 0;
+        padding-top: 16px;
+        padding-bottom: 16px;
+        position: relative;
+        align-self: start;
+        text-wrap: balance;
+        margin-top: 8px;
+        &::before {
+            content: "";
+            border-top: 1px solid $vermillion;
+            width: 85px;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        &::after {
+            content: "";
+            border-top: 1px solid $vermillion;
+            width: 85px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+
+        &.left-center {
+            float: left;
+            max-width: 400px;
+            margin-left: -190px;
+            margin-right: 24px;
+            // We want the first line of the quote to be as flush to the paragraph as possible
+            text-wrap: unset;
+        }
+        &.right-center {
+            float: right;
+            max-width: 400px;
+            margin-right: -190px;
+            margin-left: 24px;
+        }
+
+        &.right {
+            grid-column: 11 / span 3;
+        }
+        &.left {
+            grid-column: 2 / span 3;
+        }
+
+        &.left,
+        &.right,
+        &.left-center,
+        &.right-center {
+            @include md-down {
+                float: none;
+                margin: 0;
+                max-width: unset;
+                grid-column: 3 / span 10;
+                margin-top: 8px;
+                margin-bottom: 24px;
+            }
+            @include sm-only {
+                grid-column: 2 / span 12;
+            }
+        }
+    }
+
+    > *:last-of-type {
+        margin-bottom: 0;
+    }
+}
+
+.article-block__pull-quote--right {
+    // The text comes second in the DOM but we want it to take the first row
+    .article-block__text:first-of-type {
+        @include md-up {
+            grid-row: 1;
+        }
+        @include md-down {
+            margin-bottom: 16px;
+        }
+    }
+}
+
+// Special text-alignment handling for this one
+.article-block__pull-quote--left {
+    blockquote {
+        text-align: right;
+        &::before,
+        &::after {
+            right: 0;
+            left: unset;
+        }
+
+        @include md-down {
+            text-align: left;
+            &::before,
+            &::after {
+                right: unset;
+                left: 0;
+            }
+        }
+    }
+}

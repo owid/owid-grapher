@@ -881,16 +881,6 @@ div.raw-html-table__container {
     @include body-3-medium;
 }
 
-.article-block__pull-quote {
-    @include h1-bold-italic;
-    border-bottom: 1px solid $blue-20;
-    border-top: 1px solid $blue-20;
-    margin: 32px 0;
-    padding: 32px 0;
-    text-align: center;
-    text-wrap: balance;
-}
-
 .article-block__horizontal-rule {
     border-top: 1px solid $blue-10;
     padding: 0;

@@ -307,11 +307,18 @@ function* rawBlockPersonToArchieMLString(
 function* rawBlockPullQuoteToArchieMLString(
     block: RawBlockPullQuote
 ): Generator<string, void, undefined> {
-    yield "[.+pull-quote]"
-    if (typeof block.value !== "string")
-        for (const b of block.value)
-            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
+    yield "{.pull-quote}"
+    yield* propertyToArchieMLString("quote", block.value)
+    yield* propertyToArchieMLString("align", block.value)
+    yield "[.+content]"
+    if (block.value.content) {
+        for (const content of block.value.content) {
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(content)
+        }
+    }
     yield "[]"
+
+    yield "{}"
 }
 
 function* rawBlockHorizontalRuleToArchieMLString(

@@ -200,7 +200,10 @@ function ArticleBlockInternal({
         .with({ type: "person" }, (block) => <Person person={block} />)
         .with({ type: "pull-quote" }, (block) => (
             <PullQuote
-                className={getLayout("pull-quote", containerType)}
+                className={getLayout(
+                    `pull-quote--${block.align}`,
+                    containerType
+                )}
                 d={block}
             />
         ))
