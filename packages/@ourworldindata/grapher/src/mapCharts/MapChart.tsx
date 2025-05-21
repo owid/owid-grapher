@@ -29,6 +29,7 @@ import {
     OwidTable,
     CoreColumn,
     ErrorValueTypes,
+    isNotErrorValueOrEmptyCell,
 } from "@ourworldindata/core-table"
 import {
     GeoFeature,
@@ -39,6 +40,7 @@ import {
     ChoroplethSeriesByName,
     ChoroplethMapManager,
     MAP_CHART_CLASSNAME,
+    MapColumnInfo,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
@@ -56,11 +58,16 @@ import {
 } from "../color/ColorScaleBin"
 import {
     ColorSchemeName,
+    ColumnSlug,
+    ColumnTypeNames,
+    CoreValueType,
+    EntityName,
     InteractionState,
     MapRegionName,
     SeriesName,
+    Time,
 } from "@ourworldindata/types"
-import { autoDetectYColumnSlugs, makeClipPath } from "../chart/ChartUtils"
+import { makeClipPath } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { ChoroplethMap } from "./ChoroplethMap"
@@ -70,6 +77,7 @@ import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { isOnTheMap } from "./MapHelpers.js"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { GrapherInteractionEvent } from "../core/GrapherAnalytics"
+import { match } from "ts-pattern"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -99,15 +107,123 @@ export class MapChart
     @observable tooltipState = new TooltipState<{ featureId: string }>()
 
     transformTable(table: OwidTable): OwidTable {
-        if (!table.has(this.mapColumnSlug)) return table
-        const transformedTable = this.dropNonMapEntities(table)
-            .dropRowsWithErrorValuesForColumn(this.mapColumnSlug)
+        // Drop non-mappable entities from the table
+        table = this.dropNonMapEntities(table)
+
+        return match(this.mapColumnInfo)
+            .with({ type: "historical" }, (info) =>
+                this.transformTableForSingleMapColumn(table, info)
+            )
+            .with({ type: "projected" }, (info) =>
+                this.transformTableForSingleMapColumn(table, info)
+            )
+            .with({ type: "historical+projected" }, (info) =>
+                this.transformTableForCombinedMapColumn(table, info)
+            )
+            .exhaustive()
+    }
+
+    private transformTableForSingleMapColumn(
+        table: OwidTable,
+        mapColumnInfo: Extract<
+            MapColumnInfo,
+            { type: "historical" | "projected" }
+        >
+    ): OwidTable {
+        return table
+            .dropRowsWithErrorValuesForColumn(mapColumnInfo.slug)
             .interpolateColumnWithTolerance(
-                this.mapColumnSlug,
+                mapColumnInfo.slug,
                 this.mapConfig.timeTolerance,
                 this.mapConfig.toleranceStrategy
             )
-        return transformedTable
+    }
+
+    private transformTableForCombinedMapColumn(
+        table: OwidTable,
+        mapColumnInfo: Extract<MapColumnInfo, { type: "historical+projected" }>
+    ): OwidTable {
+        const { historicalSlug, projectedSlug, combinedSlug } = mapColumnInfo
+
+        // Interpolate both columns separately
+        table = table
+            .interpolateColumnWithTolerance(
+                projectedSlug,
+                this.mapConfig.timeTolerance,
+                this.mapConfig.toleranceStrategy
+            )
+            .interpolateColumnWithTolerance(
+                historicalSlug,
+                this.mapConfig.timeTolerance,
+                this.mapConfig.toleranceStrategy
+            )
+
+        // Combine the projection column with its historical stem into one column
+        table = this.combineHistoricalAndProjectionColumns(
+            table,
+            mapColumnInfo,
+            { shouldAddIsProjectionColumn: true }
+        )
+
+        // Drop rows with error values for the combined column
+        table = table.dropRowsWithErrorValuesForColumn(combinedSlug)
+
+        return table
+    }
+
+    private combineHistoricalAndProjectionColumns(
+        table: OwidTable,
+        mapColumnInfo: Extract<MapColumnInfo, { type: "historical+projected" }>,
+        options?: { shouldAddIsProjectionColumn: boolean }
+    ): OwidTable {
+        const {
+            historicalSlug,
+            projectedSlug,
+            combinedSlug,
+            slugForIsProjectionColumn,
+        } = mapColumnInfo
+
+        const transformFn = (
+            row: Record<ColumnSlug, CoreValueType>
+        ): { isProjection: boolean; value: PrimitiveType } | undefined => {
+            // It's possible to have both a historical and a projected value
+            // for a given year. In that case, we prefer the historical value.
+
+            const historicalValue = row[historicalSlug]
+            if (isNotErrorValueOrEmptyCell(historicalValue))
+                return { value: historicalValue, isProjection: false }
+
+            const projectedValue = row[projectedSlug]
+            if (isNotErrorValueOrEmptyCell(projectedValue)) {
+                return { value: projectedValue, isProjection: true }
+            }
+
+            return undefined
+        }
+
+        // Combine the historical and projected values into a single column
+        table = table.combineColumns(
+            [projectedSlug, historicalSlug],
+            { ...table.get(projectedSlug).def, slug: combinedSlug },
+            (row) =>
+                transformFn(row)?.value ??
+                ErrorValueTypes.MissingValuePlaceholder
+        )
+
+        // Add a column indicating whether the value is a projection or not
+        if (options?.shouldAddIsProjectionColumn)
+            table = table.combineColumns(
+                [projectedSlug, historicalSlug],
+                {
+                    slug: slugForIsProjectionColumn,
+                    type: ColumnTypeNames.Boolean,
+                },
+                (row) =>
+                    transformFn(row)?.isProjection ??
+                    ErrorValueTypes.MissingValuePlaceholder
+            )
+
+        return table
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
@@ -183,7 +299,15 @@ export class MapChart
     }
 
     @computed get inputTable(): OwidTable {
-        return this.manager.table
+        const { mapColumnInfo } = this
+        const { table } = this.manager
+
+        // For historical+projected data, we need to create the combined column
+        // on the input table. This ensures the color scale has access to the
+        // complete range of data across both columns
+        return mapColumnInfo.type === "historical+projected"
+            ? this.combineHistoricalAndProjectionColumns(table, mapColumnInfo)
+            : table
     }
 
     @computed get transformedTable(): OwidTable {
@@ -202,11 +326,41 @@ export class MapChart
         return ""
     }
 
-    @computed get mapColumnSlug(): string {
-        return (
-            this.manager.mapColumnSlug ??
-            autoDetectYColumnSlugs(this.manager)[0]!
-        )
+    @computed private get mapColumnInfo(): MapColumnInfo {
+        const { mapColumnSlug, table } = this.manager
+
+        // If projection info is available, then we can stitch together the
+        // historical and projected columns
+        const projectionInfo =
+            this.manager.projectionColumnInfoBySlug?.get(mapColumnSlug)
+        if (projectionInfo) {
+            return {
+                type: "historical+projected",
+                slug: projectionInfo.combinedSlug,
+                ...projectionInfo,
+            }
+        }
+
+        const type = table.get(mapColumnSlug).isProjection
+            ? "projected"
+            : "historical"
+
+        return { type, slug: mapColumnSlug }
+    }
+
+    @computed get mapColumnSlug(): ColumnSlug {
+        return this.mapColumnInfo.slug
+    }
+
+    @computed get columnIsProjection(): CoreColumn | undefined {
+        const slugForIsProjectionColumn =
+            this.mapColumnInfo?.type === "historical+projected"
+                ? this.mapColumnInfo.slugForIsProjectionColumn
+                : undefined
+
+        return slugForIsProjectionColumn
+            ? this.transformedTable.get(slugForIsProjectionColumn)
+            : undefined
     }
 
     @computed get mapColumn(): CoreColumn {
@@ -320,6 +474,21 @@ export class MapChart
         }
     }
 
+    private checkIsProjection(
+        entityName: EntityName,
+        originalTime: Time
+    ): boolean {
+        return match(this.mapColumnInfo.type)
+            .with("historical", () => false)
+            .with("projected", () => true)
+            .with("historical+projected", () =>
+                this.columnIsProjection?.valueByEntityNameAndOriginalTime
+                    .get(entityName)
+                    ?.get(originalTime)
+            )
+            .exhaustive()
+    }
+
     @computed get series(): ChoroplethSeries[] {
         const { mapColumn, targetTime } = this
         if (mapColumn.isMissing) return []
@@ -330,12 +499,17 @@ export class MapChart
                 const { entityName, value, originalTime } = row
                 const color =
                     this.colorScale.getColor(value) || this.noDataColor
+                const isProjection = this.checkIsProjection(
+                    entityName,
+                    originalTime
+                )
                 return {
                     seriesName: entityName,
                     time: originalTime,
                     value,
                     color,
-                }
+                    isProjection,
+                } satisfies ChoroplethSeries
             })
             .filter(isPresent)
     }
@@ -693,6 +867,8 @@ export class MapChart
                 {this.renderMapLegend()}
                 {tooltipCountry && (
                     <MapTooltip
+                        mapColumnSlug={this.mapColumnSlug}
+                        mapColumnInfo={this.mapColumnInfo}
                         entityName={tooltipCountry}
                         position={tooltipState.position}
                         fading={tooltipState.fading}
