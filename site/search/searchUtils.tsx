@@ -393,11 +393,98 @@ export async function querySearch(
         .then(formatAlgoliaSearchResponse)
 }
 
-export function getAutocompleteSuggestions(
+export function searchWithWords(
+    words: string[],
+    allCountryNames: string[],
+    allTopics: string[],
+    selectedCountryNames: Set<string>,
+    selectedTopics: Set<string>,
+    sortOptions: { threshold: number; limit: number }
+): {
+    countryResults: string[]
+    topicResults: string[]
+    hasResults: boolean
+} {
+    const searchTerm = words.join(" ")
+
+    const countryResults = FuzzySearch.withKey(
+        allCountryNames,
+        (country) => country,
+        sortOptions
+    )
+        .search(searchTerm)
+        .filter((country) => !selectedCountryNames.has(country))
+
+    const topicResults =
+        selectedTopics.size === 0
+            ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
+                  .search(searchTerm)
+                  .slice(0, 3)
+            : []
+
+    return {
+        countryResults,
+        topicResults,
+        hasResults: countryResults.length > 0 || topicResults.length > 0,
+    }
+}
+
+export function findMatches(
+    words: string[],
+    allCountryNames: string[],
+    allTopics: string[],
+    selectedCountryNames: Set<string>,
+    selectedTopics: Set<string>,
+    sortOptions: { threshold: number; limit: number },
+    wordIndex: number = 0
+): {
+    countryResults: string[]
+    topicResults: string[]
+    matchStartIndex: number
+} {
+    const wordsToSearch = words.slice(wordIndex)
+    const results = searchWithWords(
+        wordsToSearch,
+        allCountryNames,
+        allTopics,
+        selectedCountryNames,
+        selectedTopics,
+        sortOptions
+    )
+
+    if (results.hasResults) {
+        return {
+            countryResults: results.countryResults,
+            topicResults: results.topicResults,
+            matchStartIndex: wordIndex,
+        }
+    }
+
+    return wordIndex < words.length - 1
+        ? findMatches(
+              words,
+              allCountryNames,
+              allTopics,
+              selectedCountryNames,
+              selectedTopics,
+              sortOptions,
+              wordIndex + 1
+          )
+        : {
+              countryResults: [],
+              topicResults: [],
+              matchStartIndex: words.length,
+          }
+}
+
+export function getAutocompleteSuggestionsWithUnmatchedQuery(
     query: string,
     allTopics: string[],
     filters: Filter[]
-): Filter[] {
+): {
+    suggestions: Filter[]
+    unmatchedQuery: string
+} {
     const sortOptions = {
         threshold: 0.5,
         limit: 3,
@@ -412,58 +499,41 @@ export function getAutocompleteSuggestions(
         (country) => country.name
     )
 
-    const searchWithTerm = (searchTerm: string) => {
-        const trimmedTerm = searchTerm.trim()
+    const queryWords = query.trim().split(/\s+/)
 
-        const countryResults = FuzzySearch.withKey(
-            allCountryNames,
-            (country) => country,
-            sortOptions
-        )
-            .search(trimmedTerm)
-            .filter((country) => !selectedCountryNames.has(country))
-
-        const topicResults =
-            selectedTopics.size === 0
-                ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
-                      .search(trimmedTerm)
-                      .slice(0, 3)
-                : []
-
+    if (!queryWords.length || queryWords[0] === "") {
         return {
-            countryResults,
-            topicResults,
-            hasResults: countryResults.length > 0 || topicResults.length > 0,
+            suggestions: [],
+            unmatchedQuery: "",
         }
     }
 
-    // Recursive function to find matches, progressively removing words from the left
-    const findMatches = (
-        searchTerm: string
-    ): { countryResults: string[]; topicResults: string[] } => {
-        const results = searchWithTerm(searchTerm)
+    const searchResults = findMatches(
+        queryWords,
+        allCountryNames,
+        allTopics,
+        selectedCountryNames,
+        selectedTopics,
+        sortOptions
+    )
 
-        if (results.hasResults || !searchTerm.includes(" ")) {
-            return {
-                countryResults: results.countryResults,
-                topicResults: results.topicResults,
-            }
-        }
-
-        const newSearchTerm = searchTerm.substring(searchTerm.indexOf(" ") + 1)
-        return findMatches(newSearchTerm)
-    }
-
-    const searchResults = findMatches(query)
+    const unmatchedQuery = queryWords
+        .slice(0, searchResults.matchStartIndex)
+        .join(" ")
 
     const countryFilters = searchResults.countryResults.map(createCountryFilter)
     const topicFilters = searchResults.topicResults.map(createTopicFilter)
 
-    return [
+    const suggestions = [
         ...(query ? [createQueryFilter(query)] : []),
         ...countryFilters,
         ...topicFilters,
     ]
+
+    return {
+        suggestions,
+        unmatchedQuery,
+    }
 }
 
 export function createFilter(type: FilterType) {
