@@ -2,6 +2,20 @@
     display: flex;
     gap: 8px;
     align-items: center;
+
+    > span:not(:last-child) {
+        @include sm-only {
+            display: none;
+        }
+        .name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+    > span:last-child {
+        flex-shrink: 0;
+    }
 }
 
 .search-autocomplete-item-contents__search-icon {
@@ -14,4 +28,9 @@
 .search-autocomplete-item-contents__query {
     @include body-3-medium;
     color: $blue-90;
+    white-space: nowrap;
+    &:not(:last-child) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 }
