@@ -411,25 +411,53 @@ export function getAutocompleteSuggestions(
     const allCountryNames = Object.values(allCountries).map(
         (country) => country.name
     )
-    const lastWord = query.split(" ").at(-1) ?? ""
 
-    const countryFilters = FuzzySearch.withKey(
-        allCountryNames,
-        (country) => country,
-        sortOptions
-    )
-        .search(lastWord)
-        .filter((country) => !selectedCountryNames.has(country))
-        .map(createCountryFilter)
+    const searchWithTerm = (searchTerm: string) => {
+        const trimmedTerm = searchTerm.trim()
 
-    const topicFilters =
-        // Suggest topics only if none are currently active
-        selectedTopics.size === 0
-            ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
-                  .search(lastWord)
-                  .slice(0, 3)
-                  .map(createTopicFilter)
-            : []
+        const countryResults = FuzzySearch.withKey(
+            allCountryNames,
+            (country) => country,
+            sortOptions
+        )
+            .search(trimmedTerm)
+            .filter((country) => !selectedCountryNames.has(country))
+
+        const topicResults =
+            selectedTopics.size === 0
+                ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
+                      .search(trimmedTerm)
+                      .slice(0, 3)
+                : []
+
+        return {
+            countryResults,
+            topicResults,
+            hasResults: countryResults.length > 0 || topicResults.length > 0,
+        }
+    }
+
+    // Recursive function to find matches, progressively removing words from the left
+    const findMatches = (
+        searchTerm: string
+    ): { countryResults: string[]; topicResults: string[] } => {
+        const results = searchWithTerm(searchTerm)
+
+        if (results.hasResults || !searchTerm.includes(" ")) {
+            return {
+                countryResults: results.countryResults,
+                topicResults: results.topicResults,
+            }
+        }
+
+        const newSearchTerm = searchTerm.substring(searchTerm.indexOf(" ") + 1)
+        return findMatches(newSearchTerm)
+    }
+
+    const searchResults = findMatches(query)
+
+    const countryFilters = searchResults.countryResults.map(createCountryFilter)
+    const topicFilters = searchResults.topicResults.map(createTopicFilter)
 
     return [
         ...(query ? [createQueryFilter(query)] : []),
