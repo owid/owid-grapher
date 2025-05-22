@@ -2,7 +2,7 @@ import cx from "classnames"
 import { useEffect, useMemo, useCallback } from "react"
 import { match } from "ts-pattern"
 import {
-    getAutocompleteSuggestions,
+    getAutocompleteSuggestionsWithUnmatchedQuery,
     useSearchAutocomplete,
     createQueryFilter,
 } from "./searchUtils.js"
@@ -35,12 +35,18 @@ export const SearchAutocomplete = ({
     addCountry: (country: string) => void
     addTopic: (topic: string) => void
 }) => {
-    const queryMinusLastWord = localQuery.split(" ").slice(0, -1).join(" ")
-    const suggestions = useMemo(() => {
+    const { suggestions, unmatchedQuery } = useMemo(() => {
         if (!localQuery && !filters.length) {
-            return DEFAULT_SEARCHES.map(createQueryFilter)
+            return {
+                suggestions: DEFAULT_SEARCHES.map(createQueryFilter),
+                unmatchedQuery: "",
+            }
         }
-        return getAutocompleteSuggestions(localQuery, allTopics, filters)
+        return getAutocompleteSuggestionsWithUnmatchedQuery(
+            localQuery,
+            allTopics,
+            filters
+        )
     }, [localQuery, allTopics, filters])
 
     const {
@@ -63,13 +69,17 @@ export const SearchAutocomplete = ({
     const handleSelection = useCallback(
         (filter: Filter) => {
             match(filter.type)
+                // this setQueries logic must remain synchronized with the
+                // presentation logic in SearchAutocompleteItemContents to ensure
+                // unmatchedQuery is only displayed in the input field when it
+                // should be preserved after filter selection
                 .with(FilterType.COUNTRY, () => {
                     addCountry(filter.name)
-                    setQueries(queryMinusLastWord)
+                    setQueries(filters.length ? "" : unmatchedQuery)
                 })
                 .with(FilterType.TOPIC, () => {
                     addTopic(filter.name)
-                    setQueries(queryMinusLastWord)
+                    setQueries("")
                 })
                 .with(FilterType.QUERY, () => {
                     setQueries(filter.name)
@@ -80,9 +90,10 @@ export const SearchAutocomplete = ({
         [
             addCountry,
             addTopic,
-            queryMinusLastWord,
             setShowSuggestions,
             setQueries,
+            unmatchedQuery,
+            filters.length,
         ]
     )
 
@@ -123,8 +134,8 @@ export const SearchAutocomplete = ({
                         >
                             <SearchAutocompleteItemContents
                                 filter={filter}
-                                baseQuery={queryMinusLastWord}
                                 activeFilters={filters}
+                                unmatchedQuery={unmatchedQuery}
                             />
                         </button>
                     </li>
