@@ -9,14 +9,12 @@ export const SearchInput = ({
     value,
     setLocalQuery,
     setGlobalQuery,
-    showPlaceholder,
     onBackspaceEmpty,
     children,
 }: {
     value: string
     setLocalQuery: (query: string) => void
     setGlobalQuery: (query: string) => void
-    showPlaceholder: boolean
     onBackspaceEmpty: () => void
     children?: ReactNode
 }) => {
@@ -32,7 +30,7 @@ export const SearchInput = ({
     } = useSearchAutocomplete()
 
     let placeholder = ""
-    if (showPlaceholder && inputRef.current) {
+    if (inputRef.current) {
         // Only set the placeholder once the component has rendered so that useMediaQuery has a chance to initialize
         // Otherwise on mobile it will flash from the desktop version to the mobile placeholder
         placeholder = isSmallScreen

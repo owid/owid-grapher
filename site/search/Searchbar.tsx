@@ -69,7 +69,6 @@ export const Searchbar = ({
                         value={localQuery}
                         setLocalQuery={setLocalQuery}
                         setGlobalQuery={setQuery}
-                        showPlaceholder={!filters.length}
                         onBackspaceEmpty={removeLastFilter}
                     >
                         <SearchActiveFilters
