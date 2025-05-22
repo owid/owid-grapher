@@ -23,6 +23,7 @@ import {
     ANNOTATION_COLOR_LIGHT,
     ANNOTATION_COLOR_DARK,
     RenderFeature,
+    PROJECTED_DATA_LEGEND_COLOR,
 } from "./MapChartConstants"
 import { getGeoFeaturesForMap } from "./GeoFeatures"
 import {
@@ -449,15 +450,25 @@ export class ChoroplethMap extends React.Component<{
 
         return (
             <g id={makeIdForHumanConsumption("countries-with-data")}>
-                <defs>
-                    {this.binColors.map((color) => (
+                {this.manager.hasProjectedData && (
+                    <defs>
+                        {/* Pattern used by the map legend */}
                         <MapProjectedDataPattern
-                            key={color}
-                            color={color}
+                            key={PROJECTED_DATA_LEGEND_COLOR}
+                            color={PROJECTED_DATA_LEGEND_COLOR}
                             scale={1 / this.viewportScale}
                         />
-                    ))}
-                </defs>
+
+                        {/* Pattern used by features */}
+                        {this.binColors.map((color) => (
+                            <MapProjectedDataPattern
+                                key={color}
+                                color={color}
+                                scale={1 / this.viewportScale}
+                            />
+                        ))}
+                    </defs>
+                )}
 
                 {this.sortedFeaturesWithData.map((feature) => {
                     const series = this.choroplethData.get(feature.id)
