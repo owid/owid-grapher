@@ -74,7 +74,7 @@ import {
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { BaseType, Selection } from "d3"
 import { TextWrap } from "@ourworldindata/components"
-import { ProjectedDataPattern } from "../chart/ChartComponents"
+import { StripedProjectedDataPattern } from "../chart/ChartComponents"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -488,7 +488,7 @@ export class DiscreteBarChart
         return (
             <defs>
                 {/* passed to the legend as pattern for the projected data legend item */}
-                <ProjectedDataPattern
+                <StripedProjectedDataPattern
                     patternId={makeProjectedDataPatternId(
                         this.projectedDataColorInLegend
                     )}
@@ -496,7 +496,7 @@ export class DiscreteBarChart
                 />
                 {/* make a pattern for every series with a unique color */}
                 {uniqProjections.map((series) => (
-                    <ProjectedDataPattern
+                    <StripedProjectedDataPattern
                         key={series.color}
                         patternId={makeProjectedDataPatternId(series.color)}
                         color={series.color}

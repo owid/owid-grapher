@@ -640,14 +640,14 @@ export class MapChart
         return this.mapConfig.region
     }
 
-    @computed private get shouldAddStripedPatternToLegendBins(): boolean {
+    @computed private get shouldAddProjectionPatternToLegendBins(): boolean {
         return match(this.mapColumnInfo)
             .with({ type: "historical" }, () => false)
             .with({ type: "projected" }, () => true)
             .with({ type: "historical+projected" }, (info) =>
-                // Only add stripes to the legend bins if _all_ values are projections.
+                // Only add a pattern to the legend bins if _all_ values are projections.
                 // If there is even a single non-projected (historical) value, the legend
-                // should use solid colors rather than striped patterns.
+                // should use solid colors.
                 this.transformedTable
                     .get(info.slugForIsProjectionColumn)
                     .values.every((value) => value === true)
@@ -662,7 +662,7 @@ export class MapChart
                 patternRef: Patterns.noDataPattern,
             }) as Bin
 
-        if (this.shouldAddStripedPatternToLegendBins) {
+        if (this.shouldAddProjectionPatternToLegendBins) {
             const patternRef = makeProjectedDataPatternId(bin.color)
             return (
                 bin instanceof CategoricalBin
