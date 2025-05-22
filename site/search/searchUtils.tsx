@@ -287,7 +287,7 @@ export const getFilterIcon = (filter: Filter) => {
             />
         ))
         .with(FilterType.TOPIC, () => (
-            <span className="tag">
+            <span className="icon">
                 <FontAwesomeIcon icon={faTag} />
             </span>
         ))
