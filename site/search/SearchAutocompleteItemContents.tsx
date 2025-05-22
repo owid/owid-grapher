@@ -9,16 +9,17 @@ const MAX_VISIBLE_FILTERS = 3
 
 export function SearchAutocompleteItemContents({
     filter,
-    baseQuery,
     activeFilters = [],
+    unmatchedQuery = "",
 }: {
     filter: Filter
-    baseQuery?: string
     activeFilters?: Filter[]
+    unmatchedQuery?: string
 }) {
     return (
         <span className="search-autocomplete-item-contents">
             {match(filter.type)
+                // keep in sync with setQueries logic in SearchAutocomplete
                 .with(FilterType.QUERY, () => (
                     <>
                         <FontAwesomeIcon
@@ -34,9 +35,9 @@ export function SearchAutocompleteItemContents({
                 .with(FilterType.COUNTRY, () => (
                     <>
                         {renderActiveFilters(activeFilters)}
-                        {baseQuery && (
+                        {unmatchedQuery && !activeFilters.length && (
                             <span className="search-autocomplete-item-contents__query">
-                                {baseQuery}
+                                {unmatchedQuery}
                             </span>
                         )}
                         <SearchFilterPill
