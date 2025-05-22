@@ -19,6 +19,7 @@ export function CloseButton({
             type="button"
             className={cx("close-button", className)}
             onClick={onClick}
+            aria-label="Close"
         >
             <FontAwesomeIcon icon={faXmark} />
         </button>
