@@ -124,12 +124,11 @@
                         .projection {
                             font-weight: $medium;
                             font-style: normal;
-                        }
 
-                        .projection {
                             &::before {
                                 content: "(";
                             }
+
                             &::after {
                                 content: ")";
                             }
@@ -462,9 +461,13 @@
                         display: none;
                     }
 
-                    .unit::after,
-                    .unit::before {
-                        content: none;
+                    .unit {
+                        text-transform: capitalize;
+
+                        &::after,
+                        &::before {
+                            content: none;
+                        }
                     }
 
                     &:not(:has(.unit)) .projection {
