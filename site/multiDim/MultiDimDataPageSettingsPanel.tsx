@@ -1,118 +1,141 @@
-import { useCallback, useMemo, useRef, useState } from "react"
-import {
-    DimensionEnriched,
-    MultiDimDimensionChoices,
-} from "@ourworldindata/types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
-import { MultiDimDataPageConfig, mapValues } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
+import { useMemo, useState } from "react"
+import {
+    Button,
+    Collection,
+    Header,
+    ListBox,
+    ListBoxItem,
+    ListBoxSection,
+    Popover,
+    Select,
+    Text,
+} from "react-aria-components"
 import { OverlayHeader, RadioButton } from "@ourworldindata/components"
-import { useTriggerOnEscape, useTriggerWhenClickOutside } from "../hooks.js"
+import {
+    Choice,
+    DimensionEnriched,
+    MultiDimDimensionChoices,
+} from "@ourworldindata/types"
+import { MultiDimDataPageConfig } from "@ourworldindata/utils"
 
-const DimensionDropdown = (props: {
-    dimension: DimensionEnriched
-    currentChoiceSlug: string
-    onChange?: (slug: string, valueSlug: string) => void
-}) => {
-    const { dimension } = props
-
-    const [active, setActive] = useState(false)
-
-    const toggleVisibility = useCallback(() => setActive(!active), [active])
-    const hide = useCallback(() => setActive(false), [])
-
-    const dropdownRef = useRef<HTMLDivElement>(null)
-
-    useTriggerOnEscape(hide)
-    useTriggerWhenClickOutside(dropdownRef, active, hide)
-
-    const currentChoice = dimension.choicesBySlug[props.currentChoiceSlug]
-    if (currentChoice === undefined)
-        throw new Error(
-            `Unexpected error: Invalid choice slug ${props.currentChoiceSlug} for dimension ${dimension.slug}`
-        )
-
+function DimensionItem({ choice }: { choice: Choice }) {
     return (
-        <div className="md-settings__dropdown" ref={dropdownRef}>
-            <button
-                className={cx("md-settings__dropdown-toggle", { active })}
-                onClick={toggleVisibility}
+        <ListBoxItem
+            className="md-menu__radio-button"
+            id={choice.slug}
+            textValue={choice.name}
+        >
+            {({ isSelected }) => (
+                <RadioButton
+                    checked={isSelected}
+                    onChange={_.noop}
+                    label={
+                        <>
+                            <Text className="md-label" slot="label">
+                                {choice.name}
+                            </Text>
+                            {choice.description && (
+                                <Text
+                                    className="md-description"
+                                    slot="description"
+                                >
+                                    {choice.description}
+                                </Text>
+                            )}
+                        </>
+                    }
+                />
+            )}
+        </ListBoxItem>
+    )
+}
+
+function DimensionDropdown({
+    dimension,
+    value,
+    onChange,
+}: {
+    dimension: DimensionEnriched
+    value: string
+    onChange: (value: string) => void
+}) {
+    const [isOpen, setIsOpen] = useState(false)
+    const isDisabled = dimension.choices.length === 1
+    return (
+        <Select
+            className="md-settings__dropdown"
+            isDisabled={isDisabled}
+            isOpen={isOpen}
+            onOpenChange={setIsOpen}
+            selectedKey={value}
+            onSelectionChange={(key) => {
+                if (typeof key === "string") onChange(key)
+            }}
+            aria-label={dimension.name}
+        >
+            <Button
+                className="md-settings__dropdown-toggle"
                 data-track-note="multi-dim-choice-dropdown"
-                type="button"
             >
                 <span className="md-settings__dropdown-label">
                     {dimension.name}
                 </span>
                 <span className="md-settings__dropdown-current-choice">
-                    {currentChoice.name}
+                    {dimension.choicesBySlug[value].name}
                 </span>
                 <FontAwesomeIcon icon={faCaretDown} />
-            </button>
-            {active && (
-                <div className="md-menu">
-                    <OverlayHeader title={dimension.name} onDismiss={hide} />
-                    {dimension.description && (
-                        <p className="md-description menu-dimension__description">
-                            {dimension.description}
-                        </p>
-                    )}
-                    <div className="md-menu__options">
-                        {Object.entries(dimension.choicesByGroup).map(
-                            ([groupLabel, groupChoices]) => (
-                                <div
+            </Button>
+            <Popover
+                className="md-menu"
+                maxHeight={400}
+                placement="bottom start"
+                offset={4}
+            >
+                <OverlayHeader
+                    title={dimension.name}
+                    onDismiss={() => setIsOpen(false)}
+                />
+                {dimension.description && (
+                    <p className="md-description menu-dimension__description">
+                        {dimension.description}
+                    </p>
+                )}
+                <ListBox className="md-menu__options">
+                    {Object.entries(dimension.choicesByGroup).map(
+                        ([groupLabel, groupChoices]) =>
+                            groupLabel !== "undefined" ? (
+                                <ListBoxSection
                                     key={groupLabel}
-                                    className={cx("md-menu__group", {
-                                        "is-group": groupLabel !== "undefined",
-                                    })}
+                                    className="md-menu__group is-group"
                                 >
-                                    {groupLabel !== "undefined" && (
-                                        <label className="md-menu__group-label">
-                                            {groupLabel}
-                                        </label>
-                                    )}
-                                    <div className="md-menu__group-options">
+                                    <Header className="md-menu__group-label">
+                                        {groupLabel}
+                                    </Header>
+                                    <Collection>
                                         {groupChoices.map((choice) => (
-                                            <div
-                                                className="md-menu__radio-button"
+                                            <DimensionItem
                                                 key={choice.slug}
-                                            >
-                                                <RadioButton
-                                                    checked={
-                                                        choice.slug ===
-                                                        props.currentChoiceSlug
-                                                    }
-                                                    label={
-                                                        <>
-                                                            <div>
-                                                                {choice.name}
-                                                            </div>
-                                                            {choice.description && (
-                                                                <label className="md-description">
-                                                                    {
-                                                                        choice.description
-                                                                    }
-                                                                </label>
-                                                            )}
-                                                        </>
-                                                    }
-                                                    onChange={() =>
-                                                        props.onChange?.(
-                                                            dimension.slug,
-                                                            choice.slug
-                                                        )
-                                                    }
-                                                />
-                                            </div>
+                                                choice={choice}
+                                            />
                                         ))}
-                                    </div>
-                                </div>
+                                    </Collection>
+                                </ListBoxSection>
+                            ) : (
+                                groupChoices.map((choice) => (
+                                    <DimensionItem
+                                        key={choice.slug}
+                                        choice={choice}
+                                    />
+                                ))
                             )
-                        )}
-                    </div>
-                </div>
-            )}
-        </div>
+                    )}
+                </ListBox>
+            </Popover>
+        </Select>
     )
 }
 
@@ -132,7 +155,7 @@ export const MultiDimSettingsPanel = ({
     // Non-partial version of `settings` with all dimensions filled in
     const resolvedSettings = useMemo(
         () =>
-            mapValues(
+            _.mapValues(
                 dimensions,
                 (dim) =>
                     settings[dim.slug] ?? Object.values(dim.choices)[0].slug
@@ -155,13 +178,13 @@ export const MultiDimSettingsPanel = ({
                     <DimensionDropdown
                         key={dim.slug}
                         dimension={dim}
-                        currentChoiceSlug={resolvedSettings[dim.slug]}
-                        onChange={(slug, value) =>
+                        value={resolvedSettings[dim.slug]}
+                        onChange={(value) => {
                             onChange({
                                 ...resolvedSettings,
-                                [slug]: value,
+                                [dim.slug]: value,
                             })
-                        }
+                        }}
                     />
                 ))}
             </div>
