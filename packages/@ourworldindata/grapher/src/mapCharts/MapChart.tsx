@@ -677,13 +677,16 @@ export class MapChart
 
         if (isProjectedDataBin(bin)) {
             const patternRef = makeProjectedDataPatternId(
-                PROJECTED_DATA_LEGEND_COLOR
+                PROJECTED_DATA_LEGEND_COLOR,
+                { forLegend: true }
             )
             return new CategoricalBin({ ...bin.props, patternRef }) as Bin
         }
 
         if (this.shouldAddProjectionPatternToLegendBins) {
-            const patternRef = makeProjectedDataPatternId(bin.color)
+            const patternRef = makeProjectedDataPatternId(bin.color, {
+                forLegend: true,
+            })
             return (
                 bin instanceof CategoricalBin
                     ? new CategoricalBin({ ...bin.props, patternRef })
