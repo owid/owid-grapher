@@ -51,6 +51,13 @@ function getYiq(rgb: RGBColor): number {
     return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000
 }
 
+export function calculateLightnessScore(colorHex: Color): number | undefined {
+    const rgb = color(colorHex)?.rgb()
+    if (!rgb) return undefined
+    const yiq = getYiq(rgb)
+    return yiq / 255
+}
+
 export function isDarkColor(colorSpecifier: string): boolean | undefined {
     const rgb = color(colorSpecifier)?.rgb()
     if (!rgb) return undefined

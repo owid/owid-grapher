@@ -21,7 +21,7 @@ import {
 import { isMapRenderFeature } from "./MapHelpers"
 import { getExternalMarkerEndPosition } from "./MapAnnotations"
 import { Patterns } from "../core/GrapherConstants"
-import { ProjectedDataPattern } from "../chart/ChartComponents"
+import { DottedProjectedDataPattern } from "../chart/ChartComponents"
 
 export function BackgroundCountry<Feature extends RenderFeature>({
     feature,
@@ -184,12 +184,10 @@ export function MapProjectedDataPattern({
     scale?: number
 }): React.ReactElement {
     return (
-        <ProjectedDataPattern
+        <DottedProjectedDataPattern
             patternId={makeProjectedDataPatternId(color)}
             color={color}
             scale={scale}
-            opacity={0.4}
-            strokeWidth={12}
         />
     )
 }
