@@ -760,10 +760,11 @@ export class ChoroplethGlobe extends React.Component<{
             <g id={makeIdForHumanConsumption("countries-with-data")}>
                 {this.manager.hasProjectedData && (
                     <defs>
-                        {/* Pattern used by the map legend */}
+                        {/* Pattern used by the map legend for the no-projected data bin */}
                         <MapProjectedDataPattern
                             key={PROJECTED_DATA_LEGEND_COLOR}
                             color={PROJECTED_DATA_LEGEND_COLOR}
+                            forLegend
                         />
 
                         {/* Pattern used by features */}

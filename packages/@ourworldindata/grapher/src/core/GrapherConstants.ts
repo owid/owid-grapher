@@ -122,6 +122,7 @@ export enum Patterns {
     noDataPatternForMap = "noDataPatternForMap",
     noDataPatternForGlobe = "noDataPatternForGlobe",
     projectedDataPattern = "projectedDataPattern",
+    projectedDataPatternForLegend = "projectedDataPatternForLegend",
 }
 
 export const grapherInterfaceWithHiddenControls: GrapherProgrammaticInterface =
