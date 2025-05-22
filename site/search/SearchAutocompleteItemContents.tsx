@@ -29,7 +29,7 @@ export function SearchAutocompleteItemContents({
                         </span>
                     </>
                 ))
-                .with(FilterType.COUNTRY, FilterType.TOPIC, () => (
+                .with(FilterType.COUNTRY, () => (
                     <>
                         {renderActiveFilters(activeFilters)}
                         {baseQuery && (
@@ -37,6 +37,15 @@ export function SearchAutocompleteItemContents({
                                 {baseQuery}
                             </span>
                         )}
+                        <SearchFilterPill
+                            name={filter.name}
+                            icon={getFilterIcon(filter)}
+                        />
+                    </>
+                ))
+                .with(FilterType.TOPIC, () => (
+                    <>
+                        {renderActiveFilters(activeFilters)}
                         <SearchFilterPill
                             name={filter.name}
                             icon={getFilterIcon(filter)}
@@ -52,8 +61,8 @@ const renderActiveFilters = (filters: Filter[]) => {
     return filters.map((filter) => (
         <SearchFilterPill
             key={`${filter.type}-${filter.name}`}
-            name={filter.name}
             icon={getFilterIcon(filter)}
+            name={filter.name}
         />
     ))
 }
