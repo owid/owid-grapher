@@ -488,17 +488,13 @@ export class DiscreteBarChart
         return (
             <defs>
                 {/* passed to the legend as pattern for the projected data legend item */}
-                <ProjectedDataPattern
-                    patternId={makeProjectedDataPatternId(
-                        this.projectedDataColorInLegend
-                    )}
+                <ProjectedDataPatternForBar
                     color={this.projectedDataColorInLegend}
                 />
                 {/* make a pattern for every series with a unique color */}
                 {uniqProjections.map((series) => (
-                    <ProjectedDataPattern
+                    <ProjectedDataPatternForBar
                         key={series.color}
-                        patternId={makeProjectedDataPatternId(series.color)}
                         color={series.color}
                     />
                 ))}
@@ -979,4 +975,18 @@ export class DiscreteBarChart
 // even if it gets resolved to a striped pattern of a different grapher instance.
 function makeProjectedDataPatternId(color: string): string {
     return `DiscreteBarChart_stripes_${color}`
+}
+
+function ProjectedDataPatternForBar({
+    color,
+}: {
+    color: string
+}): React.ReactElement {
+    return (
+        <ProjectedDataPattern
+            patternId={makeProjectedDataPatternId(color)}
+            color={color}
+            patternSize={7}
+        />
+    )
 }
