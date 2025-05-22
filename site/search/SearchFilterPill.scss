@@ -7,8 +7,11 @@
     }
     gap: 8px;
     box-shadow: inset 0 0 0 1px $blue-20;
+    min-width: 0;
     .flag {
         border: 1px solid $blue-20;
+        max-width: initial;
+        flex-shrink: 0;
     }
     .tag {
         color: $blue-60;
