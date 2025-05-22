@@ -179,13 +179,15 @@ export function NoDataPattern({
 export function MapProjectedDataPattern({
     color,
     scale = 1,
+    forLegend = false,
 }: {
     color: string
     scale?: number
+    forLegend?: boolean
 }): React.ReactElement {
     return (
         <DottedProjectedDataPattern
-            patternId={makeProjectedDataPatternId(color)}
+            patternId={makeProjectedDataPatternId(color, { forLegend })}
             color={color}
             scale={scale}
         />
@@ -275,6 +277,12 @@ function getStrokeWidth({
     return DEFAULT_STROKE_WIDTH
 }
 
-export function makeProjectedDataPatternId(color: string): string {
-    return `${Patterns.projectedDataPattern}_${color}`
+export function makeProjectedDataPatternId(
+    color: string,
+    options?: { forLegend: boolean }
+): string {
+    const prefix = options?.forLegend
+        ? Patterns.projectedDataPatternForLegend
+        : Patterns.projectedDataPattern
+    return `${prefix}_${color}`
 }
