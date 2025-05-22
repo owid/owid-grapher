@@ -729,15 +729,17 @@ export class EntitySelector extends React.Component<{
         return projectionColumnInfoByCombinedSlug
     }
 
-    private combinedColumnHasSomeHistoricalValueForTime(
+    private combinedColumnHasHistoricalDataForTime(
         slug: ColumnSlug,
         time: Time
-    ): boolean | undefined {
-        const values =
-            this.isProjectionBySlugAndTimeAndEntityName
-                .get(slug)
-                ?.get(time)
-                ?.values() ?? []
+    ): boolean | null {
+        const isProjectionByTimeAndEntityName =
+            this.isProjectionBySlugAndTimeAndEntityName.get(slug)
+
+        // We don't have data and thus can't make a decision
+        if (!isProjectionByTimeAndEntityName) return null
+
+        const values = isProjectionByTimeAndEntityName.get(time)?.values() ?? []
         return Array.from(values)?.some((isProjection) => !isProjection)
     }
 
@@ -754,19 +756,34 @@ export class EntitySelector extends React.Component<{
             table.get(info.historicalSlug)
         )
 
-        const isProjectionByTimeAndEntityName =
-            isProjectionBySlugAndTimeAndEntityName.get(info.combinedSlug)
-        if (!isProjectionByTimeAndEntityName) return projectedLabel
+        const hasHistoricalDataForTime =
+            this.combinedColumnHasHistoricalDataForTime(info.combinedSlug, time)
 
-        const hasHistoricalValues =
-            this.combinedColumnHasSomeHistoricalValueForTime(
-                info.combinedSlug,
-                time
-            )
+        // If the data for this column hasn't been computed yet, we can't
+        // determine if it has historical data, and thus which label to show.
+        // As a workaround, we check if any other (arbitrary) combined column
+        // has historical data for this time point, based on the assumption that
+        // projection columns typically share the same cut-off time.
+        if (hasHistoricalDataForTime === null) {
+            const arbitrarySlug = isProjectionBySlugAndTimeAndEntityName
+                .keys()
+                .next().value
+
+            if (arbitrarySlug) {
+                const hasHistoricalValues =
+                    this.combinedColumnHasHistoricalDataForTime(
+                        arbitrarySlug,
+                        time
+                    )
+                return hasHistoricalValues ? historicalLabel : projectedLabel
+            }
+
+            return projectedLabel
+        }
 
         // If there is any historical value for the given time,
         // we choose to show the label of the historical column
-        return hasHistoricalValues ? historicalLabel : projectedLabel
+        return hasHistoricalDataForTime ? historicalLabel : projectedLabel
     }
 
     @computed get sortOptions(): SortDropdownOption[] {
@@ -969,7 +986,7 @@ export class EntitySelector extends React.Component<{
 
                     if (isProjectedValue) {
                         const hasHistoricalValues =
-                            this.combinedColumnHasSomeHistoricalValueForTime(
+                            this.combinedColumnHasHistoricalDataForTime(
                                 projectionInfo.combinedSlug,
                                 time
                             )
