@@ -82,12 +82,18 @@ export type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
 type EntityFilter = EntityRegionType | "all"
 
+type ValueBySlugAndTimeAndEntityName<T> = Map<
+    ColumnSlug,
+    Map<Time, Map<EntityName, T>>
+>
+
 export interface EntitySelectorState {
     searchInput: string
     sortConfig: SortConfig
     entityFilter: EntityFilter
     localEntityNames?: string[]
     interpolatedSortColumnsBySlug?: CoreColumnBySlug
+    isProjectionBySlugAndTimeAndEntityName?: ValueBySlugAndTimeAndEntityName<boolean>
     isLoadingExternalSortColumn?: boolean
 }
 
@@ -377,6 +383,18 @@ export class EntitySelector extends React.Component<{
         })
     }
 
+    private setIsProjectionForSlug(
+        slug: ColumnSlug,
+        valuesByTimeAndEntityName: Map<Time, Map<EntityName, boolean>>
+    ): void {
+        const { isProjectionBySlugAndTimeAndEntityName } = this
+        isProjectionBySlugAndTimeAndEntityName.set(
+            slug,
+            valuesByTimeAndEntityName
+        )
+        this.set({ isProjectionBySlugAndTimeAndEntityName })
+    }
+
     @computed private get toleranceOverride(): {
         value?: number
         strategy?: ToleranceStrategy
@@ -404,11 +422,11 @@ export class EntitySelector extends React.Component<{
 
     private interpolateAndCombineSortColumns(
         info: ProjectionColumnInfo
-    ): CoreColumn {
-        const { projectedSlug, historicalSlug, combinedSlug } = info
+    ): OwidTable {
+        const { projectedSlug, historicalSlug } = info
 
         // Interpolate the historical and projected columns separately
-        let table = this.table
+        const table = this.table
             .interpolateColumnWithTolerance(
                 historicalSlug,
                 this.toleranceOverride.value,
@@ -421,19 +439,35 @@ export class EntitySelector extends React.Component<{
             )
 
         // Combine the interpolated columns
-        table = combineHistoricalAndProjectionColumns(table, info)
-
-        return table.get(combinedSlug)
+        return combineHistoricalAndProjectionColumns(table, info, {
+            shouldAddIsProjectionColumn: true,
+        })
     }
 
     private setInterpolatedSortColumnBySlug(slug: ColumnSlug): void {
         if (this.interpolatedSortColumnsBySlug[slug]) return
 
+        // If the column is a projection and has an historical counterpart,
+        // then combine the projected and historical data into a single column
         const projectionInfo = this.projectionColumnInfoByCombinedSlug.get(slug)
-        const column = projectionInfo
-            ? this.interpolateAndCombineSortColumns(projectionInfo)
-            : this.interpolateSortColumn(slug)
+        if (projectionInfo) {
+            const table = this.interpolateAndCombineSortColumns(projectionInfo)
 
+            const combinedColumn = table.get(projectionInfo.combinedSlug)
+            const isProjectionValues = table.get(
+                projectionInfo.slugForIsProjectionColumn
+            ).valueByTimeAndEntityName
+
+            this.setInterpolatedSortColumn(combinedColumn)
+            this.setIsProjectionForSlug(
+                projectionInfo.combinedSlug,
+                isProjectionValues
+            )
+
+            return
+        }
+
+        const column = this.interpolateSortColumn(slug)
         this.setInterpolatedSortColumn(column)
     }
 
@@ -582,6 +616,14 @@ export class EntitySelector extends React.Component<{
         )
     }
 
+    @computed
+    private get isProjectionBySlugAndTimeAndEntityName(): ValueBySlugAndTimeAndEntityName<boolean> {
+        return (
+            this.manager.entitySelectorState
+                .isProjectionBySlugAndTimeAndEntityName ?? new Map()
+        )
+    }
+
     @computed private get interpolatedSortColumns(): CoreColumn[] {
         return Object.values(this.interpolatedSortColumnsBySlug)
     }
@@ -687,6 +729,46 @@ export class EntitySelector extends React.Component<{
         return projectionColumnInfoByCombinedSlug
     }
 
+    private combinedColumnHasSomeHistoricalValueForTime(
+        slug: ColumnSlug,
+        time: Time
+    ): boolean | undefined {
+        const values =
+            this.isProjectionBySlugAndTimeAndEntityName
+                .get(slug)
+                ?.get(time)
+                ?.values() ?? []
+        return Array.from(values)?.some((isProjection) => !isProjection)
+    }
+
+    private makeSortColumnLabelForCombinedColumn(
+        info: ProjectionColumnInfo,
+        time: Time
+    ): string {
+        const { table, isProjectionBySlugAndTimeAndEntityName } = this
+
+        const projectedLabel = getTitleForSortColumnLabel(
+            table.get(info.projectedSlug)
+        )
+        const historicalLabel = getTitleForSortColumnLabel(
+            table.get(info.historicalSlug)
+        )
+
+        const isProjectionByTimeAndEntityName =
+            isProjectionBySlugAndTimeAndEntityName.get(info.combinedSlug)
+        if (!isProjectionByTimeAndEntityName) return projectedLabel
+
+        const hasHistoricalValues =
+            this.combinedColumnHasSomeHistoricalValueForTime(
+                info.combinedSlug,
+                time
+            )
+
+        // If there is any historical value for the given time,
+        // we choose to show the label of the historical column
+        return hasHistoricalValues ? historicalLabel : projectedLabel
+    }
+
     @computed get sortOptions(): SortDropdownOption[] {
         let options: SortDropdownOption[] = []
 
@@ -751,7 +833,6 @@ export class EntitySelector extends React.Component<{
         const slugsToExclude: Set<ColumnSlug> = new Set()
 
         for (const column of columns) {
-            const label = getTitleForSortColumnLabel(column)
             const formattedTime = this.formatTimeForSortColumnLabel(
                 this.endTime,
                 column
@@ -763,6 +844,12 @@ export class EntitySelector extends React.Component<{
 
             // Combine projected and historical data
             if (projectionInfo) {
+                const time = this.toColumnCompatibleTime(this.endTime, column)
+                const label = this.makeSortColumnLabelForCombinedColumn(
+                    projectionInfo,
+                    time
+                )
+
                 options.push({
                     type: "chart-indicator",
                     value: projectionInfo.combinedSlug,
@@ -779,7 +866,7 @@ export class EntitySelector extends React.Component<{
                     type: "chart-indicator",
                     value: column.slug,
                     slug: column.slug,
-                    label,
+                    label: getTitleForSortColumnLabel(column),
                     formattedTime,
                 })
             }
@@ -866,10 +953,35 @@ export class EntitySelector extends React.Component<{
 
             for (const column of this.interpolatedSortColumns) {
                 const time = this.toColumnCompatibleTime(this.endTime, column)
-                const rowsByTime =
-                    column.owidRowByEntityNameAndTime.get(entityName)
-                searchableEntity.sortColumnValues[column.slug] =
-                    rowsByTime?.get(time)?.value
+
+                // If we're dealing with a mixed column that has historical and
+                // projected data for the given time, then we choose not to
+                // show projected data since the dropdown is labelled with the
+                // display name of the historical column.
+                const projectionInfo =
+                    this.projectionColumnInfoByCombinedSlug.get(column.slug)
+                if (projectionInfo) {
+                    const isProjectedValue =
+                        this.isProjectionBySlugAndTimeAndEntityName
+                            ?.get(projectionInfo.combinedSlug)
+                            ?.get(time)
+                            ?.get(entityName)
+
+                    if (isProjectedValue) {
+                        const hasHistoricalValues =
+                            this.combinedColumnHasSomeHistoricalValueForTime(
+                                projectionInfo.combinedSlug,
+                                time
+                            )
+                        if (hasHistoricalValues) continue
+                    }
+                }
+
+                const row = column.owidRowByEntityNameAndTime
+                    .get(entityName)
+                    ?.get(time)
+
+                searchableEntity.sortColumnValues[column.slug] = row?.value
             }
 
             return searchableEntity
