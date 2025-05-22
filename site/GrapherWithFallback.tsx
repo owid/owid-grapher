@@ -25,7 +25,7 @@ export function GrapherWithFallback(
         freezeOnceVisible: true,
     })
 
-    // Render fallback svg when javascript disabled or while
+    // Render fallback png when javascript disabled or while
     // grapher is loading
     const imageFallback = (
         <figure
@@ -37,6 +37,7 @@ export function GrapherWithFallback(
             <GrapherImage
                 slug={slug}
                 enablePopulatingUrlParams={props.enablePopulatingUrlParams}
+                queryString={queryStr}
             />
         </figure>
     )

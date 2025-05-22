@@ -112,7 +112,7 @@ export default function Chart({
             style={{ gridRow: d.row, gridColumn: d.column }}
             ref={refChartContainer}
         >
-            {isExplorer || isMultiDim ? (
+            {isExplorer ? (
                 <figure
                     // Use unique `key` to force React to re-render tree
                     key={resolvedUrl}

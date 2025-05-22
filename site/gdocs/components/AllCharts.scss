@@ -25,7 +25,7 @@
     }
 
     figure[data-grapher-src]:not(.grapherPreview),
-    figure[data-grapher-component]:not(.grapherPreview) {
+    figure.grapher-component:not(.grapherPreview) {
         height: $grapher-height;
     }
 }
