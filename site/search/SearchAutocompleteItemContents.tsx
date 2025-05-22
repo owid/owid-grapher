@@ -1,9 +1,11 @@
-import { faSearch } from "@fortawesome/free-solid-svg-icons"
+import { faSearch, faFilter } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { match } from "ts-pattern"
 import { Filter, FilterType } from "./searchTypes"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { getFilterIcon } from "./searchUtils.js"
+
+const MAX_VISIBLE_FILTERS = 3
 
 export function SearchAutocompleteItemContents({
     filter,
@@ -58,11 +60,32 @@ export function SearchAutocompleteItemContents({
 }
 
 const renderActiveFilters = (filters: Filter[]) => {
-    return filters.map((filter) => (
-        <SearchFilterPill
-            key={`${filter.type}-${filter.name}`}
-            icon={getFilterIcon(filter)}
-            name={filter.name}
-        />
-    ))
+    const isCollapsed = filters.length > MAX_VISIBLE_FILTERS
+    const visibleFilters = isCollapsed
+        ? filters.slice(0, MAX_VISIBLE_FILTERS)
+        : filters
+    const remainingCount = filters.length - MAX_VISIBLE_FILTERS
+
+    return (
+        <>
+            {visibleFilters.map((filter) => (
+                <SearchFilterPill
+                    key={`${filter.type}-${filter.name}`}
+                    icon={getFilterIcon(filter)}
+                    name={filter.name}
+                />
+            ))}
+            {isCollapsed && (
+                <SearchFilterPill
+                    key="more-filters"
+                    icon={
+                        <span className="icon">
+                            <FontAwesomeIcon icon={faFilter} />
+                        </span>
+                    }
+                    name={`+ ${remainingCount} more`}
+                />
+            )}
+        </>
+    )
 }
