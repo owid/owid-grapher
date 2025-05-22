@@ -18,7 +18,6 @@ import { ChartConfigType, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { useLinkedChart } from "../utils.js"
 import SpanElements from "./SpanElements.js"
 import cx from "classnames"
-import GrapherImage from "../../GrapherImage.js"
 import { GrapherWithFallback } from "../../GrapherWithFallback.js"
 
 export default function Chart({

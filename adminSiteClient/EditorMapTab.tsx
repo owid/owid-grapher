@@ -186,11 +186,11 @@ class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
     }
 
     @action.bound resetToParent() {
-        const { grapher, activeParentConfig } = this.editor
+        const { grapherState, activeParentConfig } = this.editor
         if (!activeParentConfig || !activeParentConfig.map) return
 
-        grapher.map = new MapConfig()
-        grapher.map.updateFromObject(activeParentConfig.map)
+        grapherState.map = new MapConfig()
+        grapherState.map.updateFromObject(activeParentConfig.map)
     }
 
     render() {

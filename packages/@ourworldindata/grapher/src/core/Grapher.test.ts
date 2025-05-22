@@ -1,5 +1,4 @@
 import { expect, it, describe } from "vitest"
-import { GrapherProgrammaticInterface, GrapherState } from "../core/Grapher"
 import {
     GRAPHER_CHART_TYPES,
     EntitySelectionMode,
