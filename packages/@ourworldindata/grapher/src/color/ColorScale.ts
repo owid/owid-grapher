@@ -24,10 +24,12 @@ import { CoreColumn } from "@ourworldindata/core-table"
 import * as R from "remeda"
 
 export const NO_DATA_LABEL = "No data"
+export const PROJECTED_DATA_LABEL = "Projected data"
 
 export interface ColorScaleManager {
     colorScaleConfig?: ColorScaleConfigInterface
     hasNoDataBin?: boolean
+    hasProjectedDataBin?: boolean
     defaultNoDataColor?: string
     defaultBaseColorScheme?: ColorSchemeName
     colorScaleColumn?: CoreColumn
@@ -115,6 +117,10 @@ export class ColorScale {
 
     @computed private get hasNoDataBin(): boolean {
         return this.manager.hasNoDataBin || false
+    }
+
+    @computed private get hasProjectedDataBin(): boolean {
+        return this.manager.hasProjectedDataBin || false
     }
 
     @computed get sortedNumericValues(): number[] {
@@ -313,6 +319,7 @@ export class ColorScale {
             bucketMaximums,
             baseColors,
             hasNoDataBin,
+            hasProjectedDataBin,
             categoricalValues,
             customCategoryColors,
             customCategoryLabels,
@@ -328,6 +335,14 @@ export class ColorScale {
             // So in order to leave it colorless, we want to append the "No data" label last.
             // -@danielgavrilov, 2020-06-02
             allCategoricalValues = [...allCategoricalValues, NO_DATA_LABEL]
+        }
+
+        // Inject "Projected data" bin
+        if (hasProjectedDataBin) {
+            allCategoricalValues = [
+                ...allCategoricalValues,
+                PROJECTED_DATA_LABEL,
+            ]
         }
 
         return allCategoricalValues.map((value, index) => {

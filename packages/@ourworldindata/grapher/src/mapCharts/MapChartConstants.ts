@@ -35,6 +35,8 @@ export const PATTERN_STROKE_WIDTH = 0.7
 export const BLUR_FILL_OPACITY = 0.2
 export const BLUR_STROKE_OPACITY = 0.5
 
+export const PROJECTED_DATA_LEGEND_COLOR = "#ffffff"
+
 export const MAP_CHART_CLASSNAME = "MapChart"
 export const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
 export const GEO_FEATURES_CLASSNAME = "GeoFeatures"
@@ -106,6 +108,7 @@ export interface ChoroplethMapManager {
     isMapSelectionEnabled?: boolean
     isStatic?: boolean
     binColors?: string[]
+    hasProjectedData?: boolean
 }
 
 export enum RenderFeatureType {
