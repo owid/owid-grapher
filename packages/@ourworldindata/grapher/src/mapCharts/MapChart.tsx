@@ -40,9 +40,14 @@ import {
     ChoroplethMapManager,
     MAP_CHART_CLASSNAME,
     MapColumnInfo,
+    PROJECTED_DATA_LEGEND_COLOR,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
-import { ColorScale } from "../color/ColorScale"
+import {
+    ColorScale,
+    NO_DATA_LABEL,
+    PROJECTED_DATA_LABEL,
+} from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
@@ -374,6 +379,14 @@ export class MapChart
         return this.transformedTable.get(this.mapColumnSlug)
     }
 
+    @computed get hasProjectedData(): boolean {
+        return this.mapColumnInfo.type !== "historical"
+    }
+
+    @computed get hasProjectedDataBin(): boolean {
+        return this.hasProjectedData
+    }
+
     // The map column without tolerance and timeline filtering applied
     @computed private get mapColumnUntransformed(): CoreColumn {
         return this.dropNonMapEntities(this.inputTable).get(this.mapColumnSlug)
@@ -662,6 +675,13 @@ export class MapChart
                 patternRef: Patterns.noDataPattern,
             }) as Bin
 
+        if (isProjectedDataBin(bin)) {
+            const patternRef = makeProjectedDataPatternId(
+                PROJECTED_DATA_LEGEND_COLOR
+            )
+            return new CategoricalBin({ ...bin.props, patternRef }) as Bin
+        }
+
         if (this.shouldAddProjectionPatternToLegendBins) {
             const patternRef = makeProjectedDataPatternId(bin.color)
             return (
@@ -941,5 +961,9 @@ function isNumericBin(bin: ColorScaleBin): bin is NumericBin {
 }
 
 function isNoDataBin(bin: ColorScaleBin): bin is CategoricalBin {
-    return isCategoricalBin(bin) && bin.value === "No data"
+    return isCategoricalBin(bin) && bin.value === NO_DATA_LABEL
+}
+
+function isProjectedDataBin(bin: ColorScaleBin): bin is CategoricalBin {
+    return isCategoricalBin(bin) && bin.value === PROJECTED_DATA_LABEL
 }

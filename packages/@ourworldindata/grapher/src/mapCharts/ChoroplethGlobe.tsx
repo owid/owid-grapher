@@ -43,6 +43,7 @@ import {
     GlobeRenderFeature,
     InternalAnnotation,
     MAP_HOVER_TARGET_RANGE,
+    PROJECTED_DATA_LEGEND_COLOR,
     RenderFeature,
     SVGMouseEvent,
 } from "./MapChartConstants"
@@ -769,11 +770,23 @@ export class ChoroplethGlobe extends React.Component<{
 
         return (
             <g id={makeIdForHumanConsumption("countries-with-data")}>
-                <defs>
-                    {this.binColors.map((color) => (
-                        <MapProjectedDataPattern key={color} color={color} />
-                    ))}
-                </defs>
+                {this.manager.hasProjectedData && (
+                    <defs>
+                        {/* Pattern used by the map legend */}
+                        <MapProjectedDataPattern
+                            key={PROJECTED_DATA_LEGEND_COLOR}
+                            color={PROJECTED_DATA_LEGEND_COLOR}
+                        />
+
+                        {/* Pattern used by features */}
+                        {this.binColors.map((color) => (
+                            <MapProjectedDataPattern
+                                key={color}
+                                color={color}
+                            />
+                        ))}
+                    </defs>
+                )}
 
                 {this.sortedFeaturesWithData.map((feature) => {
                     const series = this.choroplethData.get(feature.id)
