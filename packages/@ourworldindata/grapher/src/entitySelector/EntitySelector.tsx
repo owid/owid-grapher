@@ -38,7 +38,10 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray"
 import { Flipper, Flipped } from "react-flip-toolkit"
-import { makeSelectionArray } from "../chart/ChartUtils.js"
+import {
+    combineHistoricalAndProjectionColumns,
+    makeSelectionArray,
+} from "../chart/ChartUtils.js"
 import {
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
@@ -56,7 +59,9 @@ import {
     ColumnSlug,
     EntityName,
     OwidColumnDef,
+    ProjectionColumnInfo,
     Time,
+    ToleranceStrategy,
 } from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
@@ -113,6 +118,7 @@ export interface EntitySelectorManager {
         target?: string
     ) => void
     additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
+    projectionColumnInfoBySlug?: Map<ColumnSlug, ProjectionColumnInfo>
 }
 
 interface SortConfig {
@@ -129,7 +135,12 @@ type SearchableEntity = {
 }
 
 interface SortDropdownOption {
+    type:
+        | "name" // sorted by name
+        | "chart-indicator" // sorted by chart column
+        | "external-indicator" // sorted by an external indicator
     value: string // slug
+    slug: string
     label: string
     formattedTime?: string
     trackNote?: string // unused
@@ -280,15 +291,13 @@ export class EntitySelector extends React.Component<{
     }
 
     getDefaultSortConfig(): SortConfig {
-        const { isOnMapTab } = this.manager
+        const chartIndicatorSortOptions = this.sortOptions.filter(
+            (option) => option.type === "chart-indicator"
+        )
 
-        // default to sorting by the first chart column on the map tab
-        // or if there's only one y-axis dimension
-        const hasSingleYDimension = this.yColumnSlugs.length === 1
-        const shouldSortByValue = isOnMapTab || hasSingleYDimension
-
-        if (shouldSortByValue && this.numericalChartColumns[0]) {
-            const { slug } = this.numericalChartColumns[0]
+        // default to sorting by the first chart column if there is only one
+        if (chartIndicatorSortOptions.length === 1) {
+            const { slug } = chartIndicatorSortOptions[0]
             this.setInterpolatedSortColumnBySlug(slug)
             return { slug, order: SortOrder.desc }
         }
@@ -304,7 +313,7 @@ export class EntitySelector extends React.Component<{
         const { mapColumnSlug } = this.manager
         const sortSlug = this.sortConfig.slug
 
-        // no need to reset the map colum slug if it doesn't exist or isn't set
+        // no need to reset the map column slug if it doesn't exist or isn't set
         if (
             !mapColumnSlug ||
             !this.interpolatedSortColumnsBySlug[mapColumnSlug]
@@ -368,7 +377,10 @@ export class EntitySelector extends React.Component<{
         })
     }
 
-    interpolateSortColumn(slug: ColumnSlug): CoreColumn {
+    @computed private get toleranceOverride(): {
+        value?: number
+        strategy?: ToleranceStrategy
+    } {
         // use map tolerance if on the map tab
         const tolerance = this.manager.isOnMapTab
             ? this.manager.mapConfig?.timeTolerance
@@ -377,14 +389,52 @@ export class EntitySelector extends React.Component<{
             ? this.manager.mapConfig?.toleranceStrategy
             : undefined
 
+        return { value: tolerance, strategy: toleranceStrategy }
+    }
+
+    private interpolateSortColumn(slug: ColumnSlug): CoreColumn {
         return this.table
-            .interpolateColumnWithTolerance(slug, tolerance, toleranceStrategy)
+            .interpolateColumnWithTolerance(
+                slug,
+                this.toleranceOverride.value,
+                this.toleranceOverride.strategy
+            )
             .get(slug)
+    }
+
+    private interpolateAndCombineSortColumns(
+        info: ProjectionColumnInfo
+    ): CoreColumn {
+        const { projectedSlug, historicalSlug, combinedSlug } = info
+
+        // Interpolate the historical and projected columns separately
+        let table = this.table
+            .interpolateColumnWithTolerance(
+                historicalSlug,
+                this.toleranceOverride.value,
+                this.toleranceOverride.strategy
+            )
+            .interpolateColumnWithTolerance(
+                projectedSlug,
+                this.toleranceOverride.value,
+                this.toleranceOverride.strategy
+            )
+
+        // Combine the interpolated columns
+        table = combineHistoricalAndProjectionColumns(table, info)
+
+        return table.get(combinedSlug)
     }
 
     private setInterpolatedSortColumnBySlug(slug: ColumnSlug): void {
         if (this.interpolatedSortColumnsBySlug[slug]) return
-        this.setInterpolatedSortColumn(this.interpolateSortColumn(slug))
+
+        const projectionInfo = this.projectionColumnInfoByCombinedSlug.get(slug)
+        const column = projectionInfo
+            ? this.interpolateAndCombineSortColumns(projectionInfo)
+            : this.interpolateSortColumn(slug)
+
+        this.setInterpolatedSortColumn(column)
     }
 
     private clearSearchInput(): void {
@@ -581,9 +631,7 @@ export class EntitySelector extends React.Component<{
 
         return activeSlugs
             .map((slug) => this.table.get(slug))
-            .filter(
-                (column) => column.hasNumberFormatting && !column.isProjection
-            )
+            .filter((column) => column.hasNumberFormatting)
     }
 
     /**
@@ -621,12 +669,32 @@ export class EntitySelector extends React.Component<{
         )
     }
 
+    @computed private get projectionColumnInfoByCombinedSlug(): Map<
+        ColumnSlug,
+        ProjectionColumnInfo
+    > {
+        if (!this.manager.projectionColumnInfoBySlug) return new Map()
+
+        const projectionColumnInfoByCombinedSlug: Map<
+            ColumnSlug,
+            ProjectionColumnInfo
+        > = new Map()
+
+        for (const info of this.manager.projectionColumnInfoBySlug.values()) {
+            projectionColumnInfoByCombinedSlug.set(info.combinedSlug, info)
+        }
+
+        return projectionColumnInfoByCombinedSlug
+    }
+
     @computed get sortOptions(): SortDropdownOption[] {
-        const options: SortDropdownOption[] = []
+        let options: SortDropdownOption[] = []
 
         // the first dropdown option is always the entity name
         options.push({
+            type: "name",
             value: this.table.entityNameSlug,
+            slug: this.table.entityNameSlug,
             label: "Name",
         })
 
@@ -640,7 +708,9 @@ export class EntitySelector extends React.Component<{
 
                 if (chartColumn) {
                     options.push({
+                        type: "chart-indicator",
                         value: chartColumn.slug,
+                        slug: chartColumn.slug,
                         label: getTitleForSortColumnLabel(chartColumn),
                         formattedTime: this.formatTimeForSortColumnLabel(
                             this.endTime,
@@ -651,7 +721,9 @@ export class EntitySelector extends React.Component<{
                     const column =
                         this.interpolatedSortColumnsBySlug[external.slug]
                     options.push({
+                        type: "external-indicator",
                         value: external.slug,
+                        slug: external.slug,
                         label: external.label,
                         formattedTime: column
                             ? this.formatTimeForSortColumnLabel(
@@ -665,22 +737,55 @@ export class EntitySelector extends React.Component<{
         }
 
         // add the remaining numerical chart columns as sort options,
-        // excluding those that match external indicators
+        // excluding columns that match external indicators (since those
+        // have already been added)
         const matchingSlugs = Object.values(
             this.chartColumnsByExternalSortIndicatorKey
         ).map((column) => column.slug)
-        for (const column of this.numericalChartColumns) {
-            if (!matchingSlugs.includes(column.slug)) {
+        const columns = this.numericalChartColumns.filter(
+            (column) => !matchingSlugs.includes(column.slug)
+        )
+
+        // If we add data columns that combine historical and projected data,
+        // then we want to exclude the individual columns from the sort options
+        const slugsToExclude: Set<ColumnSlug> = new Set()
+
+        for (const column of columns) {
+            const label = getTitleForSortColumnLabel(column)
+            const formattedTime = this.formatTimeForSortColumnLabel(
+                this.endTime,
+                column
+            )
+
+            const projectionInfo = this.manager.projectionColumnInfoBySlug?.get(
+                column.slug
+            )
+
+            // Combine projected and historical data
+            if (projectionInfo) {
                 options.push({
+                    type: "chart-indicator",
+                    value: projectionInfo.combinedSlug,
+                    slug: projectionInfo.combinedSlug,
+                    label,
+                    formattedTime,
+                })
+
+                // We don't need a separate option for the historical data
+                // if it's part of the projection series
+                slugsToExclude.add(projectionInfo.historicalSlug)
+            } else {
+                options.push({
+                    type: "chart-indicator",
                     value: column.slug,
-                    label: getTitleForSortColumnLabel(column),
-                    formattedTime: this.formatTimeForSortColumnLabel(
-                        this.endTime,
-                        column
-                    ),
+                    slug: column.slug,
+                    label,
+                    formattedTime,
                 })
             }
         }
+
+        options = options.filter((option) => !slugsToExclude.has(option.value))
 
         return options
     }
@@ -688,7 +793,7 @@ export class EntitySelector extends React.Component<{
     @computed get sortValue(): SortDropdownOption | null {
         return (
             this.sortOptions.find(
-                (option) => option.value === this.sortConfig.slug
+                (option) => option.slug === this.sortConfig.slug
             ) ?? null
         )
     }
@@ -982,7 +1087,7 @@ export class EntitySelector extends React.Component<{
         selected: SortDropdownOption | null
     ): Promise<void> {
         if (selected) {
-            const { value: slug } = selected
+            const { slug } = selected
 
             // if an external indicator has been selected, load it
             const external = this.externalSortIndicatorDefinitions.find(
