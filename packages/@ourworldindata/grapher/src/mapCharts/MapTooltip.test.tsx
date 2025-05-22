@@ -4,7 +4,7 @@
 
 import { expect, test } from "vitest"
 import { Grapher, GrapherState } from "../core/Grapher.js"
-import { legacyMapGrapher } from "./MapChart.sample.js"
+import { legacyMapGrapher, legacyMapGrapherData } from "./MapChart.sample.js"
 
 import Enzyme from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
@@ -13,7 +13,7 @@ Enzyme.configure({ adapter: new Adapter() })
 
 const state = new GrapherState({ ...legacyMapGrapher })
 state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-    legacyMapGrapher.owidDataset!,
+    legacyMapGrapherData,
     legacyMapGrapher.dimensions!,
     legacyMapGrapher.selectedEntityColors
 )

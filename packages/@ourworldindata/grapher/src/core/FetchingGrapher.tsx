@@ -134,7 +134,7 @@ export function FetchingGrapher(
             }
         }
         void fetchSortColumns()
-    })
+    }, [props.dataApiUrl])
 
     return <Grapher grapherState={grapherState.current} />
 }

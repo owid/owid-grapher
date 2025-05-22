@@ -83,7 +83,6 @@ export const GrapherPage = (props: {
         ...grapher,
         adminBaseUrl: ADMIN_BASE_URL,
         bakedGrapherURL: BAKED_GRAPHER_URL,
-        dataApiUrl: DATA_API_URL,
     })}
 const archivedChartInfo = ${JSON.stringify(archivedChartInfo || undefined)}
 window.renderSingleGrapherOnGrapherPage(jsonConfig, "${DATA_API_URL}", { archivedChartInfo })`

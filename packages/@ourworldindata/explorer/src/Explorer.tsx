@@ -207,7 +207,7 @@ export class Explorer
         this.grapherState = new GrapherState({
             staticBounds: props.staticBounds,
             bounds: props.bounds,
-            enableKeyboardShortcuts: true,
+            enableKeyboardShortcuts: this.props.isInStandalonePage,
             manager: this,
             isEmbeddedInAnOwidPage: this.props.isEmbeddedInAnOwidPage,
             adminBaseUrl: this.adminBaseUrl,

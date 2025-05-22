@@ -27,3 +27,5 @@ Some key directories, going roughly along the dependency chain from the most sta
 - ./adminSiteClient - client UI of the admin
 - ./devTools - various utilities
 - ./functions - CloudFlare Functions. Most of our website is static but all our charts under https://ourworldindata.org/grapher/* are behind CF functions. These handle dynamic thumbnail generation, data downloads for end users etc.
+
+# Current state of the repository

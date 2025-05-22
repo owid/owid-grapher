@@ -152,6 +152,7 @@ export function DataPageContent({
                 }
             })
             const grapherConfigUuid = newView.fullConfigId
+
             const grapherConfigPromise = cachedGetGrapherConfigByUuid(
                 grapherConfigUuid,
                 isPreviewing ?? false
@@ -177,7 +178,7 @@ export function DataPageContent({
                         }
                         if (config.manager) config.manager.editUrl = editUrl
                         else config.manager = { editUrl }
-                        await void inputTableFetcher(
+                        void inputTableFetcher(
                             grapherConfig.value.dimensions!,
                             grapherConfig.value.selectedEntityColors
                         ).then((inputTable) => {

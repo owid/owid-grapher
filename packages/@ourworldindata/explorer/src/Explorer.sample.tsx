@@ -102,7 +102,6 @@ export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
         title,
         dimensions,
         tab: GRAPHER_TAB_OPTIONS.chart,
-        owidDataset,
     }
     first.table = legacyToOwidTableAndDimensionsWithMandatorySlug(
         owidDataset,

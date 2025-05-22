@@ -48,7 +48,6 @@ export const childMortalityGrapher = (
         tab: GRAPHER_TAB_OPTIONS.map,
         dimensions,
         ...props,
-        owidDataset,
     })
     state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
         owidDataset,

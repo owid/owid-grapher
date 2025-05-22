@@ -221,7 +221,6 @@ const DEFAULT_MS_PER_TICK = 100
 
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
-    owidDataset?: MultipleOwidVariableDataDimensionsMap // This is temporarily used for testing. Will be removed
     manuallyProvideData?: boolean // This will be removed.
     queryStr?: string
     bounds?: Bounds
@@ -373,7 +372,6 @@ export class GrapherState {
     @observable.ref _isInFullScreenMode = false
     @observable.ref windowInnerWidth?: number
     @observable.ref windowInnerHeight?: number
-    owidDataset?: MultipleOwidVariableDataDimensionsMap = undefined // This is used for passing data for testing
     manuallyProvideData? = false // This will be removed.
 
     @computed get isDev(): boolean {

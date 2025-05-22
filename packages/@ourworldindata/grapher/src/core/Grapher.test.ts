@@ -137,8 +137,7 @@ const metadata = {
         },
     },
 }
-const legacyConfig: Omit<LegacyGrapherInterface, "data"> &
-    Pick<GrapherProgrammaticInterface, "owidDataset"> = {
+const legacyConfig: Omit<LegacyGrapherInterface, "data"> = {
     dimensions: [
         {
             variableId: 3512,
@@ -148,22 +147,24 @@ const legacyConfig: Omit<LegacyGrapherInterface, "data"> &
             },
         },
     ],
-    owidDataset: new Map([
-        [
-            3512,
-            {
-                data,
-                metadata,
-            },
-        ],
-    ]),
+
     selectedEntityNames: ["Iceland", "Afghanistan"],
 }
+
+const owidDataset = new Map([
+    [
+        3512,
+        {
+            data,
+            metadata,
+        },
+    ],
+])
 
 it("can apply legacy chart dimension settings", () => {
     const grapher = new GrapherState(legacyConfig)
     grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-        legacyConfig.owidDataset!,
+        owidDataset!,
         legacyConfig.dimensions!,
         legacyConfig.selectedEntityColors
     )
@@ -179,7 +180,7 @@ it("correctly identifies changes to passed-in selection", () => {
         manager: { selection },
     })
     grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-        legacyConfig.owidDataset!,
+        owidDataset,
         legacyConfig.dimensions!,
         legacyConfig.selectedEntityColors
     )
@@ -209,7 +210,7 @@ it("can generate a url with country selection even if there is no entity code", 
     }
     const grapher = new GrapherState(config)
     grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-        config.owidDataset!,
+        owidDataset,
         config.dimensions!,
         config.selectedEntityColors
     )
@@ -226,7 +227,7 @@ it("can generate a url with country selection even if there is no entity code", 
     )!.code = undefined as any
     const grapher2 = new GrapherState(config2)
     grapher2.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-        config2.owidDataset!,
+        owidDataset,
         config2.dimensions!,
         config2.selectedEntityColors
     )
@@ -239,7 +240,7 @@ describe("hasTimeline", () => {
     it("charts with timeline", () => {
         const grapher = new GrapherState(legacyConfig)
         grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-            legacyConfig.owidDataset!,
+            owidDataset,
             legacyConfig.dimensions!,
             legacyConfig.selectedEntityColors
         )
@@ -258,7 +259,7 @@ describe("hasTimeline", () => {
     it("map tab has timeline even if chart doesn't", () => {
         const grapher = new GrapherState(legacyConfig)
         grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-            legacyConfig.owidDataset!,
+            owidDataset,
             legacyConfig.dimensions!,
             legacyConfig.selectedEntityColors
         )
