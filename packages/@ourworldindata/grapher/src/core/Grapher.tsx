@@ -1509,6 +1509,14 @@ export class Grapher
         return findClosestTime(this.times, this.endHandleTimeBound)
     }
 
+    @computed get tmpTimelineMin(): Time | undefined {
+        return findClosestTime(this.times, this.timelineMinTime ?? -Infinity)
+    }
+
+    @computed get tmpTimelineMax(): Time | undefined {
+        return findClosestTime(this.times, this.timelineMaxTime ?? Infinity)
+    }
+
     @computed get isSingleTimeScatterAnimationActive(): boolean {
         return (
             this.isTimelineAnimationActive &&
@@ -4010,6 +4018,8 @@ export class Grapher
 
     timelineController = new TimelineController(this)
     globeController = new GlobeController(this)
+
+    @observable dragTarget?: "start" | "end" | "both" | undefined
 
     private dismissTooltip(): void {
         const tooltip = this.tooltip?.get()

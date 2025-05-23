@@ -6,6 +6,7 @@ import {
     sleep,
     findClosestTime,
 } from "@ourworldindata/utils"
+import { observable } from "mobx"
 
 export interface TimelineManager {
     disablePlay?: boolean
@@ -20,6 +21,7 @@ export interface TimelineManager {
     msPerTick?: number
     onPlay?: () => void
     onTimelineClick?: () => void
+    dragTarget?: "start" | "end" | "both"
 }
 
 export class TimelineController {

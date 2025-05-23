@@ -14,6 +14,7 @@ import {
     EntityName,
     OwidTableSlugs,
     OwidVariableRoundingMode,
+    OwidVariableRow,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
@@ -37,6 +38,8 @@ import {
     IndicatorTitleWithFragments,
     joinTitleFragments,
     FuzzySearch,
+    min,
+    max,
 } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
@@ -52,6 +55,15 @@ import {
 } from "../core/EntitiesByRegionType"
 import { match } from "ts-pattern"
 import { NoDataModal } from "../noDataModal/NoDataModal"
+import { extent, line, scaleLinear, scaleTime } from "d3"
+import {
+    GRAY_10,
+    GRAY_100,
+    GRAY_20,
+    GRAY_30,
+    GRAY_5,
+} from "../color/ColorConstants"
+import { TimelineController } from "../timeline/TimelineController"
 
 const COMMON_DATA_TABLE_FILTERS = ["all", "selection"] as const
 type CommonDataTableFilter = (typeof COMMON_DATA_TABLE_FILTERS)[number]
@@ -83,12 +95,20 @@ const DEFAULT_SORT_STATE: DataTableSortState = {
     order: SortOrder.asc,
 }
 
+interface SparklineDataForEntity {
+    values: OwidVariableRow<number>[]
+    start?: number
+    end?: number
+}
+
 const columnNameByType: Record<ColumnKey, string> = {
     single: "Value",
     start: "Start",
     end: "End",
     delta: "Absolute Change",
     deltaRatio: "Relative Change",
+    sparkline: "Sparkline",
+    sparklineFull: "Sparkline Full",
 }
 
 const inverseSortOrder = (order: SortOrder): SortOrder =>
@@ -105,6 +125,9 @@ export interface DataTableManager {
     dataTableConfig: DataTableConfig
     dataTableSelection?: SelectionArray | EntityName[]
     entityNamesByRegionType?: EntityNamesByRegionType
+    dragTarget?: "start" | "end" | "both" | undefined
+    tmpTimelineMin?: Time
+    tmpTimelineMax?: Time
 }
 
 @observer
@@ -383,6 +406,10 @@ export class DataTable extends React.Component<{
         column: DataTableColumn,
         dimension: DataTableDimension
     ): string {
+        if (column.key === SparklineKey.sparklineFull)
+            return `${dimension.coreTableColumn.formatTime(this.manager.tmpTimelineMin!)}–${dimension.coreTableColumn.formatTime(this.manager.tmpTimelineMax!)}`
+        if (column.key === SparklineKey.sparkline)
+            return `${dimension.coreTableColumn.formatTime(column.targetTimes![0])}–${dimension.coreTableColumn.formatTime(column.targetTimes![1])}`
         return isDeltaColumn(column.key)
             ? columnNameByType[column.key]
             : dimension.coreTableColumn.formatTime(column.targetTime!)
@@ -447,8 +474,166 @@ export class DataTable extends React.Component<{
         column: DataTableColumn,
         dv: DimensionValue | undefined,
         sorted: boolean,
-        actualColumn: CoreColumn
-    ): React.ReactElement {
+        actualColumn: CoreColumn,
+        sparkline: SparklineDataForEntity
+    ): React.ReactElement | null {
+        if (
+            column.key === SparklineKey.sparklineFull ||
+            column.key === SparklineKey.sparkline
+        ) {
+            if (
+                column.key === SparklineKey.sparkline &&
+                sparkline.start === undefined &&
+                sparkline.end === undefined
+            )
+                return (
+                    <td
+                        key={key}
+                        className={classnames([
+                            "dimension",
+                            `dimension-${column.key}`,
+                        ])}
+                    />
+                )
+
+            const color =
+                SparklineKey.sparklineFull === column.key
+                    ? "#6d3e91"
+                    : "#4C6A9C"
+
+            const minTime =
+                column.key === SparklineKey.sparklineFull
+                    ? this.manager.tmpTimelineMin
+                    : column.targetTimes![0]
+            const maxTime =
+                column.key === SparklineKey.sparklineFull
+                    ? this.manager.tmpTimelineMax
+                    : column.targetTimes![1]
+
+            const rows = sparkline.values.filter(
+                (row) => row.time >= minTime! && row.time <= maxTime!
+            )
+
+            const values = rows.map((row) => row.value)
+
+            console.log(values)
+
+            if (values.length <= 1) {
+                return (
+                    <td
+                        key={key}
+                        className={classnames([
+                            "dimension",
+                            `dimension-${column.key}`,
+                        ])}
+                    />
+                )
+            }
+
+            const width = 100
+            const height = 18
+
+            const dotSize = 3
+
+            const xScale = scaleTime()
+                .domain([minTime!, maxTime!])
+                .range([0, width])
+
+            const yScale = scaleLinear()
+                .domain([min(values)!, max(values)!])
+                .range([height, 0])
+
+            const lineGen = line<OwidVariableRow<number>>()
+                .x((row) => xScale(row.time))
+                .y((row) => yScale(row.value))
+
+            const path = lineGen(rows)
+
+            if (!path)
+                return (
+                    <td
+                        key={key}
+                        className={classnames([
+                            "dimension",
+                            `dimension-${column.key}`,
+                        ])}
+                    />
+                )
+
+            return (
+                <td
+                    key={key}
+                    className={classnames([
+                        "dimension",
+                        `dimension-${column.key}`,
+                    ])}
+                >
+                    <svg
+                        width={width}
+                        height={height}
+                        viewBox={`0 0 ${width} ${height}`}
+                        style={{ overflow: "visible" }}
+                    >
+                        {column.key === SparklineKey.sparklineFull &&
+                            (this.manager.dragTarget === "start" ||
+                                this.manager.dragTarget === "both") && (
+                                <line
+                                    x1={xScale(column.targetTimes![0])}
+                                    x2={xScale(column.targetTimes![0])}
+                                    y1={0}
+                                    y2={height}
+                                    stroke={GRAY_30}
+                                />
+                            )}
+                        {column.key === SparklineKey.sparklineFull &&
+                            (this.manager.dragTarget === "end" ||
+                                this.manager.dragTarget === "both") && (
+                                <line
+                                    x1={xScale(column.targetTimes![1])}
+                                    x2={xScale(column.targetTimes![1])}
+                                    y1={0}
+                                    y2={height}
+                                    stroke={GRAY_30}
+                                />
+                            )}
+                        {/* <rect
+                            x={xScale(column.targetTimes![0]) - dotSize}
+                            y={-dotSize}
+                            width={
+                                xScale(column.targetTimes![1]) -
+                                xScale(column.targetTimes![0]) +
+                                dotSize * 2
+                            }
+                            height={height + dotSize * 2}
+                            fill={GRAY_20}
+                        /> */}
+                        <path
+                            d={path}
+                            stroke={color}
+                            fill="none"
+                            strokeWidth={1.5}
+                        />
+                        {sparkline.start && (
+                            <circle
+                                cx={xScale(column.targetTimes![0])}
+                                cy={yScale(sparkline.start)}
+                                r={dotSize}
+                                fill={color}
+                            />
+                        )}
+                        {sparkline.end && (
+                            <circle
+                                cx={xScale(column.targetTimes![1])}
+                                cy={yScale(sparkline.end)}
+                                r={dotSize}
+                                fill={color}
+                            />
+                        )}
+                    </svg>
+                </td>
+            )
+        }
+
         if (dv === undefined || !(column.key in dv))
             return (
                 <td
@@ -534,7 +719,9 @@ export class DataTable extends React.Component<{
                             dv,
                             sort.dimIndex === dimIndex &&
                                 sort.columnKey === column.key,
-                            dimension.coreTableColumn
+                            dimension.coreTableColumn,
+                            // @ts-expect-error todo: fix me
+                            row.sparkline[dimIndex]
                         )
                     })
                 })}
@@ -682,7 +869,6 @@ export class DataTable extends React.Component<{
         return this.table.columnsAsArray.filter(
             (column) =>
                 !skips.has(column.slug) &&
-                //  dim.property !== "color" &&
                 (column.display?.includeInTable ?? true)
         )
     }
@@ -811,7 +997,42 @@ export class DataTable extends React.Component<{
             targetTime,
             targetTimeMode,
         }))
-        return [...valueColumns, ...deltaColumns]
+
+        // todo: http://localhost:3030/grapher/how-many-deaths-does-it-take-for-a-disaster-in-different-continents-to-receive-news-coverage?tab=table
+        // don't show if there is no timeline
+        const sparklineColumnFull =
+            sourceColumn.hasNumberFormatting &&
+            this.table.minTime !== this.table.maxTime
+                ? {
+                      key: SparklineKey.sparklineFull,
+                      targetTimes: [
+                          valueColumns.length > 1
+                              ? valueColumns[0]?.targetTime
+                              : undefined,
+                          valueColumns.length > 1
+                              ? valueColumns[1]?.targetTime
+                              : valueColumns[0]?.targetTime,
+                      ] as [number, number],
+                  }
+                : undefined
+
+        const sparklineColumn =
+            sourceColumn.hasNumberFormatting && valueColumns.length > 1
+                ? {
+                      key: SparklineKey.sparkline,
+                      targetTimes: [
+                          valueColumns[0].targetTime,
+                          valueColumns[1].targetTime,
+                      ] as [number, number],
+                  }
+                : undefined
+
+        return excludeUndefined([
+            sparklineColumnFull,
+            ...valueColumns,
+            sparklineColumn,
+            ...deltaColumns,
+        ])
     }
 
     private preliminaryDimensionValues({
@@ -939,10 +1160,46 @@ export class DataTable extends React.Component<{
                 sortable: d.columns.length === 1,
                 columns: d.columns.map((column) => ({
                     ...column,
-                    sortable: entityCount > 1,
+                    sortable:
+                        column.key !== SparklineKey.sparkline &&
+                        column.key !== SparklineKey.sparklineFull &&
+                        entityCount > 1,
                 })),
                 display: { columnName, unit },
             }
+        })
+    }
+
+    // todo: tolerance
+    // http://localhost:3030/grapher/pacemaker-implantations-per-million-people?tab=table&time=latest
+    @computed private get sparklineData(): Map<
+        EntityName,
+        SparklineDataForEntity
+    >[] {
+        const { targetTimes = [] } = this
+        return this.columnsToShow.map((column) => {
+            const map = new Map<EntityName, SparklineDataForEntity>()
+
+            // todo: tolerance isn't set here
+            for (const entityName of this.availableEntityNames) {
+                const startValue =
+                    targetTimes.length > 1
+                        ? column.owidRowByEntityNameAndTime
+                              .get(entityName)
+                              ?.get(targetTimes[0])
+                        : undefined
+                const endValue = column.owidRowByEntityNameAndTime
+                    .get(entityName)
+                    ?.get(R.last(targetTimes)!)
+                const values = column.owidRowsByEntityName.get(entityName) ?? []
+                map.set(entityName, {
+                    values,
+                    start: startValue?.value,
+                    end: endValue?.value,
+                })
+            }
+
+            return map
         })
     }
 
@@ -953,6 +1210,9 @@ export class DataTable extends React.Component<{
                 dimensionValues: this.columnsWithValues.map((d) =>
                     d.valueByEntity.get(entityName)
                 ),
+                sparkline: this.sparklineData.map((d) => {
+                    return d.get(entityName)
+                }),
             }
         })
     }
@@ -1088,9 +1348,10 @@ interface Dimension {
 }
 
 interface DimensionColumn {
-    key: SingleValueKey | RangeValueKey
+    key: SingleValueKey | RangeValueKey | SparklineKey
     targetTime?: Time
     targetTimeMode?: TargetTimeMode
+    targetTimes?: [Time, Time]
 }
 
 interface DataTableColumn extends DimensionColumn {
@@ -1109,6 +1370,11 @@ enum RangeValueKey {
     end = "end",
     delta = "delta",
     deltaRatio = "deltaRatio",
+}
+
+enum SparklineKey {
+    sparklineFull = "sparklineFull",
+    sparkline = "sparkline",
 }
 
 type RangeValue = Record<RangeValueKey, Value | undefined>
@@ -1130,7 +1396,7 @@ function isSingleValue(value: DimensionValue): value is SingleValue {
 
 // combined types
 type DimensionValue = SingleValue | RangeValue
-type ColumnKey = SingleValueKey | RangeValueKey
+type ColumnKey = SingleValueKey | RangeValueKey | SparklineKey
 
 interface DataTableDimension {
     columns: DataTableColumn[]
@@ -1142,6 +1408,7 @@ interface DataTableDimension {
 interface DataTableRow {
     entityName: EntityName
     dimensionValues: (DimensionValue | undefined)[] // TODO make it not undefined
+    sparkline: (SparklineDataForEntity | undefined)[]
 }
 
 function isDeltaColumn(columnKey?: ColumnKey): boolean {
