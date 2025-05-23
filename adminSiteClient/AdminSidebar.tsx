@@ -33,57 +33,61 @@ export const AdminSidebar = (): React.ReactElement => (
             <li className="header">SITE</li>
             <li>
                 <Link to="/charts">
-                    <FontAwesomeIcon icon={faChartBar} /> Charts
+                    <FontAwesomeIcon icon={faChartBar} fixedWidth /> Charts
                 </Link>
             </li>
             <li>
                 <Link to="/narrative-charts">
-                    <FontAwesomeIcon icon={faPanorama} /> Narrative charts
+                    <FontAwesomeIcon icon={faPanorama} fixedWidth /> Narrative
+                    charts
                 </Link>
             </li>
             <li>
                 <Link to="/multi-dims">
-                    <FontAwesomeIcon icon={faChartLine} /> Multi-dims
+                    <FontAwesomeIcon icon={faChartLine} fixedWidth /> Multi-dims
                 </Link>
             </li>
             <li>
-                <Link to="/featured-metrics" style={{ fontSize: 12 }}>
-                    <FontAwesomeIcon icon={faStar} /> Featured Metrics
+                <Link to="/featured-metrics">
+                    <FontAwesomeIcon icon={faStar} fixedWidth />{" "}
+                    <span style={{ fontSize: 12 }}>Featured Metrics</span>
                 </Link>
             </li>
             <li>
                 <Link to="/data-insights">
-                    <FontAwesomeIcon icon={faLightbulb} /> Data insights
+                    <FontAwesomeIcon icon={faLightbulb} fixedWidth /> Data
+                    insights
                 </Link>
             </li>
             <li>
                 <Link to="/posts">
-                    <FontAwesomeIcon icon={faFile} /> Posts
+                    <FontAwesomeIcon icon={faFile} fixedWidth /> Posts
                 </Link>
             </li>
             <li>
                 <Link to="/gdocs">
-                    <FontAwesomeIcon icon={faFile} /> Google Docs
+                    <FontAwesomeIcon icon={faFile} fixedWidth /> Google Docs
                 </Link>
             </li>
             <li>
                 <Link to="/dods">
-                    <FontAwesomeIcon icon={faCircleInfo} /> DoDs
+                    <FontAwesomeIcon icon={faCircleInfo} fixedWidth /> DoDs
                 </Link>
             </li>
             <li>
                 <Link to="/images">
-                    <FontAwesomeIcon icon={faImage} /> Images
+                    <FontAwesomeIcon icon={faImage} fixedWidth /> Images
                 </Link>
             </li>
             <li>
                 <Link to="/explorers">
-                    <FontAwesomeIcon icon={faCoffee} /> Explorers
+                    <FontAwesomeIcon icon={faCoffee} fixedWidth /> Explorers
                 </Link>
                 <ul>
                     <li>
                         <Link to="/explorer-tags">
-                            <FontAwesomeIcon icon={faTag} /> Explorer Tags
+                            <FontAwesomeIcon icon={faTag} fixedWidth /> Explorer
+                            Tags
                         </Link>
                     </li>
                 </ul>
@@ -97,70 +101,74 @@ export const AdminSidebar = (): React.ReactElement => (
                     rel="noopener"
                     title="Tailscale required"
                 >
-                    <FontAwesomeIcon icon={faHatWizard} /> Wizard
+                    <FontAwesomeIcon icon={faHatWizard} fixedWidth /> Wizard
                 </a>
             </li>
             <li>
                 <Link to="/datasets">
-                    <FontAwesomeIcon icon={faTable} /> Datasets
+                    <FontAwesomeIcon icon={faTable} fixedWidth /> Datasets
                 </Link>
             </li>
             <li>
                 <Link to="/variables">
-                    <FontAwesomeIcon icon={faDatabase} /> Indicators
+                    <FontAwesomeIcon icon={faDatabase} fixedWidth /> Indicators
                 </Link>
             </li>
             <li>
                 <Link to="/bulk-grapher-config-editor">
-                    <FontAwesomeIcon icon={faSkullCrossbones} /> Bulk chart
-                    editor
+                    <FontAwesomeIcon icon={faSkullCrossbones} fixedWidth /> Bulk
+                    chart editor
                 </Link>
             </li>
             <li>
                 <Link to="/variable-annotations">
-                    <FontAwesomeIcon icon={faPen} /> Data annotation
+                    <FontAwesomeIcon icon={faPen} fixedWidth /> Data annotation
                 </Link>
             </li>
             <li>
                 <Link to="/tags">
-                    <FontAwesomeIcon icon={faTag} /> Tags
+                    <FontAwesomeIcon icon={faTag} fixedWidth /> Tags
                 </Link>
             </li>
             <li>
                 <Link to="/tag-graph">
-                    <FontAwesomeIcon icon={faSitemap} /> Tag Graph
+                    <FontAwesomeIcon icon={faSitemap} fixedWidth /> Tag Graph
                 </Link>
             </li>
             <li>
                 <Link to="/bulk-downloads">
-                    <FontAwesomeIcon icon={faDownload} /> Bulk downloads
+                    <FontAwesomeIcon icon={faDownload} fixedWidth /> Bulk
+                    downloads
                 </Link>
             </li>
             <li className="header">SETTINGS</li>
             <li>
                 <Link to="/users/">
-                    <FontAwesomeIcon icon={faUser} /> Users
+                    <FontAwesomeIcon icon={faUser} fixedWidth /> Users
                 </Link>
             </li>
             <li>
                 <Link to="/redirects">
-                    <FontAwesomeIcon icon={faArrowRight} /> Chart Redirects
+                    <FontAwesomeIcon icon={faArrowRight} fixedWidth /> Chart
+                    Redirects
                 </Link>
             </li>
             <li>
                 <Link to="/site-redirects">
-                    <FontAwesomeIcon icon={faArrowRight} /> Site Redirects
+                    <FontAwesomeIcon icon={faArrowRight} fixedWidth /> Site
+                    Redirects
                 </Link>
             </li>
             <li>
                 <Link to="/test">
-                    <FontAwesomeIcon icon={faEye} /> Test
+                    <FontAwesomeIcon icon={faEye} fixedWidth /> Test
                 </Link>
             </li>
             <li className="header">UTILITIES</li>
             <li>
                 <Link to="/deploys">
-                    <FontAwesomeIcon icon={faSatelliteDish} /> Deploy status
+                    <FontAwesomeIcon icon={faSatelliteDish} fixedWidth /> Deploy
+                    status
                 </Link>
             </li>
         </ul>
