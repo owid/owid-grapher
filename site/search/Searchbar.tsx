@@ -8,6 +8,7 @@ import { SearchCountrySelector } from "./SearchCountrySelector.js"
 import { Filter, FilterType } from "./searchTypes.js"
 import { getFilterNamesOfType } from "./searchUtils.js"
 import { SearchAutocompleteContextProvider } from "./SearchAutocompleteContextProvider.js"
+import { SearchResetButton } from "./SearchResetButton.js"
 
 export const Searchbar = ({
     allTopics,
@@ -20,6 +21,7 @@ export const Searchbar = ({
     removeTopic,
     requireAllCountries,
     toggleRequireAllCountries,
+    reset,
 }: {
     allTopics: string[]
     filters: Filter[]
@@ -31,6 +33,7 @@ export const Searchbar = ({
     removeTopic: (topic: string) => void
     requireAllCountries: boolean
     toggleRequireAllCountries: () => void
+    reset: () => void
 }) => {
     const selectedCountryNames = getFilterNamesOfType(
         filters,
@@ -70,6 +73,15 @@ export const Searchbar = ({
                         setLocalQuery={setLocalQuery}
                         setGlobalQuery={setQuery}
                         onBackspaceEmpty={removeLastFilter}
+                        resetButton={
+                            <SearchResetButton
+                                disabled={!(localQuery || filters.length)}
+                                onReset={() => {
+                                    setLocalQuery("")
+                                    reset()
+                                }}
+                            />
+                        }
                     >
                         <SearchActiveFilters
                             filters={filters}

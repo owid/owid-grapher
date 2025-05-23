@@ -1,6 +1,4 @@
-import { useRef, ReactNode } from "react" // Added ReactNode
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faTimesCircle } from "@fortawesome/free-solid-svg-icons"
+import { useRef, ReactNode } from "react"
 import { useMediaQuery } from "usehooks-ts"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import { useSearchAutocomplete } from "./searchUtils.js"
@@ -11,12 +9,14 @@ export const SearchInput = ({
     setGlobalQuery,
     onBackspaceEmpty,
     children,
+    resetButton,
 }: {
     value: string
     setLocalQuery: (query: string) => void
     setGlobalQuery: (query: string) => void
     onBackspaceEmpty: () => void
     children?: ReactNode
+    resetButton?: React.ReactNode
 }) => {
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const inputRef = useRef<HTMLInputElement | null>(null)
@@ -121,19 +121,7 @@ export const SearchInput = ({
                         setShowSuggestions(false)
                     }}
                 />
-                <button
-                    className="search-clear-input-button"
-                    disabled={!value}
-                    aria-label="Clear search"
-                    type="button"
-                    onClick={() => {
-                        // We have to set both because the user might not have submitted the search yet
-                        setLocalQuery("")
-                        setGlobalQuery("")
-                    }}
-                >
-                    <FontAwesomeIcon icon={faTimesCircle} />
-                </button>
+                {resetButton}
             </div>
         </form>
     )
