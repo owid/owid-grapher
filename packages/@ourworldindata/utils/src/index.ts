@@ -252,6 +252,7 @@ export {
     type Aggregate,
     getOthers,
     countriesByName,
+    incomeGroupsByName,
     getRegionAlternativeNames,
 } from "./regions.js"
 
