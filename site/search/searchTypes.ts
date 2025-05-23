@@ -153,6 +153,11 @@ export type DataCatalogCache = {
     search: Map<string, DataCatalogSearchResult>
 }
 
+export type ScoredSearchResult = {
+    name: string
+    score: number
+}
+
 export enum FilterType {
     COUNTRY = "country",
     TOPIC = "topic",
