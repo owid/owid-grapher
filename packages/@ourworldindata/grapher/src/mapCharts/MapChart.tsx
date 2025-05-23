@@ -29,7 +29,6 @@ import {
     OwidTable,
     CoreColumn,
     ErrorValueTypes,
-    isNotErrorValueOrEmptyCell,
 } from "@ourworldindata/core-table"
 import {
     GeoFeature,
@@ -65,15 +64,16 @@ import {
 import {
     ColorSchemeName,
     ColumnSlug,
-    ColumnTypeNames,
-    CoreValueType,
     EntityName,
     InteractionState,
     MapRegionName,
     SeriesName,
     Time,
 } from "@ourworldindata/types"
-import { makeClipPath } from "../chart/ChartUtils"
+import {
+    combineHistoricalAndProjectionColumns,
+    makeClipPath,
+} from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { ChoroplethMap } from "./ChoroplethMap"
@@ -166,69 +166,12 @@ export class MapChart
             )
 
         // Combine the projection column with its historical stem into one column
-        table = this.combineHistoricalAndProjectionColumns(
-            table,
-            mapColumnInfo,
-            { shouldAddIsProjectionColumn: true }
-        )
+        table = combineHistoricalAndProjectionColumns(table, mapColumnInfo, {
+            shouldAddIsProjectionColumn: true,
+        })
 
         // Drop rows with error values for the combined column
         table = table.dropRowsWithErrorValuesForColumn(combinedSlug)
-
-        return table
-    }
-
-    private combineHistoricalAndProjectionColumns(
-        table: OwidTable,
-        mapColumnInfo: Extract<MapColumnInfo, { type: "historical+projected" }>,
-        options?: { shouldAddIsProjectionColumn: boolean }
-    ): OwidTable {
-        const {
-            historicalSlug,
-            projectedSlug,
-            combinedSlug,
-            slugForIsProjectionColumn,
-        } = mapColumnInfo
-
-        const transformFn = (
-            row: Record<ColumnSlug, CoreValueType>
-        ): { isProjection: boolean; value: PrimitiveType } | undefined => {
-            // It's possible to have both a historical and a projected value
-            // for a given year. In that case, we prefer the historical value.
-
-            const historicalValue = row[historicalSlug]
-            if (isNotErrorValueOrEmptyCell(historicalValue))
-                return { value: historicalValue, isProjection: false }
-
-            const projectedValue = row[projectedSlug]
-            if (isNotErrorValueOrEmptyCell(projectedValue)) {
-                return { value: projectedValue, isProjection: true }
-            }
-
-            return undefined
-        }
-
-        // Combine the historical and projected values into a single column
-        table = table.combineColumns(
-            [projectedSlug, historicalSlug],
-            { ...table.get(projectedSlug).def, slug: combinedSlug },
-            (row) =>
-                transformFn(row)?.value ??
-                ErrorValueTypes.MissingValuePlaceholder
-        )
-
-        // Add a column indicating whether the value is a projection or not
-        if (options?.shouldAddIsProjectionColumn)
-            table = table.combineColumns(
-                [projectedSlug, historicalSlug],
-                {
-                    slug: slugForIsProjectionColumn,
-                    type: ColumnTypeNames.Boolean,
-                },
-                (row) =>
-                    transformFn(row)?.isProjection ??
-                    ErrorValueTypes.MissingValuePlaceholder
-            )
 
         return table
     }
@@ -313,7 +256,7 @@ export class MapChart
         // on the input table. This ensures the color scale has access to the
         // complete range of data across both columns
         return mapColumnInfo.type === "historical+projected"
-            ? this.combineHistoricalAndProjectionColumns(table, mapColumnInfo)
+            ? combineHistoricalAndProjectionColumns(table, mapColumnInfo)
             : table
     }
 

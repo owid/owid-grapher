@@ -23,6 +23,10 @@ import {
     ColumnSlug,
     GrapherTabName,
     GRAPHER_TAB_NAMES,
+    ProjectionColumnInfo,
+    CoreValueType,
+    PrimitiveType,
+    ColumnTypeNames,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -34,7 +38,12 @@ import {
     validChartTypeCombinations,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import {
+    CoreColumn,
+    ErrorValueTypes,
+    isNotErrorValueOrEmptyCell,
+    OwidTable,
+} from "@ourworldindata/core-table"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
@@ -484,3 +493,57 @@ export const isChartTab = (tab: GrapherTabName): boolean =>
 
 export const isMapTab = (tab: GrapherTabName): boolean =>
     tab === GRAPHER_TAB_NAMES.WorldMap
+
+export function combineHistoricalAndProjectionColumns(
+    table: OwidTable,
+    info: ProjectionColumnInfo,
+    options?: { shouldAddIsProjectionColumn: boolean }
+): OwidTable {
+    const {
+        historicalSlug,
+        projectedSlug,
+        combinedSlug,
+        slugForIsProjectionColumn,
+    } = info
+
+    const transformFn = (
+        row: Record<ColumnSlug, CoreValueType>
+    ): { isProjection: boolean; value: PrimitiveType } | undefined => {
+        // It's possible to have both a historical and a projected value
+        // for a given year. In that case, we prefer the historical value.
+
+        const historicalValue = row[historicalSlug]
+        if (isNotErrorValueOrEmptyCell(historicalValue))
+            return { value: historicalValue, isProjection: false }
+
+        const projectedValue = row[projectedSlug]
+        if (isNotErrorValueOrEmptyCell(projectedValue)) {
+            return { value: projectedValue, isProjection: true }
+        }
+
+        return undefined
+    }
+
+    // Combine the historical and projected values into a single column
+    table = table.combineColumns(
+        [projectedSlug, historicalSlug],
+        { ...table.get(projectedSlug).def, slug: combinedSlug },
+        (row) =>
+            transformFn(row)?.value ?? ErrorValueTypes.MissingValuePlaceholder
+    )
+
+    // Add a column indicating whether the value is a projection or not
+    if (options?.shouldAddIsProjectionColumn)
+        table = table.combineColumns(
+            [projectedSlug, historicalSlug],
+            {
+                slug: slugForIsProjectionColumn,
+                type: ColumnTypeNames.Boolean,
+            },
+            (row) =>
+                transformFn(row)?.isProjection ??
+                ErrorValueTypes.MissingValuePlaceholder
+        )
+
+    return table
+}
