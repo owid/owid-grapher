@@ -78,7 +78,7 @@ const renderActiveFilters = (filters: Filter[]) => {
             ))}
             {isCollapsed && (
                 <SearchFilterPill
-                    key="more-filters"
+                    className="search-filter-pill--more-filters"
                     icon={
                         <span className="icon">
                             <FontAwesomeIcon icon={faFilter} />

@@ -3,17 +3,19 @@
     gap: 8px;
     align-items: center;
 
+    .name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     > span:not(:last-child) {
         @include sm-only {
             display: none;
         }
-        .name {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
     }
-    > span:last-child {
+    > span:last-child,
+    > span.search-filter-pill--more-filters {
         flex-shrink: 0;
     }
 }
