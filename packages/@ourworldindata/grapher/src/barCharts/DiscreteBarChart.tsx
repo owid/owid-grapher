@@ -74,6 +74,7 @@ import {
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { BaseType, Selection } from "d3"
 import { TextWrap } from "@ourworldindata/components"
+import { ProjectedDataPattern } from "../chart/ChartComponents"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -487,11 +488,16 @@ export class DiscreteBarChart
         return (
             <defs>
                 {/* passed to the legend as pattern for the projected data legend item */}
-                {makeProjectedDataPattern(this.projectedDataColorInLegend)}
+                <ProjectedDataPatternForBar
+                    color={this.projectedDataColorInLegend}
+                />
                 {/* make a pattern for every series with a unique color */}
-                {uniqProjections.map((series) =>
-                    makeProjectedDataPattern(series.color)
-                )}
+                {uniqProjections.map((series) => (
+                    <ProjectedDataPatternForBar
+                        key={series.color}
+                        color={series.color}
+                    />
+                ))}
             </defs>
         )
     }
@@ -793,7 +799,7 @@ export class DiscreteBarChart
     @computed get numericLegendData(): ColorScaleBin[] {
         const legendBins = this.colorScale.legendBins.slice()
 
-        // Show a "Projected data" legend item with a striped pattern if appropriate
+        // Show a "Projected data" legend item with a dotted pattern if appropriate
         if (this.hasProjectedData) {
             legendBins.push(
                 new CategoricalBin({
@@ -966,33 +972,21 @@ export class DiscreteBarChart
 
 // Pattern IDs should be unique per document (!), not just per grapher instance.
 // Including the color in the id guarantees that the pattern uses the correct color,
-// even if it gets resolved to a striped pattern of a different grapher instance.
+// even if it gets resolved to a dotted pattern of a different grapher instance.
 function makeProjectedDataPatternId(color: string): string {
     return `DiscreteBarChart_stripes_${color}`
 }
 
-function makeProjectedDataPattern(color: string): React.ReactElement {
-    const size = 7
+function ProjectedDataPatternForBar({
+    color,
+}: {
+    color: string
+}): React.ReactElement {
     return (
-        <pattern
-            key={color}
-            id={makeProjectedDataPatternId(color)}
-            patternUnits="userSpaceOnUse"
-            width={size}
-            height={size}
-            patternTransform="rotate(45)"
-        >
-            {/* transparent background */}
-            <rect width={size} height={size} fill={color} opacity={0.5} />
-            {/* stripes */}
-            <line
-                x1="0"
-                y="0"
-                x2="0"
-                y2={size}
-                stroke={color}
-                strokeWidth="10"
-            />
-        </pattern>
+        <ProjectedDataPattern
+            patternId={makeProjectedDataPatternId(color)}
+            color={color}
+            patternSize={7}
+        />
     )
 }

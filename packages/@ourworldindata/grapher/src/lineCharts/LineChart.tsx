@@ -686,7 +686,7 @@ export class LineChart
         const projectionNotice = sortedData.some(
             (series) => series.isProjection
         )
-            ? { icon: TooltipFooterIcon.stripes, text: "Projected data" }
+            ? { icon: TooltipFooterIcon.dots, text: "Projected data" }
             : undefined
         const roundingNotice = formatColumn.roundsToSignificantFigures
             ? {
@@ -719,7 +719,7 @@ export class LineChart
                 <TooltipTable
                     columns={columns}
                     rows={sortedData.map((series) => {
-                        const { seriesName: name, isProjection: striped } =
+                        const { seriesName: name, isProjection: dotted } =
                             series
                         const annotation = getAnnotationsForSeries(
                             this.annotationsMap,
@@ -754,7 +754,7 @@ export class LineChart
                             annotation,
                             swatch,
                             blurred,
-                            striped,
+                            dotted,
                             values,
                         }
                     })}

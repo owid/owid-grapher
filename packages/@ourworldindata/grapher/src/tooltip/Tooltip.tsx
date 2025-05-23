@@ -22,7 +22,7 @@ export * from "./TooltipContents.js"
 export const TOOLTIP_FADE_DURATION = 400 // $fade-time + $fade-delay in scss
 const TOOLTIP_ICON: Record<TooltipFooterIcon, React.ReactElement | null> = {
     notice: <FontAwesomeIcon className="icon" icon={faInfoCircle} />,
-    stripes: <div className="stripes icon"></div>,
+    dots: <div className="dots icon"></div>,
     significance: (
         <div className="icon">
             <IconCircledS />
