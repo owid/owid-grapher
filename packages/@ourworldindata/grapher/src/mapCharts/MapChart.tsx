@@ -621,7 +621,12 @@ export class MapChart
         else if (!hoverBracket) return false
 
         const series = this.choroplethData.get(featureId)
-        if (hoverBracket.contains(series?.value)) return true
+        if (
+            hoverBracket.contains(series?.value, {
+                isProjection: series?.isProjection,
+            })
+        )
+            return true
         else return false
     }
 
