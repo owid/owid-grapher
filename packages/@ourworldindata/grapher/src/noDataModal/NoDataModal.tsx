@@ -31,6 +31,7 @@ export class NoDataModal extends React.Component<{
     bounds?: Bounds
     message?: string
     helpText?: string
+    hideTextOutline?: boolean
     manager: NoDataModalManager
 }> {
     @computed private get bounds(): Bounds {
@@ -42,7 +43,8 @@ export class NoDataModal extends React.Component<{
     }
 
     @computed private get fontSize(): number {
-        return this.manager.fontSize ?? BASE_FONT_SIZE
+        // font sizes bigger than the base font size are too large for the no data text
+        return Math.min(this.manager.fontSize ?? BASE_FONT_SIZE, BASE_FONT_SIZE)
     }
 
     render(): React.ReactElement {
@@ -75,6 +77,7 @@ export class NoDataModal extends React.Component<{
                 <Halo
                     id="no-data-message"
                     outlineWidth={GRAPHER_TEXT_OUTLINE_FACTOR * this.fontSize}
+                    show={!this.props.hideTextOutline}
                 >
                     <text
                         x={center.x}
@@ -99,6 +102,7 @@ export class NoDataModal extends React.Component<{
                         outlineWidth={
                             GRAPHER_TEXT_OUTLINE_FACTOR * helpTextFontSize
                         }
+                        show={!this.props.hideTextOutline}
                     >
                         <text
                             x={center.x}

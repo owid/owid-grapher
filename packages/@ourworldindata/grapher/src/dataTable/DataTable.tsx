@@ -36,9 +36,13 @@ import {
     excludeUndefined,
     IndicatorTitleWithFragments,
     joinTitleFragments,
+    FuzzySearch,
 } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
-import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
+import {
+    DEFAULT_GRAPHER_ENTITY_TYPE,
+    SVG_STYLE_PROPS,
+} from "../core/GrapherConstants"
 import * as R from "remeda"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import {
@@ -47,6 +51,7 @@ import {
     isEntityRegionType,
 } from "../core/EntitiesByRegionType"
 import { match } from "ts-pattern"
+import { NoDataModal } from "../noDataModal/NoDataModal"
 
 const COMMON_DATA_TABLE_FILTERS = ["all", "selection"] as const
 type CommonDataTableFilter = (typeof COMMON_DATA_TABLE_FILTERS)[number]
@@ -55,6 +60,7 @@ type DataTableFilter = CommonDataTableFilter | EntityRegionType
 
 export interface DataTableConfig {
     filter: DataTableFilter
+    search: string
 }
 
 interface DataTableState {
@@ -575,7 +581,27 @@ export class DataTable extends React.Component<{
         ) : null
     }
 
-    render(): React.ReactElement {
+    private renderNoDataModal(): React.ReactElement {
+        return (
+            <svg
+                width={this.bounds.width}
+                height={this.bounds.height}
+                style={SVG_STYLE_PROPS}
+            >
+                <NoDataModal
+                    manager={this.manager}
+                    bounds={this.bounds}
+                    message={`No ${this.entityType} matches this query`}
+                    helpText="Try checking for typos or searching for something else"
+                    hideTextOutline
+                />
+            </svg>
+        )
+    }
+
+    render(): React.ReactElement | null {
+        if (this.sortedDisplayRows.length === 0) return this.renderNoDataModal()
+
         return (
             <div className="DataTable">
                 {this.tableCaption}
@@ -661,13 +687,24 @@ export class DataTable extends React.Component<{
         )
     }
 
-    @computed private get entityNames(): string[] {
-        const tableForEntities = this.table
+    @computed private get availableEntityNames(): EntityName[] {
         return union(
             ...this.columnsToShow.map(
-                (col) => tableForEntities.get(col.slug).uniqEntityNames
+                (col) => this.table.get(col.slug).uniqEntityNames
             )
         )
+    }
+
+    @computed get fuzzy(): FuzzySearch<string> {
+        return FuzzySearch.withKey(
+            this.availableEntityNames,
+            (entityName) => entityName
+        )
+    }
+
+    @computed private get entityNames(): EntityName[] {
+        if (!this.tableConfig.search) return this.availableEntityNames
+        return this.fuzzy.search(this.tableConfig.search)
     }
 
     @computed private get entityCount(): number {
