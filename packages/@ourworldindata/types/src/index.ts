@@ -301,6 +301,7 @@ export {
     type EnrichedBlockTableCell,
     type EnrichedBlockKeyIndicator,
     type EnrichedBlockKeyIndicatorCollection,
+    type EnrichedBlockWithParseErrors,
     type RawBlockResearchAndWritingRow,
     type RawBlockPillRow,
     type EnrichedBlockPillRow,
@@ -588,6 +589,7 @@ export {
 export {
     type DbInsertFeaturedMetric,
     type DbPlainFeaturedMetric,
+    type ExpandedFeaturedMetric,
     FeaturedMetricIncomeGroup,
     FeaturedMetricsTableName,
     type DbPlainFeaturedMetricWithParentTagName,

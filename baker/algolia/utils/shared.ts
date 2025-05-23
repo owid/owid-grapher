@@ -1,5 +1,7 @@
 import {
     countries,
+    countriesByName,
+    incomeGroupsByName,
     DbPlainFeaturedMetricWithParentTagName,
     FeaturedMetricIncomeGroup,
     orderBy,
@@ -16,15 +18,11 @@ import {
     ChartRecord,
     ChartRecordType,
 } from "../../../site/search/searchTypes.js"
-import {
-    countriesByName,
-    incomeGroupsByName,
-} from "@ourworldindata/utils/dist/regions.js"
 import urljoin from "url-join"
 import { groupBy } from "remeda"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { incomeGroupMap, REAL_FM_INCOME_GROUPS } from "./types.js"
-import { ExpandedFeaturedMetric } from "@ourworldindata/types/dist/dbTypes/FeaturedMetrics.js"
+import { ExpandedFeaturedMetric } from "@ourworldindata/types"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { GRAPHER_ROUTE_FOLDER } from "@ourworldindata/grapher"
 

@@ -8,7 +8,7 @@ import {
 } from "@ourworldindata/utils"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../settings/clientSettings.js"
 import * as R from "remeda"
-import { EnrichedBlockWithParseErrors } from "@ourworldindata/types/dist/gdocTypes/ArchieMlComponents.js"
+import { EnrichedBlockWithParseErrors } from "@ourworldindata/types"
 import { parseText } from "../model/Gdoc/rawToEnriched.js"
 
 type DEPRECATED_EnrichedDetail = {
