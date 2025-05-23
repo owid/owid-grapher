@@ -19,7 +19,6 @@ import {
     Bounds,
     isTouchDevice,
     getRelativeMouse,
-    checkIsTouchEvent,
     PointVector,
     MapRegionName,
     excludeUndefined,
@@ -41,6 +40,7 @@ import {
     GLOBE_MAX_ZOOM,
     GLOBE_MIN_ZOOM,
     GlobeRenderFeature,
+    MapInteractionType,
     InternalAnnotation,
     MAP_HOVER_TARGET_RANGE,
     RenderFeature,
@@ -63,6 +63,7 @@ import {
     isPointPlacedOnVisibleHemisphere,
     sortFeaturesByInteractionStateAndSize,
     getForegroundFeatures,
+    getMapInteractionType,
 } from "./MapHelpers"
 import {
     makeInternalAnnotationForFeature,
@@ -483,12 +484,6 @@ export class ChoroplethGlobe extends React.Component<{
         const base = this.base.current
         if (!base) return
 
-        // Possible interaction types are
-        // - zoom-scroll: zooming by scrolling via the wheel event
-        // - zoom-pinch: zooming by pinching using two fingers on touch devices
-        // - pan: panning by dragging the mouse or using a finger on touch devices
-        type InteractionType = "zoom-scroll" | "zoom-pinch" | "pan"
-
         // Panning and zooming are powered by D3.
         //
         // Panning is adapted from https://observablehq.com/d/569d101dd5bd332b.
@@ -502,7 +497,7 @@ export class ChoroplethGlobe extends React.Component<{
         // in on a country). That's why we compute the target zoom level ourselves.
 
         const panAndZoom = (): any => {
-            let previousType: InteractionType | undefined
+            let previousType: MapInteractionType | undefined
 
             // for panning
             let startCoords: [number, number, number],
@@ -513,14 +508,8 @@ export class ChoroplethGlobe extends React.Component<{
             // for zooming
             let startDistance: number | undefined
 
-            const getInteractionType = (event: any): InteractionType => {
-                if (event.sourceEvent.type === "wheel") return "zoom-scroll"
-                if (isMultiTouchEvent(event.sourceEvent)) return "zoom-pinch"
-                return "pan"
-            }
-
             const panningOrZoomingStart = (event: any): void => {
-                const type = getInteractionType(event)
+                const type = getMapInteractionType(event)
 
                 const startPinching = (): void => {
                     startDistance = calculatePinchDistance(event.sourceEvent)
@@ -621,7 +610,7 @@ export class ChoroplethGlobe extends React.Component<{
                     previousPos = pos
                 }
 
-                const type = getInteractionType(event)
+                const type = getMapInteractionType(event)
 
                 // bail if a zoom-pinch gesture turned into a pan
                 // because this might lead to erratic jumps
@@ -886,12 +875,6 @@ export class ChoroplethGlobe extends React.Component<{
             ? this.renderStatic()
             : this.renderInteractive()
     }
-}
-
-const isMultiTouchEvent = (
-    event: MouseEvent | TouchEvent
-): event is TouchEvent => {
-    return checkIsTouchEvent(event) && event.touches.length >= 2
 }
 
 const calculatePinchDistance = (event: TouchEvent): number => {

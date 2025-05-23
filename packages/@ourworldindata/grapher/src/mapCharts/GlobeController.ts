@@ -121,6 +121,10 @@ export class GlobeController {
         void this.rotateTo(target)
     }
 
+    jumpToCoords(coords: [number, number]): void {
+        this.jumpTo({ coords })
+    }
+
     jumpToOwidContinent(continent: GlobeRegionName): void {
         const target = calculateTargetForOwidContinent(continent)
         this.jumpTo(target)

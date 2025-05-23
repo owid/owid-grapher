@@ -7,6 +7,7 @@ import {
     getCountryNamesForRegion,
     getRelativeMouse,
     lazy,
+    checkIsTouchEvent,
 } from "@ourworldindata/utils"
 import {
     GEO_FEATURES_CLASSNAME,
@@ -14,6 +15,7 @@ import {
     RenderFeature,
     MapRenderFeature,
     RenderFeatureType,
+    MapInteractionType,
 } from "./MapChartConstants"
 import { MapTopology } from "./MapTopology.js"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
@@ -152,4 +154,17 @@ export function isMapRenderFeature(
     feature: RenderFeature
 ): feature is MapRenderFeature {
     return feature.type === RenderFeatureType.Map
+}
+
+export const isMultiTouchEvent = (
+    event: MouseEvent | TouchEvent
+): event is TouchEvent => {
+    return checkIsTouchEvent(event) && event.touches.length >= 2
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const getMapInteractionType = (event: any): MapInteractionType => {
+    if (event.sourceEvent.type === "wheel") return "zoom-scroll"
+    if (isMultiTouchEvent(event.sourceEvent)) return "zoom-pinch"
+    return "pan"
 }

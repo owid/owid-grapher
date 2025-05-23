@@ -142,6 +142,14 @@ export interface GlobeViewport {
     zoom: number
 }
 
+/**
+ * Possible interaction types are:
+ * - zoom-scroll: zooming by scrolling via the wheel event
+ * - zoom-pinch: zooming by pinching using two fingers on touch devices
+ * - pan: panning by dragging the mouse or using a finger on touch devices
+ */
+export type MapInteractionType = "zoom-scroll" | "zoom-pinch" | "pan"
+
 export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
     Europe: { rotation: [10, 55], zoom: 2.95 },
     Africa: { rotation: [20, 0], zoom: 1.55 },
