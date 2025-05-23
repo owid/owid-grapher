@@ -10,7 +10,6 @@ import {
     FacetStrategy,
     GrapherChartType,
 } from "@ourworldindata/types"
-import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartDimension } from "../chart/ChartDimension"
 import {
@@ -34,15 +33,8 @@ import {
     NoDataAreaToggle,
     NoDataAreaToggleManager,
 } from "./settings/NoDataAreaToggle"
-import {
-    TableFilterToggle,
-    TableFilterToggleManager,
-} from "./settings/TableFilterToggle"
 import { OverlayHeader } from "@ourworldindata/components"
-import {
-    DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
-    GRAPHER_SETTINGS_CLASS,
-} from "../core/GrapherConstants"
+import { GRAPHER_SETTINGS_CLASS } from "../core/GrapherConstants"
 
 const {
     LineChart,
@@ -59,7 +51,6 @@ export interface SettingsMenuManager
         NoDataAreaToggleManager,
         FacetYDomainToggleManager,
         ZoomToggleManager,
-        TableFilterToggleManager,
         FacetStrategySelectionManager {
     // ArchieML directives
     hideFacetControl?: boolean
@@ -70,7 +61,6 @@ export interface SettingsMenuManager
     hideFacetYDomainToggle?: boolean
     hideXScaleToggle?: boolean
     hideYScaleToggle?: boolean
-    hideTableFilterToggle?: boolean
 
     // chart state
     activeChartType?: GrapherChartType
@@ -82,9 +72,7 @@ export interface SettingsMenuManager
     xOverrideTime?: number
     hasTimeline?: boolean
     canToggleRelativeMode: boolean
-    isOnMapTab?: boolean
     isOnChartTab?: boolean
-    isOnTableTab?: boolean
     isLineChartThatTurnedIntoDiscreteBar?: boolean
 
     // linear/log scales
@@ -98,7 +86,6 @@ export interface SettingsMenuManager
 @observer
 export class SettingsMenu extends React.Component<{
     manager: SettingsMenuManager
-    maxWidth?: number
     top: number
     bottom: number
     right: number
@@ -113,10 +100,6 @@ export class SettingsMenu extends React.Component<{
 
     @computed get chartType(): GrapherChartType {
         return this.manager.activeChartType ?? GRAPHER_CHART_TYPES.LineChart
-    }
-
-    @computed get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
     @computed get showYScaleToggle(): boolean | undefined {
@@ -135,13 +118,13 @@ export class SettingsMenu extends React.Component<{
         return this.manager.yAxis.canChangeScaleType
     }
 
-    @computed get showXScaleToggle(): boolean | undefined {
+    @computed private get showXScaleToggle(): boolean | undefined {
         if (this.manager.hideXScaleToggle) return false
         if (this.manager.isRelativeMode) return false
         return this.manager.xAxis.canChangeScaleType
     }
 
-    @computed get showFacetYDomainToggle(): boolean {
+    @computed private get showFacetYDomainToggle(): boolean {
         // don't offer to make the y range relative if the range is discrete
         return (
             !this.manager.hideFacetYDomainToggle &&
@@ -167,7 +150,7 @@ export class SettingsMenu extends React.Component<{
         )
     }
 
-    @computed get showAbsRelToggle(): boolean {
+    @computed private get showAbsRelToggle(): boolean {
         const { canToggleRelativeMode, hasTimeline, xOverrideTime } =
             this.manager
         if (!canToggleRelativeMode) return false
@@ -184,12 +167,12 @@ export class SettingsMenu extends React.Component<{
         ].includes(this.chartType as any)
     }
 
-    @computed get showFacetControl(): boolean {
+    @computed private get showFacetControl(): boolean {
         const {
             filledDimensions,
             availableFacetStrategies,
             hideFacetControl,
-            isOnTableTab,
+            isOnChartTab,
         } = this.manager
 
         // if there's no choice to be made, don't display a lone button
@@ -215,23 +198,12 @@ export class SettingsMenu extends React.Component<{
             showFacetControlChartType &&
             !hideFacetControl &&
             !hasProjection &&
-            !isOnTableTab
+            !!isOnChartTab
         )
     }
 
-    @computed get showTableFilterToggle(): boolean {
-        const { hideTableFilterToggle, canChangeAddOrHighlightEntities } =
-            this.manager
-        return (
-            this.selectionArray.hasSelection &&
-            !!canChangeAddOrHighlightEntities &&
-            !hideTableFilterToggle
-        )
-    }
-
-    @computed get showSettingsMenuToggle(): boolean {
-        if (this.manager.isOnMapTab) return false
-        if (this.manager.isOnTableTab) return this.showTableFilterToggle
+    @computed private get showSettingsMenuToggle(): boolean {
+        if (!this.manager.isOnChartTab) return false
 
         return !!(
             this.showYScaleToggle ||
@@ -260,12 +232,12 @@ export class SettingsMenu extends React.Component<{
         })
     }
 
-    @action.bound onDocumentKeyDown(e: KeyboardEvent): void {
+    @action.bound private onDocumentKeyDown(e: KeyboardEvent): void {
         // dismiss menu on esc
         if (this.active && e.key === "Escape") this.toggleVisibility()
     }
 
-    @action.bound onDocumentClick(e: MouseEvent): void {
+    @action.bound private onDocumentClick(e: MouseEvent): void {
         if (
             this.active &&
             this.contentRef?.current &&
@@ -274,28 +246,23 @@ export class SettingsMenu extends React.Component<{
             this.toggleVisibility()
     }
 
-    @action.bound toggleVisibility(): void {
+    @action.bound private toggleVisibility(): void {
         this.active = !this.active
     }
 
-    @computed get manager(): SettingsMenuManager {
+    @computed private get manager(): SettingsMenuManager {
         return this.props.manager
     }
 
-    @computed get chartTypeLabel(): string {
+    @computed private get chartTypeLabel(): string {
         return this.chartType.replace(/([A-Z])/g, " $1")
     }
 
-    @computed get selectionArray(): SelectionArray {
+    @computed private get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager.selection)
     }
 
-    @computed get shouldRenderTableControlsIntoPopup(): boolean {
-        const tableFilterToggleWidth = TableFilterToggle.width(this.manager)
-        return tableFilterToggleWidth > this.maxWidth
-    }
-
-    @computed get layout(): {
+    @computed private get layout(): {
         maxHeight: string
         maxWidth: string
         top: number
@@ -307,7 +274,7 @@ export class SettingsMenu extends React.Component<{
         return { maxHeight, maxWidth, top, right }
     }
 
-    @computed get menuContentsChart(): React.ReactElement {
+    @computed private get menuContentsChart(): React.ReactElement {
         const {
             manager,
             showYScaleToggle,
@@ -387,33 +354,16 @@ export class SettingsMenu extends React.Component<{
         )
     }
 
-    @computed get menuContentsTable(): JSX.Element {
-        const subtitle = `Only display table rows for ${
-            this.manager.entityTypePlural ?? DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
-        } selected within the chart`
-
-        return (
-            <SettingsGroup
-                title="Filter rows"
-                subtitle={subtitle}
-                active={true}
-            >
-                <TableFilterToggle manager={this.manager} />
-            </SettingsGroup>
-        )
-    }
-
-    @computed get menu(): JSX.Element | void {
+    @computed private get menu(): JSX.Element | void {
         if (this.active) {
             return this.menuContents
         }
     }
 
-    @computed get menuContents(): JSX.Element {
-        const { manager, chartTypeLabel } = this
-        const { isOnTableTab } = manager
+    @computed private get menuContents(): JSX.Element {
+        const { chartTypeLabel } = this
 
-        const menuTitle = `${isOnTableTab ? "Table" : chartTypeLabel} settings`
+        const menuTitle = `${chartTypeLabel} settings`
 
         return (
             <div className={GRAPHER_SETTINGS_CLASS} ref={this.contentRef}>
@@ -433,16 +383,14 @@ export class SettingsMenu extends React.Component<{
                         onDismiss={this.toggleVisibility}
                     />
                     <div className="settings-menu-controls">
-                        {isOnTableTab
-                            ? this.menuContentsTable
-                            : this.menuContentsChart}
+                        {this.menuContentsChart}
                     </div>
                 </div>
             </div>
         )
     }
 
-    renderSettingsButtonAndPopup(): JSX.Element {
+    private renderSettingsButtonAndPopup(): JSX.Element {
         const { active } = this
         return (
             <div className="settings-menu">
@@ -462,24 +410,11 @@ export class SettingsMenu extends React.Component<{
         )
     }
 
-    renderTableControls(): React.ReactElement {
-        // Since tables only have a single control, display it inline rather than
-        // placing it in the settings menu
-        return <TableFilterToggle manager={this.manager} showTooltip={true} />
-    }
-
     render(): React.ReactElement | null {
         const {
-            manager: { isOnChartTab, isOnTableTab },
+            manager: { isOnChartTab },
             showSettingsMenuToggle,
-            showTableFilterToggle,
         } = this
-
-        if (isOnTableTab && showTableFilterToggle) {
-            return this.shouldRenderTableControlsIntoPopup
-                ? this.renderSettingsButtonAndPopup()
-                : this.renderTableControls()
-        }
 
         return isOnChartTab && showSettingsMenuToggle
             ? this.renderSettingsButtonAndPopup()

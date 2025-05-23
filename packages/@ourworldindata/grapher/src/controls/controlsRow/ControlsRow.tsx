@@ -2,7 +2,7 @@ import { Component } from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 
-import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
+import { Bounds } from "@ourworldindata/utils"
 
 import { ContentSwitchers, ContentSwitchersManager } from "../ContentSwitchers"
 import {
@@ -24,13 +24,18 @@ import {
 } from "../MapCountryDropdown"
 import { CloseGlobeViewButton } from "../CloseGlobeViewButton"
 import { GlobeSwitcher } from "../GlobeSwitcher"
+import {
+    DataTableFilterDropdown,
+    DataTableFilterDropdownManager,
+} from "../DataTableFilterDropdown"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
         EntitySelectionManager,
         MapRegionDropdownManager,
         MapCountryDropdownManager,
-        SettingsMenuManager {
+        SettingsMenuManager,
+        DataTableFilterDropdownManager {
     sidePanelBounds?: Bounds
     isSmall?: boolean
 }
@@ -53,20 +58,8 @@ export class ControlsRow extends Component<{
         return this.props.manager
     }
 
-    @computed private get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
-    }
-
     @computed private get sidePanelWidth(): number {
         return this.manager.sidePanelBounds?.width ?? 0
-    }
-
-    @computed private get contentSwitchersWidth(): number {
-        return ContentSwitchers.width(this.manager)
-    }
-
-    @computed private get maxWidthSettingsMenu(): number {
-        return this.maxWidth - this.contentSwitchersWidth - 16
     }
 
     @computed private get showControlsRow(): boolean {
@@ -76,22 +69,29 @@ export class ControlsRow extends Component<{
             MapRegionDropdown.shouldShow(this.manager) ||
             MapCountryDropdown.shouldShow(this.manager) ||
             CloseGlobeViewButton.shouldShow(this.manager) ||
-            ContentSwitchers.shouldShow(this.manager)
+            ContentSwitchers.shouldShow(this.manager) ||
+            DataTableFilterDropdown.shouldShow(this.manager)
         )
     }
 
-    private renderChartAndTableControls(): React.ReactElement {
+    private renderChartControls(): React.ReactElement {
         return (
             <div className="controls chart-controls">
                 <EntitySelectionToggle manager={this.manager} />
-
                 <SettingsMenu
                     manager={this.manager}
-                    maxWidth={this.maxWidthSettingsMenu}
                     top={this.props.settingsMenuTop ?? 0}
                     bottom={this.framePaddingVertical}
                     right={this.sidePanelWidth + this.framePaddingHorizontal}
                 />
+            </div>
+        )
+    }
+
+    private renderTableControls(): React.ReactElement {
+        return (
+            <div className="controls table-controls">
+                <DataTableFilterDropdown manager={this.manager} />
             </div>
         )
     }
@@ -101,23 +101,14 @@ export class ControlsRow extends Component<{
             <div className="controls map-controls">
                 {this.manager.isMapSelectionEnabled ? (
                     <>
-                        <MapRegionDropdown
-                            manager={this.manager}
-                            maxWidth={this.maxWidthSettingsMenu}
-                        />
+                        <MapRegionDropdown manager={this.manager} />
                         <GlobeSwitcher manager={this.manager} />
                         <EntitySelectionToggle manager={this.manager} />
                     </>
                 ) : (
                     <>
-                        <MapCountryDropdown
-                            manager={this.manager}
-                            maxWidth={this.maxWidthSettingsMenu}
-                        />
-                        <CloseGlobeViewButton
-                            manager={this.manager}
-                            maxWidth={this.maxWidthSettingsMenu}
-                        />
+                        <MapCountryDropdown manager={this.manager} />
+                        <CloseGlobeViewButton manager={this.manager} />
                     </>
                 )}
             </div>
@@ -136,7 +127,9 @@ export class ControlsRow extends Component<{
                 <div className="controls">
                     {this.manager.isOnMapTab
                         ? this.renderMapControls()
-                        : this.renderChartAndTableControls()}
+                        : this.manager.isOnTableTab
+                          ? this.renderTableControls()
+                          : this.renderChartControls()}
                 </div>
             </nav>
         )

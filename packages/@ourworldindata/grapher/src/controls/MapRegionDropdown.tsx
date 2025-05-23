@@ -4,7 +4,6 @@ import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { MapRegionName, GlobeRegionName } from "@ourworldindata/types"
 import { Dropdown } from "./Dropdown"
-import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
 import { GlobeController } from "../mapCharts/GlobeController"
 
@@ -28,7 +27,6 @@ interface MapRegionDropdownOption {
 @observer
 export class MapRegionDropdown extends React.Component<{
     manager: MapRegionDropdownManager
-    maxWidth?: number
 }> {
     static shouldShow(manager: MapRegionDropdownManager): boolean {
         const menu = new MapRegionDropdown({ manager })
@@ -50,11 +48,10 @@ export class MapRegionDropdown extends React.Component<{
         return !!(!hideMapRegionDropdown && isOnMapTab && isMapSelectionEnabled)
     }
 
-    @computed private get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
-    }
-
-    @action.bound onChange(selected: unknown, mode: { action: unknown }): void {
+    @action.bound onChange(
+        selected: MapRegionDropdownOption | null,
+        mode: { action: unknown }
+    ): void {
         if (mode.action === "clear") {
             this.manager.mapRegionDropdownValue = undefined
             this.mapConfig.region = MapRegionName.World
@@ -65,7 +62,7 @@ export class MapRegionDropdown extends React.Component<{
         if (!selected) return
 
         // update active option
-        const { value } = selected as MapRegionDropdownOption
+        const { value } = selected
         this.manager.mapRegionDropdownValue = value
 
         // rotate to the selection or region
@@ -114,24 +111,22 @@ export class MapRegionDropdown extends React.Component<{
     }
 
     render(): React.ReactElement | null {
-        return this.showMenu ? (
-            <div
+        if (!this.showMenu) return null
+
+        return (
+            <Dropdown
                 className="map-region-dropdown"
-                style={{ maxWidth: this.maxWidth }}
-            >
-                <Dropdown
-                    options={this.options}
-                    onChange={this.onChange}
-                    value={this.value}
-                    isClearable
-                    placeholder="Zoom to..."
-                    aria-label={
-                        this.hasSelectionOption
-                            ? "Zoom to selection or continent"
-                            : "Zoom to continent"
-                    }
-                />
-            </div>
-        ) : null
+                options={this.options}
+                onChange={this.onChange}
+                value={this.value}
+                isClearable
+                placeholder="Zoom to..."
+                aria-label={
+                    this.hasSelectionOption
+                        ? "Zoom to selection or continent"
+                        : "Zoom to continent"
+                }
+            />
+        )
     }
 }

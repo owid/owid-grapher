@@ -15,11 +15,7 @@ import {
     OwidTableSlugs,
     OwidVariableRoundingMode,
 } from "@ourworldindata/types"
-import {
-    BlankOwidTable,
-    OwidTable,
-    CoreColumn,
-} from "@ourworldindata/core-table"
+import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
     capitalize,
     orderBy,
@@ -35,8 +31,6 @@ import {
     ColumnSlug,
     TickFormattingOptions,
     Tippy,
-    isCountryName,
-    range,
     maxBy,
     minBy,
     excludeUndefined,
@@ -46,6 +40,14 @@ import {
 import { SelectionArray } from "../selection/SelectionArray"
 import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
 import * as R from "remeda"
+import { makeSelectionArray } from "../chart/ChartUtils"
+
+const DATA_TABLE_FILTERS = ["all", "selection"] as const
+type DataTableFilter = (typeof DATA_TABLE_FILTERS)[number]
+
+export interface DataTableConfig {
+    filter: DataTableFilter
+}
 
 interface DataTableState {
     sort: DataTableSortState
@@ -85,21 +87,43 @@ export interface DataTableManager {
     endTime?: Time
     startTime?: Time
     dataTableSlugs?: ColumnSlug[]
-    entitiesAreCountryLike?: boolean
-    isSmall?: boolean
-    isMedium?: boolean
     isNarrow?: boolean
-    selection?: SelectionArray | EntityName[]
-    canChangeAddOrHighlightEntities?: boolean
-    hasMapTab?: boolean
-    hasChartTab?: boolean
+    dataTableConfig: DataTableConfig
+    dataTableSelection?: SelectionArray | EntityName[]
 }
 
 @observer
 export class DataTable extends React.Component<{
-    manager?: DataTableManager
+    manager: DataTableManager
     bounds?: Bounds
 }> {
+    @computed get manager(): DataTableManager {
+        return this.props.manager
+    }
+
+    @computed private get selectionArray(): SelectionArray {
+        return makeSelectionArray(this.manager.dataTableSelection)
+    }
+
+    @computed private get tableConfig(): DataTableConfig {
+        return this.manager.dataTableConfig
+    }
+
+    @computed get table(): OwidTable {
+        let table = this.manager.tableForDisplay
+
+        if (
+            this.tableConfig.filter === "selection" &&
+            this.selectionArray.hasSelection
+        ) {
+            table = table.filterByEntityNames(
+                this.selectionArray.selectedEntityNames
+            )
+        }
+
+        return table
+    }
+
     @observable private storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
     }
@@ -134,19 +158,6 @@ export class DataTable extends React.Component<{
             columnKey,
             order,
         }
-    }
-
-    @computed get table(): OwidTable {
-        return this.manager.tableForDisplay
-    }
-
-    @computed get manager(): DataTableManager {
-        return (
-            this.props.manager ?? {
-                table: BlankOwidTable(),
-                tableForDisplay: BlankOwidTable(),
-            }
-        )
     }
 
     @computed private get entityType(): string {
@@ -211,14 +222,6 @@ export class DataTable extends React.Component<{
     }
 
     private get entityHeaderText(): string {
-        // if the entities are country-like and we do have aggregate rows,
-        // then we prefer "Country/area" over "Country or region"
-        // (note that we honour the entity type provided by the author if it is given)
-        if (
-            this.entityType === DEFAULT_GRAPHER_ENTITY_TYPE &&
-            this.showTitleForAggregateRows
-        )
-            return "Country/area"
         return capitalize(this.entityType)
     }
 
@@ -510,39 +513,8 @@ export class DataTable extends React.Component<{
         )
     }
 
-    @computed private get valueEntityRows(): React.ReactElement[] {
-        return this.sortedEntityRows.map((row) =>
-            this.renderEntityRow(row, this.displayDimensions)
-        )
-    }
-
-    @computed private get valueAggregateRows(): React.ReactElement[] {
-        return this.sortedAggregateRows.map((row) =>
-            this.renderEntityRow(row, this.displayDimensions)
-        )
-    }
-
     @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
-    }
-
-    @computed private get titleForAggregateRows(): React.ReactElement | null {
-        if (!this.showTitleForAggregateRows) return null
-        return (
-            <tr className="title">
-                <td>Other</td>
-                {range(this.numberOfColumnsWithValues).map((i) => (
-                    <td key={i} />
-                ))}
-            </tr>
-        )
-    }
-
-    @computed private get numberOfColumnsWithValues(): number {
-        return this.columnsWithValues.reduce(
-            (columnCount, item) => columnCount + item.columns.length,
-            0
-        )
     }
 
     @computed private get tableCaption(): React.ReactElement | null {
@@ -588,9 +560,12 @@ export class DataTable extends React.Component<{
                     <table>
                         <thead>{this.headerRow}</thead>
                         <tbody>
-                            {this.valueEntityRows}
-                            {this.titleForAggregateRows}
-                            {this.valueAggregateRows}
+                            {this.sortedDisplayRows.map((row) =>
+                                this.renderEntityRow(
+                                    row,
+                                    this.displayDimensions
+                                )
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -911,16 +886,6 @@ export class DataTable extends React.Component<{
         })
     }
 
-    @computed private get sortedEntityRows(): DataTableRow[] {
-        const { order } = this.tableState.sort
-        return orderBy(this.displayEntityRows, this.sortValueMapper, order)
-    }
-
-    @computed private get sortedAggregateRows(): DataTableRow[] {
-        const { order } = this.tableState.sort
-        return orderBy(this.displayAggregateRows, this.sortValueMapper, order)
-    }
-
     @computed private get displayRows(): DataTableRow[] {
         return this.entityNames.map((entityName) => {
             return {
@@ -932,22 +897,9 @@ export class DataTable extends React.Component<{
         })
     }
 
-    @computed private get displayEntityRows(): DataTableRow[] {
-        if (!this.manager.entitiesAreCountryLike) return this.displayRows
-        return this.displayRows.filter((row) => isCountryName(row.entityName))
-    }
-
-    @computed private get displayAggregateRows(): DataTableRow[] {
-        if (!this.manager.entitiesAreCountryLike) return []
-        return this.displayRows.filter((row) => !isCountryName(row.entityName))
-    }
-
-    @computed private get showTitleForAggregateRows(): boolean {
-        return (
-            !!this.manager.entitiesAreCountryLike &&
-            this.displayEntityRows.length > 0 &&
-            this.displayAggregateRows.length > 0
-        )
+    @computed private get sortedDisplayRows(): DataTableRow[] {
+        const { order } = this.tableState.sort
+        return orderBy(this.displayRows, this.sortValueMapper, order)
     }
 }
 
@@ -1134,4 +1086,10 @@ interface DataTableRow {
 
 function isDeltaColumn(columnKey?: ColumnKey): boolean {
     return columnKey === "delta" || columnKey === "deltaRatio"
+}
+
+export function isValidDataTableFilter(
+    candidate: string
+): candidate is DataTableFilter {
+    return DATA_TABLE_FILTERS.includes(candidate as any)
 }
