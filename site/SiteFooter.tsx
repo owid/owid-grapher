@@ -10,7 +10,7 @@ import { ABOUT_LINKS, PROD_URL, RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
 import { Button } from "@ourworldindata/components"
 import { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { OxfordAndGcdlLogos } from "./SiteLogos.js"
-import { IS_ARCHIVE } from "../settings/clientSettings.js"
+import { IS_ARCHIVE, BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -176,7 +176,9 @@ export const SiteFooter = (props: SiteFooterProps) => {
                         </div>
                         <a href="https://www.ycombinator.com">
                             <img
-                                src={"/yc-logo.svg"}
+                                // The BAKED_BASE_URL is necessary to make the data page previews work when they
+                                // are served dynamically from the admin, which runs on a different domain.
+                                src={`${BAKED_BASE_URL}/yc-logo.svg`}
                                 alt="Y Combinator logo"
                                 loading="lazy"
                                 width={123}
