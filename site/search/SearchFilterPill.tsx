@@ -7,16 +7,22 @@ export function SearchFilterPill({
     name,
     selected = false,
     icon,
+    className,
 }: {
     name: string
     selected?: boolean
     icon: ReactNode
+    className?: string
 }) {
     return (
         <span
-            className={cx("search-filter-pill", {
-                "search-filter-pill--selected": selected,
-            })}
+            className={cx(
+                "search-filter-pill",
+                {
+                    "search-filter-pill--selected": selected,
+                },
+                className
+            )}
         >
             {icon}
             <span className="name">{name}</span>
