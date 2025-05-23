@@ -10,7 +10,6 @@ import {
     FacetStrategy,
     GrapherChartType,
 } from "@ourworldindata/types"
-import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartDimension } from "../chart/ChartDimension"
 import {
@@ -85,7 +84,6 @@ export interface SettingsMenuManager
     isOnMapTab?: boolean
     isOnChartTab?: boolean
     isOnTableTab?: boolean
-    isLineChartThatTurnedIntoDiscreteBar?: boolean
 
     // linear/log scales
     yAxis: AxisConfig
@@ -98,7 +96,6 @@ export interface SettingsMenuManager
 @observer
 export class SettingsMenu extends React.Component<{
     manager: SettingsMenuManager
-    maxWidth?: number
     top: number
     bottom: number
     right: number
@@ -115,10 +112,6 @@ export class SettingsMenu extends React.Component<{
         return this.manager.activeChartType ?? GRAPHER_CHART_TYPES.LineChart
     }
 
-    @computed get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
-    }
-
     @computed get showYScaleToggle(): boolean | undefined {
         if (this.manager.hideYScaleToggle) return false
         if (this.manager.isRelativeMode) return false
@@ -131,7 +124,6 @@ export class SettingsMenu extends React.Component<{
             ].includes(this.chartType as any)
         )
             return false // We currently do not have these charts with log scale
-        if (this.manager.isLineChartThatTurnedIntoDiscreteBar) return false
         return this.manager.yAxis.canChangeScaleType
     }
 
@@ -288,11 +280,6 @@ export class SettingsMenu extends React.Component<{
 
     @computed get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager.selection)
-    }
-
-    @computed get shouldRenderTableControlsIntoPopup(): boolean {
-        const tableFilterToggleWidth = TableFilterToggle.width(this.manager)
-        return tableFilterToggleWidth > this.maxWidth
     }
 
     @computed get layout(): {
@@ -476,9 +463,7 @@ export class SettingsMenu extends React.Component<{
         } = this
 
         if (isOnTableTab && showTableFilterToggle) {
-            return this.shouldRenderTableControlsIntoPopup
-                ? this.renderSettingsButtonAndPopup()
-                : this.renderTableControls()
+            return this.renderSettingsButtonAndPopup()
         }
 
         return isOnChartTab && showSettingsMenuToggle
