@@ -17,6 +17,7 @@ import {
     FuzzySearch,
     FuzzySearchResult,
 } from "@ourworldindata/utils"
+import { partition } from "remeda"
 import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
 import { getIndexName } from "./searchClient.js"
 import { SearchClient } from "algoliasearch"
@@ -533,27 +534,35 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
         .slice(0, searchResults.matchStartIndex)
         .join(" ")
 
-    const countryFilters = searchResults.countryResults.map((result) => ({
+    const countryMatches = searchResults.countryResults.map((result) => ({
         filter: createCountryFilter(result.name),
         score: result.score,
     }))
 
-    const topicFilters = searchResults.topicResults.map((result) => ({
+    const topicMatches = searchResults.topicResults.map((result) => ({
         filter: createTopicFilter(result.name),
         score: result.score,
     }))
 
-    const combinedFilters = [...countryFilters, ...topicFilters]
-        .sort((a, b) => b.score - a.score)
-        .map((item) => item.filter)
+    const allMatches = [...countryMatches, ...topicMatches]
 
-    const suggestions = [
+    const [exactMatches, partialMatches] = partition(
+        allMatches,
+        (item) => item.score === 1
+    )
+
+    const sortedPartialMatches = partialMatches.sort(
+        (a, b) => b.score - a.score
+    )
+
+    const combinedFilters = [
+        ...exactMatches.map((item) => item.filter),
         ...(query ? [createQueryFilter(query)] : []),
-        ...combinedFilters,
+        ...sortedPartialMatches.map((item) => item.filter),
     ]
 
     return {
-        suggestions,
+        suggestions: combinedFilters,
         unmatchedQuery,
     }
 }
