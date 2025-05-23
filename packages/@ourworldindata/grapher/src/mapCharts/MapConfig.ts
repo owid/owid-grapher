@@ -18,7 +18,7 @@ import {
     ToleranceStrategy,
 } from "@ourworldindata/utils"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
-import { DEFAULT_GLOBE_ROTATION } from "./MapChartConstants"
+import { DEFAULT_GLOBE_ROTATION, DEFAULT_GLOBE_ZOOM } from "./MapChartConstants"
 import * as R from "remeda"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
@@ -36,8 +36,8 @@ class MapConfigDefaults {
 
     @observable globe: GlobeConfig = {
         isActive: false,
-        rotation: DEFAULT_GLOBE_ROTATION,
-        zoom: 1,
+        rotation: DEFAULT_GLOBE_ROTATION, // specified as [lot, lan]
+        zoom: DEFAULT_GLOBE_ZOOM,
     }
 
     @observable colorScale = new ColorScaleConfig()
@@ -58,10 +58,17 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
             this.globe = { ...this.globe, isActive: true }
         }
 
-        // Only relevant for testing
-        if (obj.selection && R.isArray<string>(obj.selection)) {
-            this.selection = new MapSelectionArray(obj.selection as string[])
+        // Map [lat, lon] to the internally used [lon, lat]
+        if (obj.globe?.rotation) {
+            this.globe = {
+                ...this.globe,
+                rotation: R.reverse(obj.globe.rotation),
+            }
         }
+
+        // Update selection
+        if (obj.selectedEntityNames)
+            this.selection.setSelectedEntities(obj.selectedEntityNames)
     }
 
     toObject(): NoUndefinedValues<MapConfigInterface> {
@@ -69,6 +76,37 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         deleteRuntimeAndUnchangedProps(obj, new MapConfigDefaults())
 
         if (obj.time) obj.time = maxTimeToJSON(this.time) as any
+
+        // persist selection
+        obj.selectedEntityNames = this.selection.selectedEntityNames
+        // @ts-expect-error hack to prevent selection from being persisted
+        delete obj.selection
+
+        // if a continent is given, then it defines the globe rotation & zoom,
+        // so there is no need to also persist the globe settings
+        if (obj.region && obj.region !== MapRegionName.World) delete obj.globe
+
+        // don't persist globe settings if the globe isn't active
+        if (!obj.globe?.isActive) delete obj.globe
+
+        // round rotation coordinates before persisting
+        if (obj.globe?.rotation)
+            obj.globe = {
+                ...obj.globe,
+                rotation: [
+                    // we use [lon, lat] internally, but persist [lat, lon]
+                    R.round(obj.globe.rotation[1], 2),
+                    R.round(obj.globe.rotation[0], 2),
+                ],
+            }
+
+        // round zoom level before persisting
+        if (obj.globe?.zoom) {
+            obj.globe = {
+                ...obj.globe,
+                zoom: R.round(obj.globe.zoom, 2),
+            }
+        }
 
         return trimObject(obj)
     }

@@ -23,17 +23,16 @@ import {
     MapCountryDropdownManager,
 } from "../MapCountryDropdown"
 import { CloseGlobeViewButton } from "../CloseGlobeViewButton"
-import { GlobeSwitcher, GlobeSwitcherManager } from "../GlobeSwitcher"
+import { GlobeSwitcher } from "../GlobeSwitcher"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
         EntitySelectionManager,
         MapRegionDropdownManager,
         MapCountryDropdownManager,
-        GlobeSwitcherManager,
         SettingsMenuManager {
     sidePanelBounds?: Bounds
-    showEntitySelectionToggle?: boolean
+    isSmall?: boolean
 }
 
 @observer
@@ -66,20 +65,8 @@ export class ControlsRow extends Component<{
         return ContentSwitchers.width(this.manager)
     }
 
-    @computed private get globeSwitcherWidth(): number {
-        return GlobeSwitcher.width()
-    }
-
     @computed private get maxWidthSettingsMenu(): number {
         return this.maxWidth - this.contentSwitchersWidth - 16
-    }
-
-    @computed private get maxWidthMapRegionDropdown(): number {
-        return this.maxWidthSettingsMenu - this.globeSwitcherWidth - 8
-    }
-
-    @computed private get showContentSwitchers(): boolean {
-        return ContentSwitchers.shouldShow(this.manager)
     }
 
     @computed private get showControlsRow(): boolean {
@@ -89,54 +76,67 @@ export class ControlsRow extends Component<{
             MapRegionDropdown.shouldShow(this.manager) ||
             MapCountryDropdown.shouldShow(this.manager) ||
             CloseGlobeViewButton.shouldShow(this.manager) ||
-            GlobeSwitcher.shouldShow(this.manager) ||
-            this.showContentSwitchers
+            ContentSwitchers.shouldShow(this.manager)
         )
     }
 
-    render(): JSX.Element {
-        const { showEntitySelectionToggle } = this.manager
+    private renderChartAndTableControls(): React.ReactElement {
+        return (
+            <div className="controls chart-controls">
+                <EntitySelectionToggle manager={this.manager} />
+
+                <SettingsMenu
+                    manager={this.manager}
+                    maxWidth={this.maxWidthSettingsMenu}
+                    top={this.props.settingsMenuTop ?? 0}
+                    bottom={this.framePaddingVertical}
+                    right={this.sidePanelWidth + this.framePaddingHorizontal}
+                />
+            </div>
+        )
+    }
+
+    private renderMapControls(): React.ReactElement {
+        return (
+            <div className="controls map-controls">
+                {this.manager.isMapSelectionEnabled ? (
+                    <>
+                        <MapRegionDropdown
+                            manager={this.manager}
+                            maxWidth={this.maxWidthSettingsMenu}
+                        />
+                        <GlobeSwitcher manager={this.manager} />
+                        <EntitySelectionToggle manager={this.manager} />
+                    </>
+                ) : (
+                    <>
+                        <MapCountryDropdown
+                            manager={this.manager}
+                            maxWidth={this.maxWidthSettingsMenu}
+                        />
+                        <CloseGlobeViewButton
+                            manager={this.manager}
+                            maxWidth={this.maxWidthSettingsMenu}
+                        />
+                    </>
+                )}
+            </div>
+        )
+    }
+
+    render(): React.ReactElement {
         return (
             <nav
                 className="controlsRow"
                 style={{ padding: `0 ${this.framePaddingHorizontal}px` }}
             >
                 <div>
-                    {this.showContentSwitchers && (
-                        <ContentSwitchers manager={this.manager} />
-                    )}
+                    <ContentSwitchers manager={this.manager} />
                 </div>
-                <div className="chart-controls">
-                    {showEntitySelectionToggle && (
-                        <EntitySelectionToggle manager={this.manager} />
-                    )}
-
-                    <SettingsMenu
-                        manager={this.manager}
-                        maxWidth={this.maxWidthSettingsMenu}
-                        top={this.props.settingsMenuTop ?? 0}
-                        bottom={this.framePaddingVertical}
-                        right={
-                            this.sidePanelWidth + this.framePaddingHorizontal
-                        }
-                    />
-
-                    {/* rendered if the entity selector is shown on the map tab */}
-                    <GlobeSwitcher manager={this.manager} />
-                    <MapRegionDropdown
-                        manager={this.manager}
-                        maxWidth={this.maxWidthMapRegionDropdown}
-                    />
-
-                    {/* rendered on mobile; only one of the following is shown at any given time */}
-                    <MapCountryDropdown
-                        manager={this.manager}
-                        maxWidth={this.maxWidthSettingsMenu}
-                    />
-                    <CloseGlobeViewButton
-                        manager={this.manager}
-                        maxWidth={this.maxWidthSettingsMenu}
-                    />
+                <div className="controls">
+                    {this.manager.isOnMapTab
+                        ? this.renderMapControls()
+                        : this.renderChartAndTableControls()}
                 </div>
             </nav>
         )

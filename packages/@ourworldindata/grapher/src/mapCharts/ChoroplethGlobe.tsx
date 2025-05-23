@@ -19,10 +19,10 @@ import {
     Bounds,
     isTouchDevice,
     getRelativeMouse,
-    checkIsTouchEvent,
     PointVector,
     MapRegionName,
     excludeUndefined,
+    EntityName,
 } from "@ourworldindata/utils"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
@@ -34,13 +34,16 @@ import {
     DEFAULT_GLOBE_SIZE,
     ExternalAnnotation,
     GEO_FEATURES_CLASSNAME,
+    GLOBE_COUNTRY_ZOOM,
     GLOBE_LATITUDE_MAX,
     GLOBE_LATITUDE_MIN,
     GLOBE_MAX_ZOOM,
     GLOBE_MIN_ZOOM,
     GlobeRenderFeature,
+    MapInteractionType,
     InternalAnnotation,
     MAP_HOVER_TARGET_RANGE,
+    RenderFeature,
     SVGMouseEvent,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
@@ -58,8 +61,9 @@ import {
     calculateDistance,
     detectNearbyFeature,
     isPointPlacedOnVisibleHemisphere,
-    sortFeaturesByInteractionState,
+    sortFeaturesByInteractionStateAndSize,
     getForegroundFeatures,
+    getMapInteractionType,
 } from "./MapHelpers"
 import {
     makeInternalAnnotationForFeature,
@@ -124,6 +128,10 @@ export class ChoroplethGlobe extends React.Component<{
         return difference(this.features, this.foregroundFeatures)
     }
 
+    @computed private get backgroundFeatureIdSet(): Set<EntityName> {
+        return new Set(this.backgroundFeatures.map((feature) => feature.id))
+    }
+
     @computed private get featuresWithData(): GlobeRenderFeature[] {
         return this.foregroundFeatures.filter((feature) =>
             this.choroplethData.has(feature.id)
@@ -132,7 +140,8 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed private get sortedFeaturesWithData(): GlobeRenderFeature[] {
         // sort features so that hovered or selected features are rendered last
-        return sortFeaturesByInteractionState(this.featuresWithData, {
+        // and smaller countries are rendered on top of bigger ones
+        return sortFeaturesByInteractionStateAndSize(this.featuresWithData, {
             isHovered: (featureId: string) =>
                 this.manager.getHoverState(featureId).active,
             isSelected: (featureId) => this.manager.isSelected(featureId),
@@ -185,9 +194,20 @@ export class ChoroplethGlobe extends React.Component<{
         ]
     }
 
+    private computeProjectionScale(zoomScale: number): number {
+        return zoomScale * DEFAULT_SCALE * (this.globeSize / DEFAULT_GLOBE_SIZE)
+    }
+
+    @computed private get minScale(): number {
+        return this.computeProjectionScale(GLOBE_MIN_ZOOM)
+    }
+
+    @computed private get maxScale(): number {
+        return this.computeProjectionScale(GLOBE_MAX_ZOOM)
+    }
+
     @computed private get globeScale(): number {
-        const { globeSize, zoomScale } = this
-        return zoomScale * DEFAULT_SCALE * (globeSize / DEFAULT_GLOBE_SIZE)
+        return this.computeProjectionScale(this.zoomScale)
     }
 
     @computed private get globeRadius(): number {
@@ -195,7 +215,11 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get globeRotation(): [number, number] {
-        return this.mapConfig.globe.rotation
+        // d3 projections expect [-lon, -lat] to rotate to [lon, lat]
+        return [
+            -this.mapConfig.globe.rotation[0],
+            -this.mapConfig.globe.rotation[1],
+        ]
     }
 
     @computed private get zoomScale(): number {
@@ -226,15 +250,22 @@ export class ChoroplethGlobe extends React.Component<{
     ): boolean {
         return isPointPlacedOnVisibleHemisphere(
             feature.geoCentroid,
-            this.globeRotation,
+            this.mapConfig.globe.rotation,
             threshold
         )
     }
 
-    @computed private get graticule(): string {
+    @computed private get graticulePath(): string {
         const graticule = geoGraticule().step([10, 10])()
         this.pathContext.beginPath()
         this.globePath(graticule)
+        return this.pathContext.result()
+    }
+
+    @computed private get equatorPath(): string {
+        const equator = geoGraticule().step([0, 360])()
+        this.pathContext.beginPath()
+        this.globePath(equator)
         return this.pathContext.result()
     }
 
@@ -252,7 +283,10 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get shouldShowAnnotations(): boolean {
-        return !!this.manager.mapColumn.hasNumberFormatting
+        return !!(
+            this.manager.mapColumn.hasNumberFormatting &&
+            !this.mapConfig.tooltipUseCustomLabels
+        )
     }
 
     private formatAnnotationLabel(value: string | number): string {
@@ -262,21 +296,10 @@ export class ChoroplethGlobe extends React.Component<{
     @computed private get annotationCandidateFeatures(): GlobeRenderFeature[] {
         if (!this.shouldShowAnnotations) return []
 
-        const selectedCountryNames =
-            this.mapConfig.selection.selectedCountryNamesInForeground
-        const countries = R.unique(
-            excludeUndefined([
-                ...selectedCountryNames,
-                this.manager.hoverFeatureId,
-                // clear the focus country value on hover
-                this.manager.hoverFeatureId
-                    ? undefined
-                    : this.mapConfig.globe.focusCountry,
-            ])
-        )
-
         return excludeUndefined(
-            countries.map((name) => this.featuresById.get(name))
+            this.mapConfig.selection.selectedCountryNamesInForeground.map(
+                (name) => this.featuresById.get(name)
+            )
         )
     }
 
@@ -335,13 +358,14 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed
     private get externalAnnotations(): ExternalAnnotation[] {
-        const { projection } = this
+        const { projection, backgroundFeatureIdSet } = this
         const annotations = this.annotationCandidates.filter(
             (annotation) => annotation.type === "external"
         )
         return repositionAndFilterExternalAnnotations({
             annotations,
             projection,
+            backgroundFeatureIdSet,
         })
     }
 
@@ -350,11 +374,11 @@ export class ChoroplethGlobe extends React.Component<{
         if (this.rotateFrameId) cancelAnimationFrame(this.rotateFrameId)
         this.rotateFrameId = requestAnimationFrame(() => {
             this.mapConfig.globe.rotation = [
-                targetCoords[0],
+                -targetCoords[0],
                 // Clamping the latitude to [-90, 90] would allow rotation up to the poles.
                 // However, the panning strategy used doesn't work well around the poles.
                 // That's why we clamp the latitude to a narrower range.
-                R.clamp(targetCoords[1], {
+                -R.clamp(targetCoords[1], {
                     min: GLOBE_LATITUDE_MIN,
                     max: GLOBE_LATITUDE_MAX,
                 }),
@@ -373,6 +397,10 @@ export class ChoroplethGlobe extends React.Component<{
                 max: GLOBE_MAX_ZOOM,
             })
         })
+    }
+
+    @computed private get hoverFeature(): GlobeRenderFeature | undefined {
+        return this.hoverEnterFeature || this.hoverNearbyFeature
     }
 
     @action.bound private clearHover(): void {
@@ -435,6 +463,13 @@ export class ChoroplethGlobe extends React.Component<{
             if (!this.mapConfig.selection.selectedSet.has(country))
                 this.globeController.dismissCountryFocus()
         }
+
+        // rotate to the selected country on mobile
+        if (!this.manager.isMapSelectionEnabled) {
+            // only zoom in on click, never zoom out
+            const zoom = Math.max(GLOBE_COUNTRY_ZOOM, this.mapConfig.globe.zoom)
+            this.globeController.rotateToCountry(country, zoom)
+        }
     }
 
     @action.bound private onTouchStart(feature: GlobeRenderFeature): void {
@@ -449,12 +484,6 @@ export class ChoroplethGlobe extends React.Component<{
         const base = this.base.current
         if (!base) return
 
-        // Possible interaction types are
-        // - zoom-scroll: zooming by scrolling via the wheel event
-        // - zoom-pinch: zooming by pinching using two fingers on touch devices
-        // - pan: panning by dragging the mouse or using a finger on touch devices
-        type InteractionType = "zoom-scroll" | "zoom-pinch" | "pan"
-
         // Panning and zooming are powered by D3.
         //
         // Panning is adapted from https://observablehq.com/d/569d101dd5bd332b.
@@ -468,7 +497,7 @@ export class ChoroplethGlobe extends React.Component<{
         // in on a country). That's why we compute the target zoom level ourselves.
 
         const panAndZoom = (): any => {
-            let previousType: InteractionType | undefined
+            let previousType: MapInteractionType | undefined
 
             // for panning
             let startCoords: [number, number, number],
@@ -479,14 +508,8 @@ export class ChoroplethGlobe extends React.Component<{
             // for zooming
             let startDistance: number | undefined
 
-            const getInteractionType = (event: any): InteractionType => {
-                if (event.sourceEvent.type === "wheel") return "zoom-scroll"
-                if (isMultiTouchEvent(event.sourceEvent)) return "zoom-pinch"
-                return "pan"
-            }
-
             const panningOrZoomingStart = (event: any): void => {
-                const type = getInteractionType(event)
+                const type = getMapInteractionType(event)
 
                 const startPinching = (): void => {
                     startDistance = calculatePinchDistance(event.sourceEvent)
@@ -587,7 +610,7 @@ export class ChoroplethGlobe extends React.Component<{
                     previousPos = pos
                 }
 
-                const type = getInteractionType(event)
+                const type = getMapInteractionType(event)
 
                 // bail if a zoom-pinch gesture turned into a pan
                 // because this might lead to erratic jumps
@@ -607,7 +630,7 @@ export class ChoroplethGlobe extends React.Component<{
             }
 
             return zoom()
-                .scaleExtent([GLOBE_MIN_ZOOM, GLOBE_MAX_ZOOM])
+                .scaleExtent([this.minScale, this.maxScale])
                 .touchable(() => this.isTouchDevice)
                 .on("start", panningOrZoomingStart)
                 .on("zoom", panningOrZooming)
@@ -652,8 +675,16 @@ export class ChoroplethGlobe extends React.Component<{
                 />
                 <path
                     id={makeIdForHumanConsumption("globe-graticule")}
-                    d={this.graticule}
+                    d={this.graticulePath}
                     stroke="#e7e7e7"
+                    strokeWidth={1}
+                    fill="none"
+                    style={{ pointerEvents: "none" }}
+                />
+                <path
+                    id={makeIdForHumanConsumption("globe-equator")}
+                    d={this.equatorPath}
+                    stroke="#dadada"
                     strokeWidth={1}
                     fill="none"
                     style={{ pointerEvents: "none" }}
@@ -768,11 +799,22 @@ export class ChoroplethGlobe extends React.Component<{
         if (this.externalAnnotations.length === 0) return
 
         return (
-            <g id={makeIdForHumanConsumption("annotations-external")}>
+            <g
+                id={makeIdForHumanConsumption("annotations-external")}
+                className="ExternalAnnotations"
+            >
                 {this.externalAnnotations.map((annotation) => (
                     <ExternalValueAnnotation
                         key={annotation.id}
                         annotation={annotation}
+                        onMouseEnter={action((feature: RenderFeature) =>
+                            this.setHoverEnterFeature(
+                                feature as GlobeRenderFeature
+                            )
+                        )}
+                        onMouseLeave={action(() =>
+                            this.clearHoverEnterFeature()
+                        )}
                     />
                 ))}
             </g>
@@ -811,9 +853,10 @@ export class ChoroplethGlobe extends React.Component<{
                 onMouseLeave={this.onMouseLeaveFeature}
                 onClick={() => {
                     // invoke a click on a feature when clicking nearby one
-                    if (this.hoverEnterFeature)
-                        this.onClick(this.hoverEnterFeature)
+                    if (this.hoverNearbyFeature)
+                        this.onClick(this.hoverNearbyFeature)
                 }}
+                style={{ cursor: this.hoverFeature ? "pointer" : undefined }}
             >
                 {this.renderGlobeOutline()}
                 <g className={GEO_FEATURES_CLASSNAME}>
@@ -832,12 +875,6 @@ export class ChoroplethGlobe extends React.Component<{
             ? this.renderStatic()
             : this.renderInteractive()
     }
-}
-
-const isMultiTouchEvent = (
-    event: MouseEvent | TouchEvent
-): event is TouchEvent => {
-    return checkIsTouchEvent(event) && event.touches.length >= 2
 }
 
 const calculatePinchDistance = (event: TouchEvent): number => {

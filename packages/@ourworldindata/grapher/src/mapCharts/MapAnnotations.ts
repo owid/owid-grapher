@@ -53,7 +53,7 @@ export function makeInternalAnnotationForFeature({
 
     if (!ellipse) return
 
-    // place label at the center of the ellpise (decreases the font size if necessary)
+    // place label at the center of the ellipse (decreases the font size if necessary)
     const placedLabel = placeLabelAtEllipseCenter({
         text: formattedValue,
         ellipse,
@@ -114,14 +114,15 @@ export function makeExternalAnnotationForFeature({
 
     // make sure the labels of countries like Lesotho and Eswatini that are
     // separated from the ocean by another country are placed in the ocean
-    const bridgeFeatures = [feature.geo, ...(placement.bridgeFeatures ?? [])]
-    placedBounds = moveExternalLabelIntoOcean({
-        bridgeFeatures,
-        placedBounds,
-        direction,
-        projection,
-        step: 1.5 * markerLength,
-    })
+    if (placement.bridgeFeatures?.length)
+        placedBounds = moveExternalLabelIntoOcean({
+            bridgeFeatures: placement.bridgeFeatures,
+            placedBounds,
+            direction,
+            projection,
+            step: markerLength / 2,
+            maxSteps: 3,
+        })
 
     return {
         type: "external",
@@ -144,9 +145,11 @@ export function makeExternalAnnotationForFeature({
 export function repositionAndFilterExternalAnnotations({
     annotations,
     projection,
+    backgroundFeatureIdSet, // countries ignored for collision detection
 }: {
     annotations: ExternalAnnotation[]
     projection: GeoProjection
+    backgroundFeatureIdSet: Set<string>
 }): ExternalAnnotation[] {
     const originalAnnotationsById = new Map(
         annotations.map((annotation) => [annotation.id, annotation])
@@ -158,11 +161,19 @@ export function repositionAndFilterExternalAnnotations({
     // the re-positioned label annotations might overlap with other countries
     const filteredAnnotations = nonOverlappingAnnotations.filter(
         (annotation) => {
-            // we do these checks only for countries that are proximally close
-            // for performance reasons
-            const nearbyGeoFeatures = getGeoFeaturesWithinRadius(
+            // we do these checks only for countries that are proximally close for performance reasons
+            let nearbyGeoFeatures = getGeoFeaturesWithinRadius(
                 annotation.feature
             )
+
+            // exclude background countries from collision detection,
+            // i.e. showing a label on top of a background country is allowed
+            if (backgroundFeatureIdSet.size > 0)
+                nearbyGeoFeatures = nearbyGeoFeatures.filter(
+                    (feature) =>
+                        !backgroundFeatureIdSet.has(feature.id as string)
+                )
+
             const nearbyAnnotations = excludeUndefined(
                 nearbyGeoFeatures.map((feature) =>
                     originalAnnotationsById.get(feature.id as string)
@@ -423,12 +434,14 @@ function moveExternalLabelIntoOcean({
     placedBounds,
     projection,
     step,
+    maxSteps,
 }: {
     bridgeFeatures: GeoFeature[]
     direction: Direction
     placedBounds: Bounds
     projection: any
     step: number
+    maxSteps: number
 }): Bounds {
     // polygon in lon/lat coordinates that represents the annotation label
     let annotationLabel = makePolygonFromBounds(placedBounds, (position) =>
@@ -436,25 +449,25 @@ function moveExternalLabelIntoOcean({
     )
 
     let newBounds = placedBounds
-    for (const geoFeature of bridgeFeatures) {
-        for (let tick = 0; tick < 5; tick++) {
-            // stop if the label and geo feature don't intersect
-            if (!booleanIntersects(annotationLabel, geoFeature)) break
+    for (let tick = 0; tick < maxSteps; tick++) {
+        const intersectsWithSomeFeature = bridgeFeatures.some((bridgeFeature) =>
+            booleanIntersects(annotationLabel, bridgeFeature)
+        )
+        if (!intersectsWithSomeFeature) break
 
-            // update bounds
-            newBounds = newBounds.set(
-                moveIntoDirectionByStep({
-                    position: newBounds.topLeft,
-                    direction,
-                    step,
-                })
-            )
+        // update bounds
+        newBounds = newBounds.set(
+            moveIntoDirectionByStep({
+                position: newBounds.topLeft,
+                direction,
+                step,
+            })
+        )
 
-            // update label
-            annotationLabel = makePolygonFromBounds(newBounds, (position) =>
-                projection.invert(position)
-            )
-        }
+        // update label
+        annotationLabel = makePolygonFromBounds(newBounds, (position) =>
+            projection.invert(position)
+        )
     }
 
     return newBounds
@@ -545,6 +558,8 @@ function minimiseLabelCollisions(
     annotations: ExternalAnnotation[],
     padding = 1
 ): ExternalAnnotation[] {
+    if (annotations.length < 2) return annotations
+
     const simulationNodes: SimulationNode[] = annotations.map((annotation) => {
         const { centerX, centerY } = annotation.placedBounds
         const isTopOrBottom =
@@ -590,7 +605,7 @@ function minimiseLabelCollisions(
         )
         // simulating very few ticks is good enough since dramatic position
         // changes are not needed in a typical setup
-        .tick(10)
+        .tick(5)
 
     // update the bounds of the original annotations
     const updatedAnnotations = annotations.map((annotation, index) => {

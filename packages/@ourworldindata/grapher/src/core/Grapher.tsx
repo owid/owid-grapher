@@ -71,6 +71,7 @@ import {
     checkIsIncomeGroup,
     checkHasMembers,
     omitUndefinedValues,
+    parseFloatOrUndefined,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -223,7 +224,7 @@ import {
     EntitySelectorEvent,
     GrapherAnalytics,
     GrapherAnalyticsContext,
-    GrapherHoverEvent,
+    GrapherInteractionEvent,
     GrapherImageDownloadEvent,
 } from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
@@ -777,7 +778,8 @@ export class Grapher
         // globe zoom
         const globeZoom = params.globeZoom
         if (globeZoom !== undefined) {
-            this.mapConfig.globe.zoom = +globeZoom
+            const parsedZoom = parseFloatOrUndefined(globeZoom)
+            if (parsedZoom !== undefined) this.mapConfig.globe.zoom = parsedZoom
         }
 
         // region
@@ -943,12 +945,15 @@ export class Grapher
             table = this.chartInstance.transformTableForDisplay(table)
         }
 
-        if (
-            this.forceShowSelectionOnlyInDataTable ||
-            this.showSelectionOnlyInDataTable
-        ) {
+        if (this.forceShowSelectionOnlyInDataTable) {
             table = table.filterByEntityNames(
                 this.selection.selectedEntityNames
+            )
+        } else if (this.showSelectionOnlyInDataTable) {
+            table = table.filterByEntityNames(
+                this.mapConfig.selection.hasSelection
+                    ? this.mapConfig.selection.selectedEntityNames
+                    : this.selection.selectedEntityNames
             )
         }
 
@@ -1628,13 +1633,11 @@ export class Grapher
         newTab: GrapherTabName
     ): void {
         if (isMapTab(newTab) || isChartTab(newTab)) {
-            const { mapColumnSlug, entitySelector } = this
-            const { interpolatedSortColumnsBySlug, entityFilter } =
-                this.entitySelectorState
-            const sortSlug = entitySelector.sortConfig.slug
+            const { entitySelector } = this
 
             // the map and chart tab might have a different set of sort columns;
             // if the currently selected sort column is invalid, reset it to the default
+            const sortSlug = entitySelector.sortConfig.slug
             if (!entitySelector.isSortSlugValid(sortSlug)) {
                 this.entitySelectorState.sortConfig =
                     entitySelector.getDefaultSortConfig()
@@ -1642,6 +1645,7 @@ export class Grapher
 
             // the map and chart tab might have a different set of entity filters;
             // if the currently selected entity filter is invalid, reset it
+            const { entityFilter } = this.entitySelectorState
             if (entityFilter) {
                 if (!this.entitySelector.isEntityFilterValid(entityFilter)) {
                     this.entitySelectorState.entityFilter = undefined
@@ -1650,16 +1654,7 @@ export class Grapher
 
             // the map column slug might be interpolated with different
             // tolerance values on the chart and the map tab
-            if (interpolatedSortColumnsBySlug?.[mapColumnSlug]) {
-                // if the map column slug is currently selected, re-calculate tolerance;
-                // otherwise, delete it and it will be re-calculated when necessary
-                if (sortSlug === mapColumnSlug) {
-                    interpolatedSortColumnsBySlug[mapColumnSlug] =
-                        entitySelector.interpolateSortColumn(mapColumnSlug)
-                } else {
-                    delete interpolatedSortColumnsBySlug[mapColumnSlug]
-                }
-            }
+            entitySelector.resetInterpolatedMapColumn()
         }
     }
 
@@ -2832,8 +2827,11 @@ export class Grapher
         })
     }
 
-    logGrapherHoverEvent(action: GrapherHoverEvent, target?: string): void {
-        this.analytics.logGrapherHoverEvent(action, {
+    logGrapherInteractionEvent(
+        action: GrapherInteractionEvent,
+        target?: string
+    ): void {
+        this.analytics.logGrapherInteractionEvent(action, {
             ...this.analyticsContext,
             target,
         })
@@ -3343,7 +3341,11 @@ export class Grapher
                             !this.isEntitySelectorModalOrDrawerOpen
                     }}
                 >
-                    <EntitySelector manager={this} autoFocus={true} />
+                    <EntitySelector
+                        manager={this}
+                        selection={entitySelectorArray}
+                        autoFocus={true}
+                    />
                 </SlideInDrawer>
 
                 {/* tooltip: either pin to the bottom or render into the chart area */}
@@ -4115,21 +4117,6 @@ export class Grapher
         )
     }
 
-    @computed get showEntitySelectionToggle(): boolean {
-        if (this.hideEntityControls) return false
-
-        const shouldShowDrawer =
-            this.shouldShowEntitySelectorAs === GrapherWindowType.drawer
-        const shouldShowModal =
-            this.shouldShowEntitySelectorAs === GrapherWindowType.modal
-
-        return (
-            this.isOnChartTab &&
-            this.canChangeAddOrHighlightEntities &&
-            (shouldShowModal || shouldShowDrawer)
-        )
-    }
-
     @computed get isEntitySelectorModalOpen(): boolean {
         return (
             this.isEntitySelectorModalOrDrawerOpen &&
@@ -4152,8 +4139,8 @@ export class Grapher
             // the map should also be disabled
             !this.hideEntityControls &&
             // only show the entity selector on the map tab if it's rendered
-            // into the side panel
-            this.shouldShowEntitySelectorAs === GrapherWindowType.panel
+            // into the side panel or into the slide-in drawer
+            this.shouldShowEntitySelectorAs !== GrapherWindowType.modal
         )
     }
 

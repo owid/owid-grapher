@@ -17,12 +17,7 @@ const GRAPHER_ROOT = __dirname.replace(/\/(itsJustJavascript\/)?devTools.*/, "")
 const GRAPHER_MAP_ANNOTATIONS_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/grapher/src/mapCharts/MapAnnotationPlacements.json`
 
 // it's not possible to place internal labels for these countries in a nice way
-const COUNTRIES_WITH_EXTERNAL_LABEL_ONLY = [
-    "Chile",
-    "Indonesia",
-    "East Timor",
-    "New Zealand",
-]
+const COUNTRIES_WITH_EXTERNAL_LABEL_ONLY = ["Chile", "New Zealand"]
 
 interface PoleOfInaccessibility {
     x: number // center x
@@ -78,7 +73,7 @@ function calculateAspectRatio(polygon: Position[][]): number {
     const dx = bounds[1][0] - bounds[0][0]
     const dy = bounds[1][1] - bounds[0][1]
     const ratio = dx / (dy || 1)
-    return ratio
+    return R.clamp(ratio, { min: 1 / 12, max: 12 })
 }
 
 /**
@@ -152,7 +147,7 @@ const roundEllipse = (ellipse: EllipseCoords): EllipseCoords => {
     }
 }
 
-const roundCoord = (coord: number): number => R.round(coord, 5)
+const roundCoord = (coord: number): number => R.round(coord, 2)
 
 const roundCoords = (coords: [number, number]): [number, number] => [
     roundCoord(coords[0]),
@@ -163,23 +158,29 @@ async function main() {
     const annotations = GeoFeatures.map((feature: GeoFeature) => {
         const manual = manualAnnotationPlacementsById.get(feature.id as string)
 
-        const shouldHaveInternalAnnotation =
-            !COUNTRIES_WITH_EXTERNAL_LABEL_ONLY.includes(feature.id as any)
+        let ellipse: EllipseCoords | undefined = roundEllipse(
+            manual?.internal?.ellipse ??
+                makeLabelEllipseCoordsForGeoFeature(feature)
+        )
+        const ellipseWidth = (ellipse.cx - ellipse.left) * 2
+        const ellipseHeight = (ellipse.top - ellipse.cy) * 2
 
-        let ellipse: EllipseCoords | undefined
-        if (shouldHaveInternalAnnotation) {
-            ellipse = roundEllipse(
-                manual?.internal?.ellipse ??
-                    makeLabelEllipseCoordsForGeoFeature(feature)
-            )
-        }
+        const shouldHaveInternalAnnotation =
+            !COUNTRIES_WITH_EXTERNAL_LABEL_ONLY.includes(feature.id as any) &&
+            // skip internal annotations if the ellipse is too small to fit a label
+            ellipseWidth >= 1 &&
+            ellipseHeight >= 0.5
+
+        if (!shouldHaveInternalAnnotation) ellipse = undefined
 
         const external = manual?.external
         if (external?.anchorPoint)
             external.anchorPoint = roundCoords(external.anchorPoint)
 
         if (!ellipse && !external) {
-            console.warn(`${feature.id} doesn't have a label placement`)
+            console.warn(`No internal or external label: ${feature.id}`)
+        } else if (!ellipse) {
+            console.info(`No internal label: ${feature.id}`)
         }
 
         return omitUndefinedValues({
