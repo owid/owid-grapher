@@ -1,4 +1,5 @@
 import { Color, CoreValueType } from "@ourworldindata/types"
+import { NO_DATA_LABEL, PROJECTED_DATA_LABEL } from "./ColorScale"
 
 interface BinProps {
     color: Color
@@ -108,7 +109,9 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
 
     contains(value: CoreValueType | undefined): boolean {
         return (
-            (value === undefined && this.props.value === "No data") ||
+            (value === undefined && this.props.value === NO_DATA_LABEL) ||
+            (value !== undefined &&
+                this.props.value === PROJECTED_DATA_LABEL) ||
             (value !== undefined && value === this.props.value)
         )
     }
