@@ -15,6 +15,7 @@ import {
     Url,
     countriesByName,
     FuzzySearch,
+    FuzzySearchResult,
 } from "@ourworldindata/utils"
 import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
 import { getIndexName } from "./searchClient.js"
@@ -29,6 +30,7 @@ import {
     Filter,
     FilterType,
     SearchAutocompleteContextType,
+    ScoredSearchResult,
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -401,8 +403,8 @@ export function searchWithWords(
     selectedTopics: Set<string>,
     sortOptions: { threshold: number; limit: number }
 ): {
-    countryResults: string[]
-    topicResults: string[]
+    countryResults: ScoredSearchResult[]
+    topicResults: ScoredSearchResult[]
     hasResults: boolean
 } {
     const searchTerm = words.join(" ")
@@ -412,14 +414,24 @@ export function searchWithWords(
         (country) => country,
         sortOptions
     )
-        .search(searchTerm)
-        .filter((country) => !selectedCountryNames.has(country))
+        .searchResults(searchTerm)
+        .filter(
+            (result: FuzzySearchResult) =>
+                !selectedCountryNames.has(result.target)
+        )
+        .map((result: FuzzySearchResult) => ({
+            name: result.target,
+            score: result.score,
+        }))
 
-    const topicResults =
+    const topicResults: ScoredSearchResult[] =
         selectedTopics.size === 0
             ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
-                  .search(searchTerm)
-                  .slice(0, 3)
+                  .searchResults(searchTerm)
+                  .map((result: FuzzySearchResult) => ({
+                      name: result.target,
+                      score: result.score,
+                  }))
             : []
 
     return {
@@ -438,8 +450,8 @@ export function findMatches(
     sortOptions: { threshold: number; limit: number },
     wordIndex: number = 0
 ): {
-    countryResults: string[]
-    topicResults: string[]
+    countryResults: ScoredSearchResult[]
+    topicResults: ScoredSearchResult[]
     matchStartIndex: number
 } {
     const wordsToSearch = words.slice(wordIndex)
@@ -521,13 +533,23 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
         .slice(0, searchResults.matchStartIndex)
         .join(" ")
 
-    const countryFilters = searchResults.countryResults.map(createCountryFilter)
-    const topicFilters = searchResults.topicResults.map(createTopicFilter)
+    const countryFilters = searchResults.countryResults.map((result) => ({
+        filter: createCountryFilter(result.name),
+        score: result.score,
+    }))
+
+    const topicFilters = searchResults.topicResults.map((result) => ({
+        filter: createTopicFilter(result.name),
+        score: result.score,
+    }))
+
+    const combinedFilters = [...countryFilters, ...topicFilters]
+        .sort((a, b) => b.score - a.score)
+        .map((item) => item.filter)
 
     const suggestions = [
         ...(query ? [createQueryFilter(query)] : []),
-        ...countryFilters,
-        ...topicFilters,
+        ...combinedFilters,
     ]
 
     return {
