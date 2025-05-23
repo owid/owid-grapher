@@ -239,7 +239,7 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                             name,
                             focused,
                             blurred,
-                            striped,
+                            dotted,
                             annotation,
                             values,
                             notice,
@@ -259,13 +259,14 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                                 className={classnames({
                                     focused,
                                     blurred,
-                                    striped,
+                                    dotted,
                                 })}
                             >
                                 <td className="series-color">
                                     <div
                                         className="swatch"
                                         style={{
+                                            color: swatchColor,
                                             backgroundColor: swatchColor,
                                             opacity: swatchOpacity,
                                         }}

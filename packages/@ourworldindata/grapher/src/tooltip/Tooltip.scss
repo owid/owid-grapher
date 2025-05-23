@@ -45,14 +45,19 @@
             font-family: $sans-serif-font-stack;
             font-size: 16px;
 
-            @mixin diagonal-background($background, $color) {
-                background: repeating-linear-gradient(
-                    -45deg,
-                    $background,
-                    $background 16%,
-                    $color 16%,
-                    $color 25%
+            @mixin dot-background(
+                $background,
+                $dot-color,
+                $dot-size: 1.5px,
+                $spacing: 4px
+            ) {
+                background-color: $background;
+                background-image: radial-gradient(
+                    circle,
+                    $dot-color $dot-size,
+                    transparent $dot-size
                 );
+                background-size: $spacing $spacing;
             }
 
             .frontmatter {
@@ -343,17 +348,17 @@
                         }
                     }
 
-                    // overlay a diagonal line pattern on striped swatches
-                    tr.striped .series-color .swatch::before {
+                    // add a dot pattern to dotted swatches
+                    tr.dotted .series-color .swatch::before {
                         content: " ";
                         position: absolute;
                         width: 100%;
                         height: 100%;
-                        @include diagonal-background(transparent, white);
+                        @include dot-background(white, currentColor);
                     }
 
-                    tr.striped.blurred .series-color .swatch::before {
-                        @include diagonal-background($grey, white);
+                    tr.dotted.blurred .series-color .swatch::before {
+                        @include dot-background(white, $grey);
                     }
                 }
 
@@ -363,7 +368,7 @@
                 }
             }
 
-            // tolerance captions w/ circle-i icon or projection warning with striped swatch
+            // tolerance captions w/ circle-i icon or projection warning with dotted swatch
             .endmatter {
                 position: relative;
                 color: $grey;
@@ -390,10 +395,11 @@
                     position: absolute;
                     width: 12px;
 
-                    &.stripes {
+                    &.dots {
                         content: " ";
                         height: 12px;
-                        @include diagonal-background($grey, white);
+                        transform: translateY(1px);
+                        @include dot-background(white, $grey);
                     }
                 }
 

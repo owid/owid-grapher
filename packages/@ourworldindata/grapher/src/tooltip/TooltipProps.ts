@@ -14,7 +14,7 @@ export interface TooltipManager {
 export type TooltipFadeMode = "delayed" | "immediate" | "none"
 export enum TooltipFooterIcon {
     notice = "notice",
-    stripes = "stripes",
+    dots = "dots",
     significance = "significance",
     none = "none",
 }
@@ -72,7 +72,7 @@ export interface TooltipTableRow {
     }
     focused?: boolean // highlighted (based on hovered series in chart)
     blurred?: boolean // greyed out (typically due to missing data)
-    striped?: boolean // use textured swatch (to show data is extrapolated)
+    dotted?: boolean // use textured swatch (to show data is extrapolated)
     notice?: string | number // actual year data was drawn (when ≠ target year)
     values: (string | number | undefined)[]
 }
