@@ -18,7 +18,7 @@ import { ChartConfigType, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { useLinkedChart } from "../utils.js"
 import SpanElements from "./SpanElements.js"
 import cx from "classnames"
-import GrapherImage from "../../GrapherImage.js"
+import { GrapherWithFallback } from "../../GrapherWithFallback.js"
 
 export default function Chart({
     d,
@@ -42,6 +42,9 @@ export default function Chart({
 
     const url = Url.fromURL(d.url)
     const resolvedUrl = linkedChart.resolvedUrl
+    const resolvedUrlParsed = Url.fromURL(resolvedUrl)
+    const slug = resolvedUrlParsed.slug!
+    const queryStr = resolvedUrlParsed.queryStr
     const isExplorer = linkedChart.configType === ChartConfigType.Explorer
     const isMultiDim = linkedChart.configType === ChartConfigType.MultiDim
     const hasControls = url.queryParams.hideControls !== "true"
@@ -108,37 +111,40 @@ export default function Chart({
             style={{ gridRow: d.row, gridColumn: d.column }}
             ref={refChartContainer}
         >
-            <figure
-                // Use unique `key` to force React to re-render tree
-                key={resolvedUrl}
-                className={cx({
-                    [GRAPHER_PREVIEW_CLASS]: !isExplorer,
-                    chart: !isExplorerWithControls && !isMultiDimWithControls,
-                    explorer: isExplorerWithControls,
-                    "multi-dim": isMultiDimWithControls,
-                })}
-                data-is-multi-dim={isMultiDim || undefined}
-                data-grapher-src={isExplorer ? undefined : resolvedUrl}
-                data-grapher-config={
-                    isExplorer || isEmpty(chartConfig)
-                        ? undefined
-                        : JSON.stringify(chartConfig)
-                }
-                data-explorer-src={isExplorer ? resolvedUrl : undefined}
-                style={{
-                    width: "100%",
-                    border: "0px none",
-                    height: d.height,
-                }}
-            >
-                {isExplorer || isMultiDim ? (
+            {isExplorer ? (
+                <figure
+                    // Use unique `key` to force React to re-render tree
+                    key={resolvedUrl}
+                    className={cx({
+                        [GRAPHER_PREVIEW_CLASS]: !isExplorer,
+                        chart:
+                            !isExplorerWithControls && !isMultiDimWithControls,
+                        explorer: isExplorerWithControls,
+                        "multi-dim": isMultiDimWithControls,
+                    })}
+                    data-is-multi-dim={isMultiDim || undefined}
+                    data-grapher-src={isExplorer ? undefined : resolvedUrl}
+                    data-grapher-config={
+                        isExplorer || isEmpty(chartConfig)
+                            ? undefined
+                            : JSON.stringify(chartConfig)
+                    }
+                    data-explorer-src={isExplorer ? resolvedUrl : undefined}
+                    style={{
+                        width: "100%",
+                        border: "0px none",
+                        height: d.height,
+                    }}
+                >
                     <div className="js--show-warning-block-if-js-disabled" />
-                ) : (
-                    <a href={resolvedUrl} target="_blank" rel="noopener">
-                        <GrapherImage url={resolvedUrl} alt={d.title} />
-                    </a>
-                )}
-            </figure>
+                </figure>
+            ) : (
+                <GrapherWithFallback
+                    slug={slug}
+                    config={chartConfig}
+                    queryStr={queryStr}
+                />
+            )}
             {d.caption ? (
                 <figcaption>
                     <SpanElements spans={d.caption} />

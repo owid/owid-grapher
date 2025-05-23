@@ -53,8 +53,10 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import Handsontable from "handsontable"
 import { GRAPHER_CHART_TYPES, GRAPHER_MAP_TYPE } from "@ourworldindata/types"
 import {
+    fetchInputTableForConfig,
     Grapher,
     GrapherProgrammaticInterface,
+    GrapherState,
     MapChart,
 } from "@ourworldindata/grapher"
 import { BindString, SelectField, Toggle } from "./Forms.js"
@@ -112,6 +114,7 @@ import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { Operation } from "../adminShared/SqlFilterSExpression.js"
+import { DATA_API_URL } from "../settings/clientSettings.js"
 
 // The rule doesn't support class components in the same file.
 // eslint-disable-next-line react-refresh/only-export-components
@@ -163,8 +166,7 @@ class HotColorScaleEditor extends BaseEditorComponent<any> {
 export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEditorProps> {
     static contextType = AdminAppContext
 
-    @observable.ref grapher = new Grapher() // the grapher instance we keep around and update
-    @observable.ref grapherElement?: React.ReactElement // the JSX Element of the preview IF we want to display it currently
+    @observable.ref grapherState = new GrapherState({}) // the grapher instance we keep around and update
     numTotalRows: number | undefined = undefined
     @observable selectedRow: number | undefined = undefined
     @observable selectionEndRow: number | undefined = undefined
@@ -303,34 +305,34 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         this.undoStack = []
         this.redoStack = []
         this.selectedRow = undefined
-        this.grapherElement = undefined
     }
-    @action.bound private loadGrapherJson(json: any): void {
+    @action.bound private async loadGrapherJson(json: any): Promise<void> {
         const newConfig: GrapherProgrammaticInterface = {
             ...json,
             isEmbeddedInAnOwidPage: true,
             bounds: new Bounds(0, 0, 480, 500),
-            getGrapherInstance: (grapher: Grapher) => {
-                this.grapher = grapher
-            },
             dataApiUrlForAdmin:
                 this.context.admin.settings.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
         }
-        if (this.grapherElement) {
-            this.grapher.setAuthoredVersion(newConfig)
-            this.grapher.reset()
-            if (!this.keepEntitySelectionOnChartChange)
-                // this resets the entity selection to what the author set in the chart config
-                // This is user controlled because when working with existing charts this is usually desired
-                // but when working on the variable level where this is missing it is often nicer to keep
-                // the same country selection as you zap through the variables
-                this.grapher.clearSelection()
-            this.grapher.updateFromObject(newConfig)
-            this.grapher.downloadData()
-        } else this.grapherElement = <Grapher {...newConfig} />
+        this.grapherState.setAuthoredVersion(newConfig)
+        this.grapherState.reset()
+        if (!this.keepEntitySelectionOnChartChange)
+            // this resets the entity selection to what the author set in the chart config
+            // This is user controlled because when working with existing charts this is usually desired
+            // but when working on the variable level where this is missing it is often nicer to keep
+            // the same country selection as you zap through the variables
+            this.grapherState.clearSelection()
+        this.grapherState.updateFromObject(newConfig)
+        const inputTable = await fetchInputTableForConfig(
+            newConfig.dimensions ?? [],
+            newConfig.selectedEntityColors,
+            this.context.admin.settings.DATA_API_FOR_ADMIN_UI || DATA_API_URL,
+            undefined
+        )
+        if (inputTable) this.grapherState.inputTable = inputTable
     }
 
-    @action private updatePreviewToRow(): void {
+    @action private async updatePreviewToRow(): Promise<void> {
         const { selectedRowContent } = this
         if (selectedRowContent === undefined) return
 
@@ -346,7 +348,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             grapherConfig,
             finalConfigLayer
         )
-        this.loadGrapherJson(mergedConfig)
+        void this.loadGrapherJson(mergedConfig)
     }
 
     @computed private get columnDataSource(): ColumnDataSource | undefined {
@@ -382,7 +384,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     ) {
         if (data.origin !== undefined) {
             // origin seems to be +input when editing and undefined when we change the value programmatically
-            const { currentColumnFieldDescription, grapher } = this
+            const { currentColumnFieldDescription, grapherState } = this
             if (currentColumnFieldDescription === undefined) return
             this.hasUncommitedRichEditorChanges = true
             const pointer = jsonpointer.parse(
@@ -392,7 +394,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             // preview is updated. When the user clicks the save button we'll then check
             // the value on grapher vs the value on the richDataRow and perform a proper
             // update using doAction like we do on the grid editor commits.
-            setValueRecursiveInplace(grapher, pointer, value)
+            setValueRecursiveInplace(grapherState, pointer, value)
         }
     }
     @action.bound
@@ -406,8 +408,11 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     @action.bound
     commitOrCancelRichEditorChanges(performCommit: boolean) {
-        const { selectedRowContent, currentColumnFieldDescription, grapher } =
-            this
+        const {
+            selectedRowContent,
+            currentColumnFieldDescription,
+            grapherState,
+        } = this
         if (
             selectedRowContent === undefined ||
             currentColumnFieldDescription === undefined
@@ -422,7 +427,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             selectedRowContent.config as Record<string, unknown>
         )
         if (performCommit) {
-            const grapherObject = { ...this.grapher.object }
+            const grapherObject = { ...this.grapherState.object }
             const newVal = currentColumnFieldDescription.getter(
                 grapherObject as Record<string, unknown>
             )
@@ -438,7 +443,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             }
             void this.doAction({ patches: [patch] })
         } else {
-            setValueRecursiveInplace(grapher, pointer, prevVal)
+            setValueRecursiveInplace(grapherState, pointer, prevVal)
         }
 
         this.hasUncommitedRichEditorChanges = false
@@ -450,8 +455,11 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     @computed get editControl(): React.ReactElement | undefined {
-        const { currentColumnFieldDescription, grapher, selectedRowContent } =
-            this
+        const {
+            currentColumnFieldDescription,
+            grapherState,
+            selectedRowContent,
+        } = this
         if (
             currentColumnFieldDescription === undefined ||
             selectedRowContent === undefined
@@ -471,7 +479,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             .with(EditorOption.colorEditor, () => {
                 if (currentColumnFieldDescription?.pointer.startsWith("/map")) {
                     // TODO: remove this hack once map is more similar to other charts
-                    const mapChart = new MapChart({ manager: this.grapher })
+                    const mapChart = new MapChart({
+                        manager: this.grapherState,
+                    })
                     const colorScale = mapChart.colorScale
                     // TODO: instead of using onChange below that has to be maintained when
                     // the color scale changes I tried to use a reaction here after Daniel G's suggestion
@@ -494,9 +504,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         />
                     ) : undefined
                 } else {
-                    if (grapher.chartInstanceExceptMap.colorScale) {
+                    if (grapherState.chartInstanceExceptMap.colorScale) {
                         const colorScale =
-                            grapher.chartInstanceExceptMap.colorScale
+                            grapherState.chartInstanceExceptMap.colorScale
                         // TODO: instead of using onChange below that has to be maintained when
                         // the color scale changes I tried to use a reaction here after Daniel G's suggestion
                         // but I couldn't get this to work. Worth trying again later.
@@ -509,14 +519,14 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                             <EditorColorScaleSection
                                 scale={colorScale}
                                 chartType={
-                                    grapher.chartType ??
+                                    grapherState.chartType ??
                                     GRAPHER_CHART_TYPES.LineChart
                                 }
                                 features={{
                                     visualScaling: true,
                                     legendDescription: false,
                                 }}
-                                showLineChartColors={grapher.isLineChart}
+                                showLineChartColors={grapherState.isLineChart}
                                 onChange={this.onGenericRichEditorChange}
                             />
                         )
@@ -526,7 +536,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             .with(EditorOption.textfield, EditorOption.textarea, () => (
                 <CodeMirror
                     value={currentColumnFieldDescription.getter(
-                        grapher as any as Record<string, unknown>
+                        grapherState as any as Record<string, unknown>
                     )}
                     options={{
                         //theme: "material",
@@ -581,7 +591,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 )
             }
         }
-        if (this.selectedRow) this.updatePreviewToRow()
+        if (this.selectedRow) void this.updatePreviewToRow()
         await this.sendPatches(action.patches)
     }
 
@@ -834,7 +844,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         if (row1 !== this.selectedRow) {
             this.hasUncommitedRichEditorChanges = false
             this.selectedRow = row1
-            this.updatePreviewToRow()
+            void this.updatePreviewToRow()
         }
         this.selectionEndRow = row2
         if (column1 !== this.selectedColumn) {
@@ -1072,7 +1082,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 prevVal = fieldDesc.getter(
                     row.config as Record<string, unknown>
                 )
-                const grapherObject = { ...this.grapher.object }
+                const grapherObject = { ...this.grapherState.object }
                 newVal = fieldDesc.getter(
                     grapherObject as Record<string, unknown>
                 )
@@ -1636,7 +1646,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     renderPreviewArea(): React.ReactElement {
-        const { grapherElement } = this
+        const { grapherState } = this
         return (
             <div className="preview">
                 <h5>Interactive grapher preview</h5>
@@ -1648,7 +1658,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         value={this.keepEntitySelectionOnChartChange}
                         onValue={this.setKeepEntitySelectionOnChartChange}
                     />
-                    {grapherElement ? grapherElement : null}
+                    <Grapher grapherState={grapherState} />
                 </details>
             </div>
         )

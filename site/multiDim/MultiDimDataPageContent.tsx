@@ -5,6 +5,8 @@ import * as Sentry from "@sentry/react"
 import {
     Grapher,
     GrapherAnalytics,
+    GrapherState,
+    getCachingInputTableFetcher,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import {
@@ -51,7 +53,6 @@ const isIframe = isInIFrame()
 const baseGrapherConfig: GrapherProgrammaticInterface = {
     bakedGrapherURL: BAKED_GRAPHER_URL,
     adminBaseUrl: ADMIN_BASE_URL,
-    dataApiUrl: DATA_API_URL,
     canHideExternalControlsInEmbed: true,
 }
 
@@ -105,12 +106,16 @@ export function DataPageContent({
     tagToSlugMap,
     imageMetadata,
 }: MultiDimDataPageContentProps) {
-    const grapherRef = useRef<Grapher | null>(null)
+    const grapherStateRef = useRef<GrapherState>(new GrapherState({}))
     const grapherFigureRef = useRef<HTMLDivElement>(null)
     const [searchParams, setSearchParams] = useSearchParams()
-    const [manager, setManager] = useState({})
     const [varDatapageData, setVarDatapageData] =
         useState<VariableDataPageData | null>(null)
+    const inputTableFetcher = useMemo(
+        () => getCachingInputTableFetcher(DATA_API_URL, undefined),
+        []
+    )
+
     const titleFragments = useTitleFragments(config)
 
     const settings = useMemo(() => {
@@ -123,7 +128,7 @@ export function DataPageContent({
 
     const updateGrapher = useCallback(
         (
-            grapher: Grapher,
+            grapherState: GrapherState,
             settings: MultiDimDimensionChoices,
             grapherQueryParams: GrapherQueryParams
         ) => {
@@ -147,6 +152,7 @@ export function DataPageContent({
                 }
             })
             const grapherConfigUuid = newView.fullConfigId
+
             const grapherConfigPromise = cachedGetGrapherConfigByUuid(
                 grapherConfigUuid,
                 isPreviewing ?? false
@@ -156,10 +162,9 @@ export function DataPageContent({
                 variables?.length === 1
                     ? `variables/${variables[0].id}/config`
                     : undefined
-            setManager((prev) => ({ ...prev, editUrl }))
 
             void Promise.allSettled([datapageDataPromise, grapherConfigPromise])
-                .then(([datapageData, grapherConfig]) => {
+                .then(async ([datapageData, grapherConfig]) => {
                     if (datapageData.status === "rejected")
                         throw new Error(
                             `Fetching variable by uuid failed: ${grapherConfigUuid}`,
@@ -171,6 +176,15 @@ export function DataPageContent({
                             ...grapherConfig.value,
                             ...baseGrapherConfig,
                         }
+                        if (config.manager) config.manager.editUrl = editUrl
+                        else config.manager = { editUrl }
+                        void inputTableFetcher(
+                            grapherConfig.value.dimensions!,
+                            grapherConfig.value.selectedEntityColors
+                        ).then((inputTable) => {
+                            if (inputTable) grapherState.inputTable = inputTable
+                        })
+
                         if (slug) {
                             config.slug = slug // Needed for the URL used for sharing.
                         }
@@ -179,22 +193,24 @@ export function DataPageContent({
                         // multiple times while flashing.
                         // https://stackoverflow.com/a/48610973/9846837
                         unstable_batchedUpdates(() => {
-                            grapher.setAuthoredVersion(config)
-                            grapher.reset()
-                            grapher.updateFromObject(config)
-                            grapher.downloadData()
-                            grapher.populateFromQueryParams(grapherQueryParams)
+                            grapherState.setAuthoredVersion(config)
+                            grapherState.reset()
+                            grapherState.updateFromObject(config)
+
+                            grapherState.populateFromQueryParams(
+                                grapherQueryParams
+                            )
                         })
                     }
                 })
                 .catch(Sentry.captureException)
         },
-        [config, isPreviewing, slug]
+        [config, inputTableFetcher, isPreviewing, slug]
     )
 
     const handleSettingsChange = useCallback(
         (settings: MultiDimDimensionChoices) => {
-            const grapher = grapherRef.current
+            const grapher = grapherStateRef.current
             if (!grapher) return
 
             const { selectedChoices } =
@@ -220,9 +236,13 @@ export function DataPageContent({
 
     // Set state from query params on page load.
     useEffect(() => {
-        const grapher = grapherRef.current
+        const grapher = grapherStateRef.current
         if (!grapher) return
         const queryParams = Object.fromEntries(searchParams.entries())
+        // this is not taking into account what used to be passed as "manager"
+        grapher.externalBounds = bounds
+        grapher.bakedGrapherURL = BAKED_GRAPHER_URL
+        grapher.adminBaseUrl = ADMIN_BASE_URL
         updateGrapher(grapher, settings, queryParams)
         // NOTE (Martin): This is the only way I was able to set the initial
         // state on page load. Reconsider after the Grapher state refactor, i.e.
@@ -233,8 +253,8 @@ export function DataPageContent({
 
     // De-mobx grapher.changedParams by transforming it into React state
     const grapherChangedParams = useMobxStateToReactState(
-        useCallback(() => grapherRef.current?.changedParams, []),
-        !!grapherRef.current
+        useCallback(() => grapherStateRef.current?.changedParams, []),
+        !!grapherStateRef.current
     )
 
     useEffect(() => {
@@ -247,8 +267,8 @@ export function DataPageContent({
     }, [grapherChangedParams, settings, setSearchParams])
 
     const grapherCurrentTitle = useMobxStateToReactState(
-        useCallback(() => grapherRef.current?.currentTitle, []),
-        !!grapherRef.current
+        useCallback(() => grapherStateRef.current?.currentTitle, []),
+        !!grapherStateRef.current
     )
 
     useEffect(() => {
@@ -258,6 +278,12 @@ export function DataPageContent({
     }, [grapherCurrentTitle])
 
     const bounds = useElementBounds(grapherFigureRef)
+
+    useEffect(() => {
+        if (bounds) {
+            grapherStateRef.current.externalBounds = bounds
+        }
+    }, [bounds])
 
     const hasTopicTags = !!config.config.topicTags?.length
 
@@ -326,10 +352,7 @@ export function DataPageContent({
                         >
                             <figure data-grapher-src ref={grapherFigureRef}>
                                 <Grapher
-                                    ref={grapherRef}
-                                    {...baseGrapherConfig}
-                                    bounds={bounds}
-                                    manager={manager}
+                                    grapherState={grapherStateRef.current}
                                 />
                             </figure>
                         </div>

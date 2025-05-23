@@ -8,6 +8,8 @@ import {
     removeTrailingParenthetical,
     slugify,
     Url,
+    countriesByName,
+    incomeGroupsByName,
 } from "@ourworldindata/utils"
 import * as Sentry from "@sentry/node"
 import {

@@ -594,6 +594,7 @@ export {
     FeaturedMetricsTableName,
     type DbPlainFeaturedMetricWithParentTagName,
     type FeaturedMetricByParentTagNameDictionary,
+    type ExpandedFeaturedMetric,
 } from "./dbTypes/FeaturedMetrics.js"
 export {
     type DbEnrichedMultiDimDataPage,

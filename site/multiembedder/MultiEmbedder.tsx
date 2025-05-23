@@ -2,7 +2,6 @@ import {
     getSelectedEntityNamesParam,
     GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
     GLOBAL_ENTITY_SELECTOR_ELEMENT,
-    Grapher,
     GrapherProgrammaticInterface,
     GRAPHER_EMBEDDED_FIGURE_ATTR,
     GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR,
@@ -11,6 +10,7 @@ import {
     SelectionArray,
     migrateGrapherConfigToLatestVersion,
     GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR,
+    renderGrapherIntoContainer,
 } from "@ourworldindata/grapher"
 import {
     fetchText,
@@ -44,7 +44,7 @@ import {
     GRAPHER_DYNAMIC_CONFIG_URL,
     MULTI_DIM_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
-import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
+// import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
 import { match } from "ts-pattern"
 import MultiDim from "../multiDim/MultiDim.js"
 
@@ -172,7 +172,6 @@ class MultiEmbedder {
             queryStr,
             adminBaseUrl: ADMIN_BASE_URL,
             bakedGrapherURL: BAKED_GRAPHER_URL,
-            dataApiUrl: DATA_API_URL,
         }
 
         const fetchedGrapherPageConfig = await fetchWithRetry(configUrl).then(
@@ -215,12 +214,13 @@ class MultiEmbedder {
         if (config.manager?.selection)
             this.graphersAndExplorersToUpdate.add(config.manager.selection)
 
-        const grapherRef = Grapher.renderGrapherIntoContainer(config, figure)
+        renderGrapherIntoContainer(config, figure, DATA_API_URL)
 
         // Special handling for shared collections
-        if (window.location.pathname.startsWith("/collection/custom")) {
-            embedDynamicCollectionGrapher(grapherRef, figure)
-        }
+        // TODO: re-enable this
+        // if (window.location.pathname.startsWith("/collection/custom")) {
+        //     embedDynamicCollectionGrapher(grapherRef, figure)
+        // }
     }
 
     async renderGrapherIntoFigure(figure: Element) {

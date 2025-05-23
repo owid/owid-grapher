@@ -34,7 +34,8 @@ export function embedDynamicCollectionGrapher(
     const interval = setInterval(() => {
         if (grapherRef.current) {
             const originalSlug =
-                grapherRef.current.slug + grapherRef.current.queryStr
+                grapherRef.current.grapherState.slug +
+                grapherRef.current.grapherState.queryStr
 
             const index = figure.getAttribute("data-grapher-index")
 
@@ -72,7 +73,7 @@ export class DynamicCollection extends React.Component<DynamicCollectionProps> {
                 slugsAndQueryStrings[index] = encodeURIComponent(withoutIndex)
             } else {
                 slugsAndQueryStrings[index] = encodeURIComponent(
-                    `${grapher.slug}${grapher.queryStr}`
+                    `${grapher.grapherState.slug}${grapher.grapherState.queryStr}`
                 )
             }
         }
