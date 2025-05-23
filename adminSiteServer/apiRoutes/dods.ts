@@ -49,12 +49,12 @@ export async function getDods(
     try {
         const dods = await dodDb.getDods(trx)
         res.set("Cache-Control", "no-store")
-        res.json({ dods })
+        return { dods }
     } catch (error) {
         console.error("Error fetching dods", error)
-        res.status(500).json({
-            error: { message: String(error), status: 500 },
-        })
+        return {
+            error: { message: String(error) },
+        }
     }
 }
 
@@ -70,12 +70,12 @@ export async function getParsedDods(
     try {
         const dods = await dodDb.getParsedDodsDictionary(trx)
         res.set("Cache-Control", "no-store")
-        res.json(dods)
+        return { dods }
     } catch (error) {
         console.error("Error fetching parsed dods", error)
-        res.status(500).json({
-            error: { message: String(error), status: 500 },
-        })
+        return {
+            error: { message: String(error) },
+        }
     }
 }
 
@@ -87,12 +87,12 @@ export async function getDodsUsage(
     try {
         const usage = await dodDb.getDodsUsage(trx)
         res.set("Cache-Control", "no-store")
-        res.json(usage)
+        return usage
     } catch (error) {
         console.error("Error fetching dods usage", error)
-        res.status(500).json({
-            error: { message: String(error), status: 500 },
-        })
+        return {
+            error: { message: String(error) },
+        }
     }
 }
 
@@ -106,9 +106,9 @@ export async function updateDod(
 
     try {
         if (!id || !content) {
-            return res.status(400).json({
-                error: { message: "Missing id or content", status: 400 },
-            })
+            return {
+                error: { message: "Missing id or content" },
+            }
         }
 
         const dod = await trx(DodsTableName)
@@ -122,12 +122,12 @@ export async function updateDod(
         await updateLinksFromInsertedDod(trx, id)
         await triggerStaticBuild(res.locals.user, `Dod ${id} updated`)
 
-        return res.json({ dod })
+        return { dod }
     } catch (error) {
         console.error("Error updating dod", error)
-        return res.status(500).json({
-            error: { message: String(error), status: 500 },
-        })
+        return {
+            error: { message: String(error) },
+        }
     }
 }
 
@@ -140,21 +140,21 @@ export async function deleteDod(
 
     try {
         if (!id) {
-            return res.status(400).json({
-                error: { message: "Missing id", status: 400 },
-            })
+            return {
+                error: { message: "Missing id" },
+            }
         }
 
         // dod links are deleted automatically by ON DELETE CASCADE
         await trx(DodsTableName).delete().where({ id })
         await triggerStaticBuild(res.locals.user, `Dod ${id} deleted`)
 
-        return res.json({ success: true })
+        return { success: true }
     } catch (error) {
         console.error("Error deleting dod", error)
-        return res.status(500).json({
-            error: { message: String(error), status: 500 },
-        })
+        return {
+            error: { message: String(error) },
+        }
     }
 }
 
@@ -167,14 +167,14 @@ export async function createDod(
 
     try {
         if (!content) {
-            return res.status(400).json({
-                error: { message: "Missing content", status: 400 },
-            })
+            return {
+                error: { message: "Missing content" },
+            }
         }
         if (!name) {
-            return res.status(400).json({
-                error: { message: "Missing name", status: 400 },
-            })
+            return {
+                error: { message: "Missing name" },
+            }
         }
 
         const result = await trx(DodsTableName).insert({
@@ -189,11 +189,11 @@ export async function createDod(
         await updateLinksFromInsertedDod(trx, id)
         await triggerStaticBuild(res.locals.user, `Dod ${name} created`)
 
-        return res.json({ success: true, id })
+        return { success: true, id }
     } catch (error) {
         console.error("Error creating dod", error)
-        return res.status(500).json({
-            error: { message: String(error), status: 500 },
-        })
+        return {
+            error: { message: String(error) },
+        }
     }
 }
