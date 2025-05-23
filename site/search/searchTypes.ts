@@ -215,6 +215,9 @@ type SetPageAction = {
     type: "setPage"
     page: number
 }
+type ResetAction = {
+    type: "reset"
+}
 
 export type SearchAction =
     | AddFilterAction
@@ -227,6 +230,7 @@ export type SearchAction =
     | SetQueryAction
     | SetStateAction
     | ToggleRequireAllCountriesAction
+    | ResetAction
 
 export interface SearchAutocompleteContextType {
     activeIndex: number
