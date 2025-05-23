@@ -190,6 +190,7 @@ export function MapProjectedDataPattern({
             patternId={makeProjectedDataPatternId(color, { forLegend })}
             color={color}
             scale={scale}
+            dotOpacity={forLegend ? 0.2 : undefined}
         />
     )
 }
