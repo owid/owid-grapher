@@ -2,7 +2,7 @@ import * as React from "react"
 import { useHistory, useLocation } from "react-router-dom"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { History } from "history"
+import type { History } from "history"
 
 import { GrapherInterface } from "@ourworldindata/utils"
 import { Admin } from "./Admin.js"
@@ -14,7 +14,7 @@ import {
 } from "./NarrativeChartEditor.js"
 import { NotFoundPage } from "./NotFoundPage.js"
 
-export default function CreateNarrativeChartEditorPage() {
+export function CreateNarrativeChartEditorPage() {
     const history = useHistory()
     const { search } = useLocation()
     const searchParams = new URLSearchParams(search)

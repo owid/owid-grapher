@@ -5380,7 +5380,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/history@npm:^4.7.11":
+"@types/history@npm:4, @types/history@npm:^4.7.11":
   version: 4.7.11
   resolution: "@types/history@npm:4.7.11"
   checksum: 10/1da529a3485f3015daf794effa3185493bf7dd2551c26932389c614f5a0aab76ab97645897d1eef9c74ead216a3848fcaa019f165bbd6e4b71da6eff164b4c68
@@ -10916,6 +10916,7 @@ __metadata:
     "@types/express": "npm:^4.17.14"
     "@types/fs-extra": "npm:^11.0.1"
     "@types/geojson": "npm:^7946.0.10"
+    "@types/history": "npm:4"
     "@types/html-to-text": "npm:^9.0.4"
     "@types/indefinite": "npm:^2.3.2"
     "@types/ini": "npm:^4"
@@ -10981,6 +10982,7 @@ __metadata:
     glob: "npm:^10.3.3"
     google-auth-library: "npm:^9.15.1"
     handsontable: "npm:^15.1.0"
+    history: "npm:4"
     html-to-text: "npm:^9.0.5"
     http-server: "npm:^14.1.1"
     husky: "npm:^9.0.11"
@@ -11216,7 +11218,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"history@npm:^4.9.0":
+"history@npm:4, history@npm:^4.9.0":
   version: 4.10.1
   resolution: "history@npm:4.10.1"
   dependencies:

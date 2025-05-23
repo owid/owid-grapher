@@ -1,7 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, runInAction, observable } from "mobx"
-import { History } from "history"
+import type { History } from "history"
 import { GrapherInterface } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"

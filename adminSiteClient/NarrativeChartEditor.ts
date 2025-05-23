@@ -1,4 +1,4 @@
-import { History } from "history"
+import type { History } from "history"
 import { computed, runInAction } from "mobx"
 import {
     AbstractChartEditor,
