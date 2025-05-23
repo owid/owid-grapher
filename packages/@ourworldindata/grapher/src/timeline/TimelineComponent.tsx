@@ -125,6 +125,12 @@ export class TimelineComponent extends React.Component<{
             targetEl.classed("endMarker")
         )
 
+        this.manager.dragTarget =
+            this.manager.startHandleTimeBound ===
+            this.manager.endHandleTimeBound
+                ? "end"
+                : this.dragTarget
+
         if (this.dragTarget === "both") logic.setDragOffsets(inputTime)
 
         this.onDrag(inputTime)
@@ -145,6 +151,8 @@ export class TimelineComponent extends React.Component<{
 
     @action.bound private onMouseUp(): void {
         this.dragTarget = undefined
+
+        this.manager.dragTarget = undefined
 
         if (this.manager.isPlaying) return
 
