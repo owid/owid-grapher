@@ -779,6 +779,16 @@ export class ChoroplethGlobe extends React.Component<{
                             forLegend
                         />
 
+                        {/* Patterns used by the map legend. These duplicate the patterns below,
+                            but use a legend-specific id */}
+                        {this.binColors.map((color) => (
+                            <MapProjectedDataPattern
+                                key={color}
+                                color={color}
+                                forLegend
+                            />
+                        ))}
+
                         {/* Pattern used by features */}
                         {this.binColors.map((color) => (
                             <MapProjectedDataPattern
