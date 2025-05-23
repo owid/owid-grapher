@@ -1119,7 +1119,7 @@ export class Grapher
 
     @computed get createNarrativeChartUrl(): string | undefined {
         const adminPath = this.manager?.adminCreateNarrativeChartPath
-        if (this.showAdminControls && adminPath) {
+        if (this.showAdminControls && this.isPublished && adminPath) {
             return `${this.adminBaseUrl}/admin/${adminPath}`
         }
         return undefined
