@@ -123,13 +123,18 @@ export const SearchAutocomplete = ({
                     >
                         <button
                             id={`autocomplete-item-${index}`}
-                            data-prevent-onblur
                             type="button"
                             className={cx("search-autocomplete-button", {
                                 "search-autocomplete-button--active":
                                     index === activeIndex,
                             })}
-                            onClick={() => handleSelection(filter)}
+                            onMouseDown={
+                                // On mobile Safari, onBlur on the input doesn't
+                                // register the e.relatedTarget coming from an
+                                // onClick event on these buttons. So we use
+                                // onMouseDown to get there before onBlur.
+                                () => handleSelection(filter)
+                            }
                             onMouseEnter={() => setActiveIndex(index)}
                         >
                             <SearchAutocompleteItemContents
