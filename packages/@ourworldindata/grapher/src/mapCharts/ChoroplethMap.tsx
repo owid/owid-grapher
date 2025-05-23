@@ -509,6 +509,10 @@ export class ChoroplethMap extends React.Component<{
 
     //                 this.manager.globeController?.jumpToCoords(coords)
     //                 this.manager.globeController?.showGlobe()
+
+    //  this.manager.logGrapherInteractionEvent?.(
+    //     "map_pinch_to_zoom"
+    // )
     //             }
     //         }
 

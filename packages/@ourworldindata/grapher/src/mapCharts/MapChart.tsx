@@ -69,6 +69,7 @@ import { GlobeController } from "./GlobeController"
 import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { isOnTheMap } from "./MapHelpers.js"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
+import { GrapherInteractionEvent } from "../core/GrapherAnalytics"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -235,7 +236,7 @@ export class MapChart
             const featureId = feature.id as string
             this.hoverFeatureId = featureId
             this.tooltipState.target = { featureId }
-            this.manager.logGrapherHoverEvent?.("map_country", featureId)
+            this.logGrapherInteractionEvent("map_country_hover", featureId)
         }
     }
 
@@ -277,8 +278,15 @@ export class MapChart
         document.removeEventListener("keydown", this.onDocumentKeyDown)
     }
 
+    logGrapherInteractionEvent(
+        action: GrapherInteractionEvent,
+        target?: string
+    ): void {
+        this.manager.logGrapherInteractionEvent?.(action, target)
+    }
+
     @action.bound onLegendMouseEnter(bracket: MapBracket): void {
-        this.manager.logGrapherHoverEvent?.("map_legend", bracket.label)
+        this.logGrapherInteractionEvent("map_legend_hover", bracket.label)
     }
 
     @action.bound onLegendMouseOver(bracket: MapBracket): void {
