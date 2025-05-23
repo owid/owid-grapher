@@ -15,7 +15,9 @@ import {
     Url,
     countriesByName,
     FuzzySearch,
+    FuzzySearchResult,
 } from "@ourworldindata/utils"
+import { partition } from "remeda"
 import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
 import { getIndexName } from "./searchClient.js"
 import { SearchClient } from "algoliasearch"
@@ -25,8 +27,15 @@ import {
     DataCatalogSearchResult,
     SearchIndexName,
     SearchState,
+    Filter,
+    FilterType,
+    SearchAutocompleteContextType,
+    ScoredSearchResult,
 } from "./searchTypes.js"
-import { SiteAnalytics } from "../SiteAnalytics.js"
+import { faTag } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { match } from "ts-pattern"
+import { createContext, useContext } from "react"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -257,15 +266,48 @@ export function deserializeSet(str?: string): Set<string> {
     return str ? new Set(str.split("~")) : new Set()
 }
 
+export function getFilterNamesOfType(
+    filters: Filter[],
+    type: FilterType
+): Set<string> {
+    return new Set(
+        filters
+            .filter((filter) => filter.type === type)
+            .map((filter) => filter.name)
+    )
+}
+
+export const getFilterIcon = (filter: Filter) => {
+    return match(filter.type)
+        .with(FilterType.COUNTRY, () => (
+            <img
+                className="flag"
+                aria-hidden={true}
+                height={12}
+                width={16}
+                src={`/images/flags/${countriesByName()[filter.name].code}.svg`}
+            />
+        ))
+        .with(FilterType.TOPIC, () => (
+            <span className="icon">
+                <FontAwesomeIcon icon={faTag} />
+            </span>
+        ))
+        .otherwise(() => null)
+}
+
 export async function queryDataCatalogRibbons(
     searchClient: SearchClient,
     state: SearchState,
     tagGraph: TagGraphRoot
 ): Promise<DataCatalogRibbonResult[]> {
-    const topicsForRibbons = getTopicsForRibbons(state.topics, tagGraph)
+    const topicsForRibbons = getTopicsForRibbons(
+        getFilterNamesOfType(state.filters, FilterType.TOPIC),
+        tagGraph
+    )
 
     const countryFacetFilters = formatCountryFacetFilters(
-        state.selectedCountryNames,
+        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         state.requireAllCountries
     )
     const searchParams = topicsForRibbons.map((topic) => {
@@ -294,10 +336,15 @@ export async function queryDataCatalogSearch(
     state: SearchState
 ): Promise<DataCatalogSearchResult> {
     const facetFilters = formatCountryFacetFilters(
-        state.selectedCountryNames,
+        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         state.requireAllCountries
     )
-    facetFilters.push(...setToFacetFilters(state.topics, "tags"))
+    facetFilters.push(
+        ...setToFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.TOPIC),
+            "tags"
+        )
+    )
 
     const searchParams = [
         {
@@ -321,37 +368,195 @@ export async function queryDataCatalogSearch(
         )
 }
 
-export function useAutocomplete(
-    query: string,
+export function searchWithWords(
+    words: string[],
+    allCountryNames: string[],
     allTopics: string[],
-    appliedFilters: {
-        selectedCountryNames: Set<string>
-        selectedTopics: Set<string>
-    }
-): { name: string; type: "country" | "topic" }[] {
-    const sortOptions = {
-        threshold: 0.5,
-        limit: 3,
-    }
-    const allCountries = countriesByName()
-    const allCountryNames = Object.values(allCountries).map(
-        (country) => country.name
-    )
-    const lastWord = query.split(" ").at(-1) ?? ""
-    const countries = FuzzySearch.withKey(
+    selectedCountryNames: Set<string>,
+    selectedTopics: Set<string>,
+    sortOptions: { threshold: number; limit: number }
+): {
+    countryResults: ScoredSearchResult[]
+    topicResults: ScoredSearchResult[]
+    hasResults: boolean
+} {
+    const searchTerm = words.join(" ")
+
+    const countryResults = FuzzySearch.withKey(
         allCountryNames,
         (country) => country,
         sortOptions
     )
-        .search(lastWord)
-        .filter((country) => !appliedFilters.selectedCountryNames.has(country))
-        .map((name) => ({ name, type: "country" as const }))
-    const tags = FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
-        .search(lastWord)
-        .slice(0, 3)
-        .filter((topic) => !appliedFilters.selectedTopics.has(topic))
-        .map((name) => ({ name, type: "topic" as const }))
+        .searchResults(searchTerm)
+        .filter(
+            (result: FuzzySearchResult) =>
+                !selectedCountryNames.has(result.target)
+        )
+        .map((result: FuzzySearchResult) => ({
+            name: result.target,
+            score: result.score,
+        }))
 
-    return [...countries, ...tags]
+    const topicResults: ScoredSearchResult[] =
+        selectedTopics.size === 0
+            ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
+                  .searchResults(searchTerm)
+                  .map((result: FuzzySearchResult) => ({
+                      name: result.target,
+                      score: result.score,
+                  }))
+            : []
+
+    return {
+        countryResults,
+        topicResults,
+        hasResults: countryResults.length > 0 || topicResults.length > 0,
+    }
 }
-export const analytics = new SiteAnalytics()
+
+export function findMatches(
+    words: string[],
+    allCountryNames: string[],
+    allTopics: string[],
+    selectedCountryNames: Set<string>,
+    selectedTopics: Set<string>,
+    sortOptions: { threshold: number; limit: number },
+    wordIndex: number = 0
+): {
+    countryResults: ScoredSearchResult[]
+    topicResults: ScoredSearchResult[]
+    matchStartIndex: number
+} {
+    const wordsToSearch = words.slice(wordIndex)
+    const results = searchWithWords(
+        wordsToSearch,
+        allCountryNames,
+        allTopics,
+        selectedCountryNames,
+        selectedTopics,
+        sortOptions
+    )
+
+    if (results.hasResults) {
+        return {
+            countryResults: results.countryResults,
+            topicResults: results.topicResults,
+            matchStartIndex: wordIndex,
+        }
+    }
+
+    return wordIndex < words.length - 1
+        ? findMatches(
+              words,
+              allCountryNames,
+              allTopics,
+              selectedCountryNames,
+              selectedTopics,
+              sortOptions,
+              wordIndex + 1
+          )
+        : {
+              countryResults: [],
+              topicResults: [],
+              matchStartIndex: words.length,
+          }
+}
+
+export function getAutocompleteSuggestionsWithUnmatchedQuery(
+    query: string,
+    allTopics: string[],
+    filters: Filter[]
+): {
+    suggestions: Filter[]
+    unmatchedQuery: string
+} {
+    const sortOptions = {
+        threshold: 0.5,
+        limit: 3,
+    }
+    const selectedCountryNames = getFilterNamesOfType(
+        filters,
+        FilterType.COUNTRY
+    )
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+    const allCountries = countriesByName()
+    const allCountryNames = Object.values(allCountries).map(
+        (country) => country.name
+    )
+
+    const queryWords = query.trim().split(/\s+/)
+
+    if (!queryWords.length || queryWords[0] === "") {
+        return {
+            suggestions: [],
+            unmatchedQuery: "",
+        }
+    }
+
+    const searchResults = findMatches(
+        queryWords,
+        allCountryNames,
+        allTopics,
+        selectedCountryNames,
+        selectedTopics,
+        sortOptions
+    )
+
+    const unmatchedQuery = queryWords
+        .slice(0, searchResults.matchStartIndex)
+        .join(" ")
+
+    const countryMatches = searchResults.countryResults.map((result) => ({
+        filter: createCountryFilter(result.name),
+        score: result.score,
+    }))
+
+    const topicMatches = searchResults.topicResults.map((result) => ({
+        filter: createTopicFilter(result.name),
+        score: result.score,
+    }))
+
+    const allMatches = [...countryMatches, ...topicMatches]
+
+    const [exactMatches, partialMatches] = partition(
+        allMatches,
+        (item) => item.score === 1
+    )
+
+    const sortedPartialMatches = partialMatches.sort(
+        (a, b) => b.score - a.score
+    )
+
+    const combinedFilters = [
+        ...exactMatches.map((item) => item.filter),
+        ...(query ? [createQueryFilter(query)] : []),
+        ...sortedPartialMatches.map((item) => item.filter),
+    ]
+
+    return {
+        suggestions: combinedFilters,
+        unmatchedQuery,
+    }
+}
+
+export function createFilter(type: FilterType) {
+    return (name: string): Filter => ({ type, name })
+}
+
+export const createCountryFilter = createFilter(FilterType.COUNTRY)
+export const createTopicFilter = createFilter(FilterType.TOPIC)
+export const createQueryFilter = createFilter(FilterType.QUERY)
+
+export const SearchAutocompleteContext = createContext<
+    SearchAutocompleteContextType | undefined
+>(undefined)
+
+export function useSearchAutocomplete() {
+    const context = useContext(SearchAutocompleteContext)
+    if (context === undefined) {
+        throw new Error(
+            "useSearchAutocomplete must be used within a SearchAutocompleteContextProvider"
+        )
+    }
+    return context
+}

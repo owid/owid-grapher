@@ -154,13 +154,37 @@ export type DataCatalogCache = {
     search: Map<string, DataCatalogSearchResult>
 }
 
+export type ScoredSearchResult = {
+    name: string
+    score: number
+}
+
+export enum FilterType {
+    COUNTRY = "country",
+    TOPIC = "topic",
+    QUERY = "query",
+}
+
+export type Filter = {
+    type: FilterType
+    name: string
+}
+
 export type SearchState = Readonly<{
     query: string
-    topics: Set<string>
-    selectedCountryNames: Set<string>
+    filters: Filter[]
     requireAllCountries: boolean
     page: number
 }>
+
+type AddFilterAction = {
+    type: "addFilter"
+    filter: Filter
+}
+type RemoveFilterAction = {
+    type: "removeFilter"
+    filter: Filter
+}
 type AddTopicAction = {
     type: "addTopic"
     topic: string
@@ -192,8 +216,13 @@ type SetPageAction = {
     type: "setPage"
     page: number
 }
+type ResetAction = {
+    type: "reset"
+}
 
 export type SearchAction =
+    | AddFilterAction
+    | RemoveFilterAction
     | AddCountryAction
     | AddTopicAction
     | RemoveCountryAction
@@ -202,3 +231,15 @@ export type SearchAction =
     | SetQueryAction
     | SetStateAction
     | ToggleRequireAllCountriesAction
+    | ResetAction
+
+export interface SearchAutocompleteContextType {
+    activeIndex: number
+    setActiveIndex: (index: number) => void
+    suggestions: Filter[]
+    setSuggestions: (suggestions: Filter[]) => void
+    showSuggestions: boolean
+    setShowSuggestions: (isOpen: boolean) => void
+    onSelectActiveItem: () => void
+    registerSelectionHandler: (handler: (filter: Filter) => void) => void
+}

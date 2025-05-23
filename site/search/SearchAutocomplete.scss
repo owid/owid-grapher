@@ -1,0 +1,34 @@
+.search-autocomplete-container {
+    position: absolute;
+    background-color: white;
+    padding: 8px;
+    border-top: 2px solid $blue-5;
+    width: 100%;
+    top: 100%;
+    left: 0;
+    box-shadow: $box-shadow-xl;
+
+    li {
+        list-style: none;
+    }
+}
+
+.search-autocomplete-item {
+    &:hover {
+        background-color: $blue-5;
+        color: $blue-90;
+    }
+}
+
+.search-autocomplete-button {
+    width: 100%;
+    padding: 8px;
+    text-align: left;
+    background-color: transparent;
+}
+
+.search-autocomplete-button--active {
+    background-color: $blue-5;
+    color: $blue-90;
+    outline: none;
+}
