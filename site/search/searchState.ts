@@ -78,6 +78,10 @@ export function searchReducer(
             page,
         }))
         .with({ type: "setState" }, ({ state }) => state)
+        .with({ type: "reset" }, () => ({
+            ...state,
+            ...getInitialSearchState(),
+        }))
         .exhaustive()
 }
 
@@ -94,6 +98,7 @@ export function createActions(dispatch: (action: SearchAction) => void) {
         setQuery: (query: string) => dispatch({ type: "setQuery", query }),
         setState: (state: SearchState) => dispatch({ type: "setState", state }),
         toggleRequireAllCountries: () => dispatch({ type: "toggleRequireAllCountries" }),
+        reset: () => dispatch({ type: "reset" }),
     }
 }
 

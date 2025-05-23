@@ -166,6 +166,7 @@ export const Search = ({
                         toggleRequireAllCountries={
                             actions.toggleRequireAllCountries
                         }
+                        reset={actions.reset}
                     />
                 </div>
             </div>
