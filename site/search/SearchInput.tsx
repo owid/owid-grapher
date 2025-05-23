@@ -117,10 +117,7 @@ export const SearchInput = ({
                         setShowSuggestions(true)
                         setActiveIndex(value ? 0 : -1)
                     }}
-                    onBlur={(e) => {
-                        const recipient = e.relatedTarget
-                        if (recipient?.hasAttribute("data-prevent-onblur"))
-                            return
+                    onBlur={() => {
                         setShowSuggestions(false)
                     }}
                 />
