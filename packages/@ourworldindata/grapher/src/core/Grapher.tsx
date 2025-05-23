@@ -224,7 +224,7 @@ import {
     EntitySelectorEvent,
     GrapherAnalytics,
     GrapherAnalyticsContext,
-    GrapherHoverEvent,
+    GrapherInteractionEvent,
     GrapherImageDownloadEvent,
 } from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
@@ -2824,8 +2824,11 @@ export class Grapher
         })
     }
 
-    logGrapherHoverEvent(action: GrapherHoverEvent, target?: string): void {
-        this.analytics.logGrapherHoverEvent(action, {
+    logGrapherInteractionEvent(
+        action: GrapherInteractionEvent,
+        target?: string
+    ): void {
+        this.analytics.logGrapherInteractionEvent(action, {
             ...this.analyticsContext,
             target,
         })

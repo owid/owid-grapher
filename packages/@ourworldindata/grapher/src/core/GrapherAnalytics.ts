@@ -52,7 +52,9 @@ export type GrapherImageDownloadEvent =
     | "chart_download_png"
     | "chart_download_svg"
 
-export type GrapherHoverEvent = "map_country" | "map_legend"
+export type GrapherInteractionEvent =
+    | "map_country_hover" // hover over a country in the map or on the globe
+    | "map_legend_hover" // hover over a legend item on the map tab
 
 export interface GrapherAnalyticsContext {
     slug?: string
@@ -172,8 +174,8 @@ export class GrapherAnalytics {
         })
     }
 
-    logGrapherHoverEvent(
-        action: GrapherHoverEvent,
+    logGrapherInteractionEvent(
+        action: GrapherInteractionEvent,
         ctx: GrapherAnalyticsContext & { target?: string }
     ): void {
         this.logToGA({
