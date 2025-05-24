@@ -807,33 +807,42 @@ p.article-block__text + #article-licence {
     }
 }
 
-.article-block__aside-right figcaption {
-    border-left: 1px solid $blue-20;
-    padding-left: 24px;
-    a {
-        @include owid-link-90;
+figure[class*="article-block__aside"] {
+    position: relative;
+    margin: 0;
+
+    figcaption {
+        margin-bottom: 8px;
+        a {
+            @include owid-link-90;
+        }
+
+        @include md-up {
+            position: absolute;
+        }
+
+        @include md-down {
+            border-left: 1px solid $blue-20;
+            border-right: 1px solid $blue-20;
+            padding: 16px;
+            text-align: center;
+        }
     }
 
     @include md-down {
-        border: 1px solid $blue-20;
-        padding: 24px;
+        margin-bottom: 16px;
     }
+}
+
+.article-block__aside-right figcaption {
+    border-left: 1px solid $blue-20;
+    padding-left: 16px;
 }
 
 .article-block__aside-left figcaption {
     border-right: 1px solid $blue-20;
-    padding-right: 24px;
+    padding-right: 16px;
     text-align: right;
-    a {
-        @include owid-link-90;
-    }
-
-    // Same as aside-right when in a single-column mobile view
-    @include md-down {
-        border: 1px solid $blue-20;
-        padding: 24px;
-        text-align: left;
-    }
 }
 
 div.article-block__table--narrow,
