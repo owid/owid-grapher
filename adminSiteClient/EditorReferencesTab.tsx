@@ -188,7 +188,7 @@ export class EditorReferencesTabForNarrativeChart extends Component<{
     }
 
     @computed get narrativeChartConfigId() {
-        return this.props.editor.manager.idsAndName?.configId ?? ""
+        return this.props.editor.manager.configId ?? ""
     }
 
     render() {

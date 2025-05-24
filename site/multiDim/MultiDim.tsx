@@ -87,11 +87,15 @@ export default function MultiDim({
         }
 
         const variables = newView.indicators?.["y"]
-        const editUrl =
+        const adminEditPath =
             variables?.length === 1
                 ? `variables/${variables[0].id}/config`
                 : undefined
-        setManager((prev) => ({ ...prev, editUrl }))
+        setManager((prev) => ({
+            ...prev,
+            adminEditPath,
+            adminCreateNarrativeChartPath: `narrative-charts/create?type=multiDim&chartConfigId=${newView.fullConfigId}`,
+        }))
 
         const newGrapherParams: GrapherQueryParams = {
             ...grapher.changedParams,

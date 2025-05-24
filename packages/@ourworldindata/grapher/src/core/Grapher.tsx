@@ -354,7 +354,8 @@ export interface GrapherManager {
     canonicalUrl?: string
     selection?: SelectionArray
     focusArray?: FocusArray
-    editUrl?: string
+    adminEditPath?: string
+    adminCreateNarrativeChartPath?: string
 }
 
 @observer
@@ -1110,8 +1111,16 @@ export class Grapher
     @computed get editUrl(): string | undefined {
         if (this.showAdminControls) {
             return `${this.adminBaseUrl}/admin/${
-                this.manager?.editUrl ?? `charts/${this.id}/edit`
+                this.manager?.adminEditPath ?? `charts/${this.id}/edit`
             }`
+        }
+        return undefined
+    }
+
+    @computed get createNarrativeChartUrl(): string | undefined {
+        const adminPath = this.manager?.adminCreateNarrativeChartPath
+        if (this.showAdminControls && this.isPublished && adminPath) {
+            return `${this.adminBaseUrl}/admin/${adminPath}`
         }
         return undefined
     }

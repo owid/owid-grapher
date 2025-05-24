@@ -5,10 +5,12 @@
  */
 
 import * as React from "react"
+import { useState } from "react"
 import { bind } from "decko"
 import { action } from "mobx"
 import { observer } from "mobx-react"
 import cx from "classnames"
+import { useTimeout } from "usehooks-ts"
 
 import {
     pick,
@@ -1312,15 +1314,15 @@ export const CatalogPathField = ({
     )
 }
 
-@observer
-export class LoadingBlocker extends React.Component {
-    render() {
-        return (
-            <div className="LoadingBlocker">
-                <FontAwesomeIcon icon={faCog} spin fixedWidth size="3x" />
-            </div>
-        )
-    }
+export function LoadingBlocker() {
+    const [isVisible, setIsVisible] = useState(false)
+    useTimeout(() => setIsVisible(true), 200)
+    if (!isVisible) return null
+    return (
+        <div className="LoadingBlocker">
+            <FontAwesomeIcon icon={faCog} spin fixedWidth size="3x" />
+        </div>
+    )
 }
 
 @observer

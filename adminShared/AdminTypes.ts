@@ -4,8 +4,9 @@ export interface ApiNarrativeChartOverview {
     id: number
     name: string
     parent: {
-        id: number
+        type: "chart" | "multiDim"
         title: string
+        url: string | null
     }
     updatedAt: string | null
     lastEditedByUser: string | null
