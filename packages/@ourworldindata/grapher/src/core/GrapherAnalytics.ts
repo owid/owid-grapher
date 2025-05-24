@@ -16,6 +16,7 @@ export enum EventCategory {
     GrapherClick = "owid.grapher_click",
     GrapherError = "owid.grapher_error",
     ExplorerView = "owid.explorer_view",
+    Expander = "owid.expander",
     ExplorerCountrySelector = "owid.explorer_country_selector",
     Hover = "owid.hover",
     KeyboardShortcut = "owid.keyboard_shortcut",

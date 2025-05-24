@@ -213,6 +213,24 @@ export type EnrichedBlockChartStory = {
     items: EnrichedChartStoryItem[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockExpander = {
+    type: "expander"
+    value: {
+        heading?: string
+        title?: string
+        subtitle?: string
+        content?: OwidRawGdocBlock[]
+    }
+}
+
+export type EnrichedBlockExpander = {
+    type: "expander"
+    heading?: string
+    title: string
+    subtitle?: string
+    content: OwidEnrichedGdocBlock[]
+} & EnrichedBlockWithParseErrors
+
 export enum BlockImageSize {
     Narrow = "narrow",
     Wide = "wide",
@@ -992,6 +1010,7 @@ export type OwidRawGdocBlock =
     | RawBlockAside
     | RawBlockCallout
     | RawBlockChart
+    | RawBlockExpander
     | RawBlockNarrativeChart
     | RawBlockCode
     | RawBlockDonorList
@@ -1045,6 +1064,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockAside
     | EnrichedBlockCallout
     | EnrichedBlockChart
+    | EnrichedBlockExpander
     | EnrichedBlockNarrativeChart
     | EnrichedBlockCode
     | EnrichedBlockDonorList
