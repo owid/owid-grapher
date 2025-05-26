@@ -85,6 +85,34 @@ export const isContinentsVariableId = (id: string | number): boolean =>
 const population_regex =
     /^grapher\/demography\/[\d-]+\/population\/(population#population|historical#population_historical)$/
 
+/**
+ * Manually configured list of sources that define geographic regions.
+ *
+ * By convention, entities are named with the format 'RegionName (Source)',
+ * such as 'Africa (UN)' or 'Africa (FAO)'.
+ *
+ * These source identifiers are used to compile group of regions for the
+ * filter dropdown in the entity selector and on the data tab.
+ *
+ * Ideally, all regions would be defined in the ETL's regions file,
+ * but currently we need to maintain this manual configuration until the
+ * regions file is more complete.
+ */
+export const CUSTOM_REGION_SOURCE_IDS = [
+    "un",
+    "fao",
+    "ei",
+    "pip",
+    "ember",
+    "gcp",
+    "niaid",
+    "unicef",
+    "unaids",
+    "undp",
+    "wid",
+    "oecd",
+] as const
+
 export const isPopulationVariableETLPath = (path: string): boolean => {
     return population_regex.test(path)
 }
