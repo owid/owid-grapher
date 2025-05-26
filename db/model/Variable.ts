@@ -826,9 +826,7 @@ export const fetchS3MetadataByPath = async (
         throw new Error(
             `Error parsing JSON from response for ${metadataPath}: ${
                 error.message
-            }\nStatus Code: ${resp.status} ${
-                resp.statusText
-            }\nResponse Body: ${await resp.text()}`
+            }\nStatus Code: ${resp.status} ${resp.statusText}`
         )
     }
 }
