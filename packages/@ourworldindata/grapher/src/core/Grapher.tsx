@@ -1529,7 +1529,7 @@ export class Grapher
         }
     }
 
-    @computed private get entitySelector(): EntitySelector {
+    @computed get entitySelector(): EntitySelector {
         const entitySelectorArray = this.isOnMapTab
             ? this.mapConfig.selection
             : this.selection
@@ -1614,7 +1614,8 @@ export class Grapher
     ): void {
         if (isMapTab(newTab) || isChartTab(newTab)) {
             const { mapColumnSlug, entitySelector } = this
-            const { interpolatedSortColumnsBySlug } = this.entitySelectorState
+            const { interpolatedSortColumnsBySlug, entityFilter } =
+                this.entitySelectorState
             const sortSlug = entitySelector.sortConfig.slug
 
             // the map and chart tab might have a different set of sort columns;
@@ -1622,6 +1623,14 @@ export class Grapher
             if (!entitySelector.isSortSlugValid(sortSlug)) {
                 this.entitySelectorState.sortConfig =
                     entitySelector.getDefaultSortConfig()
+            }
+
+            // the map and chart tab might have a different set of entity filters;
+            // if the currently selected entity filter is invalid, reset it
+            if (entityFilter) {
+                if (!this.entitySelector.isEntityFilterValid(entityFilter)) {
+                    this.entitySelectorState.entityFilter = undefined
+                }
             }
 
             // the map column slug might be interpolated with different
