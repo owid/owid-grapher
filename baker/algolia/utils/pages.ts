@@ -4,13 +4,9 @@ import { chunkParagraphs } from "../../chunk.js"
 import {
     countries,
     Country,
-    FormattedPost,
-    isEmpty,
     keyBy,
     OwidGdocType,
     type RawPageview,
-    PostRestApi,
-    DbPlainTag,
     OwidGdocPostInterface,
     ARCHVED_THUMBNAIL_FILENAME,
     DEFAULT_GDOC_FEATURED_IMAGE,
@@ -19,27 +15,18 @@ import {
     OwidGdocDataInsightInterface,
     OwidGdocAboutInterface,
 } from "@ourworldindata/utils"
-import { formatPost } from "../../formatWordpressPost.js"
 import { getAlgoliaClient } from "../configureAlgolia.js"
-import { htmlToText } from "html-to-text"
 import {
     PageRecord,
-    PageType,
     SearchIndexName,
     WordpressPageType,
 } from "../../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
-import {
-    getFullPost,
-    getPostTags,
-    getPostsFromSnapshots,
-} from "../../../db/model/Post.js"
 import { getIndexName } from "../../../site/search/searchClient.js"
 import { ObjectWithObjectID } from "@algolia/client-search"
 import { SearchIndex } from "algoliasearch"
 import { match, P } from "ts-pattern"
 import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"
-import { formatUrls } from "../../../site/formatting.js"
 import {
     BAKED_BASE_URL,
     CLOUDFLARE_IMAGES_URL,
@@ -76,96 +63,6 @@ function generateCountryRecords(
         const score = computePageScore(record)
         return { ...record, score }
     })
-}
-
-function generateChunksFromHtmlText(htmlString: string) {
-    const renderedPostText = htmlToText(htmlString, {
-        tables: true,
-        wordwrap: false,
-        selectors: [
-            // Ignore links, we only care about the text
-            { selector: "a", options: { ignoreHref: true } },
-
-            // Don't uppercase headings and table headers
-            ...["h1", "h2", "h3", "h4", "h5", "h6"].map((headingTag) => ({
-                selector: headingTag,
-                options: { uppercase: false },
-            })),
-            { selector: "table", options: { uppercaseHeaderCells: false } },
-
-            // Skip all images
-            { selector: "img", format: "skip" },
-        ],
-    })
-    return chunkParagraphs(renderedPostText, 1000)
-}
-
-async function generateWordpressRecords(
-    postsApi: PostRestApi[],
-    pageviews: Record<string, RawPageview>,
-    knex: db.KnexReadonlyTransaction
-): Promise<PageRecord[]> {
-    const getPostTypeAndImportance = (
-        post: FormattedPost,
-        tags: Pick<DbPlainTag, "name">[]
-    ): {
-        type: PageType
-        importance: number
-    } => {
-        if (post.slug.startsWith("about/") || post.slug === "about")
-            return { type: OwidGdocType.AboutPage, importance: 1 }
-        if (post.slug.match(/\bfaqs?\b/i))
-            return { type: WordpressPageType.Other, importance: 1 }
-        if (post.type === "post")
-            return { type: OwidGdocType.Article, importance: 0 }
-        if (tags.some((t) => t.name === "Entries"))
-            return { type: OwidGdocType.TopicPage, importance: 3 }
-
-        return { type: WordpressPageType.Other, importance: 0 }
-    }
-
-    const records: PageRecord[] = []
-
-    for (const postApi of postsApi) {
-        const rawPost = await getFullPost(knex, postApi)
-        if (isEmpty(rawPost.content)) {
-            // we have some posts that are only placeholders (e.g. for a redirect); don't index these
-            console.log(
-                `skipping post ${rawPost.slug} in search indexing because it's empty`
-            )
-            continue
-        }
-
-        const post = await formatPost(rawPost, { footnotes: false }, knex)
-        const chunks = generateChunksFromHtmlText(post.html)
-        const tags = await getPostTags(knex, post.id)
-        const postTypeAndImportance = getPostTypeAndImportance(post, tags)
-
-        let i = 0
-        for (const c of chunks) {
-            const record = {
-                objectID: `${rawPost.id}-c${i}`,
-                ...postTypeAndImportance,
-                slug: post.path,
-                title: post.title,
-                excerpt: post.excerpt,
-                authors: post.authors,
-                date: post.date.toISOString(),
-                modifiedDate: post.modifiedDate.toISOString(),
-                content: c,
-                tags: tags.map((t) => t.name),
-                thumbnailUrl: formatUrls(
-                    post.thumbnailUrl ?? `/${DEFAULT_THUMBNAIL_FILENAME}`
-                ),
-                views_7d: pageviews[`/${post.path}`]?.views_7d ?? 0,
-                documentType: "wordpress" as const,
-            }
-            const score = computePageScore(record)
-            records.push({ ...record, score })
-            i += 1
-        }
-    }
-    return records
 }
 
 const getThumbnailUrl = (
@@ -325,26 +222,7 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
         | OwidGdocDataInsightInterface
     )[]
 
-    const publishedGdocsBySlug = keyBy(gdocs, "slug")
-    const slugsWithPublishedGdocsSuccessors =
-        await db.getSlugsWithPublishedGdocsSuccessors(knex)
-    const postsApi = await getPostsFromSnapshots(knex, undefined, (post) => {
-        // Two things can happen here:
-        // 1. There's a published Gdoc with the same slug
-        // 2. This post has a Gdoc successor (which might have a different slug)
-        // In either case, we don't want to index this WP post
-        return !(
-            publishedGdocsBySlug[post.slug] ||
-            slugsWithPublishedGdocsSuccessors.has(post.slug)
-        )
-    })
-
     const countryRecords = generateCountryRecords(countries, pageviews)
-    const wordpressRecords = await generateWordpressRecords(
-        postsApi,
-        pageviews,
-        knex
-    )
     const cloudflareImagesByFilename = await db
         .getCloudflareImages(knex)
         .then((images) => keyBy(images, "filename"))
@@ -355,7 +233,7 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
         cloudflareImagesByFilename
     )
 
-    return [...countryRecords, ...wordpressRecords, ...gdocsRecords]
+    return [...countryRecords, ...gdocsRecords]
 }
 
 async function getExistingRecordsForSlug(

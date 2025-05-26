@@ -473,17 +473,6 @@ export const getRelatedArticles = async (
     )
 }
 
-export const getPostTags = async (
-    trx: db.KnexReadonlyTransaction,
-    postId: number
-): Promise<Pick<DbPlainTag, "id" | "name">[]> => {
-    return await trx
-        .table("post_tags")
-        .select("tags.id", "tags.name")
-        .where({ post_id: postId })
-        .join("tags", "tags.id", "=", "post_tags.tag_id")
-}
-
 export interface RelatedResearchQueryResult {
     title: string
     postSlug: string
