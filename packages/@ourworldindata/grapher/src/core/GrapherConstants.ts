@@ -154,3 +154,10 @@ export const grapherInterfaceWithHiddenTabs: GrapherProgrammaticInterface = {
 export const validChartTypeCombinations = [
     [GRAPHER_CHART_TYPES.LineChart, GRAPHER_CHART_TYPES.SlopeChart],
 ]
+
+export const SVG_STYLE_PROPS: React.CSSProperties = {
+    fontFamily:
+        "Lato, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif",
+    textRendering: "geometricPrecision",
+    WebkitFontSmoothing: "antialiased",
+}
