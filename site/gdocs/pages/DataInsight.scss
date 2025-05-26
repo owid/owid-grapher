@@ -82,8 +82,8 @@
 
 .data-insight-authors {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-wrap: wrap;
+    gap: 4px 16px;
     color: $blue-60;
     margin-bottom: 16px;
 }
