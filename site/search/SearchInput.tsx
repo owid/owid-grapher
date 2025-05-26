@@ -126,6 +126,19 @@ export const SearchInput = forwardRef(
                         onFocus={() => {
                             setShowSuggestions(true)
                             setActiveIndex(value ? 0 : -1)
+
+                            // Scroll to position the input near the top of the viewport on mobile
+                            if (
+                                isSmallScreen &&
+                                isCurrentMutableRef(inputRef)
+                            ) {
+                                const rect =
+                                    inputRef.current.getBoundingClientRect()
+                                window.scrollBy({
+                                    top: rect.top - 24,
+                                    behavior: "smooth",
+                                })
+                            }
                         }}
                         onBlur={() => {
                             setShowSuggestions(false)
