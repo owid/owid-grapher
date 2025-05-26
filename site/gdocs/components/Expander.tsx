@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React from "react"
 import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
@@ -14,23 +14,15 @@ export const Expander = (props: {
     subtitle?: string
 }) => {
     const { className } = props
-    const expanderRef = React.createRef<HTMLDetailsElement>()
-
-    useEffect(() => {
-        const expander = expanderRef.current
-        if (expander) {
-            expander.addEventListener("toggle", () => {
-                if (expander.open) {
-                    analytics.logExpanderOpen(props.title)
-                } else {
-                    analytics.logExpanderClose(props.title)
-                }
-            })
-        }
-    }, [expanderRef, props.title])
 
     return (
-        <details ref={expanderRef} className={cx("expander", className)}>
+        <details
+            onToggle={(e) => {
+                const isOpen = e.currentTarget.open
+                analytics.logExpanderToggle(props.title, isOpen)
+            }}
+            className={cx("expander", className)}
+        >
             <summary className="expander__summary">
                 {props.heading && (
                     <span className="body-3-bold expander__heading">

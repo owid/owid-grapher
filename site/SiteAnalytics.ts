@@ -117,18 +117,10 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logExpanderOpen(id: string) {
+    logExpanderToggle(id: string, isOpen: boolean) {
         this.logToGA({
             event: EventCategory.Expander,
-            eventAction: "open",
-            eventTarget: id,
-        })
-    }
-
-    logExpanderClose(id: string) {
-        this.logToGA({
-            event: EventCategory.Expander,
-            eventAction: "close",
+            eventAction: isOpen ? "open" : "close",
             eventTarget: id,
         })
     }

@@ -1083,7 +1083,7 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
             type: "recirc-link",
             url: link.url!,
         })),
-        parseErrors: [...linkErrors],
+        parseErrors: linkErrors,
     }
 }
 
@@ -1676,11 +1676,7 @@ function parseExpander(raw: RawBlockExpander): EnrichedBlockExpander {
             })
         }
     }
-    if (contentErrors.length > 0) {
-        return createError({
-            message: "Expander block content has errors",
-        })
-    }
+
     const enrichedContent = content.map(parseRawBlocksToEnrichedBlocks)
     const parseErrors = enrichedContent
         .flatMap((block) => block?.parseErrors)
@@ -1692,7 +1688,7 @@ function parseExpander(raw: RawBlockExpander): EnrichedBlockExpander {
         heading: raw.value.heading,
         subtitle: raw.value.subtitle,
         content: excludeNullish(enrichedContent),
-        parseErrors: [...parseErrors],
+        parseErrors: [...parseErrors, ...contentErrors],
     }
 }
 
