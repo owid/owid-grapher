@@ -1,7 +1,12 @@
 import { expect, it, describe } from "vitest"
 
 import { StackMode, TimeBoundValueStr } from "@ourworldindata/types"
-import { grapherConfigToQueryParams } from "./GrapherUrl.js"
+import {
+    grapherConfigToQueryParams,
+    grapherObjectToQueryParams,
+} from "./GrapherUrl.js"
+import { MapConfig } from "../mapCharts/MapConfig.js"
+import { Grapher } from "./Grapher.js"
 
 describe(grapherConfigToQueryParams, () => {
     it("should convert an empty grapher config to an empty object", () => {
@@ -77,5 +82,36 @@ describe(grapherConfigToQueryParams, () => {
             country: "USA~FRA",
             stackMode: "relative",
         })
+    })
+
+    it("ignores globe settings", () => {
+        expect(
+            grapherConfigToQueryParams({
+                map: new MapConfig(),
+            })
+        ).toEqual({ region: "World" })
+        expect(
+            grapherConfigToQueryParams({
+                map: new MapConfig({
+                    globe: { isActive: true, rotation: [-30, 20], zoom: 2 },
+                }),
+            })
+        ).toEqual({ region: "World" })
+    })
+})
+
+describe(grapherObjectToQueryParams, () => {
+    it("globe", () => {
+        const queryParams = grapherObjectToQueryParams(
+            new Grapher({
+                map: {
+                    globe: { isActive: true, rotation: [-30, 20], zoom: 2 },
+                },
+            })
+        )
+
+        expect(queryParams.globe).toBe("1")
+        expect(queryParams.globeRotation).toBe("-30,20")
+        expect(queryParams.globeZoom).toBe("2")
     })
 })

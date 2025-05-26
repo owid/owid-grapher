@@ -43,17 +43,24 @@ import {
     GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
     isPopulationVariableETLPath,
     isWorldEntityName,
+    MAP_GRAPHER_ENTITY_TYPE,
+    MAP_GRAPHER_ENTITY_TYPE_PLURAL,
 } from "../core/GrapherConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { SortIcon } from "../controls/SortIcon"
 import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
-import { ColumnSlug, OwidColumnDef, Time } from "@ourworldindata/types"
+import {
+    ColumnSlug,
+    EntityName,
+    OwidColumnDef,
+    Time,
+} from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
-import { FocusArray } from "../focus/FocusArray"
 import * as R from "remeda"
+import { MapConfig } from "../mapCharts/MapConfig"
 
 type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
@@ -76,8 +83,13 @@ export interface EntitySelectorManager {
     isEntitySelectorModalOrDrawerOpen?: boolean
     canChangeEntity?: boolean
     canHighlightEntities?: boolean
-    focusArray?: FocusArray
     endTime?: Time
+    isOnMapTab?: boolean
+    mapConfig?: MapConfig
+    mapColumnSlug?: ColumnSlug
+    onSelectEntity?: (entityName: EntityName) => void
+    onDeselectEntity?: (entityName: EntityName) => void
+    onClearEntities?: () => void
 }
 
 interface SortConfig {
@@ -164,8 +176,9 @@ const regionNamesSet = new Set(regions.map((region) => region.name))
 @observer
 export class EntitySelector extends React.Component<{
     manager: EntitySelectorManager
-    onDismiss?: () => void
+    selection?: SelectionArray
     autoFocus?: boolean
+    onDismiss?: () => void
 }> {
     static contextType = DrawerContext
 
@@ -173,13 +186,14 @@ export class EntitySelector extends React.Component<{
     searchField: React.RefObject<HTMLInputElement> = React.createRef()
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
 
-    private defaultSortConfig = {
+    private sortConfigName: SortConfig = {
         slug: this.table.entityNameSlug,
         order: SortOrder.asc,
     }
 
     componentDidMount(): void {
         void this.populateLocalEntities()
+        this.initSortConfig()
 
         if (this.props.autoFocus && !isTouchDevice())
             this.searchField.current?.focus()
@@ -226,6 +240,21 @@ export class EntitySelector extends React.Component<{
         }
     }
 
+    getDefaultSortConfig(): SortConfig {
+        // default to sorting by the first chart column on the map tab
+        if (this.manager.isOnMapTab && this.numericalChartColumns[0]) {
+            const { slug } = this.numericalChartColumns[0]
+            this.setInterpolatedSortColumnBySlug(slug)
+            return { slug, order: SortOrder.desc }
+        } else {
+            return this.sortConfigName
+        }
+    }
+
+    @action.bound initSortConfig(): void {
+        this.set({ sortConfig: this.getDefaultSortConfig() })
+    }
+
     @action.bound async populateLocalEntities(): Promise<void> {
         try {
             const localCountryInfo = await getUserCountryInformation()
@@ -260,14 +289,32 @@ export class EntitySelector extends React.Component<{
         }
     }
 
-    private setInterpolatedSortColumn(column?: CoreColumn): void {
-        if (!column) return
+    private setInterpolatedSortColumn(column: CoreColumn): void {
         this.set({
             interpolatedSortColumnsBySlug: {
                 ...this.interpolatedSortColumnsBySlug,
                 [column.slug]: column,
             },
         })
+    }
+
+    interpolateSortColumn(slug: ColumnSlug): CoreColumn {
+        // use map tolerance if on the map tab
+        const tolerance = this.manager.isOnMapTab
+            ? this.manager.mapConfig?.timeTolerance
+            : undefined
+        const toleranceStrategy = this.manager.isOnMapTab
+            ? this.manager.mapConfig?.toleranceStrategy
+            : undefined
+
+        return this.table
+            .interpolateColumnWithTolerance(slug, tolerance, toleranceStrategy)
+            .get(slug)
+    }
+
+    private setInterpolatedSortColumnBySlug(slug: ColumnSlug): void {
+        if (this.interpolatedSortColumnsBySlug[slug]) return
+        this.setInterpolatedSortColumn(this.interpolateSortColumn(slug))
     }
 
     private clearSearchInput(): void {
@@ -344,22 +391,27 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get title(): string {
-        return this.manager.canHighlightEntities
+        return this.manager.isOnMapTab
             ? `Select ${this.entityTypePlural}`
-            : this.manager.canChangeEntity
-              ? `Choose ${a(this.entityType)}`
-              : `Add/remove ${this.entityTypePlural}`
+            : this.manager.canHighlightEntities
+              ? `Select ${this.entityTypePlural}`
+              : this.manager.canChangeEntity
+                ? `Choose ${a(this.entityType)}`
+                : `Add/remove ${this.entityTypePlural}`
     }
 
     @computed private get searchInput(): string {
         return this.manager.entitySelectorState.searchInput ?? ""
     }
 
-    @computed private get sortConfig(): SortConfig {
+    @computed get sortConfig(): SortConfig {
         return (
-            this.manager.entitySelectorState.sortConfig ??
-            this.defaultSortConfig
+            this.manager.entitySelectorState.sortConfig ?? this.sortConfigName
         )
+    }
+
+    isSortSlugValid(slug: ColumnSlug): boolean {
+        return this.sortOptions.some((option) => option.value === slug)
     }
 
     @computed private get localEntityNames(): string[] | undefined {
@@ -404,7 +456,14 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get numericalChartColumns(): CoreColumn[] {
-        const activeSlugs = this.manager.activeColumnSlugs ?? []
+        const {
+            activeColumnSlugs = [],
+            mapColumnSlug,
+            isOnMapTab,
+        } = this.manager
+
+        const activeSlugs = isOnMapTab ? [mapColumnSlug] : activeColumnSlugs
+
         return activeSlugs
             .map((slug) => this.table.get(slug))
             .filter(
@@ -528,17 +587,21 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get entityType(): string {
+        if (this.manager.isOnMapTab) return MAP_GRAPHER_ENTITY_TYPE
         return this.manager.entityType || DEFAULT_GRAPHER_ENTITY_TYPE
     }
 
     @computed private get entityTypePlural(): string {
+        if (this.manager.isOnMapTab) return MAP_GRAPHER_ENTITY_TYPE_PLURAL
         return (
             this.manager.entityTypePlural || DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
         )
     }
 
     @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.selection)
+        return makeSelectionArray(
+            this.props.selection ?? this.manager.selection
+        )
     }
 
     @computed private get allEntitiesSelected(): boolean {
@@ -718,40 +781,53 @@ export class EntitySelector extends React.Component<{
         }
     }
 
+    @action.bound onDeselectEntities(entityNames: EntityName[]): void {
+        for (const entityName of entityNames) {
+            this.manager.onDeselectEntity?.(entityName)
+        }
+    }
+
     private timeoutId?: NodeJS.Timeout
-    @action.bound onChange(entityName: string): void {
+    @action.bound onChange(entityName: EntityName): void {
         if (this.isMultiMode) {
             this.selectionArray.toggleSelection(entityName)
-        } else {
-            this.selectionArray.setSelectedEntities([entityName])
-        }
 
-        // remove focus from an entity that has been removed from the selection
-        if (!this.selectionArray.selectedSet.has(entityName)) {
-            this.manager.focusArray?.remove(entityName)
+            if (this.selectionArray.selectedSet.has(entityName)) {
+                this.manager.onSelectEntity?.(entityName)
+            } else {
+                this.manager.onDeselectEntity?.(entityName)
+            }
+
+            if (this.selectionArray.numSelectedEntities === 0) {
+                this.manager.onClearEntities?.()
+            }
+        } else {
+            const dropEntityNames = this.selectionArray.selectedEntityNames
+            this.selectionArray.setSelectedEntities([entityName])
+            this.manager.onSelectEntity?.(entityName)
+            this.onDeselectEntities(dropEntityNames)
+
+            // close the modal or drawer automatically after selection
+            if (this.manager.isEntitySelectorModalOrDrawerOpen) {
+                this.timeoutId = setTimeout(() => this.close(), 200)
+            }
         }
 
         this.clearSearchInput()
-
-        // close the modal or drawer automatically after selection if in single mode
-        if (
-            !this.isMultiMode &&
-            this.manager.isEntitySelectorModalOrDrawerOpen
-        ) {
-            this.timeoutId = setTimeout(() => this.close(), 200)
-        }
     }
 
     @action.bound onClear(): void {
         const { partitionedSearchResults } = this
         if (this.searchInput) {
             const { selected = [] } = partitionedSearchResults ?? {}
-            const entityNames = selected.map((entity) => entity.name)
-            this.selectionArray.deselectEntities(entityNames)
-            this.manager.focusArray?.remove(...entityNames)
+            const dropEntityNames = selected.map((entity) => entity.name)
+            this.selectionArray.deselectEntities(dropEntityNames)
+            this.onDeselectEntities(dropEntityNames)
         } else {
+            const dropEntityNames = this.selectionArray.selectedEntityNames
             this.selectionArray.clearSelection()
-            this.manager.focusArray?.clear()
+            this.onDeselectEntities(dropEntityNames)
+            this.manager.onClearEntities?.()
         }
     }
 
@@ -794,15 +870,8 @@ export class EntitySelector extends React.Component<{
             if (external) await this.loadAndSetExternalSortColumn(external)
 
             // apply tolerance if an indicator is selected for the first time
-            if (
-                !external &&
-                !this.isEntityNameSlug(slug) &&
-                !this.interpolatedSortColumnsBySlug[slug]
-            ) {
-                const interpolatedColumn = this.table
-                    .interpolateColumnWithTolerance(slug)
-                    .get(slug)
-                this.setInterpolatedSortColumn(interpolatedColumn)
+            if (!external && !this.isEntityNameSlug(slug)) {
+                this.setInterpolatedSortColumnBySlug(slug)
             }
 
             this.updateSortSlug(slug)
@@ -924,7 +993,7 @@ export class EntitySelector extends React.Component<{
                             type={this.isMultiMode ? "checkbox" : "radio"}
                             checked={this.isEntitySelected(entity)}
                             bar={this.getBarConfigForEntity(entity)}
-                            onChange={() => this.onChange(entity.name)}
+                            onChange={this.onChange}
                             isLocal={entity.isLocal}
                         />
                     </li>
@@ -945,7 +1014,7 @@ export class EntitySelector extends React.Component<{
                             type="radio"
                             checked={this.isEntitySelected(entity)}
                             bar={this.getBarConfigForEntity(entity)}
-                            onChange={() => this.onChange(entity.name)}
+                            onChange={this.onChange}
                             isLocal={entity.isLocal}
                         />
                     </li>
@@ -1052,7 +1121,7 @@ export class EntitySelector extends React.Component<{
                                     type="checkbox"
                                     checked={true}
                                     bar={this.getBarConfigForEntity(entity)}
-                                    onChange={() => this.onChange(entity.name)}
+                                    onChange={this.onChange}
                                     isLocal={entity.isLocal}
                                 />
                             </FlippedListItem>
@@ -1085,9 +1154,7 @@ export class EntitySelector extends React.Component<{
                                             bar={this.getBarConfigForEntity(
                                                 entity
                                             )}
-                                            onChange={() =>
-                                                this.onChange(entity.name)
-                                            }
+                                            onChange={this.onChange}
                                             isLocal={entity.isLocal}
                                         />
                                     </FlippedListItem>
@@ -1146,7 +1213,7 @@ function SelectableEntity({
     checked: boolean
     type: "checkbox" | "radio"
     bar?: BarConfig
-    onChange: () => void
+    onChange: (entityName: EntityName) => void
     isLocal?: boolean
 }) {
     const Input = {
@@ -1182,7 +1249,11 @@ function SelectableEntity({
             {bar && bar.width !== undefined && (
                 <div className="bar" style={{ width: `${bar.width * 100}%` }} />
             )}
-            <Input label={label} checked={checked} onChange={onChange} />
+            <Input
+                label={label}
+                checked={checked}
+                onChange={() => onChange(name)}
+            />
             {bar && (
                 <span className="value grapher_label-1-regular">
                     {bar.formattedValue}

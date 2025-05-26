@@ -533,6 +533,16 @@ export enum MapRegionName {
     Oceania = "Oceania",
 }
 
+// 'World' doesn't make sense as a region for the globe
+export type GlobeRegionName = Exclude<MapRegionName, MapRegionName.World>
+
+export interface GlobeConfig {
+    isActive: boolean
+    rotation: [number, number]
+    zoom: number
+    focusCountry?: EntityName
+}
+
 export interface MapConfigInterface {
     columnSlug?: ColumnSlug
     time?: Time | TimeBoundValueStr
@@ -540,8 +550,13 @@ export interface MapConfigInterface {
     toleranceStrategy?: ToleranceStrategy
     hideTimeline?: boolean
     region?: MapRegionName
+    globe?: GlobeConfig
     colorScale?: Partial<ColorScaleConfigInterface>
     tooltipUseCustomLabels?: boolean
+
+    // should be `EntityName[] | SelectionArray` but SelectionArray isn't available here;
+    // only passed in for testing, so type safety isn't that much of a concern here
+    selection?: any
 }
 
 // This configuration represents the entire persistent state of a grapher
@@ -638,6 +653,10 @@ export type GrapherQueryParams = {
     uniformYAxis?: string
     showSelectionOnlyInTable?: string
     showNoDataArea?: string
+    globe?: string
+    globeRotation?: string
+    globeZoom?: string
+    mapSelect?: string
 }
 
 export type LegacyGrapherQueryParams = GrapherQueryParams & {
@@ -663,6 +682,10 @@ const GRAPHER_ALL_QUERY_PARAMS: Required<LegacyGrapherQueryParams> = {
     showSelectionOnlyInTable: "",
     showNoDataArea: "",
     year: "",
+    globe: "",
+    globeRotation: "",
+    globeZoom: "",
+    mapSelect: "",
 }
 export const GRAPHER_QUERY_PARAM_KEYS = Object.keys(
     GRAPHER_ALL_QUERY_PARAMS

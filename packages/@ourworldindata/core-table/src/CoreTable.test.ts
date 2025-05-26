@@ -301,6 +301,29 @@ germany,1400,500`)
 })
 
 describe("adding rows", () => {
+    describe("adding rows is immutable", () => {
+        const table = new CoreTable(sampleCsv)
+        expect(table.numRows).toEqual(4)
+
+        let expandedTable = table.appendRows(
+            [{ country: "Japan", population: 123 }],
+            `Added 1 row`
+        )
+        expect(expandedTable.numRows).toBe(5)
+        expect(table.numRows).toEqual(4)
+
+        it("can append rows", () => {
+            expandedTable = expandedTable
+                .renameColumns({ population: "pop" })
+                .appendRows(
+                    [{ country: "USA", pop: 321 }],
+                    "Added a row after column renaming"
+                )
+            expect(expandedTable.numRows).toEqual(6)
+            expect(expandedTable.rows[5].pop).toEqual(321)
+        })
+    })
+
     it("can drop rows", () => {
         const table = new CoreTable(sampleCsv)
         expect(table.dropRowsAt([0, 1, 3]).numRows).toEqual(1)

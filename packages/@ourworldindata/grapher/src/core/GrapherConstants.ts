@@ -24,6 +24,9 @@ export const GRAPHER_FOOTER_CLASS = "footer"
 export const DEFAULT_GRAPHER_ENTITY_TYPE = "country or region"
 export const DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL = "countries and regions"
 
+export const MAP_GRAPHER_ENTITY_TYPE = "country"
+export const MAP_GRAPHER_ENTITY_TYPE_PLURAL = "countries"
+
 export const GRAPHER_LOADED_EVENT_NAME = "grapherLoaded"
 
 export const DEFAULT_GRAPHER_WIDTH = 850
@@ -91,7 +94,8 @@ export const isPopulationVariableETLPath = (path: string): boolean => {
 
 export enum Patterns {
     noDataPattern = "noDataPattern",
-    noDataPatternForMapChart = "noDataPatternForMapChart",
+    noDataPatternForMap = "noDataPatternForMap",
+    noDataPatternForGlobe = "noDataPatternForGlobe",
 }
 
 export const grapherInterfaceWithHiddenControls: GrapherProgrammaticInterface =

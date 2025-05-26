@@ -14,7 +14,6 @@ import {
     sortBy,
 } from "@ourworldindata/utils"
 import { GlobeController } from "../mapCharts/GlobeController"
-import { GLOBE_COUNTRY_ZOOM } from "../mapCharts/MapChartConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
 import { SearchDropdown } from "./SearchDropdown"
@@ -23,7 +22,7 @@ export interface MapCountryDropdownManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
     hideMapRegionDropdown?: boolean
-    shouldShowEntitySelectorOnMapTab?: boolean
+    isMapSelectionEnabled?: boolean
     globeController?: GlobeController
     onMapCountryDropdownFocus?: () => void
 }
@@ -49,11 +48,11 @@ export class MapCountryDropdown extends React.Component<{
     }
 
     @computed private get showMenu(): boolean {
-        const { shouldShowEntitySelectorOnMapTab, isOnMapTab, mapConfig } =
+        const { isMapSelectionEnabled, isOnMapTab, mapConfig } =
             this.props.manager
         return !!(
             isOnMapTab &&
-            !shouldShowEntitySelectorOnMapTab &&
+            !isMapSelectionEnabled &&
             !mapConfig?.globe.isActive
         )
     }
@@ -85,28 +84,15 @@ export class MapCountryDropdown extends React.Component<{
 
     @action.bound private onChange(selected: unknown): void {
         const option = selected as DropdownOption
-
-        const isGlobeActive = this.mapConfig.globe.isActive
-        const region = this.mapConfig.region
+        const country = option.value
 
         // reset the region if a non-world region is currently selected
-        if (region !== MapRegionName.World) {
-            this.manager.globeController?.jumpToRegion(region)
+        if (this.mapConfig.region !== MapRegionName.World) {
             this.mapConfig.region = MapRegionName.World
         }
 
-        // switch to the globe if not already active
-        if (!isGlobeActive) {
-            this.manager.globeController?.jumpToCountryOffset(option.value)
-            this.manager.globeController?.showGlobe()
-        }
-
-        // focus on the country and rotate to it
-        this.manager.globeController?.focusOnCountry(option.value)
-        this.manager.globeController?.rotateToCountry(
-            option.value,
-            GLOBE_COUNTRY_ZOOM
-        )
+        // focus the country on the globe
+        this.manager.globeController?.focusOnCountry(country)
     }
 
     @computed private get sortedCountries(): EntityName[] {
@@ -145,7 +131,7 @@ export class MapCountryDropdown extends React.Component<{
         return this.options.find((opt) => focusCountry === opt.value) ?? null
     }
 
-    @action.bound async populateLocalEntities(): Promise<void> {
+    @action.bound async populateLocalCountryName(): Promise<void> {
         try {
             const localCountryInfo = await getUserCountryInformation()
             if (!localCountryInfo) return
@@ -156,7 +142,7 @@ export class MapCountryDropdown extends React.Component<{
     }
 
     componentDidMount(): void {
-        void this.populateLocalEntities()
+        void this.populateLocalCountryName()
     }
 
     render(): React.ReactElement | null {
