@@ -7,6 +7,7 @@ import {
 } from "@ourworldindata/grapher"
 import {
     extractMultiDimChoicesFromSearchParams,
+    GRAPHER_TAB_QUERY_PARAMS,
     GrapherQueryParams,
     MultiDimDataPageConfig,
     MultiDimDimensionChoices,
@@ -91,7 +92,11 @@ export default function MultiDim({
             variables?.length === 1
                 ? `variables/${variables[0].id}/config`
                 : undefined
-        setManager((prev) => ({ ...prev, editUrl }))
+        const analyticsContext = {
+            mdimSlug: slug ?? undefined,
+            mdimView: settings,
+        }
+        setManager((prev) => ({ ...prev, editUrl, analyticsContext }))
 
         const newGrapherParams: GrapherQueryParams = {
             ...grapher.changedParams,
@@ -101,6 +106,12 @@ export default function MultiDim({
                 ? grapher.mapGrapherTabToQueryParam(grapher.activeTab)
                 : (searchParams.get("tab") ?? undefined),
             ...settings,
+        }
+
+        // reset map state if switching to a chart
+        if (newGrapherParams.tab !== GRAPHER_TAB_QUERY_PARAMS.map) {
+            newGrapherParams.globe = "0"
+            newGrapherParams.mapSelect = ""
         }
 
         cachedGetGrapherConfigByUuid(newView.fullConfigId, false)
