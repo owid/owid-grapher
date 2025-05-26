@@ -35,7 +35,7 @@ export function SearchAutocompleteItemContents({
                 .with(FilterType.COUNTRY, () => (
                     <>
                         {renderActiveFilters(activeFilters)}
-                        {unmatchedQuery && !activeFilters.length && (
+                        {unmatchedQuery && (
                             <span className="search-autocomplete-item-contents__query">
                                 {unmatchedQuery}
                             </span>
@@ -71,6 +71,7 @@ const renderActiveFilters = (filters: Filter[]) => {
         <>
             {visibleFilters.map((filter) => (
                 <SearchFilterPill
+                    className="search-filter-pill--active"
                     key={`${filter.type}-${filter.name}`}
                     icon={getFilterIcon(filter)}
                     name={filter.name}

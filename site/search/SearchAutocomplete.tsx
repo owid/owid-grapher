@@ -75,7 +75,7 @@ export const SearchAutocomplete = ({
                 // should be preserved after filter selection
                 .with(FilterType.COUNTRY, () => {
                     addCountry(filter.name)
-                    setQueries(filters.length ? "" : unmatchedQuery)
+                    setQueries(unmatchedQuery)
                 })
                 .with(FilterType.TOPIC, () => {
                     addTopic(filter.name)
@@ -87,14 +87,7 @@ export const SearchAutocomplete = ({
                 .exhaustive()
             setShowSuggestions(false)
         },
-        [
-            addCountry,
-            addTopic,
-            setShowSuggestions,
-            setQueries,
-            unmatchedQuery,
-            filters.length,
-        ]
+        [addCountry, addTopic, setShowSuggestions, setQueries, unmatchedQuery]
     )
 
     useEffect(() => {

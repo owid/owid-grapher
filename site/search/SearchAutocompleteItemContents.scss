@@ -9,7 +9,8 @@
         text-overflow: ellipsis;
     }
 
-    > span:not(:last-child) {
+    .search-filter-pill--active,
+    .search-filter-pill--more-filters {
         @include sm-only {
             display: none;
         }
