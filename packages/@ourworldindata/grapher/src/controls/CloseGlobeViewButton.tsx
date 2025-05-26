@@ -12,7 +12,6 @@ export interface CloseGlobeViewButtonManager {
     isOnMapTab?: boolean
     isMapSelectionEnabled?: boolean
     globeController?: GlobeController
-    onCloseGlobeViewButtonClick?: () => void
 }
 
 @observer
@@ -45,7 +44,6 @@ export class CloseGlobeViewButton extends React.Component<{
 
     @action.bound private onClick(): void {
         this.manager.globeController?.toggleGlobe()
-        this.manager.onCloseGlobeViewButtonClick?.()
     }
 
     render(): React.ReactElement | null {

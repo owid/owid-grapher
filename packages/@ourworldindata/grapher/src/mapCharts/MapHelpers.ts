@@ -1,10 +1,21 @@
 import { Quadtree } from "d3-quadtree"
-import { getRelativeMouse, sortBy } from "@ourworldindata/utils"
+import {
+    EntityName,
+    getAggregates,
+    getContinents,
+    getIncomeGroups,
+    getCountryNamesForRegion,
+    getRelativeMouse,
+    lazy,
+    sortBy,
+} from "@ourworldindata/utils"
 import {
     GEO_FEATURES_CLASSNAME,
     MAP_HOVER_TARGET_RANGE,
     RenderFeature,
 } from "./MapChartConstants"
+import { MapTopology } from "./MapTopology.js"
+import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 
 export function detectNearbyFeature<Feature extends RenderFeature>({
     quadtree,
@@ -83,4 +94,45 @@ export function isPointPlacedOnVisibleHemisphere(
             Math.cos(lambda - rotationLambda)
 
     return cosDelta > threshold
+}
+
+export function getForegroundFeatures<Feature extends RenderFeature>(
+    features: Feature[],
+    selectionArray: MapSelectionArray
+): Feature[] {
+    // if no regions are selected, then all countries are in the foreground
+    if (!selectionArray.hasRegions) return features
+
+    // all countries within the selected regions are in the foreground
+    const countrySet = new Set(selectionArray.countryNamesForSelectedRegions)
+    return features.filter((feature) => countrySet.has(feature.id))
+}
+
+// A map of the form:
+// - Africa: [Algeria, Angola, ...]
+// - North America: [Canada, United States, ...]
+const countriesByRegionMap = lazy(
+    () =>
+        new Map(
+            [...getContinents(), ...getAggregates(), ...getIncomeGroups()].map(
+                (region) => [
+                    region.name,
+                    new Set(getCountryNamesForRegion(region)),
+                ]
+            )
+        )
+)
+
+export const getCountriesByRegion = (
+    regionName: string
+): Set<string> | undefined => countriesByRegionMap().get(regionName)
+
+let _isOnTheMapCache: Set<string>
+export const isOnTheMap = (entityName: EntityName): boolean => {
+    // Cache the result
+    if (!_isOnTheMapCache)
+        _isOnTheMapCache = new Set(
+            MapTopology.objects.world.geometries.map((region: any) => region.id)
+        )
+    return _isOnTheMapCache.has(entityName)
 }

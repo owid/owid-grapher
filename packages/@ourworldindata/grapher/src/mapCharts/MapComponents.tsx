@@ -19,7 +19,7 @@ import {
     RenderFeatureType,
 } from "./MapChartConstants"
 
-export function CountryOutsideOfSelectedRegion<Feature extends RenderFeature>({
+export function BackgroundCountry<Feature extends RenderFeature>({
     feature,
     path,
     strokeWidth = DEFAULT_STROKE_WIDTH,
