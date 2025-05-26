@@ -4,10 +4,7 @@ import {
     PostRestApi,
     BlockGraphQlApi,
 } from "../wordpressTypes/WordpressTypes.js"
-import {
-    OwidArticleBackportingStatistics,
-    OwidGdocPostInterface,
-} from "../gdocTypes/Gdoc.js"
+import { OwidGdocPostInterface } from "../gdocTypes/Gdoc.js"
 
 export const PostsTableName = "posts"
 export interface DbInsertPost {
@@ -20,7 +17,6 @@ export interface DbInsertPost {
     published_at?: Date | null
     updated_at?: Date | null
     updated_at_in_wordpress?: Date | null
-    gdocSuccessorId?: string | null
     excerpt?: string | null
     created_at_in_wordpress?: Date | null
     featured_image: string
@@ -28,22 +24,16 @@ export interface DbInsertPost {
     authors?: string | null
     formattingOptions?: string | null
     archieml?: string | null
-    archieml_update_statistics?: string | null
     wpApiSnapshot?: string | null
 }
 export type DbRawPost = Required<DbInsertPost>
 export type DbEnrichedPost = Omit<
     DbRawPost,
-    | "authors"
-    | "formattingOptions"
-    | "archieml"
-    | "archieml_update_statistics"
-    | "wpApiSnapshot"
+    "authors" | "formattingOptions" | "archieml" | "wpApiSnapshot"
 > & {
     authors: string[] | null
     formattingOptions: FormattingOptions | null
     archieml: OwidGdocPostInterface | null
-    archieml_update_statistics: OwidArticleBackportingStatistics | null
     wpApiSnapshot: PostRestApi | BlockGraphQlApi | null
 }
 
@@ -75,9 +65,6 @@ export function parsePostRow(postRow: DbRawPost): DbEnrichedPost {
             ? parsePostFormattingOptions(postRow.formattingOptions)
             : null,
         archieml: postRow.archieml ? parsePostArchieml(postRow.archieml) : null,
-        archieml_update_statistics: postRow.archieml_update_statistics
-            ? JSON.parse(postRow.archieml_update_statistics)
-            : null,
         wpApiSnapshot: postRow.wpApiSnapshot
             ? parsePostWpApiSnapshot(postRow.wpApiSnapshot)
             : null,

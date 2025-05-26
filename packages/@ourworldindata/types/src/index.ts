@@ -348,7 +348,6 @@ export {
     type EnrichedFaq,
     type DetailDictionary,
     GdocsContentSource,
-    type OwidArticleBackportingStatistics,
     type LatestDataInsight,
     type LinkedAuthor,
     type LinkedChart,

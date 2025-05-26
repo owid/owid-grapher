@@ -326,14 +326,6 @@ export interface OwidGdocLinkJSON {
     text: string
 }
 
-export interface OwidArticleBackportingStatistics {
-    errors: { name: string; details: string }[]
-    numErrors: number
-    numBlocks: number
-    htmlTagCounts: Record<string, number>
-    wpTagCounts: Record<string, number>
-}
-
 export interface OwidGdocPostContent {
     body?: OwidEnrichedGdocBlock[]
     type?:
