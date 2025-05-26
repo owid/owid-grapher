@@ -36,7 +36,7 @@ import {
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { match } from "ts-pattern"
-import { createContext, useContext } from "react"
+import { createContext, ForwardedRef, useContext } from "react"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -587,4 +587,35 @@ export function useSearchAutocomplete() {
         )
     }
     return context
+}
+
+/**
+ * Returns a click handler that focuses an input element when clicking directly
+ * on the target element (but not its children).
+ *
+ */
+export const createFocusInputOnClickHandler = (
+    inputRef: ForwardedRef<HTMLInputElement>
+) => {
+    const handleClick = (e: React.MouseEvent) => {
+        if (e.target === e.currentTarget && isCurrentMutableRef(inputRef)) {
+            inputRef.current.focus()
+        }
+    }
+
+    return handleClick
+}
+
+/*
+ * Type guard to check if a ref is a MutableRefObject with a non-null current property
+ */
+export function isCurrentMutableRef(
+    inputRef: ForwardedRef<HTMLInputElement>
+): inputRef is React.MutableRefObject<HTMLInputElement> {
+    return (
+        inputRef !== null &&
+        typeof inputRef === "object" &&
+        "current" in inputRef &&
+        inputRef.current !== null
+    )
 }
