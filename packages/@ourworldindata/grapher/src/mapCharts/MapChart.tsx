@@ -199,7 +199,7 @@ export class MapChart
         )
     }
 
-    @computed private get mapColumn(): CoreColumn {
+    @computed get mapColumn(): CoreColumn {
         return this.transformedTable.get(this.mapColumnSlug)
     }
 

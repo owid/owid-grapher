@@ -4,6 +4,7 @@ import {
     difference,
     isTouchDevice,
     makeIdForHumanConsumption,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -15,12 +16,19 @@ import {
     ChoroplethMapManager,
     ChoroplethSeriesByName,
     CHOROPLETH_MAP_CLASSNAME,
+    ExternalAnnotation,
+    InternalAnnotation,
+    Annotation,
+    ANNOTATION_COLOR_LIGHT,
+    ANNOTATION_COLOR_DARK,
 } from "./MapChartConstants"
 import { getGeoFeaturesForMap } from "./GeoFeatures"
 import {
     BackgroundCountry,
     CountryWithData,
     CountryWithNoData,
+    ExternalValueAnnotation,
+    InternalValueAnnotation,
     NoDataPattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
@@ -29,6 +37,15 @@ import {
     getForegroundFeatures,
     sortFeaturesByInteractionState,
 } from "./MapHelpers"
+import {
+    makeInternalAnnotationForFeature,
+    makeExternalAnnotationForFeature,
+    repositionAndFilterExternalAnnotations,
+} from "./MapAnnotations"
+import { geoRobinson } from "./d3-geo-projection"
+import { isDarkColor } from "../color/ColorUtils"
+import { MapConfig } from "./MapConfig"
+import * as R from "remeda"
 
 @observer
 export class ChoroplethMap extends React.Component<{
@@ -49,6 +66,10 @@ export class ChoroplethMap extends React.Component<{
         return this.props.manager
     }
 
+    @computed get mapConfig(): MapConfig {
+        return this.manager.mapConfig
+    }
+
     @computed.struct private get bounds(): Bounds {
         return this.manager.choroplethMapBounds
     }
@@ -63,7 +84,7 @@ export class ChoroplethMap extends React.Component<{
 
     // Combine bounding boxes to get the extents of the entire map
     @computed private get mapBounds(): Bounds {
-        const allBounds = this.features.map((feature) => feature.bounds)
+        const allBounds = this.features.map((feature) => feature.projBounds)
         return Bounds.merge(allBounds)
     }
 
@@ -108,6 +129,10 @@ export class ChoroplethMap extends React.Component<{
         return getGeoFeaturesForMap()
     }
 
+    @computed private get featuresById(): Map<string, MapRenderFeature> {
+        return new Map(this.features.map((feature) => [feature.id, feature]))
+    }
+
     @computed private get foregroundFeatures(): MapRenderFeature[] {
         return getForegroundFeatures(this.features, this.manager.selectionArray)
     }
@@ -118,12 +143,14 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get featuresWithData(): MapRenderFeature[] {
-        const features = this.foregroundFeatures.filter((feature) =>
+        return this.foregroundFeatures.filter((feature) =>
             this.choroplethData.has(feature.id)
         )
+    }
 
+    @computed private get sortedFeaturesWithData(): MapRenderFeature[] {
         // sort features so that hovered or selected features are rendered last
-        return sortFeaturesByInteractionState(features, {
+        return sortFeaturesByInteractionState(this.featuresWithData, {
             isHovered: (featureId: string) =>
                 this.manager.getHoverState(featureId).active,
             isSelected: (featureId) => this.manager.isSelected(featureId),
@@ -136,9 +163,96 @@ export class ChoroplethMap extends React.Component<{
 
     @computed private get quadtree(): Quadtree<MapRenderFeature> {
         return quadtree<MapRenderFeature>()
-            .x((feature) => feature.center.x)
-            .y((feature) => feature.center.y)
+            .x((feature) => feature.projBounds.centerX)
+            .y((feature) => feature.projBounds.centerY)
             .addAll(this.foregroundFeatures)
+    }
+
+    @computed private get projection(): any {
+        return geoRobinson()
+    }
+
+    @computed private get shouldShowAnnotations(): boolean {
+        return !!this.manager.mapColumn.hasNumberFormatting
+    }
+
+    private formatAnnotationLabel(value: string | number): string {
+        return this.manager.mapColumn.formatValueShortWithAbbreviations(value)
+    }
+
+    @computed private get annotationCandidateFeatures(): MapRenderFeature[] {
+        if (!this.shouldShowAnnotations) return []
+
+        const selectedCountryNames =
+            this.mapConfig.selection.selectedCountryNamesInForeground
+        const countries = R.unique(
+            excludeUndefined([
+                ...selectedCountryNames,
+                this.manager.hoverFeatureId,
+                // clear the focus country value on hover
+                this.manager.hoverFeatureId
+                    ? undefined
+                    : this.mapConfig.globe.focusCountry,
+            ])
+        )
+
+        return excludeUndefined(
+            countries.map((name) => this.featuresById.get(name))
+        )
+    }
+
+    /* Naively placed annotations that might be overlapping */
+    @computed
+    private get annotationCandidates(): Annotation[] {
+        return excludeUndefined(
+            this.annotationCandidateFeatures.map((feature) => {
+                const series = this.choroplethData.get(feature.id)
+                if (!series) return
+
+                const labelColor = isDarkColor(series.color)
+                    ? ANNOTATION_COLOR_LIGHT
+                    : ANNOTATION_COLOR_DARK
+
+                const args = {
+                    feature,
+                    projection: this.projection,
+                    formattedValue: this.formatAnnotationLabel(series.value),
+                    fontSizeScale: this.viewportScaleSqrt,
+                    color: labelColor,
+                }
+
+                // try to fit the annotation inside the feature
+                const internalAnnotation =
+                    makeInternalAnnotationForFeature(args)
+                if (internalAnnotation) return internalAnnotation
+
+                // place the annotation outside of the feature
+                const externalAnnotation =
+                    makeExternalAnnotationForFeature(args)
+                if (externalAnnotation) return externalAnnotation
+
+                return undefined
+            })
+        )
+    }
+
+    @computed
+    private get internalAnnotations(): InternalAnnotation[] {
+        return this.annotationCandidates.filter(
+            (annotation) => annotation.type === "internal"
+        )
+    }
+
+    @computed
+    private get externalAnnotations(): ExternalAnnotation[] {
+        const { projection } = this
+        const annotations = this.annotationCandidates.filter(
+            (annotation) => annotation.type === "external"
+        )
+        return repositionAndFilterExternalAnnotations({
+            annotations,
+            projection,
+        })
     }
 
     // Map uses a hybrid approach to mouseover
@@ -230,6 +344,38 @@ export class ChoroplethMap extends React.Component<{
         }
     }
 
+    private renderInternalAnnotations(): React.ReactElement | void {
+        if (this.internalAnnotations.length === 0) return
+
+        return (
+            <g id={makeIdForHumanConsumption("annotations-internal")}>
+                {this.internalAnnotations.map((annotation) => (
+                    <InternalValueAnnotation
+                        key={annotation.id}
+                        annotation={annotation}
+                        strokeScale={this.viewportScaleSqrt}
+                    />
+                ))}
+            </g>
+        )
+    }
+
+    private renderExternalAnnotations(): React.ReactElement | void {
+        if (this.externalAnnotations.length === 0) return
+
+        return (
+            <g id={makeIdForHumanConsumption("annotations-external")}>
+                {this.externalAnnotations.map((annotation) => (
+                    <ExternalValueAnnotation
+                        key={annotation.id}
+                        annotation={annotation}
+                        strokeScale={this.viewportScaleSqrt}
+                    />
+                ))}
+            </g>
+        )
+    }
+
     renderFeaturesInBackground(): React.ReactElement | void {
         if (this.backgroundFeatures.length === 0) return
 
@@ -283,11 +429,11 @@ export class ChoroplethMap extends React.Component<{
     }
 
     renderFeaturesWithData(): React.ReactElement | void {
-        if (this.featuresWithData.length === 0) return
+        if (this.sortedFeaturesWithData.length === 0) return
 
         return (
             <g id={makeIdForHumanConsumption("countries-with-data")}>
-                {this.featuresWithData.map((feature) => {
+                {this.sortedFeaturesWithData.map((feature) => {
                     const series = this.choroplethData.get(feature.id)
                     if (!series) return null
                     return (
@@ -324,6 +470,8 @@ export class ChoroplethMap extends React.Component<{
                 {this.renderFeaturesInBackground()}
                 {this.renderFeaturesWithoutData()}
                 {this.renderFeaturesWithData()}
+                {this.renderInternalAnnotations()}
+                {this.renderExternalAnnotations()}
             </g>
         )
     }
@@ -383,6 +531,8 @@ export class ChoroplethMap extends React.Component<{
                     {this.renderFeaturesInBackground()}
                     {this.renderFeaturesWithoutData()}
                     {this.renderFeaturesWithData()}
+                    {this.renderInternalAnnotations()}
+                    {this.renderExternalAnnotations()}
                 </g>
             </g>
         )
