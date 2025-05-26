@@ -107,7 +107,6 @@ export const grapherInterfaceWithHiddenControls: GrapherProgrammaticInterface =
         hideXScaleToggle: true,
         hideYScaleToggle: true,
         hideMapRegionDropdown: true,
-        hideTableFilterToggle: true,
         map: {
             hideTimeline: true,
         },

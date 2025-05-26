@@ -75,6 +75,7 @@ export const grapherConfigToQueryParams = (
         // These cannot be specified in config, so we always set them to undefined
         showSelectionOnlyInTable: undefined,
         overlay: undefined,
+        tableFilter: undefined,
     }
 
     // Drop undefined values and convert all to string
@@ -106,9 +107,6 @@ export const grapherObjectToQueryParams = (
             grapher.yAxis.facetDomain === FacetAxisDomain.independent
                 ? "0"
                 : "1",
-        showSelectionOnlyInTable: grapher.showSelectionOnlyInDataTable
-            ? "1"
-            : "0",
         showNoDataArea: grapher.showNoDataArea ? "1" : "0",
         country: grapher.areSelectedEntitiesDifferentThanAuthors
             ? generateSelectedEntityNamesParam(
@@ -132,6 +130,7 @@ export const grapherObjectToQueryParams = (
             grapher.mapConfig.globe.zoom !== DEFAULT_GLOBE_ZOOM
                 ? R.round(grapher.mapConfig.globe.zoom, 2).toString()
                 : undefined,
+        tableFilter: grapher.dataTableConfig.filter,
     }
     return params
 }

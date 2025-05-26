@@ -1184,7 +1184,6 @@ export class EntitySelector extends React.Component<{
         return (
             <div className="entity-selector__filter-bar">
                 <Dropdown<FilterDropdownOption>
-                    className="entity-selector__dropdown"
                     options={this.filterOptions}
                     onChange={this.onChangeEntityFilter}
                     value={this.filterValue}
@@ -1248,7 +1247,7 @@ export class EntitySelector extends React.Component<{
             <div className="entity-selector__sort-bar">
                 <div className="entity-selector__sort-dropdown-and-button">
                     <Dropdown<SortDropdownOption>
-                        className="entity-selector__dropdown entity-selector__sort-dropdown"
+                        className="entity-selector__sort-dropdown"
                         options={this.sortOptions}
                         onChange={this.onChangeSortSlug}
                         value={this.sortValue}

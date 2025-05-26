@@ -7,7 +7,6 @@ import { GRAPHER_CHART_TYPES, GRAPHER_TAB_OPTIONS } from "@ourworldindata/types"
 import {
     childMortalityGrapher,
     GrapherWithIncompleteData,
-    GrapherWithAggregates,
     GrapherWithMultipleVariablesAndMultipleYears,
 } from "./DataTable.sample"
 
@@ -126,20 +125,6 @@ describe("when the table doesn't have data for all rows", () => {
         expect(timeHeaders.length).toBe(2)
         expect(timeHeaders.at(0).text()).toBe("2000")
         expect(timeHeaders.at(1).text()).toBe("2010")
-    })
-})
-
-describe("when the table has aggregates", () => {
-    let view: ReactWrapper
-    beforeAll(() => {
-        const grapher = GrapherWithAggregates()
-        view = Enzyme.mount(<DataTable manager={grapher} />)
-    })
-
-    it("renders a separating title row for aggregates", () => {
-        const titleRows = view.find("tbody .title")
-        expect(titleRows).toHaveLength(1)
-        expect(titleRows.at(0).text()).toBe("Other")
     })
 })
 

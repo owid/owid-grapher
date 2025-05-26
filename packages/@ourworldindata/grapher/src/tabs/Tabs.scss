@@ -40,7 +40,6 @@
 
     // Variant: slim
     &.Tabs--variant-slim {
-        // keep in sync with variables in ContentSwitchers.tsx
         $font-size: var(--tabs-font-size, 13px);
         --tab-padding: 16px;
 
