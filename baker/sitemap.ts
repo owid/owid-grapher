@@ -19,7 +19,6 @@ import urljoin from "url-join"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 
-import { getPostsFromSnapshots } from "../db/model/Post.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import { getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
 
@@ -83,13 +82,6 @@ export const makeSitemap = async (
     explorerAdminServer: ExplorerAdminServer,
     knex: db.KnexReadonlyTransaction
 ) => {
-    const alreadyPublishedViaGdocsSlugsSet =
-        await db.getSlugsWithPublishedGdocsSuccessors(knex)
-    const postsApi = await getPostsFromSnapshots(
-        knex,
-        undefined,
-        (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
-    )
     const gdocPosts = await getPublishedGdocPosts(knex)
     const authorPages = await getMinimalAuthors(knex)
 
@@ -131,12 +123,6 @@ export const makeSitemap = async (
                     loc: urljoin(BAKED_BASE_URL, spec.rootPath, c.slug),
                 }))
             })
-        )
-        .concat(
-            postsApi.map((p) => ({
-                loc: urljoin(BAKED_BASE_URL, p.slug),
-                lastmod: dayjs(p.modified_gmt).format("YYYY-MM-DD"),
-            }))
         )
         .concat(
             gdocPosts.map((p) => ({
