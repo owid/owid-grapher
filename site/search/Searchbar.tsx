@@ -1,12 +1,15 @@
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { SearchInput } from "./SearchInput.js"
 import { SearchActiveFilters } from "./SearchActiveFilters.js"
 import { SearchAutocomplete } from "./SearchAutocomplete.js"
 import { SearchCountrySelector } from "./SearchCountrySelector.js"
 import { Filter, FilterType } from "./searchTypes.js"
-import { getFilterNamesOfType } from "./searchUtils.js"
+import {
+    createFocusInputOnClickHandler,
+    getFilterNamesOfType,
+} from "./searchUtils.js"
 import { SearchAutocompleteContextProvider } from "./SearchAutocompleteContextProvider.js"
 import { SearchResetButton } from "./SearchResetButton.js"
 
@@ -46,6 +49,8 @@ export const Searchbar = ({
         setLocalQuery(query)
     }, [query])
 
+    const inputRef = useRef<HTMLInputElement>(null)
+
     const removeLastFilter = useCallback(() => {
         if (filters.length === 0) return
 
@@ -57,9 +62,11 @@ export const Searchbar = ({
         }
     }, [filters, removeCountry, removeTopic])
 
+    const handleSearchBarClick = createFocusInputOnClickHandler(inputRef)
+
     return (
         <>
-            <div className="search-bar">
+            <div className="search-bar" onClick={handleSearchBarClick}>
                 <button
                     className="search-bar__submit-button"
                     aria-label="Submit search"
@@ -69,6 +76,7 @@ export const Searchbar = ({
                 </button>
                 <SearchAutocompleteContextProvider>
                     <SearchInput
+                        ref={inputRef}
                         value={localQuery}
                         setLocalQuery={setLocalQuery}
                         setGlobalQuery={setQuery}
