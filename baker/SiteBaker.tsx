@@ -62,17 +62,11 @@ import {
     bakeAllPublishedExplorers,
 } from "./ExplorerBaker.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import {
-    getBlogIndex,
-    getFullPost,
-    getPostsFromSnapshots,
-    postsFlushCache,
-} from "../db/model/Post.js"
+import { getBlogIndex, postsFlushCache } from "../db/model/Post.js"
 import { getAllImages } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { mapSlugsToConfigs } from "../db/model/Chart.js"
-import pMap from "p-map"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
@@ -89,7 +83,6 @@ import {
     makeMultiDimLinkedChart,
 } from "../db/model/Gdoc/GdocBase.js"
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/SiteConstants.js"
-import { getRedirectsFromDb } from "../db/model/Redirect.js"
 import { getTombstones } from "../db/model/GdocTombstone.js"
 import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
 import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
@@ -114,13 +107,7 @@ type PrefetchedAttachments = {
 
 // These aren't all "wordpress" steps
 // But they're only run when you have the full stack available
-const wordpressSteps = [
-    "assets",
-    "blogIndex",
-    "redirects",
-    "rss",
-    "wordpressPosts",
-] as const
+const wordpressSteps = ["assets", "blogIndex", "redirects", "rss"] as const
 
 const nonWordpressSteps = [
     "specialPages",
@@ -490,19 +477,8 @@ export class SiteBaker {
         if (!this.bakeSteps.has("removeDeletedPosts")) return
         this.progressBar.tick({ name: "Removing deleted posts" })
 
-        const postsApi = await getPostsFromSnapshots(knex)
-
-        const postSlugs = []
-        for (const postApi of postsApi) {
-            const post = await getFullPost(knex, postApi)
-            postSlugs.push(post.slug)
-        }
-
         const gdocPosts = await getAllMinimalGdocBaseObjects(knex)
-
-        for (const post of gdocPosts) {
-            postSlugs.push(post.slug)
-        }
+        const postSlugs = gdocPosts.map((post) => post.slug)
 
         // Delete any previously rendered posts that aren't in the database
         for (const slug of this.getPostSlugsToRemove(postSlugs)) {
@@ -510,33 +486,6 @@ export class SiteBaker {
             await fs.unlink(outPath)
             this.stage(outPath, `DELETING ${outPath}`)
         }
-    }
-
-    private async bakePosts(knex: db.KnexReadonlyTransaction) {
-        if (!this.bakeSteps.has("wordpressPosts")) return
-        this.progressBar.tick({ name: "Baking WordPress posts" })
-        const alreadyPublishedViaGdocsSlugsSet =
-            await db.getSlugsWithPublishedGdocsSuccessors(knex)
-        const redirects = await getRedirectsFromDb(knex)
-
-        const postsApi = await getPostsFromSnapshots(
-            knex,
-            undefined,
-            (postrow) =>
-                // Exclude posts that are already published via GDocs
-                !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug) &&
-                // Exclude posts that are redirect sources
-                !redirects.some((row) => row.source.slice(1) === postrow.slug)
-        )
-
-        await pMap(
-            postsApi,
-            async (postApi) =>
-                getFullPost(knex, postApi).then((post) =>
-                    this.bakePost(post, knex)
-                ),
-            { concurrency: 10 }
-        )
     }
 
     // Bake all GDoc posts, or a subset of them if slugs are provided
@@ -1027,7 +976,6 @@ export class SiteBaker {
         await this.bakeBlogIndex(knex)
         await this.bakeRSS(knex)
         await this.bakeAssets(knex)
-        await this.bakePosts(knex)
     }
 
     private async _bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {

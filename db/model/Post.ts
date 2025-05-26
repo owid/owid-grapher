@@ -3,11 +3,8 @@ import {
     DbRawPost,
     DbEnrichedPost,
     parsePostRow,
-    parsePostWpApiSnapshot,
     FullPost,
     JsonError,
-    WP_PostType,
-    FilterFnPostRestApi,
     PostRestApi,
     RelatedChart,
     IndexPost,
@@ -20,7 +17,6 @@ import {
     DbRawLatestWork,
     DbEnrichedLatestWork,
     parseLatestWork,
-    DbPlainTag,
     DEFAULT_THUMBNAIL_FILENAME,
     ARCHVED_THUMBNAIL_FILENAME,
     DbEnrichedImage,
@@ -37,7 +33,6 @@ import {
     BAKED_BASE_URL,
     CLOUDFLARE_IMAGES_URL,
 } from "../../settings/clientSettings.js"
-import { BLOG_SLUG } from "../../settings/serverSettings.js"
 import { decodeHTML } from "entities"
 import { getAndLoadListedGdocPosts } from "./Gdoc/GdocFactory.js"
 
@@ -188,40 +183,6 @@ export const isPostSlugCitable = (_: string): boolean => {
     return false
 }
 
-export const getPostsFromSnapshots = async (
-    knex: db.KnexReadonlyTransaction,
-    postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
-    filterFunc?: FilterFnPostRestApi
-): Promise<PostRestApi[]> => {
-    const rawPosts: Pick<DbRawPost, "wpApiSnapshot">[] = await db.knexRaw(
-        knex,
-        `
-                SELECT wpApiSnapshot FROM ${postsTable}
-                WHERE wpApiSnapshot IS NOT NULL
-                AND status = "publish"
-                AND type IN (?)
-                ORDER BY wpApiSnapshot->>'$.date' DESC;
-            `,
-        [postTypes]
-    )
-
-    const posts = rawPosts
-        .map((p) => p.wpApiSnapshot)
-        .filter((snapshot) => snapshot !== null)
-        .map((snapshot) => parsePostWpApiSnapshot(snapshot!))
-
-    // Published pages excluded from public views
-    const excludedSlugs = [BLOG_SLUG, "thank-you"]
-
-    const filterConditions: Array<FilterFnPostRestApi> = [
-        (post): boolean => !excludedSlugs.includes(post.slug),
-        (post): boolean => !post.slug.endsWith("-country-profile"),
-    ]
-    if (filterFunc) filterConditions.push(filterFunc)
-
-    return posts.filter((post) => filterConditions.every((c) => c(post)))
-}
-
 export const getPostRelatedCharts = async (
     knex: db.KnexReadonlyTransaction,
     postId: number
@@ -244,7 +205,7 @@ export const getPostRelatedCharts = async (
     `
     )
 
-export const getFullPost = async (
+const getFullPost = async (
     knex: db.KnexReadonlyTransaction,
     postApi: PostRestApi,
     excludeContent?: boolean
@@ -274,36 +235,14 @@ export const getFullPost = async (
             : undefined,
 })
 
-const selectHomepagePosts: FilterFnPostRestApi = (post) =>
-    post.meta?.owid_publication_context_meta_field?.homepage === true
-
 export const getBlogIndex = memoize(
     async (knex: db.KnexReadonlyTransaction): Promise<IndexPost[]> => {
         const gdocPosts = await getAndLoadListedGdocPosts(knex)
         const imagesByFilename = await db
             .getCloudflareImages(knex)
             .then((images) => keyBy(images, "filename"))
-        const wpPosts = await Promise.all(
-            await getPostsFromSnapshots(
-                knex,
-                [WP_PostType.Post],
-                selectHomepagePosts
-                // TODO: consider doing this as a join instead of a 1+N query
-            ).then((posts) =>
-                posts.map((post) => getFullPost(knex, post, true))
-            )
-        )
 
-        const gdocSlugs = new Set(gdocPosts.map(({ slug }) => slug))
         const posts = [...mapGdocsToWordpressPosts(gdocPosts, imagesByFilename)]
-
-        // Only adding each wpPost if there isn't already a gdoc with the same slug,
-        // to make sure we use the most up-to-date metadata
-        for (const wpPost of wpPosts) {
-            if (!gdocSlugs.has(wpPost.slug)) {
-                posts.push(wpPost)
-            }
-        }
 
         return orderBy(posts, (post) => post.date.getTime(), ["desc"])
     }

@@ -167,7 +167,6 @@ export {
     WP_PostType,
     type PostRestApi,
     type BlockGraphQlApi,
-    type FilterFnPostRestApi,
     type FormattingOptions,
     SubNavId,
 } from "./wordpressTypes/WordpressTypes.js"
@@ -635,7 +634,6 @@ export {
     parsePostFormattingOptions,
     parsePostAuthors,
     parsePostRow,
-    parsePostWpApiSnapshot,
     parsePostArchieml,
     snapshotIsPostRestApi,
     snapshotIsBlockGraphQlApi,

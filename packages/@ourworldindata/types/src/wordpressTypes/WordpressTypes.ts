@@ -59,8 +59,6 @@ export interface BlockGraphQlApi {
     }
 }
 
-export type FilterFnPostRestApi = (post: PostRestApi) => boolean
-
 export enum WP_ColumnStyle {
     StickyRight = "sticky-right",
     StickyLeft = "sticky-left",
