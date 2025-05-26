@@ -67,6 +67,7 @@ import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 import * as R from "remeda"
 import { MapConfig } from "../mapCharts/MapConfig"
+import { EntitySelectorEvent } from "../core/GrapherAnalytics"
 
 type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
@@ -123,6 +124,10 @@ export interface EntitySelectorManager {
     onDeselectEntity?: (entityName: EntityName) => void
     onClearEntities?: () => void
     yColumnSlugs?: ColumnSlug[]
+    logEntitySelectorEvent: (
+        action: EntitySelectorEvent,
+        target?: string
+    ) => void
 }
 
 interface SortConfig {
@@ -141,6 +146,7 @@ interface SortDropdownOption {
     value: string // slug
     label: string
     formattedTime?: string
+    trackNote?: string // unused
 }
 
 const entityFilterLabels: Record<EntityRegionType, string> = {
@@ -171,6 +177,7 @@ interface FilterDropdownOption {
     value: EntityRegionType
     label: string
     count: number
+    trackNote?: string // unused
 }
 
 const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
@@ -880,8 +887,10 @@ export class EntitySelector extends React.Component<{
 
             if (this.selectionArray.selectedSet.has(entityName)) {
                 this.manager.onSelectEntity?.(entityName)
+                this.manager.logEntitySelectorEvent?.("select", entityName)
             } else {
                 this.manager.onDeselectEntity?.(entityName)
+                this.manager.logEntitySelectorEvent?.("deselect", entityName)
             }
 
             if (this.selectionArray.numSelectedEntities === 0) {
@@ -891,6 +900,7 @@ export class EntitySelector extends React.Component<{
             const dropEntityNames = this.selectionArray.selectedEntityNames
             this.selectionArray.setSelectedEntities([entityName])
             this.manager.onSelectEntity?.(entityName)
+            this.manager.logEntitySelectorEvent?.("select", entityName)
             this.onDeselectEntities(dropEntityNames)
 
             // close the modal or drawer automatically after selection
@@ -916,6 +926,8 @@ export class EntitySelector extends React.Component<{
         }
 
         this.resetEntityFilter()
+
+        this.manager.logEntitySelectorEvent?.("clear")
     }
 
     @action.bound async loadAndSetExternalSortColumn(
@@ -962,11 +974,19 @@ export class EntitySelector extends React.Component<{
             }
 
             this.updateSortSlug(slug)
+
+            const sortByTarget = this.isEntityNameSlug(slug)
+                ? "name"
+                : external
+                  ? external.key
+                  : "value"
+            this.manager.logEntitySelectorEvent("sortBy", sortByTarget)
         }
     }
 
     @action.bound onChangeSortOrder(): void {
         this.toggleSortOrder()
+        this.manager.logEntitySelectorEvent("sortOrder")
     }
 
     @action.bound private close(): void {
@@ -1040,13 +1060,13 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed get filterOptions(): FilterDropdownOption[] {
-        const options = Array.from(this.entitiesByRegionType.entries()).map(
-            ([key, entities]) => ({
-                value: key,
-                label: entityFilterLabels[key],
-                count: entities.length,
-            })
-        )
+        const options: FilterDropdownOption[] = Array.from(
+            this.entitiesByRegionType.entries()
+        ).map(([key, entities]) => ({
+            value: key,
+            label: entityFilterLabels[key],
+            count: entities.length,
+        }))
 
         return [
             {
@@ -1060,9 +1080,10 @@ export class EntitySelector extends React.Component<{
 
     @action.bound private onChangeEntityFilter(selected: unknown): void {
         if (selected) {
-            this.set({
-                entityFilter: (selected as FilterDropdownOption).value,
-            })
+            const option = selected as FilterDropdownOption
+            this.set({ entityFilter: option.value })
+
+            this.manager.logEntitySelectorEvent("filterBy", option.value)
         }
     }
 
@@ -1126,6 +1147,7 @@ export class EntitySelector extends React.Component<{
                             })
                         })}
                         onKeyDown={this.onSearchKeyDown}
+                        data-track-note={"entity_selector_search"}
                     />
                     {/* We don't use the input's built-in placeholder because
                         we want the input text and placeholder text to have different
