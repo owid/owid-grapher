@@ -38,14 +38,6 @@ import { getAndLoadListedGdocPosts } from "./Gdoc/GdocFactory.js"
 
 export const postsTable = "posts"
 
-export const select = <K extends keyof DbRawPost>(
-    ...args: K[]
-): {
-    from: (query: Knex.QueryBuilder) => Promise<Pick<DbRawPost, K>[]>
-} => ({
-    from: (query) => query.select(...args) as any,
-})
-
 export const getPostIdFromSlug = (
     knex: db.KnexReadonlyTransaction,
     slug: string
@@ -102,20 +94,6 @@ export const getFullPostBySlugFromSnapshot = async (
         !snapshotIsPostRestApi(postEnriched.wpApiSnapshot)
     )
         throw new JsonError(`No page snapshot found by slug ${slug}`, 404)
-
-    return getFullPost(trx, postEnriched.wpApiSnapshot)
-}
-
-export const getFullPostByIdFromSnapshot = async (
-    trx: db.KnexReadonlyTransaction,
-    id: number
-): Promise<FullPost> => {
-    const postEnriched = await getPostEnrichedById(trx, id)
-    if (
-        !postEnriched?.wpApiSnapshot ||
-        !snapshotIsPostRestApi(postEnriched.wpApiSnapshot)
-    )
-        throw new JsonError(`No page snapshot found by id ${id}`, 404)
 
     return getFullPost(trx, postEnriched.wpApiSnapshot)
 }
