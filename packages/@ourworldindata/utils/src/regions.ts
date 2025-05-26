@@ -80,6 +80,11 @@ export const countries: Country[] = regions.filter(
         !entity.isHistorical
 ) as Country[]
 
+export const mappableCountries: Country[] = regions.filter(
+    (country): country is Country =>
+        country.regionType === "country" && !!country.isMappable
+)
+
 export const getOthers = lazy(
     () =>
         entities.filter((entity) => entity.regionType === "other") as Country[]

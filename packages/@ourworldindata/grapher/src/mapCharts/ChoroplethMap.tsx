@@ -311,9 +311,13 @@ export class ChoroplethMap extends React.Component<{
                         patternId={patternId}
                         focus={this.getFocusState(feature.id)}
                         strokeScale={this.viewportScaleSqrt}
-                        onClick={(event) =>
+                        onClick={(event) => {
+                            // don't invoke a second click on parent that
+                            // catches clicks on 'nearby' features
+                            event.stopPropagation()
+
                             this.onClick(feature, event.nativeEvent)
-                        }
+                        }}
                         onTouchStart={() => this.onTouchStart(feature)}
                         onMouseEnter={this.onMouseEnter}
                         onMouseLeave={this.onMouseLeave}
@@ -339,9 +343,13 @@ export class ChoroplethMap extends React.Component<{
                             focus={this.getFocusState(feature.id)}
                             strokeScale={this.viewportScaleSqrt}
                             showSelectedStyle={this.showSelectedStyle}
-                            onClick={(event) =>
+                            onClick={(event) => {
+                                // don't invoke a second click on parent that
+                                // catches clicks on 'nearby' features
+                                event.stopPropagation()
+
                                 this.onClick(feature, event.nativeEvent)
-                            }
+                            }}
                             onTouchStart={() => this.onTouchStart(feature)}
                             onMouseEnter={this.onMouseEnter}
                             onMouseLeave={this.onMouseLeave}
@@ -398,6 +406,11 @@ export class ChoroplethMap extends React.Component<{
                     this.onMouseMove(ev.nativeEvent)
                 }
                 onMouseLeave={this.onMouseLeave}
+                onClick={(ev: SVGMouseEvent) => {
+                    // invoke a click on a feature when clicking nearby one
+                    if (this.hoverEnterFeature)
+                        this.onClick(this.hoverEnterFeature, ev.nativeEvent)
+                }}
                 style={{ cursor: this.hoverFeature ? "pointer" : undefined }}
             >
                 <rect

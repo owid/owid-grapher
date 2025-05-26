@@ -19,6 +19,7 @@ $control-row-height: 32px;
 // Buttons in the main controls row of the grapher view
 nav.controlsRow .chart-controls {
     display: flex;
+    justify-content: flex-end;
     gap: 8px;
 
     button.menu-toggle {

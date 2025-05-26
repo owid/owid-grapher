@@ -33,6 +33,8 @@ import {
     ChoroplethSeriesByName,
     ChoroplethMapManager,
     MAP_CHART_CLASSNAME,
+    ChoroplethGlobeManager,
+    GLOBE_COUNTRY_ZOOM,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
@@ -65,6 +67,7 @@ import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
+import { GlobeController } from "./GlobeController"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -79,7 +82,8 @@ export class MapChart
         ChartInterface,
         HorizontalColorLegendManager,
         ColorScaleManager,
-        ChoroplethMapManager
+        ChoroplethMapManager,
+        ChoroplethGlobeManager
 {
     @observable focusEntity?: MapEntity
     @observable focusBracket?: MapBracket
@@ -184,6 +188,10 @@ export class MapChart
         return this.props.manager
     }
 
+    @computed get globeController(): GlobeController {
+        return this.manager.globeController ?? new GlobeController(this)
+    }
+
     @computed private get entityNamesWithData(): Set<EntityName> {
         // We intentionally use `inputTable` here instead of `transformedTable`, because of countries where there is no data
         // available in the map view for the current year, but data might still be available for other chart types
@@ -200,20 +208,35 @@ export class MapChart
         return makeSelectionArray(this.manager.selection)
     }
 
-    @action.bound onClick(d: GeoFeature, ev: MouseEvent): void {
-        const entityName = d.id as EntityName
-        if (!this.isEntityClickable(entityName)) return
+    @action.bound private switchToLineChart(entityName: EntityName): void {
+        this.selectionArray.setSelectedEntities([entityName])
+        this.manager.tab = GRAPHER_TAB_OPTIONS.chart
+        if (
+            this.manager.isLineChartThatTurnedIntoDiscreteBar &&
+            this.manager.hasTimeline
+        ) {
+            this.manager.resetHandleTimeBounds?.()
+        }
+    }
 
-        if (!ev.shiftKey) {
-            this.selectionArray.setSelectedEntities([entityName])
-            this.manager.tab = GRAPHER_TAB_OPTIONS.chart
-            if (
-                this.manager.isLineChartThatTurnedIntoDiscreteBar &&
-                this.manager.hasTimeline
-            ) {
-                this.manager.resetHandleTimeBounds?.()
-            }
-        } else this.selectionArray.toggleSelection(entityName)
+    @action.bound private zoomToCountryOnGlobe(entityName: EntityName): void {
+        this.globeController.jumpToCountryOffset(entityName)
+        this.globeController.showGlobe()
+        this.globeController.focusOnCountry(entityName)
+        this.globeController.rotateToCountry(entityName, GLOBE_COUNTRY_ZOOM)
+    }
+
+    @action.bound onClick(d: GeoFeature, event: MouseEvent): void {
+        const entityName = d.id as EntityName
+        const isClickable = this.isEntityClickable(entityName)
+
+        if (isClickable && event.shiftKey) {
+            this.selectionArray.toggleSelection(entityName)
+        } else if (isClickable) {
+            this.switchToLineChart(entityName)
+        } else if (!this.mapConfig.globe.isActive) {
+            this.zoomToCountryOnGlobe(entityName)
+        }
     }
 
     componentWillUnmount(): void {
@@ -559,6 +582,9 @@ export class MapChart
             )
         }
 
+        const tooltipCountry =
+            tooltipState.target?.featureId ?? this.mapConfig.globe.focusCountry
+
         return (
             <g
                 ref={this.base}
@@ -567,9 +593,11 @@ export class MapChart
             >
                 {this.renderMapOrGlobe()}
                 {this.renderMapLegend()}
-                {tooltipState.target && (
+                {tooltipCountry && (
                     <MapTooltip
-                        tooltipState={tooltipState}
+                        entityName={tooltipCountry}
+                        position={tooltipState.position}
+                        fading={tooltipState.fading}
                         timeSeriesTable={this.inputTable}
                         formatValueIfCustom={this.formatTooltipValueIfCustom}
                         manager={this.manager}
@@ -577,8 +605,9 @@ export class MapChart
                         targetTime={this.targetTime}
                         sparklineWidth={sparklineWidth}
                         dismissTooltip={() => {
-                            this.tooltipState.target = null
                             this.focusEntity = undefined
+                            this.tooltipState.target = null
+                            this.globeController.dismissCountryFocus()
                         }}
                     />
                 )}

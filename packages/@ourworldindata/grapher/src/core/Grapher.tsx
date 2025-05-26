@@ -234,6 +234,7 @@ import {
 } from "../color/ColorConstants"
 import { FacetChart } from "../facetChart/FacetChart"
 import { getErrorMessageRelatedQuestionUrl } from "./relatedQuestion.js"
+import { GlobeController } from "../mapCharts/GlobeController"
 
 declare global {
     interface Window {
@@ -1294,6 +1295,14 @@ export class Grapher
     @action.bound private applyOriginalFocusAsAuthored(): void {
         if (this.focusedSeriesNames?.length)
             this.focusArray.clearAllAndAdd(...this.focusedSeriesNames)
+    }
+
+    @action.bound private applyOriginalRegionAsAuthored(): void {
+        this.mapConfig.region = this.authorsVersion.mapConfig.region
+    }
+
+    @action.bound onCloseGlobeViewButtonClick(): void {
+        this.applyOriginalRegionAsAuthored()
     }
 
     @computed get hasData(): boolean {
@@ -2800,10 +2809,7 @@ export class Grapher
             },
             {
                 combo: "g",
-                fn: (): void => {
-                    this.mapConfig.globe.isActive =
-                        !this.mapConfig.globe.isActive
-                },
+                fn: (): void => this.globeController.toggleGlobe(),
                 title: "Toggle globe view",
                 category: "Map",
             },
@@ -3339,6 +3345,12 @@ export class Grapher
         return this.isTouchDevice
     }
 
+    @computed get shouldShowEntitySelectorOnMapTab(): boolean {
+        // only show the entity selector on the map tab if it's
+        // rendered into the side panel or the drawer
+        return this.showEntitySelectorAs !== GrapherWindowType.modal
+    }
+
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
     private bindToWindow(): void {
@@ -3374,6 +3386,15 @@ export class Grapher
         }
     }
 
+    private showGlobeIfAuthorSelectedRegion(): void {
+        if (
+            this.mapConfig.region !== MapRegionName.World &&
+            !this.shouldShowEntitySelectorOnMapTab
+        ) {
+            this.globeController.showGlobe()
+        }
+    }
+
     componentDidMount(): void {
         this.setBaseFontSize()
         this.setUpIntersectionObserver()
@@ -3401,6 +3422,8 @@ export class Grapher
         )
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
+
+        this.showGlobeIfAuthorSelectedRegion()
     }
 
     private _shortcutsBound = false
@@ -3735,10 +3758,19 @@ export class Grapher
     msPerTick = DEFAULT_MS_PER_TICK
 
     timelineController = new TimelineController(this)
+    globeController = new GlobeController(this)
 
-    @action.bound onTimelineClick(): void {
+    private dismissTooltip(): void {
         const tooltip = this.tooltip?.get()
         if (tooltip) tooltip.dismiss?.()
+    }
+
+    @action.bound onTimelineClick(): void {
+        this.dismissTooltip()
+    }
+
+    @action.bound onMapCountryDropdownFocus(): void {
+        this.dismissTooltip()
     }
 
     // todo: restore this behavior??
