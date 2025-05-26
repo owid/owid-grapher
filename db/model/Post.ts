@@ -394,19 +394,15 @@ export const getGdocsPostReferencesByChartId = async (
 }
 
 /*
- * Get all the gdocs and Wordpress posts mentioning a chart
+ * Get all the gdocs posts mentioning a chart
  */
 export const getRelatedArticles = async (
     knex: db.KnexReadonlyTransaction,
     chartId: number
 ): Promise<PostReference[] | undefined> => {
-    const wordpressPosts = await getWordpressPostReferencesByChartId(
-        chartId,
-        knex
-    )
     const gdocsPosts = await getGdocsPostReferencesByChartId(chartId, knex)
 
-    return [...wordpressPosts, ...gdocsPosts].sort(
+    return gdocsPosts.sort(
         // Alphabetise
         (a, b) => (a.title.toLowerCase() > b.title.toLowerCase() ? 1 : -1)
     )
