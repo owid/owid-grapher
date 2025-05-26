@@ -4895,6 +4895,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@turf/bbox@npm:^7.2.0":
+  version: 7.2.0
+  resolution: "@turf/bbox@npm:7.2.0"
+  dependencies:
+    "@turf/helpers": "npm:^7.2.0"
+    "@turf/meta": "npm:^7.2.0"
+    "@types/geojson": "npm:^7946.0.10"
+    tslib: "npm:^2.8.1"
+  checksum: 10/34dfb634d04bc20be292a211e0fdef610556bead4bb5a38174fe040c59f041b4a0e2f586148c2c8b88677b1c5af08a07de5745235233dbaa0197fd67bf21e0da
+  languageName: node
+  linkType: hard
+
 "@turf/boolean-disjoint@npm:^7.2.0":
   version: 7.2.0
   resolution: "@turf/boolean-disjoint@npm:7.2.0"
@@ -4933,6 +4945,18 @@ __metadata:
     point-in-polygon-hao: "npm:^1.1.0"
     tslib: "npm:^2.8.1"
   checksum: 10/37624a62d88e7d8c39a37d774399e3a9322f8b544e708c5f6eb4ad34ed86f57c7ac1ef6fafcc66297eb77b44aa28cccb9c8c583bf317471d142c0fbefc4aeb9c
+  languageName: node
+  linkType: hard
+
+"@turf/center@npm:^7.2.0":
+  version: 7.2.0
+  resolution: "@turf/center@npm:7.2.0"
+  dependencies:
+    "@turf/bbox": "npm:^7.2.0"
+    "@turf/helpers": "npm:^7.2.0"
+    "@types/geojson": "npm:^7946.0.10"
+    tslib: "npm:^2.8.1"
+  checksum: 10/d8c88e972eabec094993d875607d0467b98826517bbeb24bd6b289e62cbbfbdbdd649e7e03f1b7967d0f258a3adfac0955d4d09aaabb59bebf5db99bcca485e3
   languageName: node
   linkType: hard
 
@@ -11011,6 +11035,7 @@ __metadata:
     "@tippyjs/react": "npm:^4.2.6"
     "@tsconfig/node22": "npm:^22.0.0"
     "@turf/boolean-intersects": "npm:^7.2.0"
+    "@turf/center": "npm:^7.2.0"
     "@types/chunk-text": "npm:^1.0.0"
     "@types/codemirror": "npm:^5.60.5"
     "@types/colorbrewer": "npm:^1.0.29"

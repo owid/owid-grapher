@@ -112,7 +112,16 @@ export class MapChart
     transformTableForSelection(table: OwidTable): OwidTable {
         table = this.addMissingMapEntities(table)
         table = this.dropNonMapEntitiesForSelection(table)
+        table = this.dropAntarctica(table)
         return table
+    }
+
+    private dropAntarctica(table: OwidTable): OwidTable {
+        // We prefer to not offer Antarctica in the entity selector on the map
+        // tab to avoid confusion since it's shown on the globe, but not on the map.
+        return table.filterByEntityNamesUsingIncludeExcludePattern({
+            excluded: ["Antarctica"],
+        })
     }
 
     private dropNonMapEntities(table: OwidTable): OwidTable {
@@ -226,7 +235,10 @@ export class MapChart
             const featureId = feature.id as string
             this.hoverFeatureId = featureId
             this.tooltipState.target = { featureId }
-            this.manager.logGrapherHoverEvent?.("map_country", featureId)
+            this.manager.logGrapherInteractionEvent?.(
+                "map_country_hover",
+                featureId
+            )
         }
     }
 
@@ -266,6 +278,13 @@ export class MapChart
         this.onMapMouseLeave()
         this.onLegendMouseLeave()
         document.removeEventListener("keydown", this.onDocumentKeyDown)
+    }
+
+    @action.bound onLegendMouseEnter(bracket: MapBracket): void {
+        this.manager.logGrapherInteractionEvent?.(
+            "map_legend_hover",
+            bracket.label
+        )
     }
 
     @action.bound onLegendMouseOver(bracket: MapBracket): void {

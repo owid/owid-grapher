@@ -728,7 +728,12 @@
         }
     },
     {
-        "id": "Moldova"
+        "id": "Moldova",
+        "external": {
+            "direction": "rightBottom",
+            "anchorPoint": [28.893449546412654, 46.14851327546208],
+            "bridgeCountries": ["Ukraine"]
+        }
     },
     {
         "id": "Monaco",
@@ -1005,7 +1010,8 @@
         "id": "San Marino",
         "external": {
             "direction": "rightTop",
-            "anchorPoint": [12.43953865132633, 43.93249259966322]
+            "anchorPoint": [12.43953865132633, 43.93249259966322],
+            "bridgeCountries": ["Italy"]
         }
     },
     {

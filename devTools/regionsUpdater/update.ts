@@ -167,7 +167,7 @@ function transformGeography(orig: FeatureCollection): FeatureCollection {
     const properties = {}
     let greenlandCoords // to be pulled out of Denmark
 
-    let features = orig.features.map(({ id, geometry }) => {
+    const features = orig.features.map(({ id, geometry }) => {
         if (id === "DNK") {
             // remove Greenland from Denmark and save for later
             const { coordinates } = geometry as MultiPolygon
@@ -232,9 +232,6 @@ function transformGeography(orig: FeatureCollection): FeatureCollection {
         },
     })
 
-    // omit outline for Antarctica
-    features = features.filter(({ id }) => id !== "ATA")
-
     return { type: "FeatureCollection", features } as FeatureCollection
 }
 
@@ -268,7 +265,8 @@ async function main() {
     const entities = _.map(data as Entity[], (entity) => {
         // drop redundant attrs
         if (entity.short_name === entity.name) delete entity.short_name
-        if (entity.region_type !== "country") delete entity.is_mappable
+        if (entity.region_type !== "country" && entity.region_type !== "other")
+            delete entity.is_mappable
         if (entity.defined_by === "owid") delete entity.defined_by
 
         // update geojson with canonical names & validate mappability flag

@@ -79,7 +79,10 @@ export function checkIsOwidIncomeGroupName(
 }
 
 export function checkIsCountry(region: Region): region is Country {
-    return region.regionType === RegionType.Country
+    return (
+        region.regionType === RegionType.Country ||
+        region.regionType === RegionType.Other
+    )
 }
 
 export function checkIsOwidContinent(region: Region): region is Continent {
@@ -105,7 +108,7 @@ export const countries: Country[] = regions.filter(
 
 export const mappableCountries: Country[] = regions.filter(
     (country): country is Country =>
-        country.regionType === "country" && !!country.isMappable
+        checkIsCountry(country) && !!country.isMappable
 )
 
 export const getOthers = lazy(

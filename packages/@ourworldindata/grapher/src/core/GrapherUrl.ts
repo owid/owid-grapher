@@ -11,6 +11,10 @@ import {
 import { match } from "ts-pattern"
 import { Grapher } from "./Grapher.js"
 import * as R from "remeda"
+import {
+    DEFAULT_GLOBE_ROTATION,
+    DEFAULT_GLOBE_ZOOM,
+} from "../mapCharts/MapChartConstants.js"
 
 // This function converts a (potentially partial) GrapherInterface to the query params this translates to.
 // This is helpful for when we have a patch config to a parent chart, and we want to know which query params we need to get the parent chart as close as possible to the patched child chart.
@@ -59,14 +63,18 @@ export const grapherConfigToQueryParams = (
         focus: config.focusedSeriesNames
             ? generateFocusedSeriesNamesParam(config.focusedSeriesNames)
             : undefined,
+        mapSelect: config.map?.selectedEntityNames
+            ? generateSelectedEntityNamesParam(config.map.selectedEntityNames)
+            : undefined,
+        globe: config.map?.globe?.isActive ? 1 : undefined,
+        globeRotation: configGlobeRotationToQueryParam(
+            config.map?.globe?.rotation
+        ),
+        globeZoom: configGlobeZoomToQueryParam(config.map?.globe?.zoom),
 
         // These cannot be specified in config, so we always set them to undefined
         showSelectionOnlyInTable: undefined,
         overlay: undefined,
-        globe: undefined,
-        globeRotation: undefined,
-        globeZoom: undefined,
-        mapSelect: undefined,
     }
 
     // Drop undefined values and convert all to string
@@ -110,23 +118,65 @@ export const grapherObjectToQueryParams = (
         focus: grapher.areFocusedSeriesNamesDifferentThanAuthors
             ? generateFocusedSeriesNamesParam(grapher.focusArray.seriesNames)
             : undefined,
-        globe: grapher.mapConfig.globe.isActive ? "1" : "0",
-        globeRotation: stringifyGlobeRotation(grapher.mapConfig.globe.rotation),
-        globeZoom: R.round(grapher.mapConfig.globe.zoom, 2).toString(),
         mapSelect: generateSelectedEntityNamesParam(
             grapher.mapConfig.selection.selectedEntityNames
         ),
+        globe: grapher.mapConfig.globe.isActive ? "1" : "0",
+        globeRotation: !R.isDeepEqual(
+            grapher.mapConfig.globe.rotation,
+            DEFAULT_GLOBE_ROTATION
+        )
+            ? stringifyGlobeRotation(grapher.mapConfig.globe.rotation)
+            : undefined,
+        globeZoom:
+            grapher.mapConfig.globe.zoom !== DEFAULT_GLOBE_ZOOM
+                ? R.round(grapher.mapConfig.globe.zoom, 2).toString()
+                : undefined,
     }
     return params
 }
 
-function stringifyGlobeRotation(globeRotation: number[]): string {
-    return globeRotation.map((r) => R.round(r, 5)).join(",")
+/**
+ * Maps the globe rotation given in a config, which is [lat, lon], to a query param
+ * which is [lat, lon] as well. The default globe rotation is not persisted.
+ */
+function configGlobeRotationToQueryParam(
+    configGlobeRotationLatLon?: [number, number]
+): string | undefined {
+    if (!configGlobeRotationLatLon) return undefined
+
+    // don't persist the default globe rotation
+    const isDefaultRotation = R.isDeepEqual(
+        configGlobeRotationLatLon,
+        // we use [lon, lat] internally, but here we are given [lat, lon]
+        R.reverse(DEFAULT_GLOBE_ROTATION)
+    )
+    if (isDefaultRotation) return undefined
+
+    return configGlobeRotationLatLon.map((r) => R.round(r, 2)).join(",")
 }
 
-export function parseGlobeRotation(globeRotation: string): [number, number] {
-    return globeRotation
+function configGlobeZoomToQueryParam(zoom?: number): string | undefined {
+    if (!zoom) return undefined
+
+    // don't persist the default zoom level
+    if (zoom === DEFAULT_GLOBE_ZOOM) return undefined
+
+    return zoom.toString()
+}
+
+export function parseGlobeRotation(latLon: string): [number, number] {
+    // we use [lon, lat] internally and [lat, lon] in the URL
+    const [lat, lon] = latLon
         .split(",")
         .map((s) => +s)
         .slice(0, 2) as [number, number]
+    return [lon, lat]
+}
+
+function stringifyGlobeRotation(lonLat: number[]): string {
+    // we use [lon, lat] internally and [lat, lon] in the URL
+    const lon = R.round(lonLat[0], 2)
+    const lat = R.round(lonLat[1], 2)
+    return [lat, lon].join(",")
 }

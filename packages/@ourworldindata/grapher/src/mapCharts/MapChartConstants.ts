@@ -13,7 +13,8 @@ import { GlobeController } from "./GlobeController"
 import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { GrapherHoverEvent } from "../core/GrapherAnalytics"
+import { GrapherInteractionEvent } from "../core/GrapherAnalytics"
+import * as R from "remeda"
 
 export declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
@@ -37,6 +38,7 @@ export const MAP_CHART_CLASSNAME = "MapChart"
 export const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
 export const GEO_FEATURES_CLASSNAME = "GeoFeatures"
 
+export const DEFAULT_GLOBE_ZOOM = 1
 export const GLOBE_MIN_ZOOM = 1
 export const GLOBE_MAX_ZOOM = 5
 export const GLOBE_COUNTRY_ZOOM = 2.5
@@ -45,14 +47,14 @@ export const GLOBE_LATITUDE_MIN = -65
 export const GLOBE_LATITUDE_MAX = 65
 
 export const DEFAULT_GLOBE_SIZE = 500 // defined by d3
-export const DEFAULT_GLOBE_ROTATION: [number, number] = [30, -20] // Atlantic ocean (i.e. Americas & Europe)
+export const DEFAULT_GLOBE_ROTATION: [number, number] = [-30, 20] // Atlantic ocean (i.e. Americas & Europe)
 export const DEFAULT_GLOBE_ROTATIONS_FOR_TIME: Record<
     "UTC_MORNING" | "UTC_MIDDAY" | "UTC_EVENING",
     [number, number]
 > = {
-    UTC_MORNING: [-110, -15], // Asia & Oceania
-    UTC_MIDDAY: [-20, -20], // Europe & Africa
-    UTC_EVENING: [90, -15], // North & South America
+    UTC_MORNING: [110, 15], // Asia & Oceania
+    UTC_MIDDAY: [20, 20], // Europe & Africa
+    UTC_EVENING: [-90, 15], // North & South America
 }
 
 export const ANNOTATION_COLOR_DARK = HOVER_STROKE_COLOR
@@ -76,13 +78,7 @@ export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
     Oceania: "Oceania",
 }
 
-export const MAP_REGION_NAMES: Record<string, MapRegionName> =
-    Object.fromEntries(
-        Object.entries(MAP_REGION_LABELS).map(([key, value]) => [
-            value,
-            key as MapRegionName,
-        ])
-    )
+export const MAP_REGION_NAMES = R.invert(MAP_REGION_LABELS)
 
 export interface ChoroplethSeries extends ChartSeries {
     value: number | string
@@ -100,7 +96,6 @@ export interface ChoroplethMapManager {
     mapRegionDropdownValue?: MapRegionDropdownValue
     resetMapRegionDropdownValue?: () => void
     selectionArray: MapSelectionArray
-    hoverFeatureId?: string
     fontSize?: number
     getHoverState: (featureId: string) => InteractionState
     isSelected: (featureId: string) => boolean
@@ -139,7 +134,10 @@ export interface MapChartManager extends ChartManager {
     globeController?: GlobeController
     mapRegionDropdownValue?: MapRegionDropdownValue
     isMapSelectionEnabled?: boolean
-    logGrapherHoverEvent?: (action: GrapherHoverEvent, target?: string) => void
+    logGrapherInteractionEvent?: (
+        action: GrapherInteractionEvent,
+        target?: string
+    ) => void
 }
 
 export interface GlobeViewport {
@@ -148,12 +146,12 @@ export interface GlobeViewport {
 }
 
 export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
-    Europe: { rotation: [-10, -55], zoom: 3 },
-    Africa: { rotation: [-20, 0], zoom: 1.65 },
-    NorthAmerica: { rotation: [95, -48], zoom: 1.5 },
-    SouthAmerica: { rotation: [62, 22], zoom: 1.75 },
-    Asia: { rotation: [-81, -26], zoom: 1.85 },
-    Oceania: { rotation: [-153, 25], zoom: 2 },
+    Europe: { rotation: [10, 55], zoom: 2.95 },
+    Africa: { rotation: [20, 0], zoom: 1.55 },
+    NorthAmerica: { rotation: [-94.5, 43], zoom: 1.5 },
+    SouthAmerica: { rotation: [-62, -22], zoom: 1.75 },
+    Asia: { rotation: [81, 26], zoom: 1.85 },
+    Oceania: { rotation: [152.65, -18.8], zoom: 2 },
 }
 
 export interface Circle {

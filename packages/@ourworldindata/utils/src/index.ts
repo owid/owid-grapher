@@ -138,6 +138,7 @@ export {
     lowercaseObjectKeys,
     detailOnDemandRegex,
     extractDetailsFromSyntax,
+    parseFloatOrUndefined,
 } from "./Util.js"
 
 export {

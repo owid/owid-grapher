@@ -199,9 +199,13 @@ export function InternalValueAnnotation({
 export function ExternalValueAnnotation({
     annotation,
     strokeScale = 1,
+    onMouseEnter,
+    onMouseLeave,
 }: {
     annotation: ExternalAnnotation
     strokeScale?: number
+    onMouseEnter?: (feature: RenderFeature) => void
+    onMouseLeave?: () => void
 }): React.ReactElement {
     const { id, text, direction, anchor, placedBounds, fontSize } = annotation
 
@@ -212,7 +216,7 @@ export function ExternalValueAnnotation({
     })
 
     return (
-        <g id={makeIdForHumanConsumption(id)} style={{ pointerEvents: "none" }}>
+        <g id={makeIdForHumanConsumption(id)}>
             <line
                 x1={markerStart[0]}
                 y1={markerStart[1]}
@@ -220,6 +224,7 @@ export function ExternalValueAnnotation({
                 y2={markerEnd[1]}
                 stroke={annotation.color}
                 strokeWidth={(0.5 * HOVER_STROKE_WIDTH) / strokeScale}
+                style={{ pointerEvents: "none" }}
             />
             <text
                 x={placedBounds.x}
@@ -228,6 +233,8 @@ export function ExternalValueAnnotation({
                 strokeWidth={DEFAULT_STROKE_WIDTH / strokeScale}
                 fill={annotation.color}
                 fontWeight={700}
+                onMouseEnter={() => onMouseEnter?.(annotation.feature)}
+                onMouseLeave={onMouseLeave}
             >
                 {text}
             </text>

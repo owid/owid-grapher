@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Props } from "react-select"
 import { BasicDropdownOption, Dropdown } from "./Dropdown.js"
+import { isTouchDevice } from "@ourworldindata/utils"
 
 export function SearchDropdown<DropdownOption extends BasicDropdownOption>(
     props: Props<DropdownOption, false>
@@ -8,10 +9,15 @@ export function SearchDropdown<DropdownOption extends BasicDropdownOption>(
     return (
         <Dropdown
             className="grapher-search-dropdown"
-            isClearable={true}
+            isSearchable={true}
             noOptionsMessage={() => null}
             // prevent auto-zoom on ios
-            styles={{ input: (provided) => ({ ...provided, fontSize: 16 }) }}
+            styles={{
+                input: (provided) => ({
+                    ...provided,
+                    fontSize: isTouchDevice() ? 16 : provided.fontSize,
+                }),
+            }}
             {...props}
         />
     )
