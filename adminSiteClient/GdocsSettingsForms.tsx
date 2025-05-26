@@ -32,12 +32,12 @@ const GdocCommonErrors = ({
     )
     return (
         <>
-            {errorsToShowInDrawer.map((error) => (
+            {errorsToShowInDrawer.map((error, index) => (
                 <Alert
+                    key={index}
+                    className="GdocsSettingsForm__alert"
                     message={error.message}
                     type={error.type}
-                    key={error.message}
-                    className="GdocsSettingsForm__alert"
                     showIcon
                 />
             ))}
