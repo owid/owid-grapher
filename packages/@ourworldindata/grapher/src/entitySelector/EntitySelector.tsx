@@ -494,7 +494,7 @@ export class EntitySelector extends React.Component<{
     @computed private get entityFilter(): EntityRegionType {
         return (
             this.manager.entitySelectorState.entityFilter ??
-            this.filterOptions[0].value ??
+            this.filterOptions[0]?.value ??
             "all"
         )
     }
