@@ -1,6 +1,8 @@
 .expander {
     background-color: $gray-5;
     margin-bottom: 24px;
+    // Prevent flash of colour when tapping on iOS
+    -webkit-tap-highlight-color: transparent;
 
     &:not([open]) {
         .expander__status-icon.minus {
