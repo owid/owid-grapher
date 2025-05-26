@@ -31,8 +31,12 @@ export class MapRegionDropdown extends React.Component<{
     @computed get showMenu(): boolean {
         const { hideMapRegionDropdown, isOnMapTab, mapConfig } =
                 this.props.manager,
-            { region } = mapConfig ?? {}
-        return !hideMapRegionDropdown && !!(isOnMapTab && region)
+            { region, globe } = mapConfig ?? {}
+        return (
+            !hideMapRegionDropdown &&
+            !!(isOnMapTab && region) &&
+            !globe?.isActive
+        )
     }
 
     @computed private get maxWidth(): number {

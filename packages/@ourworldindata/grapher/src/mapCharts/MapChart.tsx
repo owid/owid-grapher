@@ -30,13 +30,16 @@ import {
     MapEntity,
     ChoroplethSeries,
     DEFAULT_STROKE_COLOR,
-    CHOROPLETH_MAP_CLASSNAME,
+    ChoroplethSeriesByName,
+    ChoroplethMapManager,
+    MAP_CHART_CLASSNAME,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
+    GRAPHER_MAX_TOOLTIP_WIDTH,
     Patterns,
 } from "../core/GrapherConstants"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -61,6 +64,7 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChoroplethMap } from "./ChoroplethMap"
+import { ChoroplethGlobe } from "./ChoroplethGlobe"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -71,7 +75,11 @@ interface MapChartProps {
 @observer
 export class MapChart
     extends React.Component<MapChartProps>
-    implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
+    implements
+        ChartInterface,
+        HorizontalColorLegendManager,
+        ColorScaleManager,
+        ChoroplethMapManager
 {
     @observable focusEntity?: MapEntity
     @observable focusBracket?: MapBracket
@@ -138,7 +146,7 @@ export class MapChart
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed get choroplethData(): Map<SeriesName, ChoroplethSeries> {
+    @computed get choroplethData(): ChoroplethSeriesByName {
         return this.seriesMap
     }
 
@@ -192,10 +200,7 @@ export class MapChart
         return makeSelectionArray(this.manager.selection)
     }
 
-    @action.bound onClick(
-        d: GeoFeature,
-        ev: React.MouseEvent<SVGElement>
-    ): void {
+    @action.bound onClick(d: GeoFeature, ev: MouseEvent): void {
         const entityName = d.id as EntityName
         if (!this.isEntityClickable(entityName)) return
 
@@ -255,8 +260,8 @@ export class MapChart
         return mapColumn.owidRows
             .map((row) => {
                 const { entityName, value, originalTime } = row
-                const color = this.colorScale.getColor(value) || "red" // todo: color fix
-                if (!color) return undefined
+                const color =
+                    this.colorScale.getColor(value) || this.noDataColor
                 return {
                     seriesName: entityName,
                     time: originalTime,
@@ -269,7 +274,7 @@ export class MapChart
             .filter(isPresent)
     }
 
-    @computed private get seriesMap(): Map<SeriesName, ChoroplethSeries> {
+    @computed private get seriesMap(): ChoroplethSeriesByName {
         const map = new Map<SeriesName, ChoroplethSeries>()
         this.series.forEach((series) => {
             map.set(series.seriesName, series)
@@ -298,7 +303,7 @@ export class MapChart
     componentDidMount(): void {
         if (!this.manager.disableIntroAnimation) {
             select(this.base.current)
-                .selectAll(`.${CHOROPLETH_MAP_CLASSNAME} path`)
+                .selectAll(`.${MAP_CHART_CLASSNAME} path`)
                 .attr("data-fill", function () {
                     return (this as SVGPathElement).getAttribute("fill")
                 })
@@ -510,22 +515,34 @@ export class MapChart
         )
     }
 
-    renderStatic(): React.ReactElement {
+    renderMapOrGlobe({ clipping = true } = {}): React.ReactElement {
+        const mapOrGlobe = this.mapConfig.globe.isActive ? (
+            <ChoroplethGlobe manager={this} />
+        ) : (
+            <ChoroplethMap manager={this} />
+        )
+
+        if (!clipping) return mapOrGlobe
+
         return (
             <>
-                {/* Clipping the chart area is only necessary when the map is
-                    zoomed in. If it isn't, then we don't add a clipping element
-                    since it introduces noise in SVG editing programs like Figma. */}
-                {this.region === MapRegionName.World ? (
-                    <ChoroplethMap manager={this} />
-                ) : (
-                    <>
-                        {this.clipPath.element}
-                        <g clipPath={this.clipPath.id}>
-                            <ChoroplethMap manager={this} />
-                        </g>
-                    </>
-                )}
+                {this.clipPath.element}
+                <g clipPath={this.clipPath.id}>{mapOrGlobe}</g>
+            </>
+        )
+    }
+
+    renderStatic(): React.ReactElement {
+        // Clipping the chart area is only necessary when the map is
+        // zoomed in or we're showing the globe. If that isn't the case,
+        // then we don't add a clipping element since it introduces noise
+        // in SVG editing programs like Figma.
+        const clipping =
+            this.mapConfig.globe.isActive || this.region !== MapRegionName.World
+
+        return (
+            <>
+                {this.renderMapOrGlobe({ clipping })}
                 {this.renderMapLegend()}
             </>
         )
@@ -534,20 +551,21 @@ export class MapChart
     renderInteractive(): React.ReactElement {
         const { tooltipState } = this
 
-        const sparklineWidth = this.manager.shouldPinTooltipToBottom
-            ? this.bounds.width + (GRAPHER_FRAME_PADDING_HORIZONTAL - 1) * 2
-            : undefined
+        let sparklineWidth: number | undefined
+        if (this.manager.shouldPinTooltipToBottom) {
+            sparklineWidth = Math.min(
+                GRAPHER_MAX_TOOLTIP_WIDTH,
+                this.bounds.width + (GRAPHER_FRAME_PADDING_HORIZONTAL - 1) * 2
+            )
+        }
 
         return (
             <g
                 ref={this.base}
-                className="mapTab"
+                className={MAP_CHART_CLASSNAME}
                 onMouseMove={this.onMapMouseMove}
             >
-                {this.clipPath.element}
-                <g clipPath={this.clipPath.id}>
-                    <ChoroplethMap manager={this} />
-                </g>
+                {this.renderMapOrGlobe()}
                 {this.renderMapLegend()}
                 {tooltipState.target && (
                     <MapTooltip
@@ -558,6 +576,10 @@ export class MapChart
                         colorScaleManager={this}
                         targetTime={this.targetTime}
                         sparklineWidth={sparklineWidth}
+                        dismissTooltip={() => {
+                            this.tooltipState.target = null
+                            this.focusEntity = undefined
+                        }}
                     />
                 )}
             </g>
