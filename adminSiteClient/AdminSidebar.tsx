@@ -60,11 +60,6 @@ export const AdminSidebar = (): React.ReactElement => (
                 </Link>
             </li>
             <li>
-                <Link to="/posts">
-                    <FontAwesomeIcon icon={faFile} fixedWidth /> Posts
-                </Link>
-            </li>
-            <li>
                 <Link to="/gdocs">
                     <FontAwesomeIcon icon={faFile} fixedWidth /> Google Docs
                 </Link>

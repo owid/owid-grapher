@@ -57,13 +57,6 @@ import {
     fetchSourceById,
 } from "./apiRoutes/misc.js"
 import {
-    handleGetPostsJson,
-    handleSetTagsForPost,
-    handleGetPostById,
-    handleCreateGdoc,
-    handleUnlinkGdoc,
-} from "./apiRoutes/posts.js"
-import {
     handleGetSiteRedirects,
     handlePostNewSiteRedirect,
     handleDeleteSiteRedirect,
@@ -370,25 +363,6 @@ getRouteWithROTransaction(
     fetchNamespaces
 )
 getRouteWithROTransaction(apiRouter, "/sources/:sourceId.json", fetchSourceById)
-
-// Wordpress posts routes
-getRouteWithROTransaction(apiRouter, "/posts.json", handleGetPostsJson)
-postRouteWithRWTransaction(
-    apiRouter,
-    "/posts/:postId/setTags",
-    handleSetTagsForPost
-)
-getRouteWithROTransaction(apiRouter, "/posts/:postId.json", handleGetPostById)
-postRouteWithRWTransaction(
-    apiRouter,
-    "/posts/:postId/createGdoc",
-    handleCreateGdoc
-)
-postRouteWithRWTransaction(
-    apiRouter,
-    "/posts/:postId/unlinkGdoc",
-    handleUnlinkGdoc
-)
 
 // Redirects routes
 getRouteWithROTransaction(

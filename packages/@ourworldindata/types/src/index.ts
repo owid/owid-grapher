@@ -629,7 +629,6 @@ export {
     type DbInsertPost,
     type DbEnrichedPost,
     type DbRawPost,
-    type DbRawPostWithGdocPublishStatus,
     PostsTableName,
     parsePostFormattingOptions,
     parsePostAuthors,
