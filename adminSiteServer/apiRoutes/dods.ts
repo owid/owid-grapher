@@ -70,7 +70,7 @@ export async function getParsedDods(
     try {
         const dods = await dodDb.getParsedDodsDictionary(trx)
         res.set("Cache-Control", "no-store")
-        return { dods }
+        return dods
     } catch (error) {
         console.error("Error fetching parsed dods", error)
         return {
