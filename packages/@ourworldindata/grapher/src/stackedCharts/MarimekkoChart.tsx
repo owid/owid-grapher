@@ -440,7 +440,8 @@ export class MarimekkoChart
     }
 
     @computed private get colorColumnSlug(): string | undefined {
-        return this.manager.colorColumnSlug
+        // Marimekko charts only support categorical variables as color dimension
+        return this.manager.categoricalColorColumnSlug
     }
 
     @computed private get colorColumn(): CoreColumn {
