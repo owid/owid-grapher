@@ -74,7 +74,6 @@ import {
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { BaseType, Selection } from "d3"
 import { TextWrap } from "@ourworldindata/components"
-import { StripedProjectedDataPattern } from "../chart/ChartComponents"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -967,6 +966,43 @@ export class DiscreteBarChart
             }
         })
     }
+}
+
+function StripedProjectedDataPattern({
+    patternId,
+    color,
+    opacity = 0.5,
+    size = 7,
+    strokeWidth = 10,
+}: {
+    patternId: string
+    color: string
+    opacity?: number
+    size?: number
+    strokeWidth?: number
+}): React.ReactElement {
+    return (
+        <pattern
+            id={patternId}
+            patternUnits="userSpaceOnUse"
+            width={size}
+            height={size}
+            patternTransform="rotate(45)"
+        >
+            {/* semi-transparent background */}
+            <rect width={size} height={size} fill={color} opacity={opacity} />
+
+            {/* stripes */}
+            <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2={size}
+                stroke={color}
+                strokeWidth={strokeWidth}
+            />
+        </pattern>
+    )
 }
 
 // Pattern IDs should be unique per document (!), not just per grapher instance.
