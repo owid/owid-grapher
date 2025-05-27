@@ -980,11 +980,15 @@ export class GrapherState {
             )
         }
 
-        if ((this.hasScatter || this.hasMarimekko) && this.colorColumnSlug) {
+        if (
+            (this.hasScatter || this.hasMarimekko) &&
+            this.categoricalColorColumnSlug
+        ) {
             const tolerance =
-                table.get(this.colorColumnSlug)?.display?.tolerance ?? Infinity
+                table.get(this.categoricalColorColumnSlug)?.display
+                    ?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
-                this.colorColumnSlug,
+                this.categoricalColorColumnSlug,
                 tolerance
             )
         }
@@ -2020,6 +2024,22 @@ export class GrapherState {
             this.colorSlug ?? this.getSlugForProperty(DimensionProperty.color)
         )
     }
+
+    @computed get numericColorColumnSlug(): string | undefined {
+        if (!this.colorColumnSlug) return undefined
+
+        const colorColumn = this.inputTable.get(this.colorColumnSlug)
+        if (!colorColumn.isMissing && colorColumn.hasNumberFormatting)
+            return this.colorColumnSlug
+
+        return undefined
+    }
+
+    @computed get categoricalColorColumnSlug(): string | undefined {
+        if (!this.colorColumnSlug) return undefined
+        return this.numericColorColumnSlug ? undefined : this.colorColumnSlug
+    }
+
     @computed get yScaleType(): ScaleType | undefined {
         return this.yAxis.scaleType
     }
