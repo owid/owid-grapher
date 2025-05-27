@@ -152,6 +152,7 @@ properties:
             - line
             - slope
             - discrete-bar
+            - marimekko
     matchingEntitiesOnly:
         type: boolean
         default: false
