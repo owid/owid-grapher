@@ -761,7 +761,7 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
     // The DB query gets the tags for the explorer, but we need to add the parent tags as well.
     // This isn't done in the query because it would require a recursive CTE.
     // It's easier to write that query once, separately, and reuse it.
-    const parentTagArrays = await db.getParentTagArraysByChildName(trx, true)
+    const parentTagArrays = await db.getTopicHierarchiesByChildName(trx)
     const publishedExplorersWithTags = []
 
     for (const explorer of Object.values(explorersBySlug)) {

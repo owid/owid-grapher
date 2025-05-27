@@ -48,7 +48,7 @@ import { dbTestConfig } from "../db/tests/dbTestConfig.js"
 import {
     TransactionCloseMode,
     getBestBreadcrumbs,
-    getParentTagArraysByChildName,
+    getTagHierarchiesByChildName,
     knexReadWriteTransaction,
     knexReadonlyTransaction,
     setKnexInstance,
@@ -1051,7 +1051,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
     it("should be able to generate parent tag arrays with sub-areas", async () => {
         await knexReadonlyTransaction(async (trx) => {
             const parentTagArraysByChildName =
-                await getParentTagArraysByChildName(trx)
+                await getTagHierarchiesByChildName(trx)
 
             expect(
                 parentTagArraysByChildName["CO2 & Greenhouse Gas Emissions"]
@@ -1080,7 +1080,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
     it("should be able to generate parent tag arrays without sub-areas", async () => {
         await knexReadonlyTransaction(async (trx) => {
             const parentTagArraysByChildName =
-                await getParentTagArraysByChildName(trx, true)
+                await getTagHierarchiesByChildName(trx, true)
 
             expect(
                 parentTagArraysByChildName["CO2 & Greenhouse Gas Emissions"]
@@ -1170,7 +1170,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
         await knexReadonlyTransaction(
             async (trx) => {
                 const parentTagArraysByChildName =
-                    await getParentTagArraysByChildName(trx)
+                    await getTagHierarchiesByChildName(trx)
                 const breadcrumbs = getBestBreadcrumbs(
                     [
                         {
@@ -1194,7 +1194,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
         await knexReadonlyTransaction(
             async (trx) => {
                 const parentTagArraysByChildName =
-                    await getParentTagArraysByChildName(trx)
+                    await getTagHierarchiesByChildName(trx)
                 const breadcrumbs = getBestBreadcrumbs(
                     [
                         {
@@ -1222,7 +1222,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
         await knexReadonlyTransaction(
             async (trx) => {
                 const parentTagArraysByChildName =
-                    await getParentTagArraysByChildName(trx)
+                    await getTagHierarchiesByChildName(trx)
                 const breadcrumbs = getBestBreadcrumbs(
                     [
                         {
@@ -1271,7 +1271,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
                 ])
 
                 const parentTagArraysByChildName =
-                    await getParentTagArraysByChildName(trx)
+                    await getTagHierarchiesByChildName(trx)
                 const breadcrumbs = getBestBreadcrumbs(
                     [
                         {

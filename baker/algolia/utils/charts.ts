@@ -102,10 +102,8 @@ export const getChartsRecords = async (
 
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
 
-    const parentTagArraysByChildName = await db.getParentTagArraysByChildName(
-        knex,
-        true
-    )
+    const parentTagArraysByChildName =
+        await db.getTopicHierarchiesByChildName(knex)
 
     const records: ChartRecord[] = []
     for (const c of parsedRows) {

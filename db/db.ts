@@ -247,7 +247,7 @@ export const getPublishedExplorersBySlug = async (
             e.config->>"$.explorerTitle" as title,
             e.config->>"$.explorerSubtitle" as subtitle,
             e.createdAt,
-            e.updatedAt 
+            e.updatedAt
         FROM
             explorers e
         WHERE
@@ -542,9 +542,9 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
 }
 
 // DFS through the tag graph and track all paths from a child to the root
-// e.g. { "childTag": [ [parentTag1, parentTag2], [parentTag3] ] }
+// e.g. { "childTag": [ [parentTag1, parentTag2, childTag], [parentTag3, ChildTag] ] }
 // Use this with getUniqueNamesFromParentTagArrays to get Record<string, string[]> instead
-export async function getParentTagArraysByChildName(
+export async function getTagHierarchiesByChildName(
     trx: KnexReadonlyTransaction,
     includeAreasAndTopicsOnly: boolean = false
 ): Promise<
@@ -600,6 +600,12 @@ export async function getParentTagArraysByChildName(
 
     return pathsByChildName
 }
+
+export const getTopicHierarchiesByChildName = (
+    trx: KnexReadonlyTransaction
+): Promise<
+    Record<DbPlainTag["name"], Pick<DbPlainTag, "id" | "name" | "slug">[][]>
+> => getTagHierarchiesByChildName(trx, true)
 
 export function getBestBreadcrumbs(
     tags: MinimalTag[],
@@ -795,9 +801,9 @@ export async function selectReplacementChainForImage(
             SELECT i.*
             FROM images i
             WHERE id = ?
-        
+
             UNION ALL
-        
+
             SELECT i.*
             FROM images i
             INNER JOIN replacement_chain rc ON i.replacedBy = rc.id
@@ -828,7 +834,7 @@ export function getCloudflareImage(
     return knexRawFirst(
         trx,
         `-- sql
-        SELECT * 
+        SELECT *
         FROM images
         WHERE filename = ?
         AND replacedBy IS NULL`,
@@ -854,16 +860,16 @@ export function getImageUsage(trx: KnexReadonlyTransaction): Promise<
     }>(
         trx,
         `-- sql
-        SELECT 
+        SELECT
         i.id as imageId,
         JSON_ARRAYAGG(
             JSON_OBJECT(
             'title', p.content->>'$.title',
             'id', p.id
             )
-        ) as posts  
+        ) as posts
         FROM posts_gdocs p
-        JOIN posts_gdocs_x_images pi ON p.id = pi.gdocId 
+        JOIN posts_gdocs_x_images pi ON p.id = pi.gdocId
         JOIN images i ON pi.imageId = i.id
         WHERE i.replacedBy IS NULL
         GROUP BY i.id`
