@@ -1,4 +1,4 @@
-import { isNil, uniq } from "lodash-es"
+import { isNil } from "lodash-es"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { KeyChartLevel, ContentGraphLinkType } from "@ourworldindata/types"
 import * as db from "../../../db/db.js"
@@ -125,12 +125,14 @@ export const getChartsRecords = async (
                   fontSize: 10, // doesn't matter, but is a mandatory field
               }).plaintext
 
-        const parentTags = c.tags.flatMap((tagName) => {
-            const topicHierarchies = topicHierarchiesByChildName[tagName]
-            // a chart can be tagged with a tag that isn't in the tag graph
-            if (!topicHierarchies) return []
-            return getUniqueNamesFromTagHierarchies(topicHierarchies)
-        })
+        const topicTags = new Set<string>(
+            c.tags.flatMap((tagName) => {
+                const topicHierarchies = topicHierarchiesByChildName[tagName]
+                // a chart can be tagged with a tag that isn't in the tag graph
+                if (!topicHierarchies) return []
+                return getUniqueNamesFromTagHierarchies(topicHierarchies)
+            })
+        )
 
         const record = {
             objectID: c.id.toString(),
@@ -145,7 +147,7 @@ export const getChartsRecords = async (
             numDimensions: parseInt(c.numDimensions),
             publishedAt: c.publishedAt,
             updatedAt: c.updatedAt,
-            tags: uniq([...c.tags, ...parentTags]),
+            tags: [...topicTags],
             keyChartForTags: c.keyChartForTags as string[],
             titleLength: c.title.length,
             // Number of references to this chart in all our posts and pages
