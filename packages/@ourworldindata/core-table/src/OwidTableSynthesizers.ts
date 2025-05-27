@@ -99,6 +99,7 @@ export const SynthesizeNonCountryTable = (
 
 export enum SampleColumnSlugs {
     Population = "Population",
+    ProjectedPopulation = "ProjectedPopulation",
     GDP = "GDP",
     LifeExpectancy = "LifeExpectancy",
     Fruit = "Fruit",
@@ -232,3 +233,40 @@ export const SynthesizeFruitTableWithStringValues = (
         () => sampleFrom(stringValues, 1, Date.now())[0]
     )
 }
+
+export const SynthesizeProjectedPopulationTable = (
+    options?: Partial<SynthOptions>,
+    seed = Date.now(),
+    display?: OwidVariableDisplayConfigInterface
+): OwidTable =>
+    SynthesizeOwidTable(
+        {
+            columnDefs: [
+                {
+                    ...SynthSource(SampleColumnSlugs.Population),
+                    slug: SampleColumnSlugs.Population,
+                    type: ColumnTypeNames.Population,
+                    generator: getRandomNumberGenerator(1e7, 1e9, seed),
+                    growthRateGenerator: getRandomNumberGenerator(-5, 5, seed),
+                    display,
+                },
+                {
+                    ...SynthSource(SampleColumnSlugs.ProjectedPopulation),
+                    slug: SampleColumnSlugs.ProjectedPopulation,
+                    type: ColumnTypeNames.Population,
+                    generator: getRandomNumberGenerator(1e9, 1e12, seed),
+                    growthRateGenerator: getRandomNumberGenerator(
+                        -15,
+                        15,
+                        seed
+                    ),
+                    display: {
+                        ...display,
+                        isProjection: true,
+                    },
+                },
+            ],
+            ...options,
+        },
+        seed
+    )
