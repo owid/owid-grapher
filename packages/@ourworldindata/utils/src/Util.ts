@@ -1953,13 +1953,13 @@ export function isFiniteWithGuard(value: unknown): value is number {
     return isFinite(value as any)
 }
 
-// Use with getParentTagArraysByChildName to collapse all paths to the child into a single array of unique parent tag names
-export function getUniqueNamesFromParentTagArrays(
-    parentTagArrays: Pick<DbPlainTag, "id" | "name" | "slug">[][]
+// Use with getTagHierarchiesByChildName to collapse all paths to the child into a single array of unique parent tag names
+export function getUniqueNamesFromTagHierarchies(
+    tagHierarchies: Pick<DbPlainTag, "id" | "name" | "slug">[][]
 ): string[] {
     const tagNames = new Set<string>(
-        parentTagArrays.flatMap((parentTagArray) =>
-            parentTagArray.map((tag) => tag.name)
+        tagHierarchies.flatMap((tagHierarchy) =>
+            tagHierarchy.map((tag) => tag.name)
         )
     )
 

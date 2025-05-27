@@ -549,7 +549,7 @@ export class SiteBaker {
             .getPublishedGdocsWithTags(knex)
             .then((gdocs) => gdocs.map(gdocFromJSON))
 
-        const allParentTagArraysByChildName =
+        const tagHierarchiesByChildName =
             await db.getTagHierarchiesByChildName(knex)
 
         const gdocsToBake =
@@ -594,7 +594,7 @@ export class SiteBaker {
             ) {
                 publishedGdoc.breadcrumbs = db.getBestBreadcrumbs(
                     publishedGdoc.tags,
-                    allParentTagArraysByChildName
+                    tagHierarchiesByChildName
                 )
             }
 

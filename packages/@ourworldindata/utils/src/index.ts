@@ -129,7 +129,7 @@ export {
     isArrayDifferentFromReference,
     readFromAssetMap,
     downloadImage,
-    getUniqueNamesFromParentTagArrays,
+    getUniqueNamesFromTagHierarchies,
     getUserNavigatorLanguages,
     getUserNavigatorLanguagesNonEnglish,
     convertDaysSinceEpochToDate,

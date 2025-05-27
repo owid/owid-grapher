@@ -3,7 +3,7 @@ import {
     DbEnrichedMultiDimDataPage,
     DbPlainMultiDimXChartConfig,
     DbRawChartConfig,
-    getUniqueNamesFromParentTagArrays,
+    getUniqueNamesFromTagHierarchies,
     merge,
     multiDimDimensionsToViewId,
     MultiDimXChartConfigsTableName,
@@ -123,7 +123,8 @@ async function getMultiDimDataPagesWithInheritedTags(
     trx: db.KnexReadonlyTransaction
 ) {
     const multiDims = await getAllPublishedMultiDimDataPages(trx)
-    const parentTagArrays = await db.getTopicHierarchiesByChildName(trx)
+    const topicHierarchiesByChildName =
+        await db.getTopicHierarchiesByChildName(trx)
 
     const result = []
     for (const multiDim of multiDims) {
@@ -137,8 +138,8 @@ async function getMultiDimDataPagesWithInheritedTags(
         const fullTags = new Set<string>()
         for (const tag of tags) {
             fullTags.add(tag)
-            const parentTags = getUniqueNamesFromParentTagArrays(
-                parentTagArrays[tag]
+            const parentTags = getUniqueNamesFromTagHierarchies(
+                topicHierarchiesByChildName[tag]
             )
             for (const parentTag of parentTags) {
                 fullTags.add(parentTag)

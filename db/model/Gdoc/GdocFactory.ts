@@ -208,11 +208,11 @@ export async function getGdocBaseObjectById(
         gdoc.tags = tags
 
         if (tags.length) {
-            const parentTagArraysByChildName =
+            const tagHierarchiesByChildName =
                 await getTagHierarchiesByChildName(knex)
             gdoc.breadcrumbs = getBestBreadcrumbs(
                 gdoc.tags,
-                parentTagArraysByChildName
+                tagHierarchiesByChildName
             )
         }
     }
@@ -305,11 +305,11 @@ export async function getPublishedGdocBaseObjectBySlug(
         )
         gdoc.tags = tags
         if (tags.length) {
-            const parentTagArraysByChildName =
+            const tagHierarchiesByChildName =
                 await getTagHierarchiesByChildName(knex)
             gdoc.breadcrumbs = getBestBreadcrumbs(
                 gdoc.tags,
-                parentTagArraysByChildName
+                tagHierarchiesByChildName
             )
         }
     }
