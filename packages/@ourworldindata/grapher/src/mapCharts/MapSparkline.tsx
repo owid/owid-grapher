@@ -106,7 +106,7 @@ export class MapSparkline extends React.Component<{
             table: this.sparklineTable,
             transformedTable: this.sparklineTable,
             yColumnSlug: this.mapColumnSlug,
-            colorColumnSlug: this.mapColumnSlug,
+            numericColorColumnSlug: this.mapColumnSlug,
             selection: [this.manager.entityName],
             colorScaleOverride: this.manager.lineColorScale,
             showLegend: false,

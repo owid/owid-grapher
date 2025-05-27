@@ -594,7 +594,8 @@ export class DiscreteBarChart
     }
 
     @computed private get colorColumnSlug(): string | undefined {
-        return this.manager.colorColumnSlug
+        // Discrete bar charts only support numeric variables as color dimension
+        return this.manager.numericColorColumnSlug
     }
 
     @computed private get colorColumn(): CoreColumn {
