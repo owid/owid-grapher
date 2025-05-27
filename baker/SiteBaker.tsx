@@ -550,7 +550,7 @@ export class SiteBaker {
             .then((gdocs) => gdocs.map(gdocFromJSON))
 
         const allParentTagArraysByChildName =
-            await db.getParentTagArraysByChildName(knex)
+            await db.getTagHierarchiesByChildName(knex)
 
         const gdocsToBake =
             slugs !== undefined
