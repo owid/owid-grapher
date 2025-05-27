@@ -960,8 +960,8 @@ export class Grapher
         return !this.hideLegend
     }
 
-    @computed private get showsAllEntitiesInChart(): boolean {
-        return this.isScatter || this.isMarimekko
+    @computed private get hasChartThatShowsAllEntities(): boolean {
+        return this.hasScatter || this.hasMarimekko
     }
 
     @computed private get isOnArchivalPage(): boolean {
@@ -984,7 +984,7 @@ export class Grapher
             this.selection.hasSelection &&
             !this.canChangeAddOrHighlightEntities &&
             this.hasChartTab &&
-            !this.showsAllEntitiesInChart &&
+            !this.hasChartThatShowsAllEntities &&
             !this.hasMapTab
         )
     }
@@ -1026,7 +1026,7 @@ export class Grapher
         // different; e.g. for scatterplots, the entity needs to (1) not be excluded and
         // (2) needs to have data for the x and y dimension.
         let table =
-            this.isScatter || this.isMarimekko
+            this.isOnScatterTab || this.isOnMarimekkoTab
                 ? this.tableAfterAuthorTimelineAndActiveChartTransform
                 : this.table
 
@@ -1058,7 +1058,7 @@ export class Grapher
     @computed get tableAfterColorAndSizeToleranceApplication(): OwidTable {
         let table = this.inputTable
 
-        if (this.isScatter && this.sizeColumnSlug) {
+        if (this.hasScatter && this.sizeColumnSlug) {
             const tolerance =
                 table.get(this.sizeColumnSlug)?.display?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
@@ -1067,7 +1067,7 @@ export class Grapher
             )
         }
 
-        if ((this.isScatter || this.isMarimekko) && this.colorColumnSlug) {
+        if ((this.hasScatter || this.hasMarimekko) && this.colorColumnSlug) {
             const tolerance =
                 table.get(this.colorColumnSlug)?.display?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
@@ -1857,9 +1857,9 @@ export class Grapher
         const color = new DimensionSlot(this, DimensionProperty.color)
         const size = new DimensionSlot(this, DimensionProperty.size)
 
-        if (this.isLineChart || this.isDiscreteBar) return [yAxis, color]
-        else if (this.isScatter) return [yAxis, xAxis, size, color]
-        else if (this.isMarimekko) return [yAxis, xAxis, color]
+        if (this.hasScatter) return [yAxis, xAxis, size, color]
+        if (this.hasMarimekko) return [yAxis, xAxis, color]
+        if (this.hasLineChart || this.hasDiscreteBar) return [yAxis, color]
         return [yAxis]
     }
 
@@ -2245,7 +2245,7 @@ export class Grapher
     }
 
     getColumnSlugsForCondensedSources(): string[] {
-        const { xColumnSlug, sizeColumnSlug, colorColumnSlug, isMarimekko } =
+        const { xColumnSlug, sizeColumnSlug, colorColumnSlug, hasMarimekko } =
             this
         const columnSlugs: string[] = []
 
@@ -2261,7 +2261,7 @@ export class Grapher
                 .def as OwidColumnDef
             // exclude population variable if it's used as the x dimension in a marimekko
             if (
-                !isMarimekko ||
+                !hasMarimekko ||
                 !isPopulationVariableETLPath(xColumn?.catalogPath ?? "")
             )
                 columnSlugs.push(xColumnSlug)
@@ -2435,6 +2435,12 @@ export class Grapher
     }
     @computed get hasDiscreteBar(): boolean {
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.DiscreteBar)
+    }
+    @computed get hasMarimekko(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Marimekko)
+    }
+    @computed get hasScatter(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.ScatterPlot)
     }
 
     @computed get supportsMultipleYColumns(): boolean {
@@ -3097,7 +3103,7 @@ export class Grapher
         // we sort by entity name instead.
         // Marimekko charts are special and there we don't do this forcing of sort order
         if (
-            !this.isMarimekko &&
+            !this.isOnMarimekkoTab &&
             this.isRelativeMode &&
             sortConfig.sortBy === SortBy.total
         ) {
