@@ -812,10 +812,11 @@ export class GrapherState {
         const activeTab =
             this.chartTab ?? this.chartType ?? GRAPHER_TAB_NAMES.LineChart
 
-        // Switch to the discrete bar chart tab if we're on the line chart tab
-        // and only a single time is selected
+        // Switch to the discrete bar chart tab if we're on the line or slope
+        // chart tab and a single time is selected
         if (
-            activeTab === GRAPHER_TAB_NAMES.LineChart &&
+            (activeTab === GRAPHER_TAB_NAMES.LineChart ||
+                activeTab === GRAPHER_TAB_NAMES.SlopeChart) &&
             this.shouldShowDiscreteBarWhenSingleTime
         ) {
             return GRAPHER_TAB_NAMES.DiscreteBar
@@ -1820,9 +1821,12 @@ export class GrapherState {
     }
 
     @computed get validChartTypes(): GrapherChartType[] {
-        // add a discrete bar chart tab if the grapher has a line chart
+        // add a discrete bar chart tab if the grapher has a line or slope chart
         const chartTypeSet = new Set(this.chartTypes)
-        if (chartTypeSet.has(GRAPHER_CHART_TYPES.LineChart)) {
+        if (
+            chartTypeSet.has(GRAPHER_CHART_TYPES.LineChart) ||
+            chartTypeSet.has(GRAPHER_CHART_TYPES.SlopeChart)
+        ) {
             chartTypeSet.add(GRAPHER_CHART_TYPES.DiscreteBar)
         }
 
