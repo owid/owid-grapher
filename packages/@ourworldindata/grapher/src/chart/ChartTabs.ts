@@ -90,17 +90,22 @@ export function mapChartTypeNameToQueryParam(
     return MAP_CHART_TYPE_NAME_TO_CHART_TAB_CONFIG_OPTION[chartType]
 }
 
-export function findValidChartTypeCombination(
+export function findPotentialChartTypeSiblings(
     chartTypeSet: Set<GrapherChartType>
 ): GrapherChartType[] | undefined {
     for (const validCombination of VALID_CHART_TYPE_COMBINATIONS) {
         const validCombinationSet = new Set(validCombination)
         if (isSubsetOf(chartTypeSet, validCombinationSet))
-            return validCombination.filter((chartType) =>
-                chartTypeSet.has(chartType)
-            )
+            return validCombination
     }
     return undefined
+}
+
+export function findValidChartTypeCombination(
+    chartTypeSet: Set<GrapherChartType>
+): GrapherChartType[] | undefined {
+    const validCombination = findPotentialChartTypeSiblings(chartTypeSet)
+    return validCombination?.filter((chartType) => chartTypeSet.has(chartType))
 }
 
 export function isChartTypeName(

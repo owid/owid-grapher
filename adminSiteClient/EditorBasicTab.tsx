@@ -22,6 +22,7 @@ import {
     WORLD_ENTITY_NAME,
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
+    findPotentialChartTypeSiblings,
 } from "@ourworldindata/grapher"
 import {
     DimensionProperty,
@@ -482,30 +483,42 @@ export class EditorBasicTab<
         ]
     }
 
-    private addSlopeChart(): void {
+    @computed get chartTypeSiblings(): GrapherChartType[] {
         const { grapher } = this.props.editor
-        if (grapher.hasSlopeChart) return
-        grapher.chartTypes = [
-            ...grapher.chartTypes,
-            GRAPHER_CHART_TYPES.SlopeChart,
-        ]
+
+        const siblings =
+            findPotentialChartTypeSiblings(grapher.validChartTypeSet) ?? []
+
+        const filteredSiblings = siblings.filter(
+            (chartType) =>
+                // exclude the primary chart type
+                chartType !== grapher.chartType &&
+                // exclude discrete bar charts because they're enabled by default
+                chartType !== GRAPHER_CHART_TYPES.DiscreteBar
+        )
+
+        return filteredSiblings
     }
 
-    private removeSlopeChart(): void {
+    @action.bound private addChartType(chartType: GrapherChartType): void {
+        const { grapher } = this.props.editor
+        if (grapher.validChartTypeSet.has(chartType)) return
+        grapher.chartTypes = [...grapher.chartTypes, chartType]
+    }
+
+    @action.bound private removeChartType(chartType: GrapherChartType): void {
         const { grapher } = this.props.editor
         grapher.chartTypes = grapher.chartTypes.filter(
-            (type) => type !== GRAPHER_CHART_TYPES.SlopeChart
+            (type) => type !== chartType
         )
     }
 
-    @action.bound toggleSecondarySlopeChart(
-        shouldHaveSlopeChart: boolean
+    @action.bound private toggleChartType(
+        chartType: GrapherChartType,
+        shouldHaveChartType: boolean
     ): void {
-        if (shouldHaveSlopeChart) {
-            this.addSlopeChart()
-        } else {
-            this.removeSlopeChart()
-        }
+        if (shouldHaveChartType) this.addChartType(chartType)
+        else this.removeChartType(chartType)
     }
 
     @action.bound onSaveTags(tags: DbChartTagJoin[]) {
@@ -548,13 +561,16 @@ export class EditorBasicTab<
                                 (grapher.hasMapTab = shouldHaveMapTab)
                             }
                         />
-                        {grapher.isLineChart && (
+                        {this.chartTypeSiblings.map((chartType) => (
                             <Toggle
-                                label="Slope chart"
-                                value={grapher.hasSlopeChart}
-                                onValue={this.toggleSecondarySlopeChart}
+                                key={chartType}
+                                label={startCase(chartType)}
+                                value={grapher.validChartTypeSet.has(chartType)}
+                                onValue={(value) =>
+                                    this.toggleChartType(chartType, value)
+                                }
                             />
-                        )}
+                        ))}
                     </FieldsRow>
                 </Section>
                 {!isIndicatorChart && (

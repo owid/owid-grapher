@@ -92,5 +92,8 @@ export {
     getChartTypeFromConfig,
     getChartTypeFromConfigAndQueryParams,
 } from "./chart/ChartUtils"
-export { isValidTabQueryParam } from "./chart/ChartTabs"
+export {
+    isValidTabQueryParam,
+    findPotentialChartTypeSiblings,
+} from "./chart/ChartTabs"
 export { GeoFeatures } from "./mapCharts/GeoFeatures"

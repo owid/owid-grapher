@@ -90,8 +90,8 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     @computed get availableTabs(): EditorTab[] {
         const tabs: EditorTab[] = ["basic", "data", "text", "customize"]
         if (this.grapher.hasMapTab) tabs.push("map")
-        if (this.grapher.isScatter) tabs.push("scatter")
-        if (this.grapher.isMarimekko) tabs.push("marimekko")
+        if (this.grapher.hasScatter) tabs.push("scatter")
+        if (this.grapher.hasMarimekko) tabs.push("marimekko")
         tabs.push("revisions")
         tabs.push("refs")
         tabs.push("export")
