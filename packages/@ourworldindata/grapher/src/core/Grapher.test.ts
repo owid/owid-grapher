@@ -9,6 +9,7 @@ import {
     LegacyGrapherInterface,
     LegacyGrapherQueryParams,
     GRAPHER_TAB_NAMES,
+    OwidChartDimensionInterface,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -383,7 +384,7 @@ describe("currentTitle", () => {
                 {
                     slug: SampleColumnSlugs.GDP,
                     property: DimensionProperty.y,
-                    variableId: SampleColumnSlugs.GDP as any,
+                    variableId: 1,
                 },
             ],
         })
@@ -1414,5 +1415,133 @@ describe("tableForDisplay", () => {
             chartTypes: ["Marimekko"],
         })
         expect(grapher.tableForDisplay.availableEntityNames.length).toBe(5)
+    })
+})
+
+describe("projectionColumnInfoBySlug", () => {
+    const createYDimensionsForSlugs = (
+        slugs: string[]
+    ): OwidChartDimensionInterface[] =>
+        slugs.map((slug, i) => ({
+            slug,
+            property: DimensionProperty.y,
+            variableId: 100 + i,
+        }))
+
+    const createOwidTableForColumns = (
+        columns: {
+            slug: string
+            display: { name?: string; isProjection?: boolean }
+        }[]
+    ): OwidTable => {
+        const headers = ["entityName", "year", ...columns.map((c) => c.slug)]
+        const data = ["France", 2000, ...columns.map(() => 100)]
+        const columnDefs = columns.map((c) => ({
+            slug: c.slug,
+            type: ColumnTypeNames.Numeric,
+            display: c.display,
+        }))
+        return new OwidTable([headers, data], columnDefs)
+    }
+
+    it("returns an empty map when there are no projection columns", () => {
+        const table = SynthesizeGDPTable({ entityCount: 3 })
+        const grapherState = new GrapherState({
+            table,
+            dimensions: createYDimensionsForSlugs([SampleColumnSlugs.GDP]),
+        })
+        expect(grapherState.projectionColumnInfoBySlug.size).toBe(0)
+    })
+
+    it("matches projection columns with the historical column if there is only one", () => {
+        const table = createOwidTableForColumns([
+            { slug: "population", display: { name: "Population" } },
+            {
+                slug: "population_projection_1",
+                display: { isProjection: true },
+            },
+            {
+                slug: "population_projection_2",
+                display: { isProjection: true },
+            },
+            {
+                slug: "population_projection_3",
+                display: { isProjection: true },
+            },
+        ])
+        const grapherState = new GrapherState({
+            table,
+            dimensions: createYDimensionsForSlugs([
+                "population",
+                "population_projection_1",
+                "population_projection_2",
+                "population_projection_3",
+            ]),
+        })
+
+        const result = grapherState.projectionColumnInfoBySlug
+        expect(result.size).toBe(3)
+
+        for (const projectedSlug of [
+            "population_projection_1",
+            "population_projection_2",
+            "population_projection_3",
+        ]) {
+            expect(result.get(projectedSlug)?.historicalSlug).toBe("population")
+        }
+    })
+
+    it("matches projection columns with historical columns by display name", () => {
+        const table = createOwidTableForColumns([
+            { slug: "population", display: { name: "Population" } },
+            { slug: "gdp", display: { name: "GDP" } },
+            {
+                slug: "population_projection",
+                display: { name: "Population", isProjection: true },
+            },
+            {
+                slug: "gdp_projection",
+                display: { name: "GDP", isProjection: true },
+            },
+        ])
+
+        const grapherState = new GrapherState({
+            table,
+            dimensions: createYDimensionsForSlugs([
+                "population_projection",
+                "gdp_projection",
+                "population",
+                "gdp",
+            ]),
+        })
+
+        const result = grapherState.projectionColumnInfoBySlug
+        expect(result.size).toBe(2)
+        expect(result.get("population_projection")?.historicalSlug).toBe(
+            "population"
+        )
+        expect(result.get("gdp_projection")?.historicalSlug).toBe("gdp")
+    })
+
+    it("returns an empty map when no matching historical column is found", () => {
+        const table = createOwidTableForColumns([
+            { slug: "gdp", display: { name: "GDP" } },
+            { slug: "life_exp", display: { name: "Life Expectancy" } },
+            {
+                slug: "population_projection",
+                display: { name: "Population", isProjection: true },
+            },
+        ])
+
+        const grapherState = new GrapherState({
+            table,
+            dimensions: createYDimensionsForSlugs([
+                "population_projection",
+                "gdp",
+                "life_exp",
+            ]),
+        })
+
+        expect(grapherState.projectionColumnInfoBySlug.size).toBe(0)
     })
 })
