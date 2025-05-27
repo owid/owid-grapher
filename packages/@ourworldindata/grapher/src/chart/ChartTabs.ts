@@ -25,6 +25,7 @@ const VALID_CHART_TYPE_COMBINATIONS = [
         GRAPHER_CHART_TYPES.LineChart,
         GRAPHER_CHART_TYPES.SlopeChart,
         GRAPHER_CHART_TYPES.DiscreteBar,
+        GRAPHER_CHART_TYPES.Marimekko,
     ],
 ]
 
@@ -41,7 +42,7 @@ export const CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.StackedBar]: "Stacked bar",
     [GRAPHER_CHART_TYPES.DiscreteBar]: "Bar",
     [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Stacked bar",
-    [GRAPHER_CHART_TYPES.Marimekko]: "Marimekko",
+    [GRAPHER_CHART_TYPES.Marimekko]: "Ranking",
 }
 
 const MAP_CHART_TAB_CONFIG_OPTION_TO_CHART_TYPE_NAME: Record<
