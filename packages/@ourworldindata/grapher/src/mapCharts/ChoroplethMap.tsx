@@ -33,7 +33,7 @@ import {
     ExternalValueAnnotation,
     InternalValueAnnotation,
     NoDataPattern,
-    MapProjectedDataPattern,
+    ProjectedDataPattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
 import {
@@ -452,7 +452,7 @@ export class ChoroplethMap extends React.Component<{
                 {this.manager.hasProjectedData && (
                     <defs>
                         {/* Pattern used by the map legend for the projected data bin */}
-                        <MapProjectedDataPattern
+                        <ProjectedDataPattern
                             key={PROJECTED_DATA_LEGEND_COLOR}
                             color={PROJECTED_DATA_LEGEND_COLOR}
                             forLegend
@@ -461,7 +461,7 @@ export class ChoroplethMap extends React.Component<{
                             the features' patterns defined below because those are scaled
                             by the viewport. */}
                         {this.binColors.map((color) => (
-                            <MapProjectedDataPattern
+                            <ProjectedDataPattern
                                 key={color}
                                 color={color}
                                 forLegend
@@ -470,7 +470,7 @@ export class ChoroplethMap extends React.Component<{
 
                         {/* Pattern used by features */}
                         {this.binColors.map((color) => (
-                            <MapProjectedDataPattern
+                            <ProjectedDataPattern
                                 key={color}
                                 color={color}
                                 scale={1 / this.viewportScale}
