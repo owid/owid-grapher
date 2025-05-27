@@ -725,6 +725,7 @@ export class MarimekkoChart
                                 yPoint: point,
                                 color: series.color,
                                 seriesName: series.seriesName,
+                                columnSlug: series.columnSlug,
                             }
                         })
                     ),
@@ -922,7 +923,7 @@ export class MarimekkoChart
             dualAxis,
             tooltipItem,
             xColumn,
-            formatColumn: yColumn,
+            yColumns,
             manager: { endTime, xOverrideTime },
             inputTable: { timeColumn },
             tooltipState: { target, position, fading },
@@ -939,6 +940,7 @@ export class MarimekkoChart
                 return {
                     name: bar.seriesName,
                     value: bar.yPoint.value,
+                    column: this.transformedTable.get(bar.columnSlug),
                     notice: shouldShowYTimeNotice ? bar.yPoint.time : undefined,
                 }
             }) ?? []
@@ -961,7 +963,7 @@ export class MarimekkoChart
               }
             : undefined
 
-        const columns = excludeUndefined([xColumn, yColumn])
+        const columns = excludeUndefined([xColumn, ...yColumns])
         const allRoundedToSigFigs = columns.every(
             (column) => column.roundsToSignificantFigures
         )
@@ -1027,10 +1029,10 @@ export class MarimekkoChart
                         dissolve={fading}
                         dismiss={() => (this.tooltipState.target = null)}
                     >
-                        {yValues.map(({ name, value, notice }) => (
+                        {yValues.map(({ name, value, column, notice }) => (
                             <TooltipValue
                                 key={name}
-                                column={yColumn}
+                                column={column}
                                 value={value}
                                 notice={notice}
                                 showSignificanceSuperscript={superscript}
