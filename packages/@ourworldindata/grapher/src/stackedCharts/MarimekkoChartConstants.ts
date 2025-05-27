@@ -6,6 +6,7 @@ import {
     Time,
     Bounds,
     EntityName,
+    ColumnSlug,
 } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import { StackedPoint } from "./StackedConstants"
@@ -45,6 +46,7 @@ export interface Bar {
     color: Color // color from the variable
     seriesName: string
     yPoint: StackedPoint<EntityName>
+    columnSlug?: ColumnSlug
 }
 
 export interface BarPlaceholder {
