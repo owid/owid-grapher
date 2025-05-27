@@ -1094,7 +1094,8 @@ export class LineChart
     }
 
     @computed private get colorColumnSlug(): string | undefined {
-        return this.manager.colorColumnSlug
+        // Line charts only support numeric variables as color dimension
+        return this.manager.numericColorColumnSlug
     }
 
     @computed private get colorColumn(): CoreColumn {
