@@ -128,6 +128,7 @@
         "progress": "^2.0.3",
         "react": "^17.0.2",
         "react-animate-height": "^3.1.1",
+        "react-aria-components": "^1.9.0",
         "react-beautiful-dnd": "^13.1.1",
         "react-codemirror2": "^7.3.0",
         "react-color": "^2.18.1",

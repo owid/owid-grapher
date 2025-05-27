@@ -3,20 +3,21 @@
 .radio {
     $radio-size: 16px;
 
-    $light-stroke: $blue-30;
+    $light-stroke: $gray-30;
+    $hover-stroke: $blue-30;
     $active-fill: $blue-50;
 
     position: relative;
 
     label {
         margin: 0; // style leak in admin
+        cursor: pointer;
     }
 
     input {
         position: absolute;
         opacity: 0;
         left: 0;
-        cursor: pointer;
         pointer-events: none;
     }
 
@@ -48,11 +49,21 @@
         outline: 2px solid $controls-color;
     }
 
+    input:checked + .outer {
+        border-color: $hover-stroke;
+    }
+
     .label {
         @include grapher_label-2-regular;
         padding-left: $radio-size + 8px;
         cursor: pointer;
         user-select: none;
         color: $dark-text;
+    }
+
+    &:hover {
+        input:not(:checked) + .outer {
+            border-color: $hover-stroke;
+        }
     }
 }
