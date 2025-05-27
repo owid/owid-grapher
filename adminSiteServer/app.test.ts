@@ -49,6 +49,7 @@ import {
     TransactionCloseMode,
     getBestBreadcrumbs,
     getTagHierarchiesByChildName,
+    getTopicHierarchiesByChildName,
     knexReadWriteTransaction,
     knexReadonlyTransaction,
     setKnexInstance,
@@ -1050,11 +1051,11 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
     })
     it("should be able to generate parent tag arrays with sub-areas", async () => {
         await knexReadonlyTransaction(async (trx) => {
-            const parentTagArraysByChildName =
+            const tagHierarchiesByChildName =
                 await getTagHierarchiesByChildName(trx)
 
             expect(
-                parentTagArraysByChildName["CO2 & Greenhouse Gas Emissions"]
+                tagHierarchiesByChildName["CO2 & Greenhouse Gas Emissions"]
             ).toEqual([
                 [
                     {
@@ -1079,11 +1080,11 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
 
     it("should be able to generate parent tag arrays without sub-areas", async () => {
         await knexReadonlyTransaction(async (trx) => {
-            const parentTagArraysByChildName =
-                await getTagHierarchiesByChildName(trx, true)
+            const topicHierarchiesByChildName =
+                await getTopicHierarchiesByChildName(trx)
 
             expect(
-                parentTagArraysByChildName["CO2 & Greenhouse Gas Emissions"]
+                topicHierarchiesByChildName["CO2 & Greenhouse Gas Emissions"]
             ).toEqual([
                 [
                     {
@@ -1169,7 +1170,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
     it("should be able to generate a set of breadcrumbs for a tag", async () => {
         await knexReadonlyTransaction(
             async (trx) => {
-                const parentTagArraysByChildName =
+                const tagHierarchiesByChildName =
                     await getTagHierarchiesByChildName(trx)
                 const breadcrumbs = getBestBreadcrumbs(
                     [
@@ -1179,7 +1180,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
                             slug: "nuclear-energy",
                         },
                     ],
-                    parentTagArraysByChildName
+                    tagHierarchiesByChildName
                 )
                 // breadcrumb hrefs are env-dependent, so we just assert on the labels
                 const labelsOnly = breadcrumbs.map((b) => b.label)
@@ -1193,7 +1194,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
     it("should generate an optimal set of breadcrumbs when given multiple tags", async () => {
         await knexReadonlyTransaction(
             async (trx) => {
-                const parentTagArraysByChildName =
+                const tagHierarchiesByChildName =
                     await getTagHierarchiesByChildName(trx)
                 const breadcrumbs = getBestBreadcrumbs(
                     [
@@ -1208,7 +1209,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
                             slug: "co2-and-greenhouse-gas-emissions",
                         },
                     ],
-                    parentTagArraysByChildName
+                    tagHierarchiesByChildName
                 )
                 // breadcrumb hrefs are env-dependent, so we just assert on the labels
                 const labelsOnly = breadcrumbs.map((b) => b.label)
@@ -1221,7 +1222,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
     it("should return an empty array when there are no topic tags in any of the tags' ancestors", async () => {
         await knexReadonlyTransaction(
             async (trx) => {
-                const parentTagArraysByChildName =
+                const tagHierarchiesByChildName =
                     await getTagHierarchiesByChildName(trx)
                 const breadcrumbs = getBestBreadcrumbs(
                     [
@@ -1231,7 +1232,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
                             slug: "",
                         },
                     ],
-                    parentTagArraysByChildName
+                    tagHierarchiesByChildName
                 )
                 // breadcrumb hrefs are env-dependent, so we just assert on the labels
                 const labelsOnly = breadcrumbs.map((b) => b.label)
@@ -1270,7 +1271,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
                     { gdocId: "womens-employment", tagId: 9 },
                 ])
 
-                const parentTagArraysByChildName =
+                const tagHierarchiesByChildName =
                     await getTagHierarchiesByChildName(trx)
                 const breadcrumbs = getBestBreadcrumbs(
                     [
@@ -1280,7 +1281,7 @@ describe("OwidAdminApp: tag graph", { timeout: 10000 }, () => {
                             slug: "womens-employment",
                         },
                     ],
-                    parentTagArraysByChildName
+                    tagHierarchiesByChildName
                 )
                 // breadcrumb hrefs are env-dependent, so we just assert on the labels
                 const labelsOnly = breadcrumbs.map((b) => b.label)

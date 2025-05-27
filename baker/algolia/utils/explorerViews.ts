@@ -31,7 +31,7 @@ import {
 
 import * as db from "../../../db/db.js"
 import { DATA_API_URL } from "../../../settings/serverSettings.js"
-import { getUniqueNamesFromParentTagArrays, keyBy } from "@ourworldindata/utils"
+import { getUniqueNamesFromTagHierarchies, keyBy } from "@ourworldindata/utils"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import {
     CsvUnenrichedExplorerViewRecord,
@@ -761,7 +761,8 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
     // The DB query gets the tags for the explorer, but we need to add the parent tags as well.
     // This isn't done in the query because it would require a recursive CTE.
     // It's easier to write that query once, separately, and reuse it.
-    const parentTagArrays = await db.getTopicHierarchiesByChildName(trx)
+    const topicHierarchiesByChildName =
+        await db.getTopicHierarchiesByChildName(trx)
     const publishedExplorersWithTags = []
 
     for (const explorer of Object.values(explorersBySlug)) {
@@ -775,11 +776,11 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
 
         for (const tagName of explorer.tags) {
             tags.add(tagName)
-            const parentTagNames = getUniqueNamesFromParentTagArrays(
-                parentTagArrays[tagName]
+            const topicTagNames = getUniqueNamesFromTagHierarchies(
+                topicHierarchiesByChildName[tagName]
             )
-            for (const parentTagName of parentTagNames) {
-                tags.add(parentTagName)
+            for (const topicTagName of topicTagNames) {
+                tags.add(topicTagName)
             }
         }
 

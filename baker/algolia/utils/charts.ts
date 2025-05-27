@@ -13,7 +13,7 @@ import { isPathRedirectedToExplorer } from "../../../explorerAdminServer/Explore
 import { ParsedChartRecordRow, RawChartRecordRow } from "./types.js"
 import {
     excludeNullish,
-    getUniqueNamesFromParentTagArrays,
+    getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
 import { processAvailableEntities } from "./shared.js"
 
@@ -102,7 +102,7 @@ export const getChartsRecords = async (
 
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
 
-    const parentTagArraysByChildName =
+    const topicHierarchiesByChildName =
         await db.getTopicHierarchiesByChildName(knex)
 
     const records: ChartRecord[] = []
@@ -126,10 +126,10 @@ export const getChartsRecords = async (
               }).plaintext
 
         const parentTags = c.tags.flatMap((tagName) => {
-            const parentTagArrays = parentTagArraysByChildName[tagName]
+            const topicHierarchies = topicHierarchiesByChildName[tagName]
             // a chart can be tagged with a tag that isn't in the tag graph
-            if (!parentTagArrays) return []
-            return getUniqueNamesFromParentTagArrays(parentTagArrays)
+            if (!topicHierarchies) return []
+            return getUniqueNamesFromTagHierarchies(topicHierarchies)
         })
 
         const record = {
