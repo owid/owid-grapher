@@ -57,7 +57,7 @@ it("shows error when X or Y columns are missing", () => {
 it("doesn't show 'No data' bin when there is no color column", () => {
     const manager: ScatterPlotManager = {
         table: SynthesizeGDPTable(),
-        colorColumnSlug: undefined,
+        categoricalColorColumnSlug: undefined,
     }
     const chartState = new ScatterPlotChartState({ manager })
     expect(chartState.errorInfo.reason).toBeFalsy()
@@ -323,7 +323,7 @@ describe("label point strategies", () => {
     const manager: ScatterPlotManager = {
         xColumnSlug: "x",
         yColumnSlug: "y",
-        colorColumnSlug: "color",
+        categoricalColorColumnSlug: "color",
         sizeColumnSlug: "size",
         table,
     }
@@ -392,7 +392,7 @@ it("assigns entity colors to series, overriding colorScale color", () => {
     const manager: ScatterPlotManager = {
         xColumnSlug: "x",
         yColumnSlug: "y",
-        colorColumnSlug: "color",
+        categoricalColorColumnSlug: "color",
         sizeColumnSlug: "size",
         table,
     }
@@ -501,7 +501,7 @@ describe("colors & legend", () => {
     const manager: ScatterPlotManager = {
         xColumnSlug: "x",
         yColumnSlug: "y",
-        colorColumnSlug: "color",
+        categoricalColorColumnSlug: "color",
         sizeColumnSlug: "size",
         table,
         tableAfterAuthorTimelineAndActiveChartTransform: tableWithoutChina,
@@ -605,7 +605,7 @@ describe("series transformations", () => {
     const manager: ScatterPlotManager = {
         xColumnSlug: "x",
         yColumnSlug: "y",
-        colorColumnSlug: "color",
+        categoricalColorColumnSlug: "color",
         sizeColumnSlug: "size",
         table,
     }
@@ -688,7 +688,7 @@ describe("average annual change", () => {
     const manager: ScatterPlotManager = {
         xColumnSlug: "x",
         yColumnSlug: "y",
-        colorColumnSlug: "color",
+        categoricalColorColumnSlug: "color",
         sizeColumnSlug: "size",
         isRelativeMode: true,
         // Setting log axes to make sure they're ignored in relative mode
@@ -766,7 +766,7 @@ describe("scatter plot with xOverrideTime", () => {
     const manager: ScatterPlotManager = {
         xColumnSlug: "x",
         yColumnSlug: "y",
-        colorColumnSlug: "color",
+        categoricalColorColumnSlug: "color",
         sizeColumnSlug: "size",
         table,
     }
