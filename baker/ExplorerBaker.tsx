@@ -17,6 +17,7 @@ import {
     isNotErrorValueOrEmptyCell,
 } from "@ourworldindata/core-table"
 import { ColumnTypeNames } from "@ourworldindata/types"
+import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
 export const transformExplorerProgramToResolveCatalogPaths = async (
     program: ExplorerProgram,
@@ -46,22 +47,41 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
         )
     // In the decision matrix table, replace any catalog paths with their corresponding indicator ids
     // If a catalog path is not found, it will be left as is
+    const missingCatalogPaths: string[] = []
     const newDecisionMatrixTable =
         decisionMatrix.tableWithOriginalColumnNames.replaceCells(
             colSlugsToUpdate,
             (val) => {
                 if (typeof val === "string") {
-                    const vals = val.split(" ")
-                    const updatedVals = vals.map(
-                        (val) =>
-                            catalogPathToIndicatorIdMap.get(val)?.toString() ??
-                            val
+                    const catalogPaths = val.split(" ")
+                    const indicatorIds = catalogPaths.map(
+                        (catalogPath) =>
+                            catalogPathToIndicatorIdMap
+                                .get(catalogPath)
+                                ?.toString() ?? catalogPath
                     )
-                    return updatedVals.join(" ")
+
+                    const unresolvedCatalogPaths = catalogPaths.filter(
+                        (path, index) => path === indicatorIds[index]
+                    )
+                    if (unresolvedCatalogPaths.length > 0) {
+                        missingCatalogPaths.push(...unresolvedCatalogPaths)
+                    }
+
+                    return indicatorIds.join(" ")
                 }
                 return val
             }
         )
+
+    // Log unresolved catalog paths if any
+    if (missingCatalogPaths.length > 0) {
+        await logErrorAndMaybeCaptureInSentry(
+            new Error(
+                `Not all catalog paths resolved to indicator ids for the explorer with slug "${program.slug}": ${missingCatalogPaths.join(", ")}.`
+            )
+        )
+    }
 
     // Write the result to the "graphers" block
     const grapherBlockLine = program.getRowMatchingWords(
