@@ -17,10 +17,7 @@ import {
 import { MinimalTag } from "../dbTypes/Tags.js"
 import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 import { QueryParams } from "../domainTypes/Various.js"
-import {
-    TagGraphRoot,
-    ContentGraphLinkType,
-} from "../domainTypes/ContentGraph.js"
+import { TagGraphRoot } from "../domainTypes/ContentGraph.js"
 import { DbRawImage } from "../dbTypes/Images.js"
 import { DbPlainNarrativeChart } from "../dbTypes/NarrativeCharts.js"
 
@@ -316,14 +313,6 @@ export interface OwidGdocJSON
     createdAt: string
     publishedAt: string | null
     updatedAt: string | null
-}
-
-export interface OwidGdocLinkJSON {
-    // source: Record<string, any>
-    linkType: ContentGraphLinkType
-    target: string
-    componentType: string
-    text: string
 }
 
 export interface OwidGdocPostContent {

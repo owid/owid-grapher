@@ -323,7 +323,6 @@ export {
     type OwidGdocErrorMessageProperty,
     type OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
-    type OwidGdocLinkJSON,
     type OwidGdocAboutContent,
     type OwidGdocAboutInterface,
     type OwidGdocAuthorContent,
