@@ -17,8 +17,15 @@ import {
 } from "./utils/shared.js"
 import { getChartsRecords } from "./utils/charts.js"
 import { getIndexName } from "../../site/search/searchClient.js"
-import { SearchIndexName } from "../../site/search/searchTypes.js"
+import { SearchIndexName, ChartRecord } from "../../site/search/searchTypes.js"
 import { getMdimViewRecords } from "./utils/mdimViews.js"
+import { extractSearchSuggestions } from "./extractSearchSuggestions.js"
+import {
+    getAllSearchSuggestions,
+    upsertSearchSuggestion,
+} from "./utils/searchSuggestions.js"
+import { pMapIterable } from "p-map"
+import ProgressBar from "progress"
 
 const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) return
@@ -35,40 +42,123 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
         )
     }
 
-    const records = await db.knexReadonlyTransaction(async (trx) => {
-        const explorerViews = await getExplorerViewRecords(trx, true)
-        const mdimViews = await getMdimViewRecords(trx)
-        const grapherViews = await getChartsRecords(trx)
-        // Scale grapher records and the default explorer views between 1000 and 10000,
-        // Scale the remaining explorer views between 0 and 1000.
-        // This is because Graphers are generally higher quality than Explorers and we don't want
-        // the data catalog to smother Grapher results with hundreds of low-quality Explorer results.
-        const scaledGrapherViews = scaleRecordScores(grapherViews, [
-            1000,
-            MAX_NON_FM_RECORD_SCORE,
-        ])
-        const scaledExplorerViews = scaleExplorerRecordScores(explorerViews)
-        const scaledMdimViews = scaleRecordScores(mdimViews, [
-            1000,
-            MAX_NON_FM_RECORD_SCORE,
-        ])
+    // Get records and cached search suggestions
+    const { records, cachedSuggestions } = await db.knexReadonlyTransaction(
+        async (trx) => {
+            const explorerViews = await getExplorerViewRecords(trx, true)
+            const mdimViews = await getMdimViewRecords(trx)
+            const grapherViews = await getChartsRecords(trx)
 
-        const records = [
-            ...scaledGrapherViews,
-            ...scaledExplorerViews,
-            ...scaledMdimViews,
-        ]
-        const featuredMetricRecords = await createFeaturedMetricRecords(
-            trx,
-            records
-        )
+            // Get existing search suggestions from the database
+            const cachedSuggestions = await getAllSearchSuggestions(trx)
+            console.log(
+                `Found ${cachedSuggestions.size} existing search suggestions in database`
+            )
 
-        return [...records, ...featuredMetricRecords]
-    }, db.TransactionCloseMode.Close)
+            // Scale grapher records and the default explorer views between 1000 and 10000,
+            // Scale the remaining explorer views between 0 and 1000.
+            // This is because Graphers are generally higher quality than Explorers and we don't want
+            // the data catalog to smother Grapher results with hundreds of low-quality Explorer results.
+            const scaledGrapherViews = scaleRecordScores(grapherViews, [
+                1000,
+                MAX_NON_FM_RECORD_SCORE,
+            ])
+            const scaledExplorerViews = scaleExplorerRecordScores(explorerViews)
+            const scaledMdimViews = scaleRecordScores(mdimViews, [
+                1000,
+                MAX_NON_FM_RECORD_SCORE,
+            ])
+
+            const records = [
+                ...scaledGrapherViews,
+                ...scaledExplorerViews,
+                ...scaledMdimViews,
+            ]
+            const featuredMetricRecords = await createFeaturedMetricRecords(
+                trx,
+                records
+            )
+
+            return {
+                records: [...records, ...featuredMetricRecords],
+                cachedSuggestions,
+            }
+        },
+        db.TransactionCloseMode.Close
+    )
+
+    const progressBar = new ProgressBar(
+        "Processing search suggestions [:bar] :current/:total :percent :etas :slug",
+        {
+            total: records.length,
+            width: 30,
+            complete: "=",
+            incomplete: " ",
+        }
+    )
+
+    const recordsWithSuggestions = []
+
+    for await (const result of pMapIterable(
+        records,
+        async (record: ChartRecord) => {
+            try {
+                // Check if we already have a search suggestion for this title
+                let suggestion = cachedSuggestions.get(record.title)
+
+                if (suggestion) {
+                    // Use existing suggestion from cache
+                    progressBar.tick({ slug: `🔄 ${record.title} (cached)` })
+                } else {
+                    const result = await extractSearchSuggestions([
+                        record.title,
+                    ])
+                    suggestion = result.get(record.title)
+
+                    if (suggestion) {
+                        // Store the suggestion in the database for future use
+                        const validSuggestion = suggestion
+                        await db.knexReadWriteTransaction(async (trx) => {
+                            await upsertSearchSuggestion(
+                                trx,
+                                record.title,
+                                validSuggestion
+                            )
+                        }, db.TransactionCloseMode.Close)
+
+                        // Add to cache for current run
+                        cachedSuggestions.set(record.title, suggestion)
+                        progressBar.tick({ slug: `✅ ${record.title}` })
+                    } else {
+                        // No suggestion was generated
+                        progressBar.tick({
+                            slug: `⚠️ ${record.title} (no suggestion generated, indexing raw record)`,
+                        })
+                    }
+                }
+
+                return suggestion
+                    ? {
+                          ...record,
+                          searchSuggestion: suggestion,
+                      }
+                    : record
+            } catch (error) {
+                console.error(`Error processing ${record.slug}:`, error)
+                progressBar.tick({
+                    slug: `❌ ${record.title} (error, indexing raw record)`,
+                })
+                return record
+            }
+        },
+        { concurrency: 10 }
+    )) {
+        recordsWithSuggestions.push(result)
+    }
 
     const index = client.initIndex(indexName)
-    console.log(`Indexing ${records.length} records`)
-    await index.replaceAllObjects(records)
+    console.log(`\nIndexing ${recordsWithSuggestions.length} records`)
+    await index.replaceAllObjects(recordsWithSuggestions)
     console.log(`Indexing complete`)
 }
 
