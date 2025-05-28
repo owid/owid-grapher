@@ -58,7 +58,6 @@ export class ColorScaleConfigDefaults {
      */
     @observable customNumericColors: (Color | undefined | null)[] = []
 
-
     // Categorical bins
     // ================
 
@@ -160,7 +159,6 @@ export class ColorScaleConfig
             : scale.colorScaleNumericBins || scale.colorScaleCategoricalBins
               ? BinningStrategy.manual
               : undefined
-
 
         const legendDescription = scale.colorScaleLegendDescription
 
