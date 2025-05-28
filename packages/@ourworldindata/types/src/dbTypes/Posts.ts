@@ -66,7 +66,7 @@ export function parsePostArchieml(archieml: string): any {
     return JSON.parse(archieml)
 }
 
-export function parsePostWpApiSnapshot(wpApiSnapshot: string): PostRestApi {
+function parsePostWpApiSnapshot(wpApiSnapshot: string): PostRestApi {
     return JSON.parse(wpApiSnapshot)
 }
 
