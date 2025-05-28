@@ -178,11 +178,6 @@ export const ColumnGrammar: Grammar<ColumnCellDef> = {
         keyword: "colorScaleLegendDescription",
         description: "Legend title",
     },
-    colorScaleEqualSizeBins: {
-        ...BooleanCellDef,
-        keyword: "colorScaleEqualSizeBins",
-        description: "Disable visual scaling of the bins based on values?",
-    },
     colorScaleNumericMinValue: {
         ...NumericCellDef,
         keyword: "colorScaleNumericMinValue",

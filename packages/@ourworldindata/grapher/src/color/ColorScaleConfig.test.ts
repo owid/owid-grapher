@@ -13,7 +13,6 @@ describe("fromDSL", () => {
         colorScaleScheme: ColorSchemeName.Magma,
         colorScaleInvert: true,
         // colorScaleBinningStrategy: undefined,
-        colorScaleEqualSizeBins: true,
         colorScaleNumericMinValue: 0.5,
         colorScaleNumericBins: "1,#ddd,One;2,#eee,Two",
         colorScaleCategoricalBins: "one,#ddd,uno;two,#eee,dos",
@@ -24,7 +23,6 @@ describe("fromDSL", () => {
     it("handles comprehensive test case", () => {
         expect(colorScale.baseColorScheme).toEqual(ColorSchemeName.Magma)
         expect(colorScale.colorSchemeInvert).toBeTruthy()
-        expect(colorScale.equalSizeBins).toBeTruthy()
         expect(colorScale.customNumericMinValue).toEqual(0.5)
         expect(colorScale.customCategoryLabels).toEqual({
             one: "uno",

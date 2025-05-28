@@ -1174,11 +1174,6 @@ export class LineChart
         )
     }
 
-    // TODO just pass colorScale to legend and let it figure it out?
-    @computed get equalSizeBins(): boolean | undefined {
-        return this.colorScale.config.equalSizeBins
-    }
-
     numericBinSize = 6
     numericBinStrokeWidth = 1
     legendTextColor = "#555"
@@ -1524,7 +1519,6 @@ export class LineChart
                 legendTitle: this.legendTitle,
                 legendTextColor: this.legendTextColor,
                 legendTickSize: this.legendTickSize,
-                equalSizeBins: this.equalSizeBins,
                 numericBinSize: this.numericBinSize,
                 numericBinStroke: this.numericBinStroke,
                 numericBinStrokeWidth: this.numericBinStrokeWidth,

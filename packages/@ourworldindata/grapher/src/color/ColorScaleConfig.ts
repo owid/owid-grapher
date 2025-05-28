@@ -58,8 +58,6 @@ export class ColorScaleConfigDefaults {
      */
     @observable customNumericColors: (Color | undefined | null)[] = []
 
-    /** Whether the visual scaling for the color legend is disabled. */
-    @observable equalSizeBins?: boolean = true
 
     // Categorical bins
     // ================
@@ -163,7 +161,6 @@ export class ColorScaleConfig
               ? BinningStrategy.manual
               : undefined
 
-        const equalSizeBins = scale.colorScaleEqualSizeBins
 
         const legendDescription = scale.colorScaleLegendDescription
 
@@ -178,7 +175,6 @@ export class ColorScaleConfig
             customNumericMinValue,
             customCategoryLabels,
             customCategoryColors,
-            equalSizeBins,
             legendDescription,
         })
 
@@ -196,7 +192,6 @@ export class ColorScaleConfig
             customNumericMinValue,
             customCategoryLabels,
             customCategoryColors,
-            equalSizeBins,
             legendDescription,
         } = this.toObject()
 
@@ -204,7 +199,6 @@ export class ColorScaleConfig
             colorScaleScheme: baseColorScheme,
             colorScaleInvert: colorSchemeInvert,
             colorScaleBinningStrategy: binningStrategy,
-            colorScaleEqualSizeBins: equalSizeBins,
             colorScaleLegendDescription: legendDescription,
             colorScaleNumericMinValue: customNumericMinValue,
             colorScaleNumericBins: (customNumericValues ?? [])

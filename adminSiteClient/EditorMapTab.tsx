@@ -255,7 +255,6 @@ export class EditorMapTab<
                             chartType={GRAPHER_MAP_TYPE}
                             showLineChartColors={false}
                             features={{
-                                visualScaling: true,
                                 legendDescription: false,
                             }}
                         />

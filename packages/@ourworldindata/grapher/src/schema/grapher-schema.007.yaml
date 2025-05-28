@@ -681,10 +681,6 @@ $defs:
                         type: string
             baseColorScheme:
                 $ref: "#/$defs/colorScheme"
-            equalSizeBins:
-                type: boolean
-                default: true
-                description: Whether the visual scaling for the color legend is disabled.
             customHiddenCategories:
                 type: object
                 description: Allow hiding categories from the legend
