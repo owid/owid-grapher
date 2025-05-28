@@ -341,10 +341,6 @@
                         height: 100%;
                         @include diagonal-background(transparent, white);
                     }
-
-                    tr.striped.blurred .series-color .swatch::before {
-                        @include diagonal-background($grey, white);
-                    }
                 }
 
                 .hoverIndicator circle {
