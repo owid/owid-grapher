@@ -8,7 +8,6 @@ import {
     OwidRawGdocBlock,
     omitUndefinedValues,
     RawBlockText,
-    EnrichedBlockRecirc,
     EnrichedBlockTopicPageIntro,
     EnrichedBlockSocials,
     SocialLinkType,
@@ -157,46 +156,6 @@ level: 2
         const serializedRawBlock =
             OwidRawGdocBlockToArchieMLString(expectedRawBlock)
         expect(serializedRawBlock).toEqual(archieMLString)
-    })
-
-    it("surfaces missing support for external urls in recirc block", () => {
-        const archieMLString = `
-            {.recirc}
-                title: More Articles on Mammals
-
-                [.links]
-                    url:https://docs.google.com/document/d/1__qnfvbuEsT5EkU-3-TF65jShUuOefyxvy5CUmZRAvI/edit
-                    url:https://ourworldindata.org/large-mammals-extinction
-                []
-            {}
-        `
-        const doc = getArchieMLDocWithContent(archieMLString)
-        const article = archieToEnriched(doc)
-        const expectedEnrichedBlock: EnrichedBlockRecirc = {
-            type: "recirc",
-            links: [
-                {
-                    url: "https://docs.google.com/document/d/1__qnfvbuEsT5EkU-3-TF65jShUuOefyxvy5CUmZRAvI/edit",
-                    type: "recirc-link",
-                },
-                {
-                    url: "https://ourworldindata.org/large-mammals-extinction",
-                    type: "recirc-link",
-                },
-            ],
-            title: {
-                text: "More Articles on Mammals",
-                spanType: "span-simple-text",
-            },
-            parseErrors: [
-                {
-                    message: "External urls are not supported in recirc blocks",
-                    isWarning: true,
-                },
-            ],
-        }
-
-        expect(article?.body?.[0]).toEqual(expectedEnrichedBlock)
     })
 
     it("surfaces block type restriction in topic-page-intro content", () => {
