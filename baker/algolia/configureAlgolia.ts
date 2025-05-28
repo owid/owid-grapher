@@ -139,6 +139,7 @@ export const configureAlgolia = async () => {
             "unordered(tags)",
             "unordered(availableEntities)",
             "unordered(originalAvailableEntities)",
+            "unordered(searchSuggestions)",
         ],
         ranking: ["typo", "words", "exact", "attribute", "custom", "proximity"],
         customRanking: [
@@ -163,6 +164,7 @@ export const configureAlgolia = async () => {
             "availableEntities",
             "type",
             "isIncomeGroupSpecificFM",
+            "afterDistinct(searchable(searchSuggestion))",
         ],
     })
 

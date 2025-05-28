@@ -9,6 +9,7 @@
         "batchTagWithGpt": "tsx --tsconfig tsconfig.tsx.json baker/batchTagWithGpt.ts",
         "buildArchive": "tsx --tsconfig tsconfig.tsx.json baker/archival/archiveChangedGrapherPages.ts",
         "buildLocalBake": "tsx --tsconfig tsconfig.tsx.json baker/buildLocalBake.ts",
+        "extractSearchSuggestions": "tsx --tsconfig tsconfig.tsx.json baker/algolia/extractSearchSuggestions.ts",
         "buildTsc": "tsc -b -verbose",
         "buildLerna": "lerna run build",
         "buildViteAdmin": "vite build --config vite.config-admin.mts",
@@ -123,8 +124,9 @@
         "mysql2": "^3.14.1",
         "nodejs-polars": "^0.7.2",
         "normalize.css": "^8.0.1",
+        "ollama": "^0.5.15",
         "openai": "^4.85.4",
-        "p-map": "^4.0.0",
+        "p-map": "^7.0.3",
         "papaparse": "^5.4.1",
         "progress": "^2.0.3",
         "react": "^17.0.2",
@@ -175,7 +177,8 @@
         "workerpool": "^9.2.0",
         "yaml": "^2.7.0",
         "yargs": "^17.7.2",
-        "zod": "^3.24.2"
+        "zod": "^3.24.2",
+        "zod-to-json-schema": "^3.24.5"
     },
     "devDependencies": {
         "@eslint/js": "^9.21.0",

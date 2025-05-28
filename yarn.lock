@@ -12946,8 +12946,9 @@ __metadata:
     mysql2: "npm:^3.14.1"
     nodejs-polars: "npm:^0.7.2"
     normalize.css: "npm:^8.0.1"
+    ollama: "npm:^0.5.15"
     openai: "npm:^4.85.4"
-    p-map: "npm:^4.0.0"
+    p-map: "npm:^7.0.3"
     papaparse: "npm:^5.4.1"
     polylabel: "npm:^2.0.1"
     prettier: "npm:^3.5.0"
@@ -13009,6 +13010,7 @@ __metadata:
     yaml: "npm:^2.7.0"
     yargs: "npm:^17.7.2"
     zod: "npm:^3.24.2"
+    zod-to-json-schema: "npm:^3.24.5"
   languageName: unknown
   linkType: soft
 
@@ -16597,6 +16599,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ollama@npm:^0.5.15":
+  version: 0.5.15
+  resolution: "ollama@npm:0.5.15"
+  dependencies:
+    whatwg-fetch: "npm:^3.6.20"
+  checksum: 10/59d7685749cc0f67d72ab45af04db81edfccaef1bb0dbc163e103aa665a15a32f4082d078e256efe26cce19ed6686a7e5551eed5aa77c8b56c851a07a64c6a2b
+  languageName: node
+  linkType: hard
+
 "on-finished@npm:2.4.1":
   version: 2.4.1
   resolution: "on-finished@npm:2.4.1"
@@ -16829,6 +16840,13 @@ __metadata:
   dependencies:
     aggregate-error: "npm:^3.0.0"
   checksum: 10/7ba4a2b1e24c05e1fc14bbaea0fc6d85cf005ae7e9c9425d4575550f37e2e584b1af97bcde78eacd7559208f20995988d52881334db16cf77bc1bcf68e48ed7c
+  languageName: node
+  linkType: hard
+
+"p-map@npm:^7.0.3":
+  version: 7.0.3
+  resolution: "p-map@npm:7.0.3"
+  checksum: 10/2ef48ccfc6dd387253d71bf502604f7893ed62090b2c9d73387f10006c342606b05233da0e4f29388227b61eb5aeface6197e166520c465c234552eeab2fe633
   languageName: node
   linkType: hard
 
@@ -21849,6 +21867,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"whatwg-fetch@npm:^3.6.20":
+  version: 3.6.20
+  resolution: "whatwg-fetch@npm:3.6.20"
+  checksum: 10/2b4ed92acd6a7ad4f626a6cb18b14ec982bbcaf1093e6fe903b131a9c6decd14d7f9c9ca3532663c2759d1bdf01d004c77a0adfb2716a5105465c20755a8c57c
+  languageName: node
+  linkType: hard
+
 "whatwg-mimetype@npm:^4.0.0":
   version: 4.0.0
   resolution: "whatwg-mimetype@npm:4.0.0"
@@ -22316,6 +22341,15 @@ __metadata:
     property-expr: "npm:^2.0.4"
     toposort: "npm:^2.0.2"
   checksum: 10/a1f529c51d54b2f2f9a326bf65eb6cb6ceaa16f1a5d5d1f631d15f5db3b48c0f3e4852028384a628f2305d9a8f64080d10029fe4c6b19116efd528fe00afed6e
+  languageName: node
+  linkType: hard
+
+"zod-to-json-schema@npm:^3.24.5":
+  version: 3.24.5
+  resolution: "zod-to-json-schema@npm:3.24.5"
+  peerDependencies:
+    zod: ^3.24.1
+  checksum: 10/1af291b4c429945c9568c2e924bdb7c66ab8d139cbeb9a99b6e9fc9e1b02863f85d07759b9303714f07ceda3993dcaf0ebcb80d2c18bb2aaf5502b2c1016affd
   languageName: node
   linkType: hard
 
