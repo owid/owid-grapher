@@ -81,7 +81,6 @@ import { resolveInternalRedirect } from "./redirects.js"
 import {
     getBlockContentFromSnapshot,
     getBlogIndex,
-    getFullPostByIdFromSnapshot,
     getFullPostBySlugFromSnapshot,
     isPostSlugCitable,
 } from "../db/model/Post.js"
@@ -181,14 +180,6 @@ export const renderPageBySlug = async (
 ) => {
     const post = await getFullPostBySlugFromSnapshot(knex, slug)
     return renderPost(post, knex)
-}
-
-export const renderPreview = async (
-    postId: number,
-    knex: KnexReadonlyTransaction
-): Promise<string> => {
-    const postApi = await getFullPostByIdFromSnapshot(knex, postId)
-    return renderPost(postApi, knex)
 }
 
 export const renderPost = async (

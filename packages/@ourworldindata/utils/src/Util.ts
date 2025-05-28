@@ -130,7 +130,6 @@ import {
     OwidGdocType,
     type OwidGdocJSON,
     type Span,
-    type SpanLink,
     UserCountryInformation,
     Time,
     TimeBound,
@@ -1767,10 +1766,6 @@ export function traverseEnrichedBlock(
 
 export function checkNodeIsSpan(node: NodeWithUrl): node is Span {
     return "spanType" in node
-}
-
-export function checkNodeIsSpanLink(node: unknown): node is SpanLink {
-    return isObject(node) && "spanType" in node && node.spanType === "span-link"
 }
 
 export function spansToUnformattedPlainText(spans: Span[]): string {

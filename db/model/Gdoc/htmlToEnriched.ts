@@ -24,32 +24,15 @@ import {
     EnrichedBlockProminentLink,
     BlockImageSize,
     detailOnDemandRegex,
-    EnrichedBlockEntrySummary,
-    EnrichedBlockEntrySummaryItem,
     spansToUnformattedPlainText,
-    checkNodeIsSpanLink,
-    Url,
     EnrichedBlockCallout,
-    EnrichedBlockExpandableParagraph,
-    EnrichedBlockGraySection,
-    EnrichedBlockStickyRightContainer,
     EnrichedBlockBlockquote,
-    EnrichedBlockHorizontalRule,
     traverseEnrichedSpan,
-    EnrichedBlockTopicPageIntro,
-    EnrichedTopicPageIntroRelatedTopic,
-    EnrichedBlockKeyInsightsSlide,
-    EnrichedBlockKeyInsights,
-    EnrichedBlockResearchAndWriting,
-    EnrichedBlockResearchAndWritingLink,
-    EnrichedBlockResearchAndWritingRow,
-    EnrichedBlockAllCharts,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import { compact, get, isArray, partition } from "lodash-es"
+import { compact, partition } from "lodash-es"
 import * as cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
-import * as R from "remeda"
 
 //#region Spans
 function spanFallback(element: CheerioElement): SpanFallback {
@@ -67,7 +50,7 @@ export function htmlToEnrichedTextBlock(html: string): EnrichedBlockText {
     }
 }
 
-export function consolidateSpans(
+function consolidateSpans(
     blocks: OwidEnrichedGdocBlock[]
 ): OwidEnrichedGdocBlock[] {
     const newBlocks: OwidEnrichedGdocBlock[] = []
@@ -149,7 +132,7 @@ export function htmlToSpans(html: string): Span[] {
     return compact(elements.map(cheerioToSpan)) ?? []
 }
 
-export function cheerioToSpan(element: CheerioElement): Span | undefined {
+function cheerioToSpan(element: CheerioElement): Span | undefined {
     if (element.type === "text")
         // The regex replace takes care of the ArchieML escaping of :
         return {
@@ -293,31 +276,10 @@ interface WpComponent {
 
 type ArchieBlockOrWpComponent = OwidEnrichedGdocBlock | WpComponent
 
-/** This type is used to keep track of intermediate results when parsing WpComponents where
-    we have to keep track of the remaining elements (i.e. those that have not been consumed yet) */
-interface WpComponentIntermediateParseResult {
-    result: BlockParseResult<ArchieBlockOrWpComponent>
-    remainingElements: CheerioElement[]
-}
-
 interface ParseContext {
     $: CheerioStatic
-    shouldParseWpComponents: boolean
     htmlTagCounts: Record<string, number>
-    wpTagCounts: Record<string, number>
-    isEntry?: boolean
 }
-
-/** Regular expression to identify wordpress components in html components. These
-    components always have the structure
-    wp:TAGNAME {"optionalAttributeExample": 4}
-    This regex parses this structure and captures the groups tag (tagname), attributes
-    (optional JSON attributes) and isVoidElement which indicates if the comment ends with
-    /--> to indicate a void wp component, i.e. one without a matching closing tag similar
-    to some html tags like <br />
-    */
-const wpTagRegex =
-    /wp:(?<tag>([\w/-]+))\s*(?<attributes>{.*})?\s*(?<isVoidElement>\/)?$/
 
 /** Unwraps a CheerioElement in the sense that it applies
     cheerioElementsToArchieML on the children, returning the result. In effect
@@ -331,854 +293,10 @@ function unwrapElement(
     return result
 }
 
-function isWpComponentStart(element: CheerioElement): boolean {
-    return (
-        element.type === "comment" &&
-        (element.data?.trimStart()?.startsWith("wp:") ?? false)
-    )
-}
-
-function isWpComponentEnd(element: CheerioElement): boolean {
-    return (
-        element.type === "comment" &&
-        (element.data?.trimStart()?.startsWith("/wp:") ?? false)
-    )
-}
-
-function getWpComponentDetails(element: CheerioElement): WpComponent {
-    const match = element.data?.match(wpTagRegex)
-    if (!match) throw new Error("WpComponent could not match")
-    let attributes
-    if (match.groups?.attributes) {
-        try {
-            const parsed = JSON.parse(match.groups?.attributes)
-            if (R.isPlainObject(parsed)) {
-                attributes = parsed
-            }
-        } catch {
-            throw new Error("Invalid JSON in WpComponent attributes")
-        }
-    }
-    return {
-        tagName: match.groups!.tag!,
-        attributes,
-        isVoidElement: match.groups?.isVoidElement !== undefined,
-        childrenResults: [],
-    }
-}
-
-function tryGetAsWpComponentOfType(
-    blockOrComponent: ArchieBlockOrWpComponent,
-    expectedTagName: string
-): WpComponent | undefined {
-    // This function returns the narrowed type instead of doing a type guard
-    // so that the useage site can immediately use the narrowed value
-    return !("tagName" in blockOrComponent) ||
-        blockOrComponent.tagName !== expectedTagName
-        ? undefined
-        : blockOrComponent
-}
-
 function isArchieMlComponent(
     block: ArchieBlockOrWpComponent
 ): block is OwidEnrichedGdocBlock {
     return "type" in block
-}
-
-export function convertAllWpComponentsToArchieMLBlocks(
-    blocksOrComponents: ArchieBlockOrWpComponent[] = []
-): OwidEnrichedGdocBlock[] {
-    return blocksOrComponents.flatMap((blockOrComponentOrToc) => {
-        if (isArchieMlComponent(blockOrComponentOrToc))
-            return [blockOrComponentOrToc]
-        else {
-            return convertAllWpComponentsToArchieMLBlocks(
-                blockOrComponentOrToc.childrenResults
-            )
-        }
-    })
-}
-
-export function findMinimumHeadingLevel(
-    blocks: OwidEnrichedGdocBlock[]
-): number {
-    let minBlockLevel = 6
-    for (const block of blocks) {
-        if (block.type === "heading") {
-            minBlockLevel = Math.min(block.level, minBlockLevel)
-        } else if ("children" in block) {
-            minBlockLevel = Math.min(
-                findMinimumHeadingLevel(
-                    block.children as OwidEnrichedGdocBlock[]
-                ),
-                minBlockLevel
-            )
-        }
-    }
-    return minBlockLevel
-}
-
-export function adjustHeadingLevels(
-    blocks: OwidEnrichedGdocBlock[],
-    minHeadingLevel: number,
-    isEntry: boolean
-): void {
-    for (let i = 0; i < blocks.length; i++) {
-        const block = blocks[i]
-        if (block.type === "heading") {
-            if (isEntry && block.level === 2) {
-                const hr: EnrichedBlockHorizontalRule = {
-                    type: "horizontal-rule",
-                    parseErrors: [],
-                }
-                blocks.splice(i, 0, { ...hr })
-                blocks.splice(i + 2, 0, { ...hr })
-                i += 2
-            }
-            const correction = isEntry
-                ? minHeadingLevel - 1
-                : Math.max(0, minHeadingLevel - 2)
-            block.level -= correction
-        } else if ("children" in block) {
-            adjustHeadingLevels(
-                block.children as OwidEnrichedGdocBlock[],
-                minHeadingLevel,
-                isEntry
-            )
-        }
-    }
-}
-/** Parse a Wordpress component. This function has to be called when the first element of
-    elements contains a comment that is a WpComponent start tag. It then iterates through
-    the list of elements until it finds the matching closing comment tag and returns the
-    found component as well as the list of elements that were not consumed in parsing the
-    wp component.
-
-    Nested components are properly taken care of - if it should find e.g.:
-    <-- wp:columns -->
-    <-- wp:column -->
-    <-- /wp:column -->
-    <-- /wp:columns -->
-
-    then the result will be one component nested in another. Whether components are parsed
-    as WpComponent or directly as an OwidEnrichedGdocBlock depends on whether we have all
-    the information we need to created an OwidEnrichedGdocBlock or if we need to keep the
-    temporary structure of a WpCompnent around (e.g. the latter is the case for wp:column
-    contained inside wp:columns)
-     */
-export function parseWpComponent(
-    elements: CheerioElement[],
-    context: ParseContext
-): WpComponentIntermediateParseResult {
-    // Below are tags we don't want to try and track as components but just fully ignore -
-    // The reason for this differs a bit by tag. For wp:html the issue is that the opening
-    // and closing tags are on different nesting levels which totally messes up the rest of
-    // the logic and we don't really care for those tags.
-    // wp:heading and wp:paragraph are redundant. They would parse find if we weren't doing
-    // the somewhat brutal ref parsing via regex that just cuts some parts of the raw html
-    // out. But by ignoring these three component tags that for now we don't seem to need
-    // we get clean parsing of the rest of the components.
-    const wpComponentTagsToIgnore = ["html", "heading", "paragraph"]
-
-    const startElement = elements[0]
-    if (!isWpComponentStart(startElement))
-        throw new Error(
-            "Tried to start parsing a WP component on a non-comment block!"
-        )
-    const componentDetails = getWpComponentDetails(startElement)
-    context.wpTagCounts[componentDetails.tagName] =
-        (context.wpTagCounts[componentDetails.tagName] ?? 0) + 1
-
-    let remainingElements = elements.slice(1)
-    const collectedContent: BlockParseResult<ArchieBlockOrWpComponent>[] = []
-    // If the wp component tag was closing (ended with /--> ) or if this is a component
-    // tag that we want to ignore then don't try to find a closing tag
-    if (componentDetails.isVoidElement)
-        return {
-            result: finishWpComponent(
-                componentDetails,
-                {
-                    errors: [],
-                    content: [],
-                },
-                context
-            ),
-            remainingElements: remainingElements,
-        }
-    if (wpComponentTagsToIgnore.includes(componentDetails.tagName))
-        return {
-            remainingElements,
-            result: {
-                errors: [],
-                content: [],
-            },
-        }
-    // Now iterate until we find the matching closing tag. If we find an opening wp:component
-    // tag then start a new recursive parseWpComponent call
-    else
-        while (remainingElements.length > 0) {
-            const element = remainingElements[0]
-            if (isWpComponentEnd(element)) {
-                const closingDetails = getWpComponentDetails(element)
-                if (wpComponentTagsToIgnore.includes(closingDetails.tagName)) {
-                    remainingElements = remainingElements.slice(1)
-                    continue
-                }
-
-                if (closingDetails.tagName !== componentDetails.tagName) {
-                    throw new Error(
-                        `Found a closing tag (${closingDetails.tagName}) that did not match the expected open tag (${componentDetails.tagName})`
-                    )
-                }
-                const collectedChildren =
-                    joinBlockParseResults(collectedContent)
-
-                return {
-                    result: finishWpComponent(
-                        componentDetails,
-                        withoutEmptyOrWhitespaceOnlyTextBlocks(
-                            collectedChildren
-                        ),
-                        context
-                    ),
-                    remainingElements: remainingElements.slice(1),
-                }
-            } else if (isWpComponentStart(element)) {
-                const result = parseWpComponent(remainingElements, context)
-                remainingElements = result.remainingElements
-                collectedContent.push(result.result)
-            } else {
-                const parsed = cheerioToArchieML(element, context)
-                collectedContent.push(parsed)
-                remainingElements = remainingElements.slice(1)
-            }
-        }
-    throw new Error(
-        `Tried parsing a WP component but never found a matching end tag for ${componentDetails.tagName}`
-    )
-}
-
-/** Handles finishing a partially parsed WpComponent when we get to the closing tag. When
-    a tag contains all the information needed to turn it into an OwidEnrichedGdocBlock then
-    we create that - otherwise we keep the WpComponent around with the children content filled in */
-function finishWpComponent(
-    details: WpComponent,
-    content: BlockParseResult<ArchieBlockOrWpComponent>,
-    context: ParseContext
-): BlockParseResult<ArchieBlockOrWpComponent> {
-    return match(details.tagName)
-        .with("column", (): BlockParseResult<ArchieBlockOrWpComponent> => {
-            return {
-                content: [
-                    {
-                        ...details,
-                        childrenResults: content.content,
-                    },
-                ],
-                errors: content.errors,
-            }
-        })
-        .with("columns", () => {
-            const errors = content.errors
-            if (content.content.length !== 2) {
-                errors.push({
-                    name: "columns block expects 2 children",
-                    details: `Got ${content.content.length} children instead`,
-                })
-                return { ...content, errors }
-            }
-            const firstChild = tryGetAsWpComponentOfType(
-                content.content[0],
-                "column"
-            )
-            if (firstChild === undefined) {
-                errors.push({
-                    name: "columns block expects children to be column components",
-                    details: `Got ${firstChild} child instead`,
-                })
-                return { ...content, errors }
-            }
-            const secondChild = tryGetAsWpComponentOfType(
-                content.content[1],
-                "column"
-            )
-            if (secondChild === undefined) {
-                errors.push({
-                    name: "columns block expects children to be column components",
-                    details: `Got ${secondChild} child instead`,
-                })
-                return { ...content, errors }
-            }
-
-            // For linear entries, we always want them to be a single column
-            if (context.isEntry) {
-                return {
-                    errors,
-                    content: convertAllWpComponentsToArchieMLBlocks([
-                        ...firstChild.childrenResults,
-                        ...secondChild.childrenResults,
-                    ]),
-                }
-            }
-
-            // If both children are empty then we don't want to create a columns block
-            if (
-                firstChild.childrenResults.length === 0 &&
-                secondChild.childrenResults.length === 0
-            ) {
-                return {
-                    errors,
-                    content: [],
-                }
-            }
-            // If one of the children is empty then don't create a two column layout but
-            // just return the non-empty child
-            if (firstChild.childrenResults.length === 0) {
-                return {
-                    errors,
-                    content: convertAllWpComponentsToArchieMLBlocks(
-                        secondChild.childrenResults
-                    ),
-                }
-            }
-            if (secondChild.childrenResults.length === 0) {
-                return {
-                    errors,
-                    content: convertAllWpComponentsToArchieMLBlocks(
-                        firstChild.childrenResults
-                    ),
-                }
-            }
-
-            // if both columns have content, create a sticky-right layout
-            return {
-                errors,
-                content: [
-                    {
-                        type: "sticky-right",
-                        left: convertAllWpComponentsToArchieMLBlocks(
-                            firstChild.childrenResults
-                        ),
-                        right: convertAllWpComponentsToArchieMLBlocks(
-                            secondChild.childrenResults
-                        ),
-                        parseErrors: [],
-                    } as EnrichedBlockStickyRightContainer,
-                ],
-            }
-        })
-        .with("owid/prominent-link", () => {
-            const errors = content.errors
-            const title = details.attributes?.title as string | undefined
-            const url = details.attributes?.linkUrl as string | undefined
-            if (title === undefined) {
-                errors.push({
-                    name: "prominent link missing title",
-                    details: `Prominent link is missing a title attribute`,
-                })
-            }
-            if (url === undefined) {
-                errors.push({
-                    name: "prominent link missing url",
-                    details: `Prominent link is missing a linkUrl attribute`,
-                })
-            }
-            if (title !== undefined && url !== undefined) {
-                const descriptionBlock =
-                    content.content.length > 0 ? content.content[0] : undefined
-                let description = ""
-                if (descriptionBlock && isEnrichedTextBlock(descriptionBlock)) {
-                    description = spansToSimpleString(descriptionBlock.value)
-                }
-                return {
-                    errors,
-                    content: [
-                        {
-                            type: "prominent-link",
-                            title,
-                            url,
-                            description,
-                            parseErrors: [],
-                        } as EnrichedBlockProminentLink,
-                    ],
-                }
-            } else return { ...content, errors }
-        })
-        .with("owid/summary", () => {
-            // Summaries can either be lists of anchor links, or paragraphs of text
-            // If it's a paragraph of text, we want to turn it into a callout block
-            // If it's a list of anchor links, we want to turn it into a toc block
-            const contentIsAllText =
-                content.content.find(
-                    (block) =>
-                        isArchieMlComponent(block) && block.type !== "text"
-                ) === undefined
-
-            if (contentIsAllText) {
-                const callout: EnrichedBlockCallout = {
-                    type: "callout",
-                    title: "Summary",
-                    text: content.content as EnrichedBlockText[],
-                    parseErrors: [],
-                }
-                return { errors: [], content: [callout] }
-            }
-
-            const contentIsList =
-                content.content.length === 1 &&
-                isArchieMlComponent(content.content[0]) &&
-                content.content[0].type === "list"
-            if (contentIsList) {
-                const listItems = get(content, ["content", 0, "items"])
-                const items: EnrichedBlockEntrySummaryItem[] = []
-                const errors = content.errors
-                if (isArray(listItems)) {
-                    listItems.forEach((item) => {
-                        if (item.type === "text") {
-                            const value = item.value[0]
-                            if (checkNodeIsSpanLink(value)) {
-                                const { hash } = Url.fromURL(value.url)
-                                const text = spansToUnformattedPlainText(
-                                    value.children
-                                )
-                                items.push({
-                                    // Remove "#" from the beginning of the slug
-                                    slug: hash.slice(1),
-                                    text: text,
-                                })
-                            } else {
-                                errors.push({
-                                    name: "summary item doesn't have link",
-                                    details: value
-                                        ? `spanType is ${value.spanType}`
-                                        : "No item",
-                                })
-                            }
-                        } else {
-                            errors.push({
-                                name: "summary item isn't text",
-                                details: `item is type: ${item.type}`,
-                            })
-                        }
-                    })
-                }
-                const toc: EnrichedBlockEntrySummary = {
-                    type: "entry-summary",
-                    items,
-                    parseErrors: [],
-                }
-                return { errors: [], content: [toc] }
-            }
-
-            const error: BlockParseError = {
-                name: "unknown content type inside summary block",
-                details:
-                    "Unknown summary content: " +
-                    content.content
-                        .map((block) =>
-                            isArchieMlComponent(block)
-                                ? block.type
-                                : block.tagName
-                        )
-                        .join(", "),
-            }
-            return {
-                errors: [error],
-                content: [],
-            }
-        })
-        .with("owid/additional-information", () => {
-            const heading: EnrichedBlockHeading = {
-                type: "heading",
-                level: 2,
-                text: [
-                    {
-                        spanType: "span-simple-text",
-                        text: "Additional information",
-                    },
-                ],
-                parseErrors: [],
-            }
-            const expandableParagraph: EnrichedBlockExpandableParagraph = {
-                type: "expandable-paragraph",
-                items: content.content.slice(1) as OwidEnrichedGdocBlock[],
-                parseErrors: [],
-            }
-            const graySection: EnrichedBlockGraySection = {
-                type: "gray-section",
-                parseErrors: [],
-                items: [heading, expandableParagraph],
-            }
-            return {
-                errors: [],
-                content: [graySection],
-            }
-        })
-        .with("owid/front-matter", () => {
-            const stickyRight = content.content.find(
-                (block) =>
-                    isArchieMlComponent(block) && block.type === "sticky-right"
-            ) as EnrichedBlockStickyRightContainer | undefined
-
-            const gdocTopicPageIntroContent = get(
-                stickyRight,
-                "left",
-                []
-            ) as EnrichedBlockText[]
-
-            const wpRelatedTopics = get(stickyRight, "right", []).find(
-                (block) => block.type === "list"
-            ) as EnrichedBlockList | undefined
-
-            const gdocRelatedTopics: EnrichedTopicPageIntroRelatedTopic[] = []
-            if (wpRelatedTopics) {
-                wpRelatedTopics.items.forEach((item) => {
-                    if (item.type === "text") {
-                        const value = item.value[0]
-                        if (checkNodeIsSpanLink(value)) {
-                            gdocRelatedTopics.push({
-                                url: value.url,
-                                text: spansToUnformattedPlainText(
-                                    value.children
-                                ),
-                                type: "topic-page-intro-related-topic",
-                            })
-                        }
-                    }
-                })
-            }
-
-            const topicPageIntro: EnrichedBlockTopicPageIntro = {
-                type: "topic-page-intro",
-                parseErrors: [],
-                relatedTopics: gdocRelatedTopics,
-                content: gdocTopicPageIntroContent,
-            }
-            return {
-                errors: [],
-                content: [topicPageIntro],
-            }
-        })
-        .with("owid/technical-text", () => {
-            const text = []
-            for (const block of content.content) {
-                if (isArchieMlComponent(block)) {
-                    if (
-                        block.type === "text" ||
-                        block.type === "list" ||
-                        block.type === "heading"
-                    ) {
-                        text.push(block)
-                    }
-                }
-            }
-            const callout: EnrichedBlockCallout = {
-                type: "callout",
-                text,
-                parseErrors: [],
-            }
-
-            return {
-                errors: [],
-                content: [callout],
-            }
-        })
-        .with("owid/key-insight", () => {
-            const title = get(details, "attributes.title", "") as string
-            const text: OwidEnrichedGdocBlock[] = []
-            for (const block of content.content) {
-                if (
-                    isArchieMlComponent(block) &&
-                    block.type !== "image" &&
-                    block.type !== "chart"
-                ) {
-                    text.push(block)
-                }
-            }
-            const keyInsightSlide = {
-                title,
-                type: "key-insight-slide",
-                content: text,
-                // Casting as any because this isn't a complete OwidEnrichedGdocBlock - it's only valid inside a key-insights block
-                // So it doesn't have all the properties of a regular block, and adding them would require supporting it
-                // throughout the entire pipeline
-            } as any
-            const chartOrImage = content.content.find((block) => {
-                return (
-                    isArchieMlComponent(block) &&
-                    (block.type === "chart" || block.type === "image")
-                )
-            }) as EnrichedBlockChart | EnrichedBlockImage | undefined
-            if (chartOrImage) {
-                if (chartOrImage.type === "chart") {
-                    keyInsightSlide["url"] = chartOrImage.url
-                }
-                if (chartOrImage.type === "image") {
-                    keyInsightSlide["filename"] = chartOrImage.filename
-                }
-            }
-
-            return {
-                errors: [],
-                content: [keyInsightSlide],
-            }
-        })
-        .with("owid/key-insights-slider", () => {
-            const heading = get(
-                details,
-                "attributes.title",
-                "Key insights"
-            ) as string
-            const insights: EnrichedBlockKeyInsightsSlide[] = []
-            const errors: BlockParseError[] = []
-            function isKeyInsightSlide(
-                block: unknown
-            ): block is EnrichedBlockKeyInsightsSlide {
-                return (
-                    R.isPlainObject(block) &&
-                    block["type"] === "key-insight-slide"
-                )
-            }
-            for (const block of content.content) {
-                if (isKeyInsightSlide(block)) {
-                    insights.push(block)
-                } else {
-                    errors.push({
-                        name: "unknown content type inside key-insights block insights array",
-                        details: `Expected key-insight-slide, got ${block}`,
-                    })
-                }
-            }
-            const keyInsightBlock: EnrichedBlockKeyInsights = {
-                type: "key-insights",
-                heading,
-                insights,
-                parseErrors: [],
-            }
-            return {
-                errors,
-                content: [keyInsightBlock],
-            }
-        })
-        .with("owid/card", () => {
-            if (!details.attributes) {
-                return {
-                    errors: [
-                        {
-                            name: "card missing attributes",
-                            details: `Card is missing attributes`,
-                        } as BlockParseError,
-                    ],
-                    content: [],
-                }
-            }
-            const { title, linkUrl, mediaUrl } = details.attributes as {
-                title?: string
-                linkUrl?: string
-                mediaUrl?: string
-            }
-            if (!linkUrl || !title) {
-                return {
-                    errors: [
-                        {
-                            name: "card missing title or linkUrl",
-                            details: `Card is missing title or linkUrl`,
-                        } as BlockParseError,
-                    ],
-                    content: [],
-                }
-            }
-
-            const filename = mediaUrl?.split("/").pop()
-            let subtitle = ""
-            let authors: string[] = []
-
-            // Either it's a card with only authors, or a card with a subtitle and authors
-            if (content.content.length === 1) {
-                const firstBlock = content.content[0]
-                if (isEnrichedTextBlock(firstBlock)) {
-                    authors = spansToSimpleString(firstBlock.value).split(", ")
-                }
-            } else if (content.content.length === 2) {
-                const firstBlock = content.content[0]
-                const secondBlock = content.content[1]
-                if (isEnrichedTextBlock(firstBlock)) {
-                    subtitle = spansToSimpleString(firstBlock.value)
-                }
-                if (isEnrichedTextBlock(secondBlock)) {
-                    authors = spansToSimpleString(secondBlock.value).split(", ")
-                }
-            }
-
-            // Casting as any because this isn't a complete OwidEnrichedGdocBlock - it's only valid inside a research-and-writing block
-            // So it doesn't have all the properties of a regular block, and adding them would require supporting it
-            // throughout the entire pipeline
-            const link = {
-                value: {
-                    url: linkUrl,
-                    authors,
-                    title,
-                    subtitle,
-                    filename: filename,
-                },
-            } as any
-            return {
-                errors: [],
-                content: [link],
-            }
-        })
-        .with("owid/research-and-writing", () => {
-            function isResearchAndWritingLink(
-                block: unknown
-            ): block is EnrichedBlockResearchAndWritingLink {
-                return (
-                    R.isPlainObject(block) &&
-                    "value" in block &&
-                    R.isPlainObject(block["value"])
-                )
-            }
-
-            const primary: EnrichedBlockResearchAndWritingLink[] = []
-            const secondary: EnrichedBlockResearchAndWritingLink[] = []
-            let more: EnrichedBlockResearchAndWritingRow | undefined = undefined
-            const rows: EnrichedBlockResearchAndWritingRow[] = []
-            let heading = ""
-
-            let isInMoreSection = false
-            const moreSectionArticleBlocks: (
-                | EnrichedBlockText
-                | EnrichedBlockHeading
-            )[] = []
-
-            for (let i = 0; i < content.content.length; i++) {
-                const block = content.content[i]
-
-                if (isResearchAndWritingLink(block)) {
-                    if (rows.length) {
-                        rows[rows.length - 1].articles.push(block)
-                    } else if (primary.length === 0 && block.value.subtitle) {
-                        primary.push(block)
-                    } else if (secondary.length <= 2 && block.value.subtitle) {
-                        secondary.push(block)
-                    }
-                    continue
-                }
-
-                if (!isArchieMlComponent(block)) {
-                    continue
-                }
-
-                const isMoreSectionBlock =
-                    block.type === "text" ||
-                    (block.type === "heading" && block.level === 6)
-
-                if (isInMoreSection && isMoreSectionBlock) {
-                    moreSectionArticleBlocks.push(block)
-                } else {
-                    // If we're in the more section and we've hit a heading, we're done with the more section
-                    isInMoreSection = false
-                }
-
-                if (block.type === "heading") {
-                    if (i === 0) {
-                        heading = spansToSimpleString(block.text)
-                    }
-                    // The only h5 in this context is the "More" section
-                    else if (block.level === 5) {
-                        isInMoreSection = true
-                        more = {
-                            heading: spansToSimpleString(block.text),
-                            articles: [],
-                        }
-                    } else if (block.level === 4) {
-                        rows.push({
-                            heading: spansToSimpleString(block.text),
-                            articles: [],
-                        })
-                    }
-                }
-            }
-
-            // Once we've iterated through all the blocks, we can parse the more section
-            if (more) {
-                for (let i = 0; i < moreSectionArticleBlocks.length; i += 2) {
-                    const heading = moreSectionArticleBlocks[i]
-                    let url = ""
-                    let title = ""
-                    if (heading.type === "heading") {
-                        if (heading.text.length === 1) {
-                            const span = heading.text[0]
-                            if (span.spanType === "span-link") {
-                                url = span.url
-                                if (span.children.length === 1) {
-                                    title = spansToSimpleString(span.children)
-                                }
-                            }
-                        }
-                    }
-
-                    const authorsBlock = moreSectionArticleBlocks[i + 1]
-                    const authors: string[] = []
-                    if (authorsBlock.type === "text") {
-                        authors.push(
-                            ...spansToSimpleString(authorsBlock.value).split(
-                                ", "
-                            )
-                        )
-                    }
-                    const moreArticleBlock: EnrichedBlockResearchAndWritingLink =
-                        {
-                            value: {
-                                url,
-                                authors,
-                                title,
-                                filename: "",
-                            },
-                        }
-                    more.articles.push(moreArticleBlock)
-                }
-            }
-
-            const researchAndWriting: EnrichedBlockResearchAndWriting = {
-                type: "research-and-writing",
-                heading,
-                primary,
-                secondary,
-                rows,
-                more,
-                parseErrors: [],
-                "hide-authors": false,
-            }
-
-            return {
-                errors: [],
-                content: [researchAndWriting],
-            }
-        })
-        .with("owid/all-charts", () => {
-            const allCharts: EnrichedBlockAllCharts = {
-                type: "all-charts",
-                heading: "All charts",
-                top: [],
-                parseErrors: [],
-            }
-            return {
-                errors: [],
-                content: [allCharts],
-            }
-        })
-        .otherwise(() => {
-            return {
-                errors: [
-                    ...content.errors,
-                    {
-                        name: "unexpected wp component tag",
-                        details: `Found unhandled wp:comment tag ${details.tagName}`,
-                    },
-                ],
-                content: content.content,
-            }
-        })
 }
 
 function extractProminentLinkFromBlockQuote(
@@ -1744,7 +862,7 @@ function cheerioToArchieML(
         }
 }
 
-export function cheerioElementsToArchieML(
+function cheerioElementsToArchieML(
     elements: CheerioElement[],
     context: ParseContext
 ): BlockParseResult<ArchieBlockOrWpComponent> {
@@ -1757,11 +875,7 @@ export function cheerioElementsToArchieML(
     const parsedContent: BlockParseResult<ArchieBlockOrWpComponent>[] = []
     while (remainingElements.length > 0) {
         const element = remainingElements[0]
-        if (isWpComponentStart(element) && context.shouldParseWpComponents) {
-            const parseResult = parseWpComponent(remainingElements, context)
-            parsedContent.push(parseResult.result)
-            remainingElements = parseResult.remainingElements
-        } else if (element.type === "comment") {
+        if (element.type === "comment") {
             remainingElements = remainingElements.slice(1)
         } else {
             const parsed = cheerioToArchieML(element, context)
@@ -1779,7 +893,7 @@ export function cheerioElementsToArchieML(
     return joinBlockParseResults(parsedContent)
 }
 
-export function withoutEmptyOrWhitespaceOnlyTextBlocks(
+function withoutEmptyOrWhitespaceOnlyTextBlocks(
     result: BlockParseResult<ArchieBlockOrWpComponent>
 ): BlockParseResult<ArchieBlockOrWpComponent> {
     const hasAnyNonWSSpans = (spans: Span[]): boolean =>
@@ -1801,7 +915,7 @@ export function withoutEmptyOrWhitespaceOnlyTextBlocks(
 
 /** Joins an array of BlockParseResults into a single one by
     flattening the errors and content arrays inside of them. */
-export function joinBlockParseResults<T>(
+function joinBlockParseResults<T>(
     results: BlockParseResult<T>[]
 ): BlockParseResult<T> {
     const errors = results.flatMap((r) => r.errors)
@@ -1836,7 +950,7 @@ function getSpansFromChildren(
     return getSpansFromBlockParseResult(childElements)
 }
 
-export function getSpansFromBlockParseResult(
+function getSpansFromBlockParseResult(
     result: BlockParseResult<ArchieBlockOrWpComponent>
 ): BlockParseResult<Span> {
     const textBlockResult = getEnrichedBlockTextFromBlockParseResult(result)
@@ -1846,7 +960,7 @@ export function getSpansFromBlockParseResult(
     }
 }
 
-export function getEnrichedBlockTextFromBlockParseResult(
+function getEnrichedBlockTextFromBlockParseResult(
     result: BlockParseResult<ArchieBlockOrWpComponent>
 ): BlockParseResult<EnrichedBlockText> {
     const [textChildren, otherChildren] = partition(

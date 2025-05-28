@@ -12,16 +12,9 @@ import { LoginPage } from "./LoginPage.js"
 import * as db from "../db/db.js"
 import { writeDatasetCSV } from "../db/model/Dataset.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
+import { renderExplorerPage } from "../baker/siteRenderers.js"
 import {
-    renderExplorerPage,
-    renderGdoc,
-    renderPreview,
-} from "../baker/siteRenderers.js"
-import {
-    getOwidGdocFromJSON,
     JsonError,
-    OwidArticleBackportingStatistics,
-    OwidGdocJSON,
     parseIntOrUndefined,
     slugify,
     stringifyUnknownError,
@@ -33,7 +26,6 @@ import {
     GetAllExplorersTagsRoute,
     ExplorerProgram,
 } from "@ourworldindata/explorer"
-import * as Post from "../db/model/Post.js"
 import {
     renderDataPageV2,
     renderPreviewDataPageOrGrapherPage,
@@ -123,87 +115,6 @@ getPlainRouteWithROTransaction(
         })
         await writeDatasetCSV(trx, datasetId, writeStream)
         res.end()
-    }
-)
-
-getPlainRouteWithROTransaction(
-    adminRouter,
-    "/posts/preview/:postId",
-    async (req, res, trx) => {
-        const postId = expectInt(req.params.postId)
-        const preview = await renderPreview(postId, trx)
-        res.send(preview)
-    }
-)
-
-getPlainRouteWithROTransaction(
-    adminRouter,
-    "/posts/compare/:postId",
-    async (req, res, trx) => {
-        const postId = expectInt(req.params.postId)
-
-        const wpPage = await renderPreview(postId, trx)
-        const archieMlText = await Post.select(
-            "archieml",
-            "archieml_update_statistics"
-        ).from(trx(Post.postsTable).where({ id: postId }))
-
-        if (
-            archieMlText.length === 0 ||
-            archieMlText[0].archieml === null ||
-            archieMlText[0].archieml_update_statistics === null
-        )
-            throw new Error(
-                `Could not compare posts because archieml was not present in the database for ${postId}`
-            )
-        const archieMlJson = JSON.parse(
-            archieMlText[0].archieml
-        ) as OwidGdocJSON
-        const updateStatsJson = JSON.parse(
-            archieMlText[0].archieml_update_statistics
-        ) as OwidArticleBackportingStatistics
-
-        const errorItems = updateStatsJson.errors.map(
-            (error) => `<li>${error.details}</li>`
-        )
-        const errorList = `<ul>${errorItems.join("")}</ul>`
-
-        const archieMl = getOwidGdocFromJSON(archieMlJson)
-        const archieMlPage = renderGdoc(archieMl)
-
-        res.send(`<!doctype html>
-    <html>
-        <head>
-        </head>
-        <body>
-            <dialog id="error-dialog">
-                <h3>Migration errors</h3>
-                <p>${errorList}</p>
-                <button onclick="document.getElementById('error-dialog').close()">Close</button>
-            </dialog>
-
-            <!-- Add the button that triggers the dialog -->
-            <button onclick="document.getElementById('error-dialog').showModal()" title="${
-                updateStatsJson.numErrors
-            } errors">Show migrations errors</button>
-            <div>
-                <div style="width: 50%; float: left;">
-                    <h1>WP</h1>
-                    <iframe srcdoc="${wpPage.replaceAll(
-                        '"',
-                        "&quot;"
-                    )}" style="width: 100%; height: 100vh;"></iframe>
-                </div>
-                <div style="width: 50%; float: left;">
-                    <h1>ArchieML</h1>
-                    <iframe srcdoc="${archieMlPage.replaceAll(
-                        '"',
-                        "&quot;"
-                    )}" style="width: 100%; height: 100vh;"></iframe>
-                </div>
-            </div>
-        </body>
-    </html>`)
     }
 )
 
