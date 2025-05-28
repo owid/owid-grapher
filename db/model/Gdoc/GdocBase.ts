@@ -677,7 +677,8 @@ export class GdocBase implements OwidGdocBaseInterface {
                 } else {
                     const multiDim = await getMultiDimDataPageBySlug(
                         knex,
-                        originalSlug
+                        originalSlug,
+                        { onlyPublished: false }
                     )
                     if (!multiDim) return
                     return makeMultiDimLinkedChart(

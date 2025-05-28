@@ -243,7 +243,9 @@ getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/multi-dim/:slug.json",
     async (req, res, trx) => {
-        const multiDim = await getMultiDimDataPageBySlug(trx, req.params.slug)
+        const multiDim = await getMultiDimDataPageBySlug(trx, req.params.slug, {
+            onlyPublished: false,
+        })
         if (!multiDim) throw new JsonError("No such multi-dim", 404)
         res.json(multiDim.config)
     }
