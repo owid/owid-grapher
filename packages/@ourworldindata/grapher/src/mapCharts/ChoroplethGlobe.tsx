@@ -833,6 +833,9 @@ export class ChoroplethGlobe extends React.Component<{
                     <InternalValueAnnotation
                         key={annotation.id}
                         annotation={annotation}
+                        showOutline={
+                            this.choroplethData.get(annotation.id)?.isProjection
+                        }
                     />
                 ))}
             </g>

@@ -360,6 +360,9 @@ export class ChoroplethMap extends React.Component<{
                         key={annotation.id}
                         annotation={annotation}
                         strokeScale={this.viewportScaleSqrt}
+                        showOutline={
+                            this.choroplethData.get(annotation.id)?.isProjection
+                        }
                     />
                 ))}
             </g>

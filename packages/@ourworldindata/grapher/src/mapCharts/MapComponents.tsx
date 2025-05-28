@@ -21,7 +21,8 @@ import {
 import { isMapRenderFeature } from "./MapHelpers"
 import { getExternalMarkerEndPosition } from "./MapAnnotations"
 import { Patterns } from "../core/GrapherConstants"
-import { calculateLightnessScore } from "../color/ColorUtils"
+import { calculateLightnessScore, isDarkColor } from "../color/ColorUtils"
+import { Halo } from "@ourworldindata/components"
 
 export function BackgroundCountry<Feature extends RenderFeature>({
     feature,
@@ -242,25 +243,31 @@ function DottedProjectedDataPattern({
 export function InternalValueAnnotation({
     annotation,
     strokeScale = 1,
+    showOutline = false,
 }: {
     annotation: InternalAnnotation
     strokeScale?: number
+    showOutline?: boolean
 }): React.ReactElement {
     const { id, text, color, placedBounds, fontSize } = annotation
 
+    const showHalo = showOutline && isDarkColor(color)
+
     return (
-        <text
-            id={makeIdForHumanConsumption(id)}
-            x={placedBounds.topLeft.x}
-            y={placedBounds.topLeft.y + placedBounds.height - 1}
-            fontSize={fontSize}
-            fontWeight={700}
-            fill={color}
-            strokeWidth={DEFAULT_STROKE_WIDTH / strokeScale}
-            style={{ pointerEvents: "none" }}
-        >
-            {text}
-        </text>
+        <Halo id={id} outlineWidth={3} show={showHalo}>
+            <text
+                id={makeIdForHumanConsumption(id)}
+                x={placedBounds.topLeft.x}
+                y={placedBounds.topLeft.y + placedBounds.height - 1}
+                fontSize={fontSize}
+                fontWeight={700}
+                fill={color}
+                strokeWidth={DEFAULT_STROKE_WIDTH / strokeScale}
+                style={{ pointerEvents: "none" }}
+            >
+                {text}
+            </text>
+        </Halo>
     )
 }
 
