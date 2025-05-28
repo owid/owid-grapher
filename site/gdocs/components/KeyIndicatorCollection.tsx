@@ -14,10 +14,10 @@ import {
 import {
     EnrichedBlockKeyIndicatorCollection,
     EnrichedBlockKeyIndicator,
-    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_CONFIG_OPTIONS,
 } from "@ourworldindata/types"
 import { Url, urlToSlug, commafyNumber } from "@ourworldindata/utils"
-import { isGrapherTabOption } from "@ourworldindata/grapher"
+import { isValidTabQueryParam } from "@ourworldindata/grapher"
 
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"
@@ -246,11 +246,13 @@ function KeyIndicatorHeader({
 
     const { queryParams } = Url.fromURL(linkedChart.resolvedUrl)
     const tabFromQueryParams =
-        queryParams.tab && isGrapherTabOption(queryParams.tab)
+        queryParams.tab && isValidTabQueryParam(queryParams.tab)
             ? queryParams.tab
             : undefined
     const activeTab =
-        tabFromQueryParams || linkedChart.tab || GRAPHER_TAB_OPTIONS.chart
+        tabFromQueryParams ||
+        linkedChart.tab ||
+        GRAPHER_TAB_CONFIG_OPTIONS.chart
     const activeTabType =
         activeTab === "table" || activeTab === "map" ? activeTab : "chart"
 
