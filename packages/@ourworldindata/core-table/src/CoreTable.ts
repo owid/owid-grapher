@@ -1055,16 +1055,29 @@ export class CoreTable<
     combineColumns(
         columnSlugs: ColumnSlug[],
         def: COL_DEF_TYPE,
-        combineFn: (values: Record<ColumnSlug, CoreValueType>) => CoreValueType
+        combineFn: (
+            row: Record<ColumnSlug, { value: CoreValueType; time: Time }>,
+            time: Time
+        ) => CoreValueType
     ): this {
         if (columnSlugs.length === 0) return this
         const newStore: CoreColumnStore = { ...this.columnStore }
         newStore[def.slug] = this.indices.map((index) => {
-            const values: Record<ColumnSlug, CoreValueType> = {}
+            const time = this.timeColumn.valuesIncludingErrorValues[index]
+
+            const row: Record<
+                ColumnSlug,
+                { value: CoreValueType; time: Time }
+            > = {}
             columnSlugs.forEach((slug) => {
-                values[slug] = this.get(slug).valuesIncludingErrorValues[index]
+                row[slug] = {
+                    value: this.get(slug).valuesIncludingErrorValues[index],
+                    time: this.get(slug).originalTimeColumn
+                        .valuesIncludingErrorValues[index] as Time,
+                }
             })
-            return combineFn(values)
+
+            return combineFn(row, time as Time)
         })
         return this.transform(
             newStore,
