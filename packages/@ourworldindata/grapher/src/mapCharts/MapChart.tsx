@@ -179,18 +179,29 @@ export class MapChart
         } = mapColumnInfo
 
         const transformFn = (
-            row: Record<ColumnSlug, CoreValueType>
+            row: Record<ColumnSlug, { value: CoreValueType; time: Time }>,
+            time: Time
         ): { isProjection: boolean; value: PrimitiveType } | undefined => {
             // It's possible to have both a historical and a projected value
             // for a given year. In that case, we prefer the historical value.
 
-            const historicalValue = row[historicalSlug]
-            if (isNotErrorValueOrEmptyCell(historicalValue))
-                return { value: historicalValue, isProjection: false }
+            const historical = row[historicalSlug]
+            const projected = row[projectedSlug]
 
-            const projectedValue = row[projectedSlug]
-            if (isNotErrorValueOrEmptyCell(projectedValue)) {
-                return { value: projectedValue, isProjection: true }
+            const historicalTimeDiff = Math.abs(historical.time - time)
+            const projectionTimeDiff = Math.abs(projected.time - time)
+
+            if (
+                isNotErrorValueOrEmptyCell(historical.value) &&
+                // If tolerance was applied to the historical column, we need to
+                // make sure the interpolated historical value doesn't get picked
+                // over the actual projected value
+                historicalTimeDiff <= projectionTimeDiff
+            )
+                return { value: historical.value, isProjection: false }
+
+            if (isNotErrorValueOrEmptyCell(projected.value)) {
+                return { value: projected.value, isProjection: true }
             }
 
             return undefined
@@ -200,8 +211,8 @@ export class MapChart
         table = table.combineColumns(
             [projectedSlug, historicalSlug],
             { ...table.get(projectedSlug).def, slug: combinedSlug },
-            (row) =>
-                transformFn(row)?.value ??
+            (row, time) =>
+                transformFn(row, time)?.value ??
                 ErrorValueTypes.MissingValuePlaceholder
         )
 
@@ -213,8 +224,8 @@ export class MapChart
                     slug: slugForIsProjectionColumn,
                     type: ColumnTypeNames.Boolean,
                 },
-                (row) =>
-                    transformFn(row)?.isProjection ??
+                (row, time) =>
+                    transformFn(row, time)?.isProjection ??
                     ErrorValueTypes.MissingValuePlaceholder
             )
 
