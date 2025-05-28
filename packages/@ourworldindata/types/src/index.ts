@@ -178,6 +178,8 @@ export {
     type ChartPositionChoice,
     type OwidEnrichedGdocBlock,
     type OwidRawGdocBlock,
+    pullquoteAlignments,
+    type PullQuoteAlignment,
     ChartControlKeyword,
     ChartTabKeyword,
     type EnrichedBlockAlign,

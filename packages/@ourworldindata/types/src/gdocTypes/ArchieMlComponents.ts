@@ -340,14 +340,29 @@ export type EnrichedBlockPerson = {
     socials?: EnrichedSocialLink[]
 } & EnrichedBlockWithParseErrors
 
+export const pullquoteAlignments = [
+    "left",
+    "left-center",
+    "right-center",
+    "right",
+] as const
+
+export type PullQuoteAlignment = (typeof pullquoteAlignments)[number]
+
 export type RawBlockPullQuote = {
     type: "pull-quote"
-    value: OwidRawGdocBlock[] | ArchieMLUnexpectedNonObjectValue
+    value: {
+        align?: string
+        quote?: string
+        content?: OwidRawGdocBlock[]
+    }
 }
 
 export type EnrichedBlockPullQuote = {
     type: "pull-quote"
-    text: SpanSimpleText[]
+    content: EnrichedBlockText[]
+    align: PullQuoteAlignment
+    quote: string
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockHorizontalRule = {
@@ -810,6 +825,7 @@ export interface RawBlockTableCell {
 
 export type EnrichedBlockTable = {
     type: "table"
+    // template is optional because it can be inferred from the table size
     template: TableTemplate
     size: TableSize
     rows: EnrichedBlockTableRow[]

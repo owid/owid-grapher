@@ -133,6 +133,8 @@ import {
     EnrichedBlockCode,
     EnrichedBlockCookieNotice,
     RawBlockCookieNotice,
+    PullQuoteAlignment,
+    pullquoteAlignments,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -962,51 +964,72 @@ const parsePeople = (raw: RawBlockPeople): EnrichedBlockPeople => {
 const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
     const createError = (
         error: ParseError,
-        text: SpanSimpleText[] = []
+        content: EnrichedBlockText[] = [],
+        align: PullQuoteAlignment = "left",
+        quote: string = ""
     ): EnrichedBlockPullQuote => ({
         type: "pull-quote",
-        text,
+        content,
+        align,
+        quote,
         parseErrors: [error],
     })
 
-    if (typeof raw.value === "string")
+    if (typeof raw.value === "string") {
         return createError({
-            message: "Value is a string, not a list of strings",
+            message: "Value is a string, not an object with properties",
         })
+    }
 
-    const textResults = compact(raw.value.map(parseRawBlocksToEnrichedBlocks))
+    const { quote, content, align } = raw.value
 
-    const [textBlocks, otherBlocks] = partition(
-        textResults,
-        (item): item is EnrichedBlockText => item.type === "text"
+    function checkAlignIsValid(align: unknown): align is PullQuoteAlignment {
+        return validateRawEnum(pullquoteAlignments, align)
+    }
+
+    if (!checkAlignIsValid(align)) {
+        return createError({
+            message: `Invalid pull-quote alignment "${align}". Must be one of ${pullquoteAlignments.join(", ")}`,
+        })
+    }
+
+    if (!quote) {
+        return createError({
+            message: "Pull-quote must have a quote",
+        })
+    }
+
+    if (typeof quote !== "string") {
+        return createError({
+            message: "Pull-quote quote must be plain text",
+        })
+    }
+
+    if (!content) {
+        return createError({
+            message: "Pull-quote must have content",
+        })
+    }
+
+    const parsedContent = content.map(parseRawBlocksToEnrichedBlocks)
+
+    const [parsedText, otherBlocks] = partition(
+        parsedContent,
+        (item): item is EnrichedBlockText => item?.type === "text"
     )
 
-    const otherBlockErrors = otherBlocks.flatMap((block) => block.parseErrors)
-    const textBlockErrors = textBlocks.flatMap((block) => block.parseErrors)
-
-    const simpleTextSpans: SpanSimpleText[] = []
-    const unexpectedTextSpanErrors: ParseError[] = []
-
-    for (const textBlock of textBlocks)
-        for (const span of textBlock.value) {
-            if (span.spanType === "span-simple-text") {
-                simpleTextSpans.push(span)
-            } else {
-                unexpectedTextSpanErrors.push({
-                    message:
-                        "Unexpected span type in pull-quote. Note: formatting is not supported inside pull-quotes ATM.",
-                })
-            }
-        }
+    if (otherBlocks.length) {
+        return createError({
+            message: `Pull-quote content must be text only. ${otherBlocks.map((b) => b?.type).join(", ")} found.`,
+        })
+    }
 
     return {
         type: "pull-quote",
-        text: simpleTextSpans,
-        parseErrors: [
-            ...otherBlockErrors,
-            ...textBlockErrors,
-            ...unexpectedTextSpanErrors,
-        ],
+        content: parsedText,
+        align,
+        quote,
+        parseErrors: [],
     }
 }
 

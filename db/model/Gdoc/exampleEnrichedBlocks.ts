@@ -261,7 +261,20 @@ export const enrichedBlockExamples: Record<
     person: enrichedBlockPerson,
     "pull-quote": {
         type: "pull-quote",
-        text: [spanSimpleText],
+        quote: "To be or not to be, that is the question.",
+        content: [
+            {
+                type: "text",
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "I am a paragraph that has a pullquote to the right of it.",
+                    },
+                ],
+                parseErrors: [],
+            },
+        ],
+        align: "right",
         parseErrors: [],
     },
     "horizontal-rule": {
