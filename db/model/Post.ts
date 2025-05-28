@@ -46,63 +46,6 @@ export const select = <K extends keyof DbRawPost>(
     from: (query) => query.select(...args) as any,
 })
 
-export const getTagsByPostId = async (
-    knex: db.KnexReadonlyTransaction
-): Promise<Map<number, { id: number; name: string }[]>> => {
-    const postTags = await db.knexRaw<{
-        postId: number
-        tagId: number
-        tagName: string
-    }>(
-        knex,
-        `
-            SELECT pt.post_id AS postId, pt.tag_id AS tagId, t.name as tagName FROM post_tags pt
-            JOIN posts p ON p.id=pt.post_id
-            JOIN tags t ON t.id=pt.tag_id
-        `
-    )
-
-    const tagsByPostId: Map<number, { id: number; name: string }[]> = new Map()
-
-    for (const pt of postTags) {
-        const tags = tagsByPostId.get(pt.postId) || []
-        tags.push({ id: pt.tagId, name: pt.tagName })
-        tagsByPostId.set(pt.postId, tags)
-    }
-
-    return tagsByPostId
-}
-
-export const setTags = async (
-    trx: db.KnexReadWriteTransaction,
-    postId: number,
-    tagIds: number[]
-): Promise<void> => {
-    const tagRows = tagIds.map((tagId) => [tagId, postId])
-    await db.knexRaw(trx, `DELETE FROM post_tags WHERE post_id=?`, [postId])
-    if (tagRows.length)
-        await db.knexRaw(
-            trx,
-            `INSERT INTO post_tags (tag_id, post_id) VALUES ?`,
-            [tagRows]
-        )
-}
-
-export const setTagsForPost = async (
-    trx: db.KnexReadWriteTransaction,
-    postId: number,
-    tagIds: number[]
-): Promise<void> => {
-    const tagRows = tagIds.map((tagId) => [tagId, postId])
-    await db.knexRaw(trx, `DELETE FROM post_tags WHERE post_id=?`, [postId])
-    if (tagRows.length)
-        await db.knexRaw(
-            trx,
-            `INSERT INTO post_tags (tag_id, post_id) VALUES ?`,
-            [tagRows]
-        )
-}
-
 export const getPostIdFromSlug = (
     knex: db.KnexReadonlyTransaction,
     slug: string

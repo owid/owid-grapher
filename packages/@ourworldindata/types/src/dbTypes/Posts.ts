@@ -46,9 +46,6 @@ export type DbEnrichedPost = Omit<
     archieml_update_statistics: OwidArticleBackportingStatistics | null
     wpApiSnapshot: PostRestApi | BlockGraphQlApi | null
 }
-export interface DbRawPostWithGdocPublishStatus extends DbRawPost {
-    isGdocPublished: boolean
-}
 
 export function parsePostFormattingOptions(
     formattingOptions: string

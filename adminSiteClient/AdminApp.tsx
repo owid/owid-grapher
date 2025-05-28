@@ -18,10 +18,8 @@ import SiteRedirectsIndexPage from "./SiteRedirectsIndexPage"
 import { TagEditPage } from "./TagEditPage.js"
 import { TagsIndexPage } from "./TagsIndexPage.js"
 import { TagGraphPage } from "./TagGraphPage.js"
-import { PostsIndexPage } from "./PostsIndexPage.js"
 import { TestIndexPage } from "./TestIndexPage.js"
 import { NotFoundPage } from "./NotFoundPage.js"
-import { PostEditorPage } from "./PostEditorPage.js"
 import { DeployStatusPage } from "./DeployStatusPage.js"
 import { ExplorerTagsPage } from "./ExplorerTagsPage.js"
 import { BulkDownloadPage } from "./BulkDownloadPage.js"
@@ -343,22 +341,6 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/tags"
                                     component={TagsIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/posts"
-                                    component={PostsIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/posts/:postId/edit"
-                                    render={({ match }) => (
-                                        <PostEditorPage
-                                            postId={parseInt(
-                                                match.params.postId
-                                            )}
-                                        />
-                                    )}
                                 />
                                 <Route
                                     exact
