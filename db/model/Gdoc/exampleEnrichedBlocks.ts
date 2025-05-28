@@ -284,10 +284,23 @@ export const enrichedBlockExamples: Record<
     },
     recirc: {
         type: "recirc",
-        title: spanSimpleText,
+        title: "Continue reading",
+        align: "center",
         links: [
             {
                 url: "https://docs.google.com/document/d/abcd-1234/edit",
+                type: "recirc-link",
+            },
+            {
+                url: "https://ourworldindata.org/grapher/life-expectancy",
+                title: "Life expectancy",
+                subtitle: "This is an inspiring chart",
+                type: "recirc-link",
+            },
+            {
+                url: "https://example.com/",
+                title: "Example",
+                subtitle: "This is an external link",
                 type: "recirc-link",
             },
         ],

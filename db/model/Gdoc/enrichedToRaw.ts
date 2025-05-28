@@ -55,6 +55,7 @@ import {
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
+import { pickBy } from "remeda"
 
 function spansToHtmlText(spans: Span[]): string {
     return spans.map(spanToHtmlString).join("")
@@ -284,12 +285,16 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockRecirc => ({
                 type: b.type,
                 value: {
-                    title: spansToHtmlText([b.title]),
-                    links: b.links.map(
-                        (link): RawRecircLink => ({
-                            url: link.url!,
-                        })
-                    ),
+                    title: b.title,
+                    align: b.align,
+                    links: b.links.map((link): RawRecircLink => {
+                        return pickBy(
+                            link,
+                            (value, key) =>
+                                !!value &&
+                                ["title", "subtitle", "url"].includes(key)
+                        )
+                    }),
                 },
             })
         )

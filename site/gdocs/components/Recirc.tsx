@@ -1,22 +1,75 @@
-import { EnrichedBlockRecirc, formatAuthors } from "@ourworldindata/utils"
-import { useLinkedDocument } from "../utils.js"
-import SpanElement from "./SpanElement.js"
+import cx from "classnames"
+import {
+    EnrichedBlockRecirc,
+    EnrichedRecircLink,
+    Url,
+} from "@ourworldindata/utils"
+import { useLinkedChart, useLinkedDocument } from "../utils.js"
+import { Thumbnail } from "./ProminentLink.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
 
-function RecircItem({ url }: { url: string }) {
-    const { linkedDocument } = useLinkedDocument(url)
-    if (!linkedDocument) return null
+function RecircGdocLink(props: EnrichedRecircLink) {
+    const { linkedDocument } = useLinkedDocument(props.url)
+
+    // Checking for slug, because url always contains https://ourworldindata.org
+    if (!linkedDocument?.slug) return null
+
+    const title = props.title || linkedDocument.title
+    const subtitle = props.subtitle || linkedDocument.subtitle
 
     return (
-        <aside className="recirc-article-container">
-            <h3 className="h3-bold">
-                <a href={linkedDocument.url}>{linkedDocument.title}</a>
-            </h3>
-            {linkedDocument.authors ? (
-                <div className="body-3-medium-italic">
-                    {formatAuthors(linkedDocument.authors)}
+        <li className="recirc-item">
+            <a href={linkedDocument.url}>
+                <Thumbnail
+                    thumbnail={linkedDocument["featured-image"]}
+                    className="recirc-thumbnail"
+                />
+                <div className="recirc-item-text">
+                    <h4>{title}</h4>
+                    <p>{subtitle}</p>
                 </div>
-            ) : null}
-        </aside>
+            </a>
+        </li>
+    )
+}
+
+function RecircChartLink(props: EnrichedRecircLink) {
+    const { linkedChart } = useLinkedChart(props.url)
+    if (!linkedChart) return null
+
+    const title = props.title || linkedChart.title
+    const subtitle = props.subtitle || linkedChart.subtitle
+
+    return (
+        <li className="recirc-item">
+            <a href={linkedChart.resolvedUrl}>
+                <Thumbnail
+                    thumbnail={linkedChart.thumbnail}
+                    className="recirc-thumbnail"
+                />
+                <div className="recirc-item-text">
+                    <h4>{title}</h4>
+                    <p>{subtitle}</p>
+                </div>
+            </a>
+        </li>
+    )
+}
+
+function RecircExternalLink(props: EnrichedRecircLink) {
+    return (
+        <li className="recirc-item recirc-item--external">
+            <a href={props.url}>
+                <div className="recirc-item-text">
+                    <h4>
+                        {props.title}
+                        <FontAwesomeIcon icon={faExternalLinkAlt} />
+                    </h4>
+                    <p>{props.subtitle}</p>
+                </div>
+            </a>
+        </li>
     )
 }
 
@@ -28,15 +81,20 @@ export default function Recirc({
     className?: string
 }) {
     return (
-        <div className={className}>
-            <div className="recirc-content">
-                <span className="recirc-content__heading overline-black-caps">
-                    <SpanElement span={d.title} />
-                </span>
-                {d.links.map(({ url }) => {
-                    return <RecircItem url={url} key={url} />
+        <div className={cx(className, "recirc", `recirc--${d.align}`)}>
+            <span className="recirc__heading body-3-bold">{d.title}</span>
+            <ul>
+                {d.links.map((link) => {
+                    const url = Url.fromURL(link.url)
+                    if (url.isGoogleDoc) {
+                        return <RecircGdocLink {...link} key={link.url} />
+                    }
+                    if (url.isGrapher || url.isExplorer) {
+                        return <RecircChartLink {...link} key={link.url} />
+                    }
+                    return <RecircExternalLink {...link} key={link.url} />
                 })}
-            </div>
+            </ul>
         </div>
     )
 }

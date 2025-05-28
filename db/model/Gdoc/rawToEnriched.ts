@@ -137,6 +137,8 @@ import {
     pullquoteAlignments,
     RawBlockExpander,
     EnrichedBlockExpander,
+    recircAlignments,
+    RecircAlignment,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -1039,7 +1041,7 @@ const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
 const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
     const createError = (
         error: ParseError,
-        title: SpanSimpleText = { spanType: "span-simple-text", text: "" },
+        title = "",
         links: EnrichedRecircLink[] = []
     ): EnrichedBlockRecirc => ({
         type: "recirc",
@@ -1054,36 +1056,64 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
         })
     }
 
-    if (!raw.value?.links || !raw.value?.links.length) {
+    if (!raw.value?.links?.length) {
         return createError({
             message: "Recirc must have at least one link",
         })
     }
 
+    const parsedLinks: EnrichedRecircLink[] = []
     const linkErrors: ParseError[] = []
     for (const link of raw.value.links) {
         if (!link.url) {
             linkErrors.push({
                 message: "Recirc link missing url property",
             })
-        } else if (!Url.fromURL(link.url).isGoogleDoc) {
-            linkErrors.push({
-                message: "External urls are not supported in recirc blocks",
-                isWarning: true,
+            continue
+        }
+        const url = Url.fromURL(extractUrl(link.url))
+        if (url.isGoogleDoc || url.isGrapher || url.isExplorer) {
+            parsedLinks.push({
+                url: url.fullUrl,
+                title: link.title,
+                subtitle: link.subtitle,
+                type: "recirc-link",
+            })
+        } else {
+            if (!link.title) {
+                linkErrors.push({
+                    message: "External URLs must have a title",
+                    isWarning: true,
+                })
+                continue
+            }
+            parsedLinks.push({
+                url: url.fullUrl,
+                title: link.title,
+                subtitle: link.subtitle,
+                type: "recirc-link",
             })
         }
     }
 
-    const parsedTitle = htmlToSimpleTextBlock(raw.value.title)
+    const alignmentErrors: ParseError[] = []
+    if (
+        raw.value.align &&
+        !validateRawEnum(recircAlignments, raw.value.align)
+    ) {
+        alignmentErrors.push({
+            message: `If specified, recirc position must one of ${recircAlignments.join(", ")}`,
+        })
+    }
+
+    const align = (raw.value.align as RecircAlignment) || "center"
 
     return {
         type: "recirc",
-        title: parsedTitle.value,
-        links: raw.value.links.map((link) => ({
-            type: "recirc-link",
-            url: link.url!,
-        })),
-        parseErrors: linkErrors,
+        title: raw.value.title,
+        links: parsedLinks,
+        align,
+        parseErrors: [...linkErrors, ...alignmentErrors],
     }
 }
 

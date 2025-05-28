@@ -335,11 +335,14 @@ function* rawBlockRecircToArchieMLString(
     yield "{.recirc}"
     if (block.value) {
         yield* propertyToArchieMLString("title", block.value)
+        yield* propertyToArchieMLString("align", block.value)
         const links = block.value.links
         if (links) {
             yield "[.links]"
             for (const link of links) {
                 yield* propertyToArchieMLString("url", link)
+                yield* propertyToArchieMLString("title", link)
+                yield* propertyToArchieMLString("subtitle", link)
             }
             yield "[]"
         }

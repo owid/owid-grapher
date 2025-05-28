@@ -297,6 +297,8 @@ export {
     type EnrichedBlockTopicPageIntro,
     type EnrichedChartStoryItem,
     type EnrichedRecircLink,
+    recircAlignments,
+    type RecircAlignment,
     type EnrichedScrollerItem,
     type EnrichedSDGGridItem,
     type EnrichedBlockEntrySummary,
