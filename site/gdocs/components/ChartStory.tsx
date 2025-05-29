@@ -5,7 +5,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
-import { useEmbedChart } from "../../hooks.js"
 import { EnrichedBlockChartStory } from "@ourworldindata/utils"
 import SpanElements from "./SpanElements.js"
 import Chart from "./Chart.js"
@@ -27,7 +26,6 @@ export default function ChartStory({
     const maxSlide = items.length - 1
 
     const refChartContainer = useRef<HTMLDivElement>(null)
-    useEmbedChart(currentIndex, refChartContainer)
 
     return (
         <div className={cx(className, "chart-story grid grid-cols-8")}>
