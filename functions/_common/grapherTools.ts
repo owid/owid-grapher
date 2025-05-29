@@ -1,4 +1,8 @@
-import { generateGrapherImageSrcSet, Grapher } from "@ourworldindata/grapher"
+import {
+    generateGrapherImageSrcSet,
+    Grapher,
+    GrapherState,
+} from "@ourworldindata/grapher"
 import {
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
@@ -42,6 +46,17 @@ const directoryMap = {
     uuid: R2GrapherConfigDirectory.byUUID,
     slug: R2GrapherConfigDirectory.publishedGrapherBySlug,
     "multi-dim-slug": R2GrapherConfigDirectory.multiDim,
+}
+
+// write a function that constructs the DATA_API_URL based on
+// whether the complete or partial ones are given (later needs branch)
+export function getDataApiUrl(env: Env) {
+    if (env.DATA_API_URL_COMPLETE) return env.DATA_API_URL_COMPLETE
+    else if (env.DATA_API_URL_PARTIAL_PREFIX)
+        return `${env.DATA_API_URL_PARTIAL_PREFIX}${env.CF_PAGES_BRANCH}${env.DATA_API_URL_PARTIAL_POSTFIX}`
+    throw new Error(
+        "Neither DATA_API_URL_COMPLETE nor DATA_API_URL_PARTIAL_PREFIX and DATA_API_URL_PARTIAL_POSTFIX were declared!"
+    )
 }
 
 export async function fetchUnparsedGrapherConfig(
@@ -213,7 +228,7 @@ export async function initGrapher(
     }
 
     const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
-    const grapher = new Grapher({
+    const grapherState = new GrapherState({
         ...grapherConfigResponse.grapherConfig,
         bakedGrapherURL: grapherBaseUrl,
         queryStr: "?" + searchParams.toString(),
@@ -222,8 +237,9 @@ export async function initGrapher(
         baseFontSize: options.fontSize,
         ...options.grapherProps,
     })
-    grapher.isExportingToSvgOrPng = true
-    grapher.shouldIncludeDetailsInStaticExport = options.details
+    grapherState.isExportingToSvgOrPng = true
+    grapherState.shouldIncludeDetailsInStaticExport = options.details
+    const grapher = new Grapher({ grapherState })
 
     return {
         grapher,

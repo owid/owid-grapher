@@ -11,7 +11,12 @@ import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
 import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "./env.js"
 import { ImageOptions, extractOptions } from "./imageOptions.js"
-import { GrapherIdentifier, initGrapher } from "./grapherTools.js"
+import {
+    getDataApiUrl,
+    GrapherIdentifier,
+    initGrapher,
+} from "./grapherTools.js"
+import { fetchInputTableForConfig } from "@ourworldindata/grapher"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -71,8 +76,18 @@ async function fetchAndRenderGrapherToSvg(
 
     grapherLogger.log("initGrapher")
     const promises = []
-    promises.push(grapher.downloadLegacyDataFromOwidVariableIds())
-    if (options.details && grapher.detailsOrderedByReference.length) {
+    promises.push(
+        fetchInputTableForConfig(
+            grapher.grapherState.dimensions,
+            grapher.grapherState.selectedEntityColors,
+            getDataApiUrl(env),
+            undefined
+        )
+    )
+    if (
+        options.details &&
+        grapher.grapherState.detailsOrderedByReference.length
+    ) {
         promises.push(
             await fetch("https://ourworldindata.org/dods.json")
                 .then((r) => r.json())
@@ -82,13 +97,16 @@ async function fetchAndRenderGrapherToSvg(
         )
     }
 
-    await Promise.all(promises) // Run these (potentially) two fetches in parallel
+    const results = await Promise.all(promises) // Run these (potentially) two fetches in parallel
     grapherLogger.log("fetchDataAndDods")
 
-    const svg = grapher.generateStaticSvg()
+    const inputTable = results[0]
+    if (inputTable) grapher.grapherState.inputTable = inputTable
+
+    const svg = grapher.grapherState.generateStaticSvg()
     grapherLogger.log("generateStaticSvg")
 
-    return { svg, backgroundColor: grapher.backgroundColor }
+    return { svg, backgroundColor: grapher.grapherState.backgroundColor }
 }
 
 export const fetchAndRenderGrapher = async (
