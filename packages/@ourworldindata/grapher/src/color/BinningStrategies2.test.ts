@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { fakeLogBins } from "./BinningStrategies2.js"
+import {
+    fakeLogBins,
+    mirrorPositiveBinsAroundZeroMidpoint,
+} from "./BinningStrategies2.js"
 
-describe("BinningStrategies2", () => {
+describe(fakeLogBins, () => {
     it("should generate logarithmic 1, 2, 5 bins", () => {
         const bins = fakeLogBins({
             minValue: 0.3,
@@ -29,5 +32,27 @@ describe("BinningStrategies2", () => {
             logSteps: [1],
         })
         expect(bins).toEqual([0.01, 0.1, 1, 10, 100, 1000])
+    })
+})
+
+describe(mirrorPositiveBinsAroundZeroMidpoint, () => {
+    it("should mirror positive bins around zero midpoint", () => {
+        const bins = mirrorPositiveBinsAroundZeroMidpoint([1, 2, 5, 10])
+        expect(bins).toEqual([-10, -5, -2, -1, 0, 1, 2, 5, 10])
+    })
+
+    it("should handle empty arrays", () => {
+        const bins = mirrorPositiveBinsAroundZeroMidpoint([])
+        expect(bins).toEqual([0])
+    })
+
+    it("should handle single positive value", () => {
+        const bins = mirrorPositiveBinsAroundZeroMidpoint([5])
+        expect(bins).toEqual([-5, 0, 5])
+    })
+
+    it("should handle zero", () => {
+        const bins = mirrorPositiveBinsAroundZeroMidpoint([0, 1])
+        expect(bins).toEqual([-1, 0, 1])
     })
 })
