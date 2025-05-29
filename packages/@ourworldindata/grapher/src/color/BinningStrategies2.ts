@@ -24,13 +24,13 @@ export const autoChooseLogBins = ({
 
     const magnitudeDiff = Math.log10(maxValue) - Math.log10(minValue)
 
-    if (magnitudeDiff >= 5) {
+    if (magnitudeDiff >= 3.8) {
         return fakeLogBins({
             minValue,
             maxValue,
             logSteps: log10,
         })
-    } else if (magnitudeDiff >= 3) {
+    } else if (magnitudeDiff >= 2.8) {
         return fakeLogBins({
             minValue,
             maxValue,
@@ -95,6 +95,10 @@ export const fakeLogBins = ({
         }
     )
 
+    if (R.last(candidates) < maxValue) {
+        candidates.push(1 * Math.pow(10, magnitudeMax + 1))
+    }
+
     return candidates
 }
 
@@ -123,26 +127,18 @@ export const equalSizeBins = ({
         throw new Error("minValue must be less than maxValue")
     }
 
-    const hasNegativeValues = minValue < 0
-    if (hasNegativeValues && midpoint === undefined) {
-        midpoint = 0
-    }
+    const range = maxValue - minValue
+    const minValueRounded = roundSigFig(minValue, 1)
 
-    const hasMidpoint = midpoint !== undefined
-
-    if (!hasNegativeValues && !hasMidpoint) {
-        minValue = 0
-    }
-
-    // Normalise the max to be within 1 and 10
-    const normalisedMax = normaliseToSingleDigitNumber(maxValue)
+    // Normalise the range to be within 1 and 10
+    const normalisedRange = normaliseToSingleDigitNumber(range)
     // This is the factor used to un-normalise the values back to their original scale
-    const factor = Math.pow(10, numberMagnitude(maxValue) - 1)
+    const factor = Math.pow(10, numberMagnitude(range) - 1)
 
     // These are all common and "good" step sizes; find the first one that gives us the target bin count
-    const stepSizeCandidates = [1, 0.1, 0.5, 0.25, 0.2, 2, 0.75, 3, 0.3]
+    const stepSizeCandidates = [1, 0.1, 0.5, 0.2, 2, 3, 0.3, 0.75, 0.25]
     const stepSize = stepSizeCandidates.find((candidateStepSize) => {
-        const numSteps = Math.ceil(normalisedMax / candidateStepSize)
+        const numSteps = Math.ceil(normalisedRange / candidateStepSize)
         return numSteps >= targetBinCount[0] && numSteps <= targetBinCount[1]
     })
 
@@ -150,11 +146,11 @@ export const equalSizeBins = ({
         throw new Error("No valid step size found")
     }
 
-    const steps = Math.ceil(normalisedMax / stepSize)
+    const steps = Math.ceil(normalisedRange / stepSize)
 
     return R.range(0, steps + 1).map((i) => {
         const value = i * stepSize * factor
-        return roundSigFig(value, 2) // to avoid floating point issues
+        return minValueRounded + roundSigFig(value, 2) // to avoid floating point issues
     })
 }
 
