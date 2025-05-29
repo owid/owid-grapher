@@ -275,26 +275,28 @@ class SaveButtonsForNarrativeChart extends Component<{
                         Save narrative chart
                     </button>
                 )}{" "}
-                {editor.parentChartId && (
+                {editor.parentUrl && (
                     <>
                         <a
                             className="btn btn-secondary"
-                            href={`/admin/charts/${editor.parentChartId}/edit`}
+                            href={`/admin${editor.parentUrl}`}
                             target="_blank"
                             rel="noopener"
                         >
                             Go to parent chart
                         </a>{" "}
-                        <button
-                            className="btn btn-secondary"
-                            onClick={() =>
-                                (this.isCreateDataInsightModalOpen = true)
-                            }
-                            disabled={isSavingDisabled}
-                        >
-                            Create DI
-                        </button>
                     </>
+                )}
+                {!editor.isNewGrapher && (
+                    <button
+                        className="btn btn-secondary"
+                        onClick={() =>
+                            (this.isCreateDataInsightModalOpen = true)
+                        }
+                        disabled={isSavingDisabled}
+                    >
+                        Create DI
+                    </button>
                 )}
                 {grapher.isReady &&
                     editingErrors.map((error, i) => (

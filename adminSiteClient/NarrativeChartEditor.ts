@@ -28,8 +28,8 @@ export interface NarrativeChartEditorManager
     nameError?: string
     onNameChange: (value: string) => void
     configId?: string
-    parentChartId?: number
     parentChartConfigId?: string
+    parentUrl: string | null
     references: References | undefined
 }
 
@@ -87,8 +87,8 @@ export class NarrativeChartEditor extends AbstractChartEditor<NarrativeChartEdit
         return this.narrativeChartId === undefined
     }
 
-    @computed get parentChartId(): number | undefined {
-        return this.manager.parentChartId
+    @computed get parentUrl(): string | null {
+        return this.manager.parentUrl
     }
 
     async createGrapher(): Promise<void> {

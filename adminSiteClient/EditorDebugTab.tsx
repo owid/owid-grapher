@@ -271,17 +271,16 @@ class EditorDebugTabForNarrativeChart extends Component<{
     }
 
     render() {
-        const { patchConfig, parentConfig, fullConfig, parentChartId } =
+        const { patchConfig, parentConfig, fullConfig, parentUrl } =
             this.props.editor
 
-        const parentChartLink = (
-            <a
-                href={`/admin/charts/${parentChartId}/edit`}
-                target="_blank"
-                rel="noopener"
-            >
-                {parentConfig?.title ?? "(missing title)"}
+        const parentTitle = parentConfig?.title ?? "(missing title)"
+        const parentChartLink = parentUrl ? (
+            <a href={`/admin${parentUrl}`} target="_blank" rel="noopener">
+                {parentTitle}
             </a>
+        ) : (
+            parentTitle
         )
 
         return (
