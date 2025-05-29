@@ -8,12 +8,16 @@ import {
     faArrowUpLong,
     faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons"
+import { scaleLinear } from "d3-scale"
+import { extent } from "d3-array"
+import { line } from "d3-shape"
 import {
     SortOrder,
     Time,
     EntityName,
     OwidTableSlugs,
     OwidVariableRoundingMode,
+    OwidVariableRow,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
@@ -57,6 +61,7 @@ import {
     RangeColumnKey,
     PointValuesForEntity,
     PointColumnKey,
+    SparklineHighlight,
     TargetTimeMode,
     MinimalOwidRow,
     DataTableConfig,
@@ -67,7 +72,9 @@ import {
     CommonDataTableFilter,
     COMMON_DATA_TABLE_FILTERS,
     DataTableFilter,
+    SparklineKey,
 } from "./DataTableConstants"
+import { GRAY_30 } from "../color/ColorConstants"
 
 const ENTITY_SORT_INDEX = -1
 
@@ -83,6 +90,7 @@ const columnNameByType: Record<DataTableColumnKey, string> = {
     end: "End",
     delta: "Absolute Change",
     deltaRatio: "Relative Change",
+    sparkline: "Sparkline",
 }
 
 const inverseSortOrder = (order: SortOrder): SortOrder =>
@@ -109,10 +117,18 @@ export class DataTable extends React.Component<{
         return this.manager.dataTableConfig
     }
 
+    @computed private get timelineMinTime(): Time | undefined {
+        return this.manager.closestTimelineMinTime
+    }
+
+    @computed private get timelineMaxTime(): Time | undefined {
+        return this.manager.closestTimelineMaxTime
+    }
+
     @computed get table(): OwidTable {
         let table = this.manager.tableForDisplay
 
-        // filter table
+        // apply the region type filter if given
         const keepEntityNames = this.filteredEntityNames
         if (keepEntityNames && keepEntityNames.length > 0)
             table = table.filterByEntityNames(keepEntityNames)
@@ -208,7 +224,7 @@ export class DataTable extends React.Component<{
     @computed private get hasSubheaders(): boolean {
         return (
             !this.hasDimensionHeaders ||
-            this.displayDimensions.some(
+            this.dataTableDimensionsWithValues.some(
                 (header) => header.columnDefinitions.length > 1
             )
         )
@@ -251,7 +267,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get hasDimensionHeaders(): boolean {
-        return this.displayDimensions.length > 1
+        return this.dataTableDimensionsWithValues.length > 1
     }
 
     // If the table has a single data column, we move the data column
@@ -364,6 +380,13 @@ export class DataTable extends React.Component<{
         dimension: DisplayDataTableDimension
     ): string {
         const col = dimension.coreTableColumn
+
+        if (column.key === SparklineKey.sparkline) {
+            const minTime = col.formatTime(this.timelineMinTime!)
+            const maxTime = col.formatTime(this.timelineMaxTime!)
+            return `${minTime}–${maxTime}`
+        }
+
         return isDeltaColumn(column.key)
             ? columnNameByType[column.key]
             : col.formatTime(column.targetTime!)
@@ -455,6 +478,68 @@ export class DataTable extends React.Component<{
         )
     }
 
+    private renderSparklineCellContent({
+        columnDefinition,
+        valuesForEntity,
+        isProjection,
+    }: {
+        columnDefinition: DataTableColumnDefinition
+        valuesForEntity?: DataTableValuesForEntity
+        isProjection?: boolean
+    }): React.ReactElement | null {
+        if (
+            columnDefinition.key !== SparklineKey.sparkline ||
+            !valuesForEntity?.sparkline
+        )
+            return null
+
+        const highlights: SparklineHighlight[] = []
+
+        const start = isRangeValue(valuesForEntity)
+            ? valuesForEntity.start
+            : valuesForEntity.single
+        const startTime = start?.time ?? this.targetTimes?.[0]
+
+        const end = isRangeValue(valuesForEntity)
+            ? valuesForEntity.end
+            : valuesForEntity.single
+        const endTime = end?.time ?? this.targetTimes?.[1]
+
+        // Add a highlight for the start time
+        if (startTime !== undefined) {
+            const value =
+                typeof start?.value === "string" ? undefined : start?.value
+
+            const showMarker =
+                this.manager.timelineDragTarget === "start" ||
+                this.manager.timelineDragTarget === "both"
+
+            highlights.push({ time: startTime, value, showMarker })
+        }
+
+        // Add a highlight for the end time
+        if (endTime !== undefined && endTime !== startTime) {
+            const value =
+                typeof end?.value === "string" ? undefined : end?.value
+
+            const showMarker =
+                this.manager.timelineDragTarget === "end" ||
+                this.manager.timelineDragTarget === "both"
+
+            highlights.push({ time: endTime, value, showMarker })
+        }
+
+        return (
+            <Sparkline
+                owidRows={valuesForEntity.sparkline}
+                minTime={this.timelineMinTime!}
+                maxTime={this.timelineMaxTime!}
+                highlights={highlights}
+                strokeStyle={isProjection ? "dotted" : "solid"}
+            />
+        )
+    }
+
     private renderEntityRow(
         row: DataTableRow,
         dimensions: DisplayDataTableDimension[]
@@ -467,12 +552,28 @@ export class DataTable extends React.Component<{
 
                 {row.values.map((valuesForEntity, dimIndex) => {
                     const dimension = dimensions[dimIndex]
+                    const { isProjection } = dimension.coreTableColumn
 
                     return dimension.columnDefinitions.map(
                         (columnDefinition, colIndex) => {
                             const key = `${dimIndex}-${colIndex}`
                             const formatTime = (time: Time): string =>
                                 dimension.coreTableColumn.formatTime(time)
+
+                            if (columnDefinition.key === SparklineKey.sparkline)
+                                return (
+                                    <ValueCell
+                                        key={key}
+                                        columnKey={columnDefinition.key}
+                                        isFirstColumn={colIndex === 0}
+                                    >
+                                        {this.renderSparklineCellContent({
+                                            columnDefinition,
+                                            valuesForEntity,
+                                            isProjection,
+                                        })}
+                                    </ValueCell>
+                                )
 
                             return (
                                 <ValueCell
@@ -733,6 +834,14 @@ export class DataTable extends React.Component<{
                     targetTimeMode,
                 })
 
+            // Add data for sparklines
+            if (this.columnHasSparkline(coreTableColumn)) {
+                for (const [entityName, values] of valuesByEntityName) {
+                    values.sparkline =
+                        coreTableColumn.owidRowsByEntityName.get(entityName)
+                }
+            }
+
             // Construct column definitions for the given target time mode
             const columnDefinitions = this.constructColumnDefinitions({
                 coreTableColumn,
@@ -742,6 +851,18 @@ export class DataTable extends React.Component<{
 
             return { columnDefinitions, valuesByEntityName, coreTableColumn }
         })
+    }
+
+    private columnHasSparkline(coreTableColumn: CoreColumn): boolean {
+        return (
+            this.timelineMinTime !== undefined &&
+            this.timelineMaxTime !== undefined &&
+            this.timelineMinTime !== this.timelineMaxTime &&
+            coreTableColumn.hasNumberFormatting &&
+            // For columns with a target time, the data table is fixed at that time.
+            // It thus doesn't make sense to show a sparkline
+            coreTableColumn.def.targetTime === undefined
+        )
     }
 
     private constructColumnDefinitions({
@@ -786,7 +907,16 @@ export class DataTable extends React.Component<{
             })
         )
 
-        return [...valueColumns, ...deltaColumns]
+        // Show a column with sparklines if appropriate
+        const sparklineColumn = this.columnHasSparkline(coreTableColumn)
+            ? { key: SparklineKey.sparkline, sortable: false }
+            : undefined
+
+        return excludeUndefined([
+            ...valueColumns,
+            sparklineColumn,
+            ...deltaColumns,
+        ])
     }
 
     private interpolateTargetValues({
@@ -904,15 +1034,11 @@ export class DataTable extends React.Component<{
             const unit =
                 coreTableColumn.unit === "%" ? "percent" : coreTableColumn.unit
 
-            // A top-level header is only sortable if it has a single nested column, because
-            // in that case the nested column is not rendered.
-            const sortable = d.columnDefinitions.length === 1
-
             return {
                 coreTableColumn,
                 columnDefinitions: d.columnDefinitions,
                 display: { columnName, unit },
-                sortable,
+                sortable: !this.hasSubheaders,
             }
         })
     }
@@ -1076,6 +1202,100 @@ function ClosestTimeNotice({
                 </span>
             </span>
         </Tippy>
+    )
+}
+
+function Sparkline({
+    width = 75,
+    height = 18,
+    owidRows,
+    minTime,
+    maxTime,
+    highlights = [],
+    dotSize = 3.5,
+    color = "#4C6A9C",
+    strokeStyle = "solid",
+}: {
+    width?: number
+    height?: number
+    owidRows: OwidVariableRow<number>[]
+    minTime: number
+    maxTime: number
+    highlights?: SparklineHighlight[]
+    dotSize?: number
+    color?: string
+    strokeStyle?: "solid" | "dotted"
+}): React.ReactElement | null {
+    if (owidRows.length <= 1) return null
+
+    // add a little padding so the dots don't overflow
+    const bounds = new Bounds(0, 0, width, height).padWidth(dotSize)
+
+    // calculate x-scale
+    const xDomain = [minTime, maxTime]
+    const xScale = scaleLinear()
+        .domain(xDomain)
+        .range([bounds.left, bounds.right])
+
+    // calculate y-scale
+    const yDomain = extent(owidRows.map((row) => row.value)) as [number, number]
+    const yScale = scaleLinear()
+        .domain(yDomain)
+        .range([bounds.bottom, bounds.top])
+
+    const makePath = line<OwidVariableRow<number>>()
+        .x((row) => xScale(row.originalTime))
+        .y((row) => yScale(row.value))
+
+    const path = makePath(owidRows)
+    if (!path) return null
+
+    const strokeDasharray = strokeStyle === "dotted" ? "2,3" : undefined
+
+    return (
+        <svg
+            width={width}
+            height={height}
+            viewBox={`0 0 ${width} ${height}`}
+            style={{ overflow: "visible" }}
+        >
+            {/* marker lines of highlights */}
+            {highlights
+                .filter((highlight) => highlight.showMarker)
+                .map((highlight) => (
+                    <line
+                        key={highlight.time}
+                        x1={xScale(highlight.time)}
+                        x2={xScale(highlight.time)}
+                        y1={0}
+                        y2={height}
+                        stroke={GRAY_30}
+                    />
+                ))}
+
+            {/* sparkline */}
+            <path
+                d={path}
+                stroke={color}
+                fill="none"
+                strokeWidth={1.5}
+                strokeDasharray={strokeDasharray}
+            />
+
+            {/* highlighted data points */}
+            {highlights
+                .filter((highlight) => highlight.value !== undefined)
+                .map((highlight) => (
+                    <circle
+                        key={highlight.time}
+                        cx={xScale(highlight.time)}
+                        cy={yScale(highlight.value!)}
+                        r={dotSize}
+                        fill={color}
+                        stroke="#fff"
+                    />
+                ))}
+        </svg>
     )
 }
 

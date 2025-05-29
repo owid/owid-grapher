@@ -11,7 +11,11 @@ import {
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
-import { TimelineController, TimelineManager } from "./TimelineController"
+import {
+    TimelineController,
+    TimelineManager,
+    TimelineDragTarget,
+} from "./TimelineController"
 import { ActionButton } from "../controls/ActionButtons"
 import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
@@ -29,10 +33,12 @@ export class TimelineComponent extends React.Component<{
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @observable private dragTarget?: "start" | "end" | "both"
-
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+    }
+
+    @computed private get dragTarget(): TimelineDragTarget | undefined {
+        return this.manager.timelineDragTarget
     }
 
     @computed private get isDragging(): boolean {
@@ -69,7 +75,7 @@ export class TimelineComponent extends React.Component<{
 
     @action.bound private onDrag(inputTime: number): void {
         this.controller.onDrag()
-        this.dragTarget = this.controller.dragHandleToTime(
+        this.manager.timelineDragTarget = this.controller.dragHandleToTime(
             this.dragTarget!,
             inputTime
         )
@@ -95,7 +101,7 @@ export class TimelineComponent extends React.Component<{
         inputTime: number,
         isStartMarker: boolean,
         isEndMarker: boolean
-    ): "both" | "start" | "end" {
+    ): TimelineDragTarget {
         const { startHandleTimeBound, endHandleTimeBound } = this.manager
 
         if (
@@ -119,7 +125,7 @@ export class TimelineComponent extends React.Component<{
 
         if (!inputTime) return
 
-        this.dragTarget = this.getDragTarget(
+        this.manager.timelineDragTarget = this.getDragTarget(
             inputTime,
             targetEl.classed("startMarker"),
             targetEl.classed("endMarker")
@@ -144,7 +150,7 @@ export class TimelineComponent extends React.Component<{
     }
 
     @action.bound private onMouseUp(): void {
-        this.dragTarget = undefined
+        this.manager.timelineDragTarget = undefined
 
         if (this.manager.isPlaying) return
 
@@ -187,10 +193,6 @@ export class TimelineComponent extends React.Component<{
         evt.preventDefault()
         evt.stopPropagation()
         void this.controller.togglePlay()
-    }
-
-    @computed private get isPlayingOrDragging(): boolean {
-        return this.manager.isPlaying || this.isDragging
     }
 
     @computed private get showPlayLabel(): boolean {
