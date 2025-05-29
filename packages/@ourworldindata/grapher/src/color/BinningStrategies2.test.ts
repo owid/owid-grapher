@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+    equalSizeBins,
     fakeLogBins,
     mirrorPositiveBinsAroundZeroMidpoint,
 } from "./BinningStrategies2.js"
@@ -54,5 +55,23 @@ describe(mirrorPositiveBinsAroundZeroMidpoint, () => {
     it("should handle zero", () => {
         const bins = mirrorPositiveBinsAroundZeroMidpoint([0, 1])
         expect(bins).toEqual([-1, 0, 1])
+    })
+})
+
+describe(equalSizeBins, () => {
+    it("should generate equal width bins", () => {
+        const bins = equalSizeBins({
+            minValue: 0,
+            maxValue: 10,
+        })
+        expect(bins).toEqual([0, 2, 4, 6, 8, 10])
+    })
+
+    it("should handle values", () => {
+        const bins = equalSizeBins({
+            minValue: 0,
+            maxValue: 5,
+        })
+        expect(bins).toEqual([0, 1, 2, 3, 4, 5])
     })
 })

@@ -15,6 +15,7 @@ export {
     formatDay,
     formatYear,
     numberMagnitude,
+    normaliseToSingleDigitNumber,
     roundSigFig,
     excludeNull,
     excludeNullish,
