@@ -88,7 +88,6 @@ export interface HorizontalColorLegendManager {
     numericBinSize?: number
     numericBinStroke?: Color
     numericBinStrokeWidth?: number
-    equalSizeBins?: boolean
     onLegendMouseEnter?: (d: ColorScaleBin) => void
     onLegendMouseLeave?: () => void
     onLegendMouseOver?: (d: ColorScaleBin) => void
@@ -199,18 +198,6 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         return Math.round(this.fontSize * 1.125)
     }
 
-    // NumericColorLegend wants to map a range to a width. However, sometimes we are given
-    // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
-    @computed private get minValue(): number {
-        return min(this.numericBins.map((bin) => bin.min)) as number
-    }
-    @computed private get maxValue(): number {
-        return max(this.numericBins.map((bin) => bin.max)) as number
-    }
-    @computed private get rangeSize(): number {
-        return this.maxValue - this.minValue
-    }
-
     @computed private get maxWidth(): number {
         return this.manager.legendMaxWidth ?? this.manager.legendWidth ?? 200
     }
@@ -267,30 +254,19 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         const binCount = this.numericBins.length
         const spaceRequirements = this.numericBins.map((bin) => ({
             labelSpace: this.getNumericLabelMinWidth(bin),
-            shareOfTotal: (bin.max - bin.min) / this.rangeSize,
         }))
         // Make sure the legend is big enough to avoid overlapping labels (including `raisedMode`)
-        if (this.manager.equalSizeBins) {
-            // Try to keep the minimum close to the size of the "No data" bin,
-            // so they look visually balanced somewhat.
-            const minBinWidth = this.fontSize * 3.25
-            const maxBinWidth =
-                max(
-                    spaceRequirements.map(({ labelSpace }) =>
-                        Math.max(labelSpace, minBinWidth)
-                    )
-                ) ?? 0
-            return Math.round(maxBinWidth * binCount)
-        } else {
-            const minBinWidth = this.fontSize * 2
-            const maxTotalWidth =
-                max(
-                    spaceRequirements.map(({ labelSpace, shareOfTotal }) =>
-                        Math.max(labelSpace / shareOfTotal, minBinWidth)
-                    )
-                ) ?? 0
-            return Math.round(maxTotalWidth)
-        }
+
+        // Try to keep the minimum close to the size of the "No data" bin,
+        // so they look visually balanced somewhat.
+        const minBinWidth = this.fontSize * 3.25
+        const maxBinWidth =
+            max(
+                spaceRequirements.map(({ labelSpace }) =>
+                    Math.max(labelSpace, minBinWidth)
+                )
+            ) ?? 0
+        return Math.round(maxBinWidth * binCount)
     }
 
     @computed get width(): number {
@@ -326,8 +302,6 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
     @computed private get positionedBins(): PositionedBin[] {
         const {
-            manager,
-            rangeSize,
             availableNumericWidth,
             visibleBins,
             numericBins,
@@ -344,13 +318,8 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             let marginLeft: number = isFirst ? 0 : this.itemMargin
 
             if (bin instanceof NumericBin) {
-                if (manager.equalSizeBins) {
-                    width = availableNumericWidth / numericBins.length
-                } else {
-                    width =
-                        ((bin.max - bin.min) / rangeSize) *
-                        availableNumericWidth
-                }
+                width = availableNumericWidth / numericBins.length
+
                 // Don't add any margin between numeric bins
                 if (prevBin instanceof NumericBin) {
                     marginLeft = 0

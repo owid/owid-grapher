@@ -180,7 +180,6 @@ export interface ColumnColorScale {
     colorScaleScheme?: string
     colorScaleInvert?: boolean
     colorScaleBinningStrategy?: string
-    colorScaleEqualSizeBins?: boolean
     colorScaleNumericMinValue?: number
     colorScaleNumericBins?: string
     colorScaleCategoricalBins?: string

@@ -759,7 +759,6 @@ export class EditorCustomizeTab<
                         }
                         showLineChartColors={grapher.isLineChart}
                         features={{
-                            visualScaling: true,
                             legendDescription: true,
                         }}
                     />

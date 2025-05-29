@@ -729,10 +729,6 @@ export class FacetChart
         return this.getExternalLegendProp("numericBinStrokeWidth")
     }
 
-    @computed get equalSizeBins(): boolean | undefined {
-        return this.getExternalLegendProp("equalSizeBins")
-    }
-
     @computed get hoverColors(): Color[] | undefined {
         if (!this.legendHoverBin) return undefined
         return [this.legendHoverBin.color]

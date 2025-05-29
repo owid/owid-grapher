@@ -828,11 +828,6 @@ export class DiscreteBarChart
         return undefined
     }
 
-    // TODO just pass colorScale to legend and let it figure it out?
-    @computed get equalSizeBins(): boolean | undefined {
-        return this.colorScale.config.equalSizeBins
-    }
-
     numericBinSize = 10
     numericBinStroke = BACKGROUND_COLOR
     numericBinStrokeWidth = 1

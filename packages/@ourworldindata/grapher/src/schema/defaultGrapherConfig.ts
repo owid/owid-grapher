@@ -20,7 +20,6 @@ export const defaultGrapherConfig = {
         region: "World",
         hideTimeline: false,
         colorScale: {
-            equalSizeBins: true,
             binningStrategy: "ckmeans",
             customNumericColorsActive: false,
             colorSchemeInvert: false,
@@ -48,7 +47,6 @@ export const defaultGrapherConfig = {
     timelineMinTime: "earliest",
     hideTimeline: false,
     colorScale: {
-        equalSizeBins: true,
         binningStrategy: "ckmeans",
         customNumericColorsActive: false,
         colorSchemeInvert: false,

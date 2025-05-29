@@ -397,10 +397,6 @@ export class MapChart
         return this.colorScale.legendBins
     }
 
-    @computed get equalSizeBins(): boolean | undefined {
-        return this.colorScale.config.equalSizeBins
-    }
-
     /** The value of the currently hovered feature/country */
     @computed get hoverValue(): string | number | undefined {
         if (!this.hoverFeatureId) return undefined

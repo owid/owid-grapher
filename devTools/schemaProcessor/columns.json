@@ -91,12 +91,6 @@
         ]
     },
     {
-        "type": "boolean",
-        "pointer": "/map/colorScale/equalSizeBins",
-        "default": false,
-        "editor": "checkbox"
-    },
-    {
         "type": "object",
         "pointer": "/map/colorScale/customHiddenCategories",
         "editor": "mappingEditor"
@@ -338,12 +332,6 @@
             "stackedAreaDefault",
             "owid-distinct"
         ]
-    },
-    {
-        "type": "boolean",
-        "pointer": "/colorScale/equalSizeBins",
-        "default": true,
-        "editor": "checkbox"
     },
     {
         "type": "object",

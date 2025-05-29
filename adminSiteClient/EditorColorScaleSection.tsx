@@ -37,7 +37,6 @@ import {
 } from "./ColorSchemeDropdown.js"
 
 interface EditorColorScaleSectionFeatures {
-    visualScaling: boolean
     legendDescription: boolean
 }
 
@@ -74,11 +73,6 @@ class ColorLegendSection extends Component<{
     features: EditorColorScaleSectionFeatures
     onChange?: () => void
 }> {
-    @action.bound onEqualSizeBins(isEqual: boolean) {
-        this.props.scale.config.equalSizeBins = isEqual
-        this.props.onChange?.()
-    }
-
     @action.bound onManualBins() {
         populateManualBinValuesIfAutomatic(this.props.scale)
         this.props.onChange?.()
@@ -88,15 +82,6 @@ class ColorLegendSection extends Component<{
         const { scale, features } = this.props
         return (
             <Section name="Color legend">
-                {features.visualScaling && (
-                    <FieldsRow>
-                        <Toggle
-                            label="Disable visual scaling of legend bins"
-                            value={!!scale.config.equalSizeBins}
-                            onValue={this.onEqualSizeBins}
-                        />
-                    </FieldsRow>
-                )}
                 {features.legendDescription && (
                     <FieldsRow>
                         <BindString

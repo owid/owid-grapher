@@ -381,9 +381,6 @@ export class ColorScaleConfigDefaults {
      */
     @observable customNumericColors: (Color | undefined | null)[] = []
 
-    /** Whether the visual scaling for the color legend is disabled. */
-    @observable equalSizeBins?: boolean = true
-
     // Categorical bins
     // ================
 
@@ -424,7 +421,7 @@ export type ColorScaleConfigInterface = ColorScaleConfigDefaults
 //     customNumericLabels: (string | undefined | null)[]
 //     customNumericColorsActive?: boolean
 //     customNumericColors: (Color | undefined | null)[]
-//     equalSizeBins?: boolean
+
 //     customCategoryColors: Record<string, string | undefined>
 //     customCategoryLabels: Record<string, string | undefined>
 //     customHiddenCategories: Record<string, true | undefined>
@@ -436,7 +433,7 @@ export type ColorScaleConfigInterface = ColorScaleConfigDefaults
 //     customNumericValues: [],
 //     customNumericLabels: [],
 //     customNumericColors: [],
-//     equalSizeBins: true,
+
 //     customCategoryColors: {},
 //     customCategoryLabels: {},
 //     customHiddenCategories: {},

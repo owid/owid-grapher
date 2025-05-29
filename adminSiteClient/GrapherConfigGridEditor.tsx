@@ -486,7 +486,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                             scale={colorScale}
                             chartType={GRAPHER_MAP_TYPE}
                             features={{
-                                visualScaling: true,
                                 legendDescription: false,
                             }}
                             showLineChartColors={false}
@@ -513,7 +512,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                                     GRAPHER_CHART_TYPES.LineChart
                                 }
                                 features={{
-                                    visualScaling: true,
                                     legendDescription: false,
                                 }}
                                 showLineChartColors={grapher.isLineChart}
