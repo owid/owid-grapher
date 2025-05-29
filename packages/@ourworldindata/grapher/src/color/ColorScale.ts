@@ -1,5 +1,5 @@
 import { computed, toJS } from "mobx"
-import { mean, deviation } from "d3-array"
+import { mean, deviation, quantile } from "d3-array"
 import { ColorScaleConfig, ColorScaleConfigDefaults } from "./ColorScaleConfig"
 import {
     isEmpty,
@@ -22,6 +22,11 @@ import {
 } from "@ourworldindata/types"
 import { CoreColumn } from "@ourworldindata/core-table"
 import * as R from "remeda"
+import {
+    autoChooseLogBins,
+    equalSizeBins,
+    equalSizeBinsWithMidpoint,
+} from "./BinningStrategies2.js"
 
 export const NO_DATA_LABEL = "No data"
 
@@ -166,11 +171,38 @@ export class ColorScale {
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
     @computed get autoBinMaximums(): number[] {
-        return getBinMaximums({
-            binningStrategy: this.config.binningStrategy,
-            sortedValues: this.sortedNumericBinningValues,
-            binCount: this.numAutoBins,
-            minBinValue: this.minBinValue,
+        const hasNegativeValues = this.sortedNumericValues[0] < 0
+
+        if (hasNegativeValues) {
+            const lower = quantile(this.sortedNumericValues, 0.1)
+            const upper = quantile(this.sortedNumericValues, 0.9)
+            return equalSizeBinsWithMidpoint({
+                minValue: lower ?? 1,
+                maxValue: upper ?? 1,
+                midpoint: 0,
+            })
+        }
+
+        const positiveValues = R.dropWhile(
+            this.sortedNumericValues,
+            (v) => v <= 0
+        )
+        const quantileLower = quantile(positiveValues, 0.2)
+        const quantileUpper = quantile(positiveValues, 0.995)
+        const magnitudeDiff =
+            Math.log10(quantileUpper) - Math.log10(quantileLower)
+
+        console.log(quantileLower, quantileUpper, magnitudeDiff)
+
+        if (magnitudeDiff < 1.5) {
+            return equalSizeBins({
+                minValue: 0,
+                maxValue: quantileUpper ?? 1,
+            })
+        }
+        return autoChooseLogBins({
+            minValue: quantileLower ?? 1,
+            maxValue: quantileUpper ?? 1,
         })
     }
 
@@ -211,7 +243,7 @@ export class ColorScale {
     }
 
     @computed get isManualBuckets(): boolean {
-        return this.config.binningStrategy === BinningStrategy.manual
+        return false
     }
 
     @computed get numBins(): number {
@@ -227,7 +259,7 @@ export class ColorScale {
         const sampleMean = mean(sortedNumericValues) as number
         const sampleDeviation = deviation(sortedNumericValues) ?? 0
         const withoutOutliers = sortedNumericValues.filter(
-            (d) => Math.abs(d - sampleMean) <= sampleDeviation * 2
+            (d) => Math.abs(d - sampleMean) <= sampleDeviation * 3
         )
 
         // d3-array returns a deviation of `undefined` for arrays of length <= 1, so set it to 0 in that case
