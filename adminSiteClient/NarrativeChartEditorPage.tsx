@@ -32,6 +32,7 @@ export class NarrativeChartEditorPage
     fullConfig: GrapherInterface = {}
     parentChartId: number = 0
     parentConfig: GrapherInterface = {}
+    parentUrl: string | null = null
 
     isInheritanceEnabled: boolean | undefined = true
 
@@ -48,6 +49,7 @@ export class NarrativeChartEditorPage
         this.patchConfig = data.configPatch
         this.parentChartId = data.parentChartId
         this.parentConfig = data.parentConfigFull
+        this.parentUrl = data.parentUrl
     }
 
     @computed get admin(): Admin {
