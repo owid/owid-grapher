@@ -1,4 +1,3 @@
-import { Json } from "@ourworldindata/utils"
 import { MigrationInterface, QueryRunner } from "typeorm"
 
 const tables = [
@@ -23,37 +22,6 @@ export class RemoveEqualSizeBins1748436369499 implements MigrationInterface {
                     WHERE ${column} ->> "$.colorScale.equalSizeBins" IS NOT NULL
                        OR ${column} ->> "$.map.colorScale.equalSizeBins" IS NOT NULL
                 `
-            )
-        }
-
-        // Remove colorScaleEqualSizeBins from explorers. This cannot easily be done with JSON_REMOVE, so we need to
-        // do it in JS instead.
-        const deleteEqualSizeBinsFromExplorer = (config: Json): Json => {
-            for (const block of config.blocks ?? []) {
-                for (const props of block.block ?? []) {
-                    delete props.colorScaleEqualSizeBins
-                }
-            }
-            return config
-        }
-
-        const affectedExplorers = await queryRunner.query(
-            `-- sql
-                SELECT slug, config
-                FROM explorers
-                WHERE config LIKE "%colorScaleEqualSizeBins%"
-            `
-        )
-        for (const { slug, config } of affectedExplorers) {
-            const parsedConfig = JSON.parse(config)
-            const updatedConfig = deleteEqualSizeBinsFromExplorer(parsedConfig)
-            await queryRunner.query(
-                `-- sql
-                    UPDATE explorers
-                    SET config = ?
-                    WHERE slug = ?
-                `,
-                [JSON.stringify(updatedConfig), slug]
             )
         }
     }
