@@ -57,12 +57,12 @@ describe("when you render a table", () => {
     })
 
     it("renders the value for each country", () => {
-        const cell = view.find("tbody tr td.dimension").first()
+        const cell = view.find("tbody tr td.cell-single").first()
         expect(cell.text()).toBe("21.56%")
     })
 
     it("renders the unit in cell values when the unit is '%'", () => {
-        const cell = view.find("tbody tr td.dimension").first()
+        const cell = view.find("tbody tr td.cell-single").first()
         expect(cell.text()).toContain("%")
     })
 })
@@ -80,22 +80,22 @@ describe("when you select a range of years", () => {
     })
 
     it("renders start values", () => {
-        const cell = view.find("tbody .dimension-start").first()
+        const cell = view.find("tbody .cell-start").first()
         expect(cell.text()).toBe("22.45%")
     })
 
     it("renders end values", () => {
-        const cell = view.find("tbody .dimension-end").first()
+        const cell = view.find("tbody .cell-end").first()
         expect(cell.text()).toBe("21.56%")
     })
 
     it("renders absolute change values", () => {
-        const cell = view.find("tbody .dimension-delta").first()
+        const cell = view.find("tbody .cell-delta").first()
         expect(cell.text()).toBe("-0.89\u00a0pp") // uses no-break space separator
     })
 
     it("renders relative change values", () => {
-        const cell = view.find("tbody .dimension-deltaRatio").first()
+        const cell = view.find("tbody .cell-deltaRatio").first()
         expect(cell.text()).toBe("-4%")
     })
 })
@@ -106,7 +106,7 @@ describe("when the table doesn't have data for all rows", () => {
     const view = Enzyme.mount(<DataTable manager={grapher} />)
 
     it("renders no value when data is not available for years within the tolerance", () => {
-        expect(view.find("tbody .dimension").at(0).first().text()).toBe("")
+        expect(view.find("tbody .cell-single").at(0).first().text()).toBe("")
     })
 
     it("renders an info icon when data is not from targetYear", () => {
@@ -115,7 +115,7 @@ describe("when the table doesn't have data for all rows", () => {
     })
 
     it("renders a data value for the column with targetTime 2010", () => {
-        expect(view.find("tbody .dimension").at(1).first().text()).toBe(
+        expect(view.find("tbody .cell-single").at(1).first().text()).toBe(
             "20.00%"
         )
     })
