@@ -231,6 +231,14 @@ export const numberMagnitude = (num: number): number => {
     return Number.isFinite(magnitude) ? magnitude : 0
 }
 
+// Turns every number except 0 to a number in the range [1, 9.9999]
+// Turns 100 to 1, 0.2 to 2
+export const normaliseToSingleDigitNumber = (num: number): number => {
+    if (num === 0) return 0
+    const magnitude = numberMagnitude(num)
+    return num / Math.pow(10, magnitude - 1)
+}
+
 export const roundSigFig = (num: number, sigfigs: number = 1): number => {
     if (num === 0) return 0
     const magnitude = numberMagnitude(num)

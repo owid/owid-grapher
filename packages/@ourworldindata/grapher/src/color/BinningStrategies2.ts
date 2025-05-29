@@ -1,4 +1,8 @@
-import { numberMagnitude } from "@ourworldindata/utils"
+import {
+    normaliseToSingleDigitNumber,
+    numberMagnitude,
+    roundSigFig,
+} from "@ourworldindata/utils"
 import * as R from "remeda"
 
 const log10 = [1]
@@ -64,4 +68,65 @@ export const mirrorPositiveBinsAroundZeroMidpoint = (
     const filteredPositiveBins = positiveBins.filter((v) => v > 0)
     const negativeBins = filteredPositiveBins.map((v) => -v).reverse()
     return [...negativeBins, 0, ...filteredPositiveBins]
+}
+
+export const equalSizeBins = ({
+    minValue,
+    maxValue,
+    midpoint,
+    targetBinCount = [5, 8],
+}: {
+    minValue: number
+    maxValue: number
+    midpoint?: number
+    targetBinCount?: number[]
+}): number[] => {
+    if (minValue > maxValue) {
+        throw new Error("minValue must be less than maxValue")
+    }
+
+    const hasNegativeValues = minValue < 0
+    if (hasNegativeValues && midpoint === undefined) {
+        midpoint = 0
+    }
+
+    const hasMidpoint = midpoint !== undefined
+
+    if (!hasNegativeValues && !hasMidpoint) {
+        minValue = 0
+    }
+
+    const roundedMaxValue = roundSigFig(maxValue, 1)
+
+    // This is an ordered list of the preferred step sizes. E.g, we'd rather have steps 10, 20, 30 instead of 7, 14, 21,
+    // if that's possible within our target bin count.
+    const preferredStepSizes = [1, 10, 2, 5, 3, 4, 6, 8, 9, 7, 0]
+
+    const stepSizeCandidates = R.range(targetBinCount[0], targetBinCount[1] + 1)
+        .map((v) => {
+            const stepSize = roundedMaxValue / v
+            return roundSigFig(stepSize, 1)
+        })
+        .filter((candidateStepSize) => {
+            const numSteps = Math.ceil(roundedMaxValue / candidateStepSize)
+            return (
+                numSteps >= targetBinCount[0] && numSteps <= targetBinCount[1]
+            )
+        })
+
+    const stepSize = R.firstBy(stepSizeCandidates, (v) => {
+        const singleDigit = Math.round(normaliseToSingleDigitNumber(v))
+        return preferredStepSizes.indexOf(singleDigit)
+    })
+
+    if (stepSize === undefined) {
+        throw new Error("No valid step size found")
+    }
+
+    const steps = Math.ceil(maxValue / stepSize)
+
+    return R.range(0, steps + 1).map((i) => {
+        const value = i * stepSize
+        return value
+    })
 }
