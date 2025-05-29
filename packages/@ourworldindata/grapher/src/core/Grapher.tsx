@@ -180,11 +180,11 @@ import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesModal, SourcesModalManager } from "../modal/SourcesModal"
+import { isValidDataTableFilter } from "../dataTable/DataTable"
 import {
     DataTableConfig,
     DataTableManager,
-    isValidDataTableFilter,
-} from "../dataTable/DataTable"
+} from "../dataTable/DataTableConstants"
 import {
     MAP_REGION_NAMES,
     MapChartManager,
