@@ -260,6 +260,64 @@ const AllResultsSource: AutocompleteSource<BaseItem> = {
     },
 }
 
+const QuerySuggestionsSource: AutocompleteSource<BaseItem> = {
+    sourceId: "querySuggestions",
+    onSelect({ navigator, item, state }) {
+        const suggestion = item.value as string
+
+        const itemUrl = urljoin(
+            BAKED_BASE_URL,
+            "/data",
+            queryParamsToStr({ q: suggestion })
+        )
+        navigator.navigate({
+            itemUrl,
+            item,
+            state,
+        })
+    },
+    getItemUrl({ item }) {
+        const suggestion = item.value as string
+
+        const itemUrl = urljoin(
+            BAKED_BASE_URL,
+            "/data",
+            queryParamsToStr({ q: suggestion })
+        )
+        return itemUrl
+    },
+    async getItems({ query }) {
+        return searchClient
+            .initIndex(
+                getIndexName(SearchIndexName.ExplorerViewsMdimViewsAndCharts)
+            )
+            .searchForFacetValues("searchSuggestion", query, {
+                maxFacetHits: 4,
+                highlightPreTag: "<strong>",
+                highlightPostTag: "</strong>",
+                typoTolerance: false,
+            })
+            .then((result) => {
+                return result.facetHits
+            })
+    },
+    templates: {
+        header: () => <h5 className="overline-black-caps">Suggestions</h5>,
+        item: ({ item }) => (
+            <div className="aa-ItemWrapper">
+                <span
+                    dangerouslySetInnerHTML={{
+                        __html: item.highlighted as string,
+                    }}
+                />
+                <span className="aa-ItemWrapper__count">
+                    {item.count as number}
+                </span>
+            </div>
+        ),
+    },
+}
+
 export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
 
 export function Autocomplete({
@@ -316,7 +374,11 @@ export function Autocomplete({
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
-                    sources.push(AlgoliaSource, AllResultsSource)
+                    sources.push(
+                        QuerySuggestionsSource,
+                        AlgoliaSource,
+                        AllResultsSource
+                    )
                 } else {
                     sources.push(FeaturedSearchesSource)
                 }
