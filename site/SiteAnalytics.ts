@@ -132,4 +132,34 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventTarget: id,
         })
     }
+
+    logSearchAutocompleteClick({
+        query,
+        position,
+        filterType,
+        filterName,
+        suggestions,
+        suggestionsTypes,
+        suggestionsCount,
+    }: {
+        query: string
+        position: number
+        filterType: FilterType
+        filterName: string
+        suggestions: string[]
+        suggestionsTypes: FilterType[]
+        suggestionsCount: number
+    }) {
+        this.logToGA({
+            event: EventCategory.SiteSearchAutocompleteClick,
+            eventAction: "click",
+            autocompleteQuery: query,
+            autocompletePosition: position,
+            autocompleteFilterType: filterType,
+            autocompleteFilterName: filterName,
+            autocompleteSuggestions: suggestions.join("~"), // not JSON.stringify to avoid broken JSON above 100 character limit
+            autocompleteSuggestionsTypes: suggestionsTypes.join("~"),
+            autocompleteSuggestionsCount: suggestionsCount,
+        })
+    }
 }
