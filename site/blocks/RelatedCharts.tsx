@@ -6,7 +6,6 @@ import {
     HIDE_IF_JS_ENABLED_CLASSNAME,
 } from "@ourworldindata/utils"
 import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
-import { useEmbedChart } from "../hooks.js"
 import { GalleryArrow } from "./GalleryArrow.js"
 import { GalleryArrowDirection } from "../SiteConstants.js"
 import { AllChartsListItem } from "./AllChartsListItem.js"
@@ -47,8 +46,6 @@ export const RelatedCharts = ({
             setActiveChartIdx(idx)
         }
     }
-
-    useEmbedChart(activeChartIdx, refChartContainer)
 
     const grapherUrl = `${BAKED_BASE_URL}/grapher/${activeChartSlug}`
 

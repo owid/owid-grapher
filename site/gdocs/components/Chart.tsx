@@ -1,5 +1,4 @@
 import { useRef } from "react"
-import { useEmbedChart } from "../../hooks.js"
 import {
     grapherInterfaceWithHiddenControls,
     grapherInterfaceWithHiddenTabs,
@@ -30,7 +29,6 @@ export default function Chart({
     fullWidthOnMobile?: boolean
 }) {
     const refChartContainer = useRef<HTMLDivElement>(null)
-    useEmbedChart(0, refChartContainer)
 
     // d.url may use an old slug that has since had a redirect created for it
     // useLinkedChart references a hashmap that has resolved these old slugs to their current chart
