@@ -23,6 +23,11 @@ import {
     ColumnSlug,
     GrapherTabName,
     GRAPHER_TAB_NAMES,
+    ProjectionColumnInfo,
+    CoreValueType,
+    PrimitiveType,
+    ColumnTypeNames,
+    Time,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -34,7 +39,12 @@ import {
     validChartTypeCombinations,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import {
+    CoreColumn,
+    ErrorValueTypes,
+    isNotErrorValueOrEmptyCell,
+    OwidTable,
+} from "@ourworldindata/core-table"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
@@ -484,3 +494,69 @@ export const isChartTab = (tab: GrapherTabName): boolean =>
 
 export const isMapTab = (tab: GrapherTabName): boolean =>
     tab === GRAPHER_TAB_NAMES.WorldMap
+
+export function combineHistoricalAndProjectionColumns(
+    table: OwidTable,
+    info: ProjectionColumnInfo,
+    options?: { shouldAddIsProjectionColumn: boolean }
+): OwidTable {
+    const {
+        historicalSlug,
+        projectedSlug,
+        combinedSlug,
+        slugForIsProjectionColumn,
+    } = info
+
+    const transformFn = (
+        row: Record<ColumnSlug, { value: CoreValueType; time: Time }>,
+        time: Time
+    ): { isProjection: boolean; value: PrimitiveType } | undefined => {
+        // It's possible to have both a historical and a projected value
+        // for a given year. In that case, we prefer the historical value.
+
+        const historical = row[historicalSlug]
+        const projected = row[projectedSlug]
+
+        const historicalTimeDiff = Math.abs(historical.time - time)
+        const projectionTimeDiff = Math.abs(projected.time - time)
+
+        if (
+            isNotErrorValueOrEmptyCell(historical.value) &&
+            // If tolerance was applied to the historical column, we need to
+            // make sure the interpolated historical value doesn't get picked
+            // over the actual projected value
+            historicalTimeDiff <= projectionTimeDiff
+        )
+            return { value: historical.value, isProjection: false }
+
+        if (isNotErrorValueOrEmptyCell(projected.value)) {
+            return { value: projected.value, isProjection: true }
+        }
+
+        return undefined
+    }
+
+    // Combine the historical and projected values into a single column
+    table = table.combineColumns(
+        [projectedSlug, historicalSlug],
+        { ...table.get(projectedSlug).def, slug: combinedSlug },
+        (row, time) =>
+            transformFn(row, time)?.value ??
+            ErrorValueTypes.MissingValuePlaceholder
+    )
+
+    // Add a column indicating whether the value is a projection or not
+    if (options?.shouldAddIsProjectionColumn)
+        table = table.combineColumns(
+            [projectedSlug, historicalSlug],
+            {
+                slug: slugForIsProjectionColumn,
+                type: ColumnTypeNames.Boolean,
+            },
+            (row, time) =>
+                transformFn(row, time)?.isProjection ??
+                ErrorValueTypes.MissingValuePlaceholder
+        )
+
+    return table
+}
