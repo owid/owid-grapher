@@ -7,9 +7,43 @@ import * as R from "remeda"
 
 const log10 = [1]
 const log125 = [1, 2, 5]
-const log130 = [1, 3]
+const log13 = [1, 3]
 
 const IDEAL_TARGET_BIN_COUNT = [5, 8]
+
+export const autoChooseLogBins = ({
+    minValue,
+    maxValue,
+}: {
+    minValue: number
+    maxValue: number
+}): number[] => {
+    if (minValue <= 0 || maxValue <= 0) {
+        throw new Error("autoChooseLogBins only supports positive values")
+    }
+
+    const magnitudeDiff = Math.log10(maxValue) - Math.log10(minValue)
+
+    if (magnitudeDiff >= 5) {
+        return fakeLogBins({
+            minValue,
+            maxValue,
+            logSteps: log10,
+        })
+    } else if (magnitudeDiff >= 3) {
+        return fakeLogBins({
+            minValue,
+            maxValue,
+            logSteps: log13,
+        })
+    } else {
+        return fakeLogBins({
+            minValue,
+            maxValue,
+            logSteps: log125,
+        })
+    }
+}
 
 export const fakeLogBins = ({
     minValue,
