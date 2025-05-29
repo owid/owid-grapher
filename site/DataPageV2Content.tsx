@@ -109,6 +109,7 @@ export const DataPageV2Content = ({
                                 : undefined
                         }
                         enablePopulatingUrlParams
+                        isEmbeddedInAnIframe={true}
                     />
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
