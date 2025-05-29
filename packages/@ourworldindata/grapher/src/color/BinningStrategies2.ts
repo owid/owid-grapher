@@ -57,3 +57,11 @@ export const fakeLogBins = ({
 
     return candidates
 }
+
+export const mirrorPositiveBinsAroundZeroMidpoint = (
+    positiveBins: number[]
+): number[] => {
+    const filteredPositiveBins = positiveBins.filter((v) => v > 0)
+    const negativeBins = filteredPositiveBins.map((v) => -v).reverse()
+    return [...negativeBins, 0, ...filteredPositiveBins]
+}
