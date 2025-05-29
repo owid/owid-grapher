@@ -6,10 +6,11 @@ import {
     extractLinksFromMarkdown,
     ParseError,
 } from "@ourworldindata/utils"
-import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../settings/clientSettings.js"
 import * as R from "remeda"
 import { EnrichedBlockWithParseErrors } from "@ourworldindata/types"
 import { parseText } from "../model/Gdoc/rawToEnriched.js"
+
+const GDOCS_DETAILS_ON_DEMAND_ID = "DEPRECATED"
 
 type DEPRECATED_EnrichedDetail = {
     id: string
