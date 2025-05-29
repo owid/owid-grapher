@@ -9,6 +9,8 @@ const log10 = [1]
 const log125 = [1, 2, 5]
 const log130 = [1, 3]
 
+const IDEAL_TARGET_BIN_COUNT = [5, 8]
+
 export const fakeLogBins = ({
     minValue,
     maxValue,
@@ -62,19 +64,21 @@ export const fakeLogBins = ({
     return candidates
 }
 
-export const mirrorPositiveBinsAroundZeroMidpoint = (
-    positiveBins: number[]
+export const mirrorBinsAroundMidpoint = (
+    binOffsets: number[],
+    midpoint: number
 ): number[] => {
-    const filteredPositiveBins = positiveBins.filter((v) => v > 0)
-    const negativeBins = filteredPositiveBins.map((v) => -v).reverse()
-    return [...negativeBins, 0, ...filteredPositiveBins]
+    const filteredRightBins = binOffsets.filter((v) => v !== 0)
+    const leftBins = filteredRightBins.map((v) => midpoint - v).reverse()
+    const rightBins = filteredRightBins.map((v) => v + midpoint)
+    return [...leftBins, midpoint, ...rightBins]
 }
 
 export const equalSizeBins = ({
     minValue,
     maxValue,
     midpoint,
-    targetBinCount = [5, 8],
+    targetBinCount = IDEAL_TARGET_BIN_COUNT,
 }: {
     minValue: number
     maxValue: number
@@ -96,7 +100,7 @@ export const equalSizeBins = ({
         minValue = 0
     }
 
-    // Normalise the max to be withing 1 and 10
+    // Normalise the max to be within 1 and 10
     const normalisedMax = normaliseToSingleDigitNumber(maxValue)
     // This is the factor used to un-normalise the values back to their original scale
     const factor = Math.pow(10, numberMagnitude(maxValue) - 1)
@@ -118,4 +122,27 @@ export const equalSizeBins = ({
         const value = i * stepSize * factor
         return roundSigFig(value, 2) // to avoid floating point issues
     })
+}
+
+export const equalSizeBinsWithMidpoint = ({
+    minValue,
+    maxValue,
+    midpoint,
+}: {
+    minValue: number
+    maxValue: number
+    midpoint: number
+    targetBinCount?: number[]
+}): number[] => {
+    const rangeOnOneSide = Math.max(
+        Math.abs(midpoint - minValue),
+        Math.abs(maxValue - midpoint)
+    )
+    const bins = equalSizeBins({
+        minValue: 0,
+        maxValue: rangeOnOneSide,
+        targetBinCount: [3, 4],
+    })
+
+    return mirrorBinsAroundMidpoint(bins, midpoint)
 }

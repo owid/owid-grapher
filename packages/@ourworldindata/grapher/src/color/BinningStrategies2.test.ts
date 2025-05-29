@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest"
 import {
     equalSizeBins,
+    equalSizeBinsWithMidpoint,
     fakeLogBins,
-    mirrorPositiveBinsAroundZeroMidpoint,
+    mirrorBinsAroundMidpoint,
 } from "./BinningStrategies2.js"
 
 describe(fakeLogBins, () => {
@@ -36,25 +37,30 @@ describe(fakeLogBins, () => {
     })
 })
 
-describe(mirrorPositiveBinsAroundZeroMidpoint, () => {
+describe(mirrorBinsAroundMidpoint, () => {
     it("should mirror positive bins around zero midpoint", () => {
-        const bins = mirrorPositiveBinsAroundZeroMidpoint([1, 2, 5, 10])
+        const bins = mirrorBinsAroundMidpoint([1, 2, 5, 10], 0)
         expect(bins).toEqual([-10, -5, -2, -1, 0, 1, 2, 5, 10])
     })
 
     it("should handle empty arrays", () => {
-        const bins = mirrorPositiveBinsAroundZeroMidpoint([])
+        const bins = mirrorBinsAroundMidpoint([], 0)
         expect(bins).toEqual([0])
     })
 
     it("should handle single positive value", () => {
-        const bins = mirrorPositiveBinsAroundZeroMidpoint([5])
+        const bins = mirrorBinsAroundMidpoint([5], 0)
         expect(bins).toEqual([-5, 0, 5])
     })
 
     it("should handle zero", () => {
-        const bins = mirrorPositiveBinsAroundZeroMidpoint([0, 1])
+        const bins = mirrorBinsAroundMidpoint([0, 1], 0)
         expect(bins).toEqual([-1, 0, 1])
+    })
+
+    it("should handle non-.zero midpoint", () => {
+        const bins = mirrorBinsAroundMidpoint([1, 2, 5], 105)
+        expect(bins).toEqual([100, 103, 104, 105, 106, 107, 110])
     })
 })
 
@@ -73,5 +79,60 @@ describe(equalSizeBins, () => {
             maxValue: 5,
         })
         expect(bins).toEqual([0, 1, 2, 3, 4, 5])
+    })
+
+    it("should handle percent scale", () => {
+        const bins = equalSizeBins({
+            minValue: 0,
+            maxValue: 100,
+            targetBinCount: [10, 10],
+        })
+        expect(bins).toEqual([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
+    })
+})
+
+describe(equalSizeBinsWithMidpoint, () => {
+    it("should generate bins with midpoint", () => {
+        const bins = equalSizeBinsWithMidpoint({
+            minValue: 0,
+            maxValue: 10,
+            midpoint: 5,
+        })
+        expect(bins).toEqual([-1, 1, 3, 5, 7, 9, 11])
+    })
+
+    it("should handle negative values with midpoint", () => {
+        const bins = equalSizeBinsWithMidpoint({
+            minValue: -10,
+            maxValue: 10,
+            midpoint: 0,
+        })
+        expect(bins).toEqual([-10, -7.5, -5, -2.5, 0, 2.5, 5, 7.5, 10])
+    })
+
+    it("should handle single value at midpoint", () => {
+        const bins = equalSizeBinsWithMidpoint({
+            minValue: 5,
+            maxValue: 12,
+            midpoint: 10,
+        })
+        expect(bins).toEqual([4, 6, 8, 10, 12, 14, 16])
+    })
+    it("should handle minValue equal to midpoint", () => {
+        const bins = equalSizeBinsWithMidpoint({
+            minValue: 25,
+            maxValue: 50,
+            midpoint: 25,
+        })
+        expect(bins).toEqual([-5, 5, 15, 25, 35, 45, 55])
+    })
+
+    it("should handle minValue equal to midpoint", () => {
+        const bins = equalSizeBinsWithMidpoint({
+            minValue: 0,
+            maxValue: 25,
+            midpoint: 25,
+        })
+        expect(bins).toEqual([-5, 5, 15, 25, 35, 45, 55])
     })
 })
