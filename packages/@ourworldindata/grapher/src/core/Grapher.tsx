@@ -202,6 +202,7 @@ import {
 import {
     TimelineController,
     TimelineManager,
+    TimelineDragTarget,
 } from "../timeline/TimelineController"
 import Mousetrap from "mousetrap"
 import { SlideShowController } from "../slideshowController/SlideShowController"
@@ -1184,6 +1185,7 @@ export class Grapher
     @observable.ref isTimelineAnimationActive = false // true if the timeline animation is either playing or paused but not finished
     @observable.ref animationStartTime?: Time
     @observable.ref areHandlesOnSameTimeBeforeAnimation?: boolean
+    @observable.ref timelineDragTarget?: TimelineDragTarget
 
     @observable.ref isEntitySelectorModalOrDrawerOpen = false
 
@@ -1529,6 +1531,14 @@ export class Grapher
 
     // Keeps a running cache of series colors at the Grapher level.
     seriesColorMap: SeriesColorMap = new Map()
+
+    @computed get closestTimelineMinTime(): number | undefined {
+        return findClosestTime(this.times, this.timelineMinTime ?? -Infinity)
+    }
+
+    @computed get closestTimelineMaxTime(): number | undefined {
+        return findClosestTime(this.times, this.timelineMaxTime ?? Infinity)
+    }
 
     @computed get startTime(): Time | undefined {
         return findClosestTime(this.times, this.startHandleTimeBound)

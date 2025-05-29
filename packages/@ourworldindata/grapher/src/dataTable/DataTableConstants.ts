@@ -3,6 +3,7 @@ import {
     ColumnSlug,
     EntityName,
     IndicatorTitleWithFragments,
+    OwidVariableRow,
     SortOrder,
     Time,
 } from "@ourworldindata/types"
@@ -11,6 +12,7 @@ import {
     EntityRegionType,
 } from "../core/EntitiesByRegionType"
 import { SelectionArray } from "../selection/SelectionArray"
+import { TimelineDragTarget } from "../timeline/TimelineController"
 
 // Grapher's rendered data table is organized into groups, where
 // each group corresponds to an indicator from the core table.
@@ -32,6 +34,9 @@ export interface DataTableManager {
     dataTableConfig: DataTableConfig
     dataTableSelection?: SelectionArray | EntityName[]
     entityNamesByRegionType?: EntityNamesByRegionType
+    timelineDragTarget?: TimelineDragTarget
+    closestTimelineMinTime?: Time
+    closestTimelineMaxTime?: Time
 }
 
 /**
@@ -93,6 +98,10 @@ export enum TargetTimeMode {
     range = "range",
 }
 
+export enum SparklineKey {
+    sparkline = "sparkline",
+}
+
 /**
  * PointColumnKey defines the available column types when displaying single
  * time point data. Used when TargetTimeMode is set to 'point'.
@@ -122,7 +131,8 @@ export enum RangeColumnKey {
  * when TargetTimeMode is set to 'point' (single time selection).
  */
 export type PointValuesForEntity = Partial<
-    Record<PointColumnKey, MinimalOwidRow>
+    Record<PointColumnKey, MinimalOwidRow> &
+        Record<SparklineKey, OwidVariableRow<number>[]>
 >
 
 /**
@@ -131,14 +141,15 @@ export type PointValuesForEntity = Partial<
  * start and end values and absolute and relative change columns.
  */
 export type RangeValuesForEntity = Partial<
-    Record<RangeColumnKey, MinimalOwidRow>
+    Record<RangeColumnKey, MinimalOwidRow> &
+        Record<SparklineKey, OwidVariableRow<number>[]>
 >
 
 export type DataTableValuesForEntity =
     | PointValuesForEntity
     | RangeValuesForEntity
 
-export type DataTableColumnKey = PointColumnKey | RangeColumnKey
+export type DataTableColumnKey = PointColumnKey | RangeColumnKey | SparklineKey
 
 export interface MinimalOwidRow {
     value?: string | number
@@ -167,3 +178,9 @@ export interface DataTableSortState {
 }
 
 export type DimensionSortIndex = number
+
+export interface SparklineHighlight {
+    time: Time
+    value?: number
+    showMarker?: boolean
+}
