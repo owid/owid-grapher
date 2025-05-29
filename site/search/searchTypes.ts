@@ -240,5 +240,7 @@ export interface SearchAutocompleteContextType {
     showSuggestions: boolean
     setShowSuggestions: (isOpen: boolean) => void
     onSelectActiveItem: () => void
-    registerSelectionHandler: (handler: (filter: Filter) => void) => void
+    registerSelectionHandler: (
+        handler: (filter: Filter, index: number) => void
+    ) => void
 }

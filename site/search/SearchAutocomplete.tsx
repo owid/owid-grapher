@@ -8,6 +8,7 @@ import {
 } from "./searchUtils.js"
 import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
 import { Filter, FilterType } from "./searchTypes.js"
+import { SiteAnalytics } from "../SiteAnalytics.js"
 
 // Default search suggestions to show when there's no query or filters
 const DEFAULT_SEARCHES = [
@@ -35,6 +36,8 @@ export const SearchAutocomplete = ({
     addCountry: (country: string) => void
     addTopic: (topic: string) => void
 }) => {
+    const analytics = useMemo(() => new SiteAnalytics(), [])
+
     const { suggestions, unmatchedQuery } = useMemo(() => {
         if (!localQuery && !filters.length) {
             return {
@@ -67,17 +70,31 @@ export const SearchAutocomplete = ({
     )
 
     const handleSelection = useCallback(
-        (filter: Filter) => {
+        (filter: Filter, index: number) => {
+            const logSearchAutocompleteClick = () => {
+                analytics.logSearchAutocompleteClick({
+                    query: localQuery,
+                    position: index,
+                    filterType: filter.type,
+                    filterName: filter.name,
+                    suggestions: suggestions.map((s) => s.name),
+                    suggestionsTypes: suggestions.map((s) => s.type),
+                    suggestionsCount: suggestions.length,
+                })
+            }
+
             match(filter.type)
                 // this setQueries logic must remain synchronized with the
                 // presentation logic in SearchAutocompleteItemContents to ensure
                 // unmatchedQuery is only displayed in the input field when it
                 // should be preserved after filter selection
                 .with(FilterType.COUNTRY, () => {
+                    logSearchAutocompleteClick()
                     addCountry(filter.name)
                     setQueries(unmatchedQuery)
                 })
                 .with(FilterType.TOPIC, () => {
+                    logSearchAutocompleteClick()
                     addTopic(filter.name)
                     setQueries("")
                 })
@@ -87,7 +104,16 @@ export const SearchAutocomplete = ({
                 .exhaustive()
             setShowSuggestions(false)
         },
-        [addCountry, addTopic, setShowSuggestions, setQueries, unmatchedQuery]
+        [
+            addCountry,
+            addTopic,
+            setShowSuggestions,
+            setQueries,
+            unmatchedQuery,
+            analytics,
+            localQuery,
+            suggestions,
+        ]
     )
 
     useEffect(() => {
@@ -126,7 +152,7 @@ export const SearchAutocomplete = ({
                                 // register the e.relatedTarget coming from an
                                 // onClick event on these buttons. So we use
                                 // onMouseDown to get there before onBlur.
-                                () => handleSelection(filter)
+                                () => handleSelection(filter, index)
                             }
                             onMouseEnter={() => setActiveIndex(index)}
                         >
