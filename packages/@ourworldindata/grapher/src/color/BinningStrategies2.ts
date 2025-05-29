@@ -24,13 +24,15 @@ export const autoChooseLogBins = ({
 
     const magnitudeDiff = Math.log10(maxValue) - Math.log10(minValue)
 
-    if (magnitudeDiff >= 3.8) {
+    console.log(magnitudeDiff)
+
+    if (magnitudeDiff >= 3.6) {
         return fakeLogBins({
             minValue,
             maxValue,
             logSteps: log10,
         })
-    } else if (magnitudeDiff >= 2.8) {
+    } else if (magnitudeDiff >= 2.6) {
         return fakeLogBins({
             minValue,
             maxValue,
@@ -115,12 +117,10 @@ export const mirrorBinsAroundMidpoint = (
 export const equalSizeBins = ({
     minValue,
     maxValue,
-    midpoint,
     targetBinCount = IDEAL_TARGET_BIN_COUNT,
 }: {
     minValue: number
     maxValue: number
-    midpoint?: number
     targetBinCount?: number[]
 }): number[] => {
     if (minValue > maxValue) {
@@ -128,7 +128,6 @@ export const equalSizeBins = ({
     }
 
     const range = maxValue - minValue
-    const minValueRounded = roundSigFig(minValue, 1)
 
     // Normalise the range to be within 1 and 10
     const normalisedRange = normaliseToSingleDigitNumber(range)
@@ -148,8 +147,14 @@ export const equalSizeBins = ({
 
     const steps = Math.ceil(normalisedRange / stepSize)
 
+    const actualStepSize = stepSize * factor
+
+    // Round min value to step size
+    const minValueRounded =
+        Math.floor(minValue / actualStepSize) * actualStepSize
+
     return R.range(0, steps + 1).map((i) => {
-        const value = i * stepSize * factor
+        const value = i * actualStepSize
         return minValueRounded + roundSigFig(value, 2) // to avoid floating point issues
     })
 }

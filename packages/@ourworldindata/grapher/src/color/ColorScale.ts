@@ -191,16 +191,16 @@ export class ColorScale {
             this.sortedNumericValues,
             (v) => v <= 0
         )
-        const quantileLower = quantile(positiveValues, 0.2)
+        const quantileLower = quantile(positiveValues, 0.1)
         const quantileUpper = quantile(positiveValues, 0.995)
         const magnitudeDiff =
             Math.log10(quantileUpper) - Math.log10(quantileLower)
 
         console.log(quantileLower, quantileUpper, magnitudeDiff)
 
-        if (magnitudeDiff < 1.5) {
+        if (magnitudeDiff < 1.2) {
             return equalSizeBins({
-                minValue: 0,
+                minValue: quantileLower ?? 1,
                 maxValue: quantileUpper ?? 1,
             })
         }
