@@ -80,21 +80,16 @@ class SaveButtonsForChart extends Component<{
         return slugify(this.props.editor.grapher.title ?? "")
     }
 
-    @observable narrativeChartNameModalOpen:
-        | "open"
-        | "open-loading"
-        | "closed" = "closed"
+    @observable isNarrativeChartNameModalOpen = false
     @observable narrativeChartNameModalError: string | undefined = undefined
 
     @action.bound async onSubmitNarrativeChartButton(name: string) {
         const { editor } = this.props
 
-        this.narrativeChartNameModalOpen = "open-loading"
         const res = await editor.saveAsNarrativeChart(name)
         if (res.success) {
-            this.narrativeChartNameModalOpen = "closed"
+            this.isNarrativeChartNameModalOpen = false
         } else {
-            this.narrativeChartNameModalOpen = "open"
             this.narrativeChartNameModalError = res.errorMsg
         }
     }
@@ -145,7 +140,7 @@ class SaveButtonsForChart extends Component<{
                         <button
                             className="btn btn-primary"
                             onClick={() => {
-                                this.narrativeChartNameModalOpen = "open"
+                                this.isNarrativeChartNameModalOpen = true
                                 this.narrativeChartNameModalError = undefined
                             }}
                             disabled={isSavingDisabled}
@@ -155,12 +150,12 @@ class SaveButtonsForChart extends Component<{
                     </div>
                 )}
                 <NarrativeChartNameModal
-                    open={this.narrativeChartNameModalOpen}
+                    isOpen={this.isNarrativeChartNameModalOpen}
                     initialName={this.initialNarrativeChartName}
                     errorMsg={this.narrativeChartNameModalError}
                     onSubmit={this.onSubmitNarrativeChartButton}
                     onCancel={() =>
-                        (this.narrativeChartNameModalOpen = "closed")
+                        (this.isNarrativeChartNameModalOpen = false)
                     }
                 />
                 {grapher.isReady &&

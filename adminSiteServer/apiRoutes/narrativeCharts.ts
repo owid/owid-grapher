@@ -40,6 +40,10 @@ import {
 } from "../chartConfigHelpers.js"
 import { deleteGrapherConfigFromR2ByUUID } from "../chartConfigR2Helpers.js"
 
+import {
+    isKebabCase,
+    KEBAB_CASE_ERROR_MSG,
+} from "../../adminShared/validation.js"
 import * as db from "../../db/db.js"
 import { expectChartById } from "./charts.js"
 import { Request } from "../authentication.js"
@@ -331,12 +335,6 @@ async function createNarrativeChartFromChart(
     | { narrativeChartId: number; success: boolean }
     | { success: false; errorMsg: string }
 > {
-    if (await narrativeChartExists(trx, { name })) {
-        return {
-            success: false,
-            errorMsg: `Narrative chart with name "${name}" already exists`,
-        }
-    }
     const parentConfig = await expectChartById(trx, parentChartId)
     const { patchConfig, fullConfig, queryParams } =
         await createPatchConfigAndQueryParamsForNarrativeChart(
@@ -371,12 +369,6 @@ async function createNarrativeChartFromMultiDimView(
     | { narrativeChartId: number; success: boolean }
     | { success: false; errorMsg: string }
 > {
-    if (await narrativeChartExists(trx, { name })) {
-        return {
-            success: false,
-            errorMsg: `Narrative chart with name "${name}" already exists`,
-        }
-    }
     const parentChartConfig = await getChartConfigById(trx, parentChartConfigId)
     const { patchConfig, fullConfig, queryParams } =
         await createPatchConfigAndQueryParamsForNarrativeChart(
@@ -442,6 +434,15 @@ export async function createNarrativeChart(
         throw new JsonError(`Invalid request: ${parseResult.error}`, 400)
     }
     const { data } = parseResult
+    if (!isKebabCase(data.name)) {
+        return { success: false, errorMsg: KEBAB_CASE_ERROR_MSG }
+    }
+    if (await narrativeChartExists(trx, { name: data.name })) {
+        return {
+            success: false,
+            errorMsg: `Narrative chart with name "${data.name}" already exists`,
+        }
+    }
     if (data.type === "chart") {
         const { name, parentChartId, config } = data
         return createNarrativeChartFromChart(

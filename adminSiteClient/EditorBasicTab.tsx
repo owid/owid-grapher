@@ -640,6 +640,10 @@ class NarrativeChartForm extends React.Component<{
         const { name, nameError, onNameChange } = this.props.editor.manager
         return (
             <Section name="Narrative chart">
+                <p>
+                    Please enter a programmatic name for the narrative chart.{" "}
+                    <i>Note that this name cannot be changed later.</i>
+                </p>
                 <TextField
                     label="Name"
                     value={name}
