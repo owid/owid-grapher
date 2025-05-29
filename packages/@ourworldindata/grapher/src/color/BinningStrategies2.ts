@@ -96,37 +96,26 @@ export const equalSizeBins = ({
         minValue = 0
     }
 
-    const roundedMaxValue = roundSigFig(maxValue, 1)
+    // Normalise the max to be withing 1 and 10
+    const normalisedMax = normaliseToSingleDigitNumber(maxValue)
+    // This is the factor used to un-normalise the values back to their original scale
+    const factor = Math.pow(10, numberMagnitude(maxValue) - 1)
 
-    // This is an ordered list of the preferred step sizes. E.g, we'd rather have steps 10, 20, 30 instead of 7, 14, 21,
-    // if that's possible within our target bin count.
-    const preferredStepSizes = [1, 10, 2, 5, 3, 4, 6, 8, 9, 7, 0]
-
-    const stepSizeCandidates = R.range(targetBinCount[0], targetBinCount[1] + 1)
-        .map((v) => {
-            const stepSize = roundedMaxValue / v
-            return roundSigFig(stepSize, 1)
-        })
-        .filter((candidateStepSize) => {
-            const numSteps = Math.ceil(roundedMaxValue / candidateStepSize)
-            return (
-                numSteps >= targetBinCount[0] && numSteps <= targetBinCount[1]
-            )
-        })
-
-    const stepSize = R.firstBy(stepSizeCandidates, (v) => {
-        const singleDigit = Math.round(normaliseToSingleDigitNumber(v))
-        return preferredStepSizes.indexOf(singleDigit)
+    // These are all common and "good" step sizes; find the first one that gives us the target bin count
+    const stepSizeCandidates = [1, 0.1, 0.5, 0.25, 0.2, 2, 0.75, 3, 0.3]
+    const stepSize = stepSizeCandidates.find((candidateStepSize) => {
+        const numSteps = Math.ceil(normalisedMax / candidateStepSize)
+        return numSteps >= targetBinCount[0] && numSteps <= targetBinCount[1]
     })
 
     if (stepSize === undefined) {
         throw new Error("No valid step size found")
     }
 
-    const steps = Math.ceil(maxValue / stepSize)
+    const steps = Math.ceil(normalisedMax / stepSize)
 
     return R.range(0, steps + 1).map((i) => {
-        const value = i * stepSize
-        return value
+        const value = i * stepSize * factor
+        return roundSigFig(value, 2) // to avoid floating point issues
     })
 }
