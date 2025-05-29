@@ -43,7 +43,8 @@ import {
     GrapherChartOrMapType,
     GrapherChartType,
 } from "@ourworldindata/types"
-import { DataTable, DataTableManager } from "../dataTable/DataTable"
+import { DataTable } from "../dataTable/DataTable"
+import { DataTableManager } from "../dataTable/DataTableConstants"
 import {
     TimelineComponent,
     TIMELINE_HEIGHT,
