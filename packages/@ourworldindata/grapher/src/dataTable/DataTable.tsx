@@ -28,13 +28,11 @@ import {
     DataValue,
     Bounds,
     DEFAULT_BOUNDS,
-    ColumnSlug,
     TickFormattingOptions,
     Tippy,
     maxBy,
     minBy,
     excludeUndefined,
-    IndicatorTitleWithFragments,
     joinTitleFragments,
     FuzzySearch,
 } from "@ourworldindata/utils"
@@ -45,45 +43,41 @@ import {
 } from "../core/GrapherConstants"
 import * as R from "remeda"
 import { makeSelectionArray } from "../chart/ChartUtils"
-import {
-    EntityNamesByRegionType,
-    EntityRegionType,
-    isEntityRegionType,
-} from "../core/EntitiesByRegionType"
+import { isEntityRegionType } from "../core/EntitiesByRegionType"
 import { match } from "ts-pattern"
 import { NoDataModal } from "../noDataModal/NoDataModal"
+import {
+    DataTableColumnKey,
+    DisplayDataTableDimension,
+    DataTableRow,
+    DataTableDimension,
+    DataTableColumnDefinition,
+    DataTableValuesForEntity,
+    RangeValuesForEntity,
+    RangeColumnKey,
+    PointValuesForEntity,
+    PointColumnKey,
+    TargetTimeMode,
+    MinimalOwidRow,
+    DataTableConfig,
+    DataTableSortState,
+    DataTableState,
+    DimensionSortIndex,
+    DataTableManager,
+    CommonDataTableFilter,
+    COMMON_DATA_TABLE_FILTERS,
+    DataTableFilter,
+} from "./DataTableConstants"
 
-const COMMON_DATA_TABLE_FILTERS = ["all", "selection"] as const
-type CommonDataTableFilter = (typeof COMMON_DATA_TABLE_FILTERS)[number]
-
-type DataTableFilter = CommonDataTableFilter | EntityRegionType
-
-export interface DataTableConfig {
-    filter: DataTableFilter
-    search: string
-}
-
-interface DataTableState {
-    sort: DataTableSortState
-}
-
-const ENTITY_DIM_INDEX = -1
-
-type DimensionIndex = number
-
-interface DataTableSortState {
-    dimIndex: DimensionIndex
-    columnKey: ColumnKey | undefined
-    order: SortOrder
-}
+const ENTITY_SORT_INDEX = -1
 
 const DEFAULT_SORT_STATE: DataTableSortState = {
-    dimIndex: ENTITY_DIM_INDEX,
+    dimIndex: ENTITY_SORT_INDEX,
     columnKey: undefined,
     order: SortOrder.asc,
 }
 
-const columnNameByType: Record<ColumnKey, string> = {
+const columnNameByType: Record<DataTableColumnKey, string> = {
     single: "Value",
     start: "Start",
     end: "End",
@@ -94,24 +88,15 @@ const columnNameByType: Record<ColumnKey, string> = {
 const inverseSortOrder = (order: SortOrder): SortOrder =>
     order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
 
-export interface DataTableManager {
-    table: OwidTable // not used here, but required in type `ChartManager`
-    tableForDisplay: OwidTable
-    entityType?: string
-    endTime?: Time
-    startTime?: Time
-    dataTableSlugs?: ColumnSlug[]
-    isNarrow?: boolean
-    dataTableConfig: DataTableConfig
-    dataTableSelection?: SelectionArray | EntityName[]
-    entityNamesByRegionType?: EntityNamesByRegionType
-}
-
 @observer
 export class DataTable extends React.Component<{
     manager: DataTableManager
     bounds?: Bounds
 }> {
+    @observable private storedState: DataTableState = {
+        sort: DEFAULT_SORT_STATE,
+    }
+
     @computed get manager(): DataTableManager {
         return this.props.manager
     }
@@ -128,16 +113,14 @@ export class DataTable extends React.Component<{
         let table = this.manager.tableForDisplay
 
         // filter table
-        const keepEntityNames = this.entityNamesForCurrentFilter
+        const keepEntityNames = this.filteredEntityNames
         if (keepEntityNames && keepEntityNames.length > 0)
             table = table.filterByEntityNames(keepEntityNames)
 
         return table
     }
 
-    @computed private get entityNamesForCurrentFilter():
-        | EntityName[]
-        | undefined {
+    @computed private get filteredEntityNames(): EntityName[] | undefined {
         const { filter } = this.tableConfig
 
         if (isEntityRegionType(filter))
@@ -153,14 +136,8 @@ export class DataTable extends React.Component<{
             .exhaustive()
     }
 
-    @observable private storedState: DataTableState = {
-        sort: DEFAULT_SORT_STATE,
-    }
-
     @computed private get tableState(): DataTableState {
-        return {
-            sort: this.sortState,
-        }
+        return { sort: this.sortState }
     }
 
     @computed private get sortState(): DataTableSortState {
@@ -171,10 +148,10 @@ export class DataTable extends React.Component<{
 
         // If not sorted by entity, then make sure the index of the chosen column exists
         dimIndex = Math.min(dimIndex, this.table.numColumns - 1)
-        if (dimIndex !== ENTITY_DIM_INDEX) {
-            const availableColumns = this.columnsWithValues[
+        if (dimIndex !== ENTITY_SORT_INDEX) {
+            const availableColumns = this.dataTableDimensionsWithValues[
                 dimIndex
-            ].columns.map((sub) => sub.key)
+            ].columnDefinitions.map((colDef) => colDef.key)
             if (
                 columnKey === undefined ||
                 !availableColumns.includes(columnKey)
@@ -196,22 +173,24 @@ export class DataTable extends React.Component<{
     @computed private get sortValueMapper(): (
         row: DataTableRow
     ) => number | string {
-        const { dimIndex, columnKey, order } = this.tableState.sort
-        if (dimIndex === ENTITY_DIM_INDEX)
+        const { dimIndex: sortIndex, columnKey, order } = this.tableState.sort
+        if (sortIndex === ENTITY_SORT_INDEX)
             return (row): string => row.entityName
 
         return (row): string | number => {
-            const dv = row.dimensionValues[dimIndex] as DimensionValue
+            const dv = row.values[sortIndex] as DataTableValuesForEntity
 
             let value: number | string | undefined
             if (dv) {
-                if (isSingleValue(dv)) value = dv.single?.value
-                else if (
+                if (isSingleValue(dv)) {
+                    value = dv.single?.value
+                } else if (
                     isRangeValue(dv) &&
                     columnKey !== undefined &&
-                    columnKey in RangeValueKey
-                )
-                    value = dv[columnKey as RangeValueKey]?.value
+                    isRangeColumnKey(columnKey)
+                ) {
+                    value = dv[columnKey]?.value
+                }
             }
 
             // We always want undefined values to be last
@@ -229,19 +208,21 @@ export class DataTable extends React.Component<{
     @computed private get hasSubheaders(): boolean {
         return (
             !this.hasDimensionHeaders ||
-            this.displayDimensions.some((header) => header.columns.length > 1)
+            this.displayDimensions.some(
+                (header) => header.columnDefinitions.length > 1
+            )
         )
     }
 
     @action.bound private updateSort(
-        dimIndex: DimensionIndex,
-        columnKey?: ColumnKey
+        dimIndex: DimensionSortIndex,
+        columnKey?: DataTableColumnKey
     ): void {
         const { sort } = this.tableState
         const order =
             sort.dimIndex === dimIndex && sort.columnKey === columnKey
                 ? inverseSortOrder(sort.order)
-                : dimIndex === ENTITY_DIM_INDEX
+                : dimIndex === ENTITY_SORT_INDEX
                   ? SortOrder.asc
                   : SortOrder.desc
 
@@ -260,9 +241,9 @@ export class DataTable extends React.Component<{
             <ColumnHeader
                 key="entity"
                 sortable={this.entityCount > 1}
-                sortedCol={sort.dimIndex === ENTITY_DIM_INDEX}
+                sortedCol={sort.dimIndex === ENTITY_SORT_INDEX}
                 sortOrder={sort.order}
-                onClick={(): void => this.updateSort(ENTITY_DIM_INDEX)}
+                onClick={(): void => this.updateSort(ENTITY_SORT_INDEX)}
                 headerText={this.entityHeaderText}
                 colType="entity"
             />
@@ -276,34 +257,31 @@ export class DataTable extends React.Component<{
     // If the table has a single data column, we move the data column
     // closer to the entity column to make it easier to read the table
     @computed private get singleDataColumnStyle():
-        | {
-              minWidth: number
-              contentMaxWidth: number
-          }
+        | { minWidth: number; contentMaxWidth: number }
         | undefined {
         // no need to do this on mobile
         if (this.manager.isNarrow) return
 
         const hasSingleDataColumn =
             this.displayDimensions.length === 1 &&
-            this.displayDimensions[0].columns.length === 1
+            this.displayDimensions[0].columnDefinitions.length === 1
 
         if (!hasSingleDataColumn) return
 
         // header text
         const dimension = this.displayDimensions[0]
-        const column = this.displayDimensions[0].columns[0]
+        const column = this.displayDimensions[0].columnDefinitions[0]
         const headerText = this.subheaderText(column, dimension)
 
         // display values
         const values = excludeUndefined(
             this.displayRows.map(
-                (row) => (row?.dimensionValues[0] as SingleValue).single
+                (row) => (row?.values[0] as PointValuesForEntity).single
             )
         )
 
-        const accessor = (v: Value): number | undefined =>
-            typeof v.value === "string" ? v.value.length : v.value
+        const accessor = (row: MinimalOwidRow): number | undefined =>
+            typeof row.value === "string" ? row.value.length : row.value
         const maxValue = maxBy(values, accessor)
         const minValue = minBy(values, accessor)
 
@@ -334,8 +312,10 @@ export class DataTable extends React.Component<{
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) => {
             const { coreTableColumn, display } = dim
-            const targetTime =
-                dim.columns.length === 1 ? dim.columns[0].targetTime : undefined
+            const singleColumn = dim.columnDefinitions.find(
+                (column) => column.key === PointColumnKey.single
+            )
+            const targetTime = singleColumn?.targetTime
 
             const dimensionHeaderText = (
                 <React.Fragment>
@@ -361,16 +341,16 @@ export class DataTable extends React.Component<{
                 </React.Fragment>
             )
 
+            const onClick = dim.sortable
+                ? (): void => this.updateSort(dimIndex, PointColumnKey.single)
+                : undefined
+
             const props = {
                 sortable: dim.sortable,
                 sortedCol: dim.sortable && sort.dimIndex === dimIndex,
                 sortOrder: sort.order,
-                onClick: (): void => {
-                    if (dim.sortable) {
-                        this.updateSort(dimIndex, SingleValueKey.single)
-                    }
-                },
-                colSpan: dim.columns.length,
+                onClick,
+                colSpan: dim.columnDefinitions.length,
                 headerText: dimensionHeaderText,
                 colType: "dimension" as const,
             }
@@ -380,19 +360,23 @@ export class DataTable extends React.Component<{
     }
 
     private subheaderText(
-        column: DataTableColumn,
-        dimension: DataTableDimension
+        column: DataTableColumnDefinition,
+        dimension: DisplayDataTableDimension
     ): string {
+        const col = dimension.coreTableColumn
         return isDeltaColumn(column.key)
             ? columnNameByType[column.key]
-            : dimension.coreTableColumn.formatTime(column.targetTime!)
+            : col.formatTime(column.targetTime!)
     }
 
     private get dimensionSubheaders(): React.ReactElement[][] {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) =>
-            dim.columns.map((column, i) => {
+            dim.columnDefinitions.map((column, colIndex) => {
                 const headerText = this.subheaderText(column, dim)
+                const onClick = column.sortable
+                    ? (): void => this.updateSort(dimIndex, column.key)
+                    : undefined
                 return (
                     <ColumnHeader
                         key={column.key}
@@ -402,13 +386,12 @@ export class DataTable extends React.Component<{
                             sort.columnKey === column.key
                         }
                         sortOrder={sort.order}
-                        onClick={(): void =>
-                            this.updateSort(dimIndex, column.key)
-                        }
+                        onClick={onClick}
                         headerText={headerText}
                         colType="subdimension"
-                        subdimensionType={column.key}
-                        lastSubdimension={i === dim.columns.length - 1}
+                        classNames={classnames({
+                            "subdimension-first": colIndex === 0,
+                        })}
                         minWidth={this.singleDataColumnStyle?.minWidth}
                         contentMaxWidth={
                             this.singleDataColumnStyle?.contentMaxWidth
@@ -442,101 +425,74 @@ export class DataTable extends React.Component<{
         )
     }
 
-    private renderValueCell(
-        key: string,
-        column: DataTableColumn,
-        dv: DimensionValue | undefined,
-        sorted: boolean,
-        actualColumn: CoreColumn
-    ): React.ReactElement {
-        if (dv === undefined || !(column.key in dv))
-            return (
-                <td
-                    key={key}
-                    className={classnames([
-                        "dimension",
-                        `dimension-${column.key}`,
-                    ])}
-                />
-            )
+    private renderValueCellContent({
+        columnDefinition,
+        valuesForEntity,
+        formatTime,
+    }: {
+        columnDefinition: DataTableColumnDefinition
+        valuesForEntity?: DataTableValuesForEntity
+        formatTime: (time: Time) => string
+    }): React.ReactElement | null {
+        if (!valuesForEntity) return null
+        if (!(columnDefinition.key in valuesForEntity)) return null
 
-        let value: Value | undefined
-
-        if (isSingleValue(dv)) value = dv[column.key as SingleValueKey] as Value
-        else if (isRangeValue(dv))
-            value = dv[column.key as RangeValueKey] as Value
-
-        if (value === undefined)
-            return (
-                <td
-                    key={key}
-                    className={classnames([
-                        "dimension",
-                        `dimension-${column.key}`,
-                    ])}
-                />
-            )
-
-        const shouldShowClosestTimeNotice =
-            value.time !== undefined &&
-            !isDeltaColumn(column.key) &&
-            column.targetTime !== undefined &&
-            column.targetTime !== value.time
-
-        const { contentMaxWidth } = this.singleDataColumnStyle ?? {}
+        const value = getValueForEntityByKey(
+            valuesForEntity,
+            columnDefinition.key
+        )
+        if (!value) return null
 
         return (
-            <td
-                key={key}
-                className={classnames([
-                    "dimension",
-                    `dimension-${column.key}`,
-                    {
-                        sorted,
-                    },
-                ])}
-            >
-                <CellContent maxWidth={contentMaxWidth}>
-                    {shouldShowClosestTimeNotice &&
-                        makeClosestTimeNotice(
-                            actualColumn.formatTime(column.targetTime!),
-                            actualColumn.formatTime(value.time!) // todo: add back format: "MMM D",
-                        )}
-                    <span>{value.displayValue}</span>
-                </CellContent>
-            </td>
+            <>
+                <ClosestTimeNotice
+                    value={value}
+                    columnDefinition={columnDefinition}
+                    formatTime={formatTime}
+                />
+                <span>{value.displayValue}</span>
+            </>
         )
     }
 
     private renderEntityRow(
         row: DataTableRow,
-        dimensions: DataTableDimension[]
+        dimensions: DisplayDataTableDimension[]
     ): React.ReactElement {
-        const { sort } = this.tableState
         return (
             <tr key={row.entityName}>
-                <td
-                    key="entity"
-                    className={classnames({
-                        entity: true,
-                        sorted: sort.dimIndex === ENTITY_DIM_INDEX,
-                    })}
-                >
+                <td key="entity" className={classnames({ entity: true })}>
                     {row.entityName}
                 </td>
-                {row.dimensionValues.map((dv, dimIndex) => {
+
+                {row.values.map((valuesForEntity, dimIndex) => {
                     const dimension = dimensions[dimIndex]
-                    return dimension.columns.map((column, colIndex) => {
-                        const key = `${dimIndex}-${colIndex}`
-                        return this.renderValueCell(
-                            key,
-                            column,
-                            dv,
-                            sort.dimIndex === dimIndex &&
-                                sort.columnKey === column.key,
-                            dimension.coreTableColumn
-                        )
-                    })
+
+                    return dimension.columnDefinitions.map(
+                        (columnDefinition, colIndex) => {
+                            const key = `${dimIndex}-${colIndex}`
+                            const formatTime = (time: Time): string =>
+                                dimension.coreTableColumn.formatTime(time)
+
+                            return (
+                                <ValueCell
+                                    key={key}
+                                    columnKey={columnDefinition.key}
+                                    isFirstColumn={colIndex === 0}
+                                    maxWidth={
+                                        this.singleDataColumnStyle
+                                            ?.contentMaxWidth
+                                    }
+                                >
+                                    {this.renderValueCellContent({
+                                        columnDefinition,
+                                        valuesForEntity,
+                                        formatTime,
+                                    })}
+                                </ValueCell>
+                            )
+                        }
+                    )
                 })}
             </tr>
         )
@@ -711,27 +667,30 @@ export class DataTable extends React.Component<{
         return this.entityNames.length
     }
 
+    @computed private get isSortable(): boolean {
+        return this.entityCount > 1
+    }
+
     componentDidMount(): void {
         exposeInstanceOnWindow(this, "dataTable")
     }
 
-    formatValue(
+    private formatValue(
         column: CoreColumn,
         value: number | string | undefined,
         formattingOverrides?: TickFormattingOptions
     ): string | undefined {
-        return value === undefined
-            ? value
-            : column.formatValueShort(value, {
-                  roundingMode: OwidVariableRoundingMode.decimalPlaces,
-                  numberAbbreviation: false,
-                  trailingZeroes: true,
-                  useNoBreakSpace: true,
-                  ...formattingOverrides,
-              })
+        if (value === undefined) return undefined
+        return column.formatValueShort(value, {
+            roundingMode: OwidVariableRoundingMode.decimalPlaces,
+            numberAbbreviation: false,
+            trailingZeroes: true,
+            useNoBreakSpace: true,
+            ...formattingOverrides,
+        })
     }
 
-    @computed get targetTimes(): number[] | undefined {
+    @computed get targetTimes(): [number] | [number, number] | undefined {
         const { startTime, endTime } = this.manager
         if (startTime === undefined || endTime === undefined) return undefined
 
@@ -739,121 +698,137 @@ export class DataTable extends React.Component<{
         return [endTime]
     }
 
-    @computed get columnsWithValues(): Dimension[] {
-        return this.columnsToShow.map((sourceColumn) => {
-            let targetTimes: number[]
-            if (sourceColumn.def.targetTime !== undefined)
-                targetTimes = [sourceColumn.def.targetTime]
-            else if (this.targetTimes !== undefined)
-                targetTimes = this.targetTimes
-            else targetTimes = [sourceColumn.maxTime]
+    private getTargetTimesForColumn(
+        coreTableColumn: CoreColumn
+    ): [number] | [number, number] {
+        // Respect the column's target time if it's set
+        if (coreTableColumn.def.targetTime !== undefined)
+            return [coreTableColumn.def.targetTime]
 
+        // Otherwise, use the table's target times
+        if (this.targetTimes !== undefined) return this.targetTimes
+
+        return [coreTableColumn.maxTime]
+    }
+
+    @computed get dataTableDimensionsWithValues(): DataTableDimension[] {
+        return this.columnsToShow.map((coreTableColumn) => {
+            const targetTimes = this.getTargetTimesForColumn(coreTableColumn)
             const targetTimeMode =
                 targetTimes.length < 2
                     ? TargetTimeMode.point
                     : TargetTimeMode.range
 
-            const prelimValuesByEntity = this.preliminaryDimensionValues({
-                sourceColumn,
+            // Get values for the given target times and apply tolerance
+            const targetValuesByEntity = this.interpolateTargetValues({
+                coreTableColumn,
                 targetTimes,
             })
 
-            const valueByEntity = this.dataValuesFromPreliminaryValues({
-                prelimValuesByEntity,
-                sourceColumn,
-                targetTimeMode,
-            })
+            // Add absolute and relative change columns if necessary
+            const valuesByEntityName =
+                this.calculateDataValuesForTargetTimeMode({
+                    targetValuesByEntity,
+                    coreTableColumn,
+                    targetTimeMode,
+                })
 
-            const columns: DimensionColumn[] = this.dimensionColumns({
-                sourceColumn,
+            // Construct column definitions for the given target time mode
+            const columnDefinitions = this.constructColumnDefinitions({
+                coreTableColumn,
                 targetTimes,
                 targetTimeMode,
             })
 
-            return {
-                columns,
-                valueByEntity,
-                sourceColumn,
-            }
+            return { columnDefinitions, valuesByEntityName, coreTableColumn }
         })
     }
 
-    private dimensionColumns({
-        sourceColumn,
+    private constructColumnDefinitions({
+        coreTableColumn,
         targetTimes,
         targetTimeMode,
     }: {
-        sourceColumn: CoreColumn
+        coreTableColumn: CoreColumn
         targetTimes: number[]
         targetTimeMode: TargetTimeMode
-    }): DimensionColumn[] {
+    }): DataTableColumnDefinition[] {
         // Inject delta columns if the data is numerical and we have start & end
         // values to compare in the table. One column for absolute difference,
         // another for % difference.
-        const deltaColumns: DimensionColumn[] = []
-        if (sourceColumn.hasNumberFormatting) {
+        const deltaColumns: DataTableColumnDefinition[] = []
+        if (coreTableColumn.hasNumberFormatting) {
             if (targetTimeMode === TargetTimeMode.range) {
-                const { tableDisplay = {} } = sourceColumn.display ?? {}
+                const { tableDisplay = {} } = coreTableColumn.display ?? {}
                 if (!tableDisplay.hideAbsoluteChange)
-                    deltaColumns.push({ key: RangeValueKey.delta })
+                    deltaColumns.push({
+                        key: RangeColumnKey.delta,
+                        sortable: this.isSortable,
+                    })
                 if (!tableDisplay.hideRelativeChange)
-                    deltaColumns.push({ key: RangeValueKey.deltaRatio })
+                    deltaColumns.push({
+                        key: RangeColumnKey.deltaRatio,
+                        sortable: this.isSortable,
+                    })
             }
         }
 
-        const valueColumns = targetTimes.map((targetTime, index) => ({
-            key:
-                targetTimeMode === TargetTimeMode.range
-                    ? index === 0
-                        ? RangeValueKey.start
-                        : RangeValueKey.end
-                    : SingleValueKey.single,
-            targetTime,
-            targetTimeMode,
-        }))
+        const valueColumns: DataTableColumnDefinition[] = targetTimes.map(
+            (targetTime, index) => ({
+                key:
+                    targetTimeMode === TargetTimeMode.range
+                        ? index === 0
+                            ? RangeColumnKey.start
+                            : RangeColumnKey.end
+                        : PointColumnKey.single,
+                targetTime,
+                sortable: this.isSortable,
+            })
+        )
+
         return [...valueColumns, ...deltaColumns]
     }
 
-    private preliminaryDimensionValues({
-        sourceColumn,
+    private interpolateTargetValues({
+        coreTableColumn,
         targetTimes,
     }: {
-        sourceColumn: CoreColumn
+        coreTableColumn: CoreColumn
         targetTimes: number[]
     }): Map<string, (DataValue | undefined)[]> {
         return valuesByEntityAtTimes(
-            sourceColumn.valueByEntityNameAndOriginalTime,
+            coreTableColumn.valueByEntityNameAndOriginalTime,
             targetTimes,
-            sourceColumn.tolerance
+            coreTableColumn.tolerance
         )
     }
 
-    private dataValuesFromPreliminaryValues({
-        prelimValuesByEntity,
+    private calculateDataValuesForTargetTimeMode({
+        targetValuesByEntity,
         targetTimeMode,
-        sourceColumn,
+        coreTableColumn,
     }: {
-        prelimValuesByEntity: Map<string, (DataValue | undefined)[]>
+        targetValuesByEntity: Map<string, (DataValue | undefined)[]>
         targetTimeMode: TargetTimeMode
-        sourceColumn: CoreColumn
-    }): Map<string, DimensionValue> {
-        return es6mapValues(prelimValuesByEntity, (dvs) => {
+        coreTableColumn: CoreColumn
+    }): Map<string, DataTableValuesForEntity> {
+        return es6mapValues(targetValuesByEntity, (dvs) => {
             // There is always a column, but not always a data value (in the delta column the
             // value needs to be calculated)
             if (targetTimeMode === TargetTimeMode.range) {
-                const [start, end]: (Value | undefined)[] = dvs
-                const result: RangeValue = {
+                const [start, end]: (MinimalOwidRow | undefined)[] = dvs
+                const result: RangeValuesForEntity = {
                     start: {
                         ...start,
                         displayValue: this.formatValue(
-                            sourceColumn,
+                            coreTableColumn,
                             start?.value
                         ),
                     },
                     end: {
                         ...end,
                         displayValue: this.formatValue(
-                            sourceColumn,
+                            coreTableColumn,
                             end?.value
                         ),
                     },
@@ -877,14 +852,14 @@ export class DataTable extends React.Component<{
                     result.delta = {
                         value: deltaValue,
                         displayValue: this.formatValue(
-                            sourceColumn,
+                            coreTableColumn,
                             deltaValue,
                             {
                                 showPlus: true,
                                 unit:
-                                    sourceColumn.shortUnit === "%"
+                                    coreTableColumn.shortUnit === "%"
                                         ? "pp"
-                                        : sourceColumn.shortUnit,
+                                        : coreTableColumn.shortUnit,
                             }
                         ),
                     }
@@ -894,7 +869,7 @@ export class DataTable extends React.Component<{
                         displayValue:
                             isFinite(deltaRatioValue) && !isNaN(deltaRatioValue)
                                 ? this.formatValue(
-                                      sourceColumn,
+                                      coreTableColumn,
                                       deltaRatioValue * 100,
                                       {
                                           unit: "%",
@@ -909,12 +884,12 @@ export class DataTable extends React.Component<{
             } else {
                 // if single time
                 const dv = dvs[0]
-                const result: SingleValue = {
+                const result: PointValuesForEntity = {
                     single: { ...dv },
                 }
                 if (dv !== undefined)
                     result.single!.displayValue = this.formatValue(
-                        sourceColumn,
+                        coreTableColumn,
                         dv.value
                     )
                 return result
@@ -922,26 +897,22 @@ export class DataTable extends React.Component<{
         })
     }
 
-    @computed get displayDimensions(): DataTableDimension[] {
-        const { entityCount } = this
-        // Todo: for sorting etc, use CoreTable?
-        return this.columnsWithValues.map((d) => {
-            const coreTableColumn = d.sourceColumn
+    @computed get displayDimensions(): DisplayDataTableDimension[] {
+        return this.dataTableDimensionsWithValues.map((d) => {
+            const coreTableColumn = d.coreTableColumn
+            const columnName = coreTableColumn.titlePublicOrDisplayName
             const unit =
                 coreTableColumn.unit === "%" ? "percent" : coreTableColumn.unit
 
-            const columnName = coreTableColumn.titlePublicOrDisplayName
+            // A top-level header is only sortable if it has a single nested column, because
+            // in that case the nested column is not rendered.
+            const sortable = d.columnDefinitions.length === 1
 
             return {
                 coreTableColumn,
-                // A top-level header is only sortable if it has a single nested column, because
-                // in that case the nested column is not rendered.
-                sortable: d.columns.length === 1,
-                columns: d.columns.map((column) => ({
-                    ...column,
-                    sortable: entityCount > 1,
-                })),
+                columnDefinitions: d.columnDefinitions,
                 display: { columnName, unit },
+                sortable,
             }
         })
     }
@@ -950,8 +921,8 @@ export class DataTable extends React.Component<{
         return this.entityNames.map((entityName) => {
             return {
                 entityName,
-                dimensionValues: this.columnsWithValues.map((d) =>
-                    d.valueByEntity.get(entityName)
+                values: this.dataTableDimensionsWithValues.map((d) =>
+                    d.valuesByEntityName.get(entityName)
                 ),
             }
         })
@@ -964,21 +935,19 @@ export class DataTable extends React.Component<{
 }
 
 function ColumnHeader(props: {
+    classNames?: string
     sortable: boolean
     sortedCol: boolean
     sortOrder: SortOrder
-    onClick: () => void
+    onClick?: () => void
     rowSpan?: number
     colSpan?: number
     headerText: React.ReactFragment
     colType: "entity" | "dimension" | "subdimension"
-    subdimensionType?: ColumnKey
-    lastSubdimension?: boolean
     minWidth?: number
     contentMaxWidth?: number
 }): React.ReactElement {
-    const { sortable, sortedCol, colType, subdimensionType, lastSubdimension } =
-        props
+    const { sortable, sortedCol, colType } = props
     const isEntityColumn = colType === "entity"
     const sortIcon = sortable && (
         <SortIcon
@@ -995,14 +964,7 @@ function ColumnHeader(props: {
 
     return (
         <th
-            className={classnames(colType, {
-                sortable,
-                sorted: sortedCol,
-                firstSubdimension: subdimensionType === "start",
-                endSubdimension: subdimensionType === "end",
-                lastSubdimension,
-                deltaColumn: isDeltaColumn(subdimensionType),
-            })}
+            className={classnames(props.classNames, colType, { sortable })}
             rowSpan={props.rowSpan ?? 1}
             colSpan={props.colSpan ?? 1}
             onClick={props.onClick}
@@ -1025,6 +987,26 @@ function CellContent(props: {
 }): React.ReactElement {
     if (!props.maxWidth) return <>{props.children}</>
     return <div style={{ maxWidth: props.maxWidth }}>{props.children}</div>
+}
+
+function ValueCell(props: {
+    columnKey: DataTableColumnKey
+    isFirstColumn?: boolean
+    maxWidth?: number
+    children?: React.ReactNode
+}): React.ReactElement {
+    const className = classnames([
+        "cell",
+        `cell-${props.columnKey}`,
+        { "cell-first": props.isFirstColumn },
+    ])
+    return (
+        <td className={className}>
+            <CellContent maxWidth={props.maxWidth}>
+                {props.children}
+            </CellContent>
+        </td>
+    )
 }
 
 function SortIcon(props: {
@@ -1054,97 +1036,78 @@ function SortIcon(props: {
     )
 }
 
-const makeClosestTimeNotice = (
-    targetTime: string,
-    closestTime: string
-): React.ReactElement => (
-    <Tippy
-        content={
-            <div className="closest-time-notice-tippy">
-                <strong>Data not available for {targetTime}</strong>
-                <br />
-                Showing closest available data point ({closestTime})
-            </div>
-        }
-        arrow={false}
-    >
-        <span className="closest-time-notice-icon">
-            <span className="icon">
-                <FontAwesomeIcon icon={faInfoCircle} />
+function ClosestTimeNotice({
+    value,
+    columnDefinition,
+    formatTime,
+}: {
+    value: MinimalOwidRow
+    columnDefinition: DataTableColumnDefinition
+    formatTime: (time: Time) => string
+}): React.ReactElement | null {
+    const shouldShowClosestTimeNotice =
+        !isDeltaColumn(columnDefinition.key) &&
+        columnDefinition.targetTime !== value.time
+
+    if (
+        value.time === undefined ||
+        columnDefinition.targetTime === undefined ||
+        !shouldShowClosestTimeNotice
+    )
+        return null
+
+    const targetTime = formatTime(columnDefinition.targetTime)
+    const closestTime = formatTime(value.time)
+
+    return (
+        <Tippy
+            content={
+                <div className="closest-time-notice-tippy">
+                    <strong>Data not available for {targetTime}</strong>
+                    <br />
+                    Showing closest available data point ({closestTime})
+                </div>
+            }
+            arrow={false}
+        >
+            <span className="closest-time-notice-icon">
+                <span className="icon">
+                    <FontAwesomeIcon icon={faInfoCircle} />
+                </span>
             </span>
-        </span>
-    </Tippy>
-)
-
-enum TargetTimeMode {
-    point = "point",
-    range = "range",
+        </Tippy>
+    )
 }
 
-interface Dimension {
-    columns: DimensionColumn[]
-    valueByEntity: Map<string, DimensionValue>
-    sourceColumn: CoreColumn
+function getValueForEntityByKey(
+    dimensionValue: DataTableValuesForEntity,
+    columnKey: DataTableColumnKey
+): MinimalOwidRow | undefined {
+    if (isSingleValue(dimensionValue)) {
+        return dimensionValue[columnKey as PointColumnKey] as MinimalOwidRow
+    } else if (isRangeValue(dimensionValue)) {
+        return dimensionValue[columnKey as RangeColumnKey] as MinimalOwidRow
+    }
+    return undefined
 }
 
-interface DimensionColumn {
-    key: SingleValueKey | RangeValueKey
-    targetTime?: Time
-    targetTimeMode?: TargetTimeMode
+function isRangeColumnKey(key: string): key is RangeColumnKey {
+    return Object.values(RangeColumnKey).includes(key as any)
 }
 
-interface DataTableColumn extends DimensionColumn {
-    sortable: boolean
-}
-
-interface Value {
-    value?: string | number
-    displayValue?: string
-    time?: Time
-}
-
-// range (two point values)
-enum RangeValueKey {
-    start = "start",
-    end = "end",
-    delta = "delta",
-    deltaRatio = "deltaRatio",
-}
-
-type RangeValue = Record<RangeValueKey, Value | undefined>
-
-function isRangeValue(value: DimensionValue): value is RangeValue {
+function isRangeValue(
+    value: DataTableValuesForEntity
+): value is RangeValuesForEntity {
     return "start" in value
 }
 
-// single point values
-enum SingleValueKey {
-    single = "single",
-}
-
-type SingleValue = Record<SingleValueKey, Value | undefined>
-
-function isSingleValue(value: DimensionValue): value is SingleValue {
+function isSingleValue(
+    value: DataTableValuesForEntity
+): value is PointValuesForEntity {
     return "single" in value
 }
 
-// combined types
-type DimensionValue = SingleValue | RangeValue
-type ColumnKey = SingleValueKey | RangeValueKey
-
-interface DataTableDimension {
-    columns: DataTableColumn[]
-    coreTableColumn: CoreColumn
-    sortable: boolean
-    display: { columnName: IndicatorTitleWithFragments; unit?: string }
-}
-
-interface DataTableRow {
-    entityName: EntityName
-    dimensionValues: (DimensionValue | undefined)[] // TODO make it not undefined
-}
-
-function isDeltaColumn(columnKey?: ColumnKey): boolean {
+function isDeltaColumn(columnKey?: DataTableColumnKey): boolean {
     return columnKey === "delta" || columnKey === "deltaRatio"
 }
 
