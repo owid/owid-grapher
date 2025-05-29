@@ -501,6 +501,8 @@ export class GrapherState {
         }
 
         this.additionalDataLoaderFn = options.additionalDataLoaderFn
+        this.isEmbeddedInAnOwidPage = options.isEmbeddedInAnOwidPage ?? false
+        this.isEmbeddedInADataPage = options.isEmbeddedInADataPage ?? false
         if (options.staticFormat) this._staticFormat = options.staticFormat
 
         this._inputTable =

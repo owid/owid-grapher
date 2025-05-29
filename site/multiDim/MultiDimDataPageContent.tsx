@@ -109,14 +109,18 @@ export function DataPageContent({
     tagToSlugMap,
     imageMetadata,
 }: MultiDimDataPageContentProps) {
+    // A non-empty manager is used in the size calculations
+    // within grapher, so we have to initialize it early with
+    // a truthy value
+    const manager = useRef<GrapherManager>({ editUrl: "" })
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
             additionalDataLoaderFn: (varId: number) =>
                 loadVariableDataAndMetadata(varId, DATA_API_URL),
+            manager: manager.current,
         })
     )
     const grapherFigureRef = useRef<HTMLDivElement>(null)
-    const manager = useRef<GrapherManager>({})
     const [searchParams, setSearchParams] = useSearchParams()
     const [varDatapageData, setVarDatapageData] =
         useState<VariableDataPageData | null>(null)

@@ -16,6 +16,7 @@ export interface GrapherFigureViewProps {
     slug?: string
     config?: Partial<GrapherProgrammaticInterface>
     queryStr?: string
+    isEmbeddedInAnIframe?: boolean
 }
 
 export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
@@ -30,6 +31,10 @@ export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
         adminBaseUrl: ADMIN_BASE_URL,
         bounds,
         enableKeyboardShortcuts: true,
+        isEmbeddedInAnOwidPage:
+            props.isEmbeddedInAnIframe === undefined
+                ? true
+                : !props.isEmbeddedInAnIframe,
     }
 
     return (
