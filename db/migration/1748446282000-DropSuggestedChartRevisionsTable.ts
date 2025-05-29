@@ -9,7 +9,7 @@ export class DropSuggestedChartRevisionsTable1748446282000
         )
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
+    public async down(_queryRunner: QueryRunner): Promise<void> {
         // No rollback - table removal is permanent
     }
 }
